@@ -195,7 +195,7 @@ export default function AppointmentsListPage() {
           title="Cancelled"
           value={stats?.cancelled || 0}
           icon={XCircle}
-          variant="danger"
+          variant="warning"
         />
       </div>
 

@@ -388,7 +388,7 @@ export default function DoctorSchedulePage() {
         onOpenChange={(open) => !open && setDeleteId(null)}
         title="Delete Schedule"
         description="Are you sure you want to delete this schedule?"
-        confirmText="Delete"
+        confirmLabel="Delete"
         onConfirm={handleDelete}
         variant="destructive"
       />

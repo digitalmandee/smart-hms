@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -76,7 +76,7 @@ export default function AppointmentFormPage() {
   });
 
   // Update form when editing
-  useState(() => {
+  useEffect(() => {
     if (existingAppointment && isEditing) {
       form.reset({
         patient_id: existingAppointment.patient_id,
@@ -92,7 +92,7 @@ export default function AppointmentFormPage() {
         setSelectedPatient(existingAppointment.patient);
       }
     }
-  });
+  }, [existingAppointment, isEditing, form]);
 
   const selectedDoctorId = form.watch('doctor_id');
   const selectedDate = form.watch('appointment_date');
@@ -103,7 +103,16 @@ export default function AppointmentFormPage() {
         await updateAppointment.mutateAsync({ id, ...data });
         toast({ title: 'Appointment updated successfully' });
       } else {
-        await createAppointment.mutateAsync(data);
+        await createAppointment.mutateAsync({
+          patient_id: data.patient_id,
+          doctor_id: data.doctor_id,
+          branch_id: data.branch_id,
+          appointment_date: data.appointment_date,
+          appointment_time: data.appointment_time,
+          appointment_type: data.appointment_type,
+          chief_complaint: data.chief_complaint || null,
+          notes: data.notes || null,
+        });
         toast({ title: 'Appointment created successfully' });
       }
       navigate('/app/appointments');
