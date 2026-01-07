@@ -309,6 +309,50 @@ export function useMarkNoShow() {
   });
 }
 
+// Nursing queue - patients categorized by vitals status
+export function useNursingQueue() {
+  const { profile } = useAuth();
+  const today = new Date().toISOString().split('T')[0];
+
+  return useQuery({
+    queryKey: ['nursing-queue', today, profile?.organization_id],
+    queryFn: async () => {
+      if (!profile?.organization_id) {
+        return { awaitingVitals: [], vitalsComplete: [], inProgress: [] };
+      }
+
+      const { data, error } = await supabase
+        .from('appointments')
+        .select(`
+          *,
+          patient:patients(id, first_name, last_name, patient_number, phone, date_of_birth, gender),
+          doctor:doctors(id, specialization, profile:profiles(full_name))
+        `)
+        .eq('organization_id', profile.organization_id)
+        .eq('appointment_date', today)
+        .in('status', ['checked_in', 'in_progress'])
+        .order('priority', { ascending: false })
+        .order('check_in_at', { ascending: true });
+
+      if (error) throw error;
+
+      const appointments = data as AppointmentWithRelations[];
+
+      return {
+        awaitingVitals: appointments.filter(
+          (a) => a.status === 'checked_in' && !a.check_in_vitals
+        ),
+        vitalsComplete: appointments.filter(
+          (a) => a.status === 'checked_in' && a.check_in_vitals
+        ),
+        inProgress: appointments.filter((a) => a.status === 'in_progress'),
+      };
+    },
+    enabled: !!profile?.organization_id,
+    refetchInterval: 15000, // Refresh every 15 seconds
+  });
+}
+
 // Check in with vitals and priority
 export function useCheckInWithVitals() {
   const queryClient = useQueryClient();
