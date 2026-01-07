@@ -1,1 +1,7 @@
 project_id = "wxafzwlodzohrwdwkuzy"
+
+[functions.check-overdue-invoices]
+verify_jwt = false
+
+[functions.send-appointment-reminders]
+verify_jwt = false
