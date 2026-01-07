@@ -13,6 +13,14 @@ import { LoginPage } from "./pages/auth/LoginPage";
 import { SignupPage } from "./pages/auth/SignupPage";
 import { DashboardPage } from "./pages/app/DashboardPage";
 
+// Super Admin pages
+import { SuperAdminDashboard } from "./pages/super-admin/SuperAdminDashboard";
+import { OrganizationsListPage } from "./pages/super-admin/OrganizationsListPage";
+import { CreateOrganizationPage } from "./pages/super-admin/CreateOrganizationPage";
+import { OrganizationDetailPage } from "./pages/super-admin/OrganizationDetailPage";
+import { SystemSettingsPage } from "./pages/super-admin/SystemSettingsPage";
+import { PlatformUsersPage } from "./pages/super-admin/PlatformUsersPage";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -43,6 +51,24 @@ const App = () => (
             >
               <Route index element={<Navigate to="dashboard" replace />} />
               <Route path="dashboard" element={<DashboardPage />} />
+            </Route>
+
+            {/* Super Admin routes */}
+            <Route
+              path="/super-admin"
+              element={
+                <ProtectedRoute requiredRole="super_admin">
+                  <DashboardLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<Navigate to="dashboard" replace />} />
+              <Route path="dashboard" element={<SuperAdminDashboard />} />
+              <Route path="organizations" element={<OrganizationsListPage />} />
+              <Route path="organizations/new" element={<CreateOrganizationPage />} />
+              <Route path="organizations/:id" element={<OrganizationDetailPage />} />
+              <Route path="settings" element={<SystemSettingsPage />} />
+              <Route path="users" element={<PlatformUsersPage />} />
             </Route>
 
             {/* Catch-all */}
