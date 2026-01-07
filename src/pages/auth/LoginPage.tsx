@@ -8,7 +8,21 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Eye, EyeOff } from "lucide-react";
+import { Loader2, Eye, EyeOff, Crown, Building, Building2, Stethoscope, Heart, UserCheck, Pill, FlaskConical, Calculator } from "lucide-react";
+
+const demoAccounts = [
+  { email: "superadmin@smarthms.demo", role: "Super Admin", icon: Crown, color: "bg-amber-500/10 text-amber-600 hover:bg-amber-500/20" },
+  { email: "orgadmin@smarthms.demo", role: "Org Admin", icon: Building, color: "bg-purple-500/10 text-purple-600 hover:bg-purple-500/20" },
+  { email: "branchadmin@smarthms.demo", role: "Branch Admin", icon: Building2, color: "bg-blue-500/10 text-blue-600 hover:bg-blue-500/20" },
+  { email: "doctor@smarthms.demo", role: "Doctor", icon: Stethoscope, color: "bg-green-500/10 text-green-600 hover:bg-green-500/20" },
+  { email: "nurse@smarthms.demo", role: "Nurse", icon: Heart, color: "bg-pink-500/10 text-pink-600 hover:bg-pink-500/20" },
+  { email: "receptionist@smarthms.demo", role: "Receptionist", icon: UserCheck, color: "bg-teal-500/10 text-teal-600 hover:bg-teal-500/20" },
+  { email: "pharmacist@smarthms.demo", role: "Pharmacist", icon: Pill, color: "bg-orange-500/10 text-orange-600 hover:bg-orange-500/20" },
+  { email: "labtech@smarthms.demo", role: "Lab Tech", icon: FlaskConical, color: "bg-violet-500/10 text-violet-600 hover:bg-violet-500/20" },
+  { email: "accountant@smarthms.demo", role: "Accountant", icon: Calculator, color: "bg-slate-500/10 text-slate-600 hover:bg-slate-500/20" },
+];
+
+const DEMO_PASSWORD = "Demo@123";
 
 export const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -23,10 +37,20 @@ export const LoginPage = () => {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   });
+
+  const handleDemoLogin = (email: string) => {
+    setValue("email", email);
+    setValue("password", DEMO_PASSWORD);
+    toast({
+      title: "Demo credentials loaded",
+      description: `Email: ${email} | Password: ${DEMO_PASSWORD}`,
+    });
+  };
 
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
@@ -138,6 +162,39 @@ export const LoginPage = () => {
           Sign In
         </Button>
       </form>
+
+      {/* Demo Accounts Section */}
+      <div className="space-y-3">
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t border-border" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-background px-2 text-muted-foreground">
+              Demo Accounts
+            </span>
+          </div>
+        </div>
+        
+        <p className="text-xs text-center text-muted-foreground">
+          Click any role to auto-fill credentials (Password: {DEMO_PASSWORD})
+        </p>
+
+        <div className="grid grid-cols-3 gap-2">
+          {demoAccounts.map((account) => (
+            <button
+              key={account.email}
+              type="button"
+              onClick={() => handleDemoLogin(account.email)}
+              className={`flex flex-col items-center gap-1 p-2 rounded-lg border border-border transition-all ${account.color}`}
+              disabled={isLoading}
+            >
+              <account.icon className="h-4 w-4" />
+              <span className="text-xs font-medium">{account.role}</span>
+            </button>
+          ))}
+        </div>
+      </div>
 
       <div className="text-center text-sm">
         <span className="text-muted-foreground">Don't have an account? </span>
