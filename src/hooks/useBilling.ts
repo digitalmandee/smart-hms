@@ -1109,3 +1109,60 @@ export function useAgingReport(branchId?: string) {
     },
   });
 }
+
+export function usePatientBillingHistory(patientId: string | undefined) {
+  return useQuery({
+    queryKey: ["patient-billing-history", patientId],
+    queryFn: async () => {
+      if (!patientId) return { invoices: [], payments: [], summary: null };
+
+      // Fetch invoices
+      const { data: invoices, error: invoicesError } = await supabase
+        .from("invoices")
+        .select("*")
+        .eq("patient_id", patientId)
+        .order("invoice_date", { ascending: false });
+
+      if (invoicesError) throw invoicesError;
+
+      // Fetch payments for these invoices
+      const invoiceIds = invoices?.map((inv) => inv.id) || [];
+      let payments: any[] = [];
+
+      if (invoiceIds.length > 0) {
+        const { data: paymentsData, error: paymentsError } = await supabase
+          .from("payments")
+          .select(`
+            *,
+            payment_method:payment_methods!payments_payment_method_id_fkey(name, icon)
+          `)
+          .in("invoice_id", invoiceIds)
+          .order("payment_date", { ascending: false });
+
+        if (paymentsError) throw paymentsError;
+        payments = paymentsData || [];
+      }
+
+      // Calculate summary
+      let totalBilled = 0;
+      let totalPaid = 0;
+
+      invoices?.forEach((inv) => {
+        if (inv.status !== "cancelled") {
+          totalBilled += Number(inv.total_amount || 0);
+          totalPaid += Number(inv.paid_amount || 0);
+        }
+      });
+
+      const summary = {
+        totalInvoices: invoices?.length || 0,
+        totalBilled,
+        totalPaid,
+        totalOutstanding: totalBilled - totalPaid,
+      };
+
+      return { invoices: invoices || [], payments, summary };
+    },
+    enabled: !!patientId,
+  });
+}
