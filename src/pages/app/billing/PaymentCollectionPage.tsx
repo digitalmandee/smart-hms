@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { format } from "date-fns";
 import { PageHeader } from "@/components/PageHeader";
@@ -20,8 +20,7 @@ export default function PaymentCollectionPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { profile } = useAuth();
-  const printRef = useRef<HTMLDivElement>(null);
-  const { handlePrint } = usePrint();
+  const { printRef, handlePrint } = usePrint();
 
   const { data: invoice, isLoading } = useInvoice(id);
   const { data: organizations } = useOrganizations();
@@ -106,7 +105,7 @@ export default function PaymentCollectionPage() {
             </p>
 
             <div className="flex flex-col gap-2 pt-4">
-              <Button onClick={() => handlePrint(printRef)}>
+              <Button onClick={() => handlePrint({ title: "Payment Receipt" })}>
                 <Printer className="mr-2 h-4 w-4" />
                 Print Receipt
               </Button>

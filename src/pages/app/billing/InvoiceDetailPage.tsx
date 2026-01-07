@@ -1,4 +1,3 @@
-import { useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { format } from "date-fns";
 import { PageHeader } from "@/components/PageHeader";
@@ -36,8 +35,7 @@ export default function InvoiceDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { profile } = useAuth();
-  const printRef = useRef<HTMLDivElement>(null);
-  const { handlePrint } = usePrint();
+  const { printRef, handlePrint } = usePrint();
 
   const { data: invoice, isLoading } = useInvoice(id);
   const { data: organizations } = useOrganizations();
@@ -86,7 +84,7 @@ export default function InvoiceDetailPage() {
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back
             </Button>
-            <Button variant="outline" onClick={() => handlePrint(printRef)}>
+            <Button variant="outline" onClick={() => handlePrint({ title: invoice.invoice_number })}>
               <Printer className="mr-2 h-4 w-4" />
               Print
             </Button>
@@ -239,17 +237,20 @@ export default function InvoiceDetailPage() {
                 <ConfirmDialog
                   title="Cancel Invoice"
                   description="Are you sure you want to cancel this invoice? This action cannot be undone."
+                  variant="destructive"
+                  confirmLabel="Cancel Invoice"
                   onConfirm={() => {
                     cancelMutation.mutate(invoice.id, {
                       onSuccess: () => navigate("/app/billing/invoices"),
                     });
                   }}
-                >
-                  <Button variant="destructive" className="w-full">
-                    <XCircle className="mr-2 h-4 w-4" />
-                    Cancel Invoice
-                  </Button>
-                </ConfirmDialog>
+                  trigger={
+                    <Button variant="destructive" className="w-full">
+                      <XCircle className="mr-2 h-4 w-4" />
+                      Cancel Invoice
+                    </Button>
+                  }
+                />
               </CardContent>
             </Card>
           )}
