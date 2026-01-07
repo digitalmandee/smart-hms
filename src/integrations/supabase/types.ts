@@ -22,6 +22,9 @@ export type Database = {
             | Database["public"]["Enums"]["appointment_type"]
             | null
           branch_id: string
+          check_in_at: string | null
+          check_in_by: string | null
+          check_in_vitals: Json | null
           chief_complaint: string | null
           created_at: string
           created_by: string | null
@@ -30,6 +33,7 @@ export type Database = {
           notes: string | null
           organization_id: string
           patient_id: string
+          priority: number | null
           status: Database["public"]["Enums"]["appointment_status"] | null
           token_number: number | null
           updated_at: string
@@ -41,6 +45,9 @@ export type Database = {
             | Database["public"]["Enums"]["appointment_type"]
             | null
           branch_id: string
+          check_in_at?: string | null
+          check_in_by?: string | null
+          check_in_vitals?: Json | null
           chief_complaint?: string | null
           created_at?: string
           created_by?: string | null
@@ -49,6 +56,7 @@ export type Database = {
           notes?: string | null
           organization_id: string
           patient_id: string
+          priority?: number | null
           status?: Database["public"]["Enums"]["appointment_status"] | null
           token_number?: number | null
           updated_at?: string
@@ -60,6 +68,9 @@ export type Database = {
             | Database["public"]["Enums"]["appointment_type"]
             | null
           branch_id?: string
+          check_in_at?: string | null
+          check_in_by?: string | null
+          check_in_vitals?: Json | null
           chief_complaint?: string | null
           created_at?: string
           created_by?: string | null
@@ -68,6 +79,7 @@ export type Database = {
           notes?: string | null
           organization_id?: string
           patient_id?: string
+          priority?: number | null
           status?: Database["public"]["Enums"]["appointment_status"] | null
           token_number?: number | null
           updated_at?: string
@@ -78,6 +90,13 @@ export type Database = {
             columns: ["branch_id"]
             isOneToOne: false
             referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_check_in_by_fkey"
+            columns: ["check_in_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -1751,7 +1770,7 @@ export type Database = {
         | "completed"
         | "cancelled"
         | "no_show"
-      appointment_type: "walk_in" | "scheduled" | "follow_up"
+      appointment_type: "walk_in" | "scheduled" | "follow_up" | "emergency"
       field_type:
         | "text"
         | "number"
@@ -1948,7 +1967,7 @@ export const Constants = {
         "cancelled",
         "no_show",
       ],
-      appointment_type: ["walk_in", "scheduled", "follow_up"],
+      appointment_type: ["walk_in", "scheduled", "follow_up", "emergency"],
       field_type: [
         "text",
         "number",

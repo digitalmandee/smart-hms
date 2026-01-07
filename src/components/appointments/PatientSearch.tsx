@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { QuickPatientModal } from './QuickPatientModal';
 
 interface Patient {
   id: string;
@@ -144,17 +145,22 @@ export function PatientSearch({ onSelect, onCreateNew, selectedPatient }: Patien
               <p className="text-center text-muted-foreground mb-3">
                 No patients found
               </p>
-              {onCreateNew && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onCreateNew}
-                  className="w-full"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Register New Patient
-                </Button>
-              )}
+              <div className="flex gap-2">
+                <QuickPatientModal
+                  onPatientCreated={(patient) => handleSelect(patient as Patient)}
+                  trigger={
+                    <Button variant="default" size="sm" className="flex-1">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Quick Register
+                    </Button>
+                  }
+                />
+                {onCreateNew && (
+                  <Button variant="outline" size="sm" className="flex-1" onClick={onCreateNew}>
+                    Full Form
+                  </Button>
+                )}
+              </div>
             </div>
           ) : null}
         </Card>

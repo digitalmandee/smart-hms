@@ -1,4 +1,4 @@
-import { Clock, User, Phone, MoreVertical } from 'lucide-react';
+import { Clock, User, Phone, MoreVertical, AlertTriangle, Activity } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -8,8 +8,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { AppointmentWithRelations } from '@/hooks/useAppointments';
 import { cn } from '@/lib/utils';
+
+const priorityColors: Record<number, { bg: string; icon: boolean; label: string }> = {
+  0: { bg: '', icon: false, label: 'Normal' },
+  1: { bg: 'bg-yellow-500', icon: true, label: 'Urgent' },
+  2: { bg: 'bg-red-500', icon: true, label: 'Emergency' },
+};
 
 interface AppointmentCardProps {
   appointment: AppointmentWithRelations;
@@ -53,6 +60,9 @@ export function AppointmentCard({
   const patient = appointment.patient;
   const doctor = appointment.doctor;
   const status = appointment.status || 'scheduled';
+  const priority = (appointment as any).priority || 0;
+  const priorityStyle = priorityColors[priority];
+  const hasCheckInVitals = !!(appointment as any).check_in_vitals;
 
   const formatTime = (time: string | null) => {
     if (!time) return '--:--';
@@ -71,15 +81,18 @@ export function AppointmentCard({
         )}
         onClick={onClick}
       >
-        <div className="flex items-start justify-between gap-4">
+      <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className={cn(
-              'w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold',
+              'w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold relative',
               status === 'in_progress' 
                 ? 'bg-primary text-primary-foreground' 
                 : 'bg-muted text-muted-foreground'
             )}>
               {appointment.token_number || '-'}
+              {priority > 0 && (
+                <span className={cn('absolute -top-1 -right-1 w-4 h-4 rounded-full', priorityStyle.bg)} />
+              )}
             </div>
             <div>
               <p className="font-medium">
@@ -93,13 +106,29 @@ export function AppointmentCard({
                 <span className="text-sm text-muted-foreground">
                   {formatTime(appointment.appointment_time)}
                 </span>
+                {hasCheckInVitals && (
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Activity className="h-3 w-3 text-green-500" />
+                    </TooltipTrigger>
+                    <TooltipContent>Vitals recorded at check-in</TooltipContent>
+                  </Tooltip>
+                )}
               </div>
             </div>
           </div>
           <div className="flex flex-col items-end gap-2">
-            <Badge className={statusColors[status]}>
-              {statusLabels[status]}
-            </Badge>
+            <div className="flex items-center gap-2">
+              {priority > 0 && (
+                <Badge className={cn('text-white', priorityStyle.bg)}>
+                  {priority === 2 && <AlertTriangle className="h-3 w-3 mr-1" />}
+                  {priorityStyle.label}
+                </Badge>
+              )}
+              <Badge className={statusColors[status]}>
+                {statusLabels[status]}
+              </Badge>
+            </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-8 w-8">
