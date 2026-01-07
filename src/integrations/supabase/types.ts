@@ -694,6 +694,131 @@ export type Database = {
           },
         ]
       }
+      lab_order_items: {
+        Row: {
+          created_at: string
+          id: string
+          instructions: string | null
+          lab_order_id: string
+          result: string | null
+          result_date: string | null
+          service_type_id: string | null
+          status: Database["public"]["Enums"]["lab_item_status"]
+          test_category: string
+          test_name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          instructions?: string | null
+          lab_order_id: string
+          result?: string | null
+          result_date?: string | null
+          service_type_id?: string | null
+          status?: Database["public"]["Enums"]["lab_item_status"]
+          test_category?: string
+          test_name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          instructions?: string | null
+          lab_order_id?: string
+          result?: string | null
+          result_date?: string | null
+          service_type_id?: string | null
+          status?: Database["public"]["Enums"]["lab_item_status"]
+          test_category?: string
+          test_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_order_items_lab_order_id_fkey"
+            columns: ["lab_order_id"]
+            isOneToOne: false
+            referencedRelation: "lab_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_order_items_service_type_id_fkey"
+            columns: ["service_type_id"]
+            isOneToOne: false
+            referencedRelation: "service_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lab_orders: {
+        Row: {
+          branch_id: string
+          clinical_notes: string | null
+          consultation_id: string
+          created_at: string
+          doctor_id: string
+          id: string
+          order_number: string
+          patient_id: string
+          priority: Database["public"]["Enums"]["lab_order_priority"]
+          status: Database["public"]["Enums"]["lab_order_status"]
+          updated_at: string
+        }
+        Insert: {
+          branch_id: string
+          clinical_notes?: string | null
+          consultation_id: string
+          created_at?: string
+          doctor_id: string
+          id?: string
+          order_number: string
+          patient_id: string
+          priority?: Database["public"]["Enums"]["lab_order_priority"]
+          status?: Database["public"]["Enums"]["lab_order_status"]
+          updated_at?: string
+        }
+        Update: {
+          branch_id?: string
+          clinical_notes?: string | null
+          consultation_id?: string
+          created_at?: string
+          doctor_id?: string
+          id?: string
+          order_number?: string
+          patient_id?: string
+          priority?: Database["public"]["Enums"]["lab_order_priority"]
+          status?: Database["public"]["Enums"]["lab_order_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_orders_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_orders_consultation_id_fkey"
+            columns: ["consultation_id"]
+            isOneToOne: false
+            referencedRelation: "consultations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_orders_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_orders_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       medicine_categories: {
         Row: {
           created_at: string
@@ -1788,6 +1913,14 @@ export type Database = {
         | "paid"
         | "cancelled"
         | "refunded"
+      lab_item_status: "pending" | "collected" | "processing" | "completed"
+      lab_order_priority: "routine" | "urgent" | "stat"
+      lab_order_status:
+        | "ordered"
+        | "collected"
+        | "processing"
+        | "completed"
+        | "cancelled"
       medical_history_type:
         | "allergy"
         | "chronic_disease"
@@ -1986,6 +2119,15 @@ export const Constants = {
         "paid",
         "cancelled",
         "refunded",
+      ],
+      lab_item_status: ["pending", "collected", "processing", "completed"],
+      lab_order_priority: ["routine", "urgent", "stat"],
+      lab_order_status: [
+        "ordered",
+        "collected",
+        "processing",
+        "completed",
+        "cancelled",
       ],
       medical_history_type: [
         "allergy",

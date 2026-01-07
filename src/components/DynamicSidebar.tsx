@@ -42,6 +42,7 @@ import {
   CalendarClock,
   CalendarPlus,
   HeartPulse,
+  TestTube,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -76,6 +77,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   CalendarClock,
   CalendarPlus,
   HeartPulse,
+  TestTube,
 };
 
 interface DynamicSidebarProps {
