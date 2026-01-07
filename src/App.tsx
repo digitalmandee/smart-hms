@@ -21,6 +21,14 @@ import { OrganizationDetailPage } from "./pages/super-admin/OrganizationDetailPa
 import { SystemSettingsPage } from "./pages/super-admin/SystemSettingsPage";
 import { PlatformUsersPage } from "./pages/super-admin/PlatformUsersPage";
 
+// Settings pages
+import { BranchesListPage } from "./pages/app/settings/BranchesListPage";
+import { BranchFormPage } from "./pages/app/settings/BranchFormPage";
+import { UsersListPage } from "./pages/app/settings/UsersListPage";
+import { UserDetailPage } from "./pages/app/settings/UserDetailPage";
+import { OrganizationSettingsPage } from "./pages/app/settings/OrganizationSettingsPage";
+import { RolesPermissionsPage } from "./pages/app/settings/RolesPermissionsPage";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -51,6 +59,15 @@ const App = () => (
             >
               <Route index element={<Navigate to="dashboard" replace />} />
               <Route path="dashboard" element={<DashboardPage />} />
+              
+              {/* Settings routes */}
+              <Route path="settings/branches" element={<BranchesListPage />} />
+              <Route path="settings/branches/new" element={<BranchFormPage />} />
+              <Route path="settings/branches/:id" element={<BranchFormPage />} />
+              <Route path="settings/users" element={<UsersListPage />} />
+              <Route path="settings/users/:id" element={<UserDetailPage />} />
+              <Route path="settings/organization" element={<OrganizationSettingsPage />} />
+              <Route path="settings/roles" element={<RolesPermissionsPage />} />
             </Route>
 
             {/* Super Admin routes */}
