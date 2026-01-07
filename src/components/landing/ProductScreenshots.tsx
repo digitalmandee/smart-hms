@@ -1,0 +1,198 @@
+import { Users, Calendar, Stethoscope, Pill, Receipt, BarChart3 } from 'lucide-react';
+
+// Mock screenshot components for landing page
+export const PatientRegistrationScreen = () => (
+  <div className="bg-card rounded-lg border shadow-soft overflow-hidden">
+    <div className="bg-primary/10 px-4 py-2 border-b flex items-center gap-2">
+      <Users className="h-4 w-4 text-primary" />
+      <span className="text-sm font-medium">Patient Registration</span>
+    </div>
+    <div className="p-4 space-y-3">
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1">
+          <div className="text-xs text-muted-foreground">First Name</div>
+          <div className="h-8 bg-muted rounded px-2 flex items-center text-sm">Ahmed</div>
+        </div>
+        <div className="space-y-1">
+          <div className="text-xs text-muted-foreground">Last Name</div>
+          <div className="h-8 bg-muted rounded px-2 flex items-center text-sm">Khan</div>
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1">
+          <div className="text-xs text-muted-foreground">CNIC</div>
+          <div className="h-8 bg-muted rounded px-2 flex items-center text-sm">35201-1234567-1</div>
+        </div>
+        <div className="space-y-1">
+          <div className="text-xs text-muted-foreground">Phone</div>
+          <div className="h-8 bg-muted rounded px-2 flex items-center text-sm">+92 300 1234567</div>
+        </div>
+      </div>
+      <div className="flex gap-2 pt-2">
+        <div className="h-8 bg-primary text-primary-foreground rounded px-4 flex items-center text-sm">Register</div>
+        <div className="h-8 border rounded px-4 flex items-center text-sm">Cancel</div>
+      </div>
+    </div>
+  </div>
+);
+
+export const DoctorDashboardScreen = () => (
+  <div className="bg-card rounded-lg border shadow-soft overflow-hidden">
+    <div className="bg-primary/10 px-4 py-2 border-b flex items-center gap-2">
+      <Stethoscope className="h-4 w-4 text-primary" />
+      <span className="text-sm font-medium">Doctor Dashboard</span>
+    </div>
+    <div className="p-4 space-y-3">
+      <div className="flex gap-3">
+        <div className="flex-1 bg-primary/10 rounded-lg p-3 text-center">
+          <div className="text-2xl font-bold text-primary">12</div>
+          <div className="text-xs text-muted-foreground">Today's Queue</div>
+        </div>
+        <div className="flex-1 bg-success/10 rounded-lg p-3 text-center">
+          <div className="text-2xl font-bold text-success">8</div>
+          <div className="text-xs text-muted-foreground">Completed</div>
+        </div>
+      </div>
+      <div className="space-y-2">
+        <div className="text-xs font-medium">Current Patient</div>
+        <div className="bg-accent/50 rounded-lg p-3 flex items-center justify-between">
+          <div>
+            <div className="font-medium text-sm">Fatima Malik</div>
+            <div className="text-xs text-muted-foreground">Token #5 • Fever, Headache</div>
+          </div>
+          <div className="h-7 bg-primary text-primary-foreground rounded px-3 flex items-center text-xs">Start</div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+export const PharmacyScreen = () => (
+  <div className="bg-card rounded-lg border shadow-soft overflow-hidden">
+    <div className="bg-primary/10 px-4 py-2 border-b flex items-center gap-2">
+      <Pill className="h-4 w-4 text-primary" />
+      <span className="text-sm font-medium">Pharmacy Dispensing</span>
+    </div>
+    <div className="p-4 space-y-3">
+      <div className="flex items-center justify-between bg-warning/10 rounded-lg p-2">
+        <span className="text-xs">Prescription #RX-2024-0892</span>
+        <span className="text-xs bg-warning/20 text-warning-foreground px-2 py-0.5 rounded">Pending</span>
+      </div>
+      <div className="space-y-2">
+        {[
+          { name: 'Paracetamol 500mg', qty: '20 tablets', stock: 'In Stock' },
+          { name: 'Amoxicillin 250mg', qty: '14 capsules', stock: 'In Stock' },
+        ].map((med, i) => (
+          <div key={i} className="flex items-center justify-between bg-muted/50 rounded p-2">
+            <div>
+              <div className="text-sm font-medium">{med.name}</div>
+              <div className="text-xs text-muted-foreground">{med.qty}</div>
+            </div>
+            <span className="text-xs text-success">{med.stock}</span>
+          </div>
+        ))}
+      </div>
+      <div className="h-8 bg-primary text-primary-foreground rounded flex items-center justify-center text-sm">Dispense All</div>
+    </div>
+  </div>
+);
+
+export const BillingScreen = () => (
+  <div className="bg-card rounded-lg border shadow-soft overflow-hidden">
+    <div className="bg-primary/10 px-4 py-2 border-b flex items-center gap-2">
+      <Receipt className="h-4 w-4 text-primary" />
+      <span className="text-sm font-medium">Invoice #INV-2024-1234</span>
+    </div>
+    <div className="p-4 space-y-3">
+      <div className="space-y-2 text-sm">
+        {[
+          { item: 'Consultation Fee', amount: 'Rs. 1,500' },
+          { item: 'Lab Tests (CBC)', amount: 'Rs. 800' },
+          { item: 'Medications', amount: 'Rs. 650' },
+        ].map((line, i) => (
+          <div key={i} className="flex justify-between">
+            <span className="text-muted-foreground">{line.item}</span>
+            <span>{line.amount}</span>
+          </div>
+        ))}
+        <div className="border-t pt-2 flex justify-between font-bold">
+          <span>Total</span>
+          <span className="text-primary">Rs. 2,950</span>
+        </div>
+      </div>
+      <div className="grid grid-cols-3 gap-2">
+        <div className="h-8 border rounded flex items-center justify-center text-xs">Cash</div>
+        <div className="h-8 bg-primary/10 border-primary border rounded flex items-center justify-center text-xs text-primary">JazzCash</div>
+        <div className="h-8 border rounded flex items-center justify-center text-xs">Card</div>
+      </div>
+    </div>
+  </div>
+);
+
+export const AppointmentScreen = () => (
+  <div className="bg-card rounded-lg border shadow-soft overflow-hidden">
+    <div className="bg-primary/10 px-4 py-2 border-b flex items-center gap-2">
+      <Calendar className="h-4 w-4 text-primary" />
+      <span className="text-sm font-medium">Appointments</span>
+    </div>
+    <div className="p-4 space-y-3">
+      <div className="flex gap-1">
+        {['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map((day, i) => (
+          <div key={day} className={`flex-1 text-center py-2 rounded text-xs ${i === 2 ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+            {day}
+          </div>
+        ))}
+      </div>
+      <div className="space-y-2">
+        {[
+          { time: '09:00 AM', patient: 'Ali Hassan', type: 'Follow-up' },
+          { time: '09:30 AM', patient: 'Sana Riaz', type: 'New' },
+          { time: '10:00 AM', patient: 'Usman Ahmed', type: 'Walk-in' },
+        ].map((apt, i) => (
+          <div key={i} className="flex items-center gap-3 bg-muted/50 rounded p-2">
+            <div className="text-xs text-muted-foreground w-16">{apt.time}</div>
+            <div className="flex-1">
+              <div className="text-sm font-medium">{apt.patient}</div>
+            </div>
+            <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">{apt.type}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+);
+
+export const ReportsScreen = () => (
+  <div className="bg-card rounded-lg border shadow-soft overflow-hidden">
+    <div className="bg-primary/10 px-4 py-2 border-b flex items-center gap-2">
+      <BarChart3 className="h-4 w-4 text-primary" />
+      <span className="text-sm font-medium">Revenue Reports</span>
+    </div>
+    <div className="p-4 space-y-3">
+      <div className="grid grid-cols-2 gap-3">
+        <div className="bg-success/10 rounded-lg p-3">
+          <div className="text-lg font-bold text-success">Rs. 2.4M</div>
+          <div className="text-xs text-muted-foreground">This Month</div>
+        </div>
+        <div className="bg-primary/10 rounded-lg p-3">
+          <div className="text-lg font-bold text-primary">+18%</div>
+          <div className="text-xs text-muted-foreground">Growth</div>
+        </div>
+      </div>
+      <div className="h-24 bg-muted/50 rounded-lg flex items-end justify-around px-2 pb-2">
+        {[40, 65, 45, 80, 55, 70, 90].map((h, i) => (
+          <div key={i} className="w-6 bg-primary/60 rounded-t" style={{ height: `${h}%` }} />
+        ))}
+      </div>
+      <div className="flex justify-between text-xs text-muted-foreground px-2">
+        <span>Mon</span>
+        <span>Tue</span>
+        <span>Wed</span>
+        <span>Thu</span>
+        <span>Fri</span>
+        <span>Sat</span>
+        <span>Sun</span>
+      </div>
+    </div>
+  </div>
+);
