@@ -48,6 +48,15 @@ import ConsultationPage from "./pages/app/opd/ConsultationPage";
 import ConsultationHistoryPage from "./pages/app/opd/ConsultationHistoryPage";
 import ConsultationDetailPage from "./pages/app/opd/ConsultationDetailPage";
 
+// Pharmacy pages
+import PharmacyDashboard from "./pages/app/pharmacy/PharmacyDashboard";
+import PrescriptionQueuePage from "./pages/app/pharmacy/PrescriptionQueuePage";
+import DispensingPage from "./pages/app/pharmacy/DispensingPage";
+import MedicinesListPage from "./pages/app/pharmacy/MedicinesListPage";
+import MedicineFormPage from "./pages/app/pharmacy/MedicineFormPage";
+import InventoryPage from "./pages/app/pharmacy/InventoryPage";
+import StockEntryPage from "./pages/app/pharmacy/StockEntryPage";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -100,6 +109,16 @@ const App = () => (
               <Route path="opd/consultation/:appointmentId" element={<ConsultationPage />} />
               <Route path="opd/history" element={<ConsultationHistoryPage />} />
               <Route path="opd/consultations/:id" element={<ConsultationDetailPage />} />
+              
+              {/* Pharmacy routes */}
+              <Route path="pharmacy" element={<PharmacyDashboard />} />
+              <Route path="pharmacy/queue" element={<PrescriptionQueuePage />} />
+              <Route path="pharmacy/dispense/:prescriptionId" element={<DispensingPage />} />
+              <Route path="pharmacy/medicines" element={<MedicinesListPage />} />
+              <Route path="pharmacy/medicines/new" element={<MedicineFormPage />} />
+              <Route path="pharmacy/medicines/:id/edit" element={<MedicineFormPage />} />
+              <Route path="pharmacy/inventory" element={<InventoryPage />} />
+              <Route path="pharmacy/inventory/add" element={<StockEntryPage />} />
               
               {/* Settings routes */}
               <Route path="settings/branches" element={<BranchesListPage />} />

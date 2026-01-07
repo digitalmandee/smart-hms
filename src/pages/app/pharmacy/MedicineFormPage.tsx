@@ -29,9 +29,14 @@ import { useCreateMedicine, useUpdateMedicine, useMedicineCategories } from "@/h
 import { useAuth } from "@/contexts/AuthContext";
 import { ArrowLeft } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Constants } from "@/integrations/supabase/types";
+import { Database } from "@/integrations/supabase/types";
 
-const medicineUnits = Constants.public.Enums.medicine_unit;
+type MedicineUnit = Database["public"]["Enums"]["medicine_unit"];
+
+const medicineUnits: MedicineUnit[] = [
+  "tablet", "capsule", "syrup", "injection", "cream", 
+  "drops", "inhaler", "powder", "gel", "ointment"
+];
 
 const medicineSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -39,7 +44,7 @@ const medicineSchema = z.object({
   category_id: z.string().optional(),
   manufacturer: z.string().optional(),
   strength: z.string().optional(),
-  unit: z.enum(medicineUnits as unknown as [string, ...string[]]).optional(),
+  unit: z.enum(["tablet", "capsule", "syrup", "injection", "cream", "drops", "inhaler", "powder", "gel", "ointment"] as const).optional().nullable(),
   is_active: z.boolean().default(true),
 });
 
@@ -84,13 +89,15 @@ export default function MedicineFormPage() {
   }, [medicine, form]);
 
   const onSubmit = (data: MedicineFormData) => {
+    const unitValue = data.unit as MedicineUnit | null | undefined;
+    
     if (isEditing) {
       updateMedicine.mutate(
         {
           id: id!,
           ...data,
           category_id: data.category_id || null,
-          unit: data.unit || null,
+          unit: unitValue || null,
         },
         {
           onSuccess: () => navigate("/app/pharmacy/medicines"),
@@ -99,10 +106,14 @@ export default function MedicineFormPage() {
     } else {
       createMedicine.mutate(
         {
-          ...data,
+          name: data.name,
           organization_id: profile!.organization_id!,
+          generic_name: data.generic_name || null,
           category_id: data.category_id || null,
-          unit: data.unit || null,
+          manufacturer: data.manufacturer || null,
+          strength: data.strength || null,
+          unit: unitValue || null,
+          is_active: data.is_active ?? true,
         },
         {
           onSuccess: () => navigate("/app/pharmacy/medicines"),
