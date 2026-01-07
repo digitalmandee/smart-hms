@@ -193,42 +193,266 @@
   }
 }
 
-/* Print styles */
+/* ========================================
+   Print Styles - Invoices, Receipts, Prescriptions
+   ======================================== */
 @media print {
-  /* Hide non-printable elements */
-  .no-print,
-  header,
-  nav,
-  aside,
-  footer,
-  .sidebar,
-  button:not(.print-show) {
-    display: none !important;
-  }
-
-  /* Reset backgrounds for printing */
-  body {
-    background: white !important;
-    color: black !important;
-    font-size: 11pt !important;
-    line-height: 1.4 !important;
-  }
-
-  /* Hide hidden elements used for print */
-  .hidden {
-    display: block !important;
-    visibility: visible !important;
-  }
-
-  /* Page settings */
+  /* Page configuration */
   @page {
-    margin: 1cm;
+    margin: 15mm;
     size: A4;
   }
 
-  /* Avoid page breaks inside elements */
-  .print-section,
+  @page :first {
+    margin-top: 10mm;
+  }
+
+  /* Hide all non-printable UI elements */
+  .no-print,
+  header:not(.print-header),
+  nav,
+  aside,
+  footer:not(.print-footer),
+  [data-sidebar],
+  .sidebar,
+  .toaster,
+  .toast,
+  [role="dialog"],
+  [role="alertdialog"],
+  button:not(.print-show),
+  .fixed:not(.print-show) {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  /* Reset base styles for print */
+  html, body {
+    background: white !important;
+    color: black !important;
+    font-size: 11pt !important;
+    line-height: 1.5 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Make printable content full width */
+  .print-container,
+  [data-print-content] {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    position: static !important;
+  }
+
+  /* Invoice & Receipt specific styles */
+  .print-invoice,
+  .print-receipt,
+  .print-prescription {
+    display: block !important;
+    visibility: visible !important;
+    width: 100% !important;
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Invoice header with organization logo */
+  .print-header {
+    display: flex !important;
+    border-bottom: 2pt solid #000 !important;
+    padding-bottom: 10pt !important;
+    margin-bottom: 15pt !important;
+  }
+
+  /* Invoice/Receipt title styling */
+  .print-title {
+    font-size: 18pt !important;
+    font-weight: bold !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1pt !important;
+  }
+
+  /* Table styles for invoice items */
+  .print-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    margin: 10pt 0 !important;
+  }
+
+  .print-table th,
+  .print-table td {
+    border: 0.5pt solid #333 !important;
+    padding: 6pt 8pt !important;
+    text-align: left !important;
+    font-size: 10pt !important;
+  }
+
+  .print-table th {
+    background: #f0f0f0 !important;
+    font-weight: 600 !important;
+  }
+
+  .print-table tr:nth-child(even) td {
+    background: #fafafa !important;
+  }
+
+  /* Totals section alignment */
+  .print-totals {
+    margin-top: 15pt !important;
+    text-align: right !important;
+  }
+
+  .print-totals-row {
+    display: flex !important;
+    justify-content: flex-end !important;
+    gap: 20pt !important;
+    padding: 4pt 0 !important;
+  }
+
+  .print-grand-total {
+    font-size: 12pt !important;
+    font-weight: bold !important;
+    border-top: 1pt solid #000 !important;
+    padding-top: 8pt !important;
+    margin-top: 5pt !important;
+  }
+
+  /* Patient & Invoice info sections */
+  .print-info-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 20pt !important;
+    margin-bottom: 15pt !important;
+  }
+
+  .print-info-label {
+    font-size: 9pt !important;
+    color: #666 !important;
+    text-transform: uppercase !important;
+  }
+
+  .print-info-value {
+    font-size: 10pt !important;
+    font-weight: 500 !important;
+  }
+
+  /* Payment status badge */
+  .print-status {
+    display: inline-block !important;
+    padding: 3pt 8pt !important;
+    border: 1pt solid #333 !important;
+    font-size: 9pt !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+  }
+
+  .print-status-paid {
+    background: #d4edda !important;
+    border-color: #28a745 !important;
+  }
+
+  .print-status-pending {
+    background: #fff3cd !important;
+    border-color: #ffc107 !important;
+  }
+
+  /* Footer with signature lines */
+  .print-footer {
+    display: block !important;
+    margin-top: 30pt !important;
+    padding-top: 15pt !important;
+    border-top: 0.5pt solid #ccc !important;
+  }
+
+  .print-signature {
+    display: inline-block !important;
+    width: 40% !important;
+    text-align: center !important;
+    margin-top: 30pt !important;
+  }
+
+  .print-signature-line {
+    border-top: 1pt solid #000 !important;
+    padding-top: 5pt !important;
+    font-size: 9pt !important;
+  }
+
+  /* Prescription specific */
   .prescription-item {
-    page-break-inside: avoid;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    margin-bottom: 8pt !important;
+    padding: 8pt !important;
+    border: 0.5pt solid #ddd !important;
+  }
+
+  /* Page break controls */
+  .page-break-before {
+    page-break-before: always !important;
+    break-before: page !important;
+  }
+
+  .page-break-after {
+    page-break-after: always !important;
+    break-after: page !important;
+  }
+
+  .avoid-break {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Keep headings with content */
+  h1, h2, h3, h4 {
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+  }
+
+  /* Links - show URL for reference */
+  a[href]:after {
+    content: none !important;
+  }
+
+  /* Remove shadows and rounded corners for cleaner print */
+  * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  /* Ensure images print properly */
+  img {
+    max-width: 100% !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* Receipt-specific compact styles */
+  .print-receipt {
+    font-size: 10pt !important;
+  }
+
+  .print-receipt .print-table th,
+  .print-receipt .print-table td {
+    padding: 4pt 6pt !important;
+    font-size: 9pt !important;
+  }
+
+  /* QR code for receipts */
+  .print-qr {
+    width: 60pt !important;
+    height: 60pt !important;
+  }
+
+  /* Watermark for cancelled/voided */
+  .print-watermark {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) rotate(-45deg) !important;
+    font-size: 72pt !important;
+    color: rgba(255, 0, 0, 0.15) !important;
+    font-weight: bold !important;
+    text-transform: uppercase !important;
+    z-index: 9999 !important;
+    pointer-events: none !important;
   }
 }
