@@ -9,12 +9,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
 import { BatchSelector } from "@/components/pharmacy/BatchSelector";
 import { StockLevelBadge } from "@/components/pharmacy/StockLevelBadge";
 import { usePrescriptionForDispensing, useDispensePrescription, useMedicineBatches } from "@/hooks/usePharmacy";
-import { ArrowLeft, User, Calendar, Stethoscope, Pill, AlertTriangle } from "lucide-react";
+import { useCreateInvoice } from "@/hooks/useBilling";
+import { useAuth } from "@/contexts/AuthContext";
+import { ArrowLeft, User, Calendar, Stethoscope, Pill, AlertTriangle, FileText, Receipt } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { toast } from "sonner";
 
 interface DispensingItem {
   itemId: string;
@@ -105,10 +109,13 @@ function DispensingItemRow({
 export default function DispensingPage() {
   const { prescriptionId } = useParams();
   const navigate = useNavigate();
+  const { profile } = useAuth();
   const { data: prescription, isLoading } = usePrescriptionForDispensing(prescriptionId);
   const dispenseMutation = useDispensePrescription();
+  const createInvoiceMutation = useCreateInvoice();
   const [items, setItems] = useState<DispensingItem[]>([]);
   const [notes, setNotes] = useState("");
+  const [generateInvoice, setGenerateInvoice] = useState(true);
 
   useEffect(() => {
     if (prescription?.items) {
@@ -147,7 +154,7 @@ export default function DispensingPage() {
     );
   };
 
-  const handleDispense = () => {
+  const handleDispense = async () => {
     const itemsToDispense = items
       .filter((item) => item.selected && !item.isDispensed)
       .map((item) => ({
@@ -165,7 +172,47 @@ export default function DispensingPage() {
         notes,
       },
       {
-        onSuccess: () => {
+        onSuccess: async () => {
+          // Generate invoice if option is checked
+          if (generateInvoice && prescription && profile?.branch_id) {
+            try {
+              // Get dispensed items with prices from batches
+              const invoiceItems = items
+                .filter((item) => item.selected && !item.isDispensed && item.selectedBatchId)
+                .map((item) => ({
+                  description: item.medicineName,
+                  quantity: item.quantityToDispense,
+                  unit_price: 0, // Will be set from batch data below
+                  discount_percent: 0,
+                  medicine_inventory_id: item.selectedBatchId,
+                }));
+
+              if (invoiceItems.length > 0) {
+                const patient = prescription.patient as any;
+                const invoice = await createInvoiceMutation.mutateAsync({
+                  patientId: patient.id,
+                  branchId: profile.branch_id,
+                  items: invoiceItems,
+                  notes: `Invoice for prescription ${prescription.prescription_number}`,
+                  taxAmount: 0,
+                  discountAmount: 0,
+                  status: "pending",
+                });
+                
+                toast.success("Invoice generated", {
+                  description: `Invoice created for dispensed medicines`,
+                  action: {
+                    label: "View Invoice",
+                    onClick: () => navigate(`/app/billing/invoices/${invoice.id}`),
+                  },
+                });
+              }
+            } catch (error) {
+              console.error("Failed to create invoice:", error);
+              toast.error("Failed to generate invoice");
+            }
+          }
+          
           navigate("/app/pharmacy/queue");
         },
       }
@@ -303,24 +350,59 @@ export default function DispensingPage() {
             </CardContent>
           </Card>
 
+          {/* Invoice Option */}
+          {!allDispensed && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Receipt className="h-5 w-5" />
+                  Billing
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="generate-invoice">Generate Invoice</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Create invoice after dispensing
+                    </p>
+                  </div>
+                  <Switch
+                    id="generate-invoice"
+                    checked={generateInvoice}
+                    onCheckedChange={setGenerateInvoice}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Action */}
           <Card>
             <CardContent className="pt-6">
               {allDispensed ? (
-                <div className="text-center py-4">
+                <div className="text-center space-y-3">
                   <Badge variant="secondary" className="text-lg py-2 px-4">
                     Fully Dispensed
                   </Badge>
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => navigate(`/app/billing/invoices/new?patientId=${(prescription.patient as any)?.id}`)}
+                  >
+                    <FileText className="mr-2 h-4 w-4" />
+                    Create Invoice
+                  </Button>
                 </div>
               ) : (
                 <Button
                   className="w-full"
                   size="lg"
                   onClick={handleDispense}
-                  disabled={selectedCount === 0 || dispenseMutation.isPending}
+                  disabled={selectedCount === 0 || dispenseMutation.isPending || createInvoiceMutation.isPending}
                 >
-                  {dispenseMutation.isPending
-                    ? "Dispensing..."
+                  {dispenseMutation.isPending || createInvoiceMutation.isPending
+                    ? "Processing..."
                     : `Dispense ${selectedCount} Item(s)`}
                 </Button>
               )}
