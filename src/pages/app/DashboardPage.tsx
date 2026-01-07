@@ -1,6 +1,7 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Calendar, Stethoscope, Receipt, TrendingUp, Activity, Clock, AlertTriangle } from "lucide-react";
+import { CollectionsWidget } from "@/components/billing/CollectionsWidget";
 
 export const DashboardPage = () => {
   const { profile, roles } = useAuth();
@@ -79,7 +80,7 @@ export const DashboardPage = () => {
         ))}
       </div>
 
-      {/* Quick Actions & Alerts */}
+      {/* Quick Actions & Collections */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Quick Actions */}
         <Card className="shadow-soft">
@@ -105,29 +106,32 @@ export const DashboardPage = () => {
           </CardContent>
         </Card>
 
-        {/* Alerts */}
-        <Card className="shadow-soft">
-          <CardHeader>
-            <CardTitle className="text-lg">Alerts & Notifications</CardTitle>
-            <CardDescription>Important updates requiring attention</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-                <div className="p-2 rounded-md bg-warning/10">
-                  <AlertTriangle className="h-4 w-4 text-warning" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">No alerts</p>
-                  <p className="text-xs text-muted-foreground">
-                    You're all caught up!
-                  </p>
-                </div>
+        {/* Collections Widget */}
+        <CollectionsWidget />
+      </div>
+
+      {/* Alerts */}
+      <Card className="shadow-soft">
+        <CardHeader>
+          <CardTitle className="text-lg">Alerts & Notifications</CardTitle>
+          <CardDescription>Important updates requiring attention</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+              <div className="p-2 rounded-md bg-warning/10">
+                <AlertTriangle className="h-4 w-4 text-warning" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium">No alerts</p>
+                <p className="text-xs text-muted-foreground">
+                  You're all caught up!
+                </p>
               </div>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Role Info (for testing) */}
       <Card className="shadow-soft">
