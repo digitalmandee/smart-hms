@@ -1,16 +1,23 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Play, Users, Building2, FileText, Activity } from "lucide-react";
+import { ArrowRight, Play, Users, Building2, FileText, ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
+import { AnimatedSection } from "./AnimatedSection";
+import {
+  DoctorDashboardScreen,
+  PharmacyScreen,
+  BillingScreen,
+} from "./ProductScreenshots";
 
-const trustedBy = [
-  "500+ Clinics",
-  "50,000+ Patients",
-  "Pakistan & Middle East"
+const screenshots = [
+  { component: DoctorDashboardScreen, label: "Doctor Dashboard" },
+  { component: PharmacyScreen, label: "Pharmacy" },
+  { component: BillingScreen, label: "Billing" },
 ];
 
 export const HeroSection = () => {
   const [displayText, setDisplayText] = useState("");
+  const [activeScreen, setActiveScreen] = useState(0);
   const fullText = "Smart Hospital Management";
   
   useEffect(() => {
@@ -26,6 +33,19 @@ export const HeroSection = () => {
     return () => clearInterval(timer);
   }, []);
 
+  // Auto-rotate screenshots
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveScreen((prev) => (prev + 1) % screenshots.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const nextScreen = () => setActiveScreen((prev) => (prev + 1) % screenshots.length);
+  const prevScreen = () => setActiveScreen((prev) => (prev - 1 + screenshots.length) % screenshots.length);
+
+  const ActiveScreenComponent = screenshots[activeScreen].component;
+
   return (
     <section className="relative min-h-[90vh] flex items-center overflow-hidden bg-gradient-to-br from-background via-background to-primary/5">
       {/* Subtle gradient orbs */}
@@ -35,7 +55,7 @@ export const HeroSection = () => {
       <div className="container mx-auto px-4 py-20 relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Left: Content */}
-          <div className="space-y-8">
+          <AnimatedSection animation="fade-right" className="space-y-8">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
@@ -77,84 +97,66 @@ export const HeroSection = () => {
             {/* Social proof */}
             <div className="pt-8 border-t border-border">
               <p className="text-sm text-muted-foreground mb-3">Trusted by healthcare facilities across</p>
-              <div className="flex flex-wrap gap-4">
-                {trustedBy.map((item) => (
-                  <div key={item} className="flex items-center gap-2 px-4 py-2 rounded-lg bg-muted/50">
-                    <span className="text-sm font-medium text-foreground">{item}</span>
-                  </div>
-                ))}
+              <div className="flex flex-wrap gap-3">
+                <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-muted/50">
+                  <Building2 className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-medium text-foreground">500+ Clinics</span>
+                </div>
+                <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-muted/50">
+                  <Users className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-medium text-foreground">50,000+ Patients</span>
+                </div>
+                <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-muted/50">
+                  <FileText className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-medium text-foreground">2M+ Prescriptions</span>
+                </div>
               </div>
             </div>
-          </div>
+          </AnimatedSection>
           
-          {/* Right: Dashboard Mockup */}
-          <div className="relative hidden lg:block">
+          {/* Right: Screenshot Carousel */}
+          <AnimatedSection animation="fade-left" delay={200} className="relative hidden lg:block">
             <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 via-transparent to-accent/20 rounded-3xl blur-2xl" />
             
-            {/* Main Dashboard Card */}
-            <div className="relative bg-card border border-border rounded-2xl shadow-2xl p-6 transform hover:scale-[1.02] transition-transform duration-500">
-              {/* Header */}
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 rounded-full bg-destructive" />
-                  <div className="w-3 h-3 rounded-full bg-warning" />
-                  <div className="w-3 h-3 rounded-full bg-success" />
-                </div>
-                <span className="text-xs text-muted-foreground">SmartHMS Dashboard</span>
+            {/* Screenshot container */}
+            <div className="relative">
+              <div className="transform hover:scale-[1.02] transition-transform duration-500">
+                <ActiveScreenComponent />
               </div>
               
-              {/* Stats Row */}
-              <div className="grid grid-cols-3 gap-4 mb-6">
-                <div className="p-4 rounded-xl bg-primary/10 text-center">
-                  <Users className="h-6 w-6 text-primary mx-auto mb-2" />
-                  <p className="text-2xl font-bold text-foreground">156</p>
-                  <p className="text-xs text-muted-foreground">Today&apos;s Patients</p>
-                </div>
-                <div className="p-4 rounded-xl bg-success/10 text-center">
-                  <FileText className="h-6 w-6 text-success mx-auto mb-2" />
-                  <p className="text-2xl font-bold text-foreground">89</p>
-                  <p className="text-xs text-muted-foreground">Prescriptions</p>
-                </div>
-                <div className="p-4 rounded-xl bg-accent/10 text-center">
-                  <Building2 className="h-6 w-6 text-accent mx-auto mb-2" />
-                  <p className="text-2xl font-bold text-foreground">PKR 2.4M</p>
-                  <p className="text-xs text-muted-foreground">Revenue</p>
-                </div>
-              </div>
-              
-              {/* Queue Preview */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="font-medium text-foreground">Patient Queue</span>
-                  <span className="text-primary">View All →</span>
-                </div>
-                {["Muhammad Ali - Token #12", "Fatima Bibi - Token #13", "Ahmed Hassan - Token #14"].map((patient, i) => (
-                  <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                        <span className="text-xs font-medium text-primary">{patient.split(" ")[0][0]}</span>
-                      </div>
-                      <span className="text-sm text-foreground">{patient}</span>
-                    </div>
-                    <Activity className="h-4 w-4 text-success" />
-                  </div>
+              {/* Navigation dots */}
+              <div className="flex items-center justify-center gap-2 mt-4">
+                <button
+                  onClick={prevScreen}
+                  className="p-2 rounded-full bg-card border hover:bg-muted transition-colors"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                {screenshots.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setActiveScreen(i)}
+                    className={`w-2 h-2 rounded-full transition-all ${
+                      i === activeScreen 
+                        ? 'w-6 bg-primary' 
+                        : 'bg-muted-foreground/30 hover:bg-muted-foreground/50'
+                    }`}
+                  />
                 ))}
+                <button
+                  onClick={nextScreen}
+                  className="p-2 rounded-full bg-card border hover:bg-muted transition-colors"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+              
+              {/* Label */}
+              <div className="text-center mt-2">
+                <span className="text-sm text-muted-foreground">{screenshots[activeScreen].label}</span>
               </div>
             </div>
-            
-            {/* Floating notification */}
-            <div className="absolute -right-4 top-20 bg-card border border-border rounded-xl p-4 shadow-lg animate-bounce">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-success/20 flex items-center justify-center">
-                  <Activity className="h-5 w-5 text-success" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-foreground">New Appointment</p>
-                  <p className="text-xs text-muted-foreground">Token #15 generated</p>
-                </div>
-              </div>
-            </div>
-          </div>
+          </AnimatedSection>
         </div>
       </div>
     </section>
