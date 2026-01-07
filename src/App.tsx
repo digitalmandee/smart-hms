@@ -45,6 +45,8 @@ import DoctorSchedulePage from "./pages/app/appointments/DoctorSchedulePage";
 // OPD pages
 import DoctorDashboard from "./pages/app/opd/DoctorDashboard";
 import ConsultationPage from "./pages/app/opd/ConsultationPage";
+import ConsultationHistoryPage from "./pages/app/opd/ConsultationHistoryPage";
+import ConsultationDetailPage from "./pages/app/opd/ConsultationDetailPage";
 
 const queryClient = new QueryClient();
 
@@ -96,6 +98,8 @@ const App = () => (
               {/* OPD routes */}
               <Route path="opd" element={<DoctorDashboard />} />
               <Route path="opd/consultation/:appointmentId" element={<ConsultationPage />} />
+              <Route path="opd/history" element={<ConsultationHistoryPage />} />
+              <Route path="opd/consultations/:id" element={<ConsultationDetailPage />} />
               
               {/* Settings routes */}
               <Route path="settings/branches" element={<BranchesListPage />} />

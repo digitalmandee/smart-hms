@@ -10,7 +10,7 @@ import { useAppointments } from "@/hooks/useAppointments";
 import { useDoctors } from "@/hooks/useDoctors";
 import { useTodayConsultationStats } from "@/hooks/useConsultations";
 import { useAuth } from "@/contexts/AuthContext";
-import { Users, CheckCircle, Clock, Play, Stethoscope } from "lucide-react";
+import { Users, CheckCircle, Clock, Play, Stethoscope, History } from "lucide-react";
 
 export default function DoctorDashboard() {
   const { profile } = useAuth();
@@ -38,6 +38,14 @@ export default function DoctorDashboard() {
       <PageHeader
         title="Doctor Dashboard"
         description={`Welcome, Dr. ${profile?.full_name || "Doctor"}`}
+        actions={
+          <Button asChild variant="outline">
+            <Link to="/app/opd/history">
+              <History className="h-4 w-4 mr-2" />
+              View History
+            </Link>
+          </Button>
+        }
       />
 
       {/* Stats */}

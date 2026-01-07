@@ -27,7 +27,7 @@ export interface Vitals {
   };
 }
 
-interface ConsultationFilters {
+export interface ConsultationFilters {
   patientId?: string;
   doctorId?: string;
   dateFrom?: string;
@@ -45,6 +45,9 @@ export interface ConsultationWithRelations extends Consultation {
     date_of_birth: string | null;
     gender: string | null;
     blood_group: string | null;
+    email?: string | null;
+    address?: string | null;
+    city?: string | null;
   };
   doctor?: {
     id: string;
@@ -52,11 +55,15 @@ export interface ConsultationWithRelations extends Consultation {
       full_name: string;
     };
     specialization: string | null;
+    qualification?: string | null;
+    license_number?: string | null;
   };
   appointment?: {
     id: string;
     token_number: number | null;
     appointment_type: string | null;
+    chief_complaint?: string | null;
+    notes?: string | null;
   };
 }
 
@@ -71,7 +78,7 @@ export function useConsultations(filters: ConsultationFilters = {}) {
         .select(`
           *,
           patient:patients(id, first_name, last_name, patient_number, phone, date_of_birth, gender, blood_group),
-          doctor:doctors(id, specialization, profile:profiles(full_name)),
+          doctor:doctors(id, specialization, qualification, license_number, profile:profiles(full_name)),
           appointment:appointments(id, token_number, appointment_type)
         `)
         .order("created_at", { ascending: false });
@@ -111,7 +118,7 @@ export function useConsultation(id: string | undefined) {
         .select(`
           *,
           patient:patients(id, first_name, last_name, patient_number, phone, date_of_birth, gender, blood_group, email, address, city),
-          doctor:doctors(id, specialization, qualification, profile:profiles(full_name)),
+          doctor:doctors(id, specialization, qualification, license_number, profile:profiles(full_name)),
           appointment:appointments(id, token_number, appointment_type, chief_complaint, notes)
         `)
         .eq("id", id)
@@ -135,7 +142,7 @@ export function useConsultationByAppointment(appointmentId: string | undefined) 
         .select(`
           *,
           patient:patients(id, first_name, last_name, patient_number, phone, date_of_birth, gender, blood_group),
-          doctor:doctors(id, specialization, profile:profiles(full_name))
+          doctor:doctors(id, specialization, qualification, license_number, profile:profiles(full_name))
         `)
         .eq("appointment_id", appointmentId)
         .maybeSingle();
@@ -223,7 +230,7 @@ export function usePatientConsultationHistory(patientId: string | undefined, lim
         .from("consultations")
         .select(`
           *,
-          doctor:doctors(id, specialization, profile:profiles(full_name))
+          doctor:doctors(id, specialization, qualification, license_number, profile:profiles(full_name))
         `)
         .eq("patient_id", patientId)
         .order("created_at", { ascending: false })
