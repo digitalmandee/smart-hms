@@ -1166,3 +1166,61 @@ export function usePatientBillingHistory(patientId: string | undefined) {
     enabled: !!patientId,
   });
 }
+
+export function useDashboardBilling() {
+  const { profile } = useAuth();
+  const today = new Date().toISOString().split("T")[0];
+
+  return useQuery({
+    queryKey: ["dashboard-billing", profile?.branch_id, today],
+    queryFn: async () => {
+      // Today's pending invoices
+      const { data: todayPending, error: pendingError } = await supabase
+        .from("invoices")
+        .select(`
+          *,
+          patients!invoices_patient_id_fkey(first_name, last_name)
+        `)
+        .eq("invoice_date", today)
+        .in("status", ["pending", "partially_paid"])
+        .order("created_at", { ascending: false });
+
+      if (pendingError) throw pendingError;
+
+      // Overdue invoices (pending/partially_paid older than today)
+      const { data: overdueInvoices, error: overdueError } = await supabase
+        .from("invoices")
+        .select(`
+          *,
+          patients!invoices_patient_id_fkey(first_name, last_name)
+        `)
+        .lt("invoice_date", today)
+        .in("status", ["pending", "partially_paid"])
+        .order("invoice_date", { ascending: true })
+        .limit(10);
+
+      if (overdueError) throw overdueError;
+
+      // Today's payments (collected amount)
+      const { data: todayPayments, error: paymentsError } = await supabase
+        .from("payments")
+        .select("amount")
+        .eq("payment_date", today);
+
+      if (paymentsError) throw paymentsError;
+
+      const todayCollected = todayPayments?.reduce(
+        (sum, p) => sum + (p.amount || 0),
+        0
+      ) || 0;
+
+      return {
+        todayPending: todayPending || [],
+        overdueInvoices: overdueInvoices || [],
+        todayCollected,
+        todayTarget: 0, // Could be calculated from settings
+      };
+    },
+    enabled: !!profile?.organization_id,
+  });
+}
