@@ -1015,3 +1015,97 @@ export function useTopServices(dateFrom: string, dateTo: string, limit = 10) {
     },
   });
 }
+
+export interface AgingBucket {
+  label: string;
+  range: string;
+  count: number;
+  amount: number;
+  invoices: Array<{
+    id: string;
+    invoice_number: string;
+    patient_name: string;
+    invoice_date: string;
+    days_overdue: number;
+    total_amount: number;
+    paid_amount: number;
+    balance: number;
+  }>;
+}
+
+export function useAgingReport(branchId?: string) {
+  return useQuery({
+    queryKey: ["aging-report", branchId],
+    queryFn: async () => {
+      let query = supabase
+        .from("invoices")
+        .select(`
+          id,
+          invoice_number,
+          invoice_date,
+          total_amount,
+          paid_amount,
+          status,
+          patient:patients!invoices_patient_id_fkey(first_name, last_name)
+        `)
+        .in("status", ["pending", "partially_paid"]);
+
+      if (branchId) {
+        query = query.eq("branch_id", branchId);
+      }
+
+      const { data, error } = await query.order("invoice_date", { ascending: true });
+      if (error) throw error;
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const buckets: AgingBucket[] = [
+        { label: "Current", range: "0-30 days", count: 0, amount: 0, invoices: [] },
+        { label: "Overdue", range: "31-60 days", count: 0, amount: 0, invoices: [] },
+        { label: "Severely Overdue", range: "60+ days", count: 0, amount: 0, invoices: [] },
+      ];
+
+      data?.forEach((inv) => {
+        const invoiceDate = new Date(inv.invoice_date || "");
+        invoiceDate.setHours(0, 0, 0, 0);
+        const diffTime = today.getTime() - invoiceDate.getTime();
+        const daysOverdue = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        
+        const balance = Number(inv.total_amount || 0) - Number(inv.paid_amount || 0);
+        if (balance <= 0) return;
+
+        const patient = inv.patient as any;
+        const invoiceData = {
+          id: inv.id,
+          invoice_number: inv.invoice_number,
+          patient_name: patient ? `${patient.first_name} ${patient.last_name || ""}`.trim() : "Unknown",
+          invoice_date: inv.invoice_date || "",
+          days_overdue: daysOverdue,
+          total_amount: Number(inv.total_amount || 0),
+          paid_amount: Number(inv.paid_amount || 0),
+          balance,
+        };
+
+        if (daysOverdue <= 30) {
+          buckets[0].count++;
+          buckets[0].amount += balance;
+          buckets[0].invoices.push(invoiceData);
+        } else if (daysOverdue <= 60) {
+          buckets[1].count++;
+          buckets[1].amount += balance;
+          buckets[1].invoices.push(invoiceData);
+        } else {
+          buckets[2].count++;
+          buckets[2].amount += balance;
+          buckets[2].invoices.push(invoiceData);
+        }
+      });
+
+      const totalOutstanding = buckets.reduce((sum, b) => sum + b.amount, 0);
+      const totalCount = buckets.reduce((sum, b) => sum + b.count, 0);
+
+      return { buckets, totalOutstanding, totalCount };
+    },
+  });
+}
