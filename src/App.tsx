@@ -64,6 +64,13 @@ import InvoiceFormPage from "./pages/app/billing/InvoiceFormPage";
 import InvoiceDetailPage from "./pages/app/billing/InvoiceDetailPage";
 import PaymentCollectionPage from "./pages/app/billing/PaymentCollectionPage";
 import PaymentHistoryPage from "./pages/app/billing/PaymentHistoryPage";
+import BillingReportsPage from "./pages/app/billing/BillingReportsPage";
+
+// Settings management pages
+import ServiceTypesListPage from "./pages/app/settings/ServiceTypesListPage";
+import ServiceTypeFormPage from "./pages/app/settings/ServiceTypeFormPage";
+import PaymentMethodsListPage from "./pages/app/settings/PaymentMethodsListPage";
+import PaymentMethodFormPage from "./pages/app/settings/PaymentMethodFormPage";
 
 const queryClient = new QueryClient();
 
@@ -136,6 +143,7 @@ const App = () => (
               <Route path="billing/invoices/:id/edit" element={<InvoiceFormPage />} />
               <Route path="billing/invoices/:id/pay" element={<PaymentCollectionPage />} />
               <Route path="billing/payments" element={<PaymentHistoryPage />} />
+              <Route path="billing/reports" element={<BillingReportsPage />} />
               
               {/* Settings routes */}
               <Route path="settings/branches" element={<BranchesListPage />} />
@@ -145,6 +153,12 @@ const App = () => (
               <Route path="settings/users/:id" element={<UserDetailPage />} />
               <Route path="settings/organization" element={<OrganizationSettingsPage />} />
               <Route path="settings/roles" element={<RolesPermissionsPage />} />
+              <Route path="settings/services" element={<ServiceTypesListPage />} />
+              <Route path="settings/services/new" element={<ServiceTypeFormPage />} />
+              <Route path="settings/services/:id" element={<ServiceTypeFormPage />} />
+              <Route path="settings/payment-methods" element={<PaymentMethodsListPage />} />
+              <Route path="settings/payment-methods/new" element={<PaymentMethodFormPage />} />
+              <Route path="settings/payment-methods/:id" element={<PaymentMethodFormPage />} />
             </Route>
 
             {/* Super Admin routes */}

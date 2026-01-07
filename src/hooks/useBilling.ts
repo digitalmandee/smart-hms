@@ -476,6 +476,140 @@ export function usePaymentMethods() {
   });
 }
 
+export function useAllPaymentMethods() {
+  const { profile } = useAuth();
+
+  return useQuery({
+    queryKey: ["all-payment-methods", profile?.organization_id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("payment_methods")
+        .select("*")
+        .order("sort_order");
+
+      if (error) throw error;
+      return data as PaymentMethod[];
+    },
+    enabled: !!profile?.organization_id,
+  });
+}
+
+export function usePaymentMethod(id: string | undefined) {
+  return useQuery({
+    queryKey: ["payment-method", id],
+    queryFn: async () => {
+      if (!id) return null;
+      const { data, error } = await supabase
+        .from("payment_methods")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+      if (error) throw error;
+      return data as PaymentMethod;
+    },
+    enabled: !!id,
+  });
+}
+
+export function useCreatePaymentMethod() {
+  const queryClient = useQueryClient();
+  const { profile } = useAuth();
+
+  return useMutation({
+    mutationFn: async (values: {
+      name: string;
+      code: string;
+      icon?: string;
+      requires_reference?: boolean;
+      sort_order?: number;
+      is_active?: boolean;
+    }) => {
+      if (!profile?.organization_id) throw new Error("No organization");
+
+      const { data, error } = await supabase
+        .from("payment_methods")
+        .insert({
+          ...values,
+          organization_id: profile.organization_id,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["payment-methods"] });
+      queryClient.invalidateQueries({ queryKey: ["all-payment-methods"] });
+      toast.success("Payment method created");
+    },
+    onError: (error) => {
+      toast.error("Failed to create payment method: " + error.message);
+    },
+  });
+}
+
+export function useUpdatePaymentMethod() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, ...values }: {
+      id: string;
+      name?: string;
+      code?: string;
+      icon?: string;
+      requires_reference?: boolean;
+      sort_order?: number;
+      is_active?: boolean;
+    }) => {
+      const { data, error } = await supabase
+        .from("payment_methods")
+        .update(values)
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["payment-methods"] });
+      queryClient.invalidateQueries({ queryKey: ["all-payment-methods"] });
+      queryClient.invalidateQueries({ queryKey: ["payment-method", variables.id] });
+      toast.success("Payment method updated");
+    },
+    onError: (error) => {
+      toast.error("Failed to update payment method: " + error.message);
+    },
+  });
+}
+
+export function useTogglePaymentMethodStatus() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { data: current } = await supabase
+        .from("payment_methods")
+        .select("is_active")
+        .eq("id", id)
+        .single();
+
+      const { error } = await supabase
+        .from("payment_methods")
+        .update({ is_active: !(current?.is_active ?? true) })
+        .eq("id", id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["payment-methods"] });
+      queryClient.invalidateQueries({ queryKey: ["all-payment-methods"] });
+    },
+  });
+}
+
 // ========== SERVICE TYPES ==========
 
 export function useServiceTypes() {
@@ -494,6 +628,141 @@ export function useServiceTypes() {
       return data as ServiceType[];
     },
     enabled: !!profile?.organization_id,
+  });
+}
+
+export function useAllServiceTypes() {
+  const { profile } = useAuth();
+
+  return useQuery({
+    queryKey: ["all-service-types", profile?.organization_id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("service_types")
+        .select("*")
+        .order("category", { ascending: true })
+        .order("name", { ascending: true });
+
+      if (error) throw error;
+      return data as ServiceType[];
+    },
+    enabled: !!profile?.organization_id,
+  });
+}
+
+export function useServiceType(id: string | undefined) {
+  return useQuery({
+    queryKey: ["service-type", id],
+    queryFn: async () => {
+      if (!id) return null;
+      const { data, error } = await supabase
+        .from("service_types")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+      if (error) throw error;
+      return data as ServiceType;
+    },
+    enabled: !!id,
+  });
+}
+
+export function useCreateServiceType() {
+  const queryClient = useQueryClient();
+  const { profile } = useAuth();
+
+  return useMutation({
+    mutationFn: async (values: {
+      name: string;
+      category: "consultation" | "procedure" | "lab" | "pharmacy" | "room" | "other";
+      default_price?: number;
+      is_active?: boolean;
+    }) => {
+      if (!profile?.organization_id) throw new Error("No organization");
+
+      const { data, error } = await supabase
+        .from("service_types")
+        .insert({
+          name: values.name,
+          category: values.category,
+          default_price: values.default_price,
+          is_active: values.is_active,
+          organization_id: profile.organization_id,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["service-types"] });
+      queryClient.invalidateQueries({ queryKey: ["all-service-types"] });
+      toast.success("Service type created");
+    },
+    onError: (error) => {
+      toast.error("Failed to create service type: " + error.message);
+    },
+  });
+}
+
+export function useUpdateServiceType() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (values: {
+      id: string;
+      name?: string;
+      category?: "consultation" | "procedure" | "lab" | "pharmacy" | "room" | "other";
+      default_price?: number;
+      is_active?: boolean;
+    }) => {
+      const { id, ...updateData } = values;
+      const { data, error } = await supabase
+        .from("service_types")
+        .update(updateData)
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["service-types"] });
+      queryClient.invalidateQueries({ queryKey: ["all-service-types"] });
+      queryClient.invalidateQueries({ queryKey: ["service-type", variables.id] });
+      toast.success("Service type updated");
+    },
+    onError: (error) => {
+      toast.error("Failed to update service type: " + error.message);
+    },
+  });
+}
+
+export function useToggleServiceTypeStatus() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { data: current } = await supabase
+        .from("service_types")
+        .select("is_active")
+        .eq("id", id)
+        .single();
+
+      const { error } = await supabase
+        .from("service_types")
+        .update({ is_active: !(current?.is_active ?? true) })
+        .eq("id", id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["service-types"] });
+      queryClient.invalidateQueries({ queryKey: ["all-service-types"] });
+    },
   });
 }
 
@@ -582,5 +851,167 @@ export function usePatientBalance(patientId: string | undefined) {
       return { outstanding, invoices: data || [] };
     },
     enabled: !!patientId,
+  });
+}
+
+// ========== ANALYTICS HOOKS ==========
+
+export function useDailyCollections(dateFrom: string, dateTo: string, branchId?: string) {
+  return useQuery({
+    queryKey: ["daily-collections", dateFrom, dateTo, branchId],
+    queryFn: async () => {
+      let query = supabase
+        .from("payments")
+        .select("amount, payment_date")
+        .gte("payment_date", dateFrom)
+        .lte("payment_date", dateTo + "T23:59:59");
+
+      const { data, error } = await query;
+      if (error) throw error;
+
+      // Group by date
+      const grouped: Record<string, number> = {};
+      data?.forEach((p) => {
+        const date = p.payment_date?.slice(0, 10) || "";
+        grouped[date] = (grouped[date] || 0) + Number(p.amount);
+      });
+
+      // Convert to array sorted by date
+      return Object.entries(grouped)
+        .map(([date, amount]) => ({ date, amount }))
+        .sort((a, b) => a.date.localeCompare(b.date));
+    },
+  });
+}
+
+export function useRevenueByCategory(dateFrom: string, dateTo: string) {
+  return useQuery({
+    queryKey: ["revenue-by-category", dateFrom, dateTo],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("invoice_items")
+        .select(`
+          total_price,
+          service_type:service_types(category),
+          invoice:invoices!invoice_items_invoice_id_fkey(invoice_date)
+        `)
+        .gte("invoice.invoice_date", dateFrom)
+        .lte("invoice.invoice_date", dateTo);
+
+      if (error) throw error;
+
+      // Group by category
+      const grouped: Record<string, number> = {};
+      data?.forEach((item) => {
+        const category = (item.service_type as any)?.category || "other";
+        grouped[category] = (grouped[category] || 0) + Number(item.total_price || 0);
+      });
+
+      return Object.entries(grouped)
+        .map(([category, amount]) => ({ category, amount }))
+        .filter((c) => c.amount > 0);
+    },
+  });
+}
+
+export function usePaymentMethodDistribution(dateFrom: string, dateTo: string) {
+  return useQuery({
+    queryKey: ["payment-method-distribution", dateFrom, dateTo],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("payments")
+        .select(`
+          amount,
+          payment_method:payment_methods(name)
+        `)
+        .gte("payment_date", dateFrom)
+        .lte("payment_date", dateTo + "T23:59:59");
+
+      if (error) throw error;
+
+      // Group by payment method
+      const grouped: Record<string, number> = {};
+      data?.forEach((p) => {
+        const method = (p.payment_method as any)?.name || "Unknown";
+        grouped[method] = (grouped[method] || 0) + Number(p.amount);
+      });
+
+      return Object.entries(grouped)
+        .map(([method, amount]) => ({ method, amount }))
+        .filter((m) => m.amount > 0);
+    },
+  });
+}
+
+export function useOutstandingReceivables(branchId?: string) {
+  return useQuery({
+    queryKey: ["outstanding-receivables", branchId],
+    queryFn: async () => {
+      let query = supabase
+        .from("invoices")
+        .select("total_amount, paid_amount, status")
+        .in("status", ["pending", "partially_paid", "paid"]);
+
+      if (branchId) {
+        query = query.eq("branch_id", branchId);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+
+      let totalBilled = 0;
+      let totalCollected = 0;
+      let outstanding = 0;
+      let count = 0;
+
+      data?.forEach((inv) => {
+        totalBilled += Number(inv.total_amount || 0);
+        totalCollected += Number(inv.paid_amount || 0);
+        if (inv.status !== "paid") {
+          outstanding += Number(inv.total_amount || 0) - Number(inv.paid_amount || 0);
+          count++;
+        }
+      });
+
+      const collectionRate = totalBilled > 0 ? (totalCollected / totalBilled) * 100 : 0;
+
+      return { total: outstanding, count, collectionRate, totalBilled, totalCollected };
+    },
+  });
+}
+
+export function useTopServices(dateFrom: string, dateTo: string, limit = 10) {
+  return useQuery({
+    queryKey: ["top-services", dateFrom, dateTo, limit],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("invoice_items")
+        .select(`
+          description,
+          quantity,
+          total_price,
+          invoice:invoices!invoice_items_invoice_id_fkey(invoice_date)
+        `)
+        .gte("invoice.invoice_date", dateFrom)
+        .lte("invoice.invoice_date", dateTo);
+
+      if (error) throw error;
+
+      // Group by description
+      const grouped: Record<string, { revenue: number; count: number }> = {};
+      data?.forEach((item) => {
+        const name = item.description;
+        if (!grouped[name]) {
+          grouped[name] = { revenue: 0, count: 0 };
+        }
+        grouped[name].revenue += Number(item.total_price || 0);
+        grouped[name].count += Number(item.quantity || 1);
+      });
+
+      return Object.entries(grouped)
+        .map(([name, data]) => ({ name, ...data }))
+        .sort((a, b) => b.revenue - a.revenue)
+        .slice(0, limit);
+    },
   });
 }
