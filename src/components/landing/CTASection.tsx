@@ -1,44 +1,53 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Phone, Mail, MessageCircle } from "lucide-react";
 
 export const CTASection = () => {
   return (
-    <section className="py-24 bg-gradient-to-br from-primary/10 via-background to-accent/10">
-      <div className="container mx-auto px-4">
+    <section className="py-24 bg-gradient-to-br from-primary/10 via-background to-accent/10 relative overflow-hidden">
+      {/* Background decorations */}
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
+      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-accent/10 rounded-full blur-3xl" />
+      
+      <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-6">
-            <Sparkles className="h-4 w-4" />
-            <span>Start Your 14-Day Free Trial</span>
-          </div>
-
-          <h2 className="text-3xl md:text-5xl font-bold mb-6">
-            Ready to Transform Your
-            <span className="text-primary block mt-2">Healthcare Facility?</span>
+          <h2 className="text-3xl md:text-5xl font-bold mb-6 text-foreground">
+            Ready to modernize your
+            <span className="text-primary"> healthcare facility?</span>
           </h2>
-
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-            Join hundreds of clinics and hospitals that trust SmartHMS for their daily operations. 
-            No credit card required. Cancel anytime.
+          <p className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
+            Join 500+ clinics across Pakistan and the Middle East. Start your free trial today - no credit card required.
           </p>
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link to="/auth/signup">
-              <Button size="lg" className="gap-2 text-lg px-8 py-6 shadow-lg shadow-primary/25">
-                Get Started Free
-                <ArrowRight className="h-5 w-5" />
-              </Button>
-            </Link>
-            <Link to="/auth/login">
-              <Button size="lg" variant="outline" className="gap-2 text-lg px-8 py-6">
-                View Live Demo
-              </Button>
-            </Link>
+          
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+            <Button size="lg" className="group text-lg px-8" asChild>
+              <Link to="/auth/signup">
+                Start Free Trial
+                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </Button>
+            <Button size="lg" variant="outline" className="text-lg px-8" asChild>
+              <Link to="/auth/login">
+                Login to Demo
+              </Link>
+            </Button>
           </div>
-
-          <p className="text-sm text-muted-foreground mt-6">
-            ✓ Free 14-day trial &nbsp; ✓ No credit card required &nbsp; ✓ Cancel anytime
-          </p>
+          
+          {/* Contact options */}
+          <div className="flex flex-wrap justify-center gap-6 pt-8 border-t border-border">
+            <a href="tel:+924235761234" className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
+              <Phone className="h-5 w-5" />
+              <span>+92 42 3576 1234</span>
+            </a>
+            <a href="mailto:hello@smarthms.pk" className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
+              <Mail className="h-5 w-5" />
+              <span>hello@smarthms.pk</span>
+            </a>
+            <a href="https://wa.me/923001234567" className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
+              <MessageCircle className="h-5 w-5" />
+              <span>WhatsApp</span>
+            </a>
+          </div>
         </div>
       </div>
     </section>
