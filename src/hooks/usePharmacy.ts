@@ -552,3 +552,57 @@ export function usePharmacyStats(branchId?: string) {
     enabled: !!targetBranchId,
   });
 }
+
+// Dashboard widget - detailed low stock and expiring items
+export function useDashboardPharmacy() {
+  const { profile } = useAuth();
+  const targetBranchId = profile?.branch_id;
+
+  return useQuery({
+    queryKey: ["dashboard-pharmacy", targetBranchId],
+    queryFn: async () => {
+      if (!targetBranchId) return { lowStockItems: [], expiringItems: [], pendingPrescriptions: 0 };
+
+      // Get inventory with medicine details
+      const { data: inventory, error: invError } = await supabase
+        .from("medicine_inventory")
+        .select(`
+          *,
+          medicine:medicines(id, name, generic_name, strength, unit)
+        `)
+        .eq("branch_id", targetBranchId);
+
+      if (invError) throw invError;
+
+      // Filter low stock items
+      const lowStockItems = (inventory || []).filter(
+        (i) => (i.quantity || 0) <= (i.reorder_level || 10) && (i.quantity || 0) > 0
+      );
+
+      // Filter expiring items (within 30 days)
+      const thirtyDaysFromNow = new Date();
+      thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+      
+      const expiringItems = (inventory || []).filter((i) => {
+        if (!i.expiry_date || (i.quantity || 0) <= 0) return false;
+        return new Date(i.expiry_date) <= thirtyDaysFromNow;
+      }).sort((a, b) => 
+        new Date(a.expiry_date!).getTime() - new Date(b.expiry_date!).getTime()
+      );
+
+      // Count pending prescriptions
+      const { count: pendingCount } = await supabase
+        .from("prescriptions")
+        .select("*", { count: "exact", head: true })
+        .eq("branch_id", targetBranchId)
+        .in("status", ["created", "partially_dispensed"]);
+
+      return {
+        lowStockItems,
+        expiringItems,
+        pendingPrescriptions: pendingCount || 0,
+      };
+    },
+    enabled: !!targetBranchId,
+  });
+}
