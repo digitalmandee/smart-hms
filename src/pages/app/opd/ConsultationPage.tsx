@@ -3,7 +3,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import { format } from "date-fns";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
@@ -12,12 +11,14 @@ import { Loader2, Save, Check, ArrowLeft, CalendarIcon } from "lucide-react";
 import { useAppointment, useUpdateAppointment } from "@/hooks/useAppointments";
 import { useConsultationByAppointment, useCreateConsultation, useUpdateConsultation, Vitals } from "@/hooks/useConsultations";
 import { useCreatePrescription, PrescriptionItemInput } from "@/hooks/usePrescriptions";
+import { useCreateLabOrder, LabOrderItemInput } from "@/hooks/useLabOrders";
 import { useDoctors } from "@/hooks/useDoctors";
 import { useAuth } from "@/contexts/AuthContext";
 import { VitalsForm } from "@/components/consultation/VitalsForm";
 import { SymptomsInput } from "@/components/consultation/SymptomsInput";
 import { DiagnosisInput } from "@/components/consultation/DiagnosisInput";
 import { PrescriptionBuilder } from "@/components/consultation/PrescriptionBuilder";
+import { LabOrderBuilder } from "@/components/consultation/LabOrderBuilder";
 import { PatientQuickInfo } from "@/components/consultation/PatientQuickInfo";
 import { PreviousVisits } from "@/components/consultation/PreviousVisits";
 import { cn } from "@/lib/utils";
@@ -35,6 +36,7 @@ export default function ConsultationPage() {
   const updateConsultation = useUpdateConsultation();
   const updateAppointment = useUpdateAppointment();
   const createPrescription = useCreatePrescription();
+  const createLabOrder = useCreateLabOrder();
 
   // Find current doctor
   const currentDoctor = doctors.find(d => d.profile?.id === profile?.id);
@@ -51,6 +53,9 @@ export default function ConsultationPage() {
   const [clinicalNotes, setClinicalNotes] = useState(existingConsultation?.clinical_notes || "");
   const [prescriptionItems, setPrescriptionItems] = useState<PrescriptionItemInput[]>([]);
   const [prescriptionNotes, setPrescriptionNotes] = useState("");
+  const [labOrderItems, setLabOrderItems] = useState<LabOrderItemInput[]>([]);
+  const [labOrderPriority, setLabOrderPriority] = useState<"routine" | "urgent" | "stat">("routine");
+  const [labOrderNotes, setLabOrderNotes] = useState("");
   const [followUpDate, setFollowUpDate] = useState<Date | undefined>(
     existingConsultation?.follow_up_date ? new Date(existingConsultation.follow_up_date) : undefined
   );
@@ -123,6 +128,21 @@ export default function ConsultationPage() {
         });
       }
 
+      // Create lab order if items exist
+      if (complete && labOrderItems.length > 0 && consultationId) {
+        await createLabOrder.mutateAsync({
+          labOrder: {
+            consultation_id: consultationId,
+            patient_id: patient.id,
+            doctor_id: currentDoctor.id,
+            branch_id: appointment.branch_id,
+            priority: labOrderPriority,
+            clinical_notes: labOrderNotes,
+          },
+          items: labOrderItems,
+        });
+      }
+
       // Update appointment status
       if (complete) {
         await updateAppointment.mutateAsync({
@@ -188,6 +208,14 @@ export default function ConsultationPage() {
             onChange={setPrescriptionItems}
             notes={prescriptionNotes}
             onNotesChange={setPrescriptionNotes}
+          />
+          <LabOrderBuilder
+            items={labOrderItems}
+            onChange={setLabOrderItems}
+            priority={labOrderPriority}
+            onPriorityChange={setLabOrderPriority}
+            notes={labOrderNotes}
+            onNotesChange={setLabOrderNotes}
           />
 
           {/* Follow-up */}
