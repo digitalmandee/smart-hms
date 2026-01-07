@@ -4,7 +4,6 @@ import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { PatientSearch } from "@/components/appointments/PatientSearch";
 import { InvoiceItemsBuilder } from "@/components/billing/InvoiceItemsBuilder";
 import { InvoiceTotals } from "@/components/billing/InvoiceTotals";
@@ -13,6 +12,16 @@ import { useCreateInvoice, useInvoice, useUpdateInvoice, InvoiceItemInput } from
 import { useAuth } from "@/contexts/AuthContext";
 import { ArrowLeft, Save, FileText } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+
+interface Patient {
+  id: string;
+  first_name: string;
+  last_name: string | null;
+  patient_number: string;
+  phone: string | null;
+  date_of_birth: string | null;
+  gender: string | null;
+}
 
 export default function InvoiceFormPage() {
   const navigate = useNavigate();
@@ -27,21 +36,26 @@ export default function InvoiceFormPage() {
   const createMutation = useCreateInvoice();
   const updateMutation = useUpdateInvoice();
 
-  const [patientId, setPatientId] = useState<string>("");
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [items, setItems] = useState<InvoiceItemInput[]>([]);
   const [notes, setNotes] = useState("");
   const [taxAmount, setTaxAmount] = useState(0);
   const [discountAmount, setDiscountAmount] = useState(0);
 
-  useEffect(() => {
-    if (preselectedPatientId) {
-      setPatientId(preselectedPatientId);
-    }
-  }, [preselectedPatientId]);
+  // Note: preselectedPatientId would need a fetch to get patient object
+  // For now, we handle it in the PatientSearch component
 
   useEffect(() => {
     if (existingInvoice && isEdit) {
-      setPatientId(existingInvoice.patient.id);
+      setSelectedPatient({
+        id: existingInvoice.patient.id,
+        first_name: existingInvoice.patient.first_name,
+        last_name: existingInvoice.patient.last_name,
+        patient_number: existingInvoice.patient.patient_number,
+        phone: existingInvoice.patient.phone || null,
+        date_of_birth: null,
+        gender: null,
+      });
       setNotes(existingInvoice.notes || "");
       setTaxAmount(Number(existingInvoice.tax_amount) || 0);
       setDiscountAmount(Number(existingInvoice.discount_amount) || 0);
@@ -63,7 +77,7 @@ export default function InvoiceFormPage() {
   }, 0);
 
   const handleSubmit = async (status: "draft" | "pending" = "pending") => {
-    if (!patientId || items.length === 0) return;
+    if (!selectedPatient || items.length === 0) return;
 
     const branchId = profile?.branch_id;
     if (!branchId) return;
@@ -80,7 +94,7 @@ export default function InvoiceFormPage() {
       navigate(`/app/billing/invoices/${id}`);
     } else {
       const invoice = await createMutation.mutateAsync({
-        patientId,
+        patientId: selectedPatient.id,
         branchId,
         items,
         notes,
@@ -122,21 +136,10 @@ export default function InvoiceFormPage() {
               <CardTitle>Patient</CardTitle>
             </CardHeader>
             <CardContent>
-              {isEdit ? (
-                <div className="p-4 rounded-lg bg-muted">
-                  <p className="font-semibold">
-                    {existingInvoice?.patient.first_name} {existingInvoice?.patient.last_name}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {existingInvoice?.patient.patient_number}
-                  </p>
-                </div>
-              ) : (
-                <PatientSearch
-                  onSelect={(patient) => setPatientId(patient.id)}
-                  selectedPatientId={patientId}
-                />
-              )}
+              <PatientSearch
+                onSelect={(patient) => setSelectedPatient(patient)}
+                selectedPatient={selectedPatient}
+              />
             </CardContent>
           </Card>
 
@@ -175,7 +178,7 @@ export default function InvoiceFormPage() {
 
         {/* Sidebar */}
         <div className="space-y-6">
-          <PatientBalanceCard patientId={patientId} />
+          <PatientBalanceCard patientId={selectedPatient?.id || ""} />
 
           <Card>
             <CardHeader>
@@ -200,7 +203,7 @@ export default function InvoiceFormPage() {
                 size="lg"
                 onClick={() => handleSubmit("pending")}
                 disabled={
-                  !patientId ||
+                  !selectedPatient ||
                   items.length === 0 ||
                   createMutation.isPending ||
                   updateMutation.isPending
@@ -218,7 +221,7 @@ export default function InvoiceFormPage() {
                   variant="outline"
                   className="w-full"
                   onClick={() => handleSubmit("draft")}
-                  disabled={!patientId || items.length === 0 || createMutation.isPending}
+                  disabled={!selectedPatient || items.length === 0 || createMutation.isPending}
                 >
                   Save as Draft
                 </Button>
