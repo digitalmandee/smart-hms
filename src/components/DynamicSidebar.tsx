@@ -43,6 +43,10 @@ import {
   CalendarPlus,
   HeartPulse,
   TestTube,
+  FlaskConical,
+  ListChecks,
+  FileInput,
+  FileSpreadsheet,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -78,6 +82,10 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   CalendarPlus,
   HeartPulse,
   TestTube,
+  FlaskConical,
+  ListChecks,
+  FileInput,
+  FileSpreadsheet,
 };
 
 interface DynamicSidebarProps {

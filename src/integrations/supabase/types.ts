@@ -700,8 +700,11 @@ export type Database = {
           id: string
           instructions: string | null
           lab_order_id: string
+          performed_by: string | null
           result: string | null
           result_date: string | null
+          result_notes: string | null
+          result_values: Json | null
           service_type_id: string | null
           status: Database["public"]["Enums"]["lab_item_status"]
           test_category: string
@@ -712,8 +715,11 @@ export type Database = {
           id?: string
           instructions?: string | null
           lab_order_id: string
+          performed_by?: string | null
           result?: string | null
           result_date?: string | null
+          result_notes?: string | null
+          result_values?: Json | null
           service_type_id?: string | null
           status?: Database["public"]["Enums"]["lab_item_status"]
           test_category?: string
@@ -724,8 +730,11 @@ export type Database = {
           id?: string
           instructions?: string | null
           lab_order_id?: string
+          performed_by?: string | null
           result?: string | null
           result_date?: string | null
+          result_notes?: string | null
+          result_values?: Json | null
           service_type_id?: string | null
           status?: Database["public"]["Enums"]["lab_item_status"]
           test_category?: string
@@ -737,6 +746,13 @@ export type Database = {
             columns: ["lab_order_id"]
             isOneToOne: false
             referencedRelation: "lab_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_order_items_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -752,6 +768,7 @@ export type Database = {
         Row: {
           branch_id: string
           clinical_notes: string | null
+          completed_at: string | null
           consultation_id: string
           created_at: string
           doctor_id: string
@@ -759,12 +776,14 @@ export type Database = {
           order_number: string
           patient_id: string
           priority: Database["public"]["Enums"]["lab_order_priority"]
+          result_notes: string | null
           status: Database["public"]["Enums"]["lab_order_status"]
           updated_at: string
         }
         Insert: {
           branch_id: string
           clinical_notes?: string | null
+          completed_at?: string | null
           consultation_id: string
           created_at?: string
           doctor_id: string
@@ -772,12 +791,14 @@ export type Database = {
           order_number: string
           patient_id: string
           priority?: Database["public"]["Enums"]["lab_order_priority"]
+          result_notes?: string | null
           status?: Database["public"]["Enums"]["lab_order_status"]
           updated_at?: string
         }
         Update: {
           branch_id?: string
           clinical_notes?: string | null
+          completed_at?: string | null
           consultation_id?: string
           created_at?: string
           doctor_id?: string
@@ -785,6 +806,7 @@ export type Database = {
           order_number?: string
           patient_id?: string
           priority?: Database["public"]["Enums"]["lab_order_priority"]
+          result_notes?: string | null
           status?: Database["public"]["Enums"]["lab_order_status"]
           updated_at?: string
         }
@@ -815,6 +837,44 @@ export type Database = {
             columns: ["patient_id"]
             isOneToOne: false
             referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lab_test_templates: {
+        Row: {
+          created_at: string
+          fields: Json
+          id: string
+          is_active: boolean | null
+          organization_id: string | null
+          test_category: string
+          test_name: string
+        }
+        Insert: {
+          created_at?: string
+          fields?: Json
+          id?: string
+          is_active?: boolean | null
+          organization_id?: string | null
+          test_category?: string
+          test_name: string
+        }
+        Update: {
+          created_at?: string
+          fields?: Json
+          id?: string
+          is_active?: boolean | null
+          organization_id?: string | null
+          test_category?: string
+          test_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_test_templates_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]

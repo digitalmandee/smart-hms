@@ -50,6 +50,10 @@ import ConsultationHistoryPage from "./pages/app/opd/ConsultationHistoryPage";
 import ConsultationDetailPage from "./pages/app/opd/ConsultationDetailPage";
 import NurseDashboard from "./pages/app/opd/NurseDashboard";
 import ReceptionistDashboard from "./pages/app/reception/ReceptionistDashboard";
+
+// Lab pages
+import LabQueuePage from "./pages/app/lab/LabQueuePage";
+import LabResultEntryPage from "./pages/app/lab/LabResultEntryPage";
 // Pharmacy pages
 import PharmacyDashboard from "./pages/app/pharmacy/PharmacyDashboard";
 import PrescriptionQueuePage from "./pages/app/pharmacy/PrescriptionQueuePage";
@@ -144,6 +148,10 @@ const App = () => (
               <Route path="pharmacy/medicines/:id/edit" element={<MedicineFormPage />} />
               <Route path="pharmacy/inventory" element={<InventoryPage />} />
               <Route path="pharmacy/inventory/add" element={<StockEntryPage />} />
+              
+              {/* Lab routes */}
+              <Route path="lab/queue" element={<LabQueuePage />} />
+              <Route path="lab/orders/:orderId" element={<LabResultEntryPage />} />
               
               {/* Billing routes */}
               <Route path="billing" element={<BillingDashboard />} />

@@ -37,7 +37,7 @@ export function useLabOrders(filters: LabOrderFilters = {}) {
         .select(`
           *,
           items:lab_order_items(*),
-          patient:patients(id, first_name, last_name, patient_number),
+          patient:patients(id, first_name, last_name, patient_number, date_of_birth, gender, phone),
           doctor:doctors(id, profile:profiles(full_name))
         `)
         .order("created_at", { ascending: false });
@@ -62,7 +62,7 @@ export function useLabOrders(filters: LabOrderFilters = {}) {
   });
 }
 
-// Fetch single lab order
+// Fetch single lab order with full details
 export function useLabOrder(id: string | undefined) {
   return useQuery({
     queryKey: ["lab-order", id],
@@ -73,8 +73,8 @@ export function useLabOrder(id: string | undefined) {
         .select(`
           *,
           items:lab_order_items(*),
-          patient:patients(id, first_name, last_name, patient_number, date_of_birth, gender),
-          doctor:doctors(id, profile:profiles(full_name))
+          patient:patients(id, first_name, last_name, patient_number, date_of_birth, gender, phone),
+          doctor:doctors(id, specialization, qualification, license_number, profile:profiles(full_name))
         `)
         .eq("id", id)
         .single();
@@ -188,6 +188,113 @@ export function useUpdateLabOrder() {
 
       if (error) throw error;
       return order;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["lab-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["lab-order"] });
+    },
+  });
+}
+
+// Update lab order item with results
+export function useUpdateLabOrderItem() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      id,
+      result_values,
+      result_notes,
+      status,
+      performed_by,
+    }: {
+      id: string;
+      result_values?: Record<string, string | number>;
+      result_notes?: string;
+      status?: "pending" | "collected" | "processing" | "completed";
+      performed_by?: string;
+    }) => {
+      const updateData: Record<string, unknown> = {};
+      
+      if (result_values !== undefined) updateData.result_values = result_values;
+      if (result_notes !== undefined) updateData.result_notes = result_notes;
+      if (status !== undefined) updateData.status = status;
+      if (performed_by !== undefined) updateData.performed_by = performed_by;
+      if (status === "completed") updateData.result_date = new Date().toISOString();
+
+      const { data, error } = await supabase
+        .from("lab_order_items")
+        .update(updateData)
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["lab-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["lab-order"] });
+    },
+  });
+}
+
+// Mark sample as collected
+export function useMarkSampleCollected() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (orderId: string) => {
+      // Update lab order status
+      const { error: orderError } = await supabase
+        .from("lab_orders")
+        .update({ status: "collected" as const })
+        .eq("id", orderId);
+
+      if (orderError) throw orderError;
+
+      // Update all items to collected
+      const { error: itemsError } = await supabase
+        .from("lab_order_items")
+        .update({ status: "collected" as const })
+        .eq("lab_order_id", orderId);
+
+      if (itemsError) throw itemsError;
+
+      return true;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["lab-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["lab-order"] });
+    },
+  });
+}
+
+// Complete lab order (mark all tests as completed)
+export function useCompleteLabOrder() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      orderId,
+      result_notes,
+    }: {
+      orderId: string;
+      result_notes?: string;
+    }) => {
+      const { data, error } = await supabase
+        .from("lab_orders")
+        .update({
+          status: "completed" as const,
+          completed_at: new Date().toISOString(),
+          result_notes,
+        })
+        .eq("id", orderId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["lab-orders"] });
