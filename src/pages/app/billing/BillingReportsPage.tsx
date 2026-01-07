@@ -1,19 +1,24 @@
 import { useState } from "react";
 import { format, subDays } from "date-fns";
+import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { useDailyCollections, useRevenueByCategory, usePaymentMethodDistribution, useOutstandingReceivables, useTopServices } from "@/hooks/useBilling";
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, CartesianGrid } from "recharts";
-import { CalendarIcon, DollarSign, Clock, AlertTriangle, TrendingUp, Loader2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { useDailyCollections, useRevenueByCategory, usePaymentMethodDistribution, useOutstandingReceivables, useTopServices, useAgingReport } from "@/hooks/useBilling";
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, PieChart, Pie, Cell, CartesianGrid } from "recharts";
+import { CalendarIcon, DollarSign, Clock, AlertTriangle, TrendingUp, Loader2, FileText, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const COLORS = ["hsl(var(--primary))", "hsl(var(--chart-2))", "hsl(var(--chart-3))", "hsl(var(--chart-4))", "hsl(var(--chart-5))", "hsl(var(--muted))"];
+const AGING_COLORS = ["hsl(var(--success))", "hsl(var(--warning))", "hsl(var(--destructive))"];
 
 export default function BillingReportsPage() {
+  const navigate = useNavigate();
   const [dateRange, setDateRange] = useState({
     from: subDays(new Date(), 30),
     to: new Date(),
@@ -27,6 +32,7 @@ export default function BillingReportsPage() {
   const { data: paymentData, isLoading: paymentLoading } = usePaymentMethodDistribution(dateFrom, dateTo);
   const { data: outstandingData, isLoading: outstandingLoading } = useOutstandingReceivables();
   const { data: topServices, isLoading: topLoading } = useTopServices(dateFrom, dateTo);
+  const { data: agingData, isLoading: agingLoading } = useAgingReport();
 
   const totalRevenue = dailyData?.reduce((sum, d) => sum + d.amount, 0) || 0;
 
@@ -232,6 +238,115 @@ export default function BillingReportsPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Aging Report */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5 text-warning" />
+            Accounts Receivable Aging
+          </CardTitle>
+          <CardDescription>
+            Outstanding invoices grouped by age
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {agingLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : agingData ? (
+            <div className="space-y-6">
+              {/* Summary Bar */}
+              <div className="flex items-center gap-4">
+                <div className="flex-1">
+                  <div className="flex h-4 overflow-hidden rounded-full">
+                    {agingData.buckets.map((bucket, index) => {
+                      const percentage = agingData.totalOutstanding > 0 
+                        ? (bucket.amount / agingData.totalOutstanding) * 100 
+                        : 0;
+                      return (
+                        <div
+                          key={bucket.label}
+                          className="transition-all"
+                          style={{ 
+                            width: `${percentage}%`, 
+                            backgroundColor: AGING_COLORS[index],
+                            minWidth: bucket.amount > 0 ? "4px" : "0"
+                          }}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-medium">Total Outstanding</p>
+                  <p className="text-lg font-bold text-destructive">
+                    Rs. {agingData.totalOutstanding.toLocaleString()}
+                  </p>
+                </div>
+              </div>
+
+              {/* Aging Buckets */}
+              <div className="grid gap-4 md:grid-cols-3">
+                {agingData.buckets.map((bucket, index) => (
+                  <Card key={bucket.label} className="border-l-4" style={{ borderLeftColor: AGING_COLORS[index] }}>
+                    <CardHeader className="pb-2">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-sm font-medium">{bucket.label}</CardTitle>
+                        <Badge variant={index === 0 ? "outline" : index === 1 ? "secondary" : "destructive"}>
+                          {bucket.range}
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold" style={{ color: AGING_COLORS[index] }}>
+                        Rs. {bucket.amount.toLocaleString()}
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {bucket.count} invoice{bucket.count !== 1 ? "s" : ""}
+                      </p>
+                      
+                      {/* Invoice list preview */}
+                      {bucket.invoices.length > 0 && (
+                        <div className="mt-4 space-y-2 max-h-[200px] overflow-y-auto">
+                          {bucket.invoices.slice(0, 5).map((inv) => (
+                            <div 
+                              key={inv.id} 
+                              className="flex items-center justify-between text-sm p-2 rounded-lg bg-muted/50 hover:bg-muted cursor-pointer"
+                              onClick={() => navigate(`/app/billing/invoices/${inv.id}`)}
+                            >
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium truncate">{inv.patient_name}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {inv.invoice_number} • {inv.days_overdue} days
+                                </p>
+                              </div>
+                              <div className="text-right flex items-center gap-2">
+                                <span className="font-medium">Rs. {inv.balance.toLocaleString()}</span>
+                                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                              </div>
+                            </div>
+                          ))}
+                          {bucket.invoices.length > 5 && (
+                            <p className="text-xs text-center text-muted-foreground pt-2">
+                              +{bucket.invoices.length - 5} more invoices
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center py-8 text-muted-foreground">
+              No outstanding invoices
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Top Services */}
       <Card>
