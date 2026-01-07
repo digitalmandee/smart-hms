@@ -39,6 +39,9 @@ import {
   Menu,
   X,
   ConciergeBell,
+  CalendarClock,
+  CalendarPlus,
+  HeartPulse,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -70,6 +73,9 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Cog,
   TrendingUp,
   ConciergeBell,
+  CalendarClock,
+  CalendarPlus,
+  HeartPulse,
 };
 
 interface DynamicSidebarProps {
