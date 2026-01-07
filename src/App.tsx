@@ -48,6 +48,7 @@ import DoctorDashboard from "./pages/app/opd/DoctorDashboard";
 import ConsultationPage from "./pages/app/opd/ConsultationPage";
 import ConsultationHistoryPage from "./pages/app/opd/ConsultationHistoryPage";
 import ConsultationDetailPage from "./pages/app/opd/ConsultationDetailPage";
+import NurseDashboard from "./pages/app/opd/NurseDashboard";
 
 // Pharmacy pages
 import PharmacyDashboard from "./pages/app/pharmacy/PharmacyDashboard";
@@ -125,6 +126,7 @@ const App = () => (
               
               {/* OPD routes */}
               <Route path="opd" element={<DoctorDashboard />} />
+              <Route path="opd/nursing" element={<NurseDashboard />} />
               <Route path="opd/consultation/:appointmentId" element={<ConsultationPage />} />
               <Route path="opd/history" element={<ConsultationHistoryPage />} />
               <Route path="opd/consultations/:id" element={<ConsultationDetailPage />} />
