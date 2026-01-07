@@ -37,7 +37,7 @@ export default function DoctorDashboard() {
     <div className="space-y-6">
       <PageHeader
         title="Doctor Dashboard"
-        subtitle={`Welcome, Dr. ${profile?.full_name || "Doctor"}`}
+        description={`Welcome, Dr. ${profile?.full_name || "Doctor"}`}
       />
 
       {/* Stats */}

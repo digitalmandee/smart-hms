@@ -152,13 +152,14 @@ export default function ConsultationPage() {
     <div className="space-y-6">
       <PageHeader
         title="Consultation"
-        subtitle={`${patient?.first_name} ${patient?.last_name || ""} - Token #${appointment.token_number || "N/A"}`}
-      >
-        <Button variant="outline" onClick={() => navigate(-1)}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back
-        </Button>
-      </PageHeader>
+        description={`${patient?.first_name} ${patient?.last_name || ""} - Token #${appointment.token_number || "N/A"}`}
+        actions={
+          <Button variant="outline" onClick={() => navigate(-1)}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
+          </Button>
+        }
+      />
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Main Form */}
