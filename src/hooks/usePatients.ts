@@ -176,3 +176,27 @@ export function usePatientStats() {
     enabled: !!profile?.organization_id,
   });
 }
+
+export function useRecentPatients(limit: number = 5) {
+  const { profile } = useAuth();
+  const today = new Date().toISOString().split("T")[0];
+
+  return useQuery({
+    queryKey: ["recent-patients", today, profile?.organization_id, limit],
+    queryFn: async () => {
+      if (!profile?.organization_id) return [];
+
+      const { data, error } = await supabase
+        .from("patients")
+        .select("id, first_name, last_name, patient_number, phone, created_at")
+        .eq("organization_id", profile.organization_id)
+        .gte("created_at", today)
+        .order("created_at", { ascending: false })
+        .limit(limit);
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!profile?.organization_id,
+  });
+}

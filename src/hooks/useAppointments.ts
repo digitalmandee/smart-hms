@@ -403,3 +403,60 @@ export function useCheckInWithVitals() {
     },
   });
 }
+
+// Reception dashboard - today's schedule and status breakdown
+export function useReceptionDashboard() {
+  const { profile } = useAuth();
+  const today = new Date().toISOString().split('T')[0];
+
+  return useQuery({
+    queryKey: ['reception-dashboard', today, profile?.organization_id],
+    queryFn: async () => {
+      if (!profile?.organization_id) {
+        return {
+          todaysAppointments: [],
+          upcomingAppointments: [],
+          statusCounts: { scheduled: 0, checked_in: 0, in_progress: 0, completed: 0 },
+        };
+      }
+
+      const { data: appointments, error } = await supabase
+        .from('appointments')
+        .select(`
+          *,
+          patient:patients(id, first_name, last_name, patient_number, phone),
+          doctor:doctors(id, specialization, profile:profiles(full_name))
+        `)
+        .eq('organization_id', profile.organization_id)
+        .eq('appointment_date', today)
+        .order('appointment_time', { ascending: true });
+
+      if (error) throw error;
+
+      const now = new Date();
+      const currentTime = now.toTimeString().slice(0, 5);
+
+      const typedAppointments = appointments as AppointmentWithRelations[];
+
+      return {
+        todaysAppointments: typedAppointments,
+        upcomingAppointments: typedAppointments
+          .filter(
+            (a) =>
+              a.status === 'scheduled' &&
+              a.appointment_time &&
+              a.appointment_time >= currentTime
+          )
+          .slice(0, 10),
+        statusCounts: {
+          scheduled: typedAppointments.filter((a) => a.status === 'scheduled').length,
+          checked_in: typedAppointments.filter((a) => a.status === 'checked_in').length,
+          in_progress: typedAppointments.filter((a) => a.status === 'in_progress').length,
+          completed: typedAppointments.filter((a) => a.status === 'completed').length,
+        },
+      };
+    },
+    enabled: !!profile?.organization_id,
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+}
