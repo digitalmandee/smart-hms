@@ -877,6 +877,56 @@ export type Database = {
           },
         ]
       }
+      notification_logs: {
+        Row: {
+          channel: string
+          created_at: string | null
+          error_message: string | null
+          id: string
+          notification_type: string
+          organization_id: string | null
+          recipient_email: string | null
+          recipient_phone: string | null
+          reference_id: string
+          sent_at: string | null
+          status: string | null
+        }
+        Insert: {
+          channel: string
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          notification_type: string
+          organization_id?: string | null
+          recipient_email?: string | null
+          recipient_phone?: string | null
+          reference_id: string
+          sent_at?: string | null
+          status?: string | null
+        }
+        Update: {
+          channel?: string
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          notification_type?: string
+          organization_id?: string | null
+          recipient_email?: string | null
+          recipient_phone?: string | null
+          reference_id?: string
+          sent_at?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_logs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_templates: {
         Row: {
           channel: Database["public"]["Enums"]["notification_channel"]
