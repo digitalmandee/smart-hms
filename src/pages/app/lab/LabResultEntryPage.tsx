@@ -1,8 +1,7 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useLabOrder, useUpdateLabOrderItem, useMarkSampleCollected, useCompleteLabOrder } from "@/hooks/useLabOrders";
 import { useAuth } from "@/contexts/AuthContext";
-import { useOrganization } from "@/hooks/useOrganizations";
 import { usePrint } from "@/hooks/usePrint";
 import { PageHeader } from "@/components/PageHeader";
 import { TestResultForm } from "@/components/lab/TestResultForm";
@@ -35,7 +34,6 @@ export default function LabResultEntryPage() {
   const { orderId } = useParams<{ orderId: string }>();
   const navigate = useNavigate();
   const { profile } = useAuth();
-  const { data: organization } = useOrganization();
   const { data: labOrder, isLoading } = useLabOrder(orderId);
   const updateItem = useUpdateLabOrderItem();
   const markCollected = useMarkSampleCollected();
@@ -141,18 +139,11 @@ export default function LabResultEntryPage() {
           />
         </div>
 
-        <Button onClick={handlePrint} disabled={!isOrderCompleted}>
-          <Printer className="h-4 w-4 mr-2" />
-          Print Report
-        </Button>
-      </div>
-
         <Button onClick={() => handlePrint()} disabled={!isOrderCompleted}>
           <Printer className="h-4 w-4 mr-2" />
           Print Report
         </Button>
       </div>
-
       {/* Order Info Card */}
       <Card>
         <CardHeader className="pb-3">
@@ -296,7 +287,6 @@ export default function LabResultEntryPage() {
         <PrintableLabReport
           ref={printRef}
           labOrder={labOrder}
-          organization={organization || undefined}
           performedBy={profile?.full_name}
         />
       </div>
