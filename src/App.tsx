@@ -71,6 +71,7 @@ import ServiceTypesListPage from "./pages/app/settings/ServiceTypesListPage";
 import ServiceTypeFormPage from "./pages/app/settings/ServiceTypeFormPage";
 import PaymentMethodsListPage from "./pages/app/settings/PaymentMethodsListPage";
 import PaymentMethodFormPage from "./pages/app/settings/PaymentMethodFormPage";
+import NotificationSettingsPage from "./pages/app/settings/NotificationSettingsPage";
 
 const queryClient = new QueryClient();
 
@@ -159,6 +160,7 @@ const App = () => (
               <Route path="settings/payment-methods" element={<PaymentMethodsListPage />} />
               <Route path="settings/payment-methods/new" element={<PaymentMethodFormPage />} />
               <Route path="settings/payment-methods/:id" element={<PaymentMethodFormPage />} />
+              <Route path="settings/notifications" element={<NotificationSettingsPage />} />
             </Route>
 
             {/* Super Admin routes */}
