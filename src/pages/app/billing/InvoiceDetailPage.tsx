@@ -1,0 +1,269 @@
+import { useRef } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { format } from "date-fns";
+import { PageHeader } from "@/components/PageHeader";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { useInvoice, useCancelInvoice } from "@/hooks/useBilling";
+import { useOrganizations } from "@/hooks/useOrganizations";
+import { useAuth } from "@/contexts/AuthContext";
+import { InvoiceStatusBadge } from "@/components/billing/InvoiceStatusBadge";
+import { InvoiceTotals } from "@/components/billing/InvoiceTotals";
+import { PrintableInvoice } from "@/components/billing/PrintableInvoice";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
+import {
+  ArrowLeft,
+  Printer,
+  CreditCard,
+  Edit,
+  XCircle,
+  User,
+  DollarSign,
+} from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { usePrint } from "@/hooks/usePrint";
+
+export default function InvoiceDetailPage() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { profile } = useAuth();
+  const printRef = useRef<HTMLDivElement>(null);
+  const { handlePrint } = usePrint();
+
+  const { data: invoice, isLoading } = useInvoice(id);
+  const { data: organizations } = useOrganizations();
+  const cancelMutation = useCancelInvoice();
+
+  const organization = organizations?.find(
+    (o) => o.id === profile?.organization_id
+  );
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-12 w-48" />
+        <Skeleton className="h-96" />
+      </div>
+    );
+  }
+
+  if (!invoice) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-muted-foreground">Invoice not found</p>
+        <Button variant="link" onClick={() => navigate("/app/billing/invoices")}>
+          Back to Invoices
+        </Button>
+      </div>
+    );
+  }
+
+  const balance = (invoice.total_amount || 0) - (invoice.paid_amount || 0);
+  const canEdit = invoice.status === "draft";
+  const canPay = ["pending", "partially_paid"].includes(invoice.status || "");
+  const canCancel = ["draft", "pending"].includes(invoice.status || "");
+
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title={invoice.invoice_number}
+        description={format(
+          new Date(invoice.invoice_date || invoice.created_at),
+          "MMMM d, yyyy"
+        )}
+        actions={
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => navigate("/app/billing/invoices")}>
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back
+            </Button>
+            <Button variant="outline" onClick={() => handlePrint(printRef)}>
+              <Printer className="mr-2 h-4 w-4" />
+              Print
+            </Button>
+            {canEdit && (
+              <Button
+                variant="outline"
+                onClick={() => navigate(`/app/billing/invoices/${id}/edit`)}
+              >
+                <Edit className="mr-2 h-4 w-4" />
+                Edit
+              </Button>
+            )}
+            {canPay && (
+              <Button onClick={() => navigate(`/app/billing/invoices/${id}/pay`)}>
+                <CreditCard className="mr-2 h-4 w-4" />
+                Record Payment
+              </Button>
+            )}
+          </div>
+        }
+      />
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-2 space-y-6">
+          {/* Invoice Details */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>Invoice Details</CardTitle>
+              <InvoiceStatusBadge status={invoice.status} />
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>#</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead className="text-right">Qty</TableHead>
+                    <TableHead className="text-right">Price</TableHead>
+                    <TableHead className="text-right">Disc</TableHead>
+                    <TableHead className="text-right">Total</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {invoice.items.map((item, index) => (
+                    <TableRow key={item.id}>
+                      <TableCell>{index + 1}</TableCell>
+                      <TableCell>{item.description}</TableCell>
+                      <TableCell className="text-right">{item.quantity}</TableCell>
+                      <TableCell className="text-right">
+                        Rs. {Number(item.unit_price).toFixed(2)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {item.discount_percent || 0}%
+                      </TableCell>
+                      <TableCell className="text-right font-medium">
+                        Rs. {Number(item.total_price).toFixed(2)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+
+          {/* Payment History */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <DollarSign className="h-5 w-5" />
+                Payment History
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {invoice.payments.length === 0 ? (
+                <p className="text-center text-muted-foreground py-4">
+                  No payments recorded
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {invoice.payments.map((payment) => (
+                    <div
+                      key={payment.id}
+                      className="flex items-center justify-between p-3 rounded-lg border"
+                    >
+                      <div>
+                        <p className="font-medium">
+                          Rs. {Number(payment.amount).toLocaleString()}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {payment.payment_method?.name || "Cash"} •{" "}
+                          {format(
+                            new Date(payment.payment_date || payment.created_at),
+                            "MMM dd, yyyy hh:mm a"
+                          )}
+                        </p>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        by {payment.received_by_profile?.full_name || "Unknown"}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Sidebar */}
+        <div className="space-y-6">
+          {/* Patient Info */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <User className="h-5 w-5" />
+                Patient
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="font-semibold text-lg">
+                {invoice.patient.first_name} {invoice.patient.last_name}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {invoice.patient.patient_number}
+              </p>
+              {invoice.patient.phone && (
+                <p className="text-sm mt-2">{invoice.patient.phone}</p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Totals */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Summary</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <InvoiceTotals
+                subtotal={Number(invoice.subtotal) || 0}
+                taxAmount={Number(invoice.tax_amount) || 0}
+                discountAmount={Number(invoice.discount_amount) || 0}
+                paidAmount={Number(invoice.paid_amount) || 0}
+              />
+            </CardContent>
+          </Card>
+
+          {/* Actions */}
+          {canCancel && (
+            <Card>
+              <CardContent className="pt-6">
+                <ConfirmDialog
+                  title="Cancel Invoice"
+                  description="Are you sure you want to cancel this invoice? This action cannot be undone."
+                  onConfirm={() => {
+                    cancelMutation.mutate(invoice.id, {
+                      onSuccess: () => navigate("/app/billing/invoices"),
+                    });
+                  }}
+                >
+                  <Button variant="destructive" className="w-full">
+                    <XCircle className="mr-2 h-4 w-4" />
+                    Cancel Invoice
+                  </Button>
+                </ConfirmDialog>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
+
+      {/* Hidden Printable Invoice */}
+      <div className="hidden">
+        <PrintableInvoice
+          ref={printRef}
+          invoice={invoice}
+          organization={organization || undefined}
+        />
+      </div>
+    </div>
+  );
+}
