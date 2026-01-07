@@ -34,6 +34,14 @@ import { PatientsListPage } from "./pages/app/patients/PatientsListPage";
 import { PatientFormPage } from "./pages/app/patients/PatientFormPage";
 import { PatientDetailPage } from "./pages/app/patients/PatientDetailPage";
 
+// Appointment pages
+import AppointmentsListPage from "./pages/app/appointments/AppointmentsListPage";
+import AppointmentFormPage from "./pages/app/appointments/AppointmentFormPage";
+import AppointmentDetailPage from "./pages/app/appointments/AppointmentDetailPage";
+import AppointmentQueuePage from "./pages/app/appointments/AppointmentQueuePage";
+import AppointmentCalendarPage from "./pages/app/appointments/AppointmentCalendarPage";
+import DoctorSchedulePage from "./pages/app/appointments/DoctorSchedulePage";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -70,6 +78,15 @@ const App = () => (
               <Route path="patients/new" element={<PatientFormPage />} />
               <Route path="patients/:id" element={<PatientDetailPage />} />
               <Route path="patients/:id/edit" element={<PatientFormPage />} />
+              
+              {/* Appointment routes */}
+              <Route path="appointments" element={<AppointmentsListPage />} />
+              <Route path="appointments/new" element={<AppointmentFormPage />} />
+              <Route path="appointments/queue" element={<AppointmentQueuePage />} />
+              <Route path="appointments/calendar" element={<AppointmentCalendarPage />} />
+              <Route path="appointments/schedules" element={<DoctorSchedulePage />} />
+              <Route path="appointments/:id" element={<AppointmentDetailPage />} />
+              <Route path="appointments/:id/edit" element={<AppointmentFormPage />} />
               
               {/* Settings routes */}
               <Route path="settings/branches" element={<BranchesListPage />} />

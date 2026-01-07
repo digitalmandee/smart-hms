@@ -242,18 +242,6 @@ export default function AppointmentDetailPage() {
                   {patient.phone}
                 </div>
               )}
-              {patient?.email && (
-                <div className="flex items-center gap-2 text-sm">
-                  <Mail className="h-4 w-4 text-muted-foreground" />
-                  {patient.email}
-                </div>
-              )}
-              {patient?.date_of_birth && (
-                <div className="flex items-center gap-2 text-sm">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                  {format(new Date(patient.date_of_birth), 'MMMM d, yyyy')}
-                </div>
-              )}
             </div>
 
             <Button
@@ -362,7 +350,7 @@ export default function AppointmentDetailPage() {
         onOpenChange={setCancelDialogOpen}
         title="Cancel Appointment"
         description="Are you sure you want to cancel this appointment? This action cannot be undone."
-        confirmText="Cancel Appointment"
+        confirmLabel="Cancel Appointment"
         onConfirm={handleCancel}
         variant="destructive"
       />
