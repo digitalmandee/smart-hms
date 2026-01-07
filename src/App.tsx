@@ -29,6 +29,11 @@ import { UserDetailPage } from "./pages/app/settings/UserDetailPage";
 import { OrganizationSettingsPage } from "./pages/app/settings/OrganizationSettingsPage";
 import { RolesPermissionsPage } from "./pages/app/settings/RolesPermissionsPage";
 
+// Patient pages
+import { PatientsListPage } from "./pages/app/patients/PatientsListPage";
+import { PatientFormPage } from "./pages/app/patients/PatientFormPage";
+import { PatientDetailPage } from "./pages/app/patients/PatientDetailPage";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -59,6 +64,12 @@ const App = () => (
             >
               <Route index element={<Navigate to="dashboard" replace />} />
               <Route path="dashboard" element={<DashboardPage />} />
+              
+              {/* Patient routes */}
+              <Route path="patients" element={<PatientsListPage />} />
+              <Route path="patients/new" element={<PatientFormPage />} />
+              <Route path="patients/:id" element={<PatientDetailPage />} />
+              <Route path="patients/:id/edit" element={<PatientFormPage />} />
               
               {/* Settings routes */}
               <Route path="settings/branches" element={<BranchesListPage />} />
