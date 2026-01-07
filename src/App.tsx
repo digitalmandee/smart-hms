@@ -57,6 +57,14 @@ import MedicineFormPage from "./pages/app/pharmacy/MedicineFormPage";
 import InventoryPage from "./pages/app/pharmacy/InventoryPage";
 import StockEntryPage from "./pages/app/pharmacy/StockEntryPage";
 
+// Billing pages
+import BillingDashboard from "./pages/app/billing/BillingDashboard";
+import InvoicesListPage from "./pages/app/billing/InvoicesListPage";
+import InvoiceFormPage from "./pages/app/billing/InvoiceFormPage";
+import InvoiceDetailPage from "./pages/app/billing/InvoiceDetailPage";
+import PaymentCollectionPage from "./pages/app/billing/PaymentCollectionPage";
+import PaymentHistoryPage from "./pages/app/billing/PaymentHistoryPage";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -119,6 +127,15 @@ const App = () => (
               <Route path="pharmacy/medicines/:id/edit" element={<MedicineFormPage />} />
               <Route path="pharmacy/inventory" element={<InventoryPage />} />
               <Route path="pharmacy/inventory/add" element={<StockEntryPage />} />
+              
+              {/* Billing routes */}
+              <Route path="billing" element={<BillingDashboard />} />
+              <Route path="billing/invoices" element={<InvoicesListPage />} />
+              <Route path="billing/invoices/new" element={<InvoiceFormPage />} />
+              <Route path="billing/invoices/:id" element={<InvoiceDetailPage />} />
+              <Route path="billing/invoices/:id/edit" element={<InvoiceFormPage />} />
+              <Route path="billing/invoices/:id/pay" element={<PaymentCollectionPage />} />
+              <Route path="billing/payments" element={<PaymentHistoryPage />} />
               
               {/* Settings routes */}
               <Route path="settings/branches" element={<BranchesListPage />} />
