@@ -3,96 +3,93 @@ import {
   Calendar, 
   Stethoscope, 
   Pill, 
-  Receipt, 
-  BarChart3,
-  Bell,
-  Shield,
-  Zap
+  Receipt,
+  BarChart3
 } from "lucide-react";
 
 const features = [
   {
     icon: Users,
     title: "Patient Management",
-    description: "Complete patient records with medical history, allergies, and custom fields. QR code integration for quick identification.",
-    color: "bg-blue-500/10 text-blue-500",
+    description: "Complete patient profiles with medical history, allergies, and QR-based identification.",
+    highlight: "QR Code Check-in",
+    color: "from-blue-500/20 to-cyan-500/20",
   },
   {
     icon: Calendar,
-    title: "Appointment System",
-    description: "Smart scheduling with doctor availability, token management, and automated reminders via SMS/Email.",
-    color: "bg-green-500/10 text-green-500",
+    title: "Smart Scheduling",
+    description: "Token-based queue system with doctor schedules, appointment booking, and wait-time estimates.",
+    highlight: "Live Queue Updates",
+    color: "from-violet-500/20 to-purple-500/20",
   },
   {
     icon: Stethoscope,
-    title: "OPD & Consultations",
-    description: "Streamlined consultation workflow with vitals recording, diagnosis, and prescription generation.",
-    color: "bg-purple-500/10 text-purple-500",
+    title: "OPD Consultations",
+    description: "Vitals recording, diagnosis entry, and prescription generation in one seamless flow.",
+    highlight: "One-Click Prescriptions",
+    color: "from-emerald-500/20 to-green-500/20",
   },
   {
     icon: Pill,
-    title: "Pharmacy Management",
-    description: "Complete inventory control with batch tracking, expiry alerts, low stock notifications, and dispensing.",
-    color: "bg-orange-500/10 text-orange-500",
+    title: "Pharmacy & Inventory",
+    description: "Medicine dispensing from prescriptions, batch tracking, and automatic reorder alerts.",
+    highlight: "Expiry Alerts",
+    color: "from-orange-500/20 to-amber-500/20",
   },
   {
     icon: Receipt,
     title: "Billing & Payments",
-    description: "Flexible invoicing with multiple payment methods, partial payments, and overdue tracking.",
-    color: "bg-pink-500/10 text-pink-500",
+    description: "Invoicing, partial payments, JazzCash/EasyPaisa integration, and payment tracking.",
+    highlight: "Multiple Payment Methods",
+    color: "from-rose-500/20 to-pink-500/20",
   },
   {
     icon: BarChart3,
     title: "Reports & Analytics",
-    description: "Comprehensive dashboards with revenue analysis, patient statistics, and operational insights.",
-    color: "bg-cyan-500/10 text-cyan-500",
-  },
-  {
-    icon: Bell,
-    title: "Smart Notifications",
-    description: "Automated alerts for appointments, overdue invoices, low stock, and expiring medicines.",
-    color: "bg-yellow-500/10 text-yellow-500",
-  },
-  {
-    icon: Shield,
-    title: "Role-Based Access",
-    description: "Granular permissions with 9 user roles ensuring data security and operational efficiency.",
-    color: "bg-red-500/10 text-red-500",
-  },
-  {
-    icon: Zap,
-    title: "Multi-Branch Support",
-    description: "Manage multiple clinic locations with centralized control and branch-level reporting.",
-    color: "bg-indigo-500/10 text-indigo-500",
+    description: "Revenue reports, patient statistics, and operational insights for better decisions.",
+    highlight: "Daily Summaries",
+    color: "from-indigo-500/20 to-blue-500/20",
   },
 ];
 
 export const FeaturesSection = () => {
   return (
-    <section id="features" className="py-24 bg-muted/30">
+    <section id="features" className="py-24 bg-background">
       <div className="container mx-auto px-4">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Everything You Need to Run Your
-            <span className="text-primary"> Healthcare Facility</span>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">
+            Everything your clinic needs,
+            <span className="text-primary"> nothing it doesn&apos;t</span>
           </h2>
           <p className="text-lg text-muted-foreground">
-            A comprehensive suite of modules designed specifically for clinics and hospitals of all sizes.
+            Built by talking to 100+ Pakistani clinics. Every feature solves a real problem.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {features.map((feature, index) => (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+          {features.map((feature) => (
             <div
               key={feature.title}
-              className="group p-6 rounded-2xl bg-card border border-border hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 hover:-translate-y-1"
-              style={{ animationDelay: `${index * 50}ms` }}
+              className="group relative p-8 rounded-2xl bg-card border border-border hover:border-primary/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl overflow-hidden"
             >
-              <div className={`inline-flex p-3 rounded-xl ${feature.color} mb-4 group-hover:scale-110 transition-transform`}>
-                <feature.icon className="h-6 w-6" />
+              {/* Gradient background on hover */}
+              <div className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
+              
+              <div className="relative z-10">
+                {/* Icon */}
+                <div className="inline-flex p-4 rounded-2xl bg-primary/10 mb-6 group-hover:bg-primary/20 transition-colors">
+                  <feature.icon className="h-7 w-7 text-primary" />
+                </div>
+                
+                {/* Highlight badge */}
+                <div className="inline-block px-3 py-1 rounded-full bg-primary/10 text-xs font-medium text-primary mb-4">
+                  {feature.highlight}
+                </div>
+                
+                {/* Content */}
+                <h3 className="text-xl font-bold mb-3 text-foreground">{feature.title}</h3>
+                <p className="text-muted-foreground leading-relaxed">{feature.description}</p>
               </div>
-              <h3 className="text-xl font-semibold mb-2 text-foreground">{feature.title}</h3>
-              <p className="text-muted-foreground">{feature.description}</p>
             </div>
           ))}
         </div>

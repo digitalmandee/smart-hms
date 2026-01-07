@@ -1,119 +1,100 @@
-import { 
-  UserPlus, 
-  CalendarPlus, 
-  ClipboardCheck, 
-  Stethoscope, 
-  FileText, 
-  Pill, 
-  Receipt, 
-  CreditCard,
-  ArrowRight
-} from "lucide-react";
+import { UserPlus, ClipboardList, Stethoscope, Pill, CreditCard, ArrowRight } from "lucide-react";
 
 const steps = [
   {
     icon: UserPlus,
-    title: "Patient Registration",
-    description: "Register new patients with demographics, contact info, and medical history",
+    number: "01",
+    title: "Registration",
+    description: "Patient walks in, receptionist creates profile in 30 seconds",
     role: "Receptionist",
-    color: "bg-blue-500",
+    roleColor: "bg-blue-500",
   },
   {
-    icon: CalendarPlus,
-    title: "Appointment Booking",
-    description: "Schedule appointments based on doctor availability and patient preference",
-    role: "Receptionist",
-    color: "bg-indigo-500",
-  },
-  {
-    icon: ClipboardCheck,
-    title: "Check-In",
-    description: "Patient arrives, checks in, and receives a token number for the queue",
-    role: "Receptionist",
-    color: "bg-violet-500",
+    icon: ClipboardList,
+    number: "02",
+    title: "Token & Queue",
+    description: "Auto-generated token, patient sees their position on display",
+    role: "System",
+    roleColor: "bg-violet-500",
   },
   {
     icon: Stethoscope,
+    number: "03",
     title: "Consultation",
-    description: "Doctor examines patient, records vitals, symptoms, and diagnosis",
+    description: "Doctor sees patient history, records vitals, writes prescription",
     role: "Doctor",
-    color: "bg-green-500",
-  },
-  {
-    icon: FileText,
-    title: "Prescription",
-    description: "Doctor creates prescription with medicines, dosage, and instructions",
-    role: "Doctor",
-    color: "bg-emerald-500",
+    roleColor: "bg-emerald-500",
   },
   {
     icon: Pill,
-    title: "Pharmacy Dispensing",
-    description: "Pharmacist dispenses medicines based on prescription",
+    number: "04",
+    title: "Dispensing",
+    description: "Pharmacist sees digital prescription, dispenses from inventory",
     role: "Pharmacist",
-    color: "bg-orange-500",
-  },
-  {
-    icon: Receipt,
-    title: "Invoice Generation",
-    description: "Generate invoice for consultation, medicines, and services",
-    role: "Accountant",
-    color: "bg-pink-500",
+    roleColor: "bg-orange-500",
   },
   {
     icon: CreditCard,
-    title: "Payment Collection",
-    description: "Collect payment via cash, card, or digital methods",
-    role: "Accountant",
-    color: "bg-rose-500",
+    number: "05",
+    title: "Billing",
+    description: "Single invoice for everything, multiple payment options",
+    role: "Cashier",
+    roleColor: "bg-rose-500",
   },
 ];
 
 export const FlowSection = () => {
   return (
-    <section id="flow" className="py-24 bg-muted/30">
+    <section className="py-24 bg-background overflow-hidden">
       <div className="container mx-auto px-4">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Seamless
-            <span className="text-primary"> End-to-End Workflow</span>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">
+            From walk-in to
+            <span className="text-primary"> walk-out in 5 steps</span>
           </h2>
           <p className="text-lg text-muted-foreground">
-            From patient walk-in to payment collection, every step is streamlined and connected.
+            See how SmartHMS connects every department seamlessly
           </p>
         </div>
 
-        {/* Desktop Flow - Horizontal */}
-        <div className="hidden lg:block">
+        {/* Desktop: Horizontal flow */}
+        <div className="hidden lg:block max-w-6xl mx-auto">
           <div className="relative">
             {/* Connection line */}
-            <div className="absolute top-16 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 via-green-500 to-rose-500 opacity-30" />
+            <div className="absolute top-24 left-0 right-0 h-1 bg-gradient-to-r from-primary/20 via-primary to-primary/20" />
             
-            <div className="grid grid-cols-8 gap-4">
+            <div className="grid grid-cols-5 gap-4">
               {steps.map((step, index) => (
-                <div key={step.title} className="relative">
-                  <div className="flex flex-col items-center text-center">
-                    {/* Icon circle */}
-                    <div className={`relative z-10 w-12 h-12 rounded-full ${step.color} flex items-center justify-center mb-4 shadow-lg`}>
-                      <step.icon className="h-6 w-6 text-white" />
-                    </div>
-                    
+                <div key={step.number} className="relative">
+                  {/* Card */}
+                  <div className="group bg-card border border-border rounded-2xl p-6 hover:border-primary/30 hover:shadow-lg transition-all duration-300 hover:-translate-y-2">
                     {/* Step number */}
-                    <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-card border-2 border-border flex items-center justify-center text-xs font-bold">
-                      {index + 1}
+                    <div className="absolute -top-3 left-6 px-3 py-1 rounded-full bg-primary text-primary-foreground text-sm font-bold">
+                      {step.number}
                     </div>
                     
-                    <h4 className="font-semibold text-sm mb-1">{step.title}</h4>
-                    <p className="text-xs text-muted-foreground mb-2 line-clamp-2">{step.description}</p>
-                    <span className={`text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground`}>
-                      {step.role}
-                    </span>
+                    {/* Icon */}
+                    <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-4 mt-2 group-hover:bg-primary/20 transition-colors">
+                      <step.icon className="h-7 w-7 text-primary" />
+                    </div>
+                    
+                    {/* Content */}
+                    <h3 className="text-lg font-bold mb-2 text-foreground">{step.title}</h3>
+                    <p className="text-sm text-muted-foreground mb-4 leading-relaxed">{step.description}</p>
+                    
+                    {/* Role badge */}
+                    <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full ${step.roleColor}/10`}>
+                      <div className={`w-2 h-2 rounded-full ${step.roleColor}`} />
+                      <span className="text-xs font-medium text-foreground">{step.role}</span>
+                    </div>
                   </div>
                   
-                  {/* Arrow */}
+                  {/* Arrow to next */}
                   {index < steps.length - 1 && (
-                    <div className="absolute top-14 -right-4 text-muted-foreground/30">
-                      <ArrowRight className="h-4 w-4" />
+                    <div className="absolute top-24 -right-4 z-10">
+                      <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+                        <ArrowRight className="h-4 w-4 text-primary-foreground" />
+                      </div>
                     </div>
                   )}
                 </div>
@@ -122,32 +103,32 @@ export const FlowSection = () => {
           </div>
         </div>
 
-        {/* Mobile/Tablet Flow - Vertical */}
-        <div className="lg:hidden">
+        {/* Mobile/Tablet: Vertical flow */}
+        <div className="lg:hidden max-w-md mx-auto">
           <div className="relative">
             {/* Vertical connection line */}
-            <div className="absolute top-0 bottom-0 left-6 w-0.5 bg-gradient-to-b from-blue-500 via-green-500 to-rose-500 opacity-30" />
+            <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-primary via-primary to-primary/20" />
             
             <div className="space-y-6">
               {steps.map((step, index) => (
-                <div key={step.title} className="relative flex gap-4">
-                  {/* Icon circle */}
-                  <div className={`relative z-10 flex-shrink-0 w-12 h-12 rounded-full ${step.color} flex items-center justify-center shadow-lg`}>
-                    <step.icon className="h-6 w-6 text-white" />
-                    {/* Step number */}
-                    <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-card border-2 border-border flex items-center justify-center text-xs font-bold">
+                <div key={step.number} className="relative flex gap-6">
+                  {/* Step indicator */}
+                  <div className="relative z-10 flex-shrink-0">
+                    <div className="w-16 h-16 rounded-2xl bg-primary/10 border-2 border-primary flex items-center justify-center">
+                      <step.icon className="h-7 w-7 text-primary" />
+                    </div>
+                    <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center">
                       {index + 1}
                     </div>
                   </div>
                   
                   {/* Content */}
-                  <div className="flex-1 pb-6">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h4 className="font-semibold">{step.title}</h4>
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
-                        {step.role}
-                      </span>
+                  <div className="flex-1 bg-card border border-border rounded-xl p-5 hover:border-primary/30 transition-colors">
+                    <div className={`inline-flex items-center gap-2 px-2 py-1 rounded-full ${step.roleColor}/10 mb-2`}>
+                      <div className={`w-2 h-2 rounded-full ${step.roleColor}`} />
+                      <span className="text-xs font-medium text-foreground">{step.role}</span>
                     </div>
+                    <h3 className="text-lg font-bold mb-1 text-foreground">{step.title}</h3>
                     <p className="text-sm text-muted-foreground">{step.description}</p>
                   </div>
                 </div>
