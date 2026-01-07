@@ -192,3 +192,43 @@
     background: linear-gradient(135deg, hsl(var(--accent)) 0%, hsl(16 85% 65%) 100%);
   }
 }
+
+/* Print styles */
+@media print {
+  /* Hide non-printable elements */
+  .no-print,
+  header,
+  nav,
+  aside,
+  footer,
+  .sidebar,
+  button:not(.print-show) {
+    display: none !important;
+  }
+
+  /* Reset backgrounds for printing */
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 11pt !important;
+    line-height: 1.4 !important;
+  }
+
+  /* Hide hidden elements used for print */
+  .hidden {
+    display: block !important;
+    visibility: visible !important;
+  }
+
+  /* Page settings */
+  @page {
+    margin: 1cm;
+    size: A4;
+  }
+
+  /* Avoid page breaks inside elements */
+  .print-section,
+  .prescription-item {
+    page-break-inside: avoid;
+  }
+}
