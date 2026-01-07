@@ -308,3 +308,54 @@ export function useMarkNoShow() {
     },
   });
 }
+
+// Check in with vitals and priority
+export function useCheckInWithVitals() {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async ({ 
+      id, 
+      vitals, 
+      priority, 
+      chiefComplaint 
+    }: { 
+      id: string; 
+      vitals?: any; 
+      priority?: number; 
+      chiefComplaint?: string 
+    }) => {
+      const updates: any = {
+        status: 'checked_in',
+        check_in_at: new Date().toISOString(),
+        check_in_by: user?.id,
+      };
+
+      if (vitals && Object.keys(vitals).length > 0) {
+        updates.check_in_vitals = vitals;
+      }
+      if (priority !== undefined) {
+        updates.priority = priority;
+      }
+      if (chiefComplaint) {
+        updates.chief_complaint = chiefComplaint;
+      }
+
+      const { data, error } = await supabase
+        .from('appointments')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      queryClient.invalidateQueries({ queryKey: ['appointment', variables.id] });
+      queryClient.invalidateQueries({ queryKey: ['today-queue'] });
+    },
+  });
+}

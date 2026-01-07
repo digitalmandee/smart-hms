@@ -38,7 +38,7 @@ const appointmentSchema = z.object({
   branch_id: z.string().min(1, 'Please select a branch'),
   appointment_date: z.string().min(1, 'Please select a date'),
   appointment_time: z.string().min(1, 'Please select a time slot'),
-  appointment_type: z.enum(['walk_in', 'scheduled', 'follow_up']),
+  appointment_type: z.enum(['walk_in', 'scheduled', 'follow_up', 'emergency']),
   chief_complaint: z.string().optional(),
   notes: z.string().optional(),
 });
@@ -254,6 +254,12 @@ export default function AppointmentFormPage() {
                             <SelectItem value="walk_in">Walk-in</SelectItem>
                             <SelectItem value="scheduled">Scheduled</SelectItem>
                             <SelectItem value="follow_up">Follow-up</SelectItem>
+                            <SelectItem value="emergency">
+                              <span className="flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-red-500" />
+                                Emergency
+                              </span>
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />

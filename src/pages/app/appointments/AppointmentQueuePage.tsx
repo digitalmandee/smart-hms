@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { Users, RefreshCw, Monitor } from 'lucide-react';
+import { Users, RefreshCw, Monitor, AlertTriangle } from 'lucide-react';
 import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/select';
 import { AppointmentCard } from '@/components/appointments/AppointmentCard';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
 import {
   useTodayQueue,
   useCheckInAppointment,
@@ -25,6 +26,7 @@ import {
 import { useDoctors } from '@/hooks/useDoctors';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
+import { cn } from '@/lib/utils';
 
 export default function AppointmentQueuePage() {
   const navigate = useNavigate();
@@ -80,10 +82,22 @@ export default function AppointmentQueuePage() {
     }
   };
 
+  // Sort queue by priority (high first) then token
+  const sortedQueue = [...(queue || [])].sort((a, b) => {
+    const priorityA = (a as any).priority || 0;
+    const priorityB = (b as any).priority || 0;
+    if (priorityB !== priorityA) return priorityB - priorityA;
+    return (a.token_number || 0) - (b.token_number || 0);
+  });
+
   // Group appointments by status
-  const inProgress = queue?.filter(a => a.status === 'in_progress') || [];
-  const checkedIn = queue?.filter(a => a.status === 'checked_in') || [];
-  const scheduled = queue?.filter(a => a.status === 'scheduled') || [];
+  const inProgress = sortedQueue.filter(a => a.status === 'in_progress');
+  const checkedIn = sortedQueue.filter(a => a.status === 'checked_in');
+  const scheduled = sortedQueue.filter(a => a.status === 'scheduled');
+
+  // Count by priority
+  const emergencyCount = checkedIn.filter(a => (a as any).priority === 2).length;
+  const urgentCount = checkedIn.filter(a => (a as any).priority === 1).length;
 
   // Get current serving token per doctor
   const currentServing = inProgress.reduce((acc, appt) => {
@@ -134,9 +148,22 @@ export default function AppointmentQueuePage() {
           </SelectContent>
         </Select>
 
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Users className="h-4 w-4" />
-          <span>{queue?.length || 0} patients in queue</span>
+        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+          <div className="flex items-center gap-2">
+            <Users className="h-4 w-4" />
+            <span>{queue?.length || 0} patients in queue</span>
+          </div>
+          {emergencyCount > 0 && (
+            <Badge variant="destructive" className="flex items-center gap-1">
+              <AlertTriangle className="h-3 w-3" />
+              {emergencyCount} Emergency
+            </Badge>
+          )}
+          {urgentCount > 0 && (
+            <Badge className="bg-yellow-500 flex items-center gap-1">
+              {urgentCount} Urgent
+            </Badge>
+          )}
         </div>
       </div>
 
@@ -235,7 +262,7 @@ export default function AppointmentQueuePage() {
                     key={appointment.id}
                     appointment={appointment}
                     variant="queue"
-                    onCheckIn={() => handleAction(appointment.id, 'checkIn')}
+                    onCheckIn={() => navigate(`/app/appointments/${appointment.id}/check-in`)}
                     onCancel={() => handleAction(appointment.id, 'cancel')}
                     onNoShow={() => handleAction(appointment.id, 'noShow')}
                     onClick={() => navigate(`/app/appointments/${appointment.id}`)}
