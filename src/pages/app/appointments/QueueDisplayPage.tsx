@@ -1,21 +1,24 @@
 import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
-import { Users, Clock, RefreshCw } from 'lucide-react';
+import { Users, Clock, RefreshCw, Maximize, Minimize, ArrowLeft, AlertTriangle, Volume2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useTodayQueue } from '@/hooks/useAppointments';
+import { useOrganization } from '@/hooks/useOrganizations';
 import { cn } from '@/lib/utils';
 
-const priorityColors: Record<number, { bg: string; text: string; label: string }> = {
-  0: { bg: 'bg-green-500', text: 'text-green-500', label: 'Normal' },
-  1: { bg: 'bg-yellow-500', text: 'text-yellow-500', label: 'Urgent' },
-  2: { bg: 'bg-red-500', text: 'text-red-500', label: 'Emergency' },
+const priorityConfig: Record<number, { bg: string; text: string; label: string; borderColor: string }> = {
+  0: { bg: 'bg-success/10', text: 'text-success', label: 'Normal', borderColor: 'border-success/30' },
+  1: { bg: 'bg-warning/10', text: 'text-warning', label: 'Urgent', borderColor: 'border-warning/50' },
+  2: { bg: 'bg-destructive/10', text: 'text-destructive', label: 'Emergency', borderColor: 'border-destructive/50' },
 };
 
 export default function QueueDisplayPage() {
   const { data: queue, refetch } = useTodayQueue();
+  const { data: organization } = useOrganization();
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Update time every second
   useEffect(() => {
@@ -33,6 +36,15 @@ export default function QueueDisplayPage() {
     return () => clearInterval(timer);
   }, [refetch]);
 
+  // Listen for fullscreen changes
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
   // Sort queue by priority (high first) then token number
   const sortedQueue = [...(queue || [])].sort((a, b) => {
     const priorityA = (a as any).priority || 0;
@@ -47,8 +59,11 @@ export default function QueueDisplayPage() {
   // Get waiting patients (checked_in), sorted by priority
   const waiting = sortedQueue.filter(a => a.status === 'checked_in');
   
-  // Get next up (first 5 waiting)
-  const nextUp = waiting.slice(0, 5);
+  // Get emergency patients
+  const emergencies = waiting.filter(a => (a as any).priority === 2);
+  
+  // Get next up (first 5 waiting, excluding emergencies shown separately)
+  const nextUp = waiting.filter(a => (a as any).priority !== 2).slice(0, 5);
 
   const handleExitFullscreen = () => {
     if (document.fullscreenElement) {
@@ -57,40 +72,79 @@ export default function QueueDisplayPage() {
     window.history.back();
   };
 
-  const enterFullscreen = () => {
-    document.documentElement.requestFullscreen?.();
+  const toggleFullscreen = () => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    } else {
+      document.documentElement.requestFullscreen?.();
+    }
   };
 
   return (
-    <div className="min-h-screen bg-background p-6 lg:p-10">
+    <div className="min-h-screen bg-background p-4 lg:p-8">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-6 lg:mb-8">
         <div>
-          <h1 className="text-4xl lg:text-5xl font-bold text-foreground">Patient Queue</h1>
-          <p className="text-xl text-muted-foreground mt-2">
+          <h1 className="text-2xl lg:text-4xl font-bold text-foreground">
+            {organization?.name || 'Patient Queue'}
+          </h1>
+          <p className="text-lg text-muted-foreground mt-1">
             {format(currentTime, 'EEEE, MMMM d, yyyy')}
           </p>
         </div>
-        <div className="text-right flex items-center gap-4">
-          <Button variant="outline" size="icon" onClick={() => refetch()}>
+        <div className="flex items-center gap-2 lg:gap-4">
+          <Button variant="outline" size="icon" onClick={() => refetch()} title="Refresh">
             <RefreshCw className="h-5 w-5" />
           </Button>
-          <Button variant="outline" onClick={enterFullscreen}>
-            Fullscreen
+          <Button variant="outline" size="icon" onClick={toggleFullscreen} title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}>
+            {isFullscreen ? <Minimize className="h-5 w-5" /> : <Maximize className="h-5 w-5" />}
           </Button>
           <Button variant="outline" onClick={handleExitFullscreen}>
-            Exit Display
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Exit
           </Button>
-          <div className="flex items-center gap-2">
-            <Clock className="h-6 w-6 text-muted-foreground" />
-            <span className="text-4xl lg:text-5xl font-mono font-bold">
+          <div className="hidden lg:flex items-center gap-2 ml-4 pl-4 border-l">
+            <Clock className="h-5 w-5 text-muted-foreground" />
+            <span className="text-3xl lg:text-4xl font-mono font-bold tabular-nums">
               {format(currentTime, 'HH:mm:ss')}
             </span>
           </div>
         </div>
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-2">
+      {/* Emergency Alert - Always at top if any */}
+      {emergencies.length > 0 && (
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-3">
+            <AlertTriangle className="h-5 w-5 text-destructive animate-pulse" />
+            <h2 className="text-xl font-semibold text-destructive">Emergency Patients</h2>
+          </div>
+          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+            {emergencies.map((appointment) => {
+              const patient = appointment.patient;
+              return (
+                <Card key={appointment.id} className="border-2 border-destructive bg-destructive/5">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-16 h-16 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center text-2xl font-bold animate-pulse">
+                        {appointment.token_number || '-'}
+                      </div>
+                      <div>
+                        <p className="text-xl font-bold">
+                          {patient?.first_name} {patient?.last_name}
+                        </p>
+                        <Badge variant="destructive" className="mt-1">EMERGENCY</Badge>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      <div className="grid gap-6 lg:gap-8 lg:grid-cols-2">
         {/* Now Serving Section */}
         <div className="space-y-4">
           <div className="flex items-center gap-3">
@@ -98,44 +152,63 @@ export default function QueueDisplayPage() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
               <span className="relative inline-flex rounded-full h-4 w-4 bg-primary"></span>
             </span>
-            <h2 className="text-2xl lg:text-3xl font-semibold">Now Serving</h2>
+            <h2 className="text-xl lg:text-2xl font-semibold">Now Serving</h2>
           </div>
 
           {nowServing.length === 0 ? (
-            <Card className="border-2 border-dashed">
-              <CardContent className="py-16 text-center text-muted-foreground">
-                <p className="text-2xl">No patient currently being served</p>
+            <Card className="border-2 border-dashed border-muted">
+              <CardContent className="py-12 lg:py-16 text-center">
+                <div className="text-muted-foreground">
+                  <Volume2 className="h-12 w-12 mx-auto mb-3 opacity-30" />
+                  <p className="text-lg lg:text-xl">No patient currently being served</p>
+                  <p className="text-sm mt-1">Waiting for next patient...</p>
+                </div>
               </CardContent>
             </Card>
           ) : (
             <div className="grid gap-4">
               {nowServing.map((appointment) => {
                 const priority = (appointment as any).priority || 0;
-                const priorityStyle = priorityColors[priority];
+                const priorityStyle = priorityConfig[priority];
                 const patient = appointment.patient;
                 const doctor = appointment.doctor;
                 
                 return (
-                  <Card key={appointment.id} className="border-4 border-primary bg-primary/5">
-                    <CardContent className="py-8 px-6">
+                  <Card 
+                    key={appointment.id} 
+                    className={cn(
+                      "border-4 border-primary shadow-lg transition-all",
+                      priorityStyle.bg
+                    )}
+                  >
+                    <CardContent className="py-6 lg:py-8 px-6">
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-6">
-                          <div className="w-24 h-24 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-4xl font-bold">
+                        <div className="flex items-center gap-4 lg:gap-6">
+                          <div className="w-20 h-20 lg:w-24 lg:h-24 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-3xl lg:text-4xl font-bold shadow-md">
                             {appointment.token_number || '-'}
                           </div>
                           <div>
-                            <p className="text-3xl font-semibold">
+                            <p className="text-2xl lg:text-3xl font-bold">
                               {patient?.first_name} {patient?.last_name}
                             </p>
+                            <p className="text-sm text-muted-foreground">
+                              {patient?.patient_number}
+                            </p>
                             {doctor && (
-                              <p className="text-xl text-muted-foreground mt-1">
+                              <p className="text-lg text-muted-foreground mt-1">
                                 Dr. {(doctor as any).profile?.full_name}
                               </p>
                             )}
                           </div>
                         </div>
                         {priority > 0 && (
-                          <Badge className={cn('text-lg px-4 py-2', priorityStyle.bg)}>
+                          <Badge 
+                            className={cn(
+                              'text-base px-4 py-2',
+                              priority === 2 ? 'bg-destructive' : 'bg-warning'
+                            )}
+                          >
+                            {priority === 2 && <AlertTriangle className="h-4 w-4 mr-1" />}
                             {priorityStyle.label}
                           </Badge>
                         )}
@@ -150,46 +223,54 @@ export default function QueueDisplayPage() {
 
         {/* Next Up Section */}
         <div className="space-y-4">
-          <div className="flex items-center gap-3">
-            <Users className="h-6 w-6 text-muted-foreground" />
-            <h2 className="text-2xl lg:text-3xl font-semibold">
-              Next Up ({waiting.length} waiting)
-            </h2>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Users className="h-5 w-5 text-muted-foreground" />
+              <h2 className="text-xl lg:text-2xl font-semibold">Next Up</h2>
+            </div>
+            <Badge variant="secondary" className="text-base">
+              {waiting.length} waiting
+            </Badge>
           </div>
 
           {nextUp.length === 0 ? (
-            <Card className="border-2 border-dashed">
-              <CardContent className="py-16 text-center text-muted-foreground">
-                <p className="text-2xl">No patients waiting</p>
+            <Card className="border-2 border-dashed border-muted">
+              <CardContent className="py-12 lg:py-16 text-center">
+                <div className="text-muted-foreground">
+                  <Users className="h-12 w-12 mx-auto mb-3 opacity-30" />
+                  <p className="text-lg lg:text-xl">No patients waiting</p>
+                  <p className="text-sm mt-1">Queue is clear</p>
+                </div>
               </CardContent>
             </Card>
           ) : (
             <div className="space-y-3">
               {nextUp.map((appointment, index) => {
                 const priority = (appointment as any).priority || 0;
-                const priorityStyle = priorityColors[priority];
+                const priorityStyle = priorityConfig[priority];
                 const patient = appointment.patient;
                 
                 return (
                   <Card
                     key={appointment.id}
                     className={cn(
-                      'transition-all',
-                      index === 0 && 'border-2 border-primary/50'
+                      'transition-all hover:shadow-md',
+                      index === 0 && 'border-2 border-primary/50 shadow-sm',
+                      priority > 0 && priorityStyle.borderColor
                     )}
                   >
-                    <CardContent className="py-4 px-6">
+                    <CardContent className="py-4 px-5">
                       <div className="flex items-center gap-4">
                         <div className={cn(
-                          'w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold',
+                          'w-14 h-14 lg:w-16 lg:h-16 rounded-full flex items-center justify-center text-xl lg:text-2xl font-bold transition-all',
                           index === 0 
-                            ? 'bg-primary text-primary-foreground' 
+                            ? 'bg-primary text-primary-foreground scale-105' 
                             : 'bg-muted text-muted-foreground'
                         )}>
                           {appointment.token_number || '-'}
                         </div>
-                        <div className="flex-1">
-                          <p className="text-xl font-medium">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-lg lg:text-xl font-semibold truncate">
                             {patient?.first_name} {patient?.last_name}
                           </p>
                           <p className="text-sm text-muted-foreground">
@@ -197,8 +278,21 @@ export default function QueueDisplayPage() {
                           </p>
                         </div>
                         {priority > 0 && (
-                          <div className={cn('w-3 h-3 rounded-full', priorityStyle.bg)} 
-                               title={priorityStyle.label} />
+                          <Badge 
+                            variant="outline" 
+                            className={cn(
+                              'shrink-0',
+                              priorityStyle.text,
+                              priorityStyle.bg
+                            )}
+                          >
+                            {priorityStyle.label}
+                          </Badge>
+                        )}
+                        {index === 0 && (
+                          <Badge variant="default" className="shrink-0">
+                            Next
+                          </Badge>
                         )}
                       </div>
                     </CardContent>
@@ -207,9 +301,11 @@ export default function QueueDisplayPage() {
               })}
               
               {waiting.length > 5 && (
-                <p className="text-center text-muted-foreground py-2">
-                  +{waiting.length - 5} more waiting
-                </p>
+                <div className="text-center py-3">
+                  <Badge variant="outline" className="text-base px-4 py-1">
+                    +{waiting.length - 5} more in queue
+                  </Badge>
+                </div>
               )}
             </div>
           )}
@@ -217,10 +313,13 @@ export default function QueueDisplayPage() {
       </div>
 
       {/* Legend */}
-      <div className="mt-8 flex items-center justify-center gap-6 text-sm text-muted-foreground">
-        {Object.entries(priorityColors).map(([level, style]) => (
+      <div className="mt-8 flex flex-wrap items-center justify-center gap-4 lg:gap-6 text-sm text-muted-foreground">
+        {Object.entries(priorityConfig).map(([level, style]) => (
           <div key={level} className="flex items-center gap-2">
-            <div className={cn('w-3 h-3 rounded-full', style.bg)} />
+            <div className={cn(
+              'w-4 h-4 rounded-full',
+              level === '0' ? 'bg-success' : level === '1' ? 'bg-warning' : 'bg-destructive'
+            )} />
             <span>{style.label}</span>
           </div>
         ))}

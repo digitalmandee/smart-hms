@@ -455,4 +455,27 @@
     z-index: 9999 !important;
     pointer-events: none !important;
   }
+
+  /* Patient ID Card - Credit card size print */
+  .print-patient-card {
+    width: 85.6mm !important;
+    height: 53.98mm !important;
+    page-break-after: always !important;
+  }
+
+  /* Token Slip - Receipt size print */
+  .print-token-slip {
+    width: 80mm !important;
+    page-break-after: always !important;
+  }
+}
+
+/* Patient Card specific styles */
+@media print {
+  .print-patient-card-container {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 10mm !important;
+  }
 }

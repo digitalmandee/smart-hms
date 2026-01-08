@@ -1384,19 +1384,33 @@ export type Database = {
           email: string | null
           emergency_contact_name: string | null
           emergency_contact_phone: string | null
+          emergency_contact_relation: string | null
+          father_husband_name: string | null
           first_name: string
           gender: Database["public"]["Enums"]["gender"] | null
           id: string
+          insurance_id: string | null
+          insurance_provider: string | null
           is_active: boolean | null
           last_name: string | null
+          marital_status: Database["public"]["Enums"]["marital_status"] | null
           national_id: string | null
+          nationality: string | null
           notes: string | null
+          number_of_children: number | null
+          occupation: string | null
           organization_id: string
+          passport_number: string | null
           patient_number: string
           phone: string | null
           postal_code: string | null
+          preferred_language: string | null
           profile_photo_url: string | null
           qr_code: string | null
+          referral_details: string | null
+          referred_by: string | null
+          religion: string | null
+          secondary_phone: string | null
           updated_at: string
         }
         Insert: {
@@ -1410,19 +1424,33 @@ export type Database = {
           email?: string | null
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
+          emergency_contact_relation?: string | null
+          father_husband_name?: string | null
           first_name: string
           gender?: Database["public"]["Enums"]["gender"] | null
           id?: string
+          insurance_id?: string | null
+          insurance_provider?: string | null
           is_active?: boolean | null
           last_name?: string | null
+          marital_status?: Database["public"]["Enums"]["marital_status"] | null
           national_id?: string | null
+          nationality?: string | null
           notes?: string | null
+          number_of_children?: number | null
+          occupation?: string | null
           organization_id: string
+          passport_number?: string | null
           patient_number: string
           phone?: string | null
           postal_code?: string | null
+          preferred_language?: string | null
           profile_photo_url?: string | null
           qr_code?: string | null
+          referral_details?: string | null
+          referred_by?: string | null
+          religion?: string | null
+          secondary_phone?: string | null
           updated_at?: string
         }
         Update: {
@@ -1436,19 +1464,33 @@ export type Database = {
           email?: string | null
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
+          emergency_contact_relation?: string | null
+          father_husband_name?: string | null
           first_name?: string
           gender?: Database["public"]["Enums"]["gender"] | null
           id?: string
+          insurance_id?: string | null
+          insurance_provider?: string | null
           is_active?: boolean | null
           last_name?: string | null
+          marital_status?: Database["public"]["Enums"]["marital_status"] | null
           national_id?: string | null
+          nationality?: string | null
           notes?: string | null
+          number_of_children?: number | null
+          occupation?: string | null
           organization_id?: string
+          passport_number?: string | null
           patient_number?: string
           phone?: string | null
           postal_code?: string | null
+          preferred_language?: string | null
           profile_photo_url?: string | null
           qr_code?: string | null
+          referral_details?: string | null
+          referred_by?: string | null
+          religion?: string | null
+          secondary_phone?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -1981,6 +2023,7 @@ export type Database = {
         | "processing"
         | "completed"
         | "cancelled"
+      marital_status: "single" | "married" | "divorced" | "widowed" | "other"
       medical_history_type:
         | "allergy"
         | "chronic_disease"
@@ -2189,6 +2232,7 @@ export const Constants = {
         "completed",
         "cancelled",
       ],
+      marital_status: ["single", "married", "divorced", "widowed", "other"],
       medical_history_type: [
         "allergy",
         "chronic_disease",
