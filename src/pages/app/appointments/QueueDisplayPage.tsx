@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useTodayQueue } from '@/hooks/useAppointments';
 import { useOrganization } from '@/hooks/useOrganizations';
+import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 
 const priorityConfig: Record<number, { bg: string; text: string; label: string; borderColor: string }> = {
@@ -15,8 +16,9 @@ const priorityConfig: Record<number, { bg: string; text: string; label: string; 
 };
 
 export default function QueueDisplayPage() {
+  const { profile } = useAuth();
   const { data: queue, refetch } = useTodayQueue();
-  const { data: organization } = useOrganization();
+  const { data: organization } = useOrganization(profile?.organization_id ?? undefined);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isFullscreen, setIsFullscreen] = useState(false);
 

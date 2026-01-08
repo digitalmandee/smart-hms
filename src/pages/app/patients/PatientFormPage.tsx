@@ -42,6 +42,7 @@ import { cn } from "@/lib/utils";
 import { usePrint } from "@/hooks/usePrint";
 import { PrintablePatientCard } from "@/components/patients/PrintablePatientCard";
 import { useOrganization } from "@/hooks/useOrganizations";
+import { useAuth } from "@/contexts/AuthContext";
 import { Checkbox } from "@/components/ui/checkbox";
 
 const patientSchema = z.object({
@@ -104,6 +105,7 @@ const INSURANCE_PROVIDERS = ["State Life", "Jubilee Life", "EFU Life", "Adamjee 
 export function PatientFormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { profile } = useAuth();
   const isEditing = !!id;
   const [showAllFields, setShowAllFields] = useState(false);
   const [printCardAfterSave, setPrintCardAfterSave] = useState(false);
@@ -111,7 +113,7 @@ export function PatientFormPage() {
 
   const { data: patient, isLoading: patientLoading } = usePatient(id);
   const { data: branches } = useBranches();
-  const { data: organization } = useOrganization();
+  const { data: organization } = useOrganization(profile?.organization_id ?? undefined);
   const createPatient = useCreatePatient();
   const updatePatient = useUpdatePatient();
   const { printRef, handlePrint } = usePrint();
