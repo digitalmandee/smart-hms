@@ -13,6 +13,7 @@ import { PatientQuickInfo } from '@/components/consultation/PatientQuickInfo';
 import { PrintableTokenSlip } from '@/components/appointments/PrintableTokenSlip';
 import { useAppointment, useCheckInWithVitals } from '@/hooks/useAppointments';
 import { useOrganization } from '@/hooks/useOrganizations';
+import { useAuth } from '@/contexts/AuthContext';
 import { Vitals } from '@/hooks/useConsultations';
 import { useToast } from '@/hooks/use-toast';
 import { usePrint } from '@/hooks/usePrint';
@@ -52,9 +53,10 @@ export default function CheckInPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { profile } = useAuth();
 
   const { data: appointment, isLoading } = useAppointment(id || '');
-  const { data: organization } = useOrganization();
+  const { data: organization } = useOrganization(profile?.organization_id ?? undefined);
   const checkInWithVitals = useCheckInWithVitals();
   const { printRef, handlePrint } = usePrint();
 
