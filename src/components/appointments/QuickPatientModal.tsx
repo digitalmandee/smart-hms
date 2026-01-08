@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Loader2, UserPlus } from 'lucide-react';
+import { Loader2, UserPlus, Check, Printer } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -12,6 +12,8 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import {
   Form,
   FormControl,
@@ -29,6 +31,8 @@ import {
 } from '@/components/ui/select';
 import { useCreatePatient } from '@/hooks/usePatients';
 import { useToast } from '@/hooks/use-toast';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
 const quickPatientSchema = z.object({
   first_name: z.string().min(1, 'First name is required'),
@@ -36,6 +40,9 @@ const quickPatientSchema = z.object({
   phone: z.string().min(1, 'Phone number is required'),
   gender: z.enum(['male', 'female', 'other']).optional(),
   age: z.string().optional(),
+  national_id: z.string().optional(),
+  emergency_contact_name: z.string().optional(),
+  emergency_contact_phone: z.string().optional(),
 });
 
 type QuickPatientData = z.infer<typeof quickPatientSchema>;
@@ -47,6 +54,9 @@ interface QuickPatientModalProps {
 
 export function QuickPatientModal({ onPatientCreated, trigger }: QuickPatientModalProps) {
   const [open, setOpen] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [createdPatient, setCreatedPatient] = useState<any>(null);
+  const [printCard, setPrintCard] = useState(false);
   const { toast } = useToast();
   const createPatient = useCreatePatient();
 
@@ -58,8 +68,18 @@ export function QuickPatientModal({ onPatientCreated, trigger }: QuickPatientMod
       phone: '',
       gender: undefined,
       age: '',
+      national_id: '',
+      emergency_contact_name: '',
+      emergency_contact_phone: '',
     },
   });
+
+  const resetAndClose = () => {
+    form.reset();
+    setShowSuccess(false);
+    setCreatedPatient(null);
+    setOpen(false);
+  };
 
   const onSubmit = async (data: QuickPatientData) => {
     try {
@@ -80,23 +100,22 @@ export function QuickPatientModal({ onPatientCreated, trigger }: QuickPatientMod
         phone: data.phone,
         gender: data.gender as any,
         date_of_birth,
+        national_id: data.national_id || null,
+        emergency_contact_name: data.emergency_contact_name || null,
+        emergency_contact_phone: data.emergency_contact_phone || null,
       });
 
-      toast({
-        title: 'Patient registered',
-        description: `MRN: ${result.patient_number}`,
-      });
+      setCreatedPatient(result);
+      setShowSuccess(true);
 
-      onPatientCreated({
-        id: result.id,
-        first_name: result.first_name,
-        last_name: result.last_name,
-        patient_number: result.patient_number,
-        phone: result.phone,
-      });
+      // TODO: Print card if selected
+      if (printCard) {
+        toast({
+          title: 'Print feature',
+          description: 'Patient card will be printed',
+        });
+      }
 
-      form.reset();
-      setOpen(false);
     } catch (error: any) {
       toast({
         title: 'Registration failed',
@@ -106,8 +125,24 @@ export function QuickPatientModal({ onPatientCreated, trigger }: QuickPatientMod
     }
   };
 
+  const handleContinue = () => {
+    if (createdPatient) {
+      onPatientCreated({
+        id: createdPatient.id,
+        first_name: createdPatient.first_name,
+        last_name: createdPatient.last_name,
+        patient_number: createdPatient.patient_number,
+        phone: createdPatient.phone,
+      });
+    }
+    resetAndClose();
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(isOpen) => {
+      if (!isOpen) resetAndClose();
+      else setOpen(true);
+    }}>
       <DialogTrigger asChild>
         {trigger || (
           <Button variant="outline" size="sm">
@@ -116,123 +151,218 @@ export function QuickPatientModal({ onPatientCreated, trigger }: QuickPatientMod
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <UserPlus className="h-5 w-5" />
+            <UserPlus className="h-5 w-5 text-primary" />
             Quick Patient Registration
           </DialogTitle>
         </DialogHeader>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="first_name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>First Name *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="John" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="last_name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Last Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Doe" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+        {showSuccess && createdPatient ? (
+          // Success State
+          <div className="py-6 text-center space-y-4">
+            <div className="w-16 h-16 mx-auto rounded-full bg-success/10 flex items-center justify-center">
+              <Check className="h-8 w-8 text-success" />
             </div>
-
-            <FormField
-              control={form.control}
-              name="phone"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Phone Number *</FormLabel>
-                  <FormControl>
-                    <Input placeholder="03XX-XXXXXXX" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="gender"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Gender</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="male">Male</SelectItem>
-                        <SelectItem value="female">Female</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="age"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Age (years)</FormLabel>
-                    <FormControl>
-                      <Input type="number" placeholder="35" min="0" max="150" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <div>
+              <h3 className="text-lg font-semibold">Patient Registered Successfully!</h3>
+              <p className="text-muted-foreground mt-1">
+                {createdPatient.first_name} {createdPatient.last_name || ''}
+              </p>
             </div>
-
+            <div className="bg-muted rounded-lg p-4 inline-block">
+              <div className="text-sm text-muted-foreground">Patient Number</div>
+              <div className="text-2xl font-mono font-bold text-primary">
+                {createdPatient.patient_number}
+              </div>
+            </div>
             <div className="flex gap-3 pt-4">
               <Button
-                type="button"
                 variant="outline"
                 className="flex-1"
-                onClick={() => setOpen(false)}
+                onClick={resetAndClose}
               >
-                Cancel
+                Register Another
               </Button>
               <Button
-                type="submit"
                 className="flex-1"
-                disabled={createPatient.isPending}
+                onClick={handleContinue}
               >
-                {createPatient.isPending ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <UserPlus className="h-4 w-4 mr-2" />
-                )}
-                Register
+                Continue
               </Button>
             </div>
-          </form>
-        </Form>
+          </div>
+        ) : (
+          // Form State
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="first_name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>First Name <span className="text-destructive">*</span></FormLabel>
+                      <FormControl>
+                        <Input placeholder="First name" {...field} className="h-10" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="last_name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Last Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Last name" {...field} className="h-10" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone Number <span className="text-destructive">*</span></FormLabel>
+                    <FormControl>
+                      <Input placeholder="03XX-XXXXXXX" {...field} className="h-10" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="national_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>CNIC / National ID</FormLabel>
+                    <FormControl>
+                      <Input placeholder="XXXXX-XXXXXXX-X" {...field} className="h-10" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="gender"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Gender</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="h-10">
+                            <SelectValue placeholder="Select" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="male">Male</SelectItem>
+                          <SelectItem value="female">Female</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="age"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Age (years)</FormLabel>
+                      <FormControl>
+                        <Input type="number" placeholder="35" min="0" max="150" {...field} className="h-10" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Emergency Contact - Collapsible */}
+              <div className="border rounded-lg p-3 space-y-3 bg-muted/30">
+                <div className="text-sm font-medium text-muted-foreground">Emergency Contact (Optional)</div>
+                <div className="grid grid-cols-2 gap-3">
+                  <FormField
+                    control={form.control}
+                    name="emergency_contact_name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Input placeholder="Contact name" {...field} className="h-9" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="emergency_contact_phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Input placeholder="Contact phone" {...field} className="h-9" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+
+              {/* Print Option */}
+              <div className="flex items-center space-x-2 pt-2">
+                <Checkbox
+                  id="printCard"
+                  checked={printCard}
+                  onCheckedChange={(checked) => setPrintCard(checked === true)}
+                />
+                <Label htmlFor="printCard" className="cursor-pointer text-sm flex items-center gap-2">
+                  <Printer className="h-4 w-4" />
+                  Print patient ID card after registration
+                </Label>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1"
+                  onClick={resetAndClose}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  className="flex-1"
+                  disabled={createPatient.isPending}
+                >
+                  {createPatient.isPending ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <UserPlus className="h-4 w-4 mr-2" />
+                  )}
+                  Register
+                </Button>
+              </div>
+            </form>
+          </Form>
+        )}
       </DialogContent>
     </Dialog>
   );

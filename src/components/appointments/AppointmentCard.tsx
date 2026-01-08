@@ -1,4 +1,4 @@
-import { Clock, User, Phone, MoreVertical, AlertTriangle, Activity } from 'lucide-react';
+import { Clock, User, Phone, MoreVertical, AlertTriangle, Activity, Zap } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -6,16 +6,17 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { AppointmentWithRelations } from '@/hooks/useAppointments';
 import { cn } from '@/lib/utils';
 
-const priorityColors: Record<number, { bg: string; icon: boolean; label: string }> = {
-  0: { bg: '', icon: false, label: 'Normal' },
-  1: { bg: 'bg-yellow-500', icon: true, label: 'Urgent' },
-  2: { bg: 'bg-red-500', icon: true, label: 'Emergency' },
+const priorityConfig: Record<number, { bg: string; badgeBg: string; icon: boolean; label: string }> = {
+  0: { bg: '', badgeBg: 'bg-success', icon: false, label: 'Normal' },
+  1: { bg: 'bg-warning/5', badgeBg: 'bg-warning', icon: true, label: 'Urgent' },
+  2: { bg: 'bg-destructive/5', badgeBg: 'bg-destructive', icon: true, label: 'Emergency' },
 };
 
 interface AppointmentCardProps {
@@ -29,22 +30,13 @@ interface AppointmentCardProps {
   onClick?: () => void;
 }
 
-const statusColors: Record<string, string> = {
-  scheduled: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
-  checked_in: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
-  in_progress: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
-  completed: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300',
-  cancelled: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
-  no_show: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300',
-};
-
-const statusLabels: Record<string, string> = {
-  scheduled: 'Scheduled',
-  checked_in: 'Checked In',
-  in_progress: 'In Progress',
-  completed: 'Completed',
-  cancelled: 'Cancelled',
-  no_show: 'No Show',
+const statusConfig: Record<string, { bg: string; label: string }> = {
+  scheduled: { bg: 'bg-info/10 text-info border-info/30', label: 'Scheduled' },
+  checked_in: { bg: 'bg-warning/10 text-warning border-warning/30', label: 'Checked In' },
+  in_progress: { bg: 'bg-success/10 text-success border-success/30', label: 'In Progress' },
+  completed: { bg: 'bg-muted text-muted-foreground', label: 'Completed' },
+  cancelled: { bg: 'bg-destructive/10 text-destructive border-destructive/30', label: 'Cancelled' },
+  no_show: { bg: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400', label: 'No Show' },
 };
 
 export function AppointmentCard({
@@ -61,7 +53,8 @@ export function AppointmentCard({
   const doctor = appointment.doctor;
   const status = appointment.status || 'scheduled';
   const priority = (appointment as any).priority || 0;
-  const priorityStyle = priorityColors[priority];
+  const priorityStyle = priorityConfig[priority];
+  const statusStyle = statusConfig[status];
   const hasCheckInVitals = !!(appointment as any).check_in_vitals;
 
   const formatTime = (time: string | null) => {
@@ -76,26 +69,36 @@ export function AppointmentCard({
     return (
       <Card
         className={cn(
-          'p-4 cursor-pointer hover:shadow-md transition-all',
-          status === 'in_progress' && 'ring-2 ring-primary'
+          'p-4 cursor-pointer hover:shadow-md transition-all border-l-4',
+          status === 'in_progress' && 'ring-2 ring-primary border-l-primary',
+          priority === 2 && 'border-l-destructive',
+          priority === 1 && 'border-l-warning',
+          priority === 0 && status !== 'in_progress' && 'border-l-transparent',
+          priorityStyle.bg
         )}
         onClick={onClick}
       >
-      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-4">
+            {/* Token Number - Prominent */}
             <div className={cn(
-              'w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold relative',
+              'relative w-14 h-14 rounded-xl flex items-center justify-center text-xl font-bold shadow-sm',
               status === 'in_progress' 
                 ? 'bg-primary text-primary-foreground' 
-                : 'bg-muted text-muted-foreground'
+                : 'bg-muted text-foreground'
             )}>
               {appointment.token_number || '-'}
-              {priority > 0 && (
-                <span className={cn('absolute -top-1 -right-1 w-4 h-4 rounded-full', priorityStyle.bg)} />
+              {priority === 2 && (
+                <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-destructive flex items-center justify-center">
+                  <Zap className="h-3 w-3 text-white" />
+                </span>
+              )}
+              {priority === 1 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-warning" />
               )}
             </div>
             <div>
-              <p className="font-medium">
+              <p className="font-semibold text-base">
                 {patient?.first_name} {patient?.last_name}
               </p>
               <p className="text-sm text-muted-foreground">
@@ -109,7 +112,7 @@ export function AppointmentCard({
                 {hasCheckInVitals && (
                   <Tooltip>
                     <TooltipTrigger>
-                      <Activity className="h-3 w-3 text-green-500" />
+                      <Activity className="h-3.5 w-3.5 text-success" />
                     </TooltipTrigger>
                     <TooltipContent>Vitals recorded at check-in</TooltipContent>
                   </Tooltip>
@@ -120,13 +123,13 @@ export function AppointmentCard({
           <div className="flex flex-col items-end gap-2">
             <div className="flex items-center gap-2">
               {priority > 0 && (
-                <Badge className={cn('text-white', priorityStyle.bg)}>
+                <Badge className={cn('text-white', priorityStyle.badgeBg)}>
                   {priority === 2 && <AlertTriangle className="h-3 w-3 mr-1" />}
                   {priorityStyle.label}
                 </Badge>
               )}
-              <Badge className={statusColors[status]}>
-                {statusLabels[status]}
+              <Badge variant="outline" className={statusStyle.bg}>
+                {statusStyle.label}
               </Badge>
             </div>
             <DropdownMenu>
@@ -151,18 +154,23 @@ export function AppointmentCard({
                     Complete
                   </DropdownMenuItem>
                 )}
-                {(status === 'scheduled' || status === 'checked_in') && onNoShow && (
-                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onNoShow(); }}>
-                    Mark No Show
-                  </DropdownMenuItem>
-                )}
-                {status === 'scheduled' && onCancel && (
-                  <DropdownMenuItem 
-                    onClick={(e) => { e.stopPropagation(); onCancel(); }}
-                    className="text-destructive"
-                  >
-                    Cancel
-                  </DropdownMenuItem>
+                {(status === 'scheduled' || status === 'checked_in') && (
+                  <>
+                    <DropdownMenuSeparator />
+                    {onNoShow && (
+                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onNoShow(); }}>
+                        Mark No Show
+                      </DropdownMenuItem>
+                    )}
+                    {status === 'scheduled' && onCancel && (
+                      <DropdownMenuItem 
+                        onClick={(e) => { e.stopPropagation(); onCancel(); }}
+                        className="text-destructive"
+                      >
+                        Cancel
+                      </DropdownMenuItem>
+                    )}
+                  </>
                 )}
               </DropdownMenuContent>
             </DropdownMenu>
@@ -176,20 +184,32 @@ export function AppointmentCard({
     return (
       <div
         className={cn(
-          'p-2 rounded-md border cursor-pointer hover:bg-muted/50 transition-colors',
-          status === 'in_progress' && 'border-primary bg-primary/5'
+          'p-2.5 rounded-lg border cursor-pointer hover:bg-muted/50 transition-colors',
+          status === 'in_progress' && 'border-primary bg-primary/5',
+          priority === 2 && 'border-l-2 border-l-destructive',
+          priority === 1 && 'border-l-2 border-l-warning'
         )}
         onClick={onClick}
       >
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-medium text-muted-foreground">
-            {formatTime(appointment.appointment_time)}
-          </span>
-          <span className="font-medium text-sm truncate">
-            {patient?.first_name} {patient?.last_name}
-          </span>
-          <Badge variant="outline" className={cn('text-xs ml-auto', statusColors[status])}>
-            {statusLabels[status]}
+        <div className="flex items-center gap-3">
+          <div className={cn(
+            'w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold',
+            status === 'in_progress' ? 'bg-primary text-primary-foreground' : 'bg-muted'
+          )}>
+            {appointment.token_number || '-'}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">
+                {formatTime(appointment.appointment_time)}
+              </span>
+              <span className="font-medium text-sm truncate">
+                {patient?.first_name} {patient?.last_name}
+              </span>
+            </div>
+          </div>
+          <Badge variant="outline" className={cn('text-xs shrink-0', statusStyle.bg)}>
+            {statusStyle.label}
           </Badge>
         </div>
       </div>
@@ -198,16 +218,35 @@ export function AppointmentCard({
 
   // Default list variant
   return (
-    <Card className="p-4 hover:shadow-sm transition-shadow cursor-pointer" onClick={onClick}>
+    <Card 
+      className={cn(
+        'p-4 hover:shadow-sm transition-shadow cursor-pointer',
+        priority === 2 && 'border-l-4 border-l-destructive',
+        priority === 1 && 'border-l-4 border-l-warning'
+      )} 
+      onClick={onClick}
+    >
       <div className="flex items-start justify-between">
         <div className="flex items-start gap-4">
-          <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-            <User className="h-5 w-5 text-muted-foreground" />
+          {/* Token Badge */}
+          <div className={cn(
+            'w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg',
+            status === 'in_progress' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+          )}>
+            {appointment.token_number || <User className="h-5 w-5" />}
           </div>
           <div>
-            <p className="font-medium">
-              {patient?.first_name} {patient?.last_name}
-            </p>
+            <div className="flex items-center gap-2">
+              <p className="font-semibold">
+                {patient?.first_name} {patient?.last_name}
+              </p>
+              {priority === 2 && (
+                <Badge variant="destructive" className="text-xs">
+                  <AlertTriangle className="h-3 w-3 mr-1" />
+                  Emergency
+                </Badge>
+              )}
+            </div>
             <p className="text-sm text-muted-foreground">
               {patient?.patient_number}
             </p>
@@ -220,8 +259,8 @@ export function AppointmentCard({
           </div>
         </div>
         <div className="text-right">
-          <Badge className={statusColors[status]}>
-            {statusLabels[status]}
+          <Badge variant="outline" className={statusStyle.bg}>
+            {statusStyle.label}
           </Badge>
           <div className="mt-2 text-sm text-muted-foreground">
             <div className="flex items-center gap-1 justify-end">
