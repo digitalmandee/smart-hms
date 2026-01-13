@@ -5,9 +5,21 @@ import { Activity, Menu, X } from "lucide-react";
 
 const navLinks = [
   { label: "Features", href: "#features" },
-  { label: "Roles", href: "#roles" },
   { label: "Workflow", href: "#flow" },
+  { label: "Roles", href: "#roles" },
+  { label: "Compare", href: "#compare" },
+  { label: "Testimonials", href: "#testimonials" },
+  { label: "FAQ", href: "#faq" },
+  { label: "Contact", href: "#contact" },
 ];
+
+const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+  e.preventDefault();
+  const element = document.querySelector(href);
+  if (element) {
+    element.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+};
 
 export const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -25,11 +37,12 @@ export const Navbar = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden md:flex items-center gap-6">
             {navLinks.map((link) => (
               <a
                 key={link.label}
                 href={link.href}
+                onClick={(e) => scrollToSection(e, link.href)}
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 {link.label}
@@ -67,7 +80,10 @@ export const Navbar = () => {
                 key={link.label}
                 href={link.href}
                 className="block text-sm text-muted-foreground hover:text-foreground transition-colors"
-                onClick={() => setIsOpen(false)}
+                onClick={(e) => {
+                  scrollToSection(e, link.href);
+                  setIsOpen(false);
+                }}
               >
                 {link.label}
               </a>

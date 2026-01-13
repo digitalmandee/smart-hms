@@ -42,7 +42,7 @@ const steps = [
 
 export const WorkflowDiagram = () => {
   return (
-    <section className="py-20 bg-gradient-to-b from-background to-muted/30 overflow-hidden">
+    <section id="flow" className="py-20 bg-gradient-to-b from-background to-muted/30 overflow-hidden">
       <div className="container mx-auto px-4">
         <AnimatedSection animation="fade-up" className="text-center mb-16">
           <span className="inline-block px-4 py-1.5 bg-primary/10 text-primary rounded-full text-sm font-medium mb-4">

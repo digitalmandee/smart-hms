@@ -73,7 +73,7 @@ const getBadgeStyle = (value: string) => {
 
 export const ComparisonTable = () => {
   return (
-    <section className="py-20 bg-background">
+    <section id="compare" className="py-20 bg-background">
       <div className="container mx-auto px-4">
         <AnimatedSection animation="fade-up" className="text-center mb-12">
           <span className="inline-block px-4 py-1.5 bg-primary/10 text-primary rounded-full text-sm font-medium mb-4">
