@@ -7,7 +7,6 @@ import { WorkflowDiagram } from "@/components/landing/WorkflowDiagram";
 import { RoleSelector } from "@/components/landing/RoleSelector";
 import { ComparisonTable } from "@/components/landing/ComparisonTable";
 import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
-import { PricingSection } from "@/components/landing/PricingSection";
 import { FAQSection } from "@/components/landing/FAQSection";
 import { CTASection } from "@/components/landing/CTASection";
 import { Footer } from "@/components/landing/Footer";
@@ -29,9 +28,6 @@ const Index = () => {
         <RoleSelector />
         <ComparisonTable />
         <TestimonialsSection />
-        <AnimatedSection animation="fade-up">
-          <PricingSection />
-        </AnimatedSection>
         <AnimatedSection animation="fade-up">
           <FAQSection />
         </AnimatedSection>

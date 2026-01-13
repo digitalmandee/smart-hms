@@ -35,15 +35,19 @@ export const CTASection = () => {
           
           {/* Contact options */}
           <div className="flex flex-wrap justify-center gap-6 pt-8 border-t border-border">
-            <a href="tel:+924235761234" className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
+            <a href="tel:+971506802430" className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
               <Phone className="h-5 w-5" />
-              <span>+92 42 3576 1234</span>
+              <span>+971 506802430 (UAE)</span>
             </a>
-            <a href="mailto:hello@smarthms.pk" className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
+            <a href="tel:+923154441518" className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
+              <Phone className="h-5 w-5" />
+              <span>+92 315 4441518 (PK)</span>
+            </a>
+            <a href="mailto:hello@smarthms.ae" className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
               <Mail className="h-5 w-5" />
-              <span>hello@smarthms.pk</span>
+              <span>hello@smarthms.ae</span>
             </a>
-            <a href="https://wa.me/923001234567" className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
+            <a href="https://wa.me/971506802430" className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
               <MessageCircle className="h-5 w-5" />
               <span>WhatsApp</span>
             </a>

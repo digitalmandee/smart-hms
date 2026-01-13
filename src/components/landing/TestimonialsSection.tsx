@@ -3,35 +3,35 @@ import { AnimatedSection, StaggerChildren } from "./AnimatedSection";
 
 const testimonials = [
   {
-    name: "Dr. Shahid Mahmood",
+    name: "Dr. Ahmed Al-Rashid",
     role: "Medical Director",
-    facility: "City General Hospital, Lahore",
-    content: "We reduced patient wait times by 60% after implementing SmartHMS. The token system alone has transformed our OPD.",
+    facility: "Emirates Care Hospital, Sharjah",
+    content: "SmartHMS transformed our 200-bed facility. Patient wait times dropped by 60% and our billing reconciliation is now seamless.",
     rating: 5,
     hasVideo: true,
   },
   {
-    name: "Amina Rashid",
-    role: "Clinic Manager",
-    facility: "Family Care Clinic, Karachi",
-    content: "Finally, no more Excel sheets! Billing reconciliation that used to take 2 hours now takes 10 minutes.",
+    name: "Dr. Fatima Hassan",
+    role: "Chief Operating Officer",
+    facility: "Al Noor Medical Center, Dubai",
+    content: "The integrated lab and pharmacy modules saved us 4 hours daily. Our staff loves the intuitive interface.",
     rating: 5,
     hasVideo: false,
   },
   {
-    name: "Dr. Hassan Ali",
+    name: "Dr. Usman Malik",
     role: "General Physician",
-    facility: "Al-Shifa Medical Center, Islamabad",
-    content: "I can see a patient's entire history before they even sit down. Prescriptions are sent directly to pharmacy - no more lost slips.",
+    facility: "Garden Town Clinic, Lahore",
+    content: "Complete patient history at my fingertips before consultation. Prescriptions go directly to pharmacy - no more lost slips.",
     rating: 5,
     hasVideo: true,
   },
 ];
 
 const caseStudies = [
-  { metric: "60%", label: "Reduced Wait Times", facility: "City General Hospital" },
-  { metric: "4hrs", label: "Daily Time Saved", facility: "Family Care Clinic" },
-  { metric: "95%", label: "Fewer Billing Errors", facility: "Al-Shifa Medical" },
+  { metric: "60%", label: "Reduced Wait Times", facility: "Emirates Care Hospital" },
+  { metric: "4hrs", label: "Daily Time Saved", facility: "Al Noor Medical Center" },
+  { metric: "95%", label: "Fewer Billing Errors", facility: "Garden Town Clinic" },
 ];
 
 export const TestimonialsSection = () => {
