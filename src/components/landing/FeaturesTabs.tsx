@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Users, Calendar, Stethoscope, FlaskConical, Pill, Receipt, BarChart3, Store, UserCog, Calculator, HeartPulse, ScanLine, Warehouse } from 'lucide-react';
+import { Users, Calendar, Stethoscope, FlaskConical, Pill, Receipt, BarChart3, Store, UserCog, Calculator, HeartPulse, ScanLine, Warehouse, Hotel } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AnimatedSection } from './AnimatedSection';
 import {
@@ -16,6 +16,7 @@ import {
   NursingScreen,
   RadiologyScreen,
   InventoryScreen,
+  IPDScreen,
 } from './ProductScreenshots';
 
 const features = [
@@ -45,6 +46,15 @@ const features = [
     description: 'Document vitals with auto-calculated BMI, record symptoms and diagnosis using clinical templates, create e-prescriptions with drug interaction alerts, and order labs/imaging - all in one seamless workflow. Auto-generated visit summaries for patients.',
     highlights: ['Vitals & BMI', 'E-Prescription', 'Drug Alerts', 'Lab Orders', 'Clinical Templates'],
     screenshot: DoctorDashboardScreen,
+  },
+  {
+    id: 'ipd',
+    icon: Hotel,
+    label: 'IPD',
+    title: 'Complete Inpatient Management',
+    description: 'Manage the full inpatient journey from admission to discharge. Allocate beds in real-time, track daily doctor rounds with orders, monitor patient movements between departments, generate running bills with room charges, and streamline discharge with comprehensive summaries.',
+    highlights: ['Admission', 'Bed Management', 'Daily Rounds', 'Running Bills', 'Discharge'],
+    screenshot: IPDScreen,
   },
   {
     id: 'nursing',
@@ -155,7 +165,7 @@ export const FeaturesTabs = () => {
             Everything You Need to Run Your Hospital
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            13 integrated modules working together seamlessly. Click to explore each feature in detail.
+            14 integrated modules working together seamlessly. Click to explore each feature in detail.
           </p>
         </AnimatedSection>
 
