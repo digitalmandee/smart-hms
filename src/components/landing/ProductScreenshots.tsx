@@ -1,4 +1,4 @@
-import { Users, Calendar, Stethoscope, Pill, Receipt, BarChart3, FlaskConical, UserCog, Store, Calculator, TrendingUp, FileSpreadsheet, Package, AlertTriangle, HeartPulse, Activity, Syringe, BedDouble, ScanLine, Bone, Waves, FileSearch } from 'lucide-react';
+import { Users, Calendar, Stethoscope, Pill, Receipt, BarChart3, FlaskConical, UserCog, Store, Calculator, TrendingUp, FileSpreadsheet, Package, AlertTriangle, HeartPulse, Activity, Syringe, BedDouble, ScanLine, Bone, Waves, FileSearch, Warehouse, ClipboardPen, PackageCheck, Shield, Globe, Barcode, ShieldCheck, MessageSquare } from 'lucide-react';
 
 // Mock screenshot components for landing page
 export const PatientRegistrationScreen = () => (
@@ -28,6 +28,18 @@ export const PatientRegistrationScreen = () => (
           <div className="h-8 bg-muted rounded px-2 flex items-center text-sm">+92 300 1234567</div>
         </div>
       </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1">
+          <div className="text-xs text-muted-foreground flex items-center gap-1">
+            <Shield className="h-3 w-3" /> Insurance Provider
+          </div>
+          <div className="h-8 bg-muted rounded px-2 flex items-center text-sm">State Life</div>
+        </div>
+        <div className="space-y-1">
+          <div className="text-xs text-muted-foreground">Policy Number</div>
+          <div className="h-8 bg-muted rounded px-2 flex items-center text-sm">SL-2024-78901</div>
+        </div>
+      </div>
       <div className="flex gap-2 pt-2">
         <div className="h-8 bg-primary text-primary-foreground rounded px-4 flex items-center text-sm">Register</div>
         <div className="h-8 border rounded px-4 flex items-center text-sm">Cancel</div>
@@ -55,12 +67,20 @@ export const DoctorDashboardScreen = () => (
       </div>
       <div className="space-y-2">
         <div className="text-xs font-medium">Current Patient</div>
-        <div className="bg-accent/50 rounded-lg p-3 flex items-center justify-between">
-          <div>
-            <div className="font-medium text-sm">Fatima Malik</div>
-            <div className="text-xs text-muted-foreground">Token #5 • Fever, Headache</div>
+        <div className="bg-accent/50 rounded-lg p-3 space-y-2">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="font-medium text-sm">Fatima Malik</div>
+              <div className="text-xs text-muted-foreground">Token #5 • Fever, Headache</div>
+            </div>
+            <div className="h-7 bg-primary text-primary-foreground rounded px-3 flex items-center text-xs">Start</div>
           </div>
-          <div className="h-7 bg-primary text-primary-foreground rounded px-3 flex items-center text-xs">Start</div>
+          <div className="flex gap-2">
+            <span className="text-xs bg-destructive/10 text-destructive px-2 py-0.5 rounded flex items-center gap-1">
+              <AlertTriangle className="h-3 w-3" /> Penicillin Allergy
+            </span>
+            <span className="text-xs bg-warning/10 text-warning px-2 py-0.5 rounded">Diabetic</span>
+          </div>
         </div>
       </div>
     </div>
@@ -79,6 +99,10 @@ export const LabScreen = () => (
           <div className="text-2xl font-bold text-warning">8</div>
           <div className="text-xs text-muted-foreground">Pending</div>
         </div>
+        <div className="flex-1 bg-primary/10 rounded-lg p-3 text-center">
+          <div className="text-2xl font-bold text-primary">3</div>
+          <div className="text-xs text-muted-foreground">Processing</div>
+        </div>
         <div className="flex-1 bg-success/10 rounded-lg p-3 text-center">
           <div className="text-2xl font-bold text-success">15</div>
           <div className="text-xs text-muted-foreground">Completed</div>
@@ -86,12 +110,15 @@ export const LabScreen = () => (
       </div>
       <div className="space-y-2">
         {[
-          { order: 'LO-260113-0042', patient: 'Ahmed Khan', tests: 'CBC, LFT', doctor: 'Dr. Ali Ahmed', priority: 'Urgent', action: 'Enter Results' },
-          { order: 'LO-260113-0041', patient: 'Fatima Malik', tests: 'Thyroid Panel', doctor: 'Dr. Sara Khan', priority: 'Normal', action: 'View Report' },
+          { order: 'LO-260113-0042', patient: 'Ahmed Khan', tests: 'CBC, LFT, RFT', doctor: 'Dr. Ali Ahmed', priority: 'Urgent', action: 'Enter Results', barcode: 'BC-78901' },
+          { order: 'LO-260113-0041', patient: 'Fatima Malik', tests: 'Thyroid Panel', doctor: 'Dr. Sara Khan', priority: 'Normal', action: 'View Report', barcode: 'BC-78900' },
         ].map((lab, i) => (
           <div key={i} className="bg-muted/50 rounded-lg p-3 space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-mono text-muted-foreground">{lab.order}</span>
+              <div className="flex items-center gap-2">
+                <Barcode className="h-3 w-3 text-muted-foreground" />
+                <span className="text-xs font-mono text-muted-foreground">{lab.order}</span>
+              </div>
               <span className={`text-xs px-2 py-0.5 rounded ${lab.priority === 'Urgent' ? 'bg-destructive/10 text-destructive' : 'bg-muted text-muted-foreground'}`}>
                 {lab.priority}
               </span>
@@ -123,15 +150,23 @@ export const PharmacyScreen = () => (
       </div>
       <div className="space-y-2">
         {[
-          { name: 'Paracetamol 500mg', qty: '20 tablets', stock: 'In Stock' },
-          { name: 'Amoxicillin 250mg', qty: '14 capsules', stock: 'In Stock' },
+          { name: 'Paracetamol 500mg', qty: '20 tablets', stock: 'In Stock', interaction: false },
+          { name: 'Amoxicillin 250mg', qty: '14 capsules', stock: 'In Stock', interaction: true },
         ].map((med, i) => (
-          <div key={i} className="flex items-center justify-between bg-muted/50 rounded p-2">
-            <div>
-              <div className="text-sm font-medium">{med.name}</div>
-              <div className="text-xs text-muted-foreground">{med.qty}</div>
+          <div key={i} className="bg-muted/50 rounded p-2 space-y-1">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-sm font-medium">{med.name}</div>
+                <div className="text-xs text-muted-foreground">{med.qty}</div>
+              </div>
+              <span className="text-xs text-success">{med.stock}</span>
             </div>
-            <span className="text-xs text-success">{med.stock}</span>
+            {med.interaction && (
+              <div className="flex items-center gap-1 text-xs text-destructive bg-destructive/10 rounded px-2 py-1">
+                <AlertTriangle className="h-3 w-3" />
+                Check: Patient has Penicillin allergy
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -150,7 +185,7 @@ export const BillingScreen = () => (
       <div className="space-y-2 text-sm">
         {[
           { item: 'Consultation Fee', amount: 'Rs. 1,500' },
-          { item: 'Lab Tests (CBC)', amount: 'Rs. 800' },
+          { item: 'Lab Tests (CBC, LFT)', amount: 'Rs. 1,200' },
           { item: 'Medications', amount: 'Rs. 650' },
         ].map((line, i) => (
           <div key={i} className="flex justify-between">
@@ -160,13 +195,24 @@ export const BillingScreen = () => (
         ))}
         <div className="border-t pt-2 flex justify-between font-bold">
           <span>Total</span>
-          <span className="text-primary">Rs. 2,950</span>
+          <span className="text-primary">Rs. 3,350</span>
+        </div>
+      </div>
+      <div className="flex items-center gap-2 bg-success/10 rounded-lg p-2">
+        <ShieldCheck className="h-4 w-4 text-success" />
+        <div className="flex-1">
+          <div className="text-xs font-medium">Insurance: State Life</div>
+          <div className="text-xs text-muted-foreground">Coverage: 80% • Claim: Rs. 2,680</div>
         </div>
       </div>
       <div className="grid grid-cols-3 gap-2">
         <div className="h-8 border rounded flex items-center justify-center text-xs">Cash</div>
         <div className="h-8 bg-primary/10 border-primary border rounded flex items-center justify-center text-xs text-primary">JazzCash</div>
         <div className="h-8 border rounded flex items-center justify-center text-xs">Card</div>
+      </div>
+      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+        <MessageSquare className="h-3 w-3" />
+        <span>Auto-reminder for Rs. 670 patient due</span>
       </div>
     </div>
   </div>
@@ -188,18 +234,26 @@ export const AppointmentScreen = () => (
       </div>
       <div className="space-y-2">
         {[
-          { time: '09:00 AM', patient: 'Ali Hassan', type: 'Follow-up' },
-          { time: '09:30 AM', patient: 'Sana Riaz', type: 'New' },
-          { time: '10:00 AM', patient: 'Usman Ahmed', type: 'Walk-in' },
+          { time: '09:00 AM', patient: 'Ali Hassan', type: 'Follow-up', source: 'Scheduled' },
+          { time: '09:30 AM', patient: 'Sana Riaz', type: 'New', source: 'Online' },
+          { time: '10:00 AM', patient: 'Usman Ahmed', type: 'Walk-in', source: 'Walk-in' },
         ].map((apt, i) => (
           <div key={i} className="flex items-center gap-3 bg-muted/50 rounded p-2">
             <div className="text-xs text-muted-foreground w-16">{apt.time}</div>
             <div className="flex-1">
               <div className="text-sm font-medium">{apt.patient}</div>
+              <div className="text-xs text-muted-foreground flex items-center gap-1">
+                {apt.source === 'Online' && <Globe className="h-3 w-3 text-primary" />}
+                {apt.source}
+              </div>
             </div>
             <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">{apt.type}</span>
           </div>
         ))}
+      </div>
+      <div className="flex items-center justify-between bg-muted/50 rounded p-2">
+        <span className="text-xs text-muted-foreground">Waitlist</span>
+        <span className="text-xs bg-warning/10 text-warning px-2 py-0.5 rounded">2 waiting</span>
       </div>
     </div>
   </div>
@@ -514,6 +568,60 @@ export const RadiologyScreen = () => (
             </div>
           </div>
         ))}
+      </div>
+    </div>
+  </div>
+);
+
+export const InventoryScreen = () => (
+  <div className="bg-card rounded-lg border shadow-soft overflow-hidden">
+    <div className="bg-primary/10 px-4 py-2 border-b flex items-center gap-2">
+      <Warehouse className="h-4 w-4 text-primary" />
+      <span className="text-sm font-medium">Inventory Dashboard</span>
+    </div>
+    <div className="p-4 space-y-3">
+      <div className="flex gap-2">
+        <div className="flex-1 bg-primary/10 rounded-lg p-2 text-center">
+          <div className="text-xs text-muted-foreground">Total Items</div>
+          <div className="text-lg font-bold text-primary">1,250</div>
+        </div>
+        <div className="flex-1 bg-warning/10 rounded-lg p-2 text-center">
+          <div className="text-xs text-muted-foreground">Low Stock</div>
+          <div className="text-lg font-bold text-warning">18</div>
+        </div>
+        <div className="flex-1 bg-success/10 rounded-lg p-2 text-center">
+          <div className="text-xs text-muted-foreground">Orders</div>
+          <div className="text-lg font-bold text-success">5</div>
+        </div>
+      </div>
+      <div className="space-y-2">
+        <div className="text-xs font-medium flex items-center gap-1">
+          <ClipboardPen className="h-3 w-3" /> Recent Purchase Orders
+        </div>
+        {[
+          { po: 'PO-2024-0145', vendor: 'Medical Supplies Ltd', amount: '125,000', status: 'Approved' },
+          { po: 'PO-2024-0144', vendor: 'Pharma Distributors', amount: '85,000', status: 'Pending' },
+        ].map((order, i) => (
+          <div key={i} className="flex items-center justify-between bg-muted/50 rounded p-2">
+            <div>
+              <div className="text-sm font-medium">{order.po}</div>
+              <div className="text-xs text-muted-foreground">{order.vendor}</div>
+            </div>
+            <div className="text-right">
+              <span className={`text-xs px-2 py-0.5 rounded ${order.status === 'Approved' ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'}`}>
+                {order.status}
+              </span>
+              <div className="text-sm font-medium">Rs. {order.amount}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="bg-muted/50 rounded-lg p-2 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <PackageCheck className="h-4 w-4 text-muted-foreground" />
+          <span className="text-xs">Stock Requisitions</span>
+        </div>
+        <span className="text-xs bg-warning/10 text-warning px-2 py-0.5 rounded">3 pending</span>
       </div>
     </div>
   </div>

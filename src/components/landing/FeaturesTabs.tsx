@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Users, Calendar, Stethoscope, FlaskConical, Pill, Receipt, BarChart3, Store, UserCog, Calculator, HeartPulse, ScanLine } from 'lucide-react';
+import { Users, Calendar, Stethoscope, FlaskConical, Pill, Receipt, BarChart3, Store, UserCog, Calculator, HeartPulse, ScanLine, Warehouse } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AnimatedSection } from './AnimatedSection';
 import {
@@ -15,6 +15,7 @@ import {
   AccountsScreen,
   NursingScreen,
   RadiologyScreen,
+  InventoryScreen,
 } from './ProductScreenshots';
 
 const features = [
@@ -22,99 +23,108 @@ const features = [
     id: 'patients',
     icon: Users,
     label: 'Patients',
-    title: 'Smart Patient Management',
-    description: 'Register patients in seconds with CNIC lookup. Complete medical history, QR codes for quick check-in, and family linkage.',
-    highlights: ['CNIC Auto-fill', 'QR Check-in', 'Medical History'],
+    title: 'Complete Patient Lifecycle Management',
+    description: 'Register patients in seconds with CNIC auto-fill. Maintain complete medical history, allergies, chronic conditions, and family linkages. QR codes enable instant check-in at reception. Store insurance details and upload documents securely.',
+    highlights: ['CNIC Auto-fill', 'QR Check-in', 'Medical History', 'Family Linkage', 'Document Uploads'],
     screenshot: PatientRegistrationScreen,
   },
   {
     id: 'appointments',
     icon: Calendar,
     label: 'Appointments',
-    title: 'Effortless Scheduling',
-    description: 'Smart queue management with token system. Schedule follow-ups, manage walk-ins, and send SMS reminders automatically.',
-    highlights: ['Token Queue', 'SMS Reminders', 'Walk-in Support'],
+    title: 'Smart Scheduling & Queue Management',
+    description: 'Token-based queue system with real-time display boards. Schedule follow-ups, manage walk-ins, and enable online patient self-booking. Automated SMS/Email reminders reduce no-shows. Waitlist management fills cancellation gaps automatically.',
+    highlights: ['Token Queue', 'SMS Reminders', 'Online Booking', 'Waitlist', 'No-Show Analytics'],
     screenshot: AppointmentScreen,
   },
   {
     id: 'consultation',
     icon: Stethoscope,
     label: 'Consultation',
-    title: 'Clinical Documentation',
-    description: 'Document symptoms, vitals, diagnosis, and prescriptions in one flow. Access patient history instantly during consultations.',
-    highlights: ['Vitals Tracking', 'E-Prescription', 'History Access'],
+    title: 'Streamlined Clinical Documentation',
+    description: 'Document vitals with auto-calculated BMI, record symptoms and diagnosis using clinical templates, create e-prescriptions with drug interaction alerts, and order labs/imaging - all in one seamless workflow. Auto-generated visit summaries for patients.',
+    highlights: ['Vitals & BMI', 'E-Prescription', 'Drug Alerts', 'Lab Orders', 'Clinical Templates'],
     screenshot: DoctorDashboardScreen,
   },
   {
     id: 'nursing',
     icon: HeartPulse,
     label: 'Nursing',
-    title: 'Complete Nursing Care',
-    description: 'Empower nurses with digital tools for patient care. Monitor vitals in real-time, administer medications with barcode verification, document care notes, and manage ward operations efficiently.',
-    highlights: ['Vitals Monitoring', 'eMAR', 'Ward Management'],
+    title: 'Comprehensive Nursing & Ward Care',
+    description: 'Empower nurses with digital tools for exceptional patient care. Monitor vitals in real-time with trend analysis, administer medications with eMAR barcode verification, document nursing notes per shift, manage bed allocations, and receive critical alerts for patient safety.',
+    highlights: ['Vitals Monitoring', 'eMAR', 'Ward Management', 'Shift Handover', 'Critical Alerts'],
     screenshot: NursingScreen,
   },
   {
     id: 'laboratory',
     icon: FlaskConical,
     label: 'Laboratory',
-    title: 'Complete Lab Workflow',
-    description: 'Order tests during consultations, track samples, enter results with templates, and generate professional reports with reference ranges and abnormal value highlighting.',
-    highlights: ['Test Ordering', 'Sample Tracking', 'Result Entry'],
+    title: 'End-to-End Lab Workflow',
+    description: 'Order tests during consultations with pre-built panels (CBC, LFT, RFT). Track samples with barcodes, enter results using structured templates, auto-flag abnormal values with reference ranges, and generate professional reports. Critical value alerts ensure urgent cases are prioritized.',
+    highlights: ['Test Panels', 'Barcode Tracking', 'Result Templates', 'Abnormal Flags', 'Critical Alerts'],
     screenshot: LabScreen,
   },
   {
     id: 'radiology',
     icon: ScanLine,
     label: 'Radiology',
-    title: 'Diagnostic Imaging Workflow',
-    description: 'Streamline radiology operations from order to report. Manage X-ray, ultrasound, and CT scan requests, store images digitally, and enable radiologists to create structured reports with critical finding alerts.',
-    highlights: ['Imaging Orders', 'PACS Storage', 'Radiologist Reports'],
+    title: 'Complete Diagnostic Imaging',
+    description: 'Streamline radiology from order to report. Manage X-ray, ultrasound, CT, and MRI requests from consultations. Store images in PACS-compatible archive, enable structured radiologist reporting with templates, and alert physicians instantly for critical findings.',
+    highlights: ['Imaging Orders', 'PACS Storage', 'Radiologist Reports', 'STAT Alerts', 'Image Sharing'],
     screenshot: RadiologyScreen,
   },
   {
     id: 'pharmacy',
     icon: Pill,
     label: 'Pharmacy',
-    title: 'Inventory & Dispensing',
-    description: 'Track medicine stock by batch and expiry. Dispense prescriptions with barcode scanning. Get low stock alerts.',
-    highlights: ['Batch Tracking', 'Expiry Alerts', 'Barcode Scan'],
+    title: 'Inventory, Dispensing & Drug Safety',
+    description: 'Track medicine stock by batch and expiry with automated alerts. Dispense prescriptions with barcode scanning and drug interaction checks. Manage suppliers, handle returns, and maintain controlled substance logs for compliance.',
+    highlights: ['Batch Tracking', 'Expiry Alerts', 'Drug Interactions', 'Supplier Management', 'Controlled Drugs'],
     screenshot: PharmacyScreen,
   },
   {
     id: 'pos',
     icon: Store,
     label: 'POS',
-    title: 'POS with Inventory Tracking',
-    description: 'Complete retail solution for pharmacy walk-in sales. Fast barcode scanning, multiple payment options, automatic inventory deduction, real-time stock tracking, and detailed sales analytics.',
-    highlights: ['Barcode Scan', 'Live Inventory', 'Sales Analytics'],
+    title: 'Retail Point-of-Sale for Pharmacy',
+    description: 'Fast barcode scanning checkout for walk-in customers. Accept Cash, Card, JazzCash, EasyPaisa payments. Automatic inventory deduction on every sale, flexible discounts, tax calculations, and daily sales analytics with top-selling products.',
+    highlights: ['Barcode Scan', 'Multi-Payment', 'Live Inventory', 'Sales Analytics', 'Low Stock Alerts'],
     screenshot: POSScreen,
   },
   {
     id: 'billing',
     icon: Receipt,
     label: 'Billing',
-    title: 'Flexible Payments',
-    description: 'Generate invoices instantly. Accept Cash, JazzCash, EasyPaisa, or Cards. Track outstanding balances and print receipts.',
-    highlights: ['Multi-Payment', 'Auto Invoice', 'Balance Tracking'],
+    title: 'Flexible Invoicing & Collections',
+    description: 'Generate service-based invoices for consultations, labs, and pharmacy. Accept multiple payment methods with partial payment support. Submit insurance claims, manage patient credit limits, track outstanding balances, and send automated collection reminders.',
+    highlights: ['Multi-Payment', 'Insurance Claims', 'Partial Payments', 'Credit Limits', 'Collection Reminders'],
     screenshot: BillingScreen,
   },
   {
     id: 'accounts',
     icon: Calculator,
     label: 'Accounts',
-    title: 'Complete Financial Management',
-    description: 'Full-fledged accounting for hospitals. Manage ledgers, track receivables and payables, reconcile bank accounts, generate financial statements, and ensure tax compliance.',
-    highlights: ['General Ledger', 'Financial Reports', 'Tax Compliance'],
+    title: 'Full-Fledged Financial Management',
+    description: 'Double-entry accounting designed for healthcare. Manage general ledger with chart of accounts, track receivables and payables, reconcile bank accounts, generate financial statements (P&L, Balance Sheet, Cash Flow), and ensure GST/tax compliance.',
+    highlights: ['General Ledger', 'Bank Reconciliation', 'Financial Statements', 'Tax Compliance', 'Budget Tracking'],
     screenshot: AccountsScreen,
+  },
+  {
+    id: 'inventory',
+    icon: Warehouse,
+    label: 'Inventory',
+    title: 'Centralized Procurement & Stock Control',
+    description: 'Take control of your hospital supply chain. Create and track purchase orders, manage vendor relationships with performance ratings, handle department stock requisitions with approvals, receive goods with verification, and maintain optimal inventory levels with reorder alerts.',
+    highlights: ['Purchase Orders', 'Vendor Management', 'Stock Requisitions', 'Goods Receipt', 'Reorder Alerts'],
+    screenshot: InventoryScreen,
   },
   {
     id: 'reports',
     icon: BarChart3,
     label: 'Reports',
-    title: 'Actionable Insights',
-    description: 'Track revenue, patient visits, and popular services. Export reports to Excel. Make data-driven decisions.',
-    highlights: ['Revenue Charts', 'Excel Export', 'Trend Analysis'],
+    title: 'Data-Driven Insights & Analytics',
+    description: 'Track revenue trends, patient visit patterns, and department performance. Visualize data with charts and graphs. Export reports to Excel for external analysis. Make informed decisions with real-time dashboards.',
+    highlights: ['Revenue Charts', 'Excel Export', 'Trend Analysis', 'Department KPIs', 'Custom Reports'],
     screenshot: ReportsScreen,
   },
   {
@@ -122,8 +132,8 @@ const features = [
     icon: UserCog,
     label: 'HR',
     title: 'Complete Workforce Management',
-    description: 'From recruitment to retirement - manage your entire healthcare workforce. Handle employee profiles, shift scheduling, attendance tracking, leave approvals, payroll processing, and performance reviews.',
-    highlights: ['Shift Scheduling', 'Payroll', 'Leave Management', 'Performance Reviews'],
+    description: 'Manage your healthcare workforce from recruitment to retirement. Maintain employee profiles with credentials, auto-generate duty rosters, track attendance with biometric integration, process leave approvals, run payroll with tax calculations, and conduct performance reviews.',
+    highlights: ['Duty Rosters', 'Biometric Attendance', 'Leave Approval', 'Payroll', 'Performance Reviews'],
     screenshot: HRScreen,
   },
 ];
@@ -142,10 +152,10 @@ export const FeaturesTabs = () => {
             All-in-One Platform
           </span>
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Everything You Need to Run Your Clinic
+            Everything You Need to Run Your Hospital
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Six integrated modules working together seamlessly. Click to explore each feature.
+            13 integrated modules working together seamlessly. Click to explore each feature in detail.
           </p>
         </AnimatedSection>
 
