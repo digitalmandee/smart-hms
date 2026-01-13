@@ -1,4 +1,4 @@
-import { Users, Calendar, Stethoscope, Pill, Receipt, BarChart3, FlaskConical, UserCog, Store, Calculator, TrendingUp, FileSpreadsheet, Package, AlertTriangle, HeartPulse, Activity, Syringe, BedDouble, ScanLine, Bone, Waves, FileSearch, Warehouse, ClipboardPen, PackageCheck, Shield, Globe, Barcode, ShieldCheck, MessageSquare, Hotel, Bed, DoorOpen, ClipboardCheck, Timer, Siren, Gauge, Ambulance, Zap, Scissors, Clipboard, MonitorDot, Thermometer, CircleCheck, AlarmClock, Clock } from 'lucide-react';
+import { Users, Calendar, Stethoscope, Pill, Receipt, BarChart3, FlaskConical, UserCog, Store, Calculator, TrendingUp, FileSpreadsheet, Package, AlertTriangle, HeartPulse, Activity, Syringe, BedDouble, ScanLine, Bone, Waves, FileSearch, Warehouse, ClipboardPen, PackageCheck, Shield, Globe, Barcode, ShieldCheck, MessageSquare, Hotel, Bed, DoorOpen, ClipboardCheck, Timer, Siren, Gauge, Ambulance, Zap, Scissors, Clipboard, MonitorDot, Thermometer, CircleCheck, AlarmClock, Clock, Droplet, Droplets, Heart, UserCheck, RefreshCw } from 'lucide-react';
 
 // Mock screenshot components for landing page
 export const PatientRegistrationScreen = () => (
@@ -821,6 +821,77 @@ export const OTScreen = () => (
           <div>
             <div className="text-xs text-muted-foreground">Recovery</div>
             <div className="text-sm font-bold">2</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+export const BloodBankScreen = () => (
+  <div className="bg-card rounded-lg border shadow-soft overflow-hidden">
+    <div className="bg-rose-500/10 px-4 py-2 border-b flex items-center gap-2">
+      <Droplet className="h-4 w-4 text-rose-600" />
+      <span className="text-sm font-medium">Blood Bank Dashboard</span>
+    </div>
+    <div className="p-4 space-y-3">
+      <div className="grid grid-cols-4 gap-2">
+        {[
+          { group: 'A+', units: 24, color: 'bg-success/10 text-success' },
+          { group: 'B+', units: 18, color: 'bg-success/10 text-success' },
+          { group: 'O+', units: 8, color: 'bg-warning/10 text-warning' },
+          { group: 'AB+', units: 12, color: 'bg-success/10 text-success' },
+        ].map((blood) => (
+          <div key={blood.group} className={`rounded-lg p-2 text-center ${blood.color.split(' ')[0]}`}>
+            <div className={`text-lg font-bold ${blood.color.split(' ')[1]}`}>{blood.units}</div>
+            <div className="text-xs text-muted-foreground">{blood.group}</div>
+          </div>
+        ))}
+      </div>
+      <div className="space-y-2">
+        <div className="text-xs font-medium flex items-center gap-1">
+          <UserCheck className="h-3 w-3" /> Today's Donors
+        </div>
+        {[
+          { donor: 'Ahmed Hassan', group: 'O+', status: 'Collected', time: '10:30 AM' },
+          { donor: 'Sara Khan', group: 'A+', status: 'Screening', time: '11:00 AM' },
+        ].map((donor, i) => (
+          <div key={i} className="bg-muted/50 rounded-lg p-2 flex items-center justify-between">
+            <div>
+              <div className="text-sm font-medium">{donor.donor}</div>
+              <div className="text-xs text-muted-foreground">Blood Group: {donor.group} • {donor.time}</div>
+            </div>
+            <span className={`text-xs px-2 py-0.5 rounded ${donor.status === 'Collected' ? 'bg-success/10 text-success' : 'bg-primary/10 text-primary'}`}>
+              {donor.status}
+            </span>
+          </div>
+        ))}
+      </div>
+      <div className="bg-warning/10 rounded-lg p-2 space-y-1">
+        <div className="text-xs font-medium flex items-center gap-1">
+          <RefreshCw className="h-3 w-3" /> Pending Requests
+        </div>
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-sm">OT-1 • Appendectomy</div>
+            <div className="text-xs text-muted-foreground">2 units O+ • Cross-match required</div>
+          </div>
+          <div className="h-7 bg-primary text-primary-foreground rounded px-3 flex items-center text-xs">Process</div>
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <div className="bg-rose-500/10 rounded-lg p-2 flex items-center gap-2">
+          <Heart className="h-4 w-4 text-rose-600" />
+          <div>
+            <div className="text-xs text-muted-foreground">Transfusions Today</div>
+            <div className="text-sm font-bold">5</div>
+          </div>
+        </div>
+        <div className="bg-warning/10 rounded-lg p-2 flex items-center gap-2">
+          <Droplets className="h-4 w-4 text-warning" />
+          <div>
+            <div className="text-xs text-muted-foreground">Expiring Soon</div>
+            <div className="text-sm font-bold">3 units</div>
           </div>
         </div>
       </div>
