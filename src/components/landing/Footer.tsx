@@ -4,7 +4,6 @@ import { Activity, Mail, Phone, MapPin } from "lucide-react";
 const footerLinks = {
   Product: [
     { label: "Features", href: "#features" },
-    { label: "Pricing", href: "#pricing" },
     { label: "Demo", href: "/auth/login" },
     { label: "API Documentation", href: "#" },
   ],
@@ -47,15 +46,15 @@ export const Footer = () => {
             <div className="space-y-3">
               <div className="flex items-center gap-3 text-sm text-muted-foreground">
                 <Mail className="h-4 w-4" />
-                <span>support@smarthms.com</span>
+                <span>support@smarthms.ae</span>
               </div>
               <div className="flex items-center gap-3 text-sm text-muted-foreground">
                 <Phone className="h-4 w-4" />
-                <span>+1 (555) 123-4567</span>
+                <span>+971 506802430</span>
               </div>
               <div className="flex items-center gap-3 text-sm text-muted-foreground">
                 <MapPin className="h-4 w-4" />
-                <span>San Francisco, CA</span>
+                <span>12 Block B 1, Industrial Area, Sharjah, UAE</span>
               </div>
             </div>
           </div>
