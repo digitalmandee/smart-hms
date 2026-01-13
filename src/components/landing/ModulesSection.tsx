@@ -55,6 +55,14 @@ import {
   FileSymlink,
   Timer,
   HeartHandshake,
+  // Emergency module icons
+  Siren,
+  Zap,
+  Ambulance,
+  HeartCrack,
+  Gauge,
+  Phone,
+  ArrowUpFromLine,
   // Radiology module icons
   ScanLine,
   Bone,
@@ -133,6 +141,22 @@ const modules = [
       { icon: FlaskConical, text: "Lab and radiology orders from consultation screen" },
       { icon: AlertTriangle, text: "Real-time drug interaction and allergy alerts" },
       { icon: FileOutput, text: "Auto-generated visit summaries for patients" },
+    ],
+  },
+  {
+    icon: Siren,
+    title: "Emergency & Casualty",
+    description: "Rapid triage, trauma tracking, and critical care management for emergency departments",
+    color: "from-red-600 to-red-700",
+    features: [
+      { icon: Gauge, text: "5-level triage system with color-coded priority bands" },
+      { icon: HeartCrack, text: "Trauma tracking with injury documentation and scores" },
+      { icon: Ambulance, text: "Ambulance arrival alerts with pre-hospital data" },
+      { icon: Zap, text: "Emergency admissions with fast-track bed allocation" },
+      { icon: Activity, text: "Real-time vitals monitoring with critical alerts" },
+      { icon: ArrowUpFromLine, text: "ICU/OT handoff with complete patient status" },
+      { icon: Phone, text: "Family notification system for patient status updates" },
+      { icon: FileText, text: "Medico-legal documentation and police case tracking" },
     ],
   },
   {
@@ -309,7 +333,7 @@ export const ModulesSection = () => {
             <span className="text-primary"> Every Department</span>
           </h2>
           <p className="text-lg text-muted-foreground">
-            13 integrated modules with 100+ features working together seamlessly to streamline your healthcare operations.
+            14 integrated modules with 110+ features working together seamlessly to streamline your healthcare operations.
           </p>
         </div>
 
