@@ -22,7 +22,20 @@ import {
   Store,
   Barcode,
   Percent,
-  ReceiptText
+  ReceiptText,
+  CalendarCheck,
+  CalendarOff,
+  FileSpreadsheet,
+  FolderOpen,
+  TrendingUp,
+  Calculator,
+  BookOpen,
+  FileOutput,
+  FileInput,
+  Building2,
+  PieChart,
+  Target,
+  ArrowLeftRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -90,13 +103,17 @@ const modules = [
   {
     icon: Store,
     title: "Pharmacy POS",
-    description: "Retail point-of-sale for walk-in customers",
+    description: "Retail point-of-sale with inventory tracking",
     color: "from-teal-500 to-cyan-500",
     features: [
       { icon: Barcode, text: "Quick barcode scanning checkout" },
       { icon: Wallet, text: "Cash, Card & Mobile wallet payments" },
       { icon: Percent, text: "Discount & promotion handling" },
       { icon: ReceiptText, text: "Tax calculation & receipt printing" },
+      { icon: Package, text: "Real-time inventory deduction on sale" },
+      { icon: Bell, text: "Automatic low stock reorder alerts" },
+      { icon: ArrowLeftRight, text: "Stock transfers between branches" },
+      { icon: TrendingUp, text: "Daily sales reports & top sellers" },
     ],
   },
   {
@@ -112,15 +129,35 @@ const modules = [
     ],
   },
   {
+    icon: Calculator,
+    title: "Accounts & Finance",
+    description: "Complete financial management for healthcare",
+    color: "from-emerald-500 to-green-500",
+    features: [
+      { icon: BookOpen, text: "General ledger with chart of accounts" },
+      { icon: FileOutput, text: "Accounts payable & vendor management" },
+      { icon: FileInput, text: "Accounts receivable & patient dues" },
+      { icon: Receipt, text: "Expense tracking with approval workflow" },
+      { icon: Building2, text: "Multi-bank account reconciliation" },
+      { icon: PieChart, text: "P&L, Balance Sheet, Cash Flow reports" },
+      { icon: Target, text: "Department-wise budget management" },
+      { icon: FileCheck, text: "GST/Tax calculations & compliance" },
+    ],
+  },
+  {
     icon: UserCog,
     title: "HR & Staff Management",
     description: "Complete workforce management for healthcare",
     color: "from-indigo-500 to-blue-500",
     features: [
-      { icon: Users, text: "Employee profiles with credentials tracking" },
-      { icon: Clock, text: "Shift scheduling & duty roster management" },
-      { icon: Calendar, text: "Attendance tracking with leave management" },
-      { icon: Wallet, text: "Payroll processing with salary slips" },
+      { icon: Users, text: "Employee profiles with credentials & certifications" },
+      { icon: Clock, text: "Shift scheduling & auto duty roster" },
+      { icon: CalendarCheck, text: "Attendance with biometric integration" },
+      { icon: CalendarOff, text: "Leave management with approval workflow" },
+      { icon: Wallet, text: "Payroll with deductions & allowances" },
+      { icon: FileSpreadsheet, text: "Auto-generated salary slips with tax" },
+      { icon: TrendingUp, text: "Staff performance reviews & appraisals" },
+      { icon: FolderOpen, text: "Document storage for contracts & compliance" },
     ],
   },
 ];

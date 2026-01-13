@@ -1,4 +1,4 @@
-import { Users, Calendar, Stethoscope, Pill, Receipt, BarChart3, FlaskConical, UserCog, Store } from 'lucide-react';
+import { Users, Calendar, Stethoscope, Pill, Receipt, BarChart3, FlaskConical, UserCog, Store, Calculator, TrendingUp, FileSpreadsheet, Package, AlertTriangle } from 'lucide-react';
 
 // Mock screenshot components for landing page
 export const PatientRegistrationScreen = () => (
@@ -247,26 +247,27 @@ export const HRScreen = () => (
       <span className="text-sm font-medium">HR Dashboard</span>
     </div>
     <div className="p-4 space-y-3">
-      <div className="flex gap-3">
-        <div className="flex-1 bg-primary/10 rounded-lg p-3 text-center">
-          <div className="text-2xl font-bold text-primary">45</div>
-          <div className="text-xs text-muted-foreground">Employees</div>
+      <div className="flex gap-2">
+        <div className="flex-1 bg-primary/10 rounded-lg p-2 text-center">
+          <div className="text-xl font-bold text-primary">45</div>
+          <div className="text-xs text-muted-foreground">Staff</div>
         </div>
-        <div className="flex-1 bg-success/10 rounded-lg p-3 text-center">
-          <div className="text-2xl font-bold text-success">42</div>
+        <div className="flex-1 bg-success/10 rounded-lg p-2 text-center">
+          <div className="text-xl font-bold text-success">42</div>
           <div className="text-xs text-muted-foreground">Present</div>
         </div>
-        <div className="flex-1 bg-warning/10 rounded-lg p-3 text-center">
-          <div className="text-2xl font-bold text-warning">3</div>
-          <div className="text-xs text-muted-foreground">On Leave</div>
+        <div className="flex-1 bg-warning/10 rounded-lg p-2 text-center">
+          <div className="text-xl font-bold text-warning">3</div>
+          <div className="text-xs text-muted-foreground">Leave</div>
         </div>
       </div>
       <div className="space-y-2">
-        <div className="text-xs font-medium">Today's Roster</div>
+        <div className="text-xs font-medium flex items-center gap-1">
+          <FileSpreadsheet className="h-3 w-3" /> Today's Roster
+        </div>
         {[
-          { name: 'Dr. Ali Ahmed', shift: 'Morning (9AM - 2PM)', role: 'Doctor' },
-          { name: 'Nurse Fatima', shift: 'Evening (2PM - 9PM)', role: 'Nurse' },
-          { name: 'Sara Khan', shift: 'Morning (9AM - 5PM)', role: 'Receptionist' },
+          { name: 'Dr. Ali Ahmed', shift: '9AM - 2PM', role: 'Doctor' },
+          { name: 'Nurse Fatima', shift: '2PM - 9PM', role: 'Nurse' },
         ].map((staff, i) => (
           <div key={i} className="flex items-center justify-between bg-muted/50 rounded p-2">
             <div>
@@ -277,9 +278,17 @@ export const HRScreen = () => (
           </div>
         ))}
       </div>
-      <div className="flex items-center justify-between bg-warning/10 rounded-lg p-2">
-        <span className="text-xs">Pending Leave Requests (3)</span>
-        <span className="text-xs bg-primary text-primary-foreground px-3 py-1 rounded">Review</span>
+      <div className="grid grid-cols-2 gap-2">
+        <div className="bg-warning/10 rounded-lg p-2 text-center">
+          <div className="text-xs text-muted-foreground">Pending Leaves</div>
+          <div className="text-sm font-bold text-warning">3</div>
+        </div>
+        <div className="bg-success/10 rounded-lg p-2 text-center">
+          <div className="text-xs text-muted-foreground">Payroll Status</div>
+          <div className="text-sm font-bold text-success flex items-center justify-center gap-1">
+            <TrendingUp className="h-3 w-3" /> Processed
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -300,15 +309,22 @@ export const POSScreen = () => (
       </div>
       <div className="space-y-2">
         {[
-          { name: 'Paracetamol 500mg', qty: 2, price: 40 },
-          { name: 'Vitamin C Tablets', qty: 1, price: 150 },
-          { name: 'Bandage Roll', qty: 3, price: 90 },
+          { name: 'Paracetamol 500mg', qty: 2, price: 40, stock: 248 },
+          { name: 'Vitamin C Tablets', qty: 1, price: 150, stock: 89 },
+          { name: 'Bandage Roll', qty: 3, price: 90, stock: 12 },
         ].map((item, i) => (
           <div key={i} className="flex items-center justify-between bg-muted/50 rounded p-2">
-            <div className="text-sm">{item.name}</div>
-            <div className="flex items-center gap-4">
+            <div>
+              <div className="text-sm">{item.name}</div>
+              <div className="text-xs text-muted-foreground flex items-center gap-1">
+                <Package className="h-3 w-3" />
+                Stock: {item.stock}
+                {item.stock < 20 && <AlertTriangle className="h-3 w-3 text-warning ml-1" />}
+              </div>
+            </div>
+            <div className="text-right">
               <span className="text-xs text-muted-foreground">x{item.qty}</span>
-              <span className="text-sm font-medium">Rs. {item.price}</span>
+              <div className="text-sm font-medium">Rs. {item.price}</div>
             </div>
           </div>
         ))}
@@ -333,6 +349,69 @@ export const POSScreen = () => (
         <div className="h-8 border rounded flex items-center justify-center text-xs">JazzCash</div>
       </div>
       <div className="h-8 bg-primary text-primary-foreground rounded flex items-center justify-center text-sm font-medium">Complete Sale</div>
+    </div>
+  </div>
+);
+
+export const AccountsScreen = () => (
+  <div className="bg-card rounded-lg border shadow-soft overflow-hidden">
+    <div className="bg-primary/10 px-4 py-2 border-b flex items-center gap-2">
+      <Calculator className="h-4 w-4 text-primary" />
+      <span className="text-sm font-medium">Accounts Dashboard</span>
+    </div>
+    <div className="p-4 space-y-3">
+      <div className="flex gap-2">
+        <div className="flex-1 bg-success/10 rounded-lg p-2 text-center">
+          <div className="text-xs text-muted-foreground">Receivables</div>
+          <div className="text-lg font-bold text-success">Rs. 1.2M</div>
+        </div>
+        <div className="flex-1 bg-destructive/10 rounded-lg p-2 text-center">
+          <div className="text-xs text-muted-foreground">Payables</div>
+          <div className="text-lg font-bold text-destructive">Rs. 450K</div>
+        </div>
+        <div className="flex-1 bg-primary/10 rounded-lg p-2 text-center">
+          <div className="text-xs text-muted-foreground">Cash</div>
+          <div className="text-lg font-bold text-primary">Rs. 890K</div>
+        </div>
+      </div>
+      <div className="space-y-2">
+        <div className="text-xs font-medium">Recent Transactions</div>
+        {[
+          { type: '+', desc: 'Patient Payment', ref: 'INV-1234', amount: '5,500', color: 'text-success' },
+          { type: '-', desc: 'Supplier Payment', ref: 'PO-0892', amount: '12,000', color: 'text-destructive' },
+          { type: '+', desc: 'Insurance Claim', ref: 'CLM-456', amount: '25,000', color: 'text-success' },
+        ].map((txn, i) => (
+          <div key={i} className="flex items-center justify-between bg-muted/50 rounded p-2">
+            <div className="flex items-center gap-2">
+              <span className={`text-sm font-bold ${txn.color}`}>{txn.type}</span>
+              <div>
+                <div className="text-sm">{txn.desc}</div>
+                <div className="text-xs text-muted-foreground">{txn.ref}</div>
+              </div>
+            </div>
+            <span className={`text-sm font-medium ${txn.color}`}>Rs. {txn.amount}</span>
+          </div>
+        ))}
+      </div>
+      <div className="bg-muted/50 rounded-lg p-3">
+        <div className="text-xs font-medium mb-2">This Month Summary</div>
+        <div className="grid grid-cols-3 gap-2 text-center">
+          <div>
+            <div className="text-xs text-muted-foreground">Revenue</div>
+            <div className="text-sm font-bold">Rs. 3.2M</div>
+          </div>
+          <div>
+            <div className="text-xs text-muted-foreground">Expenses</div>
+            <div className="text-sm font-bold">Rs. 1.8M</div>
+          </div>
+          <div>
+            <div className="text-xs text-muted-foreground">Net Profit</div>
+            <div className="text-sm font-bold text-success flex items-center justify-center gap-1">
+              Rs. 1.4M <TrendingUp className="h-3 w-3" />
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 );

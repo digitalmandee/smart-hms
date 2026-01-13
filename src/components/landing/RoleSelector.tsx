@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Stethoscope, UserCheck, Pill, Shield, Users, Receipt, FlaskConical, UserCog } from 'lucide-react';
+import { Stethoscope, UserCheck, Pill, Shield, Users, Receipt, FlaskConical, UserCog, Calculator } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AnimatedSection } from './AnimatedSection';
 
@@ -59,6 +59,20 @@ const roles = [
       'Generate and print lab reports',
     ],
     stats: { accuracy: '99.9%', speed: '3x faster' },
+  },
+  {
+    id: 'accountant',
+    icon: Calculator,
+    title: 'Accountant',
+    color: 'from-emerald-500 to-emerald-600',
+    tasks: [
+      'Record journal entries and manage ledgers',
+      'Track accounts receivable and payables',
+      'Reconcile bank statements daily',
+      'Generate P&L, Balance Sheet reports',
+      'Prepare GST/tax compliance reports',
+    ],
+    stats: { accuracy: '100% audit-ready', reports: 'Real-time' },
   },
   {
     id: 'hr_manager',
