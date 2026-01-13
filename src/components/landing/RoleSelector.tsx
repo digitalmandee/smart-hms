@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Stethoscope, UserCheck, Pill, Shield, Users, Receipt, FlaskConical } from 'lucide-react';
+import { Stethoscope, UserCheck, Pill, Shield, Users, Receipt, FlaskConical, UserCog } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AnimatedSection } from './AnimatedSection';
 
@@ -59,6 +59,20 @@ const roles = [
       'Generate and print lab reports',
     ],
     stats: { accuracy: '99.9%', speed: '3x faster' },
+  },
+  {
+    id: 'hr_manager',
+    icon: UserCog,
+    title: 'HR Manager',
+    color: 'from-indigo-500 to-indigo-600',
+    tasks: [
+      'Manage employee profiles and documents',
+      'Create and publish duty rosters',
+      'Track attendance and approve leaves',
+      'Process monthly payroll',
+      'Generate salary slips and HR reports',
+    ],
+    stats: { saved: '5 hours/week', accuracy: '99% payroll' },
   },
   {
     id: 'admin',

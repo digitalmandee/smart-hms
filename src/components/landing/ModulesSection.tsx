@@ -15,7 +15,14 @@ import {
   FlaskConical,
   TestTube,
   Microscope,
-  FileCheck
+  FileCheck,
+  UserCog,
+  Clock,
+  Wallet,
+  Store,
+  Barcode,
+  Percent,
+  ReceiptText
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -81,6 +88,18 @@ const modules = [
     ],
   },
   {
+    icon: Store,
+    title: "Pharmacy POS",
+    description: "Retail point-of-sale for walk-in customers",
+    color: "from-teal-500 to-cyan-500",
+    features: [
+      { icon: Barcode, text: "Quick barcode scanning checkout" },
+      { icon: Wallet, text: "Cash, Card & Mobile wallet payments" },
+      { icon: Percent, text: "Discount & promotion handling" },
+      { icon: ReceiptText, text: "Tax calculation & receipt printing" },
+    ],
+  },
+  {
     icon: Receipt,
     title: "Billing & Payments",
     description: "Flexible invoicing and collections",
@@ -90,6 +109,18 @@ const modules = [
       { icon: CreditCard, text: "Multiple payment methods" },
       { icon: FileText, text: "Partial payments & balance tracking" },
       { icon: BarChart3, text: "Revenue reports & analytics" },
+    ],
+  },
+  {
+    icon: UserCog,
+    title: "HR & Staff Management",
+    description: "Complete workforce management for healthcare",
+    color: "from-indigo-500 to-blue-500",
+    features: [
+      { icon: Users, text: "Employee profiles with credentials tracking" },
+      { icon: Clock, text: "Shift scheduling & duty roster management" },
+      { icon: Calendar, text: "Attendance tracking with leave management" },
+      { icon: Wallet, text: "Payroll processing with salary slips" },
     ],
   },
 ];
