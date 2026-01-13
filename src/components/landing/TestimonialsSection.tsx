@@ -36,7 +36,7 @@ const caseStudies = [
 
 export const TestimonialsSection = () => {
   return (
-    <section className="py-24 bg-muted/30">
+    <section id="testimonials" className="py-24 bg-muted/30">
       <div className="container mx-auto px-4">
         {/* Case Studies Bar */}
         <AnimatedSection animation="fade-up">
