@@ -1,4 +1,4 @@
-import { Users, Calendar, Stethoscope, Pill, Receipt, BarChart3, FlaskConical, UserCog, Store, Calculator, TrendingUp, FileSpreadsheet, Package, AlertTriangle, HeartPulse, Activity, Syringe, BedDouble, ScanLine, Bone, Waves, FileSearch, Warehouse, ClipboardPen, PackageCheck, Shield, Globe, Barcode, ShieldCheck, MessageSquare, Hotel, Bed, DoorOpen, ClipboardCheck, Timer } from 'lucide-react';
+import { Users, Calendar, Stethoscope, Pill, Receipt, BarChart3, FlaskConical, UserCog, Store, Calculator, TrendingUp, FileSpreadsheet, Package, AlertTriangle, HeartPulse, Activity, Syringe, BedDouble, ScanLine, Bone, Waves, FileSearch, Warehouse, ClipboardPen, PackageCheck, Shield, Globe, Barcode, ShieldCheck, MessageSquare, Hotel, Bed, DoorOpen, ClipboardCheck, Timer, Siren, Gauge, Ambulance, Zap } from 'lucide-react';
 
 // Mock screenshot components for landing page
 export const PatientRegistrationScreen = () => (
@@ -690,6 +690,65 @@ export const IPDScreen = () => (
             <div className="text-sm font-bold">3</div>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+);
+
+export const EmergencyScreen = () => (
+  <div className="bg-card rounded-lg border shadow-soft overflow-hidden">
+    <div className="bg-destructive/10 px-4 py-2 border-b flex items-center gap-2">
+      <Siren className="h-4 w-4 text-destructive" />
+      <span className="text-sm font-medium">Emergency Dashboard</span>
+    </div>
+    <div className="p-4 space-y-3">
+      <div className="flex gap-2">
+        <div className="flex-1 bg-destructive/10 rounded-lg p-2 text-center">
+          <div className="text-xs text-muted-foreground">Critical</div>
+          <div className="text-lg font-bold text-destructive">3</div>
+        </div>
+        <div className="flex-1 bg-warning/10 rounded-lg p-2 text-center">
+          <div className="text-xs text-muted-foreground">Urgent</div>
+          <div className="text-lg font-bold text-warning">7</div>
+        </div>
+        <div className="flex-1 bg-success/10 rounded-lg p-2 text-center">
+          <div className="text-xs text-muted-foreground">Stable</div>
+          <div className="text-lg font-bold text-success">12</div>
+        </div>
+      </div>
+      <div className="space-y-2">
+        <div className="text-xs font-medium flex items-center gap-1">
+          <Gauge className="h-3 w-3" /> Active Cases
+        </div>
+        {[
+          { id: 'ER-0045', patient: 'Unknown Male', triage: 'Red', complaint: 'Road accident - Multiple trauma', time: '5 min ago' },
+          { id: 'ER-0044', patient: 'Fatima Bibi', triage: 'Yellow', complaint: 'Chest pain, shortness of breath', time: '18 min ago' },
+        ].map((cas, i) => (
+          <div key={i} className="bg-muted/50 rounded-lg p-2 space-y-1">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className={`w-3 h-3 rounded-full ${cas.triage === 'Red' ? 'bg-destructive' : 'bg-warning'}`} />
+                <span className="text-xs font-mono text-muted-foreground">{cas.id}</span>
+              </div>
+              <span className="text-xs text-muted-foreground">{cas.time}</span>
+            </div>
+            <div>
+              <div className="text-sm font-medium">{cas.patient}</div>
+              <div className="text-xs text-muted-foreground">{cas.complaint}</div>
+            </div>
+            <div className={`h-7 rounded flex items-center justify-center text-xs ${i === 0 ? 'bg-destructive text-destructive-foreground' : 'bg-warning text-warning-foreground'}`}>
+              {i === 0 ? 'Attend Now' : 'View Details'}
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="bg-primary/10 rounded-lg p-2 flex items-center gap-2">
+        <Ambulance className="h-4 w-4 text-primary" />
+        <div className="flex-1">
+          <div className="text-xs font-medium">Incoming Ambulance</div>
+          <div className="text-xs text-muted-foreground">ETA: 3 mins • Cardiac arrest</div>
+        </div>
+        <Zap className="h-4 w-4 text-warning" />
       </div>
     </div>
   </div>

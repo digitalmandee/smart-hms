@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Users, Calendar, Stethoscope, FlaskConical, Pill, Receipt, BarChart3, Store, UserCog, Calculator, HeartPulse, ScanLine, Warehouse, Hotel } from 'lucide-react';
+import { Users, Calendar, Stethoscope, FlaskConical, Pill, Receipt, BarChart3, Store, UserCog, Calculator, HeartPulse, ScanLine, Warehouse, Hotel, Siren } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AnimatedSection } from './AnimatedSection';
 import {
@@ -17,6 +17,7 @@ import {
   RadiologyScreen,
   InventoryScreen,
   IPDScreen,
+  EmergencyScreen,
 } from './ProductScreenshots';
 
 const features = [
@@ -46,6 +47,15 @@ const features = [
     description: 'Document vitals with auto-calculated BMI, record symptoms and diagnosis using clinical templates, create e-prescriptions with drug interaction alerts, and order labs/imaging - all in one seamless workflow. Auto-generated visit summaries for patients.',
     highlights: ['Vitals & BMI', 'E-Prescription', 'Drug Alerts', 'Lab Orders', 'Clinical Templates'],
     screenshot: DoctorDashboardScreen,
+  },
+  {
+    id: 'emergency',
+    icon: Siren,
+    label: 'Emergency',
+    title: 'Rapid Emergency & Casualty Care',
+    description: 'Handle critical cases with speed and precision. Triage patients with 5-level severity scoring, track trauma cases with injury documentation, receive ambulance alerts with pre-hospital data, fast-track emergency admissions, and ensure seamless ICU/OT handoffs with complete patient status.',
+    highlights: ['Triage', 'Trauma Tracking', 'Ambulance Alerts', 'Fast Admission', 'ICU Handoff'],
+    screenshot: EmergencyScreen,
   },
   {
     id: 'ipd',
@@ -165,7 +175,7 @@ export const FeaturesTabs = () => {
             Everything You Need to Run Your Hospital
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            14 integrated modules working together seamlessly. Click to explore each feature in detail.
+            15 integrated modules working together seamlessly. Click to explore each feature in detail.
           </p>
         </AnimatedSection>
 
