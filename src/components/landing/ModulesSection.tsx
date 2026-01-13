@@ -11,7 +11,11 @@ import {
   FileText,
   Package,
   CreditCard,
-  BarChart3
+  BarChart3,
+  FlaskConical,
+  TestTube,
+  Microscope,
+  FileCheck
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -50,6 +54,18 @@ const modules = [
       { icon: FileText, text: "Symptoms, diagnosis & clinical notes" },
       { icon: Pill, text: "Quick prescription generation" },
       { icon: Calendar, text: "Follow-up scheduling" },
+    ],
+  },
+  {
+    icon: FlaskConical,
+    title: "Laboratory Management",
+    description: "Complete lab workflow from order to report",
+    color: "from-violet-500 to-purple-500",
+    features: [
+      { icon: TestTube, text: "Test ordering with common panels (CBC, LFT)" },
+      { icon: Microscope, text: "Sample collection and status tracking" },
+      { icon: FileText, text: "Template-based result entry" },
+      { icon: FileCheck, text: "Professional reports with reference ranges" },
     ],
   },
   {
