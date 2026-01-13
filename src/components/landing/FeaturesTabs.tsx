@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Users, Calendar, Stethoscope, FlaskConical, Pill, Receipt, BarChart3, Store, UserCog } from 'lucide-react';
+import { Users, Calendar, Stethoscope, FlaskConical, Pill, Receipt, BarChart3, Store, UserCog, Calculator } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AnimatedSection } from './AnimatedSection';
 import {
@@ -12,6 +12,7 @@ import {
   ReportsScreen,
   POSScreen,
   HRScreen,
+  AccountsScreen,
 } from './ProductScreenshots';
 
 const features = [
@@ -64,9 +65,9 @@ const features = [
     id: 'pos',
     icon: Store,
     label: 'POS',
-    title: 'Retail Point of Sale',
-    description: 'Handle walk-in pharmacy sales with ease. Scan products, apply discounts, accept multiple payments, and print receipts - perfect for OTC medicine sales.',
-    highlights: ['Barcode Scan', 'Quick Checkout', 'Receipt Print'],
+    title: 'POS with Inventory Tracking',
+    description: 'Complete retail solution for pharmacy walk-in sales. Fast barcode scanning, multiple payment options, automatic inventory deduction, real-time stock tracking, and detailed sales analytics.',
+    highlights: ['Barcode Scan', 'Live Inventory', 'Sales Analytics'],
     screenshot: POSScreen,
   },
   {
@@ -77,6 +78,15 @@ const features = [
     description: 'Generate invoices instantly. Accept Cash, JazzCash, EasyPaisa, or Cards. Track outstanding balances and print receipts.',
     highlights: ['Multi-Payment', 'Auto Invoice', 'Balance Tracking'],
     screenshot: BillingScreen,
+  },
+  {
+    id: 'accounts',
+    icon: Calculator,
+    label: 'Accounts',
+    title: 'Complete Financial Management',
+    description: 'Full-fledged accounting for hospitals. Manage ledgers, track receivables and payables, reconcile bank accounts, generate financial statements, and ensure tax compliance.',
+    highlights: ['General Ledger', 'Financial Reports', 'Tax Compliance'],
+    screenshot: AccountsScreen,
   },
   {
     id: 'reports',
@@ -91,9 +101,9 @@ const features = [
     id: 'hr',
     icon: UserCog,
     label: 'HR',
-    title: 'Complete Staff Management',
-    description: 'Manage your entire workforce from hiring to payroll. Track attendance, schedule shifts, process salaries, and maintain employee records - all in one place.',
-    highlights: ['Shift Scheduling', 'Payroll', 'Leave Management'],
+    title: 'Complete Workforce Management',
+    description: 'From recruitment to retirement - manage your entire healthcare workforce. Handle employee profiles, shift scheduling, attendance tracking, leave approvals, payroll processing, and performance reviews.',
+    highlights: ['Shift Scheduling', 'Payroll', 'Leave Management', 'Performance Reviews'],
     screenshot: HRScreen,
   },
 ];
