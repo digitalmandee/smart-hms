@@ -1,4 +1,4 @@
-import { Users, Calendar, Stethoscope, Pill, Receipt, BarChart3, FlaskConical, UserCog, Store, Calculator, TrendingUp, FileSpreadsheet, Package, AlertTriangle, HeartPulse, Activity, Syringe, BedDouble, ScanLine, Bone, Waves, FileSearch, Warehouse, ClipboardPen, PackageCheck, Shield, Globe, Barcode, ShieldCheck, MessageSquare } from 'lucide-react';
+import { Users, Calendar, Stethoscope, Pill, Receipt, BarChart3, FlaskConical, UserCog, Store, Calculator, TrendingUp, FileSpreadsheet, Package, AlertTriangle, HeartPulse, Activity, Syringe, BedDouble, ScanLine, Bone, Waves, FileSearch, Warehouse, ClipboardPen, PackageCheck, Shield, Globe, Barcode, ShieldCheck, MessageSquare, Hotel, Bed, DoorOpen, ClipboardCheck, Timer } from 'lucide-react';
 
 // Mock screenshot components for landing page
 export const PatientRegistrationScreen = () => (
@@ -622,6 +622,74 @@ export const InventoryScreen = () => (
           <span className="text-xs">Stock Requisitions</span>
         </div>
         <span className="text-xs bg-warning/10 text-warning px-2 py-0.5 rounded">3 pending</span>
+      </div>
+    </div>
+  </div>
+);
+
+export const IPDScreen = () => (
+  <div className="bg-card rounded-lg border shadow-soft overflow-hidden">
+    <div className="bg-primary/10 px-4 py-2 border-b flex items-center gap-2">
+      <Hotel className="h-4 w-4 text-primary" />
+      <span className="text-sm font-medium">IPD Dashboard</span>
+    </div>
+    <div className="p-4 space-y-3">
+      <div className="flex gap-2">
+        <div className="flex-1 bg-primary/10 rounded-lg p-2 text-center">
+          <div className="text-xs text-muted-foreground">Total Beds</div>
+          <div className="text-lg font-bold text-primary">48</div>
+        </div>
+        <div className="flex-1 bg-success/10 rounded-lg p-2 text-center">
+          <div className="text-xs text-muted-foreground">Occupied</div>
+          <div className="text-lg font-bold text-success">36</div>
+        </div>
+        <div className="flex-1 bg-muted rounded-lg p-2 text-center">
+          <div className="text-xs text-muted-foreground">Available</div>
+          <div className="text-lg font-bold">12</div>
+        </div>
+      </div>
+      <div className="space-y-2">
+        <div className="text-xs font-medium flex items-center gap-1">
+          <ClipboardCheck className="h-3 w-3" /> Today's Rounds
+        </div>
+        {[
+          { room: 'Room 201', patient: 'Ahmed Khan', doctor: 'Dr. Ali Ahmed', days: 3, status: 'Pending' },
+          { room: 'Room 105', patient: 'Fatima Malik', doctor: 'Dr. Sara Khan', days: 5, status: 'Completed' },
+        ].map((round, i) => (
+          <div key={i} className="flex items-center justify-between bg-muted/50 rounded p-2">
+            <div className="flex items-center gap-2">
+              <Bed className="h-4 w-4 text-muted-foreground" />
+              <div>
+                <div className="text-sm font-medium">{round.patient}</div>
+                <div className="text-xs text-muted-foreground">{round.room} • {round.doctor}</div>
+              </div>
+            </div>
+            <div className="text-right">
+              <span className={`text-xs px-2 py-0.5 rounded ${round.status === 'Completed' ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'}`}>
+                {round.status}
+              </span>
+              <div className="text-xs text-muted-foreground flex items-center gap-1 justify-end mt-0.5">
+                <Timer className="h-3 w-3" /> Day {round.days}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <div className="bg-primary/10 rounded-lg p-2 flex items-center gap-2">
+          <DoorOpen className="h-4 w-4 text-primary" />
+          <div>
+            <div className="text-xs text-muted-foreground">Admissions Today</div>
+            <div className="text-sm font-bold">4</div>
+          </div>
+        </div>
+        <div className="bg-success/10 rounded-lg p-2 flex items-center gap-2">
+          <DoorOpen className="h-4 w-4 text-success" />
+          <div>
+            <div className="text-xs text-muted-foreground">Discharges Today</div>
+            <div className="text-sm font-bold">3</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>

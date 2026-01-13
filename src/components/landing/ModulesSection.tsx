@@ -46,6 +46,15 @@ import {
   FileHeart,
   AlertCircle,
   ArrowRightLeft,
+  // IPD module icons
+  Hotel,
+  DoorOpen,
+  ClipboardCheck,
+  Bed,
+  Footprints,
+  FileSymlink,
+  Timer,
+  HeartHandshake,
   // Radiology module icons
   ScanLine,
   Bone,
@@ -124,6 +133,22 @@ const modules = [
       { icon: FlaskConical, text: "Lab and radiology orders from consultation screen" },
       { icon: AlertTriangle, text: "Real-time drug interaction and allergy alerts" },
       { icon: FileOutput, text: "Auto-generated visit summaries for patients" },
+    ],
+  },
+  {
+    icon: Hotel,
+    title: "IPD (Inpatient) Management",
+    description: "Complete inpatient workflow from admission to discharge with bed management and daily rounds",
+    color: "from-slate-600 to-slate-700",
+    features: [
+      { icon: DoorOpen, text: "Patient admission with room/bed allocation workflow" },
+      { icon: Bed, text: "Real-time bed availability and occupancy dashboard" },
+      { icon: ClipboardCheck, text: "Daily doctor rounds with notes and orders" },
+      { icon: Footprints, text: "Patient movement tracking (OT, Radiology, ICU transfer)" },
+      { icon: FileSymlink, text: "Treatment plans with care team assignments" },
+      { icon: Timer, text: "Length of stay tracking with alerts for extended stays" },
+      { icon: HeartHandshake, text: "Discharge planning with summary and follow-up" },
+      { icon: Receipt, text: "Running bill generation with room charges and services" },
     ],
   },
   {
@@ -284,7 +309,7 @@ export const ModulesSection = () => {
             <span className="text-primary"> Every Department</span>
           </h2>
           <p className="text-lg text-muted-foreground">
-            12 integrated modules with 90+ features working together seamlessly to streamline your healthcare operations.
+            13 integrated modules with 100+ features working together seamlessly to streamline your healthcare operations.
           </p>
         </div>
 
