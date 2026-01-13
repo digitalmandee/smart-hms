@@ -1,4 +1,4 @@
-import { Users, Calendar, Stethoscope, Pill, Receipt, BarChart3 } from 'lucide-react';
+import { Users, Calendar, Stethoscope, Pill, Receipt, BarChart3, FlaskConical } from 'lucide-react';
 
 // Mock screenshot components for landing page
 export const PatientRegistrationScreen = () => (
@@ -62,6 +62,49 @@ export const DoctorDashboardScreen = () => (
           </div>
           <div className="h-7 bg-primary text-primary-foreground rounded px-3 flex items-center text-xs">Start</div>
         </div>
+      </div>
+    </div>
+  </div>
+);
+
+export const LabScreen = () => (
+  <div className="bg-card rounded-lg border shadow-soft overflow-hidden">
+    <div className="bg-primary/10 px-4 py-2 border-b flex items-center gap-2">
+      <FlaskConical className="h-4 w-4 text-primary" />
+      <span className="text-sm font-medium">Laboratory Queue</span>
+    </div>
+    <div className="p-4 space-y-3">
+      <div className="flex gap-3">
+        <div className="flex-1 bg-warning/10 rounded-lg p-3 text-center">
+          <div className="text-2xl font-bold text-warning">8</div>
+          <div className="text-xs text-muted-foreground">Pending</div>
+        </div>
+        <div className="flex-1 bg-success/10 rounded-lg p-3 text-center">
+          <div className="text-2xl font-bold text-success">15</div>
+          <div className="text-xs text-muted-foreground">Completed</div>
+        </div>
+      </div>
+      <div className="space-y-2">
+        {[
+          { order: 'LO-260113-0042', patient: 'Ahmed Khan', tests: 'CBC, LFT', doctor: 'Dr. Ali Ahmed', priority: 'Urgent', action: 'Enter Results' },
+          { order: 'LO-260113-0041', patient: 'Fatima Malik', tests: 'Thyroid Panel', doctor: 'Dr. Sara Khan', priority: 'Normal', action: 'View Report' },
+        ].map((lab, i) => (
+          <div key={i} className="bg-muted/50 rounded-lg p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-mono text-muted-foreground">{lab.order}</span>
+              <span className={`text-xs px-2 py-0.5 rounded ${lab.priority === 'Urgent' ? 'bg-destructive/10 text-destructive' : 'bg-muted text-muted-foreground'}`}>
+                {lab.priority}
+              </span>
+            </div>
+            <div>
+              <div className="text-sm font-medium">{lab.patient}</div>
+              <div className="text-xs text-muted-foreground">{lab.tests} • {lab.doctor}</div>
+            </div>
+            <div className={`h-7 rounded flex items-center justify-center text-xs ${i === 0 ? 'bg-primary text-primary-foreground' : 'border'}`}>
+              {lab.action}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   </div>

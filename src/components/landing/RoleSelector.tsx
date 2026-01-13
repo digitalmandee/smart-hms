@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Stethoscope, UserCheck, Pill, Shield, Users, Receipt } from 'lucide-react';
+import { Stethoscope, UserCheck, Pill, Shield, Users, Receipt, FlaskConical } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AnimatedSection } from './AnimatedSection';
 
@@ -45,6 +45,20 @@ const roles = [
       'Auto-deduct inventory on dispensing',
     ],
     stats: { saved: '90% fewer errors', speed: '2x faster' },
+  },
+  {
+    id: 'lab_tech',
+    icon: FlaskConical,
+    title: 'Lab Technician',
+    color: 'from-violet-500 to-violet-600',
+    tasks: [
+      'View pending lab orders queue',
+      'Collect samples and update status',
+      'Enter test results using templates',
+      'Flag abnormal values automatically',
+      'Generate and print lab reports',
+    ],
+    stats: { accuracy: '99.9%', speed: '3x faster' },
   },
   {
     id: 'admin',

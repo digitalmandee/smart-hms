@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Users, Calendar, Stethoscope, Pill, Receipt, BarChart3 } from 'lucide-react';
+import { Users, Calendar, Stethoscope, FlaskConical, Pill, Receipt, BarChart3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AnimatedSection } from './AnimatedSection';
 import {
   PatientRegistrationScreen,
   AppointmentScreen,
   DoctorDashboardScreen,
+  LabScreen,
   PharmacyScreen,
   BillingScreen,
   ReportsScreen,
@@ -38,6 +39,15 @@ const features = [
     description: 'Document symptoms, vitals, diagnosis, and prescriptions in one flow. Access patient history instantly during consultations.',
     highlights: ['Vitals Tracking', 'E-Prescription', 'History Access'],
     screenshot: DoctorDashboardScreen,
+  },
+  {
+    id: 'laboratory',
+    icon: FlaskConical,
+    label: 'Laboratory',
+    title: 'Complete Lab Workflow',
+    description: 'Order tests during consultations, track samples, enter results with templates, and generate professional reports with reference ranges and abnormal value highlighting.',
+    highlights: ['Test Ordering', 'Sample Tracking', 'Result Entry'],
+    screenshot: LabScreen,
   },
   {
     id: 'pharmacy',
