@@ -54,7 +54,7 @@ export const Footer = () => {
               </div>
               <div className="flex items-center gap-3 text-sm text-muted-foreground">
                 <MapPin className="h-4 w-4" />
-                <span>12 Block B 1, Industrial Area, Sharjah, UAE</span>
+                <span>Block B1, university city, Sharjah, UAE</span>
               </div>
             </div>
           </div>
@@ -81,9 +81,7 @@ export const Footer = () => {
 
         {/* Bottom bar */}
         <div className="mt-12 pt-8 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} SmartHMS. All rights reserved.
-          </p>
+          <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} SmartHMS. All rights reserved.</p>
           <div className="flex items-center gap-6">
             <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">
               <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
