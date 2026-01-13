@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Users, Calendar, Stethoscope, FlaskConical, Pill, Receipt, BarChart3, Store, UserCog, Calculator, HeartPulse, ScanLine, Warehouse, Hotel, Siren, Scissors } from 'lucide-react';
+import { Users, Calendar, Stethoscope, FlaskConical, Pill, Receipt, BarChart3, Store, UserCog, Calculator, HeartPulse, ScanLine, Warehouse, Hotel, Siren, Scissors, Droplet } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AnimatedSection } from './AnimatedSection';
 import {
@@ -19,6 +19,7 @@ import {
   IPDScreen,
   EmergencyScreen,
   OTScreen,
+  BloodBankScreen,
 } from './ProductScreenshots';
 
 const features = [
@@ -104,6 +105,15 @@ const features = [
     screenshot: RadiologyScreen,
   },
   {
+    id: 'bloodbank',
+    icon: Droplet,
+    label: 'Blood Bank',
+    title: 'Complete Blood Bank Management',
+    description: 'Manage donors with eligibility screening and donation history. Track blood inventory by group with real-time availability. Perform cross-matching and compatibility tests, monitor transfusions with patient vitals, and document any reactions for safety reporting.',
+    highlights: ['Donor Management', 'Blood Inventory', 'Cross-Matching', 'Transfusion Tracking', 'Reaction Reporting'],
+    screenshot: BloodBankScreen,
+  },
+  {
     id: 'pharmacy',
     icon: Pill,
     label: 'Pharmacy',
@@ -185,7 +195,7 @@ export const FeaturesTabs = () => {
             Everything You Need to Run Your Hospital
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            16 integrated modules working together seamlessly. Click to explore each feature in detail.
+            17 integrated modules working together seamlessly. Click to explore each feature in detail.
           </p>
         </AnimatedSection>
 

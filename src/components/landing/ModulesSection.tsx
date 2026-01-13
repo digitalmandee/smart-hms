@@ -98,6 +98,15 @@ import {
   ClipboardPen,
   PackageCheck,
   FileBarChart,
+  // Blood Bank module icons
+  Droplet,
+  Droplets,
+  Heart,
+  RefreshCw,
+  UserCheck,
+  TestTubes,
+  FileCheck2,
+  Handshake,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -311,6 +320,22 @@ const modules = [
     ],
   },
   {
+    icon: Droplet,
+    title: "Blood Bank Management",
+    description: "Complete blood bank operations from donor management to transfusion tracking with cross-matching",
+    color: "from-rose-600 to-red-600",
+    features: [
+      { icon: UserCheck, text: "Donor registration with eligibility screening and history" },
+      { icon: Droplets, text: "Blood inventory by group with real-time availability" },
+      { icon: TestTubes, text: "Cross-matching and compatibility testing workflow" },
+      { icon: Heart, text: "Transfusion tracking with patient vitals monitoring" },
+      { icon: Package, text: "Component separation (RBC, plasma, platelets)" },
+      { icon: Bell, text: "Expiry alerts and stock level notifications" },
+      { icon: RefreshCw, text: "Blood request workflow from departments" },
+      { icon: FileCheck2, text: "Transfusion reaction documentation and reporting" },
+    ],
+  },
+  {
     icon: Warehouse,
     title: "Inventory & Procurement",
     description: "Central store and supply chain management with purchase orders and vendor tracking",
@@ -356,7 +381,7 @@ export const ModulesSection = () => {
             <span className="text-primary"> Every Department</span>
           </h2>
           <p className="text-lg text-muted-foreground">
-            15 integrated modules with 120+ features working together seamlessly to streamline your healthcare operations.
+            16 integrated modules with 130+ features working together seamlessly to streamline your healthcare operations.
           </p>
         </div>
 
