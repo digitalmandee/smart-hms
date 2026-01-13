@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Stethoscope, UserCheck, Pill, Shield, Users, Receipt, FlaskConical, UserCog, Calculator } from 'lucide-react';
+import { Stethoscope, UserCheck, Pill, Shield, Users, Receipt, FlaskConical, UserCog, Calculator, HeartPulse, ScanLine } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AnimatedSection } from './AnimatedSection';
 
@@ -17,6 +17,20 @@ const roles = [
       'Schedule follow-up appointments',
     ],
     stats: { saved: '2 hours/day', patients: '40+ patients' },
+  },
+  {
+    id: 'nurse',
+    icon: HeartPulse,
+    title: 'Nurse',
+    color: 'from-rose-500 to-rose-600',
+    tasks: [
+      'Monitor patient vitals and vital trends',
+      'Administer medications with barcode scan',
+      'Document nursing notes per shift',
+      'Manage bed allocations and transfers',
+      'Generate shift handover reports',
+    ],
+    stats: { errors: '95% fewer medication errors', time: '2x faster documentation' },
   },
   {
     id: 'receptionist',
@@ -59,6 +73,20 @@ const roles = [
       'Generate and print lab reports',
     ],
     stats: { accuracy: '99.9%', speed: '3x faster' },
+  },
+  {
+    id: 'radiologist',
+    icon: ScanLine,
+    title: 'Radiologist',
+    color: 'from-cyan-500 to-cyan-600',
+    tasks: [
+      'Review imaging worklist and priorities',
+      'View and analyze diagnostic images',
+      'Create structured reports with findings',
+      'Flag critical findings for immediate action',
+      'Share images with referring doctors',
+    ],
+    stats: { turnaround: '50% faster reports', accuracy: 'Zero lost images' },
   },
   {
     id: 'accountant',

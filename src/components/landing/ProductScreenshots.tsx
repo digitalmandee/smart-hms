@@ -1,4 +1,4 @@
-import { Users, Calendar, Stethoscope, Pill, Receipt, BarChart3, FlaskConical, UserCog, Store, Calculator, TrendingUp, FileSpreadsheet, Package, AlertTriangle } from 'lucide-react';
+import { Users, Calendar, Stethoscope, Pill, Receipt, BarChart3, FlaskConical, UserCog, Store, Calculator, TrendingUp, FileSpreadsheet, Package, AlertTriangle, HeartPulse, Activity, Syringe, BedDouble, ScanLine, Bone, Waves, FileSearch } from 'lucide-react';
 
 // Mock screenshot components for landing page
 export const PatientRegistrationScreen = () => (
@@ -411,6 +411,109 @@ export const AccountsScreen = () => (
             </div>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+);
+
+export const NursingScreen = () => (
+  <div className="bg-card rounded-lg border shadow-soft overflow-hidden">
+    <div className="bg-primary/10 px-4 py-2 border-b flex items-center gap-2">
+      <HeartPulse className="h-4 w-4 text-primary" />
+      <span className="text-sm font-medium">Nursing Station</span>
+    </div>
+    <div className="p-4 space-y-3">
+      <div className="flex gap-2">
+        <div className="flex-1 bg-primary/10 rounded-lg p-2 text-center">
+          <div className="text-xs text-muted-foreground">Ward A</div>
+          <div className="text-lg font-bold text-primary">12 beds</div>
+        </div>
+        <div className="flex-1 bg-success/10 rounded-lg p-2 text-center">
+          <div className="text-xs text-muted-foreground">Occupied</div>
+          <div className="text-lg font-bold text-success">10</div>
+        </div>
+        <div className="flex-1 bg-muted rounded-lg p-2 text-center">
+          <div className="text-xs text-muted-foreground">Empty</div>
+          <div className="text-lg font-bold">2</div>
+        </div>
+      </div>
+      <div className="space-y-2">
+        <div className="text-xs font-medium">Current Tasks - Bed 101 (Ahmed Khan)</div>
+        <div className="space-y-1.5">
+          {[
+            { task: 'Vitals check', time: '8:00 AM', done: true },
+            { task: 'Medication: Insulin', time: '10:00 AM', done: false },
+            { task: 'Wound dressing', time: '11:00 AM', done: false },
+          ].map((item, i) => (
+            <div key={i} className="flex items-center justify-between bg-muted/50 rounded p-2">
+              <div className="flex items-center gap-2">
+                <div className={`w-4 h-4 rounded flex items-center justify-center text-xs ${item.done ? 'bg-success text-success-foreground' : 'border'}`}>
+                  {item.done && '✓'}
+                </div>
+                <span className={`text-sm ${item.done ? 'line-through text-muted-foreground' : ''}`}>{item.task}</span>
+              </div>
+              <span className="text-xs text-muted-foreground">{item.time}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="bg-destructive/10 rounded-lg p-3 flex items-center gap-2">
+        <Activity className="h-4 w-4 text-destructive" />
+        <div>
+          <div className="text-xs font-medium text-destructive">Vital Alert - Bed 105</div>
+          <div className="text-xs text-muted-foreground">High BP: 160/100 mmHg</div>
+        </div>
+        <div className="ml-auto h-6 bg-destructive text-destructive-foreground rounded px-2 flex items-center text-xs">View</div>
+      </div>
+    </div>
+  </div>
+);
+
+export const RadiologyScreen = () => (
+  <div className="bg-card rounded-lg border shadow-soft overflow-hidden">
+    <div className="bg-primary/10 px-4 py-2 border-b flex items-center gap-2">
+      <ScanLine className="h-4 w-4 text-primary" />
+      <span className="text-sm font-medium">Radiology Worklist</span>
+    </div>
+    <div className="p-4 space-y-3">
+      <div className="flex gap-2">
+        <div className="flex-1 bg-warning/10 rounded-lg p-2 text-center">
+          <div className="text-xs text-muted-foreground">Pending</div>
+          <div className="text-lg font-bold text-warning">6</div>
+        </div>
+        <div className="flex-1 bg-primary/10 rounded-lg p-2 text-center">
+          <div className="text-xs text-muted-foreground">In Progress</div>
+          <div className="text-lg font-bold text-primary">2</div>
+        </div>
+        <div className="flex-1 bg-success/10 rounded-lg p-2 text-center">
+          <div className="text-xs text-muted-foreground">Done</div>
+          <div className="text-lg font-bold text-success">18</div>
+        </div>
+      </div>
+      <div className="space-y-2">
+        {[
+          { id: 'RAD-260113-0023', patient: 'Ahmed Khan', test: 'Chest X-Ray', doctor: 'Dr. Ali Ahmed', priority: 'STAT', action: 'Acquire Image', icon: Bone },
+          { id: 'RAD-260113-0022', patient: 'Fatima Malik', test: 'Abdominal Ultrasound', doctor: 'Dr. Sara Khan', priority: 'Routine', action: 'View Report', icon: Waves },
+        ].map((item, i) => (
+          <div key={i} className="bg-muted/50 rounded-lg p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <item.icon className="h-4 w-4 text-primary" />
+                <span className="text-xs font-mono text-muted-foreground">{item.id}</span>
+              </div>
+              <span className={`text-xs px-2 py-0.5 rounded ${item.priority === 'STAT' ? 'bg-destructive/10 text-destructive' : 'bg-muted text-muted-foreground'}`}>
+                {item.priority}
+              </span>
+            </div>
+            <div>
+              <div className="text-sm font-medium">{item.patient}</div>
+              <div className="text-xs text-muted-foreground">{item.test} • {item.doctor}</div>
+            </div>
+            <div className={`h-7 rounded flex items-center justify-center text-xs ${i === 0 ? 'bg-primary text-primary-foreground' : 'border'}`}>
+              {item.action}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   </div>
