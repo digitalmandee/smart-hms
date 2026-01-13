@@ -163,45 +163,6 @@ export const LoginPage = () => {
         </Button>
       </form>
 
-      {/* Demo Accounts Section */}
-      <div className="space-y-3">
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t border-border" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-background px-2 text-muted-foreground">
-              Demo Accounts
-            </span>
-          </div>
-        </div>
-        
-        <p className="text-xs text-center text-muted-foreground">
-          Click any role to auto-fill credentials (Password: {DEMO_PASSWORD})
-        </p>
-
-        <div className="grid grid-cols-3 gap-2">
-          {demoAccounts.map((account) => (
-            <button
-              key={account.email}
-              type="button"
-              onClick={() => handleDemoLogin(account.email)}
-              className={`flex flex-col items-center gap-1 p-2 rounded-lg border border-border transition-all ${account.color}`}
-              disabled={isLoading}
-            >
-              <account.icon className="h-4 w-4" />
-              <span className="text-xs font-medium">{account.role}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="text-center text-sm">
-        <span className="text-muted-foreground">Don't have an account? </span>
-        <Link to="/auth/signup" className="text-primary hover:underline font-medium">
-          Sign up
-        </Link>
-      </div>
     </div>
   );
 };
