@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Users, Calendar, Stethoscope, FlaskConical, Pill, Receipt, BarChart3, Store, UserCog, Calculator } from 'lucide-react';
+import { Users, Calendar, Stethoscope, FlaskConical, Pill, Receipt, BarChart3, Store, UserCog, Calculator, HeartPulse, ScanLine } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AnimatedSection } from './AnimatedSection';
 import {
@@ -13,6 +13,8 @@ import {
   POSScreen,
   HRScreen,
   AccountsScreen,
+  NursingScreen,
+  RadiologyScreen,
 } from './ProductScreenshots';
 
 const features = [
@@ -44,6 +46,15 @@ const features = [
     screenshot: DoctorDashboardScreen,
   },
   {
+    id: 'nursing',
+    icon: HeartPulse,
+    label: 'Nursing',
+    title: 'Complete Nursing Care',
+    description: 'Empower nurses with digital tools for patient care. Monitor vitals in real-time, administer medications with barcode verification, document care notes, and manage ward operations efficiently.',
+    highlights: ['Vitals Monitoring', 'eMAR', 'Ward Management'],
+    screenshot: NursingScreen,
+  },
+  {
     id: 'laboratory',
     icon: FlaskConical,
     label: 'Laboratory',
@@ -51,6 +62,15 @@ const features = [
     description: 'Order tests during consultations, track samples, enter results with templates, and generate professional reports with reference ranges and abnormal value highlighting.',
     highlights: ['Test Ordering', 'Sample Tracking', 'Result Entry'],
     screenshot: LabScreen,
+  },
+  {
+    id: 'radiology',
+    icon: ScanLine,
+    label: 'Radiology',
+    title: 'Diagnostic Imaging Workflow',
+    description: 'Streamline radiology operations from order to report. Manage X-ray, ultrasound, and CT scan requests, store images digitally, and enable radiologists to create structured reports with critical finding alerts.',
+    highlights: ['Imaging Orders', 'PACS Storage', 'Radiologist Reports'],
+    screenshot: RadiologyScreen,
   },
   {
     id: 'pharmacy',

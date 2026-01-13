@@ -35,7 +35,27 @@ import {
   Building2,
   PieChart,
   Target,
-  ArrowLeftRight
+  ArrowLeftRight,
+  // Nursing module icons
+  HeartPulse,
+  Activity,
+  Syringe,
+  ClipboardList,
+  BedDouble,
+  UserRound,
+  FileHeart,
+  AlertCircle,
+  ArrowRightLeft,
+  // Radiology module icons
+  ScanLine,
+  Bone,
+  Waves,
+  CircleDot,
+  HardDrive,
+  ListTodo,
+  FileSearch,
+  Share2,
+  AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -77,6 +97,22 @@ const modules = [
     ],
   },
   {
+    icon: HeartPulse,
+    title: "Nursing & Ward Management",
+    description: "Complete patient care and ward operations",
+    color: "from-rose-500 to-pink-500",
+    features: [
+      { icon: Activity, text: "Real-time BP, pulse, temperature, SpO2 tracking" },
+      { icon: Syringe, text: "eMAR with dose verification and timing alerts" },
+      { icon: ClipboardList, text: "Shift-based documentation with templates" },
+      { icon: BedDouble, text: "Bed allocation, occupancy, and transfers" },
+      { icon: UserRound, text: "Scheduled rounds with task checklists" },
+      { icon: FileHeart, text: "Individualized care plans with goals" },
+      { icon: ArrowRightLeft, text: "Shift handover with critical alerts" },
+      { icon: AlertCircle, text: "Critical value alerts and fall risk warnings" },
+    ],
+  },
+  {
     icon: FlaskConical,
     title: "Laboratory Management",
     description: "Complete lab workflow from order to report",
@@ -86,6 +122,22 @@ const modules = [
       { icon: Microscope, text: "Sample collection and status tracking" },
       { icon: FileText, text: "Template-based result entry" },
       { icon: FileCheck, text: "Professional reports with reference ranges" },
+    ],
+  },
+  {
+    icon: ScanLine,
+    title: "Radiology & Imaging",
+    description: "Complete diagnostic imaging workflow",
+    color: "from-cyan-500 to-sky-500",
+    features: [
+      { icon: Bone, text: "Digital X-ray requisition from consultations" },
+      { icon: Waves, text: "Ultrasound scheduling and reporting" },
+      { icon: CircleDot, text: "CT/MRI scans with protocol selection" },
+      { icon: HardDrive, text: "DICOM-compatible image archive (PACS)" },
+      { icon: ListTodo, text: "Technician worklist with priorities" },
+      { icon: FileSearch, text: "Structured reporting with templates" },
+      { icon: Share2, text: "Share images with referring physicians" },
+      { icon: AlertTriangle, text: "STAT alerts for urgent findings" },
     ],
   },
   {
