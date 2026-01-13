@@ -1,4 +1,4 @@
-import { Users, Calendar, Stethoscope, Pill, Receipt, BarChart3, FlaskConical } from 'lucide-react';
+import { Users, Calendar, Stethoscope, Pill, Receipt, BarChart3, FlaskConical, UserCog, Store } from 'lucide-react';
 
 // Mock screenshot components for landing page
 export const PatientRegistrationScreen = () => (
@@ -236,6 +236,103 @@ export const ReportsScreen = () => (
         <span>Sat</span>
         <span>Sun</span>
       </div>
+    </div>
+  </div>
+);
+
+export const HRScreen = () => (
+  <div className="bg-card rounded-lg border shadow-soft overflow-hidden">
+    <div className="bg-primary/10 px-4 py-2 border-b flex items-center gap-2">
+      <UserCog className="h-4 w-4 text-primary" />
+      <span className="text-sm font-medium">HR Dashboard</span>
+    </div>
+    <div className="p-4 space-y-3">
+      <div className="flex gap-3">
+        <div className="flex-1 bg-primary/10 rounded-lg p-3 text-center">
+          <div className="text-2xl font-bold text-primary">45</div>
+          <div className="text-xs text-muted-foreground">Employees</div>
+        </div>
+        <div className="flex-1 bg-success/10 rounded-lg p-3 text-center">
+          <div className="text-2xl font-bold text-success">42</div>
+          <div className="text-xs text-muted-foreground">Present</div>
+        </div>
+        <div className="flex-1 bg-warning/10 rounded-lg p-3 text-center">
+          <div className="text-2xl font-bold text-warning">3</div>
+          <div className="text-xs text-muted-foreground">On Leave</div>
+        </div>
+      </div>
+      <div className="space-y-2">
+        <div className="text-xs font-medium">Today's Roster</div>
+        {[
+          { name: 'Dr. Ali Ahmed', shift: 'Morning (9AM - 2PM)', role: 'Doctor' },
+          { name: 'Nurse Fatima', shift: 'Evening (2PM - 9PM)', role: 'Nurse' },
+          { name: 'Sara Khan', shift: 'Morning (9AM - 5PM)', role: 'Receptionist' },
+        ].map((staff, i) => (
+          <div key={i} className="flex items-center justify-between bg-muted/50 rounded p-2">
+            <div>
+              <div className="text-sm font-medium">{staff.name}</div>
+              <div className="text-xs text-muted-foreground">{staff.role}</div>
+            </div>
+            <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">{staff.shift}</span>
+          </div>
+        ))}
+      </div>
+      <div className="flex items-center justify-between bg-warning/10 rounded-lg p-2">
+        <span className="text-xs">Pending Leave Requests (3)</span>
+        <span className="text-xs bg-primary text-primary-foreground px-3 py-1 rounded">Review</span>
+      </div>
+    </div>
+  </div>
+);
+
+export const POSScreen = () => (
+  <div className="bg-card rounded-lg border shadow-soft overflow-hidden">
+    <div className="bg-primary/10 px-4 py-2 border-b flex items-center gap-2">
+      <Store className="h-4 w-4 text-primary" />
+      <span className="text-sm font-medium">Pharmacy POS</span>
+    </div>
+    <div className="p-4 space-y-3">
+      <div className="flex gap-2">
+        <div className="flex-1 h-8 bg-muted rounded px-2 flex items-center text-sm text-muted-foreground">
+          Scan barcode or search...
+        </div>
+        <div className="h-8 bg-primary text-primary-foreground rounded px-3 flex items-center text-sm">Add</div>
+      </div>
+      <div className="space-y-2">
+        {[
+          { name: 'Paracetamol 500mg', qty: 2, price: 40 },
+          { name: 'Vitamin C Tablets', qty: 1, price: 150 },
+          { name: 'Bandage Roll', qty: 3, price: 90 },
+        ].map((item, i) => (
+          <div key={i} className="flex items-center justify-between bg-muted/50 rounded p-2">
+            <div className="text-sm">{item.name}</div>
+            <div className="flex items-center gap-4">
+              <span className="text-xs text-muted-foreground">x{item.qty}</span>
+              <span className="text-sm font-medium">Rs. {item.price}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="border-t pt-2 space-y-1 text-sm">
+        <div className="flex justify-between text-muted-foreground">
+          <span>Subtotal:</span>
+          <span>Rs. 280</span>
+        </div>
+        <div className="flex justify-between text-muted-foreground">
+          <span>Tax (5%):</span>
+          <span>Rs. 14</span>
+        </div>
+        <div className="flex justify-between font-bold text-primary">
+          <span>Total:</span>
+          <span>Rs. 294</span>
+        </div>
+      </div>
+      <div className="grid grid-cols-3 gap-2">
+        <div className="h-8 bg-primary/10 border-primary border rounded flex items-center justify-center text-xs text-primary">Cash</div>
+        <div className="h-8 border rounded flex items-center justify-center text-xs">Card</div>
+        <div className="h-8 border rounded flex items-center justify-center text-xs">JazzCash</div>
+      </div>
+      <div className="h-8 bg-primary text-primary-foreground rounded flex items-center justify-center text-sm font-medium">Complete Sale</div>
     </div>
   </div>
 );
