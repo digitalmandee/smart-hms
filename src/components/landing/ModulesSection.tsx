@@ -63,6 +63,13 @@ import {
   Gauge,
   Phone,
   ArrowUpFromLine,
+  // OT module icons
+  Scissors,
+  Clipboard,
+  MonitorDot,
+  Thermometer,
+  CircleCheck,
+  AlarmClock,
   // Radiology module icons
   ScanLine,
   Bone,
@@ -157,6 +164,22 @@ const modules = [
       { icon: ArrowUpFromLine, text: "ICU/OT handoff with complete patient status" },
       { icon: Phone, text: "Family notification system for patient status updates" },
       { icon: FileText, text: "Medico-legal documentation and police case tracking" },
+    ],
+  },
+  {
+    icon: Scissors,
+    title: "Operation Theatre (OT)",
+    description: "End-to-end surgical management from scheduling to post-op recovery with anesthesia records",
+    color: "from-indigo-600 to-indigo-700",
+    features: [
+      { icon: Calendar, text: "Surgery scheduling with OT room and team allocation" },
+      { icon: Clipboard, text: "Pre-operative assessment checklists and clearances" },
+      { icon: Bed, text: "OT booking calendar with equipment availability" },
+      { icon: Thermometer, text: "Anesthesia records with vital monitoring logs" },
+      { icon: FileText, text: "Intra-operative notes and surgical documentation" },
+      { icon: MonitorDot, text: "Post-op recovery tracking with pain scores" },
+      { icon: AlarmClock, text: "Surgery duration tracking with delay alerts" },
+      { icon: CircleCheck, text: "Surgical safety checklist (WHO standards)" },
     ],
   },
   {
@@ -333,7 +356,7 @@ export const ModulesSection = () => {
             <span className="text-primary"> Every Department</span>
           </h2>
           <p className="text-lg text-muted-foreground">
-            14 integrated modules with 110+ features working together seamlessly to streamline your healthcare operations.
+            15 integrated modules with 120+ features working together seamlessly to streamline your healthcare operations.
           </p>
         </div>
 
