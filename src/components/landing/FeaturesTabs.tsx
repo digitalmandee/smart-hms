@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Users, Calendar, Stethoscope, FlaskConical, Pill, Receipt, BarChart3, Store, UserCog, Calculator, HeartPulse, ScanLine, Warehouse, Hotel, Siren } from 'lucide-react';
+import { Users, Calendar, Stethoscope, FlaskConical, Pill, Receipt, BarChart3, Store, UserCog, Calculator, HeartPulse, ScanLine, Warehouse, Hotel, Siren, Scissors } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AnimatedSection } from './AnimatedSection';
 import {
@@ -18,6 +18,7 @@ import {
   InventoryScreen,
   IPDScreen,
   EmergencyScreen,
+  OTScreen,
 } from './ProductScreenshots';
 
 const features = [
@@ -56,6 +57,15 @@ const features = [
     description: 'Handle critical cases with speed and precision. Triage patients with 5-level severity scoring, track trauma cases with injury documentation, receive ambulance alerts with pre-hospital data, fast-track emergency admissions, and ensure seamless ICU/OT handoffs with complete patient status.',
     highlights: ['Triage', 'Trauma Tracking', 'Ambulance Alerts', 'Fast Admission', 'ICU Handoff'],
     screenshot: EmergencyScreen,
+  },
+  {
+    id: 'ot',
+    icon: Scissors,
+    label: 'OT',
+    title: 'Operation Theatre Management',
+    description: 'Manage surgeries from scheduling to recovery. Schedule OT rooms with team allocation, complete pre-op assessments with clearance checklists, record anesthesia details with vital logs, document intra-operative notes, and track post-op recovery with pain scores and complications.',
+    highlights: ['Surgery Scheduling', 'Pre-Op Assessment', 'Anesthesia Records', 'Surgical Notes', 'Post-Op Recovery'],
+    screenshot: OTScreen,
   },
   {
     id: 'ipd',
@@ -175,7 +185,7 @@ export const FeaturesTabs = () => {
             Everything You Need to Run Your Hospital
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            15 integrated modules working together seamlessly. Click to explore each feature in detail.
+            16 integrated modules working together seamlessly. Click to explore each feature in detail.
           </p>
         </AnimatedSection>
 

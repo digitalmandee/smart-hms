@@ -1,4 +1,4 @@
-import { Users, Calendar, Stethoscope, Pill, Receipt, BarChart3, FlaskConical, UserCog, Store, Calculator, TrendingUp, FileSpreadsheet, Package, AlertTriangle, HeartPulse, Activity, Syringe, BedDouble, ScanLine, Bone, Waves, FileSearch, Warehouse, ClipboardPen, PackageCheck, Shield, Globe, Barcode, ShieldCheck, MessageSquare, Hotel, Bed, DoorOpen, ClipboardCheck, Timer, Siren, Gauge, Ambulance, Zap } from 'lucide-react';
+import { Users, Calendar, Stethoscope, Pill, Receipt, BarChart3, FlaskConical, UserCog, Store, Calculator, TrendingUp, FileSpreadsheet, Package, AlertTriangle, HeartPulse, Activity, Syringe, BedDouble, ScanLine, Bone, Waves, FileSearch, Warehouse, ClipboardPen, PackageCheck, Shield, Globe, Barcode, ShieldCheck, MessageSquare, Hotel, Bed, DoorOpen, ClipboardCheck, Timer, Siren, Gauge, Ambulance, Zap, Scissors, Clipboard, MonitorDot, Thermometer, CircleCheck, AlarmClock, Clock } from 'lucide-react';
 
 // Mock screenshot components for landing page
 export const PatientRegistrationScreen = () => (
@@ -749,6 +749,80 @@ export const EmergencyScreen = () => (
           <div className="text-xs text-muted-foreground">ETA: 3 mins • Cardiac arrest</div>
         </div>
         <Zap className="h-4 w-4 text-warning" />
+      </div>
+    </div>
+  </div>
+);
+
+export const OTScreen = () => (
+  <div className="bg-card rounded-lg border shadow-soft overflow-hidden">
+    <div className="bg-primary/10 px-4 py-2 border-b flex items-center gap-2">
+      <Scissors className="h-4 w-4 text-primary" />
+      <span className="text-sm font-medium">Operation Theatre</span>
+    </div>
+    <div className="p-4 space-y-3">
+      <div className="flex gap-2">
+        <div className="flex-1 bg-primary/10 rounded-lg p-2 text-center">
+          <div className="text-xs text-muted-foreground">OT Rooms</div>
+          <div className="text-lg font-bold text-primary">4</div>
+        </div>
+        <div className="flex-1 bg-warning/10 rounded-lg p-2 text-center">
+          <div className="text-xs text-muted-foreground">In Use</div>
+          <div className="text-lg font-bold text-warning">2</div>
+        </div>
+        <div className="flex-1 bg-success/10 rounded-lg p-2 text-center">
+          <div className="text-xs text-muted-foreground">Available</div>
+          <div className="text-lg font-bold text-success">2</div>
+        </div>
+      </div>
+      <div className="space-y-2">
+        <div className="text-xs font-medium flex items-center gap-1">
+          <Calendar className="h-3 w-3" /> Today's Surgeries
+        </div>
+        {[
+          { ot: 'OT-1', patient: 'Ahmed Khan', surgery: 'Appendectomy', surgeon: 'Dr. Ali Ahmed', time: '10:00 AM', status: 'In Progress', duration: '45 min' },
+          { ot: 'OT-2', patient: 'Fatima Malik', surgery: 'Cataract Surgery', surgeon: 'Dr. Sara Khan', time: '2:00 PM', status: 'Pre-Op', duration: '-' },
+        ].map((surg, i) => (
+          <div key={i} className="bg-muted/50 rounded-lg p-2 space-y-1">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-mono bg-primary/10 text-primary px-1.5 py-0.5 rounded">{surg.ot}</span>
+                <span className="text-xs text-muted-foreground">{surg.time}</span>
+              </div>
+              <span className={`text-xs px-2 py-0.5 rounded ${surg.status === 'In Progress' ? 'bg-warning/10 text-warning' : 'bg-primary/10 text-primary'}`}>
+                {surg.status}
+              </span>
+            </div>
+            <div>
+              <div className="text-sm font-medium">{surg.patient}</div>
+              <div className="text-xs text-muted-foreground">{surg.surgery} • {surg.surgeon}</div>
+            </div>
+            {surg.status === 'In Progress' && (
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <Clock className="h-3 w-3" />
+                <span>Duration: {surg.duration}</span>
+                <MonitorDot className="h-3 w-3 text-success ml-2" />
+                <span>Vitals stable</span>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <div className="bg-success/10 rounded-lg p-2 flex items-center gap-2">
+          <CircleCheck className="h-4 w-4 text-success" />
+          <div>
+            <div className="text-xs text-muted-foreground">Pre-Op Ready</div>
+            <div className="text-sm font-bold">3</div>
+          </div>
+        </div>
+        <div className="bg-primary/10 rounded-lg p-2 flex items-center gap-2">
+          <Thermometer className="h-4 w-4 text-primary" />
+          <div>
+            <div className="text-xs text-muted-foreground">Recovery</div>
+            <div className="text-sm font-bold">2</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
