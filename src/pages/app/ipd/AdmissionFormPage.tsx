@@ -353,9 +353,17 @@ export default function AdmissionFormPage() {
                       <SelectContent>
                         {availableBeds.map((bed) => (
                           <SelectItem key={bed.id} value={bed.id}>
-                            Bed {bed.bed_number} ({bed.bed_type || "Standard"})
+                            <div className="flex items-center gap-2">
+                              <span>Bed {bed.bed_number}</span>
+                              <span className="text-muted-foreground">({bed.bed_type || "Standard"})</span>
+                            </div>
                           </SelectItem>
                         ))}
+                        {availableBeds.length === 0 && selectedWard && (
+                          <SelectItem value="none" disabled>
+                            No available beds in this ward
+                          </SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                     <FormMessage />

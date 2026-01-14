@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { PageHeader } from "@/components/PageHeader";
@@ -8,6 +9,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAdmissions } from "@/hooks/useAdmissions";
 import { useDailyRounds, useIPDVitals } from "@/hooks/useDailyRounds";
 import { useNursingNotes } from "@/hooks/useNursingCare";
+import { BedTransferModal } from "@/components/ipd/BedTransferModal";
+import { BedTransferHistory } from "@/components/ipd/BedTransferHistory";
 import {
   User,
   Bed,
@@ -17,15 +20,18 @@ import {
   Pill,
   FileText,
   LogOut,
+  ArrowRightLeft,
+  History,
 } from "lucide-react";
 
 export default function AdmissionDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { data: admissions } = useAdmissions();
+  const { data: admissions, refetch: refetchAdmissions } = useAdmissions();
   const { data: rounds } = useDailyRounds(id);
   const { data: vitals } = useIPDVitals(id);
   const { data: nursingNotes } = useNursingNotes(id);
+  const [transferModalOpen, setTransferModalOpen] = useState(false);
 
   const admission = admissions?.find((a) => a.id === id);
 
@@ -57,6 +63,11 @@ export default function AdmissionDetailPage() {
     }
   };
 
+  const handleTransferSuccess = () => {
+    setTransferModalOpen(false);
+    refetchAdmissions();
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -67,12 +78,20 @@ export default function AdmissionDetailPage() {
           { label: admission.admission_number },
         ]}
         actions={
-          admission.status === "admitted" && (
-            <Button onClick={() => navigate(`/app/ipd/discharge/${id}`)}>
-              <LogOut className="h-4 w-4 mr-2" />
-              Initiate Discharge
-            </Button>
-          )
+          <div className="flex gap-2">
+            {admission.status === "admitted" && bed && (
+              <Button variant="outline" onClick={() => setTransferModalOpen(true)}>
+                <ArrowRightLeft className="h-4 w-4 mr-2" />
+                Transfer Bed
+              </Button>
+            )}
+            {admission.status === "admitted" && (
+              <Button onClick={() => navigate(`/app/ipd/discharge/${id}`)}>
+                <LogOut className="h-4 w-4 mr-2" />
+                Initiate Discharge
+              </Button>
+            )}
+          </div>
         }
       />
 
@@ -154,6 +173,10 @@ export default function AdmissionDetailPage() {
           <TabsTrigger value="rounds">Daily Rounds</TabsTrigger>
           <TabsTrigger value="vitals">Vitals</TabsTrigger>
           <TabsTrigger value="nursing">Nursing Notes</TabsTrigger>
+          <TabsTrigger value="transfers">
+            <History className="h-4 w-4 mr-1" />
+            Transfers
+          </TabsTrigger>
           <TabsTrigger value="orders">Orders</TabsTrigger>
         </TabsList>
 
@@ -375,6 +398,10 @@ export default function AdmissionDetailPage() {
           </Card>
         </TabsContent>
 
+        <TabsContent value="transfers" className="space-y-4">
+          <BedTransferHistory admissionId={id!} />
+        </TabsContent>
+
         <TabsContent value="orders" className="space-y-4">
           <Card>
             <CardHeader>
@@ -391,6 +418,22 @@ export default function AdmissionDetailPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Transfer Modal */}
+      {bed && (
+        <BedTransferModal
+          open={transferModalOpen}
+          onOpenChange={setTransferModalOpen}
+          admission={{
+            id: admission.id,
+            admission_number: admission.admission_number,
+            patient: patient,
+            ward: ward,
+            bed: bed,
+          }}
+          onSuccess={handleTransferSuccess}
+        />
+      )}
     </div>
   );
 }

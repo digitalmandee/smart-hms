@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Bed, User, Calendar, ArrowRightLeft, X } from "lucide-react";
+import { Bed, User, Calendar, ArrowRightLeft, X, Clock, AlertTriangle } from "lucide-react";
 import { BedStatusBadge } from "./BedStatusBadge";
 import { format } from "date-fns";
 
@@ -76,13 +76,46 @@ export const BedDetailCard = ({
               <Badge variant="outline">{bed.bed_type}</Badge>
             </div>
           )}
-          {bed.notes && (
-            <div className="text-sm">
-              <span className="text-muted-foreground">Notes:</span>
-              <p className="mt-1">{bed.notes}</p>
-            </div>
-          )}
         </div>
+
+        {/* Status-specific info */}
+        {bed.status === "reserved" && bed.notes && (
+          <div className="bg-warning/10 border border-warning/20 rounded-lg p-3 space-y-1">
+            <div className="flex items-center gap-2 text-sm font-medium text-warning">
+              <Clock className="h-4 w-4" />
+              Reserved
+            </div>
+            <p className="text-sm text-muted-foreground">{bed.notes}</p>
+          </div>
+        )}
+
+        {bed.status === "maintenance" && (
+          <div className="bg-orange-500/10 border border-orange-500/20 rounded-lg p-3 space-y-1">
+            <div className="flex items-center gap-2 text-sm font-medium text-orange-600">
+              <AlertTriangle className="h-4 w-4" />
+              Under Maintenance
+            </div>
+            {bed.notes && <p className="text-sm text-muted-foreground">{bed.notes}</p>}
+          </div>
+        )}
+
+        {bed.status === "housekeeping" && (
+          <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 space-y-1">
+            <div className="flex items-center gap-2 text-sm font-medium text-blue-600">
+              <Clock className="h-4 w-4" />
+              Awaiting Housekeeping
+            </div>
+            {bed.notes && <p className="text-sm text-muted-foreground">{bed.notes}</p>}
+          </div>
+        )}
+
+        {/* General notes (for available beds) */}
+        {bed.status === "available" && bed.notes && (
+          <div className="text-sm">
+            <span className="text-muted-foreground">Notes:</span>
+            <p className="mt-1">{bed.notes}</p>
+          </div>
+        )}
 
         {/* Patient Info (if occupied) */}
         {bed.current_admission && patient && (
