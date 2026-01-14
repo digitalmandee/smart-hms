@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -36,9 +36,11 @@ import {
 } from "@/hooks/useHR";
 import { useBranches } from "@/hooks/useBranches";
 import { useDoctorByEmployeeId, useCreateDoctorForEmployee } from "@/hooks/useDoctors";
+import { useNurseByEmployeeId, useCreateNurseForEmployee, NURSE_SPECIALIZATIONS } from "@/hooks/useNurses";
 import { useAuth } from "@/contexts/AuthContext";
 import { DoctorDetailsForm } from "@/components/hr/DoctorDetailsForm";
-import { Loader2, Save, ArrowLeft, Stethoscope } from "lucide-react";
+import { NurseDetailsForm } from "@/components/hr/NurseDetailsForm";
+import { Loader2, Save, ArrowLeft, Stethoscope, Heart } from "lucide-react";
 
 const employeeSchema = z.object({
   employee_number: z.string().min(1, "Employee number is required"),
@@ -77,17 +79,23 @@ const employeeSchema = z.object({
 type EmployeeFormData = z.infer<typeof employeeSchema>;
 
 // Categories that should show the clinical tab
-const CLINICAL_CATEGORIES = ["doctor", "physician", "consultant", "specialist"];
+const DOCTOR_CATEGORIES = ["doctor", "physician", "consultant", "specialist"];
+const NURSE_CATEGORIES = ["nurse", "nursing", "rn", "lpn", "head nurse", "charge nurse"];
 
 export default function EmployeeFormPage() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const { profile } = useAuth();
   const isEditing = !!id;
+  
+  // Get pre-selected category from URL params (e.g., ?category=nurse)
+  const preselectedCategory = searchParams.get("category");
 
   const { data: employee, isLoading: loadingEmployee } = useEmployee(id || "");
   const { data: doctorData, isLoading: loadingDoctor } = useDoctorByEmployeeId(id || "");
+  const { data: nurseData, isLoading: loadingNurse } = useNurseByEmployeeId(id || "");
   const { data: branches } = useBranches();
   const { data: departments } = useDepartments();
   const { data: designations } = useDesignations();
@@ -97,6 +105,7 @@ export default function EmployeeFormPage() {
   const createEmployee = useCreateEmployee();
   const updateEmployee = useUpdateEmployee();
   const createDoctorForEmployee = useCreateDoctorForEmployee();
+  const createNurseForEmployee = useCreateNurseForEmployee();
 
   const form = useForm<EmployeeFormData>({
     resolver: zodResolver(employeeSchema),
@@ -113,15 +122,38 @@ export default function EmployeeFormPage() {
 
   const watchCategoryId = form.watch("category_id");
   
-  // Check if selected category is a clinical/doctor category
+  // Check if selected category is a doctor or nurse category
   const selectedCategory = categories?.find(c => c.id === watchCategoryId);
-  const isClinicalCategory = selectedCategory 
-    ? CLINICAL_CATEGORIES.some(cc => 
+  
+  const isDoctorCategory = selectedCategory 
+    ? DOCTOR_CATEGORIES.some(cc => 
         selectedCategory.name.toLowerCase().includes(cc) ||
-        selectedCategory.code?.toLowerCase().includes(cc) ||
-        selectedCategory.requires_license
+        selectedCategory.code?.toLowerCase().includes(cc)
       )
     : false;
+    
+  const isNurseCategory = selectedCategory 
+    ? NURSE_CATEGORIES.some(cc => 
+        selectedCategory.name.toLowerCase().includes(cc) ||
+        selectedCategory.code?.toLowerCase().includes(cc)
+      )
+    : false;
+    
+  const isClinicalCategory = isDoctorCategory || isNurseCategory;
+  
+  // Pre-select nurse category when coming from nurses list
+  useEffect(() => {
+    if (preselectedCategory === "nurse" && categories && !form.getValues("category_id")) {
+      const nurseCategory = categories.find(c => 
+        NURSE_CATEGORIES.some(nc => 
+          c.name.toLowerCase().includes(nc) || c.code?.toLowerCase().includes(nc)
+        )
+      );
+      if (nurseCategory) {
+        form.setValue("category_id", nurseCategory.id);
+      }
+    }
+  }, [categories, preselectedCategory, form]);
 
   useEffect(() => {
     if (employee) {
@@ -254,7 +286,7 @@ export default function EmployeeFormPage() {
     }
   };
 
-  if (isEditing && (loadingEmployee || loadingDoctor)) {
+  if (isEditing && (loadingEmployee || loadingDoctor || loadingNurse)) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -289,10 +321,16 @@ export default function EmployeeFormPage() {
               <TabsTrigger value="contact">Contact</TabsTrigger>
               <TabsTrigger value="bank">Bank Details</TabsTrigger>
               <TabsTrigger value="emergency">Emergency</TabsTrigger>
-              {isClinicalCategory && (
+              {isDoctorCategory && (
                 <TabsTrigger value="clinical" className="flex items-center gap-1.5">
                   <Stethoscope className="h-4 w-4" />
                   Clinical
+                </TabsTrigger>
+              )}
+              {isNurseCategory && (
+                <TabsTrigger value="clinical" className="flex items-center gap-1.5">
+                  <Heart className="h-4 w-4" />
+                  Nursing
                 </TabsTrigger>
               )}
             </TabsList>
@@ -764,9 +802,15 @@ export default function EmployeeFormPage() {
               </Card>
             </TabsContent>
 
-            {isClinicalCategory && (
+            {isDoctorCategory && (
               <TabsContent value="clinical">
                 <DoctorDetailsForm form={form} />
+              </TabsContent>
+            )}
+            
+            {isNurseCategory && (
+              <TabsContent value="clinical">
+                <NurseDetailsForm form={form} />
               </TabsContent>
             )}
           </Tabs>
