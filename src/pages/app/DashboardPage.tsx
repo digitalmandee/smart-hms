@@ -1,15 +1,26 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Calendar, Stethoscope, Receipt, AlertTriangle, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Users, Calendar, Stethoscope, Receipt, AlertTriangle, RefreshCw } from "lucide-react";
 import { CollectionsWidget } from "@/components/billing/CollectionsWidget";
 import { PharmacyAlertsWidget } from "@/components/pharmacy/PharmacyAlertsWidget";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
 
 export const DashboardPage = () => {
   const { profile, roles } = useAuth();
-  const { data: stats, isLoading } = useDashboardStats();
+  const { data: stats, isLoading, isError, refetch, isFetching } = useDashboardStats();
 
+  const handleRefresh = async () => {
+    try {
+      await refetch();
+      toast.success("Dashboard refreshed");
+    } catch {
+      toast.error("Failed to refresh dashboard");
+    }
+  };
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-PK", {
       style: "currency",
@@ -63,14 +74,42 @@ export const DashboardPage = () => {
   return (
     <div className="space-y-6">
       {/* Welcome Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">
-          Welcome back, {profile?.full_name?.split(" ")[0] || "User"}!
-        </h1>
-        <p className="text-muted-foreground">
-          Here's what's happening with your clinic today.
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">
+            Welcome back, {profile?.full_name?.split(" ")[0] || "User"}!
+          </h1>
+          <p className="text-muted-foreground">
+            Here's what's happening with your clinic today.
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleRefresh}
+          disabled={isFetching}
+          className="gap-2"
+        >
+          <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
+          Refresh
+        </Button>
       </div>
+
+      {/* Error State */}
+      {isError && (
+        <Card className="border-destructive/50 bg-destructive/5">
+          <CardContent className="flex items-center gap-3 py-4">
+            <AlertTriangle className="h-5 w-5 text-destructive" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-destructive">Failed to load dashboard statistics</p>
+              <p className="text-xs text-muted-foreground">Please try refreshing the page</p>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => refetch()}>
+              Retry
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -81,16 +120,21 @@ export const DashboardPage = () => {
                 {stat.title}
               </CardTitle>
               <div className={`p-2 rounded-lg ${stat.bgColor}`}>
-                {isLoading ? (
-                  <Loader2 className={`h-4 w-4 ${stat.color} animate-spin`} />
-                ) : (
-                  <stat.icon className={`h-4 w-4 ${stat.color}`} />
-                )}
+                <stat.icon className={`h-4 w-4 ${stat.color}`} />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
-              <p className="text-xs text-muted-foreground">{stat.change}</p>
+              {isLoading ? (
+                <>
+                  <Skeleton className="h-8 w-24 mb-1" />
+                  <Skeleton className="h-3 w-16" />
+                </>
+              ) : (
+                <>
+                  <div className="text-2xl font-bold">{stat.value}</div>
+                  <p className="text-xs text-muted-foreground">{stat.change}</p>
+                </>
+              )}
             </CardContent>
           </Card>
         ))}
