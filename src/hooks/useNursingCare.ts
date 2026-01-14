@@ -74,9 +74,9 @@ export const useCreateNursingNote = () => {
         .from("nursing_notes")
         .insert({
           admission_id: noteData.admission_id,
-          note_type: noteData.note_type as "assessment" | "progress" | "medication" | "procedure" | "handover" | "admission" | "discharge",
+          note_type: noteData.note_type.toLowerCase() as "assessment" | "progress" | "procedure" | "handover" | "admission" | "discharge" | "intervention" | "incident",
           notes: noteData.content,
-          recorded_by: profile.id,
+          nurse_id: profile.id,
         })
         .select()
         .single();
@@ -335,21 +335,21 @@ export const useShiftSummary = (wardId?: string) => {
 
       // Get critical notes from today
       const today = new Date().toISOString().split("T")[0];
-      const { data: criticalNotes } = await supabase
-        .from("nursing_notes")
-        .select(`
-          id,
-          content,
-          admission_id,
-          created_at
-        `)
-        .in("admission_id", (admissions || []).map((a) => a.id))
-        .eq("is_critical", true)
-        .gte("created_at", `${today}T00:00:00`);
+      const admissionIds = (admissions || []).map((a) => a.id);
+      
+      let criticalNotes: Array<{ id: string; notes: string | null; admission_id: string; created_at: string | null }> = [];
+      if (admissionIds.length > 0) {
+        const { data } = await supabase
+          .from("nursing_notes")
+          .select("id, notes, admission_id, created_at")
+          .in("admission_id", admissionIds)
+          .gte("created_at", `${today}T00:00:00`);
+        criticalNotes = data || [];
+      }
 
       return {
         admissions: admissions || [],
-        criticalNotes: criticalNotes || [],
+        criticalNotes,
         patientCount: admissions?.length || 0,
       };
     },
