@@ -59,9 +59,11 @@ const AmbulanceAlertsPage = () => {
     <div className="space-y-6">
       <PageHeader
         title="Ambulance Alerts"
-        subtitle="Manage incoming ambulance notifications"
-        icon={Ambulance}
-        backUrl="/app/emergency"
+        description="Manage incoming ambulance notifications"
+        breadcrumbs={[
+          { label: "Emergency", href: "/app/emergency" },
+          { label: "Ambulance Alerts" },
+        ]}
         actions={
           <Button onClick={() => setShowForm(!showForm)}>
             {showForm ? (

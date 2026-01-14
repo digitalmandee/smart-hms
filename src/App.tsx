@@ -112,6 +112,16 @@ import NursingStationPage from "./pages/app/ipd/NursingStationPage";
 import DischargesPage from "./pages/app/ipd/DischargesPage";
 import DischargeFormPage from "./pages/app/ipd/DischargeFormPage";
 
+// Emergency pages
+import EmergencyDashboard from "./pages/app/emergency/EmergencyDashboard";
+import ERRegistrationPage from "./pages/app/emergency/ERRegistrationPage";
+import TriagePage from "./pages/app/emergency/TriagePage";
+import ERDetailPage from "./pages/app/emergency/ERDetailPage";
+import ERQueuePage from "./pages/app/emergency/ERQueuePage";
+import ERQueueDisplayPage from "./pages/app/emergency/ERQueueDisplayPage";
+import AmbulanceAlertsPage from "./pages/app/emergency/AmbulanceAlertsPage";
+import QuickAdmissionPage from "./pages/app/emergency/QuickAdmissionPage";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -199,6 +209,16 @@ const App = () => (
               <Route path="ipd/nursing" element={<NursingStationPage />} />
               <Route path="ipd/discharges" element={<DischargesPage />} />
               <Route path="ipd/discharge/:id" element={<DischargeFormPage />} />
+              
+              {/* Emergency routes */}
+              <Route path="emergency" element={<EmergencyDashboard />} />
+              <Route path="emergency/register" element={<ERRegistrationPage />} />
+              <Route path="emergency/triage" element={<TriagePage />} />
+              <Route path="emergency/queue" element={<ERQueuePage />} />
+              <Route path="emergency/display" element={<ERQueueDisplayPage />} />
+              <Route path="emergency/ambulance-alerts" element={<AmbulanceAlertsPage />} />
+              <Route path="emergency/:id" element={<ERDetailPage />} />
+              <Route path="emergency/:id/admit" element={<QuickAdmissionPage />} />
               
               {/* Lab routes */}
               <Route path="lab/queue" element={<LabQueuePage />} />

@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { TriageBadge } from "@/components/emergency/TriageBadge";
 import { BedPicker } from "@/components/ipd/BedPicker";
 import { useEmergencyRegistration, useQuickAdmission, TRIAGE_LEVELS } from "@/hooks/useEmergency";
-import { useWards } from "@/hooks/useBedManagement";
+import { useWards } from "@/hooks/useIPD";
 import { useDoctors } from "@/hooks/useDoctors";
 import { ArrowRight, Loader2, AlertTriangle, User, Bed, Stethoscope } from "lucide-react";
 
@@ -44,8 +44,11 @@ const QuickAdmissionPage = () => {
       <div className="space-y-6">
         <PageHeader
           title="Quick Admission"
-          icon={ArrowRight}
-          backUrl={`/app/emergency/${id}`}
+          description="Patient must be identified before admission"
+          breadcrumbs={[
+            { label: "Emergency", href: "/app/emergency" },
+            { label: "Admission" },
+          ]}
         />
         <Card className="border-destructive">
           <CardContent className="py-8 text-center">
@@ -95,9 +98,12 @@ const QuickAdmissionPage = () => {
     <div className="space-y-6">
       <PageHeader
         title="Quick Admission to IPD"
-        subtitle={`Admit ${patientName} from Emergency Department`}
-        icon={ArrowRight}
-        backUrl={`/app/emergency/${id}`}
+        description={`Admit ${patientName} from Emergency Department`}
+        breadcrumbs={[
+          { label: "Emergency", href: "/app/emergency" },
+          { label: registration.er_number, href: `/app/emergency/${id}` },
+          { label: "Admission" },
+        ]}
       />
 
       {isCritical && (
@@ -152,9 +158,11 @@ const QuickAdmissionPage = () => {
                 <div>
                   <Label>Bed *</Label>
                   <BedPicker
-                    wardId={selectedWardId}
-                    selectedBedId={selectedBedId}
-                    onSelect={setSelectedBedId}
+                    value={{ wardId: selectedWardId, bedId: selectedBedId }}
+                    onChange={(val) => {
+                      setSelectedWardId(val.wardId);
+                      setSelectedBedId(val.bedId);
+                    }}
                   />
                 </div>
               )}
