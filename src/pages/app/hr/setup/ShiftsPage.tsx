@@ -125,12 +125,13 @@ export default function ShiftsPage() {
       <PageHeader
         title="Shifts"
         description="Configure work shifts and timings"
-      >
-        <Button onClick={() => handleOpenDialog()}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Shift
-        </Button>
-      </PageHeader>
+        actions={
+          <Button onClick={() => handleOpenDialog()}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Shift
+          </Button>
+        }
+      />
 
       <div className="border rounded-lg">
         <Table>
@@ -333,7 +334,7 @@ export default function ShiftsPage() {
         title="Delete Shift"
         description="Are you sure you want to delete this shift?"
         onConfirm={handleDelete}
-        confirmText="Delete"
+        confirmLabel="Delete"
         variant="destructive"
       />
     </div>

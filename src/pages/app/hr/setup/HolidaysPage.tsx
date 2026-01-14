@@ -118,29 +118,30 @@ export default function HolidaysPage() {
       <PageHeader
         title="Holidays"
         description="Manage organization holidays and off days"
-      >
-        <div className="flex items-center gap-2">
-          <Select
-            value={selectedYear.toString()}
-            onValueChange={(v) => setSelectedYear(parseInt(v))}
-          >
-            <SelectTrigger className="w-[120px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {[currentYear - 1, currentYear, currentYear + 1].map((year) => (
-                <SelectItem key={year} value={year.toString()}>
-                  {year}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Button onClick={() => handleOpenDialog()}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Holiday
-          </Button>
-        </div>
-      </PageHeader>
+        actions={
+          <div className="flex items-center gap-2">
+            <Select
+              value={selectedYear.toString()}
+              onValueChange={(v) => setSelectedYear(parseInt(v))}
+            >
+              <SelectTrigger className="w-[120px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {[currentYear - 1, currentYear, currentYear + 1].map((year) => (
+                  <SelectItem key={year} value={year.toString()}>
+                    {year}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button onClick={() => handleOpenDialog()}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Holiday
+            </Button>
+          </div>
+        }
+      />
 
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Calendar View */}
@@ -209,15 +210,13 @@ export default function HolidaysPage() {
                     <TableCell>
                       {holiday.is_optional ? (
                         <Badge variant="secondary">Optional</Badge>
-                      ) : holiday.is_restricted ? (
-                        <Badge variant="outline">Restricted</Badge>
                       ) : (
                         <Badge>Public</Badge>
                       )}
                     </TableCell>
                     <TableCell>
-                      <Badge variant={holiday.applies_to_all ? "default" : "secondary"}>
-                        {holiday.applies_to_all ? "All Staff" : "Selected"}
+                      <Badge variant={!holiday.applies_to_categories?.length ? "default" : "secondary"}>
+                        {!holiday.applies_to_categories?.length ? "All Staff" : "Selected"}
                       </Badge>
                     </TableCell>
                     <TableCell>
@@ -328,7 +327,7 @@ export default function HolidaysPage() {
         title="Delete Holiday"
         description="Are you sure you want to delete this holiday?"
         onConfirm={handleDelete}
-        confirmText="Delete"
+        confirmLabel="Delete"
         variant="destructive"
       />
     </div>

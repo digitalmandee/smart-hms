@@ -79,6 +79,22 @@ import PaymentMethodsListPage from "./pages/app/settings/PaymentMethodsListPage"
 import PaymentMethodFormPage from "./pages/app/settings/PaymentMethodFormPage";
 import NotificationSettingsPage from "./pages/app/settings/NotificationSettingsPage";
 
+// HR pages
+import HRDashboard from "./pages/app/hr/HRDashboard";
+import EmployeesListPage from "./pages/app/hr/EmployeesListPage";
+import EmployeeFormPage from "./pages/app/hr/EmployeeFormPage";
+import EmployeeDetailPage from "./pages/app/hr/EmployeeDetailPage";
+import DepartmentsPage from "./pages/app/hr/setup/DepartmentsPage";
+import DesignationsPage from "./pages/app/hr/setup/DesignationsPage";
+import EmployeeCategoriesPage from "./pages/app/hr/setup/EmployeeCategoriesPage";
+import ShiftsPage from "./pages/app/hr/setup/ShiftsPage";
+import LeaveTypesPage from "./pages/app/hr/setup/LeaveTypesPage";
+import HolidaysPage from "./pages/app/hr/setup/HolidaysPage";
+import AttendancePage from "./pages/app/hr/attendance/AttendancePage";
+import AttendanceSheetPage from "./pages/app/hr/attendance/AttendanceSheetPage";
+import LeavesPage from "./pages/app/hr/leaves/LeavesPage";
+import PayrollPage from "./pages/app/hr/payroll/PayrollPage";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -162,6 +178,23 @@ const App = () => (
               <Route path="billing/invoices/:id/pay" element={<PaymentCollectionPage />} />
               <Route path="billing/payments" element={<PaymentHistoryPage />} />
               <Route path="billing/reports" element={<BillingReportsPage />} />
+              
+              {/* HR routes */}
+              <Route path="hr" element={<HRDashboard />} />
+              <Route path="hr/employees" element={<EmployeesListPage />} />
+              <Route path="hr/employees/new" element={<EmployeeFormPage />} />
+              <Route path="hr/employees/:id" element={<EmployeeDetailPage />} />
+              <Route path="hr/employees/:id/edit" element={<EmployeeFormPage />} />
+              <Route path="hr/attendance" element={<AttendancePage />} />
+              <Route path="hr/attendance/sheet" element={<AttendanceSheetPage />} />
+              <Route path="hr/leaves" element={<LeavesPage />} />
+              <Route path="hr/payroll" element={<PayrollPage />} />
+              <Route path="hr/setup/departments" element={<DepartmentsPage />} />
+              <Route path="hr/setup/designations" element={<DesignationsPage />} />
+              <Route path="hr/setup/categories" element={<EmployeeCategoriesPage />} />
+              <Route path="hr/setup/shifts" element={<ShiftsPage />} />
+              <Route path="hr/setup/leave-types" element={<LeaveTypesPage />} />
+              <Route path="hr/setup/holidays" element={<HolidaysPage />} />
               
               {/* Settings routes */}
               <Route path="settings/branches" element={<BranchesListPage />} />

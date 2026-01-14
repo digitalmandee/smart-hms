@@ -125,12 +125,13 @@ export default function LeaveTypesPage() {
       <PageHeader
         title="Leave Types"
         description="Configure leave categories and policies"
-      >
-        <Button onClick={() => handleOpenDialog()}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Leave Type
-        </Button>
-      </PageHeader>
+        actions={
+          <Button onClick={() => handleOpenDialog()}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Leave Type
+          </Button>
+        }
+      />
 
       <div className="border rounded-lg">
         <Table>
@@ -188,9 +189,9 @@ export default function LeaveTypesPage() {
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    {leaveType.is_carry_forward ? (
+                    {leaveType.carry_forward_limit && leaveType.carry_forward_limit > 0 ? (
                       <span className="text-sm">
-                        Up to {leaveType.max_carry_forward_days} days
+                        Up to {leaveType.carry_forward_limit} days
                       </span>
                     ) : (
                       <Badge variant="secondary">No</Badge>
@@ -373,7 +374,7 @@ export default function LeaveTypesPage() {
         title="Delete Leave Type"
         description="Are you sure you want to delete this leave type?"
         onConfirm={handleDelete}
-        confirmText="Delete"
+        confirmLabel="Delete"
         variant="destructive"
       />
     </div>

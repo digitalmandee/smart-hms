@@ -110,12 +110,13 @@ export default function EmployeeCategoriesPage() {
       <PageHeader
         title="Employee Categories"
         description="Define staff categories like Doctor, Nurse, Admin, etc."
-      >
-        <Button onClick={() => handleOpenDialog()}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Category
-        </Button>
-      </PageHeader>
+        actions={
+          <Button onClick={() => handleOpenDialog()}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Category
+          </Button>
+        }
+      />
 
       <div className="border rounded-lg">
         <Table>
@@ -305,7 +306,7 @@ export default function EmployeeCategoriesPage() {
         title="Delete Category"
         description="Are you sure you want to delete this category?"
         onConfirm={handleDelete}
-        confirmText="Delete"
+        confirmLabel="Delete"
         variant="destructive"
       />
     </div>

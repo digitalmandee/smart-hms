@@ -106,12 +106,13 @@ export default function DepartmentsPage() {
       <PageHeader
         title="Departments"
         description="Manage organization departments and hierarchy"
-      >
-        <Button onClick={() => handleOpenDialog()}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Department
-        </Button>
-      </PageHeader>
+        actions={
+          <Button onClick={() => handleOpenDialog()}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Department
+          </Button>
+        }
+      />
 
       <Card>
         <CardHeader>
@@ -273,7 +274,7 @@ export default function DepartmentsPage() {
         title="Delete Department"
         description="Are you sure you want to delete this department? This action cannot be undone."
         onConfirm={handleDelete}
-        confirmText="Delete"
+        confirmLabel="Delete"
         variant="destructive"
       />
     </div>
