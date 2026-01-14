@@ -34,68 +34,76 @@ export const useDashboardStats = () => {
 
       const orgId = profile.organization_id;
 
-      // Total patients
+      // Total patients count
       const { count: totalPatients } = await supabase
         .from("patients")
-        .select("id", { count: "exact", head: true })
+        .select("*", { count: "exact", head: true })
         .eq("organization_id", orgId);
 
       // New patients today
       const { count: newPatientsToday } = await supabase
         .from("patients")
-        .select("id", { count: "exact", head: true })
+        .select("*", { count: "exact", head: true })
         .eq("organization_id", orgId)
-        .gte("created_at", `${today}T00:00:00`)
-        .lte("created_at", `${today}T23:59:59`);
+        .gte("created_at", `${today}T00:00:00`);
 
       // Today's appointments
       const { count: todayAppointments } = await supabase
         .from("appointments")
-        .select("id", { count: "exact", head: true })
+        .select("*", { count: "exact", head: true })
         .eq("organization_id", orgId)
         .eq("appointment_date", today);
 
       // Pending appointments
-      const { count: pendingAppointments } = await supabase
+      const { data: pendingData } = await supabase
         .from("appointments")
-        .select("id", { count: "exact", head: true })
+        .select("id")
         .eq("organization_id", orgId)
         .eq("appointment_date", today)
         .in("status", ["scheduled", "checked_in"]);
+      const pendingAppointments = pendingData?.length ?? 0;
 
       // Active consultations
-      const { count: activeConsultations } = await supabase
+      const { data: activeData } = await supabase
         .from("appointments")
-        .select("id", { count: "exact", head: true })
+        .select("id")
         .eq("organization_id", orgId)
         .eq("appointment_date", today)
         .eq("status", "in_progress");
+      const activeConsultations = activeData?.length ?? 0;
 
       // Queue count
-      const { count: queueCount } = await supabase
+      const { data: queueData } = await supabase
         .from("appointments")
-        .select("id", { count: "exact", head: true })
+        .select("id")
         .eq("organization_id", orgId)
         .eq("appointment_date", today)
         .eq("status", "checked_in");
+      const queueCount = queueData?.length ?? 0;
 
-      // Today's revenue
-      const { data: payments } = await supabase
-        .from("payments")
-        .select("amount")
-        .eq("organization_id", orgId)
-        .gte("payment_date", `${today}T00:00:00`)
-        .lte("payment_date", `${today}T23:59:59`);
-
-      const todayRevenue = payments?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0;
+      // Today's revenue - get from invoices instead since payments doesn't have org_id
+      let todayRevenue = 0;
+      try {
+        const { data: invoices } = await supabase
+          .from("invoices")
+          .select("paid_amount")
+          .eq("organization_id", orgId)
+          .gte("invoice_date", today);
+        
+        if (invoices) {
+          todayRevenue = invoices.reduce((sum, inv) => sum + (inv.paid_amount || 0), 0);
+        }
+      } catch {
+        todayRevenue = 0;
+      }
 
       return {
-        totalPatients: totalPatients || 0,
-        newPatientsToday: newPatientsToday || 0,
-        todayAppointments: todayAppointments || 0,
-        pendingAppointments: pendingAppointments || 0,
-        activeConsultations: activeConsultations || 0,
-        queueCount: queueCount || 0,
+        totalPatients: totalPatients ?? 0,
+        newPatientsToday: newPatientsToday ?? 0,
+        todayAppointments: todayAppointments ?? 0,
+        pendingAppointments,
+        activeConsultations,
+        queueCount,
         todayRevenue,
       };
     },
