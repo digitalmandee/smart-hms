@@ -5,9 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
 import { useEmployee } from "@/hooks/useHR";
-import { useLeaveBalances } from "@/hooks/useLeaves";
+import { useEmployeeLeaveBalance } from "@/hooks/useLeaves";
 import { Loader2, Pencil, Phone, Mail, MapPin, Calendar, Building, Briefcase } from "lucide-react";
 import { format } from "date-fns";
 import { LeaveBalanceWidget } from "@/components/hr/LeaveBalanceWidget";
@@ -16,7 +15,7 @@ export default function EmployeeDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { data: employee, isLoading } = useEmployee(id || "");
-  const { data: leaveBalances } = useLeaveBalances(id || "");
+  const { data: leaveBalances } = useEmployeeLeaveBalance(id || "");
 
   if (isLoading) {
     return (
@@ -50,6 +49,21 @@ export default function EmployeeDetailPage() {
         return "bg-gray-500";
     }
   };
+
+  // Transform leave balances for the widget
+  const transformedBalances = leaveBalances?.map((balance) => ({
+    id: balance.id,
+    entitled_days: balance.entitled || 0,
+    used_days: balance.used || 0,
+    carried_forward: balance.carried_forward || 0,
+    leave_type: balance.leave_type ? {
+      id: balance.leave_type.id,
+      name: balance.leave_type.name,
+      code: balance.leave_type.code,
+      color: balance.leave_type.color,
+      is_paid: balance.leave_type.is_paid,
+    } : null,
+  })) || [];
 
   return (
     <div className="space-y-6">
@@ -204,7 +218,7 @@ export default function EmployeeDetailPage() {
               <InfoRow label="Department" value={employee.department?.name || "-"} />
               <InfoRow label="Designation" value={employee.designation?.name || "-"} />
               <InfoRow label="Category" value={employee.category?.name || "-"} />
-              <InfoRow label="Shift" value={employee.shift?.name || "-"} />
+              <InfoRow label="Shift" value="-" />
               <InfoRow
                 label="Join Date"
                 value={format(new Date(employee.join_date), "MMM d, yyyy")}
@@ -223,19 +237,15 @@ export default function EmployeeDetailPage() {
         </TabsContent>
 
         <TabsContent value="leaves">
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {leaveBalances && leaveBalances.length > 0 ? (
-              leaveBalances.map((balance) => (
-                <LeaveBalanceWidget key={balance.id} balance={balance} />
-              ))
-            ) : (
-              <Card className="col-span-full">
-                <CardContent className="p-6 text-center text-muted-foreground">
-                  No leave balances found for this employee
-                </CardContent>
-              </Card>
-            )}
-          </div>
+          {transformedBalances.length > 0 ? (
+            <LeaveBalanceWidget balances={transformedBalances} />
+          ) : (
+            <Card>
+              <CardContent className="p-6 text-center text-muted-foreground">
+                No leave balances found for this employee
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         <TabsContent value="documents">

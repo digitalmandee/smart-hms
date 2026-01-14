@@ -21,7 +21,6 @@ import {
 } from "@/components/ui/select";
 import { usePayrollRuns } from "@/hooks/usePayroll";
 import { Loader2, Plus, DollarSign, Users, FileText, TrendingUp } from "lucide-react";
-import { StatsCard } from "@/components/StatsCard";
 import { useNavigate } from "react-router-dom";
 
 const months = [
@@ -34,14 +33,17 @@ export default function PayrollPage() {
   const currentDate = new Date();
   const [year, setYear] = useState(currentDate.getFullYear());
 
-  const { data: payrollRuns, isLoading } = usePayrollRuns(year);
+  const { data: payrollRuns, isLoading } = usePayrollRuns();
 
   const years = Array.from({ length: 5 }, (_, i) => currentDate.getFullYear() - 2 + i);
 
+  // Filter by year
+  const filteredRuns = payrollRuns?.filter((run) => run.year === year);
+
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "processed":
-        return <Badge className="bg-green-500">Processed</Badge>;
+      case "completed":
+        return <Badge className="bg-green-500">Completed</Badge>;
       case "processing":
         return <Badge className="bg-blue-500">Processing</Badge>;
       case "draft":
@@ -53,10 +55,8 @@ export default function PayrollPage() {
     }
   };
 
-  // Calculate stats
-  const totalPayroll = payrollRuns?.reduce((sum, run) => sum + (run.total_net_salary || 0), 0) || 0;
-  const processedRuns = payrollRuns?.filter((r) => r.status === "processed").length || 0;
-  const employeesProcessed = payrollRuns?.reduce((sum, run) => sum + (run.employee_count || 0), 0) || 0;
+  // Calculate stats from filtered runs
+  const completedRuns = filteredRuns?.filter((r) => r.status === "completed").length || 0;
 
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat("en-PK", {
@@ -84,26 +84,60 @@ export default function PayrollPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatsCard
-          title="Total YTD Payroll"
-          value={formatCurrency(totalPayroll)}
-          icon={<DollarSign className="h-5 w-5" />}
-        />
-        <StatsCard
-          title="Processed Runs"
-          value={processedRuns}
-          icon={<FileText className="h-5 w-5" />}
-        />
-        <StatsCard
-          title="Employees Paid"
-          value={employeesProcessed}
-          icon={<Users className="h-5 w-5" />}
-        />
-        <StatsCard
-          title="Avg Per Run"
-          value={formatCurrency(processedRuns > 0 ? totalPayroll / processedRuns : 0)}
-          icon={<TrendingUp className="h-5 w-5" />}
-        />
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <DollarSign className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Total Runs</p>
+                <p className="text-2xl font-bold">{filteredRuns?.length || 0}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
+                <FileText className="h-5 w-5 text-green-600" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Completed</p>
+                <p className="text-2xl font-bold">{completedRuns}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                <Users className="h-5 w-5 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">This Year</p>
+                <p className="text-2xl font-bold">{year}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
+                <TrendingUp className="h-5 w-5 text-purple-600" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Pending</p>
+                <p className="text-2xl font-bold">
+                  {filteredRuns?.filter((r) => r.status === "draft" || r.status === "processing").length || 0}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Filters */}
@@ -133,39 +167,35 @@ export default function PayrollPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Period</TableHead>
-                  <TableHead>Employees</TableHead>
-                  <TableHead>Gross Salary</TableHead>
-                  <TableHead>Deductions</TableHead>
-                  <TableHead>Net Salary</TableHead>
+                  <TableHead>Run Date</TableHead>
+                  <TableHead>Pay Date</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Processed On</TableHead>
+                  <TableHead>Processed By</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8">
+                    <TableCell colSpan={6} className="text-center py-8">
                       <Loader2 className="h-6 w-6 animate-spin mx-auto" />
                     </TableCell>
                   </TableRow>
-                ) : payrollRuns && payrollRuns.length > 0 ? (
-                  payrollRuns.map((run) => (
+                ) : filteredRuns && filteredRuns.length > 0 ? (
+                  filteredRuns.map((run) => (
                     <TableRow key={run.id}>
                       <TableCell className="font-medium">
                         {months[run.month - 1]} {run.year}
                       </TableCell>
-                      <TableCell>{run.employee_count}</TableCell>
-                      <TableCell>{formatCurrency(run.total_gross_salary || 0)}</TableCell>
-                      <TableCell>{formatCurrency(run.total_deductions || 0)}</TableCell>
-                      <TableCell className="font-medium">
-                        {formatCurrency(run.total_net_salary || 0)}
+                      <TableCell>
+                        {run.run_date ? format(new Date(run.run_date), "MMM d, yyyy") : "-"}
+                      </TableCell>
+                      <TableCell>
+                        {run.pay_date ? format(new Date(run.pay_date), "MMM d, yyyy") : "-"}
                       </TableCell>
                       <TableCell>{getStatusBadge(run.status || "draft")}</TableCell>
                       <TableCell>
-                        {run.processed_at
-                          ? format(new Date(run.processed_at), "MMM d, yyyy")
-                          : "-"}
+                        {"-"}
                       </TableCell>
                       <TableCell className="text-right">
                         <Button
@@ -180,7 +210,7 @@ export default function PayrollPage() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                       No payroll runs found for {year}
                     </TableCell>
                   </TableRow>

@@ -21,10 +21,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { AttendanceStatusBadge } from "@/components/hr/AttendanceStatusBadge";
-import { useAttendanceRecords, useMarkAttendance } from "@/hooks/useAttendance";
+import { useAttendanceRecords } from "@/hooks/useAttendance";
 import { useEmployees, useDepartments } from "@/hooks/useHR";
-import { Loader2, Search, Clock, Users, UserCheck, UserX } from "lucide-react";
-import { StatsCard } from "@/components/StatsCard";
+import { Loader2, Search, Clock, Users, UserCheck, UserX, CalendarDays } from "lucide-react";
 
 export default function AttendancePage() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -34,11 +33,10 @@ export default function AttendancePage() {
   const dateStr = format(selectedDate, "yyyy-MM-dd");
   const { data: attendance, isLoading } = useAttendanceRecords({
     date: dateStr,
-    department_id: departmentFilter !== "all" ? departmentFilter : undefined,
+    departmentId: departmentFilter !== "all" ? departmentFilter : undefined,
   });
   const { data: employees } = useEmployees();
   const { data: departments } = useDepartments();
-  const markAttendance = useMarkAttendance();
 
   // Calculate stats
   const present = attendance?.filter((a) => a.status === "present").length || 0;
@@ -51,22 +49,6 @@ export default function AttendancePage() {
     const employeeName = `${record.employee?.first_name} ${record.employee?.last_name}`.toLowerCase();
     return employeeName.includes(search.toLowerCase());
   });
-
-  const handleMarkAttendance = async (
-    employeeId: string,
-    status: "present" | "absent" | "late" | "half_day"
-  ) => {
-    try {
-      await markAttendance.mutateAsync({
-        employee_id: employeeId,
-        attendance_date: dateStr,
-        status,
-        check_in: status !== "absent" ? format(new Date(), "HH:mm:ss") : undefined,
-      });
-    } catch (error) {
-      console.error("Failed to mark attendance:", error);
-    }
-  };
 
   return (
     <div className="space-y-6">
@@ -81,35 +63,71 @@ export default function AttendancePage() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <StatsCard
-          title="Total Staff"
-          value={total}
-          icon={<Users className="h-5 w-5" />}
-        />
-        <StatsCard
-          title="Present"
-          value={present}
-          icon={<UserCheck className="h-5 w-5" />}
-          className="bg-green-50 dark:bg-green-950"
-        />
-        <StatsCard
-          title="Absent"
-          value={absent}
-          icon={<UserX className="h-5 w-5" />}
-          className="bg-red-50 dark:bg-red-950"
-        />
-        <StatsCard
-          title="Late"
-          value={late}
-          icon={<Clock className="h-5 w-5" />}
-          className="bg-yellow-50 dark:bg-yellow-950"
-        />
-        <StatsCard
-          title="On Leave"
-          value={onLeave}
-          icon={<Calendar className="h-5 w-5" />}
-          className="bg-blue-50 dark:bg-blue-950"
-        />
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-muted rounded-lg">
+                <Users className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Total Staff</p>
+                <p className="text-2xl font-bold">{total}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="bg-green-50 dark:bg-green-950">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
+                <UserCheck className="h-5 w-5 text-green-600" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Present</p>
+                <p className="text-2xl font-bold">{present}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="bg-red-50 dark:bg-red-950">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-red-100 dark:bg-red-900 rounded-lg">
+                <UserX className="h-5 w-5 text-red-600" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Absent</p>
+                <p className="text-2xl font-bold">{absent}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="bg-yellow-50 dark:bg-yellow-950">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-yellow-100 dark:bg-yellow-900 rounded-lg">
+                <Clock className="h-5 w-5 text-yellow-600" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Late</p>
+                <p className="text-2xl font-bold">{late}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="bg-blue-50 dark:bg-blue-950">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                <CalendarDays className="h-5 w-5 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">On Leave</p>
+                <p className="text-2xl font-bold">{onLeave}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="grid lg:grid-cols-4 gap-6">
@@ -166,13 +184,12 @@ export default function AttendancePage() {
                     <TableHead>Check Out</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Working Hours</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {isLoading ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8">
+                      <TableCell colSpan={6} className="text-center py-8">
                         <Loader2 className="h-6 w-6 animate-spin mx-auto" />
                       </TableCell>
                     </TableRow>
@@ -206,39 +223,11 @@ export default function AttendancePage() {
                         <TableCell>
                           {record.working_hours ? `${record.working_hours.toFixed(1)} hrs` : "-"}
                         </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-1">
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-7 text-xs"
-                              onClick={() => handleMarkAttendance(record.employee_id, "present")}
-                            >
-                              P
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-7 text-xs"
-                              onClick={() => handleMarkAttendance(record.employee_id, "absent")}
-                            >
-                              A
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-7 text-xs"
-                              onClick={() => handleMarkAttendance(record.employee_id, "late")}
-                            >
-                              L
-                            </Button>
-                          </div>
-                        </TableCell>
                       </TableRow>
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                         No attendance records for this date
                       </TableCell>
                     </TableRow>
