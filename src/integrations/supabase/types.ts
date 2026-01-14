@@ -129,6 +129,206 @@ export type Database = {
           },
         ]
       }
+      attendance_corrections: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          attendance_id: string | null
+          corrected_check_in: string | null
+          corrected_check_out: string | null
+          correction_date: string
+          created_at: string | null
+          employee_id: string
+          id: string
+          original_check_in: string | null
+          original_check_out: string | null
+          reason: string
+          rejection_reason: string | null
+          requested_by: string | null
+          status: Database["public"]["Enums"]["leave_request_status"] | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          attendance_id?: string | null
+          corrected_check_in?: string | null
+          corrected_check_out?: string | null
+          correction_date: string
+          created_at?: string | null
+          employee_id: string
+          id?: string
+          original_check_in?: string | null
+          original_check_out?: string | null
+          reason: string
+          rejection_reason?: string | null
+          requested_by?: string | null
+          status?: Database["public"]["Enums"]["leave_request_status"] | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          attendance_id?: string | null
+          corrected_check_in?: string | null
+          corrected_check_out?: string | null
+          correction_date?: string
+          created_at?: string | null
+          employee_id?: string
+          id?: string
+          original_check_in?: string | null
+          original_check_out?: string | null
+          reason?: string
+          rejection_reason?: string | null
+          requested_by?: string | null
+          status?: Database["public"]["Enums"]["leave_request_status"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_corrections_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_corrections_attendance_id_fkey"
+            columns: ["attendance_id"]
+            isOneToOne: false
+            referencedRelation: "attendance_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_corrections_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_corrections_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      attendance_records: {
+        Row: {
+          adjusted_at: string | null
+          adjusted_by: string | null
+          adjustment_reason: string | null
+          attendance_date: string
+          branch_id: string
+          check_in: string | null
+          check_in_location: string | null
+          check_in_source: string | null
+          check_out: string | null
+          check_out_location: string | null
+          check_out_source: string | null
+          created_at: string | null
+          device_id: string | null
+          early_leave_minutes: number | null
+          employee_id: string
+          id: string
+          is_half_day: boolean | null
+          late_minutes: number | null
+          organization_id: string
+          overtime_hours: number | null
+          remarks: string | null
+          status: Database["public"]["Enums"]["attendance_status"] | null
+          updated_at: string | null
+          working_hours: number | null
+        }
+        Insert: {
+          adjusted_at?: string | null
+          adjusted_by?: string | null
+          adjustment_reason?: string | null
+          attendance_date: string
+          branch_id: string
+          check_in?: string | null
+          check_in_location?: string | null
+          check_in_source?: string | null
+          check_out?: string | null
+          check_out_location?: string | null
+          check_out_source?: string | null
+          created_at?: string | null
+          device_id?: string | null
+          early_leave_minutes?: number | null
+          employee_id: string
+          id?: string
+          is_half_day?: boolean | null
+          late_minutes?: number | null
+          organization_id: string
+          overtime_hours?: number | null
+          remarks?: string | null
+          status?: Database["public"]["Enums"]["attendance_status"] | null
+          updated_at?: string | null
+          working_hours?: number | null
+        }
+        Update: {
+          adjusted_at?: string | null
+          adjusted_by?: string | null
+          adjustment_reason?: string | null
+          attendance_date?: string
+          branch_id?: string
+          check_in?: string | null
+          check_in_location?: string | null
+          check_in_source?: string | null
+          check_out?: string | null
+          check_out_location?: string | null
+          check_out_source?: string | null
+          created_at?: string | null
+          device_id?: string | null
+          early_leave_minutes?: number | null
+          employee_id?: string
+          id?: string
+          is_half_day?: boolean | null
+          late_minutes?: number | null
+          organization_id?: string
+          overtime_hours?: number | null
+          remarks?: string | null
+          status?: Database["public"]["Enums"]["attendance_status"] | null
+          updated_at?: string | null
+          working_hours?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_records_adjusted_by_fkey"
+            columns: ["adjusted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_records_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_records_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "biometric_devices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_records_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_records_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_logs: {
         Row: {
           action: string
@@ -182,6 +382,66 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      biometric_devices: {
+        Row: {
+          branch_id: string
+          created_at: string | null
+          device_name: string
+          device_serial: string | null
+          device_type: string | null
+          id: string
+          ip_address: string | null
+          is_active: boolean | null
+          last_sync_at: string | null
+          location: string | null
+          organization_id: string
+          port: number | null
+        }
+        Insert: {
+          branch_id: string
+          created_at?: string | null
+          device_name: string
+          device_serial?: string | null
+          device_type?: string | null
+          id?: string
+          ip_address?: string | null
+          is_active?: boolean | null
+          last_sync_at?: string | null
+          location?: string | null
+          organization_id: string
+          port?: number | null
+        }
+        Update: {
+          branch_id?: string
+          created_at?: string | null
+          device_name?: string
+          device_serial?: string | null
+          device_type?: string | null
+          id?: string
+          ip_address?: string | null
+          is_active?: boolean | null
+          last_sync_at?: string | null
+          location?: string | null
+          organization_id?: string
+          port?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "biometric_devices_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "biometric_devices_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -439,6 +699,130 @@ export type Database = {
           },
         ]
       }
+      departments: {
+        Row: {
+          code: string
+          cost_center_code: string | null
+          created_at: string | null
+          description: string | null
+          head_employee_id: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          organization_id: string
+          parent_department_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          code: string
+          cost_center_code?: string | null
+          created_at?: string | null
+          description?: string | null
+          head_employee_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          organization_id: string
+          parent_department_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string
+          cost_center_code?: string | null
+          created_at?: string | null
+          description?: string | null
+          head_employee_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          organization_id?: string
+          parent_department_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "departments_head_employee_id_fkey"
+            columns: ["head_employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "departments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "departments_parent_department_id_fkey"
+            columns: ["parent_department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      designations: {
+        Row: {
+          code: string
+          created_at: string | null
+          department_id: string | null
+          id: string
+          is_active: boolean | null
+          job_description: string | null
+          level: number | null
+          max_salary: number | null
+          min_salary: number | null
+          name: string
+          organization_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          department_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          job_description?: string | null
+          level?: number | null
+          max_salary?: number | null
+          min_salary?: number | null
+          name: string
+          organization_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          department_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          job_description?: string | null
+          level?: number | null
+          max_salary?: number | null
+          min_salary?: number | null
+          name?: string
+          organization_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "designations_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "designations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       doctor_schedules: {
         Row: {
           created_at: string
@@ -543,6 +927,748 @@ export type Database = {
             columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_categories: {
+        Row: {
+          code: string
+          color: string | null
+          created_at: string | null
+          default_working_hours: number | null
+          id: string
+          is_active: boolean | null
+          name: string
+          organization_id: string
+          overtime_eligible: boolean | null
+          requires_license: boolean | null
+        }
+        Insert: {
+          code: string
+          color?: string | null
+          created_at?: string | null
+          default_working_hours?: number | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          organization_id: string
+          overtime_eligible?: boolean | null
+          requires_license?: boolean | null
+        }
+        Update: {
+          code?: string
+          color?: string | null
+          created_at?: string | null
+          default_working_hours?: number | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          organization_id?: string
+          overtime_eligible?: boolean | null
+          requires_license?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_categories_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_dependents: {
+        Row: {
+          created_at: string | null
+          date_of_birth: string | null
+          employee_id: string
+          id: string
+          is_emergency_contact: boolean | null
+          name: string
+          national_id: string | null
+          phone: string | null
+          relationship: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          date_of_birth?: string | null
+          employee_id: string
+          id?: string
+          is_emergency_contact?: boolean | null
+          name: string
+          national_id?: string | null
+          phone?: string | null
+          relationship?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          date_of_birth?: string | null
+          employee_id?: string
+          id?: string
+          is_emergency_contact?: boolean | null
+          name?: string
+          national_id?: string | null
+          phone?: string | null
+          relationship?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_dependents_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_documents: {
+        Row: {
+          created_at: string | null
+          document_category:
+            | Database["public"]["Enums"]["document_category"]
+            | null
+          document_name: string
+          document_number: string | null
+          document_type: string
+          employee_id: string
+          expiry_date: string | null
+          file_url: string
+          id: string
+          issue_date: string | null
+          notes: string | null
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          document_category?:
+            | Database["public"]["Enums"]["document_category"]
+            | null
+          document_name: string
+          document_number?: string | null
+          document_type: string
+          employee_id: string
+          expiry_date?: string | null
+          file_url: string
+          id?: string
+          issue_date?: string | null
+          notes?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          document_category?:
+            | Database["public"]["Enums"]["document_category"]
+            | null
+          document_name?: string
+          document_number?: string | null
+          document_type?: string
+          employee_id?: string
+          expiry_date?: string | null
+          file_url?: string
+          id?: string
+          issue_date?: string | null
+          notes?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_documents_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_documents_verified_by_fkey"
+            columns: ["verified_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_licenses: {
+        Row: {
+          created_at: string | null
+          document_url: string | null
+          employee_id: string
+          expiry_date: string | null
+          id: string
+          is_verified: boolean | null
+          issue_date: string | null
+          issuing_authority: string | null
+          license_number: string
+          license_type: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          document_url?: string | null
+          employee_id: string
+          expiry_date?: string | null
+          id?: string
+          is_verified?: boolean | null
+          issue_date?: string | null
+          issuing_authority?: string | null
+          license_number: string
+          license_type: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          document_url?: string | null
+          employee_id?: string
+          expiry_date?: string | null
+          id?: string
+          is_verified?: boolean | null
+          issue_date?: string | null
+          issuing_authority?: string | null
+          license_number?: string
+          license_type?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_licenses_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_licenses_verified_by_fkey"
+            columns: ["verified_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_loans: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string | null
+          employee_id: string
+          id: string
+          installment_amount: number
+          interest_rate: number | null
+          loan_amount: number
+          loan_type: string
+          notes: string | null
+          organization_id: string
+          paid_installments: number | null
+          remaining_amount: number | null
+          start_month: number | null
+          start_year: number | null
+          status: Database["public"]["Enums"]["loan_status"] | null
+          total_installments: number
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string | null
+          employee_id: string
+          id?: string
+          installment_amount: number
+          interest_rate?: number | null
+          loan_amount: number
+          loan_type: string
+          notes?: string | null
+          organization_id: string
+          paid_installments?: number | null
+          remaining_amount?: number | null
+          start_month?: number | null
+          start_year?: number | null
+          status?: Database["public"]["Enums"]["loan_status"] | null
+          total_installments: number
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string | null
+          employee_id?: string
+          id?: string
+          installment_amount?: number
+          interest_rate?: number | null
+          loan_amount?: number
+          loan_type?: string
+          notes?: string | null
+          organization_id?: string
+          paid_installments?: number | null
+          remaining_amount?: number | null
+          start_month?: number | null
+          start_year?: number | null
+          status?: Database["public"]["Enums"]["loan_status"] | null
+          total_installments?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_loans_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_loans_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_loans_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_qualifications: {
+        Row: {
+          certificate_url: string | null
+          completion_year: number | null
+          created_at: string | null
+          degree_name: string
+          employee_id: string
+          field_of_study: string | null
+          grade: string | null
+          id: string
+          institution: string | null
+          is_highest_qualification: boolean | null
+          start_year: number | null
+        }
+        Insert: {
+          certificate_url?: string | null
+          completion_year?: number | null
+          created_at?: string | null
+          degree_name: string
+          employee_id: string
+          field_of_study?: string | null
+          grade?: string | null
+          id?: string
+          institution?: string | null
+          is_highest_qualification?: boolean | null
+          start_year?: number | null
+        }
+        Update: {
+          certificate_url?: string | null
+          completion_year?: number | null
+          created_at?: string | null
+          degree_name?: string
+          employee_id?: string
+          field_of_study?: string | null
+          grade?: string | null
+          id?: string
+          institution?: string | null
+          is_highest_qualification?: boolean | null
+          start_year?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_qualifications_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_salaries: {
+        Row: {
+          basic_salary: number
+          component_overrides: Json | null
+          created_at: string | null
+          created_by: string | null
+          effective_from: string
+          effective_to: string | null
+          employee_id: string
+          id: string
+          is_current: boolean | null
+          salary_structure_id: string | null
+        }
+        Insert: {
+          basic_salary: number
+          component_overrides?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          effective_from: string
+          effective_to?: string | null
+          employee_id: string
+          id?: string
+          is_current?: boolean | null
+          salary_structure_id?: string | null
+        }
+        Update: {
+          basic_salary?: number
+          component_overrides?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          effective_from?: string
+          effective_to?: string | null
+          employee_id?: string
+          id?: string
+          is_current?: boolean | null
+          salary_structure_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_salaries_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_salaries_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_salaries_salary_structure_id_fkey"
+            columns: ["salary_structure_id"]
+            isOneToOne: false
+            referencedRelation: "salary_structures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_work_history: {
+        Row: {
+          company_name: string
+          created_at: string | null
+          designation: string | null
+          duties: string | null
+          employee_id: string
+          end_date: string | null
+          id: string
+          last_salary: number | null
+          leaving_reason: string | null
+          reference_contact: string | null
+          start_date: string | null
+        }
+        Insert: {
+          company_name: string
+          created_at?: string | null
+          designation?: string | null
+          duties?: string | null
+          employee_id: string
+          end_date?: string | null
+          id?: string
+          last_salary?: number | null
+          leaving_reason?: string | null
+          reference_contact?: string | null
+          start_date?: string | null
+        }
+        Update: {
+          company_name?: string
+          created_at?: string | null
+          designation?: string | null
+          duties?: string | null
+          employee_id?: string
+          end_date?: string | null
+          id?: string
+          last_salary?: number | null
+          leaving_reason?: string | null
+          reference_contact?: string | null
+          start_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_work_history_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employees: {
+        Row: {
+          account_number: string | null
+          account_title: string | null
+          bank_branch: string | null
+          bank_name: string | null
+          blood_group: string | null
+          branch_id: string | null
+          category_id: string | null
+          city: string | null
+          confirmation_date: string | null
+          created_at: string | null
+          created_by: string | null
+          current_address: string | null
+          date_of_birth: string | null
+          department_id: string | null
+          designation_id: string | null
+          driving_license: string | null
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          emergency_contact_relation: string | null
+          employee_number: string
+          employee_type: Database["public"]["Enums"]["employee_type"] | null
+          employment_status:
+            | Database["public"]["Enums"]["employment_status"]
+            | null
+          father_husband_name: string | null
+          first_name: string
+          gender: Database["public"]["Enums"]["gender"] | null
+          iban: string | null
+          id: string
+          join_date: string
+          last_name: string | null
+          last_working_date: string | null
+          marital_status: Database["public"]["Enums"]["marital_status"] | null
+          national_id: string | null
+          nationality: string | null
+          notes: string | null
+          organization_id: string
+          passport_expiry: string | null
+          passport_number: string | null
+          permanent_address: string | null
+          personal_email: string | null
+          personal_phone: string | null
+          postal_code: string | null
+          probation_period_months: number | null
+          profile_id: string | null
+          profile_photo_url: string | null
+          religion: string | null
+          reporting_manager_id: string | null
+          resignation_date: string | null
+          shift_id: string | null
+          updated_at: string | null
+          work_email: string | null
+          work_location: string | null
+          work_phone: string | null
+          working_hours: number | null
+        }
+        Insert: {
+          account_number?: string | null
+          account_title?: string | null
+          bank_branch?: string | null
+          bank_name?: string | null
+          blood_group?: string | null
+          branch_id?: string | null
+          category_id?: string | null
+          city?: string | null
+          confirmation_date?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          current_address?: string | null
+          date_of_birth?: string | null
+          department_id?: string | null
+          designation_id?: string | null
+          driving_license?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_contact_relation?: string | null
+          employee_number: string
+          employee_type?: Database["public"]["Enums"]["employee_type"] | null
+          employment_status?:
+            | Database["public"]["Enums"]["employment_status"]
+            | null
+          father_husband_name?: string | null
+          first_name: string
+          gender?: Database["public"]["Enums"]["gender"] | null
+          iban?: string | null
+          id?: string
+          join_date: string
+          last_name?: string | null
+          last_working_date?: string | null
+          marital_status?: Database["public"]["Enums"]["marital_status"] | null
+          national_id?: string | null
+          nationality?: string | null
+          notes?: string | null
+          organization_id: string
+          passport_expiry?: string | null
+          passport_number?: string | null
+          permanent_address?: string | null
+          personal_email?: string | null
+          personal_phone?: string | null
+          postal_code?: string | null
+          probation_period_months?: number | null
+          profile_id?: string | null
+          profile_photo_url?: string | null
+          religion?: string | null
+          reporting_manager_id?: string | null
+          resignation_date?: string | null
+          shift_id?: string | null
+          updated_at?: string | null
+          work_email?: string | null
+          work_location?: string | null
+          work_phone?: string | null
+          working_hours?: number | null
+        }
+        Update: {
+          account_number?: string | null
+          account_title?: string | null
+          bank_branch?: string | null
+          bank_name?: string | null
+          blood_group?: string | null
+          branch_id?: string | null
+          category_id?: string | null
+          city?: string | null
+          confirmation_date?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          current_address?: string | null
+          date_of_birth?: string | null
+          department_id?: string | null
+          designation_id?: string | null
+          driving_license?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_contact_relation?: string | null
+          employee_number?: string
+          employee_type?: Database["public"]["Enums"]["employee_type"] | null
+          employment_status?:
+            | Database["public"]["Enums"]["employment_status"]
+            | null
+          father_husband_name?: string | null
+          first_name?: string
+          gender?: Database["public"]["Enums"]["gender"] | null
+          iban?: string | null
+          id?: string
+          join_date?: string
+          last_name?: string | null
+          last_working_date?: string | null
+          marital_status?: Database["public"]["Enums"]["marital_status"] | null
+          national_id?: string | null
+          nationality?: string | null
+          notes?: string | null
+          organization_id?: string
+          passport_expiry?: string | null
+          passport_number?: string | null
+          permanent_address?: string | null
+          personal_email?: string | null
+          personal_phone?: string | null
+          postal_code?: string | null
+          probation_period_months?: number | null
+          profile_id?: string | null
+          profile_photo_url?: string | null
+          religion?: string | null
+          reporting_manager_id?: string | null
+          resignation_date?: string | null
+          shift_id?: string | null
+          updated_at?: string | null
+          work_email?: string | null
+          work_location?: string | null
+          work_phone?: string | null
+          working_hours?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employees_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employees_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "employee_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employees_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employees_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employees_designation_id_fkey"
+            columns: ["designation_id"]
+            isOneToOne: false
+            referencedRelation: "designations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employees_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employees_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employees_reporting_manager_id_fkey"
+            columns: ["reporting_manager_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employees_shift_id_fkey"
+            columns: ["shift_id"]
+            isOneToOne: false
+            referencedRelation: "shifts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      holidays: {
+        Row: {
+          applies_to_categories: string[] | null
+          created_at: string | null
+          description: string | null
+          holiday_date: string
+          id: string
+          is_optional: boolean | null
+          name: string
+          organization_id: string
+        }
+        Insert: {
+          applies_to_categories?: string[] | null
+          created_at?: string | null
+          description?: string | null
+          holiday_date: string
+          id?: string
+          is_optional?: boolean | null
+          name: string
+          organization_id: string
+        }
+        Update: {
+          applies_to_categories?: string[] | null
+          created_at?: string | null
+          description?: string | null
+          holiday_date?: string
+          id?: string
+          is_optional?: boolean | null
+          name?: string
+          organization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "holidays_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -875,6 +2001,381 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leave_balances: {
+        Row: {
+          adjustment: number | null
+          carried_forward: number | null
+          created_at: string | null
+          employee_id: string
+          entitled: number | null
+          id: string
+          leave_type_id: string
+          pending: number | null
+          updated_at: string | null
+          used: number | null
+          year: number
+        }
+        Insert: {
+          adjustment?: number | null
+          carried_forward?: number | null
+          created_at?: string | null
+          employee_id: string
+          entitled?: number | null
+          id?: string
+          leave_type_id: string
+          pending?: number | null
+          updated_at?: string | null
+          used?: number | null
+          year: number
+        }
+        Update: {
+          adjustment?: number | null
+          carried_forward?: number | null
+          created_at?: string | null
+          employee_id?: string
+          entitled?: number | null
+          id?: string
+          leave_type_id?: string
+          pending?: number | null
+          updated_at?: string | null
+          used?: number | null
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leave_balances_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_balances_leave_type_id_fkey"
+            columns: ["leave_type_id"]
+            isOneToOne: false
+            referencedRelation: "leave_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leave_encashments: {
+        Row: {
+          amount_per_day: number
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string | null
+          days_encashed: number
+          employee_id: string
+          id: string
+          leave_type_id: string
+          processed_in_payroll_id: string | null
+          status: Database["public"]["Enums"]["leave_request_status"] | null
+          total_amount: number
+          year: number
+        }
+        Insert: {
+          amount_per_day: number
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string | null
+          days_encashed: number
+          employee_id: string
+          id?: string
+          leave_type_id: string
+          processed_in_payroll_id?: string | null
+          status?: Database["public"]["Enums"]["leave_request_status"] | null
+          total_amount: number
+          year: number
+        }
+        Update: {
+          amount_per_day?: number
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string | null
+          days_encashed?: number
+          employee_id?: string
+          id?: string
+          leave_type_id?: string
+          processed_in_payroll_id?: string | null
+          status?: Database["public"]["Enums"]["leave_request_status"] | null
+          total_amount?: number
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leave_encashments_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_encashments_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_encashments_leave_type_id_fkey"
+            columns: ["leave_type_id"]
+            isOneToOne: false
+            referencedRelation: "leave_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leave_requests: {
+        Row: {
+          applied_at: string | null
+          approver_1_action:
+            | Database["public"]["Enums"]["leave_request_status"]
+            | null
+          approver_1_at: string | null
+          approver_1_id: string | null
+          approver_1_remarks: string | null
+          approver_2_action:
+            | Database["public"]["Enums"]["leave_request_status"]
+            | null
+          approver_2_at: string | null
+          approver_2_id: string | null
+          approver_2_remarks: string | null
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          contact_address: string | null
+          contact_phone: string | null
+          created_at: string | null
+          document_url: string | null
+          employee_id: string
+          end_date: string
+          half_day_type: string | null
+          id: string
+          is_half_day: boolean | null
+          leave_type_id: string
+          organization_id: string
+          reason: string | null
+          start_date: string
+          status: Database["public"]["Enums"]["leave_request_status"] | null
+          total_days: number
+        }
+        Insert: {
+          applied_at?: string | null
+          approver_1_action?:
+            | Database["public"]["Enums"]["leave_request_status"]
+            | null
+          approver_1_at?: string | null
+          approver_1_id?: string | null
+          approver_1_remarks?: string | null
+          approver_2_action?:
+            | Database["public"]["Enums"]["leave_request_status"]
+            | null
+          approver_2_at?: string | null
+          approver_2_id?: string | null
+          approver_2_remarks?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          contact_address?: string | null
+          contact_phone?: string | null
+          created_at?: string | null
+          document_url?: string | null
+          employee_id: string
+          end_date: string
+          half_day_type?: string | null
+          id?: string
+          is_half_day?: boolean | null
+          leave_type_id: string
+          organization_id: string
+          reason?: string | null
+          start_date: string
+          status?: Database["public"]["Enums"]["leave_request_status"] | null
+          total_days: number
+        }
+        Update: {
+          applied_at?: string | null
+          approver_1_action?:
+            | Database["public"]["Enums"]["leave_request_status"]
+            | null
+          approver_1_at?: string | null
+          approver_1_id?: string | null
+          approver_1_remarks?: string | null
+          approver_2_action?:
+            | Database["public"]["Enums"]["leave_request_status"]
+            | null
+          approver_2_at?: string | null
+          approver_2_id?: string | null
+          approver_2_remarks?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          contact_address?: string | null
+          contact_phone?: string | null
+          created_at?: string | null
+          document_url?: string | null
+          employee_id?: string
+          end_date?: string
+          half_day_type?: string | null
+          id?: string
+          is_half_day?: boolean | null
+          leave_type_id?: string
+          organization_id?: string
+          reason?: string | null
+          start_date?: string
+          status?: Database["public"]["Enums"]["leave_request_status"] | null
+          total_days?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leave_requests_approver_1_id_fkey"
+            columns: ["approver_1_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_requests_approver_2_id_fkey"
+            columns: ["approver_2_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_requests_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_requests_leave_type_id_fkey"
+            columns: ["leave_type_id"]
+            isOneToOne: false
+            referencedRelation: "leave_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_requests_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leave_types: {
+        Row: {
+          annual_quota: number | null
+          applicable_categories: string[] | null
+          applicable_genders: string[] | null
+          carry_forward_expiry_months: number | null
+          carry_forward_limit: number | null
+          code: string
+          color: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          is_encashable: boolean | null
+          is_paid: boolean | null
+          max_consecutive_days: number | null
+          min_days_notice: number | null
+          name: string
+          organization_id: string
+          requires_approval: boolean | null
+          requires_document: boolean | null
+        }
+        Insert: {
+          annual_quota?: number | null
+          applicable_categories?: string[] | null
+          applicable_genders?: string[] | null
+          carry_forward_expiry_months?: number | null
+          carry_forward_limit?: number | null
+          code: string
+          color?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_encashable?: boolean | null
+          is_paid?: boolean | null
+          max_consecutive_days?: number | null
+          min_days_notice?: number | null
+          name: string
+          organization_id: string
+          requires_approval?: boolean | null
+          requires_document?: boolean | null
+        }
+        Update: {
+          annual_quota?: number | null
+          applicable_categories?: string[] | null
+          applicable_genders?: string[] | null
+          carry_forward_expiry_months?: number | null
+          carry_forward_limit?: number | null
+          code?: string
+          color?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_encashable?: boolean | null
+          is_paid?: boolean | null
+          max_consecutive_days?: number | null
+          min_days_notice?: number | null
+          name?: string
+          organization_id?: string
+          requires_approval?: boolean | null
+          requires_document?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leave_types_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      loan_deductions: {
+        Row: {
+          amount: number
+          created_at: string | null
+          id: string
+          loan_id: string
+          month: number | null
+          payroll_entry_id: string | null
+          year: number | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          id?: string
+          loan_id: string
+          month?: number | null
+          payroll_entry_id?: string | null
+          year?: number | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          id?: string
+          loan_id?: string
+          month?: number | null
+          payroll_entry_id?: string | null
+          year?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loan_deductions_loan_id_fkey"
+            columns: ["loan_id"]
+            isOneToOne: false
+            referencedRelation: "employee_loans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loan_deductions_payroll_entry_id_fkey"
+            columns: ["payroll_entry_id"]
+            isOneToOne: false
+            referencedRelation: "payroll_entries"
             referencedColumns: ["id"]
           },
         ]
@@ -1622,6 +3123,194 @@ export type Database = {
           },
         ]
       }
+      payroll_entries: {
+        Row: {
+          absent_days: number | null
+          account_number: string | null
+          advance_deduction: number | null
+          bank_name: string | null
+          basic_salary: number | null
+          created_at: string | null
+          deductions: Json | null
+          earnings: Json | null
+          employee_id: string
+          gross_salary: number | null
+          half_days: number | null
+          id: string
+          is_paid: boolean | null
+          late_days: number | null
+          leave_days: number | null
+          loan_deduction: number | null
+          net_salary: number | null
+          overtime_hours: number | null
+          payment_date: string | null
+          payment_reference: string | null
+          payroll_run_id: string
+          present_days: number | null
+          tax_amount: number | null
+          total_deductions: number | null
+          total_working_days: number | null
+        }
+        Insert: {
+          absent_days?: number | null
+          account_number?: string | null
+          advance_deduction?: number | null
+          bank_name?: string | null
+          basic_salary?: number | null
+          created_at?: string | null
+          deductions?: Json | null
+          earnings?: Json | null
+          employee_id: string
+          gross_salary?: number | null
+          half_days?: number | null
+          id?: string
+          is_paid?: boolean | null
+          late_days?: number | null
+          leave_days?: number | null
+          loan_deduction?: number | null
+          net_salary?: number | null
+          overtime_hours?: number | null
+          payment_date?: string | null
+          payment_reference?: string | null
+          payroll_run_id: string
+          present_days?: number | null
+          tax_amount?: number | null
+          total_deductions?: number | null
+          total_working_days?: number | null
+        }
+        Update: {
+          absent_days?: number | null
+          account_number?: string | null
+          advance_deduction?: number | null
+          bank_name?: string | null
+          basic_salary?: number | null
+          created_at?: string | null
+          deductions?: Json | null
+          earnings?: Json | null
+          employee_id?: string
+          gross_salary?: number | null
+          half_days?: number | null
+          id?: string
+          is_paid?: boolean | null
+          late_days?: number | null
+          leave_days?: number | null
+          loan_deduction?: number | null
+          net_salary?: number | null
+          overtime_hours?: number | null
+          payment_date?: string | null
+          payment_reference?: string | null
+          payroll_run_id?: string
+          present_days?: number | null
+          tax_amount?: number | null
+          total_deductions?: number | null
+          total_working_days?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payroll_entries_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_entries_payroll_run_id_fkey"
+            columns: ["payroll_run_id"]
+            isOneToOne: false
+            referencedRelation: "payroll_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payroll_runs: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          branch_id: string | null
+          created_at: string | null
+          id: string
+          month: number
+          notes: string | null
+          organization_id: string
+          pay_date: string | null
+          processed_by: string | null
+          run_date: string
+          status: Database["public"]["Enums"]["payroll_run_status"] | null
+          total_deductions: number | null
+          total_employees: number | null
+          total_gross: number | null
+          total_net: number | null
+          year: number
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          branch_id?: string | null
+          created_at?: string | null
+          id?: string
+          month: number
+          notes?: string | null
+          organization_id: string
+          pay_date?: string | null
+          processed_by?: string | null
+          run_date: string
+          status?: Database["public"]["Enums"]["payroll_run_status"] | null
+          total_deductions?: number | null
+          total_employees?: number | null
+          total_gross?: number | null
+          total_net?: number | null
+          year: number
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          branch_id?: string | null
+          created_at?: string | null
+          id?: string
+          month?: number
+          notes?: string | null
+          organization_id?: string
+          pay_date?: string | null
+          processed_by?: string | null
+          run_date?: string
+          status?: Database["public"]["Enums"]["payroll_run_status"] | null
+          total_deductions?: number | null
+          total_employees?: number | null
+          total_gross?: number | null
+          total_net?: number | null
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payroll_runs_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_runs_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_runs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_runs_processed_by_fkey"
+            columns: ["processed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       permissions: {
         Row: {
           code: string
@@ -1870,6 +3559,109 @@ export type Database = {
           },
         ]
       }
+      salary_components: {
+        Row: {
+          affects_overtime: boolean | null
+          calculation_type: string | null
+          code: string
+          component_type: Database["public"]["Enums"]["salary_component_type"]
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          is_statutory: boolean | null
+          is_taxable: boolean | null
+          name: string
+          organization_id: string
+          percentage_of: string | null
+          percentage_value: number | null
+          sort_order: number | null
+        }
+        Insert: {
+          affects_overtime?: boolean | null
+          calculation_type?: string | null
+          code: string
+          component_type: Database["public"]["Enums"]["salary_component_type"]
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_statutory?: boolean | null
+          is_taxable?: boolean | null
+          name: string
+          organization_id: string
+          percentage_of?: string | null
+          percentage_value?: number | null
+          sort_order?: number | null
+        }
+        Update: {
+          affects_overtime?: boolean | null
+          calculation_type?: string | null
+          code?: string
+          component_type?: Database["public"]["Enums"]["salary_component_type"]
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_statutory?: boolean | null
+          is_taxable?: boolean | null
+          name?: string
+          organization_id?: string
+          percentage_of?: string | null
+          percentage_value?: number | null
+          sort_order?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "salary_components_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      salary_structures: {
+        Row: {
+          base_salary_max: number | null
+          base_salary_min: number | null
+          components: Json | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          organization_id: string
+        }
+        Insert: {
+          base_salary_max?: number | null
+          base_salary_min?: number | null
+          components?: Json | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          organization_id: string
+        }
+        Update: {
+          base_salary_max?: number | null
+          base_salary_min?: number | null
+          components?: Json | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          organization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "salary_structures_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       service_types: {
         Row: {
           category: Database["public"]["Enums"]["service_category"] | null
@@ -1901,6 +3693,107 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "service_types_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shift_assignments: {
+        Row: {
+          created_at: string | null
+          effective_from: string
+          effective_to: string | null
+          employee_id: string
+          id: string
+          is_current: boolean | null
+          shift_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          effective_from: string
+          effective_to?: string | null
+          employee_id: string
+          id?: string
+          is_current?: boolean | null
+          shift_id: string
+        }
+        Update: {
+          created_at?: string | null
+          effective_from?: string
+          effective_to?: string | null
+          employee_id?: string
+          id?: string
+          is_current?: boolean | null
+          shift_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shift_assignments_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_assignments_shift_id_fkey"
+            columns: ["shift_id"]
+            isOneToOne: false
+            referencedRelation: "shifts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shifts: {
+        Row: {
+          break_duration_minutes: number | null
+          code: string
+          created_at: string | null
+          end_time: string
+          grace_period_minutes: number | null
+          half_day_hours: number | null
+          id: string
+          is_active: boolean | null
+          is_night_shift: boolean | null
+          name: string
+          organization_id: string
+          shift_type: Database["public"]["Enums"]["shift_type"] | null
+          start_time: string
+        }
+        Insert: {
+          break_duration_minutes?: number | null
+          code: string
+          created_at?: string | null
+          end_time: string
+          grace_period_minutes?: number | null
+          half_day_hours?: number | null
+          id?: string
+          is_active?: boolean | null
+          is_night_shift?: boolean | null
+          name: string
+          organization_id: string
+          shift_type?: Database["public"]["Enums"]["shift_type"] | null
+          start_time: string
+        }
+        Update: {
+          break_duration_minutes?: number | null
+          code?: string
+          created_at?: string | null
+          end_time?: string
+          grace_period_minutes?: number | null
+          half_day_hours?: number | null
+          id?: string
+          is_active?: boolean | null
+          is_night_shift?: boolean | null
+          name?: string
+          organization_id?: string
+          shift_type?: Database["public"]["Enums"]["shift_type"] | null
+          start_time?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shifts_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -1941,6 +3834,50 @@ export type Database = {
         }
         Relationships: []
       }
+      tax_slabs: {
+        Row: {
+          created_at: string | null
+          fiscal_year: string
+          fixed_tax: number | null
+          id: string
+          is_active: boolean | null
+          max_income: number | null
+          min_income: number
+          organization_id: string | null
+          tax_percentage: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          fiscal_year: string
+          fixed_tax?: number | null
+          id?: string
+          is_active?: boolean | null
+          max_income?: number | null
+          min_income: number
+          organization_id?: string | null
+          tax_percentage?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          fiscal_year?: string
+          fixed_tax?: number | null
+          id?: string
+          is_active?: boolean | null
+          max_income?: number | null
+          min_income?: number
+          organization_id?: string | null
+          tax_percentage?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tax_slabs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -1961,6 +3898,38 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      weekly_offs: {
+        Row: {
+          created_at: string | null
+          day_of_week: number
+          effective_from: string
+          employee_id: string
+          id: string
+        }
+        Insert: {
+          created_at?: string | null
+          day_of_week: number
+          effective_from: string
+          employee_id: string
+          id?: string
+        }
+        Update: {
+          created_at?: string | null
+          day_of_week?: number
+          effective_from?: string
+          employee_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "weekly_offs_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
@@ -1990,6 +3959,10 @@ export type Database = {
         | "pharmacist"
         | "lab_technician"
         | "accountant"
+        | "hr_manager"
+        | "hr_officer"
+        | "store_manager"
+        | "finance_manager"
       appointment_status:
         | "scheduled"
         | "checked_in"
@@ -1998,6 +3971,35 @@ export type Database = {
         | "cancelled"
         | "no_show"
       appointment_type: "walk_in" | "scheduled" | "follow_up" | "emergency"
+      attendance_status:
+        | "present"
+        | "absent"
+        | "half_day"
+        | "late"
+        | "on_leave"
+        | "holiday"
+        | "weekend"
+        | "work_from_home"
+      document_category:
+        | "identity"
+        | "education"
+        | "employment"
+        | "medical"
+        | "legal"
+        | "other"
+      employee_type:
+        | "permanent"
+        | "contractual"
+        | "part_time"
+        | "intern"
+        | "consultant"
+      employment_status:
+        | "active"
+        | "resigned"
+        | "terminated"
+        | "retired"
+        | "on_leave"
+        | "absconding"
       field_type:
         | "text"
         | "number"
@@ -2023,6 +4025,8 @@ export type Database = {
         | "processing"
         | "completed"
         | "cancelled"
+      leave_request_status: "pending" | "approved" | "rejected" | "cancelled"
+      loan_status: "active" | "completed" | "cancelled" | "defaulted"
       marital_status: "single" | "married" | "divorced" | "widowed" | "other"
       medical_history_type:
         | "allergy"
@@ -2042,11 +4046,13 @@ export type Database = {
         | "gel"
         | "ointment"
       notification_channel: "sms" | "email" | "whatsapp"
+      payroll_run_status: "draft" | "processing" | "completed" | "cancelled"
       prescription_status:
         | "created"
         | "dispensed"
         | "partially_dispensed"
         | "cancelled"
+      salary_component_type: "earning" | "deduction"
       service_category:
         | "consultation"
         | "procedure"
@@ -2055,6 +4061,13 @@ export type Database = {
         | "room"
         | "other"
       setting_type: "string" | "number" | "boolean" | "json"
+      shift_type:
+        | "morning"
+        | "evening"
+        | "night"
+        | "rotational"
+        | "flexible"
+        | "general"
       subscription_plan: "basic" | "professional" | "enterprise"
       subscription_status: "trial" | "active" | "suspended" | "cancelled"
     }
@@ -2194,6 +4207,10 @@ export const Constants = {
         "pharmacist",
         "lab_technician",
         "accountant",
+        "hr_manager",
+        "hr_officer",
+        "store_manager",
+        "finance_manager",
       ],
       appointment_status: [
         "scheduled",
@@ -2204,6 +4221,39 @@ export const Constants = {
         "no_show",
       ],
       appointment_type: ["walk_in", "scheduled", "follow_up", "emergency"],
+      attendance_status: [
+        "present",
+        "absent",
+        "half_day",
+        "late",
+        "on_leave",
+        "holiday",
+        "weekend",
+        "work_from_home",
+      ],
+      document_category: [
+        "identity",
+        "education",
+        "employment",
+        "medical",
+        "legal",
+        "other",
+      ],
+      employee_type: [
+        "permanent",
+        "contractual",
+        "part_time",
+        "intern",
+        "consultant",
+      ],
+      employment_status: [
+        "active",
+        "resigned",
+        "terminated",
+        "retired",
+        "on_leave",
+        "absconding",
+      ],
       field_type: [
         "text",
         "number",
@@ -2232,6 +4282,8 @@ export const Constants = {
         "completed",
         "cancelled",
       ],
+      leave_request_status: ["pending", "approved", "rejected", "cancelled"],
+      loan_status: ["active", "completed", "cancelled", "defaulted"],
       marital_status: ["single", "married", "divorced", "widowed", "other"],
       medical_history_type: [
         "allergy",
@@ -2253,12 +4305,14 @@ export const Constants = {
         "ointment",
       ],
       notification_channel: ["sms", "email", "whatsapp"],
+      payroll_run_status: ["draft", "processing", "completed", "cancelled"],
       prescription_status: [
         "created",
         "dispensed",
         "partially_dispensed",
         "cancelled",
       ],
+      salary_component_type: ["earning", "deduction"],
       service_category: [
         "consultation",
         "procedure",
@@ -2268,6 +4322,14 @@ export const Constants = {
         "other",
       ],
       setting_type: ["string", "number", "boolean", "json"],
+      shift_type: [
+        "morning",
+        "evening",
+        "night",
+        "rotational",
+        "flexible",
+        "general",
+      ],
       subscription_plan: ["basic", "professional", "enterprise"],
       subscription_status: ["trial", "active", "suspended", "cancelled"],
     },
