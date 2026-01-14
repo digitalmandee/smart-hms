@@ -3650,6 +3650,86 @@ export type Database = {
           },
         ]
       }
+      nurses: {
+        Row: {
+          assigned_ward_id: string | null
+          branch_id: string | null
+          created_at: string | null
+          employee_id: string | null
+          id: string
+          is_available: boolean | null
+          is_charge_nurse: boolean | null
+          license_expiry: string | null
+          license_number: string | null
+          organization_id: string
+          profile_id: string | null
+          qualification: string | null
+          specialization: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_ward_id?: string | null
+          branch_id?: string | null
+          created_at?: string | null
+          employee_id?: string | null
+          id?: string
+          is_available?: boolean | null
+          is_charge_nurse?: boolean | null
+          license_expiry?: string | null
+          license_number?: string | null
+          organization_id: string
+          profile_id?: string | null
+          qualification?: string | null
+          specialization?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_ward_id?: string | null
+          branch_id?: string | null
+          created_at?: string | null
+          employee_id?: string | null
+          id?: string
+          is_available?: boolean | null
+          is_charge_nurse?: boolean | null
+          license_expiry?: string | null
+          license_number?: string | null
+          organization_id?: string
+          profile_id?: string | null
+          qualification?: string | null
+          specialization?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nurses_assigned_ward_id_fkey"
+            columns: ["assigned_ward_id"]
+            isOneToOne: false
+            referencedRelation: "wards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nurses_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nurses_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: true
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nurses_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       nursing_care_plans: {
         Row: {
           admission_id: string

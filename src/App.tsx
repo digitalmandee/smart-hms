@@ -95,6 +95,7 @@ import AttendanceSheetPage from "./pages/app/hr/attendance/AttendanceSheetPage";
 import LeavesPage from "./pages/app/hr/leaves/LeavesPage";
 import PayrollPage from "./pages/app/hr/payroll/PayrollPage";
 import DoctorsListPage from "./pages/app/hr/DoctorsListPage";
+import NursesListPage from "./pages/app/hr/NursesListPage";
 
 const queryClient = new QueryClient();
 
@@ -191,6 +192,7 @@ const App = () => (
               <Route path="hr/leaves" element={<LeavesPage />} />
               <Route path="hr/payroll" element={<PayrollPage />} />
               <Route path="hr/doctors" element={<DoctorsListPage />} />
+              <Route path="hr/nurses" element={<NursesListPage />} />
               <Route path="hr/setup/departments" element={<DepartmentsPage />} />
               <Route path="hr/setup/designations" element={<DesignationsPage />} />
               <Route path="hr/setup/categories" element={<EmployeeCategoriesPage />} />
