@@ -1,41 +1,52 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Calendar, Stethoscope, Receipt, TrendingUp, Activity, Clock, AlertTriangle } from "lucide-react";
+import { Users, Calendar, Stethoscope, Receipt, AlertTriangle, Loader2 } from "lucide-react";
 import { CollectionsWidget } from "@/components/billing/CollectionsWidget";
 import { PharmacyAlertsWidget } from "@/components/pharmacy/PharmacyAlertsWidget";
+import { useDashboardStats } from "@/hooks/useDashboardStats";
+import { Link } from "react-router-dom";
 
 export const DashboardPage = () => {
   const { profile, roles } = useAuth();
+  const { data: stats, isLoading } = useDashboardStats();
 
-  const stats = [
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("en-PK", {
+      style: "currency",
+      currency: "PKR",
+      minimumFractionDigits: 0,
+    }).format(amount);
+  };
+
+  const statsConfig = [
     {
       title: "Total Patients",
-      value: "0",
-      change: "+0 today",
+      value: isLoading ? "-" : stats?.totalPatients.toLocaleString() || "0",
+      change: isLoading ? "" : `+${stats?.newPatientsToday || 0} today`,
       icon: Users,
       color: "text-primary",
       bgColor: "bg-primary/10",
     },
     {
       title: "Today's Appointments",
-      value: "0",
-      change: "0 pending",
+      value: isLoading ? "-" : stats?.todayAppointments.toLocaleString() || "0",
+      change: isLoading ? "" : `${stats?.pendingAppointments || 0} pending`,
       icon: Calendar,
       color: "text-info",
       bgColor: "bg-info/10",
     },
     {
       title: "Active Consultations",
-      value: "0",
-      change: "0 in queue",
+      value: isLoading ? "-" : stats?.activeConsultations.toLocaleString() || "0",
+      change: isLoading ? "" : `${stats?.queueCount || 0} in queue`,
       icon: Stethoscope,
       color: "text-success",
       bgColor: "bg-success/10",
     },
     {
       title: "Today's Revenue",
-      value: "PKR 0",
-      change: "+0% from yesterday",
+      value: isLoading ? "-" : formatCurrency(stats?.todayRevenue || 0),
+      change: isLoading ? "" : "Live updates",
       icon: Receipt,
       color: "text-accent",
       bgColor: "bg-accent/10",
@@ -44,9 +55,9 @@ export const DashboardPage = () => {
 
   const quickActions = [
     { label: "New Patient", icon: Users, href: "/app/patients/new" },
-    { label: "Schedule Appointment", icon: Calendar, href: "/app/appointments/schedule" },
-    { label: "Today's Queue", icon: Clock, href: "/app/appointments/queue" },
-    { label: "Create Invoice", icon: Receipt, href: "/app/billing/new" },
+    { label: "Schedule Appointment", icon: Calendar, href: "/app/appointments/new" },
+    { label: "Today's Queue", icon: Stethoscope, href: "/app/appointments/queue" },
+    { label: "Create Invoice", icon: Receipt, href: "/app/billing/invoices/new" },
   ];
 
   return (
@@ -63,14 +74,18 @@ export const DashboardPage = () => {
 
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => (
+        {statsConfig.map((stat) => (
           <Card key={stat.title} className="shadow-soft">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 {stat.title}
               </CardTitle>
               <div className={`p-2 rounded-lg ${stat.bgColor}`}>
-                <stat.icon className={`h-4 w-4 ${stat.color}`} />
+                {isLoading ? (
+                  <Loader2 className={`h-4 w-4 ${stat.color} animate-spin`} />
+                ) : (
+                  <stat.icon className={`h-4 w-4 ${stat.color}`} />
+                )}
               </div>
             </CardHeader>
             <CardContent>
@@ -92,16 +107,16 @@ export const DashboardPage = () => {
           <CardContent>
             <div className="grid grid-cols-2 gap-3">
               {quickActions.map((action) => (
-                <a
+                <Link
                   key={action.label}
-                  href={action.href}
+                  to={action.href}
                   className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors"
                 >
                   <div className="p-2 rounded-md bg-primary/10">
                     <action.icon className="h-4 w-4 text-primary" />
                   </div>
                   <span className="text-sm font-medium">{action.label}</span>
-                </a>
+                </Link>
               ))}
             </div>
           </CardContent>
@@ -115,7 +130,7 @@ export const DashboardPage = () => {
       <div className="grid gap-6 lg:grid-cols-2">
         <PharmacyAlertsWidget />
 
-      {/* Alerts */}
+        {/* Alerts */}
         <Card className="shadow-soft">
           <CardHeader>
             <CardTitle className="text-lg">Alerts & Notifications</CardTitle>
@@ -138,6 +153,7 @@ export const DashboardPage = () => {
           </CardContent>
         </Card>
       </div>
+      
       <Card className="shadow-soft">
         <CardHeader>
           <CardTitle className="text-lg">Your Access</CardTitle>

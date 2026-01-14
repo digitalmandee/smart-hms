@@ -121,6 +121,7 @@ import ERQueuePage from "./pages/app/emergency/ERQueuePage";
 import ERQueueDisplayPage from "./pages/app/emergency/ERQueueDisplayPage";
 import AmbulanceAlertsPage from "./pages/app/emergency/AmbulanceAlertsPage";
 import QuickAdmissionPage from "./pages/app/emergency/QuickAdmissionPage";
+import ERDischargeFormPage from "./pages/app/emergency/ERDischargeFormPage";
 
 const queryClient = new QueryClient();
 
@@ -219,6 +220,7 @@ const App = () => (
               <Route path="emergency/ambulance-alerts" element={<AmbulanceAlertsPage />} />
               <Route path="emergency/:id" element={<ERDetailPage />} />
               <Route path="emergency/:id/admit" element={<QuickAdmissionPage />} />
+              <Route path="emergency/:id/discharge" element={<ERDischargeFormPage />} />
               
               {/* Lab routes */}
               <Route path="lab/queue" element={<LabQueuePage />} />
