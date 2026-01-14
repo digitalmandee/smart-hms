@@ -209,6 +209,95 @@ export type Database = {
           },
         ]
       }
+      ambulance_alerts: {
+        Row: {
+          ambulance_id: string | null
+          arrival_time: string | null
+          branch_id: string
+          caller_name: string | null
+          caller_phone: string | null
+          condition_summary: string | null
+          created_at: string
+          created_by: string | null
+          eta_minutes: number | null
+          id: string
+          linked_er_id: string | null
+          organization_id: string
+          patient_count: number | null
+          prehospital_care: string | null
+          priority: number | null
+          status: Database["public"]["Enums"]["ambulance_status"]
+          updated_at: string
+        }
+        Insert: {
+          ambulance_id?: string | null
+          arrival_time?: string | null
+          branch_id: string
+          caller_name?: string | null
+          caller_phone?: string | null
+          condition_summary?: string | null
+          created_at?: string
+          created_by?: string | null
+          eta_minutes?: number | null
+          id?: string
+          linked_er_id?: string | null
+          organization_id: string
+          patient_count?: number | null
+          prehospital_care?: string | null
+          priority?: number | null
+          status?: Database["public"]["Enums"]["ambulance_status"]
+          updated_at?: string
+        }
+        Update: {
+          ambulance_id?: string | null
+          arrival_time?: string | null
+          branch_id?: string
+          caller_name?: string | null
+          caller_phone?: string | null
+          condition_summary?: string | null
+          created_at?: string
+          created_by?: string | null
+          eta_minutes?: number | null
+          id?: string
+          linked_er_id?: string | null
+          organization_id?: string
+          patient_count?: number | null
+          prehospital_care?: string | null
+          priority?: number | null
+          status?: Database["public"]["Enums"]["ambulance_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ambulance_alerts_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ambulance_alerts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ambulance_alerts_linked_er_id_fkey"
+            columns: ["linked_er_id"]
+            isOneToOne: false
+            referencedRelation: "emergency_registrations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ambulance_alerts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       appointments: {
         Row: {
           appointment_date: string
@@ -1550,6 +1639,155 @@ export type Database = {
           },
         ]
       }
+      emergency_registrations: {
+        Row: {
+          admission_id: string | null
+          arrival_mode: Database["public"]["Enums"]["arrival_mode"]
+          arrival_time: string
+          assigned_doctor_id: string | null
+          assigned_zone: string | null
+          branch_id: string
+          brought_by_name: string | null
+          brought_by_phone: string | null
+          brought_by_relation: string | null
+          chief_complaint: string | null
+          created_at: string
+          created_by: string | null
+          disposition_notes: string | null
+          disposition_time: string | null
+          er_number: string
+          fir_number: string | null
+          id: string
+          is_mlc: boolean | null
+          is_trauma: boolean | null
+          mechanism_of_injury: string | null
+          organization_id: string
+          patient_id: string | null
+          police_station: string | null
+          status: Database["public"]["Enums"]["er_status"]
+          triage_level: Database["public"]["Enums"]["triage_level"] | null
+          triage_time: string | null
+          triaged_by: string | null
+          unknown_patient_details: Json | null
+          updated_at: string
+          vitals: Json | null
+        }
+        Insert: {
+          admission_id?: string | null
+          arrival_mode?: Database["public"]["Enums"]["arrival_mode"]
+          arrival_time?: string
+          assigned_doctor_id?: string | null
+          assigned_zone?: string | null
+          branch_id: string
+          brought_by_name?: string | null
+          brought_by_phone?: string | null
+          brought_by_relation?: string | null
+          chief_complaint?: string | null
+          created_at?: string
+          created_by?: string | null
+          disposition_notes?: string | null
+          disposition_time?: string | null
+          er_number: string
+          fir_number?: string | null
+          id?: string
+          is_mlc?: boolean | null
+          is_trauma?: boolean | null
+          mechanism_of_injury?: string | null
+          organization_id: string
+          patient_id?: string | null
+          police_station?: string | null
+          status?: Database["public"]["Enums"]["er_status"]
+          triage_level?: Database["public"]["Enums"]["triage_level"] | null
+          triage_time?: string | null
+          triaged_by?: string | null
+          unknown_patient_details?: Json | null
+          updated_at?: string
+          vitals?: Json | null
+        }
+        Update: {
+          admission_id?: string | null
+          arrival_mode?: Database["public"]["Enums"]["arrival_mode"]
+          arrival_time?: string
+          assigned_doctor_id?: string | null
+          assigned_zone?: string | null
+          branch_id?: string
+          brought_by_name?: string | null
+          brought_by_phone?: string | null
+          brought_by_relation?: string | null
+          chief_complaint?: string | null
+          created_at?: string
+          created_by?: string | null
+          disposition_notes?: string | null
+          disposition_time?: string | null
+          er_number?: string
+          fir_number?: string | null
+          id?: string
+          is_mlc?: boolean | null
+          is_trauma?: boolean | null
+          mechanism_of_injury?: string | null
+          organization_id?: string
+          patient_id?: string | null
+          police_station?: string | null
+          status?: Database["public"]["Enums"]["er_status"]
+          triage_level?: Database["public"]["Enums"]["triage_level"] | null
+          triage_time?: string | null
+          triaged_by?: string | null
+          unknown_patient_details?: Json | null
+          updated_at?: string
+          vitals?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emergency_registrations_admission_id_fkey"
+            columns: ["admission_id"]
+            isOneToOne: false
+            referencedRelation: "admissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "emergency_registrations_assigned_doctor_id_fkey"
+            columns: ["assigned_doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "emergency_registrations_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "emergency_registrations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "emergency_registrations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "emergency_registrations_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "emergency_registrations_triaged_by_fkey"
+            columns: ["triaged_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employee_categories: {
         Row: {
           code: string
@@ -2247,6 +2485,54 @@ export type Database = {
             columns: ["shift_id"]
             isOneToOne: false
             referencedRelation: "shifts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      er_treatments: {
+        Row: {
+          created_at: string
+          description: string
+          er_id: string
+          id: string
+          notes: string | null
+          performed_by: string | null
+          treatment_time: string
+          treatment_type: Database["public"]["Enums"]["er_treatment_type"]
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          er_id: string
+          id?: string
+          notes?: string | null
+          performed_by?: string | null
+          treatment_time?: string
+          treatment_type: Database["public"]["Enums"]["er_treatment_type"]
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          er_id?: string
+          id?: string
+          notes?: string | null
+          performed_by?: string | null
+          treatment_time?: string
+          treatment_type?: Database["public"]["Enums"]["er_treatment_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "er_treatments_er_id_fkey"
+            columns: ["er_id"]
+            isOneToOne: false
+            referencedRelation: "emergency_registrations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "er_treatments_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -5129,6 +5415,72 @@ export type Database = {
           },
         ]
       }
+      trauma_assessments: {
+        Row: {
+          assessed_by: string | null
+          assessment_time: string
+          created_at: string
+          er_id: string
+          gcs_eye: number | null
+          gcs_motor: number | null
+          gcs_total: number | null
+          gcs_verbal: number | null
+          id: string
+          injuries: Json | null
+          iss_score: number | null
+          mechanism: string | null
+          notes: string | null
+          rts_score: number | null
+        }
+        Insert: {
+          assessed_by?: string | null
+          assessment_time?: string
+          created_at?: string
+          er_id: string
+          gcs_eye?: number | null
+          gcs_motor?: number | null
+          gcs_total?: number | null
+          gcs_verbal?: number | null
+          id?: string
+          injuries?: Json | null
+          iss_score?: number | null
+          mechanism?: string | null
+          notes?: string | null
+          rts_score?: number | null
+        }
+        Update: {
+          assessed_by?: string | null
+          assessment_time?: string
+          created_at?: string
+          er_id?: string
+          gcs_eye?: number | null
+          gcs_motor?: number | null
+          gcs_total?: number | null
+          gcs_verbal?: number | null
+          id?: string
+          injuries?: Json | null
+          iss_score?: number | null
+          mechanism?: string | null
+          notes?: string | null
+          rts_score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trauma_assessments_assessed_by_fkey"
+            columns: ["assessed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trauma_assessments_er_id_fkey"
+            columns: ["er_id"]
+            isOneToOne: false
+            referencedRelation: "emergency_registrations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -5302,6 +5654,7 @@ export type Database = {
         | "transfer"
         | "referral"
         | "direct"
+      ambulance_status: "incoming" | "arrived" | "cancelled"
       app_role:
         | "super_admin"
         | "org_admin"
@@ -5324,6 +5677,12 @@ export type Database = {
         | "cancelled"
         | "no_show"
       appointment_type: "walk_in" | "scheduled" | "follow_up" | "emergency"
+      arrival_mode:
+        | "walk_in"
+        | "ambulance"
+        | "police"
+        | "brought_by_family"
+        | "referred"
       attendance_status:
         | "present"
         | "absent"
@@ -5381,6 +5740,22 @@ export type Database = {
         | "retired"
         | "on_leave"
         | "absconding"
+      er_status:
+        | "waiting"
+        | "in_triage"
+        | "in_treatment"
+        | "admitted"
+        | "discharged"
+        | "transferred"
+        | "expired"
+        | "absconded"
+        | "lama"
+      er_treatment_type:
+        | "medication"
+        | "procedure"
+        | "investigation"
+        | "intervention"
+        | "note"
       field_type:
         | "text"
         | "number"
@@ -5480,6 +5855,7 @@ export type Database = {
         | "general"
       subscription_plan: "basic" | "professional" | "enterprise"
       subscription_status: "trial" | "active" | "suspended" | "cancelled"
+      triage_level: "1" | "2" | "3" | "4" | "5"
       ward_type:
         | "general"
         | "semi_private"
@@ -5637,6 +6013,7 @@ export const Constants = {
         "referral",
         "direct",
       ],
+      ambulance_status: ["incoming", "arrived", "cancelled"],
       app_role: [
         "super_admin",
         "org_admin",
@@ -5661,6 +6038,13 @@ export const Constants = {
         "no_show",
       ],
       appointment_type: ["walk_in", "scheduled", "follow_up", "emergency"],
+      arrival_mode: [
+        "walk_in",
+        "ambulance",
+        "police",
+        "brought_by_family",
+        "referred",
+      ],
       attendance_status: [
         "present",
         "absent",
@@ -5724,6 +6108,24 @@ export const Constants = {
         "retired",
         "on_leave",
         "absconding",
+      ],
+      er_status: [
+        "waiting",
+        "in_triage",
+        "in_treatment",
+        "admitted",
+        "discharged",
+        "transferred",
+        "expired",
+        "absconded",
+        "lama",
+      ],
+      er_treatment_type: [
+        "medication",
+        "procedure",
+        "investigation",
+        "intervention",
+        "note",
       ],
       field_type: [
         "text",
@@ -5835,6 +6237,7 @@ export const Constants = {
       ],
       subscription_plan: ["basic", "professional", "enterprise"],
       subscription_status: ["trial", "active", "suspended", "cancelled"],
+      triage_level: ["1", "2", "3", "4", "5"],
       ward_type: [
         "general",
         "semi_private",
