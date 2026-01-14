@@ -505,9 +505,17 @@ export const useCreateTraumaAssessment = () => {
       const { data: result, error } = await supabase
         .from("trauma_assessments")
         .insert({
-          ...data,
-          assessed_by: profile?.id,
+          er_id: data.er_id!,
+          mechanism: data.mechanism,
+          gcs_eye: data.gcs_eye,
+          gcs_verbal: data.gcs_verbal,
+          gcs_motor: data.gcs_motor,
           gcs_total: gcsTotal > 0 ? gcsTotal : null,
+          injuries: data.injuries,
+          rts_score: data.rts_score,
+          iss_score: data.iss_score,
+          notes: data.notes,
+          assessed_by: profile?.id,
         })
         .select()
         .single();
@@ -558,7 +566,10 @@ export const useAddERTreatment = () => {
       const { data: result, error } = await supabase
         .from("er_treatments")
         .insert({
-          ...data,
+          er_id: data.er_id!,
+          treatment_type: data.treatment_type!,
+          description: data.description!,
+          notes: data.notes,
           performed_by: profile?.id,
         })
         .select()

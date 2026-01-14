@@ -1,6 +1,5 @@
 import { PageHeader } from "@/components/PageHeader";
 import { QuickERRegistration } from "@/components/emergency/QuickERRegistration";
-import { UserPlus } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 const ERRegistrationPage = () => {
@@ -12,9 +11,11 @@ const ERRegistrationPage = () => {
     <div className="space-y-6">
       <PageHeader
         title="Emergency Registration"
-        subtitle="Quickly register a new emergency patient"
-        icon={UserPlus}
-        backUrl="/app/emergency"
+        description="Quickly register a new emergency patient"
+        breadcrumbs={[
+          { label: "Emergency", href: "/app/emergency" },
+          { label: "New Registration" },
+        ]}
       />
 
       <div className="max-w-4xl">

@@ -19,9 +19,11 @@ const ERQueuePage = () => {
     <div className="space-y-6">
       <PageHeader
         title="ER Queue Management"
-        subtitle="View and manage all patients in the Emergency Department"
-        icon={Users}
-        backUrl="/app/emergency"
+        description="View and manage all patients in the Emergency Department"
+        breadcrumbs={[
+          { label: "Emergency", href: "/app/emergency" },
+          { label: "Queue" },
+        ]}
         actions={
           <div className="flex gap-2">
             <Button variant="outline" onClick={handleRefresh}>

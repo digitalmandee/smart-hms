@@ -6,16 +6,14 @@ import { Badge } from "@/components/ui/badge";
 import { IncomingAmbulancePanel } from "@/components/emergency/IncomingAmbulancePanel";
 import { ERQueueBoard } from "@/components/emergency/ERQueueBoard";
 import { ERPatientCard } from "@/components/emergency/ERPatientCard";
-import { useERStats, useERQueue, TRIAGE_LEVELS } from "@/hooks/useEmergency";
+import { useERStats, useERQueue } from "@/hooks/useEmergency";
 import { useNavigate } from "react-router-dom";
 import {
-  Siren,
   UserPlus,
   Ambulance,
   Monitor,
   Gauge,
   Users,
-  Clock,
   AlertTriangle,
   Activity,
   ArrowRight,
@@ -23,7 +21,7 @@ import {
 
 const EmergencyDashboard = () => {
   const navigate = useNavigate();
-  const { data: stats, isLoading: statsLoading } = useERStats();
+  const { data: stats } = useERStats();
   const { data: queue } = useERQueue();
 
   const criticalPatients = queue?.filter(
@@ -35,8 +33,7 @@ const EmergencyDashboard = () => {
     <div className="space-y-6">
       <PageHeader
         title="Emergency Department"
-        subtitle="Real-time emergency patient management"
-        icon={Siren}
+        description="Real-time emergency patient management"
         actions={
           <div className="flex gap-2 flex-wrap">
             <Button onClick={() => navigate("/app/emergency/register")}>

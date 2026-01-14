@@ -1,18 +1,18 @@
 import { useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ERPatientCard } from "@/components/emergency/ERPatientCard";
 import { TriageAssessmentForm } from "@/components/emergency/TriageAssessmentForm";
 import { useERQueue, EmergencyRegistration } from "@/hooks/useEmergency";
-import { Gauge, Users, Clock, ArrowRight } from "lucide-react";
+import { Gauge, Clock } from "lucide-react";
 import { differenceInMinutes } from "date-fns";
 
 const TriagePage = () => {
-  const { data: queue, isLoading } = useERQueue();
+  const { data: queue } = useERQueue();
   const [selectedPatient, setSelectedPatient] = useState<EmergencyRegistration | null>(null);
 
   const waitingForTriage = queue?.filter((p) => !p.triage_level) || [];
@@ -31,9 +31,11 @@ const TriagePage = () => {
     <div className="space-y-6">
       <PageHeader
         title="Triage Station"
-        subtitle="Assess and prioritize incoming patients"
-        icon={Gauge}
-        backUrl="/app/emergency"
+        description="Assess and prioritize incoming patients"
+        breadcrumbs={[
+          { label: "Emergency", href: "/app/emergency" },
+          { label: "Triage" },
+        ]}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

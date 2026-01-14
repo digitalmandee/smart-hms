@@ -10,13 +10,12 @@ import { TriageBadge } from "@/components/emergency/TriageBadge";
 import { TriageAssessmentForm } from "@/components/emergency/TriageAssessmentForm";
 import { TreatmentTimeline } from "@/components/emergency/TreatmentTimeline";
 import { TraumaAssessmentForm } from "@/components/emergency/TraumaAssessmentForm";
-import { GCSCalculator } from "@/components/emergency/GCSCalculator";
+
 import { PrintableERSlip } from "@/components/emergency/PrintableERSlip";
 import { useEmergencyRegistration, useUpdateEmergencyRegistration, useTraumaAssessments, TRIAGE_LEVELS } from "@/hooks/useEmergency";
 import { usePrint } from "@/hooks/usePrint";
 import { format, differenceInMinutes } from "date-fns";
 import {
-  Siren,
   User,
   Clock,
   MapPin,
@@ -26,11 +25,9 @@ import {
   Printer,
   ArrowRight,
   Activity,
-  FileText,
   Gauge,
   Brain,
   Loader2,
-  CheckCircle,
   LogOut,
 } from "lucide-react";
 
@@ -82,12 +79,14 @@ const ERDetailPage = () => {
     <div className="space-y-6">
       <PageHeader
         title={registration.er_number}
-        subtitle={patientName}
-        icon={Siren}
-        backUrl="/app/emergency"
+        description={patientName}
+        breadcrumbs={[
+          { label: "Emergency", href: "/app/emergency" },
+          { label: registration.er_number },
+        ]}
         actions={
           <div className="flex gap-2 flex-wrap">
-            <Button variant="outline" onClick={handlePrint}>
+            <Button variant="outline" onClick={() => handlePrint()}>
               <Printer className="h-4 w-4 mr-2" />
               Print Slip
             </Button>
