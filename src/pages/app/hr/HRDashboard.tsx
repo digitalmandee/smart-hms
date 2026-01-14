@@ -8,10 +8,12 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmployeeCard } from "@/components/hr/EmployeeCard";
 import { LeaveRequestCard } from "@/components/hr/LeaveRequestCard";
+import { LicenseExpiryAlerts } from "@/components/hr/LicenseExpiryAlerts";
 import { useEmployees, useEmployeeStats } from "@/hooks/useHR";
 import { useAttendanceStats } from "@/hooks/useAttendance";
 import { usePendingLeaveRequests, useLeaveStats, useApproveLeaveRequest } from "@/hooks/useLeaves";
 import { usePayrollStats } from "@/hooks/usePayroll";
+import { useExpiringLicenses } from "@/hooks/useEmployeeDocuments";
 import {
   Users,
   UserCheck,
@@ -24,6 +26,8 @@ import {
   Gift,
   FileText,
   Loader2,
+  Stethoscope,
+  Heart,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -37,6 +41,7 @@ export default function HRDashboard() {
   const { data: payrollStats, isLoading: loadingPayrollStats } = usePayrollStats();
   const { data: pendingLeaves, isLoading: loadingPendingLeaves } = usePendingLeaveRequests();
   const { data: recentEmployees, isLoading: loadingRecentEmployees } = useEmployees();
+  const { data: expiringLicenses } = useExpiringLicenses(90);
   const approveLeave = useApproveLeaveRequest();
 
   const handleApproveLeave = async (id: string) => {
@@ -81,6 +86,66 @@ export default function HRDashboard() {
           icon={DollarSign}
           description="This month"
         />
+      </div>
+
+      {/* Quick Access Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card 
+          className="cursor-pointer hover:shadow-md transition-shadow"
+          onClick={() => navigate("/app/hr/doctors")}
+        >
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <Stethoscope className="h-5 w-5 text-blue-600" />
+            </div>
+            <div>
+              <p className="font-medium">Doctors</p>
+              <p className="text-sm text-muted-foreground">Manage physicians</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card 
+          className="cursor-pointer hover:shadow-md transition-shadow"
+          onClick={() => navigate("/app/hr/nurses")}
+        >
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="p-2 bg-pink-100 rounded-lg">
+              <Heart className="h-5 w-5 text-pink-600" />
+            </div>
+            <div>
+              <p className="font-medium">Nurses</p>
+              <p className="text-sm text-muted-foreground">Nursing staff</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card 
+          className="cursor-pointer hover:shadow-md transition-shadow"
+          onClick={() => navigate("/app/hr/attendance")}
+        >
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="p-2 bg-green-100 rounded-lg">
+              <Clock className="h-5 w-5 text-green-600" />
+            </div>
+            <div>
+              <p className="font-medium">Attendance</p>
+              <p className="text-sm text-muted-foreground">Track time</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card 
+          className="cursor-pointer hover:shadow-md transition-shadow"
+          onClick={() => navigate("/app/hr/payroll")}
+        >
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="p-2 bg-purple-100 rounded-lg">
+              <DollarSign className="h-5 w-5 text-purple-600" />
+            </div>
+            <div>
+              <p className="font-medium">Payroll</p>
+              <p className="text-sm text-muted-foreground">Salary processing</p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
@@ -200,7 +265,13 @@ export default function HRDashboard() {
                   <Badge variant="outline" className="bg-orange-100">Action</Badge>
                 </div>
               ) : null}
-              {!leaveStats?.pendingRequests && !payrollStats?.pendingLoanApprovals && (
+              {expiringLicenses && expiringLicenses.length > 0 && (
+                <div className="flex items-center justify-between p-2 bg-red-50 rounded-lg">
+                  <span className="text-sm">{expiringLicenses.length} licenses expiring soon</span>
+                  <Badge variant="outline" className="bg-red-100">Urgent</Badge>
+                </div>
+              )}
+              {!leaveStats?.pendingRequests && !payrollStats?.pendingLoanApprovals && (!expiringLicenses || expiringLicenses.length === 0) && (
                 <p className="text-sm text-muted-foreground text-center py-4">
                   No pending alerts
                 </p>
@@ -209,6 +280,9 @@ export default function HRDashboard() {
           </Card>
         </div>
       </div>
+
+      {/* License Expiry Alerts Widget */}
+      <LicenseExpiryAlerts daysAhead={90} limit={5} />
 
       {/* Recent Employees */}
       <Card>

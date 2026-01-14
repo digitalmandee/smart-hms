@@ -7,7 +7,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useEmployee } from "@/hooks/useHR";
 import { useDoctorByEmployeeId } from "@/hooks/useDoctors";
+import { useNurseByEmployeeId, NURSE_SPECIALIZATIONS } from "@/hooks/useNurses";
 import { useEmployeeLeaveBalance } from "@/hooks/useLeaves";
+import { EmployeeDocumentsSection } from "@/components/hr/EmployeeDocumentsSection";
 import { 
   Loader2, 
   Pencil, 
@@ -18,9 +20,10 @@ import {
   Building, 
   Briefcase,
   Stethoscope,
-  Award,
+  Heart,
   CreditCard,
-  Clock
+  Clock,
+  FileText
 } from "lucide-react";
 import { format } from "date-fns";
 import { LeaveBalanceWidget } from "@/components/hr/LeaveBalanceWidget";
@@ -30,9 +33,10 @@ export default function EmployeeDetailPage() {
   const navigate = useNavigate();
   const { data: employee, isLoading } = useEmployee(id || "");
   const { data: doctorData, isLoading: loadingDoctor } = useDoctorByEmployeeId(id || "");
+  const { data: nurseData, isLoading: loadingNurse } = useNurseByEmployeeId(id || "");
   const { data: leaveBalances } = useEmployeeLeaveBalance(id || "");
 
-  if (isLoading || loadingDoctor) {
+  if (isLoading || loadingDoctor || loadingNurse) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -81,6 +85,12 @@ export default function EmployeeDetailPage() {
   })) || [];
 
   const isDoctor = !!doctorData;
+  const isNurse = !!nurseData;
+  
+  // Get nurse specialization label
+  const nurseSpecLabel = nurseData?.specialization 
+    ? NURSE_SPECIALIZATIONS.find(s => s.value === nurseData.specialization)?.label || nurseData.specialization
+    : null;
 
   return (
     <div className="space-y-6">
@@ -126,6 +136,12 @@ export default function EmployeeDetailPage() {
                     Doctor
                   </Badge>
                 )}
+                {isNurse && (
+                  <Badge variant="outline" className="flex items-center gap-1 text-pink-600 border-pink-300">
+                    <Heart className="h-3 w-3" />
+                    Nurse
+                  </Badge>
+                )}
               </div>
 
               <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
@@ -151,6 +167,12 @@ export default function EmployeeDetailPage() {
                   <div className="flex items-center gap-1">
                     <Stethoscope className="h-4 w-4" />
                     {doctorData.specialization}
+                  </div>
+                )}
+                {isNurse && nurseSpecLabel && (
+                  <div className="flex items-center gap-1">
+                    <Heart className="h-4 w-4" />
+                    {nurseSpecLabel}
                   </div>
                 )}
               </div>
@@ -190,8 +212,17 @@ export default function EmployeeDetailPage() {
               Clinical
             </TabsTrigger>
           )}
+          {isNurse && (
+            <TabsTrigger value="nursing" className="flex items-center gap-1.5">
+              <Heart className="h-4 w-4" />
+              Nursing
+            </TabsTrigger>
+          )}
           <TabsTrigger value="leaves">Leaves</TabsTrigger>
-          <TabsTrigger value="documents">Documents</TabsTrigger>
+          <TabsTrigger value="documents" className="flex items-center gap-1.5">
+            <FileText className="h-4 w-4" />
+            Documents
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="personal">
@@ -320,7 +351,6 @@ export default function EmployeeDetailPage() {
                 </CardContent>
               </Card>
 
-              {/* TODO: Add consultation stats */}
               <Card className="md:col-span-2">
                 <CardHeader>
                   <CardTitle className="text-base">Practice Statistics</CardTitle>
@@ -350,6 +380,82 @@ export default function EmployeeDetailPage() {
           </TabsContent>
         )}
 
+        {isNurse && (
+          <TabsContent value="nursing">
+            <div className="grid md:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Heart className="h-5 w-5 text-pink-500" />
+                    Nursing Profile
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <InfoRow label="Specialization" value={nurseSpecLabel || "-"} />
+                  <InfoRow label="Qualification" value={nurseData.qualification || "-"} />
+                  <InfoRow label="License Number" value={nurseData.license_number || "-"} />
+                  <InfoRow 
+                    label="License Expiry" 
+                    value={nurseData.license_expiry ? format(new Date(nurseData.license_expiry), "MMM d, yyyy") : "-"} 
+                  />
+                  <div className="flex justify-between py-1">
+                    <span className="text-muted-foreground text-sm">Charge Nurse</span>
+                    <Badge variant={nurseData.is_charge_nurse ? "default" : "secondary"}>
+                      {nurseData.is_charge_nurse ? "Yes" : "No"}
+                    </Badge>
+                  </div>
+                  <div className="flex justify-between py-1">
+                    <span className="text-muted-foreground text-sm">Availability</span>
+                    <Badge variant={nurseData.is_available ? "default" : "secondary"}>
+                      {nurseData.is_available ? "Available" : "Unavailable"}
+                    </Badge>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Building className="h-5 w-5 text-primary" />
+                    Assignment
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <InfoRow label="Assigned Ward" value={nurseData.assigned_ward?.name || "Not Assigned"} />
+                  <InfoRow label="Ward Type" value={nurseData.assigned_ward?.ward_type || "-"} />
+                  <InfoRow label="Branch" value={nurseData.branch?.name || "-"} />
+                </CardContent>
+              </Card>
+
+              <Card className="md:col-span-2">
+                <CardHeader>
+                  <CardTitle className="text-base">Nursing Statistics</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="text-center p-4 bg-muted/50 rounded-lg">
+                      <p className="text-2xl font-bold text-pink-600">--</p>
+                      <p className="text-sm text-muted-foreground">Patients Assigned</p>
+                    </div>
+                    <div className="text-center p-4 bg-muted/50 rounded-lg">
+                      <p className="text-2xl font-bold text-pink-600">--</p>
+                      <p className="text-sm text-muted-foreground">Tasks Today</p>
+                    </div>
+                    <div className="text-center p-4 bg-muted/50 rounded-lg">
+                      <p className="text-2xl font-bold text-pink-600">--</p>
+                      <p className="text-sm text-muted-foreground">Vitals Recorded</p>
+                    </div>
+                    <div className="text-center p-4 bg-muted/50 rounded-lg">
+                      <p className="text-2xl font-bold text-pink-600">--</p>
+                      <p className="text-sm text-muted-foreground">Meds Administered</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+        )}
+
         <TabsContent value="leaves">
           {transformedBalances.length > 0 ? (
             <LeaveBalanceWidget balances={transformedBalances} />
@@ -363,11 +469,7 @@ export default function EmployeeDetailPage() {
         </TabsContent>
 
         <TabsContent value="documents">
-          <Card>
-            <CardContent className="p-6 text-center text-muted-foreground">
-              Documents management coming soon
-            </CardContent>
-          </Card>
+          <EmployeeDocumentsSection employeeId={id || ""} />
         </TabsContent>
       </Tabs>
     </div>
