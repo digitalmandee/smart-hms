@@ -3333,6 +3333,7 @@ export type Database = {
           priority: Database["public"]["Enums"]["lab_order_priority"]
           result_notes: string | null
           status: Database["public"]["Enums"]["lab_order_status"]
+          surgery_id: string | null
           updated_at: string
         }
         Insert: {
@@ -3348,6 +3349,7 @@ export type Database = {
           priority?: Database["public"]["Enums"]["lab_order_priority"]
           result_notes?: string | null
           status?: Database["public"]["Enums"]["lab_order_status"]
+          surgery_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -3363,6 +3365,7 @@ export type Database = {
           priority?: Database["public"]["Enums"]["lab_order_priority"]
           result_notes?: string | null
           status?: Database["public"]["Enums"]["lab_order_status"]
+          surgery_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -3392,6 +3395,13 @@ export type Database = {
             columns: ["patient_id"]
             isOneToOne: false
             referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_orders_surgery_id_fkey"
+            columns: ["surgery_id"]
+            isOneToOne: false
+            referencedRelation: "surgeries"
             referencedColumns: ["id"]
           },
         ]
