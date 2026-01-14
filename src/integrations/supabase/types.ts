@@ -298,6 +298,144 @@ export type Database = {
           },
         ]
       }
+      anesthesia_records: {
+        Row: {
+          airway_complications: string | null
+          airway_device: string | null
+          airway_size: string | null
+          analgesics: Json | null
+          anesthesia_end_time: string | null
+          anesthesia_plan: string | null
+          anesthesia_start_time: string | null
+          anesthesia_type: Database["public"]["Enums"]["anesthesia_type"]
+          anesthetist_id: string
+          arterial_line: Json | null
+          blood_loss_ml: number | null
+          blood_products: Json | null
+          central_line: Json | null
+          complications: string | null
+          created_at: string | null
+          extubation_time: string | null
+          fluid_input: Json | null
+          handover_notes: string | null
+          id: string
+          induction_agents: Json | null
+          induction_time: string | null
+          intra_op_events: Json | null
+          intubation_attempts: number | null
+          intubation_grade: string | null
+          intubation_time: string | null
+          iv_access: Json | null
+          maintenance_agents: Json | null
+          muscle_relaxants: Json | null
+          other_access: Json | null
+          other_medications: Json | null
+          pre_anesthesia_assessment: Json | null
+          recovery_score: number | null
+          reversal_agents: Json | null
+          surgery_id: string
+          total_input_ml: number | null
+          updated_at: string | null
+          urine_output_ml: number | null
+          vitals_log: Json | null
+        }
+        Insert: {
+          airway_complications?: string | null
+          airway_device?: string | null
+          airway_size?: string | null
+          analgesics?: Json | null
+          anesthesia_end_time?: string | null
+          anesthesia_plan?: string | null
+          anesthesia_start_time?: string | null
+          anesthesia_type: Database["public"]["Enums"]["anesthesia_type"]
+          anesthetist_id: string
+          arterial_line?: Json | null
+          blood_loss_ml?: number | null
+          blood_products?: Json | null
+          central_line?: Json | null
+          complications?: string | null
+          created_at?: string | null
+          extubation_time?: string | null
+          fluid_input?: Json | null
+          handover_notes?: string | null
+          id?: string
+          induction_agents?: Json | null
+          induction_time?: string | null
+          intra_op_events?: Json | null
+          intubation_attempts?: number | null
+          intubation_grade?: string | null
+          intubation_time?: string | null
+          iv_access?: Json | null
+          maintenance_agents?: Json | null
+          muscle_relaxants?: Json | null
+          other_access?: Json | null
+          other_medications?: Json | null
+          pre_anesthesia_assessment?: Json | null
+          recovery_score?: number | null
+          reversal_agents?: Json | null
+          surgery_id: string
+          total_input_ml?: number | null
+          updated_at?: string | null
+          urine_output_ml?: number | null
+          vitals_log?: Json | null
+        }
+        Update: {
+          airway_complications?: string | null
+          airway_device?: string | null
+          airway_size?: string | null
+          analgesics?: Json | null
+          anesthesia_end_time?: string | null
+          anesthesia_plan?: string | null
+          anesthesia_start_time?: string | null
+          anesthesia_type?: Database["public"]["Enums"]["anesthesia_type"]
+          anesthetist_id?: string
+          arterial_line?: Json | null
+          blood_loss_ml?: number | null
+          blood_products?: Json | null
+          central_line?: Json | null
+          complications?: string | null
+          created_at?: string | null
+          extubation_time?: string | null
+          fluid_input?: Json | null
+          handover_notes?: string | null
+          id?: string
+          induction_agents?: Json | null
+          induction_time?: string | null
+          intra_op_events?: Json | null
+          intubation_attempts?: number | null
+          intubation_grade?: string | null
+          intubation_time?: string | null
+          iv_access?: Json | null
+          maintenance_agents?: Json | null
+          muscle_relaxants?: Json | null
+          other_access?: Json | null
+          other_medications?: Json | null
+          pre_anesthesia_assessment?: Json | null
+          recovery_score?: number | null
+          reversal_agents?: Json | null
+          surgery_id?: string
+          total_input_ml?: number | null
+          updated_at?: string | null
+          urine_output_ml?: number | null
+          vitals_log?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "anesthesia_records_anesthetist_id_fkey"
+            columns: ["anesthetist_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "anesthesia_records_surgery_id_fkey"
+            columns: ["surgery_id"]
+            isOneToOne: false
+            referencedRelation: "surgeries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       appointments: {
         Row: {
           appointment_date: string
@@ -2578,6 +2716,117 @@ export type Database = {
           },
         ]
       }
+      intra_op_notes: {
+        Row: {
+          approach: string | null
+          blood_loss_ml: number | null
+          catheters: Json | null
+          closure_details: string | null
+          closure_time: string | null
+          complications: string | null
+          count_notes: string | null
+          created_at: string | null
+          documented_by: string
+          drains: Json | null
+          draping: string | null
+          dressing_type: string | null
+          id: string
+          implants: Json | null
+          incision_time: string | null
+          incision_type: string | null
+          instrument_count_correct: boolean | null
+          intra_op_findings: string | null
+          needle_count_correct: boolean | null
+          op_images: Json | null
+          pathology_findings: string | null
+          position: string | null
+          procedure_performed: string
+          procedure_steps: Json | null
+          skin_prep: string | null
+          specimens: Json | null
+          sponge_count_correct: boolean | null
+          surgery_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          approach?: string | null
+          blood_loss_ml?: number | null
+          catheters?: Json | null
+          closure_details?: string | null
+          closure_time?: string | null
+          complications?: string | null
+          count_notes?: string | null
+          created_at?: string | null
+          documented_by: string
+          drains?: Json | null
+          draping?: string | null
+          dressing_type?: string | null
+          id?: string
+          implants?: Json | null
+          incision_time?: string | null
+          incision_type?: string | null
+          instrument_count_correct?: boolean | null
+          intra_op_findings?: string | null
+          needle_count_correct?: boolean | null
+          op_images?: Json | null
+          pathology_findings?: string | null
+          position?: string | null
+          procedure_performed: string
+          procedure_steps?: Json | null
+          skin_prep?: string | null
+          specimens?: Json | null
+          sponge_count_correct?: boolean | null
+          surgery_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          approach?: string | null
+          blood_loss_ml?: number | null
+          catheters?: Json | null
+          closure_details?: string | null
+          closure_time?: string | null
+          complications?: string | null
+          count_notes?: string | null
+          created_at?: string | null
+          documented_by?: string
+          drains?: Json | null
+          draping?: string | null
+          dressing_type?: string | null
+          id?: string
+          implants?: Json | null
+          incision_time?: string | null
+          incision_type?: string | null
+          instrument_count_correct?: boolean | null
+          intra_op_findings?: string | null
+          needle_count_correct?: boolean | null
+          op_images?: Json | null
+          pathology_findings?: string | null
+          position?: string | null
+          procedure_performed?: string
+          procedure_steps?: Json | null
+          skin_prep?: string | null
+          specimens?: Json | null
+          sponge_count_correct?: boolean | null
+          surgery_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "intra_op_notes_documented_by_fkey"
+            columns: ["documented_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "intra_op_notes_surgery_id_fkey"
+            columns: ["surgery_id"]
+            isOneToOne: false
+            referencedRelation: "surgeries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoice_items: {
         Row: {
           created_at: string
@@ -4306,6 +4555,75 @@ export type Database = {
         }
         Relationships: []
       }
+      ot_rooms: {
+        Row: {
+          branch_id: string
+          capacity: number | null
+          created_at: string | null
+          equipment: Json | null
+          features: Json | null
+          floor: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          notes: string | null
+          organization_id: string
+          room_number: string
+          room_type: string | null
+          status: Database["public"]["Enums"]["ot_room_status"]
+          updated_at: string | null
+        }
+        Insert: {
+          branch_id: string
+          capacity?: number | null
+          created_at?: string | null
+          equipment?: Json | null
+          features?: Json | null
+          floor?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          notes?: string | null
+          organization_id: string
+          room_number: string
+          room_type?: string | null
+          status?: Database["public"]["Enums"]["ot_room_status"]
+          updated_at?: string | null
+        }
+        Update: {
+          branch_id?: string
+          capacity?: number | null
+          created_at?: string | null
+          equipment?: Json | null
+          features?: Json | null
+          floor?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          notes?: string | null
+          organization_id?: string
+          room_number?: string
+          room_type?: string | null
+          status?: Database["public"]["Enums"]["ot_room_status"]
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ot_rooms_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ot_rooms_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       patient_attendants: {
         Row: {
           address: string | null
@@ -4875,6 +5193,255 @@ export type Database = {
         }
         Relationships: []
       }
+      post_op_recovery: {
+        Row: {
+          aldrete_scores: Json | null
+          complications: Json | null
+          created_at: string | null
+          discharge_criteria_met: boolean | null
+          discharge_destination: string | null
+          discharge_notes: string | null
+          discharge_time: string | null
+          discharged_by: string | null
+          drain_output_ml: number | null
+          emergence_delirium: boolean | null
+          final_aldrete_score: number | null
+          fluid_intake_ml: number | null
+          handover_from: string | null
+          handover_notes: string | null
+          id: string
+          medications_given: Json | null
+          nausea_vomiting: boolean | null
+          nursing_interventions: Json | null
+          pacu_arrival_time: string
+          pacu_nurse_id: string | null
+          pain_management: Json | null
+          pain_scores: Json | null
+          shivering: boolean | null
+          surgery_id: string
+          updated_at: string | null
+          urine_output_ml: number | null
+          vitals_log: Json | null
+        }
+        Insert: {
+          aldrete_scores?: Json | null
+          complications?: Json | null
+          created_at?: string | null
+          discharge_criteria_met?: boolean | null
+          discharge_destination?: string | null
+          discharge_notes?: string | null
+          discharge_time?: string | null
+          discharged_by?: string | null
+          drain_output_ml?: number | null
+          emergence_delirium?: boolean | null
+          final_aldrete_score?: number | null
+          fluid_intake_ml?: number | null
+          handover_from?: string | null
+          handover_notes?: string | null
+          id?: string
+          medications_given?: Json | null
+          nausea_vomiting?: boolean | null
+          nursing_interventions?: Json | null
+          pacu_arrival_time: string
+          pacu_nurse_id?: string | null
+          pain_management?: Json | null
+          pain_scores?: Json | null
+          shivering?: boolean | null
+          surgery_id: string
+          updated_at?: string | null
+          urine_output_ml?: number | null
+          vitals_log?: Json | null
+        }
+        Update: {
+          aldrete_scores?: Json | null
+          complications?: Json | null
+          created_at?: string | null
+          discharge_criteria_met?: boolean | null
+          discharge_destination?: string | null
+          discharge_notes?: string | null
+          discharge_time?: string | null
+          discharged_by?: string | null
+          drain_output_ml?: number | null
+          emergence_delirium?: boolean | null
+          final_aldrete_score?: number | null
+          fluid_intake_ml?: number | null
+          handover_from?: string | null
+          handover_notes?: string | null
+          id?: string
+          medications_given?: Json | null
+          nausea_vomiting?: boolean | null
+          nursing_interventions?: Json | null
+          pacu_arrival_time?: string
+          pacu_nurse_id?: string | null
+          pain_management?: Json | null
+          pain_scores?: Json | null
+          shivering?: boolean | null
+          surgery_id?: string
+          updated_at?: string | null
+          urine_output_ml?: number | null
+          vitals_log?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_op_recovery_discharged_by_fkey"
+            columns: ["discharged_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_op_recovery_handover_from_fkey"
+            columns: ["handover_from"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_op_recovery_pacu_nurse_id_fkey"
+            columns: ["pacu_nurse_id"]
+            isOneToOne: false
+            referencedRelation: "nurses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_op_recovery_surgery_id_fkey"
+            columns: ["surgery_id"]
+            isOneToOne: false
+            referencedRelation: "surgeries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pre_op_assessments: {
+        Row: {
+          airway_assessment: Json | null
+          allergies: string | null
+          anesthesia_clearance: Json | null
+          asa_class: Database["public"]["Enums"]["asa_class"] | null
+          asa_notes: string | null
+          assessed_by: string
+          assessment_date: string | null
+          blood_arranged: boolean | null
+          cardiac_clearance: Json | null
+          cardiac_risk_score: string | null
+          clearance_notes: string | null
+          cleared_at: string | null
+          cleared_by: string | null
+          consent_verified: boolean | null
+          created_at: string | null
+          current_medications: Json | null
+          dentures_removed: boolean | null
+          fasting_confirmed: boolean | null
+          id: string
+          investigations: Json | null
+          investigations_cleared: boolean | null
+          is_cleared_for_surgery: boolean | null
+          jewelry_removed: boolean | null
+          medical_clearance: Json | null
+          medical_history_reviewed: boolean | null
+          other_clearances: Json | null
+          pre_op_orders: Json | null
+          relevant_conditions: Json | null
+          site_marked: boolean | null
+          surgery_id: string
+          surgical_risk_notes: string | null
+          updated_at: string | null
+          vitals: Json | null
+        }
+        Insert: {
+          airway_assessment?: Json | null
+          allergies?: string | null
+          anesthesia_clearance?: Json | null
+          asa_class?: Database["public"]["Enums"]["asa_class"] | null
+          asa_notes?: string | null
+          assessed_by: string
+          assessment_date?: string | null
+          blood_arranged?: boolean | null
+          cardiac_clearance?: Json | null
+          cardiac_risk_score?: string | null
+          clearance_notes?: string | null
+          cleared_at?: string | null
+          cleared_by?: string | null
+          consent_verified?: boolean | null
+          created_at?: string | null
+          current_medications?: Json | null
+          dentures_removed?: boolean | null
+          fasting_confirmed?: boolean | null
+          id?: string
+          investigations?: Json | null
+          investigations_cleared?: boolean | null
+          is_cleared_for_surgery?: boolean | null
+          jewelry_removed?: boolean | null
+          medical_clearance?: Json | null
+          medical_history_reviewed?: boolean | null
+          other_clearances?: Json | null
+          pre_op_orders?: Json | null
+          relevant_conditions?: Json | null
+          site_marked?: boolean | null
+          surgery_id: string
+          surgical_risk_notes?: string | null
+          updated_at?: string | null
+          vitals?: Json | null
+        }
+        Update: {
+          airway_assessment?: Json | null
+          allergies?: string | null
+          anesthesia_clearance?: Json | null
+          asa_class?: Database["public"]["Enums"]["asa_class"] | null
+          asa_notes?: string | null
+          assessed_by?: string
+          assessment_date?: string | null
+          blood_arranged?: boolean | null
+          cardiac_clearance?: Json | null
+          cardiac_risk_score?: string | null
+          clearance_notes?: string | null
+          cleared_at?: string | null
+          cleared_by?: string | null
+          consent_verified?: boolean | null
+          created_at?: string | null
+          current_medications?: Json | null
+          dentures_removed?: boolean | null
+          fasting_confirmed?: boolean | null
+          id?: string
+          investigations?: Json | null
+          investigations_cleared?: boolean | null
+          is_cleared_for_surgery?: boolean | null
+          jewelry_removed?: boolean | null
+          medical_clearance?: Json | null
+          medical_history_reviewed?: boolean | null
+          other_clearances?: Json | null
+          pre_op_orders?: Json | null
+          relevant_conditions?: Json | null
+          site_marked?: boolean | null
+          surgery_id?: string
+          surgical_risk_notes?: string | null
+          updated_at?: string | null
+          vitals?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pre_op_assessments_assessed_by_fkey"
+            columns: ["assessed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pre_op_assessments_cleared_by_fkey"
+            columns: ["cleared_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pre_op_assessments_surgery_id_fkey"
+            columns: ["surgery_id"]
+            isOneToOne: false
+            referencedRelation: "surgeries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       prescription_items: {
         Row: {
           created_at: string
@@ -5338,6 +5905,353 @@ export type Database = {
           },
         ]
       }
+      surgeries: {
+        Row: {
+          actual_end_time: string | null
+          actual_start_time: string | null
+          admission_id: string | null
+          blood_reservation: Json | null
+          branch_id: string
+          cancellation_reason: string | null
+          consent_document_url: string | null
+          consent_signed: boolean | null
+          consent_signed_at: string | null
+          consultation_id: string | null
+          created_at: string | null
+          created_by: string | null
+          diagnosis: string | null
+          equipment_needed: Json | null
+          estimated_cost: number | null
+          estimated_duration_minutes: number | null
+          id: string
+          invoice_id: string | null
+          is_billable: boolean | null
+          laterality: string | null
+          lead_surgeon_id: string | null
+          npo_from: string | null
+          organization_id: string
+          ot_room_id: string | null
+          patient_id: string
+          post_op_destination: string | null
+          post_op_instructions: string | null
+          postponement_reason: string | null
+          priority: Database["public"]["Enums"]["surgery_priority"]
+          procedure_code: string | null
+          procedure_name: string
+          procedure_type: string | null
+          rescheduled_from: string | null
+          scheduled_date: string
+          scheduled_end_time: string | null
+          scheduled_start_time: string
+          special_requirements: string | null
+          status: Database["public"]["Enums"]["surgery_status"]
+          surgery_number: string
+          updated_at: string | null
+        }
+        Insert: {
+          actual_end_time?: string | null
+          actual_start_time?: string | null
+          admission_id?: string | null
+          blood_reservation?: Json | null
+          branch_id: string
+          cancellation_reason?: string | null
+          consent_document_url?: string | null
+          consent_signed?: boolean | null
+          consent_signed_at?: string | null
+          consultation_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          diagnosis?: string | null
+          equipment_needed?: Json | null
+          estimated_cost?: number | null
+          estimated_duration_minutes?: number | null
+          id?: string
+          invoice_id?: string | null
+          is_billable?: boolean | null
+          laterality?: string | null
+          lead_surgeon_id?: string | null
+          npo_from?: string | null
+          organization_id: string
+          ot_room_id?: string | null
+          patient_id: string
+          post_op_destination?: string | null
+          post_op_instructions?: string | null
+          postponement_reason?: string | null
+          priority?: Database["public"]["Enums"]["surgery_priority"]
+          procedure_code?: string | null
+          procedure_name: string
+          procedure_type?: string | null
+          rescheduled_from?: string | null
+          scheduled_date: string
+          scheduled_end_time?: string | null
+          scheduled_start_time: string
+          special_requirements?: string | null
+          status?: Database["public"]["Enums"]["surgery_status"]
+          surgery_number: string
+          updated_at?: string | null
+        }
+        Update: {
+          actual_end_time?: string | null
+          actual_start_time?: string | null
+          admission_id?: string | null
+          blood_reservation?: Json | null
+          branch_id?: string
+          cancellation_reason?: string | null
+          consent_document_url?: string | null
+          consent_signed?: boolean | null
+          consent_signed_at?: string | null
+          consultation_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          diagnosis?: string | null
+          equipment_needed?: Json | null
+          estimated_cost?: number | null
+          estimated_duration_minutes?: number | null
+          id?: string
+          invoice_id?: string | null
+          is_billable?: boolean | null
+          laterality?: string | null
+          lead_surgeon_id?: string | null
+          npo_from?: string | null
+          organization_id?: string
+          ot_room_id?: string | null
+          patient_id?: string
+          post_op_destination?: string | null
+          post_op_instructions?: string | null
+          postponement_reason?: string | null
+          priority?: Database["public"]["Enums"]["surgery_priority"]
+          procedure_code?: string | null
+          procedure_name?: string
+          procedure_type?: string | null
+          rescheduled_from?: string | null
+          scheduled_date?: string
+          scheduled_end_time?: string | null
+          scheduled_start_time?: string
+          special_requirements?: string | null
+          status?: Database["public"]["Enums"]["surgery_status"]
+          surgery_number?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "surgeries_admission_id_fkey"
+            columns: ["admission_id"]
+            isOneToOne: false
+            referencedRelation: "admissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surgeries_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surgeries_consultation_id_fkey"
+            columns: ["consultation_id"]
+            isOneToOne: false
+            referencedRelation: "consultations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surgeries_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surgeries_lead_surgeon_id_fkey"
+            columns: ["lead_surgeon_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surgeries_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surgeries_ot_room_id_fkey"
+            columns: ["ot_room_id"]
+            isOneToOne: false
+            referencedRelation: "ot_rooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surgeries_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surgeries_rescheduled_from_fkey"
+            columns: ["rescheduled_from"]
+            isOneToOne: false
+            referencedRelation: "surgeries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      surgery_team_members: {
+        Row: {
+          confirmed_at: string | null
+          created_at: string | null
+          doctor_id: string | null
+          employee_id: string | null
+          id: string
+          is_confirmed: boolean | null
+          notes: string | null
+          nurse_id: string | null
+          role: Database["public"]["Enums"]["surgery_team_role"]
+          surgery_id: string
+        }
+        Insert: {
+          confirmed_at?: string | null
+          created_at?: string | null
+          doctor_id?: string | null
+          employee_id?: string | null
+          id?: string
+          is_confirmed?: boolean | null
+          notes?: string | null
+          nurse_id?: string | null
+          role: Database["public"]["Enums"]["surgery_team_role"]
+          surgery_id: string
+        }
+        Update: {
+          confirmed_at?: string | null
+          created_at?: string | null
+          doctor_id?: string | null
+          employee_id?: string | null
+          id?: string
+          is_confirmed?: boolean | null
+          notes?: string | null
+          nurse_id?: string | null
+          role?: Database["public"]["Enums"]["surgery_team_role"]
+          surgery_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "surgery_team_members_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surgery_team_members_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surgery_team_members_nurse_id_fkey"
+            columns: ["nurse_id"]
+            isOneToOne: false
+            referencedRelation: "nurses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surgery_team_members_surgery_id_fkey"
+            columns: ["surgery_id"]
+            isOneToOne: false
+            referencedRelation: "surgeries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      surgical_safety_checklists: {
+        Row: {
+          created_at: string | null
+          id: string
+          sign_in_by: string | null
+          sign_in_completed: boolean | null
+          sign_in_data: Json | null
+          sign_in_time: string | null
+          sign_out_by: string | null
+          sign_out_completed: boolean | null
+          sign_out_data: Json | null
+          sign_out_time: string | null
+          surgery_id: string
+          time_out_by: string | null
+          time_out_completed: boolean | null
+          time_out_data: Json | null
+          time_out_time: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          sign_in_by?: string | null
+          sign_in_completed?: boolean | null
+          sign_in_data?: Json | null
+          sign_in_time?: string | null
+          sign_out_by?: string | null
+          sign_out_completed?: boolean | null
+          sign_out_data?: Json | null
+          sign_out_time?: string | null
+          surgery_id: string
+          time_out_by?: string | null
+          time_out_completed?: boolean | null
+          time_out_data?: Json | null
+          time_out_time?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          sign_in_by?: string | null
+          sign_in_completed?: boolean | null
+          sign_in_data?: Json | null
+          sign_in_time?: string | null
+          sign_out_by?: string | null
+          sign_out_completed?: boolean | null
+          sign_out_data?: Json | null
+          sign_out_time?: string | null
+          surgery_id?: string
+          time_out_by?: string | null
+          time_out_completed?: boolean | null
+          time_out_data?: Json | null
+          time_out_time?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "surgical_safety_checklists_sign_in_by_fkey"
+            columns: ["sign_in_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surgical_safety_checklists_sign_out_by_fkey"
+            columns: ["sign_out_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surgical_safety_checklists_surgery_id_fkey"
+            columns: ["surgery_id"]
+            isOneToOne: true
+            referencedRelation: "surgeries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surgical_safety_checklists_time_out_by_fkey"
+            columns: ["time_out_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       system_settings: {
         Row: {
           created_at: string
@@ -5628,6 +6542,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_surgery_number: {
+        Args: { branch_id: string; org_id: string }
+        Returns: string
+      }
       get_user_branch_id: { Args: never; Returns: string }
       get_user_organization_id: { Args: never; Returns: string }
       has_permission: { Args: { _permission_code: string }; Returns: boolean }
@@ -5655,6 +6573,14 @@ export type Database = {
         | "referral"
         | "direct"
       ambulance_status: "incoming" | "arrived" | "cancelled"
+      anesthesia_type:
+        | "general"
+        | "spinal"
+        | "epidural"
+        | "local"
+        | "regional"
+        | "sedation"
+        | "combined"
       app_role:
         | "super_admin"
         | "org_admin"
@@ -5683,6 +6609,7 @@ export type Database = {
         | "police"
         | "brought_by_family"
         | "referred"
+      asa_class: "I" | "II" | "III" | "IV" | "V" | "VI"
       attendance_status:
         | "present"
         | "absent"
@@ -5831,6 +6758,12 @@ export type Database = {
         | "discharge"
         | "incident"
         | "procedure"
+      ot_room_status:
+        | "available"
+        | "occupied"
+        | "cleaning"
+        | "maintenance"
+        | "reserved"
       payroll_run_status: "draft" | "processing" | "completed" | "cancelled"
       prescription_status:
         | "created"
@@ -5855,6 +6788,21 @@ export type Database = {
         | "general"
       subscription_plan: "basic" | "professional" | "enterprise"
       subscription_status: "trial" | "active" | "suspended" | "cancelled"
+      surgery_priority: "emergency" | "urgent" | "elective"
+      surgery_status:
+        | "scheduled"
+        | "pre_op"
+        | "in_progress"
+        | "completed"
+        | "cancelled"
+        | "postponed"
+      surgery_team_role:
+        | "lead_surgeon"
+        | "assistant_surgeon"
+        | "anesthetist"
+        | "scrub_nurse"
+        | "circulating_nurse"
+        | "technician"
       triage_level: "1" | "2" | "3" | "4" | "5"
       ward_type:
         | "general"
@@ -6014,6 +6962,15 @@ export const Constants = {
         "direct",
       ],
       ambulance_status: ["incoming", "arrived", "cancelled"],
+      anesthesia_type: [
+        "general",
+        "spinal",
+        "epidural",
+        "local",
+        "regional",
+        "sedation",
+        "combined",
+      ],
       app_role: [
         "super_admin",
         "org_admin",
@@ -6045,6 +7002,7 @@ export const Constants = {
         "brought_by_family",
         "referred",
       ],
+      asa_class: ["I", "II", "III", "IV", "V", "VI"],
       attendance_status: [
         "present",
         "absent",
@@ -6210,6 +7168,13 @@ export const Constants = {
         "incident",
         "procedure",
       ],
+      ot_room_status: [
+        "available",
+        "occupied",
+        "cleaning",
+        "maintenance",
+        "reserved",
+      ],
       payroll_run_status: ["draft", "processing", "completed", "cancelled"],
       prescription_status: [
         "created",
@@ -6237,6 +7202,23 @@ export const Constants = {
       ],
       subscription_plan: ["basic", "professional", "enterprise"],
       subscription_status: ["trial", "active", "suspended", "cancelled"],
+      surgery_priority: ["emergency", "urgent", "elective"],
+      surgery_status: [
+        "scheduled",
+        "pre_op",
+        "in_progress",
+        "completed",
+        "cancelled",
+        "postponed",
+      ],
+      surgery_team_role: [
+        "lead_surgeon",
+        "assistant_surgeon",
+        "anesthetist",
+        "scrub_nurse",
+        "circulating_nurse",
+        "technician",
+      ],
       triage_level: ["1", "2", "3", "4", "5"],
       ward_type: [
         "general",
