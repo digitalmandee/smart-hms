@@ -185,6 +185,9 @@ const App = () => (
               <Route path="ipd/wards/new" element={<WardFormPage />} />
               <Route path="ipd/wards/:id/edit" element={<WardFormPage />} />
               <Route path="ipd/beds" element={<BedsPage />} />
+              <Route path="ipd/beds/new" element={<BedFormPage />} />
+              <Route path="ipd/beds/:id/edit" element={<BedFormPage />} />
+              <Route path="ipd/housekeeping" element={<HousekeepingQueuePage />} />
               <Route path="ipd/admissions" element={<AdmissionsListPage />} />
               <Route path="ipd/admissions/new" element={<AdmissionFormPage />} />
               <Route path="ipd/admissions/:id" element={<AdmissionDetailPage />} />
