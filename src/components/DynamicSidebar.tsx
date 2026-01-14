@@ -47,6 +47,11 @@ import {
   ListChecks,
   FileInput,
   FileSpreadsheet,
+  Siren,
+  Ambulance,
+  Gauge,
+  Monitor,
+  Bed,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -86,6 +91,11 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   ListChecks,
   FileInput,
   FileSpreadsheet,
+  Siren,
+  Ambulance,
+  Gauge,
+  Monitor,
+  Bed,
 };
 
 interface DynamicSidebarProps {
