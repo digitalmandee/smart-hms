@@ -6,11 +6,18 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAdmissions } from "@/hooks/useAdmissions";
 import { useDailyRounds, useIPDVitals } from "@/hooks/useDailyRounds";
-import { useNursingNotes } from "@/hooks/useNursingCare";
+import { useNursingNotes, useIPDMedications } from "@/hooks/useNursingCare";
 import { BedTransferModal } from "@/components/ipd/BedTransferModal";
 import { BedTransferHistory } from "@/components/ipd/BedTransferHistory";
+import { PatientQuickInfo } from "@/components/consultation/PatientQuickInfo";
+import { IPDVitalsForm } from "@/components/ipd/IPDVitalsForm";
+import { NursingNotesForm } from "@/components/ipd/NursingNotesForm";
+import { IPDMedicationOrderForm } from "@/components/ipd/IPDMedicationOrderForm";
+import { CarePlansList } from "@/components/ipd/CarePlansList";
+import { DietChartCard } from "@/components/ipd/DietChartCard";
 import {
   User,
   Bed,
@@ -22,6 +29,8 @@ import {
   LogOut,
   ArrowRightLeft,
   History,
+  Plus,
+  UtensilsCrossed,
 } from "lucide-react";
 
 export default function AdmissionDetailPage() {
@@ -29,9 +38,13 @@ export default function AdmissionDetailPage() {
   const navigate = useNavigate();
   const { data: admissions, refetch: refetchAdmissions } = useAdmissions();
   const { data: rounds } = useDailyRounds(id);
-  const { data: vitals } = useIPDVitals(id);
-  const { data: nursingNotes } = useNursingNotes(id);
+  const { data: vitals, refetch: refetchVitals } = useIPDVitals(id);
+  const { data: nursingNotes, refetch: refetchNotes } = useNursingNotes(id);
+  const { data: medications = [] } = useIPDMedications(id);
   const [transferModalOpen, setTransferModalOpen] = useState(false);
+  const [vitalsDialogOpen, setVitalsDialogOpen] = useState(false);
+  const [notesDialogOpen, setNotesDialogOpen] = useState(false);
+  const [medsDialogOpen, setMedsDialogOpen] = useState(false);
 
   const admission = admissions?.find((a) => a.id === id);
 

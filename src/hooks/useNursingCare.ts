@@ -229,6 +229,58 @@ export const useIPDMedications = (admissionId?: string) => {
   });
 };
 
+export const useCreateIPDMedication = () => {
+  const queryClient = useQueryClient();
+  const { profile } = useAuth();
+
+  return useMutation({
+    mutationFn: async (medData: {
+      admission_id: string;
+      medicine_id: string;
+      dosage: string;
+      route: string;
+      frequency: string;
+      start_date: string;
+      end_date?: string;
+      is_prn?: boolean;
+      prn_indication?: string;
+      timing_schedule?: string[];
+      special_instructions?: string;
+    }) => {
+      if (!profile?.id) throw new Error("No profile");
+
+      const { data, error } = await supabase
+        .from("ipd_medications")
+        .insert([{
+          admission_id: medData.admission_id,
+          medicine_id: medData.medicine_id,
+          medicine_name: "Medication", // Will be resolved from medicine_id
+          dosage: medData.dosage,
+          route: medData.route as any,
+          frequency: medData.frequency as any,
+          start_date: medData.start_date,
+          end_date: medData.end_date,
+          is_prn: medData.is_prn || false,
+          special_instructions: medData.special_instructions,
+          prescribed_by: profile.id,
+          is_active: true,
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["ipd-medications"] });
+      toast({ title: "Medication order created" });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Failed to create medication order", description: error.message, variant: "destructive" });
+    },
+  });
+};
+
 // Medication Administration
 export const useMedicationAdministration = (admissionId?: string, date?: string) => {
   return useQuery({
