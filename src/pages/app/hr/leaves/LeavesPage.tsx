@@ -2,7 +2,7 @@ import { useState } from "react";
 import { format } from "date-fns";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -29,22 +29,19 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { useLeaveRequests, useLeaveTypes, useApproveLeave, useRejectLeave } from "@/hooks/useLeaves";
+import { useLeaveRequests, useLeaveTypes, useApproveLeaveRequest } from "@/hooks/useLeaves";
 import { Loader2, Search, Plus, Check, X, Calendar } from "lucide-react";
-import { LeaveRequestCard } from "@/components/hr/LeaveRequestCard";
 import { useToast } from "@/hooks/use-toast";
 
 export default function LeavesPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [viewMode, setViewMode] = useState<"table" | "cards">("table");
 
   const { data: leaveRequests, isLoading } = useLeaveRequests({
     status: statusFilter !== "all" ? statusFilter : undefined,
   });
   const { data: leaveTypes } = useLeaveTypes();
-  const approveLeave = useApproveLeave();
-  const rejectLeave = useRejectLeave();
+  const approveLeaveRequest = useApproveLeaveRequest();
   const { toast } = useToast();
 
   const filteredRequests = leaveRequests?.filter((request) => {
@@ -54,7 +51,7 @@ export default function LeavesPage() {
 
   const handleApprove = async (id: string) => {
     try {
-      await approveLeave.mutateAsync(id);
+      await approveLeaveRequest.mutateAsync({ id, approved: true });
       toast({ title: "Leave request approved" });
     } catch (error: any) {
       toast({
@@ -65,9 +62,9 @@ export default function LeavesPage() {
     }
   };
 
-  const handleReject = async (id: string, reason?: string) => {
+  const handleReject = async (id: string) => {
     try {
-      await rejectLeave.mutateAsync({ id, reason });
+      await approveLeaveRequest.mutateAsync({ id, approved: false });
       toast({ title: "Leave request rejected" });
     } catch (error: any) {
       toast({
@@ -234,8 +231,8 @@ export default function LeavesPage() {
                         {request.leave_type?.name}
                       </Badge>
                     </TableCell>
-                    <TableCell>{format(new Date(request.from_date), "MMM d, yyyy")}</TableCell>
-                    <TableCell>{format(new Date(request.to_date), "MMM d, yyyy")}</TableCell>
+                    <TableCell>{format(new Date(request.start_date), "MMM d, yyyy")}</TableCell>
+                    <TableCell>{format(new Date(request.end_date), "MMM d, yyyy")}</TableCell>
                     <TableCell>{request.total_days}</TableCell>
                     <TableCell>{getStatusBadge(request.status || "pending")}</TableCell>
                     <TableCell>

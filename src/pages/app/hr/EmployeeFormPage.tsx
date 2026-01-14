@@ -35,6 +35,7 @@ import {
   useShifts,
 } from "@/hooks/useHR";
 import { useBranches } from "@/hooks/useBranches";
+import { useAuth } from "@/contexts/AuthContext";
 import { Loader2, Save, ArrowLeft } from "lucide-react";
 
 const employeeSchema = z.object({
@@ -54,7 +55,7 @@ const employeeSchema = z.object({
   category_id: z.string().optional(),
   shift_id: z.string().optional(),
   join_date: z.string().min(1, "Join date is required"),
-  employee_type: z.enum(["permanent", "contractual", "probation", "intern", "consultant"]).optional(),
+  employee_type: z.enum(["permanent", "contractual", "part_time", "intern", "consultant"]).optional(),
   employment_status: z.enum(["active", "on_leave", "suspended", "terminated", "resigned"]).optional(),
   bank_name: z.string().optional(),
   account_number: z.string().optional(),
@@ -71,6 +72,7 @@ export default function EmployeeFormPage() {
   const navigate = useNavigate();
   const { id } = useParams();
   const { toast } = useToast();
+  const { profile } = useAuth();
   const isEditing = !!id;
 
   const { data: employee, isLoading: loadingEmployee } = useEmployee(id || "");
@@ -129,21 +131,69 @@ export default function EmployeeFormPage() {
 
   const onSubmit = async (data: EmployeeFormData) => {
     try {
-      const payload = {
-        ...data,
-        personal_email: data.personal_email || null,
-        branch_id: data.branch_id || null,
-        department_id: data.department_id || null,
-        designation_id: data.designation_id || null,
-        category_id: data.category_id || null,
-        shift_id: data.shift_id || null,
-      };
-
       if (isEditing && id) {
-        await updateEmployee.mutateAsync({ id, ...payload });
+        await updateEmployee.mutateAsync({ 
+          id, 
+          employee_number: data.employee_number,
+          first_name: data.first_name,
+          last_name: data.last_name || null,
+          gender: data.gender as any || null,
+          date_of_birth: data.date_of_birth || null,
+          personal_phone: data.personal_phone || null,
+          personal_email: data.personal_email || null,
+          national_id: data.national_id || null,
+          current_address: data.current_address || null,
+          permanent_address: data.permanent_address || null,
+          branch_id: data.branch_id || null,
+          department_id: data.department_id || null,
+          designation_id: data.designation_id || null,
+          category_id: data.category_id || null,
+          shift_id: data.shift_id || null,
+          join_date: data.join_date,
+          employee_type: data.employee_type as any || null,
+          employment_status: data.employment_status as any || null,
+          bank_name: data.bank_name || null,
+          account_number: data.account_number || null,
+          account_title: data.account_title || null,
+          emergency_contact_name: data.emergency_contact_name || null,
+          emergency_contact_phone: data.emergency_contact_phone || null,
+          emergency_contact_relation: data.emergency_contact_relation || null,
+          notes: data.notes || null,
+        });
         toast({ title: "Employee updated successfully" });
       } else {
-        await createEmployee.mutateAsync(payload);
+        if (!profile?.organization_id) {
+          toast({ title: "Organization not found", variant: "destructive" });
+          return;
+        }
+        await createEmployee.mutateAsync({
+          organization_id: profile.organization_id,
+          employee_number: data.employee_number,
+          first_name: data.first_name,
+          last_name: data.last_name || null,
+          gender: data.gender as any || null,
+          date_of_birth: data.date_of_birth || null,
+          personal_phone: data.personal_phone || null,
+          personal_email: data.personal_email || null,
+          national_id: data.national_id || null,
+          current_address: data.current_address || null,
+          permanent_address: data.permanent_address || null,
+          branch_id: data.branch_id || null,
+          department_id: data.department_id || null,
+          designation_id: data.designation_id || null,
+          category_id: data.category_id || null,
+          shift_id: data.shift_id || null,
+          join_date: data.join_date,
+          employee_type: data.employee_type as any || null,
+          employment_status: data.employment_status as any || null,
+          bank_name: data.bank_name || null,
+          account_number: data.account_number || null,
+          account_title: data.account_title || null,
+          emergency_contact_name: data.emergency_contact_name || null,
+          emergency_contact_phone: data.emergency_contact_phone || null,
+          emergency_contact_relation: data.emergency_contact_relation || null,
+          notes: data.notes || null,
+        });
         toast({ title: "Employee created successfully" });
       }
       navigate("/app/hr/employees");
@@ -455,7 +505,7 @@ export default function EmployeeFormPage() {
                           <SelectContent>
                             <SelectItem value="permanent">Permanent</SelectItem>
                             <SelectItem value="contractual">Contractual</SelectItem>
-                            <SelectItem value="probation">Probation</SelectItem>
+                            <SelectItem value="part_time">Part Time</SelectItem>
                             <SelectItem value="intern">Intern</SelectItem>
                             <SelectItem value="consultant">Consultant</SelectItem>
                           </SelectContent>

@@ -195,10 +195,6 @@ export function useApproveLeaveRequest() {
         .single();
       
       if (error) throw error;
-
-      // If approved, deduct from leave balance - handled via trigger or separate update
-      return data;
-
       return data;
     },
     onSuccess: (_, variables) => {
@@ -210,6 +206,24 @@ export function useApproveLeaveRequest() {
       toast.error("Failed to process leave request: " + error.message);
     },
   });
+}
+
+// Convenience wrappers for approve/reject
+export function useApproveLeave() {
+  const approveLeaveRequest = useApproveLeaveRequest();
+  return {
+    ...approveLeaveRequest,
+    mutateAsync: (id: string) => approveLeaveRequest.mutateAsync({ id, approved: true }),
+  };
+}
+
+export function useRejectLeave() {
+  const approveLeaveRequest = useApproveLeaveRequest();
+  return {
+    ...approveLeaveRequest,
+    mutateAsync: ({ id, reason }: { id: string; reason?: string }) => 
+      approveLeaveRequest.mutateAsync({ id, approved: false, rejectionReason: reason }),
+  };
 }
 
 export function useCancelLeaveRequest() {

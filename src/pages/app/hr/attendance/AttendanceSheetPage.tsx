@@ -10,8 +10,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useAttendanceSheet } from "@/hooks/useAttendance";
-import { useDepartments } from "@/hooks/useHR";
+import { useAttendanceRecords } from "@/hooks/useAttendance";
+import { useEmployees, useDepartments } from "@/hooks/useHR";
 import { Loader2, Download, Printer } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -26,12 +26,17 @@ export default function AttendanceSheetPage() {
   const [year, setYear] = useState(currentDate.getFullYear());
   const [departmentFilter, setDepartmentFilter] = useState<string>("all");
 
-  const { data: sheetData, isLoading } = useAttendanceSheet(month + 1, year);
-  const { data: departments } = useDepartments();
-
   const monthStart = startOfMonth(new Date(year, month));
   const monthEnd = endOfMonth(new Date(year, month));
   const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
+
+  const { data: attendanceRecords, isLoading } = useAttendanceRecords({
+    startDate: format(monthStart, "yyyy-MM-dd"),
+    endDate: format(monthEnd, "yyyy-MM-dd"),
+    departmentId: departmentFilter !== "all" ? departmentFilter : undefined,
+  });
+  const { data: employees } = useEmployees();
+  const { data: departments } = useDepartments();
 
   const years = Array.from({ length: 5 }, (_, i) => currentDate.getFullYear() - 2 + i);
 
@@ -56,9 +61,19 @@ export default function AttendanceSheetPage() {
     }
   };
 
-  const filteredData = sheetData?.filter((record) => {
+  // Group attendance by employee
+  const attendanceByEmployee = new Map<string, Map<string, string>>();
+  attendanceRecords?.forEach((record) => {
+    if (!attendanceByEmployee.has(record.employee_id)) {
+      attendanceByEmployee.set(record.employee_id, new Map());
+    }
+    attendanceByEmployee.get(record.employee_id)?.set(record.attendance_date, record.status || "absent");
+  });
+
+  // Filter employees by department
+  const filteredEmployees = employees?.filter((emp) => {
     if (departmentFilter === "all") return true;
-    return record.employee?.department_id === departmentFilter;
+    return emp.department_id === departmentFilter;
   });
 
   return (
@@ -182,26 +197,24 @@ export default function AttendanceSheetPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredData && filteredData.length > 0 ? (
-                  filteredData.map((record) => {
-                    const attendanceMap = new Map(
-                      record.records?.map((r) => [r.attendance_date, r.status])
-                    );
+                {filteredEmployees && filteredEmployees.length > 0 ? (
+                  filteredEmployees.map((employee) => {
+                    const empAttendance = attendanceByEmployee.get(employee.id);
                     let presentDays = 0;
 
                     return (
-                      <tr key={record.employee_id} className="border-b hover:bg-muted/50">
+                      <tr key={employee.id} className="border-b hover:bg-muted/50">
                         <td className="sticky left-0 bg-background z-10 p-2">
                           <div className="font-medium">
-                            {record.employee?.first_name} {record.employee?.last_name}
+                            {employee.first_name} {employee.last_name}
                           </div>
                           <div className="text-xs text-muted-foreground">
-                            {record.employee?.employee_number}
+                            {employee.employee_number}
                           </div>
                         </td>
                         {daysInMonth.map((day) => {
                           const dateStr = format(day, "yyyy-MM-dd");
-                          let status = attendanceMap.get(dateStr);
+                          let status = empAttendance?.get(dateStr);
 
                           if (!status && isWeekend(day)) {
                             status = "weekend";
@@ -232,7 +245,7 @@ export default function AttendanceSheetPage() {
                 ) : (
                   <tr>
                     <td colSpan={daysInMonth.length + 2} className="p-8 text-center text-muted-foreground">
-                      No attendance data found for this period
+                      No employees found for this department
                     </td>
                   </tr>
                 )}
