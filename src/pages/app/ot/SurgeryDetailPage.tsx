@@ -498,6 +498,4 @@ export default function SurgeryDetailPage() {
       />
     </div>
   );
-    </div>
-  );
 }
