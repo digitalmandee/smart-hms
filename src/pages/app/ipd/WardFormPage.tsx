@@ -6,7 +6,6 @@ import { z } from "zod";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Form,
@@ -26,7 +25,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { useWards, useCreateWard, useUpdateWard } from "@/hooks/useIPD";
 import { useAuth } from "@/contexts/AuthContext";
-import { ArrowLeft, Save } from "lucide-react";
+import { Save } from "lucide-react";
 import { toast } from "sonner";
 
 const wardFormSchema = z.object({
@@ -38,10 +37,7 @@ const wardFormSchema = z.object({
   ]),
   total_beds: z.coerce.number().min(1, "Must have at least 1 bed"),
   floor: z.string().optional(),
-  building: z.string().optional(),
-  charge_per_day: z.coerce.number().min(0).optional(),
   contact_extension: z.string().optional(),
-  notes: z.string().optional(),
   is_active: z.boolean().default(true),
 });
 
@@ -80,10 +76,7 @@ export default function WardFormPage() {
       ward_type: "general",
       total_beds: 10,
       floor: "",
-      building: "",
-      charge_per_day: 0,
       contact_extension: "",
-      notes: "",
       is_active: true,
     },
   });
@@ -98,10 +91,7 @@ export default function WardFormPage() {
           ward_type: ward.ward_type as any || "general",
           total_beds: ward.total_beds || 10,
           floor: ward.floor || "",
-          building: ward.building || "",
-          charge_per_day: ward.charge_per_day || 0,
           contact_extension: ward.contact_extension || "",
-          notes: ward.notes || "",
           is_active: ward.is_active ?? true,
         });
       }
@@ -109,8 +99,8 @@ export default function WardFormPage() {
   }, [isEditing, id, wards, form]);
 
   const onSubmit = async (values: WardFormValues) => {
-    if (!profile?.organization_id || !profile?.branch_id) {
-      toast.error("Missing organization or branch context");
+    if (!profile?.branch_id) {
+      toast.error("Missing branch context");
       return;
     }
 
@@ -120,9 +110,13 @@ export default function WardFormPage() {
         toast.success("Ward updated successfully");
       } else {
         await createWard({
-          ...values,
-          organization_id: profile.organization_id,
+          name: values.name,
+          code: values.code,
+          ward_type: values.ward_type,
           branch_id: profile.branch_id,
+          floor: values.floor,
+          total_beds: values.total_beds,
+          contact_extension: values.contact_extension,
         });
         toast.success("Ward created successfully");
       }
@@ -136,12 +130,11 @@ export default function WardFormPage() {
     <div className="space-y-6">
       <PageHeader
         title={isEditing ? "Edit Ward" : "New Ward"}
-        backButton={
-          <Button variant="ghost" size="sm" onClick={() => navigate("/app/ipd/wards")}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Wards
-          </Button>
-        }
+        breadcrumbs={[
+          { label: "IPD", href: "/app/ipd" },
+          { label: "Wards", href: "/app/ipd/wards" },
+          { label: isEditing ? "Edit" : "New Ward" },
+        ]}
       />
 
       <Form {...form}>
@@ -234,34 +227,6 @@ export default function WardFormPage() {
 
               <FormField
                 control={form.control}
-                name="building"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Building</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., Main Building" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="charge_per_day"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Charge Per Day</FormLabel>
-                    <FormControl>
-                      <Input type="number" min={0} step={0.01} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
                 name="contact_extension"
                 render={({ field }) => (
                   <FormItem>
@@ -276,23 +241,9 @@ export default function WardFormPage() {
 
               <FormField
                 control={form.control}
-                name="notes"
-                render={({ field }) => (
-                  <FormItem className="md:col-span-2">
-                    <FormLabel>Notes</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="Additional notes..." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
                 name="is_active"
                 render={({ field }) => (
-                  <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                  <FormItem className="flex items-center justify-between rounded-lg border p-4 md:col-span-2">
                     <div className="space-y-0.5">
                       <FormLabel className="text-base">Active</FormLabel>
                       <p className="text-sm text-muted-foreground">

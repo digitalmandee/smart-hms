@@ -26,12 +26,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useAdmissions, useCreateAdmission } from "@/hooks/useAdmissions";
+import { useCreateAdmission } from "@/hooks/useAdmissions";
 import { useWards, useBeds } from "@/hooks/useIPD";
 import { usePatients } from "@/hooks/usePatients";
 import { useDoctors } from "@/hooks/useDoctors";
 import { useAuth } from "@/contexts/AuthContext";
-import { ArrowLeft, Save, CalendarIcon, Search } from "lucide-react";
+import { Save, CalendarIcon, Search } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -106,32 +106,30 @@ export default function AdmissionFormPage() {
   ).slice(0, 10);
 
   const onSubmit = async (values: AdmissionFormValues) => {
-    if (!profile?.organization_id || !profile?.branch_id) {
-      toast.error("Missing organization or branch context");
+    if (!profile?.branch_id) {
+      toast.error("Missing branch context");
       return;
     }
 
     try {
       await createAdmission({
         patient_id: values.patient_id,
-        organization_id: profile.organization_id,
         branch_id: profile.branch_id,
         admission_date: format(values.admission_date, "yyyy-MM-dd"),
         admission_time: values.admission_time,
         admission_type: values.admission_type,
-        ward_id: values.ward_id || null,
-        bed_id: values.bed_id || null,
-        attending_doctor_id: values.attending_doctor_id || null,
-        admitting_doctor_id: values.admitting_doctor_id || null,
-        chief_complaint: values.chief_complaint || null,
-        diagnosis_on_admission: values.diagnosis_on_admission || null,
-        history_of_present_illness: values.history_of_present_illness || null,
-        clinical_notes: values.clinical_notes || null,
-        deposit_amount: values.deposit_amount || null,
+        ward_id: values.ward_id || undefined,
+        bed_id: values.bed_id || undefined,
+        attending_doctor_id: values.attending_doctor_id || undefined,
+        admitting_doctor_id: values.admitting_doctor_id || undefined,
+        chief_complaint: values.chief_complaint || undefined,
+        diagnosis_on_admission: values.diagnosis_on_admission || undefined,
+        history_of_present_illness: values.history_of_present_illness || undefined,
+        clinical_notes: values.clinical_notes || undefined,
+        deposit_amount: values.deposit_amount || undefined,
         expected_discharge_date: values.expected_discharge_date
           ? format(values.expected_discharge_date, "yyyy-MM-dd")
-          : null,
-        status: "admitted",
+          : undefined,
       });
       toast.success("Patient admitted successfully");
       navigate("/app/ipd/admissions");
@@ -146,12 +144,11 @@ export default function AdmissionFormPage() {
     <div className="space-y-6">
       <PageHeader
         title="New Admission"
-        backButton={
-          <Button variant="ghost" size="sm" onClick={() => navigate("/app/ipd/admissions")}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Admissions
-          </Button>
-        }
+        breadcrumbs={[
+          { label: "IPD", href: "/app/ipd" },
+          { label: "Admissions", href: "/app/ipd/admissions" },
+          { label: "New Admission" },
+        ]}
       />
 
       <Form {...form}>
@@ -381,7 +378,7 @@ export default function AdmissionFormPage() {
                       <SelectContent>
                         {doctors?.map((doctor) => (
                           <SelectItem key={doctor.id} value={doctor.id}>
-                            Dr. {doctor.profiles?.full_name}
+                            Dr. {doctor.profile?.full_name}
                           </SelectItem>
                         ))}
                       </SelectContent>

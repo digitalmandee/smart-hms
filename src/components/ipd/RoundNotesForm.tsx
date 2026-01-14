@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { useDailyRounds } from "@/hooks/useDailyRounds";
+import { useCreateDailyRound } from "@/hooks/useDailyRounds";
 import { Save } from "lucide-react";
 import { toast } from "sonner";
 
@@ -58,7 +58,7 @@ const conditionStatuses = [
 ];
 
 export function RoundNotesForm({ admissionId, doctorId, onSuccess }: RoundNotesFormProps) {
-  const { createRound, isCreatingRound } = useDailyRounds(admissionId);
+  const { mutateAsync: createRound, isPending: isCreatingRound } = useCreateDailyRound();
 
   const form = useForm<RoundNotesFormValues>({
     resolver: zodResolver(roundNotesSchema),
@@ -84,15 +84,15 @@ export function RoundNotesForm({ admissionId, doctorId, onSuccess }: RoundNotesF
         doctor_id: doctorId,
         round_date: values.round_date,
         round_time: values.round_time,
-        condition_status: values.condition_status || null,
-        findings: values.findings || null,
-        diagnosis_update: values.diagnosis_update || null,
-        instructions: values.instructions || null,
-        diet_orders: values.diet_orders || null,
-        activity_orders: values.activity_orders || null,
-        critical_notes: values.critical_notes || null,
+        condition_status: values.condition_status || undefined,
+        findings: values.findings || undefined,
+        diagnosis_update: values.diagnosis_update || undefined,
+        instructions: values.instructions || undefined,
+        diet_orders: values.diet_orders || undefined,
+        activity_orders: values.activity_orders || undefined,
+        critical_notes: values.critical_notes || undefined,
         medications_changed: values.medications_changed,
-        notes: values.notes || null,
+        notes: values.notes || undefined,
       });
       toast.success("Round notes saved successfully");
       form.reset();

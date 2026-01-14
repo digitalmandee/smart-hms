@@ -5,11 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
 import { useAdmissions } from "@/hooks/useAdmissions";
-import { useDailyRounds } from "@/hooks/useDailyRounds";
+import { useDailyRounds, useIPDVitals } from "@/hooks/useDailyRounds";
+import { useNursingNotes } from "@/hooks/useNursingCare";
 import {
-  ArrowLeft,
   User,
   Bed,
   Stethoscope,
@@ -23,11 +22,10 @@ import {
 export default function AdmissionDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const admissionsQuery = useAdmissions();
-  const roundsQuery = useDailyRounds(id);
-  
-  const admissions = admissionsQuery.data;
-  const rounds = roundsQuery.data;
+  const { data: admissions } = useAdmissions();
+  const { data: rounds } = useDailyRounds(id);
+  const { data: vitals } = useIPDVitals(id);
+  const { data: nursingNotes } = useNursingNotes(id);
 
   const admission = admissions?.find((a) => a.id === id);
 
@@ -39,9 +37,9 @@ export default function AdmissionDetailPage() {
     );
   }
 
-  const patient = admission.patients;
-  const ward = admission.wards;
-  const bed = admission.beds;
+  const patient = admission.patient;
+  const ward = admission.ward;
+  const bed = admission.bed;
   const attendingDoctor = admission.attending_doctor;
 
   const getStatusColor = (status: string) => {
@@ -63,12 +61,11 @@ export default function AdmissionDetailPage() {
     <div className="space-y-6">
       <PageHeader
         title={`Admission: ${admission.admission_number} - ${patient?.first_name} ${patient?.last_name}`}
-        backButton={
-          <Button variant="ghost" size="sm" onClick={() => navigate("/app/ipd/admissions")}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Admissions
-          </Button>
-        }
+        breadcrumbs={[
+          { label: "IPD", href: "/app/ipd" },
+          { label: "Admissions", href: "/app/ipd/admissions" },
+          { label: admission.admission_number },
+        ]}
         actions={
           admission.status === "admitted" && (
             <Button onClick={() => navigate(`/app/ipd/discharge/${id}`)}>
@@ -122,7 +119,7 @@ export default function AdmissionDetailPage() {
               <div>
                 <p className="text-sm text-muted-foreground">Attending Doctor</p>
                 <p className="font-medium">
-                  {attendingDoctor?.profiles?.full_name || "Not assigned"}
+                  {attendingDoctor?.profile?.full_name || "Not assigned"}
                 </p>
               </div>
             </div>
@@ -263,7 +260,7 @@ export default function AdmissionDetailPage() {
                             {format(new Date(round.round_date), "PPP")} at {round.round_time}
                           </p>
                           <p className="text-sm text-muted-foreground">
-                            Dr. {round.doctors?.profiles?.full_name}
+                            Dr. {round.doctor?.profile?.full_name}
                           </p>
                         </div>
                         {round.condition_status && (
@@ -321,9 +318,9 @@ export default function AdmissionDetailPage() {
                           </td>
                           <td className="p-2">{v.temperature}°F</td>
                           <td className="p-2">
-                            {v.systolic_bp}/{v.diastolic_bp}
+                            {v.blood_pressure_systolic}/{v.blood_pressure_diastolic}
                           </td>
-                          <td className="p-2">{v.pulse_rate}</td>
+                          <td className="p-2">{v.pulse}</td>
                           <td className="p-2">{v.respiratory_rate}</td>
                           <td className="p-2">{v.oxygen_saturation}%</td>
                         </tr>
@@ -354,23 +351,16 @@ export default function AdmissionDetailPage() {
                       <div className="flex justify-between items-start mb-2">
                         <div>
                           <p className="font-medium">
-                            {format(new Date(note.note_date), "PPP")} at {note.note_time}
+                            {format(new Date(note.created_at || new Date()), "PPP HH:mm")}
                           </p>
                           <Badge variant="outline" className="mt-1">
                             {note.note_type}
                           </Badge>
                         </div>
                       </div>
-                      {note.assessment && (
+                      {note.notes && (
                         <div className="mt-2">
-                          <p className="text-sm font-medium">Assessment</p>
-                          <p className="text-sm text-muted-foreground">{note.assessment}</p>
-                        </div>
-                      )}
-                      {note.intervention && (
-                        <div className="mt-2">
-                          <p className="text-sm font-medium">Intervention</p>
-                          <p className="text-sm text-muted-foreground">{note.intervention}</p>
+                          <p className="text-sm text-muted-foreground">{note.notes}</p>
                         </div>
                       )}
                     </div>
