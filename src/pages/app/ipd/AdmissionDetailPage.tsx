@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { format } from "date-fns";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useAdmissions } from "@/hooks/useAdmissions";
 import { useDailyRounds, useIPDVitals } from "@/hooks/useDailyRounds";
 import { useNursingNotes, useIPDMedications } from "@/hooks/useNursingCare";
+import { useERByAdmissionId, TRIAGE_LEVELS } from "@/hooks/useEmergency";
 import { BedTransferModal } from "@/components/ipd/BedTransferModal";
 import { BedTransferHistory } from "@/components/ipd/BedTransferHistory";
 import { PatientQuickInfo } from "@/components/consultation/PatientQuickInfo";
@@ -18,6 +19,7 @@ import { NursingNotesForm } from "@/components/ipd/NursingNotesForm";
 import { IPDMedicationOrderForm } from "@/components/ipd/IPDMedicationOrderForm";
 import { CarePlansList } from "@/components/ipd/CarePlansList";
 import { DietChartCard } from "@/components/ipd/DietChartCard";
+import { TriageBadge } from "@/components/emergency/TriageBadge";
 import {
   User,
   Bed,
@@ -31,6 +33,8 @@ import {
   History,
   Plus,
   UtensilsCrossed,
+  Siren,
+  ExternalLink,
 } from "lucide-react";
 
 export default function AdmissionDetailPage() {
@@ -41,6 +45,7 @@ export default function AdmissionDetailPage() {
   const { data: vitals, refetch: refetchVitals } = useIPDVitals(id);
   const { data: nursingNotes, refetch: refetchNotes } = useNursingNotes(id);
   const { data: medications = [] } = useIPDMedications(id);
+  const { data: erRegistration } = useERByAdmissionId(id);
   const [transferModalOpen, setTransferModalOpen] = useState(false);
   const [vitalsDialogOpen, setVitalsDialogOpen] = useState(false);
   const [notesDialogOpen, setNotesDialogOpen] = useState(false);
@@ -107,6 +112,50 @@ export default function AdmissionDetailPage() {
           </div>
         }
       />
+
+      {/* ER Origin Banner - for emergency admissions */}
+      {erRegistration && (
+        <Card className="border-red-200 dark:border-red-900 bg-red-50/50 dark:bg-red-950/20">
+          <CardContent className="py-4">
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <div className="flex items-center gap-4">
+                <div className="p-2 rounded-full bg-red-500/10">
+                  <Siren className="h-6 w-6 text-red-500" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Badge variant="destructive" className="font-semibold">
+                      Emergency Admission
+                    </Badge>
+                    <span className="font-mono text-sm font-semibold">
+                      {erRegistration.er_number}
+                    </span>
+                    {erRegistration.triage_level && (
+                      <TriageBadge level={erRegistration.triage_level} size="sm" />
+                    )}
+                  </div>
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <span>
+                      Arrived: {format(new Date(erRegistration.arrival_time), "dd MMM yyyy HH:mm")}
+                    </span>
+                    {erRegistration.chief_complaint && (
+                      <span className="truncate max-w-xs">
+                        Complaint: {erRegistration.chief_complaint}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <Link to={`/app/emergency/${erRegistration.id}`}>
+                <Button variant="outline" size="sm">
+                  View ER Details
+                  <ExternalLink className="h-4 w-4 ml-2" />
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Quick Stats */}
       <div className="grid gap-4 md:grid-cols-4">

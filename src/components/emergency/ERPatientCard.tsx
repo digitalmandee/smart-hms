@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { TriageBadge } from "./TriageBadge";
 import { EmergencyRegistration, TRIAGE_LEVELS } from "@/hooks/useEmergency";
 import { formatDistanceToNow, differenceInMinutes } from "date-fns";
-import { Clock, User, MapPin, Stethoscope, AlertTriangle, ArrowRight } from "lucide-react";
+import { Clock, User, MapPin, Stethoscope, AlertTriangle, ArrowRight, Printer, UserX } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 
@@ -13,6 +13,8 @@ interface ERPatientCardProps {
   onTriage?: () => void;
   onTreat?: () => void;
   onAdmit?: () => void;
+  onPrint?: () => void;
+  onLinkPatient?: () => void;
   compact?: boolean;
 }
 
@@ -21,12 +23,15 @@ export const ERPatientCard = ({
   onTriage,
   onTreat,
   onAdmit,
+  onPrint,
+  onLinkPatient,
   compact = false,
 }: ERPatientCardProps) => {
   const navigate = useNavigate();
   const waitMinutes = differenceInMinutes(new Date(), new Date(registration.arrival_time));
   const isCritical = registration.triage_level === "1" || registration.triage_level === "2";
   const triageInfo = TRIAGE_LEVELS.find(t => t.level === registration.triage_level);
+  const isUnknownPatient = !registration.patient_id;
 
   const patientName = registration.patient
     ? `${registration.patient.first_name} ${registration.patient.last_name}`
@@ -75,12 +80,23 @@ export const ERPatientCard = ({
 
             {/* Patient info */}
             <div className="flex items-center gap-2 text-sm">
-              <User className="h-4 w-4 text-muted-foreground" />
-              <span className="font-medium truncate">{patientName}</span>
+              {isUnknownPatient ? (
+                <UserX className="h-4 w-4 text-amber-500" />
+              ) : (
+                <User className="h-4 w-4 text-muted-foreground" />
+              )}
+              <span className={cn("font-medium truncate", isUnknownPatient && "text-amber-600")}>
+                {patientName}
+              </span>
               {registration.patient?.patient_number && (
-                <span className="text-muted-foreground text-xs">
-                  ({registration.patient.patient_number})
-                </span>
+                <Badge variant="outline" className="text-xs font-mono">
+                  {registration.patient.patient_number}
+                </Badge>
+              )}
+              {isUnknownPatient && !compact && (
+                <Badge variant="outline" className="text-xs border-amber-500 text-amber-600">
+                  Not Linked
+                </Badge>
               )}
             </div>
 
@@ -117,6 +133,16 @@ export const ERPatientCard = ({
           {/* Actions */}
           {!compact && (
             <div className="flex flex-col gap-1" onClick={(e) => e.stopPropagation()}>
+              {onPrint && (
+                <Button size="sm" variant="ghost" onClick={onPrint} title="Print Token">
+                  <Printer className="h-4 w-4" />
+                </Button>
+              )}
+              {isUnknownPatient && onLinkPatient && (
+                <Button size="sm" variant="outline" className="border-amber-500 text-amber-600 hover:bg-amber-50" onClick={onLinkPatient}>
+                  Link Patient
+                </Button>
+              )}
               {!registration.triage_level && onTriage && (
                 <Button size="sm" variant="default" onClick={onTriage}>
                   Triage

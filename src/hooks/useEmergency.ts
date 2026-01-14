@@ -720,3 +720,63 @@ export const useQuickAdmission = () => {
     },
   });
 };
+
+// Link patient to ER registration
+export const useLinkPatientToER = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      erRegistrationId,
+      patientId,
+    }: {
+      erRegistrationId: string;
+      patientId: string;
+    }) => {
+      const { data, error } = await supabase
+        .from("emergency_registrations")
+        .update({
+          patient_id: patientId,
+          unknown_patient_details: null, // Clear unknown details
+        })
+        .eq("id", erRegistrationId)
+        .select(`
+          *,
+          patient:patients(id, first_name, last_name, patient_number)
+        `)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["emergency-registration", variables.erRegistrationId] });
+      queryClient.invalidateQueries({ queryKey: ["emergency-registrations"] });
+      queryClient.invalidateQueries({ queryKey: ["er-queue"] });
+      toast.success("Patient linked successfully");
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to link patient");
+    },
+  });
+};
+
+// Get ER registration by admission ID (for IPD view)
+export const useERByAdmissionId = (admissionId: string | undefined) => {
+  return useQuery({
+    queryKey: ["er-by-admission", admissionId],
+    queryFn: async () => {
+      if (!admissionId) return null;
+
+      const { data, error } = await supabase
+        .from("emergency_registrations")
+        .select("id, er_number, triage_level, arrival_time, chief_complaint, is_trauma, is_mlc")
+        .eq("admission_id", admissionId)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!admissionId,
+  });
+};
