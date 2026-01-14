@@ -123,6 +123,16 @@ import AmbulanceAlertsPage from "./pages/app/emergency/AmbulanceAlertsPage";
 import QuickAdmissionPage from "./pages/app/emergency/QuickAdmissionPage";
 import ERDischargeFormPage from "./pages/app/emergency/ERDischargeFormPage";
 
+// OT pages
+import OTDashboard from "./pages/app/ot/OTDashboard";
+import OTSchedulePage from "./pages/app/ot/OTSchedulePage";
+import SurgeriesListPage from "./pages/app/ot/SurgeriesListPage";
+import SurgeryFormPage from "./pages/app/ot/SurgeryFormPage";
+import SurgeryDetailPage from "./pages/app/ot/SurgeryDetailPage";
+import OTRoomsPage from "./pages/app/ot/OTRoomsPage";
+import OTRoomFormPage from "./pages/app/ot/OTRoomFormPage";
+import PACUPage from "./pages/app/ot/PACUPage";
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -229,6 +239,18 @@ function App() {
               <Route path="emergency/:id" element={<ERDetailPage />} />
               <Route path="emergency/:id/admit" element={<QuickAdmissionPage />} />
               <Route path="emergency/:id/discharge" element={<ERDischargeFormPage />} />
+              
+              {/* OT routes */}
+              <Route path="ot" element={<OTDashboard />} />
+              <Route path="ot/schedule" element={<OTSchedulePage />} />
+              <Route path="ot/surgeries" element={<SurgeriesListPage />} />
+              <Route path="ot/surgeries/new" element={<SurgeryFormPage />} />
+              <Route path="ot/surgeries/:id" element={<SurgeryDetailPage />} />
+              <Route path="ot/surgeries/:id/edit" element={<SurgeryFormPage />} />
+              <Route path="ot/rooms" element={<OTRoomsPage />} />
+              <Route path="ot/rooms/new" element={<OTRoomFormPage />} />
+              <Route path="ot/rooms/:id/edit" element={<OTRoomFormPage />} />
+              <Route path="ot/pacu" element={<PACUPage />} />
               
               {/* Lab routes */}
               <Route path="lab/queue" element={<LabQueuePage />} />
