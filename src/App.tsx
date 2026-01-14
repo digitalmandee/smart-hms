@@ -110,6 +110,7 @@ import HousekeepingQueuePage from "./pages/app/ipd/HousekeepingQueuePage";
 import DailyRoundsPage from "./pages/app/ipd/DailyRoundsPage";
 import NursingStationPage from "./pages/app/ipd/NursingStationPage";
 import DischargesPage from "./pages/app/ipd/DischargesPage";
+import DischargeFormPage from "./pages/app/ipd/DischargeFormPage";
 
 const queryClient = new QueryClient();
 
@@ -197,6 +198,7 @@ const App = () => (
               <Route path="ipd/rounds/:admissionId" element={<DailyRoundsPage />} />
               <Route path="ipd/nursing" element={<NursingStationPage />} />
               <Route path="ipd/discharges" element={<DischargesPage />} />
+              <Route path="ipd/discharge/:id" element={<DischargeFormPage />} />
               
               {/* Lab routes */}
               <Route path="lab/queue" element={<LabQueuePage />} />
