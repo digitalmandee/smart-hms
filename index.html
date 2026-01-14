@@ -25,57 +25,69 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
-      // Disable right-click context menu
-      document.addEventListener('contextmenu', function(e) {
-        e.preventDefault();
-      });
-
-      // Block keyboard shortcuts for dev tools
-      document.addEventListener('keydown', function(e) {
-        // F12
-        if (e.key === 'F12') {
-          e.preventDefault();
-          return false;
-        }
-        // Ctrl+Shift+I (Dev Tools)
-        if (e.ctrlKey && e.shiftKey && e.key === 'I') {
-          e.preventDefault();
-          return false;
-        }
-        // Ctrl+Shift+J (Console)
-        if (e.ctrlKey && e.shiftKey && e.key === 'J') {
-          e.preventDefault();
-          return false;
-        }
-        // Ctrl+Shift+C (Inspect Element)
-        if (e.ctrlKey && e.shiftKey && e.key === 'C') {
-          e.preventDefault();
-          return false;
-        }
-        // Ctrl+U (View Source)
-        if (e.ctrlKey && e.key === 'u') {
-          e.preventDefault();
-          return false;
-        }
-        // Cmd+Option+I (Mac Dev Tools)
-        if (e.metaKey && e.altKey && e.key === 'i') {
-          e.preventDefault();
-          return false;
-        }
-        // Cmd+Option+J (Mac Console)
-        if (e.metaKey && e.altKey && e.key === 'j') {
-          e.preventDefault();
-          return false;
-        }
-        // Cmd+Option+U (Mac View Source)
-        if (e.metaKey && e.altKey && e.key === 'u') {
-          e.preventDefault();
-          return false;
-        }
-      });
-
-      // Detect dev tools open via debugger
+      // Only enable anti-inspect measures in production
       (function() {
+        const hostname = window.location.hostname;
+        const isDevEnvironment = 
+          hostname.includes('lovable.app') ||
+          hostname.includes('lovableproject.com') ||
+          hostname.includes('localhost') ||
+          hostname.includes('127.0.0.1') ||
+          hostname.includes('webcontainer') ||
+          hostname === '';
+
+        if (isDevEnvironment) return;
+
+        // Disable right-click context menu
+        document.addEventListener('contextmenu', function(e) {
+          e.preventDefault();
+        });
+
+        // Block keyboard shortcuts for dev tools
+        document.addEventListener('keydown', function(e) {
+          // F12
+          if (e.key === 'F12') {
+            e.preventDefault();
+            return false;
+          }
+          // Ctrl+Shift+I (Dev Tools)
+          if (e.ctrlKey && e.shiftKey && e.key === 'I') {
+            e.preventDefault();
+            return false;
+          }
+          // Ctrl+Shift+J (Console)
+          if (e.ctrlKey && e.shiftKey && e.key === 'J') {
+            e.preventDefault();
+            return false;
+          }
+          // Ctrl+Shift+C (Inspect Element)
+          if (e.ctrlKey && e.shiftKey && e.key === 'C') {
+            e.preventDefault();
+            return false;
+          }
+          // Ctrl+U (View Source)
+          if (e.ctrlKey && e.key === 'u') {
+            e.preventDefault();
+            return false;
+          }
+          // Cmd+Option+I (Mac Dev Tools)
+          if (e.metaKey && e.altKey && e.key === 'i') {
+            e.preventDefault();
+            return false;
+          }
+          // Cmd+Option+J (Mac Console)
+          if (e.metaKey && e.altKey && e.key === 'j') {
+            e.preventDefault();
+            return false;
+          }
+          // Cmd+Option+U (Mac View Source)
+          if (e.metaKey && e.altKey && e.key === 'u') {
+            e.preventDefault();
+            return false;
+          }
+        });
+
+        // Detect dev tools open via debugger
         const devtools = { open: false };
         const threshold = 160;
         setInterval(function() {
