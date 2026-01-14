@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { format } from "date-fns";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,24 +13,39 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { 
   Building2, 
   Users, 
   Pill, 
   ClipboardList, 
   Heart,
-  AlertTriangle,
   User,
-  Bed
+  Bed,
+  Plus,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
 } from "lucide-react";
 import { useWards } from "@/hooks/useIPD";
 import { useAdmissions } from "@/hooks/useAdmissions";
-import { format } from "date-fns";
+import { useIPDVitals } from "@/hooks/useDailyRounds";
+import { useNursingNotes, useIPDMedications } from "@/hooks/useNursingCare";
+import { IPDVitalsForm } from "@/components/ipd/IPDVitalsForm";
+import { NursingNotesForm } from "@/components/ipd/NursingNotesForm";
 
 export default function NursingStationPage() {
   const navigate = useNavigate();
   const [selectedWardId, setSelectedWardId] = useState<string>("");
   const [activeTab, setActiveTab] = useState("patients");
+  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
+  const [vitalsDialogOpen, setVitalsDialogOpen] = useState(false);
+  const [notesDialogOpen, setNotesDialogOpen] = useState(false);
 
   const { data: wards, isLoading: loadingWards } = useWards();
   const { data: admissions, isLoading: loadingAdmissions } = useAdmissions("admitted");
@@ -40,6 +56,9 @@ export default function NursingStationPage() {
   const wardPatients = selectedWardId
     ? (admissions || []).filter((adm: any) => adm.ward?.id === selectedWardId)
     : [];
+
+  // Get all admission IDs for bulk fetching
+  const admissionIds = wardPatients.map((adm: any) => adm.id);
 
   return (
     <div className="space-y-6">
@@ -151,7 +170,10 @@ export default function NursingStationPage() {
                           variant="outline"
                           size="sm"
                           className="flex-1"
-                          onClick={() => {/* TODO: Add vitals */}}
+                          onClick={() => {
+                            setSelectedPatientId(adm.id);
+                            setVitalsDialogOpen(true);
+                          }}
                         >
                           <Heart className="h-4 w-4 mr-1" />
                           Vitals
@@ -179,10 +201,18 @@ export default function NursingStationPage() {
                   Medication Administration
                 </CardTitle>
               </CardHeader>
-              <CardContent className="text-center py-8 text-muted-foreground">
-                <Pill className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Medication schedule coming soon</p>
-                <p className="text-sm">Track and administer medications for patients</p>
+              <CardContent>
+                {wardPatients.length > 0 ? (
+                  <div className="space-y-4">
+                    {wardPatients.map((adm: any) => (
+                      <MedicationRow key={adm.id} admission={adm} />
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground text-center py-8">
+                    No patients in this ward
+                  </p>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -190,16 +220,31 @@ export default function NursingStationPage() {
           {/* Vitals Tab */}
           <TabsContent value="vitals" className="mt-4">
             <Card>
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Heart className="h-5 w-5" />
                   Vitals Monitoring
                 </CardTitle>
               </CardHeader>
-              <CardContent className="text-center py-8 text-muted-foreground">
-                <Heart className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Vitals monitoring coming soon</p>
-                <p className="text-sm">Record and track patient vitals</p>
+              <CardContent>
+                {wardPatients.length > 0 ? (
+                  <div className="space-y-4">
+                    {wardPatients.map((adm: any) => (
+                      <VitalsRow 
+                        key={adm.id} 
+                        admission={adm} 
+                        onRecordVitals={() => {
+                          setSelectedPatientId(adm.id);
+                          setVitalsDialogOpen(true);
+                        }}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground text-center py-8">
+                    No patients in this ward
+                  </p>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -207,16 +252,31 @@ export default function NursingStationPage() {
           {/* Notes Tab */}
           <TabsContent value="notes" className="mt-4">
             <Card>
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <ClipboardList className="h-5 w-5" />
                   Nursing Notes
                 </CardTitle>
               </CardHeader>
-              <CardContent className="text-center py-8 text-muted-foreground">
-                <ClipboardList className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Nursing documentation coming soon</p>
-                <p className="text-sm">Create and view nursing notes and care plans</p>
+              <CardContent>
+                {wardPatients.length > 0 ? (
+                  <div className="space-y-4">
+                    {wardPatients.map((adm: any) => (
+                      <NotesRow 
+                        key={adm.id} 
+                        admission={adm}
+                        onAddNote={() => {
+                          setSelectedPatientId(adm.id);
+                          setNotesDialogOpen(true);
+                        }}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground text-center py-8">
+                    No patients in this ward
+                  </p>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -228,6 +288,245 @@ export default function NursingStationPage() {
             <p>Select a ward to view nursing station</p>
           </CardContent>
         </Card>
+      )}
+
+      {/* Vitals Dialog */}
+      <Dialog open={vitalsDialogOpen} onOpenChange={setVitalsDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Record Vital Signs</DialogTitle>
+          </DialogHeader>
+          {selectedPatientId && (
+            <IPDVitalsForm
+              admissionId={selectedPatientId}
+              onSuccess={() => {
+                setVitalsDialogOpen(false);
+                setSelectedPatientId(null);
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Notes Dialog */}
+      <Dialog open={notesDialogOpen} onOpenChange={setNotesDialogOpen}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Add Nursing Note</DialogTitle>
+          </DialogHeader>
+          {selectedPatientId && (
+            <NursingNotesForm
+              admissionId={selectedPatientId}
+              onSuccess={() => {
+                setNotesDialogOpen(false);
+                setSelectedPatientId(null);
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+// Sub-components for each tab row
+function MedicationRow({ admission }: { admission: any }) {
+  const { data: medications = [] } = useIPDMedications(admission.id);
+  const activeMeds = medications.filter((m: any) => m.is_active);
+
+  return (
+    <div className="p-4 border rounded-lg">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+            <User className="h-4 w-4 text-primary" />
+          </div>
+          <div>
+            <p className="font-medium">
+              {admission.patient?.first_name} {admission.patient?.last_name}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Bed {admission.bed?.bed_number}
+            </p>
+          </div>
+        </div>
+        <Badge variant="outline">{activeMeds.length} Active Meds</Badge>
+      </div>
+      {activeMeds.length > 0 ? (
+        <div className="grid gap-2 md:grid-cols-2">
+          {activeMeds.slice(0, 4).map((med: any) => (
+            <div key={med.id} className="flex items-center gap-2 text-sm p-2 bg-muted rounded">
+              <Pill className="h-4 w-4 text-muted-foreground" />
+              <span>{med.medicine?.name || med.medicine_name}</span>
+              <span className="text-muted-foreground">({med.frequency})</span>
+            </div>
+          ))}
+          {activeMeds.length > 4 && (
+            <p className="text-sm text-muted-foreground">
+              +{activeMeds.length - 4} more medications
+            </p>
+          )}
+        </div>
+      ) : (
+        <p className="text-sm text-muted-foreground">No active medications</p>
+      )}
+    </div>
+  );
+}
+
+function VitalsRow({ admission, onRecordVitals }: { admission: any; onRecordVitals: () => void }) {
+  const { data: vitals = [] } = useIPDVitals(admission.id);
+  const latestVitals = vitals[0];
+
+  const getVitalStatus = (vital: any) => {
+    if (!vital) return null;
+    // Simple status check - can be expanded
+    const issues = [];
+    if (vital.blood_pressure_systolic > 140 || vital.blood_pressure_diastolic > 90) {
+      issues.push("High BP");
+    }
+    if (vital.temperature > 100.4) {
+      issues.push("Fever");
+    }
+    if (vital.oxygen_saturation < 95) {
+      issues.push("Low SpO2");
+    }
+    return issues;
+  };
+
+  const issues = latestVitals ? getVitalStatus(latestVitals) : null;
+
+  return (
+    <div className="p-4 border rounded-lg">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+            <User className="h-4 w-4 text-primary" />
+          </div>
+          <div>
+            <p className="font-medium">
+              {admission.patient?.first_name} {admission.patient?.last_name}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Bed {admission.bed?.bed_number}
+            </p>
+          </div>
+        </div>
+        <Button size="sm" variant="outline" onClick={onRecordVitals}>
+          <Plus className="h-4 w-4 mr-1" />
+          Record
+        </Button>
+      </div>
+      {latestVitals ? (
+        <div className="mt-3 grid grid-cols-3 md:grid-cols-6 gap-2 text-sm">
+          <div className="p-2 bg-muted rounded text-center">
+            <p className="text-xs text-muted-foreground">Temp</p>
+            <p className={latestVitals.temperature > 100.4 ? "text-destructive font-medium" : ""}>
+              {latestVitals.temperature}°F
+            </p>
+          </div>
+          <div className="p-2 bg-muted rounded text-center">
+            <p className="text-xs text-muted-foreground">BP</p>
+            <p className={latestVitals.blood_pressure_systolic > 140 ? "text-destructive font-medium" : ""}>
+              {latestVitals.blood_pressure_systolic}/{latestVitals.blood_pressure_diastolic}
+            </p>
+          </div>
+          <div className="p-2 bg-muted rounded text-center">
+            <p className="text-xs text-muted-foreground">Pulse</p>
+            <p>{latestVitals.pulse}</p>
+          </div>
+          <div className="p-2 bg-muted rounded text-center">
+            <p className="text-xs text-muted-foreground">RR</p>
+            <p>{latestVitals.respiratory_rate}</p>
+          </div>
+          <div className="p-2 bg-muted rounded text-center">
+            <p className="text-xs text-muted-foreground">SpO2</p>
+            <p className={latestVitals.oxygen_saturation < 95 ? "text-destructive font-medium" : ""}>
+              {latestVitals.oxygen_saturation}%
+            </p>
+          </div>
+          <div className="p-2 bg-muted rounded text-center">
+            <p className="text-xs text-muted-foreground">Time</p>
+            <p>{format(new Date(latestVitals.recorded_at), "HH:mm")}</p>
+          </div>
+        </div>
+      ) : (
+        <p className="mt-3 text-sm text-muted-foreground flex items-center gap-1">
+          <Clock className="h-4 w-4" />
+          No vitals recorded
+        </p>
+      )}
+      {issues && issues.length > 0 && (
+        <div className="mt-2 flex gap-1">
+          {issues.map((issue, i) => (
+            <Badge key={i} variant="destructive" className="text-xs">
+              <AlertCircle className="h-3 w-3 mr-1" />
+              {issue}
+            </Badge>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function NotesRow({ admission, onAddNote }: { admission: any; onAddNote: () => void }) {
+  const { data: notes = [] } = useNursingNotes(admission.id);
+  const todayNotes = notes.filter((n: any) => {
+    const noteDate = new Date(n.created_at).toDateString();
+    return noteDate === new Date().toDateString();
+  });
+
+  return (
+    <div className="p-4 border rounded-lg">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+            <User className="h-4 w-4 text-primary" />
+          </div>
+          <div>
+            <p className="font-medium">
+              {admission.patient?.first_name} {admission.patient?.last_name}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Bed {admission.bed?.bed_number}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline">
+            {todayNotes.length} notes today
+          </Badge>
+          <Button size="sm" variant="outline" onClick={onAddNote}>
+            <Plus className="h-4 w-4 mr-1" />
+            Add Note
+          </Button>
+        </div>
+      </div>
+      {todayNotes.length > 0 ? (
+        <div className="mt-3 space-y-2">
+          {todayNotes.slice(0, 2).map((note: any) => (
+            <div key={note.id} className="text-sm p-2 bg-muted rounded">
+              <div className="flex items-center gap-2 mb-1">
+                <Badge variant="secondary" className="text-xs">{note.note_type}</Badge>
+                <span className="text-xs text-muted-foreground">
+                  {format(new Date(note.created_at), "HH:mm")}
+                </span>
+              </div>
+              <p className="line-clamp-2">{note.notes}</p>
+            </div>
+          ))}
+          {todayNotes.length > 2 && (
+            <p className="text-sm text-muted-foreground">
+              +{todayNotes.length - 2} more notes
+            </p>
+          )}
+        </div>
+      ) : (
+        <p className="mt-3 text-sm text-muted-foreground flex items-center gap-1">
+          <ClipboardList className="h-4 w-4" />
+          No notes recorded today
+        </p>
       )}
     </div>
   );

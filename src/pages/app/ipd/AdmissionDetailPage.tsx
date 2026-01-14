@@ -181,99 +181,131 @@ export default function AdmissionDetailPage() {
 
       {/* Main Content */}
       <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList>
+        <TabsList className="flex-wrap">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="rounds">Daily Rounds</TabsTrigger>
           <TabsTrigger value="vitals">Vitals</TabsTrigger>
           <TabsTrigger value="nursing">Nursing Notes</TabsTrigger>
+          <TabsTrigger value="orders">
+            <Pill className="h-4 w-4 mr-1" />
+            Medications
+          </TabsTrigger>
+          <TabsTrigger value="careplans">
+            <ClipboardList className="h-4 w-4 mr-1" />
+            Care Plans
+          </TabsTrigger>
+          <TabsTrigger value="diet">
+            <UtensilsCrossed className="h-4 w-4 mr-1" />
+            Diet
+          </TabsTrigger>
           <TabsTrigger value="transfers">
             <History className="h-4 w-4 mr-1" />
             Transfers
           </TabsTrigger>
-          <TabsTrigger value="orders">Orders</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <ClipboardList className="h-5 w-5" />
-                  Admission Details
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Admission Number</p>
-                    <p className="font-medium">{admission.admission_number}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Admission Type</p>
-                    <p className="font-medium capitalize">{admission.admission_type}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Admission Date</p>
-                    <p className="font-medium">
-                      {format(new Date(admission.admission_date), "PPP")}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Admission Time</p>
-                    <p className="font-medium">{admission.admission_time}</p>
-                  </div>
-                  {admission.expected_discharge_date && (
+          <div className="grid gap-4 lg:grid-cols-3">
+            {/* Patient Quick Info - Prominently displayed */}
+            {patient && (
+              <div className="lg:col-span-1">
+                <PatientQuickInfo
+                  patient={{
+                    id: patient.id,
+                    first_name: patient.first_name,
+                    last_name: patient.last_name,
+                    patient_number: patient.patient_number,
+                    phone: patient.phone,
+                    email: null,
+                    date_of_birth: patient.date_of_birth,
+                    gender: patient.gender,
+                    blood_group: null,
+                  }}
+                />
+              </div>
+            )}
+            
+            <div className="lg:col-span-2 space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <ClipboardList className="h-5 w-5" />
+                    Admission Details
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <p className="text-sm text-muted-foreground">Expected Discharge</p>
+                      <p className="text-sm text-muted-foreground">Admission Number</p>
+                      <p className="font-medium">{admission.admission_number}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Admission Type</p>
+                      <p className="font-medium capitalize">{admission.admission_type}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Admission Date</p>
                       <p className="font-medium">
-                        {format(new Date(admission.expected_discharge_date), "PPP")}
+                        {format(new Date(admission.admission_date), "PPP")}
                       </p>
                     </div>
-                  )}
-                  {admission.deposit_amount && (
                     <div>
-                      <p className="text-sm text-muted-foreground">Deposit</p>
-                      <p className="font-medium">Rs. {admission.deposit_amount.toFixed(2)}</p>
+                      <p className="text-sm text-muted-foreground">Admission Time</p>
+                      <p className="font-medium">{admission.admission_time}</p>
+                    </div>
+                    {admission.expected_discharge_date && (
+                      <div>
+                        <p className="text-sm text-muted-foreground">Expected Discharge</p>
+                        <p className="font-medium">
+                          {format(new Date(admission.expected_discharge_date), "PPP")}
+                        </p>
+                      </div>
+                    )}
+                    {admission.deposit_amount && (
+                      <div>
+                        <p className="text-sm text-muted-foreground">Deposit</p>
+                        <p className="font-medium">Rs. {admission.deposit_amount.toFixed(2)}</p>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5" />
+                    Clinical Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {admission.chief_complaint && (
+                    <div>
+                      <p className="text-sm text-muted-foreground">Chief Complaint</p>
+                      <p>{admission.chief_complaint}</p>
                     </div>
                   )}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  Clinical Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {admission.chief_complaint && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">Chief Complaint</p>
-                    <p>{admission.chief_complaint}</p>
-                  </div>
-                )}
-                {admission.diagnosis_on_admission && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">Diagnosis on Admission</p>
-                    <p>{admission.diagnosis_on_admission}</p>
-                  </div>
-                )}
-                {admission.history_of_present_illness && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">History of Present Illness</p>
-                    <p>{admission.history_of_present_illness}</p>
-                  </div>
-                )}
-                {admission.clinical_notes && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">Clinical Notes</p>
-                    <p>{admission.clinical_notes}</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                  {admission.diagnosis_on_admission && (
+                    <div>
+                      <p className="text-sm text-muted-foreground">Diagnosis on Admission</p>
+                      <p>{admission.diagnosis_on_admission}</p>
+                    </div>
+                  )}
+                  {admission.history_of_present_illness && (
+                    <div>
+                      <p className="text-sm text-muted-foreground">History of Present Illness</p>
+                      <p>{admission.history_of_present_illness}</p>
+                    </div>
+                  )}
+                  {admission.clinical_notes && (
+                    <div>
+                      <p className="text-sm text-muted-foreground">Clinical Notes</p>
+                      <p>{admission.clinical_notes}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </TabsContent>
 
@@ -330,7 +362,10 @@ export default function AdmissionDetailPage() {
                 <Activity className="h-5 w-5" />
                 Vital Signs
               </CardTitle>
-              <Button size="sm">Record Vitals</Button>
+              <Button size="sm" onClick={() => setVitalsDialogOpen(true)}>
+                <Plus className="h-4 w-4 mr-1" />
+                Record Vitals
+              </Button>
             </CardHeader>
             <CardContent>
               {vitals && vitals.length > 0 ? (
@@ -377,7 +412,10 @@ export default function AdmissionDetailPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Nursing Notes</CardTitle>
-              <Button size="sm">Add Note</Button>
+              <Button size="sm" onClick={() => setNotesDialogOpen(true)}>
+                <Plus className="h-4 w-4 mr-1" />
+                Add Note
+              </Button>
             </CardHeader>
             <CardContent>
               {nursingNotes && nursingNotes.length > 0 ? (
@@ -411,26 +449,114 @@ export default function AdmissionDetailPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="transfers" className="space-y-4">
-          <BedTransferHistory admissionId={id!} />
-        </TabsContent>
-
         <TabsContent value="orders" className="space-y-4">
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="flex items-center gap-2">
                 <Pill className="h-5 w-5" />
                 Medication Orders
               </CardTitle>
+              <Button size="sm" onClick={() => setMedsDialogOpen(true)}>
+                <Plus className="h-4 w-4 mr-1" />
+                New Order
+              </Button>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground text-center py-8">
-                Medication orders will be displayed here
-              </p>
+              {medications.length > 0 ? (
+                <div className="space-y-3">
+                  {medications.map((med: any) => (
+                    <div key={med.id} className="p-4 border rounded-lg">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="font-medium">
+                            {med.medicine?.name || med.medicine_name}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {med.dosage} - {med.route} - {med.frequency}
+                          </p>
+                          {med.special_instructions && (
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {med.special_instructions}
+                            </p>
+                          )}
+                        </div>
+                        <div className="text-right">
+                          <Badge variant={med.is_active ? "default" : "secondary"}>
+                            {med.is_active ? "Active" : "Stopped"}
+                          </Badge>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {format(new Date(med.start_date), "MMM d")}
+                            {med.end_date && <> - {format(new Date(med.end_date), "MMM d")}</>}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-muted-foreground text-center py-8">
+                  No medication orders yet
+                </p>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="careplans" className="space-y-4">
+          <CarePlansList admissionId={id!} />
+        </TabsContent>
+
+        <TabsContent value="diet" className="space-y-4">
+          <DietChartCard admissionId={id!} />
+        </TabsContent>
+
+        <TabsContent value="transfers" className="space-y-4">
+          <BedTransferHistory admissionId={id!} />
+        </TabsContent>
       </Tabs>
+
+      {/* Dialogs */}
+      <Dialog open={vitalsDialogOpen} onOpenChange={setVitalsDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Record Vital Signs</DialogTitle>
+          </DialogHeader>
+          <IPDVitalsForm
+            admissionId={id!}
+            onSuccess={() => {
+              setVitalsDialogOpen(false);
+              refetchVitals();
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={notesDialogOpen} onOpenChange={setNotesDialogOpen}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Add Nursing Note</DialogTitle>
+          </DialogHeader>
+          <NursingNotesForm
+            admissionId={id!}
+            onSuccess={() => {
+              setNotesDialogOpen(false);
+              refetchNotes();
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={medsDialogOpen} onOpenChange={setMedsDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>New Medication Order</DialogTitle>
+          </DialogHeader>
+          <IPDMedicationOrderForm
+            admissionId={id!}
+            onSuccess={() => setMedsDialogOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
 
       {/* Transfer Modal */}
       {bed && (
