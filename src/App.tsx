@@ -123,9 +123,17 @@ import AmbulanceAlertsPage from "./pages/app/emergency/AmbulanceAlertsPage";
 import QuickAdmissionPage from "./pages/app/emergency/QuickAdmissionPage";
 import ERDischargeFormPage from "./pages/app/emergency/ERDischargeFormPage";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000,
+      retry: 1,
+    },
+  },
+});
 
-const App = () => (
+function App() {
+  return (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
@@ -297,6 +305,7 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
-);
+  );
+}
 
 export default App;
