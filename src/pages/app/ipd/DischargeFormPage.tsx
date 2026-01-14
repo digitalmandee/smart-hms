@@ -1,0 +1,406 @@
+import { useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { format, differenceInDays } from "date-fns";
+import { PageHeader } from "@/components/PageHeader";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useAdmission, useDischargePatient } from "@/hooks/useAdmissions";
+import { useDischargeSummary, useApproveDischargeSummary } from "@/hooks/useDischarge";
+import { DischargeChecklist } from "@/components/ipd/DischargeChecklist";
+import { DischargeSummaryForm } from "@/components/ipd/DischargeSummaryForm";
+import { PrintableDischargeSummary } from "@/components/ipd/PrintableDischargeSummary";
+import { usePrint } from "@/hooks/usePrint";
+import { toast } from "sonner";
+import {
+  User,
+  Calendar,
+  Bed,
+  Clock,
+  FileText,
+  ClipboardCheck,
+  CheckCircle2,
+  AlertTriangle,
+  Printer,
+  LogOut,
+} from "lucide-react";
+
+const DISCHARGE_TYPES = [
+  { value: "normal", label: "Normal Discharge", color: "bg-green-100 text-green-800" },
+  { value: "against_advice", label: "Left Against Medical Advice", color: "bg-amber-100 text-amber-800" },
+  { value: "referred", label: "Referred to Another Facility", color: "bg-blue-100 text-blue-800" },
+  { value: "transfer", label: "Transfer to Another Facility", color: "bg-blue-100 text-blue-800" },
+  { value: "absconded", label: "Absconded", color: "bg-red-100 text-red-800" },
+  { value: "expired", label: "Expired", color: "bg-gray-100 text-gray-800" },
+];
+
+export default function DischargeFormPage() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { printRef, handlePrint } = usePrint();
+
+  const [activeTab, setActiveTab] = useState("checklist");
+  const [dischargeType, setDischargeType] = useState("normal");
+  const [completedChecklist, setCompletedChecklist] = useState<string[]>([]);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+
+  const { data: admission, isLoading: loadingAdmission } = useAdmission(id);
+  const { data: dischargeSummary, isLoading: loadingSummary, refetch: refetchSummary } = useDischargeSummary(id);
+  const { mutateAsync: dischargePatient, isPending: discharging } = useDischargePatient();
+  const { mutateAsync: approveSummary, isPending: approving } = useApproveDischargeSummary();
+
+  const isLoading = loadingAdmission || loadingSummary;
+
+  // Calculate days admitted
+  const daysAdmitted = admission?.admission_date
+    ? differenceInDays(new Date(), new Date(admission.admission_date)) + 1
+    : 0;
+
+  // Check if summary is approved
+  const isSummaryApproved = dischargeSummary?.status === "approved" || dischargeSummary?.status === "finalized";
+  
+  // Check if all required checklist items are complete
+  const requiredChecklistItems = [
+    "discharge_summary",
+    "diagnosis_updated",
+    "medications_reconciled",
+    "prescription_printed",
+    "billing_cleared",
+    "follow_up_scheduled",
+    "instructions_explained",
+    "reports_handed",
+    "valuables_returned",
+    "nursing_clearance",
+    "bed_vacated",
+  ];
+  const allRequiredComplete = requiredChecklistItems.every((item) => 
+    completedChecklist.includes(item)
+  );
+
+  // Can discharge if summary is approved and checklist is complete (or LAMA/absconded/expired)
+  const canDischarge = 
+    (isSummaryApproved && allRequiredComplete) ||
+    ["against_advice", "absconded", "expired"].includes(dischargeType);
+
+  const handleCompleteDischarge = async () => {
+    if (!id) return;
+
+    try {
+      await dischargePatient({
+        admissionId: id,
+        dischargeData: {
+          discharge_type: dischargeType as "normal" | "against_advice" | "referred" | "transfer" | "absconded" | "expired",
+          condition_at_discharge: dischargeSummary?.condition_at_discharge || undefined,
+          discharge_diagnosis: dischargeSummary?.discharge_diagnosis || undefined,
+          discharge_summary: dischargeSummary?.hospital_course || undefined,
+          discharge_instructions: dischargeSummary?.follow_up_instructions || undefined,
+          follow_up_date: dischargeSummary?.follow_up_appointments?.[0]?.date || undefined,
+        },
+      });
+
+      toast.success("Patient discharged successfully");
+      navigate("/app/ipd/discharges");
+    } catch (error) {
+      toast.error("Failed to discharge patient");
+    }
+  };
+
+  const handleApproveSummary = async () => {
+    if (!dischargeSummary?.id) return;
+
+    try {
+      await approveSummary(dischargeSummary.id);
+      refetchSummary();
+      toast.success("Discharge summary approved");
+    } catch (error) {
+      toast.error("Failed to approve summary");
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-10 w-1/3" />
+        <Skeleton className="h-32 w-full" />
+        <Skeleton className="h-96 w-full" />
+      </div>
+    );
+  }
+
+  if (!admission) {
+    return (
+      <div className="text-center py-12">
+        <h2 className="text-lg font-semibold">Admission not found</h2>
+        <Button onClick={() => navigate("/app/ipd/admissions")} className="mt-4">
+          Back to Admissions
+        </Button>
+      </div>
+    );
+  }
+
+  const patient = admission.patient;
+
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title="Patient Discharge"
+        description={`Discharge process for ${patient?.first_name} ${patient?.last_name}`}
+        breadcrumbs={[
+          { label: "IPD", href: "/app/ipd" },
+          { label: "Admissions", href: "/app/ipd/admissions" },
+          { label: admission.admission_number, href: `/app/ipd/admissions/${id}` },
+          { label: "Discharge" },
+        ]}
+        actions={
+          <div className="flex gap-2">
+            {dischargeSummary && (
+              <Button variant="outline" onClick={() => handlePrint()}>
+                <Printer className="h-4 w-4 mr-2" />
+                Print Summary
+              </Button>
+            )}
+          </div>
+        }
+      />
+
+      {/* Patient Summary Card */}
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex flex-wrap gap-6 items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+                <User className="h-8 w-8 text-primary" />
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold">
+                  {patient?.first_name} {patient?.last_name}
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  {patient?.patient_number} • {patient?.gender}, {patient?.date_of_birth ? format(new Date(patient.date_of_birth), "dd MMM yyyy") : "N/A"}
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex flex-wrap gap-4">
+              <div className="flex items-center gap-2 text-sm">
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+                <span>Admitted: {format(new Date(admission.admission_date), "dd MMM yyyy")}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+                <span>{daysAdmitted} days</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Bed className="h-4 w-4 text-muted-foreground" />
+                <span>
+                  {admission.ward?.name} - Bed {admission.bed?.bed_number}
+                </span>
+              </div>
+            </div>
+
+            <Badge variant="outline" className="text-amber-600 border-amber-600">
+              Pending Discharge
+            </Badge>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Discharge Status Overview */}
+      <div className="grid md:grid-cols-3 gap-4">
+        <Card className={isSummaryApproved ? "border-green-200 bg-green-50/50" : ""}>
+          <CardContent className="p-4 flex items-center gap-4">
+            {isSummaryApproved ? (
+              <CheckCircle2 className="h-8 w-8 text-green-600" />
+            ) : (
+              <FileText className="h-8 w-8 text-muted-foreground" />
+            )}
+            <div>
+              <p className="font-medium">Discharge Summary</p>
+              <p className="text-sm text-muted-foreground">
+                {dischargeSummary?.status === "approved" ? "Approved" : 
+                 dischargeSummary?.status === "pending_approval" ? "Pending Approval" :
+                 dischargeSummary?.status === "draft" ? "Draft" : "Not Started"}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className={allRequiredComplete ? "border-green-200 bg-green-50/50" : ""}>
+          <CardContent className="p-4 flex items-center gap-4">
+            {allRequiredComplete ? (
+              <CheckCircle2 className="h-8 w-8 text-green-600" />
+            ) : (
+              <ClipboardCheck className="h-8 w-8 text-muted-foreground" />
+            )}
+            <div>
+              <p className="font-medium">Pre-Discharge Checklist</p>
+              <p className="text-sm text-muted-foreground">
+                {completedChecklist.length} of {requiredChecklistItems.length} items complete
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-sm font-medium mb-2">Discharge Type</p>
+            <Select value={dischargeType} onValueChange={setDischargeType}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {DISCHARGE_TYPES.map((type) => (
+                  <SelectItem key={type.value} value={type.value}>
+                    {type.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Warning for non-normal discharge */}
+      {["against_advice", "absconded", "expired"].includes(dischargeType) && (
+        <Card className="border-amber-200 bg-amber-50">
+          <CardContent className="p-4 flex items-center gap-3">
+            <AlertTriangle className="h-5 w-5 text-amber-600" />
+            <p className="text-sm text-amber-800">
+              {dischargeType === "against_advice" && "Patient is leaving against medical advice. Ensure proper documentation and consent."}
+              {dischargeType === "absconded" && "Patient has absconded. Document the circumstances and notify security."}
+              {dischargeType === "expired" && "Patient has expired. Ensure death certificate and body handling procedures are followed."}
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Main Content Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="checklist" className="flex items-center gap-2">
+            <ClipboardCheck className="h-4 w-4" />
+            Pre-Discharge Checklist
+          </TabsTrigger>
+          <TabsTrigger value="summary" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Discharge Summary
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="checklist" className="mt-6">
+          <DischargeChecklist
+            admissionId={id!}
+            initialCompleted={completedChecklist}
+            onComplete={setCompletedChecklist}
+          />
+        </TabsContent>
+
+        <TabsContent value="summary" className="mt-6 space-y-4">
+          {dischargeSummary?.status === "pending_approval" && (
+            <Card className="border-blue-200 bg-blue-50">
+              <CardContent className="p-4 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <FileText className="h-5 w-5 text-blue-600" />
+                  <p className="text-sm text-blue-800">
+                    Discharge summary is pending approval.
+                  </p>
+                </div>
+                <Button onClick={handleApproveSummary} disabled={approving}>
+                  {approving ? "Approving..." : "Approve Summary"}
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          <DischargeSummaryForm
+            admissionId={id!}
+            existingSummary={dischargeSummary}
+            onSuccess={() => refetchSummary()}
+          />
+        </TabsContent>
+      </Tabs>
+
+      {/* Complete Discharge Button */}
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-semibold">Complete Discharge</h3>
+              <p className="text-sm text-muted-foreground">
+                {canDischarge
+                  ? "All requirements met. You can now discharge the patient."
+                  : "Complete the checklist and approve the discharge summary to proceed."}
+              </p>
+            </div>
+            <Button
+              size="lg"
+              disabled={!canDischarge || discharging}
+              onClick={() => setShowConfirmDialog(true)}
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              {discharging ? "Processing..." : "Complete Discharge"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Confirmation Dialog */}
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Patient Discharge</AlertDialogTitle>
+            <AlertDialogDescription>
+              You are about to discharge {patient?.first_name} {patient?.last_name} with discharge type: <strong>{DISCHARGE_TYPES.find((t) => t.value === dischargeType)?.label}</strong>.
+              <br /><br />
+              This action will:
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li>Update admission status to discharged</li>
+                <li>Mark the bed as available for housekeeping</li>
+                <li>Record the discharge time</li>
+              </ul>
+              <br />
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleCompleteDischarge}>
+              Confirm Discharge
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Hidden Printable Summary */}
+      {dischargeSummary && admission && (
+        <div className="hidden">
+          <div ref={printRef}>
+            <PrintableDischargeSummary
+              admission={admission}
+              summary={dischargeSummary}
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
