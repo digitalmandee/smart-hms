@@ -183,12 +183,13 @@ const App = () => (
               <Route path="ipd" element={<IPDDashboard />} />
               <Route path="ipd/wards" element={<WardsListPage />} />
               <Route path="ipd/wards/new" element={<WardFormPage />} />
-              <Route path="ipd/wards/:id" element={<WardFormPage />} />
+              <Route path="ipd/wards/:id/edit" element={<WardFormPage />} />
               <Route path="ipd/beds" element={<BedsPage />} />
               <Route path="ipd/admissions" element={<AdmissionsListPage />} />
               <Route path="ipd/admissions/new" element={<AdmissionFormPage />} />
               <Route path="ipd/admissions/:id" element={<AdmissionDetailPage />} />
               <Route path="ipd/rounds" element={<DailyRoundsPage />} />
+              <Route path="ipd/rounds/:admissionId" element={<DailyRoundsPage />} />
               <Route path="ipd/nursing" element={<NursingStationPage />} />
               <Route path="ipd/discharges" element={<DischargesPage />} />
               
