@@ -35,8 +35,10 @@ import {
   useShifts,
 } from "@/hooks/useHR";
 import { useBranches } from "@/hooks/useBranches";
+import { useDoctorByEmployeeId, useCreateDoctorForEmployee } from "@/hooks/useDoctors";
 import { useAuth } from "@/contexts/AuthContext";
-import { Loader2, Save, ArrowLeft } from "lucide-react";
+import { DoctorDetailsForm } from "@/components/hr/DoctorDetailsForm";
+import { Loader2, Save, ArrowLeft, Stethoscope } from "lucide-react";
 
 const employeeSchema = z.object({
   employee_number: z.string().min(1, "Employee number is required"),
@@ -64,9 +66,18 @@ const employeeSchema = z.object({
   emergency_contact_phone: z.string().optional(),
   emergency_contact_relation: z.string().optional(),
   notes: z.string().optional(),
+  // Doctor fields
+  specialization: z.string().optional(),
+  qualification: z.string().optional(),
+  license_number: z.string().optional(),
+  consultation_fee: z.number().optional(),
+  is_available: z.boolean().optional(),
 });
 
 type EmployeeFormData = z.infer<typeof employeeSchema>;
+
+// Categories that should show the clinical tab
+const CLINICAL_CATEGORIES = ["doctor", "physician", "consultant", "specialist"];
 
 export default function EmployeeFormPage() {
   const navigate = useNavigate();
@@ -76,6 +87,7 @@ export default function EmployeeFormPage() {
   const isEditing = !!id;
 
   const { data: employee, isLoading: loadingEmployee } = useEmployee(id || "");
+  const { data: doctorData, isLoading: loadingDoctor } = useDoctorByEmployeeId(id || "");
   const { data: branches } = useBranches();
   const { data: departments } = useDepartments();
   const { data: designations } = useDesignations();
@@ -84,6 +96,7 @@ export default function EmployeeFormPage() {
 
   const createEmployee = useCreateEmployee();
   const updateEmployee = useUpdateEmployee();
+  const createDoctorForEmployee = useCreateDoctorForEmployee();
 
   const form = useForm<EmployeeFormData>({
     resolver: zodResolver(employeeSchema),
@@ -94,8 +107,21 @@ export default function EmployeeFormPage() {
       join_date: new Date().toISOString().split("T")[0],
       employee_type: "permanent",
       employment_status: "active",
+      is_available: true,
     },
   });
+
+  const watchCategoryId = form.watch("category_id");
+  
+  // Check if selected category is a clinical/doctor category
+  const selectedCategory = categories?.find(c => c.id === watchCategoryId);
+  const isClinicalCategory = selectedCategory 
+    ? CLINICAL_CATEGORIES.some(cc => 
+        selectedCategory.name.toLowerCase().includes(cc) ||
+        selectedCategory.code?.toLowerCase().includes(cc) ||
+        selectedCategory.requires_license
+      )
+    : false;
 
   useEffect(() => {
     if (employee) {
@@ -125,12 +151,20 @@ export default function EmployeeFormPage() {
         emergency_contact_phone: employee.emergency_contact_phone || "",
         emergency_contact_relation: employee.emergency_contact_relation || "",
         notes: employee.notes || "",
+        // Doctor fields
+        specialization: doctorData?.specialization || "",
+        qualification: doctorData?.qualification || "",
+        license_number: doctorData?.license_number || "",
+        consultation_fee: doctorData?.consultation_fee || undefined,
+        is_available: doctorData?.is_available ?? true,
       });
     }
-  }, [employee, form]);
+  }, [employee, doctorData, form]);
 
   const onSubmit = async (data: EmployeeFormData) => {
     try {
+      let employeeId = id;
+      
       if (isEditing && id) {
         await updateEmployee.mutateAsync({ 
           id, 
@@ -160,13 +194,12 @@ export default function EmployeeFormPage() {
           emergency_contact_relation: data.emergency_contact_relation || null,
           notes: data.notes || null,
         });
-        toast({ title: "Employee updated successfully" });
       } else {
         if (!profile?.organization_id) {
           toast({ title: "Organization not found", variant: "destructive" });
           return;
         }
-        await createEmployee.mutateAsync({
+        const newEmployee = await createEmployee.mutateAsync({
           organization_id: profile.organization_id,
           employee_number: data.employee_number,
           first_name: data.first_name,
@@ -194,8 +227,23 @@ export default function EmployeeFormPage() {
           emergency_contact_relation: data.emergency_contact_relation || null,
           notes: data.notes || null,
         });
-        toast({ title: "Employee created successfully" });
+        employeeId = newEmployee.id;
       }
+
+      // Save doctor details if this is a clinical category
+      if (isClinicalCategory && employeeId && (data.specialization || data.qualification || data.license_number)) {
+        await createDoctorForEmployee.mutateAsync({
+          employeeId,
+          branchId: data.branch_id || undefined,
+          specialization: data.specialization || undefined,
+          qualification: data.qualification || undefined,
+          licenseNumber: data.license_number || undefined,
+          consultationFee: data.consultation_fee,
+          isAvailable: data.is_available ?? true,
+        });
+      }
+
+      toast({ title: isEditing ? "Employee updated successfully" : "Employee created successfully" });
       navigate("/app/hr/employees");
     } catch (error: any) {
       toast({
@@ -206,7 +254,7 @@ export default function EmployeeFormPage() {
     }
   };
 
-  if (isEditing && loadingEmployee) {
+  if (isEditing && (loadingEmployee || loadingDoctor)) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -235,12 +283,18 @@ export default function EmployeeFormPage() {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <Tabs defaultValue="personal" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className={`grid w-full ${isClinicalCategory ? 'grid-cols-6' : 'grid-cols-5'}`}>
               <TabsTrigger value="personal">Personal</TabsTrigger>
               <TabsTrigger value="employment">Employment</TabsTrigger>
               <TabsTrigger value="contact">Contact</TabsTrigger>
               <TabsTrigger value="bank">Bank Details</TabsTrigger>
               <TabsTrigger value="emergency">Emergency</TabsTrigger>
+              {isClinicalCategory && (
+                <TabsTrigger value="clinical" className="flex items-center gap-1.5">
+                  <Stethoscope className="h-4 w-4" />
+                  Clinical
+                </TabsTrigger>
+              )}
             </TabsList>
 
             <TabsContent value="personal">
@@ -709,6 +763,12 @@ export default function EmployeeFormPage() {
                 </CardContent>
               </Card>
             </TabsContent>
+
+            {isClinicalCategory && (
+              <TabsContent value="clinical">
+                <DoctorDetailsForm form={form} />
+              </TabsContent>
+            )}
           </Tabs>
 
           <div className="flex justify-end gap-3">
@@ -721,9 +781,9 @@ export default function EmployeeFormPage() {
             </Button>
             <Button
               type="submit"
-              disabled={createEmployee.isPending || updateEmployee.isPending}
+              disabled={createEmployee.isPending || updateEmployee.isPending || createDoctorForEmployee.isPending}
             >
-              {(createEmployee.isPending || updateEmployee.isPending) && (
+              {(createEmployee.isPending || updateEmployee.isPending || createDoctorForEmployee.isPending) && (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               )}
               <Save className="h-4 w-4 mr-2" />

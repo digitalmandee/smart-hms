@@ -6,8 +6,22 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useEmployee } from "@/hooks/useHR";
+import { useDoctorByEmployeeId } from "@/hooks/useDoctors";
 import { useEmployeeLeaveBalance } from "@/hooks/useLeaves";
-import { Loader2, Pencil, Phone, Mail, MapPin, Calendar, Building, Briefcase } from "lucide-react";
+import { 
+  Loader2, 
+  Pencil, 
+  Phone, 
+  Mail, 
+  MapPin, 
+  Calendar, 
+  Building, 
+  Briefcase,
+  Stethoscope,
+  Award,
+  CreditCard,
+  Clock
+} from "lucide-react";
 import { format } from "date-fns";
 import { LeaveBalanceWidget } from "@/components/hr/LeaveBalanceWidget";
 
@@ -15,9 +29,10 @@ export default function EmployeeDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { data: employee, isLoading } = useEmployee(id || "");
+  const { data: doctorData, isLoading: loadingDoctor } = useDoctorByEmployeeId(id || "");
   const { data: leaveBalances } = useEmployeeLeaveBalance(id || "");
 
-  if (isLoading) {
+  if (isLoading || loadingDoctor) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -65,6 +80,8 @@ export default function EmployeeDetailPage() {
     } : null,
   })) || [];
 
+  const isDoctor = !!doctorData;
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -96,13 +113,19 @@ export default function EmployeeDetailPage() {
             </Avatar>
 
             <div className="flex-1 space-y-3">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-wrap">
                 <h2 className="text-2xl font-bold">
-                  {employee.first_name} {employee.last_name}
+                  {isDoctor && "Dr. "}{employee.first_name} {employee.last_name}
                 </h2>
                 <Badge className={getStatusColor(employee.employment_status || "active")}>
                   {employee.employment_status?.replace("_", " ") || "Active"}
                 </Badge>
+                {isDoctor && (
+                  <Badge variant="outline" className="flex items-center gap-1">
+                    <Stethoscope className="h-3 w-3" />
+                    Doctor
+                  </Badge>
+                )}
               </div>
 
               <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
@@ -122,6 +145,12 @@ export default function EmployeeDetailPage() {
                   <div className="flex items-center gap-1">
                     <Calendar className="h-4 w-4" />
                     Joined {format(new Date(employee.join_date), "MMM d, yyyy")}
+                  </div>
+                )}
+                {isDoctor && doctorData.specialization && (
+                  <div className="flex items-center gap-1">
+                    <Stethoscope className="h-4 w-4" />
+                    {doctorData.specialization}
                   </div>
                 )}
               </div>
@@ -155,6 +184,12 @@ export default function EmployeeDetailPage() {
         <TabsList>
           <TabsTrigger value="personal">Personal</TabsTrigger>
           <TabsTrigger value="employment">Employment</TabsTrigger>
+          {isDoctor && (
+            <TabsTrigger value="clinical" className="flex items-center gap-1.5">
+              <Stethoscope className="h-4 w-4" />
+              Clinical
+            </TabsTrigger>
+          )}
           <TabsTrigger value="leaves">Leaves</TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
         </TabsList>
@@ -235,6 +270,85 @@ export default function EmployeeDetailPage() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {isDoctor && (
+          <TabsContent value="clinical">
+            <div className="grid md:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Stethoscope className="h-5 w-5 text-primary" />
+                    Medical Practice
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <InfoRow label="Specialization" value={doctorData.specialization || "-"} />
+                  <InfoRow label="Qualification" value={doctorData.qualification || "-"} />
+                  <InfoRow label="License Number" value={doctorData.license_number || "-"} />
+                  <div className="flex justify-between py-1">
+                    <span className="text-muted-foreground text-sm">Availability</span>
+                    <Badge variant={doctorData.is_available ? "default" : "secondary"}>
+                      {doctorData.is_available ? "Available for OPD" : "Unavailable"}
+                    </Badge>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <CreditCard className="h-5 w-5 text-primary" />
+                    Consultation Details
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <InfoRow 
+                    label="Consultation Fee" 
+                    value={doctorData.consultation_fee ? `Rs. ${doctorData.consultation_fee.toLocaleString()}` : "-"} 
+                  />
+                  <InfoRow label="Branch" value={doctorData.branch?.name || "-"} />
+                  <div className="pt-4 border-t">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => navigate(`/app/appointments/schedules?doctorId=${doctorData.id}`)}
+                    >
+                      <Clock className="h-4 w-4 mr-2" />
+                      View OPD Schedule
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* TODO: Add consultation stats */}
+              <Card className="md:col-span-2">
+                <CardHeader>
+                  <CardTitle className="text-base">Practice Statistics</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="text-center p-4 bg-muted/50 rounded-lg">
+                      <p className="text-2xl font-bold text-primary">--</p>
+                      <p className="text-sm text-muted-foreground">Patients Today</p>
+                    </div>
+                    <div className="text-center p-4 bg-muted/50 rounded-lg">
+                      <p className="text-2xl font-bold text-primary">--</p>
+                      <p className="text-sm text-muted-foreground">This Week</p>
+                    </div>
+                    <div className="text-center p-4 bg-muted/50 rounded-lg">
+                      <p className="text-2xl font-bold text-primary">--</p>
+                      <p className="text-sm text-muted-foreground">This Month</p>
+                    </div>
+                    <div className="text-center p-4 bg-muted/50 rounded-lg">
+                      <p className="text-2xl font-bold text-primary">--</p>
+                      <p className="text-sm text-muted-foreground">Total Patients</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+        )}
 
         <TabsContent value="leaves">
           {transformedBalances.length > 0 ? (

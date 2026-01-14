@@ -2,8 +2,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Database } from '@/integrations/supabase/types';
+import { toast } from 'sonner';
 
 type Doctor = Database['public']['Tables']['doctors']['Row'];
+type DoctorInsert = Database['public']['Tables']['doctors']['Insert'];
 
 export interface DoctorWithProfile extends Doctor {
   profile: {
@@ -17,6 +19,25 @@ export interface DoctorWithProfile extends Doctor {
     id: string;
     name: string;
   };
+  employee?: {
+    id: string;
+    employee_number: string;
+    first_name: string;
+    last_name: string | null;
+    department?: {
+      id: string;
+      name: string;
+    };
+    designation?: {
+      id: string;
+      name: string;
+    };
+    category?: {
+      id: string;
+      name: string;
+      color: string | null;
+    };
+  } | null;
 }
 
 export function useDoctors(branchId?: string) {
@@ -31,8 +52,17 @@ export function useDoctors(branchId?: string) {
         .from('doctors')
         .select(`
           *,
-          profile:profiles(id, full_name, email, phone, avatar_url),
-          branch:branches(id, name)
+          profile:profiles!doctors_profile_id_fkey(id, full_name, email, phone, avatar_url),
+          branch:branches(id, name),
+          employee:employees(
+            id, 
+            employee_number, 
+            first_name, 
+            last_name,
+            department:department_id(id, name),
+            designation:designation_id(id, name),
+            category:category_id(id, name, color)
+          )
         `)
         .eq('organization_id', profile.organization_id)
         .eq('is_available', true);
@@ -50,6 +80,41 @@ export function useDoctors(branchId?: string) {
   });
 }
 
+export function useAllDoctors() {
+  const { profile } = useAuth();
+
+  return useQuery({
+    queryKey: ['doctors', 'all', profile?.organization_id],
+    queryFn: async () => {
+      if (!profile?.organization_id) return [];
+
+      const { data, error } = await supabase
+        .from('doctors')
+        .select(`
+          *,
+          profile:profiles!doctors_profile_id_fkey(id, full_name, email, phone, avatar_url),
+          branch:branches(id, name),
+          employee:employees(
+            id, 
+            employee_number, 
+            first_name, 
+            last_name,
+            employment_status,
+            department:department_id(id, name),
+            designation:designation_id(id, name),
+            category:category_id(id, name, color)
+          )
+        `)
+        .eq('organization_id', profile.organization_id)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+      return data as DoctorWithProfile[];
+    },
+    enabled: !!profile?.organization_id,
+  });
+}
+
 export function useDoctor(id: string) {
   return useQuery({
     queryKey: ['doctor', id],
@@ -58,8 +123,21 @@ export function useDoctor(id: string) {
         .from('doctors')
         .select(`
           *,
-          profile:profiles(id, full_name, email, phone, avatar_url),
-          branch:branches(id, name)
+          profile:profiles!doctors_profile_id_fkey(id, full_name, email, phone, avatar_url),
+          branch:branches(id, name),
+          employee:employees(
+            id, 
+            employee_number, 
+            first_name, 
+            last_name,
+            employment_status,
+            join_date,
+            personal_phone,
+            personal_email,
+            department:department_id(id, name, code),
+            designation:designation_id(id, name, code),
+            category:category_id(id, name, color)
+          )
         `)
         .eq('id', id)
         .single();
@@ -68,6 +146,194 @@ export function useDoctor(id: string) {
       return data as DoctorWithProfile;
     },
     enabled: !!id,
+  });
+}
+
+export function useDoctorByEmployeeId(employeeId: string) {
+  return useQuery({
+    queryKey: ['doctor', 'by-employee', employeeId],
+    queryFn: async () => {
+      if (!employeeId) return null;
+      
+      const { data, error } = await supabase
+        .from('doctors')
+        .select(`
+          *,
+          profile:profiles!doctors_profile_id_fkey(id, full_name, email, phone, avatar_url),
+          branch:branches(id, name)
+        `)
+        .eq('employee_id', employeeId)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!employeeId,
+  });
+}
+
+export function useCreateDoctor() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (doctor: DoctorInsert) => {
+      const { data, error } = await supabase
+        .from('doctors')
+        .insert(doctor)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['doctors'] });
+      toast.success('Doctor created successfully');
+    },
+    onError: (error: Error) => {
+      toast.error('Failed to create doctor: ' + error.message);
+    },
+  });
+}
+
+export function useUpdateDoctor() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, ...data }: Partial<Doctor> & { id: string }) => {
+      const { data: result, error } = await supabase
+        .from('doctors')
+        .update(data)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return result;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['doctors'] });
+      queryClient.invalidateQueries({ queryKey: ['doctor', variables.id] });
+      queryClient.invalidateQueries({ queryKey: ['doctor', 'by-employee'] });
+      toast.success('Doctor updated successfully');
+    },
+    onError: (error: Error) => {
+      toast.error('Failed to update doctor: ' + error.message);
+    },
+  });
+}
+
+export function useLinkDoctorToEmployee() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ doctorId, employeeId }: { doctorId: string; employeeId: string }) => {
+      const { data, error } = await supabase
+        .from('doctors')
+        .update({ employee_id: employeeId })
+        .eq('id', doctorId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['doctors'] });
+      queryClient.invalidateQueries({ queryKey: ['doctor'] });
+      toast.success('Doctor linked to employee successfully');
+    },
+    onError: (error: Error) => {
+      toast.error('Failed to link doctor to employee: ' + error.message);
+    },
+  });
+}
+
+export function useCreateDoctorForEmployee() {
+  const queryClient = useQueryClient();
+  const { profile } = useAuth();
+
+  return useMutation({
+    mutationFn: async ({
+      employeeId,
+      profileId,
+      branchId,
+      specialization,
+      qualification,
+      licenseNumber,
+      consultationFee,
+      isAvailable = true,
+    }: {
+      employeeId: string;
+      profileId?: string;
+      branchId?: string;
+      specialization?: string;
+      qualification?: string;
+      licenseNumber?: string;
+      consultationFee?: number;
+      isAvailable?: boolean;
+    }) => {
+      if (!profile?.organization_id) {
+        throw new Error('Organization not found');
+      }
+
+      // Check if doctor already exists for this employee
+      const { data: existingDoctor } = await supabase
+        .from('doctors')
+        .select('id')
+        .eq('employee_id', employeeId)
+        .maybeSingle();
+
+      if (existingDoctor) {
+        // Update existing doctor
+        const { data, error } = await supabase
+          .from('doctors')
+          .update({
+            specialization,
+            qualification,
+            license_number: licenseNumber,
+            consultation_fee: consultationFee,
+            is_available: isAvailable,
+            branch_id: branchId,
+          })
+          .eq('id', existingDoctor.id)
+          .select()
+          .single();
+
+        if (error) throw error;
+        return data;
+      }
+
+      // Create new doctor
+      const doctorData: DoctorInsert = {
+        organization_id: profile.organization_id,
+        employee_id: employeeId,
+        profile_id: profileId || profile.id,
+        branch_id: branchId,
+        specialization,
+        qualification,
+        license_number: licenseNumber,
+        consultation_fee: consultationFee,
+        is_available: isAvailable,
+      };
+
+      const { data, error } = await supabase
+        .from('doctors')
+        .insert(doctorData)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['doctors'] });
+      queryClient.invalidateQueries({ queryKey: ['doctor'] });
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
+    },
+    onError: (error: Error) => {
+      toast.error('Failed to save doctor details: ' + error.message);
+    },
   });
 }
 

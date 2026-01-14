@@ -1481,6 +1481,7 @@ export type Database = {
           branch_id: string | null
           consultation_fee: number | null
           created_at: string
+          employee_id: string | null
           id: string
           is_available: boolean | null
           license_number: string | null
@@ -1494,6 +1495,7 @@ export type Database = {
           branch_id?: string | null
           consultation_fee?: number | null
           created_at?: string
+          employee_id?: string | null
           id?: string
           is_available?: boolean | null
           license_number?: string | null
@@ -1507,6 +1509,7 @@ export type Database = {
           branch_id?: string | null
           consultation_fee?: number | null
           created_at?: string
+          employee_id?: string | null
           id?: string
           is_available?: boolean | null
           license_number?: string | null
@@ -1522,6 +1525,13 @@ export type Database = {
             columns: ["branch_id"]
             isOneToOne: false
             referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "doctors_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: true
+            referencedRelation: "employees"
             referencedColumns: ["id"]
           },
           {
