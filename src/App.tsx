@@ -100,7 +100,10 @@ import NursesListPage from "./pages/app/hr/NursesListPage";
 // IPD pages
 import IPDDashboard from "./pages/app/ipd/IPDDashboard";
 import WardsListPage from "./pages/app/ipd/WardsListPage";
+import WardFormPage from "./pages/app/ipd/WardFormPage";
 import AdmissionsListPage from "./pages/app/ipd/AdmissionsListPage";
+import AdmissionFormPage from "./pages/app/ipd/AdmissionFormPage";
+import AdmissionDetailPage from "./pages/app/ipd/AdmissionDetailPage";
 import BedsPage from "./pages/app/ipd/BedsPage";
 import DailyRoundsPage from "./pages/app/ipd/DailyRoundsPage";
 import NursingStationPage from "./pages/app/ipd/NursingStationPage";
@@ -179,8 +182,12 @@ const App = () => (
               {/* IPD routes */}
               <Route path="ipd" element={<IPDDashboard />} />
               <Route path="ipd/wards" element={<WardsListPage />} />
+              <Route path="ipd/wards/new" element={<WardFormPage />} />
+              <Route path="ipd/wards/:id" element={<WardFormPage />} />
               <Route path="ipd/beds" element={<BedsPage />} />
               <Route path="ipd/admissions" element={<AdmissionsListPage />} />
+              <Route path="ipd/admissions/new" element={<AdmissionFormPage />} />
+              <Route path="ipd/admissions/:id" element={<AdmissionDetailPage />} />
               <Route path="ipd/rounds" element={<DailyRoundsPage />} />
               <Route path="ipd/nursing" element={<NursingStationPage />} />
               <Route path="ipd/discharges" element={<DischargesPage />} />

@@ -3,7 +3,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
@@ -16,14 +15,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { useDischarge } from "@/hooks/useDischarge";
+import { useCreateDischargeSummary, useUpdateDischargeSummary } from "@/hooks/useDischarge";
 import { CalendarIcon, FileText, Save, Send } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -57,8 +49,8 @@ export function DischargeSummaryForm({
   existingSummary,
   onSuccess,
 }: DischargeSummaryFormProps) {
-  const { createDischargeSummary, updateDischargeSummary, isCreating, isUpdating } =
-    useDischarge(admissionId);
+  const { mutateAsync: createDischargeSummary, isPending: isCreating } = useCreateDischargeSummary();
+  const { mutateAsync: updateDischargeSummary, isPending: isUpdating } = useUpdateDischargeSummary();
 
   const isEditing = Boolean(existingSummary);
 
@@ -87,28 +79,27 @@ export function DischargeSummaryForm({
     },
   });
 
-  const onSubmit = async (values: DischargeSummaryFormValues, status: "draft" | "pending_approval") => {
+  const onSubmit = async (values: DischargeSummaryFormValues, status: string) => {
     try {
       const payload = {
         admission_id: admissionId,
-        admission_diagnosis: values.admission_diagnosis || null,
-        discharge_diagnosis: values.discharge_diagnosis || null,
-        condition_at_admission: values.condition_at_admission || null,
-        condition_at_discharge: values.condition_at_discharge || null,
-        hospital_course: values.hospital_course || null,
-        significant_findings: values.significant_findings || null,
-        follow_up_instructions: values.follow_up_instructions || null,
+        admission_diagnosis: values.admission_diagnosis,
+        discharge_diagnosis: values.discharge_diagnosis,
+        condition_at_admission: values.condition_at_admission,
+        condition_at_discharge: values.condition_at_discharge,
+        hospital_course: values.hospital_course,
+        significant_findings: values.significant_findings,
+        follow_up_instructions: values.follow_up_instructions,
         follow_up_appointments: values.follow_up_date
-          ? [{ date: format(values.follow_up_date, "yyyy-MM-dd") }]
-          : null,
-        diet_instructions: values.diet_instructions || null,
-        activity_instructions: values.activity_instructions || null,
-        warning_signs: values.warning_signs || null,
-        status,
+          ? [{ department: "OPD", date: format(values.follow_up_date, "yyyy-MM-dd") }]
+          : undefined,
+        diet_instructions: values.diet_instructions,
+        activity_instructions: values.activity_instructions,
+        warning_signs: values.warning_signs,
       };
 
       if (isEditing && existingSummary?.id) {
-        await updateDischargeSummary({ id: existingSummary.id, ...payload });
+        await updateDischargeSummary({ id: existingSummary.id, ...payload, status });
         toast.success("Discharge summary updated");
       } else {
         await createDischargeSummary(payload);

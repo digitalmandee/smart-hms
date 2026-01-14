@@ -12,7 +12,6 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-  FormDescription,
 } from "@/components/ui/form";
 import {
   Select,
@@ -21,18 +20,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useNursingCare } from "@/hooks/useNursingCare";
+import { useCreateIPDVitals } from "@/hooks/useDailyRounds";
 import { Activity, Save } from "lucide-react";
 import { toast } from "sonner";
 
 const vitalsFormSchema = z.object({
   temperature: z.coerce.number().min(90).max(110).optional(),
-  systolic_bp: z.coerce.number().min(50).max(300).optional(),
-  diastolic_bp: z.coerce.number().min(30).max(200).optional(),
-  pulse_rate: z.coerce.number().min(30).max(250).optional(),
+  blood_pressure_systolic: z.coerce.number().min(50).max(300).optional(),
+  blood_pressure_diastolic: z.coerce.number().min(30).max(200).optional(),
+  pulse: z.coerce.number().min(30).max(250).optional(),
   respiratory_rate: z.coerce.number().min(5).max(60).optional(),
   oxygen_saturation: z.coerce.number().min(50).max(100).optional(),
-  blood_glucose: z.coerce.number().min(20).max(600).optional(),
+  blood_sugar: z.coerce.number().min(20).max(600).optional(),
   weight: z.coerce.number().min(0.5).max(500).optional(),
   height: z.coerce.number().min(20).max(300).optional(),
   pain_score: z.coerce.number().min(0).max(10).optional(),
@@ -59,18 +58,18 @@ const consciousnessLevels = [
 ];
 
 export function IPDVitalsForm({ admissionId, onSuccess }: IPDVitalsFormProps) {
-  const { recordVitals, isRecordingVitals } = useNursingCare(admissionId);
+  const { mutateAsync: recordVitals, isPending: isRecordingVitals } = useCreateIPDVitals();
 
   const form = useForm<VitalsFormValues>({
     resolver: zodResolver(vitalsFormSchema),
     defaultValues: {
       temperature: undefined,
-      systolic_bp: undefined,
-      diastolic_bp: undefined,
-      pulse_rate: undefined,
+      blood_pressure_systolic: undefined,
+      blood_pressure_diastolic: undefined,
+      pulse: undefined,
       respiratory_rate: undefined,
       oxygen_saturation: undefined,
-      blood_glucose: undefined,
+      blood_sugar: undefined,
       weight: undefined,
       height: undefined,
       pain_score: undefined,
@@ -85,20 +84,19 @@ export function IPDVitalsForm({ admissionId, onSuccess }: IPDVitalsFormProps) {
     try {
       await recordVitals({
         admission_id: admissionId,
-        temperature: values.temperature || null,
-        systolic_bp: values.systolic_bp || null,
-        diastolic_bp: values.diastolic_bp || null,
-        pulse_rate: values.pulse_rate || null,
-        respiratory_rate: values.respiratory_rate || null,
-        oxygen_saturation: values.oxygen_saturation || null,
-        blood_glucose: values.blood_glucose || null,
-        weight: values.weight || null,
-        height: values.height || null,
-        pain_score: values.pain_score || null,
-        consciousness_level: values.consciousness_level || null,
-        intake_ml: values.intake_ml || null,
-        output_ml: values.output_ml || null,
-        notes: values.notes || null,
+        temperature: values.temperature,
+        blood_pressure_systolic: values.blood_pressure_systolic,
+        blood_pressure_diastolic: values.blood_pressure_diastolic,
+        pulse: values.pulse,
+        respiratory_rate: values.respiratory_rate,
+        oxygen_saturation: values.oxygen_saturation,
+        blood_sugar: values.blood_sugar,
+        weight: values.weight,
+        height: values.height,
+        pain_score: values.pain_score,
+        intake_ml: values.intake_ml,
+        output_ml: values.output_ml,
+        notes: values.notes,
       });
       toast.success("Vitals recorded successfully");
       form.reset();
@@ -135,7 +133,7 @@ export function IPDVitalsForm({ admissionId, onSuccess }: IPDVitalsFormProps) {
 
             <FormField
               control={form.control}
-              name="systolic_bp"
+              name="blood_pressure_systolic"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Systolic BP</FormLabel>
@@ -149,7 +147,7 @@ export function IPDVitalsForm({ admissionId, onSuccess }: IPDVitalsFormProps) {
 
             <FormField
               control={form.control}
-              name="diastolic_bp"
+              name="blood_pressure_diastolic"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Diastolic BP</FormLabel>
@@ -163,7 +161,7 @@ export function IPDVitalsForm({ admissionId, onSuccess }: IPDVitalsFormProps) {
 
             <FormField
               control={form.control}
-              name="pulse_rate"
+              name="pulse"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Pulse Rate</FormLabel>
@@ -205,7 +203,7 @@ export function IPDVitalsForm({ admissionId, onSuccess }: IPDVitalsFormProps) {
 
             <FormField
               control={form.control}
-              name="blood_glucose"
+              name="blood_sugar"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Blood Glucose</FormLabel>

@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useNursingCare } from "@/hooks/useNursingCare";
+import { useCreateNursingNote } from "@/hooks/useNursingCare";
 import { FileText, Save } from "lucide-react";
 import { toast } from "sonner";
 
@@ -38,13 +38,8 @@ const nursingNotesSchema = z.object({
     "handover",
   ]),
   shift: z.enum(["morning", "evening", "night"]).optional(),
-  assessment: z.string().optional(),
-  intervention: z.string().optional(),
-  evaluation: z.string().optional(),
-  patient_response: z.string().optional(),
-  pain_assessment: z.string().optional(),
-  fall_risk_score: z.coerce.number().min(0).max(10).optional(),
-  notes: z.string().optional(),
+  content: z.string().min(1, "Note content is required"),
+  is_critical: z.boolean().default(false),
 });
 
 type NursingNotesFormValues = z.infer<typeof nursingNotesSchema>;
@@ -71,7 +66,7 @@ const shifts = [
 ];
 
 export function NursingNotesForm({ admissionId, onSuccess }: NursingNotesFormProps) {
-  const { addNursingNote, isAddingNote } = useNursingCare(admissionId);
+  const { mutateAsync: addNursingNote, isPending: isAddingNote } = useCreateNursingNote();
 
   const form = useForm<NursingNotesFormValues>({
     resolver: zodResolver(nursingNotesSchema),
@@ -80,13 +75,8 @@ export function NursingNotesForm({ admissionId, onSuccess }: NursingNotesFormPro
       note_time: format(new Date(), "HH:mm"),
       note_type: "progress",
       shift: "morning",
-      assessment: "",
-      intervention: "",
-      evaluation: "",
-      patient_response: "",
-      pain_assessment: "",
-      fall_risk_score: undefined,
-      notes: "",
+      content: "",
+      is_critical: false,
     },
   });
 
@@ -94,17 +84,9 @@ export function NursingNotesForm({ admissionId, onSuccess }: NursingNotesFormPro
     try {
       await addNursingNote({
         admission_id: admissionId,
-        note_date: values.note_date,
-        note_time: values.note_time,
         note_type: values.note_type,
-        shift: values.shift || null,
-        assessment: values.assessment || null,
-        intervention: values.intervention || null,
-        evaluation: values.evaluation || null,
-        patient_response: values.patient_response || null,
-        pain_assessment: values.pain_assessment || null,
-        fall_risk_score: values.fall_risk_score || null,
-        notes: values.notes || null,
+        content: values.content,
+        is_critical: values.is_critical,
       });
       toast.success("Nursing note added successfully");
       form.reset({
@@ -112,6 +94,8 @@ export function NursingNotesForm({ admissionId, onSuccess }: NursingNotesFormPro
         note_time: format(new Date(), "HH:mm"),
         note_type: "progress",
         shift: "morning",
+        content: "",
+        is_critical: false,
       });
       onSuccess?.();
     } catch (error) {
@@ -212,19 +196,19 @@ export function NursingNotesForm({ admissionId, onSuccess }: NursingNotesFormPro
 
         <Card>
           <CardHeader>
-            <CardTitle>Nursing Assessment (AIPE)</CardTitle>
+            <CardTitle>Nursing Note</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <FormField
               control={form.control}
-              name="assessment"
+              name="content"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Assessment</FormLabel>
+                  <FormLabel>Note Content *</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Patient's current condition and observations..."
-                      className="min-h-[100px]"
+                      placeholder="Enter nursing observations, assessments, interventions..."
+                      className="min-h-[200px]"
                       {...field}
                     />
                   </FormControl>
@@ -232,115 +216,6 @@ export function NursingNotesForm({ admissionId, onSuccess }: NursingNotesFormPro
                 </FormItem>
               )}
             />
-
-            <FormField
-              control={form.control}
-              name="intervention"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Intervention</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Nursing interventions performed..."
-                      className="min-h-[100px]"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="patient_response"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Patient Response</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="How patient responded to interventions..."
-                      className="min-h-[80px]"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="evaluation"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Evaluation</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Evaluation of patient progress..."
-                      className="min-h-[80px]"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Risk Assessment</CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-4 md:grid-cols-2">
-            <FormField
-              control={form.control}
-              name="pain_assessment"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Pain Assessment</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Location, intensity, character of pain..."
-                      className="min-h-[80px]"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="space-y-4">
-              <FormField
-                control={form.control}
-                name="fall_risk_score"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Fall Risk Score (0-10)</FormLabel>
-                    <FormControl>
-                      <Input type="number" min={0} max={10} placeholder="0" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="notes"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Additional Notes</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="Any other observations..." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
           </CardContent>
         </Card>
 
