@@ -97,6 +97,15 @@ import PayrollPage from "./pages/app/hr/payroll/PayrollPage";
 import DoctorsListPage from "./pages/app/hr/DoctorsListPage";
 import NursesListPage from "./pages/app/hr/NursesListPage";
 
+// IPD pages
+import IPDDashboard from "./pages/app/ipd/IPDDashboard";
+import WardsListPage from "./pages/app/ipd/WardsListPage";
+import AdmissionsListPage from "./pages/app/ipd/AdmissionsListPage";
+import BedsPage from "./pages/app/ipd/BedsPage";
+import DailyRoundsPage from "./pages/app/ipd/DailyRoundsPage";
+import NursingStationPage from "./pages/app/ipd/NursingStationPage";
+import DischargesPage from "./pages/app/ipd/DischargesPage";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -166,6 +175,15 @@ const App = () => (
               <Route path="pharmacy/medicines/:id/edit" element={<MedicineFormPage />} />
               <Route path="pharmacy/inventory" element={<InventoryPage />} />
               <Route path="pharmacy/inventory/add" element={<StockEntryPage />} />
+              
+              {/* IPD routes */}
+              <Route path="ipd" element={<IPDDashboard />} />
+              <Route path="ipd/wards" element={<WardsListPage />} />
+              <Route path="ipd/beds" element={<BedsPage />} />
+              <Route path="ipd/admissions" element={<AdmissionsListPage />} />
+              <Route path="ipd/rounds" element={<DailyRoundsPage />} />
+              <Route path="ipd/nursing" element={<NursingStationPage />} />
+              <Route path="ipd/discharges" element={<DischargesPage />} />
               
               {/* Lab routes */}
               <Route path="lab/queue" element={<LabQueuePage />} />

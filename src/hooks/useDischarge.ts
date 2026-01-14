@@ -289,6 +289,7 @@ export const useCreateIPDCharge = () => {
           description: chargeData.description,
           quantity: chargeData.quantity,
           unit_price: chargeData.unit_price,
+          total_amount,
           charge_date: chargeData.charge_date,
           charge_type: "service",
           added_by: profile.id,
