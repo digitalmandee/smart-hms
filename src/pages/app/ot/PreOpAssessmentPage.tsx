@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { useState } from "react";
-import { useSurgery, useSavePreOpAssessment } from "@/hooks/useOT";
+import { useSurgery, useCreatePreOpAssessment, useUpdatePreOpAssessment } from "@/hooks/useOT";
 import { useLabOrders } from "@/hooks/useLabOrders";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -33,7 +33,6 @@ export default function PreOpAssessmentPage() {
   const { data: labOrders } = useLabOrders({ patientId: surgery?.patient_id });
   const createAssessment = useCreatePreOpAssessment();
   const updateAssessment = useUpdatePreOpAssessment();
-  const clearForSurgery = useClearForSurgery();
 
   const [showLabModal, setShowLabModal] = useState(false);
 
@@ -84,9 +83,12 @@ export default function PreOpAssessmentPage() {
 
   const handleClearForSurgery = async () => {
     try {
-      await clearForSurgery.mutateAsync({
-        assessmentId: surgery.pre_op_assessment!.id,
-        clearedBy: profile?.id || '',
+      await updateAssessment.mutateAsync({
+        id: surgery.pre_op_assessment!.id,
+        surgeryId: surgery.id,
+        is_cleared_for_surgery: true,
+        cleared_by: profile?.id,
+        cleared_at: new Date().toISOString(),
       });
       toast.success('Patient cleared for surgery');
     } catch (error) {

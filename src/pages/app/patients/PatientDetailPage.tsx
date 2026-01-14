@@ -25,10 +25,12 @@ import {
   Stethoscope,
   Clock,
   Receipt,
+  Scissors,
 } from "lucide-react";
 import { format } from "date-fns";
 import { MedicalHistorySection } from "@/components/patients/MedicalHistorySection";
 import { PatientBillingHistory } from "@/components/patients/PatientBillingHistory";
+import { PatientSurgicalHistory } from "@/components/ot/PatientSurgicalHistory";
 
 export function PatientDetailPage() {
   const { id } = useParams();
@@ -223,6 +225,10 @@ export function PatientDetailPage() {
                 <Pill className="h-4 w-4" />
                 Prescriptions
               </TabsTrigger>
+              <TabsTrigger value="surgeries" className="gap-2">
+                <Scissors className="h-4 w-4" />
+                Surgeries
+              </TabsTrigger>
               <TabsTrigger value="billing" className="gap-2">
                 <Receipt className="h-4 w-4" />
                 Billing
@@ -320,13 +326,17 @@ export function PatientDetailPage() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-muted-foreground">No prescriptions yet</p>
-                </CardContent>
-              </Card>
-            </TabsContent>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-            <TabsContent value="billing">
-              <PatientBillingHistory patientId={patient.id} />
-            </TabsContent>
+          <TabsContent value="surgeries">
+            <PatientSurgicalHistory patientId={patient.id} />
+          </TabsContent>
+
+          <TabsContent value="billing">
+            <PatientBillingHistory patientId={patient.id} />
+          </TabsContent>
           </Tabs>
         </div>
       </div>

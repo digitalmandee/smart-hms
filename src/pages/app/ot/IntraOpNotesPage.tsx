@@ -24,8 +24,7 @@ export default function IntraOpNotesPage() {
   const { profile } = useAuth();
   
   const { data: surgery, isLoading } = useSurgery(id!);
-  const createNotes = useCreateIntraOpNotes();
-  const updateNotes = useUpdateIntraOpNotes();
+  const saveNotes = useSaveIntraOpNotes();
 
   if (isLoading) {
     return (
@@ -54,19 +53,11 @@ export default function IntraOpNotesPage() {
 
   const handleSaveNotes = async (data: any) => {
     try {
-      if (surgery.intra_op_notes) {
-        await updateNotes.mutateAsync({
-          id: surgery.intra_op_notes.id,
-          ...data,
-        });
-      } else {
-        await createNotes.mutateAsync({
-          ...data,
-          surgery_id: surgery.id,
-          documented_by: profile?.id || '',
-        });
-      }
-      toast.success('Operative notes saved');
+      await saveNotes.mutateAsync({
+        surgeryId: surgery.id,
+        ...data,
+        documented_by: profile?.id || '',
+      });
     } catch (error) {
       toast.error('Failed to save notes');
     }
@@ -150,7 +141,7 @@ export default function IntraOpNotesPage() {
         procedureName={surgery.procedure_name}
         documentedBy={profile?.id}
         onSave={handleSaveNotes}
-        isLoading={createNotes.isPending || updateNotes.isPending}
+        isLoading={saveNotes.isPending}
       />
     </div>
   );

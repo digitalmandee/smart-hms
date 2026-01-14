@@ -132,6 +132,9 @@ import SurgeryDetailPage from "./pages/app/ot/SurgeryDetailPage";
 import OTRoomsPage from "./pages/app/ot/OTRoomsPage";
 import OTRoomFormPage from "./pages/app/ot/OTRoomFormPage";
 import PACUPage from "./pages/app/ot/PACUPage";
+import PreOpAssessmentPage from "./pages/app/ot/PreOpAssessmentPage";
+import AnesthesiaRecordPage from "./pages/app/ot/AnesthesiaRecordPage";
+import IntraOpNotesPage from "./pages/app/ot/IntraOpNotesPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -247,6 +250,9 @@ function App() {
               <Route path="ot/surgeries/new" element={<SurgeryFormPage />} />
               <Route path="ot/surgeries/:id" element={<SurgeryDetailPage />} />
               <Route path="ot/surgeries/:id/edit" element={<SurgeryFormPage />} />
+              <Route path="ot/surgeries/:id/pre-op" element={<PreOpAssessmentPage />} />
+              <Route path="ot/surgeries/:id/anesthesia" element={<AnesthesiaRecordPage />} />
+              <Route path="ot/surgeries/:id/op-notes" element={<IntraOpNotesPage />} />
               <Route path="ot/rooms" element={<OTRoomsPage />} />
               <Route path="ot/rooms/new" element={<OTRoomFormPage />} />
               <Route path="ot/rooms/:id/edit" element={<OTRoomFormPage />} />

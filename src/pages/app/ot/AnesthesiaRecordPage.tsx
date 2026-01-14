@@ -24,8 +24,7 @@ export default function AnesthesiaRecordPage() {
   const { profile } = useAuth();
   
   const { data: surgery, isLoading } = useSurgery(id!);
-  const createRecord = useCreateAnesthesiaRecord();
-  const updateRecord = useUpdateAnesthesiaRecord();
+  const saveRecord = useSaveAnesthesiaRecord();
 
   if (isLoading) {
     return (
@@ -54,19 +53,11 @@ export default function AnesthesiaRecordPage() {
 
   const handleSaveRecord = async (data: any) => {
     try {
-      if (surgery.anesthesia_record) {
-        await updateRecord.mutateAsync({
-          id: surgery.anesthesia_record.id,
-          ...data,
-        });
-      } else {
-        await createRecord.mutateAsync({
-          ...data,
-          surgery_id: surgery.id,
-          anesthetist_id: profile?.id || '',
-        });
-      }
-      toast.success('Anesthesia record saved');
+      await saveRecord.mutateAsync({
+        surgeryId: surgery.id,
+        ...data,
+        anesthetist_id: profile?.id || '',
+      });
     } catch (error) {
       toast.error('Failed to save record');
     }
@@ -149,7 +140,7 @@ export default function AnesthesiaRecordPage() {
         record={surgery.anesthesia_record}
         anesthetistId={profile?.id}
         onSave={handleSaveRecord}
-        isLoading={createRecord.isPending || updateRecord.isPending}
+        isLoading={saveRecord.isPending}
       />
     </div>
   );
