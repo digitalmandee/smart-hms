@@ -125,12 +125,13 @@ export default function DesignationsPage() {
       <PageHeader
         title="Designations"
         description="Manage job titles and salary ranges"
-      >
-        <Button onClick={() => handleOpenDialog()}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Designation
-        </Button>
-      </PageHeader>
+        actions={
+          <Button onClick={() => handleOpenDialog()}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Designation
+          </Button>
+        }
+      />
 
       <div className="border rounded-lg">
         <Table>
@@ -318,7 +319,7 @@ export default function DesignationsPage() {
         title="Delete Designation"
         description="Are you sure you want to delete this designation?"
         onConfirm={handleDelete}
-        confirmText="Delete"
+        confirmLabel="Delete"
         variant="destructive"
       />
     </div>

@@ -1,0 +1,260 @@
+import { useParams, useNavigate } from "react-router-dom";
+import { PageHeader } from "@/components/PageHeader";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
+import { useEmployee } from "@/hooks/useHR";
+import { useLeaveBalances } from "@/hooks/useLeaves";
+import { Loader2, Pencil, Phone, Mail, MapPin, Calendar, Building, Briefcase } from "lucide-react";
+import { format } from "date-fns";
+import { LeaveBalanceWidget } from "@/components/hr/LeaveBalanceWidget";
+
+export default function EmployeeDetailPage() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { data: employee, isLoading } = useEmployee(id || "");
+  const { data: leaveBalances } = useLeaveBalances(id || "");
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!employee) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 gap-4">
+        <p className="text-muted-foreground">Employee not found</p>
+        <Button onClick={() => navigate("/app/hr/employees")}>Back to Employees</Button>
+      </div>
+    );
+  }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "active":
+        return "bg-green-500";
+      case "on_leave":
+        return "bg-yellow-500";
+      case "suspended":
+        return "bg-orange-500";
+      case "terminated":
+      case "resigned":
+        return "bg-red-500";
+      default:
+        return "bg-gray-500";
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title={`${employee.first_name} ${employee.last_name || ""}`}
+        description={`Employee ID: ${employee.employee_number}`}
+        breadcrumbs={[
+          { label: "HR", href: "/app/hr" },
+          { label: "Employees", href: "/app/hr/employees" },
+          { label: `${employee.first_name} ${employee.last_name || ""}` },
+        ]}
+        actions={
+          <Button onClick={() => navigate(`/app/hr/employees/${id}/edit`)}>
+            <Pencil className="h-4 w-4 mr-2" />
+            Edit Employee
+          </Button>
+        }
+      />
+
+      {/* Profile Header */}
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex flex-col md:flex-row gap-6 items-start">
+            <Avatar className="h-24 w-24">
+              <AvatarImage src={employee.profile_photo_url || ""} />
+              <AvatarFallback className="text-2xl">
+                {employee.first_name[0]}
+                {employee.last_name?.[0] || ""}
+              </AvatarFallback>
+            </Avatar>
+
+            <div className="flex-1 space-y-3">
+              <div className="flex items-center gap-3">
+                <h2 className="text-2xl font-bold">
+                  {employee.first_name} {employee.last_name}
+                </h2>
+                <Badge className={getStatusColor(employee.employment_status || "active")}>
+                  {employee.employment_status?.replace("_", " ") || "Active"}
+                </Badge>
+              </div>
+
+              <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                {employee.designation && (
+                  <div className="flex items-center gap-1">
+                    <Briefcase className="h-4 w-4" />
+                    {employee.designation.name}
+                  </div>
+                )}
+                {employee.department && (
+                  <div className="flex items-center gap-1">
+                    <Building className="h-4 w-4" />
+                    {employee.department.name}
+                  </div>
+                )}
+                {employee.join_date && (
+                  <div className="flex items-center gap-1">
+                    <Calendar className="h-4 w-4" />
+                    Joined {format(new Date(employee.join_date), "MMM d, yyyy")}
+                  </div>
+                )}
+              </div>
+
+              <div className="flex flex-wrap gap-4 text-sm">
+                {employee.personal_phone && (
+                  <div className="flex items-center gap-1">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    {employee.personal_phone}
+                  </div>
+                )}
+                {employee.personal_email && (
+                  <div className="flex items-center gap-1">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                    {employee.personal_email}
+                  </div>
+                )}
+                {employee.current_address && (
+                  <div className="flex items-center gap-1">
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                    {employee.current_address}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Tabs defaultValue="personal" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="personal">Personal</TabsTrigger>
+          <TabsTrigger value="employment">Employment</TabsTrigger>
+          <TabsTrigger value="leaves">Leaves</TabsTrigger>
+          <TabsTrigger value="documents">Documents</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="personal">
+          <div className="grid md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Personal Information</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <InfoRow label="Gender" value={employee.gender || "-"} />
+                <InfoRow
+                  label="Date of Birth"
+                  value={
+                    employee.date_of_birth
+                      ? format(new Date(employee.date_of_birth), "MMM d, yyyy")
+                      : "-"
+                  }
+                />
+                <InfoRow label="Blood Group" value={employee.blood_group || "-"} />
+                <InfoRow label="Marital Status" value={employee.marital_status || "-"} />
+                <InfoRow label="Nationality" value={employee.nationality || "-"} />
+                <InfoRow label="Religion" value={employee.religion || "-"} />
+                <InfoRow label="National ID" value={employee.national_id || "-"} />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Emergency Contact</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <InfoRow label="Name" value={employee.emergency_contact_name || "-"} />
+                <InfoRow label="Phone" value={employee.emergency_contact_phone || "-"} />
+                <InfoRow label="Relationship" value={employee.emergency_contact_relation || "-"} />
+              </CardContent>
+            </Card>
+
+            <Card className="md:col-span-2">
+              <CardHeader>
+                <CardTitle className="text-base">Bank Details</CardTitle>
+              </CardHeader>
+              <CardContent className="grid md:grid-cols-3 gap-4">
+                <InfoRow label="Bank Name" value={employee.bank_name || "-"} />
+                <InfoRow label="Account Title" value={employee.account_title || "-"} />
+                <InfoRow label="Account Number" value={employee.account_number || "-"} />
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="employment">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Employment Details</CardTitle>
+            </CardHeader>
+            <CardContent className="grid md:grid-cols-3 gap-4">
+              <InfoRow label="Employee Number" value={employee.employee_number} />
+              <InfoRow label="Employee Type" value={employee.employee_type || "-"} />
+              <InfoRow label="Department" value={employee.department?.name || "-"} />
+              <InfoRow label="Designation" value={employee.designation?.name || "-"} />
+              <InfoRow label="Category" value={employee.category?.name || "-"} />
+              <InfoRow label="Shift" value={employee.shift?.name || "-"} />
+              <InfoRow
+                label="Join Date"
+                value={format(new Date(employee.join_date), "MMM d, yyyy")}
+              />
+              <InfoRow
+                label="Confirmation Date"
+                value={
+                  employee.confirmation_date
+                    ? format(new Date(employee.confirmation_date), "MMM d, yyyy")
+                    : "-"
+                }
+              />
+              <InfoRow label="Working Hours" value={`${employee.working_hours || 8} hrs/day`} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="leaves">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {leaveBalances && leaveBalances.length > 0 ? (
+              leaveBalances.map((balance) => (
+                <LeaveBalanceWidget key={balance.id} balance={balance} />
+              ))
+            ) : (
+              <Card className="col-span-full">
+                <CardContent className="p-6 text-center text-muted-foreground">
+                  No leave balances found for this employee
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="documents">
+          <Card>
+            <CardContent className="p-6 text-center text-muted-foreground">
+              Documents management coming soon
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+
+function InfoRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex justify-between py-1">
+      <span className="text-muted-foreground text-sm">{label}</span>
+      <span className="text-sm font-medium capitalize">{value}</span>
+    </div>
+  );
+}

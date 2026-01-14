@@ -63,12 +63,13 @@ export default function EmployeesListPage() {
       <PageHeader
         title="Employees"
         description="Manage staff and employee records"
-      >
-        <Button onClick={() => navigate("/app/hr/employees/new")}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Employee
-        </Button>
-      </PageHeader>
+        actions={
+          <Button onClick={() => navigate("/app/hr/employees/new")}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Employee
+          </Button>
+        }
+      />
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3">
