@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -12,70 +14,141 @@ import {
 import { useWards, useBeds } from "@/hooks/useIPD";
 import { BedMap } from "@/components/ipd/BedMap";
 import { BedDetailCard } from "@/components/ipd/BedDetailCard";
+import { BedActionsMenu } from "@/components/ipd/BedActionsMenu";
+import { BedTransferModal } from "@/components/ipd/BedTransferModal";
 import { Badge } from "@/components/ui/badge";
-import { Building2, Bed } from "lucide-react";
+import { Building2, Bed, Plus, Search, Wrench, Sparkles } from "lucide-react";
+
+type BedStatusFilter = "all" | "available" | "occupied" | "reserved" | "maintenance" | "housekeeping";
 
 export default function BedsPage() {
   const navigate = useNavigate();
   const [selectedWardId, setSelectedWardId] = useState<string>("");
   const [selectedBed, setSelectedBed] = useState<any>(null);
+  const [statusFilter, setStatusFilter] = useState<BedStatusFilter>("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [transferModalOpen, setTransferModalOpen] = useState(false);
 
   const { data: wards, isLoading: loadingWards } = useWards();
-  const { data: beds, isLoading: loadingBeds } = useBeds(selectedWardId || undefined);
+  const { data: beds, isLoading: loadingBeds, refetch: refetchBeds } = useBeds(selectedWardId || undefined);
 
   const selectedWard = wards?.find((w: any) => w.id === selectedWardId);
+
+  // Filter beds
+  const filteredBeds = beds?.filter((bed: any) => {
+    const matchesStatus = statusFilter === "all" || bed.status === statusFilter;
+    const matchesSearch = searchQuery === "" || 
+      bed.bed_number.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesStatus && matchesSearch;
+  }) || [];
 
   // Summary stats
   const totalBeds = beds?.length || 0;
   const availableBeds = beds?.filter((b: any) => b.status === "available").length || 0;
   const occupiedBeds = beds?.filter((b: any) => b.status === "occupied").length || 0;
   const reservedBeds = beds?.filter((b: any) => b.status === "reserved").length || 0;
+  const maintenanceBeds = beds?.filter((b: any) => b.status === "maintenance").length || 0;
+  const housekeepingBeds = beds?.filter((b: any) => b.status === "housekeeping").length || 0;
+
+  const handleTransferSuccess = () => {
+    setTransferModalOpen(false);
+    setSelectedBed(null);
+    refetchBeds();
+  };
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Bed Management"
         description="View and manage bed allocation across wards"
+        actions={
+          <Button onClick={() => navigate(`/app/ipd/beds/new${selectedWardId ? `?wardId=${selectedWardId}` : ""}`)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Bed
+          </Button>
+        }
       />
 
-      {/* Ward Selector */}
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-        <div className="flex items-center gap-2">
-          <Building2 className="h-5 w-5 text-muted-foreground" />
-          <span className="font-medium">Select Ward:</span>
-        </div>
-        <Select value={selectedWardId} onValueChange={setSelectedWardId}>
-          <SelectTrigger className="w-[280px]">
-            <SelectValue placeholder="Choose a ward" />
-          </SelectTrigger>
-          <SelectContent>
-            {loadingWards ? (
-              <SelectItem value="loading" disabled>Loading...</SelectItem>
-            ) : (
-              (wards || []).map((ward: any) => (
-                <SelectItem key={ward.id} value={ward.id}>
-                  {ward.name} ({ward.code})
-                </SelectItem>
-              ))
-            )}
-          </SelectContent>
-        </Select>
+      {/* Ward Selector & Filters */}
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+          <div className="flex items-center gap-2">
+            <Building2 className="h-5 w-5 text-muted-foreground" />
+            <span className="font-medium">Select Ward:</span>
+          </div>
+          <Select value={selectedWardId} onValueChange={setSelectedWardId}>
+            <SelectTrigger className="w-[280px]">
+              <SelectValue placeholder="Choose a ward" />
+            </SelectTrigger>
+            <SelectContent>
+              {loadingWards ? (
+                <SelectItem value="loading" disabled>Loading...</SelectItem>
+              ) : (
+                (wards || []).map((ward: any) => (
+                  <SelectItem key={ward.id} value={ward.id}>
+                    {ward.name} ({ward.code})
+                  </SelectItem>
+                ))
+              )}
+            </SelectContent>
+          </Select>
 
-        {/* Quick Stats */}
-        {selectedWardId && (
-          <div className="flex gap-2 ml-auto">
-            <Badge variant="outline" className="bg-success/10 text-success">
-              <Bed className="h-3 w-3 mr-1" />
-              {availableBeds} Available
-            </Badge>
-            <Badge variant="outline" className="bg-destructive/10 text-destructive">
-              {occupiedBeds} Occupied
-            </Badge>
-            {reservedBeds > 0 && (
-              <Badge variant="outline" className="bg-warning/10 text-warning">
-                {reservedBeds} Reserved
+          {/* Quick Stats */}
+          {selectedWardId && (
+            <div className="flex flex-wrap gap-2 ml-auto">
+              <Badge variant="outline" className="bg-success/10 text-success">
+                <Bed className="h-3 w-3 mr-1" />
+                {availableBeds} Available
               </Badge>
-            )}
+              <Badge variant="outline" className="bg-destructive/10 text-destructive">
+                {occupiedBeds} Occupied
+              </Badge>
+              {reservedBeds > 0 && (
+                <Badge variant="outline" className="bg-warning/10 text-warning">
+                  {reservedBeds} Reserved
+                </Badge>
+              )}
+              {maintenanceBeds > 0 && (
+                <Badge variant="outline" className="bg-orange-500/10 text-orange-600">
+                  <Wrench className="h-3 w-3 mr-1" />
+                  {maintenanceBeds}
+                </Badge>
+              )}
+              {housekeepingBeds > 0 && (
+                <Badge variant="outline" className="bg-blue-500/10 text-blue-600">
+                  <Sparkles className="h-3 w-3 mr-1" />
+                  {housekeepingBeds}
+                </Badge>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Search & Filter */}
+        {selectedWardId && (
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="relative flex-1 max-w-xs">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search bed number..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as BedStatusFilter)}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="available">Available</SelectItem>
+                <SelectItem value="occupied">Occupied</SelectItem>
+                <SelectItem value="reserved">Reserved</SelectItem>
+                <SelectItem value="maintenance">Maintenance</SelectItem>
+                <SelectItem value="housekeeping">Housekeeping</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         )}
       </div>
@@ -91,9 +164,9 @@ export default function BedsPage() {
                   Loading beds...
                 </CardContent>
               </Card>
-            ) : beds && beds.length > 0 ? (
+            ) : filteredBeds.length > 0 ? (
               <BedMap
-                beds={beds}
+                beds={filteredBeds}
                 wardName={selectedWard?.name}
                 selectedBedId={selectedBed?.id}
                 onBedClick={(bed) => setSelectedBed(bed)}
@@ -101,7 +174,9 @@ export default function BedsPage() {
             ) : (
               <Card>
                 <CardContent className="py-8 text-center text-muted-foreground">
-                  No beds configured for this ward
+                  {beds?.length === 0 
+                    ? "No beds configured for this ward" 
+                    : "No beds match the current filters"}
                 </CardContent>
               </Card>
             )}
@@ -110,15 +185,35 @@ export default function BedsPage() {
           {/* Bed Details */}
           <div>
             {selectedBed ? (
-              <BedDetailCard
-                bed={selectedBed}
-                onClose={() => setSelectedBed(null)}
-                onTransfer={() => {
-                  // TODO: Open transfer modal
-                }}
-                onViewPatient={(patientId) => navigate(`/app/patients/${patientId}`)}
-                onViewAdmission={(admissionId) => navigate(`/app/ipd/admissions/${admissionId}`)}
-              />
+              <div className="space-y-4">
+                <BedDetailCard
+                  bed={selectedBed}
+                  onClose={() => setSelectedBed(null)}
+                  onTransfer={() => setTransferModalOpen(true)}
+                  onViewPatient={(patientId) => navigate(`/app/patients/${patientId}`)}
+                  onViewAdmission={(admissionId) => navigate(`/app/ipd/admissions/${admissionId}`)}
+                />
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => navigate(`/app/ipd/beds/${selectedBed.id}/edit`)}
+                  >
+                    Edit Bed
+                  </Button>
+                  <BedActionsMenu
+                    bed={selectedBed}
+                    onTransfer={() => setTransferModalOpen(true)}
+                    onViewPatient={selectedBed.current_admission?.patient?.id 
+                      ? () => navigate(`/app/patients/${selectedBed.current_admission.patient.id}`) 
+                      : undefined}
+                    onViewAdmission={selectedBed.current_admission?.id 
+                      ? () => navigate(`/app/ipd/admissions/${selectedBed.current_admission.id}`) 
+                      : undefined}
+                  />
+                </div>
+              </div>
             ) : (
               <Card>
                 <CardHeader>
@@ -184,6 +279,22 @@ export default function BedsPage() {
             })}
           </div>
         </div>
+      )}
+
+      {/* Transfer Modal */}
+      {selectedBed?.current_admission && (
+        <BedTransferModal
+          open={transferModalOpen}
+          onOpenChange={setTransferModalOpen}
+          admission={{
+            id: selectedBed.current_admission.id,
+            admission_number: selectedBed.current_admission.admission_number,
+            patient: selectedBed.current_admission.patient,
+            ward: selectedBed.ward,
+            bed: selectedBed,
+          }}
+          onSuccess={handleTransferSuccess}
+        />
       )}
     </div>
   );
