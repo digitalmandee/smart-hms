@@ -10,10 +10,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PatientSearch } from "@/components/appointments/PatientSearch";
-import { useCreateEmergencyRegistration, ARRIVAL_MODES, ArrivalMode } from "@/hooks/useEmergency";
-import { Loader2, UserPlus, Search, AlertTriangle, Shield, Ambulance } from "lucide-react";
+import { PrintableERSlip } from "./PrintableERSlip";
+import { useCreateEmergencyRegistration, useEmergencyRegistration, ARRIVAL_MODES, ArrivalMode } from "@/hooks/useEmergency";
+import { usePrint } from "@/hooks/usePrint";
+import { Loader2, UserPlus, Search, AlertTriangle, Shield, Printer } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const registrationSchema = z.object({
@@ -52,8 +55,14 @@ export const QuickERRegistration = ({
   const [patientMode, setPatientMode] = useState<"search" | "unknown">("search");
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
   const [selectedPatient, setSelectedPatient] = useState<any>(null);
+  const [autoPrint, setAutoPrint] = useState(true);
+  const [createdRegistrationId, setCreatedRegistrationId] = useState<string | null>(null);
   const createMutation = useCreateEmergencyRegistration();
   const navigate = useNavigate();
+  const { printRef, handlePrint } = usePrint();
+  
+  // Fetch the created registration for printing
+  const { data: createdRegistration } = useEmergencyRegistration(createdRegistrationId || undefined);
 
   const form = useForm<RegistrationFormData>({
     resolver: zodResolver(registrationSchema),
@@ -103,10 +112,28 @@ export const QuickERRegistration = ({
     }
 
     const result = await createMutation.mutateAsync(payload);
-    if (result && onSuccess) {
-      onSuccess(result.id);
-    } else if (result) {
-      navigate(`/app/emergency/${result.id}`);
+    if (result) {
+      if (autoPrint) {
+        setCreatedRegistrationId(result.id);
+        // Wait for registration data to load, then print
+        setTimeout(() => {
+          handlePrint({ title: `ER Token - ${result.er_number}` });
+          // Navigate after print dialog
+          setTimeout(() => {
+            if (onSuccess) {
+              onSuccess(result.id);
+            } else {
+              navigate(`/app/emergency/${result.id}`);
+            }
+          }, 500);
+        }, 500);
+      } else {
+        if (onSuccess) {
+          onSuccess(result.id);
+        } else {
+          navigate(`/app/emergency/${result.id}`);
+        }
+      }
     }
   };
 
@@ -387,16 +414,38 @@ export const QuickERRegistration = ({
           </CardContent>
         </Card>
 
-        <div className="flex justify-end gap-3">
-          <Button type="button" variant="outline" onClick={() => navigate("/app/emergency")}>
-            Cancel
-          </Button>
-          <Button type="submit" disabled={createMutation.isPending}>
-            {createMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-            Register Emergency Patient
-          </Button>
+        <div className="flex items-center justify-between gap-4 pt-4 border-t">
+          <div className="flex items-center space-x-2">
+            <Checkbox 
+              id="autoPrint" 
+              checked={autoPrint} 
+              onCheckedChange={(checked) => setAutoPrint(checked === true)}
+            />
+            <Label htmlFor="autoPrint" className="text-sm flex items-center gap-1 cursor-pointer">
+              <Printer className="h-4 w-4" />
+              Print token slip after registration
+            </Label>
+          </div>
+          <div className="flex gap-3">
+            <Button type="button" variant="outline" onClick={() => navigate("/app/emergency")}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={createMutation.isPending}>
+              {createMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Register Emergency Patient
+            </Button>
+          </div>
         </div>
       </form>
+
+      {/* Hidden printable slip */}
+      <div className="hidden">
+        <div ref={printRef}>
+          {createdRegistration && (
+            <PrintableERSlip registration={createdRegistration} />
+          )}
+        </div>
+      </div>
     </Form>
   );
 };

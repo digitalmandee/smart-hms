@@ -10,8 +10,8 @@ import { TriageBadge } from "@/components/emergency/TriageBadge";
 import { TriageAssessmentForm } from "@/components/emergency/TriageAssessmentForm";
 import { TreatmentTimeline } from "@/components/emergency/TreatmentTimeline";
 import { TraumaAssessmentForm } from "@/components/emergency/TraumaAssessmentForm";
-
 import { PrintableERSlip } from "@/components/emergency/PrintableERSlip";
+import { LinkPatientModal } from "@/components/emergency/LinkPatientModal";
 import { useEmergencyRegistration, useUpdateEmergencyRegistration, useTraumaAssessments, TRIAGE_LEVELS } from "@/hooks/useEmergency";
 import { usePrint } from "@/hooks/usePrint";
 import { format, differenceInMinutes } from "date-fns";
@@ -29,6 +29,8 @@ import {
   Brain,
   Loader2,
   LogOut,
+  Link,
+  UserX,
 } from "lucide-react";
 
 const ERDetailPage = () => {
@@ -42,6 +44,7 @@ const ERDetailPage = () => {
   const [showTriageDialog, setShowTriageDialog] = useState(false);
   const [showTraumaDialog, setShowTraumaDialog] = useState(false);
   const [showDischargeDialog, setShowDischargeDialog] = useState(false);
+  const [showLinkPatientModal, setShowLinkPatientModal] = useState(false);
 
   if (isLoading) {
     return (
@@ -58,6 +61,7 @@ const ERDetailPage = () => {
   const triageInfo = TRIAGE_LEVELS.find(t => t.level === registration.triage_level);
   const waitMinutes = differenceInMinutes(new Date(), new Date(registration.arrival_time));
   const isCritical = registration.triage_level === "1" || registration.triage_level === "2";
+  const isUnknownPatient = !registration.patient_id;
 
   const patientName = registration.patient
     ? `${registration.patient.first_name} ${registration.patient.last_name}`
@@ -108,6 +112,26 @@ const ERDetailPage = () => {
           </div>
         }
       />
+
+      {/* Unknown Patient Warning */}
+      {isUnknownPatient && (
+        <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200 p-4 rounded-lg flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <UserX className="h-6 w-6" />
+            <div>
+              <span className="font-semibold">Unknown Patient - No Patient Record Linked</span>
+              <p className="text-sm opacity-80">Link a patient record before IPD admission or further processing.</p>
+            </div>
+          </div>
+          <Button 
+            onClick={() => setShowLinkPatientModal(true)}
+            className="bg-amber-600 hover:bg-amber-700 text-white"
+          >
+            <Link className="h-4 w-4 mr-2" />
+            Link Patient
+          </Button>
+        </div>
+      )}
 
       {/* Status Banner */}
       {isCritical && registration.status === "in_treatment" && (
@@ -514,6 +538,13 @@ const ERDetailPage = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Link Patient Modal */}
+      <LinkPatientModal
+        open={showLinkPatientModal}
+        onOpenChange={setShowLinkPatientModal}
+        erRegistrationId={registration.id}
+      />
 
       {/* Print Template */}
       <div className="hidden">
