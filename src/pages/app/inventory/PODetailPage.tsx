@@ -1,4 +1,3 @@
-import { useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -44,7 +43,6 @@ import { usePrint } from "@/hooks/usePrint";
 export default function PODetailPage() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const printRef = useRef<HTMLDivElement>(null);
 
   const { data: po, isLoading } = usePurchaseOrder(id || "");
   const approveMutation = useApprovePurchaseOrder();
@@ -52,7 +50,7 @@ export default function PODetailPage() {
   const orderMutation = useMarkPOAsOrdered();
   const cancelMutation = useCancelPurchaseOrder();
 
-  const { handlePrint } = usePrint(printRef);
+  const { printRef, handlePrint } = usePrint();
 
   if (isLoading) {
     return (
@@ -92,7 +90,7 @@ export default function PODetailPage() {
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back
             </Button>
-            <Button variant="outline" onClick={handlePrint}>
+            <Button variant="outline" onClick={() => handlePrint({ title: po?.po_number || "Purchase Order" })}>
               <Printer className="mr-2 h-4 w-4" />
               Print
             </Button>
