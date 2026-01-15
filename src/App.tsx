@@ -201,6 +201,15 @@ import AccountsDashboard from "./pages/app/accounts/AccountsDashboard";
 import ChartOfAccountsPage from "./pages/app/accounts/ChartOfAccountsPage";
 import AccountFormPage from "./pages/app/accounts/AccountFormPage";
 import AccountDetailPage from "./pages/app/accounts/AccountDetailPage";
+import JournalEntriesPage from "./pages/app/accounts/JournalEntriesPage";
+import GeneralLedgerPage from "./pages/app/accounts/GeneralLedgerPage";
+
+// Additional IPD pages
+import AdmissionHistoryPage from "./pages/app/ipd/AdmissionHistoryPage";
+import IPDVitalsPage from "./pages/app/ipd/IPDVitalsPage";
+import NursingNotesPage from "./pages/app/ipd/NursingNotesPage";
+import CarePlansPage from "./pages/app/ipd/CarePlansPage";
+import DietManagementPage from "./pages/app/ipd/DietManagementPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -407,6 +416,15 @@ function App() {
               <Route path="accounts/chart-of-accounts/new" element={<AccountFormPage />} />
               <Route path="accounts/chart-of-accounts/:id" element={<AccountDetailPage />} />
               <Route path="accounts/chart-of-accounts/:id/edit" element={<AccountFormPage />} />
+              <Route path="accounts/journal-entries" element={<JournalEntriesPage />} />
+              <Route path="accounts/ledger" element={<GeneralLedgerPage />} />
+              
+              {/* Additional IPD routes */}
+              <Route path="ipd/history" element={<AdmissionHistoryPage />} />
+              <Route path="ipd/vitals" element={<IPDVitalsPage />} />
+              <Route path="ipd/nursing-notes" element={<NursingNotesPage />} />
+              <Route path="ipd/care-plans" element={<CarePlansPage />} />
+              <Route path="ipd/diet" element={<DietManagementPage />} />
               
               {/* HR routes */}
               <Route path="hr" element={<HRDashboard />} />
