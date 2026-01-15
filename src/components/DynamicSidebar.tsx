@@ -68,6 +68,7 @@ import {
   Calculator,
   ListTree,
   BookOpen,
+  Ticket,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -128,6 +129,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Calculator,
   ListTree,
   BookOpen,
+  Ticket,
 };
 
 interface DynamicSidebarProps {
@@ -142,11 +144,43 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle }: DynamicSidebar
   const navigate = useNavigate();
   const [openMenus, setOpenMenus] = useState<string[]>([]);
 
-  // Auto-expand parent menu based on current route
+  // Auto-expand parent menu based on current route AND module context
   useEffect(() => {
     const currentPath = location.pathname;
     const menusToOpen: string[] = [];
     
+    // Map route prefixes to their parent menu codes for auto-expand
+    const moduleMenuMap: Record<string, string[]> = {
+      '/app/pharmacy': ['pharmacy'],
+      '/app/ipd': ['ipd'],
+      '/app/opd': ['opd', 'appointments'],
+      '/app/appointments': ['appointments'],
+      '/app/emergency': ['emergency'],
+      '/app/billing': ['billing'],
+      '/app/lab': ['lab'],
+      '/app/radiology': ['radiology'],
+      '/app/blood-bank': ['blood_bank'],
+      '/app/ot': ['ot'],
+      '/app/inventory': ['inventory'],
+      '/app/hr': ['hr'],
+      '/app/accounts': ['accounts'],
+      '/app/settings': ['settings'],
+    };
+    
+    // Find and expand matching module menus
+    for (const [prefix, menuCodes] of Object.entries(moduleMenuMap)) {
+      if (currentPath.startsWith(prefix)) {
+        menuCodes.forEach(code => {
+          const item = menuItems.find(m => m.code === code);
+          if (item && item.children && item.children.length > 0) {
+            menusToOpen.push(item.code);
+          }
+        });
+        break;
+      }
+    }
+    
+    // Also expand based on active child match
     menuItems.forEach(item => {
       if (item.children && item.children.length > 0) {
         const hasActiveChild = item.children.some(child => 
