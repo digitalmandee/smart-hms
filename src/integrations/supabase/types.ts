@@ -3374,6 +3374,176 @@ export type Database = {
           },
         ]
       }
+      goods_received_notes: {
+        Row: {
+          branch_id: string
+          created_at: string
+          grn_number: string
+          id: string
+          invoice_amount: number | null
+          invoice_date: string | null
+          invoice_number: string | null
+          notes: string | null
+          organization_id: string
+          purchase_order_id: string | null
+          received_by: string | null
+          received_date: string
+          status: Database["public"]["Enums"]["grn_status"]
+          updated_at: string
+          vendor_id: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          branch_id: string
+          created_at?: string
+          grn_number: string
+          id?: string
+          invoice_amount?: number | null
+          invoice_date?: string | null
+          invoice_number?: string | null
+          notes?: string | null
+          organization_id: string
+          purchase_order_id?: string | null
+          received_by?: string | null
+          received_date?: string
+          status?: Database["public"]["Enums"]["grn_status"]
+          updated_at?: string
+          vendor_id: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          branch_id?: string
+          created_at?: string
+          grn_number?: string
+          id?: string
+          invoice_amount?: number | null
+          invoice_date?: string | null
+          invoice_number?: string | null
+          notes?: string | null
+          organization_id?: string
+          purchase_order_id?: string | null
+          received_by?: string | null
+          received_date?: string
+          status?: Database["public"]["Enums"]["grn_status"]
+          updated_at?: string
+          vendor_id?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goods_received_notes_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goods_received_notes_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goods_received_notes_purchase_order_id_fkey"
+            columns: ["purchase_order_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goods_received_notes_received_by_fkey"
+            columns: ["received_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goods_received_notes_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goods_received_notes_verified_by_fkey"
+            columns: ["verified_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      grn_items: {
+        Row: {
+          batch_number: string | null
+          created_at: string
+          expiry_date: string | null
+          grn_id: string
+          id: string
+          item_id: string
+          po_item_id: string | null
+          quantity_accepted: number
+          quantity_received: number
+          quantity_rejected: number
+          rejection_reason: string | null
+          unit_cost: number
+        }
+        Insert: {
+          batch_number?: string | null
+          created_at?: string
+          expiry_date?: string | null
+          grn_id: string
+          id?: string
+          item_id: string
+          po_item_id?: string | null
+          quantity_accepted?: number
+          quantity_received?: number
+          quantity_rejected?: number
+          rejection_reason?: string | null
+          unit_cost?: number
+        }
+        Update: {
+          batch_number?: string | null
+          created_at?: string
+          expiry_date?: string | null
+          grn_id?: string
+          id?: string
+          item_id?: string
+          po_item_id?: string | null
+          quantity_accepted?: number
+          quantity_received?: number
+          quantity_rejected?: number
+          rejection_reason?: string | null
+          unit_cost?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grn_items_grn_id_fkey"
+            columns: ["grn_id"]
+            isOneToOne: false
+            referencedRelation: "goods_received_notes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "grn_items_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "grn_items_po_item_id_fkey"
+            columns: ["po_item_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_order_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       holidays: {
         Row: {
           applies_to_categories: string[] | null
@@ -3968,6 +4138,197 @@ export type Database = {
             columns: ["surgery_id"]
             isOneToOne: false
             referencedRelation: "surgeries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          organization_id: string
+          parent_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          organization_id: string
+          parent_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          organization_id?: string
+          parent_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_categories_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_items: {
+        Row: {
+          category_id: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          is_consumable: boolean
+          item_code: string
+          minimum_stock: number
+          name: string
+          organization_id: string
+          reorder_level: number
+          standard_cost: number | null
+          unit_of_measure: string
+          updated_at: string
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_consumable?: boolean
+          item_code: string
+          minimum_stock?: number
+          name: string
+          organization_id: string
+          reorder_level?: number
+          standard_cost?: number | null
+          unit_of_measure?: string
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_consumable?: boolean
+          item_code?: string
+          minimum_stock?: number
+          name?: string
+          organization_id?: string
+          reorder_level?: number
+          standard_cost?: number | null
+          unit_of_measure?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_items_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_stock: {
+        Row: {
+          batch_number: string | null
+          branch_id: string
+          created_at: string
+          expiry_date: string | null
+          grn_id: string | null
+          id: string
+          item_id: string
+          location: string | null
+          quantity: number
+          received_date: string
+          unit_cost: number
+          updated_at: string
+          vendor_id: string | null
+        }
+        Insert: {
+          batch_number?: string | null
+          branch_id: string
+          created_at?: string
+          expiry_date?: string | null
+          grn_id?: string | null
+          id?: string
+          item_id: string
+          location?: string | null
+          quantity?: number
+          received_date?: string
+          unit_cost?: number
+          updated_at?: string
+          vendor_id?: string | null
+        }
+        Update: {
+          batch_number?: string | null
+          branch_id?: string
+          created_at?: string
+          expiry_date?: string | null
+          grn_id?: string | null
+          id?: string
+          item_id?: string
+          location?: string | null
+          quantity?: number
+          received_date?: string
+          unit_cost?: number
+          updated_at?: string
+          vendor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_stock_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_stock_grn_id_fkey"
+            columns: ["grn_id"]
+            isOneToOne: false
+            referencedRelation: "goods_received_notes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_stock_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_stock_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
             referencedColumns: ["id"]
           },
         ]
@@ -6776,6 +7137,210 @@ export type Database = {
           },
         ]
       }
+      purchase_order_items: {
+        Row: {
+          created_at: string
+          discount_percent: number
+          id: string
+          item_id: string
+          purchase_order_id: string
+          quantity: number
+          received_quantity: number
+          tax_percent: number
+          total_price: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          discount_percent?: number
+          id?: string
+          item_id: string
+          purchase_order_id: string
+          quantity?: number
+          received_quantity?: number
+          tax_percent?: number
+          total_price?: number
+          unit_price?: number
+        }
+        Update: {
+          created_at?: string
+          discount_percent?: number
+          id?: string
+          item_id?: string
+          purchase_order_id?: string
+          quantity?: number
+          received_quantity?: number
+          tax_percent?: number
+          total_price?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_order_items_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_order_items_purchase_order_id_fkey"
+            columns: ["purchase_order_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      purchase_orders: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          branch_id: string
+          created_at: string
+          created_by: string | null
+          discount_amount: number
+          expected_delivery_date: string | null
+          id: string
+          notes: string | null
+          order_date: string
+          organization_id: string
+          po_number: string
+          status: Database["public"]["Enums"]["po_status"]
+          subtotal: number
+          tax_amount: number
+          terms: string | null
+          total_amount: number
+          updated_at: string
+          vendor_id: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          branch_id: string
+          created_at?: string
+          created_by?: string | null
+          discount_amount?: number
+          expected_delivery_date?: string | null
+          id?: string
+          notes?: string | null
+          order_date?: string
+          organization_id: string
+          po_number: string
+          status?: Database["public"]["Enums"]["po_status"]
+          subtotal?: number
+          tax_amount?: number
+          terms?: string | null
+          total_amount?: number
+          updated_at?: string
+          vendor_id: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          branch_id?: string
+          created_at?: string
+          created_by?: string | null
+          discount_amount?: number
+          expected_delivery_date?: string | null
+          id?: string
+          notes?: string | null
+          order_date?: string
+          organization_id?: string
+          po_number?: string
+          status?: Database["public"]["Enums"]["po_status"]
+          subtotal?: number
+          tax_amount?: number
+          terms?: string | null
+          total_amount?: number
+          updated_at?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_orders_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_orders_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_orders_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_orders_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_orders_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      requisition_items: {
+        Row: {
+          created_at: string
+          id: string
+          item_id: string
+          notes: string | null
+          quantity_approved: number
+          quantity_issued: number
+          quantity_requested: number
+          requisition_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_id: string
+          notes?: string | null
+          quantity_approved?: number
+          quantity_issued?: number
+          quantity_requested?: number
+          requisition_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_id?: string
+          notes?: string | null
+          quantity_approved?: number
+          quantity_issued?: number
+          quantity_requested?: number
+          requisition_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "requisition_items_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "requisition_items_requisition_id_fkey"
+            columns: ["requisition_id"]
+            isOneToOne: false
+            referencedRelation: "stock_requisitions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       role_permissions: {
         Row: {
           created_at: string
@@ -7056,6 +7621,186 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stock_adjustments: {
+        Row: {
+          adjusted_by: string | null
+          adjustment_type: string
+          branch_id: string
+          created_at: string
+          id: string
+          item_id: string
+          new_quantity: number
+          organization_id: string
+          previous_quantity: number
+          quantity: number
+          reason: string | null
+          reference_id: string | null
+          reference_type: string | null
+        }
+        Insert: {
+          adjusted_by?: string | null
+          adjustment_type: string
+          branch_id: string
+          created_at?: string
+          id?: string
+          item_id: string
+          new_quantity: number
+          organization_id: string
+          previous_quantity: number
+          quantity: number
+          reason?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+        }
+        Update: {
+          adjusted_by?: string | null
+          adjustment_type?: string
+          branch_id?: string
+          created_at?: string
+          id?: string
+          item_id?: string
+          new_quantity?: number
+          organization_id?: string
+          previous_quantity?: number
+          quantity?: number
+          reason?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_adjustments_adjusted_by_fkey"
+            columns: ["adjusted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_adjustments_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_adjustments_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_adjustments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stock_requisitions: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          branch_id: string
+          created_at: string
+          department_id: string | null
+          id: string
+          issued_at: string | null
+          issued_by: string | null
+          notes: string | null
+          organization_id: string
+          priority: number
+          request_date: string
+          requested_by: string
+          required_date: string | null
+          requisition_number: string
+          status: Database["public"]["Enums"]["requisition_status"]
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          branch_id: string
+          created_at?: string
+          department_id?: string | null
+          id?: string
+          issued_at?: string | null
+          issued_by?: string | null
+          notes?: string | null
+          organization_id: string
+          priority?: number
+          request_date?: string
+          requested_by: string
+          required_date?: string | null
+          requisition_number: string
+          status?: Database["public"]["Enums"]["requisition_status"]
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          branch_id?: string
+          created_at?: string
+          department_id?: string | null
+          id?: string
+          issued_at?: string | null
+          issued_by?: string | null
+          notes?: string | null
+          organization_id?: string
+          priority?: number
+          request_date?: string
+          requested_by?: string
+          required_date?: string | null
+          requisition_number?: string
+          status?: Database["public"]["Enums"]["requisition_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_requisitions_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_requisitions_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_requisitions_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_requisitions_issued_by_fkey"
+            columns: ["issued_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_requisitions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_requisitions_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -7663,6 +8408,77 @@ export type Database = {
         }
         Relationships: []
       }
+      vendors: {
+        Row: {
+          address: string | null
+          bank_details: Json | null
+          city: string | null
+          contact_person: string | null
+          country: string | null
+          created_at: string
+          email: string | null
+          id: string
+          is_active: boolean
+          name: string
+          notes: string | null
+          organization_id: string
+          payment_terms: string | null
+          phone: string | null
+          rating: number | null
+          tax_number: string | null
+          updated_at: string
+          vendor_code: string
+        }
+        Insert: {
+          address?: string | null
+          bank_details?: Json | null
+          city?: string | null
+          contact_person?: string | null
+          country?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          notes?: string | null
+          organization_id: string
+          payment_terms?: string | null
+          phone?: string | null
+          rating?: number | null
+          tax_number?: string | null
+          updated_at?: string
+          vendor_code: string
+        }
+        Update: {
+          address?: string | null
+          bank_details?: Json | null
+          city?: string | null
+          contact_person?: string | null
+          country?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          notes?: string | null
+          organization_id?: string
+          payment_terms?: string | null
+          phone?: string | null
+          rating?: number | null
+          tax_number?: string | null
+          updated_at?: string
+          vendor_code?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendors_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       wards: {
         Row: {
           branch_id: string
@@ -7974,6 +8790,7 @@ export type Database = {
         | "email"
         | "phone"
       gender: "male" | "female" | "other"
+      grn_status: "draft" | "pending_verification" | "verified" | "posted"
       imaging_finding_status: "normal" | "abnormal" | "critical"
       imaging_modality:
         | "xray"
@@ -8068,12 +8885,28 @@ export type Database = {
         | "maintenance"
         | "reserved"
       payroll_run_status: "draft" | "processing" | "completed" | "cancelled"
+      po_status:
+        | "draft"
+        | "pending_approval"
+        | "approved"
+        | "ordered"
+        | "partially_received"
+        | "received"
+        | "cancelled"
       prescription_status:
         | "created"
         | "dispensed"
         | "partially_dispensed"
         | "cancelled"
       reaction_severity: "mild" | "moderate" | "severe" | "fatal"
+      requisition_status:
+        | "draft"
+        | "pending"
+        | "approved"
+        | "partially_issued"
+        | "issued"
+        | "rejected"
+        | "cancelled"
       salary_component_type: "earning" | "deduction"
       service_category:
         | "consultation"
@@ -8444,6 +9277,7 @@ export const Constants = {
         "phone",
       ],
       gender: ["male", "female", "other"],
+      grn_status: ["draft", "pending_verification", "verified", "posted"],
       imaging_finding_status: ["normal", "abnormal", "critical"],
       imaging_modality: [
         "xray",
@@ -8548,6 +9382,15 @@ export const Constants = {
         "reserved",
       ],
       payroll_run_status: ["draft", "processing", "completed", "cancelled"],
+      po_status: [
+        "draft",
+        "pending_approval",
+        "approved",
+        "ordered",
+        "partially_received",
+        "received",
+        "cancelled",
+      ],
       prescription_status: [
         "created",
         "dispensed",
@@ -8555,6 +9398,15 @@ export const Constants = {
         "cancelled",
       ],
       reaction_severity: ["mild", "moderate", "severe", "fatal"],
+      requisition_status: [
+        "draft",
+        "pending",
+        "approved",
+        "partially_issued",
+        "issued",
+        "rejected",
+        "cancelled",
+      ],
       salary_component_type: ["earning", "deduction"],
       service_category: [
         "consultation",
