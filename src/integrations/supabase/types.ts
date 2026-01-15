@@ -3415,6 +3415,452 @@ export type Database = {
           },
         ]
       }
+      imaging_modalities: {
+        Row: {
+          branch_id: string
+          code: string
+          created_at: string | null
+          default_duration_minutes: number | null
+          department: string | null
+          id: string
+          is_active: boolean | null
+          modality_type: Database["public"]["Enums"]["imaging_modality"]
+          name: string
+          organization_id: string
+          preparation_instructions: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          branch_id: string
+          code: string
+          created_at?: string | null
+          default_duration_minutes?: number | null
+          department?: string | null
+          id?: string
+          is_active?: boolean | null
+          modality_type?: Database["public"]["Enums"]["imaging_modality"]
+          name: string
+          organization_id: string
+          preparation_instructions?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          branch_id?: string
+          code?: string
+          created_at?: string | null
+          default_duration_minutes?: number | null
+          department?: string | null
+          id?: string
+          is_active?: boolean | null
+          modality_type?: Database["public"]["Enums"]["imaging_modality"]
+          name?: string
+          organization_id?: string
+          preparation_instructions?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "imaging_modalities_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "imaging_modalities_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      imaging_orders: {
+        Row: {
+          admission_id: string | null
+          branch_id: string
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
+          clinical_history: string | null
+          clinical_indication: string | null
+          consultation_id: string | null
+          created_at: string | null
+          er_registration_id: string | null
+          id: string
+          modality: Database["public"]["Enums"]["imaging_modality"]
+          notes: string | null
+          order_number: string
+          ordered_at: string | null
+          ordered_by: string
+          organization_id: string
+          patient_id: string
+          performed_at: string | null
+          priority: Database["public"]["Enums"]["imaging_priority"]
+          procedure_id: string | null
+          procedure_name: string
+          radiologist_id: string | null
+          reported_at: string | null
+          scheduled_date: string | null
+          scheduled_time: string | null
+          status: Database["public"]["Enums"]["imaging_order_status"]
+          technician_id: string | null
+          updated_at: string | null
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          admission_id?: string | null
+          branch_id: string
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          clinical_history?: string | null
+          clinical_indication?: string | null
+          consultation_id?: string | null
+          created_at?: string | null
+          er_registration_id?: string | null
+          id?: string
+          modality: Database["public"]["Enums"]["imaging_modality"]
+          notes?: string | null
+          order_number: string
+          ordered_at?: string | null
+          ordered_by: string
+          organization_id: string
+          patient_id: string
+          performed_at?: string | null
+          priority?: Database["public"]["Enums"]["imaging_priority"]
+          procedure_id?: string | null
+          procedure_name: string
+          radiologist_id?: string | null
+          reported_at?: string | null
+          scheduled_date?: string | null
+          scheduled_time?: string | null
+          status?: Database["public"]["Enums"]["imaging_order_status"]
+          technician_id?: string | null
+          updated_at?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          admission_id?: string | null
+          branch_id?: string
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          clinical_history?: string | null
+          clinical_indication?: string | null
+          consultation_id?: string | null
+          created_at?: string | null
+          er_registration_id?: string | null
+          id?: string
+          modality?: Database["public"]["Enums"]["imaging_modality"]
+          notes?: string | null
+          order_number?: string
+          ordered_at?: string | null
+          ordered_by?: string
+          organization_id?: string
+          patient_id?: string
+          performed_at?: string | null
+          priority?: Database["public"]["Enums"]["imaging_priority"]
+          procedure_id?: string | null
+          procedure_name?: string
+          radiologist_id?: string | null
+          reported_at?: string | null
+          scheduled_date?: string | null
+          scheduled_time?: string | null
+          status?: Database["public"]["Enums"]["imaging_order_status"]
+          technician_id?: string | null
+          updated_at?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "imaging_orders_admission_id_fkey"
+            columns: ["admission_id"]
+            isOneToOne: false
+            referencedRelation: "admissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "imaging_orders_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "imaging_orders_cancelled_by_fkey"
+            columns: ["cancelled_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "imaging_orders_consultation_id_fkey"
+            columns: ["consultation_id"]
+            isOneToOne: false
+            referencedRelation: "consultations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "imaging_orders_er_registration_id_fkey"
+            columns: ["er_registration_id"]
+            isOneToOne: false
+            referencedRelation: "emergency_registrations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "imaging_orders_ordered_by_fkey"
+            columns: ["ordered_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "imaging_orders_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "imaging_orders_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "imaging_orders_procedure_id_fkey"
+            columns: ["procedure_id"]
+            isOneToOne: false
+            referencedRelation: "imaging_procedures"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "imaging_orders_radiologist_id_fkey"
+            columns: ["radiologist_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "imaging_orders_technician_id_fkey"
+            columns: ["technician_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "imaging_orders_verified_by_fkey"
+            columns: ["verified_by"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      imaging_procedures: {
+        Row: {
+          base_price: number | null
+          body_part: string | null
+          code: string
+          created_at: string | null
+          default_views: string | null
+          estimated_duration_minutes: number | null
+          id: string
+          is_active: boolean | null
+          modality_id: string | null
+          modality_type: Database["public"]["Enums"]["imaging_modality"]
+          name: string
+          organization_id: string
+          preparation: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          base_price?: number | null
+          body_part?: string | null
+          code: string
+          created_at?: string | null
+          default_views?: string | null
+          estimated_duration_minutes?: number | null
+          id?: string
+          is_active?: boolean | null
+          modality_id?: string | null
+          modality_type: Database["public"]["Enums"]["imaging_modality"]
+          name: string
+          organization_id: string
+          preparation?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          base_price?: number | null
+          body_part?: string | null
+          code?: string
+          created_at?: string | null
+          default_views?: string | null
+          estimated_duration_minutes?: number | null
+          id?: string
+          is_active?: boolean | null
+          modality_id?: string | null
+          modality_type?: Database["public"]["Enums"]["imaging_modality"]
+          name?: string
+          organization_id?: string
+          preparation?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "imaging_procedures_modality_id_fkey"
+            columns: ["modality_id"]
+            isOneToOne: false
+            referencedRelation: "imaging_modalities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "imaging_procedures_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      imaging_report_templates: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string
+          is_active: boolean | null
+          modality: Database["public"]["Enums"]["imaging_modality"]
+          name: string
+          organization_id: string
+          procedure_id: string | null
+          template_structure: Json
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          modality: Database["public"]["Enums"]["imaging_modality"]
+          name: string
+          organization_id: string
+          procedure_id?: string | null
+          template_structure: Json
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          modality?: Database["public"]["Enums"]["imaging_modality"]
+          name?: string
+          organization_id?: string
+          procedure_id?: string | null
+          template_structure?: Json
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "imaging_report_templates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "imaging_report_templates_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "imaging_report_templates_procedure_id_fkey"
+            columns: ["procedure_id"]
+            isOneToOne: false
+            referencedRelation: "imaging_procedures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      imaging_results: {
+        Row: {
+          comparison: string | null
+          created_at: string | null
+          created_by: string | null
+          finding_status:
+            | Database["public"]["Enums"]["imaging_finding_status"]
+            | null
+          findings: string | null
+          id: string
+          images: Json | null
+          impression: string | null
+          order_id: string
+          recommendations: string | null
+          report_template_id: string | null
+          structured_findings: Json | null
+          technique: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          comparison?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          finding_status?:
+            | Database["public"]["Enums"]["imaging_finding_status"]
+            | null
+          findings?: string | null
+          id?: string
+          images?: Json | null
+          impression?: string | null
+          order_id: string
+          recommendations?: string | null
+          report_template_id?: string | null
+          structured_findings?: Json | null
+          technique?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          comparison?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          finding_status?:
+            | Database["public"]["Enums"]["imaging_finding_status"]
+            | null
+          findings?: string | null
+          id?: string
+          images?: Json | null
+          impression?: string | null
+          order_id?: string
+          recommendations?: string | null
+          report_template_id?: string | null
+          structured_findings?: Json | null
+          technique?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "imaging_results_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "imaging_results_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "imaging_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       intra_op_notes: {
         Row: {
           approach: string | null
@@ -7528,6 +7974,28 @@ export type Database = {
         | "email"
         | "phone"
       gender: "male" | "female" | "other"
+      imaging_finding_status: "normal" | "abnormal" | "critical"
+      imaging_modality:
+        | "xray"
+        | "ultrasound"
+        | "ct_scan"
+        | "mri"
+        | "fluoroscopy"
+        | "mammography"
+        | "dexa"
+        | "ecg"
+        | "echo"
+        | "pet_ct"
+        | "other"
+      imaging_order_status:
+        | "ordered"
+        | "scheduled"
+        | "in_progress"
+        | "completed"
+        | "reported"
+        | "verified"
+        | "cancelled"
+      imaging_priority: "routine" | "urgent" | "stat"
       invoice_status:
         | "draft"
         | "pending"
@@ -7976,6 +8444,30 @@ export const Constants = {
         "phone",
       ],
       gender: ["male", "female", "other"],
+      imaging_finding_status: ["normal", "abnormal", "critical"],
+      imaging_modality: [
+        "xray",
+        "ultrasound",
+        "ct_scan",
+        "mri",
+        "fluoroscopy",
+        "mammography",
+        "dexa",
+        "ecg",
+        "echo",
+        "pet_ct",
+        "other",
+      ],
+      imaging_order_status: [
+        "ordered",
+        "scheduled",
+        "in_progress",
+        "completed",
+        "reported",
+        "verified",
+        "cancelled",
+      ],
+      imaging_priority: ["routine", "urgent", "stat"],
       invoice_status: [
         "draft",
         "pending",
