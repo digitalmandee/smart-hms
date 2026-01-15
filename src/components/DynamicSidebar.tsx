@@ -61,6 +61,9 @@ import {
   Boxes,
   FileEdit,
   Warehouse,
+  Store,
+  Clock,
+  Tags,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -115,6 +118,9 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Boxes,
   FileEdit,
   Warehouse,
+  Store,
+  Clock,
+  Tags,
 };
 
 interface DynamicSidebarProps {
