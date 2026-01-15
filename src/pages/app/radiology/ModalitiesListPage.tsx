@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   Dialog,
   DialogContent,
@@ -22,87 +23,45 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { useImagingModalities, useCreateImagingModality, useUpdateImagingModality, IMAGING_MODALITIES, ImagingModality } from '@/hooks/useImaging';
 import { toast } from 'sonner';
 import { Plus, Edit, Radio } from 'lucide-react';
 
-interface Modality {
-  id: string;
-  name: string;
-  code: string;
-  department: string | null;
-  preparation_instructions: string | null;
-  default_duration_minutes: number | null;
-  is_active: boolean;
-}
-
 export default function ModalitiesListPage() {
-  const queryClient = useQueryClient();
+  const { data: modalities, isLoading } = useImagingModalities();
+  const { mutate: createModality, isPending: isCreating } = useCreateImagingModality();
+  const { mutate: updateModality, isPending: isUpdating } = useUpdateImagingModality();
+  
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingModality, setEditingModality] = useState<Modality | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     code: '',
+    modality_type: '' as ImagingModality | '',
     department: '',
     preparation_instructions: '',
     default_duration_minutes: 30,
     is_active: true,
   });
 
-  const { data: modalities, isLoading } = useQuery({
-    queryKey: ['imaging-modalities'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('imaging_modalities')
-        .select('*')
-        .order('name');
-      if (error) throw error;
-      return data as Modality[];
-    },
-  });
-
-  const saveMutation = useMutation({
-    mutationFn: async (data: typeof formData & { id?: string }) => {
-      if (data.id) {
-        const { error } = await supabase
-          .from('imaging_modalities')
-          .update(data)
-          .eq('id', data.id);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from('imaging_modalities')
-          .insert(data);
-        if (error) throw error;
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['imaging-modalities'] });
-      toast.success(editingModality ? 'Modality updated' : 'Modality created');
-      handleCloseDialog();
-    },
-    onError: () => {
-      toast.error('Failed to save modality');
-    },
-  });
-
-  const handleOpenDialog = (modality?: Modality) => {
+  const handleOpenDialog = (modality?: typeof modalities extends (infer T)[] | undefined ? T : never) => {
     if (modality) {
-      setEditingModality(modality);
+      setEditingId(modality.id);
       setFormData({
         name: modality.name,
         code: modality.code,
+        modality_type: modality.modality_type,
         department: modality.department || '',
         preparation_instructions: modality.preparation_instructions || '',
         default_duration_minutes: modality.default_duration_minutes || 30,
         is_active: modality.is_active,
       });
     } else {
-      setEditingModality(null);
+      setEditingId(null);
       setFormData({
         name: '',
         code: '',
+        modality_type: '',
         department: '',
         preparation_instructions: '',
         default_duration_minutes: 30,
@@ -114,28 +73,52 @@ export default function ModalitiesListPage() {
 
   const handleCloseDialog = () => {
     setIsDialogOpen(false);
-    setEditingModality(null);
+    setEditingId(null);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    saveMutation.mutate({
-      ...formData,
-      id: editingModality?.id,
-    });
+    
+    if (!formData.modality_type) {
+      toast.error('Please select a modality type');
+      return;
+    }
+
+    const data = {
+      name: formData.name,
+      code: formData.code,
+      modality_type: formData.modality_type as ImagingModality,
+      department: formData.department || undefined,
+      preparation_instructions: formData.preparation_instructions || undefined,
+      default_duration_minutes: formData.default_duration_minutes,
+      is_active: formData.is_active,
+    };
+
+    if (editingId) {
+      updateModality({ id: editingId, ...data }, {
+        onSuccess: () => handleCloseDialog()
+      });
+    } else {
+      createModality(data, {
+        onSuccess: () => handleCloseDialog()
+      });
+    }
   };
+
+  const isSaving = isCreating || isUpdating;
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Imaging Modalities"
-        subtitle="Manage available imaging modalities and equipment"
-      >
-        <Button onClick={() => handleOpenDialog()}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Modality
-        </Button>
-      </PageHeader>
+        description="Manage available imaging modalities and equipment"
+        actions={
+          <Button onClick={() => handleOpenDialog()}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Modality
+          </Button>
+        }
+      />
 
       <Card>
         <CardContent className="p-0">
@@ -155,6 +138,7 @@ export default function ModalitiesListPage() {
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead>Code</TableHead>
+                  <TableHead>Type</TableHead>
                   <TableHead>Department</TableHead>
                   <TableHead>Duration</TableHead>
                   <TableHead>Status</TableHead>
@@ -167,6 +151,9 @@ export default function ModalitiesListPage() {
                     <TableCell className="font-medium">{modality.name}</TableCell>
                     <TableCell>
                       <Badge variant="outline">{modality.code}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      {IMAGING_MODALITIES.find(m => m.value === modality.modality_type)?.label || modality.modality_type}
                     </TableCell>
                     <TableCell>{modality.department || '-'}</TableCell>
                     <TableCell>{modality.default_duration_minutes} min</TableCell>
@@ -197,10 +184,26 @@ export default function ModalitiesListPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {editingModality ? 'Edit Modality' : 'Add Modality'}
+              {editingId ? 'Edit Modality' : 'Add Modality'}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="modality_type">Modality Type *</Label>
+              <Select
+                value={formData.modality_type}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, modality_type: value as ImagingModality }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {IMAGING_MODALITIES.map(m => (
+                    <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Name *</Label>
@@ -236,7 +239,7 @@ export default function ModalitiesListPage() {
                   id="duration"
                   type="number"
                   value={formData.default_duration_minutes}
-                  onChange={(e) => setFormData(prev => ({ ...prev, default_duration_minutes: parseInt(e.target.value) }))}
+                  onChange={(e) => setFormData(prev => ({ ...prev, default_duration_minutes: parseInt(e.target.value) || 30 }))}
                 />
               </div>
             </div>
@@ -261,8 +264,8 @@ export default function ModalitiesListPage() {
               <Button type="button" variant="outline" onClick={handleCloseDialog}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={saveMutation.isPending}>
-                {saveMutation.isPending ? 'Saving...' : 'Save'}
+              <Button type="submit" disabled={isSaving}>
+                {isSaving ? 'Saving...' : 'Save'}
               </Button>
             </DialogFooter>
           </form>

@@ -2,19 +2,17 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useImagingOrders, IMAGING_MODALITIES } from '@/hooks/useImaging';
-import { ImagingOrderCard } from '@/components/radiology/ImagingOrderCard';
 import { ModalityBadge } from '@/components/radiology/ModalityBadge';
 import { ImagingPriorityBadge } from '@/components/radiology/ImagingPriorityBadge';
 import { format } from 'date-fns';
-import { FileText, RefreshCw, Clock, AlertTriangle } from 'lucide-react';
+import { FileText, RefreshCw, Clock } from 'lucide-react';
 
 export default function ReportingWorklistPage() {
   const navigate = useNavigate();
-  const { orders, isLoading, refetch } = useImagingOrders();
+  const { data: orders, isLoading, refetch } = useImagingOrders();
   const [modalityFilter, setModalityFilter] = useState<string>('all');
   const [view, setView] = useState<'pending' | 'verification'>('pending');
 
@@ -43,26 +41,27 @@ export default function ReportingWorklistPage() {
     <div className="space-y-6">
       <PageHeader
         title="Reporting Worklist"
-        subtitle="Studies awaiting radiologist interpretation"
-      >
-        <div className="flex gap-2">
-          <Select value={modalityFilter} onValueChange={setModalityFilter}>
-            <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="All Modalities" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Modalities</SelectItem>
-              {IMAGING_MODALITIES.map(m => (
-                <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Button variant="outline" onClick={() => refetch()}>
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
-        </div>
-      </PageHeader>
+        description="Studies awaiting radiologist interpretation"
+        actions={
+          <div className="flex gap-2">
+            <Select value={modalityFilter} onValueChange={setModalityFilter}>
+              <SelectTrigger className="w-[150px]">
+                <SelectValue placeholder="All Modalities" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Modalities</SelectItem>
+                {IMAGING_MODALITIES.map(m => (
+                  <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button variant="outline" onClick={() => refetch()}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh
+            </Button>
+          </div>
+        }
+      />
 
       {/* View Toggle */}
       <div className="flex gap-2">
@@ -119,6 +118,7 @@ export default function ReportingWorklistPage() {
                       <ModalityBadge modality={order.modality} />
                       <ImagingPriorityBadge priority={order.priority} showIcon />
                     </div>
+                    <p className="font-medium">{order.procedure_name}</p>
                     <p className="text-sm text-muted-foreground line-clamp-1">
                       {order.clinical_indication || 'No clinical indication'}
                     </p>

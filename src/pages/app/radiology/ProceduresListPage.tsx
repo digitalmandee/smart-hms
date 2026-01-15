@@ -23,35 +23,23 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { IMAGING_MODALITIES, ImagingModality } from '@/hooks/useImaging';
+import { useImagingProcedures, useCreateImagingProcedure, useUpdateImagingProcedure, IMAGING_MODALITIES, ImagingModality } from '@/hooks/useImaging';
 import { ModalityBadge } from '@/components/radiology/ModalityBadge';
 import { toast } from 'sonner';
 import { Plus, Edit, Search, FileImage } from 'lucide-react';
 
-interface Procedure {
-  id: string;
-  modality: ImagingModality;
-  name: string;
-  code: string;
-  body_part: string | null;
-  default_views: string | null;
-  preparation: string | null;
-  estimated_duration_minutes: number | null;
-  base_price: number | null;
-  is_active: boolean;
-}
-
 export default function ProceduresListPage() {
-  const queryClient = useQueryClient();
+  const { data: procedures, isLoading } = useImagingProcedures();
+  const { mutate: createProcedure, isPending: isCreating } = useCreateImagingProcedure();
+  const { mutate: updateProcedure, isPending: isUpdating } = useUpdateImagingProcedure();
+  
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingProcedure, setEditingProcedure] = useState<Procedure | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [modalityFilter, setModalityFilter] = useState<string>('all');
 
   const [formData, setFormData] = useState({
-    modality: '' as ImagingModality | '',
+    modality_type: '' as ImagingModality | '',
     name: '',
     code: '',
     body_part: '',
@@ -62,56 +50,19 @@ export default function ProceduresListPage() {
     is_active: true,
   });
 
-  const { data: procedures, isLoading } = useQuery({
-    queryKey: ['imaging-procedures'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('imaging_procedures')
-        .select('*')
-        .order('name');
-      if (error) throw error;
-      return data as Procedure[];
-    },
-  });
-
-  const saveMutation = useMutation({
-    mutationFn: async (data: typeof formData & { id?: string }) => {
-      if (data.id) {
-        const { error } = await supabase
-          .from('imaging_procedures')
-          .update(data)
-          .eq('id', data.id);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from('imaging_procedures')
-          .insert(data);
-        if (error) throw error;
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['imaging-procedures'] });
-      toast.success(editingProcedure ? 'Procedure updated' : 'Procedure created');
-      handleCloseDialog();
-    },
-    onError: () => {
-      toast.error('Failed to save procedure');
-    },
-  });
-
   const filteredProcedures = procedures?.filter(proc => {
     const matchesSearch = !searchQuery || 
       proc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       proc.code.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesModality = modalityFilter === 'all' || proc.modality === modalityFilter;
+    const matchesModality = modalityFilter === 'all' || proc.modality_type === modalityFilter;
     return matchesSearch && matchesModality;
   });
 
-  const handleOpenDialog = (procedure?: Procedure) => {
+  const handleOpenDialog = (procedure?: typeof procedures extends (infer T)[] | undefined ? T : never) => {
     if (procedure) {
-      setEditingProcedure(procedure);
+      setEditingId(procedure.id);
       setFormData({
-        modality: procedure.modality,
+        modality_type: procedure.modality_type,
         name: procedure.name,
         code: procedure.code,
         body_part: procedure.body_part || '',
@@ -122,9 +73,9 @@ export default function ProceduresListPage() {
         is_active: procedure.is_active,
       });
     } else {
-      setEditingProcedure(null);
+      setEditingId(null);
       setFormData({
-        modality: '',
+        modality_type: '',
         name: '',
         code: '',
         body_part: '',
@@ -140,32 +91,53 @@ export default function ProceduresListPage() {
 
   const handleCloseDialog = () => {
     setIsDialogOpen(false);
-    setEditingProcedure(null);
+    setEditingId(null);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.modality) {
+    if (!formData.modality_type) {
       toast.error('Please select a modality');
       return;
     }
-    saveMutation.mutate({
-      ...formData,
-      id: editingProcedure?.id,
-    });
+
+    const data = {
+      modality_type: formData.modality_type as ImagingModality,
+      name: formData.name,
+      code: formData.code,
+      body_part: formData.body_part || undefined,
+      default_views: formData.default_views || undefined,
+      preparation: formData.preparation || undefined,
+      estimated_duration_minutes: formData.estimated_duration_minutes,
+      base_price: formData.base_price,
+      is_active: formData.is_active,
+    };
+
+    if (editingId) {
+      updateProcedure({ id: editingId, ...data }, {
+        onSuccess: () => handleCloseDialog()
+      });
+    } else {
+      createProcedure(data, {
+        onSuccess: () => handleCloseDialog()
+      });
+    }
   };
+
+  const isSaving = isCreating || isUpdating;
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Imaging Procedures"
-        subtitle="Manage procedure catalog with pricing and preparation"
-      >
-        <Button onClick={() => handleOpenDialog()}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Procedure
-        </Button>
-      </PageHeader>
+        description="Manage procedure catalog with pricing and preparation"
+        actions={
+          <Button onClick={() => handleOpenDialog()}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Procedure
+          </Button>
+        }
+      />
 
       {/* Filters */}
       <div className="flex gap-4">
@@ -226,7 +198,7 @@ export default function ProceduresListPage() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <ModalityBadge modality={procedure.modality} />
+                      <ModalityBadge modality={procedure.modality_type} />
                     </TableCell>
                     <TableCell>{procedure.body_part || '-'}</TableCell>
                     <TableCell>{procedure.estimated_duration_minutes} min</TableCell>
@@ -260,15 +232,15 @@ export default function ProceduresListPage() {
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>
-              {editingProcedure ? 'Edit Procedure' : 'Add Procedure'}
+              {editingId ? 'Edit Procedure' : 'Add Procedure'}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="modality">Modality *</Label>
+              <Label htmlFor="modality_type">Modality *</Label>
               <Select
-                value={formData.modality}
-                onValueChange={(value) => setFormData(prev => ({ ...prev, modality: value as ImagingModality }))}
+                value={formData.modality_type}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, modality_type: value as ImagingModality }))}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select modality" />
@@ -326,7 +298,7 @@ export default function ProceduresListPage() {
                   id="duration"
                   type="number"
                   value={formData.estimated_duration_minutes}
-                  onChange={(e) => setFormData(prev => ({ ...prev, estimated_duration_minutes: parseInt(e.target.value) }))}
+                  onChange={(e) => setFormData(prev => ({ ...prev, estimated_duration_minutes: parseInt(e.target.value) || 30 }))}
                 />
               </div>
               <div className="space-y-2">
@@ -335,7 +307,7 @@ export default function ProceduresListPage() {
                   id="price"
                   type="number"
                   value={formData.base_price}
-                  onChange={(e) => setFormData(prev => ({ ...prev, base_price: parseFloat(e.target.value) }))}
+                  onChange={(e) => setFormData(prev => ({ ...prev, base_price: parseFloat(e.target.value) || 0 }))}
                 />
               </div>
             </div>
@@ -361,8 +333,8 @@ export default function ProceduresListPage() {
               <Button type="button" variant="outline" onClick={handleCloseDialog}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={saveMutation.isPending}>
-                {saveMutation.isPending ? 'Saving...' : 'Save'}
+              <Button type="submit" disabled={isSaving}>
+                {isSaving ? 'Saving...' : 'Save'}
               </Button>
             </DialogFooter>
           </form>

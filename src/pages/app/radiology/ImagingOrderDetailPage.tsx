@@ -2,9 +2,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { useImagingOrders } from '@/hooks/useImaging';
+import { useImagingOrder, useUpdateImagingOrder, useImagingResult } from '@/hooks/useImaging';
 import { ImagingStatusBadge } from '@/components/radiology/ImagingStatusBadge';
 import { ImagingPriorityBadge } from '@/components/radiology/ImagingPriorityBadge';
 import { ModalityBadge } from '@/components/radiology/ModalityBadge';
@@ -12,25 +11,27 @@ import { ImageViewer } from '@/components/radiology/ImageViewer';
 import { PrintableImagingReport } from '@/components/radiology/PrintableImagingReport';
 import { usePrint } from '@/hooks/usePrint';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 import { 
   ArrowLeft, 
-  Calendar, 
-  Clock, 
-  FileText, 
   Printer, 
   Play, 
   CheckCircle,
+  FileText,
   User
 } from 'lucide-react';
-import { toast } from 'sonner';
 
 export default function ImagingOrderDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { orders, updateOrder, isUpdating } = useImagingOrders();
+  const { data: order, isLoading } = useImagingOrder(id);
+  const { data: result } = useImagingResult(id);
+  const { mutate: updateOrder, isPending: isUpdating } = useUpdateImagingOrder();
   const { printRef, handlePrint } = usePrint();
 
-  const order = orders?.find(o => o.id === id);
+  if (isLoading) {
+    return <div className="text-center py-12">Loading...</div>;
+  }
 
   if (!order) {
     return (
@@ -43,44 +44,49 @@ export default function ImagingOrderDetailPage() {
     );
   }
 
-  const handleStartStudy = async () => {
-    try {
-      await updateOrder({ id: order.id, status: 'in_progress' });
-      toast.success('Study started');
-      navigate(`/app/radiology/capture/${order.id}`);
-    } catch (error) {
-      toast.error('Failed to start study');
-    }
+  const handleStartStudy = () => {
+    updateOrder({ id: order.id, status: 'in_progress' }, {
+      onSuccess: () => {
+        toast.success('Study started');
+        navigate(`/app/radiology/capture/${order.id}`);
+      }
+    });
   };
 
-  const handleMarkComplete = async () => {
-    try {
-      await updateOrder({ id: order.id, status: 'completed', performed_at: new Date().toISOString() });
-      toast.success('Study marked as complete');
-    } catch (error) {
-      toast.error('Failed to complete study');
-    }
+  const handleMarkComplete = () => {
+    updateOrder({ 
+      id: order.id, 
+      status: 'completed', 
+      performed_at: new Date().toISOString() 
+    }, {
+      onSuccess: () => toast.success('Study marked as complete')
+    });
+  };
+
+  const onPrint = () => {
+    handlePrint({ title: `Imaging Report - ${order.order_number}` });
   };
 
   return (
     <div className="space-y-6">
       <PageHeader
         title={`Order: ${order.order_number || 'N/A'}`}
-        subtitle="Imaging order details and report"
-      >
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => navigate(-1)}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
-          {order.status === 'verified' && (
-            <Button variant="outline" onClick={handlePrint}>
-              <Printer className="h-4 w-4 mr-2" />
-              Print Report
+        description="Imaging order details and report"
+        actions={
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => navigate(-1)}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back
             </Button>
-          )}
-        </div>
-      </PageHeader>
+            {order.status === 'verified' && result && (
+              <Button variant="outline" onClick={onPrint}>
+                <Printer className="h-4 w-4 mr-2" />
+                Print Report
+              </Button>
+            )}
+          </div>
+        }
+      />
 
       <div className="grid gap-6 md:grid-cols-3">
         {/* Order Info */}
@@ -105,9 +111,13 @@ export default function ImagingOrderDetailPage() {
                 <ModalityBadge modality={order.modality} />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Created</p>
+                <p className="text-sm text-muted-foreground">Procedure</p>
+                <p className="font-medium">{order.procedure_name}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Ordered</p>
                 <p className="font-medium">
-                  {order.created_at ? format(new Date(order.created_at), 'PPp') : '-'}
+                  {order.ordered_at ? format(new Date(order.ordered_at), 'PPp') : '-'}
                 </p>
               </div>
               {order.scheduled_date && (
@@ -180,32 +190,34 @@ export default function ImagingOrderDetailPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-muted-foreground text-sm">
-              Patient details would be shown here when joined with patients table.
-            </p>
-            <p className="text-xs text-muted-foreground mt-2">
-              Patient ID: {order.patient_id}
-            </p>
+            {order.patient ? (
+              <div className="space-y-2">
+                <p className="font-medium">{order.patient.first_name} {order.patient.last_name}</p>
+                <p className="text-sm text-muted-foreground">MRN: {order.patient.patient_number}</p>
+                {order.patient.gender && <p className="text-sm text-muted-foreground capitalize">{order.patient.gender}</p>}
+                {order.patient.phone && <p className="text-sm text-muted-foreground">{order.patient.phone}</p>}
+              </div>
+            ) : (
+              <p className="text-muted-foreground text-sm">Patient ID: {order.patient_id}</p>
+            )}
           </CardContent>
         </Card>
       </div>
 
       {/* Images Section */}
-      {order.imaging_results?.[0]?.images && (
+      {result?.images && Array.isArray(result.images) && result.images.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle>Images</CardTitle>
           </CardHeader>
           <CardContent>
-            <ImageViewer 
-              images={order.imaging_results[0].images as string[]} 
-            />
+            <ImageViewer images={result.images as string[]} />
           </CardContent>
         </Card>
       )}
 
       {/* Report Section */}
-      {order.imaging_results?.[0] && (
+      {result && (
         <Card>
           <CardHeader>
             <CardTitle>Report</CardTitle>
@@ -213,16 +225,16 @@ export default function ImagingOrderDetailPage() {
           <CardContent className="space-y-4">
             <div>
               <p className="text-sm text-muted-foreground mb-1">Findings</p>
-              <p className="whitespace-pre-wrap">{order.imaging_results[0].findings || 'No findings recorded'}</p>
+              <p className="whitespace-pre-wrap">{result.findings || 'No findings recorded'}</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground mb-1">Impression</p>
-              <p className="whitespace-pre-wrap">{order.imaging_results[0].impression || 'No impression recorded'}</p>
+              <p className="whitespace-pre-wrap">{result.impression || 'No impression recorded'}</p>
             </div>
-            {order.imaging_results[0].recommendations && (
+            {result.recommendations && (
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Recommendations</p>
-                <p className="whitespace-pre-wrap">{order.imaging_results[0].recommendations}</p>
+                <p className="whitespace-pre-wrap">{result.recommendations}</p>
               </div>
             )}
           </CardContent>
@@ -230,11 +242,13 @@ export default function ImagingOrderDetailPage() {
       )}
 
       {/* Printable Report */}
-      <div className="hidden">
-        <div ref={printRef}>
-          <PrintableImagingReport order={order} />
+      {result && (
+        <div className="hidden">
+          <div ref={printRef}>
+            <PrintableImagingReport order={order} result={result} />
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

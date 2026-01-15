@@ -11,7 +11,7 @@ import { Plus, Search, Filter } from 'lucide-react';
 
 export default function ImagingOrdersListPage() {
   const navigate = useNavigate();
-  const { orders, isLoading } = useImagingOrders();
+  const { data: orders, isLoading } = useImagingOrders();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [modalityFilter, setModalityFilter] = useState<string>('all');
@@ -33,13 +33,14 @@ export default function ImagingOrdersListPage() {
     <div className="space-y-6">
       <PageHeader
         title="Imaging Orders"
-        subtitle="View and manage all radiology orders"
-      >
-        <Button onClick={() => navigate('/app/radiology/orders/new')}>
-          <Plus className="h-4 w-4 mr-2" />
-          New Order
-        </Button>
-      </PageHeader>
+        description="View and manage all radiology orders"
+        actions={
+          <Button onClick={() => navigate('/app/radiology/orders/new')}>
+            <Plus className="h-4 w-4 mr-2" />
+            New Order
+          </Button>
+        }
+      />
 
       {/* Filters */}
       <Card>
@@ -112,11 +113,7 @@ export default function ImagingOrdersListPage() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {filteredOrders.map(order => (
-            <ImagingOrderCard
-              key={order.id}
-              order={order}
-              onClick={() => navigate(`/app/radiology/orders/${order.id}`)}
-            />
+            <ImagingOrderCard key={order.id} order={order} />
           ))}
         </div>
       )}
