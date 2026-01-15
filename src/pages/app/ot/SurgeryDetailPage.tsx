@@ -365,7 +365,15 @@ export default function SurgeryDetailPage() {
             <TabsContent value="anesthesia" className="mt-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Anesthesia Record</CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle>Anesthesia Record</CardTitle>
+                    <Button 
+                      variant={surgery.anesthesia_record ? "outline" : "default"}
+                      onClick={() => navigate(`/app/ot/surgeries/${surgery.id}/anesthesia`)}
+                    >
+                      {surgery.anesthesia_record ? 'Edit Record' : 'Add Record'}
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   {surgery.anesthesia_record ? (
@@ -399,7 +407,15 @@ export default function SurgeryDetailPage() {
             <TabsContent value="notes" className="mt-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Operative Notes</CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle>Operative Notes</CardTitle>
+                    <Button 
+                      variant={surgery.intra_op_notes ? "outline" : "default"}
+                      onClick={() => navigate(`/app/ot/surgeries/${surgery.id}/op-notes`)}
+                    >
+                      {surgery.intra_op_notes ? 'Edit Notes' : 'Add Notes'}
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   {surgery.intra_op_notes ? (
@@ -475,6 +491,13 @@ export default function SurgeryDetailPage() {
                   No pre-op assessment yet
                 </p>
               )}
+              <Button 
+                variant="outline" 
+                className="w-full mt-4"
+                onClick={() => navigate(`/app/ot/surgeries/${surgery.id}/pre-op`)}
+              >
+                {surgery.pre_op_assessment ? 'View/Edit Pre-Op' : 'Complete Pre-Op Assessment'}
+              </Button>
             </CardContent>
           </Card>
         </div>
