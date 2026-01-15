@@ -1,0 +1,335 @@
+import { useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { PageHeader } from "@/components/PageHeader";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
+import { ArrowLeft, Save, Loader2 } from "lucide-react";
+import { 
+  useBloodDonor, 
+  useCreateDonor, 
+  useUpdateDonor,
+  type BloodGroupType 
+} from "@/hooks/useBloodBank";
+
+const bloodGroups: BloodGroupType[] = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+const genders = ['male', 'female', 'other'];
+
+export default function DonorFormPage() {
+  const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
+  const isEditing = !!id;
+
+  const { data: existingDonor, isLoading: loadingDonor } = useBloodDonor(id || '');
+  const createDonor = useCreateDonor();
+  const updateDonor = useUpdateDonor();
+
+  const [formData, setFormData] = useState({
+    first_name: '',
+    last_name: '',
+    date_of_birth: '',
+    gender: 'male',
+    blood_group: 'O+' as BloodGroupType,
+    phone: '',
+    alternate_phone: '',
+    email: '',
+    address: '',
+    city: '',
+    id_type: '',
+    id_number: '',
+    weight_kg: '',
+    hemoglobin_level: '',
+    current_medications: '',
+    allergies: '',
+    consent_given: false,
+  });
+
+  // Populate form when editing
+  useState(() => {
+    if (existingDonor) {
+      setFormData({
+        first_name: existingDonor.first_name,
+        last_name: existingDonor.last_name || '',
+        date_of_birth: existingDonor.date_of_birth,
+        gender: existingDonor.gender,
+        blood_group: existingDonor.blood_group,
+        phone: existingDonor.phone,
+        alternate_phone: '',
+        email: existingDonor.email || '',
+        address: existingDonor.address || '',
+        city: existingDonor.city || '',
+        id_type: '',
+        id_number: '',
+        weight_kg: existingDonor.weight_kg?.toString() || '',
+        hemoglobin_level: existingDonor.hemoglobin_level?.toString() || '',
+        current_medications: '',
+        allergies: '',
+        consent_given: existingDonor.consent_given,
+      });
+    }
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const donorData = {
+      first_name: formData.first_name,
+      last_name: formData.last_name || null,
+      date_of_birth: formData.date_of_birth,
+      gender: formData.gender,
+      blood_group: formData.blood_group,
+      phone: formData.phone,
+      email: formData.email || null,
+      address: formData.address || null,
+      city: formData.city || null,
+      weight_kg: formData.weight_kg ? parseFloat(formData.weight_kg) : null,
+      hemoglobin_level: formData.hemoglobin_level ? parseFloat(formData.hemoglobin_level) : null,
+      consent_given: formData.consent_given,
+      consent_date: formData.consent_given ? new Date().toISOString() : null,
+    };
+
+    try {
+      if (isEditing && id) {
+        await updateDonor.mutateAsync({ id, ...donorData });
+      } else {
+        await createDonor.mutateAsync(donorData);
+      }
+      navigate('/app/blood-bank/donors');
+    } catch (error) {
+      // Error handled in hook
+    }
+  };
+
+  const isLoading = createDonor.isPending || updateDonor.isPending;
+
+  if (isEditing && loadingDonor) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title={isEditing ? "Edit Donor" : "Register New Donor"}
+        description={isEditing ? "Update donor information" : "Register a new blood donor"}
+        actions={
+          <Button variant="outline" onClick={() => navigate('/app/blood-bank/donors')}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Donors
+          </Button>
+        }
+      />
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Personal Information</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="first_name">First Name *</Label>
+              <Input
+                id="first_name"
+                value={formData.first_name}
+                onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="last_name">Last Name</Label>
+              <Input
+                id="last_name"
+                value={formData.last_name}
+                onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="date_of_birth">Date of Birth *</Label>
+              <Input
+                id="date_of_birth"
+                type="date"
+                value={formData.date_of_birth}
+                onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="gender">Gender *</Label>
+              <Select value={formData.gender} onValueChange={(v) => setFormData({ ...formData, gender: v })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {genders.map((g) => (
+                    <SelectItem key={g} value={g} className="capitalize">{g}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="blood_group">Blood Group *</Label>
+              <Select 
+                value={formData.blood_group} 
+                onValueChange={(v) => setFormData({ ...formData, blood_group: v as BloodGroupType })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {bloodGroups.map((g) => (
+                    <SelectItem key={g} value={g}>{g}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="phone">Phone Number *</Label>
+              <Input
+                id="phone"
+                type="tel"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="address">Address</Label>
+              <Textarea
+                id="address"
+                value={formData.address}
+                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                rows={2}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="city">City</Label>
+              <Input
+                id="city"
+                value={formData.city}
+                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Medical Information</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="weight_kg">Weight (kg)</Label>
+              <Input
+                id="weight_kg"
+                type="number"
+                step="0.1"
+                min="40"
+                value={formData.weight_kg}
+                onChange={(e) => setFormData({ ...formData, weight_kg: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="hemoglobin_level">Hemoglobin (g/dL)</Label>
+              <Input
+                id="hemoglobin_level"
+                type="number"
+                step="0.1"
+                min="10"
+                max="20"
+                value={formData.hemoglobin_level}
+                onChange={(e) => setFormData({ ...formData, hemoglobin_level: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="current_medications">Current Medications</Label>
+              <Textarea
+                id="current_medications"
+                value={formData.current_medications}
+                onChange={(e) => setFormData({ ...formData, current_medications: e.target.value })}
+                placeholder="List any medications currently being taken"
+                rows={2}
+              />
+            </div>
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="allergies">Known Allergies</Label>
+              <Textarea
+                id="allergies"
+                value={formData.allergies}
+                onChange={(e) => setFormData({ ...formData, allergies: e.target.value })}
+                placeholder="List any known allergies"
+                rows={2}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Consent</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-start space-x-3">
+              <Checkbox
+                id="consent"
+                checked={formData.consent_given}
+                onCheckedChange={(checked) => setFormData({ ...formData, consent_given: checked === true })}
+              />
+              <div className="grid gap-1.5 leading-none">
+                <label
+                  htmlFor="consent"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  Donor Consent
+                </label>
+                <p className="text-sm text-muted-foreground">
+                  I hereby consent to donate blood and confirm that all information provided is accurate to the best of my knowledge.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="flex justify-end gap-4">
+          <Button type="button" variant="outline" onClick={() => navigate('/app/blood-bank/donors')}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={isLoading || !formData.consent_given}>
+            {isLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                {isEditing ? 'Updating...' : 'Registering...'}
+              </>
+            ) : (
+              <>
+                <Save className="h-4 w-4 mr-2" />
+                {isEditing ? 'Update Donor' : 'Register Donor'}
+              </>
+            )}
+          </Button>
+        </div>
+      </form>
+    </div>
+  );
+}
