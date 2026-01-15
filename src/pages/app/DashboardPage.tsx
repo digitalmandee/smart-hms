@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,9 +11,48 @@ import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
+// Role-based dashboard redirect mapping
+const ROLE_DASHBOARD_MAP: Record<string, string> = {
+  doctor: "/app/opd",
+  nurse: "/app/opd/nursing",
+  receptionist: "/app/reception",
+  pharmacist: "/app/pharmacy",
+  lab_technician: "/app/lab",
+  accountant: "/app/accounts",
+  store_manager: "/app/inventory",
+  hr_manager: "/app/hr",
+  hr_officer: "/app/hr",
+  finance_manager: "/app/accounts",
+  blood_bank_technician: "/app/blood-bank",
+  radiologist: "/app/radiology",
+  radiology_technician: "/app/radiology",
+};
+
+// Roles that should stay on the generic dashboard
+const ADMIN_ROLES = ["super_admin", "org_admin", "branch_admin"];
+
 export const DashboardPage = () => {
+  const navigate = useNavigate();
   const { profile, roles } = useAuth();
   const { data: stats, isLoading, isError, refetch, isFetching } = useDashboardStats();
+
+  // Role-based redirect logic
+  useEffect(() => {
+    if (roles.length === 0) return;
+
+    // Check if user has any admin role - if so, stay on generic dashboard
+    const hasAdminRole = roles.some(role => ADMIN_ROLES.includes(role));
+    if (hasAdminRole) return;
+
+    // Find the first matching role with a dedicated dashboard
+    for (const role of roles) {
+      const redirectPath = ROLE_DASHBOARD_MAP[role];
+      if (redirectPath) {
+        navigate(redirectPath, { replace: true });
+        return;
+      }
+    }
+  }, [roles, navigate]);
 
   const handleRefresh = async () => {
     try {
@@ -21,6 +62,7 @@ export const DashboardPage = () => {
       toast.error("Failed to refresh dashboard");
     }
   };
+  
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-PK", {
       style: "currency",

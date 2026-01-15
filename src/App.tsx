@@ -52,6 +52,7 @@ import NurseDashboard from "./pages/app/opd/NurseDashboard";
 import ReceptionistDashboard from "./pages/app/reception/ReceptionistDashboard";
 
 // Lab pages
+import LabDashboard from "./pages/app/lab/LabDashboard";
 import LabQueuePage from "./pages/app/lab/LabQueuePage";
 import LabResultEntryPage from "./pages/app/lab/LabResultEntryPage";
 // Pharmacy pages
@@ -360,6 +361,7 @@ function App() {
               <Route path="radiology/procedures" element={<ProceduresListPage />} />
               
               {/* Lab routes */}
+              <Route path="lab" element={<LabDashboard />} />
               <Route path="lab/queue" element={<LabQueuePage />} />
               <Route path="lab/orders/:orderId" element={<LabResultEntryPage />} />
               
