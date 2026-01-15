@@ -18,7 +18,7 @@ const screenshots = [
 export const HeroSection = () => {
   const [displayText, setDisplayText] = useState("");
   const [activeScreen, setActiveScreen] = useState(0);
-  const fullText = "Smart Hospital Management";
+  const fullText = "The Operating System for";
   
   useEffect(() => {
     let index = 0;
@@ -69,7 +69,7 @@ export const HeroSection = () => {
               <span className="animate-pulse">|</span>
               <br />
               <span className="text-muted-foreground text-3xl md:text-4xl lg:text-5xl">
-                System
+                Modern Healthcare
               </span>
             </h1>
             

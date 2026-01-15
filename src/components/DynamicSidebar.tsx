@@ -179,7 +179,7 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle }: DynamicSidebar
           <Heart className="h-5 w-5 text-sidebar-primary-foreground" />
         </div>
         {!isCollapsed && (
-          <span className="text-lg font-semibold text-sidebar-foreground">Smart HMS</span>
+          <span className="text-lg font-semibold text-sidebar-foreground">HealthOS</span>
         )}
         {onToggle && (
           <Button

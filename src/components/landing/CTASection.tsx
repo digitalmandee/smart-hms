@@ -43,9 +43,9 @@ export const CTASection = () => {
               <Phone className="h-5 w-5" />
               <span>+92 315 4441518 (PK)</span>
             </a>
-            <a href="mailto:hello@smarthms.ae" className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
+            <a href="mailto:hello@healthos.ae" className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
               <Mail className="h-5 w-5" />
-              <span>hello@smarthms.ae</span>
+              <span>hello@healthos.ae</span>
             </a>
             <a href="https://wa.me/971506802430" className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
               <MessageCircle className="h-5 w-5" />

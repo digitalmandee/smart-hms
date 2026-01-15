@@ -236,7 +236,7 @@ export const ComparisonTable = () => {
             Why Switch?
           </span>
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            SmartHMS vs. Traditional Methods
+            HealthOS vs. Traditional Methods
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             A detailed comparison across 24 real-world scenarios. See exactly where you're losing time and money.
@@ -254,7 +254,7 @@ export const ComparisonTable = () => {
                       <th className="text-left p-4 font-semibold">Feature</th>
                       <th className="text-center p-4 font-semibold text-destructive/80">📋 Paper/Registers</th>
                       <th className="text-center p-4 font-semibold text-warning-foreground">📊 Excel/Sheets</th>
-                      <th className="text-center p-4 font-semibold text-primary">✨ SmartHMS</th>
+                      <th className="text-center p-4 font-semibold text-primary">✨ HealthOS</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -324,7 +324,7 @@ export const ComparisonTable = () => {
                               </span>
                             </div>
                             <div>
-                              <div className="text-xs text-muted-foreground mb-1">SmartHMS</div>
+                              <div className="text-xs text-muted-foreground mb-1">HealthOS</div>
                               <span className="inline-block px-2 py-0.5 rounded text-xs text-primary bg-primary/10 font-medium">
                                 {row.smartHMS}
                               </span>
