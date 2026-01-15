@@ -14,6 +14,153 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_types: {
+        Row: {
+          category: string
+          code: string
+          created_at: string
+          id: string
+          is_debit_normal: boolean
+          is_system: boolean
+          name: string
+          organization_id: string
+          parent_type_id: string | null
+          sort_order: number
+        }
+        Insert: {
+          category: string
+          code: string
+          created_at?: string
+          id?: string
+          is_debit_normal?: boolean
+          is_system?: boolean
+          name: string
+          organization_id: string
+          parent_type_id?: string | null
+          sort_order?: number
+        }
+        Update: {
+          category?: string
+          code?: string
+          created_at?: string
+          id?: string
+          is_debit_normal?: boolean
+          is_system?: boolean
+          name?: string
+          organization_id?: string
+          parent_type_id?: string | null
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "account_types_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "account_types_parent_type_id_fkey"
+            columns: ["parent_type_id"]
+            isOneToOne: false
+            referencedRelation: "account_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      accounts: {
+        Row: {
+          account_number: string
+          account_type_id: string
+          branch_id: string | null
+          created_at: string
+          created_by: string | null
+          current_balance: number
+          description: string | null
+          id: string
+          is_active: boolean
+          is_system: boolean
+          name: string
+          opening_balance: number
+          opening_balance_date: string | null
+          organization_id: string
+          parent_account_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          account_number: string
+          account_type_id: string
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          current_balance?: number
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_system?: boolean
+          name: string
+          opening_balance?: number
+          opening_balance_date?: string | null
+          organization_id: string
+          parent_account_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          account_number?: string
+          account_type_id?: string
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          current_balance?: number
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_system?: boolean
+          name?: string
+          opening_balance?: number
+          opening_balance_date?: string | null
+          organization_id?: string
+          parent_account_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounts_account_type_id_fkey"
+            columns: ["account_type_id"]
+            isOneToOne: false
+            referencedRelation: "account_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounts_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounts_parent_account_id_fkey"
+            columns: ["parent_account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       admissions: {
         Row: {
           actual_discharge_date: string | null
@@ -802,6 +949,184 @@ export type Database = {
           {
             foreignKeyName: "audit_logs_user_id_fkey"
             columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bank_accounts: {
+        Row: {
+          account_holder_name: string | null
+          account_id: string | null
+          account_number: string
+          account_type: string
+          bank_name: string
+          branch_id: string | null
+          created_at: string
+          created_by: string | null
+          current_balance: number
+          id: string
+          ifsc_code: string | null
+          is_active: boolean
+          is_default: boolean
+          opening_balance: number
+          organization_id: string
+          swift_code: string | null
+          updated_at: string
+        }
+        Insert: {
+          account_holder_name?: string | null
+          account_id?: string | null
+          account_number: string
+          account_type: string
+          bank_name: string
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          current_balance?: number
+          id?: string
+          ifsc_code?: string | null
+          is_active?: boolean
+          is_default?: boolean
+          opening_balance?: number
+          organization_id: string
+          swift_code?: string | null
+          updated_at?: string
+        }
+        Update: {
+          account_holder_name?: string | null
+          account_id?: string | null
+          account_number?: string
+          account_type?: string
+          bank_name?: string
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          current_balance?: number
+          id?: string
+          ifsc_code?: string | null
+          is_active?: boolean
+          is_default?: boolean
+          opening_balance?: number
+          organization_id?: string
+          swift_code?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_accounts_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_accounts_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_accounts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_accounts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bank_transactions: {
+        Row: {
+          bank_account_id: string
+          created_at: string
+          created_by: string | null
+          credit_amount: number
+          debit_amount: number
+          description: string | null
+          id: string
+          is_reconciled: boolean
+          journal_entry_id: string | null
+          reconciled_at: string | null
+          reconciled_by: string | null
+          reference_number: string | null
+          running_balance: number | null
+          statement_date: string | null
+          transaction_date: string
+          transaction_type: string | null
+          value_date: string | null
+        }
+        Insert: {
+          bank_account_id: string
+          created_at?: string
+          created_by?: string | null
+          credit_amount?: number
+          debit_amount?: number
+          description?: string | null
+          id?: string
+          is_reconciled?: boolean
+          journal_entry_id?: string | null
+          reconciled_at?: string | null
+          reconciled_by?: string | null
+          reference_number?: string | null
+          running_balance?: number | null
+          statement_date?: string | null
+          transaction_date: string
+          transaction_type?: string | null
+          value_date?: string | null
+        }
+        Update: {
+          bank_account_id?: string
+          created_at?: string
+          created_by?: string | null
+          credit_amount?: number
+          debit_amount?: number
+          description?: string | null
+          id?: string
+          is_reconciled?: boolean
+          journal_entry_id?: string | null
+          reconciled_at?: string | null
+          reconciled_by?: string | null
+          reference_number?: string | null
+          running_balance?: number | null
+          statement_date?: string | null
+          transaction_date?: string
+          transaction_type?: string | null
+          value_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_transactions_bank_account_id_fkey"
+            columns: ["bank_account_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_transactions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_transactions_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_transactions_reconciled_by_fkey"
+            columns: ["reconciled_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -1717,6 +2042,119 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "branches_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      budget_allocations: {
+        Row: {
+          account_id: string
+          allocated_amount: number
+          branch_id: string | null
+          budget_period_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          account_id: string
+          allocated_amount?: number
+          branch_id?: string | null
+          budget_period_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          account_id?: string
+          allocated_amount?: number
+          branch_id?: string | null
+          budget_period_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budget_allocations_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budget_allocations_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budget_allocations_budget_period_id_fkey"
+            columns: ["budget_period_id"]
+            isOneToOne: false
+            referencedRelation: "budget_periods"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budget_allocations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      budget_periods: {
+        Row: {
+          created_at: string
+          end_date: string
+          fiscal_year_id: string
+          id: string
+          is_closed: boolean
+          name: string
+          organization_id: string
+          start_date: string
+        }
+        Insert: {
+          created_at?: string
+          end_date: string
+          fiscal_year_id: string
+          id?: string
+          is_closed?: boolean
+          name: string
+          organization_id: string
+          start_date: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string
+          fiscal_year_id?: string
+          id?: string
+          is_closed?: boolean
+          name?: string
+          organization_id?: string
+          start_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budget_periods_fiscal_year_id_fkey"
+            columns: ["fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "fiscal_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budget_periods_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -3374,6 +3812,60 @@ export type Database = {
           },
         ]
       }
+      fiscal_years: {
+        Row: {
+          closed_at: string | null
+          closed_by: string | null
+          created_at: string
+          end_date: string
+          id: string
+          is_closed: boolean
+          is_current: boolean
+          name: string
+          organization_id: string
+          start_date: string
+        }
+        Insert: {
+          closed_at?: string | null
+          closed_by?: string | null
+          created_at?: string
+          end_date: string
+          id?: string
+          is_closed?: boolean
+          is_current?: boolean
+          name: string
+          organization_id: string
+          start_date: string
+        }
+        Update: {
+          closed_at?: string | null
+          closed_by?: string | null
+          created_at?: string
+          end_date?: string
+          id?: string
+          is_closed?: boolean
+          is_current?: boolean
+          name?: string
+          organization_id?: string
+          start_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fiscal_years_closed_by_fkey"
+            columns: ["closed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fiscal_years_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       goods_received_notes: {
         Row: {
           branch_id: string
@@ -4751,6 +5243,183 @@ export type Database = {
             columns: ["recorded_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      journal_entries: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          branch_id: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          entry_date: string
+          entry_number: string
+          fiscal_year_id: string | null
+          id: string
+          is_posted: boolean
+          is_reversed: boolean
+          notes: string | null
+          organization_id: string
+          posted_at: string | null
+          posted_by: string | null
+          reference_id: string | null
+          reference_type: string | null
+          reversal_entry_id: string | null
+          reversed_at: string | null
+          reversed_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          entry_date: string
+          entry_number: string
+          fiscal_year_id?: string | null
+          id?: string
+          is_posted?: boolean
+          is_reversed?: boolean
+          notes?: string | null
+          organization_id: string
+          posted_at?: string | null
+          posted_by?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          reversal_entry_id?: string | null
+          reversed_at?: string | null
+          reversed_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          entry_date?: string
+          entry_number?: string
+          fiscal_year_id?: string | null
+          id?: string
+          is_posted?: boolean
+          is_reversed?: boolean
+          notes?: string | null
+          organization_id?: string
+          posted_at?: string | null
+          posted_by?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          reversal_entry_id?: string | null
+          reversed_at?: string | null
+          reversed_by?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journal_entries_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_entries_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_entries_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_entries_fiscal_year_id_fkey"
+            columns: ["fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "fiscal_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_entries_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_entries_posted_by_fkey"
+            columns: ["posted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_entries_reversal_entry_id_fkey"
+            columns: ["reversal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_entries_reversed_by_fkey"
+            columns: ["reversed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      journal_entry_lines: {
+        Row: {
+          account_id: string
+          created_at: string
+          credit_amount: number
+          debit_amount: number
+          description: string | null
+          id: string
+          journal_entry_id: string
+        }
+        Insert: {
+          account_id: string
+          created_at?: string
+          credit_amount?: number
+          debit_amount?: number
+          description?: string | null
+          id?: string
+          journal_entry_id: string
+        }
+        Update: {
+          account_id?: string
+          created_at?: string
+          credit_amount?: number
+          debit_amount?: number
+          description?: string | null
+          id?: string
+          journal_entry_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journal_entry_lines_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_entry_lines_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
             referencedColumns: ["id"]
           },
         ]
@@ -8407,6 +9076,146 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      vendor_payments: {
+        Row: {
+          amount: number
+          approved_at: string | null
+          approved_by: string | null
+          bank_account_id: string | null
+          branch_id: string | null
+          created_at: string
+          created_by: string | null
+          grn_id: string | null
+          id: string
+          journal_entry_id: string | null
+          notes: string | null
+          organization_id: string
+          payment_date: string
+          payment_method_id: string | null
+          payment_number: string
+          purchase_order_id: string | null
+          reference_number: string | null
+          status: string
+          updated_at: string
+          vendor_id: string
+        }
+        Insert: {
+          amount: number
+          approved_at?: string | null
+          approved_by?: string | null
+          bank_account_id?: string | null
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          grn_id?: string | null
+          id?: string
+          journal_entry_id?: string | null
+          notes?: string | null
+          organization_id: string
+          payment_date: string
+          payment_method_id?: string | null
+          payment_number: string
+          purchase_order_id?: string | null
+          reference_number?: string | null
+          status?: string
+          updated_at?: string
+          vendor_id: string
+        }
+        Update: {
+          amount?: number
+          approved_at?: string | null
+          approved_by?: string | null
+          bank_account_id?: string | null
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          grn_id?: string | null
+          id?: string
+          journal_entry_id?: string | null
+          notes?: string | null
+          organization_id?: string
+          payment_date?: string
+          payment_method_id?: string | null
+          payment_number?: string
+          purchase_order_id?: string | null
+          reference_number?: string | null
+          status?: string
+          updated_at?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_payments_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_payments_bank_account_id_fkey"
+            columns: ["bank_account_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_payments_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_payments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_payments_grn_id_fkey"
+            columns: ["grn_id"]
+            isOneToOne: false
+            referencedRelation: "goods_received_notes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_payments_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_payments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_payments_payment_method_id_fkey"
+            columns: ["payment_method_id"]
+            isOneToOne: false
+            referencedRelation: "payment_methods"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_payments_purchase_order_id_fkey"
+            columns: ["purchase_order_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_payments_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       vendors: {
         Row: {
