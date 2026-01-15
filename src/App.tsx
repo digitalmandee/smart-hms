@@ -152,6 +152,20 @@ import CrossMatchFormPage from "./pages/app/blood-bank/CrossMatchFormPage";
 import TransfusionsPage from "./pages/app/blood-bank/TransfusionsPage";
 import TransfusionDetailPage from "./pages/app/blood-bank/TransfusionDetailPage";
 
+// Radiology pages
+import RadiologyDashboard from "./pages/app/radiology/RadiologyDashboard";
+import ImagingOrdersListPage from "./pages/app/radiology/ImagingOrdersListPage";
+import ImagingOrderFormPage from "./pages/app/radiology/ImagingOrderFormPage";
+import ImagingOrderDetailPage from "./pages/app/radiology/ImagingOrderDetailPage";
+import TechnicianWorklistPage from "./pages/app/radiology/TechnicianWorklistPage";
+import ImageCapturePage from "./pages/app/radiology/ImageCapturePage";
+import ImagingSchedulePage from "./pages/app/radiology/ImagingSchedulePage";
+import ReportingWorklistPage from "./pages/app/radiology/ReportingWorklistPage";
+import ReportEntryPage from "./pages/app/radiology/ReportEntryPage";
+import ReportVerificationPage from "./pages/app/radiology/ReportVerificationPage";
+import ModalitiesListPage from "./pages/app/radiology/ModalitiesListPage";
+import ProceduresListPage from "./pages/app/radiology/ProceduresListPage";
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -289,6 +303,20 @@ function App() {
               <Route path="ot/rooms/new" element={<OTRoomFormPage />} />
               <Route path="ot/rooms/:id/edit" element={<OTRoomFormPage />} />
               <Route path="ot/pacu" element={<PACUPage />} />
+              
+              {/* Radiology routes */}
+              <Route path="radiology" element={<RadiologyDashboard />} />
+              <Route path="radiology/orders" element={<ImagingOrdersListPage />} />
+              <Route path="radiology/orders/new" element={<ImagingOrderFormPage />} />
+              <Route path="radiology/orders/:id" element={<ImagingOrderDetailPage />} />
+              <Route path="radiology/worklist" element={<TechnicianWorklistPage />} />
+              <Route path="radiology/capture/:id" element={<ImageCapturePage />} />
+              <Route path="radiology/schedule" element={<ImagingSchedulePage />} />
+              <Route path="radiology/reporting" element={<ReportingWorklistPage />} />
+              <Route path="radiology/report/:id" element={<ReportEntryPage />} />
+              <Route path="radiology/verification" element={<ReportVerificationPage />} />
+              <Route path="radiology/modalities" element={<ModalitiesListPage />} />
+              <Route path="radiology/procedures" element={<ProceduresListPage />} />
               
               {/* Lab routes */}
               <Route path="lab/queue" element={<LabQueuePage />} />
