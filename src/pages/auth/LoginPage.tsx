@@ -10,18 +10,28 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Eye, EyeOff, Crown, Building, Building2, Stethoscope, Heart, UserCheck, Pill, FlaskConical, Calculator, Lock, Unlock } from "lucide-react";
+import { Loader2, Eye, EyeOff, Crown, Building, Building2, Stethoscope, Heart, UserCheck, Pill, FlaskConical, Calculator, Lock, Unlock, Warehouse, Users, Banknote, Droplets, ScanLine, Bed, Scissors } from "lucide-react";
 
 const demoAccounts = [
+  // Admin Roles
   { email: "superadmin@healthos.demo", role: "Super Admin", icon: Crown, color: "bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 border-amber-500/20" },
   { email: "orgadmin@healthos.demo", role: "Org Admin", icon: Building, color: "bg-purple-500/10 text-purple-600 hover:bg-purple-500/20 border-purple-500/20" },
   { email: "branchadmin@healthos.demo", role: "Branch Admin", icon: Building2, color: "bg-blue-500/10 text-blue-600 hover:bg-blue-500/20 border-blue-500/20" },
+  // Clinical Roles
   { email: "doctor@healthos.demo", role: "Doctor", icon: Stethoscope, color: "bg-green-500/10 text-green-600 hover:bg-green-500/20 border-green-500/20" },
   { email: "nurse@healthos.demo", role: "Nurse", icon: Heart, color: "bg-pink-500/10 text-pink-600 hover:bg-pink-500/20 border-pink-500/20" },
   { email: "receptionist@healthos.demo", role: "Receptionist", icon: UserCheck, color: "bg-teal-500/10 text-teal-600 hover:bg-teal-500/20 border-teal-500/20" },
+  // Department Roles
   { email: "pharmacist@healthos.demo", role: "Pharmacist", icon: Pill, color: "bg-orange-500/10 text-orange-600 hover:bg-orange-500/20 border-orange-500/20" },
   { email: "labtech@healthos.demo", role: "Lab Tech", icon: FlaskConical, color: "bg-violet-500/10 text-violet-600 hover:bg-violet-500/20 border-violet-500/20" },
+  { email: "bloodbank@healthos.demo", role: "Blood Bank", icon: Droplets, color: "bg-red-500/10 text-red-600 hover:bg-red-500/20 border-red-500/20" },
+  { email: "radiologist@healthos.demo", role: "Radiologist", icon: ScanLine, color: "bg-cyan-500/10 text-cyan-600 hover:bg-cyan-500/20 border-cyan-500/20" },
+  { email: "ipdnurse@healthos.demo", role: "IPD Nurse", icon: Bed, color: "bg-indigo-500/10 text-indigo-600 hover:bg-indigo-500/20 border-indigo-500/20" },
+  // Administrative Roles
   { email: "accountant@healthos.demo", role: "Accountant", icon: Calculator, color: "bg-slate-500/10 text-slate-600 hover:bg-slate-500/20 border-slate-500/20" },
+  { email: "storemanager@healthos.demo", role: "Store Manager", icon: Warehouse, color: "bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 border-emerald-500/20" },
+  { email: "hrmanager@healthos.demo", role: "HR Manager", icon: Users, color: "bg-sky-500/10 text-sky-600 hover:bg-sky-500/20 border-sky-500/20" },
+  { email: "financemanager@healthos.demo", role: "Finance", icon: Banknote, color: "bg-lime-500/10 text-lime-600 hover:bg-lime-500/20 border-lime-500/20" },
 ];
 
 const DEMO_PASSWORD = "Demo@123";
