@@ -1,10 +1,10 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Users, Calendar, Stethoscope, Receipt, AlertTriangle, RefreshCw } from "lucide-react";
+import { Users, Calendar, Stethoscope, Receipt, AlertTriangle, RefreshCw, Loader2 } from "lucide-react";
 import { CollectionsWidget } from "@/components/billing/CollectionsWidget";
 import { PharmacyAlertsWidget } from "@/components/pharmacy/PharmacyAlertsWidget";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
@@ -34,6 +34,7 @@ const ADMIN_ROLES = ["super_admin", "org_admin", "branch_admin"];
 export const DashboardPage = () => {
   const navigate = useNavigate();
   const { profile, roles } = useAuth();
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const { data: stats, isLoading, isError, refetch, isFetching } = useDashboardStats();
 
   // Role-based redirect logic
@@ -48,11 +49,21 @@ export const DashboardPage = () => {
     for (const role of roles) {
       const redirectPath = ROLE_DASHBOARD_MAP[role];
       if (redirectPath) {
+        setIsRedirecting(true);
         navigate(redirectPath, { replace: true });
         return;
       }
     }
   }, [roles, navigate]);
+
+  // Show loading spinner while redirecting to prevent flicker
+  if (isRedirecting) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   const handleRefresh = async () => {
     try {
