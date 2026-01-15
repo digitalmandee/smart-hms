@@ -23,6 +23,7 @@ export interface LabOrderWithItems extends LabOrder {
 interface LabOrderFilters {
   patientId?: string;
   consultationId?: string;
+  surgeryId?: string;
   status?: string;
   branchId?: string;
 }
@@ -47,6 +48,9 @@ export function useLabOrders(filters: LabOrderFilters = {}) {
       }
       if (filters.consultationId) {
         query = query.eq("consultation_id", filters.consultationId);
+      }
+      if (filters.surgeryId) {
+        query = query.eq("surgery_id", filters.surgeryId);
       }
       if (filters.status) {
         query = query.eq("status", filters.status as "ordered" | "collected" | "processing" | "completed" | "cancelled");
