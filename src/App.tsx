@@ -166,6 +166,27 @@ import ReportVerificationPage from "./pages/app/radiology/ReportVerificationPage
 import ModalitiesListPage from "./pages/app/radiology/ModalitiesListPage";
 import ProceduresListPage from "./pages/app/radiology/ProceduresListPage";
 
+// Inventory pages
+import InventoryDashboard from "./pages/app/inventory/InventoryDashboard";
+import ItemsListPage from "./pages/app/inventory/ItemsListPage";
+import ItemFormPage from "./pages/app/inventory/ItemFormPage";
+import ItemDetailPage from "./pages/app/inventory/ItemDetailPage";
+import CategoriesPage from "./pages/app/inventory/CategoriesPage";
+import StockLevelsPage from "./pages/app/inventory/StockLevelsPage";
+import VendorsListPage from "./pages/app/inventory/VendorsListPage";
+import VendorFormPage from "./pages/app/inventory/VendorFormPage";
+import VendorDetailPage from "./pages/app/inventory/VendorDetailPage";
+import POListPage from "./pages/app/inventory/POListPage";
+import POFormPage from "./pages/app/inventory/POFormPage";
+import PODetailPage from "./pages/app/inventory/PODetailPage";
+import GRNListPage from "./pages/app/inventory/GRNListPage";
+import GRNFormPage from "./pages/app/inventory/GRNFormPage";
+import GRNDetailPage from "./pages/app/inventory/GRNDetailPage";
+import RequisitionsListPage from "./pages/app/inventory/RequisitionsListPage";
+import RequisitionFormPage from "./pages/app/inventory/RequisitionFormPage";
+import RequisitionDetailPage from "./pages/app/inventory/RequisitionDetailPage";
+import InventoryReportsPage from "./pages/app/inventory/InventoryReportsPage";
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -321,6 +342,30 @@ function App() {
               {/* Lab routes */}
               <Route path="lab/queue" element={<LabQueuePage />} />
               <Route path="lab/orders/:orderId" element={<LabResultEntryPage />} />
+              
+              {/* Inventory routes */}
+              <Route path="inventory" element={<InventoryDashboard />} />
+              <Route path="inventory/items" element={<ItemsListPage />} />
+              <Route path="inventory/items/new" element={<ItemFormPage />} />
+              <Route path="inventory/items/:id" element={<ItemDetailPage />} />
+              <Route path="inventory/items/:id/edit" element={<ItemFormPage />} />
+              <Route path="inventory/categories" element={<CategoriesPage />} />
+              <Route path="inventory/stock" element={<StockLevelsPage />} />
+              <Route path="inventory/vendors" element={<VendorsListPage />} />
+              <Route path="inventory/vendors/new" element={<VendorFormPage />} />
+              <Route path="inventory/vendors/:id" element={<VendorDetailPage />} />
+              <Route path="inventory/vendors/:id/edit" element={<VendorFormPage />} />
+              <Route path="inventory/purchase-orders" element={<POListPage />} />
+              <Route path="inventory/purchase-orders/new" element={<POFormPage />} />
+              <Route path="inventory/purchase-orders/:id" element={<PODetailPage />} />
+              <Route path="inventory/purchase-orders/:id/edit" element={<POFormPage />} />
+              <Route path="inventory/grn" element={<GRNListPage />} />
+              <Route path="inventory/grn/new" element={<GRNFormPage />} />
+              <Route path="inventory/grn/:id" element={<GRNDetailPage />} />
+              <Route path="inventory/requisitions" element={<RequisitionsListPage />} />
+              <Route path="inventory/requisitions/new" element={<RequisitionFormPage />} />
+              <Route path="inventory/requisitions/:id" element={<RequisitionDetailPage />} />
+              <Route path="inventory/reports" element={<InventoryReportsPage />} />
               
               {/* Billing routes */}
               <Route path="billing" element={<BillingDashboard />} />

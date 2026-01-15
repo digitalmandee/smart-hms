@@ -55,6 +55,12 @@ import {
   Droplet,
   Scissors,
   TestTubes,
+  Box,
+  FolderTree,
+  PackageCheck,
+  Boxes,
+  FileEdit,
+  Warehouse,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -103,6 +109,12 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Scissors,
   TestTubes,
   Heart,
+  Box,
+  FolderTree,
+  PackageCheck,
+  Boxes,
+  FileEdit,
+  Warehouse,
 };
 
 interface DynamicSidebarProps {
