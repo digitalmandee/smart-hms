@@ -38,7 +38,7 @@ export const Footer = () => {
               <div className="p-2 rounded-lg bg-primary">
                 <Activity className="h-6 w-6 text-primary-foreground" />
               </div>
-              <span className="text-xl font-bold">SmartHMS</span>
+              <span className="text-xl font-bold">HealthOS</span>
             </Link>
             <p className="text-muted-foreground mb-6 max-w-sm">
               The complete hospital management solution trusted by healthcare facilities worldwide.
@@ -46,7 +46,7 @@ export const Footer = () => {
             <div className="space-y-3">
               <div className="flex items-center gap-3 text-sm text-muted-foreground">
                 <Mail className="h-4 w-4" />
-                <span>support@smarthms.ae</span>
+                <span>support@healthos.ae</span>
               </div>
               <div className="flex items-center gap-3 text-sm text-muted-foreground">
                 <Phone className="h-4 w-4" />
@@ -81,7 +81,7 @@ export const Footer = () => {
 
         {/* Bottom bar */}
         <div className="mt-12 pt-8 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} SmartHMS. All rights reserved.</p>
+          <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} HealthOS. All rights reserved.</p>
           <div className="flex items-center gap-6">
             <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">
               <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">

@@ -33,7 +33,7 @@ export const Navbar = () => {
             <div className="p-1.5 rounded-lg bg-primary">
               <Activity className="h-5 w-5 text-primary-foreground" />
             </div>
-            <span className="text-lg font-bold">SmartHMS</span>
+            <span className="text-lg font-bold">HealthOS</span>
           </Link>
 
           {/* Desktop Navigation */}

@@ -10,7 +10,7 @@ export const AuthLayout = () => {
           <div className="h-10 w-10 rounded-lg bg-white/20 flex items-center justify-center">
             <Heart className="h-6 w-6" />
           </div>
-          <span className="text-xl font-semibold">Smart HMS</span>
+          <span className="text-xl font-semibold">HealthOS</span>
         </div>
 
         <div className="space-y-6">
@@ -45,7 +45,7 @@ export const AuthLayout = () => {
         </div>
 
         <p className="text-sm text-primary-foreground/60">
-          © 2024 Smart HMS. All rights reserved.
+          © {new Date().getFullYear()} HealthOS. All rights reserved.
         </p>
       </div>
 
@@ -55,7 +55,7 @@ export const AuthLayout = () => {
           <div className="h-10 w-10 rounded-lg gradient-primary flex items-center justify-center">
             <Heart className="h-6 w-6 text-white" />
           </div>
-          <span className="text-xl font-semibold text-foreground">Smart HMS</span>
+          <span className="text-xl font-semibold text-foreground">HealthOS</span>
         </div>
 
         <div className="w-full max-w-md mx-auto">

@@ -6,7 +6,7 @@ const testimonials = [
     name: "Dr. Ahmed Al-Rashid",
     role: "Medical Director",
     facility: "Emirates Care Hospital, Sharjah",
-    content: "SmartHMS transformed our 200-bed facility. Patient wait times dropped by 60% and our billing reconciliation is now seamless.",
+    content: "HealthOS transformed our 200-bed facility. Patient wait times dropped by 60% and our billing reconciliation is now seamless.",
     rating: 5,
     hasVideo: true,
   },
