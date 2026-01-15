@@ -3,21 +3,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useImagingOrder, useUpdateImagingOrder, useSaveImagingResult, ImagingFindingStatus } from '@/hooks/useImaging';
 import { ModalityBadge } from '@/components/radiology/ModalityBadge';
 import { ImagingPriorityBadge } from '@/components/radiology/ImagingPriorityBadge';
 import { ReportTemplateForm } from '@/components/radiology/ReportTemplateForm';
 import { toast } from 'sonner';
 import { ArrowLeft, Save, FileText, AlertTriangle } from 'lucide-react';
-
-const FINDING_STATUSES: { value: ImagingFindingStatus; label: string; color: string }[] = [
-  { value: 'normal', label: 'Normal', color: 'bg-green-100 text-green-800' },
-  { value: 'abnormal', label: 'Abnormal', color: 'bg-yellow-100 text-yellow-800' },
-  { value: 'critical', label: 'Critical', color: 'bg-red-100 text-red-800' },
-];
 
 export default function ReportEntryPage() {
   const { id } = useParams<{ id: string }>();
@@ -30,6 +21,8 @@ export default function ReportEntryPage() {
     findings: '',
     impression: '',
     recommendations: '',
+    technique: '',
+    comparison: '',
     finding_status: 'normal' as ImagingFindingStatus,
   });
 
@@ -80,11 +73,10 @@ export default function ReportEntryPage() {
     });
   };
 
-  const handleTemplateApply = (templateData: { findings: string; impression: string }) => {
+  const handleFieldChange = (field: string, value: string) => {
     setReportData(prev => ({
       ...prev,
-      findings: templateData.findings,
-      impression: templateData.impression,
+      [field]: value,
     }));
   };
 
@@ -130,18 +122,6 @@ export default function ReportEntryPage() {
             </CardContent>
           </Card>
 
-          {/* Template Selection */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Report Templates</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ReportTemplateForm 
-                modality={order.modality}
-                onApply={handleTemplateApply}
-              />
-            </CardContent>
-          </Card>
         </div>
 
         {/* Report Entry Form */}
@@ -153,72 +133,22 @@ export default function ReportEntryPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Finding Status */}
-            <div className="space-y-2">
-              <Label>Finding Status</Label>
-              <Select 
-                value={reportData.finding_status}
-                onValueChange={(value) => setReportData(prev => ({ 
-                  ...prev, 
-                  finding_status: value as ImagingFindingStatus 
-                }))}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {FINDING_STATUSES.map(status => (
-                    <SelectItem key={status.value} value={status.value}>
-                      <span className={`px-2 py-0.5 rounded text-xs ${status.color}`}>
-                        {status.label}
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {reportData.finding_status === 'critical' && (
-                <div className="flex items-center gap-2 p-2 bg-red-50 text-red-800 rounded text-sm">
-                  <AlertTriangle className="h-4 w-4" />
-                  Critical findings require immediate communication to ordering physician
-                </div>
-              )}
-            </div>
+            {reportData.finding_status === 'critical' && (
+              <div className="flex items-center gap-2 p-2 bg-red-50 text-red-800 rounded text-sm">
+                <AlertTriangle className="h-4 w-4" />
+                Critical findings require immediate communication to ordering physician
+              </div>
+            )}
 
-            {/* Findings */}
-            <div className="space-y-2">
-              <Label htmlFor="findings">Findings *</Label>
-              <Textarea
-                id="findings"
-                value={reportData.findings}
-                onChange={(e) => setReportData(prev => ({ ...prev, findings: e.target.value }))}
-                placeholder="Describe the radiological findings in detail..."
-                rows={8}
-              />
-            </div>
-
-            {/* Impression */}
-            <div className="space-y-2">
-              <Label htmlFor="impression">Impression / Conclusion</Label>
-              <Textarea
-                id="impression"
-                value={reportData.impression}
-                onChange={(e) => setReportData(prev => ({ ...prev, impression: e.target.value }))}
-                placeholder="Summary impression and diagnosis..."
-                rows={4}
-              />
-            </div>
-
-            {/* Recommendations */}
-            <div className="space-y-2">
-              <Label htmlFor="recommendations">Recommendations</Label>
-              <Textarea
-                id="recommendations"
-                value={reportData.recommendations}
-                onChange={(e) => setReportData(prev => ({ ...prev, recommendations: e.target.value }))}
-                placeholder="Recommended follow-up imaging, clinical correlation, etc."
-                rows={3}
-              />
-            </div>
+            <ReportTemplateForm
+              findings={reportData.findings}
+              impression={reportData.impression}
+              recommendations={reportData.recommendations}
+              technique={reportData.technique}
+              comparison={reportData.comparison}
+              findingStatus={reportData.finding_status}
+              onChange={handleFieldChange}
+            />
 
             {/* Action Buttons */}
             <div className="flex justify-end gap-2 pt-4">

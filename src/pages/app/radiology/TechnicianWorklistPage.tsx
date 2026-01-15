@@ -86,8 +86,8 @@ export default function TechnicianWorklistPage() {
                   <TechnicianWorklistCard
                     key={order.id}
                     order={order}
-                    onStart={() => navigate(`/app/radiology/capture/${order.id}`)}
-                    onView={() => navigate(`/app/radiology/orders/${order.id}`)}
+                    onStartStudy={(o) => navigate(`/app/radiology/capture/${o.id}`)}
+                    onCompleteStudy={(o) => navigate(`/app/radiology/orders/${o.id}`)}
                   />
                 ))}
               </div>
@@ -107,8 +107,8 @@ export default function TechnicianWorklistPage() {
                   <TechnicianWorklistCard
                     key={order.id}
                     order={order}
-                    onStart={() => navigate(`/app/radiology/capture/${order.id}`)}
-                    onView={() => navigate(`/app/radiology/orders/${order.id}`)}
+                    onStartStudy={(o) => navigate(`/app/radiology/capture/${o.id}`)}
+                    onCompleteStudy={(o) => navigate(`/app/radiology/orders/${o.id}`)}
                   />
                 ))}
               </div>
@@ -128,8 +128,8 @@ export default function TechnicianWorklistPage() {
                   <TechnicianWorklistCard
                     key={order.id}
                     order={order}
-                    onStart={() => navigate(`/app/radiology/capture/${order.id}`)}
-                    onView={() => navigate(`/app/radiology/orders/${order.id}`)}
+                    onStartStudy={(o) => navigate(`/app/radiology/capture/${o.id}`)}
+                    onCompleteStudy={(o) => navigate(`/app/radiology/orders/${o.id}`)}
                   />
                 ))}
               </div>
