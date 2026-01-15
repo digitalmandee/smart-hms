@@ -91,9 +91,8 @@ const JournalEntriesPage = () => {
                   <TableHead>Entry #</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Description</TableHead>
+                  <TableHead>Reference</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead></TableHead>
-                  <TableHead className="text-right">Total</TableHead>
                   <TableHead></TableHead>
                 </TableRow>
               </TableHeader>
@@ -109,16 +108,15 @@ const JournalEntriesPage = () => {
                     <TableCell className="max-w-[200px] truncate">
                       {entry.description || "-"}
                     </TableCell>
-                    <TableCell>{entry.entry_type || "-"}</TableCell>
+                    <TableCell>
+                      {entry.reference_type || "-"}
+                    </TableCell>
                     <TableCell>
                       <Badge
                         variant={entry.is_posted ? "default" : "secondary"}
                       >
                         {entry.is_posted ? "Posted" : "Draft"}
                       </Badge>
-                    </TableCell>
-                    <TableCell className="text-right font-medium">
-                      ₹{(entry.total_debit_amount || 0).toLocaleString()}
                     </TableCell>
                     <TableCell>
                       <Button
