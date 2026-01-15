@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { useImagingOrders } from '@/hooks/useImaging';
+import { useImagingOrder, useUpdateImagingOrder, useImagingResult } from '@/hooks/useImaging';
 import { ModalityBadge } from '@/components/radiology/ModalityBadge';
 import { ImagingPriorityBadge } from '@/components/radiology/ImagingPriorityBadge';
 import { PrintableImagingReport } from '@/components/radiology/PrintableImagingReport';
@@ -26,14 +26,17 @@ import {
 export default function ReportVerificationPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { orders, updateOrder, isUpdating } = useImagingOrders();
+  const { data: order, isLoading } = useImagingOrder(id);
+  const { data: result } = useImagingResult(id);
+  const { mutate: updateOrder, isPending: isUpdating } = useUpdateImagingOrder();
   const { printRef, handlePrint } = usePrint();
-
-  const order = orders?.find(o => o.id === id);
-  const result = order?.imaging_results?.[0];
 
   const [rejectionReason, setRejectionReason] = useState('');
   const [showRejectForm, setShowRejectForm] = useState(false);
+
+  if (isLoading) {
+    return <div className="text-center py-12">Loading...</div>;
+  }
 
   if (!order) {
     return (
@@ -46,37 +49,35 @@ export default function ReportVerificationPage() {
     );
   }
 
-  const handleVerify = async () => {
-    try {
-      await updateOrder({
-        id: order.id,
-        status: 'verified',
-        verified_at: new Date().toISOString(),
-      });
-      toast.success('Report verified and finalized');
-      navigate('/app/radiology/reporting');
-    } catch (error) {
-      toast.error('Failed to verify report');
-    }
+  const handleVerify = () => {
+    updateOrder({
+      id: order.id,
+      status: 'verified',
+      verified_at: new Date().toISOString(),
+    }, {
+      onSuccess: () => {
+        toast.success('Report verified and finalized');
+        navigate('/app/radiology/reporting');
+      }
+    });
   };
 
-  const handleReject = async () => {
+  const handleReject = () => {
     if (!rejectionReason.trim()) {
       toast.error('Please provide a reason for rejection');
       return;
     }
 
-    try {
-      await updateOrder({
-        id: order.id,
-        status: 'completed', // Send back for re-reporting
-        notes: `[REJECTED] ${rejectionReason}\n\n${order.notes || ''}`,
-      });
-      toast.success('Report sent back for revision');
-      navigate('/app/radiology/reporting');
-    } catch (error) {
-      toast.error('Failed to reject report');
-    }
+    updateOrder({
+      id: order.id,
+      status: 'completed', // Send back for re-reporting
+      notes: `[REJECTED] ${rejectionReason}\n\n${order.notes || ''}`,
+    }, {
+      onSuccess: () => {
+        toast.success('Report sent back for revision');
+        navigate('/app/radiology/reporting');
+      }
+    });
   };
 
   const getFindingStatusBadge = (status?: string) => {
@@ -92,23 +93,30 @@ export default function ReportVerificationPage() {
     }
   };
 
+  const onPrint = () => {
+    handlePrint({ title: `Imaging Report - ${order.order_number}` });
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Report Verification"
-        subtitle={`Order: ${order.order_number}`}
-      >
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => navigate('/app/radiology/reporting')}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
-          <Button variant="outline" onClick={handlePrint}>
-            <Printer className="h-4 w-4 mr-2" />
-            Print
-          </Button>
-        </div>
-      </PageHeader>
+        description={`Order: ${order.order_number}`}
+        actions={
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => navigate('/app/radiology/reporting')}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back
+            </Button>
+            {result && (
+              <Button variant="outline" onClick={onPrint}>
+                <Printer className="h-4 w-4 mr-2" />
+                Print
+              </Button>
+            )}
+          </div>
+        }
+      />
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Order Summary */}
@@ -120,6 +128,10 @@ export default function ReportVerificationPage() {
             <div className="flex flex-wrap gap-2">
               <ModalityBadge modality={order.modality} />
               <ImagingPriorityBadge priority={order.priority} showIcon />
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Procedure</p>
+              <p className="text-sm font-medium">{order.procedure_name}</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Clinical Indication</p>
@@ -238,11 +250,13 @@ export default function ReportVerificationPage() {
       </div>
 
       {/* Printable Report */}
-      <div className="hidden">
-        <div ref={printRef}>
-          <PrintableImagingReport order={order} />
+      {result && (
+        <div className="hidden">
+          <div ref={printRef}>
+            <PrintableImagingReport order={order} result={result} />
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

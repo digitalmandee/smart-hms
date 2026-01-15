@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '@/components/PageHeader';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -11,7 +11,7 @@ import { AlertTriangle, Radio, RefreshCw } from 'lucide-react';
 
 export default function TechnicianWorklistPage() {
   const navigate = useNavigate();
-  const { orders, isLoading, refetch } = useImagingOrders();
+  const { data: orders, isLoading, refetch } = useImagingOrders();
   const [modalityFilter, setModalityFilter] = useState<string>('all');
 
   // Filter for technician worklist: ordered, scheduled, in_progress
@@ -40,26 +40,27 @@ export default function TechnicianWorklistPage() {
     <div className="space-y-6">
       <PageHeader
         title="Technician Worklist"
-        subtitle="Priority-sorted imaging studies to perform"
-      >
-        <div className="flex gap-2">
-          <Select value={modalityFilter} onValueChange={setModalityFilter}>
-            <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="All Modalities" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Modalities</SelectItem>
-              {IMAGING_MODALITIES.map(m => (
-                <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Button variant="outline" onClick={() => refetch()}>
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
-        </div>
-      </PageHeader>
+        description="Priority-sorted imaging studies to perform"
+        actions={
+          <div className="flex gap-2">
+            <Select value={modalityFilter} onValueChange={setModalityFilter}>
+              <SelectTrigger className="w-[150px]">
+                <SelectValue placeholder="All Modalities" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Modalities</SelectItem>
+                {IMAGING_MODALITIES.map(m => (
+                  <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button variant="outline" onClick={() => refetch()}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh
+            </Button>
+          </div>
+        }
+      />
 
       {isLoading ? (
         <div className="text-center py-8 text-muted-foreground">Loading worklist...</div>

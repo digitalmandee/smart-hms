@@ -6,12 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useImagingOrders, ImagingFindingStatus } from '@/hooks/useImaging';
+import { useImagingOrder, useUpdateImagingOrder, useSaveImagingResult, ImagingFindingStatus } from '@/hooks/useImaging';
 import { ModalityBadge } from '@/components/radiology/ModalityBadge';
 import { ImagingPriorityBadge } from '@/components/radiology/ImagingPriorityBadge';
-import { ImageViewer } from '@/components/radiology/ImageViewer';
 import { ReportTemplateForm } from '@/components/radiology/ReportTemplateForm';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { ArrowLeft, Save, FileText, AlertTriangle } from 'lucide-react';
 
@@ -24,9 +22,9 @@ const FINDING_STATUSES: { value: ImagingFindingStatus; label: string; color: str
 export default function ReportEntryPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { orders, updateOrder, refetch } = useImagingOrders();
-
-  const order = orders?.find(o => o.id === id);
+  const { data: order, isLoading } = useImagingOrder(id);
+  const { mutate: updateOrder } = useUpdateImagingOrder();
+  const { mutate: saveResult, isPending: isSaving } = useSaveImagingResult();
 
   const [reportData, setReportData] = useState({
     findings: '',
@@ -34,7 +32,10 @@ export default function ReportEntryPage() {
     recommendations: '',
     finding_status: 'normal' as ImagingFindingStatus,
   });
-  const [isSaving, setIsSaving] = useState(false);
+
+  if (isLoading) {
+    return <div className="text-center py-12">Loading...</div>;
+  }
 
   if (!order) {
     return (
@@ -47,50 +48,36 @@ export default function ReportEntryPage() {
     );
   }
 
-  const handleSaveReport = async (asDraft = false) => {
+  const handleSaveReport = (asDraft = false) => {
     if (!reportData.findings && !asDraft) {
       toast.error('Please enter findings before saving');
       return;
     }
 
-    setIsSaving(true);
-    try {
-      // Create or update imaging result
-      const { error: resultError } = await supabase
-        .from('imaging_results')
-        .upsert({
-          order_id: order.id,
-          findings: reportData.findings,
-          impression: reportData.impression,
-          recommendations: reportData.recommendations,
-          finding_status: reportData.finding_status,
-        }, {
-          onConflict: 'order_id',
-        });
-
-      if (resultError) throw resultError;
-
-      // Update order status
-      if (!asDraft) {
-        await updateOrder({
-          id: order.id,
-          status: 'reported',
-          reported_at: new Date().toISOString(),
-        });
+    saveResult({
+      orderId: order.id,
+      findings: reportData.findings,
+      impression: reportData.impression,
+      recommendations: reportData.recommendations,
+      finding_status: reportData.finding_status,
+    }, {
+      onSuccess: () => {
+        if (!asDraft) {
+          updateOrder({
+            id: order.id,
+            status: 'reported',
+            reported_at: new Date().toISOString(),
+          }, {
+            onSuccess: () => {
+              toast.success('Report submitted for verification');
+              navigate('/app/radiology/reporting');
+            }
+          });
+        } else {
+          toast.success('Draft saved');
+        }
       }
-
-      await refetch();
-      toast.success(asDraft ? 'Draft saved' : 'Report submitted for verification');
-      
-      if (!asDraft) {
-        navigate('/app/radiology/reporting');
-      }
-    } catch (error) {
-      console.error('Error saving report:', error);
-      toast.error('Failed to save report');
-    } finally {
-      setIsSaving(false);
-    }
+    });
   };
 
   const handleTemplateApply = (templateData: { findings: string; impression: string }) => {
@@ -105,16 +92,17 @@ export default function ReportEntryPage() {
     <div className="space-y-6">
       <PageHeader
         title="Report Entry"
-        subtitle={`Order: ${order.order_number}`}
-      >
-        <Button variant="outline" onClick={() => navigate('/app/radiology/reporting')}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Worklist
-        </Button>
-      </PageHeader>
+        description={`Order: ${order.order_number}`}
+        actions={
+          <Button variant="outline" onClick={() => navigate('/app/radiology/reporting')}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Worklist
+          </Button>
+        }
+      />
 
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Order Info & Images */}
+        {/* Order Info & Templates */}
         <div className="space-y-6">
           <Card>
             <CardHeader>
@@ -124,6 +112,10 @@ export default function ReportEntryPage() {
               <div className="flex flex-wrap gap-2">
                 <ModalityBadge modality={order.modality} />
                 <ImagingPriorityBadge priority={order.priority} showIcon />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Procedure</p>
+                <p className="text-sm font-medium">{order.procedure_name}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Clinical Indication</p>

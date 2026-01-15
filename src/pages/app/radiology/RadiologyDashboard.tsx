@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '@/components/PageHeader';
 import { StatsCard } from '@/components/StatsCard';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useImagingOrders, IMAGING_STATUSES } from '@/hooks/useImaging';
+import { useImagingOrders } from '@/hooks/useImaging';
 import { ImagingOrderCard } from '@/components/radiology/ImagingOrderCard';
 import { 
   Activity, 
@@ -21,7 +21,7 @@ import { format } from 'date-fns';
 
 export default function RadiologyDashboard() {
   const navigate = useNavigate();
-  const { orders, isLoading } = useImagingOrders();
+  const { data: orders, isLoading } = useImagingOrders();
   const [activeTab, setActiveTab] = useState('pending');
 
   const today = format(new Date(), 'yyyy-MM-dd');
@@ -45,13 +45,14 @@ export default function RadiologyDashboard() {
     <div className="space-y-6">
       <PageHeader
         title="Radiology & Imaging"
-        subtitle="Manage imaging orders, reports, and workflows"
-      >
-        <Button onClick={() => navigate('/app/radiology/orders/new')}>
-          <Plus className="h-4 w-4 mr-2" />
-          New Order
-        </Button>
-      </PageHeader>
+        description="Manage imaging orders, reports, and workflows"
+        actions={
+          <Button onClick={() => navigate('/app/radiology/orders/new')}>
+            <Plus className="h-4 w-4 mr-2" />
+            New Order
+          </Button>
+        }
+      />
 
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
@@ -59,7 +60,6 @@ export default function RadiologyDashboard() {
           title="Pending Orders"
           value={stats.pendingOrders}
           icon={Clock}
-          trend={stats.pendingOrders > 10 ? 'up' : 'neutral'}
         />
         <StatsCard
           title="In Progress"
@@ -70,20 +70,19 @@ export default function RadiologyDashboard() {
           title="Awaiting Report"
           value={stats.awaitingReport}
           icon={FileText}
-          trend={stats.awaitingReport > 5 ? 'up' : 'neutral'}
         />
         <StatsCard
           title="Completed Today"
           value={stats.completedToday}
           icon={CheckCircle}
-          className="text-green-600"
+          variant="success"
         />
         {stats.statOrders > 0 && (
           <StatsCard
             title="STAT Orders"
             value={stats.statOrders}
             icon={AlertTriangle}
-            className="border-red-200 bg-red-50"
+            variant="warning"
           />
         )}
       </div>
@@ -162,11 +161,7 @@ export default function RadiologyDashboard() {
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {pendingOrders.slice(0, 6).map(order => (
-                <ImagingOrderCard 
-                  key={order.id} 
-                  order={order}
-                  onClick={() => navigate(`/app/radiology/orders/${order.id}`)}
-                />
+                <ImagingOrderCard key={order.id} order={order} />
               ))}
             </div>
           )}
@@ -182,11 +177,7 @@ export default function RadiologyDashboard() {
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {inProgressOrders.map(order => (
-                <ImagingOrderCard 
-                  key={order.id} 
-                  order={order}
-                  onClick={() => navigate(`/app/radiology/orders/${order.id}`)}
-                />
+                <ImagingOrderCard key={order.id} order={order} />
               ))}
             </div>
           )}
@@ -202,11 +193,7 @@ export default function RadiologyDashboard() {
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {awaitingReportOrders.map(order => (
-                <ImagingOrderCard 
-                  key={order.id} 
-                  order={order}
-                  onClick={() => navigate(`/app/radiology/orders/${order.id}`)}
-                />
+                <ImagingOrderCard key={order.id} order={order} />
               ))}
             </div>
           )}

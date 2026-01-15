@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useImagingOrders, IMAGING_MODALITIES, IMAGING_PRIORITIES, ImagingModality, ImagingPriority } from '@/hooks/useImaging';
+import { useCreateImagingOrder, IMAGING_MODALITIES, IMAGING_PRIORITIES, ImagingModality, ImagingPriority } from '@/hooks/useImaging';
 import { usePatients } from '@/hooks/usePatients';
 import { PatientSearch } from '@/components/appointments/PatientSearch';
 import { toast } from 'sonner';
@@ -16,16 +16,16 @@ import { ArrowLeft, Save } from 'lucide-react';
 export default function ImagingOrderFormPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { createOrder, isCreating } = useImagingOrders();
-  const { patients } = usePatients();
+  const { mutate: createOrder, isPending: isCreating } = useCreateImagingOrder();
+  const { data: patients } = usePatients();
 
   const preSelectedPatientId = searchParams.get('patientId');
   const preSelectedPriority = searchParams.get('priority') as ImagingPriority | null;
 
   const [formData, setFormData] = useState({
-    patient_id: preSelectedPatientId || '',
     modality: '' as ImagingModality | '',
     priority: preSelectedPriority || 'routine' as ImagingPriority,
+    procedure_name: '',
     clinical_indication: '',
     scheduled_date: '',
     notes: '',
@@ -44,45 +44,44 @@ export default function ImagingOrderFormPage() {
 
   const handlePatientSelect = (patient: any) => {
     setSelectedPatient(patient);
-    setFormData(prev => ({ ...prev, patient_id: patient.id }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.patient_id || !formData.modality) {
+    if (!selectedPatient?.id || !formData.modality) {
       toast.error('Please select a patient and modality');
       return;
     }
 
-    try {
-      await createOrder({
-        patient_id: formData.patient_id,
-        modality: formData.modality as ImagingModality,
-        priority: formData.priority as ImagingPriority,
-        clinical_indication: formData.clinical_indication || null,
-        scheduled_date: formData.scheduled_date || null,
-        notes: formData.notes || null,
-        status: 'ordered',
-      });
-      toast.success('Imaging order created successfully');
-      navigate('/app/radiology/orders');
-    } catch (error) {
-      toast.error('Failed to create order');
-    }
+    createOrder({
+      patient_id: selectedPatient.id,
+      modality: formData.modality as ImagingModality,
+      priority: formData.priority as ImagingPriority,
+      procedure_name: formData.procedure_name || IMAGING_MODALITIES.find(m => m.value === formData.modality)?.label || formData.modality,
+      clinical_indication: formData.clinical_indication || undefined,
+      scheduled_date: formData.scheduled_date || undefined,
+      notes: formData.notes || undefined,
+      status: 'ordered',
+    }, {
+      onSuccess: () => {
+        navigate('/app/radiology/orders');
+      }
+    });
   };
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="New Imaging Order"
-        subtitle="Create a new radiology order"
-      >
-        <Button variant="outline" onClick={() => navigate(-1)}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back
-        </Button>
-      </PageHeader>
+        description="Create a new radiology order"
+        actions={
+          <Button variant="outline" onClick={() => navigate(-1)}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
+          </Button>
+        }
+      />
 
       <form onSubmit={handleSubmit}>
         <div className="grid gap-6 md:grid-cols-2">
@@ -92,24 +91,10 @@ export default function ImagingOrderFormPage() {
               <CardTitle>Patient Information</CardTitle>
             </CardHeader>
             <CardContent>
-              {selectedPatient ? (
-                <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-                  <div>
-                    <p className="font-medium">{selectedPatient.first_name} {selectedPatient.last_name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      MRN: {selectedPatient.medical_record_number} | {selectedPatient.gender} | {selectedPatient.phone}
-                    </p>
-                  </div>
-                  <Button type="button" variant="outline" onClick={() => {
-                    setSelectedPatient(null);
-                    setFormData(prev => ({ ...prev, patient_id: '' }));
-                  }}>
-                    Change
-                  </Button>
-                </div>
-              ) : (
-                <PatientSearch onSelectPatient={handlePatientSelect} />
-              )}
+              <PatientSearch 
+                onSelect={handlePatientSelect}
+                selectedPatient={selectedPatient}
+              />
             </CardContent>
           </Card>
 
@@ -134,6 +119,16 @@ export default function ImagingOrderFormPage() {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="procedure_name">Procedure Name</Label>
+                <Input
+                  id="procedure_name"
+                  value={formData.procedure_name}
+                  onChange={(e) => setFormData(prev => ({ ...prev, procedure_name: e.target.value }))}
+                  placeholder="e.g., Chest X-Ray PA View"
+                />
               </div>
 
               <div className="space-y-2">

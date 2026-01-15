@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { useImagingOrders } from '@/hooks/useImaging';
+import { useImagingOrder, useUpdateImagingOrder } from '@/hooks/useImaging';
 import { ImagingStatusBadge } from '@/components/radiology/ImagingStatusBadge';
 import { ModalityBadge } from '@/components/radiology/ModalityBadge';
 import { ImagingPriorityBadge } from '@/components/radiology/ImagingPriorityBadge';
@@ -22,12 +22,15 @@ import {
 export default function ImageCapturePage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { orders, updateOrder, isUpdating } = useImagingOrders();
-
-  const order = orders?.find(o => o.id === id);
+  const { data: order, isLoading } = useImagingOrder(id);
+  const { mutate: updateOrder, isPending: isUpdating } = useUpdateImagingOrder();
 
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [techNotes, setTechNotes] = useState('');
+
+  if (isLoading) {
+    return <div className="text-center py-12">Loading...</div>;
+  }
 
   if (!order) {
     return (
@@ -40,28 +43,24 @@ export default function ImageCapturePage() {
     );
   }
 
-  const handleStartStudy = async () => {
-    try {
-      await updateOrder({ id: order.id, status: 'in_progress' });
-      toast.success('Study started');
-    } catch (error) {
-      toast.error('Failed to start study');
-    }
+  const handleStartStudy = () => {
+    updateOrder({ id: order.id, status: 'in_progress' }, {
+      onSuccess: () => toast.success('Study started')
+    });
   };
 
-  const handleCompleteStudy = async () => {
-    try {
-      await updateOrder({ 
-        id: order.id, 
-        status: 'completed', 
-        performed_at: new Date().toISOString(),
-        notes: techNotes || order.notes,
-      });
-      toast.success('Study completed - ready for reporting');
-      navigate('/app/radiology/worklist');
-    } catch (error) {
-      toast.error('Failed to complete study');
-    }
+  const handleCompleteStudy = () => {
+    updateOrder({ 
+      id: order.id, 
+      status: 'completed', 
+      performed_at: new Date().toISOString(),
+      notes: techNotes || order.notes,
+    }, {
+      onSuccess: () => {
+        toast.success('Study completed - ready for reporting');
+        navigate('/app/radiology/worklist');
+      }
+    });
   };
 
   const handleImageUpload = () => {
@@ -79,13 +78,14 @@ export default function ImageCapturePage() {
     <div className="space-y-6">
       <PageHeader
         title="Image Capture"
-        subtitle={`Order: ${order.order_number}`}
-      >
-        <Button variant="outline" onClick={() => navigate('/app/radiology/worklist')}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Worklist
-        </Button>
-      </PageHeader>
+        description={`Order: ${order.order_number}`}
+        actions={
+          <Button variant="outline" onClick={() => navigate('/app/radiology/worklist')}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Worklist
+          </Button>
+        }
+      />
 
       <div className="grid gap-6 md:grid-cols-3">
         {/* Order Summary */}
@@ -98,6 +98,11 @@ export default function ImageCapturePage() {
               <ModalityBadge modality={order.modality} />
               <ImagingStatusBadge status={order.status} />
               <ImagingPriorityBadge priority={order.priority} showIcon />
+            </div>
+            
+            <div>
+              <p className="text-sm text-muted-foreground">Procedure</p>
+              <p className="text-sm font-medium">{order.procedure_name}</p>
             </div>
             
             <div>

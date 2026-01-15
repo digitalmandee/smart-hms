@@ -12,7 +12,7 @@ import { Plus, CalendarDays } from 'lucide-react';
 
 export default function ImagingSchedulePage() {
   const navigate = useNavigate();
-  const { orders, isLoading } = useImagingOrders();
+  const { data: orders, isLoading } = useImagingOrders();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [modalityFilter, setModalityFilter] = useState<string>('all');
 
@@ -33,13 +33,14 @@ export default function ImagingSchedulePage() {
     <div className="space-y-6">
       <PageHeader
         title="Imaging Schedule"
-        subtitle="View and manage scheduled imaging appointments"
-      >
-        <Button onClick={() => navigate('/app/radiology/orders/new')}>
-          <Plus className="h-4 w-4 mr-2" />
-          New Order
-        </Button>
-      </PageHeader>
+        description="View and manage scheduled imaging appointments"
+        actions={
+          <Button onClick={() => navigate('/app/radiology/orders/new')}>
+            <Plus className="h-4 w-4 mr-2" />
+            New Order
+          </Button>
+        }
+      />
 
       <div className="grid gap-6 md:grid-cols-3">
         {/* Calendar */}
@@ -110,13 +111,10 @@ export default function ImagingSchedulePage() {
                   .map(order => (
                     <div key={order.id} className="flex items-center gap-4">
                       <div className="text-sm font-medium w-16">
-                        {format(new Date(order.scheduled_date!), 'HH:mm')}
+                        {order.scheduled_time || format(new Date(order.scheduled_date!), 'HH:mm')}
                       </div>
                       <div className="flex-1">
-                        <ImagingOrderCard
-                          order={order}
-                          onClick={() => navigate(`/app/radiology/orders/${order.id}`)}
-                        />
+                        <ImagingOrderCard order={order} />
                       </div>
                     </div>
                   ))
