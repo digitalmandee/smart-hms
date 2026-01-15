@@ -1,0 +1,306 @@
+import { useNavigate, useParams } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { PageHeader } from "@/components/PageHeader";
+import { GRNStatusBadge } from "@/components/inventory/GRNStatusBadge";
+import { PrintableGRN } from "@/components/inventory/PrintableGRN";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  ArrowLeft,
+  Printer,
+  Package,
+  CheckCircle2,
+  FileCheck,
+  AlertCircle,
+} from "lucide-react";
+import { useGRN, useVerifyGRN, usePostGRN } from "@/hooks/useGRN";
+import { usePrint } from "@/hooks/usePrint";
+import { format } from "date-fns";
+import { toast } from "sonner";
+
+export default function GRNDetailPage() {
+  const navigate = useNavigate();
+  const { id } = useParams();
+
+  const { data: grn, isLoading } = useGRN(id || "");
+  const verifyMutation = useVerifyGRN();
+  const postMutation = usePostGRN();
+  const { printRef, handlePrint } = usePrint();
+
+  const handleVerify = async () => {
+    if (!grn) return;
+    try {
+      await verifyMutation.mutateAsync({ id: grn.id });
+      toast.success("GRN verified and stock updated");
+    } catch {
+      // Error handled by mutation
+    }
+  };
+
+  const handlePost = async () => {
+    if (!grn) return;
+    try {
+      await postMutation.mutateAsync(grn.id);
+      toast.success("GRN posted successfully");
+    } catch {
+      // Error handled by mutation
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-10 w-48" />
+        <Skeleton className="h-64" />
+      </div>
+    );
+  }
+
+  if (!grn) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12">
+        <Package className="h-12 w-12 text-muted-foreground mb-4" />
+        <h2 className="text-xl font-semibold">GRN not found</h2>
+        <Button variant="outline" className="mt-4" onClick={() => navigate("/app/inventory/grn")}>
+          Back to GRN List
+        </Button>
+      </div>
+    );
+  }
+
+  const canVerify = grn.status === "draft";
+  const canPost = grn.status === "verified";
+
+  return (
+    <div className="space-y-6">
+      {/* Hidden printable component */}
+      <div className="hidden">
+        <PrintableGRN ref={printRef} grn={grn} />
+      </div>
+
+      <PageHeader
+        title={`GRN: ${grn.grn_number}`}
+        description={`Goods received on ${format(new Date(grn.received_date), "MMMM dd, yyyy")}`}
+      />
+
+      <div className="flex flex-wrap gap-2">
+        <Button variant="outline" onClick={() => navigate("/app/inventory/grn")}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() => handlePrint({ title: grn.grn_number || "GRN" })}
+        >
+          <Printer className="mr-2 h-4 w-4" />
+          Print
+        </Button>
+        {canVerify && (
+          <Button onClick={handleVerify} disabled={verifyMutation.isPending}>
+            <CheckCircle2 className="mr-2 h-4 w-4" />
+            Verify & Update Stock
+          </Button>
+        )}
+        {canPost && (
+          <Button onClick={handlePost} disabled={postMutation.isPending}>
+            <FileCheck className="mr-2 h-4 w-4" />
+            Post GRN
+          </Button>
+        )}
+      </div>
+
+      {/* Status Banner */}
+      <Card
+        className={
+          grn.status === "posted"
+            ? "border-emerald-200 bg-emerald-50"
+            : grn.status === "verified"
+            ? "border-blue-200 bg-blue-50"
+            : ""
+        }
+      >
+        <CardContent className="py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {grn.status === "posted" ? (
+                <CheckCircle2 className="h-6 w-6 text-emerald-600" />
+              ) : grn.status === "verified" ? (
+                <FileCheck className="h-6 w-6 text-blue-600" />
+              ) : (
+                <AlertCircle className="h-6 w-6 text-muted-foreground" />
+              )}
+              <div>
+                <p className="font-semibold">
+                  {grn.status === "posted"
+                    ? "GRN Posted"
+                    : grn.status === "verified"
+                    ? "GRN Verified - Ready to Post"
+                    : "Draft GRN - Pending Verification"}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {grn.status === "posted"
+                    ? "Stock has been updated and GRN is finalized"
+                    : grn.status === "verified"
+                    ? "Stock updated. Click Post to finalize"
+                    : "Review items and click Verify to update stock"}
+                </p>
+              </div>
+            </div>
+            <GRNStatusBadge status={grn.status} />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* GRN Details */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>GRN Information</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-muted-foreground">GRN Number</p>
+                <p className="font-medium">{grn.grn_number}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Received Date</p>
+                <p className="font-medium">
+                  {format(new Date(grn.received_date), "MMM dd, yyyy")}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">PO Number</p>
+                <Button
+                  variant="link"
+                  className="p-0 h-auto"
+                  onClick={() => navigate(`/app/inventory/purchase-orders/${grn.po_id}`)}
+                >
+                  {grn.purchase_order?.po_number}
+                </Button>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Branch</p>
+                <p className="font-medium">{grn.branch?.branch_name}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Vendor & Invoice</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-muted-foreground">Vendor</p>
+                <p className="font-medium">{grn.vendor?.vendor_name}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Invoice Number</p>
+                <p className="font-medium">{grn.invoice_number || "—"}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Invoice Amount</p>
+                <p className="font-medium">
+                  {grn.invoice_amount
+                    ? `Rs. ${grn.invoice_amount.toLocaleString()}`
+                    : "—"}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Total Value</p>
+                <p className="font-medium text-lg">
+                  Rs. {grn.total_amount?.toLocaleString() || "0"}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Items */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Items Received</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Item</TableHead>
+                <TableHead className="text-center">Ordered</TableHead>
+                <TableHead className="text-center">Received</TableHead>
+                <TableHead className="text-center">Accepted</TableHead>
+                <TableHead className="text-center">Rejected</TableHead>
+                <TableHead>Batch</TableHead>
+                <TableHead>Expiry</TableHead>
+                <TableHead className="text-right">Unit Price</TableHead>
+                <TableHead className="text-right">Total</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {grn.items?.map((item) => (
+                <TableRow key={item.id}>
+                  <TableCell className="font-medium">
+                    {item.item?.item_name}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {item.ordered_quantity}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {item.received_quantity}
+                  </TableCell>
+                  <TableCell className="text-center text-emerald-600">
+                    {item.accepted_quantity || 0}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {item.rejected_quantity > 0 ? (
+                      <Badge variant="destructive">{item.rejected_quantity}</Badge>
+                    ) : (
+                      "0"
+                    )}
+                  </TableCell>
+                  <TableCell>{item.batch_number || "—"}</TableCell>
+                  <TableCell>
+                    {item.expiry_date
+                      ? format(new Date(item.expiry_date), "MMM yyyy")
+                      : "—"}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    Rs. {item.unit_price?.toLocaleString()}
+                  </TableCell>
+                  <TableCell className="text-right font-medium">
+                    Rs. {((item.accepted_quantity || 0) * (item.unit_price || 0)).toLocaleString()}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* Notes */}
+      {grn.notes && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Notes</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="whitespace-pre-wrap">{grn.notes}</p>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
