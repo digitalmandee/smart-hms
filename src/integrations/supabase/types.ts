@@ -9766,6 +9766,11 @@ export type Database = {
         | "hr_officer"
         | "store_manager"
         | "finance_manager"
+        | "blood_bank_technician"
+        | "radiologist"
+        | "radiology_technician"
+        | "ipd_nurse"
+        | "ot_technician"
       appointment_status:
         | "scheduled"
         | "checked_in"
@@ -10236,6 +10241,11 @@ export const Constants = {
         "hr_officer",
         "store_manager",
         "finance_manager",
+        "blood_bank_technician",
+        "radiologist",
+        "radiology_technician",
+        "ipd_nurse",
+        "ot_technician",
       ],
       appointment_status: [
         "scheduled",

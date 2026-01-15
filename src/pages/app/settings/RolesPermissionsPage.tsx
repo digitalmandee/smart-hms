@@ -58,6 +58,11 @@ const ROLE_LABELS: Record<AppRole, string> = {
   hr_officer: "HR Officer",
   store_manager: "Store Manager",
   finance_manager: "Finance Manager",
+  blood_bank_technician: "Blood Bank Tech",
+  radiologist: "Radiologist",
+  radiology_technician: "Radiology Tech",
+  ipd_nurse: "IPD Nurse",
+  ot_technician: "OT Technician",
 };
 
 export function RolesPermissionsPage() {
