@@ -90,8 +90,16 @@ export interface CartItem {
   tax_percent: number;
 }
 
+export interface PaymentEntry {
+  payment_method: "cash" | "card" | "jazzcash" | "easypaisa" | "bank_transfer" | "other";
+  amount: number;
+  reference_number?: string;
+  notes?: string;
+}
+
 // Helper for raw SQL queries to new tables (bypasses type checking)
-const queryPOSTable = (table: string) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const queryPOSTable = (table: string): any => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (supabase as any).from(table);
 };
@@ -129,8 +137,7 @@ export function usePOSSessions(branchId?: string) {
     queryFn: async () => {
       if (!targetBranchId) return [];
 
-      const { data, error } = await supabase
-        .from("pharmacy_pos_sessions")
+      const { data, error } = await queryPOSTable("pharmacy_pos_sessions")
         .select(`
           *,
           opener:profiles!pharmacy_pos_sessions_opened_by_fkey(full_name),
@@ -166,8 +173,7 @@ export function useOpenSession() {
       }
 
       // Check if there's already an open session
-      const { data: existing } = await supabase
-        .from("pharmacy_pos_sessions")
+      const { data: existing } = await queryPOSTable("pharmacy_pos_sessions")
         .select("id")
         .eq("branch_id", profile.branch_id)
         .eq("status", "open")
@@ -177,8 +183,7 @@ export function useOpenSession() {
         throw new Error("There is already an open session for this counter");
       }
 
-      const { data, error } = await supabase
-        .from("pharmacy_pos_sessions")
+      const { data, error } = await queryPOSTable("pharmacy_pos_sessions")
         .insert({
           organization_id: profile.organization_id,
           branch_id: profile.branch_id,
@@ -192,7 +197,7 @@ export function useOpenSession() {
         .single();
 
       if (error) throw error;
-      return data;
+      return data as POSSession;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["pos-active-session"] });
@@ -229,18 +234,16 @@ export function useCloseSession() {
       notes?: string;
     }) => {
       // Get session to calculate difference
-      const { data: session, error: fetchError } = await supabase
-        .from("pharmacy_pos_sessions")
+      const { data: session, error: fetchError } = await queryPOSTable("pharmacy_pos_sessions")
         .select("expected_balance")
         .eq("id", sessionId)
         .single();
 
       if (fetchError) throw fetchError;
 
-      const cashDifference = closingBalance - (session.expected_balance || 0);
+      const cashDifference = closingBalance - (session?.expected_balance || 0);
 
-      const { data, error } = await supabase
-        .from("pharmacy_pos_sessions")
+      const { data, error } = await queryPOSTable("pharmacy_pos_sessions")
         .update({
           closed_at: new Date().toISOString(),
           closed_by: profile?.id,
@@ -254,7 +257,7 @@ export function useCloseSession() {
         .single();
 
       if (error) throw error;
-      return data;
+      return data as POSSession;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["pos-active-session"] });
@@ -284,8 +287,7 @@ export function usePOSTransactions(branchId?: string, filters?: { date?: string;
     queryFn: async () => {
       if (!targetBranchId) return [];
 
-      let query = supabase
-        .from("pharmacy_pos_transactions")
+      let query = queryPOSTable("pharmacy_pos_transactions")
         .select(`
           *,
           creator:profiles!pharmacy_pos_transactions_created_by_fkey(full_name)
@@ -317,8 +319,7 @@ export function usePOSTransaction(transactionId: string | undefined) {
     queryFn: async () => {
       if (!transactionId) return null;
 
-      const { data, error } = await supabase
-        .from("pharmacy_pos_transactions")
+      const { data, error } = await queryPOSTable("pharmacy_pos_transactions")
         .select(`
           *,
           creator:profiles!pharmacy_pos_transactions_created_by_fkey(full_name),
@@ -348,15 +349,15 @@ export function useCreateTransaction() {
       payments,
       customerName,
       customerPhone,
-      discountPercent = 0,
+      discountAmount = 0,
       notes,
     }: {
       sessionId: string;
-      items: Omit<POSItem, "id" | "transaction_id" | "created_at">[];
-      payments: Omit<POSPayment, "id" | "transaction_id" | "created_at">[];
+      items: CartItem[];
+      payments: PaymentEntry[];
       customerName?: string;
       customerPhone?: string;
-      discountPercent?: number;
+      discountAmount?: number;
       notes?: string;
     }) => {
       if (!profile?.organization_id || !profile?.branch_id) {
@@ -364,16 +365,23 @@ export function useCreateTransaction() {
       }
 
       // Calculate totals
-      const subtotal = items.reduce((sum, item) => sum + item.line_total, 0);
-      const discountAmount = subtotal * (discountPercent / 100);
-      const taxAmount = items.reduce((sum, item) => sum + item.tax_amount, 0);
-      const totalAmount = subtotal - discountAmount + taxAmount;
+      const subtotal = items.reduce((sum, item) => {
+        const lineSubtotal = item.quantity * item.unit_price;
+        const lineDiscount = lineSubtotal * (item.discount_percent / 100);
+        return sum + (lineSubtotal - lineDiscount);
+      }, 0);
+      const taxAmount = items.reduce((sum, item) => {
+        const lineSubtotal = item.quantity * item.unit_price;
+        const lineDiscount = lineSubtotal * (item.discount_percent / 100);
+        const taxableAmount = lineSubtotal - lineDiscount;
+        return sum + (taxableAmount * (item.tax_percent / 100));
+      }, 0);
+      const totalAmount = subtotal + taxAmount - discountAmount;
       const amountPaid = payments.reduce((sum, p) => sum + p.amount, 0);
       const changeAmount = Math.max(0, amountPaid - totalAmount);
 
       // Create transaction
-      const { data: transaction, error: txError } = await supabase
-        .from("pharmacy_pos_transactions")
+      const { data: transaction, error: txError } = await queryPOSTable("pharmacy_pos_transactions")
         .insert({
           organization_id: profile.organization_id,
           branch_id: profile.branch_id,
@@ -382,7 +390,7 @@ export function useCreateTransaction() {
           customer_phone: customerPhone || null,
           subtotal,
           discount_amount: discountAmount,
-          discount_percent: discountPercent,
+          discount_percent: 0,
           tax_amount: taxAmount,
           total_amount: totalAmount,
           amount_paid: amountPaid,
@@ -398,29 +406,40 @@ export function useCreateTransaction() {
 
       // Insert items
       const itemsToInsert = items.map((item) => ({
-        ...item,
         transaction_id: transaction.id,
+        inventory_id: item.inventory_id,
+        medicine_id: item.medicine_id,
+        medicine_name: item.medicine_name,
+        batch_number: item.batch_number,
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+        discount_percent: item.discount_percent,
+        discount_amount: item.quantity * item.unit_price * (item.discount_percent / 100),
+        tax_percent: item.tax_percent,
+        tax_amount: item.quantity * item.unit_price * (item.tax_percent / 100),
+        line_total: item.quantity * item.unit_price * (1 - item.discount_percent / 100),
       }));
 
-      const { error: itemsError } = await supabase
-        .from("pharmacy_pos_items")
+      const { error: itemsError } = await queryPOSTable("pharmacy_pos_items")
         .insert(itemsToInsert);
 
       if (itemsError) throw itemsError;
 
       // Insert payments
       const paymentsToInsert = payments.map((payment) => ({
-        ...payment,
         transaction_id: transaction.id,
+        payment_method: payment.payment_method,
+        amount: payment.amount,
+        reference_number: payment.reference_number || null,
+        notes: payment.notes || null,
       }));
 
-      const { error: paymentsError } = await supabase
-        .from("pharmacy_pos_payments")
+      const { error: paymentsError } = await queryPOSTable("pharmacy_pos_payments")
         .insert(paymentsToInsert);
 
       if (paymentsError) throw paymentsError;
 
-      return transaction;
+      return transaction as POSTransaction;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["pos-transactions"] });
@@ -455,8 +474,7 @@ export function useVoidTransaction() {
       transactionId: string;
       reason: string;
     }) => {
-      const { data, error } = await supabase
-        .from("pharmacy_pos_transactions")
+      const { data, error } = await queryPOSTable("pharmacy_pos_transactions")
         .update({
           payment_status: "voided",
           voided_at: new Date().toISOString(),
@@ -468,7 +486,7 @@ export function useVoidTransaction() {
         .single();
 
       if (error) throw error;
-      return data;
+      return data as POSTransaction;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["pos-transactions"] });
@@ -501,8 +519,7 @@ export function usePOSDashboardStats(branchId?: string) {
       const today = new Date().toISOString().split("T")[0];
 
       // Get today's transactions
-      const { data: transactions, error: txError } = await supabase
-        .from("pharmacy_pos_transactions")
+      const { data: transactions, error: txError } = await queryPOSTable("pharmacy_pos_transactions")
         .select("total_amount, payment_status")
         .eq("branch_id", targetBranchId)
         .gte("created_at", `${today}T00:00:00`)
@@ -510,13 +527,14 @@ export function usePOSDashboardStats(branchId?: string) {
 
       if (txError) throw txError;
 
-      const paidTransactions = transactions?.filter((t) => t.payment_status === "paid") || [];
-      const totalSales = paidTransactions.reduce((sum, t) => sum + Number(t.total_amount), 0);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const paidTransactions = (transactions as any[])?.filter((t) => t.payment_status === "paid") || [];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const totalSales = paidTransactions.reduce((sum, t: any) => sum + Number(t.total_amount), 0);
       const transactionCount = paidTransactions.length;
 
       // Get active session
-      const { data: session } = await supabase
-        .from("pharmacy_pos_sessions")
+      const { data: session } = await queryPOSTable("pharmacy_pos_sessions")
         .select("id, opening_balance, expected_balance")
         .eq("branch_id", targetBranchId)
         .eq("status", "open")

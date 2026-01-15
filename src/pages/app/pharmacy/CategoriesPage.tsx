@@ -143,7 +143,7 @@ export default function CategoriesPage() {
     <div className="space-y-6">
       <PageHeader
         title="Medicine Categories"
-        subtitle="Organize medicines by category for easy navigation"
+        description="Organize medicines by category for easy navigation"
         actions={
           <Button onClick={() => setShowFormDialog(true)}>
             <Plus className="mr-2 h-4 w-4" />

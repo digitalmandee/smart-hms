@@ -40,11 +40,11 @@ export default function POSSessionsPage() {
       ),
     },
     {
-      accessorKey: "cash_sales",
-      header: "Cash Sales",
+      accessorKey: "expected_balance",
+      header: "Expected Balance",
       cell: ({ row }) => (
         <span className="font-mono text-green-600">
-          Rs. {Number(row.original.cash_sales || 0).toFixed(2)}
+          Rs. {Number(row.original.expected_balance || row.original.opening_balance || 0).toFixed(2)}
         </span>
       ),
     },
@@ -99,7 +99,7 @@ export default function POSSessionsPage() {
 
   // Calculate summary stats
   const closedSessions = sessions.filter(s => s.status === 'closed');
-  const totalCashSales = closedSessions.reduce((sum, s) => sum + (s.cash_sales || 0), 0);
+  const totalExpectedBalance = closedSessions.reduce((sum, s) => sum + (Number(s.expected_balance) || Number(s.opening_balance) || 0), 0);
   const totalDiscrepancy = closedSessions.reduce((sum, s) => {
     if (s.closing_balance !== null && s.expected_balance !== null) {
       return sum + (s.closing_balance - s.expected_balance);
@@ -111,7 +111,7 @@ export default function POSSessionsPage() {
     <div className="space-y-6">
       <PageHeader
         title="Cash Sessions"
-        subtitle="View POS session history and cash reconciliation"
+        description="View POS session history and cash reconciliation"
         actions={
           <Button onClick={() => navigate("/app/pharmacy/pos")}>
             <Store className="mr-2 h-4 w-4" />
@@ -148,12 +148,12 @@ export default function POSSessionsPage() {
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Cash Sales</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Expected Balance</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              Rs. {totalCashSales.toFixed(2)}
+              Rs. {totalExpectedBalance.toFixed(2)}
             </div>
             <p className="text-xs text-muted-foreground">From closed sessions</p>
           </CardContent>
