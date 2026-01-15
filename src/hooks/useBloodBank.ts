@@ -3,8 +3,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
-// Note: Blood Bank tables are new - using 'any' until types are regenerated
+// Note: Blood Bank tables are new - using type assertions until types are regenerated
 // After running `npx supabase gen types typescript`, update this file
+
+// Helper to bypass type checking for new tables
+const db = supabase as any;
 
 // =============================================
 // TYPES
@@ -119,6 +122,7 @@ export interface CrossMatchTest {
   request_id: string;
   blood_unit_id: string;
   patient_id: string;
+  test_number: string | null;
   patient_blood_group: BloodGroupType;
   donor_blood_group: BloodGroupType;
   major_cross_match: CrossMatchResult;
@@ -165,7 +169,7 @@ export function useBloodDonors(filters?: { status?: DonorStatus; bloodGroup?: Bl
   return useQuery({
     queryKey: ["blood-donors", profile?.organization_id, filters],
     queryFn: async () => {
-      let query = (supabase as any)
+      let query = db
         .from("blood_donors")
         .select("*")
         .eq("organization_id", profile!.organization_id!)
@@ -193,13 +197,13 @@ export function useBloodDonor(donorId: string) {
   return useQuery({
     queryKey: ["blood-donor", donorId],
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await db
         .from("blood_donors")
         .select("*")
         .eq("id", donorId)
-        .single();
+        .maybeSingle();
       if (error) throw error;
-      return data as BloodDonor;
+      return data as BloodDonor | null;
     },
     enabled: !!donorId,
   });
@@ -211,7 +215,7 @@ export function useCreateDonor() {
 
   return useMutation({
     mutationFn: async (donor: Partial<BloodDonor>) => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("blood_donors")
         .insert({
           ...donor,
@@ -239,7 +243,7 @@ export function useUpdateDonor() {
 
   return useMutation({
     mutationFn: async ({ id, ...updates }: Partial<BloodDonor> & { id: string }) => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("blood_donors")
         .update(updates)
         .eq("id", id)
@@ -248,7 +252,7 @@ export function useUpdateDonor() {
       if (error) throw error;
       return data;
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["blood-donors"] });
       queryClient.invalidateQueries({ queryKey: ["blood-donor", data.id] });
       toast.success("Donor updated successfully");
@@ -269,7 +273,7 @@ export function useBloodDonations(filters?: { status?: DonationStatus; donorId?:
   return useQuery({
     queryKey: ["blood-donations", profile?.organization_id, filters],
     queryFn: async () => {
-      let query = supabase
+      let query = db
         .from("blood_donations")
         .select(`
           *,
@@ -303,7 +307,7 @@ export function useTodaysDonations() {
   return useQuery({
     queryKey: ["blood-donations", "today", profile?.organization_id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("blood_donations")
         .select(`
           *,
@@ -325,7 +329,7 @@ export function useCreateDonation() {
 
   return useMutation({
     mutationFn: async (donation: Partial<BloodDonation>) => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("blood_donations")
         .insert({
           ...donation,
@@ -353,7 +357,7 @@ export function useUpdateDonation() {
 
   return useMutation({
     mutationFn: async ({ id, ...updates }: Partial<BloodDonation> & { id: string }) => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("blood_donations")
         .update(updates)
         .eq("id", id)
@@ -387,7 +391,7 @@ export function useBloodInventory(filters?: {
   return useQuery({
     queryKey: ["blood-inventory", profile?.organization_id, filters],
     queryFn: async () => {
-      let query = supabase
+      let query = db
         .from("blood_inventory")
         .select("*")
         .eq("organization_id", profile!.organization_id!)
@@ -422,7 +426,7 @@ export function useAvailableBloodStock() {
   return useQuery({
     queryKey: ["blood-stock", "available", profile?.organization_id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("blood_inventory")
         .select("blood_group, component_type")
         .eq("organization_id", profile!.organization_id!)
@@ -437,7 +441,7 @@ export function useAvailableBloodStock() {
         'AB+': 0, 'AB-': 0, 'O+': 0, 'O-': 0
       };
 
-      data.forEach((unit) => {
+      (data as any[]).forEach((unit) => {
         stockByGroup[unit.blood_group as BloodGroupType]++;
       });
 
@@ -453,7 +457,7 @@ export function useCreateBloodUnit() {
 
   return useMutation({
     mutationFn: async (unit: Partial<BloodInventory>) => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("blood_inventory")
         .insert({
           ...unit,
@@ -482,7 +486,7 @@ export function useUpdateBloodUnit() {
 
   return useMutation({
     mutationFn: async ({ id, ...updates }: Partial<BloodInventory> & { id: string }) => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("blood_inventory")
         .update(updates)
         .eq("id", id)
@@ -512,7 +516,7 @@ export function useBloodRequests(filters?: { status?: BloodRequestStatus; priori
   return useQuery({
     queryKey: ["blood-requests", profile?.organization_id, filters],
     queryFn: async () => {
-      let query = supabase
+      let query = db
         .from("blood_requests")
         .select(`
           *,
@@ -545,7 +549,7 @@ export function usePendingRequests() {
   return useQuery({
     queryKey: ["blood-requests", "pending", profile?.organization_id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("blood_requests")
         .select(`
           *,
@@ -568,7 +572,7 @@ export function useCreateBloodRequest() {
 
   return useMutation({
     mutationFn: async (request: Partial<BloodRequest>) => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("blood_requests")
         .insert({
           ...request,
@@ -596,7 +600,7 @@ export function useUpdateBloodRequest() {
 
   return useMutation({
     mutationFn: async ({ id, ...updates }: Partial<BloodRequest> & { id: string }) => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("blood_requests")
         .update(updates)
         .eq("id", id)
@@ -625,7 +629,7 @@ export function useCrossMatchTests(filters?: { requestId?: string; result?: Cros
   return useQuery({
     queryKey: ["cross-match-tests", profile?.organization_id, filters],
     queryFn: async () => {
-      let query = supabase
+      let query = db
         .from("cross_match_tests")
         .select(`
           *,
@@ -656,7 +660,7 @@ export function useCreateCrossMatch() {
 
   return useMutation({
     mutationFn: async (test: Partial<CrossMatchTest>) => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("cross_match_tests")
         .insert({
           ...test,
@@ -684,7 +688,7 @@ export function useUpdateCrossMatch() {
 
   return useMutation({
     mutationFn: async ({ id, ...updates }: Partial<CrossMatchTest> & { id: string }) => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("cross_match_tests")
         .update(updates)
         .eq("id", id)
@@ -714,7 +718,7 @@ export function useBloodTransfusions(filters?: { status?: TransfusionStatus; pat
   return useQuery({
     queryKey: ["blood-transfusions", profile?.organization_id, filters],
     queryFn: async () => {
-      let query = supabase
+      let query = db
         .from("blood_transfusions")
         .select(`
           *,
@@ -745,7 +749,7 @@ export function useActiveTransfusions() {
   return useQuery({
     queryKey: ["blood-transfusions", "active", profile?.organization_id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("blood_transfusions")
         .select(`
           *,
@@ -768,7 +772,7 @@ export function useCreateTransfusion() {
 
   return useMutation({
     mutationFn: async (transfusion: Partial<BloodTransfusion>) => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("blood_transfusions")
         .insert({
           ...transfusion,
@@ -796,7 +800,7 @@ export function useUpdateTransfusion() {
 
   return useMutation({
     mutationFn: async ({ id, ...updates }: Partial<BloodTransfusion> & { id: string }) => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("blood_transfusions")
         .update(updates)
         .eq("id", id)
@@ -828,28 +832,28 @@ export function useBloodBankStats() {
     queryKey: ["blood-bank-stats", profile?.organization_id],
     queryFn: async () => {
       const [
-        { count: totalDonors },
-        { count: todaysDonations },
-        { count: availableUnits },
-        { count: pendingRequests },
-        { count: activeTransfusions },
-        { count: expiringUnits },
+        donorsResult,
+        donationsResult,
+        inventoryResult,
+        requestsResult,
+        transfusionsResult,
+        expiringResult,
       ] = await Promise.all([
-        supabase.from("blood_donors").select("*", { count: "exact", head: true }).eq("organization_id", profile!.organization_id!).eq("status", "active"),
-        supabase.from("blood_donations").select("*", { count: "exact", head: true }).eq("organization_id", profile!.organization_id!).eq("donation_date", today),
-        supabase.from("blood_inventory").select("*", { count: "exact", head: true }).eq("organization_id", profile!.organization_id!).eq("status", "available"),
-        supabase.from("blood_requests").select("*", { count: "exact", head: true }).eq("organization_id", profile!.organization_id!).in("status", ["pending", "processing"]),
-        supabase.from("blood_transfusions").select("*", { count: "exact", head: true }).eq("organization_id", profile!.organization_id!).eq("status", "in_progress"),
-        supabase.from("blood_inventory").select("*", { count: "exact", head: true }).eq("organization_id", profile!.organization_id!).eq("status", "available").lte("expiry_date", new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]),
+        db.from("blood_donors").select("*", { count: "exact", head: true }).eq("organization_id", profile!.organization_id!).eq("status", "active"),
+        db.from("blood_donations").select("*", { count: "exact", head: true }).eq("organization_id", profile!.organization_id!).eq("donation_date", today),
+        db.from("blood_inventory").select("*", { count: "exact", head: true }).eq("organization_id", profile!.organization_id!).eq("status", "available"),
+        db.from("blood_requests").select("*", { count: "exact", head: true }).eq("organization_id", profile!.organization_id!).in("status", ["pending", "processing"]),
+        db.from("blood_transfusions").select("*", { count: "exact", head: true }).eq("organization_id", profile!.organization_id!).eq("status", "in_progress"),
+        db.from("blood_inventory").select("*", { count: "exact", head: true }).eq("organization_id", profile!.organization_id!).eq("status", "available").lte("expiry_date", new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]),
       ]);
 
       return {
-        totalDonors: totalDonors || 0,
-        todaysDonations: todaysDonations || 0,
-        availableUnits: availableUnits || 0,
-        pendingRequests: pendingRequests || 0,
-        activeTransfusions: activeTransfusions || 0,
-        expiringUnits: expiringUnits || 0,
+        totalDonors: donorsResult.count || 0,
+        todaysDonations: donationsResult.count || 0,
+        availableUnits: inventoryResult.count || 0,
+        pendingRequests: requestsResult.count || 0,
+        activeTransfusions: transfusionsResult.count || 0,
+        expiringUnits: expiringResult.count || 0,
       };
     },
     enabled: !!profile?.organization_id,

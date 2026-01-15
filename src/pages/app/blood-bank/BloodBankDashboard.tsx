@@ -75,7 +75,7 @@ export default function BloodBankDashboard() {
               title="Pending Requests"
               value={stats?.pendingRequests || 0}
               icon={FileText}
-              trend={stats?.pendingRequests && stats.pendingRequests > 0 ? 'up' : undefined}
+              trend={stats?.pendingRequests && stats.pendingRequests > 0 ? { value: stats.pendingRequests, isPositive: false } : undefined}
               onClick={() => navigate('/app/blood-bank/requests')}
             />
             <StatsCard
@@ -88,8 +88,7 @@ export default function BloodBankDashboard() {
               title="Expiring Soon"
               value={stats?.expiringUnits || 0}
               icon={AlertTriangle}
-              trend={stats?.expiringUnits && stats.expiringUnits > 0 ? 'up' : undefined}
-              trendLabel="7 days"
+              description="Within 7 days"
               onClick={() => navigate('/app/blood-bank/inventory?expiring=true')}
             />
           </>
