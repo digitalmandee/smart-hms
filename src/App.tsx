@@ -141,10 +141,16 @@ import BloodBankDashboard from "./pages/app/blood-bank/BloodBankDashboard";
 import DonorsListPage from "./pages/app/blood-bank/DonorsListPage";
 import DonorFormPage from "./pages/app/blood-bank/DonorFormPage";
 import DonationsPage from "./pages/app/blood-bank/DonationsPage";
+import DonationFormPage from "./pages/app/blood-bank/DonationFormPage";
+import DonationDetailPage from "./pages/app/blood-bank/DonationDetailPage";
 import BloodInventoryPage from "./pages/app/blood-bank/InventoryPage";
 import BloodRequestsListPage from "./pages/app/blood-bank/RequestsListPage";
+import BloodRequestFormPage from "./pages/app/blood-bank/BloodRequestFormPage";
+import BloodRequestDetailPage from "./pages/app/blood-bank/BloodRequestDetailPage";
 import CrossMatchPage from "./pages/app/blood-bank/CrossMatchPage";
+import CrossMatchFormPage from "./pages/app/blood-bank/CrossMatchFormPage";
 import TransfusionsPage from "./pages/app/blood-bank/TransfusionsPage";
+import TransfusionDetailPage from "./pages/app/blood-bank/TransfusionDetailPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -208,10 +214,16 @@ function App() {
               <Route path="blood-bank/donors/new" element={<DonorFormPage />} />
               <Route path="blood-bank/donors/:id" element={<DonorFormPage />} />
               <Route path="blood-bank/donations" element={<DonationsPage />} />
+              <Route path="blood-bank/donations/new" element={<DonationFormPage />} />
+              <Route path="blood-bank/donations/:id" element={<DonationDetailPage />} />
               <Route path="blood-bank/inventory" element={<BloodInventoryPage />} />
               <Route path="blood-bank/requests" element={<BloodRequestsListPage />} />
+              <Route path="blood-bank/requests/new" element={<BloodRequestFormPage />} />
+              <Route path="blood-bank/requests/:id" element={<BloodRequestDetailPage />} />
               <Route path="blood-bank/cross-match" element={<CrossMatchPage />} />
+              <Route path="blood-bank/cross-match/new" element={<CrossMatchFormPage />} />
               <Route path="blood-bank/transfusions" element={<TransfusionsPage />} />
+              <Route path="blood-bank/transfusions/:id" element={<TransfusionDetailPage />} />
 
               {/* OPD routes */}
               <Route path="opd" element={<DoctorDashboard />} />
