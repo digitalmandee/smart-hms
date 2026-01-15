@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { usePharmacyInventory } from "@/hooks/usePharmacy";
+import { useInventory } from "@/hooks/usePharmacy";
 import { format, differenceInDays } from "date-fns";
 import { AlertTriangle, Package, Calendar, ShoppingCart } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
@@ -24,7 +24,7 @@ interface InventoryItem {
 
 export default function StockAlertsPage() {
   const navigate = useNavigate();
-  const { data: inventory = [], isLoading } = usePharmacyInventory();
+  const { data: inventory = [], isLoading } = useInventory();
 
   // Filter low stock items (quantity < reorder_level or < 10)
   const lowStockItems = inventory.filter((item: InventoryItem) => 
@@ -83,7 +83,7 @@ export default function StockAlertsPage() {
     {
       id: "actions",
       cell: () => (
-        <Button size="sm" variant="outline" onClick={() => navigate("/app/pharmacy/stock-entry")}>
+        <Button size="sm" variant="outline" onClick={() => navigate("/app/pharmacy/inventory/add")}>
           <ShoppingCart className="mr-2 h-3 w-3" />
           Reorder
         </Button>
@@ -144,9 +144,9 @@ export default function StockAlertsPage() {
     <div className="space-y-6">
       <PageHeader
         title="Stock Alerts"
-        subtitle="Monitor low stock and expiring medicines"
+        description="Monitor low stock and expiring medicines"
         actions={
-          <Button onClick={() => navigate("/app/pharmacy/stock-entry")}>
+          <Button onClick={() => navigate("/app/pharmacy/inventory/add")}>
             <Package className="mr-2 h-4 w-4" />
             Add Stock
           </Button>

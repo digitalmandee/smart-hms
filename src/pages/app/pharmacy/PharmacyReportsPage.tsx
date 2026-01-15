@@ -20,8 +20,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { usePOSTransactions, usePOSSessions, POSTransaction } from "@/hooks/usePOS";
-import { usePharmacyInventory } from "@/hooks/usePharmacy";
+import { usePOSTransactions, usePOSSessions } from "@/hooks/usePOS";
+import { useInventory } from "@/hooks/usePharmacy";
 import { format, subDays, startOfMonth, endOfMonth } from "date-fns";
 import { 
   BarChart3, 
@@ -54,18 +54,18 @@ export default function PharmacyReportsPage() {
 
   const { data: transactions = [] } = usePOSTransactions();
   const { data: sessions = [] } = usePOSSessions();
-  const { data: inventory = [] } = usePharmacyInventory();
+  const { data: inventory = [] } = useInventory();
 
   // Calculate sales summary
-  const completedTx = transactions.filter(tx => tx.payment_status === 'completed');
-  const totalSales = completedTx.reduce((sum, tx) => sum + (tx.total_amount || 0), 0);
-  const totalTransactions = completedTx.length;
+  const paidTx = transactions.filter(tx => tx.payment_status === 'paid');
+  const totalSales = paidTx.reduce((sum, tx) => sum + (tx.total_amount || 0), 0);
+  const totalTransactions = paidTx.length;
   const avgTransaction = totalTransactions > 0 ? totalSales / totalTransactions : 0;
 
   // Sales by day (mock data for chart)
   const salesByDay = Array.from({ length: 7 }, (_, i) => {
     const date = subDays(new Date(), 6 - i);
-    const dayTx = completedTx.filter(tx => 
+    const dayTx = paidTx.filter(tx => 
       format(new Date(tx.created_at), "yyyy-MM-dd") === format(date, "yyyy-MM-dd")
     );
     return {
@@ -101,7 +101,7 @@ export default function PharmacyReportsPage() {
     <div className="space-y-6">
       <PageHeader
         title="Pharmacy Reports"
-        subtitle="Sales analytics and inventory reports"
+        description="Sales analytics and inventory reports"
         actions={
           <div className="flex gap-2">
             <Button variant="outline">

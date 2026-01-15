@@ -62,6 +62,13 @@ import MedicinesListPage from "./pages/app/pharmacy/MedicinesListPage";
 import MedicineFormPage from "./pages/app/pharmacy/MedicineFormPage";
 import InventoryPage from "./pages/app/pharmacy/InventoryPage";
 import StockEntryPage from "./pages/app/pharmacy/StockEntryPage";
+import POSTerminalPage from "./pages/app/pharmacy/POSTerminalPage";
+import POSTransactionsPage from "./pages/app/pharmacy/POSTransactionsPage";
+import POSTransactionDetailPage from "./pages/app/pharmacy/POSTransactionDetailPage";
+import POSSessionsPage from "./pages/app/pharmacy/POSSessionsPage";
+import PharmacyCategoriesPage from "./pages/app/pharmacy/CategoriesPage";
+import StockAlertsPage from "./pages/app/pharmacy/StockAlertsPage";
+import PharmacyReportsPage from "./pages/app/pharmacy/PharmacyReportsPage";
 
 // Billing pages
 import BillingDashboard from "./pages/app/billing/BillingDashboard";
@@ -273,13 +280,20 @@ function App() {
               
               {/* Pharmacy routes */}
               <Route path="pharmacy" element={<PharmacyDashboard />} />
+              <Route path="pharmacy/pos" element={<POSTerminalPage />} />
+              <Route path="pharmacy/pos/transactions" element={<POSTransactionsPage />} />
+              <Route path="pharmacy/pos/transactions/:id" element={<POSTransactionDetailPage />} />
+              <Route path="pharmacy/pos/sessions" element={<POSSessionsPage />} />
               <Route path="pharmacy/queue" element={<PrescriptionQueuePage />} />
               <Route path="pharmacy/dispense/:prescriptionId" element={<DispensingPage />} />
               <Route path="pharmacy/medicines" element={<MedicinesListPage />} />
               <Route path="pharmacy/medicines/new" element={<MedicineFormPage />} />
               <Route path="pharmacy/medicines/:id/edit" element={<MedicineFormPage />} />
+              <Route path="pharmacy/categories" element={<PharmacyCategoriesPage />} />
               <Route path="pharmacy/inventory" element={<InventoryPage />} />
               <Route path="pharmacy/inventory/add" element={<StockEntryPage />} />
+              <Route path="pharmacy/alerts" element={<StockAlertsPage />} />
+              <Route path="pharmacy/reports" element={<PharmacyReportsPage />} />
               
               {/* IPD routes */}
               <Route path="ipd" element={<IPDDashboard />} />

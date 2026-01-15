@@ -32,14 +32,14 @@ import { ArrowLeft, Printer, XCircle, User, Phone, Clock, CreditCard } from "luc
 export default function POSTransactionDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { handlePrint } = usePrint();
+  const { printRef, handlePrint } = usePrint();
 
   const { data: transaction, isLoading } = usePOSTransaction(id || "");
   const voidMutation = useVoidTransaction();
 
   const handleVoid = () => {
     if (!id) return;
-    voidMutation.mutate(id, {
+    voidMutation.mutate({ transactionId: id, reason: "Voided by user" }, {
       onSuccess: () => navigate("/app/pharmacy/pos/transactions"),
     });
   };
@@ -64,7 +64,7 @@ export default function POSTransactionDetailPage() {
   }
 
   const statusVariants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-    completed: "default",
+    paid: "default",
     pending: "secondary",
     refunded: "outline",
     voided: "destructive",
@@ -74,18 +74,18 @@ export default function POSTransactionDetailPage() {
     <div className="space-y-6">
       <PageHeader
         title={`Transaction ${transaction.transaction_number}`}
-        subtitle={`Created on ${format(new Date(transaction.created_at), "PPP 'at' p")}`}
+        description={`Created on ${format(new Date(transaction.created_at), "PPP 'at' p")}`}
         actions={
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => navigate("/app/pharmacy/pos/transactions")}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back
             </Button>
-            <Button variant="outline" onClick={() => handlePrint('pos-receipt')}>
+            <Button variant="outline" onClick={() => handlePrint({ title: "POS Receipt" })}>
               <Printer className="mr-2 h-4 w-4" />
               Print Receipt
             </Button>
-            {transaction.payment_status === 'completed' && (
+            {transaction.payment_status === 'paid' && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="destructive">
@@ -276,11 +276,9 @@ export default function POSTransactionDetailPage() {
               <CardTitle>Receipt Preview</CardTitle>
             </CardHeader>
             <CardContent>
-              <POSReceiptPreview
-                transaction={transaction}
-                items={transaction.items || []}
-                onPrint={() => handlePrint('pos-receipt')}
-              />
+              <div ref={printRef}>
+                <POSReceiptPreview transaction={transaction} />
+              </div>
             </CardContent>
           </Card>
         </div>

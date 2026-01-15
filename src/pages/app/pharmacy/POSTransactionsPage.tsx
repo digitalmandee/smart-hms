@@ -23,7 +23,7 @@ export default function POSTransactionsPage() {
   const [dateFilter, setDateFilter] = useState(format(new Date(), "yyyy-MM-dd"));
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
-  const { data: transactions = [], isLoading } = usePOSTransactions({
+  const { data: transactions = [], isLoading } = usePOSTransactions(undefined, {
     date: dateFilter,
     status: statusFilter !== "all" ? statusFilter : undefined,
   });
@@ -67,7 +67,7 @@ export default function POSTransactionsPage() {
       cell: ({ row }) => {
         const status = row.original.payment_status;
         const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-          completed: "default",
+          paid: "default",
           pending: "secondary",
           refunded: "outline",
           voided: "destructive",
@@ -99,14 +99,14 @@ export default function POSTransactionsPage() {
   ];
 
   // Calculate summary
-  const completedTx = filteredTransactions.filter(tx => tx.payment_status === 'completed');
-  const totalSales = completedTx.reduce((sum, tx) => sum + (tx.total_amount || 0), 0);
+  const paidTx = filteredTransactions.filter(tx => tx.payment_status === 'paid');
+  const totalSales = paidTx.reduce((sum, tx) => sum + (tx.total_amount || 0), 0);
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="POS Transactions"
-        subtitle="View and manage retail sales history"
+        description="View and manage retail sales history"
         actions={
           <Button onClick={() => navigate("/app/pharmacy/pos")}>
             <Store className="mr-2 h-4 w-4" />
@@ -138,7 +138,7 @@ export default function POSTransactionsPage() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="completed">Completed</SelectItem>
+            <SelectItem value="paid">Paid</SelectItem>
             <SelectItem value="pending">Pending</SelectItem>
             <SelectItem value="refunded">Refunded</SelectItem>
             <SelectItem value="voided">Voided</SelectItem>
@@ -153,8 +153,8 @@ export default function POSTransactionsPage() {
           <p className="text-2xl font-bold">{filteredTransactions.length}</p>
         </div>
         <div className="bg-card border rounded-lg p-4">
-          <p className="text-sm text-muted-foreground">Completed Sales</p>
-          <p className="text-2xl font-bold">{completedTx.length}</p>
+          <p className="text-sm text-muted-foreground">Paid Sales</p>
+          <p className="text-2xl font-bold">{paidTx.length}</p>
         </div>
         <div className="bg-card border rounded-lg p-4">
           <p className="text-sm text-muted-foreground">Total Revenue</p>

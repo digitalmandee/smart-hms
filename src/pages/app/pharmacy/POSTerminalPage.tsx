@@ -23,8 +23,8 @@ import {
   useCloseSession,
   useCreateTransaction,
   CartItem,
-  PaymentEntry,
   POSTransaction,
+  POSPayment,
 } from "@/hooks/usePOS";
 import { usePrint } from "@/hooks/usePrint";
 import { toast } from "sonner";
@@ -34,7 +34,7 @@ export default function POSTerminalPage() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
-  const [discountAmount, setDiscountAmount] = useState(0);
+  const [discountPercent, setDiscountPercent] = useState(0);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showOpenSessionDialog, setShowOpenSessionDialog] = useState(false);
   const [showCloseSessionDialog, setShowCloseSessionDialog] = useState(false);
@@ -45,7 +45,7 @@ export default function POSTerminalPage() {
   const [showReceipt, setShowReceipt] = useState(false);
   
   const barcodeInputRef = useRef<HTMLInputElement>(null);
-  const { handlePrint } = usePrint();
+  const { printRef, handlePrint } = usePrint();
 
   const { data: activeSession, isLoading: sessionLoading } = useActiveSession();
   const openSessionMutation = useOpenSession();
@@ -61,18 +61,19 @@ export default function POSTerminalPage() {
 
   // Calculate totals
   const subtotal = cart.reduce((sum, item) => {
-    const lineSubtotal = item.quantity * item.unit_price;
+    const lineSubtotal = item.quantity * item.selling_price;
     const lineDiscount = lineSubtotal * (item.discount_percent / 100);
     return sum + (lineSubtotal - lineDiscount);
   }, 0);
 
   const taxAmount = cart.reduce((sum, item) => {
-    const lineSubtotal = item.quantity * item.unit_price;
+    const lineSubtotal = item.quantity * item.selling_price;
     const lineDiscount = lineSubtotal * (item.discount_percent / 100);
     const taxableAmount = lineSubtotal - lineDiscount;
     return sum + (taxableAmount * (item.tax_percent / 100));
   }, 0);
 
+  const discountAmount = subtotal * (discountPercent / 100);
   const totalAmount = subtotal + taxAmount - discountAmount;
 
   const handleAddToCart = (item: CartItem) => {
@@ -93,25 +94,25 @@ export default function POSTerminalPage() {
     });
   };
 
-  const handleUpdateQuantity = (inventoryId: string, quantity: number) => {
+  const handleUpdateQuantity = (itemId: string, quantity: number) => {
     setCart(prev =>
       prev.map(item =>
-        item.inventory_id === inventoryId
+        item.id === itemId
           ? { ...item, quantity: Math.max(1, Math.min(quantity, item.available_quantity)) }
           : item
       )
     );
   };
 
-  const handleRemoveItem = (inventoryId: string) => {
-    setCart(prev => prev.filter(item => item.inventory_id !== inventoryId));
+  const handleRemoveItem = (itemId: string) => {
+    setCart(prev => prev.filter(item => item.id !== itemId));
   };
 
   const handleClearCart = () => {
     setCart([]);
     setCustomerName("");
     setCustomerPhone("");
-    setDiscountAmount(0);
+    setDiscountPercent(0);
   };
 
   const handleOpenSession = () => {
@@ -120,7 +121,7 @@ export default function POSTerminalPage() {
       toast.error("Please enter a valid opening balance");
       return;
     }
-    openSessionMutation.mutate(balance, {
+    openSessionMutation.mutate({ openingBalance: balance }, {
       onSuccess: () => {
         setShowOpenSessionDialog(false);
         setOpeningBalance("");
@@ -151,13 +152,18 @@ export default function POSTerminalPage() {
     });
   };
 
-  const handlePaymentComplete = (payments: PaymentEntry[]) => {
+  const handlePaymentComplete = (payments: Omit<POSPayment, "id" | "transaction_id">[]) => {
     if (!activeSession || cart.length === 0) return;
 
     createTransactionMutation.mutate({
       sessionId: activeSession.id,
       items: cart,
-      payments,
+      payments: payments.map(p => ({
+        payment_method: p.payment_method,
+        amount: p.amount,
+        reference_number: p.reference_number || undefined,
+        notes: p.notes || undefined,
+      })),
       customerName: customerName || undefined,
       customerPhone: customerPhone || undefined,
       discountAmount,
@@ -172,7 +178,7 @@ export default function POSTerminalPage() {
   };
 
   const handlePrintReceipt = () => {
-    handlePrint('pos-receipt');
+    handlePrint({ title: "POS Receipt" });
   };
 
   if (sessionLoading) {
@@ -187,7 +193,7 @@ export default function POSTerminalPage() {
     <div className="space-y-4">
       <PageHeader
         title="POS Terminal"
-        subtitle="Retail point of sale for walk-in customers"
+        description="Retail point of sale for walk-in customers"
       />
 
       {/* Session Widget */}
@@ -255,16 +261,16 @@ export default function POSTerminalPage() {
             {/* Cart */}
             <POSCart
               items={cart}
+              subtotal={subtotal}
+              discountPercent={discountPercent}
+              discountAmount={discountAmount}
+              taxAmount={taxAmount}
+              total={totalAmount}
               onUpdateQuantity={handleUpdateQuantity}
               onRemoveItem={handleRemoveItem}
-              onClearCart={handleClearCart}
-              subtotal={subtotal}
-              taxAmount={taxAmount}
-              discountAmount={discountAmount}
-              totalAmount={totalAmount}
-              onDiscountChange={setDiscountAmount}
+              onDiscountChange={setDiscountPercent}
               onCheckout={() => setShowPaymentModal(true)}
-              isProcessing={createTransactionMutation.isPending}
+              disabled={createTransactionMutation.isPending}
             />
           </div>
         </div>
@@ -373,9 +379,16 @@ export default function POSTerminalPage() {
       {/* Payment Modal */}
       <POSPaymentModal
         open={showPaymentModal}
-        onOpenChange={setShowPaymentModal}
-        totalAmount={totalAmount}
-        onPaymentComplete={handlePaymentComplete}
+        onClose={() => setShowPaymentModal(false)}
+        total={totalAmount}
+        subtotal={subtotal}
+        discountAmount={discountAmount}
+        taxAmount={taxAmount}
+        customerName={customerName}
+        customerPhone={customerPhone}
+        onCustomerNameChange={setCustomerName}
+        onCustomerPhoneChange={setCustomerPhone}
+        onConfirmPayment={handlePaymentComplete}
         isProcessing={createTransactionMutation.isPending}
       />
 
@@ -386,11 +399,9 @@ export default function POSTerminalPage() {
             <DialogTitle>Sale Complete</DialogTitle>
           </DialogHeader>
           {completedTransaction && (
-            <POSReceiptPreview
-              transaction={completedTransaction}
-              items={cart}
-              onPrint={handlePrintReceipt}
-            />
+            <div ref={printRef}>
+              <POSReceiptPreview transaction={completedTransaction} />
+            </div>
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowReceipt(false)}>
