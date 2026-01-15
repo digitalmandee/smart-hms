@@ -29,6 +29,7 @@ import {
   TestTubes,
   Bed,
   Siren,
+  Scan,
 } from "lucide-react";
 import { format } from "date-fns";
 import { MedicalHistorySection } from "@/components/patients/MedicalHistorySection";
@@ -40,6 +41,7 @@ import { PatientLabHistory } from "@/components/patients/PatientLabHistory";
 import { PatientAdmissionHistory } from "@/components/patients/PatientAdmissionHistory";
 import { PatientEmergencyHistory } from "@/components/patients/PatientEmergencyHistory";
 import { PatientBloodHistory } from "@/components/patients/PatientBloodHistory";
+import { PatientImagingHistory } from "@/components/patients/PatientImagingHistory";
 
 export function PatientDetailPage() {
   const { id } = useParams();
@@ -238,6 +240,10 @@ export function PatientDetailPage() {
                 <TestTubes className="h-4 w-4" />
                 Lab
               </TabsTrigger>
+              <TabsTrigger value="imaging" className="gap-2">
+                <Scan className="h-4 w-4" />
+                Imaging
+              </TabsTrigger>
               <TabsTrigger value="ipd" className="gap-2">
                 <Bed className="h-4 w-4" />
                 IPD
@@ -341,6 +347,10 @@ export function PatientDetailPage() {
 
             <TabsContent value="lab">
               <PatientLabHistory patientId={patient.id} />
+            </TabsContent>
+
+            <TabsContent value="imaging">
+              <PatientImagingHistory patientId={patient.id} />
             </TabsContent>
 
             <TabsContent value="ipd">
