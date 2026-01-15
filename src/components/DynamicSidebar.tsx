@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useMenuItems } from "@/hooks/useMenuItems";
 import { useAuth } from "@/contexts/AuthContext";
@@ -141,6 +141,30 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle }: DynamicSidebar
   const location = useLocation();
   const navigate = useNavigate();
   const [openMenus, setOpenMenus] = useState<string[]>([]);
+
+  // Auto-expand parent menu based on current route
+  useEffect(() => {
+    const currentPath = location.pathname;
+    const menusToOpen: string[] = [];
+    
+    menuItems.forEach(item => {
+      if (item.children && item.children.length > 0) {
+        const hasActiveChild = item.children.some(child => 
+          child.path && (currentPath === child.path || currentPath.startsWith(child.path + "/"))
+        );
+        if (hasActiveChild) {
+          menusToOpen.push(item.code);
+        }
+      }
+    });
+    
+    if (menusToOpen.length > 0) {
+      setOpenMenus(prev => {
+        const newMenus = [...new Set([...prev, ...menusToOpen])];
+        return newMenus;
+      });
+    }
+  }, [location.pathname, menuItems]);
 
   const toggleMenu = (code: string) => {
     setOpenMenus((prev) =>
