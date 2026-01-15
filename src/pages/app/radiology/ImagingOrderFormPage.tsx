@@ -1,0 +1,211 @@
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { PageHeader } from '@/components/PageHeader';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useImagingOrders, IMAGING_MODALITIES, IMAGING_PRIORITIES, ImagingModality, ImagingPriority } from '@/hooks/useImaging';
+import { usePatients } from '@/hooks/usePatients';
+import { PatientSearch } from '@/components/appointments/PatientSearch';
+import { toast } from 'sonner';
+import { ArrowLeft, Save } from 'lucide-react';
+
+export default function ImagingOrderFormPage() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { createOrder, isCreating } = useImagingOrders();
+  const { patients } = usePatients();
+
+  const preSelectedPatientId = searchParams.get('patientId');
+  const preSelectedPriority = searchParams.get('priority') as ImagingPriority | null;
+
+  const [formData, setFormData] = useState({
+    patient_id: preSelectedPatientId || '',
+    modality: '' as ImagingModality | '',
+    priority: preSelectedPriority || 'routine' as ImagingPriority,
+    clinical_indication: '',
+    scheduled_date: '',
+    notes: '',
+  });
+
+  const [selectedPatient, setSelectedPatient] = useState<any>(null);
+
+  useEffect(() => {
+    if (preSelectedPatientId && patients) {
+      const patient = patients.find(p => p.id === preSelectedPatientId);
+      if (patient) {
+        setSelectedPatient(patient);
+      }
+    }
+  }, [preSelectedPatientId, patients]);
+
+  const handlePatientSelect = (patient: any) => {
+    setSelectedPatient(patient);
+    setFormData(prev => ({ ...prev, patient_id: patient.id }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.patient_id || !formData.modality) {
+      toast.error('Please select a patient and modality');
+      return;
+    }
+
+    try {
+      await createOrder({
+        patient_id: formData.patient_id,
+        modality: formData.modality as ImagingModality,
+        priority: formData.priority as ImagingPriority,
+        clinical_indication: formData.clinical_indication || null,
+        scheduled_date: formData.scheduled_date || null,
+        notes: formData.notes || null,
+        status: 'ordered',
+      });
+      toast.success('Imaging order created successfully');
+      navigate('/app/radiology/orders');
+    } catch (error) {
+      toast.error('Failed to create order');
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title="New Imaging Order"
+        subtitle="Create a new radiology order"
+      >
+        <Button variant="outline" onClick={() => navigate(-1)}>
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back
+        </Button>
+      </PageHeader>
+
+      <form onSubmit={handleSubmit}>
+        <div className="grid gap-6 md:grid-cols-2">
+          {/* Patient Selection */}
+          <Card className="md:col-span-2">
+            <CardHeader>
+              <CardTitle>Patient Information</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {selectedPatient ? (
+                <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
+                  <div>
+                    <p className="font-medium">{selectedPatient.first_name} {selectedPatient.last_name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      MRN: {selectedPatient.medical_record_number} | {selectedPatient.gender} | {selectedPatient.phone}
+                    </p>
+                  </div>
+                  <Button type="button" variant="outline" onClick={() => {
+                    setSelectedPatient(null);
+                    setFormData(prev => ({ ...prev, patient_id: '' }));
+                  }}>
+                    Change
+                  </Button>
+                </div>
+              ) : (
+                <PatientSearch onSelectPatient={handlePatientSelect} />
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Order Details */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Order Details</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="modality">Modality *</Label>
+                <Select 
+                  value={formData.modality} 
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, modality: value as ImagingModality }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select modality" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {IMAGING_MODALITIES.map(m => (
+                      <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="priority">Priority</Label>
+                <Select 
+                  value={formData.priority} 
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, priority: value as ImagingPriority }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select priority" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {IMAGING_PRIORITIES.map(p => (
+                      <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="scheduled_date">Scheduled Date (Optional)</Label>
+                <Input
+                  id="scheduled_date"
+                  type="datetime-local"
+                  value={formData.scheduled_date}
+                  onChange={(e) => setFormData(prev => ({ ...prev, scheduled_date: e.target.value }))}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Clinical Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Clinical Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="clinical_indication">Clinical Indication</Label>
+                <Textarea
+                  id="clinical_indication"
+                  value={formData.clinical_indication}
+                  onChange={(e) => setFormData(prev => ({ ...prev, clinical_indication: e.target.value }))}
+                  placeholder="Reason for imaging, symptoms, provisional diagnosis..."
+                  rows={4}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="notes">Additional Notes</Label>
+                <Textarea
+                  id="notes"
+                  value={formData.notes}
+                  onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+                  placeholder="Any additional instructions or notes..."
+                  rows={3}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="flex justify-end gap-4 mt-6">
+          <Button type="button" variant="outline" onClick={() => navigate(-1)}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={isCreating}>
+            <Save className="h-4 w-4 mr-2" />
+            {isCreating ? 'Creating...' : 'Create Order'}
+          </Button>
+        </div>
+      </form>
+    </div>
+  );
+}
