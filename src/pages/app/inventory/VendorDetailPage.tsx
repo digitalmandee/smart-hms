@@ -84,7 +84,7 @@ export default function VendorDetailPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title={vendor.vendor_name}
+        title={vendor.name}
         description={`${vendor.vendor_code} • Vendor Profile`}
       />
 
@@ -214,19 +214,15 @@ export default function VendorDetailPage() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Bank Account</p>
-                <p className="font-medium">{vendor.bank_account || "—"}</p>
+                <p className="font-medium">{vendor.bank_details?.account_number || "—"}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Bank Name</p>
-                <p className="font-medium">{vendor.bank_name || "—"}</p>
+                <p className="font-medium">{vendor.bank_details?.bank_name || "—"}</p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Credit Limit</p>
-                <p className="font-medium">
-                  {vendor.credit_limit
-                    ? `Rs. ${vendor.credit_limit.toLocaleString()}`
-                    : "—"}
-                </p>
+                <p className="text-sm text-muted-foreground">Payment Terms</p>
+                <p className="font-medium">{vendor.payment_terms || "—"}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Status</p>
@@ -271,9 +267,9 @@ export default function VendorDetailPage() {
                   >
                     <TableCell className="font-medium">{po.po_number}</TableCell>
                     <TableCell>
-                      {format(new Date(po.po_date), "MMM dd, yyyy")}
+                      {format(new Date(po.order_date), "MMM dd, yyyy")}
                     </TableCell>
-                    <TableCell>{po.branch?.branch_name || "—"}</TableCell>
+                    <TableCell>{po.branch?.name || "—"}</TableCell>
                     <TableCell>
                       <POStatusBadge status={po.status} />
                     </TableCell>
