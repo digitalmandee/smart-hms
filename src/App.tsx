@@ -194,6 +194,12 @@ import RequisitionFormPage from "./pages/app/inventory/RequisitionFormPage";
 import RequisitionDetailPage from "./pages/app/inventory/RequisitionDetailPage";
 import InventoryReportsPage from "./pages/app/inventory/InventoryReportsPage";
 
+// Accounts pages
+import AccountsDashboard from "./pages/app/accounts/AccountsDashboard";
+import ChartOfAccountsPage from "./pages/app/accounts/ChartOfAccountsPage";
+import AccountFormPage from "./pages/app/accounts/AccountFormPage";
+import AccountDetailPage from "./pages/app/accounts/AccountDetailPage";
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -390,6 +396,13 @@ function App() {
               <Route path="billing/invoices/:id/pay" element={<PaymentCollectionPage />} />
               <Route path="billing/payments" element={<PaymentHistoryPage />} />
               <Route path="billing/reports" element={<BillingReportsPage />} />
+              
+              {/* Accounts routes */}
+              <Route path="accounts" element={<AccountsDashboard />} />
+              <Route path="accounts/chart-of-accounts" element={<ChartOfAccountsPage />} />
+              <Route path="accounts/chart-of-accounts/new" element={<AccountFormPage />} />
+              <Route path="accounts/chart-of-accounts/:id" element={<AccountDetailPage />} />
+              <Route path="accounts/chart-of-accounts/:id/edit" element={<AccountFormPage />} />
               
               {/* HR routes */}
               <Route path="hr" element={<HRDashboard />} />
