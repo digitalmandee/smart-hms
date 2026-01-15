@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -8,7 +8,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StatusBadge } from "@/components/StatusBadge";
 import { usePatient } from "@/hooks/usePatients";
 import { useMedicalHistory } from "@/hooks/useMedicalHistory";
+import { useOrganization } from "@/hooks/useOrganizations";
+import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PrintablePatientCard } from "@/components/patients/PrintablePatientCard";
+import { usePrint } from "@/hooks/usePrint";
 import {
   User,
   Phone,
@@ -30,6 +34,7 @@ import {
   Bed,
   Siren,
   Scan,
+  Printer,
 } from "lucide-react";
 import { format } from "date-fns";
 import { MedicalHistorySection } from "@/components/patients/MedicalHistorySection";
@@ -46,8 +51,11 @@ import { PatientImagingHistory } from "@/components/patients/PatientImagingHisto
 export function PatientDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { profile } = useAuth();
   const { data: patient, isLoading } = usePatient(id);
   const { data: medicalHistory } = useMedicalHistory(id);
+  const { data: organization } = useOrganization(profile?.organization_id);
+  const { printRef, handlePrint } = usePrint();
 
   const getAge = (dob: string | null) => {
     if (!dob) return null;
@@ -114,6 +122,10 @@ export function PatientDetailPage() {
         actions={
           <div className="flex items-center gap-2">
             <StatusBadge status={patient.is_active ? "active" : "inactive"} />
+            <Button variant="outline" onClick={() => handlePrint({ title: "Patient ID Card" })}>
+              <Printer className="h-4 w-4 mr-2" />
+              Print ID Card
+            </Button>
             <Link to={`/app/patients/${patient.id}/edit`}>
               <Button variant="outline">
                 <Edit className="h-4 w-4 mr-2" />
@@ -374,6 +386,19 @@ export function PatientDetailPage() {
             </TabsContent>
           </Tabs>
         </div>
+      </div>
+
+      {/* Print Patient ID Card */}
+      <div ref={printRef}>
+        <PrintablePatientCard 
+          patient={patient} 
+          organization={organization ? {
+            name: organization.name,
+            phone: organization.phone,
+            address: organization.address,
+            city: organization.city
+          } : undefined}
+        />
       </div>
     </div>
   );

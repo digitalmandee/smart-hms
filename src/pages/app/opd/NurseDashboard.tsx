@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format, formatDistanceToNow } from 'date-fns';
 import { 
@@ -18,7 +19,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Input } from '@/components/ui/input';
 import { useNursingQueue } from '@/hooks/useAppointments';
+import { usePatients } from '@/hooks/usePatients';
 import { PatientVitalsCard } from '@/components/nursing/PatientVitalsCard';
 import { VitalsSummaryBadge } from '@/components/nursing/VitalsSummaryBadge';
 import { QuickActionsPanel } from '@/components/nursing/QuickActionsPanel';
@@ -31,7 +34,11 @@ const priorityLabels: Record<number, { label: string; variant: 'destructive' | '
 
 export default function NurseDashboard() {
   const navigate = useNavigate();
+  const [patientSearch, setPatientSearch] = useState('');
   const { data: queue, isLoading, refetch } = useNursingQueue();
+  const { data: patients, isLoading: patientsLoading } = usePatients(patientSearch);
+  
+  const showPatientResults = patientSearch.length >= 3;
 
   const awaitingVitals = queue?.awaitingVitals || [];
   const vitalsComplete = queue?.vitalsComplete || [];
@@ -55,6 +62,68 @@ export default function NurseDashboard() {
           </div>
         }
       />
+
+      {/* Quick Patient Search */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Search className="h-5 w-5" />
+            Quick Patient Search
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input 
+                placeholder="Search by MR#, name, or phone..." 
+                value={patientSearch}
+                onChange={(e) => setPatientSearch(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+          </div>
+          
+          {showPatientResults && (
+            <div className="mt-3 border rounded-lg divide-y max-h-48 overflow-auto">
+              {patientsLoading ? (
+                <div className="p-3 text-center text-muted-foreground">Searching...</div>
+              ) : patients && patients.length > 0 ? (
+                patients.slice(0, 5).map((patient) => (
+                  <div 
+                    key={patient.id} 
+                    className="p-3 flex items-center justify-between hover:bg-muted/50 cursor-pointer"
+                    onClick={() => navigate(`/app/patients/${patient.id}`)}
+                  >
+                    <div>
+                      <p className="font-medium">
+                        {patient.first_name} {patient.last_name}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        MR# {patient.patient_number} • {patient.phone || 'No phone'}
+                      </p>
+                    </div>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/app/appointments/new?patientId=${patient.id}`);
+                      }}
+                    >
+                      Book Appointment
+                    </Button>
+                  </div>
+                ))
+              ) : (
+                <div className="p-3 text-center text-muted-foreground">
+                  No patients found
+                </div>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

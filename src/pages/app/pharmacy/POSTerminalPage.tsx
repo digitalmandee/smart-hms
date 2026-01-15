@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Dialog,
   DialogContent,
@@ -27,10 +28,12 @@ import {
   POSPayment,
 } from "@/hooks/usePOS";
 import { usePrint } from "@/hooks/usePrint";
+import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { Keyboard } from "lucide-react";
+import { Keyboard, AlertTriangle } from "lucide-react";
 
 export default function POSTerminalPage() {
+  const { profile } = useAuth();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
@@ -47,7 +50,8 @@ export default function POSTerminalPage() {
   const barcodeInputRef = useRef<HTMLInputElement>(null);
   const { printRef, handlePrint } = usePrint();
 
-  const { data: activeSession, isLoading: sessionLoading } = useActiveSession();
+  const hasBranch = !!profile?.branch_id;
+  const { data: activeSession, isLoading: sessionLoading, error: sessionError } = useActiveSession();
   const openSessionMutation = useOpenSession();
   const closeSessionMutation = useCloseSession();
   const createTransactionMutation = useCreateTransaction();
@@ -185,6 +189,45 @@ export default function POSTerminalPage() {
     return (
       <div className="flex items-center justify-center h-96">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  // Show error if no branch assigned
+  if (!hasBranch) {
+    return (
+      <div className="space-y-4">
+        <PageHeader
+          title="POS Terminal"
+          description="Retail point of sale for walk-in customers"
+        />
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Branch Not Assigned</AlertTitle>
+          <AlertDescription>
+            Your user account is not assigned to a branch. Please contact your administrator 
+            to assign you to a branch before using the POS terminal.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  // Show error if session query failed
+  if (sessionError) {
+    return (
+      <div className="space-y-4">
+        <PageHeader
+          title="POS Terminal"
+          description="Retail point of sale for walk-in customers"
+        />
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Error Loading Session</AlertTitle>
+          <AlertDescription>
+            {sessionError instanceof Error ? sessionError.message : "Failed to load POS session. Please try again."}
+          </AlertDescription>
+        </Alert>
       </div>
     );
   }
