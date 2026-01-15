@@ -7378,6 +7378,305 @@ export type Database = {
         }
         Relationships: []
       }
+      pharmacy_pos_items: {
+        Row: {
+          batch_number: string | null
+          created_at: string
+          discount_amount: number | null
+          id: string
+          inventory_id: string | null
+          medicine_id: string
+          quantity: number
+          total_price: number
+          transaction_id: string
+          unit_price: number
+        }
+        Insert: {
+          batch_number?: string | null
+          created_at?: string
+          discount_amount?: number | null
+          id?: string
+          inventory_id?: string | null
+          medicine_id: string
+          quantity: number
+          total_price: number
+          transaction_id: string
+          unit_price: number
+        }
+        Update: {
+          batch_number?: string | null
+          created_at?: string
+          discount_amount?: number | null
+          id?: string
+          inventory_id?: string | null
+          medicine_id?: string
+          quantity?: number
+          total_price?: number
+          transaction_id?: string
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pharmacy_pos_items_inventory_id_fkey"
+            columns: ["inventory_id"]
+            isOneToOne: false
+            referencedRelation: "medicine_inventory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_pos_items_medicine_id_fkey"
+            columns: ["medicine_id"]
+            isOneToOne: false
+            referencedRelation: "medicines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_pos_items_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_pos_transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pharmacy_pos_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          payment_method: string
+          reference_number: string | null
+          transaction_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          payment_method: string
+          reference_number?: string | null
+          transaction_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          payment_method?: string
+          reference_number?: string | null
+          transaction_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pharmacy_pos_payments_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_pos_transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pharmacy_pos_sessions: {
+        Row: {
+          branch_id: string
+          cash_difference: number | null
+          closed_at: string | null
+          closed_by: string | null
+          closing_balance: number | null
+          created_at: string
+          expected_cash: number | null
+          id: string
+          notes: string | null
+          opened_at: string
+          opened_by: string
+          opening_balance: number
+          organization_id: string
+          session_number: string
+          status: string
+          total_sales: number | null
+          total_transactions: number | null
+          updated_at: string
+        }
+        Insert: {
+          branch_id: string
+          cash_difference?: number | null
+          closed_at?: string | null
+          closed_by?: string | null
+          closing_balance?: number | null
+          created_at?: string
+          expected_cash?: number | null
+          id?: string
+          notes?: string | null
+          opened_at?: string
+          opened_by: string
+          opening_balance?: number
+          organization_id: string
+          session_number: string
+          status?: string
+          total_sales?: number | null
+          total_transactions?: number | null
+          updated_at?: string
+        }
+        Update: {
+          branch_id?: string
+          cash_difference?: number | null
+          closed_at?: string | null
+          closed_by?: string | null
+          closing_balance?: number | null
+          created_at?: string
+          expected_cash?: number | null
+          id?: string
+          notes?: string | null
+          opened_at?: string
+          opened_by?: string
+          opening_balance?: number
+          organization_id?: string
+          session_number?: string
+          status?: string
+          total_sales?: number | null
+          total_transactions?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pharmacy_pos_sessions_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_pos_sessions_closed_by_fkey"
+            columns: ["closed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_pos_sessions_opened_by_fkey"
+            columns: ["opened_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_pos_sessions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pharmacy_pos_transactions: {
+        Row: {
+          amount_paid: number
+          branch_id: string
+          change_amount: number
+          created_at: string
+          created_by: string
+          customer_name: string | null
+          customer_phone: string | null
+          discount_amount: number
+          discount_percent: number | null
+          id: string
+          notes: string | null
+          organization_id: string
+          session_id: string
+          status: string
+          subtotal: number
+          tax_amount: number
+          total_amount: number
+          transaction_number: string
+          updated_at: string
+          void_reason: string | null
+          voided_at: string | null
+          voided_by: string | null
+        }
+        Insert: {
+          amount_paid?: number
+          branch_id: string
+          change_amount?: number
+          created_at?: string
+          created_by: string
+          customer_name?: string | null
+          customer_phone?: string | null
+          discount_amount?: number
+          discount_percent?: number | null
+          id?: string
+          notes?: string | null
+          organization_id: string
+          session_id: string
+          status?: string
+          subtotal?: number
+          tax_amount?: number
+          total_amount?: number
+          transaction_number: string
+          updated_at?: string
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
+        }
+        Update: {
+          amount_paid?: number
+          branch_id?: string
+          change_amount?: number
+          created_at?: string
+          created_by?: string
+          customer_name?: string | null
+          customer_phone?: string | null
+          discount_amount?: number
+          discount_percent?: number | null
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          session_id?: string
+          status?: string
+          subtotal?: number
+          tax_amount?: number
+          total_amount?: number
+          transaction_number?: string
+          updated_at?: string
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pharmacy_pos_transactions_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_pos_transactions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_pos_transactions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_pos_transactions_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_pos_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_pos_transactions_voided_by_fkey"
+            columns: ["voided_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       post_op_recovery: {
         Row: {
           aldrete_scores: Json | null
