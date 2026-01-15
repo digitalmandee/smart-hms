@@ -90,8 +90,8 @@ export default function StockLevelsPage() {
       await adjustStock.mutateAsync({
         item_id: selectedItem.id,
         branch_id: profile.branch_id,
-        quantity_change: adjustmentType === "add" ? adjustmentQty : -adjustmentQty,
-        adjustment_type: adjustmentType === "add" ? "adjustment_in" : "adjustment_out",
+        quantity: adjustmentQty,
+        adjustment_type: adjustmentType === "add" ? "increase" : "decrease",
         reason: adjustmentReason || undefined,
       });
       toast.success("Stock adjusted successfully");
