@@ -35,21 +35,28 @@ const ADMIN_ROLES = ["super_admin", "org_admin", "branch_admin"];
 
 export const DashboardPage = () => {
   const navigate = useNavigate();
-  const { profile, roles, isLoading: authLoading } = useAuth();
+  const { profile, roles, permissions, isLoading: authLoading } = useAuth();
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [waitingForRoles, setWaitingForRoles] = useState(true);
   const { data: stats, isLoading, isError, refetch, isFetching } = useDashboardStats();
 
-  // Wait for roles to be determined
+  // Wait for BOTH roles AND permissions to be loaded before making redirect decisions
   useEffect(() => {
-    if (!authLoading && roles.length > 0) {
-      setWaitingForRoles(false);
-    } else if (!authLoading && profile) {
-      // Profile loaded but no roles yet - wait a bit then proceed
-      const timeout = setTimeout(() => setWaitingForRoles(false), 300);
-      return () => clearTimeout(timeout);
+    if (!authLoading) {
+      // If we have roles and permissions loaded, proceed
+      if (roles.length > 0 && permissions.length > 0) {
+        setWaitingForRoles(false);
+      } else if (profile && roles.length === 0) {
+        // Profile loaded but no roles assigned yet - wait briefly then show dashboard
+        const timeout = setTimeout(() => setWaitingForRoles(false), 500);
+        return () => clearTimeout(timeout);
+      } else if (profile && roles.length > 0 && permissions.length === 0) {
+        // Roles loaded but permissions still loading - wait a bit more
+        const timeout = setTimeout(() => setWaitingForRoles(false), 800);
+        return () => clearTimeout(timeout);
+      }
     }
-  }, [authLoading, roles, profile]);
+  }, [authLoading, roles, permissions, profile]);
 
   // Role-based redirect logic
   useEffect(() => {
