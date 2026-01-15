@@ -25,7 +25,9 @@ const ROLE_DASHBOARD_MAP: Record<string, string> = {
   finance_manager: "/app/accounts",
   blood_bank_technician: "/app/blood-bank",
   radiologist: "/app/radiology",
-  radiology_technician: "/app/radiology",
+  radiology_technician: "/app/radiology/worklist",
+  ipd_nurse: "/app/ipd/nursing",
+  ot_technician: "/app/ot",
 };
 
 // Roles that should stay on the generic dashboard
