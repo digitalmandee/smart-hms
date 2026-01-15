@@ -1026,6 +1026,613 @@ export type Database = {
           },
         ]
       }
+      blood_donations: {
+        Row: {
+          bag_number: string | null
+          blood_pressure: string | null
+          branch_id: string
+          collected_by: string | null
+          created_at: string | null
+          donation_date: string
+          donation_number: string
+          donation_time: string
+          donation_type: string | null
+          donor_id: string
+          hemoglobin_level: number | null
+          id: string
+          notes: string | null
+          organization_id: string
+          processed_at: string | null
+          processed_by: string | null
+          pulse_rate: number | null
+          rejection_reason: string | null
+          screening_notes: string | null
+          screening_passed: boolean | null
+          status: Database["public"]["Enums"]["donation_status"]
+          temperature: number | null
+          updated_at: string | null
+          volume_ml: number | null
+        }
+        Insert: {
+          bag_number?: string | null
+          blood_pressure?: string | null
+          branch_id: string
+          collected_by?: string | null
+          created_at?: string | null
+          donation_date?: string
+          donation_number: string
+          donation_time: string
+          donation_type?: string | null
+          donor_id: string
+          hemoglobin_level?: number | null
+          id?: string
+          notes?: string | null
+          organization_id: string
+          processed_at?: string | null
+          processed_by?: string | null
+          pulse_rate?: number | null
+          rejection_reason?: string | null
+          screening_notes?: string | null
+          screening_passed?: boolean | null
+          status?: Database["public"]["Enums"]["donation_status"]
+          temperature?: number | null
+          updated_at?: string | null
+          volume_ml?: number | null
+        }
+        Update: {
+          bag_number?: string | null
+          blood_pressure?: string | null
+          branch_id?: string
+          collected_by?: string | null
+          created_at?: string | null
+          donation_date?: string
+          donation_number?: string
+          donation_time?: string
+          donation_type?: string | null
+          donor_id?: string
+          hemoglobin_level?: number | null
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          processed_at?: string | null
+          processed_by?: string | null
+          pulse_rate?: number | null
+          rejection_reason?: string | null
+          screening_notes?: string | null
+          screening_passed?: boolean | null
+          status?: Database["public"]["Enums"]["donation_status"]
+          temperature?: number | null
+          updated_at?: string | null
+          volume_ml?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blood_donations_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blood_donations_collected_by_fkey"
+            columns: ["collected_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blood_donations_donor_id_fkey"
+            columns: ["donor_id"]
+            isOneToOne: false
+            referencedRelation: "blood_donors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blood_donations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blood_donations_processed_by_fkey"
+            columns: ["processed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      blood_donors: {
+        Row: {
+          address: string | null
+          blood_group: Database["public"]["Enums"]["blood_group_type"]
+          blood_pressure: string | null
+          branch_id: string
+          city: string | null
+          created_at: string | null
+          created_by: string | null
+          date_of_birth: string
+          deferral_reason: string | null
+          deferral_until: string | null
+          donor_number: string
+          email: string | null
+          first_name: string
+          gender: string
+          hemoglobin_level: number | null
+          id: string
+          last_donation_date: string | null
+          last_name: string
+          notes: string | null
+          organization_id: string
+          phone: string
+          pulse_rate: number | null
+          status: Database["public"]["Enums"]["donor_status"]
+          total_donations: number | null
+          updated_at: string | null
+          weight_kg: number | null
+        }
+        Insert: {
+          address?: string | null
+          blood_group: Database["public"]["Enums"]["blood_group_type"]
+          blood_pressure?: string | null
+          branch_id: string
+          city?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          date_of_birth: string
+          deferral_reason?: string | null
+          deferral_until?: string | null
+          donor_number: string
+          email?: string | null
+          first_name: string
+          gender: string
+          hemoglobin_level?: number | null
+          id?: string
+          last_donation_date?: string | null
+          last_name: string
+          notes?: string | null
+          organization_id: string
+          phone: string
+          pulse_rate?: number | null
+          status?: Database["public"]["Enums"]["donor_status"]
+          total_donations?: number | null
+          updated_at?: string | null
+          weight_kg?: number | null
+        }
+        Update: {
+          address?: string | null
+          blood_group?: Database["public"]["Enums"]["blood_group_type"]
+          blood_pressure?: string | null
+          branch_id?: string
+          city?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          date_of_birth?: string
+          deferral_reason?: string | null
+          deferral_until?: string | null
+          donor_number?: string
+          email?: string | null
+          first_name?: string
+          gender?: string
+          hemoglobin_level?: number | null
+          id?: string
+          last_donation_date?: string | null
+          last_name?: string
+          notes?: string | null
+          organization_id?: string
+          phone?: string
+          pulse_rate?: number | null
+          status?: Database["public"]["Enums"]["donor_status"]
+          total_donations?: number | null
+          updated_at?: string | null
+          weight_kg?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blood_donors_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blood_donors_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blood_donors_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      blood_inventory: {
+        Row: {
+          all_tests_negative: boolean | null
+          blood_group: Database["public"]["Enums"]["blood_group_type"]
+          branch_id: string
+          collection_date: string
+          component_type: Database["public"]["Enums"]["blood_component_type"]
+          created_at: string | null
+          donation_id: string | null
+          expiry_date: string
+          hbsag_tested: boolean | null
+          hcv_tested: boolean | null
+          hiv_tested: boolean | null
+          id: string
+          malaria_tested: boolean | null
+          notes: string | null
+          organization_id: string
+          reserved_for_request_id: string | null
+          status: Database["public"]["Enums"]["blood_unit_status"]
+          storage_location: string | null
+          tested_at: string | null
+          tested_by: string | null
+          unit_number: string
+          updated_at: string | null
+          vdrl_tested: boolean | null
+          volume_ml: number
+        }
+        Insert: {
+          all_tests_negative?: boolean | null
+          blood_group: Database["public"]["Enums"]["blood_group_type"]
+          branch_id: string
+          collection_date: string
+          component_type?: Database["public"]["Enums"]["blood_component_type"]
+          created_at?: string | null
+          donation_id?: string | null
+          expiry_date: string
+          hbsag_tested?: boolean | null
+          hcv_tested?: boolean | null
+          hiv_tested?: boolean | null
+          id?: string
+          malaria_tested?: boolean | null
+          notes?: string | null
+          organization_id: string
+          reserved_for_request_id?: string | null
+          status?: Database["public"]["Enums"]["blood_unit_status"]
+          storage_location?: string | null
+          tested_at?: string | null
+          tested_by?: string | null
+          unit_number: string
+          updated_at?: string | null
+          vdrl_tested?: boolean | null
+          volume_ml: number
+        }
+        Update: {
+          all_tests_negative?: boolean | null
+          blood_group?: Database["public"]["Enums"]["blood_group_type"]
+          branch_id?: string
+          collection_date?: string
+          component_type?: Database["public"]["Enums"]["blood_component_type"]
+          created_at?: string | null
+          donation_id?: string | null
+          expiry_date?: string
+          hbsag_tested?: boolean | null
+          hcv_tested?: boolean | null
+          hiv_tested?: boolean | null
+          id?: string
+          malaria_tested?: boolean | null
+          notes?: string | null
+          organization_id?: string
+          reserved_for_request_id?: string | null
+          status?: Database["public"]["Enums"]["blood_unit_status"]
+          storage_location?: string | null
+          tested_at?: string | null
+          tested_by?: string | null
+          unit_number?: string
+          updated_at?: string | null
+          vdrl_tested?: boolean | null
+          volume_ml?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blood_inventory_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blood_inventory_donation_id_fkey"
+            columns: ["donation_id"]
+            isOneToOne: false
+            referencedRelation: "blood_donations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blood_inventory_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blood_inventory_tested_by_fkey"
+            columns: ["tested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      blood_requests: {
+        Row: {
+          blood_group: Database["public"]["Enums"]["blood_group_type"]
+          branch_id: string
+          clinical_indication: string | null
+          component_type: Database["public"]["Enums"]["blood_component_type"]
+          created_at: string | null
+          diagnosis: string | null
+          hemoglobin_level: number | null
+          id: string
+          issued_at: string | null
+          issued_by: string | null
+          notes: string | null
+          organization_id: string
+          patient_id: string
+          priority: Database["public"]["Enums"]["blood_request_priority"]
+          processed_at: string | null
+          processed_by: string | null
+          request_number: string
+          requested_by: string
+          requesting_department: string | null
+          required_by: string | null
+          status: Database["public"]["Enums"]["blood_request_status"]
+          units_issued: number | null
+          units_requested: number
+          updated_at: string | null
+        }
+        Insert: {
+          blood_group: Database["public"]["Enums"]["blood_group_type"]
+          branch_id: string
+          clinical_indication?: string | null
+          component_type?: Database["public"]["Enums"]["blood_component_type"]
+          created_at?: string | null
+          diagnosis?: string | null
+          hemoglobin_level?: number | null
+          id?: string
+          issued_at?: string | null
+          issued_by?: string | null
+          notes?: string | null
+          organization_id: string
+          patient_id: string
+          priority?: Database["public"]["Enums"]["blood_request_priority"]
+          processed_at?: string | null
+          processed_by?: string | null
+          request_number: string
+          requested_by: string
+          requesting_department?: string | null
+          required_by?: string | null
+          status?: Database["public"]["Enums"]["blood_request_status"]
+          units_issued?: number | null
+          units_requested?: number
+          updated_at?: string | null
+        }
+        Update: {
+          blood_group?: Database["public"]["Enums"]["blood_group_type"]
+          branch_id?: string
+          clinical_indication?: string | null
+          component_type?: Database["public"]["Enums"]["blood_component_type"]
+          created_at?: string | null
+          diagnosis?: string | null
+          hemoglobin_level?: number | null
+          id?: string
+          issued_at?: string | null
+          issued_by?: string | null
+          notes?: string | null
+          organization_id?: string
+          patient_id?: string
+          priority?: Database["public"]["Enums"]["blood_request_priority"]
+          processed_at?: string | null
+          processed_by?: string | null
+          request_number?: string
+          requested_by?: string
+          requesting_department?: string | null
+          required_by?: string | null
+          status?: Database["public"]["Enums"]["blood_request_status"]
+          units_issued?: number | null
+          units_requested?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blood_requests_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blood_requests_issued_by_fkey"
+            columns: ["issued_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blood_requests_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blood_requests_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blood_requests_processed_by_fkey"
+            columns: ["processed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blood_requests_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      blood_transfusions: {
+        Row: {
+          administered_by: string | null
+          branch_id: string
+          completed_at: string | null
+          created_at: string | null
+          cross_match_id: string | null
+          id: string
+          notes: string | null
+          organization_id: string
+          patient_id: string
+          post_bp: string | null
+          post_pulse: number | null
+          post_resp_rate: number | null
+          post_temp: number | null
+          pre_bp: string | null
+          pre_pulse: number | null
+          pre_resp_rate: number | null
+          pre_temp: number | null
+          request_id: string
+          scheduled_at: string | null
+          started_at: string | null
+          status: Database["public"]["Enums"]["transfusion_status"]
+          stop_reason: string | null
+          stopped_at: string | null
+          transfusion_number: string
+          unit_id: string
+          updated_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          administered_by?: string | null
+          branch_id: string
+          completed_at?: string | null
+          created_at?: string | null
+          cross_match_id?: string | null
+          id?: string
+          notes?: string | null
+          organization_id: string
+          patient_id: string
+          post_bp?: string | null
+          post_pulse?: number | null
+          post_resp_rate?: number | null
+          post_temp?: number | null
+          pre_bp?: string | null
+          pre_pulse?: number | null
+          pre_resp_rate?: number | null
+          pre_temp?: number | null
+          request_id: string
+          scheduled_at?: string | null
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["transfusion_status"]
+          stop_reason?: string | null
+          stopped_at?: string | null
+          transfusion_number: string
+          unit_id: string
+          updated_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          administered_by?: string | null
+          branch_id?: string
+          completed_at?: string | null
+          created_at?: string | null
+          cross_match_id?: string | null
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          patient_id?: string
+          post_bp?: string | null
+          post_pulse?: number | null
+          post_resp_rate?: number | null
+          post_temp?: number | null
+          pre_bp?: string | null
+          pre_pulse?: number | null
+          pre_resp_rate?: number | null
+          pre_temp?: number | null
+          request_id?: string
+          scheduled_at?: string | null
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["transfusion_status"]
+          stop_reason?: string | null
+          stopped_at?: string | null
+          transfusion_number?: string
+          unit_id?: string
+          updated_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blood_transfusions_administered_by_fkey"
+            columns: ["administered_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blood_transfusions_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blood_transfusions_cross_match_id_fkey"
+            columns: ["cross_match_id"]
+            isOneToOne: false
+            referencedRelation: "cross_match_tests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blood_transfusions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blood_transfusions_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blood_transfusions_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "blood_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blood_transfusions_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "blood_inventory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blood_transfusions_verified_by_fkey"
+            columns: ["verified_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       branch_settings: {
         Row: {
           branch_id: string
@@ -1190,6 +1797,98 @@ export type Database = {
             columns: ["patient_id"]
             isOneToOne: false
             referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cross_match_tests: {
+        Row: {
+          antibody_screen:
+            | Database["public"]["Enums"]["cross_match_result"]
+            | null
+          created_at: string | null
+          id: string
+          is_valid: boolean | null
+          major_cross_match: Database["public"]["Enums"]["cross_match_result"]
+          minor_cross_match:
+            | Database["public"]["Enums"]["cross_match_result"]
+            | null
+          notes: string | null
+          organization_id: string
+          overall_result: Database["public"]["Enums"]["cross_match_result"]
+          request_id: string
+          test_date: string
+          tested_by: string
+          unit_id: string
+          valid_until: string | null
+        }
+        Insert: {
+          antibody_screen?:
+            | Database["public"]["Enums"]["cross_match_result"]
+            | null
+          created_at?: string | null
+          id?: string
+          is_valid?: boolean | null
+          major_cross_match?: Database["public"]["Enums"]["cross_match_result"]
+          minor_cross_match?:
+            | Database["public"]["Enums"]["cross_match_result"]
+            | null
+          notes?: string | null
+          organization_id: string
+          overall_result?: Database["public"]["Enums"]["cross_match_result"]
+          request_id: string
+          test_date?: string
+          tested_by: string
+          unit_id: string
+          valid_until?: string | null
+        }
+        Update: {
+          antibody_screen?:
+            | Database["public"]["Enums"]["cross_match_result"]
+            | null
+          created_at?: string | null
+          id?: string
+          is_valid?: boolean | null
+          major_cross_match?: Database["public"]["Enums"]["cross_match_result"]
+          minor_cross_match?:
+            | Database["public"]["Enums"]["cross_match_result"]
+            | null
+          notes?: string | null
+          organization_id?: string
+          overall_result?: Database["public"]["Enums"]["cross_match_result"]
+          request_id?: string
+          test_date?: string
+          tested_by?: string
+          unit_id?: string
+          valid_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cross_match_tests_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cross_match_tests_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "blood_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cross_match_tests_tested_by_fkey"
+            columns: ["tested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cross_match_tests_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "blood_inventory"
             referencedColumns: ["id"]
           },
         ]
@@ -6339,6 +7038,98 @@ export type Database = {
           },
         ]
       }
+      transfusion_reactions: {
+        Row: {
+          actions_taken: string | null
+          created_at: string | null
+          id: string
+          investigated_by: string | null
+          investigation_notes: string | null
+          medications_given: Json | null
+          organization_id: string
+          outcome: string | null
+          patient_stable: boolean | null
+          reaction_time: string
+          reaction_type: string
+          reported_by: string | null
+          root_cause: string | null
+          severity: Database["public"]["Enums"]["reaction_severity"]
+          symptoms: Json | null
+          transfusion_id: string
+          transfusion_stopped: boolean | null
+          vitals_at_reaction: Json | null
+        }
+        Insert: {
+          actions_taken?: string | null
+          created_at?: string | null
+          id?: string
+          investigated_by?: string | null
+          investigation_notes?: string | null
+          medications_given?: Json | null
+          organization_id: string
+          outcome?: string | null
+          patient_stable?: boolean | null
+          reaction_time?: string
+          reaction_type: string
+          reported_by?: string | null
+          root_cause?: string | null
+          severity: Database["public"]["Enums"]["reaction_severity"]
+          symptoms?: Json | null
+          transfusion_id: string
+          transfusion_stopped?: boolean | null
+          vitals_at_reaction?: Json | null
+        }
+        Update: {
+          actions_taken?: string | null
+          created_at?: string | null
+          id?: string
+          investigated_by?: string | null
+          investigation_notes?: string | null
+          medications_given?: Json | null
+          organization_id?: string
+          outcome?: string | null
+          patient_stable?: boolean | null
+          reaction_time?: string
+          reaction_type?: string
+          reported_by?: string | null
+          root_cause?: string | null
+          severity?: Database["public"]["Enums"]["reaction_severity"]
+          symptoms?: Json | null
+          transfusion_id?: string
+          transfusion_stopped?: boolean | null
+          vitals_at_reaction?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transfusion_reactions_investigated_by_fkey"
+            columns: ["investigated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transfusion_reactions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transfusion_reactions_reported_by_fkey"
+            columns: ["reported_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transfusion_reactions_transfusion_id_fkey"
+            columns: ["transfusion_id"]
+            isOneToOne: false
+            referencedRelation: "blood_transfusions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trauma_assessments: {
         Row: {
           assessed_by: string | null
@@ -6636,6 +7427,33 @@ export type Database = {
         | "maintenance"
         | "blocked"
         | "housekeeping"
+      blood_component_type:
+        | "whole_blood"
+        | "packed_rbc"
+        | "fresh_frozen_plasma"
+        | "platelet_concentrate"
+        | "cryoprecipitate"
+        | "granulocytes"
+      blood_group_type: "A+" | "A-" | "B+" | "B-" | "AB+" | "AB-" | "O+" | "O-"
+      blood_request_priority: "routine" | "urgent" | "emergency"
+      blood_request_status:
+        | "pending"
+        | "processing"
+        | "cross_matching"
+        | "ready"
+        | "issued"
+        | "completed"
+        | "cancelled"
+      blood_unit_status:
+        | "quarantine"
+        | "available"
+        | "reserved"
+        | "cross_matched"
+        | "issued"
+        | "transfused"
+        | "discarded"
+        | "expired"
+      cross_match_result: "compatible" | "incompatible" | "pending"
       diet_type:
         | "normal"
         | "soft"
@@ -6664,6 +7482,13 @@ export type Database = {
         | "medical"
         | "legal"
         | "other"
+      donation_status:
+        | "screening"
+        | "collecting"
+        | "processing"
+        | "completed"
+        | "rejected"
+      donor_status: "active" | "inactive" | "deferred" | "permanently_deferred"
       employee_type:
         | "permanent"
         | "contractual"
@@ -6780,6 +7605,7 @@ export type Database = {
         | "dispensed"
         | "partially_dispensed"
         | "cancelled"
+      reaction_severity: "mild" | "moderate" | "severe" | "fatal"
       salary_component_type: "earning" | "deduction"
       service_category:
         | "consultation"
@@ -6813,6 +7639,12 @@ export type Database = {
         | "scrub_nurse"
         | "circulating_nurse"
         | "technician"
+      transfusion_status:
+        | "scheduled"
+        | "in_progress"
+        | "completed"
+        | "stopped"
+        | "cancelled"
       triage_level: "1" | "2" | "3" | "4" | "5"
       ward_type:
         | "general"
@@ -7031,6 +7863,36 @@ export const Constants = {
         "blocked",
         "housekeeping",
       ],
+      blood_component_type: [
+        "whole_blood",
+        "packed_rbc",
+        "fresh_frozen_plasma",
+        "platelet_concentrate",
+        "cryoprecipitate",
+        "granulocytes",
+      ],
+      blood_group_type: ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"],
+      blood_request_priority: ["routine", "urgent", "emergency"],
+      blood_request_status: [
+        "pending",
+        "processing",
+        "cross_matching",
+        "ready",
+        "issued",
+        "completed",
+        "cancelled",
+      ],
+      blood_unit_status: [
+        "quarantine",
+        "available",
+        "reserved",
+        "cross_matched",
+        "issued",
+        "transfused",
+        "discarded",
+        "expired",
+      ],
+      cross_match_result: ["compatible", "incompatible", "pending"],
       diet_type: [
         "normal",
         "soft",
@@ -7062,6 +7924,14 @@ export const Constants = {
         "legal",
         "other",
       ],
+      donation_status: [
+        "screening",
+        "collecting",
+        "processing",
+        "completed",
+        "rejected",
+      ],
+      donor_status: ["active", "inactive", "deferred", "permanently_deferred"],
       employee_type: [
         "permanent",
         "contractual",
@@ -7192,6 +8062,7 @@ export const Constants = {
         "partially_dispensed",
         "cancelled",
       ],
+      reaction_severity: ["mild", "moderate", "severe", "fatal"],
       salary_component_type: ["earning", "deduction"],
       service_category: [
         "consultation",
@@ -7228,6 +8099,13 @@ export const Constants = {
         "scrub_nurse",
         "circulating_nurse",
         "technician",
+      ],
+      transfusion_status: [
+        "scheduled",
+        "in_progress",
+        "completed",
+        "stopped",
+        "cancelled",
       ],
       triage_level: ["1", "2", "3", "4", "5"],
       ward_type: [

@@ -31,6 +31,7 @@ import {
   LogOut,
   Link,
   UserX,
+  Droplets,
 } from "lucide-react";
 
 const ERDetailPage = () => {
@@ -94,6 +95,15 @@ const ERDetailPage = () => {
               <Printer className="h-4 w-4 mr-2" />
               Print Slip
             </Button>
+            {registration.status === "in_treatment" && registration.patient_id && (
+              <Button
+                variant="outline"
+                onClick={() => navigate(`/app/blood-bank/request/new?patientId=${registration.patient_id}&priority=emergency`)}
+              >
+                <Droplets className="h-4 w-4 mr-2" />
+                Request Blood
+              </Button>
+            )}
             {registration.status === "in_treatment" && (
               <>
                 <Button

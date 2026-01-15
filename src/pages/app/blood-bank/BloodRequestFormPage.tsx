@@ -41,6 +41,7 @@ export default function BloodRequestFormPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const preselectedPatientId = searchParams.get('patientId');
+  const preselectedPriority = searchParams.get('priority') as BloodRequestPriority | null;
   
   const [patientSearch, setPatientSearch] = useState('');
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(preselectedPatientId);
@@ -53,7 +54,7 @@ export default function BloodRequestFormPage() {
     blood_group: '' as BloodGroupType | '',
     component_type: 'packed_rbc' as BloodComponentType,
     units_requested: 1,
-    priority: 'routine' as BloodRequestPriority,
+    priority: (preselectedPriority || 'routine') as BloodRequestPriority,
     indication: '',
     required_by: '',
     requesting_department: '',
