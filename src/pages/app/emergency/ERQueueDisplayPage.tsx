@@ -1,22 +1,76 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useERQueue, useAmbulanceAlerts, ER_ZONES, TRIAGE_LEVELS, EmergencyRegistration } from "@/hooks/useEmergency";
 import { TriageBadge } from "@/components/emergency/TriageBadge";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { differenceInMinutes, format } from "date-fns";
-import { Ambulance, Clock, AlertTriangle, Users, Volume2, VolumeX } from "lucide-react";
+import { Ambulance, Clock, AlertTriangle, Users, Volume2, VolumeX, Printer, RefreshCw, Maximize2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useReactToPrint } from "react-to-print";
+
+// Printable ER Token Component
+const PrintableERToken = ({ patient }: { patient: EmergencyRegistration }) => {
+  return (
+    <div className="p-8 bg-white text-black">
+      <div className="text-center border-b-2 border-black pb-4 mb-4">
+        <h1 className="text-2xl font-bold">EMERGENCY DEPARTMENT</h1>
+        <p className="text-sm text-gray-600">Token Slip</p>
+      </div>
+      <div className="text-center mb-6">
+        <div className="text-6xl font-bold mb-2">{patient.er_number}</div>
+        <div className="text-lg text-gray-600">ER Number</div>
+      </div>
+      <div className="grid grid-cols-2 gap-4 text-sm mb-6">
+        <div>
+          <span className="text-gray-500">Patient:</span>
+          <p className="font-medium">
+            {patient.patient 
+              ? `${patient.patient.first_name} ${patient.patient.last_name}`
+              : "Unknown Patient"
+            }
+          </p>
+        </div>
+        <div>
+          <span className="text-gray-500">Triage Level:</span>
+          <p className="font-medium">Level {patient.triage_level}</p>
+        </div>
+        <div>
+          <span className="text-gray-500">Zone:</span>
+          <p className="font-medium">{patient.assigned_zone || "Pending"}</p>
+        </div>
+        <div>
+          <span className="text-gray-500">Arrival:</span>
+          <p className="font-medium">{format(new Date(patient.arrival_time), "HH:mm")}</p>
+        </div>
+      </div>
+      <div className="text-center text-xs text-gray-500 border-t pt-4">
+        <p>Please keep this token with you</p>
+        <p>Printed: {format(new Date(), "dd/MM/yyyy HH:mm")}</p>
+      </div>
+    </div>
+  );
+};
 
 const ERQueueDisplayPage = () => {
-  const { data: queue } = useERQueue();
+  const { data: queue, refetch } = useERQueue();
   const { data: ambulanceAlerts } = useAmbulanceAlerts("incoming");
   const [currentTime, setCurrentTime] = useState(new Date());
   const [audioEnabled, setAudioEnabled] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [selectedPatient, setSelectedPatient] = useState<EmergencyRegistration | null>(null);
+  const printRef = useRef<HTMLDivElement>(null);
 
   // Update time every second
   useEffect(() => {
     const interval = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(interval);
   }, []);
+
+  // Auto-refresh every 10 seconds
+  useEffect(() => {
+    const interval = setInterval(() => refetch(), 10000);
+    return () => clearInterval(interval);
+  }, [refetch]);
 
   // Group patients by zone
   const patientsByZone: Record<string, EmergencyRegistration[]> = Object.fromEntries(
@@ -39,6 +93,26 @@ const ERQueueDisplayPage = () => {
     "Green Zone": { bg: "bg-green-950", border: "border-green-500", header: "bg-green-500" },
   };
 
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen();
+      setIsFullscreen(false);
+    }
+  };
+
+  const handlePrintToken = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: selectedPatient?.er_number || "ER-Token",
+  });
+
+  const onPrintClick = (patient: EmergencyRegistration) => {
+    setSelectedPatient(patient);
+    setTimeout(() => handlePrintToken(), 100);
+  };
+
   return (
     <div className="min-h-screen bg-gray-900 text-white p-4 overflow-hidden">
       {/* Header */}
@@ -51,6 +125,21 @@ const ERQueueDisplayPage = () => {
           </Badge>
         </div>
         <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => refetch()}
+            className="text-white hover:bg-gray-800"
+          >
+            <RefreshCw className="h-5 w-5" />
+          </Button>
+          <button
+            onClick={toggleFullscreen}
+            className="p-2 rounded hover:bg-gray-800"
+            title="Toggle Fullscreen"
+          >
+            <Maximize2 className="h-6 w-6" />
+          </button>
           <button
             onClick={() => setAudioEnabled(!audioEnabled)}
             className="p-2 rounded hover:bg-gray-800"
@@ -126,7 +215,7 @@ const ERQueueDisplayPage = () => {
                       <div
                         key={patient.id}
                         className={cn(
-                          "p-3 rounded-lg bg-gray-800 border border-gray-700",
+                          "p-3 rounded-lg bg-gray-800 border border-gray-700 group relative",
                           isCritical && "border-red-500 bg-red-900/30"
                         )}
                       >
@@ -134,7 +223,16 @@ const ERQueueDisplayPage = () => {
                           <span className="font-mono font-bold text-lg">
                             {patient.er_number}
                           </span>
-                          <TriageBadge level={patient.triage_level} size="sm" />
+                          <div className="flex items-center gap-2">
+                            <TriageBadge level={patient.triage_level} size="sm" />
+                            <button
+                              onClick={() => onPrintClick(patient)}
+                              className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-gray-700 transition-opacity"
+                              title="Print Token"
+                            >
+                              <Printer className="h-4 w-4" />
+                            </button>
+                          </div>
                         </div>
                         <div className="text-sm text-gray-300 truncate">
                           {patient.patient
@@ -181,6 +279,13 @@ const ERQueueDisplayPage = () => {
             <span>{triage.name}</span>
           </div>
         ))}
+      </div>
+
+      {/* Hidden Printable Token */}
+      <div className="hidden">
+        <div ref={printRef}>
+          {selectedPatient && <PrintableERToken patient={selectedPatient} />}
+        </div>
       </div>
     </div>
   );
