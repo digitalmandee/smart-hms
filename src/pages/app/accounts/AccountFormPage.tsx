@@ -96,7 +96,17 @@ export default function AccountFormPage() {
       if (isEditing && id) {
         await updateAccount.mutateAsync({ id, ...data });
       } else {
-        await createAccount.mutateAsync(data);
+        await createAccount.mutateAsync({
+          account_number: data.account_number,
+          name: data.name,
+          account_type_id: data.account_type_id,
+          parent_account_id: data.parent_account_id ?? null,
+          branch_id: data.branch_id ?? null,
+          description: data.description ?? null,
+          opening_balance: data.opening_balance,
+          opening_balance_date: data.opening_balance_date ?? null,
+          is_active: data.is_active,
+        });
       }
       navigate("/app/accounts/chart-of-accounts");
     } catch (error) {

@@ -25,7 +25,6 @@ export interface Account {
   name: string;
   account_type_id: string;
   parent_account_id: string | null;
-  parent_account?: { id: string; account_number: string; name: string } | null;
   description: string | null;
   is_active: boolean;
   is_system: boolean;
@@ -36,7 +35,7 @@ export interface Account {
   updated_at: string;
   created_by: string | null;
   account_type?: AccountType;
-  parent_account?: Account;
+  parent_account?: Account | null;
   children?: Account[];
 }
 
