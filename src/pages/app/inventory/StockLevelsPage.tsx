@@ -24,7 +24,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -37,19 +36,15 @@ import {
   AlertTriangle,
   Plus,
   Minus,
-  Calendar,
 } from "lucide-react";
 import { useInventoryItems, useAdjustStock, useAllCategories } from "@/hooks/useInventory";
-import { useBranches } from "@/hooks/useBranches";
 import { useAuth } from "@/contexts/AuthContext";
-import { format } from "date-fns";
 import { toast } from "sonner";
 
 export default function StockLevelsPage() {
   const navigate = useNavigate();
   const { profile } = useAuth();
   const { data: categories } = useAllCategories();
-  const { data: branches } = useBranches();
   const adjustStock = useAdjustStock();
 
   const [search, setSearch] = useState("");
@@ -73,10 +68,10 @@ export default function StockLevelsPage() {
   const [adjustmentQty, setAdjustmentQty] = useState<number>(0);
   const [adjustmentReason, setAdjustmentReason] = useState("");
 
-  const openAdjustment = (item: { id: string; item_name: string; total_stock?: number }) => {
+  const openAdjustment = (item: { id: string; name: string; total_stock?: number }) => {
     setSelectedItem({
       id: item.id,
-      name: item.item_name,
+      name: item.name,
       currentStock: item.total_stock || 0,
     });
     setAdjustmentType("add");
@@ -134,7 +129,7 @@ export default function StockLevelsPage() {
                 <SelectItem value="all">All Categories</SelectItem>
                 {categories?.map((cat) => (
                   <SelectItem key={cat.id} value={cat.id}>
-                    {cat.category_name}
+                    {cat.name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -175,7 +170,7 @@ export default function StockLevelsPage() {
                   <TableHead className="text-center">Current Stock</TableHead>
                   <TableHead className="text-center">Reorder Level</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Unit Price</TableHead>
+                  <TableHead className="text-right">Standard Cost</TableHead>
                   <TableHead className="text-right">Stock Value</TableHead>
                   <TableHead></TableHead>
                 </TableRow>
@@ -197,15 +192,15 @@ export default function StockLevelsPage() {
                       <TableCell className="font-mono text-sm">
                         {item.item_code}
                       </TableCell>
-                      <TableCell className="font-medium">{item.item_name}</TableCell>
+                      <TableCell className="font-medium">{item.name}</TableCell>
                       <TableCell className="text-muted-foreground">
-                        {item.category?.category_name || "—"}
+                        {item.category?.name || "—"}
                       </TableCell>
                       <TableCell className="text-center">
                         <StockLevelIndicator
-                          current={stock}
+                          currentStock={stock}
                           reorderLevel={reorder}
-                          minimum={minimum}
+                          minimumStock={minimum}
                         />
                       </TableCell>
                       <TableCell className="text-center text-muted-foreground">
@@ -228,10 +223,10 @@ export default function StockLevelsPage() {
                         )}
                       </TableCell>
                       <TableCell className="text-right">
-                        Rs. {item.unit_price?.toLocaleString() || "0"}
+                        Rs. {item.standard_cost?.toLocaleString() || "0"}
                       </TableCell>
                       <TableCell className="text-right font-medium">
-                        Rs. {(stock * (item.unit_price || 0)).toLocaleString()}
+                        Rs. {(stock * (item.standard_cost || 0)).toLocaleString()}
                       </TableCell>
                       <TableCell>
                         <Button

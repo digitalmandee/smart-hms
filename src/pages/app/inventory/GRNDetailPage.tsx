@@ -39,7 +39,7 @@ export default function GRNDetailPage() {
   const handleVerify = async () => {
     if (!grn) return;
     try {
-      await verifyMutation.mutateAsync({ id: grn.id });
+      await verifyMutation.mutateAsync(grn.id);
       toast.success("GRN verified and stock updated");
     } catch {
       // Error handled by mutation
@@ -79,6 +79,12 @@ export default function GRNDetailPage() {
 
   const canVerify = grn.status === "draft";
   const canPost = grn.status === "verified";
+
+  // Calculate total from items
+  const totalAmount = grn.items?.reduce(
+    (sum, item) => sum + (item.quantity_accepted * item.unit_cost),
+    0
+  ) || 0;
 
   return (
     <div className="space-y-6">
@@ -180,17 +186,21 @@ export default function GRNDetailPage() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">PO Number</p>
-                <Button
-                  variant="link"
-                  className="p-0 h-auto"
-                  onClick={() => navigate(`/app/inventory/purchase-orders/${grn.po_id}`)}
-                >
-                  {grn.purchase_order?.po_number}
-                </Button>
+                {grn.purchase_order ? (
+                  <Button
+                    variant="link"
+                    className="p-0 h-auto"
+                    onClick={() => navigate(`/app/inventory/purchase-orders/${grn.purchase_order_id}`)}
+                  >
+                    {grn.purchase_order.po_number}
+                  </Button>
+                ) : (
+                  <p className="font-medium">—</p>
+                )}
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Branch</p>
-                <p className="font-medium">{grn.branch?.branch_name}</p>
+                <p className="font-medium">{grn.branch?.name}</p>
               </div>
             </div>
           </CardContent>
@@ -204,7 +214,7 @@ export default function GRNDetailPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-muted-foreground">Vendor</p>
-                <p className="font-medium">{grn.vendor?.vendor_name}</p>
+                <p className="font-medium">{grn.vendor?.name}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Invoice Number</p>
@@ -221,7 +231,7 @@ export default function GRNDetailPage() {
               <div>
                 <p className="text-sm text-muted-foreground">Total Value</p>
                 <p className="font-medium text-lg">
-                  Rs. {grn.total_amount?.toLocaleString() || "0"}
+                  Rs. {totalAmount.toLocaleString()}
                 </p>
               </div>
             </div>
@@ -239,13 +249,12 @@ export default function GRNDetailPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Item</TableHead>
-                <TableHead className="text-center">Ordered</TableHead>
                 <TableHead className="text-center">Received</TableHead>
                 <TableHead className="text-center">Accepted</TableHead>
                 <TableHead className="text-center">Rejected</TableHead>
                 <TableHead>Batch</TableHead>
                 <TableHead>Expiry</TableHead>
-                <TableHead className="text-right">Unit Price</TableHead>
+                <TableHead className="text-right">Unit Cost</TableHead>
                 <TableHead className="text-right">Total</TableHead>
               </TableRow>
             </TableHeader>
@@ -253,20 +262,17 @@ export default function GRNDetailPage() {
               {grn.items?.map((item) => (
                 <TableRow key={item.id}>
                   <TableCell className="font-medium">
-                    {item.item?.item_name}
+                    {item.item?.name}
                   </TableCell>
                   <TableCell className="text-center">
-                    {item.ordered_quantity}
-                  </TableCell>
-                  <TableCell className="text-center">
-                    {item.received_quantity}
+                    {item.quantity_received}
                   </TableCell>
                   <TableCell className="text-center text-emerald-600">
-                    {item.accepted_quantity || 0}
+                    {item.quantity_accepted || 0}
                   </TableCell>
                   <TableCell className="text-center">
-                    {item.rejected_quantity > 0 ? (
-                      <Badge variant="destructive">{item.rejected_quantity}</Badge>
+                    {item.quantity_rejected > 0 ? (
+                      <Badge variant="destructive">{item.quantity_rejected}</Badge>
                     ) : (
                       "0"
                     )}
@@ -278,10 +284,10 @@ export default function GRNDetailPage() {
                       : "—"}
                   </TableCell>
                   <TableCell className="text-right">
-                    Rs. {item.unit_price?.toLocaleString()}
+                    Rs. {item.unit_cost?.toLocaleString()}
                   </TableCell>
                   <TableCell className="text-right font-medium">
-                    Rs. {((item.accepted_quantity || 0) * (item.unit_price || 0)).toLocaleString()}
+                    Rs. {((item.quantity_accepted || 0) * (item.unit_cost || 0)).toLocaleString()}
                   </TableCell>
                 </TableRow>
               ))}

@@ -62,8 +62,8 @@ export default function RequisitionDetailPage() {
   const handleApprove = async () => {
     if (!requisition) return;
     const items = requisition.items?.map((item) => ({
-      id: item.id,
-      approved_quantity: approvedQuantities[item.id] ?? item.requested_quantity,
+      id: item.id!,
+      quantity_approved: approvedQuantities[item.id!] ?? item.quantity_requested,
     })) || [];
 
     try {
@@ -79,7 +79,7 @@ export default function RequisitionDetailPage() {
     try {
       await rejectMutation.mutateAsync({
         id: requisition.id,
-        rejection_reason: rejectReason,
+        reason: rejectReason,
       });
       toast.success("Requisition rejected");
       setShowRejectForm(false);
@@ -91,8 +91,9 @@ export default function RequisitionDetailPage() {
   const handleIssue = async () => {
     if (!requisition) return;
     const items = requisition.items?.map((item) => ({
-      id: item.id,
-      issued_quantity: item.approved_quantity || 0,
+      id: item.id!,
+      item_id: item.item_id,
+      quantity_issued: item.quantity_approved || 0,
     })) || [];
 
     try {
@@ -132,18 +133,20 @@ export default function RequisitionDetailPage() {
   const canApprove = requisition.status === "pending";
   const canIssue = requisition.status === "approved";
 
-  const getPriorityColor = (priority: string) => {
+  const getPriorityLabel = (priority: number) => {
     switch (priority) {
-      case "urgent":
-        return "destructive";
-      case "high":
-        return "default";
-      case "normal":
-        return "secondary";
+      case 3:
+        return { label: "URGENT", variant: "destructive" as const };
+      case 2:
+        return { label: "HIGH", variant: "default" as const };
+      case 1:
+        return { label: "NORMAL", variant: "secondary" as const };
       default:
-        return "outline";
+        return { label: "LOW", variant: "outline" as const };
     }
   };
+
+  const priorityInfo = getPriorityLabel(requisition.priority);
 
   return (
     <div className="space-y-6">
@@ -252,11 +255,6 @@ export default function RequisitionDetailPage() {
                     ? "Pending Approval"
                     : "Draft Requisition"}
                 </p>
-                {requisition.rejection_reason && (
-                  <p className="text-sm text-red-600">
-                    Reason: {requisition.rejection_reason}
-                  </p>
-                )}
               </div>
             </div>
             <RequisitionStatusBadge status={requisition.status} />
@@ -278,11 +276,11 @@ export default function RequisitionDetailPage() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Department</p>
-                <p className="font-medium">{requisition.requesting_department}</p>
+                <p className="font-medium">{requisition.department?.name || "—"}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Branch</p>
-                <p className="font-medium">{requisition.branch?.branch_name}</p>
+                <p className="font-medium">{requisition.branch?.name}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Required By</p>
@@ -294,8 +292,8 @@ export default function RequisitionDetailPage() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Priority</p>
-                <Badge variant={getPriorityColor(requisition.priority || "normal")}>
-                  {requisition.priority?.toUpperCase()}
+                <Badge variant={priorityInfo.variant}>
+                  {priorityInfo.label}
                 </Badge>
               </div>
               <div>
@@ -361,22 +359,22 @@ export default function RequisitionDetailPage() {
                 <TableRow key={item.id}>
                   <TableCell className="font-medium">
                     <div>
-                      <p>{item.item?.item_name}</p>
+                      <p>{item.item?.name}</p>
                       <p className="text-sm text-muted-foreground">{item.item?.item_code}</p>
                     </div>
                   </TableCell>
-                  <TableCell className="text-center">{item.requested_quantity}</TableCell>
+                  <TableCell className="text-center">{item.quantity_requested}</TableCell>
                   {canApprove && (
                     <TableCell className="text-center">
                       <Input
                         type="number"
                         min="0"
-                        max={item.requested_quantity}
-                        value={approvedQuantities[item.id] ?? item.requested_quantity}
+                        max={item.quantity_requested}
+                        value={approvedQuantities[item.id!] ?? item.quantity_requested}
                         onChange={(e) =>
                           setApprovedQuantities((prev) => ({
                             ...prev,
-                            [item.id]: Number(e.target.value),
+                            [item.id!]: Number(e.target.value),
                           }))
                         }
                         className="w-24 mx-auto"
@@ -385,12 +383,12 @@ export default function RequisitionDetailPage() {
                   )}
                   {(requisition.status === "approved" || requisition.status === "issued") && (
                     <TableCell className="text-center text-blue-600">
-                      {item.approved_quantity || 0}
+                      {item.quantity_approved || 0}
                     </TableCell>
                   )}
                   {requisition.status === "issued" && (
                     <TableCell className="text-center text-emerald-600">
-                      {item.issued_quantity || 0}
+                      {item.quantity_issued || 0}
                     </TableCell>
                   )}
                   <TableCell className="text-muted-foreground">{item.notes || "—"}</TableCell>

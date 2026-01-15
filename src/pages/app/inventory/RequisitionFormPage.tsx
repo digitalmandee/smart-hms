@@ -33,40 +33,26 @@ import {
 import { PageHeader } from "@/components/PageHeader";
 import { ArrowLeft, Save, Plus, Trash2, Package, Loader2 } from "lucide-react";
 import { useInventoryItems } from "@/hooks/useInventory";
-import { useCreateRequisition } from "@/hooks/useRequisitions";
+import { useCreateRequisition, RequisitionItem } from "@/hooks/useRequisitions";
 import { useBranches } from "@/hooks/useBranches";
 import { useAuth } from "@/contexts/AuthContext";
 import { format, addDays } from "date-fns";
 
 const formSchema = z.object({
   branch_id: z.string().min(1, "Branch is required"),
-  department: z.string().min(1, "Department is required"),
   required_date: z.string().min(1, "Required date is required"),
-  priority: z.enum(["low", "normal", "high", "urgent"]),
+  priority: z.coerce.number(),
   notes: z.string().optional(),
 });
 
-interface RequisitionItem {
+interface LocalRequisitionItem {
   id: string;
   item_id: string;
   item_name: string;
-  requested_quantity: number;
+  quantity_requested: number;
   unit_of_measure: string;
   notes: string;
 }
-
-const DEPARTMENTS = [
-  "Emergency",
-  "ICU",
-  "General Ward",
-  "Surgery",
-  "Pharmacy",
-  "Laboratory",
-  "Radiology",
-  "OPD",
-  "Administration",
-  "Housekeeping",
-];
 
 export default function RequisitionFormPage() {
   const navigate = useNavigate();
@@ -75,15 +61,14 @@ export default function RequisitionFormPage() {
   const { data: items } = useInventoryItems();
   const createRequisition = useCreateRequisition();
 
-  const [requisitionItems, setRequisitionItems] = useState<RequisitionItem[]>([]);
+  const [requisitionItems, setRequisitionItems] = useState<LocalRequisitionItem[]>([]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       branch_id: profile?.branch_id || "",
-      department: "",
       required_date: format(addDays(new Date(), 3), "yyyy-MM-dd"),
-      priority: "normal",
+      priority: 1,
       notes: "",
     },
   });
@@ -95,7 +80,7 @@ export default function RequisitionFormPage() {
         id: crypto.randomUUID(),
         item_id: "",
         item_name: "",
-        requested_quantity: 1,
+        quantity_requested: 1,
         unit_of_measure: "",
         notes: "",
       },
@@ -106,7 +91,7 @@ export default function RequisitionFormPage() {
     setRequisitionItems((prev) => prev.filter((item) => item.id !== id));
   };
 
-  const updateItem = (id: string, field: keyof RequisitionItem, value: string | number) => {
+  const updateItem = (id: string, field: keyof LocalRequisitionItem, value: string | number) => {
     setRequisitionItems((prev) =>
       prev.map((item) => {
         if (item.id !== id) return item;
@@ -116,7 +101,7 @@ export default function RequisitionFormPage() {
           return {
             ...item,
             item_id: value as string,
-            item_name: selectedItem?.item_name || "",
+            item_name: selectedItem?.name || "",
             unit_of_measure: selectedItem?.unit_of_measure || "",
           };
         }
@@ -131,23 +116,26 @@ export default function RequisitionFormPage() {
       return;
     }
 
-    const validItems = requisitionItems.filter((i) => i.item_id && i.requested_quantity > 0);
+    const validItems = requisitionItems.filter((i) => i.item_id && i.quantity_requested > 0);
     if (validItems.length === 0) {
       return;
     }
 
     try {
+      const itemsToSubmit: RequisitionItem[] = validItems.map((item) => ({
+        item_id: item.item_id,
+        quantity_requested: item.quantity_requested,
+        quantity_approved: 0,
+        quantity_issued: 0,
+        notes: item.notes || null,
+      }));
+
       await createRequisition.mutateAsync({
         branch_id: values.branch_id,
-        requesting_department: values.department,
         required_date: values.required_date,
         priority: values.priority,
-        notes: values.notes || null,
-        items: validItems.map((item) => ({
-          item_id: item.item_id,
-          requested_quantity: item.requested_quantity,
-          notes: item.notes || null,
-        })),
+        notes: values.notes || undefined,
+        items: itemsToSubmit,
       });
       navigate("/app/inventory/requisitions");
     } catch {
@@ -173,7 +161,7 @@ export default function RequisitionFormPage() {
             <CardHeader>
               <CardTitle>Requisition Details</CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <FormField
                 control={form.control}
                 name="branch_id"
@@ -189,32 +177,7 @@ export default function RequisitionFormPage() {
                       <SelectContent>
                         {branches?.map((branch) => (
                           <SelectItem key={branch.id} value={branch.id}>
-                            {branch.branch_name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="department"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Department *</FormLabel>
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select department" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {DEPARTMENTS.map((dept) => (
-                          <SelectItem key={dept} value={dept}>
-                            {dept}
+                            {branch.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -244,17 +207,17 @@ export default function RequisitionFormPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Priority</FormLabel>
-                    <Select value={field.value} onValueChange={field.onChange}>
+                    <Select value={String(field.value)} onValueChange={(v) => field.onChange(Number(v))}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="low">Low</SelectItem>
-                        <SelectItem value="normal">Normal</SelectItem>
-                        <SelectItem value="high">High</SelectItem>
-                        <SelectItem value="urgent">Urgent</SelectItem>
+                        <SelectItem value="0">Low</SelectItem>
+                        <SelectItem value="1">Normal</SelectItem>
+                        <SelectItem value="2">High</SelectItem>
+                        <SelectItem value="3">Urgent</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -302,7 +265,7 @@ export default function RequisitionFormPage() {
                             <SelectContent>
                               {items?.map((inv) => (
                                 <SelectItem key={inv.id} value={inv.id}>
-                                  {inv.item_code} - {inv.item_name}
+                                  {inv.item_code} - {inv.name}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -312,9 +275,9 @@ export default function RequisitionFormPage() {
                           <Input
                             type="number"
                             min="1"
-                            value={item.requested_quantity}
+                            value={item.quantity_requested}
                             onChange={(e) =>
-                              updateItem(item.id, "requested_quantity", Number(e.target.value))
+                              updateItem(item.id, "quantity_requested", Number(e.target.value))
                             }
                           />
                         </TableCell>
