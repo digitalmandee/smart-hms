@@ -40,20 +40,20 @@ export default function POSSessionsPage() {
       ),
     },
     {
-      accessorKey: "expected_balance",
+      accessorKey: "expected_cash",
       header: "Expected Balance",
       cell: ({ row }) => (
         <span className="font-mono text-green-600">
-          Rs. {Number(row.original.expected_balance || row.original.opening_balance || 0).toFixed(2)}
+          Rs. {Number(row.original.expected_cash || row.original.opening_balance || 0).toFixed(2)}
         </span>
       ),
     },
     {
-      accessorKey: "expected_balance",
+      accessorKey: "expected_cash",
       header: "Expected",
       cell: ({ row }) => (
         <span className="font-mono">
-          Rs. {Number(row.original.expected_balance || 0).toFixed(2)}
+          Rs. {Number(row.original.expected_cash || 0).toFixed(2)}
         </span>
       ),
     },
@@ -99,10 +99,10 @@ export default function POSSessionsPage() {
 
   // Calculate summary stats
   const closedSessions = sessions.filter(s => s.status === 'closed');
-  const totalExpectedBalance = closedSessions.reduce((sum, s) => sum + (Number(s.expected_balance) || Number(s.opening_balance) || 0), 0);
+  const totalExpectedBalance = closedSessions.reduce((sum, s) => sum + (Number(s.expected_cash) || Number(s.opening_balance) || 0), 0);
   const totalDiscrepancy = closedSessions.reduce((sum, s) => {
-    if (s.closing_balance !== null && s.expected_balance !== null) {
-      return sum + (s.closing_balance - s.expected_balance);
+    if (s.closing_balance !== null && s.expected_cash !== null) {
+      return sum + (s.closing_balance - s.expected_cash);
     }
     return sum;
   }, 0);

@@ -334,7 +334,7 @@ export default function POSTerminalPage() {
               Count your cash drawer and enter the closing balance.
               {activeSession && (
                 <span className="block mt-2 font-medium text-foreground">
-                  Expected Balance: Rs. {Number(activeSession.expected_balance || 0).toFixed(2)}
+                  Expected Balance: Rs. {Number(activeSession.expected_cash || 0).toFixed(2)}
                 </span>
               )}
             </DialogDescription>

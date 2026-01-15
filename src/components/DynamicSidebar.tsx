@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   LayoutDashboard,
@@ -135,7 +136,7 @@ interface DynamicSidebarProps {
 }
 
 export const DynamicSidebar = ({ isCollapsed = false, onToggle }: DynamicSidebarProps) => {
-  const { menuItems } = useMenuItems();
+  const { menuItems, isLoading: menuLoading } = useMenuItems();
   const { profile, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -202,6 +203,14 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle }: DynamicSidebar
       {/* Navigation */}
       <ScrollArea className="flex-1 px-2 py-4">
         <nav className="space-y-1">
+          {menuLoading ? (
+            <div className="space-y-2 px-2">
+              {[...Array(8)].map((_, i) => (
+                <Skeleton key={i} className="h-10 w-full rounded-md" />
+              ))}
+            </div>
+          ) : (
+            <>
           {menuItems.map((item) => {
             const IconComponent = item.icon ? iconMap[item.icon] : LayoutDashboard;
             const hasChildren = item.children && item.children.length > 0;
@@ -280,6 +289,8 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle }: DynamicSidebar
               </Button>
             );
           })}
+          </>
+          )}
         </nav>
       </ScrollArea>
 

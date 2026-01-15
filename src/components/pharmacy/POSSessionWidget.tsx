@@ -64,9 +64,9 @@ export function POSSessionWidget({
               <Wallet className="h-4 w-4 text-muted-foreground" />
               <span>
                 Opening: Rs. {Number(session.opening_balance).toFixed(2)}
-                {session.expected_balance !== null && (
+                {session.expected_cash !== null && (
                   <span className="ml-2 text-green-600">
-                    (Current: Rs. {Number(session.expected_balance).toFixed(2)})
+                    (Current: Rs. {Number(session.expected_cash).toFixed(2)})
                   </span>
                 )}
               </span>
