@@ -8,25 +8,33 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Eye, EyeOff, Crown, Building, Building2, Stethoscope, Heart, UserCheck, Pill, FlaskConical, Calculator } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Loader2, Eye, EyeOff, Crown, Building, Building2, Stethoscope, Heart, UserCheck, Pill, FlaskConical, Calculator, Lock, Unlock } from "lucide-react";
 
 const demoAccounts = [
-  { email: "superadmin@healthos.demo", role: "Super Admin", icon: Crown, color: "bg-amber-500/10 text-amber-600 hover:bg-amber-500/20" },
-  { email: "orgadmin@healthos.demo", role: "Org Admin", icon: Building, color: "bg-purple-500/10 text-purple-600 hover:bg-purple-500/20" },
-  { email: "branchadmin@healthos.demo", role: "Branch Admin", icon: Building2, color: "bg-blue-500/10 text-blue-600 hover:bg-blue-500/20" },
-  { email: "doctor@healthos.demo", role: "Doctor", icon: Stethoscope, color: "bg-green-500/10 text-green-600 hover:bg-green-500/20" },
-  { email: "nurse@healthos.demo", role: "Nurse", icon: Heart, color: "bg-pink-500/10 text-pink-600 hover:bg-pink-500/20" },
-  { email: "receptionist@healthos.demo", role: "Receptionist", icon: UserCheck, color: "bg-teal-500/10 text-teal-600 hover:bg-teal-500/20" },
-  { email: "pharmacist@healthos.demo", role: "Pharmacist", icon: Pill, color: "bg-orange-500/10 text-orange-600 hover:bg-orange-500/20" },
-  { email: "labtech@healthos.demo", role: "Lab Tech", icon: FlaskConical, color: "bg-violet-500/10 text-violet-600 hover:bg-violet-500/20" },
-  { email: "accountant@healthos.demo", role: "Accountant", icon: Calculator, color: "bg-slate-500/10 text-slate-600 hover:bg-slate-500/20" },
+  { email: "superadmin@healthos.demo", role: "Super Admin", icon: Crown, color: "bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 border-amber-500/20" },
+  { email: "orgadmin@healthos.demo", role: "Org Admin", icon: Building, color: "bg-purple-500/10 text-purple-600 hover:bg-purple-500/20 border-purple-500/20" },
+  { email: "branchadmin@healthos.demo", role: "Branch Admin", icon: Building2, color: "bg-blue-500/10 text-blue-600 hover:bg-blue-500/20 border-blue-500/20" },
+  { email: "doctor@healthos.demo", role: "Doctor", icon: Stethoscope, color: "bg-green-500/10 text-green-600 hover:bg-green-500/20 border-green-500/20" },
+  { email: "nurse@healthos.demo", role: "Nurse", icon: Heart, color: "bg-pink-500/10 text-pink-600 hover:bg-pink-500/20 border-pink-500/20" },
+  { email: "receptionist@healthos.demo", role: "Receptionist", icon: UserCheck, color: "bg-teal-500/10 text-teal-600 hover:bg-teal-500/20 border-teal-500/20" },
+  { email: "pharmacist@healthos.demo", role: "Pharmacist", icon: Pill, color: "bg-orange-500/10 text-orange-600 hover:bg-orange-500/20 border-orange-500/20" },
+  { email: "labtech@healthos.demo", role: "Lab Tech", icon: FlaskConical, color: "bg-violet-500/10 text-violet-600 hover:bg-violet-500/20 border-violet-500/20" },
+  { email: "accountant@healthos.demo", role: "Accountant", icon: Calculator, color: "bg-slate-500/10 text-slate-600 hover:bg-slate-500/20 border-slate-500/20" },
 ];
 
 const DEMO_PASSWORD = "Demo@123";
+const UNLOCK_PASSWORD = "1212";
 
 export const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isUnlocked, setIsUnlocked] = useState(false);
+  const [unlockPassword, setUnlockPassword] = useState("");
+  const [unlockError, setUnlockError] = useState("");
+  const [quickLoginEmail, setQuickLoginEmail] = useState<string | null>(null);
+  
   const { signIn } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -37,19 +45,65 @@ export const LoginPage = () => {
   const {
     register,
     handleSubmit,
-    setValue,
     formState: { errors },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   });
 
-  const handleDemoLogin = (email: string) => {
-    setValue("email", email);
-    setValue("password", DEMO_PASSWORD);
-    toast({
-      title: "Demo credentials loaded",
-      description: `Email: ${email} | Password: ${DEMO_PASSWORD}`,
-    });
+  const handleUnlock = () => {
+    if (unlockPassword === UNLOCK_PASSWORD) {
+      setIsUnlocked(true);
+      setUnlockError("");
+    } else {
+      setUnlockError("Incorrect password");
+    }
+  };
+
+  const handleUnlockKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handleUnlock();
+    }
+  };
+
+  const handleQuickLogin = async (email: string) => {
+    setQuickLoginEmail(email);
+    try {
+      const { error } = await signIn(email, DEMO_PASSWORD);
+
+      if (error) {
+        let errorMessage = "An error occurred during login";
+        
+        if (error.message.includes("Invalid login credentials")) {
+          errorMessage = "Invalid email or password. Please try again.";
+        } else if (error.message.includes("Email not confirmed")) {
+          errorMessage = "Please verify your email before logging in.";
+        } else if (error.message.includes("Too many requests")) {
+          errorMessage = "Too many login attempts. Please try again later.";
+        }
+
+        toast({
+          title: "Login Failed",
+          description: errorMessage,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Welcome back!",
+        description: "You have been logged in successfully.",
+      });
+
+      navigate(from, { replace: true });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setQuickLoginEmail(null);
+    }
   };
 
   const onSubmit = async (data: LoginFormData) => {
@@ -94,6 +148,41 @@ export const LoginPage = () => {
     }
   };
 
+  // Lock Screen
+  if (!isUnlocked) {
+    return (
+      <Card className="w-full max-w-sm mx-auto">
+        <CardHeader className="text-center space-y-2">
+          <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+            <Lock className="h-6 w-6 text-primary" />
+          </div>
+          <CardTitle className="text-xl">Demo Environment</CardTitle>
+          <CardDescription>Enter password to access</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Input
+              type="password"
+              placeholder="Enter password"
+              value={unlockPassword}
+              onChange={(e) => setUnlockPassword(e.target.value)}
+              onKeyDown={handleUnlockKeyDown}
+              className={unlockError ? "border-destructive" : ""}
+            />
+            {unlockError && (
+              <p className="text-sm text-destructive">{unlockError}</p>
+            )}
+          </div>
+          <Button onClick={handleUnlock} className="w-full">
+            <Unlock className="mr-2 h-4 w-4" />
+            Unlock
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Unlocked - Show Login Form + Demo Accounts
   return (
     <div className="space-y-6">
       <div className="space-y-2">
@@ -163,6 +252,41 @@ export const LoginPage = () => {
         </Button>
       </form>
 
+      {/* Quick Demo Login Section */}
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <Separator className="w-full" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-background px-2 text-muted-foreground">
+            Quick Demo Login
+          </span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+        {demoAccounts.map((account) => {
+          const Icon = account.icon;
+          const isLoggingIn = quickLoginEmail === account.email;
+          
+          return (
+            <Button
+              key={account.email}
+              variant="outline"
+              className={`h-auto py-3 px-3 flex flex-col items-center gap-1.5 border ${account.color} transition-all`}
+              onClick={() => handleQuickLogin(account.email)}
+              disabled={quickLoginEmail !== null}
+            >
+              {isLoggingIn ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <Icon className="h-5 w-5" />
+              )}
+              <span className="text-xs font-medium">{account.role}</span>
+            </Button>
+          );
+        })}
+      </div>
     </div>
   );
 };
