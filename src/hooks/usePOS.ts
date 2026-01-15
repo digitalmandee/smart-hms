@@ -16,7 +16,7 @@ export interface POSSession {
   closed_by: string | null;
   opening_balance: number;
   closing_balance: number | null;
-  expected_balance: number | null;
+  expected_cash: number | null;
   cash_difference: number | null;
   notes: string | null;
   status: "open" | "closed";
@@ -189,7 +189,7 @@ export function useOpenSession() {
           branch_id: profile.branch_id,
           opened_by: profile.id,
           opening_balance: openingBalance,
-          expected_balance: openingBalance,
+          expected_cash: openingBalance,
           terminal_name: terminalName,
           status: "open",
         })
@@ -235,13 +235,13 @@ export function useCloseSession() {
     }) => {
       // Get session to calculate difference
       const { data: session, error: fetchError } = await queryPOSTable("pharmacy_pos_sessions")
-        .select("expected_balance")
+        .select("expected_cash")
         .eq("id", sessionId)
         .single();
 
       if (fetchError) throw fetchError;
 
-      const cashDifference = closingBalance - (session?.expected_balance || 0);
+      const cashDifference = closingBalance - (session?.expected_cash || 0);
 
       const { data, error } = await queryPOSTable("pharmacy_pos_sessions")
         .update({

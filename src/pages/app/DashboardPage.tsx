@@ -33,13 +33,25 @@ const ADMIN_ROLES = ["super_admin", "org_admin", "branch_admin"];
 
 export const DashboardPage = () => {
   const navigate = useNavigate();
-  const { profile, roles } = useAuth();
+  const { profile, roles, isLoading: authLoading } = useAuth();
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const [waitingForRoles, setWaitingForRoles] = useState(true);
   const { data: stats, isLoading, isError, refetch, isFetching } = useDashboardStats();
+
+  // Wait for roles to be determined
+  useEffect(() => {
+    if (!authLoading && roles.length > 0) {
+      setWaitingForRoles(false);
+    } else if (!authLoading && profile) {
+      // Profile loaded but no roles yet - wait a bit then proceed
+      const timeout = setTimeout(() => setWaitingForRoles(false), 300);
+      return () => clearTimeout(timeout);
+    }
+  }, [authLoading, roles, profile]);
 
   // Role-based redirect logic
   useEffect(() => {
-    if (roles.length === 0) return;
+    if (waitingForRoles || roles.length === 0) return;
 
     // Check if user has any admin role - if so, stay on generic dashboard
     const hasAdminRole = roles.some(role => ADMIN_ROLES.includes(role));
@@ -54,10 +66,10 @@ export const DashboardPage = () => {
         return;
       }
     }
-  }, [roles, navigate]);
+  }, [waitingForRoles, roles, navigate]);
 
-  // Show loading spinner while redirecting to prevent flicker
-  if (isRedirecting) {
+  // Show loading spinner while auth loading or redirecting to prevent flicker
+  if (authLoading || waitingForRoles || isRedirecting) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
