@@ -136,6 +136,16 @@ import PreOpAssessmentPage from "./pages/app/ot/PreOpAssessmentPage";
 import AnesthesiaRecordPage from "./pages/app/ot/AnesthesiaRecordPage";
 import IntraOpNotesPage from "./pages/app/ot/IntraOpNotesPage";
 
+// Blood Bank pages
+import BloodBankDashboard from "./pages/app/blood-bank/BloodBankDashboard";
+import DonorsListPage from "./pages/app/blood-bank/DonorsListPage";
+import DonorFormPage from "./pages/app/blood-bank/DonorFormPage";
+import DonationsPage from "./pages/app/blood-bank/DonationsPage";
+import BloodInventoryPage from "./pages/app/blood-bank/InventoryPage";
+import BloodRequestsListPage from "./pages/app/blood-bank/RequestsListPage";
+import CrossMatchPage from "./pages/app/blood-bank/CrossMatchPage";
+import TransfusionsPage from "./pages/app/blood-bank/TransfusionsPage";
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -191,8 +201,18 @@ function App() {
               <Route path="appointments/:id" element={<AppointmentDetailPage />} />
               <Route path="appointments/:id/edit" element={<AppointmentFormPage />} />
               <Route path="appointments/:id/check-in" element={<CheckInPage />} />
-              
-              
+
+              {/* Blood Bank routes */}
+              <Route path="blood-bank" element={<BloodBankDashboard />} />
+              <Route path="blood-bank/donors" element={<DonorsListPage />} />
+              <Route path="blood-bank/donors/new" element={<DonorFormPage />} />
+              <Route path="blood-bank/donors/:id" element={<DonorFormPage />} />
+              <Route path="blood-bank/donations" element={<DonationsPage />} />
+              <Route path="blood-bank/inventory" element={<BloodInventoryPage />} />
+              <Route path="blood-bank/requests" element={<BloodRequestsListPage />} />
+              <Route path="blood-bank/cross-match" element={<CrossMatchPage />} />
+              <Route path="blood-bank/transfusions" element={<TransfusionsPage />} />
+
               {/* OPD routes */}
               <Route path="opd" element={<DoctorDashboard />} />
               <Route path="opd/nursing" element={<NurseDashboard />} />

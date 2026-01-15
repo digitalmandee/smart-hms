@@ -52,6 +52,9 @@ import {
   Gauge,
   Monitor,
   Bed,
+  Droplet,
+  Scissors,
+  TestTubes,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -96,6 +99,10 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Gauge,
   Monitor,
   Bed,
+  Droplet,
+  Scissors,
+  TestTubes,
+  Heart,
 };
 
 interface DynamicSidebarProps {
