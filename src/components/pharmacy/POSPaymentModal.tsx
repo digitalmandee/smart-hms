@@ -1,0 +1,287 @@
+import { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import {
+  Banknote,
+  CreditCard,
+  Smartphone,
+  Building2,
+  User,
+  Phone,
+  Calculator,
+  CheckCircle,
+} from "lucide-react";
+import { POSPayment } from "@/hooks/usePOS";
+
+interface POSPaymentModalProps {
+  open: boolean;
+  onClose: () => void;
+  total: number;
+  subtotal: number;
+  discountAmount: number;
+  taxAmount: number;
+  customerName: string;
+  customerPhone: string;
+  onCustomerNameChange: (name: string) => void;
+  onCustomerPhoneChange: (phone: string) => void;
+  onConfirmPayment: (payments: Omit<POSPayment, "id" | "transaction_id">[]) => void;
+  isProcessing?: boolean;
+}
+
+const PAYMENT_METHODS = [
+  { value: "cash", label: "Cash", icon: Banknote },
+  { value: "card", label: "Card", icon: CreditCard },
+  { value: "jazzcash", label: "JazzCash", icon: Smartphone },
+  { value: "easypaisa", label: "EasyPaisa", icon: Smartphone },
+  { value: "bank_transfer", label: "Bank", icon: Building2 },
+] as const;
+
+const QUICK_CASH_AMOUNTS = [100, 500, 1000, 2000, 5000];
+
+export function POSPaymentModal({
+  open,
+  onClose,
+  total,
+  subtotal,
+  discountAmount,
+  taxAmount,
+  customerName,
+  customerPhone,
+  onCustomerNameChange,
+  onCustomerPhoneChange,
+  onConfirmPayment,
+  isProcessing,
+}: POSPaymentModalProps) {
+  const [selectedMethod, setSelectedMethod] = useState<string>("cash");
+  const [cashReceived, setCashReceived] = useState<number>(total);
+  const [cardReference, setCardReference] = useState("");
+  const [mobileReference, setMobileReference] = useState("");
+
+  const changeAmount = Math.max(0, cashReceived - total);
+  const isPaymentValid = selectedMethod === "cash" 
+    ? cashReceived >= total 
+    : (selectedMethod === "card" || selectedMethod === "jazzcash" || selectedMethod === "easypaisa" || selectedMethod === "bank_transfer");
+
+  const handleConfirm = () => {
+    const payment: Omit<POSPayment, "id" | "transaction_id"> = {
+      payment_method: selectedMethod as POSPayment["payment_method"],
+      amount: total,
+      reference_number: selectedMethod === "card" ? cardReference : 
+                        (selectedMethod === "jazzcash" || selectedMethod === "easypaisa") ? mobileReference : null,
+      notes: null,
+    };
+
+    onConfirmPayment([payment]);
+  };
+
+  const handleQuickCash = (amount: number) => {
+    setCashReceived(amount);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Calculator className="h-5 w-5" />
+            Payment
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          {/* Order Summary */}
+          <div className="p-4 bg-muted rounded-lg space-y-2">
+            <div className="flex justify-between text-sm">
+              <span>Subtotal</span>
+              <span>Rs. {subtotal.toFixed(2)}</span>
+            </div>
+            {discountAmount > 0 && (
+              <div className="flex justify-between text-sm text-green-600">
+                <span>Discount</span>
+                <span>- Rs. {discountAmount.toFixed(2)}</span>
+              </div>
+            )}
+            {taxAmount > 0 && (
+              <div className="flex justify-between text-sm">
+                <span>Tax</span>
+                <span>Rs. {taxAmount.toFixed(2)}</span>
+              </div>
+            )}
+            <Separator />
+            <div className="flex justify-between font-semibold text-lg">
+              <span>Total</span>
+              <span>Rs. {total.toFixed(2)}</span>
+            </div>
+          </div>
+
+          {/* Customer Info (Optional) */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <Label className="text-xs flex items-center gap-1">
+                <User className="h-3 w-3" />
+                Customer Name (Optional)
+              </Label>
+              <Input
+                placeholder="Walk-in"
+                value={customerName}
+                onChange={(e) => onCustomerNameChange(e.target.value)}
+                className="h-9"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs flex items-center gap-1">
+                <Phone className="h-3 w-3" />
+                Phone (Optional)
+              </Label>
+              <Input
+                placeholder="03XX-XXXXXXX"
+                value={customerPhone}
+                onChange={(e) => onCustomerPhoneChange(e.target.value)}
+                className="h-9"
+              />
+            </div>
+          </div>
+
+          {/* Payment Method */}
+          <Tabs value={selectedMethod} onValueChange={setSelectedMethod}>
+            <TabsList className="grid grid-cols-5 h-auto">
+              {PAYMENT_METHODS.map(({ value, label, icon: Icon }) => (
+                <TabsTrigger
+                  key={value}
+                  value={value}
+                  className="flex flex-col gap-1 py-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                >
+                  <Icon className="h-4 w-4" />
+                  <span className="text-xs">{label}</span>
+                </TabsTrigger>
+              ))}
+            </TabsList>
+
+            <TabsContent value="cash" className="space-y-3 mt-4">
+              <div className="space-y-2">
+                <Label>Cash Received</Label>
+                <Input
+                  type="number"
+                  value={cashReceived}
+                  onChange={(e) => setCashReceived(parseFloat(e.target.value) || 0)}
+                  className="h-12 text-xl text-center font-semibold"
+                />
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {QUICK_CASH_AMOUNTS.map((amount) => (
+                  <Button
+                    key={amount}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleQuickCash(amount)}
+                  >
+                    Rs. {amount}
+                  </Button>
+                ))}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleQuickCash(Math.ceil(total / 100) * 100)}
+                >
+                  Exact
+                </Button>
+              </div>
+
+              {cashReceived >= total && (
+                <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg border border-green-200">
+                  <span className="font-medium text-green-700">Change</span>
+                  <Badge variant="default" className="text-lg bg-green-600">
+                    Rs. {changeAmount.toFixed(2)}
+                  </Badge>
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="card" className="space-y-3 mt-4">
+              <div className="space-y-2">
+                <Label>Card Reference / Last 4 Digits</Label>
+                <Input
+                  placeholder="XXXX"
+                  value={cardReference}
+                  onChange={(e) => setCardReference(e.target.value)}
+                  maxLength={20}
+                />
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Amount: Rs. {total.toFixed(2)} will be charged
+              </p>
+            </TabsContent>
+
+            <TabsContent value="jazzcash" className="space-y-3 mt-4">
+              <div className="space-y-2">
+                <Label>JazzCash Transaction ID</Label>
+                <Input
+                  placeholder="Transaction ID"
+                  value={mobileReference}
+                  onChange={(e) => setMobileReference(e.target.value)}
+                />
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Amount: Rs. {total.toFixed(2)}
+              </p>
+            </TabsContent>
+
+            <TabsContent value="easypaisa" className="space-y-3 mt-4">
+              <div className="space-y-2">
+                <Label>EasyPaisa Transaction ID</Label>
+                <Input
+                  placeholder="Transaction ID"
+                  value={mobileReference}
+                  onChange={(e) => setMobileReference(e.target.value)}
+                />
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Amount: Rs. {total.toFixed(2)}
+              </p>
+            </TabsContent>
+
+            <TabsContent value="bank_transfer" className="space-y-3 mt-4">
+              <div className="space-y-2">
+                <Label>Bank Reference Number</Label>
+                <Input
+                  placeholder="Reference"
+                  value={cardReference}
+                  onChange={(e) => setCardReference(e.target.value)}
+                />
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Amount: Rs. {total.toFixed(2)}
+              </p>
+            </TabsContent>
+          </Tabs>
+        </div>
+
+        <DialogFooter className="gap-2">
+          <Button variant="outline" onClick={onClose} disabled={isProcessing}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleConfirm}
+            disabled={!isPaymentValid || isProcessing}
+            className="min-w-32"
+          >
+            {isProcessing ? (
+              "Processing..."
+            ) : (
+              <>
+                <CheckCircle className="mr-2 h-4 w-4" />
+                Complete Sale
+              </>
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
