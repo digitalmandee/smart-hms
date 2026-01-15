@@ -26,11 +26,20 @@ import {
   Clock,
   Receipt,
   Scissors,
+  TestTubes,
+  Bed,
+  Siren,
 } from "lucide-react";
 import { format } from "date-fns";
 import { MedicalHistorySection } from "@/components/patients/MedicalHistorySection";
 import { PatientBillingHistory } from "@/components/patients/PatientBillingHistory";
 import { PatientSurgicalHistory } from "@/components/ot/PatientSurgicalHistory";
+import { PatientVisitsHistory } from "@/components/patients/PatientVisitsHistory";
+import { PatientPrescriptionsHistory } from "@/components/patients/PatientPrescriptionsHistory";
+import { PatientLabHistory } from "@/components/patients/PatientLabHistory";
+import { PatientAdmissionHistory } from "@/components/patients/PatientAdmissionHistory";
+import { PatientEmergencyHistory } from "@/components/patients/PatientEmergencyHistory";
+import { PatientBloodHistory } from "@/components/patients/PatientBloodHistory";
 
 export function PatientDetailPage() {
   const { id } = useParams();
@@ -208,14 +217,14 @@ export function PatientDetailPage() {
         {/* Main Content Area */}
         <div className="lg:col-span-2">
           <Tabs defaultValue="overview" className="space-y-6">
-            <TabsList>
+            <TabsList className="flex-wrap h-auto gap-1">
               <TabsTrigger value="overview" className="gap-2">
                 <Activity className="h-4 w-4" />
                 Overview
               </TabsTrigger>
               <TabsTrigger value="history" className="gap-2">
                 <Heart className="h-4 w-4" />
-                Medical History
+                Medical
               </TabsTrigger>
               <TabsTrigger value="visits" className="gap-2">
                 <Stethoscope className="h-4 w-4" />
@@ -223,11 +232,27 @@ export function PatientDetailPage() {
               </TabsTrigger>
               <TabsTrigger value="prescriptions" className="gap-2">
                 <Pill className="h-4 w-4" />
-                Prescriptions
+                Rx
+              </TabsTrigger>
+              <TabsTrigger value="lab" className="gap-2">
+                <TestTubes className="h-4 w-4" />
+                Lab
+              </TabsTrigger>
+              <TabsTrigger value="ipd" className="gap-2">
+                <Bed className="h-4 w-4" />
+                IPD
+              </TabsTrigger>
+              <TabsTrigger value="emergency" className="gap-2">
+                <Siren className="h-4 w-4" />
+                ER
               </TabsTrigger>
               <TabsTrigger value="surgeries" className="gap-2">
                 <Scissors className="h-4 w-4" />
-                Surgeries
+                OT
+              </TabsTrigger>
+              <TabsTrigger value="blood" className="gap-2">
+                <Droplets className="h-4 w-4" />
+                Blood
               </TabsTrigger>
               <TabsTrigger value="billing" className="gap-2">
                 <Receipt className="h-4 w-4" />
@@ -307,36 +332,36 @@ export function PatientDetailPage() {
             </TabsContent>
 
             <TabsContent value="visits">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Consultation History</CardTitle>
-                  <CardDescription>Past appointments and consultations</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">No consultations yet</p>
-                </CardContent>
-              </Card>
+              <PatientVisitsHistory patientId={patient.id} />
             </TabsContent>
 
             <TabsContent value="prescriptions">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Prescriptions</CardTitle>
-                  <CardDescription>Prescribed medications and treatments</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">No prescriptions yet</p>
-              </CardContent>
-            </Card>
-          </TabsContent>
+              <PatientPrescriptionsHistory patientId={patient.id} />
+            </TabsContent>
 
-          <TabsContent value="surgeries">
-            <PatientSurgicalHistory patientId={patient.id} />
-          </TabsContent>
+            <TabsContent value="lab">
+              <PatientLabHistory patientId={patient.id} />
+            </TabsContent>
 
-          <TabsContent value="billing">
-            <PatientBillingHistory patientId={patient.id} />
-          </TabsContent>
+            <TabsContent value="ipd">
+              <PatientAdmissionHistory patientId={patient.id} />
+            </TabsContent>
+
+            <TabsContent value="emergency">
+              <PatientEmergencyHistory patientId={patient.id} />
+            </TabsContent>
+
+            <TabsContent value="surgeries">
+              <PatientSurgicalHistory patientId={patient.id} />
+            </TabsContent>
+
+            <TabsContent value="blood">
+              <PatientBloodHistory patientId={patient.id} />
+            </TabsContent>
+
+            <TabsContent value="billing">
+              <PatientBillingHistory patientId={patient.id} />
+            </TabsContent>
           </Tabs>
         </div>
       </div>
