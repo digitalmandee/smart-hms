@@ -26,7 +26,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Folder, FolderOpen, Edit, Trash2, Loader2 } from "lucide-react";
+import { Plus, Folder, FolderOpen, Edit, Loader2 } from "lucide-react";
 import {
   useInventoryCategories,
   useAllCategories,
@@ -37,10 +37,9 @@ import {
 import { toast } from "sonner";
 
 interface CategoryFormData {
-  category_name: string;
-  category_code: string;
-  parent_id: string | null;
+  name: string;
   description: string;
+  parent_id: string | null;
 }
 
 export default function CategoriesPage() {
@@ -52,19 +51,17 @@ export default function CategoriesPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<InventoryCategory | null>(null);
   const [formData, setFormData] = useState<CategoryFormData>({
-    category_name: "",
-    category_code: "",
-    parent_id: null,
+    name: "",
     description: "",
+    parent_id: null,
   });
 
   const openCreateDialog = (parentId?: string) => {
     setEditingCategory(null);
     setFormData({
-      category_name: "",
-      category_code: "",
-      parent_id: parentId || null,
+      name: "",
       description: "",
+      parent_id: parentId || null,
     });
     setDialogOpen(true);
   };
@@ -72,16 +69,15 @@ export default function CategoriesPage() {
   const openEditDialog = (category: InventoryCategory) => {
     setEditingCategory(category);
     setFormData({
-      category_name: category.category_name,
-      category_code: category.category_code,
-      parent_id: category.parent_id,
+      name: category.name,
       description: category.description || "",
+      parent_id: category.parent_id,
     });
     setDialogOpen(true);
   };
 
   const handleSubmit = async () => {
-    if (!formData.category_name || !formData.category_code) {
+    if (!formData.name) {
       toast.error("Please fill in required fields");
       return;
     }
@@ -90,18 +86,16 @@ export default function CategoriesPage() {
       if (editingCategory) {
         await updateCategory.mutateAsync({
           id: editingCategory.id,
-          category_name: formData.category_name,
-          category_code: formData.category_code,
-          parent_id: formData.parent_id,
+          name: formData.name,
           description: formData.description || null,
+          parent_id: formData.parent_id,
         });
         toast.success("Category updated");
       } else {
         await createCategory.mutateAsync({
-          category_name: formData.category_name,
-          category_code: formData.category_code,
-          parent_id: formData.parent_id,
+          name: formData.name,
           description: formData.description || null,
+          parent_id: formData.parent_id,
         });
         toast.success("Category created");
       }
@@ -122,10 +116,7 @@ export default function CategoriesPage() {
               <AccordionTrigger className="flex-1 hover:no-underline">
                 <div className="flex items-center gap-2">
                   <FolderOpen className="h-4 w-4 text-primary" />
-                  <span className="font-medium">{category.category_name}</span>
-                  <Badge variant="outline" className="ml-2">
-                    {category.category_code}
-                  </Badge>
+                  <span className="font-medium">{category.name}</span>
                   <Badge variant="secondary" className="ml-1">
                     {category.children?.length} subcategories
                   </Badge>
@@ -172,8 +163,7 @@ export default function CategoriesPage() {
         >
           <div className="flex items-center gap-2">
             <Folder className="h-4 w-4 text-muted-foreground" />
-            <span>{category.category_name}</span>
-            <Badge variant="outline">{category.category_code}</Badge>
+            <span>{category.name}</span>
           </div>
           <div className="flex gap-1">
             <Button
@@ -255,26 +245,11 @@ export default function CategoriesPage() {
             <div>
               <Label>Category Name *</Label>
               <Input
-                value={formData.category_name}
+                value={formData.name}
                 onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, category_name: e.target.value }))
+                  setFormData((prev) => ({ ...prev, name: e.target.value }))
                 }
                 placeholder="e.g., Medical Supplies"
-                className="mt-1"
-              />
-            </div>
-
-            <div>
-              <Label>Category Code *</Label>
-              <Input
-                value={formData.category_code}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    category_code: e.target.value.toUpperCase(),
-                  }))
-                }
-                placeholder="e.g., MED-SUP"
                 className="mt-1"
               />
             </div>
@@ -299,7 +274,7 @@ export default function CategoriesPage() {
                     ?.filter((c) => c.id !== editingCategory?.id)
                     .map((cat) => (
                       <SelectItem key={cat.id} value={cat.id}>
-                        {cat.category_name}
+                        {cat.name}
                       </SelectItem>
                     ))}
                 </SelectContent>

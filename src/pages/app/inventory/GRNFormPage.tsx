@@ -33,7 +33,7 @@ import {
 import { PageHeader } from "@/components/PageHeader";
 import { ArrowLeft, Save, Package, Loader2 } from "lucide-react";
 import { usePurchaseOrders, usePurchaseOrder } from "@/hooks/usePurchaseOrders";
-import { useCreateGRN } from "@/hooks/useGRN";
+import { useCreateGRN, GRNItem } from "@/hooks/useGRN";
 import { useBranches } from "@/hooks/useBranches";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
@@ -48,15 +48,15 @@ const formSchema = z.object({
   notes: z.string().optional(),
 });
 
-interface GRNItem {
+interface LocalGRNItem {
   po_item_id: string;
   item_id: string;
   item_name: string;
   ordered_quantity: number;
-  received_quantity: number;
+  quantity_received: number;
   batch_number: string;
   expiry_date: string;
-  unit_price: number;
+  unit_cost: number;
 }
 
 export default function GRNFormPage() {
@@ -70,7 +70,7 @@ export default function GRNFormPage() {
   const createGRN = useCreateGRN();
 
   const [selectedPOId, setSelectedPOId] = useState<string>(preselectedPOId || "");
-  const [grnItems, setGrnItems] = useState<GRNItem[]>([]);
+  const [grnItems, setGrnItems] = useState<LocalGRNItem[]>([]);
 
   const { data: selectedPO } = usePurchaseOrder(selectedPOId);
 
@@ -89,17 +89,17 @@ export default function GRNFormPage() {
   // When PO is selected, populate items
   useEffect(() => {
     if (selectedPO?.items) {
-      const items: GRNItem[] = selectedPO.items.map((item) => ({
+      const items: LocalGRNItem[] = selectedPO.items.map((item) => ({
         po_item_id: item.id,
         item_id: item.item_id,
-        item_name: item.item?.item_name || "Unknown Item",
+        item_name: item.item?.name || "Unknown Item",
         ordered_quantity: item.quantity,
-        received_quantity: item.quantity - (item.received_quantity || 0),
+        quantity_received: item.quantity - (item.received_quantity || 0),
         batch_number: "",
         expiry_date: "",
-        unit_price: item.unit_price,
+        unit_cost: item.unit_price,
       }));
-      setGrnItems(items.filter((i) => i.received_quantity > 0));
+      setGrnItems(items.filter((i) => i.quantity_received > 0));
     }
   }, [selectedPO]);
 
@@ -108,7 +108,7 @@ export default function GRNFormPage() {
     form.setValue("po_id", poId);
   };
 
-  const updateItem = (index: number, field: keyof GRNItem, value: string | number) => {
+  const updateItem = (index: number, field: keyof LocalGRNItem, value: string | number) => {
     setGrnItems((prev) => {
       const updated = [...prev];
       updated[index] = { ...updated[index], [field]: value };
@@ -122,40 +122,41 @@ export default function GRNFormPage() {
       return;
     }
 
-    const itemsWithQty = grnItems.filter((i) => i.received_quantity > 0);
+    const itemsWithQty = grnItems.filter((i) => i.quantity_received > 0);
     if (itemsWithQty.length === 0) {
       toast.error("Please enter received quantities");
       return;
     }
 
     try {
+      const grnItemsToSubmit: GRNItem[] = itemsWithQty.map((item) => ({
+        po_item_id: item.po_item_id,
+        item_id: item.item_id,
+        quantity_received: item.quantity_received,
+        quantity_accepted: item.quantity_received,
+        quantity_rejected: 0,
+        batch_number: item.batch_number || null,
+        expiry_date: item.expiry_date || null,
+        unit_cost: item.unit_cost,
+      }));
+
       await createGRN.mutateAsync({
-        po_id: values.po_id,
+        vendor_id: selectedPO!.vendor_id,
         branch_id: values.branch_id,
-        received_date: values.received_date,
-        invoice_number: values.invoice_number || null,
-        invoice_amount: values.invoice_amount || null,
-        notes: values.notes || null,
-        items: itemsWithQty.map((item) => ({
-          po_item_id: item.po_item_id,
-          item_id: item.item_id,
-          ordered_quantity: item.ordered_quantity,
-          received_quantity: item.received_quantity,
-          accepted_quantity: item.received_quantity,
-          rejected_quantity: 0,
-          batch_number: item.batch_number || null,
-          expiry_date: item.expiry_date || null,
-          unit_price: item.unit_price,
-        })),
+        purchase_order_id: values.po_id,
+        invoice_number: values.invoice_number || undefined,
+        invoice_amount: values.invoice_amount || undefined,
+        notes: values.notes || undefined,
+        items: grnItemsToSubmit,
       });
       navigate("/app/inventory/grn");
-    } catch (error) {
+    } catch {
       // Error handled by mutation
     }
   };
 
   const totalAmount = grnItems.reduce(
-    (sum, item) => sum + item.received_quantity * item.unit_price,
+    (sum, item) => sum + item.quantity_received * item.unit_cost,
     0
   );
 
@@ -196,7 +197,7 @@ export default function GRNFormPage() {
                       <SelectContent>
                         {purchaseOrders?.map((po) => (
                           <SelectItem key={po.id} value={po.id}>
-                            {po.po_number} - {po.vendor?.vendor_name}
+                            {po.po_number} - {po.vendor?.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -221,7 +222,7 @@ export default function GRNFormPage() {
                       <SelectContent>
                         {branches?.map((branch) => (
                           <SelectItem key={branch.id} value={branch.id}>
-                            {branch.branch_name}
+                            {branch.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -293,7 +294,7 @@ export default function GRNFormPage() {
                       <TableHead className="w-32">Received Qty *</TableHead>
                       <TableHead className="w-32">Batch No.</TableHead>
                       <TableHead className="w-36">Expiry Date</TableHead>
-                      <TableHead className="w-24 text-right">Unit Price</TableHead>
+                      <TableHead className="w-24 text-right">Unit Cost</TableHead>
                       <TableHead className="w-28 text-right">Total</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -309,9 +310,9 @@ export default function GRNFormPage() {
                             type="number"
                             min="0"
                             max={item.ordered_quantity}
-                            value={item.received_quantity}
+                            value={item.quantity_received}
                             onChange={(e) =>
-                              updateItem(index, "received_quantity", Number(e.target.value))
+                              updateItem(index, "quantity_received", Number(e.target.value))
                             }
                             className="w-24"
                           />
@@ -336,10 +337,10 @@ export default function GRNFormPage() {
                           />
                         </TableCell>
                         <TableCell className="text-right">
-                          Rs. {item.unit_price.toLocaleString()}
+                          Rs. {item.unit_cost.toLocaleString()}
                         </TableCell>
                         <TableCell className="text-right font-medium">
-                          Rs. {(item.received_quantity * item.unit_price).toLocaleString()}
+                          Rs. {(item.quantity_received * item.unit_cost).toLocaleString()}
                         </TableCell>
                       </TableRow>
                     ))}

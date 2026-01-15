@@ -65,8 +65,8 @@ export default function ItemDetailPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title={item.item_name}
-        description={`${item.item_code} • ${item.category?.category_name || "Uncategorized"}`}
+        title={item.name}
+        description={`${item.item_code} • ${item.category?.name || "Uncategorized"}`}
       />
 
       <div className="flex flex-wrap gap-2">
@@ -128,12 +128,12 @@ export default function ItemDetailPage() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Unit Price
+              Standard Cost
             </CardTitle>
           </CardHeader>
           <CardContent>
             <span className="text-2xl font-bold">
-              Rs. {item.unit_price?.toLocaleString() || "0"}
+              Rs. {item.standard_cost?.toLocaleString() || "0"}
             </span>
           </CardContent>
         </Card>
@@ -146,7 +146,7 @@ export default function ItemDetailPage() {
           </CardHeader>
           <CardContent>
             <span className="text-2xl font-bold">
-              Rs. {((totalStock * (item.unit_price || 0))).toLocaleString()}
+              Rs. {((totalStock * (item.standard_cost || 0))).toLocaleString()}
             </span>
           </CardContent>
         </Card>
@@ -169,16 +169,16 @@ export default function ItemDetailPage() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Category</p>
-                <p className="font-medium">{item.category?.category_name || "—"}</p>
+                <p className="font-medium">{item.category?.name || "—"}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Unit of Measure</p>
                 <p className="font-medium">{item.unit_of_measure}</p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Item Type</p>
-                <Badge variant="outline" className="capitalize">
-                  {item.item_type}
+                <p className="text-sm text-muted-foreground">Consumable</p>
+                <Badge variant="outline">
+                  {item.is_consumable ? "Yes" : "No"}
                 </Badge>
               </div>
               <div>
@@ -186,8 +186,8 @@ export default function ItemDetailPage() {
                 <p className="font-medium">{item.minimum_stock || 0}</p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Maximum Stock</p>
-                <p className="font-medium">{item.maximum_stock || "—"}</p>
+                <p className="text-sm text-muted-foreground">Reorder Level</p>
+                <p className="font-medium">{item.reorder_level || 0}</p>
               </div>
             </div>
             {item.description && (
@@ -222,14 +222,14 @@ export default function ItemDetailPage() {
                   {stockRecords.map((stock) => (
                     <TableRow key={stock.id}>
                       <TableCell className="font-medium">
-                        {stock.branch?.branch_name || "—"}
+                        {stock.branch?.name || "—"}
                       </TableCell>
                       <TableCell>{stock.batch_number || "—"}</TableCell>
                       <TableCell>
                         <StockLevelIndicator
-                          current={stock.quantity}
+                          currentStock={stock.quantity}
                           reorderLevel={item.reorder_level || 0}
-                          minimum={item.minimum_stock || 0}
+                          minimumStock={item.minimum_stock || 0}
                         />
                       </TableCell>
                       <TableCell>
@@ -268,37 +268,42 @@ export default function ItemDetailPage() {
                   <TableHead>Date</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead>Qty Change</TableHead>
-                  <TableHead>Reference</TableHead>
+                  <TableHead>Previous → New</TableHead>
                   <TableHead>Reason</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {adjustments.slice(0, 10).map((adj) => (
-                  <TableRow key={adj.id}>
-                    <TableCell>
-                      {format(new Date(adj.created_at!), "MMM dd, yyyy HH:mm")}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="capitalize">
-                        {adj.adjustment_type.replace("_", " ")}
-                      </Badge>
-                    </TableCell>
-                    <TableCell
-                      className={
-                        adj.quantity_change > 0
-                          ? "text-emerald-600 font-medium"
-                          : "text-red-600 font-medium"
-                      }
-                    >
-                      {adj.quantity_change > 0 ? "+" : ""}
-                      {adj.quantity_change}
-                    </TableCell>
-                    <TableCell>{adj.reference_number || "—"}</TableCell>
-                    <TableCell className="max-w-xs truncate">
-                      {adj.reason || "—"}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {adjustments.slice(0, 10).map((adj) => {
+                  const qtyChange = adj.new_quantity - adj.previous_quantity;
+                  return (
+                    <TableRow key={adj.id}>
+                      <TableCell>
+                        {format(new Date(adj.created_at!), "MMM dd, yyyy HH:mm")}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="capitalize">
+                          {adj.adjustment_type.replace("_", " ")}
+                        </Badge>
+                      </TableCell>
+                      <TableCell
+                        className={
+                          qtyChange > 0
+                            ? "text-emerald-600 font-medium"
+                            : "text-red-600 font-medium"
+                        }
+                      >
+                        {qtyChange > 0 ? "+" : ""}
+                        {qtyChange}
+                      </TableCell>
+                      <TableCell>
+                        {adj.previous_quantity} → {adj.new_quantity}
+                      </TableCell>
+                      <TableCell className="max-w-xs truncate">
+                        {adj.reason || "—"}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           ) : (
