@@ -35,6 +35,7 @@ import {
   UtensilsCrossed,
   Siren,
   ExternalLink,
+  Droplets,
 } from "lucide-react";
 
 export default function AdmissionDetailPage() {
@@ -96,7 +97,16 @@ export default function AdmissionDetailPage() {
           { label: admission.admission_number },
         ]}
         actions={
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
+            {admission.status === "admitted" && (
+              <Button 
+                variant="outline" 
+                onClick={() => navigate(`/app/blood-bank/request/new?patientId=${patient?.id}`)}
+              >
+                <Droplets className="h-4 w-4 mr-2" />
+                Request Blood
+              </Button>
+            )}
             {admission.status === "admitted" && bed && (
               <Button variant="outline" onClick={() => setTransferModalOpen(true)}>
                 <ArrowRightLeft className="h-4 w-4 mr-2" />
