@@ -66,11 +66,15 @@ export function useCreateDepartmentConfig() {
 
   return useMutation({
     mutationFn: async (data: { name: string; code?: string; description?: string }) => {
+      if (!profile?.organization_id) throw new Error("No organization");
+      
       const { data: result, error } = await supabase
         .from("departments")
         .insert({
-          ...data,
-          organization_id: profile?.organization_id,
+          name: data.name,
+          code: data.code,
+          description: data.description,
+          organization_id: profile.organization_id,
           is_active: true,
         })
         .select()
