@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -93,52 +93,15 @@ export function useSendSMS() {
 }
 
 export function useSendEmail() {
-  const queryClient = useQueryClient();
   const { profile } = useAuth();
 
   return useMutation({
-    mutationFn: async (data: {
-      to: string;
-      subject: string;
-      message: string;
-      recipientName?: string;
-      relatedEntityType?: string;
-      relatedEntityId?: string;
-    }) => {
-      // Create log entry first
-      const { data: log, error: logError } = await supabase
-        .from("notification_logs")
-        .insert({
-          organization_id: profile?.organization_id,
-          notification_type: "email",
-          recipient: data.to,
-          recipient_name: data.recipientName,
-          subject: data.subject,
-          message: data.message,
-          status: "pending",
-          related_entity_type: data.relatedEntityType,
-          related_entity_id: data.relatedEntityId,
-          created_by: profile?.id,
-        })
-        .select()
-        .single();
-
-      if (logError) throw logError;
-
-      // For now, just mark as sent (email integration would be added later)
-      await supabase
-        .from("notification_logs")
-        .update({
-          status: "sent",
-          sent_at: new Date().toISOString(),
-        })
-        .eq("id", log.id);
-
+    mutationFn: async (data: { to: string; subject: string; message: string }) => {
+      // For now, just log - email integration would be added via edge function
+      console.log("Email to send:", data);
       return { success: true };
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notification-logs"] });
-      queryClient.invalidateQueries({ queryKey: ["notification-stats"] });
       toast.success("Email queued successfully");
     },
     onError: (error) => {
