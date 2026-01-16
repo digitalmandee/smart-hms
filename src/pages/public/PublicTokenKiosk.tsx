@@ -8,6 +8,10 @@ import { toast } from "@/hooks/use-toast";
 import { Printer, ArrowLeft, User, Stethoscope, Building, Check } from "lucide-react";
 import { format } from "date-fns";
 
+// Using any client to prevent deep type instantiation issues
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const client: any = supabase;
+
 interface Doctor {
   id: string;
   specialization: string | null;
@@ -53,7 +57,7 @@ export default function PublicTokenKiosk() {
     if (!organizationId) return;
 
     const fetchOrg = async () => {
-      const { data: org } = await supabase
+      const { data: org } = await client
         .from("organizations")
         .select("name")
         .eq("id", organizationId)
@@ -62,7 +66,7 @@ export default function PublicTokenKiosk() {
       if (org) setOrgName(org.name);
 
       // Get main branch
-      const { data: branch } = await supabase
+      const { data: branch } = await client
         .from("branches")
         .select("id")
         .eq("organization_id", organizationId)
@@ -80,7 +84,7 @@ export default function PublicTokenKiosk() {
     if (!organizationId) return;
 
     const fetchDoctors = async () => {
-      const { data } = await supabase
+      const { data } = await client
         .from("doctors")
         .select("id, specialization, profile:profiles(full_name)")
         .eq("organization_id", organizationId)
@@ -89,7 +93,7 @@ export default function PublicTokenKiosk() {
       if (data) {
         // Group by specialization
         const grouped: Record<string, Doctor[]> = {};
-        const doctors = data as unknown as Doctor[];
+        const doctors = (data || []) as Doctor[];
         doctors.forEach((doc) => {
           const dept = doc.specialization || "General";
           if (!grouped[dept]) grouped[dept] = [];
@@ -120,7 +124,7 @@ export default function PublicTokenKiosk() {
 
     setIsLoading(true);
 
-    const { data: patient } = await supabase
+    const { data: patient } = await client
       .from("patients")
       .select("id, first_name, last_name")
       .eq("organization_id", organizationId!)
@@ -155,18 +159,21 @@ export default function PublicTokenKiosk() {
       let finalPatientId = patientId;
       if (!finalPatientId && patientName) {
         const [firstName, ...lastNameParts] = patientName.split(" ");
-        const patientData = {
-          organization_id: organizationId,
-          branch_id: branchId,
-          first_name: firstName,
-          last_name: lastNameParts.join(" ") || null,
-          phone: phone,
-          gender: "other" as const,
-          date_of_birth: "2000-01-01",
-        };
-        const { data: newPatient, error: patientError } = await supabase
+        // Generate temp patient number - trigger will override
+        const tempPatientNumber = `KIOSK-${Date.now()}`;
+        
+        const { data: newPatient, error: patientError } = await client
           .from("patients")
-          .insert(patientData)
+          .insert([{
+            organization_id: organizationId,
+            branch_id: branchId,
+            first_name: firstName,
+            last_name: lastNameParts.join(" ") || null,
+            phone: phone,
+            gender: "other",
+            date_of_birth: "2000-01-01",
+            patient_number: tempPatientNumber,
+          }])
           .select("id")
           .single();
 
@@ -181,7 +188,7 @@ export default function PublicTokenKiosk() {
       }
 
       // Get next token number
-      const { data: lastAppointment } = await supabase
+      const { data: lastAppointment } = await client
         .from("appointments")
         .select("token_number")
         .eq("doctor_id", selectedDoctor.id)
@@ -193,7 +200,7 @@ export default function PublicTokenKiosk() {
       const nextToken = (lastAppointment?.token_number || 0) + 1;
 
       // Count waiting patients for estimate
-      const { count } = await supabase
+      const { count } = await client
         .from("appointments")
         .select("id", { count: "exact", head: true })
         .eq("doctor_id", selectedDoctor.id)
@@ -203,7 +210,7 @@ export default function PublicTokenKiosk() {
       const estimatedWait = (count || 0) * 10; // 10 min per patient
 
       // Create appointment with checked_in status
-      const { error: appointmentError } = await supabase.from("appointments").insert({
+      const { error: appointmentError } = await client.from("appointments").insert({
         organization_id: organizationId,
         branch_id: branchId,
         patient_id: finalPatientId,
