@@ -1,0 +1,356 @@
+import { useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { format } from "date-fns";
+import { PageHeader } from "@/components/PageHeader";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { useInsuranceClaim, useUpdateInsuranceClaim } from "@/hooks/useInsurance";
+import { 
+  FileCheck, ArrowLeft, Send, CheckCircle, XCircle, 
+  DollarSign, Clock, Building2, User, FileText 
+} from "lucide-react";
+import { toast } from "sonner";
+
+const statusColors: Record<string, string> = {
+  draft: "bg-gray-500",
+  submitted: "bg-blue-500",
+  in_review: "bg-yellow-500",
+  approved: "bg-green-500",
+  partially_approved: "bg-orange-500",
+  rejected: "bg-red-500",
+  paid: "bg-emerald-600",
+};
+
+export default function ClaimDetailPage() {
+  const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
+  const [isApproveDialogOpen, setIsApproveDialogOpen] = useState(false);
+  const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
+  const [approvedAmount, setApprovedAmount] = useState(0);
+  const [rejectionReason, setRejectionReason] = useState("");
+
+  const { data: claim, isLoading } = useInsuranceClaim(id!);
+  const updateClaim = useUpdateInsuranceClaim();
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'PKR',
+      minimumFractionDigits: 0,
+    }).format(amount);
+  };
+
+  const handleSubmitClaim = async () => {
+    try {
+      await updateClaim.mutateAsync({
+        id: id!,
+        status: 'submitted',
+      } as any);
+      toast.success('Claim submitted successfully');
+    } catch (error) {
+      toast.error('Failed to submit claim');
+    }
+  };
+
+  const handleApproveClaim = async () => {
+    try {
+      await updateClaim.mutateAsync({
+        id: id!,
+        status: approvedAmount >= (claim?.total_amount || 0) ? 'approved' : 'partially_approved',
+        approved_amount: approvedAmount,
+        patient_responsibility: (claim?.total_amount || 0) - approvedAmount,
+      } as any);
+      toast.success('Claim approved');
+      setIsApproveDialogOpen(false);
+    } catch (error) {
+      toast.error('Failed to approve claim');
+    }
+  };
+
+  const handleRejectClaim = async () => {
+    try {
+      await updateClaim.mutateAsync({
+        id: id!,
+        status: 'rejected',
+        rejection_reason: rejectionReason,
+      });
+      toast.success('Claim rejected');
+      setIsRejectDialogOpen(false);
+    } catch (error) {
+      toast.error('Failed to reject claim');
+    }
+  };
+
+  const handleMarkPaid = async () => {
+    try {
+      await updateClaim.mutateAsync({
+        id: id!,
+        status: 'paid',
+      });
+      toast.success('Claim marked as paid');
+    } catch (error) {
+      toast.error('Failed to update claim');
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-12 w-64" />
+        <Skeleton className="h-64 w-full" />
+      </div>
+    );
+  }
+
+  if (!claim) {
+    return <div>Claim not found</div>;
+  }
+
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title={`Claim ${claim.claim_number}`}
+        description="Insurance claim details"
+        actions={
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => navigate('/app/billing/claims')}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back
+            </Button>
+            
+            {claim.status === 'draft' && (
+              <Button onClick={handleSubmitClaim}>
+                <Send className="h-4 w-4 mr-2" />
+                Submit Claim
+              </Button>
+            )}
+            
+            {claim.status === 'submitted' && (
+              <>
+                <Dialog open={isApproveDialogOpen} onOpenChange={setIsApproveDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="default" className="bg-green-600 hover:bg-green-700">
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Approve
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Approve Claim</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Claim Amount</Label>
+                        <p className="text-lg font-medium">{formatCurrency(claim.total_amount)}</p>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Approved Amount</Label>
+                        <Input
+                          type="number"
+                          value={approvedAmount}
+                          onChange={(e) => setApprovedAmount(parseFloat(e.target.value) || 0)}
+                          max={claim.total_amount}
+                        />
+                      </div>
+                      <div className="flex justify-end gap-2">
+                        <Button variant="outline" onClick={() => setIsApproveDialogOpen(false)}>
+                          Cancel
+                        </Button>
+                        <Button onClick={handleApproveClaim} className="bg-green-600 hover:bg-green-700">
+                          Confirm Approval
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+
+                <Dialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="destructive">
+                      <XCircle className="h-4 w-4 mr-2" />
+                      Reject
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Reject Claim</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label>Rejection Reason</Label>
+                        <Textarea
+                          value={rejectionReason}
+                          onChange={(e) => setRejectionReason(e.target.value)}
+                          placeholder="Enter reason for rejection..."
+                          rows={3}
+                        />
+                      </div>
+                      <div className="flex justify-end gap-2">
+                        <Button variant="outline" onClick={() => setIsRejectDialogOpen(false)}>
+                          Cancel
+                        </Button>
+                        <Button variant="destructive" onClick={handleRejectClaim}>
+                          Confirm Rejection
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </>
+            )}
+            
+            {(claim.status === 'approved' || claim.status === 'partially_approved') && (
+              <Button onClick={handleMarkPaid} className="bg-emerald-600 hover:bg-emerald-700">
+                <DollarSign className="h-4 w-4 mr-2" />
+                Mark as Paid
+              </Button>
+            )}
+          </div>
+        }
+      />
+
+      {/* Status Banner */}
+      <Card className={`border-l-4 ${statusColors[claim.status] ? 'border-l-' + statusColors[claim.status].replace('bg-', '') : ''}`}>
+        <CardContent className="py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Badge className={statusColors[claim.status]} variant="secondary">
+                {claim.status.replace('_', ' ').toUpperCase()}
+              </Badge>
+              <span className="text-muted-foreground">
+                Created on {format(new Date(claim.created_at), 'PPP')}
+              </span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* Claim Details */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Claim Details
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-muted-foreground">Claim Number</Label>
+                <p className="font-medium">{claim.claim_number}</p>
+              </div>
+              <div>
+                <Label className="text-muted-foreground">Claim Date</Label>
+                <p className="font-medium">{format(new Date(claim.claim_date), 'PPP')}</p>
+              </div>
+            </div>
+            
+            <Separator />
+            
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Total Amount</span>
+                <span className="font-bold text-lg">{formatCurrency(claim.total_amount)}</span>
+              </div>
+              {claim.approved_amount !== null && (
+                <div className="flex justify-between text-green-600">
+                  <span>Approved Amount</span>
+                  <span className="font-medium">{formatCurrency(claim.approved_amount)}</span>
+                </div>
+              )}
+              {claim.copay_amount && (
+                <div className="flex justify-between text-muted-foreground">
+                  <span>Copay</span>
+                  <span>{formatCurrency(claim.copay_amount)}</span>
+                </div>
+              )}
+              {claim.deductible_amount && (
+                <div className="flex justify-between text-muted-foreground">
+                  <span>Deductible</span>
+                  <span>{formatCurrency(claim.deductible_amount)}</span>
+                </div>
+              )}
+              {claim.patient_responsibility && (
+                <div className="flex justify-between font-medium">
+                  <span>Patient Responsibility</span>
+                  <span>{formatCurrency(claim.patient_responsibility)}</span>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Insurance Info */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Building2 className="h-5 w-5" />
+              Insurance Information
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {claim.patient_insurance && (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-muted-foreground">Insurance Company</Label>
+                    <p className="font-medium">
+                      {claim.patient_insurance.insurance_plan?.insurance_company?.name || '-'}
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground">Plan</Label>
+                    <p className="font-medium">
+                      {claim.patient_insurance.insurance_plan?.name || '-'}
+                    </p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-muted-foreground">Policy Number</Label>
+                    <p className="font-medium">{claim.patient_insurance.policy_number}</p>
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground">Member ID</Label>
+                    <p className="font-medium">{claim.patient_insurance.member_id || '-'}</p>
+                  </div>
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Notes & Rejection Reason */}
+      {(claim.notes || claim.rejection_reason) && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Notes</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {claim.notes && (
+              <div>
+                <Label className="text-muted-foreground">Claim Notes</Label>
+                <p className="mt-1">{claim.notes}</p>
+              </div>
+            )}
+            {claim.rejection_reason && (
+              <div className="p-4 bg-destructive/10 rounded-lg">
+                <Label className="text-destructive">Rejection Reason</Label>
+                <p className="mt-1 text-destructive">{claim.rejection_reason}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
