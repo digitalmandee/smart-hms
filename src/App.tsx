@@ -65,6 +65,9 @@ import ReceptionistDashboard from "./pages/app/reception/ReceptionistDashboard";
 import LabDashboard from "./pages/app/lab/LabDashboard";
 import LabQueuePage from "./pages/app/lab/LabQueuePage";
 import LabResultEntryPage from "./pages/app/lab/LabResultEntryPage";
+import LabTestTemplatesListPage from "./pages/app/lab/LabTestTemplatesListPage";
+import LabTestTemplateFormPage from "./pages/app/lab/LabTestTemplateFormPage";
+import LabTestCategoriesPage from "./pages/app/lab/LabTestCategoriesPage";
 // Pharmacy pages
 import PharmacyDashboard from "./pages/app/pharmacy/PharmacyDashboard";
 import PrescriptionQueuePage from "./pages/app/pharmacy/PrescriptionQueuePage";
@@ -89,6 +92,11 @@ import InvoiceDetailPage from "./pages/app/billing/InvoiceDetailPage";
 import PaymentCollectionPage from "./pages/app/billing/PaymentCollectionPage";
 import PaymentHistoryPage from "./pages/app/billing/PaymentHistoryPage";
 import BillingReportsPage from "./pages/app/billing/BillingReportsPage";
+import InsuranceCompaniesPage from "./pages/app/billing/InsuranceCompaniesPage";
+import InsurancePlansPage from "./pages/app/billing/InsurancePlansPage";
+import ClaimsListPage from "./pages/app/billing/ClaimsListPage";
+import ClaimFormPage from "./pages/app/billing/ClaimFormPage";
+import ClaimDetailPage from "./pages/app/billing/ClaimDetailPage";
 
 // Settings management pages
 import ServiceTypesListPage from "./pages/app/settings/ServiceTypesListPage";
@@ -96,6 +104,9 @@ import ServiceTypeFormPage from "./pages/app/settings/ServiceTypeFormPage";
 import PaymentMethodsListPage from "./pages/app/settings/PaymentMethodsListPage";
 import PaymentMethodFormPage from "./pages/app/settings/PaymentMethodFormPage";
 import NotificationSettingsPage from "./pages/app/settings/NotificationSettingsPage";
+import AuditLogsPage from "./pages/app/settings/AuditLogsPage";
+import SMSSettingsPage from "./pages/app/settings/SMSSettingsPage";
+import ReportTemplatesPage from "./pages/app/settings/ReportTemplatesPage";
 
 // HR pages
 import HRDashboard from "./pages/app/hr/HRDashboard";
@@ -212,6 +223,11 @@ import AccountFormPage from "./pages/app/accounts/AccountFormPage";
 import AccountDetailPage from "./pages/app/accounts/AccountDetailPage";
 import JournalEntriesPage from "./pages/app/accounts/JournalEntriesPage";
 import GeneralLedgerPage from "./pages/app/accounts/GeneralLedgerPage";
+import FinancialReportsPage from "./pages/app/accounts/FinancialReportsPage";
+import TrialBalancePage from "./pages/app/accounts/TrialBalancePage";
+import ProfitLossPage from "./pages/app/accounts/ProfitLossPage";
+import BalanceSheetPage from "./pages/app/accounts/BalanceSheetPage";
+import CashFlowPage from "./pages/app/accounts/CashFlowPage";
 
 // Additional IPD pages
 import AdmissionHistoryPage from "./pages/app/ipd/AdmissionHistoryPage";
@@ -392,6 +408,10 @@ function App() {
               <Route path="lab" element={<LabDashboard />} />
               <Route path="lab/queue" element={<LabQueuePage />} />
               <Route path="lab/orders/:orderId" element={<LabResultEntryPage />} />
+              <Route path="lab/templates" element={<LabTestTemplatesListPage />} />
+              <Route path="lab/templates/new" element={<LabTestTemplateFormPage />} />
+              <Route path="lab/templates/:id/edit" element={<LabTestTemplateFormPage />} />
+              <Route path="lab/categories" element={<LabTestCategoriesPage />} />
               
               {/* Inventory routes */}
               <Route path="inventory" element={<InventoryDashboard />} />
@@ -426,6 +446,11 @@ function App() {
               <Route path="billing/invoices/:id/pay" element={<PaymentCollectionPage />} />
               <Route path="billing/payments" element={<PaymentHistoryPage />} />
               <Route path="billing/reports" element={<BillingReportsPage />} />
+              <Route path="billing/insurance/companies" element={<InsuranceCompaniesPage />} />
+              <Route path="billing/insurance/plans" element={<InsurancePlansPage />} />
+              <Route path="billing/claims" element={<ClaimsListPage />} />
+              <Route path="billing/claims/new" element={<ClaimFormPage />} />
+              <Route path="billing/claims/:id" element={<ClaimDetailPage />} />
               
               {/* Accounts routes */}
               <Route path="accounts" element={<AccountsDashboard />} />
@@ -435,6 +460,11 @@ function App() {
               <Route path="accounts/chart-of-accounts/:id/edit" element={<AccountFormPage />} />
               <Route path="accounts/journal-entries" element={<JournalEntriesPage />} />
               <Route path="accounts/ledger" element={<GeneralLedgerPage />} />
+              <Route path="accounts/reports" element={<FinancialReportsPage />} />
+              <Route path="accounts/reports/trial-balance" element={<TrialBalancePage />} />
+              <Route path="accounts/reports/profit-loss" element={<ProfitLossPage />} />
+              <Route path="accounts/reports/balance-sheet" element={<BalanceSheetPage />} />
+              <Route path="accounts/reports/cash-flow" element={<CashFlowPage />} />
               
               {/* Additional IPD routes */}
               <Route path="ipd/history" element={<AdmissionHistoryPage />} />
@@ -480,6 +510,9 @@ function App() {
               <Route path="settings/payment-methods/new" element={<PaymentMethodFormPage />} />
               <Route path="settings/payment-methods/:id" element={<PaymentMethodFormPage />} />
               <Route path="settings/notifications" element={<NotificationSettingsPage />} />
+              <Route path="settings/sms" element={<SMSSettingsPage />} />
+              <Route path="settings/audit-logs" element={<AuditLogsPage />} />
+              <Route path="settings/report-templates" element={<ReportTemplatesPage />} />
             </Route>
 
             {/* Super Admin routes */}
