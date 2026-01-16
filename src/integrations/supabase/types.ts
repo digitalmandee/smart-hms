@@ -2162,6 +2162,72 @@ export type Database = {
           },
         ]
       }
+      claim_items: {
+        Row: {
+          approved_amount: number | null
+          claim_id: string
+          created_at: string | null
+          id: string
+          invoice_item_id: string | null
+          notes: string | null
+          quantity: number | null
+          rejection_reason: string | null
+          service_code: string | null
+          service_date: string | null
+          service_name: string
+          status: string | null
+          total_amount: number
+          unit_price: number
+        }
+        Insert: {
+          approved_amount?: number | null
+          claim_id: string
+          created_at?: string | null
+          id?: string
+          invoice_item_id?: string | null
+          notes?: string | null
+          quantity?: number | null
+          rejection_reason?: string | null
+          service_code?: string | null
+          service_date?: string | null
+          service_name: string
+          status?: string | null
+          total_amount: number
+          unit_price: number
+        }
+        Update: {
+          approved_amount?: number | null
+          claim_id?: string
+          created_at?: string | null
+          id?: string
+          invoice_item_id?: string | null
+          notes?: string | null
+          quantity?: number | null
+          rejection_reason?: string | null
+          service_code?: string | null
+          service_date?: string | null
+          service_name?: string
+          status?: string | null
+          total_amount?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "claim_items_claim_id_fkey"
+            columns: ["claim_id"]
+            isOneToOne: false
+            referencedRelation: "insurance_claims"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "claim_items_invoice_item_id_fkey"
+            columns: ["invoice_item_id"]
+            isOneToOne: false
+            referencedRelation: "invoice_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       consultations: {
         Row: {
           appointment_id: string
@@ -4523,6 +4589,295 @@ export type Database = {
           },
         ]
       }
+      insurance_claims: {
+        Row: {
+          appeal_notes: string | null
+          approval_date: string | null
+          approved_amount: number | null
+          approved_by: string | null
+          attachments: Json | null
+          branch_id: string | null
+          claim_date: string
+          claim_number: string
+          copay_amount: number | null
+          created_at: string | null
+          created_by: string | null
+          deductible_amount: number | null
+          id: string
+          invoice_id: string | null
+          notes: string | null
+          organization_id: string
+          paid_amount: number | null
+          patient_insurance_id: string
+          patient_responsibility: number | null
+          payment_date: string | null
+          payment_reference: string | null
+          pre_auth_date: string | null
+          pre_auth_number: string | null
+          rejection_reason: string | null
+          status: string | null
+          submission_date: string | null
+          submitted_by: string | null
+          total_amount: number
+          updated_at: string | null
+        }
+        Insert: {
+          appeal_notes?: string | null
+          approval_date?: string | null
+          approved_amount?: number | null
+          approved_by?: string | null
+          attachments?: Json | null
+          branch_id?: string | null
+          claim_date?: string
+          claim_number: string
+          copay_amount?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          deductible_amount?: number | null
+          id?: string
+          invoice_id?: string | null
+          notes?: string | null
+          organization_id: string
+          paid_amount?: number | null
+          patient_insurance_id: string
+          patient_responsibility?: number | null
+          payment_date?: string | null
+          payment_reference?: string | null
+          pre_auth_date?: string | null
+          pre_auth_number?: string | null
+          rejection_reason?: string | null
+          status?: string | null
+          submission_date?: string | null
+          submitted_by?: string | null
+          total_amount: number
+          updated_at?: string | null
+        }
+        Update: {
+          appeal_notes?: string | null
+          approval_date?: string | null
+          approved_amount?: number | null
+          approved_by?: string | null
+          attachments?: Json | null
+          branch_id?: string | null
+          claim_date?: string
+          claim_number?: string
+          copay_amount?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          deductible_amount?: number | null
+          id?: string
+          invoice_id?: string | null
+          notes?: string | null
+          organization_id?: string
+          paid_amount?: number | null
+          patient_insurance_id?: string
+          patient_responsibility?: number | null
+          payment_date?: string | null
+          payment_reference?: string | null
+          pre_auth_date?: string | null
+          pre_auth_number?: string | null
+          rejection_reason?: string | null
+          status?: string | null
+          submission_date?: string | null
+          submitted_by?: string | null
+          total_amount?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "insurance_claims_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "insurance_claims_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "insurance_claims_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "insurance_claims_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "insurance_claims_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "insurance_claims_patient_insurance_id_fkey"
+            columns: ["patient_insurance_id"]
+            isOneToOne: false
+            referencedRelation: "patient_insurance"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "insurance_claims_submitted_by_fkey"
+            columns: ["submitted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      insurance_companies: {
+        Row: {
+          address: string | null
+          city: string | null
+          code: string | null
+          contact_person: string | null
+          created_at: string | null
+          created_by: string | null
+          email: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          notes: string | null
+          organization_id: string
+          phone: string | null
+          updated_at: string | null
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          code?: string | null
+          contact_person?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          notes?: string | null
+          organization_id: string
+          phone?: string | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          code?: string | null
+          contact_person?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          notes?: string | null
+          organization_id?: string
+          phone?: string | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "insurance_companies_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "insurance_companies_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      insurance_plans: {
+        Row: {
+          annual_limit: number | null
+          copay_amount: number | null
+          copay_percentage: number | null
+          coverage_percentage: number | null
+          covered_services: Json | null
+          created_at: string | null
+          deductible_amount: number | null
+          excluded_services: Json | null
+          id: string
+          insurance_company_id: string
+          is_active: boolean | null
+          max_coverage_amount: number | null
+          name: string
+          notes: string | null
+          plan_code: string | null
+          plan_type: string | null
+          pre_auth_required: boolean | null
+          updated_at: string | null
+          waiting_period_days: number | null
+        }
+        Insert: {
+          annual_limit?: number | null
+          copay_amount?: number | null
+          copay_percentage?: number | null
+          coverage_percentage?: number | null
+          covered_services?: Json | null
+          created_at?: string | null
+          deductible_amount?: number | null
+          excluded_services?: Json | null
+          id?: string
+          insurance_company_id: string
+          is_active?: boolean | null
+          max_coverage_amount?: number | null
+          name: string
+          notes?: string | null
+          plan_code?: string | null
+          plan_type?: string | null
+          pre_auth_required?: boolean | null
+          updated_at?: string | null
+          waiting_period_days?: number | null
+        }
+        Update: {
+          annual_limit?: number | null
+          copay_amount?: number | null
+          copay_percentage?: number | null
+          coverage_percentage?: number | null
+          covered_services?: Json | null
+          created_at?: string | null
+          deductible_amount?: number | null
+          excluded_services?: Json | null
+          id?: string
+          insurance_company_id?: string
+          is_active?: boolean | null
+          max_coverage_amount?: number | null
+          name?: string
+          notes?: string | null
+          plan_code?: string | null
+          plan_type?: string | null
+          pre_auth_required?: boolean | null
+          updated_at?: string | null
+          waiting_period_days?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "insurance_plans_insurance_company_id_fkey"
+            columns: ["insurance_company_id"]
+            isOneToOne: false
+            referencedRelation: "insurance_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       intra_op_notes: {
         Row: {
           approach: string | null
@@ -5647,6 +6002,97 @@ export type Database = {
             columns: ["surgery_id"]
             isOneToOne: false
             referencedRelation: "surgeries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lab_test_categories: {
+        Row: {
+          code: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          organization_id: string
+          sort_order: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          code?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          organization_id: string
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          organization_id?: string
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_test_categories_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lab_test_panels: {
+        Row: {
+          code: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          organization_id: string
+          price: number | null
+          tests: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          code?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          organization_id: string
+          price?: number | null
+          tests?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          organization_id?: string
+          price?: number | null
+          tests?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_test_panels_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -6931,6 +7377,88 @@ export type Database = {
             columns: ["admission_id"]
             isOneToOne: false
             referencedRelation: "admissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patient_insurance: {
+        Row: {
+          created_at: string | null
+          end_date: string | null
+          group_number: string | null
+          id: string
+          insurance_plan_id: string
+          is_active: boolean | null
+          is_primary: boolean | null
+          member_id: string | null
+          notes: string | null
+          patient_id: string
+          policy_number: string
+          start_date: string
+          subscriber_name: string | null
+          subscriber_relationship: string | null
+          updated_at: string | null
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          end_date?: string | null
+          group_number?: string | null
+          id?: string
+          insurance_plan_id: string
+          is_active?: boolean | null
+          is_primary?: boolean | null
+          member_id?: string | null
+          notes?: string | null
+          patient_id: string
+          policy_number: string
+          start_date: string
+          subscriber_name?: string | null
+          subscriber_relationship?: string | null
+          updated_at?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          end_date?: string | null
+          group_number?: string | null
+          id?: string
+          insurance_plan_id?: string
+          is_active?: boolean | null
+          is_primary?: boolean | null
+          member_id?: string | null
+          notes?: string | null
+          patient_id?: string
+          policy_number?: string
+          start_date?: string
+          subscriber_name?: string | null
+          subscriber_relationship?: string | null
+          updated_at?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_insurance_insurance_plan_id_fkey"
+            columns: ["insurance_plan_id"]
+            isOneToOne: false
+            referencedRelation: "insurance_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_insurance_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_insurance_verified_by_fkey"
+            columns: ["verified_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -8327,6 +8855,72 @@ export type Database = {
             columns: ["vendor_id"]
             isOneToOne: false
             referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      report_templates: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          footer_content: string | null
+          header_content: string | null
+          id: string
+          is_active: boolean | null
+          is_default: boolean | null
+          name: string
+          organization_id: string
+          report_type: string
+          styles: string | null
+          template_content: string | null
+          updated_at: string | null
+          variables: Json | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          footer_content?: string | null
+          header_content?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          name: string
+          organization_id: string
+          report_type: string
+          styles?: string | null
+          template_content?: string | null
+          updated_at?: string | null
+          variables?: Json | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          footer_content?: string | null
+          header_content?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          name?: string
+          organization_id?: string
+          report_type?: string
+          styles?: string | null
+          template_content?: string | null
+          updated_at?: string | null
+          variables?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_templates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_templates_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -9783,6 +10377,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_claim_number: { Args: { org_id: string }; Returns: string }
       generate_surgery_number: {
         Args: { branch_id: string; org_id: string }
         Returns: string
