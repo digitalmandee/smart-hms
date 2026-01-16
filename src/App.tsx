@@ -242,6 +242,10 @@ import IPDVitalsPage from "./pages/app/ipd/IPDVitalsPage";
 import NursingNotesPage from "./pages/app/ipd/NursingNotesPage";
 import CarePlansPage from "./pages/app/ipd/CarePlansPage";
 import DietManagementPage from "./pages/app/ipd/DietManagementPage";
+import IPDChargesPage from "./pages/app/ipd/IPDChargesPage";
+import BedTransfersPage from "./pages/app/ipd/BedTransfersPage";
+import MedicationChartPage from "./pages/app/ipd/MedicationChartPage";
+import IPDReportsPage from "./pages/app/ipd/IPDReportsPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -471,10 +475,9 @@ function App() {
               <Route path="accounts/payables" element={<PayablesPage />} />
               <Route path="accounts/bank-accounts" element={<BankAccountsPage />} />
               <Route path="accounts/budgets" element={<BudgetsPage />} />
-              <Route path="accounts/settings" element={<AccountSettingsPage />} />
-              <Route path="accounts/settings/types" element={<AccountTypesPage />} />
-              <Route path="accounts/settings/types/new" element={<AccountTypeFormPage />} />
-              <Route path="accounts/settings/types/:id/edit" element={<AccountTypeFormPage />} />
+              <Route path="accounts/types" element={<AccountTypesPage />} />
+              <Route path="accounts/types/new" element={<AccountTypeFormPage />} />
+              <Route path="accounts/types/:id/edit" element={<AccountTypeFormPage />} />
               <Route path="accounts/reports" element={<FinancialReportsPage />} />
               <Route path="accounts/reports/trial-balance" element={<TrialBalancePage />} />
               <Route path="accounts/reports/profit-loss" element={<ProfitLossPage />} />
@@ -486,6 +489,10 @@ function App() {
               <Route path="ipd/vitals" element={<IPDVitalsPage />} />
               <Route path="ipd/nursing-notes" element={<NursingNotesPage />} />
               <Route path="ipd/care-plans" element={<CarePlansPage />} />
+              <Route path="ipd/charges" element={<IPDChargesPage />} />
+              <Route path="ipd/beds/transfers" element={<BedTransfersPage />} />
+              <Route path="ipd/care/medications" element={<MedicationChartPage />} />
+              <Route path="ipd/reports" element={<IPDReportsPage />} />
               <Route path="ipd/diet" element={<DietManagementPage />} />
               
               {/* HR routes */}
