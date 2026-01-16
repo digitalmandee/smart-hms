@@ -5789,9 +5789,14 @@ export type Database = {
           display_message: string | null
           id: string
           is_active: boolean | null
+          kiosk_password_hash: string | null
           kiosk_type: string
+          kiosk_username: string | null
+          last_login_at: string | null
+          last_login_ip: string | null
           name: string
           organization_id: string
+          session_timeout_minutes: number | null
           show_estimated_wait: boolean | null
           updated_at: string | null
         }
@@ -5804,9 +5809,14 @@ export type Database = {
           display_message?: string | null
           id?: string
           is_active?: boolean | null
+          kiosk_password_hash?: string | null
           kiosk_type?: string
+          kiosk_username?: string | null
+          last_login_at?: string | null
+          last_login_ip?: string | null
           name: string
           organization_id: string
+          session_timeout_minutes?: number | null
           show_estimated_wait?: boolean | null
           updated_at?: string | null
         }
@@ -5819,9 +5829,14 @@ export type Database = {
           display_message?: string | null
           id?: string
           is_active?: boolean | null
+          kiosk_password_hash?: string | null
           kiosk_type?: string
+          kiosk_username?: string | null
+          last_login_at?: string | null
+          last_login_ip?: string | null
           name?: string
           organization_id?: string
+          session_timeout_minutes?: number | null
           show_estimated_wait?: boolean | null
           updated_at?: string | null
         }
@@ -5845,6 +5860,146 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kiosk_sessions: {
+        Row: {
+          created_at: string | null
+          device_info: Json | null
+          ended_at: string | null
+          id: string
+          ip_address: string | null
+          is_active: boolean | null
+          kiosk_id: string
+          last_activity_at: string | null
+          organization_id: string
+          session_token: string
+          started_at: string
+          tokens_generated: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          device_info?: Json | null
+          ended_at?: string | null
+          id?: string
+          ip_address?: string | null
+          is_active?: boolean | null
+          kiosk_id: string
+          last_activity_at?: string | null
+          organization_id: string
+          session_token: string
+          started_at?: string
+          tokens_generated?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          device_info?: Json | null
+          ended_at?: string | null
+          id?: string
+          ip_address?: string | null
+          is_active?: boolean | null
+          kiosk_id?: string
+          last_activity_at?: string | null
+          organization_id?: string
+          session_token?: string
+          started_at?: string
+          tokens_generated?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kiosk_sessions_kiosk_id_fkey"
+            columns: ["kiosk_id"]
+            isOneToOne: false
+            referencedRelation: "kiosk_configs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kiosk_sessions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kiosk_token_logs: {
+        Row: {
+          appointment_id: string | null
+          department: string | null
+          doctor_name: string | null
+          generated_at: string
+          id: string
+          kiosk_id: string
+          organization_id: string
+          patient_name: string | null
+          patient_phone: string | null
+          print_count: number | null
+          printed: boolean | null
+          priority: number | null
+          session_id: string | null
+          token_number: number
+        }
+        Insert: {
+          appointment_id?: string | null
+          department?: string | null
+          doctor_name?: string | null
+          generated_at?: string
+          id?: string
+          kiosk_id: string
+          organization_id: string
+          patient_name?: string | null
+          patient_phone?: string | null
+          print_count?: number | null
+          printed?: boolean | null
+          priority?: number | null
+          session_id?: string | null
+          token_number: number
+        }
+        Update: {
+          appointment_id?: string | null
+          department?: string | null
+          doctor_name?: string | null
+          generated_at?: string
+          id?: string
+          kiosk_id?: string
+          organization_id?: string
+          patient_name?: string | null
+          patient_phone?: string | null
+          print_count?: number | null
+          printed?: boolean | null
+          priority?: number | null
+          session_id?: string | null
+          token_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kiosk_token_logs_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kiosk_token_logs_kiosk_id_fkey"
+            columns: ["kiosk_id"]
+            isOneToOne: false
+            referencedRelation: "kiosk_configs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kiosk_token_logs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kiosk_token_logs_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "kiosk_sessions"
             referencedColumns: ["id"]
           },
         ]
@@ -10377,7 +10532,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_kiosk_session: {
+        Args: {
+          p_device_info?: Json
+          p_ip_address?: string
+          p_kiosk_id: string
+        }
+        Returns: {
+          session_id: string
+          session_token: string
+        }[]
+      }
       generate_claim_number: { Args: { org_id: string }; Returns: string }
+      generate_kiosk_username: {
+        Args: { kiosk_name: string; org_id: string }
+        Returns: string
+      }
       generate_surgery_number: {
         Args: { branch_id: string; org_id: string }
         Returns: string
@@ -10392,7 +10562,40 @@ export type Database = {
         }
         Returns: boolean
       }
+      hash_kiosk_password: { Args: { password: string }; Returns: string }
       is_super_admin: { Args: never; Returns: boolean }
+      log_kiosk_token: {
+        Args: {
+          p_appointment_id: string
+          p_department: string
+          p_doctor_name: string
+          p_kiosk_id: string
+          p_organization_id: string
+          p_patient_name: string
+          p_patient_phone: string
+          p_priority?: number
+          p_session_id: string
+          p_token_number: number
+        }
+        Returns: string
+      }
+      validate_kiosk_session: {
+        Args: { p_session_token: string }
+        Returns: {
+          departments: string[]
+          display_message: string
+          kiosk_id: string
+          kiosk_name: string
+          kiosk_type: string
+          organization_id: string
+          session_id: string
+          valid: boolean
+        }[]
+      }
+      verify_kiosk_password: {
+        Args: { kiosk_id: string; password: string }
+        Returns: boolean
+      }
     }
     Enums: {
       admission_status:
