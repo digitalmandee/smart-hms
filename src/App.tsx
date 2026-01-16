@@ -13,6 +13,11 @@ import { LoginPage } from "./pages/auth/LoginPage";
 import { SignupPage } from "./pages/auth/SignupPage";
 import { DashboardPage } from "./pages/app/DashboardPage";
 
+// Public display pages (no auth required)
+import PublicQueueDisplay from "./pages/public/PublicQueueDisplay";
+import PublicERDisplay from "./pages/public/PublicERDisplay";
+import PublicTokenKiosk from "./pages/public/PublicTokenKiosk";
+
 // Super Admin pages
 import { SuperAdminDashboard } from "./pages/super-admin/SuperAdminDashboard";
 import { OrganizationsListPage } from "./pages/super-admin/OrganizationsListPage";
@@ -44,6 +49,7 @@ import DoctorSchedulePage from "./pages/app/appointments/DoctorSchedulePage";
 import CheckInPage from "./pages/app/appointments/CheckInPage";
 import QueueDisplayPage from "./pages/app/appointments/QueueDisplayPage";
 import TokenKioskPage from "./pages/app/appointments/TokenKioskPage";
+import KioskSetupPage from "./pages/app/appointments/KioskSetupPage";
 // OPD pages
 import DoctorDashboard from "./pages/app/opd/DoctorDashboard";
 import ConsultationPage from "./pages/app/opd/ConsultationPage";
@@ -232,6 +238,11 @@ function App() {
             {/* Public routes */}
             <Route path="/" element={<Index />} />
             
+            {/* Public display routes - NO AUTH REQUIRED for TV displays and kiosks */}
+            <Route path="/display/queue/:organizationId" element={<PublicQueueDisplay />} />
+            <Route path="/display/er/:organizationId" element={<PublicERDisplay />} />
+            <Route path="/kiosk/:organizationId" element={<PublicTokenKiosk />} />
+            
             {/* Auth routes */}
             <Route path="/auth" element={<AuthLayout />}>
               <Route path="login" element={<LoginPage />} />
@@ -264,6 +275,7 @@ function App() {
               <Route path="appointments/schedules" element={<DoctorSchedulePage />} />
               <Route path="appointments/display" element={<QueueDisplayPage />} />
               <Route path="appointments/token-display" element={<TokenKioskPage />} />
+              <Route path="appointments/kiosk-setup" element={<KioskSetupPage />} />
               <Route path="appointments/:id" element={<AppointmentDetailPage />} />
               <Route path="appointments/:id/edit" element={<AppointmentFormPage />} />
               <Route path="appointments/:id/check-in" element={<CheckInPage />} />
