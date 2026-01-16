@@ -50,6 +50,9 @@ import CheckInPage from "./pages/app/appointments/CheckInPage";
 import QueueDisplayPage from "./pages/app/appointments/QueueDisplayPage";
 import TokenKioskPage from "./pages/app/appointments/TokenKioskPage";
 import KioskSetupPage from "./pages/app/appointments/KioskSetupPage";
+import QueueControlPage from "./pages/app/appointments/QueueControlPage";
+import KiosksListPage from "./pages/app/settings/KiosksListPage";
+import KioskFormPage from "./pages/app/settings/KioskFormPage";
 // OPD pages
 import DoctorDashboard from "./pages/app/opd/DoctorDashboard";
 import ConsultationPage from "./pages/app/opd/ConsultationPage";
@@ -242,6 +245,7 @@ function App() {
             <Route path="/display/queue/:organizationId" element={<PublicQueueDisplay />} />
             <Route path="/display/er/:organizationId" element={<PublicERDisplay />} />
             <Route path="/kiosk/:organizationId" element={<PublicTokenKiosk />} />
+            <Route path="/kiosk/:organizationId/:kioskId" element={<PublicTokenKiosk />} />
             
             {/* Auth routes */}
             <Route path="/auth" element={<AuthLayout />}>
@@ -276,6 +280,7 @@ function App() {
               <Route path="appointments/display" element={<QueueDisplayPage />} />
               <Route path="appointments/token-display" element={<TokenKioskPage />} />
               <Route path="appointments/kiosk-setup" element={<KioskSetupPage />} />
+              <Route path="appointments/queue-control" element={<QueueControlPage />} />
               <Route path="appointments/:id" element={<AppointmentDetailPage />} />
               <Route path="appointments/:id/edit" element={<AppointmentFormPage />} />
               <Route path="appointments/:id/check-in" element={<CheckInPage />} />
@@ -468,6 +473,9 @@ function App() {
               <Route path="settings/services" element={<ServiceTypesListPage />} />
               <Route path="settings/services/new" element={<ServiceTypeFormPage />} />
               <Route path="settings/services/:id" element={<ServiceTypeFormPage />} />
+              <Route path="settings/kiosks" element={<KiosksListPage />} />
+              <Route path="settings/kiosks/new" element={<KioskFormPage />} />
+              <Route path="settings/kiosks/:id" element={<KioskFormPage />} />
               <Route path="settings/payment-methods" element={<PaymentMethodsListPage />} />
               <Route path="settings/payment-methods/new" element={<PaymentMethodFormPage />} />
               <Route path="settings/payment-methods/:id" element={<PaymentMethodFormPage />} />
