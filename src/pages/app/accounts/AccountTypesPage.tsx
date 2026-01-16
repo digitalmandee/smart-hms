@@ -99,7 +99,6 @@ export default function AccountTypesPage() {
         description="Manage account types and categories for your chart of accounts"
         breadcrumbs={[
           { label: "Accounts", href: "/app/accounts" },
-          { label: "Settings", href: "/app/accounts/settings" },
           { label: "Account Types" },
         ]}
         actions={
@@ -108,7 +107,7 @@ export default function AccountTypesPage() {
               <RefreshCw className="h-4 w-4 mr-2" />
               Refresh
             </Button>
-            <Button onClick={() => navigate("/app/accounts/settings/types/new")}>
+            <Button onClick={() => navigate("/app/accounts/types/new")}>
               <Plus className="h-4 w-4 mr-2" />
               Add Type
             </Button>
@@ -205,7 +204,7 @@ export default function AccountTypesPage() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => navigate(`/app/accounts/settings/types/${type.id}/edit`)}
+                            onClick={() => navigate(`/app/accounts/types/${type.id}/edit`)}
                           >
                             <Edit className="h-4 w-4" />
                           </Button>

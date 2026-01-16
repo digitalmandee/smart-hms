@@ -85,7 +85,7 @@ export default function AccountTypeFormPage() {
       queryClient.invalidateQueries({ queryKey: ["account-types"] });
       queryClient.invalidateQueries({ queryKey: ["account-type", id] });
       toast.success("Account type updated successfully");
-      navigate("/app/accounts/settings/types");
+      navigate("/app/accounts/types");
     },
     onError: (error: Error) => {
       toast.error(`Failed to update: ${error.message}`);
@@ -140,7 +140,7 @@ export default function AccountTypeFormPage() {
           parent_type_id: data.parent_type_id || null,
           is_system: false,
         });
-        navigate("/app/accounts/settings/types");
+        navigate("/app/accounts/types");
       } catch {
         // Error handled by mutation
       }
@@ -168,8 +168,7 @@ export default function AccountTypeFormPage() {
         description={isEditing ? "Update account type details" : "Add a new account type"}
         breadcrumbs={[
           { label: "Accounts", href: "/app/accounts" },
-          { label: "Settings", href: "/app/accounts/settings" },
-          { label: "Account Types", href: "/app/accounts/settings/types" },
+          { label: "Account Types", href: "/app/accounts/types" },
           { label: isEditing ? "Edit" : "New" },
         ]}
       />
@@ -327,7 +326,7 @@ export default function AccountTypeFormPage() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => navigate("/app/accounts/settings/types")}
+              onClick={() => navigate("/app/accounts/types")}
             >
               Cancel
             </Button>
