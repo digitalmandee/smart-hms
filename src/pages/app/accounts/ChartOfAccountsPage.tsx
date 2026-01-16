@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Search, Filter, Download, Upload, RefreshCw } from "lucide-react";
+import { Plus, Search, RefreshCw } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,10 +12,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AccountTree } from "@/components/accounts/AccountTree";
-import { useAccountsTree, useToggleAccountStatus, type Account } from "@/hooks/useAccounts";
+import { useAccountsTree, useToggleAccountStatus, useAccountTypes, type Account } from "@/hooks/useAccounts";
 import { Skeleton } from "@/components/ui/skeleton";
+
+const categoryLabels: Record<string, string> = {
+  asset: "Assets",
+  liability: "Liabilities",
+  equity: "Equity",
+  revenue: "Revenue",
+  expense: "Expenses",
+};
+
+const categoryColors: Record<string, string> = {
+  asset: "text-blue-600",
+  liability: "text-red-600",
+  equity: "text-purple-600",
+  revenue: "text-green-600",
+  expense: "text-orange-600",
+};
 
 export default function ChartOfAccountsPage() {
   const navigate = useNavigate();
@@ -23,11 +38,22 @@ export default function ChartOfAccountsPage() {
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [showInactive, setShowInactive] = useState(false);
 
+  const { data: accountTypes } = useAccountTypes();
   const { data: accountsTree, flatData: accounts, isLoading, refetch } = useAccountsTree({
     isActive: showInactive ? undefined : true,
   });
 
   const toggleStatus = useToggleAccountStatus();
+
+  // Get unique categories from account types
+  const categories = useMemo(() => {
+    if (!accountTypes) return [];
+    const uniqueCategories = [...new Set(accountTypes.map((t) => t.category))];
+    return uniqueCategories.sort((a, b) => {
+      const order = ["asset", "liability", "equity", "revenue", "expense"];
+      return order.indexOf(a) - order.indexOf(b);
+    });
+  }, [accountTypes]);
 
   // Filter accounts based on search and category
   const filteredAccounts = accountsTree?.filter((account) => {
@@ -145,11 +171,11 @@ export default function ChartOfAccountsPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Categories</SelectItem>
-                <SelectItem value="asset">Assets</SelectItem>
-                <SelectItem value="liability">Liabilities</SelectItem>
-                <SelectItem value="equity">Equity</SelectItem>
-                <SelectItem value="revenue">Revenue</SelectItem>
-                <SelectItem value="expense">Expenses</SelectItem>
+                {categories.map((category) => (
+                  <SelectItem key={category} value={category}>
+                    {categoryLabels[category] || category}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <Button

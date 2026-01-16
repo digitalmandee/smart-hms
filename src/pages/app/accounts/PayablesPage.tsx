@@ -101,7 +101,7 @@ export default function PayablesPage() {
     .filter((po) => po.status === "received")
     .reduce((sum, po) => sum + (po.total_amount || 0), 0);
   const partialPayment = filteredPayables
-    .filter((po) => po.status === "partial")
+    .filter((po) => po.status === "partially_received")
     .reduce((sum, po) => sum + (po.total_amount || 0), 0);
   const vendorCount = new Set(filteredPayables.map((po) => po.vendor_id)).size;
 

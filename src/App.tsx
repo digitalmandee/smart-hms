@@ -223,6 +223,13 @@ import AccountFormPage from "./pages/app/accounts/AccountFormPage";
 import AccountDetailPage from "./pages/app/accounts/AccountDetailPage";
 import JournalEntriesPage from "./pages/app/accounts/JournalEntriesPage";
 import GeneralLedgerPage from "./pages/app/accounts/GeneralLedgerPage";
+import ReceivablesPage from "./pages/app/accounts/ReceivablesPage";
+import PayablesPage from "./pages/app/accounts/PayablesPage";
+import BankAccountsPage from "./pages/app/accounts/BankAccountsPage";
+import BudgetsPage from "./pages/app/accounts/BudgetsPage";
+import AccountSettingsPage from "./pages/app/accounts/AccountSettingsPage";
+import AccountTypesPage from "./pages/app/accounts/AccountTypesPage";
+import AccountTypeFormPage from "./pages/app/accounts/AccountTypeFormPage";
 import FinancialReportsPage from "./pages/app/accounts/FinancialReportsPage";
 import TrialBalancePage from "./pages/app/accounts/TrialBalancePage";
 import ProfitLossPage from "./pages/app/accounts/ProfitLossPage";
@@ -460,6 +467,14 @@ function App() {
               <Route path="accounts/chart-of-accounts/:id/edit" element={<AccountFormPage />} />
               <Route path="accounts/journal-entries" element={<JournalEntriesPage />} />
               <Route path="accounts/ledger" element={<GeneralLedgerPage />} />
+              <Route path="accounts/receivables" element={<ReceivablesPage />} />
+              <Route path="accounts/payables" element={<PayablesPage />} />
+              <Route path="accounts/bank-accounts" element={<BankAccountsPage />} />
+              <Route path="accounts/budgets" element={<BudgetsPage />} />
+              <Route path="accounts/settings" element={<AccountSettingsPage />} />
+              <Route path="accounts/settings/types" element={<AccountTypesPage />} />
+              <Route path="accounts/settings/types/new" element={<AccountTypeFormPage />} />
+              <Route path="accounts/settings/types/:id/edit" element={<AccountTypeFormPage />} />
               <Route path="accounts/reports" element={<FinancialReportsPage />} />
               <Route path="accounts/reports/trial-balance" element={<TrialBalancePage />} />
               <Route path="accounts/reports/profit-loss" element={<ProfitLossPage />} />

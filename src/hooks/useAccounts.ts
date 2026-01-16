@@ -99,6 +99,53 @@ export function useCreateAccountType() {
   });
 }
 
+export function useUpdateAccountType() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, ...data }: { id: string } & Partial<Omit<AccountType, "id" | "organization_id" | "created_at">>) => {
+      const { data: result, error } = await supabase
+        .from("account_types")
+        .update(data)
+        .eq("id", id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return result;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["account-types"] });
+      toast.success("Account type updated successfully");
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to update account type: ${error.message}`);
+    },
+  });
+}
+
+export function useDeleteAccountType() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("account_types")
+        .delete()
+        .eq("id", id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["account-types"] });
+      toast.success("Account type deleted successfully");
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to delete account type: ${error.message}`);
+    },
+  });
+}
+
 // Accounts (Chart of Accounts) Hooks
 export function useAccounts(filters?: { isActive?: boolean; category?: string; search?: string }) {
   const { profile } = useAuth();
