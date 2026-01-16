@@ -91,11 +91,33 @@ export default function PublicQueueDisplay() {
     }
   };
 
-  // Initial fetch and polling
+  // Initial fetch and real-time subscription
   useEffect(() => {
     fetchQueue();
-    const interval = setInterval(fetchQueue, 5000); // Refresh every 5 seconds
-    return () => clearInterval(interval);
+
+    // Set up real-time subscription for instant updates
+    const channel = supabase
+      .channel("public-queue-realtime")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "appointments",
+        },
+        () => {
+          fetchQueue();
+        }
+      )
+      .subscribe();
+
+    // Fallback polling every 10 seconds
+    const interval = setInterval(fetchQueue, 10000);
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(interval);
+    };
   }, [organizationId]);
 
   // Clock update

@@ -5424,6 +5424,76 @@ export type Database = {
           },
         ]
       }
+      kiosk_configs: {
+        Row: {
+          auto_print: boolean | null
+          branch_id: string | null
+          created_at: string | null
+          created_by: string | null
+          departments: Json | null
+          display_message: string | null
+          id: string
+          is_active: boolean | null
+          kiosk_type: string
+          name: string
+          organization_id: string
+          show_estimated_wait: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          auto_print?: boolean | null
+          branch_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          departments?: Json | null
+          display_message?: string | null
+          id?: string
+          is_active?: boolean | null
+          kiosk_type?: string
+          name: string
+          organization_id: string
+          show_estimated_wait?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          auto_print?: boolean | null
+          branch_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          departments?: Json | null
+          display_message?: string | null
+          id?: string
+          is_active?: boolean | null
+          kiosk_type?: string
+          name?: string
+          organization_id?: string
+          show_estimated_wait?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kiosk_configs_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kiosk_configs_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kiosk_configs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lab_order_items: {
         Row: {
           created_at: string
