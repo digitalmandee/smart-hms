@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Database } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { patientLogger } from "@/lib/logger";
 
 type Patient = Database["public"]["Tables"]["patients"]["Row"];
 type PatientInsert = Database["public"]["Tables"]["patients"]["Insert"];
@@ -65,6 +66,12 @@ export function useCreatePatient() {
     mutationFn: async (data: Omit<PatientInsert, "organization_id" | "patient_number" | "created_by">) => {
       if (!profile?.organization_id) throw new Error("No organization");
 
+      patientLogger.info("Creating patient", { 
+        firstName: data.first_name, 
+        lastName: data.last_name,
+        phone: data.phone 
+      });
+
       const { data: patient, error } = await supabase
         .from("patients")
         .insert({
@@ -77,7 +84,17 @@ export function useCreatePatient() {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        patientLogger.error("Failed to create patient", error, { firstName: data.first_name });
+        throw error;
+      }
+
+      patientLogger.info("Patient created successfully", { 
+        patientId: patient.id, 
+        mrNumber: patient.patient_number,
+        name: `${patient.first_name} ${patient.last_name || ''}`.trim()
+      });
+
       return patient;
     },
     onSuccess: () => {
@@ -103,6 +120,8 @@ export function useUpdatePatient() {
 
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: PatientUpdate }) => {
+      patientLogger.info("Updating patient", { patientId: id, fields: Object.keys(data) });
+
       const { data: patient, error } = await supabase
         .from("patients")
         .update(data)
@@ -110,7 +129,16 @@ export function useUpdatePatient() {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        patientLogger.error("Failed to update patient", error, { patientId: id });
+        throw error;
+      }
+
+      patientLogger.info("Patient updated successfully", { 
+        patientId: id, 
+        mrNumber: patient.patient_number 
+      });
+
       return patient;
     },
     onSuccess: (_, variables) => {

@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Database } from "@/integrations/supabase/types";
+import { billingLogger } from "@/lib/logger";
+
 
 type Invoice = Database["public"]["Tables"]["invoices"]["Row"];
 type InvoiceItem = Database["public"]["Tables"]["invoice_items"]["Row"];

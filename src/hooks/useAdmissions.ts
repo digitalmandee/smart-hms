@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import type { Database } from "@/integrations/supabase/types";
+import { ipdLogger } from "@/lib/logger";
 
 type AdmissionStatus = Database["public"]["Enums"]["admission_status"];
 type AdmissionType = Database["public"]["Enums"]["admission_type"];
@@ -131,6 +132,13 @@ export const useCreateAdmission = () => {
     }) => {
       if (!profile?.organization_id) throw new Error("No organization");
 
+      ipdLogger.info("Creating admission", { 
+        patientId: admissionData.patient_id,
+        wardId: admissionData.ward_id,
+        bedId: admissionData.bed_id,
+        admissionType: admissionData.admission_type
+      });
+
       // Generate admission number
       const { data: lastAdmission } = await supabase
         .from("admissions")
@@ -157,15 +165,25 @@ export const useCreateAdmission = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        ipdLogger.error("Failed to create admission", error, { patientId: admissionData.patient_id });
+        throw error;
+      }
 
       // Update bed status to occupied if bed is assigned
       if (admissionData.bed_id) {
+        ipdLogger.debug("Assigning bed to admission", { bedId: admissionData.bed_id, admissionId: data.id });
         await supabase
           .from("beds")
           .update({ status: "occupied", current_admission_id: data.id })
           .eq("id", admissionData.bed_id);
       }
+
+      ipdLogger.info("Admission created", { 
+        admissionId: data.id,
+        admissionNumber: admission_number,
+        bedId: admissionData.bed_id
+      });
 
       return data;
     },
@@ -237,14 +255,22 @@ export const useDischargePatient = () => {
     }) => {
       if (!profile?.id) throw new Error("No profile");
 
+      ipdLogger.info("Discharging patient", { 
+        admissionId, 
+        dischargeType: dischargeData.discharge_type 
+      });
+
       // Get the admission to find the bed
       const { data: admission, error: fetchError } = await supabase
         .from("admissions")
-        .select("bed_id")
+        .select("bed_id, admission_number")
         .eq("id", admissionId)
         .single();
 
-      if (fetchError) throw fetchError;
+      if (fetchError) {
+        ipdLogger.error("Failed to fetch admission for discharge", fetchError, { admissionId });
+        throw fetchError;
+      }
 
       const now = new Date();
       const { data, error } = await supabase
@@ -260,15 +286,25 @@ export const useDischargePatient = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        ipdLogger.error("Failed to discharge patient", error, { admissionId });
+        throw error;
+      }
 
       // Free up the bed
       if (admission?.bed_id) {
+        ipdLogger.debug("Freeing bed after discharge", { bedId: admission.bed_id });
         await supabase
           .from("beds")
           .update({ status: "available", current_admission_id: null })
           .eq("id", admission.bed_id);
       }
+
+      ipdLogger.info("Patient discharged", { 
+        admissionId,
+        admissionNumber: admission.admission_number,
+        dischargeType: dischargeData.discharge_type
+      });
 
       return data;
     },

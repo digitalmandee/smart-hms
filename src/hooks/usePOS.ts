@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { posLogger } from "@/lib/logger";
 
 // Types - These tables are new and not yet in generated types
 export interface POSSession {
@@ -190,6 +191,13 @@ export function useCreateTransaction() {
         throw new Error("No organization or branch context");
       }
 
+      posLogger.info("Creating POS transaction", { 
+        itemsCount: items.length,
+        paymentMethods: payments.map(p => p.payment_method),
+        customerName: customerName || 'Walk-in',
+        discountAmount
+      });
+
       // Calculate totals
       const subtotal = items.reduce((sum, item) => {
         const lineSubtotal = item.quantity * item.unit_price;
@@ -205,6 +213,8 @@ export function useCreateTransaction() {
       const totalAmount = subtotal + taxAmount - discountAmount;
       const amountPaid = payments.reduce((sum, p) => sum + p.amount, 0);
       const changeAmount = Math.max(0, amountPaid - totalAmount);
+
+      posLogger.debug("Transaction totals calculated", { subtotal, taxAmount, totalAmount, amountPaid, changeAmount });
 
       // Create transaction (session_id is now optional/null)
       const { data: transaction, error: txError } = await queryPOSTable("pharmacy_pos_transactions")
@@ -228,7 +238,12 @@ export function useCreateTransaction() {
         .select()
         .single();
 
-      if (txError) throw txError;
+      if (txError) {
+        posLogger.error("Failed to create transaction", txError);
+        throw txError;
+      }
+
+      posLogger.debug("Transaction record created", { transactionId: transaction.id });
 
       // Insert items
       const itemsToInsert = items.map((item) => ({
@@ -249,7 +264,10 @@ export function useCreateTransaction() {
       const { error: itemsError } = await queryPOSTable("pharmacy_pos_items")
         .insert(itemsToInsert);
 
-      if (itemsError) throw itemsError;
+      if (itemsError) {
+        posLogger.error("Failed to insert transaction items", itemsError, { transactionId: transaction.id });
+        throw itemsError;
+      }
 
       // Insert payments
       const paymentsToInsert = payments.map((payment) => ({
@@ -263,7 +281,10 @@ export function useCreateTransaction() {
       const { error: paymentsError } = await queryPOSTable("pharmacy_pos_payments")
         .insert(paymentsToInsert);
 
-      if (paymentsError) throw paymentsError;
+      if (paymentsError) {
+        posLogger.error("Failed to insert payments", paymentsError, { transactionId: transaction.id });
+        throw paymentsError;
+      }
 
       // Auto-mark prescription items as dispensed
       const prescriptionItemIds = items
@@ -271,11 +292,20 @@ export function useCreateTransaction() {
         .map(i => i.prescription_item_id);
 
       if (prescriptionItemIds.length > 0) {
+        posLogger.info("Marking prescription items as dispensed", { count: prescriptionItemIds.length });
         await supabase
           .from("prescription_items")
           .update({ is_dispensed: true })
           .in("id", prescriptionItemIds);
       }
+
+      posLogger.info("POS transaction completed", { 
+        transactionNumber: transaction.transaction_number,
+        totalAmount,
+        itemsCount: items.length,
+        paymentMethod: payments[0]?.payment_method,
+        prescriptionItemsDispensed: prescriptionItemIds.length
+      });
 
       return transaction as POSTransaction;
     },
@@ -288,6 +318,7 @@ export function useCreateTransaction() {
       });
     },
     onError: (error: Error) => {
+      posLogger.error("Transaction failed", error);
       toast({
         title: "Error",
         description: error.message,
@@ -311,6 +342,8 @@ export function useVoidTransaction() {
       transactionId: string;
       reason: string;
     }) => {
+      posLogger.warn("Voiding transaction", { transactionId, reason });
+
       const { data, error } = await queryPOSTable("pharmacy_pos_transactions")
         .update({
           payment_status: "voided",
@@ -322,7 +355,16 @@ export function useVoidTransaction() {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        posLogger.error("Failed to void transaction", error, { transactionId });
+        throw error;
+      }
+
+      posLogger.info("Transaction voided", { 
+        transactionNumber: data.transaction_number,
+        reason 
+      });
+
       return data as POSTransaction;
     },
     onSuccess: () => {
