@@ -118,6 +118,8 @@ import NotificationSettingsPage from "./pages/app/settings/NotificationSettingsP
 import AuditLogsPage from "./pages/app/settings/AuditLogsPage";
 import SMSSettingsPage from "./pages/app/settings/SMSSettingsPage";
 import ReportTemplatesPage from "./pages/app/settings/ReportTemplatesPage";
+import EmailSettingsPage from "./pages/app/settings/EmailSettingsPage";
+import EmailTemplatesPage from "./pages/app/settings/EmailTemplatesPage";
 
 // HR pages
 import HRDashboard from "./pages/app/hr/HRDashboard";
@@ -554,6 +556,8 @@ function App() {
               <Route path="settings/payment-methods/:id" element={<PaymentMethodFormPage />} />
               <Route path="settings/notifications" element={<NotificationSettingsPage />} />
               <Route path="settings/sms" element={<SMSSettingsPage />} />
+              <Route path="settings/email" element={<EmailSettingsPage />} />
+              <Route path="settings/email-templates" element={<EmailTemplatesPage />} />
               <Route path="settings/audit-logs" element={<AuditLogsPage />} />
               <Route path="settings/report-templates" element={<ReportTemplatesPage />} />
             </Route>
