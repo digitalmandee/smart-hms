@@ -49,6 +49,9 @@ import { PatientAdmissionHistory } from "@/components/patients/PatientAdmissionH
 import { PatientEmergencyHistory } from "@/components/patients/PatientEmergencyHistory";
 import { PatientBloodHistory } from "@/components/patients/PatientBloodHistory";
 import { PatientImagingHistory } from "@/components/patients/PatientImagingHistory";
+import { PatientPregnanciesHistory } from "@/components/patients/PatientPregnanciesHistory";
+import { PatientCertificatesHistory } from "@/components/patients/PatientCertificatesHistory";
+import { Baby, Award } from "lucide-react";
 
 export function PatientDetailPage() {
   const { id } = useParams();
@@ -279,6 +282,16 @@ export function PatientDetailPage() {
                 <Receipt className="h-4 w-4" />
                 Billing
               </TabsTrigger>
+              {patient.gender === 'female' && (
+                <TabsTrigger value="pregnancies" className="gap-2">
+                  <Baby className="h-4 w-4" />
+                  Pregnancies
+                </TabsTrigger>
+              )}
+              <TabsTrigger value="certificates" className="gap-2">
+                <Award className="h-4 w-4" />
+                Certificates
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview">
@@ -392,6 +405,16 @@ export function PatientDetailPage() {
 
             <TabsContent value="billing">
               <PatientBillingHistory patientId={patient.id} />
+            </TabsContent>
+
+            {patient.gender === 'female' && (
+              <TabsContent value="pregnancies">
+                <PatientPregnanciesHistory patientId={patient.id} />
+              </TabsContent>
+            )}
+
+            <TabsContent value="certificates">
+              <PatientCertificatesHistory patientId={patient.id} />
             </TabsContent>
           </Tabs>
         </div>
