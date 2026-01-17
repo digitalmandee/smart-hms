@@ -57,7 +57,6 @@ interface DeathRecordFormProps {
   patient?: { id: string; first_name: string; last_name: string; patient_number: string };
   doctors?: any[];
 }
-}
 
 export function DeathRecordForm({
   defaultValues,
