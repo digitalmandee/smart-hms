@@ -10,10 +10,12 @@ export interface PatientForPOS {
   phone: string | null;
   date_of_birth: string | null;
   gender: string | null;
+  token_number?: number | null;
 }
 
 export interface PrescriptionItemForPOS {
   id: string;
+  prescription_id?: string;
   medicine_id: string | null;
   medicine_name: string;
   dosage: string | null;
@@ -89,6 +91,26 @@ export function useSearchPatientForPOS(search: string) {
         .limit(10);
 
       if (error) throw error;
+
+      // Also fetch today's tokens for these patients
+      const today = new Date().toISOString().split("T")[0];
+      const patientIds = data?.map(p => p.id) || [];
+      
+      if (patientIds.length > 0) {
+        const { data: todayAppointments } = await supabase
+          .from("appointments")
+          .select("patient_id, token_number")
+          .eq("organization_id", profile.organization_id)
+          .eq("appointment_date", today)
+          .in("patient_id", patientIds);
+
+        // Merge token numbers into patient results
+        return data?.map(patient => ({
+          ...patient,
+          token_number: todayAppointments?.find(a => a.patient_id === patient.id)?.token_number || null
+        })) as PatientForPOS[];
+      }
+
       return data as PatientForPOS[];
     },
     enabled: !!search && !!profile?.organization_id && (search.trim().length >= 1),

@@ -52,7 +52,13 @@ export function POSPatientSearch({ onAddToCart, onPatientSelect, selectedPatient
     setSearch("");
   };
 
-  const handleAddPrescriptionItem = (item: { medicine_id: string | null; medicine_name: string; quantity: number }) => {
+  const handleAddPrescriptionItem = (item: { 
+    id: string;
+    prescription_id?: string;
+    medicine_id: string | null; 
+    medicine_name: string; 
+    quantity: number;
+  }) => {
     if (!item.medicine_id) {
       // Try to find by name in inventory
       const invItem = inventory?.find(i => 
@@ -72,6 +78,8 @@ export function POSPatientSearch({ onAddToCart, onPatientSelect, selectedPatient
           available_quantity: invItem.quantity,
           discount_percent: 0,
           tax_percent: 0,
+          prescription_id: item.prescription_id,
+          prescription_item_id: item.id,
         };
         onAddToCart(cartItem);
       }
@@ -93,6 +101,8 @@ export function POSPatientSearch({ onAddToCart, onPatientSelect, selectedPatient
         available_quantity: invItem.quantity,
         discount_percent: 0,
         tax_percent: 0,
+        prescription_id: item.prescription_id,
+        prescription_item_id: item.id,
       };
       onAddToCart(cartItem);
     }
@@ -103,6 +113,8 @@ export function POSPatientSearch({ onAddToCart, onPatientSelect, selectedPatient
       .filter(item => !item.is_dispensed)
       .forEach(item => {
         handleAddPrescriptionItem({
+          id: item.id,
+          prescription_id: rx.id,
           medicine_id: item.medicine_id,
           medicine_name: item.medicine_name,
           quantity: item.quantity,
@@ -136,6 +148,11 @@ export function POSPatientSearch({ onAddToCart, onPatientSelect, selectedPatient
                   <Badge variant="secondary" className="text-xs">
                     {selectedPatient.patient_number}
                   </Badge>
+                  {selectedPatient.token_number && (
+                    <Badge variant="default" className="text-xs bg-green-600 hover:bg-green-700">
+                      Today Token #{selectedPatient.token_number}
+                    </Badge>
+                  )}
                   {selectedPatient.phone && (
                     <span className="flex items-center gap-1">
                       <Phone className="h-3 w-3" />
@@ -208,6 +225,8 @@ export function POSPatientSearch({ onAddToCart, onPatientSelect, selectedPatient
                                 item.is_dispensed ? "opacity-50 line-through" : "hover:bg-muted cursor-pointer"
                               )}
                               onClick={() => !item.is_dispensed && handleAddPrescriptionItem({
+                                id: item.id,
+                                prescription_id: rx.id,
                                 medicine_id: item.medicine_id,
                                 medicine_name: item.medicine_name,
                                 quantity: item.quantity,

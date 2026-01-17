@@ -87,6 +87,8 @@ export interface CartItem {
   available_quantity: number;
   discount_percent: number;
   tax_percent: number;
+  prescription_id?: string;
+  prescription_item_id?: string;
 }
 
 export interface PaymentEntry {
@@ -262,6 +264,18 @@ export function useCreateTransaction() {
         .insert(paymentsToInsert);
 
       if (paymentsError) throw paymentsError;
+
+      // Auto-mark prescription items as dispensed
+      const prescriptionItemIds = items
+        .filter(i => i.prescription_item_id)
+        .map(i => i.prescription_item_id);
+
+      if (prescriptionItemIds.length > 0) {
+        await supabase
+          .from("prescription_items")
+          .update({ is_dispensed: true })
+          .in("id", prescriptionItemIds);
+      }
 
       return transaction as POSTransaction;
     },
