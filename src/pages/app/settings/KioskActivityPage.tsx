@@ -135,7 +135,11 @@ export default function KioskActivityPage() {
       <PageHeader
         title="Kiosk Activity Log"
         description="View all tokens generated from kiosks"
-        backTo="/app/settings/kiosks"
+        breadcrumbs={[
+          { label: "Settings", href: "/app/settings" },
+          { label: "Kiosks", href: "/app/settings/kiosks" },
+          { label: "Activity Log" },
+        ]}
       />
 
       {/* Stats Cards */}

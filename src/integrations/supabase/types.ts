@@ -5939,6 +5939,7 @@ export type Database = {
           printed: boolean | null
           priority: number | null
           session_id: string | null
+          status: string | null
           token_number: number
         }
         Insert: {
@@ -5955,6 +5956,7 @@ export type Database = {
           printed?: boolean | null
           priority?: number | null
           session_id?: string | null
+          status?: string | null
           token_number: number
         }
         Update: {
@@ -5971,6 +5973,7 @@ export type Database = {
           printed?: boolean | null
           priority?: number | null
           session_id?: string | null
+          status?: string | null
           token_number?: number
         }
         Relationships: [

@@ -1,9 +1,9 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ArrowLeft, Monitor, Loader2 } from "lucide-react";
+import { ArrowLeft, Monitor, Loader2, Key, Copy, Eye, EyeOff, RefreshCw } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Form,
   FormControl,
@@ -27,9 +28,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useKiosk, useCreateKiosk, useUpdateKiosk, useDepartments, KioskFormData } from "@/hooks/useKiosks";
+import { useKiosk, useCreateKiosk, useUpdateKiosk, useDepartments, useResetKioskPassword, KioskFormData } from "@/hooks/useKiosks";
 import { useBranches } from "@/hooks/useBranches";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -40,6 +42,8 @@ const formSchema = z.object({
   auto_print: z.boolean(),
   show_estimated_wait: z.boolean(),
   display_message: z.string().optional(),
+  session_timeout_minutes: z.number().min(5).max(1440).default(480),
+  password: z.string().min(6, "Password must be at least 6 characters").optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -47,6 +51,7 @@ type FormValues = z.infer<typeof formSchema>;
 export default function KioskFormPage() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const { toast } = useToast();
   const isEdit = !!id;
 
   const { data: kiosk, isLoading: isLoadingKiosk } = useKiosk(id);
@@ -54,6 +59,11 @@ export default function KioskFormPage() {
   const { data: departments } = useDepartments();
   const createKiosk = useCreateKiosk();
   const updateKiosk = useUpdateKiosk();
+  const resetPassword = useResetKioskPassword();
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [generatedPassword, setGeneratedPassword] = useState<string | null>(null);
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -66,6 +76,8 @@ export default function KioskFormPage() {
       auto_print: true,
       show_estimated_wait: true,
       display_message: "",
+      session_timeout_minutes: 480,
+      password: "",
     },
   });
 
@@ -80,9 +92,43 @@ export default function KioskFormPage() {
         auto_print: kiosk.auto_print,
         show_estimated_wait: kiosk.show_estimated_wait,
         display_message: kiosk.display_message || "",
+        session_timeout_minutes: (kiosk as any).session_timeout_minutes || 480,
+        password: "",
       });
     }
   }, [kiosk, form]);
+
+  const generatePassword = () => {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
+    let password = "";
+    for (let i = 0; i < 8; i++) {
+      password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    form.setValue("password", password);
+    setGeneratedPassword(password);
+  };
+
+  const handleResetPassword = async () => {
+    if (!id) return;
+    
+    setIsResettingPassword(true);
+    const newPassword = await resetPassword.mutateAsync(id);
+    setGeneratedPassword(newPassword);
+    setIsResettingPassword(false);
+    
+    toast({
+      title: "Password Reset",
+      description: "New password generated. Copy it now - it won't be shown again.",
+    });
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast({
+      title: "Copied!",
+      description: "Password copied to clipboard",
+    });
+  };
 
   const onSubmit = async (values: FormValues) => {
     const data: KioskFormData = {
@@ -94,12 +140,22 @@ export default function KioskFormPage() {
       auto_print: values.auto_print,
       show_estimated_wait: values.show_estimated_wait,
       display_message: values.display_message,
+      session_timeout_minutes: values.session_timeout_minutes,
+      password: values.password || undefined,
     };
 
     if (isEdit && id) {
       await updateKiosk.mutateAsync({ id, data });
     } else {
-      await createKiosk.mutateAsync(data);
+      const result = await createKiosk.mutateAsync(data);
+      if (result.generatedPassword) {
+        setGeneratedPassword(result.generatedPassword);
+        toast({
+          title: "Kiosk Created",
+          description: "Copy the credentials below before leaving this page.",
+        });
+        return; // Don't navigate yet, let user copy credentials
+      }
     }
     navigate("/app/settings/kiosks");
   };
@@ -135,6 +191,50 @@ export default function KioskFormPage() {
           </Button>
         }
       />
+
+      {/* Show generated credentials */}
+      {generatedPassword && (
+        <Alert className="border-green-200 bg-green-50">
+          <Key className="h-4 w-4 text-green-600" />
+          <AlertTitle className="text-green-800">Kiosk Credentials</AlertTitle>
+          <AlertDescription className="text-green-700">
+            <p className="mb-3">Copy these credentials now. The password won't be shown again.</p>
+            <div className="space-y-2 bg-white rounded-lg p-4 border">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-sm text-muted-foreground">Username:</span>
+                  <p className="font-mono font-medium">{kiosk?.kiosk_username || form.getValues("name").toLowerCase().replace(/[^a-z0-9]/g, "-")}</p>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => copyToClipboard(kiosk?.kiosk_username || "")}
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-sm text-muted-foreground">Password:</span>
+                  <p className="font-mono font-medium">{generatedPassword}</p>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => copyToClipboard(generatedPassword)}
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            <p className="mt-3 text-sm">
+              Login URL: <code className="bg-white px-2 py-1 rounded">/kiosk/login</code>
+            </p>
+          </AlertDescription>
+        </Alert>
+      )}
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -234,6 +334,107 @@ export default function KioskFormPage() {
                     </FormControl>
                     <FormDescription>
                       Custom message shown on the kiosk screen
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+          </Card>
+
+          {/* Authentication Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Key className="h-5 w-5" />
+                Authentication
+              </CardTitle>
+              <CardDescription>
+                Credentials for kiosk device login. The username is auto-generated from the kiosk name.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {isEdit && kiosk?.kiosk_username && (
+                <div className="rounded-lg border p-4 bg-muted/30">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Kiosk Username</p>
+                      <p className="font-mono font-medium">{kiosk.kiosk_username}</p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleResetPassword}
+                      disabled={isResettingPassword}
+                    >
+                      {isResettingPassword ? (
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      ) : (
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                      )}
+                      Reset Password
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {!isEdit && (
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <div className="flex gap-2">
+                        <FormControl>
+                          <div className="relative flex-1">
+                            <Input
+                              type={showPassword ? "text" : "password"}
+                              placeholder="Enter password or generate one"
+                              {...field}
+                            />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="absolute right-0 top-0 h-full px-3"
+                              onClick={() => setShowPassword(!showPassword)}
+                            >
+                              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            </Button>
+                          </div>
+                        </FormControl>
+                        <Button type="button" variant="outline" onClick={generatePassword}>
+                          Generate
+                        </Button>
+                      </div>
+                      <FormDescription>
+                        Set a password for kiosk login. You can generate a random one.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              <FormField
+                control={form.control}
+                name="session_timeout_minutes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Session Timeout (minutes)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min={5}
+                        max={1440}
+                        {...field}
+                        onChange={(e) => field.onChange(parseInt(e.target.value) || 480)}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Auto-logout after this many minutes of inactivity (default: 480 = 8 hours)
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

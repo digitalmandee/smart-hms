@@ -92,7 +92,11 @@ export default function KioskSessionsPage() {
       <PageHeader
         title="Kiosk Sessions"
         description="Monitor active kiosk sessions and their activity"
-        backTo="/app/settings/kiosks"
+        breadcrumbs={[
+          { label: "Settings", href: "/app/settings" },
+          { label: "Kiosks", href: "/app/settings/kiosks" },
+          { label: "Sessions" },
+        ]}
       />
 
       <div className="flex items-center justify-between">
