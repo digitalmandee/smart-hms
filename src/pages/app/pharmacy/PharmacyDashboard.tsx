@@ -6,10 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LowStockAlert } from "@/components/pharmacy/LowStockAlert";
 import { ExpiryAlert } from "@/components/pharmacy/ExpiryAlert";
 import { PrescriptionQueueCard } from "@/components/pharmacy/PrescriptionQueueCard";
+import { DailySalesSummary } from "@/components/pharmacy/DailySalesSummary";
 import { usePharmacyStats, usePrescriptionQueue, useLowStockItems, useExpiringItems } from "@/hooks/usePharmacy";
 import { ClipboardList, Package, Pill, AlertTriangle, History, Plus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-
 export default function PharmacyDashboard() {
   const navigate = useNavigate();
   const { data: stats, isLoading: statsLoading } = usePharmacyStats();
@@ -90,8 +90,8 @@ export default function PharmacyDashboard() {
         )}
       </div>
 
-      {/* Quick Actions */}
-      <div className="grid gap-4 md:grid-cols-3">
+      {/* Quick Actions + Daily Summary */}
+      <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
         <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate("/app/pharmacy/medicines")}>
           <CardContent className="flex items-center gap-4 pt-6">
             <div className="p-3 bg-primary/10 rounded-lg">
@@ -127,6 +127,11 @@ export default function PharmacyDashboard() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Daily Sales Summary */}
+        <div className="md:col-span-3 lg:col-span-1 lg:row-span-2">
+          <DailySalesSummary />
+        </div>
       </div>
 
       {/* Prescription Queue Preview */}

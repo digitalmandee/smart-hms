@@ -8591,6 +8591,102 @@ export type Database = {
           },
         ]
       }
+      pharmacy_settings: {
+        Row: {
+          allow_held_transactions: boolean | null
+          auto_print_receipt: boolean | null
+          branch_id: string | null
+          cogs_account_id: string | null
+          created_at: string | null
+          default_tax_rate: number | null
+          expiry_alert_days: number | null
+          id: string
+          inventory_account_id: string | null
+          low_stock_threshold: number | null
+          organization_id: string
+          receipt_footer: string | null
+          receipt_header: string | null
+          require_customer_name: boolean | null
+          require_prescription_for_controlled: boolean | null
+          sales_revenue_account_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          allow_held_transactions?: boolean | null
+          auto_print_receipt?: boolean | null
+          branch_id?: string | null
+          cogs_account_id?: string | null
+          created_at?: string | null
+          default_tax_rate?: number | null
+          expiry_alert_days?: number | null
+          id?: string
+          inventory_account_id?: string | null
+          low_stock_threshold?: number | null
+          organization_id: string
+          receipt_footer?: string | null
+          receipt_header?: string | null
+          require_customer_name?: boolean | null
+          require_prescription_for_controlled?: boolean | null
+          sales_revenue_account_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          allow_held_transactions?: boolean | null
+          auto_print_receipt?: boolean | null
+          branch_id?: string | null
+          cogs_account_id?: string | null
+          created_at?: string | null
+          default_tax_rate?: number | null
+          expiry_alert_days?: number | null
+          id?: string
+          inventory_account_id?: string | null
+          low_stock_threshold?: number | null
+          organization_id?: string
+          receipt_footer?: string | null
+          receipt_header?: string | null
+          require_customer_name?: boolean | null
+          require_prescription_for_controlled?: boolean | null
+          sales_revenue_account_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pharmacy_settings_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_settings_cogs_account_id_fkey"
+            columns: ["cogs_account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_settings_inventory_account_id_fkey"
+            columns: ["inventory_account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_settings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_settings_sales_revenue_account_id_fkey"
+            columns: ["sales_revenue_account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pharmacy_stock_movements: {
         Row: {
           batch_number: string | null
@@ -10675,6 +10771,7 @@ export type Database = {
           email: string | null
           id: string
           is_active: boolean
+          ledger_account_id: string | null
           name: string
           notes: string | null
           organization_id: string
@@ -10695,6 +10792,7 @@ export type Database = {
           email?: string | null
           id?: string
           is_active?: boolean
+          ledger_account_id?: string | null
           name: string
           notes?: string | null
           organization_id: string
@@ -10715,6 +10813,7 @@ export type Database = {
           email?: string | null
           id?: string
           is_active?: boolean
+          ledger_account_id?: string | null
           name?: string
           notes?: string | null
           organization_id?: string
@@ -10726,6 +10825,13 @@ export type Database = {
           vendor_code?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "vendors_ledger_account_id_fkey"
+            columns: ["ledger_account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "vendors_organization_id_fkey"
             columns: ["organization_id"]
