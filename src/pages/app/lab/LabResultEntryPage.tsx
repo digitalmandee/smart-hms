@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useLabOrder, useUpdateLabOrderItem, useMarkSampleCollected, useCompleteLabOrder } from "@/hooks/useLabOrders";
+import { usePublishLabReport } from "@/hooks/usePublicLabReport";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePrint } from "@/hooks/usePrint";
 import { PageHeader } from "@/components/PageHeader";
@@ -12,8 +13,9 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { ArrowLeft, Printer, CheckCircle, Loader2, User, Calendar, Stethoscope, FlaskConical, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Printer, CheckCircle, Loader2, User, Calendar, Stethoscope, FlaskConical, AlertTriangle, Globe, Copy, Mail } from "lucide-react";
 import { format, differenceInYears } from "date-fns";
 
 const priorityConfig = {
@@ -38,6 +40,7 @@ export default function LabResultEntryPage() {
   const updateItem = useUpdateLabOrderItem();
   const markCollected = useMarkSampleCollected();
   const completeOrder = useCompleteLabOrder();
+  const publishReport = usePublishLabReport();
   const { printRef, handlePrint } = usePrint();
 
   const [savingItemId, setSavingItemId] = useState<string | null>(null);
@@ -278,6 +281,83 @@ export default function LabResultEntryPage() {
                 Complete & Finalize Report
               </Button>
             </div>
+        </CardContent>
+        </Card>
+      )}
+
+      {/* Publish Section - visible after order completed */}
+      {isOrderCompleted && (
+        <Card className="border-blue-200 bg-blue-50/50">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Globe className="h-5 w-5" />
+              Publish & Share Report
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Make report available online</p>
+                <p className="text-sm text-muted-foreground">
+                  Patients can view their results at /lab-reports
+                </p>
+              </div>
+              <Switch
+                checked={(labOrder as unknown as { is_published?: boolean }).is_published || false}
+                onCheckedChange={async (checked) => {
+                  try {
+                    const result = await publishReport.mutateAsync({ orderId: labOrder.id, publish: checked });
+                    if (checked && result.accessCode) {
+                      toast.success(`Published! Access code: ${result.accessCode}`);
+                    } else {
+                      toast.success("Report unpublished");
+                    }
+                  } catch {
+                    toast.error("Failed to update publish status");
+                  }
+                }}
+                disabled={publishReport.isPending}
+              />
+            </div>
+
+            {(labOrder as unknown as { is_published?: boolean }).is_published && (
+              <>
+                <Separator />
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="p-3 bg-background rounded-lg">
+                    <p className="text-sm text-muted-foreground">Access Code</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-mono text-lg font-bold">
+                        {(labOrder as unknown as { access_code?: string }).access_code || "------"}
+                      </p>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          navigator.clipboard.writeText((labOrder as unknown as { access_code?: string }).access_code || "");
+                          toast.success("Access code copied!");
+                        }}
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="p-3 bg-background rounded-lg">
+                    <p className="text-sm text-muted-foreground">Published At</p>
+                    <p className="font-medium">
+                      {(labOrder as unknown as { published_at?: string }).published_at
+                        ? format(new Date((labOrder as unknown as { published_at: string }).published_at), "MMM d, yyyy h:mm a")
+                        : "-"}
+                    </p>
+                  </div>
+                </div>
+
+                <Button variant="outline" className="w-full sm:w-auto">
+                  <Mail className="h-4 w-4 mr-2" />
+                  Send to Patient Email
+                </Button>
+              </>
+            )}
           </CardContent>
         </Card>
       )}

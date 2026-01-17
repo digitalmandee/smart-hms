@@ -118,6 +118,7 @@ import NotificationSettingsPage from "./pages/app/settings/NotificationSettingsP
 import AuditLogsPage from "./pages/app/settings/AuditLogsPage";
 import SMSSettingsPage from "./pages/app/settings/SMSSettingsPage";
 import ReportTemplatesPage from "./pages/app/settings/ReportTemplatesPage";
+import PublicLabReportPage from "./pages/public/PublicLabReportPage";
 import EmailSettingsPage from "./pages/app/settings/EmailSettingsPage";
 import EmailTemplatesPage from "./pages/app/settings/EmailTemplatesPage";
 
