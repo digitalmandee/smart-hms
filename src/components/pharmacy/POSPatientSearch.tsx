@@ -245,7 +245,7 @@ export function POSPatientSearch({ onAddToCart, onPatientSelect, selectedPatient
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search by MR#, phone, or name..."
+              placeholder="Search by Token#, MR#, phone, or name..."
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value);
@@ -257,7 +257,7 @@ export function POSPatientSearch({ onAddToCart, onPatientSelect, selectedPatient
             />
 
             {/* Search Results */}
-            {showResults && search.length >= 3 && (
+            {showResults && search.length >= 1 && (
               <Card className="absolute top-full left-0 right-0 mt-1 z-50 shadow-lg">
                 <CardContent className="p-2">
                   {searchLoading ? (
@@ -266,7 +266,7 @@ export function POSPatientSearch({ onAddToCart, onPatientSelect, selectedPatient
                     </div>
                   ) : patients && patients.length > 0 ? (
                     <div className="space-y-1">
-                      {patients.map((patient) => (
+                      {patients.map((patient: any) => (
                         <div
                           key={patient.id}
                           className="flex items-center justify-between p-2 rounded hover:bg-muted cursor-pointer"
@@ -277,6 +277,11 @@ export function POSPatientSearch({ onAddToCart, onPatientSelect, selectedPatient
                               {patient.first_name} {patient.last_name}
                             </p>
                             <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                              {patient.token_number && (
+                                <Badge variant="default" className="text-xs">
+                                  Token #{patient.token_number}
+                                </Badge>
+                              )}
                               <span>{patient.patient_number}</span>
                               {patient.phone && <span>• {patient.phone}</span>}
                             </div>

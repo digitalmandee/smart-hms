@@ -8,10 +8,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StatusBadge } from "@/components/StatusBadge";
 import { usePatient } from "@/hooks/usePatients";
 import { useMedicalHistory } from "@/hooks/useMedicalHistory";
+import { usePatientProfileStats } from "@/hooks/usePatientProfileStats";
 import { useOrganization } from "@/hooks/useOrganizations";
 import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PrintablePatientCard } from "@/components/patients/PrintablePatientCard";
+import { PatientRecentActivity } from "@/components/patients/PatientRecentActivity";
 import { usePrint } from "@/hooks/usePrint";
 import {
   User,
@@ -36,7 +38,7 @@ import {
   Scan,
   Printer,
 } from "lucide-react";
-import { format } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 import { MedicalHistorySection } from "@/components/patients/MedicalHistorySection";
 import { PatientBillingHistory } from "@/components/patients/PatientBillingHistory";
 import { PatientSurgicalHistory } from "@/components/ot/PatientSurgicalHistory";
@@ -54,6 +56,7 @@ export function PatientDetailPage() {
   const { profile } = useAuth();
   const { data: patient, isLoading } = usePatient(id);
   const { data: medicalHistory } = useMedicalHistory(id);
+  const { data: profileStats } = usePatientProfileStats(id);
   const { data: organization } = useOrganization(profile?.organization_id);
   const { printRef, handlePrint } = usePrint();
 
@@ -288,7 +291,7 @@ export function PatientDetailPage() {
                         <Stethoscope className="h-5 w-5 text-primary" />
                       </div>
                       <div>
-                        <p className="text-2xl font-bold">0</p>
+                        <p className="text-2xl font-bold">{profileStats?.totalVisits || 0}</p>
                         <p className="text-sm text-muted-foreground">Total Visits</p>
                       </div>
                     </CardContent>
@@ -300,7 +303,20 @@ export function PatientDetailPage() {
                         <Clock className="h-5 w-5 text-info" />
                       </div>
                       <div>
-                        <p className="text-2xl font-bold">-</p>
+                        <p className="text-2xl font-bold">
+                          {profileStats?.lastVisit 
+                            ? formatDistanceToNow(new Date(profileStats.lastVisit), { addSuffix: false })
+                                .replace(" days", "d")
+                                .replace(" day", "d")
+                                .replace(" hours", "h")
+                                .replace(" hour", "h")
+                                .replace(" minutes", "m")
+                                .replace(" minute", "m")
+                                .replace("about ", "")
+                                .replace("less than a", "<1")
+                            : "-"
+                          }
+                        </p>
                         <p className="text-sm text-muted-foreground">Last Visit</p>
                       </div>
                     </CardContent>
@@ -333,15 +349,8 @@ export function PatientDetailPage() {
                   </Card>
                 )}
 
-                {/* Recent Activity Placeholder */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base">Recent Activity</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground">No recent activity</p>
-                  </CardContent>
-                </Card>
+                {/* Recent Activity - Now with real data */}
+                <PatientRecentActivity patientId={patient.id} />
               </div>
             </TabsContent>
 
