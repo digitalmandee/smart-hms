@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Database, Json } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { opdLogger } from "@/lib/logger";
 
 type Consultation = Database["public"]["Tables"]["consultations"]["Row"];
 type ConsultationInsert = Database["public"]["Tables"]["consultations"]["Insert"];
@@ -160,13 +161,28 @@ export function useCreateConsultation() {
 
   return useMutation({
     mutationFn: async (data: Omit<ConsultationInsert, "id">) => {
+      opdLogger.info("Creating consultation", { 
+        appointmentId: data.appointment_id,
+        patientId: data.patient_id,
+        doctorId: data.doctor_id
+      });
+
       const { data: consultation, error } = await supabase
         .from("consultations")
         .insert(data)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        opdLogger.error("Failed to create consultation", error, { appointmentId: data.appointment_id });
+        throw error;
+      }
+
+      opdLogger.info("Consultation created", { 
+        consultationId: consultation.id,
+        appointmentId: data.appointment_id
+      });
+
       return consultation;
     },
     onSuccess: () => {
@@ -192,6 +208,13 @@ export function useUpdateConsultation() {
 
   return useMutation({
     mutationFn: async ({ id, ...data }: ConsultationUpdate & { id: string }) => {
+      opdLogger.info("Updating consultation", { 
+        consultationId: id,
+        fields: Object.keys(data),
+        hasDiagnosis: !!data.diagnosis,
+        hasSymptoms: !!data.symptoms
+      });
+
       const { data: consultation, error } = await supabase
         .from("consultations")
         .update(data)
@@ -199,7 +222,13 @@ export function useUpdateConsultation() {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        opdLogger.error("Failed to update consultation", error, { consultationId: id });
+        throw error;
+      }
+
+      opdLogger.info("Consultation updated", { consultationId: id });
+
       return consultation;
     },
     onSuccess: (_, variables) => {

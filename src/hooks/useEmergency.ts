@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useEffect } from "react";
+import { emergencyLogger } from "@/lib/logger";
 
 export type ArrivalMode = 'walk_in' | 'ambulance' | 'police' | 'brought_by_family' | 'referred';
 export type ERStatus = 'waiting' | 'in_triage' | 'in_treatment' | 'admitted' | 'discharged' | 'transferred' | 'expired' | 'absconded' | 'lama';

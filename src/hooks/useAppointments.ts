@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Database } from '@/integrations/supabase/types';
+import { appointmentLogger } from '@/lib/logger';
 
 type Appointment = Database['public']['Tables']['appointments']['Row'];
 type AppointmentInsert = Database['public']['Tables']['appointments']['Insert'];
@@ -200,6 +201,13 @@ export function useCreateAppointment() {
     mutationFn: async (appointment: Omit<AppointmentInsert, 'organization_id' | 'created_by'>) => {
       if (!profile?.organization_id) throw new Error('No organization');
 
+      appointmentLogger.info("Creating appointment", { 
+        patientId: appointment.patient_id,
+        doctorId: appointment.doctor_id,
+        date: appointment.appointment_date,
+        time: appointment.appointment_time
+      });
+
       // Get next token number for this doctor on this date
       const { data: existingAppointments } = await supabase
         .from('appointments')
@@ -224,7 +232,17 @@ export function useCreateAppointment() {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        appointmentLogger.error("Failed to create appointment", error, { patientId: appointment.patient_id });
+        throw error;
+      }
+
+      appointmentLogger.info("Appointment created", { 
+        appointmentId: data.id,
+        tokenNumber: nextToken,
+        date: appointment.appointment_date
+      });
+
       return data;
     },
     onSuccess: () => {
@@ -240,6 +258,16 @@ export function useUpdateAppointment() {
 
   return useMutation({
     mutationFn: async ({ id, ...updates }: AppointmentUpdate & { id: string }) => {
+      const hasStatusChange = 'status' in updates;
+      if (hasStatusChange) {
+        appointmentLogger.info("Appointment status change", { 
+          appointmentId: id, 
+          newStatus: updates.status 
+        });
+      } else {
+        appointmentLogger.debug("Updating appointment", { appointmentId: id, fields: Object.keys(updates) });
+      }
+
       const { data, error } = await supabase
         .from('appointments')
         .update(updates)
@@ -247,7 +275,11 @@ export function useUpdateAppointment() {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        appointmentLogger.error("Failed to update appointment", error, { appointmentId: id });
+        throw error;
+      }
+
       return data;
     },
     onSuccess: (_, variables) => {

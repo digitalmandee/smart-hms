@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { User, Session, AuthError } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { Database } from "@/integrations/supabase/types";
+import { authLogger } from "@/lib/logger";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
 
@@ -43,27 +44,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Fetch user profile and roles
   const fetchUserData = async (userId: string) => {
+    authLogger.debug("Fetching user data", { userId });
     try {
       // Fetch profile
-      const { data: profileData } = await supabase
+      const { data: profileData, error: profileError } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", userId)
         .single();
 
+      if (profileError) {
+        authLogger.error("Failed to fetch profile", profileError, { userId });
+      }
+
       if (profileData) {
         setProfile(profileData);
+        authLogger.debug("Profile loaded", { 
+          userId, 
+          organizationId: profileData.organization_id,
+          branchId: profileData.branch_id 
+        });
       }
 
       // Fetch roles
-      const { data: rolesData } = await supabase
+      const { data: rolesData, error: rolesError } = await supabase
         .from("user_roles")
         .select("role")
         .eq("user_id", userId);
 
+      if (rolesError) {
+        authLogger.error("Failed to fetch roles", rolesError, { userId });
+      }
+
       if (rolesData) {
         const userRoles = rolesData.map((r) => r.role);
         setRoles(userRoles);
+        authLogger.info("Roles loaded", { userId, roles: userRoles, count: userRoles.length });
 
         // Fetch permissions based on roles
         if (userRoles.includes("super_admin")) {
@@ -73,6 +89,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             .select("code");
           if (allPerms) {
             setPermissions(allPerms.map((p) => p.code));
+            authLogger.info("Super admin permissions loaded", { count: allPerms.length });
           }
         } else if (userRoles.length > 0) {
           // Fetch permissions for user's roles
@@ -87,11 +104,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               .map((rp) => (rp.permissions as any)?.code)
               .filter(Boolean);
             setPermissions([...new Set(permCodes)]);
+            authLogger.info("Permissions loaded", { count: permCodes.length });
           }
         }
       }
     } catch (error) {
-      console.error("Error fetching user data:", error);
+      authLogger.error("Error fetching user data", error, { userId });
     }
   };
 
@@ -138,14 +156,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const signIn = async (email: string, password: string) => {
+    const maskedEmail = email.replace(/(.{2})(.*)(@.*)/, "$1***$3");
+    authLogger.info("Sign in attempt", { email: maskedEmail });
+    
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
+    
+    if (error) {
+      authLogger.warn("Sign in failed", { email: maskedEmail, error: error.message });
+    } else {
+      authLogger.info("Sign in successful", { email: maskedEmail });
+    }
+    
     return { error };
   };
 
   const signUp = async (email: string, password: string, fullName: string) => {
+    const maskedEmail = email.replace(/(.{2})(.*)(@.*)/, "$1***$3");
+    authLogger.info("Sign up attempt", { email: maskedEmail, fullName });
+    
     const redirectUrl = `${window.location.origin}/`;
 
     const { error } = await supabase.auth.signUp({
@@ -158,10 +189,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         },
       },
     });
+    
+    if (error) {
+      authLogger.warn("Sign up failed", { email: maskedEmail, error: error.message });
+    } else {
+      authLogger.info("Sign up successful", { email: maskedEmail });
+    }
+    
     return { error };
   };
 
   const signOut = async () => {
+    authLogger.info("Sign out", { userId: user?.id });
     await supabase.auth.signOut();
   };
 
