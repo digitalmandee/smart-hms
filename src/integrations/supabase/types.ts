@@ -445,6 +445,231 @@ export type Database = {
           },
         ]
       }
+      anc_records: {
+        Row: {
+          abortion: number | null
+          advice: string | null
+          attended_by: string | null
+          birth_plan_discussed: boolean | null
+          blood_group: string | null
+          blood_pressure_diastolic: number | null
+          blood_pressure_systolic: number | null
+          blood_sugar_fasting: number | null
+          blood_sugar_random: number | null
+          branch_id: string | null
+          calcium_given: boolean | null
+          created_at: string | null
+          created_by: string | null
+          danger_signs_explained: boolean | null
+          edd_date: string | null
+          edema: string | null
+          edema_location: string | null
+          engagement: string | null
+          fetal_heart_rate: number | null
+          fetal_movements: string | null
+          fundal_height_cm: number | null
+          gestational_age_days: number | null
+          gestational_age_weeks: number | null
+          gravida: number | null
+          hbsag_status: string | null
+          hemoglobin: number | null
+          hiv_status: string | null
+          id: string
+          iron_folic_given: boolean | null
+          lie: string | null
+          living: number | null
+          lmp_date: string | null
+          next_visit_date: string | null
+          notes: string | null
+          organization_id: string
+          para: number | null
+          patient_id: string
+          pregnancy_id: string | null
+          presentation: string | null
+          referral_reason: string | null
+          referred_to: string | null
+          rh_factor: string | null
+          risk_category: string | null
+          risk_factors: Json | null
+          tt1_date: string | null
+          tt1_given: boolean | null
+          tt2_date: string | null
+          tt2_given: boolean | null
+          ultrasound_done: boolean | null
+          ultrasound_edd: string | null
+          ultrasound_findings: string | null
+          updated_at: string | null
+          urine_albumin: string | null
+          urine_protein: string | null
+          urine_sugar: string | null
+          vdrl_status: string | null
+          visit_date: string
+          visit_number: number | null
+          visit_type: string | null
+          weight_kg: number | null
+        }
+        Insert: {
+          abortion?: number | null
+          advice?: string | null
+          attended_by?: string | null
+          birth_plan_discussed?: boolean | null
+          blood_group?: string | null
+          blood_pressure_diastolic?: number | null
+          blood_pressure_systolic?: number | null
+          blood_sugar_fasting?: number | null
+          blood_sugar_random?: number | null
+          branch_id?: string | null
+          calcium_given?: boolean | null
+          created_at?: string | null
+          created_by?: string | null
+          danger_signs_explained?: boolean | null
+          edd_date?: string | null
+          edema?: string | null
+          edema_location?: string | null
+          engagement?: string | null
+          fetal_heart_rate?: number | null
+          fetal_movements?: string | null
+          fundal_height_cm?: number | null
+          gestational_age_days?: number | null
+          gestational_age_weeks?: number | null
+          gravida?: number | null
+          hbsag_status?: string | null
+          hemoglobin?: number | null
+          hiv_status?: string | null
+          id?: string
+          iron_folic_given?: boolean | null
+          lie?: string | null
+          living?: number | null
+          lmp_date?: string | null
+          next_visit_date?: string | null
+          notes?: string | null
+          organization_id: string
+          para?: number | null
+          patient_id: string
+          pregnancy_id?: string | null
+          presentation?: string | null
+          referral_reason?: string | null
+          referred_to?: string | null
+          rh_factor?: string | null
+          risk_category?: string | null
+          risk_factors?: Json | null
+          tt1_date?: string | null
+          tt1_given?: boolean | null
+          tt2_date?: string | null
+          tt2_given?: boolean | null
+          ultrasound_done?: boolean | null
+          ultrasound_edd?: string | null
+          ultrasound_findings?: string | null
+          updated_at?: string | null
+          urine_albumin?: string | null
+          urine_protein?: string | null
+          urine_sugar?: string | null
+          vdrl_status?: string | null
+          visit_date: string
+          visit_number?: number | null
+          visit_type?: string | null
+          weight_kg?: number | null
+        }
+        Update: {
+          abortion?: number | null
+          advice?: string | null
+          attended_by?: string | null
+          birth_plan_discussed?: boolean | null
+          blood_group?: string | null
+          blood_pressure_diastolic?: number | null
+          blood_pressure_systolic?: number | null
+          blood_sugar_fasting?: number | null
+          blood_sugar_random?: number | null
+          branch_id?: string | null
+          calcium_given?: boolean | null
+          created_at?: string | null
+          created_by?: string | null
+          danger_signs_explained?: boolean | null
+          edd_date?: string | null
+          edema?: string | null
+          edema_location?: string | null
+          engagement?: string | null
+          fetal_heart_rate?: number | null
+          fetal_movements?: string | null
+          fundal_height_cm?: number | null
+          gestational_age_days?: number | null
+          gestational_age_weeks?: number | null
+          gravida?: number | null
+          hbsag_status?: string | null
+          hemoglobin?: number | null
+          hiv_status?: string | null
+          id?: string
+          iron_folic_given?: boolean | null
+          lie?: string | null
+          living?: number | null
+          lmp_date?: string | null
+          next_visit_date?: string | null
+          notes?: string | null
+          organization_id?: string
+          para?: number | null
+          patient_id?: string
+          pregnancy_id?: string | null
+          presentation?: string | null
+          referral_reason?: string | null
+          referred_to?: string | null
+          rh_factor?: string | null
+          risk_category?: string | null
+          risk_factors?: Json | null
+          tt1_date?: string | null
+          tt1_given?: boolean | null
+          tt2_date?: string | null
+          tt2_given?: boolean | null
+          ultrasound_done?: boolean | null
+          ultrasound_edd?: string | null
+          ultrasound_findings?: string | null
+          updated_at?: string | null
+          urine_albumin?: string | null
+          urine_protein?: string | null
+          urine_sugar?: string | null
+          vdrl_status?: string | null
+          visit_date?: string
+          visit_number?: number | null
+          visit_type?: string | null
+          weight_kg?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "anc_records_attended_by_fkey"
+            columns: ["attended_by"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "anc_records_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "anc_records_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "anc_records_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "anc_records_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       anesthesia_records: {
         Row: {
           airway_complications: string | null
@@ -1354,6 +1579,189 @@ export type Database = {
           },
           {
             foreignKeyName: "biometric_devices_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      birth_records: {
+        Row: {
+          admission_id: string | null
+          apgar_10min: number | null
+          apgar_1min: number | null
+          apgar_5min: number | null
+          attended_by: Json | null
+          baby_patient_id: string | null
+          bcg_given: boolean | null
+          birth_date: string
+          birth_length_cm: number | null
+          birth_time: string
+          birth_weight_grams: number | null
+          branch_id: string | null
+          certificate_issued_at: string | null
+          certificate_issued_by: string | null
+          certificate_number: string | null
+          chest_circumference_cm: number | null
+          complications: Json | null
+          condition_at_birth: string | null
+          created_at: string | null
+          created_by: string | null
+          delivered_by: string | null
+          delivery_type: string | null
+          father_address: string | null
+          father_cnic: string | null
+          father_name: string | null
+          father_occupation: string | null
+          gender: string | null
+          head_circumference_cm: number | null
+          hep_b_given: boolean | null
+          id: string
+          mother_patient_id: string
+          nicu_admission: boolean | null
+          notes: string | null
+          opv0_given: boolean | null
+          organization_id: string
+          place_of_birth: string | null
+          resuscitation_required: boolean | null
+          updated_at: string | null
+          vitamin_k_given: boolean | null
+        }
+        Insert: {
+          admission_id?: string | null
+          apgar_10min?: number | null
+          apgar_1min?: number | null
+          apgar_5min?: number | null
+          attended_by?: Json | null
+          baby_patient_id?: string | null
+          bcg_given?: boolean | null
+          birth_date: string
+          birth_length_cm?: number | null
+          birth_time: string
+          birth_weight_grams?: number | null
+          branch_id?: string | null
+          certificate_issued_at?: string | null
+          certificate_issued_by?: string | null
+          certificate_number?: string | null
+          chest_circumference_cm?: number | null
+          complications?: Json | null
+          condition_at_birth?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          delivered_by?: string | null
+          delivery_type?: string | null
+          father_address?: string | null
+          father_cnic?: string | null
+          father_name?: string | null
+          father_occupation?: string | null
+          gender?: string | null
+          head_circumference_cm?: number | null
+          hep_b_given?: boolean | null
+          id?: string
+          mother_patient_id: string
+          nicu_admission?: boolean | null
+          notes?: string | null
+          opv0_given?: boolean | null
+          organization_id: string
+          place_of_birth?: string | null
+          resuscitation_required?: boolean | null
+          updated_at?: string | null
+          vitamin_k_given?: boolean | null
+        }
+        Update: {
+          admission_id?: string | null
+          apgar_10min?: number | null
+          apgar_1min?: number | null
+          apgar_5min?: number | null
+          attended_by?: Json | null
+          baby_patient_id?: string | null
+          bcg_given?: boolean | null
+          birth_date?: string
+          birth_length_cm?: number | null
+          birth_time?: string
+          birth_weight_grams?: number | null
+          branch_id?: string | null
+          certificate_issued_at?: string | null
+          certificate_issued_by?: string | null
+          certificate_number?: string | null
+          chest_circumference_cm?: number | null
+          complications?: Json | null
+          condition_at_birth?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          delivered_by?: string | null
+          delivery_type?: string | null
+          father_address?: string | null
+          father_cnic?: string | null
+          father_name?: string | null
+          father_occupation?: string | null
+          gender?: string | null
+          head_circumference_cm?: number | null
+          hep_b_given?: boolean | null
+          id?: string
+          mother_patient_id?: string
+          nicu_admission?: boolean | null
+          notes?: string | null
+          opv0_given?: boolean | null
+          organization_id?: string
+          place_of_birth?: string | null
+          resuscitation_required?: boolean | null
+          updated_at?: string | null
+          vitamin_k_given?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "birth_records_admission_id_fkey"
+            columns: ["admission_id"]
+            isOneToOne: false
+            referencedRelation: "admissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "birth_records_baby_patient_id_fkey"
+            columns: ["baby_patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "birth_records_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "birth_records_certificate_issued_by_fkey"
+            columns: ["certificate_issued_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "birth_records_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "birth_records_delivered_by_fkey"
+            columns: ["delivered_by"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "birth_records_mother_patient_id_fkey"
+            columns: ["mother_patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "birth_records_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -2560,6 +2968,164 @@ export type Database = {
             columns: ["doctor_id"]
             isOneToOne: false
             referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      death_records: {
+        Row: {
+          admission_id: string | null
+          antecedent_cause: string | null
+          antecedent_cause_interval: string | null
+          autopsy_findings: string | null
+          autopsy_performed: boolean | null
+          body_condition: string | null
+          body_released_at: string | null
+          body_released_by: string | null
+          body_released_cnic: string | null
+          body_released_relation: string | null
+          body_released_to: string | null
+          branch_id: string | null
+          certificate_issued_at: string | null
+          certificate_number: string | null
+          certifying_physician_id: string | null
+          contributing_conditions: string | null
+          created_at: string | null
+          created_by: string | null
+          death_date: string
+          death_time: string
+          id: string
+          immediate_cause: string | null
+          immediate_cause_interval: string | null
+          is_mlc: boolean | null
+          manner_of_death: string | null
+          mlc_number: string | null
+          notes: string | null
+          organization_id: string
+          patient_id: string
+          place_of_death: string | null
+          underlying_cause: string | null
+          underlying_cause_interval: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          admission_id?: string | null
+          antecedent_cause?: string | null
+          antecedent_cause_interval?: string | null
+          autopsy_findings?: string | null
+          autopsy_performed?: boolean | null
+          body_condition?: string | null
+          body_released_at?: string | null
+          body_released_by?: string | null
+          body_released_cnic?: string | null
+          body_released_relation?: string | null
+          body_released_to?: string | null
+          branch_id?: string | null
+          certificate_issued_at?: string | null
+          certificate_number?: string | null
+          certifying_physician_id?: string | null
+          contributing_conditions?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          death_date: string
+          death_time: string
+          id?: string
+          immediate_cause?: string | null
+          immediate_cause_interval?: string | null
+          is_mlc?: boolean | null
+          manner_of_death?: string | null
+          mlc_number?: string | null
+          notes?: string | null
+          organization_id: string
+          patient_id: string
+          place_of_death?: string | null
+          underlying_cause?: string | null
+          underlying_cause_interval?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          admission_id?: string | null
+          antecedent_cause?: string | null
+          antecedent_cause_interval?: string | null
+          autopsy_findings?: string | null
+          autopsy_performed?: boolean | null
+          body_condition?: string | null
+          body_released_at?: string | null
+          body_released_by?: string | null
+          body_released_cnic?: string | null
+          body_released_relation?: string | null
+          body_released_to?: string | null
+          branch_id?: string | null
+          certificate_issued_at?: string | null
+          certificate_number?: string | null
+          certifying_physician_id?: string | null
+          contributing_conditions?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          death_date?: string
+          death_time?: string
+          id?: string
+          immediate_cause?: string | null
+          immediate_cause_interval?: string | null
+          is_mlc?: boolean | null
+          manner_of_death?: string | null
+          mlc_number?: string | null
+          notes?: string | null
+          organization_id?: string
+          patient_id?: string
+          place_of_death?: string | null
+          underlying_cause?: string | null
+          underlying_cause_interval?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "death_records_admission_id_fkey"
+            columns: ["admission_id"]
+            isOneToOne: false
+            referencedRelation: "admissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "death_records_body_released_by_fkey"
+            columns: ["body_released_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "death_records_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "death_records_certifying_physician_id_fkey"
+            columns: ["certifying_physician_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "death_records_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "death_records_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "death_records_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
             referencedColumns: ["id"]
           },
         ]
@@ -6706,6 +7272,128 @@ export type Database = {
           },
         ]
       }
+      medical_certificates: {
+        Row: {
+          branch_id: string | null
+          certificate_number: string | null
+          certificate_type: string
+          created_at: string | null
+          diagnosis: string | null
+          disability_percentage: number | null
+          disability_type: string | null
+          employer_name: string | null
+          findings: string | null
+          fitness_status: string | null
+          id: string
+          issued_at: string | null
+          issued_by: string | null
+          job_type: string | null
+          last_printed_at: string | null
+          leave_days: number | null
+          leave_from: string | null
+          leave_to: string | null
+          notes: string | null
+          organization_id: string
+          patient_id: string
+          print_count: number | null
+          purpose: string | null
+          recommendations: string | null
+          restrictions: string | null
+          updated_at: string | null
+          valid_from: string | null
+          valid_to: string | null
+        }
+        Insert: {
+          branch_id?: string | null
+          certificate_number?: string | null
+          certificate_type: string
+          created_at?: string | null
+          diagnosis?: string | null
+          disability_percentage?: number | null
+          disability_type?: string | null
+          employer_name?: string | null
+          findings?: string | null
+          fitness_status?: string | null
+          id?: string
+          issued_at?: string | null
+          issued_by?: string | null
+          job_type?: string | null
+          last_printed_at?: string | null
+          leave_days?: number | null
+          leave_from?: string | null
+          leave_to?: string | null
+          notes?: string | null
+          organization_id: string
+          patient_id: string
+          print_count?: number | null
+          purpose?: string | null
+          recommendations?: string | null
+          restrictions?: string | null
+          updated_at?: string | null
+          valid_from?: string | null
+          valid_to?: string | null
+        }
+        Update: {
+          branch_id?: string | null
+          certificate_number?: string | null
+          certificate_type?: string
+          created_at?: string | null
+          diagnosis?: string | null
+          disability_percentage?: number | null
+          disability_type?: string | null
+          employer_name?: string | null
+          findings?: string | null
+          fitness_status?: string | null
+          id?: string
+          issued_at?: string | null
+          issued_by?: string | null
+          job_type?: string | null
+          last_printed_at?: string | null
+          leave_days?: number | null
+          leave_from?: string | null
+          leave_to?: string | null
+          notes?: string | null
+          organization_id?: string
+          patient_id?: string
+          print_count?: number | null
+          purpose?: string | null
+          recommendations?: string | null
+          restrictions?: string | null
+          updated_at?: string | null
+          valid_from?: string | null
+          valid_to?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medical_certificates_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medical_certificates_issued_by_fkey"
+            columns: ["issued_by"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medical_certificates_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medical_certificates_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       medication_administration: {
         Row: {
           actual_time: string | null
@@ -6984,6 +7672,217 @@ export type Database = {
             columns: ["parent_id"]
             isOneToOne: false
             referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mlc_records: {
+        Row: {
+          age_of_injuries: string | null
+          alcohol_intoxication: boolean | null
+          arrival_time: string | null
+          branch_id: string | null
+          brought_by: string | null
+          brought_by_cnic: string | null
+          brought_by_name: string | null
+          brought_by_phone: string | null
+          brought_by_relation: string | null
+          case_type: string | null
+          clothing_description: string | null
+          clothing_preserved: boolean | null
+          conscious_level: string | null
+          created_at: string | null
+          created_by: string | null
+          dd_number: string | null
+          disposition: string | null
+          drug_intoxication: boolean | null
+          emergency_registration_id: string | null
+          evidence_handed_at: string | null
+          evidence_handed_to: string | null
+          evidence_receipt_number: string | null
+          evidence_receiver_designation: string | null
+          evidence_receiver_name: string | null
+          examined_by: string | null
+          fir_date: string | null
+          fir_number: string | null
+          general_condition: string | null
+          id: string
+          incident_date: string | null
+          incident_description: string | null
+          incident_place: string | null
+          incident_time: string | null
+          injuries_description: string | null
+          injury_details: Json | null
+          medical_opinion: string | null
+          mlc_number: string
+          nature_of_injuries: string | null
+          notes: string | null
+          organization_id: string
+          oriented: boolean | null
+          patient_id: string
+          photograph_count: number | null
+          photographs_taken: boolean | null
+          police_officer_name: string | null
+          police_officer_rank: string | null
+          police_station: string | null
+          probable_cause: string | null
+          probable_weapon: string | null
+          referred_to: string | null
+          samples_collected: Json | null
+          treatment_given: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          age_of_injuries?: string | null
+          alcohol_intoxication?: boolean | null
+          arrival_time?: string | null
+          branch_id?: string | null
+          brought_by?: string | null
+          brought_by_cnic?: string | null
+          brought_by_name?: string | null
+          brought_by_phone?: string | null
+          brought_by_relation?: string | null
+          case_type?: string | null
+          clothing_description?: string | null
+          clothing_preserved?: boolean | null
+          conscious_level?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          dd_number?: string | null
+          disposition?: string | null
+          drug_intoxication?: boolean | null
+          emergency_registration_id?: string | null
+          evidence_handed_at?: string | null
+          evidence_handed_to?: string | null
+          evidence_receipt_number?: string | null
+          evidence_receiver_designation?: string | null
+          evidence_receiver_name?: string | null
+          examined_by?: string | null
+          fir_date?: string | null
+          fir_number?: string | null
+          general_condition?: string | null
+          id?: string
+          incident_date?: string | null
+          incident_description?: string | null
+          incident_place?: string | null
+          incident_time?: string | null
+          injuries_description?: string | null
+          injury_details?: Json | null
+          medical_opinion?: string | null
+          mlc_number: string
+          nature_of_injuries?: string | null
+          notes?: string | null
+          organization_id: string
+          oriented?: boolean | null
+          patient_id: string
+          photograph_count?: number | null
+          photographs_taken?: boolean | null
+          police_officer_name?: string | null
+          police_officer_rank?: string | null
+          police_station?: string | null
+          probable_cause?: string | null
+          probable_weapon?: string | null
+          referred_to?: string | null
+          samples_collected?: Json | null
+          treatment_given?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          age_of_injuries?: string | null
+          alcohol_intoxication?: boolean | null
+          arrival_time?: string | null
+          branch_id?: string | null
+          brought_by?: string | null
+          brought_by_cnic?: string | null
+          brought_by_name?: string | null
+          brought_by_phone?: string | null
+          brought_by_relation?: string | null
+          case_type?: string | null
+          clothing_description?: string | null
+          clothing_preserved?: boolean | null
+          conscious_level?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          dd_number?: string | null
+          disposition?: string | null
+          drug_intoxication?: boolean | null
+          emergency_registration_id?: string | null
+          evidence_handed_at?: string | null
+          evidence_handed_to?: string | null
+          evidence_receipt_number?: string | null
+          evidence_receiver_designation?: string | null
+          evidence_receiver_name?: string | null
+          examined_by?: string | null
+          fir_date?: string | null
+          fir_number?: string | null
+          general_condition?: string | null
+          id?: string
+          incident_date?: string | null
+          incident_description?: string | null
+          incident_place?: string | null
+          incident_time?: string | null
+          injuries_description?: string | null
+          injury_details?: Json | null
+          medical_opinion?: string | null
+          mlc_number?: string
+          nature_of_injuries?: string | null
+          notes?: string | null
+          organization_id?: string
+          oriented?: boolean | null
+          patient_id?: string
+          photograph_count?: number | null
+          photographs_taken?: boolean | null
+          police_officer_name?: string | null
+          police_officer_rank?: string | null
+          police_station?: string | null
+          probable_cause?: string | null
+          probable_weapon?: string | null
+          referred_to?: string | null
+          samples_collected?: Json | null
+          treatment_given?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mlc_records_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mlc_records_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mlc_records_emergency_registration_id_fkey"
+            columns: ["emergency_registration_id"]
+            isOneToOne: false
+            referencedRelation: "emergency_registrations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mlc_records_examined_by_fkey"
+            columns: ["examined_by"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mlc_records_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mlc_records_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
             referencedColumns: ["id"]
           },
         ]
