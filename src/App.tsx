@@ -289,6 +289,8 @@ function App() {
             <Route path="/kiosk/:organizationId" element={<PublicTokenKiosk />} />
             <Route path="/kiosk/:organizationId/:kioskId" element={<PublicTokenKiosk />} />
             
+            {/* Public Lab Report Portal */}
+            <Route path="/lab-reports" element={<PublicLabReportPage />} />
             {/* Authenticated kiosk routes - separate login for kiosk devices */}
             <Route path="/kiosk/login" element={<KioskLoginPage />} />
             <Route path="/kiosk/terminal" element={<KioskTerminalPage />} />
