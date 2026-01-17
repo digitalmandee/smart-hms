@@ -10,12 +10,28 @@ import { LabOrderItem } from "@/hooks/useLabOrders";
 import { TemplateField, useLabTestTemplates } from "@/hooks/useLabTestTemplates";
 import { cn } from "@/lib/utils";
 
+interface PatientInfo {
+  name: string;
+  patientNumber: string;
+  age?: number | null;
+  gender?: string;
+}
+
+interface OrderInfo {
+  orderNumber: string;
+  orderDate: string;
+  sampleNumber?: string;
+  doctorName?: string;
+}
+
 interface TestResultFormProps {
   item: LabOrderItem;
   onSave: (itemId: string, results: Record<string, string | number>, notes: string) => Promise<void>;
   isSaving?: boolean;
   isEditable?: boolean;
   showUpdateLabel?: boolean;
+  patientInfo?: PatientInfo;
+  orderInfo?: OrderInfo;
 }
 
 const statusConfig = {
@@ -25,7 +41,15 @@ const statusConfig = {
   completed: { label: "Completed", className: "bg-green-100 text-green-800" },
 };
 
-export function TestResultForm({ item, onSave, isSaving, isEditable = true, showUpdateLabel = false }: TestResultFormProps) {
+export function TestResultForm({ 
+  item, 
+  onSave, 
+  isSaving, 
+  isEditable = true, 
+  showUpdateLabel = false,
+  patientInfo,
+  orderInfo
+}: TestResultFormProps) {
   const { data: templates } = useLabTestTemplates();
   const [results, setResults] = useState<Record<string, string | number>>({});
   const [notes, setNotes] = useState("");
@@ -88,6 +112,33 @@ export function TestResultForm({ item, onSave, isSaving, isEditable = true, show
         )}
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Patient & Order Info Header */}
+        {patientInfo && orderInfo && (
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4 p-3 bg-muted/50 rounded-lg text-sm">
+            <div>
+              <span className="text-muted-foreground">Patient:</span>{" "}
+              <span className="font-medium">{patientInfo.name}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground">MR#:</span>{" "}
+              <span className="font-mono">{patientInfo.patientNumber}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Age/Gender:</span>{" "}
+              <span className="font-medium">
+                {patientInfo.age !== null && patientInfo.age !== undefined ? `${patientInfo.age}Y` : "-"}
+                {patientInfo.gender && ` / ${patientInfo.gender}`}
+              </span>
+            </div>
+            {orderInfo.sampleNumber && (
+              <div>
+                <span className="text-muted-foreground">Sample:</span>{" "}
+                <span className="font-mono">{orderInfo.sampleNumber}</span>
+              </div>
+            )}
+          </div>
+        )}
+        
         {/* Template-based fields */}
         {template ? (
           <div className="grid gap-3 sm:grid-cols-2">

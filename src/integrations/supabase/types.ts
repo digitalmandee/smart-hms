@@ -6115,6 +6115,7 @@ export type Database = {
           priority: Database["public"]["Enums"]["lab_order_priority"]
           published_at: string | null
           result_notes: string | null
+          sample_number: string | null
           status: Database["public"]["Enums"]["lab_order_status"]
           surgery_id: string | null
           updated_at: string
@@ -6136,6 +6137,7 @@ export type Database = {
           priority?: Database["public"]["Enums"]["lab_order_priority"]
           published_at?: string | null
           result_notes?: string | null
+          sample_number?: string | null
           status?: Database["public"]["Enums"]["lab_order_status"]
           surgery_id?: string | null
           updated_at?: string
@@ -6157,6 +6159,7 @@ export type Database = {
           priority?: Database["public"]["Enums"]["lab_order_priority"]
           published_at?: string | null
           result_notes?: string | null
+          sample_number?: string | null
           status?: Database["public"]["Enums"]["lab_order_status"]
           surgery_id?: string | null
           updated_at?: string

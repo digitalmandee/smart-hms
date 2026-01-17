@@ -243,16 +243,19 @@ export function useUpdateLabOrderItem() {
   });
 }
 
-// Mark sample as collected
+// Mark sample as collected with sample number
 export function useMarkSampleCollected() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (orderId: string) => {
-      // Update lab order status
+    mutationFn: async ({ orderId, sampleNumber }: { orderId: string; sampleNumber: string }) => {
+      // Update lab order status and sample number
       const { error: orderError } = await supabase
         .from("lab_orders")
-        .update({ status: "collected" as const })
+        .update({ 
+          status: "collected" as const,
+          sample_number: sampleNumber
+        })
         .eq("id", orderId);
 
       if (orderError) throw orderError;
