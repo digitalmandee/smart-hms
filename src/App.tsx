@@ -264,6 +264,14 @@ import BedTransfersPage from "./pages/app/ipd/BedTransfersPage";
 import MedicationChartPage from "./pages/app/ipd/MedicationChartPage";
 import IPDReportsPage from "./pages/app/ipd/IPDReportsPage";
 
+// Gynecology & Certificates pages
+import GynecologyDashboard from "./pages/app/opd/GynecologyDashboard";
+import BirthRecordsPage from "./pages/app/ipd/BirthRecordsPage";
+import BirthRecordFormPage from "./pages/app/ipd/BirthRecordFormPage";
+import DeathRecordsPage from "./pages/app/ipd/DeathRecordsPage";
+import CertificatesPage from "./pages/app/certificates/CertificatesPage";
+import MLCRecordsPage from "./pages/app/emergency/MLCRecordsPage";
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -366,6 +374,7 @@ function App() {
               <Route path="opd/consultation/:appointmentId" element={<ConsultationPage />} />
               <Route path="opd/history" element={<ConsultationHistoryPage />} />
               <Route path="opd/consultations/:id" element={<ConsultationDetailPage />} />
+              <Route path="opd/gynecology" element={<GynecologyDashboard />} />
               
               {/* Pharmacy routes */}
               <Route path="pharmacy" element={<PharmacyDashboard />} />
@@ -414,6 +423,7 @@ function App() {
               <Route path="emergency/:id" element={<ERDetailPage />} />
               <Route path="emergency/:id/admit" element={<QuickAdmissionPage />} />
               <Route path="emergency/:id/discharge" element={<ERDischargeFormPage />} />
+              <Route path="emergency/mlc" element={<MLCRecordsPage />} />
               
               {/* OT routes */}
               <Route path="ot" element={<OTDashboard />} />
@@ -523,6 +533,12 @@ function App() {
               <Route path="ipd/care/medications" element={<MedicationChartPage />} />
               <Route path="ipd/reports" element={<IPDReportsPage />} />
               <Route path="ipd/diet" element={<DietManagementPage />} />
+              <Route path="ipd/births" element={<BirthRecordsPage />} />
+              <Route path="ipd/births/new" element={<BirthRecordFormPage />} />
+              <Route path="ipd/deaths" element={<DeathRecordsPage />} />
+              
+              {/* Certificates routes */}
+              <Route path="certificates" element={<CertificatesPage />} />
               
               {/* HR routes */}
               <Route path="hr" element={<HRDashboard />} />
