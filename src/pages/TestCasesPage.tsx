@@ -1,11 +1,341 @@
-import { useRef, useState } from "react";
-import { useReactToPrint } from "react-to-print";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Download, Printer, FileText, Users, Stethoscope, Pill, FlaskConical, Radio, Ambulance, BedDouble, Scissors, Droplets, Receipt, Building2, Package, Calculator, Settings, Globe } from "lucide-react";
+import React, { useRef } from 'react';
+import { useReactToPrint } from 'react-to-print';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Badge } from '@/components/ui/badge';
+import { Download, Printer, CheckCircle2, Clock, Users, Route, TestTube, Stethoscope, Pill, Building2, HeartPulse, Syringe, Banknote, UserCog, Package } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
 
+// ============ END-TO-END JOURNEY TEST CASES ============
+const JOURNEY_TEST_CASES = [
+  {
+    id: "journey-opd",
+    name: "Complete OPD Patient Flow",
+    icon: Stethoscope,
+    description: "New patient registration through consultation, prescription, lab, pharmacy, and billing",
+    roles: ["Receptionist", "Nurse", "Doctor", "Lab Tech", "Pharmacist", "Accountant"],
+    estimatedTime: "25-30 minutes",
+    steps: [
+      { step: 1, role: "Receptionist", action: "Navigate to Patients → New Patient", location: "/app/patients/new", expected: "Registration form opens", data: "Use test patient: Muhammad Ali, CNIC: 42101-1234567-1" },
+      { step: 2, role: "Receptionist", action: "Fill patient details and save", location: "/app/patients/new", expected: "Patient created with MR# (e.g., MR-2024-00026)", data: "Note the MR# for later steps" },
+      { step: 3, role: "Receptionist", action: "Create walk-in appointment", location: "/app/appointments/new", expected: "Token number generated (e.g., Token #16)", data: "Select today's date, any available doctor" },
+      { step: 4, role: "Receptionist", action: "Check-in patient for appointment", location: "/app/appointments", expected: "Status changes to 'checked_in', patient in queue", data: "Click check-in button on appointment row" },
+      { step: 5, role: "Nurse", action: "Login as nurse@healthos.demo", location: "/login", expected: "Redirect to OPD Nursing Station", data: "Password: Demo@123" },
+      { step: 6, role: "Nurse", action: "View patient in 'Awaiting Vitals' queue", location: "/app/opd/nursing", expected: "Patient visible with orange 'Needs Vitals' badge", data: "Patient sorted by check-in time" },
+      { step: 7, role: "Nurse", action: "Record vitals: BP 120/80, Temp 98.6°F, Pulse 72, SpO2 98%", location: "Vitals Modal", expected: "Vitals saved, patient moves to 'Ready' queue", data: "Enter realistic vital signs" },
+      { step: 8, role: "Nurse", action: "Set triage priority to 'Normal'", location: "Triage Section", expected: "Green 'Normal' priority badge displayed", data: "Options: Emergency (Red), Urgent (Yellow), Normal (Green)" },
+      { step: 9, role: "Doctor", action: "Login as doctor@healthos.demo", location: "/login", expected: "Redirect to OPD Dashboard", data: "Password: Demo@123" },
+      { step: 10, role: "Doctor", action: "View patient queue with vitals displayed", location: "/app/opd", expected: "Patient visible with vitals summary and priority badge", data: "Queue sorted by priority then check-in time" },
+      { step: 11, role: "Doctor", action: "Click patient to start consultation", location: "/app/opd", expected: "Consultation form opens with patient details", data: "Form shows medical history if available" },
+      { step: 12, role: "Doctor", action: "Enter chief complaint: 'Fever and headache for 3 days'", location: "Consultation Form", expected: "Complaint saved in consultation record", data: "Free text field" },
+      { step: 13, role: "Doctor", action: "Add ICD-10 diagnosis: Search 'Viral fever'", location: "Diagnosis Section", expected: "ICD-10 code selected (e.g., B34.9)", data: "Searchable dropdown with codes" },
+      { step: 14, role: "Doctor", action: "Create prescription with 3 medicines", location: "Prescription Builder", expected: "Medicines added with dosage and duration", data: "Paracetamol 500mg TDS x 5 days, etc." },
+      { step: 15, role: "Doctor", action: "Order lab tests: CBC, LFT", location: "Lab Order Section", expected: "Lab order created with status 'ordered'", data: "Select from available test catalog" },
+      { step: 16, role: "Doctor", action: "Complete consultation", location: "Consultation Form", expected: "Status: completed, patient removed from queue", data: "Click 'Complete' button" },
+      { step: 17, role: "Lab Tech", action: "Login as labtech@healthos.demo", location: "/login", expected: "Redirect to Lab Queue", data: "Password: Demo@123" },
+      { step: 18, role: "Lab Tech", action: "View lab order in queue", location: "/app/lab/queue", expected: "Order visible with orange 'Not Collected' card", data: "Shows patient name, tests ordered, ordering doctor" },
+      { step: 19, role: "Lab Tech", action: "Enter sample barcode number", location: "Collection Modal", expected: "Status changes to 'Collected' (blue card)", data: "Enter unique barcode like 'LAB-2024-001234'" },
+      { step: 20, role: "Lab Tech", action: "Enter CBC results with normal values", location: "Result Entry Form", expected: "Results saved, form shows all parameters", data: "WBC: 7500, RBC: 4.8, Hgb: 14.2, etc." },
+      { step: 21, role: "Lab Tech", action: "Enter LFT results", location: "Result Entry Form", expected: "All liver function parameters recorded", data: "SGPT: 32, SGOT: 28, Bilirubin: 0.8" },
+      { step: 22, role: "Lab Tech", action: "Finalize and publish report", location: "Result Entry Form", expected: "Status: Published, report available", data: "Click 'Complete' then 'Publish'" },
+      { step: 23, role: "Pharmacist", action: "Login as pharmacist@healthos.demo", location: "/login", expected: "Redirect to Pharmacy POS", data: "Password: Demo@123" },
+      { step: 24, role: "Pharmacist", action: "Search by today's token number", location: "/app/pharmacy/pos", expected: "Patient found with green 'Today Token #X' badge", data: "Enter token number from step 3" },
+      { step: 25, role: "Pharmacist", action: "View pending prescriptions in side panel", location: "Prescription Panel", expected: "All 3 prescribed medicines displayed", data: "Shows medicine name, dosage, quantity" },
+      { step: 26, role: "Pharmacist", action: "Click 'Add All' to add prescription items", location: "Prescription Panel", expected: "All items added to cart with prices", data: "Prices fetched from inventory" },
+      { step: 27, role: "Pharmacist", action: "Select payment method: Cash", location: "Checkout Section", expected: "Cash payment form displayed", data: "Enter amount tendered" },
+      { step: 28, role: "Pharmacist", action: "Complete sale", location: "Checkout Section", expected: "Transaction complete, receipt generated", data: "Prescription marked as 'dispensed'" },
+      { step: 29, role: "Accountant", action: "Login as accountant@healthos.demo", location: "/login", expected: "Redirect to Billing Dashboard", data: "Password: Demo@123" },
+      { step: 30, role: "Accountant", action: "View invoice for this patient", location: "/app/billing", expected: "Invoice visible with all charges", data: "Lab fees + Pharmacy sale shown" },
+      { step: 31, role: "Accountant", action: "Verify payment status", location: "Invoice Detail", expected: "Pharmacy payment recorded, Lab pending", data: "May need to collect consultation fee" }
+    ]
+  },
+  {
+    id: "journey-er-ipd",
+    name: "Emergency to IPD Admission",
+    icon: HeartPulse,
+    description: "Emergency patient arrival, triage, treatment, and admission to inpatient ward",
+    roles: ["ER Staff", "ER Doctor", "IPD Nurse", "IPD Doctor", "Accountant"],
+    estimatedTime: "20-25 minutes",
+    steps: [
+      { step: 1, role: "ER Staff", action: "Navigate to Emergency Registration", location: "/app/emergency/register", expected: "Quick registration form opens", data: "Use for unknown/unconscious patient" },
+      { step: 2, role: "ER Staff", action: "Register patient with minimal info", location: "/app/emergency/register", expected: "ER# generated (e.g., ER-2024-0001)", data: "Name: Unknown Male, Approx Age: 45" },
+      { step: 3, role: "ER Staff", action: "Complete triage assessment: ESI Level 1 (Critical)", location: "Triage Form", expected: "Red 'Critical' badge assigned", data: "Chief complaint: Chest pain, difficulty breathing" },
+      { step: 4, role: "ER Staff", action: "Mark as cardiac emergency", location: "Registration", expected: "Cardiac emergency flag visible", data: "Special protocols may trigger" },
+      { step: 5, role: "ER Staff", action: "Record initial vitals: BP 90/60, Pulse 120, SpO2 88%", location: "Vitals Section", expected: "Abnormal values highlighted in red", data: "Low BP, high pulse, low oxygen" },
+      { step: 6, role: "ER Doctor", action: "View ER Dashboard queue", location: "/app/emergency", expected: "Patient at TOP of queue (red priority)", data: "Critical patients sorted first" },
+      { step: 7, role: "ER Doctor", action: "Start ER treatment", location: "/app/emergency", expected: "Treatment form opens with patient info", data: "Shows vitals, triage level, chief complaint" },
+      { step: 8, role: "ER Doctor", action: "Order STAT lab tests: Troponin, ECG", location: "Orders Section", expected: "STAT orders created (urgent flag)", data: "Lab marked for immediate processing" },
+      { step: 9, role: "ER Doctor", action: "Record treatment notes: O2 started, IV access", location: "Treatment Notes", expected: "Notes saved with timestamp", data: "Time-stamped clinical notes" },
+      { step: 10, role: "ER Doctor", action: "Administer emergency medications", location: "Medications Given", expected: "Medications logged with time", data: "Aspirin 325mg, Nitroglycerin SL" },
+      { step: 11, role: "ER Doctor", action: "Decision: Admit to ICU", location: "Disposition", expected: "Admission workflow initiated", data: "Select 'Admit to IPD' option" },
+      { step: 12, role: "ER Doctor", action: "Select ICU ward and admitting diagnosis", location: "Admission Form", expected: "Admission request sent to IPD", data: "Diagnosis: Acute Coronary Syndrome" },
+      { step: 13, role: "IPD Nurse", action: "Login as ipdnurse@healthos.demo", location: "/login", expected: "Redirect to IPD Dashboard", data: "Password: Demo@123" },
+      { step: 14, role: "IPD Nurse", action: "Accept admission from ER", location: "/app/ipd/admissions", expected: "New admission created from ER data", data: "All ER notes transferred" },
+      { step: 15, role: "IPD Nurse", action: "Assign ICU bed (e.g., ICU-01)", location: "Bed Selection", expected: "Bed status: Occupied", data: "Select from available ICU beds" },
+      { step: 16, role: "IPD Nurse", action: "Complete admission assessment", location: "Assessment Form", expected: "Initial nursing assessment documented", data: "Allergies, current meds, risk assessment" },
+      { step: 17, role: "IPD Nurse", action: "Record admission vitals", location: "Vitals Chart", expected: "Vitals logged in IPD record", data: "Continuous monitoring parameters" },
+      { step: 18, role: "IPD Doctor", action: "Perform daily round", location: "/app/ipd/rounds", expected: "Round documented with plan", data: "Assessment, Plan, Orders for next 24h" },
+      { step: 19, role: "IPD Nurse", action: "Administer medications (eMAR)", location: "/app/ipd/medication-chart", expected: "Doses recorded with timestamps", data: "Scan patient wristband, verify, administer" },
+      { step: 20, role: "IPD Nurse", action: "Add nursing notes", location: "/app/ipd/nursing-notes", expected: "Shift notes documented", data: "Patient condition, interventions, response" },
+      { step: 21, role: "Accountant", action: "View accumulating IPD charges", location: "/app/billing", expected: "Daily room charges, ER charges shown", data: "Charges auto-posted from IPD" }
+    ]
+  },
+  {
+    id: "journey-ipd-discharge",
+    name: "IPD Complete Stay & Discharge",
+    icon: Building2,
+    description: "Full inpatient journey from planned admission through discharge with billing clearance",
+    roles: ["Receptionist", "IPD Nurse", "Doctor", "Pharmacist", "Accountant"],
+    estimatedTime: "25-30 minutes",
+    steps: [
+      { step: 1, role: "Receptionist", action: "Create planned admission", location: "/app/ipd/admissions/new", expected: "Admission scheduled for specific date", data: "Patient: Existing patient with MR#" },
+      { step: 2, role: "Receptionist", action: "Select ward and reserve bed", location: "Bed Selection", expected: "Bed reserved (status: Reserved)", data: "General Ward, Bed GW-05" },
+      { step: 3, role: "Receptionist", action: "Collect admission deposit", location: "Deposit Section", expected: "Deposit recorded against admission", data: "PKR 50,000 advance deposit" },
+      { step: 4, role: "IPD Nurse", action: "Patient arrives - activate admission", location: "/app/ipd/admissions", expected: "Status: Active, Bed: Occupied", data: "Click 'Admit Now' on scheduled admission" },
+      { step: 5, role: "IPD Nurse", action: "Complete admission assessment", location: "Assessment Form", expected: "Nursing assessment documented", data: "Allergies, fall risk, skin assessment" },
+      { step: 6, role: "IPD Nurse", action: "Record admission vitals", location: "Vitals Chart", expected: "Baseline vitals recorded", data: "BP: 130/85, Pulse: 78, Temp: 98.4°F" },
+      { step: 7, role: "Doctor", action: "Create care plan", location: "/app/ipd/care-plans", expected: "Care plan active with goals", data: "Post-surgical recovery plan" },
+      { step: 8, role: "Doctor", action: "Order admission medications", location: "Prescription", expected: "IPD prescription created", data: "Antibiotics, analgesics, IV fluids" },
+      { step: 9, role: "Doctor", action: "Complete Day 1 daily round", location: "/app/ipd/rounds", expected: "Round documented", data: "Patient stable, continue current plan" },
+      { step: 10, role: "IPD Nurse", action: "Administer morning medications", location: "/app/ipd/emar", expected: "Doses recorded in eMAR", data: "Time: 08:00, verify 5 rights" },
+      { step: 11, role: "IPD Nurse", action: "Record 4-hourly vitals", location: "Vitals Chart", expected: "Multiple entries logged", data: "06:00, 10:00, 14:00, 18:00, 22:00" },
+      { step: 12, role: "IPD Nurse", action: "Document shift nursing notes", location: "/app/ipd/nursing-notes", expected: "Shift summary recorded", data: "Patient progress, concerns, handover" },
+      { step: 13, role: "Dietitian", action: "Assign diet plan", location: "/app/ipd/diet", expected: "Diet active for patient", data: "Soft diet, low sodium, 1800 cal" },
+      { step: 14, role: "Doctor", action: "Complete Day 2 daily round", location: "/app/ipd/rounds", expected: "Progress noted, discharge planned", data: "Patient improving, plan discharge tomorrow" },
+      { step: 15, role: "Doctor", action: "Create discharge medications", location: "Prescription", expected: "Take-home medications prescribed", data: "5 days of oral antibiotics, pain meds" },
+      { step: 16, role: "Doctor", action: "Initiate discharge process", location: "/app/ipd/discharges", expected: "Discharge workflow started", data: "Status: Pending Billing Clearance" },
+      { step: 17, role: "Pharmacist", action: "Dispense discharge medications", location: "/app/pharmacy", expected: "Medications dispensed", data: "Handed to patient/attendant" },
+      { step: 18, role: "Accountant", action: "Generate final bill", location: "/app/billing", expected: "All IPD charges compiled", data: "Room charges, medications, procedures" },
+      { step: 19, role: "Accountant", action: "Apply deposit and collect balance", location: "Payment Modal", expected: "Final payment collected", data: "Deposit adjusted, balance paid" },
+      { step: 20, role: "Accountant", action: "Mark billing cleared", location: "Invoice", expected: "Status: Paid, Discharge cleared", data: "Print final invoice/receipt" },
+      { step: 21, role: "IPD Nurse", action: "Complete discharge", location: "/app/ipd/discharges", expected: "Discharge summary generated", data: "Summary includes diagnosis, treatment, follow-up" },
+      { step: 22, role: "IPD Nurse", action: "Print discharge summary", location: "Discharge Summary", expected: "PDF generated for patient", data: "Includes medication list, follow-up date" },
+      { step: 23, role: "System", action: "Bed released to housekeeping", location: "Bed Management", expected: "Bed status: Cleaning Required", data: "Appears in housekeeping queue" },
+      { step: 24, role: "Housekeeping", action: "Mark bed cleaned", location: "/app/ipd/housekeeping", expected: "Bed status: Available", data: "Ready for next patient" }
+    ]
+  },
+  {
+    id: "journey-surgery",
+    name: "Scheduled Surgery (OT Flow)",
+    icon: Syringe,
+    description: "Elective surgery from scheduling through operation to post-op recovery",
+    roles: ["Receptionist", "Surgeon", "Anesthetist", "OT Tech", "PACU Nurse"],
+    estimatedTime: "20-25 minutes",
+    steps: [
+      { step: 1, role: "Receptionist", action: "Create surgery booking", location: "/app/ot/schedule", expected: "Surgery scheduled with OT room", data: "Patient, Surgeon, Date/Time, Procedure" },
+      { step: 2, role: "Receptionist", action: "Select OT room and time slot", location: "OT Booking", expected: "OT room reserved", data: "OT Room 1, 09:00 AM, Duration: 2 hours" },
+      { step: 3, role: "Surgeon", action: "Complete pre-operative assessment", location: "/app/ot/pre-op", expected: "Pre-op assessment documented", data: "Physical exam, consent, surgical plan" },
+      { step: 4, role: "Anesthetist", action: "Pre-anesthesia checkup (PAC)", location: "/app/ot/pac", expected: "PAC cleared, ASA grade assigned", data: "Airway assessment, NPO status, allergies" },
+      { step: 5, role: "Anesthetist", action: "Create anesthesia plan", location: "Anesthesia Plan", expected: "Plan documented", data: "General anesthesia, ETT, monitoring plan" },
+      { step: 6, role: "OT Tech", action: "View OT schedule for today", location: "/app/ot/schedule", expected: "Today's surgeries listed", data: "Shows time, patient, procedure, surgeon" },
+      { step: 7, role: "OT Tech", action: "Prepare OT room", location: "OT Dashboard", expected: "Room status: Ready", data: "Equipment checked, instruments sterilized" },
+      { step: 8, role: "OT Tech", action: "Patient arrives in OT", location: "OT Check-in", expected: "Patient checked in, WHO checklist started", data: "Verify identity, consent, site marking" },
+      { step: 9, role: "OT Tech", action: "Complete WHO Safety Checklist - Sign In", location: "Checklist", expected: "Sign In completed", data: "Patient identity, procedure, allergies confirmed" },
+      { step: 10, role: "Anesthetist", action: "Start anesthesia", location: "Anesthesia Record", expected: "Induction time logged", data: "Drugs given, airway secured, monitoring started" },
+      { step: 11, role: "Surgeon", action: "Surgery begins (Time Out)", location: "OT Notes", expected: "Incision time recorded", data: "Team confirms patient, site, procedure" },
+      { step: 12, role: "Surgeon", action: "Perform surgical procedure", location: "Intra-op Notes", expected: "Procedure steps documented", data: "Findings, technique, complications (if any)" },
+      { step: 13, role: "OT Tech", action: "Log consumables and implants used", location: "Consumables Form", expected: "All items recorded for billing", data: "Sutures, staples, implants with lot numbers" },
+      { step: 14, role: "Surgeon", action: "Complete procedure (Sign Out)", location: "WHO Checklist", expected: "Sign Out completed", data: "Specimen labeling, counts correct, recovery plan" },
+      { step: 15, role: "Anesthetist", action: "End anesthesia, extubate patient", location: "Anesthesia Record", expected: "Emergence time logged", data: "Reversal given, extubation successful" },
+      { step: 16, role: "Anesthetist", action: "Complete anesthesia record", location: "Anesthesia Form", expected: "Full record documented", data: "Total duration, drugs, fluids, blood loss" },
+      { step: 17, role: "PACU Nurse", action: "Receive patient in recovery", location: "/app/ot/pacu", expected: "PACU admission recorded", data: "Aldrete score on arrival" },
+      { step: 18, role: "PACU Nurse", action: "Monitor vitals every 15 minutes", location: "PACU Monitoring", expected: "Vitals logged with recovery score", data: "BP, pulse, SpO2, consciousness, pain score" },
+      { step: 19, role: "PACU Nurse", action: "Assess discharge readiness", location: "PACU Discharge", expected: "Aldrete score ≥9", data: "Activity, respiration, circulation, consciousness" },
+      { step: 20, role: "PACU Nurse", action: "Transfer to ward", location: "Transfer Form", expected: "Patient transferred to IPD bed", data: "Handover to IPD nurse, post-op orders given" }
+    ]
+  },
+  {
+    id: "journey-lab",
+    name: "Laboratory Complete Flow",
+    icon: TestTube,
+    description: "Lab order from doctor through sample collection to patient result access",
+    roles: ["Doctor", "Lab Tech", "Patient (Public Portal)"],
+    estimatedTime: "15-20 minutes",
+    steps: [
+      { step: 1, role: "Doctor", action: "During consultation, create lab order", location: "/app/opd/consultation", expected: "Lab order created, status: Ordered", data: "Tests: CBC, LFT, RFT, Lipid Profile" },
+      { step: 2, role: "Doctor", action: "Add clinical notes for lab", location: "Lab Order Form", expected: "Notes attached to order", data: "Fasting sample required, R/O diabetes" },
+      { step: 3, role: "Doctor", action: "Complete consultation and save", location: "Consultation", expected: "Order sent to lab queue", data: "Patient instructed to go to lab" },
+      { step: 4, role: "Lab Tech", action: "View lab queue", location: "/app/lab/queue", expected: "Order visible with orange 'Not Collected' card", data: "Shows patient, tests, ordering doctor" },
+      { step: 5, role: "Lab Tech", action: "Click to open sample collection", location: "Order Card", expected: "Collection modal opens", data: "Patient details and test list shown" },
+      { step: 6, role: "Lab Tech", action: "Enter sample barcode number", location: "Collection Modal", expected: "Barcode saved, status: Collected", data: "Barcode: LAB-2024-123456" },
+      { step: 7, role: "Lab Tech", action: "Verify sample details and confirm", location: "Collection Modal", expected: "Card turns blue 'Collected'", data: "Sample type, collection time recorded" },
+      { step: 8, role: "Lab Tech", action: "Process samples in lab", location: "Physical Lab", expected: "Results ready for entry", data: "Run tests on analyzers" },
+      { step: 9, role: "Lab Tech", action: "Open result entry form", location: "/app/lab/queue", expected: "Result form with all parameters", data: "Each test's parameters listed" },
+      { step: 10, role: "Lab Tech", action: "Enter CBC results", location: "Result Form", expected: "CBC values saved", data: "WBC: 7500, RBC: 4.8, Hgb: 14.2, Plt: 250000" },
+      { step: 11, role: "Lab Tech", action: "Enter LFT results with abnormal value", location: "Result Form", expected: "Abnormal SGPT highlighted", data: "SGPT: 85 (H), SGOT: 32, Bilirubin: 0.9" },
+      { step: 12, role: "Lab Tech", action: "Enter RFT results", location: "Result Form", expected: "RFT values saved", data: "Creatinine: 1.0, BUN: 18, Uric Acid: 5.2" },
+      { step: 13, role: "Lab Tech", action: "Enter Lipid Profile results", location: "Result Form", expected: "Lipid values saved", data: "Cholesterol: 210 (H), TG: 150, HDL: 45, LDL: 140" },
+      { step: 14, role: "Lab Tech", action: "Review all results for accuracy", location: "Result Review", expected: "All parameters verified", data: "Check for transcription errors" },
+      { step: 15, role: "Lab Tech", action: "Finalize report", location: "Result Form", expected: "Status: Completed", data: "Click 'Complete' button" },
+      { step: 16, role: "Lab Tech", action: "Publish report for patient access", location: "Report View", expected: "Status: Published", data: "Click 'Publish' button" },
+      { step: 17, role: "Patient", action: "Access public lab report portal", location: "/lab-reports", expected: "Search page displayed", data: "Open in incognito/new browser" },
+      { step: 18, role: "Patient", action: "Enter MR# and last 4 digits of phone", location: "Search Form", expected: "Patient's reports listed", data: "MR-2024-00001, Phone: 1234" },
+      { step: 19, role: "Patient", action: "View report summary", location: "Report List", expected: "All published reports shown", data: "Date, tests, status visible" },
+      { step: 20, role: "Patient", action: "Click to view/download full report", location: "Report Detail", expected: "PDF opens/downloads", data: "All results with reference ranges" }
+    ]
+  },
+  {
+    id: "journey-pharmacy-pos",
+    name: "Pharmacy Prescription to Sale",
+    icon: Pill,
+    description: "Complete pharmacy workflow from prescription receipt to sale completion with hold/recall",
+    roles: ["Doctor", "Pharmacist"],
+    estimatedTime: "15-20 minutes",
+    steps: [
+      { step: 1, role: "Doctor", action: "Create prescription with 5 medicines", location: "/app/opd/consultation", expected: "Prescription created, RX# generated", data: "Various medicines with different dosages" },
+      { step: 2, role: "Pharmacist", action: "Open POS terminal", location: "/app/pharmacy/pos", expected: "POS interface ready", data: "Search box, cart, payment sections visible" },
+      { step: 3, role: "Pharmacist", action: "Search by today's token number", location: "Search Box", expected: "Patient found with green 'Today Token #X' badge", data: "Enter 1-4 digit token number" },
+      { step: 4, role: "Pharmacist", action: "View prescription panel on right", location: "Prescription Panel", expected: "5 pending items displayed", data: "Medicine names, dosages, quantities shown" },
+      { step: 5, role: "Pharmacist", action: "Add first prescription item", location: "Prescription Panel", expected: "Item added to cart with price", data: "Click '+' or the item row" },
+      { step: 6, role: "Pharmacist", action: "Add second prescription item", location: "Prescription Panel", expected: "Second item in cart", data: "Running total updated" },
+      { step: 7, role: "Pharmacist", action: "Click 'Add All' for remaining items", location: "Prescription Panel", expected: "All 5 items now in cart", data: "Remaining items added at once" },
+      { step: 8, role: "Pharmacist", action: "Search for OTC item directly", location: "Product Search", expected: "Additional item added", data: "e.g., Vitamin C, not on prescription" },
+      { step: 9, role: "Pharmacist", action: "Hold current transaction", location: "Hold Button", expected: "Transaction saved for later", data: "Cart cleared, hold ID generated" },
+      { step: 10, role: "Pharmacist", action: "Start new customer transaction", location: "Search Box", expected: "Empty cart ready", data: "Search different patient/walk-in" },
+      { step: 11, role: "Pharmacist", action: "Add items for walk-in customer", location: "Product Search", expected: "Items in cart", data: "OTC medicines for walk-in" },
+      { step: 12, role: "Pharmacist", action: "Complete quick sale for walk-in", location: "Checkout", expected: "Sale completed", data: "Cash payment, receipt printed" },
+      { step: 13, role: "Pharmacist", action: "View held transactions", location: "Held List", expected: "Previous transaction visible", data: "Shows patient name, items, total" },
+      { step: 14, role: "Pharmacist", action: "Recall held transaction", location: "Held List", expected: "Original cart restored", data: "All 6 items back in cart" },
+      { step: 15, role: "Pharmacist", action: "Apply 10% discount", location: "Discount Field", expected: "Total reduced by 10%", data: "Enter '10' in discount %" },
+      { step: 16, role: "Pharmacist", action: "Select payment method: Cash", location: "Payment Section", expected: "Cash payment form shown", data: "Amount tendered field visible" },
+      { step: 17, role: "Pharmacist", action: "Enter amount tendered: PKR 5000", location: "Cash Form", expected: "Change calculated automatically", data: "Change: PKR X displayed" },
+      { step: 18, role: "Pharmacist", action: "Complete sale", location: "Checkout Button", expected: "Transaction completed, receipt generated", data: "Success toast, receipt modal opens" },
+      { step: 19, role: "Pharmacist", action: "Print receipt", location: "Receipt Modal", expected: "Receipt prints successfully", data: "Paper receipt or PDF" },
+      { step: 20, role: "System", action: "Verify prescription marked as dispensed", location: "Database", expected: "is_dispensed: true for prescription items", data: "Rx items linked to sale transaction" }
+    ]
+  },
+  {
+    id: "journey-billing-accounts",
+    name: "Billing & Accounts Integration",
+    icon: Banknote,
+    description: "Invoice creation through payment to financial reporting",
+    roles: ["Accountant", "Finance Manager"],
+    estimatedTime: "20-25 minutes",
+    steps: [
+      { step: 1, role: "Accountant", action: "View pending invoices", location: "/app/billing", expected: "Unpaid/partial invoices listed", data: "Filter by status: Pending, Partial" },
+      { step: 2, role: "Accountant", action: "Select an invoice with balance", location: "Invoice List", expected: "Invoice detail opens", data: "Shows line items, payments, balance" },
+      { step: 3, role: "Accountant", action: "Review invoice line items", location: "Invoice Detail", expected: "All charges visible", data: "Consultation, Lab, Pharmacy, etc." },
+      { step: 4, role: "Accountant", action: "Add partial payment (50%)", location: "Payment Modal", expected: "Payment recorded, balance updated", data: "PKR 5000 of 10000 total" },
+      { step: 5, role: "Accountant", action: "Select payment method and reference", location: "Payment Form", expected: "Payment method recorded", data: "Card payment with reference #" },
+      { step: 6, role: "Accountant", action: "Print payment receipt", location: "Receipt Button", expected: "Receipt PDF generated", data: "Shows payment amount, method, balance" },
+      { step: 7, role: "Accountant", action: "Add final payment for remaining balance", location: "Payment Modal", expected: "Invoice fully paid", data: "Status changes to 'Paid'" },
+      { step: 8, role: "Accountant", action: "Print final invoice", location: "Print Invoice", expected: "Complete invoice PDF", data: "All items, payments, zero balance" },
+      { step: 9, role: "Finance Manager", action: "Login as financemanager@healthos.demo", location: "/login", expected: "Redirect to Accounts Dashboard", data: "Password: Demo@123" },
+      { step: 10, role: "Finance Manager", action: "View Accounts Receivable aging", location: "/app/accounts/receivables", expected: "AR buckets displayed", data: "0-30, 31-60, 60+ days buckets" },
+      { step: 11, role: "Finance Manager", action: "Drill down into 60+ days bucket", location: "AR Aging", expected: "Overdue invoices listed", data: "Old unpaid invoices shown" },
+      { step: 12, role: "Finance Manager", action: "View Chart of Accounts", location: "/app/accounts/chart", expected: "All accounts listed", data: "Assets, Liabilities, Income, Expenses" },
+      { step: 13, role: "Finance Manager", action: "View General Ledger for Revenue account", location: "/app/accounts/ledger", expected: "All revenue transactions shown", data: "Select: Patient Revenue account" },
+      { step: 14, role: "Finance Manager", action: "Verify recent payment posted", location: "Ledger Entries", expected: "Today's payment visible", data: "Credit to revenue, date, reference" },
+      { step: 15, role: "Finance Manager", action: "Generate Trial Balance", location: "/app/accounts/reports", expected: "Trial Balance report displayed", data: "Debits = Credits (balanced)" },
+      { step: 16, role: "Finance Manager", action: "Select date range for report", location: "Date Filter", expected: "Report refreshes for period", data: "Current month or fiscal year" },
+      { step: 17, role: "Finance Manager", action: "Generate Profit & Loss statement", location: "Reports Tab", expected: "P&L displayed", data: "Revenue - Expenses = Net Income" },
+      { step: 18, role: "Finance Manager", action: "View revenue breakdown", location: "P&L Detail", expected: "Revenue by category", data: "OPD, IPD, Lab, Pharmacy revenue" },
+      { step: 19, role: "Finance Manager", action: "Generate Balance Sheet", location: "Reports Tab", expected: "Balance Sheet displayed", data: "Assets = Liabilities + Equity" },
+      { step: 20, role: "Finance Manager", action: "Export report to PDF", location: "Export Button", expected: "PDF download initiated", data: "Formatted financial report" }
+    ]
+  },
+  {
+    id: "journey-blood-bank",
+    name: "Blood Bank Transfusion Flow",
+    icon: Syringe,
+    description: "Blood request from ward through cross-match to transfusion with reaction monitoring",
+    roles: ["Doctor", "Blood Bank Tech", "IPD Nurse"],
+    estimatedTime: "20-25 minutes",
+    steps: [
+      { step: 1, role: "Doctor", action: "Create blood request for IPD patient", location: "/app/blood-bank/requests/new", expected: "Blood request created", data: "Blood group: B+, 2 units PRBC" },
+      { step: 2, role: "Doctor", action: "Add clinical indication", location: "Request Form", expected: "Indication saved", data: "Post-surgery anemia, Hb: 7.2" },
+      { step: 3, role: "Doctor", action: "Set priority and required date", location: "Request Form", expected: "Priority set", data: "Urgent, needed within 4 hours" },
+      { step: 4, role: "Blood Bank Tech", action: "View blood requests queue", location: "/app/blood-bank/requests", expected: "New request visible", data: "Shows patient, blood group, units, priority" },
+      { step: 5, role: "Blood Bank Tech", action: "Check blood inventory", location: "/app/blood-bank/inventory", expected: "Available units shown", data: "B+ PRBC: 5 units available" },
+      { step: 6, role: "Blood Bank Tech", action: "Select compatible units", location: "Inventory", expected: "Units selected for cross-match", data: "Select 2 units with valid expiry" },
+      { step: 7, role: "Blood Bank Tech", action: "Collect patient blood sample", location: "Cross-match Form", expected: "Sample collected for testing", data: "Sample ID, collection time recorded" },
+      { step: 8, role: "Blood Bank Tech", action: "Perform cross-match testing", location: "Cross-match Form", expected: "Test results entry form", data: "Major/minor cross-match, antibody screen" },
+      { step: 9, role: "Blood Bank Tech", action: "Enter cross-match results: Compatible", location: "Cross-match Form", expected: "Units cleared for transfusion", data: "Both units compatible" },
+      { step: 10, role: "Blood Bank Tech", action: "Issue blood units", location: "Issue Form", expected: "Units issued to requesting ward", data: "Unit IDs, issue time, issued to" },
+      { step: 11, role: "Blood Bank Tech", action: "Print blood issue slip", location: "Issue Confirmation", expected: "Issue slip generated", data: "Unit details, compatibility, instructions" },
+      { step: 12, role: "IPD Nurse", action: "Receive blood units in ward", location: "Ward", expected: "Units received and verified", data: "Check unit ID, patient ID, blood group" },
+      { step: 13, role: "IPD Nurse", action: "Record pre-transfusion vitals", location: "/app/blood-bank/transfusions", expected: "Baseline vitals recorded", data: "BP, Pulse, Temp, Resp rate" },
+      { step: 14, role: "IPD Nurse", action: "Verify with second nurse (2-person check)", location: "Verification", expected: "Double verification completed", data: "Both nurses sign off" },
+      { step: 15, role: "IPD Nurse", action: "Start transfusion", location: "Transfusion Form", expected: "Transfusion started, time logged", data: "Unit 1 started at slow rate" },
+      { step: 16, role: "IPD Nurse", action: "Monitor for 15 min, record vitals", location: "Monitoring", expected: "15-min vitals recorded", data: "Watch for reactions: fever, rash, SOB" },
+      { step: 17, role: "IPD Nurse", action: "Continue transfusion (no reaction)", location: "Monitoring", expected: "Normal rate continued", data: "Increase to full transfusion rate" },
+      { step: 18, role: "IPD Nurse", action: "Complete unit 1 transfusion", location: "Transfusion Form", expected: "Unit 1 completed", data: "End time, total volume logged" },
+      { step: 19, role: "IPD Nurse", action: "Record post-transfusion vitals", location: "Monitoring", expected: "Post-vitals documented", data: "Compare to pre-transfusion" },
+      { step: 20, role: "IPD Nurse", action: "Start unit 2 transfusion", location: "Transfusion Form", expected: "Second unit started", data: "Repeat monitoring process" },
+      { step: 21, role: "IPD Nurse", action: "Complete all transfusions", location: "Transfusion Form", expected: "All units transfused successfully", data: "Total: 2 units, no reactions" },
+      { step: 22, role: "Blood Bank Tech", action: "Update inventory", location: "/app/blood-bank/inventory", expected: "Units marked as transfused", data: "Inventory reduced by 2 units" }
+    ]
+  },
+  {
+    id: "journey-hr-payroll",
+    name: "HR & Payroll Cycle",
+    icon: UserCog,
+    description: "Employee attendance through leave management to monthly payroll processing",
+    roles: ["HR Officer", "Employee", "HR Manager", "Finance Manager"],
+    estimatedTime: "20-25 minutes",
+    steps: [
+      { step: 1, role: "HR Officer", action: "View daily attendance", location: "/app/hr/attendance", expected: "Today's attendance shown", data: "List of employees with status" },
+      { step: 2, role: "HR Officer", action: "Mark attendance for employee (Present)", location: "Attendance Form", expected: "Attendance recorded", data: "Check-in: 09:00, Check-out: 18:00" },
+      { step: 3, role: "HR Officer", action: "Mark attendance for another employee (Absent)", location: "Attendance Form", expected: "Absence recorded", data: "Status: Absent, no times entered" },
+      { step: 4, role: "HR Officer", action: "Mark late arrival for employee", location: "Attendance Form", expected: "Late minutes calculated", data: "Check-in: 09:45, Late: 45 min" },
+      { step: 5, role: "HR Officer", action: "View monthly attendance sheet", location: "/app/hr/attendance/sheet", expected: "Calendar view with attendance", data: "P=Present, A=Absent, L=Leave, H=Holiday" },
+      { step: 6, role: "Employee", action: "Submit leave request (Annual Leave)", location: "/app/hr/leaves/apply", expected: "Leave request submitted", data: "3 days annual leave, next week" },
+      { step: 7, role: "Employee", action: "Add reason and attach document", location: "Leave Form", expected: "Details saved", data: "Family function, no document needed" },
+      { step: 8, role: "HR Manager", action: "View pending leave requests", location: "/app/hr/leaves", expected: "Request visible in queue", data: "Shows employee, type, dates, status" },
+      { step: 9, role: "HR Manager", action: "Review leave balance", location: "Leave Request", expected: "Available balance shown", data: "Annual: 12 available of 15 total" },
+      { step: 10, role: "HR Manager", action: "Approve leave request", location: "Leave Request", expected: "Leave approved, balance updated", data: "Status: Approved, 9 remaining" },
+      { step: 11, role: "HR Manager", action: "Reject another leave request", location: "Leave Request", expected: "Leave rejected with reason", data: "Reason: Critical project deadline" },
+      { step: 12, role: "HR Officer", action: "View attendance summary for month", location: "/app/hr/attendance/report", expected: "Monthly summary displayed", data: "Present: 22, Absent: 2, Leave: 2, Late: 4" },
+      { step: 13, role: "HR Manager", action: "Navigate to payroll processing", location: "/app/hr/payroll", expected: "Payroll dashboard opens", data: "Current month processing status" },
+      { step: 14, role: "HR Manager", action: "Generate monthly payroll", location: "Process Payroll", expected: "Payroll calculated for all employees", data: "Based on attendance, leaves, deductions" },
+      { step: 15, role: "HR Manager", action: "Review payroll calculations", location: "Payroll Review", expected: "Individual salaries shown", data: "Gross, deductions, net for each" },
+      { step: 16, role: "HR Manager", action: "Apply late deduction", location: "Payroll Adjustment", expected: "Deduction applied", data: "Late penalty: PKR 500 for 45 min late" },
+      { step: 17, role: "HR Manager", action: "Approve payroll for month", location: "Approve Button", expected: "Payroll approved", data: "Status: Approved, ready for disbursement" },
+      { step: 18, role: "HR Manager", action: "Generate payslips", location: "Payslip Generator", expected: "Payslips created for all", data: "PDF payslips generated" },
+      { step: 19, role: "HR Manager", action: "Print individual payslip", location: "Payslip View", expected: "Payslip PDF opens", data: "Shows all earnings, deductions, net" },
+      { step: 20, role: "Finance Manager", action: "View salary expense journal", location: "/app/accounts/ledger", expected: "Payroll journal entry visible", data: "Debit: Salary Expense, Credit: Payable" },
+      { step: 21, role: "Finance Manager", action: "Process salary payment", location: "/app/accounts/payables", expected: "Salary payment recorded", data: "Bank transfer, reference number" }
+    ]
+  },
+  {
+    id: "journey-inventory",
+    name: "Inventory Procurement Cycle",
+    icon: Package,
+    description: "Purchase requisition through PO approval to GRN and stock update",
+    roles: ["Store Manager", "Finance Manager"],
+    estimatedTime: "20-25 minutes",
+    steps: [
+      { step: 1, role: "Store Manager", action: "View low stock alerts", location: "/app/inventory/alerts", expected: "Items below reorder level shown", data: "Red alerts for critical items" },
+      { step: 2, role: "Store Manager", action: "Navigate to Purchase Orders", location: "/app/inventory/purchase-orders", expected: "PO list displayed", data: "Filter: Draft, Pending, Approved" },
+      { step: 3, role: "Store Manager", action: "Create new Purchase Order", location: "New PO Button", expected: "PO form opens", data: "Auto-generates PO number" },
+      { step: 4, role: "Store Manager", action: "Select vendor", location: "Vendor Dropdown", expected: "Vendor selected", data: "ABC Medical Supplies Pvt Ltd" },
+      { step: 5, role: "Store Manager", action: "Add line item 1: Syringes", location: "Item Search", expected: "Item added with quantity and price", data: "Qty: 500, Unit Price: PKR 15" },
+      { step: 6, role: "Store Manager", action: "Add line item 2: Gloves", location: "Item Search", expected: "Second item added", data: "Qty: 1000, Unit Price: PKR 8" },
+      { step: 7, role: "Store Manager", action: "Add line item 3: IV Cannula", location: "Item Search", expected: "Third item added", data: "Qty: 200, Unit Price: PKR 45" },
+      { step: 8, role: "Store Manager", action: "Review PO total", location: "PO Summary", expected: "Total calculated", data: "Subtotal + Tax = Grand Total" },
+      { step: 9, role: "Store Manager", action: "Submit PO for approval", location: "Submit Button", expected: "Status: Pending Approval", data: "Sent to Finance Manager" },
+      { step: 10, role: "Finance Manager", action: "View pending PO approvals", location: "/app/inventory/purchase-orders", expected: "PO visible in approval queue", data: "Filter: Pending Approval" },
+      { step: 11, role: "Finance Manager", action: "Review PO details", location: "PO Detail", expected: "All line items, pricing visible", data: "Check budget, vendor terms" },
+      { step: 12, role: "Finance Manager", action: "Approve Purchase Order", location: "Approve Button", expected: "Status: Approved", data: "PO ready to send to vendor" },
+      { step: 13, role: "Store Manager", action: "Print/Email PO to vendor", location: "PO Actions", expected: "PO document generated", data: "PDF with all details, terms" },
+      { step: 14, role: "Store Manager", action: "Goods received from vendor", location: "Physical Receipt", expected: "Ready to create GRN", data: "Vendor delivers items" },
+      { step: 15, role: "Store Manager", action: "Create GRN from PO", location: "/app/inventory/grn", expected: "GRN form opens with PO items", data: "Auto-populates from approved PO" },
+      { step: 16, role: "Store Manager", action: "Enter received quantity for Syringes", location: "GRN Form", expected: "Qty received recorded", data: "Ordered: 500, Received: 480" },
+      { step: 17, role: "Store Manager", action: "Enter received quantity for Gloves", location: "GRN Form", expected: "Full quantity received", data: "Ordered: 1000, Received: 1000" },
+      { step: 18, role: "Store Manager", action: "Enter received quantity for IV Cannula", location: "GRN Form", expected: "Qty recorded", data: "Ordered: 200, Received: 200" },
+      { step: 19, role: "Store Manager", action: "Enter batch numbers and expiry", location: "GRN Form", expected: "Batch details saved", data: "Batch: ABC123, Expiry: Dec 2025" },
+      { step: 20, role: "Store Manager", action: "Note discrepancy in Syringes", location: "GRN Notes", expected: "Shortage documented", data: "20 units short, vendor to replace" },
+      { step: 21, role: "Store Manager", action: "Verify and complete GRN", location: "Verify Button", expected: "GRN completed, stock updated", data: "Inventory levels increased" },
+      { step: 22, role: "Store Manager", action: "View updated stock levels", location: "/app/inventory/stock-levels", expected: "New quantities reflected", data: "Syringes: +480, Gloves: +1000" },
+      { step: 23, role: "Finance Manager", action: "View Accounts Payable", location: "/app/accounts/payables", expected: "Vendor payable created", data: "Liability to ABC Medical Supplies" },
+      { step: 24, role: "Finance Manager", action: "Verify GRN value matches", location: "Payables Detail", expected: "Amount matches GRN total", data: "Less the 20 short syringes" }
+    ]
+  }
+];
+
+// ============ MODULE TEST CASES ============
 const TEST_CASES = {
   demoAccounts: [
     { role: "Super Admin", email: "superadmin@healthos.demo", module: "Platform Management" },
@@ -26,478 +356,237 @@ const TEST_CASES = {
     { role: "HR Manager", email: "hrmanager@healthos.demo", module: "HR Operations" },
     { role: "HR Officer", email: "hrofficer@healthos.demo", module: "Attendance & Leaves" },
     { role: "Store Manager", email: "storemanager@healthos.demo", module: "Inventory & Procurement" },
-    { role: "Blood Bank Tech", email: "bloodbank@healthos.demo", module: "Blood Bank Operations" },
+    { role: "Blood Bank Tech", email: "bloodbank@healthos.demo", module: "Blood Bank Operations" }
   ],
   modules: [
-    {
-      id: "reception",
-      name: "Reception & Patient Registration",
-      icon: Users,
-      cases: [
-        { id: "REC-001", name: "Register new patient", steps: "Dashboard > New Patient > Fill form", expected: "Patient created with MR#" },
-        { id: "REC-002", name: "Search patient by MR#", steps: "Search box > Enter MR#", expected: "Patient found" },
-        { id: "REC-003", name: "Search patient by CNIC", steps: "Search box > Enter CNIC", expected: "Patient found" },
-        { id: "REC-004", name: "Search patient by phone", steps: "Search box > Enter phone number", expected: "Patient found" },
-        { id: "REC-005", name: "Create walk-in appointment", steps: "Patient > New Appointment > Walk-in", expected: "Token generated" },
-        { id: "REC-006", name: "Schedule future appointment", steps: "Calendar > Select slot > Confirm", expected: "Appointment scheduled" },
-        { id: "REC-007", name: "Check-in patient", steps: "Appointments > Select > Check In", expected: "Status: checked_in" },
-        { id: "REC-008", name: "Print patient card", steps: "Patient detail > Print", expected: "PDF generated" },
-        { id: "REC-009", name: "Edit patient details", steps: "Patient > Edit > Update > Save", expected: "Details updated" },
-        { id: "REC-010", name: "View patient history", steps: "Patient > History tab", expected: "All visits shown" },
-      ]
-    },
-    {
-      id: "opd-doctor",
-      name: "OPD - Doctor Dashboard",
-      icon: Stethoscope,
-      cases: [
-        { id: "OPD-001", name: "View patient queue", steps: "/app/opd", expected: "See checked-in patients" },
-        { id: "OPD-002", name: "Start consultation", steps: "Select patient > Start", expected: "Consultation form opens" },
-        { id: "OPD-003", name: "Record vitals", steps: "Enter BP, Temp, Pulse, SpO2", expected: "Vitals saved" },
-        { id: "OPD-004", name: "Add diagnosis (ICD-10)", steps: "Search diagnosis > Select", expected: "Diagnosis recorded" },
-        { id: "OPD-005", name: "Create prescription", steps: "Add medicines > Save", expected: "RX# generated" },
-        { id: "OPD-006", name: "Order lab tests", steps: "Add tests > Submit", expected: "Lab order created" },
-        { id: "OPD-007", name: "Order imaging", steps: "Add X-ray/Ultrasound > Submit", expected: "Imaging order created" },
-        { id: "OPD-008", name: "Complete consultation", steps: "Click Complete", expected: "Status: completed" },
-        { id: "OPD-009", name: "Print prescription", steps: "Prescription > Print", expected: "PDF generated" },
-        { id: "OPD-010", name: "View patient history", steps: "Patient > History tab", expected: "All previous visits shown" },
-        { id: "OPD-011", name: "Add follow-up appointment", steps: "Consultation > Follow-up", expected: "Future appointment created" },
-        { id: "OPD-012", name: "Refer to specialist", steps: "Consultation > Refer", expected: "Referral created" },
-      ]
-    },
-    {
-      id: "opd-nursing",
-      name: "OPD - Nursing Station",
-      icon: Stethoscope,
-      cases: [
-        { id: "NRS-001", name: "View triage queue", steps: "/app/opd/nursing", expected: "See patients needing vitals" },
-        { id: "NRS-002", name: "Record patient vitals", steps: "Select patient > Enter vitals", expected: "Vitals saved" },
-        { id: "NRS-003", name: "Triage assessment", steps: "Complete triage form", expected: "Patient ready for doctor" },
-        { id: "NRS-004", name: "View patient history", steps: "Patient > Quick view", expected: "Medical history displayed" },
-        { id: "NRS-005", name: "Update priority", steps: "Patient > Set priority", expected: "Queue position updated" },
-      ]
-    },
-    {
-      id: "pharmacy-pos",
-      name: "Pharmacy POS",
-      icon: Pill,
-      cases: [
-        { id: "PHA-001", name: "Search by token number", steps: "Enter today's token #", expected: "Patient found with green badge" },
-        { id: "PHA-002", name: "Search by MR#", steps: "Enter patient MR#", expected: "Patient with prescriptions shown" },
-        { id: "PHA-003", name: "Search by patient name", steps: "Enter patient name", expected: "Matching patients listed" },
-        { id: "PHA-004", name: "View pending prescriptions", steps: "Select patient", expected: "Rx items displayed" },
-        { id: "PHA-005", name: "Add Rx item to cart", steps: "Click prescription item", expected: "Item added to cart" },
-        { id: "PHA-006", name: "Add all Rx items", steps: "Click 'Add All'", expected: "All items in cart" },
-        { id: "PHA-007", name: "Search medicine directly", steps: "Product search > Select", expected: "Item added to cart" },
-        { id: "PHA-008", name: "Change quantity", steps: "Cart item > +/- buttons", expected: "Quantity updated" },
-        { id: "PHA-009", name: "Apply discount", steps: "Enter discount %", expected: "Price adjusted" },
-        { id: "PHA-010", name: "Process cash payment", steps: "Checkout > Cash", expected: "Transaction complete" },
-        { id: "PHA-011", name: "Process card payment", steps: "Checkout > Card", expected: "Transaction complete" },
-        { id: "PHA-012", name: "Print receipt", steps: "After payment > Print", expected: "Receipt generated" },
-        { id: "PHA-013", name: "Hold transaction", steps: "Click Hold", expected: "Transaction saved for later" },
-        { id: "PHA-014", name: "Recall held transaction", steps: "Held list > Select", expected: "Cart restored" },
-        { id: "PHA-015", name: "Verify auto-dispense", steps: "After sale", expected: "Prescription marked dispensed" },
-      ]
-    },
-    {
-      id: "pharmacy-inventory",
-      name: "Pharmacy Inventory",
-      icon: Pill,
-      cases: [
-        { id: "INV-001", name: "Add new medicine", steps: "Medicines > Add", expected: "Medicine created with code" },
-        { id: "INV-002", name: "Stock entry", steps: "Inventory > Add Stock", expected: "Stock level updated" },
-        { id: "INV-003", name: "View stock alerts", steps: "Alerts page", expected: "Low stock items shown" },
-        { id: "INV-004", name: "View expiry alerts", steps: "Alerts page", expected: "Expiring items shown" },
-        { id: "INV-005", name: "View stock movements", steps: "Movements page", expected: "All transactions logged" },
-        { id: "INV-006", name: "Adjust stock", steps: "Stock > Adjust", expected: "Adjustment recorded" },
-        { id: "INV-007", name: "Batch tracking", steps: "Medicine > Batches", expected: "FIFO order shown" },
-      ]
-    },
-    {
-      id: "laboratory",
-      name: "Laboratory",
-      icon: FlaskConical,
-      cases: [
-        { id: "LAB-001", name: "View lab queue", steps: "/app/lab/queue", expected: "Pending orders shown" },
-        { id: "LAB-002", name: "Collect sample", steps: "Select order > Collect", expected: "Status: collected" },
-        { id: "LAB-003", name: "Enter results", steps: "Result entry > Values", expected: "Results saved" },
-        { id: "LAB-004", name: "Enter out-of-range result", steps: "Enter abnormal value", expected: "Alert shown" },
-        { id: "LAB-005", name: "Complete order", steps: "Mark Complete", expected: "Status: completed" },
-        { id: "LAB-006", name: "Print lab report", steps: "Order > Print", expected: "PDF generated" },
-        { id: "LAB-007", name: "Public report access", steps: "/lab-reports > Enter ID", expected: "Report viewable" },
-        { id: "LAB-008", name: "Reject sample", steps: "Order > Reject", expected: "Status: rejected" },
-      ]
-    },
-    {
-      id: "radiology",
-      name: "Radiology/Imaging",
-      icon: Radio,
-      cases: [
-        { id: "RAD-001", name: "View technician worklist", steps: "/app/radiology", expected: "Pending orders shown" },
-        { id: "RAD-002", name: "Capture image", steps: "Select order > Capture", expected: "Image uploaded" },
-        { id: "RAD-003", name: "Create report", steps: "Reporting worklist > Write", expected: "Report saved" },
-        { id: "RAD-004", name: "Use report template", steps: "Templates > Select", expected: "Template applied" },
-        { id: "RAD-005", name: "Verify report", steps: "Verification queue > Approve", expected: "Report finalized" },
-        { id: "RAD-006", name: "Print imaging report", steps: "Report > Print", expected: "PDF generated" },
-      ]
-    },
-    {
-      id: "emergency",
-      name: "Emergency Department",
-      icon: Ambulance,
-      cases: [
-        { id: "ER-001", name: "Quick registration (known)", steps: "/app/emergency/register > Existing", expected: "ER# generated" },
-        { id: "ER-002", name: "Quick registration (unknown)", steps: "/app/emergency/register > Unknown", expected: "ER# with temp ID" },
-        { id: "ER-003", name: "Triage assessment", steps: "Assign ESI level", expected: "Priority set (1-5)" },
-        { id: "ER-004", name: "View ER queue", steps: "ER Dashboard", expected: "Patients by priority" },
-        { id: "ER-005", name: "Record treatment", steps: "Add treatment notes", expected: "Notes saved" },
-        { id: "ER-006", name: "Discharge from ER", steps: "Complete treatment > Discharge", expected: "Patient discharged" },
-        { id: "ER-007", name: "Admit to IPD from ER", steps: "ER > Admit", expected: "Admission created" },
-        { id: "ER-008", name: "Print MLC report", steps: "ER > Print MLC", expected: "PDF generated" },
-        { id: "ER-009", name: "Print ER slip", steps: "ER > Print Slip", expected: "PDF generated" },
-        { id: "ER-010", name: "Mark as trauma case", steps: "Registration > Trauma flag", expected: "Trauma badge shown" },
-        { id: "ER-011", name: "Mark as MLC case", steps: "Registration > MLC flag", expected: "MLC badge shown" },
-      ]
-    },
-    {
-      id: "ipd",
-      name: "IPD - Inpatient Department",
-      icon: BedDouble,
-      cases: [
-        { id: "IPD-001", name: "New admission", steps: "Admissions > New", expected: "Admission created" },
-        { id: "IPD-002", name: "Assign bed", steps: "Select ward > Assign bed", expected: "Bed status: occupied" },
-        { id: "IPD-003", name: "View bed map", steps: "Bed Management > Map", expected: "Visual bed layout" },
-        { id: "IPD-004", name: "Record daily round", steps: "Rounds > Add notes", expected: "Round documented" },
-        { id: "IPD-005", name: "Record vitals chart", steps: "Vitals chart > Add", expected: "Vitals saved" },
-        { id: "IPD-006", name: "Add nursing notes", steps: "Notes > Add", expected: "Notes saved" },
-        { id: "IPD-007", name: "Medication chart (eMAR)", steps: "Medications > Administer", expected: "Dose recorded" },
-        { id: "IPD-008", name: "Diet management", steps: "Diet > Assign", expected: "Diet plan set" },
-        { id: "IPD-009", name: "Bed transfer", steps: "Transfer > New bed", expected: "Transfer recorded" },
-        { id: "IPD-010", name: "Ward transfer", steps: "Transfer > New ward", expected: "Ward changed" },
-        { id: "IPD-011", name: "Final billing", steps: "Discharge > Billing", expected: "Charges compiled" },
-        { id: "IPD-012", name: "Discharge summary", steps: "Complete discharge", expected: "Summary generated" },
-        { id: "IPD-013", name: "Housekeeping queue", steps: "After discharge", expected: "Bed in cleaning queue" },
-      ]
-    },
-    {
-      id: "ot",
-      name: "Operation Theatre",
-      icon: Scissors,
-      cases: [
-        { id: "OT-001", name: "Schedule surgery", steps: "/app/ot/schedule > New", expected: "Surgery scheduled" },
-        { id: "OT-002", name: "View OT calendar", steps: "OT Schedule", expected: "Calendar view shown" },
-        { id: "OT-003", name: "Pre-op assessment", steps: "Surgery > Pre-Op", expected: "Assessment saved" },
-        { id: "OT-004", name: "Anesthesia record", steps: "Surgery > Anesthesia", expected: "Record saved" },
-        { id: "OT-005", name: "Intra-op notes", steps: "Surgery > Notes", expected: "Notes saved" },
-        { id: "OT-006", name: "Consumables used", steps: "Surgery > Consumables", expected: "Items logged" },
-        { id: "OT-007", name: "PACU tracking", steps: "Recovery > Monitor", expected: "Recovery tracked" },
-        { id: "OT-008", name: "Complete surgery", steps: "Mark Complete", expected: "Status: completed" },
-      ]
-    },
-    {
-      id: "blood-bank",
-      name: "Blood Bank",
-      icon: Droplets,
-      cases: [
-        { id: "BB-001", name: "Register donor", steps: "Donors > New", expected: "Donor created" },
-        { id: "BB-002", name: "Donor screening", steps: "Donation > Screen", expected: "Screening result saved" },
-        { id: "BB-003", name: "Record donation", steps: "Donation > New", expected: "Unit added to inventory" },
-        { id: "BB-004", name: "View blood inventory", steps: "Inventory page", expected: "Units by group shown" },
-        { id: "BB-005", name: "Blood request", steps: "Requests > New", expected: "Request created" },
-        { id: "BB-006", name: "Cross-match test", steps: "Request > Cross-match", expected: "Compatibility checked" },
-        { id: "BB-007", name: "Issue blood", steps: "Request > Issue", expected: "Unit issued" },
-        { id: "BB-008", name: "Record transfusion", steps: "Transfusion > Complete", expected: "Transfusion logged" },
-        { id: "BB-009", name: "Track reaction", steps: "Transfusion > Reaction", expected: "Reaction documented" },
-        { id: "BB-010", name: "Component separation", steps: "Unit > Separate", expected: "Components created" },
-      ]
-    },
-    {
-      id: "billing",
-      name: "Billing & Invoicing",
-      icon: Receipt,
-      cases: [
-        { id: "BIL-001", name: "Create invoice", steps: "Invoices > New", expected: "Invoice generated" },
-        { id: "BIL-002", name: "Add line items", steps: "Services/Medicines", expected: "Items added" },
-        { id: "BIL-003", name: "Apply discount", steps: "Enter discount", expected: "Total adjusted" },
-        { id: "BIL-004", name: "Collect full payment", steps: "Payment > Add", expected: "Status: paid" },
-        { id: "BIL-005", name: "Collect partial payment", steps: "Enter partial amount", expected: "Balance shown" },
-        { id: "BIL-006", name: "Print invoice", steps: "Invoice > Print", expected: "PDF generated" },
-        { id: "BIL-007", name: "Print receipt", steps: "Payment > Print", expected: "Receipt generated" },
-        { id: "BIL-008", name: "View payment history", steps: "Payments > History", expected: "All payments listed" },
-        { id: "BIL-009", name: "Cancel invoice", steps: "Invoice > Cancel", expected: "Invoice voided" },
-        { id: "BIL-010", name: "Refund payment", steps: "Payment > Refund", expected: "Refund processed" },
-      ]
-    },
-    {
-      id: "insurance",
-      name: "Insurance Claims",
-      icon: Building2,
-      cases: [
-        { id: "INS-001", name: "Add insurance company", steps: "Companies > New", expected: "Company created" },
-        { id: "INS-002", name: "Create insurance plan", steps: "Plans > New", expected: "Plan created" },
-        { id: "INS-003", name: "Link patient insurance", steps: "Patient > Insurance", expected: "Coverage linked" },
-        { id: "INS-004", name: "Create claim", steps: "Claims > New", expected: "Claim submitted" },
-        { id: "INS-005", name: "Track claim status", steps: "Claims > View", expected: "Status shown" },
-        { id: "INS-006", name: "Record claim payment", steps: "Claim > Payment received", expected: "Payment logged" },
-      ]
-    },
-    {
-      id: "inventory",
-      name: "Inventory & Procurement",
-      icon: Package,
-      cases: [
-        { id: "STK-001", name: "Add item to catalog", steps: "Items > New", expected: "Item created" },
-        { id: "STK-002", name: "Add vendor", steps: "Vendors > New", expected: "Vendor created" },
-        { id: "STK-003", name: "Create purchase order", steps: "PO > New", expected: "PO generated" },
-        { id: "STK-004", name: "Approve PO", steps: "PO > Approve", expected: "Status: approved" },
-        { id: "STK-005", name: "Receive goods (GRN)", steps: "GRN > Create from PO", expected: "GRN created" },
-        { id: "STK-006", name: "Verify GRN", steps: "GRN > Verify", expected: "Stock updated" },
-        { id: "STK-007", name: "Create requisition", steps: "Requisitions > New", expected: "Request submitted" },
-        { id: "STK-008", name: "Approve requisition", steps: "Requisition > Approve", expected: "Status: approved" },
-        { id: "STK-009", name: "Issue stock", steps: "Requisition > Issue", expected: "Stock reduced" },
-        { id: "STK-010", name: "View stock levels", steps: "Stock Levels page", expected: "Current stock shown" },
-      ]
-    },
-    {
-      id: "accounts",
-      name: "Accounts & Finance",
-      icon: Calculator,
-      cases: [
-        { id: "ACC-001", name: "View chart of accounts", steps: "/app/accounts/chart", expected: "Accounts listed" },
-        { id: "ACC-002", name: "Create journal entry", steps: "Journals > New", expected: "Entry created" },
-        { id: "ACC-003", name: "View general ledger", steps: "Ledger > Select account", expected: "Transactions shown" },
-        { id: "ACC-004", name: "View receivables", steps: "Receivables page", expected: "Outstanding shown" },
-        { id: "ACC-005", name: "View payables", steps: "Payables page", expected: "Liabilities shown" },
-        { id: "ACC-006", name: "Generate trial balance", steps: "Reports > Trial Balance", expected: "Report generated" },
-        { id: "ACC-007", name: "Generate P&L statement", steps: "Reports > Profit & Loss", expected: "Report generated" },
-        { id: "ACC-008", name: "Generate balance sheet", steps: "Reports > Balance Sheet", expected: "Report generated" },
-        { id: "ACC-009", name: "Bank reconciliation", steps: "Banking > Reconcile", expected: "Reconciliation complete" },
-      ]
-    },
-    {
-      id: "hr",
-      name: "HR & Staff Management",
-      icon: Users,
-      cases: [
-        { id: "HR-001", name: "Add employee", steps: "Employees > New", expected: "Employee created" },
-        { id: "HR-002", name: "Mark attendance", steps: "Attendance > Mark", expected: "Attendance recorded" },
-        { id: "HR-003", name: "View attendance sheet", steps: "Attendance > Sheet", expected: "Monthly view shown" },
-        { id: "HR-004", name: "Submit leave request", steps: "Leaves > Apply", expected: "Request submitted" },
-        { id: "HR-005", name: "Approve leave", steps: "Leaves > Approve", expected: "Leave approved" },
-        { id: "HR-006", name: "Reject leave", steps: "Leaves > Reject", expected: "Leave rejected" },
-        { id: "HR-007", name: "Process payroll", steps: "Payroll > Process", expected: "Salaries calculated" },
-        { id: "HR-008", name: "Generate payslip", steps: "Payroll > Print", expected: "Payslip generated" },
-        { id: "HR-009", name: "View doctors list", steps: "HR > Doctors", expected: "Licensed doctors shown" },
-        { id: "HR-010", name: "View nurses list", steps: "HR > Nurses", expected: "Registered nurses shown" },
-      ]
-    },
-    {
-      id: "settings",
-      name: "Settings & Administration",
-      icon: Settings,
-      cases: [
-        { id: "SET-001", name: "Update organization", steps: "Settings > General", expected: "Settings saved" },
-        { id: "SET-002", name: "Manage branches", steps: "Settings > Branches", expected: "Branches listed" },
-        { id: "SET-003", name: "Add new user", steps: "Settings > Users > New", expected: "User created" },
-        { id: "SET-004", name: "Assign roles", steps: "User > Roles", expected: "Role assigned" },
-        { id: "SET-005", name: "Configure notifications", steps: "Settings > Notifications", expected: "Settings saved" },
-        { id: "SET-006", name: "View audit logs", steps: "Settings > Audit Logs", expected: "Activity logged" },
-        { id: "SET-007", name: "Manage kiosks", steps: "Settings > Kiosks", expected: "Kiosks listed" },
-        { id: "SET-008", name: "Configure queue display", steps: "Settings > Queue Display", expected: "Display configured" },
-      ]
-    },
-    {
-      id: "public",
-      name: "Public Portals",
-      icon: Globe,
-      cases: [
-        { id: "PUB-001", name: "Queue display", steps: "/display/queue/{orgId}", expected: "Live queue shown" },
-        { id: "PUB-002", name: "ER display", steps: "/display/er/{orgId}", expected: "ER queue shown" },
-        { id: "PUB-003", name: "Token kiosk check-in", steps: "/kiosk/{kioskId} > Enter phone", expected: "Patient found" },
-        { id: "PUB-004", name: "Token generation", steps: "Kiosk > Confirm", expected: "Token printed" },
-        { id: "PUB-005", name: "Lab report portal", steps: "/lab-reports > Enter ID", expected: "Report accessible" },
-      ]
-    },
+    { name: "Reception & Patient Registration", icon: "👤", tests: [
+      { id: "REC-001", test: "Register new patient", steps: "Dashboard > New Patient > Fill form", expected: "Patient created with MR#" },
+      { id: "REC-002", test: "Search patient by MR#", steps: "Search box > Enter MR#", expected: "Patient found" },
+      { id: "REC-003", test: "Search patient by CNIC", steps: "Search box > Enter CNIC", expected: "Patient found" },
+      { id: "REC-004", test: "Create walk-in appointment", steps: "Patient > New Appointment > Walk-in", expected: "Token generated" },
+      { id: "REC-005", test: "Check-in patient", steps: "Appointments > Select > Check In", expected: "Status: checked_in" }
+    ]},
+    { name: "OPD - Doctor Dashboard", icon: "🩺", tests: [
+      { id: "OPD-001", test: "View patient queue", steps: "/app/opd", expected: "See checked-in patients" },
+      { id: "OPD-002", test: "Start consultation", steps: "Select patient > Start", expected: "Consultation form opens" },
+      { id: "OPD-003", test: "Add diagnosis (ICD-10)", steps: "Search diagnosis > Select", expected: "Diagnosis recorded" },
+      { id: "OPD-004", test: "Create prescription", steps: "Add medicines > Save", expected: "RX# generated" },
+      { id: "OPD-005", test: "Order lab tests", steps: "Add tests > Submit", expected: "Lab order created" },
+      { id: "OPD-006", test: "Complete consultation", steps: "Click Complete", expected: "Status: completed" }
+    ]},
+    { name: "Pharmacy POS", icon: "💊", tests: [
+      { id: "PHA-001", test: "Search by token number", steps: "Enter today's token #", expected: "Patient found" },
+      { id: "PHA-002", test: "View pending prescriptions", steps: "Select patient", expected: "Rx items displayed" },
+      { id: "PHA-003", test: "Add all Rx items", steps: "Click 'Add All'", expected: "All items in cart" },
+      { id: "PHA-004", test: "Process cash payment", steps: "Checkout > Cash", expected: "Transaction complete" },
+      { id: "PHA-005", test: "Hold transaction", steps: "Click Hold", expected: "Transaction saved" },
+      { id: "PHA-006", test: "Recall held transaction", steps: "Held list > Select", expected: "Cart restored" }
+    ]},
+    { name: "Laboratory", icon: "🔬", tests: [
+      { id: "LAB-001", test: "View lab queue", steps: "/app/lab/queue", expected: "Pending orders shown" },
+      { id: "LAB-002", test: "Collect sample", steps: "Select order > Enter barcode", expected: "Status: collected" },
+      { id: "LAB-003", test: "Enter results", steps: "Result entry > Values", expected: "Results saved" },
+      { id: "LAB-004", test: "Publish report", steps: "Click Publish", expected: "Status: published" },
+      { id: "LAB-005", test: "Public report access", steps: "/lab-reports > Enter ID", expected: "Report viewable" }
+    ]},
+    { name: "Emergency Department", icon: "🚨", tests: [
+      { id: "ER-001", test: "Quick registration", steps: "/app/emergency/register", expected: "ER# generated" },
+      { id: "ER-002", test: "Triage assessment", steps: "Assign ESI level", expected: "Priority set" },
+      { id: "ER-003", test: "Record treatment", steps: "Add treatment notes", expected: "Notes saved" },
+      { id: "ER-004", test: "Admit to IPD", steps: "ER > Admit", expected: "Admission created" }
+    ]},
+    { name: "IPD - Inpatient", icon: "🏥", tests: [
+      { id: "IPD-001", test: "New admission", steps: "Admissions > New", expected: "Admission created" },
+      { id: "IPD-002", test: "Assign bed", steps: "Select ward > Assign bed", expected: "Bed occupied" },
+      { id: "IPD-003", test: "Daily round", steps: "Rounds > Add notes", expected: "Round documented" },
+      { id: "IPD-004", test: "eMAR administration", steps: "Medications > Administer", expected: "Dose recorded" },
+      { id: "IPD-005", test: "Discharge patient", steps: "Complete discharge", expected: "Summary generated" }
+    ]},
+    { name: "Blood Bank", icon: "🩸", tests: [
+      { id: "BB-001", test: "Blood request", steps: "Requests > New", expected: "Request created" },
+      { id: "BB-002", test: "Cross-match test", steps: "Request > Cross-match", expected: "Compatibility checked" },
+      { id: "BB-003", test: "Issue blood", steps: "Request > Issue", expected: "Unit issued" },
+      { id: "BB-004", test: "Record transfusion", steps: "Transfusion > Complete", expected: "Transfusion logged" }
+    ]},
+    { name: "Billing & Invoicing", icon: "💵", tests: [
+      { id: "BIL-001", test: "Create invoice", steps: "Invoices > New", expected: "Invoice generated" },
+      { id: "BIL-002", test: "Collect payment", steps: "Payment > Add", expected: "Payment recorded" },
+      { id: "BIL-003", test: "Partial payment", steps: "Enter partial amount", expected: "Balance shown" },
+      { id: "BIL-004", test: "Print invoice", steps: "Invoice > Print", expected: "PDF generated" }
+    ]},
+    { name: "Accounts & Finance", icon: "📊", tests: [
+      { id: "ACC-001", test: "View chart of accounts", steps: "/app/accounts/chart", expected: "Accounts listed" },
+      { id: "ACC-002", test: "View general ledger", steps: "Ledger > Select account", expected: "Transactions shown" },
+      { id: "ACC-003", test: "Generate trial balance", steps: "Reports > Trial Balance", expected: "Report generated" },
+      { id: "ACC-004", test: "Generate P&L", steps: "Reports > Profit & Loss", expected: "Report generated" }
+    ]},
+    { name: "HR & Staff", icon: "👥", tests: [
+      { id: "HR-001", test: "Mark attendance", steps: "Attendance > Mark", expected: "Attendance recorded" },
+      { id: "HR-002", test: "Submit leave request", steps: "Leaves > Apply", expected: "Request submitted" },
+      { id: "HR-003", test: "Approve leave", steps: "Leaves > Approve", expected: "Leave approved" },
+      { id: "HR-004", test: "Process payroll", steps: "Payroll > Process", expected: "Salaries calculated" }
+    ]},
+    { name: "Inventory", icon: "📦", tests: [
+      { id: "INV-001", test: "Create purchase order", steps: "PO > New", expected: "PO generated" },
+      { id: "INV-002", test: "Approve PO", steps: "PO > Approve", expected: "Status: approved" },
+      { id: "INV-003", test: "Receive goods (GRN)", steps: "GRN > Create from PO", expected: "GRN created" },
+      { id: "INV-004", test: "View stock levels", steps: "Stock Levels page", expected: "Current stock shown" }
+    ]}
   ]
+};
+
+const getRoleBadgeColor = (role: string) => {
+  const colors: Record<string, string> = {
+    "Receptionist": "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
+    "Nurse": "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-300",
+    "Doctor": "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+    "Lab Tech": "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
+    "Pharmacist": "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300",
+    "Accountant": "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
+    "Finance Manager": "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300",
+    "HR Officer": "bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-300",
+    "HR Manager": "bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-300",
+    "Store Manager": "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300",
+    "ER Staff": "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
+    "ER Doctor": "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
+    "IPD Nurse": "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300",
+    "IPD Doctor": "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300",
+    "Surgeon": "bg-violet-100 text-violet-800 dark:bg-violet-900 dark:text-violet-300",
+    "Anesthetist": "bg-fuchsia-100 text-fuchsia-800 dark:bg-fuchsia-900 dark:text-fuchsia-300",
+    "OT Tech": "bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-300",
+    "PACU Nurse": "bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-300",
+    "Blood Bank Tech": "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
+    "Dietitian": "bg-lime-100 text-lime-800 dark:bg-lime-900 dark:text-lime-300",
+    "Housekeeping": "bg-slate-100 text-slate-800 dark:bg-slate-900 dark:text-slate-300",
+    "Patient": "bg-sky-100 text-sky-800 dark:bg-sky-900 dark:text-sky-300",
+    "Employee": "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300",
+    "System": "bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-400",
+  };
+  return colors[role] || "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300";
 };
 
 export default function TestCasesPage() {
   const printRef = useRef<HTMLDivElement>(null);
-  const [expandedModules, setExpandedModules] = useState<string[]>([]);
-
-  const handlePrint = useReactToPrint({
-    contentRef: printRef,
-    documentTitle: "HealthOS_Test_Cases",
-  });
-
-  const toggleAll = () => {
-    if (expandedModules.length === TEST_CASES.modules.length) {
-      setExpandedModules([]);
-    } else {
-      setExpandedModules(TEST_CASES.modules.map(m => m.id));
-    }
-  };
+  const handlePrint = useReactToPrint({ contentRef: printRef, documentTitle: 'HMS Comprehensive Test Cases' });
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-background border-b">
+      <div className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <FileText className="h-8 w-8 text-primary" />
-            <div>
-              <h1 className="text-2xl font-bold">HealthOS Test Cases</h1>
-              <p className="text-sm text-muted-foreground">Comprehensive Testing Documentation</p>
-            </div>
+          <div>
+            <h1 className="text-2xl font-bold">HMS Comprehensive Test Cases</h1>
+            <p className="text-sm text-muted-foreground">10 End-to-End Journeys · 160+ Module Tests · 19 Demo Accounts</p>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={toggleAll}>
-              {expandedModules.length === TEST_CASES.modules.length ? "Collapse All" : "Expand All"}
-            </Button>
-            <Button onClick={() => handlePrint()} className="gap-2">
-              <Download className="h-4 w-4" />
-              Download PDF
-            </Button>
-          </div>
+          <Button onClick={() => handlePrint()}><Download className="h-4 w-4 mr-2" />Download PDF</Button>
         </div>
       </div>
 
-      {/* Printable Content */}
-      <div ref={printRef} className="container mx-auto px-4 py-8 print:p-0">
-        {/* Print Header */}
+      <div ref={printRef} className="container mx-auto px-4 py-8 print:p-4">
         <div className="hidden print:block mb-8 text-center border-b pb-4">
-          <h1 className="text-3xl font-bold">HealthOS - Test Cases Document</h1>
-          <p className="text-lg mt-2">Hospital Management System - Comprehensive Testing Guide</p>
-          <p className="text-sm text-muted-foreground mt-1">Generated on {new Date().toLocaleDateString()}</p>
+          <h1 className="text-3xl font-bold">Smart HMS - Comprehensive Test Cases</h1>
+          <p className="text-sm text-muted-foreground mt-2">Generated: {new Date().toLocaleDateString()}</p>
         </div>
 
-        {/* Demo Accounts Section */}
-        <Card className="mb-8 print:shadow-none print:border">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              Demo Accounts (Password: Demo@123)
-            </CardTitle>
-          </CardHeader>
+        <Card className="mb-8">
+          <CardHeader><CardTitle className="flex items-center gap-2"><Users className="h-5 w-5" />Demo Accounts<Badge variant="secondary" className="ml-2">Password: Demo@123</Badge></CardTitle></CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-2 px-3 font-semibold">Role</th>
-                    <th className="text-left py-2 px-3 font-semibold">Email</th>
-                    <th className="text-left py-2 px-3 font-semibold">Primary Module</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {TEST_CASES.demoAccounts.map((account, idx) => (
-                    <tr key={idx} className="border-b last:border-0">
-                      <td className="py-2 px-3">
-                        <Badge variant="secondary">{account.role}</Badge>
-                      </td>
-                      <td className="py-2 px-3 font-mono text-xs">{account.email}</td>
-                      <td className="py-2 px-3 text-muted-foreground">{account.module}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Test Summary */}
-        <Card className="mb-8 print:shadow-none print:border">
-          <CardHeader>
-            <CardTitle>Test Summary</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center p-4 bg-muted rounded-lg">
-                <div className="text-3xl font-bold text-primary">{TEST_CASES.modules.length}</div>
-                <div className="text-sm text-muted-foreground">Modules</div>
-              </div>
-              <div className="text-center p-4 bg-muted rounded-lg">
-                <div className="text-3xl font-bold text-primary">
-                  {TEST_CASES.modules.reduce((sum, m) => sum + m.cases.length, 0)}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+              {TEST_CASES.demoAccounts.map((account, idx) => (
+                <div key={idx} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg text-sm">
+                  <div><span className="font-medium">{account.role}</span><span className="text-muted-foreground ml-2 text-xs">{account.module}</span></div>
+                  <code className="text-xs bg-background px-2 py-1 rounded">{account.email}</code>
                 </div>
-                <div className="text-sm text-muted-foreground">Test Cases</div>
-              </div>
-              <div className="text-center p-4 bg-muted rounded-lg">
-                <div className="text-3xl font-bold text-primary">{TEST_CASES.demoAccounts.length}</div>
-                <div className="text-sm text-muted-foreground">Demo Users</div>
-              </div>
-              <div className="text-center p-4 bg-muted rounded-lg">
-                <div className="text-3xl font-bold text-primary">17+</div>
-                <div className="text-sm text-muted-foreground">Active Modules</div>
-              </div>
+              ))}
             </div>
           </CardContent>
         </Card>
 
-        {/* Module Test Cases */}
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold mb-4">Module-Wise Test Cases</h2>
-          
-          <Accordion 
-            type="multiple" 
-            value={expandedModules}
-            onValueChange={setExpandedModules}
-            className="space-y-2"
-          >
-            {TEST_CASES.modules.map((module) => (
-              <AccordionItem 
-                key={module.id} 
-                value={module.id}
-                className="border rounded-lg print:border print:mb-4 print:break-inside-avoid"
-              >
-                <AccordionTrigger className="px-4 hover:no-underline">
-                  <div className="flex items-center gap-3">
-                    <module.icon className="h-5 w-5 text-primary" />
-                    <span className="font-semibold">{module.name}</span>
-                    <Badge variant="outline" className="ml-2">
-                      {module.cases.length} tests
-                    </Badge>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="px-4 pb-4">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b bg-muted/50">
-                          <th className="text-left py-2 px-3 font-semibold w-24">Test ID</th>
-                          <th className="text-left py-2 px-3 font-semibold">Test Case</th>
-                          <th className="text-left py-2 px-3 font-semibold">Steps</th>
-                          <th className="text-left py-2 px-3 font-semibold">Expected Result</th>
-                          <th className="text-center py-2 px-3 font-semibold w-20 print:hidden">Pass</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {module.cases.map((testCase) => (
-                          <tr key={testCase.id} className="border-b last:border-0 hover:bg-muted/30">
-                            <td className="py-2 px-3">
-                              <code className="text-xs bg-muted px-1.5 py-0.5 rounded">{testCase.id}</code>
-                            </td>
-                            <td className="py-2 px-3 font-medium">{testCase.name}</td>
-                            <td className="py-2 px-3 text-muted-foreground">{testCase.steps}</td>
-                            <td className="py-2 px-3 text-muted-foreground">{testCase.expected}</td>
-                            <td className="py-2 px-3 text-center print:hidden">
-                              <input type="checkbox" className="h-4 w-4 rounded border-gray-300" />
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-        </div>
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2"><Route className="h-5 w-5" />End-to-End Journey Flows<Badge className="ml-2">{JOURNEY_TEST_CASES.length} Journeys</Badge></CardTitle>
+            <p className="text-sm text-muted-foreground">Complete workflow testing across multiple roles and departments</p>
+          </CardHeader>
+          <CardContent>
+            <Accordion type="single" collapsible className="w-full">
+              {JOURNEY_TEST_CASES.map((journey) => (
+                <AccordionItem key={journey.id} value={journey.id}>
+                  <AccordionTrigger className="hover:no-underline">
+                    <div className="flex items-center gap-4 text-left w-full">
+                      <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0"><journey.icon className="h-5 w-5 text-primary" /></div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-semibold">{journey.name}</span>
+                          <Badge variant="outline" className="text-xs"><Clock className="h-3 w-3 mr-1" />{journey.estimatedTime}</Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground">{journey.description}</p>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {journey.roles.map((role) => (<Badge key={role} variant="secondary" className={`text-xs ${getRoleBadgeColor(role)}`}>{role}</Badge>))}
+                        </div>
+                      </div>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="mt-4 space-y-0">
+                      {journey.steps.map((step, idx) => (
+                        <div key={step.step} className="relative">
+                          {idx < journey.steps.length - 1 && <div className="absolute left-[19px] top-10 w-0.5 h-[calc(100%-20px)] bg-border" />}
+                          <div className="flex gap-4 p-3 rounded-lg hover:bg-muted/50 transition-colors">
+                            <div className="h-10 w-10 rounded-full bg-primary/10 border-2 border-primary flex items-center justify-center text-sm font-bold text-primary shrink-0 z-10">{step.step}</div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <Badge className={`text-xs ${getRoleBadgeColor(step.role)}`}>{step.role}</Badge>
+                                {step.location && <code className="text-xs bg-muted px-2 py-0.5 rounded">{step.location}</code>}
+                              </div>
+                              <p className="font-medium mt-1">{step.action}</p>
+                              <div className="flex items-center gap-2 mt-1 text-sm"><CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" /><span className="text-muted-foreground">{step.expected}</span></div>
+                              {step.data && <p className="text-xs text-muted-foreground mt-1 italic">📝 {step.data}</p>}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </CardContent>
+        </Card>
 
-        {/* Print Footer */}
+        <Separator className="my-8" />
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2"><TestTube className="h-5 w-5" />Module-Wise Test Cases<Badge className="ml-2">{TEST_CASES.modules.reduce((acc, m) => acc + m.tests.length, 0)} Tests</Badge></CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Accordion type="single" collapsible className="w-full">
+              {TEST_CASES.modules.map((module, idx) => (
+                <AccordionItem key={idx} value={`module-${idx}`}>
+                  <AccordionTrigger className="hover:no-underline">
+                    <div className="flex items-center gap-3"><span className="text-2xl">{module.icon}</span><span className="font-semibold">{module.name}</span><Badge variant="outline">{module.tests.length} tests</Badge></div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <ScrollArea className="max-h-[400px]">
+                      <div className="space-y-2 mt-2">
+                        {module.tests.map((test) => (
+                          <div key={test.id} className="grid grid-cols-12 gap-4 p-3 bg-muted/30 rounded-lg text-sm items-start">
+                            <div className="col-span-1"><Badge variant="outline" className="font-mono text-xs">{test.id}</Badge></div>
+                            <div className="col-span-3 font-medium">{test.test}</div>
+                            <div className="col-span-4 text-muted-foreground">{test.steps}</div>
+                            <div className="col-span-4 flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" /><span>{test.expected}</span></div>
+                          </div>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </CardContent>
+        </Card>
+
         <div className="hidden print:block mt-8 pt-4 border-t text-center text-sm text-muted-foreground">
-          <p>HealthOS - Hospital Management System</p>
-          <p>© 2026 All Rights Reserved</p>
+          <p>Smart Hospital Management System · Test Cases Document · © 2026</p>
         </div>
       </div>
     </div>
