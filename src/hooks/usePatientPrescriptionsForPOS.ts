@@ -36,26 +36,62 @@ export interface PrescriptionForPOS {
   } | null;
 }
 
-// Search patient by MR number or phone
+// Search patient by MR number, phone, name, OR today's token number
 export function useSearchPatientForPOS(search: string) {
   const { profile } = useAuth();
 
   return useQuery({
     queryKey: ["pos-patient-search", search, profile?.organization_id],
     queryFn: async () => {
-      if (!search || search.length < 3 || !profile?.organization_id) return [];
+      if (!search || !profile?.organization_id) return [];
+
+      const trimmedSearch = search.trim();
+      
+      // Check if search is a token number (1-4 digits only)
+      const isTokenSearch = /^\d{1,4}$/.test(trimmedSearch);
+      
+      if (isTokenSearch) {
+        // Search by today's token number
+        const today = new Date().toISOString().split("T")[0];
+        const { data: appointments, error: apptError } = await supabase
+          .from("appointments")
+          .select(`
+            patient_id,
+            token_number,
+            patient:patients(id, patient_number, first_name, last_name, phone, date_of_birth, gender)
+          `)
+          .eq("organization_id", profile.organization_id)
+          .eq("appointment_date", today)
+          .eq("token_number", parseInt(trimmedSearch))
+          .limit(5);
+
+        if (apptError) throw apptError;
+
+        // Extract patient data from appointments
+        const patients = appointments
+          ?.filter((a: any) => a.patient)
+          .map((a: any) => ({
+            ...a.patient,
+            token_number: a.token_number,
+          })) || [];
+
+        return patients as (PatientForPOS & { token_number?: number })[];
+      }
+
+      // Regular search by MR#, phone, or name (requires min 3 chars)
+      if (trimmedSearch.length < 3) return [];
 
       const { data, error } = await supabase
         .from("patients")
         .select("id, patient_number, first_name, last_name, phone, date_of_birth, gender")
         .eq("organization_id", profile.organization_id)
-        .or(`patient_number.ilike.%${search}%,phone.ilike.%${search}%,first_name.ilike.%${search}%,last_name.ilike.%${search}%`)
+        .or(`patient_number.ilike.%${trimmedSearch}%,phone.ilike.%${trimmedSearch}%,first_name.ilike.%${trimmedSearch}%,last_name.ilike.%${trimmedSearch}%`)
         .limit(10);
 
       if (error) throw error;
       return data as PatientForPOS[];
     },
-    enabled: !!search && search.length >= 3 && !!profile?.organization_id,
+    enabled: !!search && !!profile?.organization_id && (search.trim().length >= 1),
     staleTime: 30000,
   });
 }
