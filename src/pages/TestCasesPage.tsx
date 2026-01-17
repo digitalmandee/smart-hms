@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
-import { Download, Printer, CheckCircle2, Clock, Users, Route, TestTube, Stethoscope, Pill, Building2, HeartPulse, Syringe, Banknote, UserCog, Package } from 'lucide-react';
+import { Download, Printer, CheckCircle2, Clock, Users, Route, TestTube, Stethoscope, Pill, Building2, HeartPulse, Syringe, Banknote, UserCog, Package, Monitor, TabletSmartphone, User } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 
@@ -332,6 +332,111 @@ const JOURNEY_TEST_CASES = [
       { step: 23, role: "Finance Manager", action: "View Accounts Payable", location: "/app/accounts/payables", expected: "Vendor payable created", data: "Liability to ABC Medical Supplies" },
       { step: 24, role: "Finance Manager", action: "Verify GRN value matches", location: "Payables Detail", expected: "Amount matches GRN total", data: "Less the 20 short syringes" }
     ]
+  },
+  {
+    id: "journey-kiosk-token",
+    name: "Self-Service Token Kiosk Flow",
+    icon: TabletSmartphone,
+    description: "Patient uses self-service kiosk to generate token without receptionist",
+    roles: ["Admin", "Patient", "Nurse", "System"],
+    estimatedTime: "15-20 minutes",
+    steps: [
+      { step: 1, role: "Admin", action: "Navigate to Kiosk Management", location: "/app/settings/kiosks", expected: "Kiosks list displayed", data: "View all configured kiosks" },
+      { step: 2, role: "Admin", action: "Create new kiosk 'OPD-Kiosk-01'", location: "/app/settings/kiosks/new", expected: "Kiosk created with username/password", data: "Auto-generated credentials displayed" },
+      { step: 3, role: "Admin", action: "Set kiosk type: OPD, departments: General, Cardiology", location: "Kiosk Form", expected: "Department filters configured", data: "Only selected departments show on kiosk" },
+      { step: 4, role: "Admin", action: "Copy auto-generated password", location: "Kiosk Detail", expected: "Password noted for device", data: "Password shown only once on creation" },
+      { step: 5, role: "Admin", action: "Get public kiosk URL from setup page", location: "/app/appointments/kiosk-setup", expected: "URL: /kiosk/{orgId}", data: "Copy URL for tablet browser" },
+      { step: 6, role: "System", action: "Open kiosk URL on tablet device", location: "/kiosk/{orgId}", expected: "Public token kiosk loads (no login required)", data: "Self-service mode, patient-facing UI" },
+      { step: 7, role: "Patient", action: "Enter phone number: 03001234567", location: "Phone Input Screen", expected: "Continue button enabled", data: "Phone used to lookup existing patient" },
+      { step: 8, role: "Patient", action: "(New patient) Enter name: 'Ali Khan'", location: "Name Input Screen", expected: "Name accepted", data: "Quick registration for new patients" },
+      { step: 9, role: "Patient", action: "Select department: 'General Medicine'", location: "Department Grid", expected: "Department highlighted", data: "Only kiosk-configured departments shown" },
+      { step: 10, role: "Patient", action: "Select doctor: 'Dr. Ahmed Khan'", location: "Doctor Grid", expected: "Doctor selected", data: "Shows available doctors for department" },
+      { step: 11, role: "Patient", action: "Confirm appointment details", location: "Confirmation Screen", expected: "All details displayed for verification", data: "Name, department, doctor, date shown" },
+      { step: 12, role: "Patient", action: "Click 'Generate Token'", location: "Confirm Button", expected: "Token #XX generated", data: "Token number assigned for today" },
+      { step: 13, role: "Patient", action: "View token slip with estimated wait time", location: "Success Screen", expected: "Token, doctor, estimated wait displayed", data: "Large token number for easy reading" },
+      { step: 14, role: "Patient", action: "Print token slip", location: "Print Button", expected: "Thermal printer prints slip", data: "Slip includes QR code for tracking" },
+      { step: 15, role: "Patient", action: "Click 'New Token' for next patient", location: "New Token Button", expected: "Kiosk resets to phone input screen", data: "Ready for next walk-in patient" },
+      { step: 16, role: "Nurse", action: "View token in Queue Control Panel", location: "/app/appointments/queue-control", expected: "New kiosk-generated token visible", data: "Token marked with kiosk source" }
+    ]
+  },
+  {
+    id: "journey-queue-display",
+    name: "Queue Display & Control Panel Flow",
+    icon: Monitor,
+    description: "Staff manages patient queue while TV displays update in real-time",
+    roles: ["Admin", "Nurse", "System"],
+    estimatedTime: "15-20 minutes",
+    steps: [
+      { step: 1, role: "Admin", action: "Navigate to Queue Display Configuration", location: "/app/settings/queue-displays", expected: "Display list shown", data: "Configure TV screens for waiting areas" },
+      { step: 2, role: "Admin", action: "Create new display 'OPD Waiting Room TV'", location: "/app/settings/queue-displays/new", expected: "Display created", data: "Assign name and location" },
+      { step: 3, role: "Admin", action: "Set type: OPD, link to OPD-Kiosk-01", location: "Display Form", expected: "Display filters to show kiosk tokens", data: "Only tokens from linked kiosk appear" },
+      { step: 4, role: "Admin", action: "Enable audio announcements", location: "Audio Toggle", expected: "Audio enabled", data: "Voice will announce token numbers" },
+      { step: 5, role: "Admin", action: "Copy display URL", location: "Display Detail", expected: "URL: /display/{displayId}", data: "URL for TV browser kiosk mode" },
+      { step: 6, role: "System", action: "Open display on waiting room TV", location: "/display/{displayId}", expected: "Queue display loads fullscreen", data: "Large text, high contrast for visibility" },
+      { step: 7, role: "System", action: "Display shows 'Now Serving' (empty initially)", location: "TV Screen", expected: "'Waiting for next patient...' message", data: "Clear indicator when no active token" },
+      { step: 8, role: "System", action: "Display shows 'Up Next' with waiting patients", location: "TV Screen", expected: "Token list with priorities", data: "Sorted by priority then check-in time" },
+      { step: 9, role: "Nurse", action: "Open Queue Control Panel", location: "/app/appointments/queue-control", expected: "Control panel loads with queue", data: "Staff interface for queue management" },
+      { step: 10, role: "Nurse", action: "Filter by doctor or department", location: "Filter Dropdown", expected: "Queue filtered to selection", data: "Manage specific doctor's queue" },
+      { step: 11, role: "Nurse", action: "Click 'Call Next' button", location: "Control Panel", expected: "First patient status → 'in_progress'", data: "Token moves to 'Now Serving'" },
+      { step: 12, role: "System", action: "TV Display updates: Token #XX now serving", location: "TV Screen", expected: "Large token number displayed", data: "Patient sees their token called" },
+      { step: 13, role: "System", action: "Audio announcement plays", location: "Speakers", expected: "'Token number XX, please proceed...'", data: "TTS or pre-recorded audio" },
+      { step: 14, role: "Nurse", action: "Click 'Complete' for current patient", location: "Control Panel", expected: "Status → 'completed', removed from queue", data: "Patient finished with doctor" },
+      { step: 15, role: "Nurse", action: "Click 'Skip' for next patient", location: "Control Panel", expected: "Skipped patient moves to end of queue", data: "Patient not present, will be re-called" },
+      { step: 16, role: "Nurse", action: "Click 'Recall' for previous token", location: "Control Panel", expected: "Token re-announced on TV", data: "Patient may have missed first call" },
+      { step: 17, role: "System", action: "Display auto-refreshes (every 5 seconds)", location: "TV Screen", expected: "Queue updates in real-time", data: "Supabase real-time subscription" }
+    ]
+  },
+  {
+    id: "journey-kiosk-auth",
+    name: "Staff-Assisted Kiosk (Authenticated) Flow",
+    icon: TabletSmartphone,
+    description: "Kiosk device login and staff-assisted token generation at reception",
+    roles: ["Admin", "Receptionist", "System"],
+    estimatedTime: "10-15 minutes",
+    steps: [
+      { step: 1, role: "Admin", action: "Create kiosk with credentials", location: "/app/settings/kiosks/new", expected: "Kiosk username: kiosk-opd-reception", data: "Staff-assisted mode selected" },
+      { step: 2, role: "Admin", action: "Note generated password", location: "Kiosk Form", expected: "Password displayed once", data: "Save password securely" },
+      { step: 3, role: "Receptionist", action: "Open kiosk login on reception tablet", location: "/kiosk/login", expected: "Login screen displayed", data: "Dedicated kiosk login page" },
+      { step: 4, role: "Receptionist", action: "Enter kiosk credentials", location: "Login Form", expected: "Username + password entered", data: "Use kiosk credentials, not user account" },
+      { step: 5, role: "Receptionist", action: "Login successful", location: "Submit", expected: "Redirect to /kiosk/terminal", data: "Authenticated kiosk session started" },
+      { step: 6, role: "Receptionist", action: "View terminal header with info", location: "Terminal", expected: "Organization name, kiosk name, time", data: "Session info displayed" },
+      { step: 7, role: "Receptionist", action: "Patient approaches reception", location: "Reception Desk", expected: "Staff assists patient", data: "Face-to-face interaction" },
+      { step: 8, role: "Receptionist", action: "Enter patient phone number", location: "Phone Input", expected: "Search for existing patient", data: "Auto-lookup by phone" },
+      { step: 9, role: "Receptionist", action: "Patient found (existing MR#)", location: "Search Result", expected: "Name auto-populated", data: "Shows patient name and MR#" },
+      { step: 10, role: "Receptionist", action: "OR Enter new patient name", location: "Name Input", expected: "New patient registration flow", data: "Quick reg for new patients" },
+      { step: 11, role: "Receptionist", action: "Select department", location: "Department Grid", expected: "Filtered by kiosk config", data: "Only allowed departments shown" },
+      { step: 12, role: "Receptionist", action: "Select doctor", location: "Doctor Grid", expected: "Available doctors shown", data: "Based on department selection" },
+      { step: 13, role: "Receptionist", action: "Confirm and generate token", location: "Confirm Screen", expected: "Token generated with kiosk_id", data: "Appointment linked to this kiosk" },
+      { step: 14, role: "Receptionist", action: "Print token for patient", location: "Print Button", expected: "Slip printed", data: "Hand token slip to patient" },
+      { step: 15, role: "Receptionist", action: "Click logout at end of shift", location: "Logout Button", expected: "Session ended, return to login", data: "Kiosk session deactivated" },
+      { step: 16, role: "Admin", action: "View kiosk session in admin", location: "/app/settings/kiosk-sessions", expected: "Session logged with tokens count", data: "Shows tokens generated, duration" },
+      { step: 17, role: "Admin", action: "View activity log", location: "/app/settings/kiosk-activity", expected: "Token generation events logged", data: "Audit trail of kiosk activity" }
+    ]
+  },
+  {
+    id: "journey-patient-profile",
+    name: "Patient Profile Deep Dive",
+    icon: User,
+    description: "Navigating complete patient profile with all integrated clinical tabs",
+    roles: ["Receptionist", "Doctor", "Nurse"],
+    estimatedTime: "10-15 minutes",
+    steps: [
+      { step: 1, role: "Receptionist", action: "Search patient by MR# or name", location: "/app/patients", expected: "Patient found in list", data: "Use MR-2024-00001 or 'Muhammad Ahmed'" },
+      { step: 2, role: "Receptionist", action: "Click patient name to open profile", location: "Patient Row", expected: "Profile page loads", data: "Full patient detail view" },
+      { step: 3, role: "Receptionist", action: "View Overview tab", location: "Overview Tab", expected: "Demographics, visit stats, recent activity", data: "Summary of patient record" },
+      { step: 4, role: "Receptionist", action: "View Medical History tab", location: "Medical History Tab", expected: "Allergies, chronic diseases, surgeries", data: "Patient's medical background" },
+      { step: 5, role: "Receptionist", action: "View Appointments tab", location: "Appointments Tab", expected: "All past/future appointments listed", data: "Chronological appointment history" },
+      { step: 6, role: "Doctor", action: "View Consultations tab", location: "Consultations Tab", expected: "Consultation history with diagnoses", data: "ICD-10 codes, clinical notes" },
+      { step: 7, role: "Doctor", action: "View Prescriptions tab", location: "Prescriptions Tab", expected: "All prescriptions with dispense status", data: "RX numbers, medicines, dispensed flag" },
+      { step: 8, role: "Doctor", action: "View Lab Results tab", location: "Lab Results Tab", expected: "Lab orders with results", data: "Test values, normal ranges, flags" },
+      { step: 9, role: "Doctor", action: "View Radiology tab", location: "Radiology Tab", expected: "Imaging studies and reports", data: "X-rays, CT scans, ultrasounds" },
+      { step: 10, role: "Doctor", action: "View IPD Admissions tab", location: "IPD Tab", expected: "Inpatient admission history", data: "Admission dates, wards, discharge summaries" },
+      { step: 11, role: "Doctor", action: "View ER Visits tab", location: "ER Visits Tab", expected: "Emergency visit records", data: "Triage levels, treatments, outcomes" },
+      { step: 12, role: "Nurse", action: "View Blood Transfusions tab", location: "Blood Tab", expected: "Transfusion history", data: "Units received, reactions (if any)" },
+      { step: 13, role: "Receptionist", action: "View Billing tab", location: "Billing Tab", expected: "Invoices and payments", data: "Outstanding balances, payment history" },
+      { step: 14, role: "Receptionist", action: "Print Patient ID Card", location: "Print Card Button", expected: "Card with photo, MR#, QR code", data: "Printable patient identification" },
+      { step: 15, role: "Doctor", action: "Add quick clinical note from profile", location: "Quick Action", expected: "Note saved to patient record", data: "Optional note without full consultation" }
+    ]
   }
 ];
 
@@ -431,6 +536,41 @@ const TEST_CASES = {
       { id: "INV-002", test: "Approve PO", steps: "PO > Approve", expected: "Status: approved" },
       { id: "INV-003", test: "Receive goods (GRN)", steps: "GRN > Create from PO", expected: "GRN created" },
       { id: "INV-004", test: "View stock levels", steps: "Stock Levels page", expected: "Current stock shown" }
+    ]},
+    { name: "Kiosk Management", icon: "📱", tests: [
+      { id: "KIOSK-001", test: "Create new kiosk", steps: "Settings > Kiosks > New", expected: "Kiosk created with credentials" },
+      { id: "KIOSK-002", test: "Auto-generate password", steps: "Create kiosk", expected: "8-char password displayed" },
+      { id: "KIOSK-003", test: "Reset kiosk password", steps: "Kiosk detail > Reset Password", expected: "New password generated" },
+      { id: "KIOSK-004", test: "Configure departments", steps: "Edit kiosk > Select departments", expected: "Departments saved" },
+      { id: "KIOSK-005", test: "Set kiosk mode", steps: "Select self_service/staff_assisted", expected: "Mode saved" },
+      { id: "KIOSK-006", test: "View kiosk sessions", steps: "Settings > Kiosk Sessions", expected: "Active/past sessions listed" },
+      { id: "KIOSK-007", test: "End kiosk session", steps: "Sessions > End Session", expected: "Session marked inactive" },
+      { id: "KIOSK-008", test: "View activity log", steps: "Settings > Kiosk Activity", expected: "Token generation events shown" },
+      { id: "KIOSK-009", test: "Delete kiosk", steps: "Kiosk detail > Delete", expected: "Kiosk removed" },
+      { id: "KIOSK-010", test: "Deactivate kiosk", steps: "Toggle active status", expected: "Kiosk login fails when inactive" }
+    ]},
+    { name: "Queue Display", icon: "📺", tests: [
+      { id: "QDSP-001", test: "Create queue display", steps: "Settings > Queue Displays > New", expected: "Display created" },
+      { id: "QDSP-002", test: "Set display type (OPD/ER)", steps: "Select type", expected: "Type saved" },
+      { id: "QDSP-003", test: "Link to specific kiosks", steps: "Select kiosks", expected: "Display filters by kiosk" },
+      { id: "QDSP-004", test: "Enable audio announcements", steps: "Toggle audio setting", expected: "Audio announcements enabled" },
+      { id: "QDSP-005", test: "Set theme (light/dark)", steps: "Select theme", expected: "Display theme applied" },
+      { id: "QDSP-006", test: "Copy display URL", steps: "Display detail > Copy URL", expected: "URL copied to clipboard" },
+      { id: "QDSP-007", test: "Preview display", steps: "Click Preview", expected: "Opens in new tab" },
+      { id: "QDSP-008", test: "Fullscreen mode", steps: "F11 or fullscreen button", expected: "Display fills entire screen" },
+      { id: "QDSP-009", test: "Delete display", steps: "Delete > Confirm", expected: "Display removed" }
+    ]},
+    { name: "Public Portals", icon: "🌐", tests: [
+      { id: "PUB-001", test: "Access lab report portal", steps: "Open /lab-reports", expected: "Search page displayed" },
+      { id: "PUB-002", test: "Search reports by MR#", steps: "Enter MR# and phone", expected: "Reports listed" },
+      { id: "PUB-003", test: "Download lab report PDF", steps: "Click download", expected: "PDF downloaded" },
+      { id: "PUB-004", test: "View prescription history", steps: "Open /prescriptions portal", expected: "Prescriptions shown" },
+      { id: "PUB-005", test: "Kiosk login page loads", steps: "Open /kiosk/login", expected: "Login form displayed" },
+      { id: "PUB-006", test: "Kiosk terminal requires auth", steps: "Open /kiosk/terminal without login", expected: "Redirect to /kiosk/login" },
+      { id: "PUB-007", test: "Public kiosk loads without auth", steps: "Open /kiosk/{orgId}", expected: "Self-service kiosk displayed" },
+      { id: "PUB-008", test: "Queue display real-time update", steps: "Change appointment status", expected: "TV display updates within 10s" },
+      { id: "PUB-009", test: "Audio announcement plays", steps: "Token called to 'in_progress'", expected: "Voice announces token" },
+      { id: "PUB-010", test: "Filtered display shows subset", steps: "Configure display with dept filter", expected: "Only filtered tokens shown" }
     ]}
   ]
 };
@@ -475,7 +615,7 @@ export default function TestCasesPage() {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold">HMS Comprehensive Test Cases</h1>
-            <p className="text-sm text-muted-foreground">10 End-to-End Journeys · 160+ Module Tests · 19 Demo Accounts</p>
+            <p className="text-sm text-muted-foreground">14 End-to-End Journeys · 190+ Module Tests · 19 Demo Accounts</p>
           </div>
           <Button onClick={() => handlePrint()}><Download className="h-4 w-4 mr-2" />Download PDF</Button>
         </div>
