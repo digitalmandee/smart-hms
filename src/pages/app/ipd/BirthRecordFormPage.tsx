@@ -98,19 +98,24 @@ export default function BirthRecordFormPage() {
       if (createBabyRecord && selectedMother) {
         const babyName = `Baby of ${selectedMother.first_name} ${selectedMother.last_name}`;
         
+        // Generate unique patient number for baby
+        const timestamp = Date.now().toString().slice(-6);
+        const babyPatientNumber = `BB-${timestamp}`;
+        
         // Create baby patient record
         const { data: newPatient, error: patientError } = await supabase
           .from('patients')
           .insert([{
             organization_id: profile?.organization_id,
             branch_id: profile?.branch_id,
+            patient_number: babyPatientNumber,
             first_name: babyName,
             last_name: '',
             gender: data.gender || 'unknown',
             date_of_birth: data.birth_date,
-            phone: selectedMother.phone,
-            address: selectedMother.address,
-            city: selectedMother.city,
+            phone: selectedMother.phone || '',
+            address: selectedMother.address || '',
+            city: selectedMother.city || '',
             notes: `Baby born to ${selectedMother.first_name} ${selectedMother.last_name} (${selectedMother.patient_number})`,
           }])
           .select('id')
