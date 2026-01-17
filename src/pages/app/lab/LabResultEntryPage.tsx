@@ -12,10 +12,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { ArrowLeft, Printer, CheckCircle, Loader2, User, Calendar, Stethoscope, FlaskConical, AlertTriangle, Globe, Copy, Mail } from "lucide-react";
+import { ArrowLeft, Printer, CheckCircle, Loader2, User, Calendar, Stethoscope, FlaskConical, AlertTriangle, Globe, Copy, Mail, Barcode } from "lucide-react";
 import { format, differenceInYears } from "date-fns";
 
 const priorityConfig = {
@@ -45,6 +46,7 @@ export default function LabResultEntryPage() {
 
   const [savingItemId, setSavingItemId] = useState<string | null>(null);
   const [resultNotes, setResultNotes] = useState("");
+  const [sampleNumber, setSampleNumber] = useState("");
 
   if (isLoading) {
     return (
@@ -103,11 +105,15 @@ export default function LabResultEntryPage() {
   };
 
   const handleMarkCollected = async () => {
+    if (!sampleNumber.trim()) {
+      toast.error("Please enter a sample number/barcode");
+      return;
+    }
     try {
-      await markCollected.mutateAsync(labOrder.id);
+      await markCollected.mutateAsync({ orderId: labOrder.id, sampleNumber: sampleNumber.trim() });
       toast.success("Sample collected! You can now enter test results.");
     } catch (error) {
-      toast.error("Failed to update status");
+      toast.error("Failed to collect sample");
     }
   };
 
@@ -245,22 +251,44 @@ export default function LabResultEntryPage() {
       {labOrder.status === "ordered" && (
         <Card className="border-orange-200 bg-orange-50/50">
           <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
+            <div className="space-y-4">
               <div className="flex items-center gap-3">
                 <AlertTriangle className="h-5 w-5 text-orange-600" />
                 <div>
                   <p className="font-medium text-orange-800">Sample Not Collected</p>
-                  <p className="text-sm text-orange-600">Mark as collected to enable result entry</p>
+                  <p className="text-sm text-orange-600">Enter sample number and mark as collected to enable result entry</p>
                 </div>
               </div>
-              <Button onClick={handleMarkCollected} disabled={markCollected.isPending}>
-                {markCollected.isPending ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                )}
-                Mark Sample Collected
-              </Button>
+              
+              <div className="flex flex-col sm:flex-row gap-4 items-end">
+                <div className="flex-1 space-y-2">
+                  <Label htmlFor="sample-number" className="text-orange-800">
+                    Sample Number / Barcode <span className="text-red-600">*</span>
+                  </Label>
+                  <div className="relative">
+                    <Barcode className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="sample-number"
+                      value={sampleNumber}
+                      onChange={(e) => setSampleNumber(e.target.value)}
+                      placeholder="e.g., LAB-2601170001"
+                      className="pl-10"
+                      required
+                    />
+                  </div>
+                </div>
+                <Button 
+                  onClick={handleMarkCollected} 
+                  disabled={markCollected.isPending || !sampleNumber.trim()}
+                >
+                  {markCollected.isPending ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                  )}
+                  Mark Sample Collected
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -269,12 +297,20 @@ export default function LabResultEntryPage() {
       {labOrder.status === "collected" && !isOrderCompleted && (
         <Card className="border-blue-200 bg-blue-50/50">
           <CardContent className="pt-6">
-            <div className="flex items-center gap-3">
-              <CheckCircle className="h-5 w-5 text-blue-600" />
-              <div>
-                <p className="font-medium text-blue-800">Sample Collected</p>
-                <p className="text-sm text-blue-600">Enter results for each test below, then finalize the report</p>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <CheckCircle className="h-5 w-5 text-blue-600" />
+                <div>
+                  <p className="font-medium text-blue-800">Sample Collected</p>
+                  <p className="text-sm text-blue-600">Enter results for each test below, then finalize the report</p>
+                </div>
               </div>
+              {(labOrder as unknown as { sample_number?: string }).sample_number && (
+                <Badge variant="outline" className="text-blue-600 border-blue-300">
+                  <Barcode className="h-3 w-3 mr-1" />
+                  {(labOrder as unknown as { sample_number: string }).sample_number}
+                </Badge>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -298,6 +334,18 @@ export default function LabResultEntryPage() {
             isSaving={savingItemId === item.id}
             isEditable={labOrder.status !== "ordered"}
             showUpdateLabel={isOrderCompleted && item.status === "completed"}
+            patientInfo={{
+              name: `${patient?.first_name || ""} ${patient?.last_name || ""}`.trim(),
+              patientNumber: patient?.patient_number || "",
+              age: patientAge,
+              gender: patient?.gender,
+            }}
+            orderInfo={{
+              orderNumber: labOrder.order_number,
+              orderDate: labOrder.created_at,
+              sampleNumber: (labOrder as unknown as { sample_number?: string }).sample_number,
+              doctorName: doctor?.profile?.full_name,
+            }}
           />
         ))}
       </div>
