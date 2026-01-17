@@ -599,6 +599,7 @@ export type Database = {
           created_by: string | null
           doctor_id: string | null
           id: string
+          kiosk_id: string | null
           notes: string | null
           organization_id: string
           patient_id: string
@@ -622,6 +623,7 @@ export type Database = {
           created_by?: string | null
           doctor_id?: string | null
           id?: string
+          kiosk_id?: string | null
           notes?: string | null
           organization_id: string
           patient_id: string
@@ -645,6 +647,7 @@ export type Database = {
           created_by?: string | null
           doctor_id?: string | null
           id?: string
+          kiosk_id?: string | null
           notes?: string | null
           organization_id?: string
           patient_id?: string
@@ -680,6 +683,13 @@ export type Database = {
             columns: ["doctor_id"]
             isOneToOne: false
             referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_kiosk_id_fkey"
+            columns: ["kiosk_id"]
+            isOneToOne: false
+            referencedRelation: "kiosk_configs"
             referencedColumns: ["id"]
           },
           {
@@ -5794,6 +5804,7 @@ export type Database = {
           kiosk_username: string | null
           last_login_at: string | null
           last_login_ip: string | null
+          linked_display_id: string | null
           name: string
           organization_id: string
           session_timeout_minutes: number | null
@@ -5814,6 +5825,7 @@ export type Database = {
           kiosk_username?: string | null
           last_login_at?: string | null
           last_login_ip?: string | null
+          linked_display_id?: string | null
           name: string
           organization_id: string
           session_timeout_minutes?: number | null
@@ -5834,6 +5846,7 @@ export type Database = {
           kiosk_username?: string | null
           last_login_at?: string | null
           last_login_ip?: string | null
+          linked_display_id?: string | null
           name?: string
           organization_id?: string
           session_timeout_minutes?: number | null
@@ -5853,6 +5866,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kiosk_configs_linked_display_id_fkey"
+            columns: ["linked_display_id"]
+            isOneToOne: false
+            referencedRelation: "queue_display_configs"
             referencedColumns: ["id"]
           },
           {
@@ -9013,6 +9033,75 @@ export type Database = {
             columns: ["vendor_id"]
             isOneToOne: false
             referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      queue_display_configs: {
+        Row: {
+          audio_enabled: boolean | null
+          branch_id: string | null
+          created_at: string | null
+          departments: Json | null
+          display_settings: Json | null
+          display_type: string
+          doctor_ids: Json | null
+          id: string
+          is_active: boolean | null
+          linked_kiosk_ids: Json | null
+          name: string
+          organization_id: string
+          show_next_count: number | null
+          theme: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          audio_enabled?: boolean | null
+          branch_id?: string | null
+          created_at?: string | null
+          departments?: Json | null
+          display_settings?: Json | null
+          display_type?: string
+          doctor_ids?: Json | null
+          id?: string
+          is_active?: boolean | null
+          linked_kiosk_ids?: Json | null
+          name: string
+          organization_id: string
+          show_next_count?: number | null
+          theme?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          audio_enabled?: boolean | null
+          branch_id?: string | null
+          created_at?: string | null
+          departments?: Json | null
+          display_settings?: Json | null
+          display_type?: string
+          doctor_ids?: Json | null
+          id?: string
+          is_active?: boolean | null
+          linked_kiosk_ids?: Json | null
+          name?: string
+          organization_id?: string
+          show_next_count?: number | null
+          theme?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "queue_display_configs_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "queue_display_configs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]

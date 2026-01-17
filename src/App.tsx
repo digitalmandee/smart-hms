@@ -55,10 +55,15 @@ import KiosksListPage from "./pages/app/settings/KiosksListPage";
 import KioskFormPage from "./pages/app/settings/KioskFormPage";
 import KioskSessionsPage from "./pages/app/settings/KioskSessionsPage";
 import KioskActivityPage from "./pages/app/settings/KioskActivityPage";
+import QueueDisplaysListPage from "./pages/app/settings/QueueDisplaysListPage";
+import QueueDisplayFormPage from "./pages/app/settings/QueueDisplayFormPage";
 
 // Kiosk authentication pages
 import KioskLoginPage from "./pages/kiosk/KioskLoginPage";
 import KioskTerminalPage from "./pages/kiosk/KioskTerminalPage";
+
+// Filtered queue display page
+import FilteredQueueDisplayPage from "./pages/display/FilteredQueueDisplayPage";
 // OPD pages
 import DoctorDashboard from "./pages/app/opd/DoctorDashboard";
 import ConsultationPage from "./pages/app/opd/ConsultationPage";
@@ -277,6 +282,7 @@ function App() {
             {/* Public display routes - NO AUTH REQUIRED for TV displays and kiosks */}
             <Route path="/display/queue/:organizationId" element={<PublicQueueDisplay />} />
             <Route path="/display/er/:organizationId" element={<PublicERDisplay />} />
+            <Route path="/display/:displayId" element={<FilteredQueueDisplayPage />} />
             <Route path="/kiosk/:organizationId" element={<PublicTokenKiosk />} />
             <Route path="/kiosk/:organizationId/:kioskId" element={<PublicTokenKiosk />} />
             
@@ -540,6 +546,9 @@ function App() {
               <Route path="settings/kiosks/:id" element={<KioskFormPage />} />
               <Route path="settings/kiosks/sessions" element={<KioskSessionsPage />} />
               <Route path="settings/kiosks/activity" element={<KioskActivityPage />} />
+              <Route path="settings/queue-displays" element={<QueueDisplaysListPage />} />
+              <Route path="settings/queue-displays/new" element={<QueueDisplayFormPage />} />
+              <Route path="settings/queue-displays/:id" element={<QueueDisplayFormPage />} />
               <Route path="settings/payment-methods" element={<PaymentMethodsListPage />} />
               <Route path="settings/payment-methods/new" element={<PaymentMethodFormPage />} />
               <Route path="settings/payment-methods/:id" element={<PaymentMethodFormPage />} />
