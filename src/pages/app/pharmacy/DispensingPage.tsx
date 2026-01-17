@@ -15,6 +15,7 @@ import { StockLevelBadge } from "@/components/pharmacy/StockLevelBadge";
 import { usePrescriptionForDispensing, useDispensePrescription, useMedicineBatches } from "@/hooks/usePharmacy";
 import { useCreateInvoice } from "@/hooks/useBilling";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, User, Calendar, Stethoscope, Pill, AlertTriangle, FileText, Receipt } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -176,16 +177,30 @@ export default function DispensingPage() {
           // Generate invoice if option is checked
           if (generateInvoice && prescription && profile?.branch_id) {
             try {
-              // Get dispensed items with prices from batches
-              const invoiceItems = items
-                .filter((item) => item.selected && !item.isDispensed && item.selectedBatchId)
-                .map((item) => ({
-                  description: item.medicineName,
-                  quantity: item.quantityToDispense,
-                  unit_price: 0, // Will be set from batch data below
-                  discount_percent: 0,
-                  medicine_inventory_id: item.selectedBatchId,
-                }));
+              // Get dispensed items with actual prices from batches
+              const selectedItems = items.filter(
+                (item) => item.selected && !item.isDispensed && item.selectedBatchId
+              );
+
+              // Fetch batch prices
+              const batchIds = selectedItems.map((item) => item.selectedBatchId).filter(Boolean);
+              const { data: batchData } = await (supabase as any)
+                .from("medicine_inventory")
+                .select("id, selling_price")
+                .in("id", batchIds);
+
+              const batchPrices = new Map<string, number>();
+              batchData?.forEach((batch: any) => {
+                batchPrices.set(batch.id, batch.selling_price || 0);
+              });
+
+              const invoiceItems = selectedItems.map((item) => ({
+                description: item.medicineName,
+                quantity: item.quantityToDispense,
+                unit_price: batchPrices.get(item.selectedBatchId!) || 0,
+                discount_percent: 0,
+                medicine_inventory_id: item.selectedBatchId,
+              }));
 
               if (invoiceItems.length > 0) {
                 const patient = prescription.patient as any;
