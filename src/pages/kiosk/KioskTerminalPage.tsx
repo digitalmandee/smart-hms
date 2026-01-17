@@ -267,6 +267,7 @@ export default function KioskTerminalPage() {
           check_in_at: new Date().toISOString(),
           token_number: nextToken,
           priority: session.kioskType === "emergency" ? 1 : 0,
+          kiosk_id: session.kioskId,
         }])
         .select()
         .single();

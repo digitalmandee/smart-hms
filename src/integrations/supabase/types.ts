@@ -10644,6 +10644,15 @@ export type Database = {
         Args: { branch_id: string; org_id: string }
         Returns: string
       }
+      get_or_create_default_account: {
+        Args: {
+          p_account_code: string
+          p_account_name: string
+          p_account_type_category?: string
+          p_organization_id: string
+        }
+        Returns: string
+      }
       get_user_branch_id: { Args: never; Returns: string }
       get_user_organization_id: { Args: never; Returns: string }
       has_permission: { Args: { _permission_code: string }; Returns: boolean }
