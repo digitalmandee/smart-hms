@@ -14,6 +14,9 @@ export interface KioskConfig {
   auto_print: boolean;
   show_estimated_wait: boolean;
   display_message: string | null;
+  kiosk_username: string | null;
+  session_timeout_minutes: number;
+  last_login_at: string | null;
   created_at: string;
   updated_at: string;
   branch?: {
@@ -30,6 +33,8 @@ export interface KioskFormData {
   auto_print: boolean;
   show_estimated_wait: boolean;
   display_message?: string;
+  session_timeout_minutes?: number;
+  password?: string;
 }
 
 export function useKiosks() {
@@ -101,6 +106,16 @@ export function usePublicKiosk(kioskId: string | undefined) {
   });
 }
 
+// Generate a random password
+function generateRandomPassword(): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
+  let password = "";
+  for (let i = 0; i < 8; i++) {
+    password += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return password;
+}
+
 export function useCreateKiosk() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -111,25 +126,52 @@ export function useCreateKiosk() {
       if (!profile?.organization_id) throw new Error("No organization");
 
       const client: any = supabase;
+      
+      // Generate password if not provided
+      const password = data.password || generateRandomPassword();
+      
+      // Generate username from name
+      const { data: usernameData, error: usernameError } = await client
+        .rpc("generate_kiosk_username", { 
+          kiosk_name: data.name, 
+          org_id: profile.organization_id 
+        });
+      
+      if (usernameError) throw usernameError;
+      
+      // Hash password
+      const { data: hashedPassword, error: hashError } = await client
+        .rpc("hash_kiosk_password", { password });
+      
+      if (hashError) throw hashError;
+
+      // Create kiosk
       const { data: result, error } = await client
         .from("kiosk_configs")
         .insert([{
-          ...data,
+          name: data.name,
+          kiosk_type: data.kiosk_type,
+          branch_id: data.branch_id,
+          departments: data.departments,
+          is_active: data.is_active,
+          auto_print: data.auto_print,
+          show_estimated_wait: data.show_estimated_wait,
+          display_message: data.display_message,
+          session_timeout_minutes: data.session_timeout_minutes || 480,
           organization_id: profile.organization_id,
           created_by: profile.id,
+          kiosk_username: usernameData,
+          kiosk_password_hash: hashedPassword,
         }])
         .select()
         .single();
 
       if (error) throw error;
-      return result;
+      
+      return { ...result, generatedPassword: password };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["kiosks"] });
-      toast({
-        title: "Kiosk created",
-        description: "The kiosk has been created successfully.",
-      });
     },
     onError: (error: Error) => {
       toast({
@@ -148,9 +190,23 @@ export function useUpdateKiosk() {
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<KioskFormData> }) => {
       const client: any = supabase;
+      
+      // Build update object, excluding password
+      const updateData: any = {
+        name: data.name,
+        kiosk_type: data.kiosk_type,
+        branch_id: data.branch_id,
+        departments: data.departments,
+        is_active: data.is_active,
+        auto_print: data.auto_print,
+        show_estimated_wait: data.show_estimated_wait,
+        display_message: data.display_message,
+        session_timeout_minutes: data.session_timeout_minutes,
+      };
+
       const { error } = await client
         .from("kiosk_configs")
-        .update(data)
+        .update(updateData)
         .eq("id", id);
 
       if (error) throw error;
@@ -162,6 +218,47 @@ export function useUpdateKiosk() {
         title: "Kiosk updated",
         description: "The kiosk has been updated successfully.",
       });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+}
+
+export function useResetKioskPassword() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (kioskId: string) => {
+      const client: any = supabase;
+      
+      // Generate new password
+      const newPassword = generateRandomPassword();
+      
+      // Hash password
+      const { data: hashedPassword, error: hashError } = await client
+        .rpc("hash_kiosk_password", { password: newPassword });
+      
+      if (hashError) throw hashError;
+
+      // Update kiosk
+      const { error } = await client
+        .from("kiosk_configs")
+        .update({ kiosk_password_hash: hashedPassword })
+        .eq("id", kioskId);
+
+      if (error) throw error;
+      
+      return newPassword;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["kiosks"] });
+      queryClient.invalidateQueries({ queryKey: ["kiosk"] });
     },
     onError: (error: Error) => {
       toast({

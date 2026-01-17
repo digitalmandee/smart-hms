@@ -53,6 +53,12 @@ import KioskSetupPage from "./pages/app/appointments/KioskSetupPage";
 import QueueControlPage from "./pages/app/appointments/QueueControlPage";
 import KiosksListPage from "./pages/app/settings/KiosksListPage";
 import KioskFormPage from "./pages/app/settings/KioskFormPage";
+import KioskSessionsPage from "./pages/app/settings/KioskSessionsPage";
+import KioskActivityPage from "./pages/app/settings/KioskActivityPage";
+
+// Kiosk authentication pages
+import KioskLoginPage from "./pages/kiosk/KioskLoginPage";
+import KioskTerminalPage from "./pages/kiosk/KioskTerminalPage";
 // OPD pages
 import DoctorDashboard from "./pages/app/opd/DoctorDashboard";
 import ConsultationPage from "./pages/app/opd/ConsultationPage";
@@ -273,6 +279,10 @@ function App() {
             <Route path="/display/er/:organizationId" element={<PublicERDisplay />} />
             <Route path="/kiosk/:organizationId" element={<PublicTokenKiosk />} />
             <Route path="/kiosk/:organizationId/:kioskId" element={<PublicTokenKiosk />} />
+            
+            {/* Authenticated kiosk routes - separate login for kiosk devices */}
+            <Route path="/kiosk/login" element={<KioskLoginPage />} />
+            <Route path="/kiosk/terminal" element={<KioskTerminalPage />} />
             
             {/* Auth routes */}
             <Route path="/auth" element={<AuthLayout />}>
@@ -528,6 +538,8 @@ function App() {
               <Route path="settings/kiosks" element={<KiosksListPage />} />
               <Route path="settings/kiosks/new" element={<KioskFormPage />} />
               <Route path="settings/kiosks/:id" element={<KioskFormPage />} />
+              <Route path="settings/kiosks/sessions" element={<KioskSessionsPage />} />
+              <Route path="settings/kiosks/activity" element={<KioskActivityPage />} />
               <Route path="settings/payment-methods" element={<PaymentMethodsListPage />} />
               <Route path="settings/payment-methods/new" element={<PaymentMethodFormPage />} />
               <Route path="settings/payment-methods/:id" element={<PaymentMethodFormPage />} />
