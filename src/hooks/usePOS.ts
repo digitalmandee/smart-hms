@@ -2,14 +2,13 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { useState, useCallback } from "react";
 
 // Types - These tables are new and not yet in generated types
 export interface POSSession {
   id: string;
   organization_id: string;
   branch_id: string;
-  terminal_name: string;
+  session_number: string;
   opened_by: string;
   opened_at: string;
   closed_at: string | null;
@@ -28,7 +27,7 @@ export interface POSTransaction {
   id: string;
   organization_id: string;
   branch_id: string;
-  session_id: string;
+  session_id: string | null;
   transaction_number: string;
   customer_name: string | null;
   customer_phone: string | null;
@@ -104,179 +103,6 @@ const queryPOSTable = (table: string): any => {
   return (supabase as any).from(table);
 };
 
-// Active Session
-export function useActiveSession(branchId?: string) {
-  const { profile } = useAuth();
-  const targetBranchId = branchId || profile?.branch_id;
-
-  return useQuery({
-    queryKey: ["pos-active-session", targetBranchId],
-    queryFn: async () => {
-      if (!targetBranchId) return null;
-
-      const { data, error } = await queryPOSTable("pharmacy_pos_sessions")
-        .select("*, opener:profiles!pharmacy_pos_sessions_opened_by_fkey(full_name)")
-        .eq("branch_id", targetBranchId)
-        .eq("status", "open")
-        .maybeSingle();
-
-      if (error) throw error;
-      return data as POSSession | null;
-    },
-    enabled: !!targetBranchId,
-  });
-}
-
-// All Sessions
-export function usePOSSessions(branchId?: string) {
-  const { profile } = useAuth();
-  const targetBranchId = branchId || profile?.branch_id;
-
-  return useQuery({
-    queryKey: ["pos-sessions", targetBranchId],
-    queryFn: async () => {
-      if (!targetBranchId) return [];
-
-      const { data, error } = await queryPOSTable("pharmacy_pos_sessions")
-        .select(`
-          *,
-          opener:profiles!pharmacy_pos_sessions_opened_by_fkey(full_name),
-          closer:profiles!pharmacy_pos_sessions_closed_by_fkey(full_name)
-        `)
-        .eq("branch_id", targetBranchId)
-        .order("opened_at", { ascending: false })
-        .limit(50);
-
-      if (error) throw error;
-      return data as POSSession[];
-    },
-    enabled: !!targetBranchId,
-  });
-}
-
-// Open Session
-export function useOpenSession() {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-  const { profile } = useAuth();
-
-  return useMutation({
-    mutationFn: async ({
-      openingBalance,
-      terminalName = "Main Counter",
-    }: {
-      openingBalance: number;
-      terminalName?: string;
-    }) => {
-      if (!profile?.organization_id || !profile?.branch_id) {
-        throw new Error("No organization or branch context");
-      }
-
-      // Check if there's already an open session
-      const { data: existing } = await queryPOSTable("pharmacy_pos_sessions")
-        .select("id")
-        .eq("branch_id", profile.branch_id)
-        .eq("status", "open")
-        .maybeSingle();
-
-      if (existing) {
-        throw new Error("There is already an open session for this counter");
-      }
-
-      const { data, error } = await queryPOSTable("pharmacy_pos_sessions")
-        .insert({
-          organization_id: profile.organization_id,
-          branch_id: profile.branch_id,
-          opened_by: profile.id,
-          opening_balance: openingBalance,
-          expected_cash: openingBalance,
-          terminal_name: terminalName,
-          status: "open",
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data as POSSession;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["pos-active-session"] });
-      queryClient.invalidateQueries({ queryKey: ["pos-sessions"] });
-      toast({
-        title: "Session Opened",
-        description: "POS session has been started successfully.",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-}
-
-// Close Session
-export function useCloseSession() {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-  const { profile } = useAuth();
-
-  return useMutation({
-    mutationFn: async ({
-      sessionId,
-      closingBalance,
-      notes,
-    }: {
-      sessionId: string;
-      closingBalance: number;
-      notes?: string;
-    }) => {
-      // Get session to calculate difference
-      const { data: session, error: fetchError } = await queryPOSTable("pharmacy_pos_sessions")
-        .select("expected_cash")
-        .eq("id", sessionId)
-        .single();
-
-      if (fetchError) throw fetchError;
-
-      const cashDifference = closingBalance - (session?.expected_cash || 0);
-
-      const { data, error } = await queryPOSTable("pharmacy_pos_sessions")
-        .update({
-          closed_at: new Date().toISOString(),
-          closed_by: profile?.id,
-          closing_balance: closingBalance,
-          cash_difference: cashDifference,
-          notes,
-          status: "closed",
-        })
-        .eq("id", sessionId)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data as POSSession;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["pos-active-session"] });
-      queryClient.invalidateQueries({ queryKey: ["pos-sessions"] });
-      toast({
-        title: "Session Closed",
-        description: "POS session has been closed successfully.",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-}
-
 // Transactions
 export function usePOSTransactions(branchId?: string, filters?: { date?: string; status?: string }) {
   const { profile } = useAuth();
@@ -336,7 +162,7 @@ export function usePOSTransaction(transactionId: string | undefined) {
   });
 }
 
-// Create Transaction
+// Create Transaction (session-free)
 export function useCreateTransaction() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -344,7 +170,6 @@ export function useCreateTransaction() {
 
   return useMutation({
     mutationFn: async ({
-      sessionId,
       items,
       payments,
       customerName,
@@ -352,7 +177,6 @@ export function useCreateTransaction() {
       discountAmount = 0,
       notes,
     }: {
-      sessionId: string;
       items: CartItem[];
       payments: PaymentEntry[];
       customerName?: string;
@@ -380,12 +204,12 @@ export function useCreateTransaction() {
       const amountPaid = payments.reduce((sum, p) => sum + p.amount, 0);
       const changeAmount = Math.max(0, amountPaid - totalAmount);
 
-      // Create transaction
+      // Create transaction (session_id is now optional/null)
       const { data: transaction, error: txError } = await queryPOSTable("pharmacy_pos_transactions")
         .insert({
           organization_id: profile.organization_id,
           branch_id: profile.branch_id,
-          session_id: sessionId,
+          session_id: null, // No session required
           customer_name: customerName || null,
           customer_phone: customerPhone || null,
           subtotal,
@@ -443,7 +267,6 @@ export function useCreateTransaction() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["pos-transactions"] });
-      queryClient.invalidateQueries({ queryKey: ["pos-active-session"] });
       queryClient.invalidateQueries({ queryKey: ["medicine-inventory"] });
       toast({
         title: "Sale Completed",
@@ -506,7 +329,7 @@ export function useVoidTransaction() {
   });
 }
 
-// POS Dashboard Stats
+// Dashboard Stats
 export function usePOSDashboardStats(branchId?: string) {
   const { profile } = useAuth();
   const targetBranchId = branchId || profile?.branch_id;
@@ -514,121 +337,30 @@ export function usePOSDashboardStats(branchId?: string) {
   return useQuery({
     queryKey: ["pos-dashboard-stats", targetBranchId],
     queryFn: async () => {
-      if (!targetBranchId) return null;
+      if (!targetBranchId) {
+        return {
+          todaySales: 0,
+          todayTransactions: 0,
+        };
+      }
 
       const today = new Date().toISOString().split("T")[0];
 
-      // Get today's transactions
-      const { data: transactions, error: txError } = await queryPOSTable("pharmacy_pos_transactions")
-        .select("total_amount, payment_status")
+      const { data: transactions } = await queryPOSTable("pharmacy_pos_transactions")
+        .select("total_amount")
         .eq("branch_id", targetBranchId)
+        .eq("payment_status", "paid")
         .gte("created_at", `${today}T00:00:00`)
         .lte("created_at", `${today}T23:59:59`);
 
-      if (txError) throw txError;
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const paidTransactions = (transactions as any[])?.filter((t) => t.payment_status === "paid") || [];
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const totalSales = paidTransactions.reduce((sum, t: any) => sum + Number(t.total_amount), 0);
-      const transactionCount = paidTransactions.length;
-
-      // Get active session
-      const { data: session } = await queryPOSTable("pharmacy_pos_sessions")
-        .select("id, opening_balance, expected_balance")
-        .eq("branch_id", targetBranchId)
-        .eq("status", "open")
-        .maybeSingle();
+      const todaySales = transactions?.reduce((sum: number, t: any) => sum + (t.total_amount || 0), 0) || 0;
+      const todayTransactions = transactions?.length || 0;
 
       return {
-        todaySales: totalSales,
-        transactionCount,
-        averageTransaction: transactionCount > 0 ? totalSales / transactionCount : 0,
-        hasActiveSession: !!session,
-        sessionBalance: session?.expected_balance || 0,
+        todaySales,
+        todayTransactions,
       };
     },
     enabled: !!targetBranchId,
   });
-}
-
-// Cart Hook (Client-side state management)
-export function usePOSCart() {
-  const [items, setItems] = useState<CartItem[]>([]);
-  const [discountPercent, setDiscountPercent] = useState(0);
-  const [customerName, setCustomerName] = useState("");
-  const [customerPhone, setCustomerPhone] = useState("");
-
-  const addItem = useCallback((item: CartItem) => {
-    setItems((prev) => {
-      const existingIndex = prev.findIndex(
-        (i) => i.inventory_id === item.inventory_id && i.medicine_id === item.medicine_id
-      );
-
-      if (existingIndex >= 0) {
-        const updated = [...prev];
-        const existing = updated[existingIndex];
-        const newQty = existing.quantity + item.quantity;
-        
-        if (newQty <= item.available_quantity) {
-          updated[existingIndex] = { ...existing, quantity: newQty };
-        }
-        return updated;
-      }
-
-      return [...prev, item];
-    });
-  }, []);
-
-  const updateQuantity = useCallback((itemId: string, quantity: number) => {
-    setItems((prev) =>
-      prev.map((item) =>
-        item.id === itemId
-          ? { ...item, quantity: Math.min(quantity, item.available_quantity) }
-          : item
-      )
-    );
-  }, []);
-
-  const removeItem = useCallback((itemId: string) => {
-    setItems((prev) => prev.filter((item) => item.id !== itemId));
-  }, []);
-
-  const clearCart = useCallback(() => {
-    setItems([]);
-    setDiscountPercent(0);
-    setCustomerName("");
-    setCustomerPhone("");
-  }, []);
-
-  const subtotal = items.reduce(
-    (sum, item) => sum + item.selling_price * item.quantity * (1 - item.discount_percent / 100),
-    0
-  );
-  const discountAmount = subtotal * (discountPercent / 100);
-  const taxAmount = items.reduce(
-    (sum, item) =>
-      sum + item.selling_price * item.quantity * (item.tax_percent / 100),
-    0
-  );
-  const total = subtotal - discountAmount + taxAmount;
-
-  return {
-    items,
-    discountPercent,
-    customerName,
-    customerPhone,
-    subtotal,
-    discountAmount,
-    taxAmount,
-    total,
-    itemCount: items.reduce((sum, item) => sum + item.quantity, 0),
-    addItem,
-    updateQuantity,
-    removeItem,
-    clearCart,
-    setDiscountPercent,
-    setCustomerName,
-    setCustomerPhone,
-  };
 }
