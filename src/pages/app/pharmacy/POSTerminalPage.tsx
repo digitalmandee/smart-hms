@@ -4,6 +4,8 @@ import { POSProductSearch } from "@/components/pharmacy/POSProductSearch";
 import { POSCart } from "@/components/pharmacy/POSCart";
 import { POSPaymentModal } from "@/components/pharmacy/POSPaymentModal";
 import { POSReceiptPreview } from "@/components/pharmacy/POSReceiptPreview";
+import { POSPatientSearch } from "@/components/pharmacy/POSPatientSearch";
+import { POSHeldTransactionsDialog } from "@/components/pharmacy/POSHeldTransactions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,9 +24,11 @@ import {
   POSTransaction,
   POSPayment,
 } from "@/hooks/usePOS";
+import { useHoldTransaction } from "@/hooks/useHeldTransactions";
+import { PatientForPOS } from "@/hooks/usePatientPrescriptionsForPOS";
 import { usePrint } from "@/hooks/usePrint";
 import { useAuth } from "@/contexts/AuthContext";
-import { Keyboard, AlertTriangle } from "lucide-react";
+import { Keyboard, AlertTriangle, Pause } from "lucide-react";
 
 export default function POSTerminalPage() {
   const { profile } = useAuth();
@@ -35,12 +39,14 @@ export default function POSTerminalPage() {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [completedTransaction, setCompletedTransaction] = useState<POSTransaction | null>(null);
   const [showReceipt, setShowReceipt] = useState(false);
+  const [selectedPatient, setSelectedPatient] = useState<PatientForPOS | null>(null);
   
   const barcodeInputRef = useRef<HTMLInputElement>(null);
   const { printRef, handlePrint } = usePrint();
 
   const hasBranch = !!profile?.branch_id;
   const createTransactionMutation = useCreateTransaction();
+  const holdTransactionMutation = useHoldTransaction();
 
   // Calculate totals
   const subtotal = cart.reduce((sum, item) => {
@@ -95,6 +101,34 @@ export default function POSTerminalPage() {
     setCustomerName("");
     setCustomerPhone("");
     setDiscountPercent(0);
+    setSelectedPatient(null);
+  };
+
+  const handleHoldTransaction = () => {
+    if (cart.length === 0) return;
+    holdTransactionMutation.mutate({
+      cartItems: cart,
+      customerName: customerName || undefined,
+      customerPhone: customerPhone || undefined,
+      patientId: selectedPatient?.id,
+      discountPercent,
+    }, {
+      onSuccess: () => handleClearCart(),
+    });
+  };
+
+  const handleRecallTransaction = (items: CartItem[], name?: string, phone?: string, patientId?: string) => {
+    setCart(items);
+    setCustomerName(name || "");
+    setCustomerPhone(phone || "");
+  };
+
+  const handlePatientSelect = (patient: PatientForPOS | null) => {
+    setSelectedPatient(patient);
+    if (patient) {
+      setCustomerName(`${patient.first_name} ${patient.last_name}`);
+      setCustomerPhone(patient.phone || "");
+    }
   };
 
   const handlePaymentComplete = (payments: Omit<POSPayment, "id" | "transaction_id">[]) => {
@@ -150,6 +184,20 @@ export default function POSTerminalPage() {
       <PageHeader
         title="POS Terminal"
         description="Retail point of sale for walk-in customers"
+        actions={
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleHoldTransaction}
+              disabled={cart.length === 0 || holdTransactionMutation.isPending}
+            >
+              <Pause className="h-4 w-4 mr-1" />
+              Hold
+            </Button>
+            <POSHeldTransactionsDialog onRecall={handleRecallTransaction} />
+          </div>
+        }
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -172,6 +220,13 @@ export default function POSTerminalPage() {
           </div>
 
           <POSProductSearch onAddToCart={handleAddToCart} />
+          
+          {/* Patient Search for Prescription Lookup */}
+          <POSPatientSearch
+            onAddToCart={handleAddToCart}
+            onPatientSelect={handlePatientSelect}
+            selectedPatient={selectedPatient}
+          />
         </div>
 
         {/* Cart - Right Side */}

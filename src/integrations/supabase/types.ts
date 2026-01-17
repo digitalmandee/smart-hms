@@ -8172,6 +8172,106 @@ export type Database = {
         }
         Relationships: []
       }
+      pharmacy_pos_held_transactions: {
+        Row: {
+          branch_id: string
+          cart_items: Json
+          created_at: string
+          customer_name: string | null
+          customer_phone: string | null
+          discount_percent: number | null
+          held_at: string
+          held_by: string | null
+          id: string
+          is_active: boolean | null
+          notes: string | null
+          organization_id: string
+          patient_id: string | null
+          prescription_id: string | null
+          recalled_at: string | null
+          recalled_by: string | null
+        }
+        Insert: {
+          branch_id: string
+          cart_items?: Json
+          created_at?: string
+          customer_name?: string | null
+          customer_phone?: string | null
+          discount_percent?: number | null
+          held_at?: string
+          held_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          notes?: string | null
+          organization_id: string
+          patient_id?: string | null
+          prescription_id?: string | null
+          recalled_at?: string | null
+          recalled_by?: string | null
+        }
+        Update: {
+          branch_id?: string
+          cart_items?: Json
+          created_at?: string
+          customer_name?: string | null
+          customer_phone?: string | null
+          discount_percent?: number | null
+          held_at?: string
+          held_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          notes?: string | null
+          organization_id?: string
+          patient_id?: string | null
+          prescription_id?: string | null
+          recalled_at?: string | null
+          recalled_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pharmacy_pos_held_transactions_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_pos_held_transactions_held_by_fkey"
+            columns: ["held_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_pos_held_transactions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_pos_held_transactions_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_pos_held_transactions_prescription_id_fkey"
+            columns: ["prescription_id"]
+            isOneToOne: false
+            referencedRelation: "prescriptions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_pos_held_transactions_recalled_by_fkey"
+            columns: ["recalled_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pharmacy_pos_items: {
         Row: {
           batch_number: string | null
@@ -8374,6 +8474,8 @@ export type Database = {
           id: string
           notes: string | null
           organization_id: string
+          patient_id: string | null
+          prescription_id: string | null
           session_id: string
           status: string
           subtotal: number
@@ -8398,6 +8500,8 @@ export type Database = {
           id?: string
           notes?: string | null
           organization_id: string
+          patient_id?: string | null
+          prescription_id?: string | null
           session_id: string
           status?: string
           subtotal?: number
@@ -8422,6 +8526,8 @@ export type Database = {
           id?: string
           notes?: string | null
           organization_id?: string
+          patient_id?: string | null
+          prescription_id?: string | null
           session_id?: string
           status?: string
           subtotal?: number
@@ -8456,6 +8562,20 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "pharmacy_pos_transactions_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_pos_transactions_prescription_id_fkey"
+            columns: ["prescription_id"]
+            isOneToOne: false
+            referencedRelation: "prescriptions"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "pharmacy_pos_transactions_session_id_fkey"
             columns: ["session_id"]
             isOneToOne: false
@@ -8467,6 +8587,105 @@ export type Database = {
             columns: ["voided_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pharmacy_stock_movements: {
+        Row: {
+          batch_number: string | null
+          branch_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          inventory_id: string | null
+          medicine_id: string | null
+          movement_type: string
+          new_stock: number | null
+          notes: string | null
+          organization_id: string
+          previous_stock: number | null
+          quantity: number
+          reference_id: string | null
+          reference_number: string | null
+          reference_type: string | null
+          total_value: number | null
+          unit_cost: number | null
+        }
+        Insert: {
+          batch_number?: string | null
+          branch_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          inventory_id?: string | null
+          medicine_id?: string | null
+          movement_type: string
+          new_stock?: number | null
+          notes?: string | null
+          organization_id: string
+          previous_stock?: number | null
+          quantity: number
+          reference_id?: string | null
+          reference_number?: string | null
+          reference_type?: string | null
+          total_value?: number | null
+          unit_cost?: number | null
+        }
+        Update: {
+          batch_number?: string | null
+          branch_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          inventory_id?: string | null
+          medicine_id?: string | null
+          movement_type?: string
+          new_stock?: number | null
+          notes?: string | null
+          organization_id?: string
+          previous_stock?: number | null
+          quantity?: number
+          reference_id?: string | null
+          reference_number?: string | null
+          reference_type?: string | null
+          total_value?: number | null
+          unit_cost?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pharmacy_stock_movements_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_stock_movements_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_stock_movements_inventory_id_fkey"
+            columns: ["inventory_id"]
+            isOneToOne: false
+            referencedRelation: "medicine_inventory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_stock_movements_medicine_id_fkey"
+            columns: ["medicine_id"]
+            isOneToOne: false
+            referencedRelation: "medicines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_stock_movements_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
