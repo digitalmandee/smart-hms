@@ -20,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { usePOSTransactions, usePOSSessions } from "@/hooks/usePOS";
+import { usePOSTransactions } from "@/hooks/usePOS";
 import { useInventory } from "@/hooks/usePharmacy";
 import { format, subDays, startOfMonth, endOfMonth } from "date-fns";
 import { 
@@ -53,7 +53,6 @@ export default function PharmacyReportsPage() {
   const [reportType, setReportType] = useState("sales");
 
   const { data: transactions = [] } = usePOSTransactions();
-  const { data: sessions = [] } = usePOSSessions();
   const { data: inventory = [] } = useInventory();
 
   // Calculate sales summary
@@ -196,13 +195,13 @@ export default function PharmacyReportsPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Sessions</CardTitle>
+            <CardTitle className="text-sm font-medium">Transactions</CardTitle>
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{sessions.length}</div>
+            <div className="text-2xl font-bold">{transactions.length}</div>
             <p className="text-xs text-muted-foreground">
-              {sessions.filter(s => s.status === 'open').length} active
+              Total sales today
             </p>
           </CardContent>
         </Card>

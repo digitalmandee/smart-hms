@@ -1,6 +1,5 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import { PageHeader } from "@/components/PageHeader";
-import { POSSessionWidget } from "@/components/pharmacy/POSSessionWidget";
 import { POSProductSearch } from "@/components/pharmacy/POSProductSearch";
 import { POSCart } from "@/components/pharmacy/POSCart";
 import { POSPaymentModal } from "@/components/pharmacy/POSPaymentModal";
@@ -13,15 +12,11 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { 
-  useActiveSession, 
-  useOpenSession, 
-  useCloseSession,
   useCreateTransaction,
   CartItem,
   POSTransaction,
@@ -29,7 +24,6 @@ import {
 } from "@/hooks/usePOS";
 import { usePrint } from "@/hooks/usePrint";
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
 import { Keyboard, AlertTriangle } from "lucide-react";
 
 export default function POSTerminalPage() {
@@ -39,11 +33,6 @@ export default function POSTerminalPage() {
   const [customerPhone, setCustomerPhone] = useState("");
   const [discountPercent, setDiscountPercent] = useState(0);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [showOpenSessionDialog, setShowOpenSessionDialog] = useState(false);
-  const [showCloseSessionDialog, setShowCloseSessionDialog] = useState(false);
-  const [openingBalance, setOpeningBalance] = useState("");
-  const [closingBalance, setClosingBalance] = useState("");
-  const [closingNotes, setClosingNotes] = useState("");
   const [completedTransaction, setCompletedTransaction] = useState<POSTransaction | null>(null);
   const [showReceipt, setShowReceipt] = useState(false);
   
@@ -51,17 +40,7 @@ export default function POSTerminalPage() {
   const { printRef, handlePrint } = usePrint();
 
   const hasBranch = !!profile?.branch_id;
-  const { data: activeSession, isLoading: sessionLoading, error: sessionError } = useActiveSession();
-  const openSessionMutation = useOpenSession();
-  const closeSessionMutation = useCloseSession();
   const createTransactionMutation = useCreateTransaction();
-
-  // Focus barcode input when session is active
-  useEffect(() => {
-    if (activeSession && barcodeInputRef.current) {
-      barcodeInputRef.current.focus();
-    }
-  }, [activeSession]);
 
   // Calculate totals
   const subtotal = cart.reduce((sum, item) => {
@@ -85,7 +64,6 @@ export default function POSTerminalPage() {
       const existing = prev.find(i => i.inventory_id === item.inventory_id);
       if (existing) {
         if (existing.quantity + item.quantity > item.available_quantity) {
-          toast.error(`Only ${item.available_quantity} available in stock`);
           return prev;
         }
         return prev.map(i =>
@@ -119,48 +97,10 @@ export default function POSTerminalPage() {
     setDiscountPercent(0);
   };
 
-  const handleOpenSession = () => {
-    const balance = parseFloat(openingBalance);
-    if (isNaN(balance) || balance < 0) {
-      toast.error("Please enter a valid opening balance");
-      return;
-    }
-    openSessionMutation.mutate({ openingBalance: balance }, {
-      onSuccess: () => {
-        setShowOpenSessionDialog(false);
-        setOpeningBalance("");
-      },
-    });
-  };
-
-  const handleCloseSession = () => {
-    if (!activeSession) return;
-    
-    const balance = parseFloat(closingBalance);
-    if (isNaN(balance) || balance < 0) {
-      toast.error("Please enter a valid closing balance");
-      return;
-    }
-    
-    closeSessionMutation.mutate({
-      sessionId: activeSession.id,
-      closingBalance: balance,
-      notes: closingNotes,
-    }, {
-      onSuccess: () => {
-        setShowCloseSessionDialog(false);
-        setClosingBalance("");
-        setClosingNotes("");
-        handleClearCart();
-      },
-    });
-  };
-
   const handlePaymentComplete = (payments: Omit<POSPayment, "id" | "transaction_id">[]) => {
-    if (!activeSession || cart.length === 0) return;
+    if (cart.length === 0) return;
 
     createTransactionMutation.mutate({
-      sessionId: activeSession.id,
       items: cart,
       payments: payments.map(p => ({
         payment_method: p.payment_method,
@@ -185,14 +125,6 @@ export default function POSTerminalPage() {
     handlePrint({ title: "POS Receipt" });
   };
 
-  if (sessionLoading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
   // Show error if no branch assigned
   if (!hasBranch) {
     return (
@@ -213,25 +145,6 @@ export default function POSTerminalPage() {
     );
   }
 
-  // Show error if session query failed
-  if (sessionError) {
-    return (
-      <div className="space-y-4">
-        <PageHeader
-          title="POS Terminal"
-          description="Retail point of sale for walk-in customers"
-        />
-        <Alert variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Error Loading Session</AlertTitle>
-          <AlertDescription>
-            {sessionError instanceof Error ? sessionError.message : "Failed to load POS session. Please try again."}
-          </AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-4">
       <PageHeader
@@ -239,185 +152,75 @@ export default function POSTerminalPage() {
         description="Retail point of sale for walk-in customers"
       />
 
-      {/* Session Widget */}
-      <POSSessionWidget
-        session={activeSession || null}
-        onOpenSession={() => setShowOpenSessionDialog(true)}
-        onCloseSession={() => setShowCloseSessionDialog(true)}
-        isLoading={openSessionMutation.isPending || closeSessionMutation.isPending}
-      />
-
-      {activeSession ? (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* Product Search - Left Side */}
-          <div className="lg:col-span-2 space-y-4">
-            {/* Hidden barcode input */}
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Keyboard className="h-4 w-4" />
-              <span>Barcode scanner ready - scan or search below</span>
-              <input
-                ref={barcodeInputRef}
-                type="text"
-                className="sr-only"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    // Handle barcode scan
-                  }
-                }}
-              />
-            </div>
-
-            <POSProductSearch onAddToCart={handleAddToCart} />
-          </div>
-
-          {/* Cart - Right Side */}
-          <div className="space-y-4">
-            {/* Customer Info */}
-            <Card>
-              <CardHeader className="py-3">
-                <CardTitle className="text-sm font-medium">Customer Info (Optional)</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 pt-0">
-                <div>
-                  <Label htmlFor="customerName" className="text-xs">Name</Label>
-                  <Input
-                    id="customerName"
-                    value={customerName}
-                    onChange={(e) => setCustomerName(e.target.value)}
-                    placeholder="Walk-in Customer"
-                    className="h-8"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="customerPhone" className="text-xs">Phone</Label>
-                  <Input
-                    id="customerPhone"
-                    value={customerPhone}
-                    onChange={(e) => setCustomerPhone(e.target.value)}
-                    placeholder="03XX-XXXXXXX"
-                    className="h-8"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Cart */}
-            <POSCart
-              items={cart}
-              subtotal={subtotal}
-              discountPercent={discountPercent}
-              discountAmount={discountAmount}
-              taxAmount={taxAmount}
-              total={totalAmount}
-              onUpdateQuantity={handleUpdateQuantity}
-              onRemoveItem={handleRemoveItem}
-              onDiscountChange={setDiscountPercent}
-              onCheckout={() => setShowPaymentModal(true)}
-              disabled={createTransactionMutation.isPending}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Product Search - Left Side */}
+        <div className="lg:col-span-2 space-y-4">
+          {/* Hidden barcode input */}
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Keyboard className="h-4 w-4" />
+            <span>Barcode scanner ready - scan or search below</span>
+            <input
+              ref={barcodeInputRef}
+              type="text"
+              className="sr-only"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  // Handle barcode scan
+                }
+              }}
             />
           </div>
+
+          <POSProductSearch onAddToCart={handleAddToCart} />
         </div>
-      ) : (
-        <Card className="p-8 text-center">
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">No Active Session</h3>
-            <p className="text-muted-foreground">
-              Please open a POS session to start processing sales.
-            </p>
-            <Button onClick={() => setShowOpenSessionDialog(true)}>
-              Open Session
-            </Button>
-          </div>
-        </Card>
-      )}
 
-      {/* Open Session Dialog */}
-      <Dialog open={showOpenSessionDialog} onOpenChange={setShowOpenSessionDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Open POS Session</DialogTitle>
-            <DialogDescription>
-              Enter the opening cash balance in your drawer.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="openingBalance">Opening Balance (Rs.)</Label>
-              <Input
-                id="openingBalance"
-                type="number"
-                value={openingBalance}
-                onChange={(e) => setOpeningBalance(e.target.value)}
-                placeholder="0.00"
-                min="0"
-                step="0.01"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowOpenSessionDialog(false)}>
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleOpenSession}
-              disabled={openSessionMutation.isPending}
-            >
-              {openSessionMutation.isPending ? "Opening..." : "Open Session"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        {/* Cart - Right Side */}
+        <div className="space-y-4">
+          {/* Customer Info */}
+          <Card>
+            <CardHeader className="py-3">
+              <CardTitle className="text-sm font-medium">Customer Info (Optional)</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 pt-0">
+              <div>
+                <Label htmlFor="customerName" className="text-xs">Name</Label>
+                <Input
+                  id="customerName"
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                  placeholder="Walk-in Customer"
+                  className="h-8"
+                />
+              </div>
+              <div>
+                <Label htmlFor="customerPhone" className="text-xs">Phone</Label>
+                <Input
+                  id="customerPhone"
+                  value={customerPhone}
+                  onChange={(e) => setCustomerPhone(e.target.value)}
+                  placeholder="03XX-XXXXXXX"
+                  className="h-8"
+                />
+              </div>
+            </CardContent>
+          </Card>
 
-      {/* Close Session Dialog */}
-      <Dialog open={showCloseSessionDialog} onOpenChange={setShowCloseSessionDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Close POS Session</DialogTitle>
-            <DialogDescription>
-              Count your cash drawer and enter the closing balance.
-              {activeSession && (
-                <span className="block mt-2 font-medium text-foreground">
-                  Expected Balance: Rs. {Number(activeSession.expected_cash || 0).toFixed(2)}
-                </span>
-              )}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="closingBalance">Actual Closing Balance (Rs.)</Label>
-              <Input
-                id="closingBalance"
-                type="number"
-                value={closingBalance}
-                onChange={(e) => setClosingBalance(e.target.value)}
-                placeholder="0.00"
-                min="0"
-                step="0.01"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="closingNotes">Notes (Optional)</Label>
-              <Input
-                id="closingNotes"
-                value={closingNotes}
-                onChange={(e) => setClosingNotes(e.target.value)}
-                placeholder="Any discrepancy notes..."
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCloseSessionDialog(false)}>
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleCloseSession}
-              disabled={closeSessionMutation.isPending}
-            >
-              {closeSessionMutation.isPending ? "Closing..." : "Close Session"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          {/* Cart */}
+          <POSCart
+            items={cart}
+            subtotal={subtotal}
+            discountPercent={discountPercent}
+            discountAmount={discountAmount}
+            taxAmount={taxAmount}
+            total={totalAmount}
+            onUpdateQuantity={handleUpdateQuantity}
+            onRemoveItem={handleRemoveItem}
+            onDiscountChange={setDiscountPercent}
+            onCheckout={() => setShowPaymentModal(true)}
+            disabled={createTransactionMutation.isPending}
+          />
+        </div>
+      </div>
 
       {/* Payment Modal */}
       <POSPaymentModal
