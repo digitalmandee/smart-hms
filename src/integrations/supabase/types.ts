@@ -6099,6 +6099,7 @@ export type Database = {
       }
       lab_orders: {
         Row: {
+          access_code: string | null
           branch_id: string
           clinical_notes: string | null
           completed_at: string | null
@@ -6106,15 +6107,20 @@ export type Database = {
           created_at: string
           doctor_id: string
           id: string
+          is_published: boolean | null
+          notification_sent_at: string | null
           order_number: string
           patient_id: string
+          patient_notified: boolean | null
           priority: Database["public"]["Enums"]["lab_order_priority"]
+          published_at: string | null
           result_notes: string | null
           status: Database["public"]["Enums"]["lab_order_status"]
           surgery_id: string | null
           updated_at: string
         }
         Insert: {
+          access_code?: string | null
           branch_id: string
           clinical_notes?: string | null
           completed_at?: string | null
@@ -6122,15 +6128,20 @@ export type Database = {
           created_at?: string
           doctor_id: string
           id?: string
+          is_published?: boolean | null
+          notification_sent_at?: string | null
           order_number: string
           patient_id: string
+          patient_notified?: boolean | null
           priority?: Database["public"]["Enums"]["lab_order_priority"]
+          published_at?: string | null
           result_notes?: string | null
           status?: Database["public"]["Enums"]["lab_order_status"]
           surgery_id?: string | null
           updated_at?: string
         }
         Update: {
+          access_code?: string | null
           branch_id?: string
           clinical_notes?: string | null
           completed_at?: string | null
@@ -6138,9 +6149,13 @@ export type Database = {
           created_at?: string
           doctor_id?: string
           id?: string
+          is_published?: boolean | null
+          notification_sent_at?: string | null
           order_number?: string
           patient_id?: string
+          patient_notified?: boolean | null
           priority?: Database["public"]["Enums"]["lab_order_priority"]
+          published_at?: string | null
           result_notes?: string | null
           status?: Database["public"]["Enums"]["lab_order_status"]
           surgery_id?: string | null
