@@ -9,6 +9,7 @@ import { AuthLayout } from "@/layouts/AuthLayout";
 import { DashboardLayout } from "@/layouts/DashboardLayout";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import TestCasesPage from "./pages/TestCasesPage";
 import { LoginPage } from "./pages/auth/LoginPage";
 import { SignupPage } from "./pages/auth/SignupPage";
 import { DashboardPage } from "./pages/app/DashboardPage";
@@ -293,6 +294,9 @@ function App() {
             
             {/* Public Lab Report Portal */}
             <Route path="/lab-reports" element={<PublicLabReportPage />} />
+            
+            {/* Test Cases Documentation (hidden - not linked from landing page) */}
+            <Route path="/test-cases" element={<TestCasesPage />} />
             {/* Authenticated kiosk routes - separate login for kiosk devices */}
             <Route path="/kiosk/login" element={<KioskLoginPage />} />
             <Route path="/kiosk/terminal" element={<KioskTerminalPage />} />
