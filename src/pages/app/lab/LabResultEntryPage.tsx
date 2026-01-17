@@ -105,9 +105,32 @@ export default function LabResultEntryPage() {
   const handleMarkCollected = async () => {
     try {
       await markCollected.mutateAsync(labOrder.id);
-      toast.success("Sample marked as collected");
+      toast.success("Sample collected! You can now enter test results.");
     } catch (error) {
       toast.error("Failed to update status");
+    }
+  };
+
+  // Allow updating results even after order is completed
+  const handleUpdateTestResult = async (
+    itemId: string,
+    results: Record<string, string | number>,
+    notes: string
+  ) => {
+    setSavingItemId(itemId);
+    try {
+      await updateItem.mutateAsync({
+        id: itemId,
+        result_values: results,
+        result_notes: notes,
+        status: "completed",
+        performed_by: profile?.id,
+      });
+      toast.success(isOrderCompleted ? "Results updated successfully" : "Test result saved successfully");
+    } catch (error) {
+      toast.error("Failed to save test result");
+    } finally {
+      setSavingItemId(null);
     }
   };
 
@@ -218,31 +241,63 @@ export default function LabResultEntryPage() {
         </CardContent>
       </Card>
 
-      {/* Action Buttons */}
-      {!isOrderCompleted && (
-        <div className="flex flex-wrap gap-3">
-          {labOrder.status === "ordered" && (
-            <Button onClick={handleMarkCollected} disabled={markCollected.isPending}>
-              {markCollected.isPending ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <CheckCircle className="h-4 w-4 mr-2" />
-              )}
-              Mark Sample Collected
-            </Button>
-          )}
-        </div>
+      {/* Sample Collection Status */}
+      {labOrder.status === "ordered" && (
+        <Card className="border-orange-200 bg-orange-50/50">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <AlertTriangle className="h-5 w-5 text-orange-600" />
+                <div>
+                  <p className="font-medium text-orange-800">Sample Not Collected</p>
+                  <p className="text-sm text-orange-600">Mark as collected to enable result entry</p>
+                </div>
+              </div>
+              <Button onClick={handleMarkCollected} disabled={markCollected.isPending}>
+                {markCollected.isPending ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                )}
+                Mark Sample Collected
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {labOrder.status === "collected" && !isOrderCompleted && (
+        <Card className="border-blue-200 bg-blue-50/50">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <CheckCircle className="h-5 w-5 text-blue-600" />
+              <div>
+                <p className="font-medium text-blue-800">Sample Collected</p>
+                <p className="text-sm text-blue-600">Enter results for each test below, then finalize the report</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Test Results Forms */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Test Results</h3>
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold">Test Results</h3>
+          {isOrderCompleted && (
+            <Badge variant="outline" className="text-green-600 border-green-300">
+              Results can be updated anytime
+            </Badge>
+          )}
+        </div>
         {labOrder.items?.map((item) => (
           <TestResultForm
             key={item.id}
             item={item}
-            onSave={handleSaveTestResult}
+            onSave={isOrderCompleted ? handleUpdateTestResult : handleSaveTestResult}
             isSaving={savingItemId === item.id}
+            isEditable={labOrder.status !== "ordered"}
+            showUpdateLabel={isOrderCompleted && item.status === "completed"}
           />
         ))}
       </div>

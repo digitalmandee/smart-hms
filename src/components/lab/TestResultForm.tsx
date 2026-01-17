@@ -14,6 +14,8 @@ interface TestResultFormProps {
   item: LabOrderItem;
   onSave: (itemId: string, results: Record<string, string | number>, notes: string) => Promise<void>;
   isSaving?: boolean;
+  isEditable?: boolean;
+  showUpdateLabel?: boolean;
 }
 
 const statusConfig = {
@@ -23,7 +25,7 @@ const statusConfig = {
   completed: { label: "Completed", className: "bg-green-100 text-green-800" },
 };
 
-export function TestResultForm({ item, onSave, isSaving }: TestResultFormProps) {
+export function TestResultForm({ item, onSave, isSaving, isEditable = true, showUpdateLabel = false }: TestResultFormProps) {
   const { data: templates } = useLabTestTemplates();
   const [results, setResults] = useState<Record<string, string | number>>({});
   const [notes, setNotes] = useState("");
@@ -63,6 +65,8 @@ export function TestResultForm({ item, onSave, isSaving }: TestResultFormProps) 
 
   const status = statusConfig[item.status] || statusConfig.pending;
   const isCompleted = item.status === "completed";
+  // Allow editing if editable prop is true (even for completed items)
+  const canEdit = isEditable;
 
   return (
     <Card className={cn(isCompleted && "bg-muted/30")}>
@@ -107,7 +111,7 @@ export function TestResultForm({ item, onSave, isSaving }: TestResultFormProps) 
                       className={cn(
                         isAbnormal && "border-red-500 bg-red-50 text-red-900 font-medium"
                       )}
-                      disabled={isCompleted}
+                      disabled={!canEdit}
                     />
                   </div>
                   {field.normal_min !== null && field.normal_max !== null && (
@@ -127,7 +131,7 @@ export function TestResultForm({ item, onSave, isSaving }: TestResultFormProps) 
               value={results["result"] as string || ""}
               onChange={(e) => handleResultChange("result", e.target.value)}
               placeholder="Enter test result..."
-              disabled={isCompleted}
+              disabled={!canEdit}
             />
           </div>
         )}
@@ -139,23 +143,23 @@ export function TestResultForm({ item, onSave, isSaving }: TestResultFormProps) 
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Additional notes..."
-            disabled={isCompleted}
+            disabled={!canEdit}
             rows={2}
           />
         </div>
 
-        {/* Save button */}
-        {!isCompleted && (
+        {/* Save/Update button */}
+        {canEdit && (
           <Button onClick={handleSave} disabled={isSaving} className="w-full sm:w-auto">
             {isSaving ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Saving...
+                {showUpdateLabel ? "Updating..." : "Saving..."}
               </>
             ) : (
               <>
                 <Check className="h-4 w-4 mr-2" />
-                Save & Complete Test
+                {showUpdateLabel ? "Update Results" : "Save & Complete Test"}
               </>
             )}
           </Button>

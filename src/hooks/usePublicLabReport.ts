@@ -180,7 +180,7 @@ export function useMarkPatientNotified() {
   });
 }
 
-// Hook for searching public lab reports
+// Hook for searching public lab reports by order number
 export function useSearchPublicLabReport() {
   return useMutation({
     mutationFn: async ({
@@ -261,6 +261,88 @@ export function useSearchPublicLabReport() {
         patient: patient,
         doctor: labOrder.doctor as PublicLabReport["doctor"],
         items: (labOrder.items || []) as PublicLabReport["items"],
+      };
+    },
+  });
+}
+
+// Brief summary type for patient reports list
+export interface PatientReportSummary {
+  id: string;
+  order_number: string;
+  status: string;
+  created_at: string;
+  completed_at: string | null;
+  test_names: string[];
+}
+
+// Hook for searching all patient reports by MR number
+export function useSearchPatientReports() {
+  return useMutation({
+    mutationFn: async ({
+      patientNumber,
+      verificationCode,
+    }: {
+      patientNumber: string;
+      verificationCode: string;
+    }): Promise<{ patient: PublicLabReport["patient"]; reports: PatientReportSummary[] }> => {
+      // Find patient by patient_number
+      const { data: patients, error: patientError } = await supabase
+        .from("patients")
+        .select("id, first_name, last_name, date_of_birth, gender, phone, patient_number")
+        .ilike("patient_number", `%${patientNumber}%`)
+        .limit(1);
+
+      if (patientError || !patients || patients.length === 0) {
+        throw new Error("Patient not found");
+      }
+
+      const patient = patients[0];
+      
+      // Verify phone last 4 digits
+      const phoneLast4 = (patient.phone || "").slice(-4);
+      if (phoneLast4 !== verificationCode) {
+        throw new Error("Invalid verification code");
+      }
+
+      // Fetch all published lab orders for this patient
+      const { data: labOrders, error: ordersError } = await supabase
+        .from("lab_orders")
+        .select(`
+          id,
+          order_number,
+          status,
+          created_at,
+          completed_at,
+          items:lab_order_items(test_name)
+        `)
+        .eq("patient_id", patient.id)
+        .eq("is_published", true)
+        .order("created_at", { ascending: false });
+
+      if (ordersError) {
+        throw new Error("Failed to fetch reports");
+      }
+
+      const reports: PatientReportSummary[] = (labOrders || []).map((order) => ({
+        id: order.id,
+        order_number: order.order_number,
+        status: order.status,
+        created_at: order.created_at,
+        completed_at: order.completed_at,
+        test_names: (order.items as Array<{ test_name: string }>)?.map((i) => i.test_name) || [],
+      }));
+
+      return {
+        patient: {
+          first_name: patient.first_name,
+          last_name: patient.last_name,
+          date_of_birth: patient.date_of_birth,
+          gender: patient.gender,
+          phone: patient.phone,
+          patient_number: patient.patient_number,
+        },
+        reports,
       };
     },
   });
