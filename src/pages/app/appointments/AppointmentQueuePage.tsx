@@ -27,12 +27,19 @@ import { useDoctors } from '@/hooks/useDoctors';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function AppointmentQueuePage() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { roles } = useAuth();
   const [selectedDoctor, setSelectedDoctor] = useState<string>('all');
+  
+  // Check if user is a doctor (not admin)
+  const isDoctor = roles.includes('doctor') && !roles.some(r => 
+    ['org_admin', 'branch_admin', 'super_admin'].includes(r)
+  );
 
   const { data: queue, isLoading, refetch } = useTodayQueue(
     undefined,
@@ -187,7 +194,14 @@ export default function AppointmentQueuePage() {
                   appointment={appointment}
                   variant="queue"
                   onComplete={() => handleAction(appointment.id, 'complete')}
-                  onClick={() => navigate(`/app/appointments/${appointment.id}`)}
+                  onClick={() => {
+                    if (isDoctor) {
+                      navigate(`/app/opd/consultation/${appointment.id}`);
+                    } else {
+                      navigate(`/app/appointments/${appointment.id}`);
+                    }
+                  }}
+                  showConsultButton={isDoctor}
                 />
               ))}
             </div>
@@ -226,7 +240,15 @@ export default function AppointmentQueuePage() {
                     variant="queue"
                     onStart={() => handleAction(appointment.id, 'start')}
                     onNoShow={() => handleAction(appointment.id, 'noShow')}
-                    onClick={() => navigate(`/app/appointments/${appointment.id}`)}
+                    onClick={() => {
+                      // Doctors go directly to consultation, others go to appointment details
+                      if (isDoctor) {
+                        navigate(`/app/opd/consultation/${appointment.id}`);
+                      } else {
+                        navigate(`/app/appointments/${appointment.id}`);
+                      }
+                    }}
+                    showConsultButton={isDoctor}
                   />
                 ))}
               </div>
