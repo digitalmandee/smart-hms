@@ -28,10 +28,13 @@ import { useHoldTransaction } from "@/hooks/useHeldTransactions";
 import { PatientForPOS } from "@/hooks/usePatientPrescriptionsForPOS";
 import { usePrint } from "@/hooks/usePrint";
 import { useAuth } from "@/contexts/AuthContext";
+import { useOrganizationModules } from "@/hooks/useOrganizationModules";
 import { Keyboard, AlertTriangle, Pause } from "lucide-react";
 
 export default function POSTerminalPage() {
   const { profile } = useAuth();
+  const { data: enabledModules } = useOrganizationModules(profile?.organization_id);
+  
   const [cart, setCart] = useState<CartItem[]>([]);
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
@@ -47,6 +50,11 @@ export default function POSTerminalPage() {
   const hasBranch = !!profile?.branch_id;
   const createTransactionMutation = useCreateTransaction();
   const holdTransactionMutation = useHoldTransaction();
+  
+  // Check if patients module is enabled - if not, use standalone mode
+  // enabledModules is an array of module_code strings
+  const isPatientsModuleEnabled = enabledModules?.includes("patients");
+  const isStandaloneMode = !isPatientsModuleEnabled;
 
   // Calculate totals
   const subtotal = cart.reduce((sum, item) => {
@@ -221,12 +229,14 @@ export default function POSTerminalPage() {
 
           <POSProductSearch onAddToCart={handleAddToCart} />
           
-          {/* Patient Search for Prescription Lookup */}
-          <POSPatientSearch
-            onAddToCart={handleAddToCart}
-            onPatientSelect={handlePatientSelect}
-            selectedPatient={selectedPatient}
-          />
+          {/* Patient Search for Prescription Lookup - only show if patients module is enabled */}
+          {!isStandaloneMode && (
+            <POSPatientSearch
+              onAddToCart={handleAddToCart}
+              onPatientSelect={handlePatientSelect}
+              selectedPatient={selectedPatient}
+            />
+          )}
         </div>
 
         {/* Cart - Right Side */}

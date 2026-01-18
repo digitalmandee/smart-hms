@@ -31,8 +31,7 @@ export default function ClinicDashboard() {
   ).length;
   
   // Placeholder for revenue (would need separate query)
-  const todayRevenue = tokensIssued * 500; // Estimate
-  const todayRevenue = todayInvoices.reduce((sum, inv) => sum + (inv.total_amount || 0), 0);
+  const todayRevenue = tokensIssued * 500; // Estimate based on average fee
 
   // Queue - patients waiting
   const queue = todayAppointments

@@ -14,6 +14,10 @@ import { LoginPage } from "./pages/auth/LoginPage";
 import { SignupPage } from "./pages/auth/SignupPage";
 import { DashboardPage } from "./pages/app/DashboardPage";
 
+// Clinic pages
+import ClinicDashboard from "./pages/app/clinic/ClinicDashboard";
+import ClinicTokenPage from "./pages/app/clinic/ClinicTokenPage";
+
 // Public display pages (no auth required)
 import PublicQueueDisplay from "./pages/public/PublicQueueDisplay";
 import PublicERDisplay from "./pages/public/PublicERDisplay";
@@ -326,6 +330,10 @@ function App() {
             >
               <Route index element={<Navigate to="dashboard" replace />} />
               <Route path="dashboard" element={<DashboardPage />} />
+              
+              {/* Clinic routes */}
+              <Route path="clinic" element={<ClinicDashboard />} />
+              <Route path="clinic/token" element={<ClinicTokenPage />} />
               
               {/* Patient routes */}
               <Route path="patients" element={<PatientsListPage />} />

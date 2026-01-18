@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useOrganizationModules } from "@/hooks/useOrganizationModules";
 
 interface MenuItem {
   id: string;
@@ -19,7 +20,8 @@ interface MenuItem {
 export const useMenuItems = () => {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { hasPermission, isSuperAdmin } = useAuth();
+  const { hasPermission, isSuperAdmin, profile } = useAuth();
+  const { data: enabledModules } = useOrganizationModules(profile?.organization_id);
 
   useEffect(() => {
     const fetchMenuItems = async () => {
@@ -33,13 +35,20 @@ export const useMenuItems = () => {
         if (error) throw error;
 
         if (data) {
-          // Filter by permissions
+          // Filter by permissions and enabled modules
           const filteredItems = data.filter((item) => {
             // Super admin sees everything
             if (isSuperAdmin) return true;
 
             // Skip super admin menu for non-super admins
             if (item.required_module === "super_admin") return false;
+
+            // Check if module is enabled for this organization
+            if (item.required_module && enabledModules) {
+              // enabledModules is an array of module_code strings
+              const isModuleEnabled = enabledModules.includes(item.required_module);
+              if (!isModuleEnabled) return false;
+            }
 
             // Check permission if required
             if (item.required_permission) {
@@ -86,7 +95,7 @@ export const useMenuItems = () => {
     };
 
     fetchMenuItems();
-  }, [hasPermission, isSuperAdmin]);
+  }, [hasPermission, isSuperAdmin, enabledModules]);
 
   return { menuItems, isLoading };
 };
