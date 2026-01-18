@@ -16,13 +16,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Stethoscope, Award, CreditCard, Calendar } from "lucide-react";
+import { Stethoscope, Award, CreditCard, Calendar, Loader2 } from "lucide-react";
+import { useSpecializations } from "@/hooks/useConfiguration";
 
 interface DoctorDetailsFormProps {
   form: UseFormReturn<any>;
 }
 
-const SPECIALIZATIONS = [
+// Fallback specializations in case database is empty
+const FALLBACK_SPECIALIZATIONS = [
   "General Medicine",
   "Cardiology",
   "Dermatology",
@@ -44,6 +46,13 @@ const SPECIALIZATIONS = [
 ];
 
 export function DoctorDetailsForm({ form }: DoctorDetailsFormProps) {
+  const { data: specializations, isLoading: specsLoading } = useSpecializations();
+  
+  // Use database specializations or fallback
+  const specializationOptions = specializations?.length 
+    ? specializations.map(s => s.name)
+    : FALLBACK_SPECIALIZATIONS;
+
   return (
     <Card>
       <CardHeader>
@@ -68,15 +77,21 @@ export function DoctorDetailsForm({ form }: DoctorDetailsFormProps) {
               <Select onValueChange={field.onChange} value={field.value || ""}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select specialization" />
+                    <SelectValue placeholder={specsLoading ? "Loading..." : "Select specialization"} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {SPECIALIZATIONS.map((spec) => (
-                    <SelectItem key={spec} value={spec}>
-                      {spec}
-                    </SelectItem>
-                  ))}
+                  {specsLoading ? (
+                    <div className="flex items-center justify-center py-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    </div>
+                  ) : (
+                    specializationOptions.map((spec) => (
+                      <SelectItem key={spec} value={spec}>
+                        {spec}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
               <FormMessage />

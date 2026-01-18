@@ -129,6 +129,9 @@ import ReportTemplatesPage from "./pages/app/settings/ReportTemplatesPage";
 import PublicLabReportPage from "./pages/public/PublicLabReportPage";
 import EmailSettingsPage from "./pages/app/settings/EmailSettingsPage";
 import EmailTemplatesPage from "./pages/app/settings/EmailTemplatesPage";
+import SpecializationsPage from "./pages/app/settings/SpecializationsPage";
+import QualificationsPage from "./pages/app/settings/QualificationsPage";
+import DoctorFeesPage from "./pages/app/settings/DoctorFeesPage";
 
 // HR pages
 import HRDashboard from "./pages/app/hr/HRDashboard";
@@ -628,6 +631,9 @@ function App() {
               <Route path="settings/email-templates" element={<EmailTemplatesPage />} />
               <Route path="settings/audit-logs" element={<AuditLogsPage />} />
               <Route path="settings/report-templates" element={<ReportTemplatesPage />} />
+              <Route path="settings/specializations" element={<SpecializationsPage />} />
+              <Route path="settings/qualifications" element={<QualificationsPage />} />
+              <Route path="settings/doctor-fees" element={<DoctorFeesPage />} />
             </Route>
 
             {/* Super Admin routes */}
