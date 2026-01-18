@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ROLE_SIDEBAR_CONFIG, ADMIN_ROLES, getPrimaryRole, SidebarMenuItem } from "@/config/role-sidebars";
 import {
   LayoutDashboard,
   Users,
@@ -146,66 +147,63 @@ interface DynamicSidebarProps {
 }
 
 export const DynamicSidebar = ({ isCollapsed = false, onToggle }: DynamicSidebarProps) => {
-  const { menuItems, isLoading: menuLoading } = useMenuItems();
-  const { profile, signOut } = useAuth();
+  // Use database menu items for admin roles, static config for operational roles
+  const { menuItems: dbMenuItems, isLoading: menuLoading } = useMenuItems();
+  const { profile, roles, signOut, isSuperAdmin } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [openMenus, setOpenMenus] = useState<string[]>([]);
 
-  // Auto-expand parent menu based on current route AND module context
+  // Determine if user is an admin (uses dynamic database menus)
+  const primaryRole = getPrimaryRole(roles);
+  const isAdminRole = ADMIN_ROLES.includes(primaryRole) || isSuperAdmin;
+
+  // Get sidebar config based on role
+  const sidebarConfig = isAdminRole 
+    ? null // Admin uses database menu items
+    : (ROLE_SIDEBAR_CONFIG[primaryRole] || ROLE_SIDEBAR_CONFIG.default);
+
+  // Convert static config to menu items format for rendering
+  const menuItems = isAdminRole 
+    ? dbMenuItems 
+    : (sidebarConfig?.items.map((item, index) => ({
+        id: `role-menu-${index}`,
+        code: item.path || `menu-${index}`,
+        name: item.name,
+        icon: item.icon,
+        path: item.path || null,
+        children: item.children?.map((child, childIndex) => ({
+          id: `role-menu-${index}-${childIndex}`,
+          code: child.path,
+          name: child.name,
+          icon: child.icon,
+          path: child.path,
+          children: [],
+        })) || [],
+      })) || []);
+
+  // Auto-expand parent menu based on current route
   useEffect(() => {
     const currentPath = location.pathname;
     const menusToOpen: string[] = [];
     
-    // Map route prefixes to their parent menu codes for auto-expand
-    const moduleMenuMap: Record<string, string[]> = {
-      '/app/pharmacy': ['pharmacy'],
-      '/app/ipd': ['ipd'],
-      '/app/opd': ['opd', 'appointments'],
-      '/app/appointments': ['appointments'],
-      '/app/emergency': ['emergency'],
-      '/app/billing': ['billing'],
-      '/app/lab': ['lab'],
-      '/app/radiology': ['radiology'],
-      '/app/blood-bank': ['blood_bank'],
-      '/app/ot': ['ot'],
-      '/app/inventory': ['inventory'],
-      '/app/hr': ['hr'],
-      '/app/accounts': ['accounts'],
-      '/app/settings': ['settings'],
-    };
-    
-    // Find and expand matching module menus
-    for (const [prefix, menuCodes] of Object.entries(moduleMenuMap)) {
-      if (currentPath.startsWith(prefix)) {
-        menuCodes.forEach(code => {
-          const item = menuItems.find(m => m.code === code);
-          if (item && item.children && item.children.length > 0) {
-            menusToOpen.push(item.code);
-          }
-        });
-        break;
-      }
-    }
-    
-    // Also expand based on active child match
-    menuItems.forEach(item => {
+    menuItems.forEach((item, index) => {
+      const menuCode = item.code || `menu-${index}`;
       if (item.children && item.children.length > 0) {
         const hasActiveChild = item.children.some(child => 
           child.path && (currentPath === child.path || currentPath.startsWith(child.path + "/"))
         );
         if (hasActiveChild) {
-          menusToOpen.push(item.code);
+          menusToOpen.push(menuCode);
         }
       }
     });
     
     if (menusToOpen.length > 0) {
       setOpenMenus(prev => {
-        // Only update if there are actual new menus to add
         const currentSet = new Set(prev);
         const hasNew = menusToOpen.some(code => !currentSet.has(code));
-        if (!hasNew) return prev; // Return same reference to prevent re-render
+        if (!hasNew) return prev;
         return [...new Set([...prev, ...menusToOpen])];
       });
     }
@@ -242,6 +240,8 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle }: DynamicSidebar
       .slice(0, 2);
   };
 
+  const isLoading = isAdminRole && menuLoading;
+
   return (
     <aside
       className={cn(
@@ -272,7 +272,7 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle }: DynamicSidebar
       {/* Navigation */}
       <ScrollArea className="flex-1 px-2 py-4">
         <nav className="space-y-1">
-          {menuLoading ? (
+          {isLoading ? (
             <div className="space-y-2 px-2">
               {[...Array(8)].map((_, i) => (
                 <Skeleton key={i} className="h-10 w-full rounded-md" />
@@ -280,10 +280,11 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle }: DynamicSidebar
             </div>
           ) : (
             <>
-          {menuItems.map((item) => {
+          {menuItems.map((item, index) => {
             const IconComponent = item.icon ? iconMap[item.icon] : LayoutDashboard;
             const hasChildren = item.children && item.children.length > 0;
-            const isOpen = openMenus.includes(item.code);
+            const menuCode = item.code || `menu-${index}`;
+            const isOpen = openMenus.includes(menuCode);
             const itemIsActive = isActive(item.path);
 
             if (hasChildren) {
@@ -291,7 +292,7 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle }: DynamicSidebar
                 <Collapsible
                   key={item.id}
                   open={isOpen}
-                  onOpenChange={() => toggleMenu(item.code)}
+                  onOpenChange={() => toggleMenu(menuCode)}
                 >
                   <CollapsibleTrigger asChild>
                     <Button
