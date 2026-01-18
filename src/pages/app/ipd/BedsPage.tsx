@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -18,7 +19,12 @@ import { BedActionsMenu } from "@/components/ipd/BedActionsMenu";
 import { BedTransferModal } from "@/components/ipd/BedTransferModal";
 import { QuickAddBedModal } from "@/components/ipd/QuickAddBedModal";
 import { Badge } from "@/components/ui/badge";
-import { Building2, Bed, Plus, Search, Wrench, Sparkles, Grid3X3 } from "lucide-react";
+import { Building2, Bed, Plus, Search, Wrench, Sparkles, Grid3X3, Pencil, Settings2 } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 type BedStatusFilter = "all" | "available" | "occupied" | "reserved" | "maintenance" | "housekeeping";
 
@@ -30,6 +36,8 @@ export default function BedsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [transferModalOpen, setTransferModalOpen] = useState(false);
   const [quickAddModalOpen, setQuickAddModalOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [gridSize, setGridSize] = useState({ rows: 4, cols: 6 });
 
   const { data: wards, isLoading: loadingWards } = useWards();
   const { data: beds, isLoading: loadingBeds, refetch: refetchBeds } = useBeds(selectedWardId || undefined);
@@ -66,10 +74,58 @@ export default function BedsPage() {
         actions={
           <div className="flex gap-2">
             {selectedWardId && (
-              <Button variant="outline" onClick={() => setQuickAddModalOpen(true)}>
-                <Grid3X3 className="h-4 w-4 mr-2" />
-                Quick Add
-              </Button>
+              <>
+                <Button 
+                  variant={isEditMode ? "default" : "outline"} 
+                  onClick={() => setIsEditMode(!isEditMode)}
+                >
+                  <Pencil className="h-4 w-4 mr-2" />
+                  {isEditMode ? "Done Editing" : "Edit Layout"}
+                </Button>
+                {isEditMode && (
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="icon">
+                        <Settings2 className="h-4 w-4" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-56" align="end">
+                      <div className="space-y-3">
+                        <div className="font-medium text-sm">Grid Size</div>
+                        <div className="flex items-center gap-2">
+                          <div className="space-y-1 flex-1">
+                            <Label className="text-xs">Rows</Label>
+                            <Input
+                              type="number"
+                              min={1}
+                              max={10}
+                              value={gridSize.rows}
+                              onChange={(e) => setGridSize(prev => ({ ...prev, rows: parseInt(e.target.value) || 1 }))}
+                              className="h-8"
+                            />
+                          </div>
+                          <span className="mt-5">×</span>
+                          <div className="space-y-1 flex-1">
+                            <Label className="text-xs">Cols</Label>
+                            <Input
+                              type="number"
+                              min={1}
+                              max={12}
+                              value={gridSize.cols}
+                              onChange={(e) => setGridSize(prev => ({ ...prev, cols: parseInt(e.target.value) || 1 }))}
+                              className="h-8"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                )}
+                <Button variant="outline" onClick={() => setQuickAddModalOpen(true)}>
+                  <Grid3X3 className="h-4 w-4 mr-2" />
+                  Bulk Add
+                </Button>
+              </>
             )}
             <Button onClick={() => navigate(`/app/ipd/beds/new${selectedWardId ? `?wardId=${selectedWardId}` : ""}`)}>
               <Plus className="h-4 w-4 mr-2" />
@@ -177,9 +233,13 @@ export default function BedsPage() {
             ) : filteredBeds.length > 0 ? (
               <BedMap
                 beds={filteredBeds}
+                wardId={selectedWardId}
                 wardName={selectedWard?.name}
                 selectedBedId={selectedBed?.id}
                 onBedClick={(bed) => setSelectedBed(bed)}
+                isEditMode={isEditMode}
+                gridSize={isEditMode ? gridSize : undefined}
+                onBedCreated={() => refetchBeds()}
               />
             ) : (
               <Card>
