@@ -444,6 +444,7 @@ function App() {
               <Route path="emergency/:id/admit" element={<QuickAdmissionPage />} />
               <Route path="emergency/:id/discharge" element={<ERDischargeFormPage />} />
               <Route path="emergency/mlc" element={<MLCRecordsPage />} />
+              <Route path="emergency/reports" element={<ERReportsPage />} />
               
               {/* OT routes */}
               <Route path="ot" element={<OTDashboard />} />
