@@ -129,7 +129,7 @@ export default function PublicTokenKiosk() {
       .select("id, first_name, last_name")
       .eq("organization_id", organizationId!)
       .eq("phone", phone)
-      .single();
+      .maybeSingle();
 
     if (patient) {
       setPatientId(patient.id);
@@ -195,7 +195,7 @@ export default function PublicTokenKiosk() {
         .eq("appointment_date", today)
         .order("token_number", { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       const nextToken = (lastAppointment?.token_number || 0) + 1;
 
