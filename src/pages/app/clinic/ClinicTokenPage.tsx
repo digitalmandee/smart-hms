@@ -80,13 +80,13 @@ export default function ClinicTokenPage() {
   // Result state
   const [tokenNumber, setTokenNumber] = useState<number | null>(null);
   const [showPrintDialog, setShowPrintDialog] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   
   // Queries
   const { data: doctors, isLoading: doctorsLoading } = useDoctors();
   const { data: patients, isLoading: patientsLoading } = usePatients();
   const createPatient = useCreatePatient();
   const createAppointment = useCreateAppointment();
-  const createInvoice = useCreateInvoice();
 
   // Filter patients by search
   const filteredPatients = patients?.filter(p => 
@@ -171,11 +171,22 @@ export default function ClinicTokenPage() {
       return;
     }
 
+    if (!profile?.branch_id) {
+      toast({
+        title: "Error",
+        description: "Branch not assigned. Please contact administrator.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsProcessing(true);
     try {
       // Create appointment (this will auto-generate token)
       const appointment = await createAppointment.mutateAsync({
         patient_id: selectedPatientId,
         doctor_id: selectedDoctor.id,
+        branch_id: profile.branch_id,
         appointment_date: format(new Date(), "yyyy-MM-dd"),
         appointment_time: format(new Date(), "HH:mm"),
         appointment_type: "walk_in",
@@ -183,21 +194,26 @@ export default function ClinicTokenPage() {
         chief_complaint: "Consultation",
       });
 
-      // Note: Invoice creation would be handled separately or via billing module
+      // Note: Invoice creation would be handled separately via billing module
       // For now, we just create the appointment with checked_in status
-        items: [{
-          description: `Consultation Fee - ${selectedDoctor.name}`,
-          quantity: 1,
-          unit_price: selectedDoctor.fee,
-          total: selectedDoctor.fee,
-        }],
-      });
+      // The fee is shown for reference, actual billing is done in billing module
 
       setTokenNumber(appointment.token_number || 0);
       setStep("complete");
       setShowPrintDialog(true);
+      
+      toast({
+        title: "Token Generated",
+        description: `Token #${appointment.token_number} created successfully`,
+      });
     } catch (error) {
-      // Error handled by hooks
+      toast({
+        title: "Error",
+        description: "Failed to generate token. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -604,7 +620,7 @@ export default function ClinicTokenPage() {
               </Button>
               <Button
                 onClick={handlePaymentComplete}
-                disabled={createAppointment.isPending || createInvoice.isPending}
+                disabled={isProcessing}
                 size="lg"
               >
                 <Ticket className="h-4 w-4 mr-2" />
