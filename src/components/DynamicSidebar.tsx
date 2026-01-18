@@ -71,6 +71,8 @@ import {
   Ticket,
   PiggyBank,
   Folders,
+  BedDouble,
+  Scan,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -134,6 +136,8 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Ticket,
   PiggyBank,
   Folders,
+  BedDouble,
+  Scan,
 };
 
 interface DynamicSidebarProps {
