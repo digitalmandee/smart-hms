@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import { useReactToPrint } from "react-to-print";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -30,8 +31,11 @@ import { useDoctors } from "@/hooks/useDoctors";
 import { usePatients, useCreatePatient } from "@/hooks/usePatients";
 import { useCreateAppointment } from "@/hooks/useAppointments";
 import { useCreateInvoice, useRecordPayment, usePaymentMethods } from "@/hooks/useBilling";
+import { useOrganization } from "@/hooks/useOrganizations";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { PrintableTokenSlip } from "@/components/clinic/PrintableTokenSlip";
+import { PrintablePaymentReceipt } from "@/components/billing/PrintablePaymentReceipt";
 import { 
   UserPlus, Search, Stethoscope, CreditCard, Ticket, 
   Printer, Check, Users, Phone, Receipt
@@ -85,10 +89,15 @@ export default function ClinicTokenPage() {
   const [showPrintDialog, setShowPrintDialog] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   
+  // Print refs
+  const tokenSlipRef = useRef<HTMLDivElement>(null);
+  const receiptRef = useRef<HTMLDivElement>(null);
+  
   // Queries
   const { data: doctors, isLoading: doctorsLoading } = useDoctors();
   const { data: patients, isLoading: patientsLoading } = usePatients();
   const { data: paymentMethods } = usePaymentMethods();
+  const { data: organization } = useOrganization(profile?.organization_id);
   const createPatient = useCreatePatient();
   const createAppointment = useCreateAppointment();
   const createInvoice = useCreateInvoice();
@@ -269,42 +278,28 @@ export default function ClinicTokenPage() {
     }
   };
 
-  const handlePrintToken = () => {
-    // Print token slip with invoice info
-    const printContent = `
-      <div style="text-align: center; font-family: Arial; padding: 20px; max-width: 300px; margin: 0 auto;">
-        <h2 style="margin-bottom: 5px;">Al-Noor Family Clinic</h2>
-        <p style="font-size: 12px; color: #666; margin-top: 0;">Token Slip</p>
-        <hr />
-        <h1 style="font-size: 56px; margin: 15px 0; font-weight: bold;">#${tokenNumber}</h1>
-        <table style="width: 100%; text-align: left; font-size: 14px;">
-          <tr><td><strong>Patient:</strong></td><td>${selectedPatientName}</td></tr>
-          <tr><td><strong>Doctor:</strong></td><td>${selectedDoctor?.name}</td></tr>
-          <tr><td><strong>Specialty:</strong></td><td>${selectedDoctor?.specialty}</td></tr>
-        </table>
-        <hr />
-        <table style="width: 100%; text-align: left; font-size: 14px;">
-          <tr><td><strong>Invoice:</strong></td><td>${invoiceNumber}</td></tr>
-          <tr><td><strong>Amount Paid:</strong></td><td>Rs. ${selectedDoctor?.fee?.toLocaleString()}</td></tr>
-          <tr><td><strong>Payment:</strong></td><td style="text-transform: capitalize;">${paymentMethod.replace('_', ' ')}</td></tr>
-        </table>
-        <hr />
-        <p style="font-size: 12px; margin-top: 10px;">
-          <strong>Date:</strong> ${format(new Date(), "dd MMM yyyy")} &nbsp;|&nbsp;
-          <strong>Time:</strong> ${format(new Date(), "hh:mm a")}
-        </p>
-        <p style="font-size: 11px; color: #666; margin-top: 15px;">Please wait for your token to be called</p>
-      </div>
-    `;
-    
-    const printWindow = window.open("", "_blank");
-    if (printWindow) {
-      printWindow.document.write(printContent);
-      printWindow.document.close();
-      printWindow.print();
-      printWindow.close();
-    }
+  const handlePrintToken = useReactToPrint({
+    contentRef: tokenSlipRef,
+    documentTitle: `Token-${tokenNumber}`,
+  });
+
+  const handlePrintReceipt = useReactToPrint({
+    contentRef: receiptRef,
+    documentTitle: `Receipt-${invoiceNumber}`,
+  });
+
+  const handlePrintBoth = () => {
+    handlePrintToken();
+    setTimeout(() => handlePrintReceipt(), 500);
   };
+
+  const orgData = organization ? {
+    name: organization.name,
+    address: organization.address,
+    phone: organization.phone,
+    logo_url: organization.logo_url,
+    slug: organization.slug,
+  } : { name: 'Clinic' };
 
   const handleNewToken = () => {
     // Reset all state
@@ -715,10 +710,18 @@ export default function ClinicTokenPage() {
                 <span>Invoice: {invoiceNumber} • Rs. {selectedDoctor?.fee?.toLocaleString()} Paid</span>
               </div>
             )}
-            <div className="flex gap-3 justify-center">
-              <Button variant="outline" onClick={handlePrintToken}>
+            <div className="flex gap-3 justify-center flex-wrap">
+              <Button onClick={handlePrintBoth} className="bg-primary">
                 <Printer className="h-4 w-4 mr-2" />
-                Print Token
+                Print Both
+              </Button>
+              <Button variant="outline" onClick={() => handlePrintToken()}>
+                <Ticket className="h-4 w-4 mr-2" />
+                Token Only
+              </Button>
+              <Button variant="outline" onClick={() => handlePrintReceipt()}>
+                <Receipt className="h-4 w-4 mr-2" />
+                Receipt Only
               </Button>
               <Button onClick={handleNewToken}>
                 <UserPlus className="h-4 w-4 mr-2" />
@@ -728,6 +731,36 @@ export default function ClinicTokenPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Hidden Printable Components */}
+      <div className="hidden">
+        <PrintableTokenSlip
+          ref={tokenSlipRef}
+          tokenNumber={tokenNumber || 0}
+          patient={{ name: selectedPatientName }}
+          doctor={{ name: selectedDoctor?.name || '', specialty: selectedDoctor?.specialty || '' }}
+          invoiceNumber={invoiceNumber || undefined}
+          amountPaid={selectedDoctor?.fee}
+          paymentMethod={paymentMethod}
+          organization={orgData}
+        />
+        <PrintablePaymentReceipt
+          ref={receiptRef}
+          invoiceNumber={invoiceNumber || ''}
+          patient={{ name: selectedPatientName }}
+          items={selectedDoctor ? [{
+            description: `${selectedDoctor.specialty} Consultation - ${selectedDoctor.name}`,
+            quantity: 1,
+            unitPrice: selectedDoctor.fee,
+            total: selectedDoctor.fee
+          }] : []}
+          totalAmount={selectedDoctor?.fee || 0}
+          paidAmount={selectedDoctor?.fee || 0}
+          paymentMethod={paymentMethod}
+          referenceNumber={referenceNumber || undefined}
+          organization={orgData}
+        />
+      </div>
     </div>
   );
 }

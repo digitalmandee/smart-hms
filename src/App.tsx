@@ -17,6 +17,7 @@ import { DashboardPage } from "./pages/app/DashboardPage";
 // Clinic pages
 import ClinicDashboard from "./pages/app/clinic/ClinicDashboard";
 import ClinicTokenPage from "./pages/app/clinic/ClinicTokenPage";
+import ClinicReportsPage from "./pages/app/clinic/ClinicReportsPage";
 
 // Public display pages (no auth required)
 import PublicQueueDisplay from "./pages/public/PublicQueueDisplay";
@@ -334,6 +335,7 @@ function App() {
               {/* Clinic routes */}
               <Route path="clinic" element={<ClinicDashboard />} />
               <Route path="clinic/token" element={<ClinicTokenPage />} />
+              <Route path="clinic/reports" element={<ClinicReportsPage />} />
               
               {/* Patient routes */}
               <Route path="patients" element={<PatientsListPage />} />

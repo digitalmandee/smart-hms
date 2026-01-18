@@ -37,22 +37,44 @@ export default function ClinicReportsPage() {
   const { data: appointments, isLoading: appointmentsLoading } = useQuery({
     queryKey: ['clinic-appointments', profile?.branch_id, dateRange],
     queryFn: async () => {
-      if (!profile?.branch_id) return [];
+      if (!profile?.branch_id) return [] as any[];
       const { data, error } = await supabase
         .from('appointments')
-        .select(`
-          id, token_number, appointment_date, appointment_time, status, priority,
-          doctor_id, patient_id, created_at,
-          patients:patient_id (first_name, last_name, patient_number),
-          doctors:doctor_id (id, profile:profile_id (full_name), specialization)
-        `)
+        .select('id, token_number, appointment_date, appointment_time, status, priority, doctor_id, patient_id, created_at')
         .eq('branch_id', profile.branch_id)
         .gte('appointment_date', format(dateRange.from, 'yyyy-MM-dd'))
         .lte('appointment_date', format(dateRange.to, 'yyyy-MM-dd'))
         .order('appointment_date', { ascending: false });
       
       if (error) throw error;
-      return data || [];
+      
+      // Fetch doctor details separately
+      const doctorIds = [...new Set((data || []).map(a => a.doctor_id).filter(Boolean))];
+      const doctorMap: Record<string, any> = {};
+      if (doctorIds.length > 0) {
+        const { data: doctorsData } = await supabase
+          .from('doctors')
+          .select('id, specialization, profile_id')
+          .in('id', doctorIds);
+        
+        if (doctorsData) {
+          const profileIds = doctorsData.map(d => d.profile_id).filter(Boolean);
+          const { data: profilesData } = await supabase
+            .from('profiles')
+            .select('id, full_name')
+            .in('id', profileIds);
+          
+          doctorsData.forEach(d => {
+            const profile = profilesData?.find(p => p.id === d.profile_id);
+            doctorMap[d.id] = { ...d, profile };
+          });
+        }
+      }
+      
+      return (data || []).map(apt => ({
+        ...apt,
+        doctors: doctorMap[apt.doctor_id] || null
+      }));
     },
     enabled: !!profile?.branch_id,
   });
@@ -60,25 +82,46 @@ export default function ClinicReportsPage() {
   // Fetch payments/invoices data
   const { data: payments, isLoading: paymentsLoading } = useQuery({
     queryKey: ['clinic-payments', profile?.branch_id, dateRange],
-    queryFn: async () => {
+    queryFn: async (): Promise<any[]> => {
       if (!profile?.branch_id) return [];
-      const { data, error } = await supabase
+      
+      // Use explicit any to avoid type instantiation depth issues
+      const client: any = supabase;
+      const result = await client
         .from('payments')
-        .select(`
-          id, amount, payment_date, payment_method_id, reference_number,
-          invoice_id (
-            id, invoice_number, total_amount, patient_id,
-            patients:patient_id (first_name, last_name)
-          ),
-          payment_methods:payment_method_id (name, code)
-        `)
+        .select('id, amount, payment_date, payment_method_id, reference_number, invoice_id')
         .eq('branch_id', profile.branch_id)
         .gte('payment_date', format(dateRange.from, 'yyyy-MM-dd'))
         .lte('payment_date', format(dateRange.to, 'yyyy-MM-dd'))
         .order('payment_date', { ascending: false });
       
-      if (error) throw error;
-      return data || [];
+      if (result.error) throw result.error;
+      const data = result.data || [];
+      
+      // Fetch related invoice and payment method data separately
+      const paymentsWithDetails = await Promise.all(data.map(async (p: any) => {
+        let invoice = null;
+        let payment_method = null;
+        
+        if (p.invoice_id) {
+          const invoiceRes = await client.from('invoices').select('id, invoice_number, total_amount, patient_id').eq('id', p.invoice_id).single();
+          if (invoiceRes.data?.patient_id) {
+            const patientRes = await client.from('patients').select('first_name, last_name').eq('id', invoiceRes.data.patient_id).single();
+            invoice = { ...invoiceRes.data, patient: patientRes.data };
+          } else {
+            invoice = invoiceRes.data;
+          }
+        }
+        
+        if (p.payment_method_id) {
+          const methodRes = await client.from('payment_methods').select('name, code').eq('id', p.payment_method_id).single();
+          payment_method = methodRes.data;
+        }
+        
+        return { ...p, invoice, payment_method };
+      }));
+      
+      return paymentsWithDetails;
     },
     enabled: !!profile?.branch_id,
   });
@@ -188,10 +231,10 @@ export default function ClinicReportsPage() {
   const handleExportCSV = () => {
     const data = filteredPayments.map(p => ({
       date: formatDate(p.payment_date),
-      invoice: (p.invoices as any)?.invoice_number || '',
-      patient: `${(p.invoices as any)?.patients?.first_name || ''} ${(p.invoices as any)?.patients?.last_name || ''}`,
+      invoice: p.invoice?.invoice_number || '',
+      patient: `${p.invoice?.patient?.first_name || ''} ${p.invoice?.patient?.last_name || ''}`,
       amount: Number(p.amount),
-      method: (p.payment_methods as any)?.name || '',
+      method: p.payment_method?.name || '',
       reference: p.reference_number || ''
     }));
 
@@ -477,15 +520,15 @@ export default function ClinicReportsPage() {
                 <div key={payment.id} className="flex items-center justify-between py-2 border-b last:border-0">
                   <div>
                     <p className="font-medium">
-                      {(payment.invoices as any)?.patients?.first_name} {(payment.invoices as any)?.patients?.last_name}
+                      {payment.invoice?.patient?.first_name} {payment.invoice?.patient?.last_name}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      {(payment.invoices as any)?.invoice_number} • {formatDate(payment.payment_date)}
+                      {payment.invoice?.invoice_number} • {formatDate(payment.payment_date)}
                     </p>
                   </div>
                   <div className="text-right">
                     <p className="font-bold">{formatCurrency(Number(payment.amount))}</p>
-                    <Badge variant="outline">{(payment.payment_methods as any)?.name}</Badge>
+                    <Badge variant="outline">{payment.payment_method?.name}</Badge>
                   </div>
                 </div>
               ))}
