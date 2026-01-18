@@ -180,6 +180,7 @@ import DoctorReportsPage from "./pages/app/opd/DoctorReportsPage";
 import LabReportsPage from "./pages/app/lab/LabReportsPage";
 import AppointmentReportsPage from "./pages/app/appointments/AppointmentReportsPage";
 import PatientReportsPage from "./pages/app/patients/PatientReportsPage";
+import ReportsHubPage from "./pages/app/reports/ReportsHubPage";
 
 // OT pages
 import OTDashboard from "./pages/app/ot/OTDashboard";
@@ -338,6 +339,9 @@ function App() {
             >
               <Route index element={<Navigate to="dashboard" replace />} />
               <Route path="dashboard" element={<DashboardPage />} />
+              
+              {/* Reports Hub */}
+              <Route path="reports" element={<ReportsHubPage />} />
               
               {/* Clinic routes */}
               <Route path="clinic" element={<ClinicDashboard />} />
