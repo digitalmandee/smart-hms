@@ -296,8 +296,8 @@ export const BedMap = ({
               <span className="text-sm text-muted-foreground">Maintenance</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="h-4 w-4 rounded bg-blue-500/20 border-2 border-blue-500" />
-              <span className="text-sm text-muted-foreground">Cleaning</span>
+            <div className="h-4 w-4 rounded bg-blue-500/20 border-2 border-blue-500" />
+              <span className="text-sm text-muted-foreground">Housekeeping</span>
             </div>
           </div>
         )}
