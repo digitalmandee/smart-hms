@@ -271,20 +271,20 @@ export const LoginPage = () => {
         </Button>
       </form>
 
-      {/* Quick Demo Login Section */}
+      {/* Hospital Demo Login Section */}
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
           <Separator className="w-full" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
           <span className="bg-background px-2 text-muted-foreground">
-            Quick Demo Login
+            Hospital Demo (Shifa Medical Center)
           </span>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-        {demoAccounts.map((account) => {
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+        {hospitalDemoAccounts.map((account) => {
           const Icon = account.icon;
           const isLoggingIn = quickLoginEmail === account.email;
           
@@ -292,16 +292,52 @@ export const LoginPage = () => {
             <Button
               key={account.email}
               variant="outline"
-              className={`h-auto py-3 px-3 flex flex-col items-center gap-1.5 border ${account.color} transition-all`}
+              className={`h-auto py-2 px-2 flex flex-col items-center gap-1 border ${account.color} transition-all`}
               onClick={() => handleQuickLogin(account.email)}
               disabled={quickLoginEmail !== null}
             >
               {isLoggingIn ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                <Icon className="h-5 w-5" />
+                <Icon className="h-4 w-4" />
               )}
-              <span className="text-xs font-medium">{account.role}</span>
+              <span className="text-[10px] font-medium">{account.role}</span>
+            </Button>
+          );
+        })}
+      </div>
+
+      {/* Clinic Demo Login Section */}
+      <div className="relative mt-4">
+        <div className="absolute inset-0 flex items-center">
+          <Separator className="w-full" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-background px-2 text-muted-foreground">
+            Clinic Demo (Al-Noor Family Clinic)
+          </span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        {clinicDemoAccounts.map((account) => {
+          const Icon = account.icon;
+          const isLoggingIn = quickLoginEmail === account.email;
+          
+          return (
+            <Button
+              key={account.email}
+              variant="outline"
+              className={`h-auto py-2 px-2 flex flex-col items-center gap-1 border ${account.color} transition-all`}
+              onClick={() => handleQuickLogin(account.email)}
+              disabled={quickLoginEmail !== null}
+            >
+              {isLoggingIn ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Icon className="h-4 w-4" />
+              )}
+              <span className="text-[10px] font-medium">{account.role}</span>
             </Button>
           );
         })}
