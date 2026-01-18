@@ -31,14 +31,16 @@ interface ReportFiltersProps {
   dateRange: DateRange;
   onDateRangeChange: (range: DateRange) => void;
   
-  // Optional filters
+  // Optional filters - support both naming conventions for flexibility
   showBranchFilter?: boolean;
   branches?: FilterOption[];
+  branchOptions?: FilterOption[];
   selectedBranch?: string;
   onBranchChange?: (value: string) => void;
   
   showDoctorFilter?: boolean;
   doctors?: FilterOption[];
+  doctorOptions?: FilterOption[];
   selectedDoctor?: string;
   onDoctorChange?: (value: string) => void;
   
@@ -74,10 +76,12 @@ export function ReportFilters({
   onDateRangeChange,
   showBranchFilter,
   branches,
+  branchOptions,
   selectedBranch,
   onBranchChange,
   showDoctorFilter,
   doctors,
+  doctorOptions,
   selectedDoctor,
   onDoctorChange,
   showStatusFilter,
@@ -92,6 +96,9 @@ export function ReportFilters({
   onPrint,
   isLoading,
 }: ReportFiltersProps) {
+  // Merge options arrays (support both naming conventions)
+  const branchList = branches || branchOptions || [];
+  const doctorList = doctors || doctorOptions || [];
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
 
   const handlePresetClick = (days: number) => {
@@ -216,7 +223,7 @@ export function ReportFilters({
       {/* Expandable Filters Row */}
       {isFiltersOpen && (
         <div className="flex flex-wrap items-center gap-3 p-4 bg-muted/50 rounded-lg">
-          {showBranchFilter && branches && (
+          {showBranchFilter && branchList.length > 0 && (
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">Branch:</span>
               <Select value={selectedBranch || 'all'} onValueChange={onBranchChange}>
@@ -225,7 +232,7 @@ export function ReportFilters({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Branches</SelectItem>
-                  {branches.map((branch) => (
+                  {branchList.map((branch) => (
                     <SelectItem key={branch.value} value={branch.value}>
                       {branch.label}
                     </SelectItem>
@@ -235,7 +242,7 @@ export function ReportFilters({
             </div>
           )}
 
-          {showDoctorFilter && doctors && (
+          {showDoctorFilter && doctorList.length > 0 && (
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">Doctor:</span>
               <Select value={selectedDoctor || 'all'} onValueChange={onDoctorChange}>
@@ -244,7 +251,7 @@ export function ReportFilters({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Doctors</SelectItem>
-                  {doctors.map((doctor) => (
+                  {doctorList.map((doctor) => (
                     <SelectItem key={doctor.value} value={doctor.value}>
                       {doctor.label}
                     </SelectItem>
