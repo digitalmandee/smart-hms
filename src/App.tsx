@@ -73,6 +73,7 @@ import FilteredQueueDisplayPage from "./pages/display/FilteredQueueDisplayPage";
 // OPD pages
 import DoctorDashboard from "./pages/app/opd/DoctorDashboard";
 import ConsultationPage from "./pages/app/opd/ConsultationPage";
+import OPDVitalsPage from "./pages/app/opd/OPDVitalsPage";
 import ConsultationHistoryPage from "./pages/app/opd/ConsultationHistoryPage";
 import ConsultationDetailPage from "./pages/app/opd/ConsultationDetailPage";
 import NurseDashboard from "./pages/app/opd/NurseDashboard";
@@ -398,6 +399,7 @@ function App() {
               <Route path="reception" element={<ReceptionistDashboard />} />
               <Route path="opd/nursing" element={<NurseDashboard />} />
               <Route path="opd/consultation/:appointmentId" element={<ConsultationPage />} />
+              <Route path="opd/vitals" element={<OPDVitalsPage />} />
               <Route path="opd/history" element={<ConsultationHistoryPage />} />
               <Route path="opd/consultations/:id" element={<ConsultationDetailPage />} />
               <Route path="opd/gynecology" element={<GynecologyDashboard />} />
