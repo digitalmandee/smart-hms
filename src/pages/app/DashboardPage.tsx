@@ -151,7 +151,13 @@ export const DashboardPage = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">
-            Welcome back, {profile?.full_name?.split(" ")[0] || "User"}!
+            Welcome back, {(() => {
+              if (!profile?.full_name) return "User";
+              const parts = profile.full_name.trim().split(" ");
+              // If single word or looks like a role, use full name
+              if (parts.length === 1) return profile.full_name;
+              return parts[0];
+            })()}!
           </h1>
           <p className="text-muted-foreground">
             Here's what's happening with your clinic today.

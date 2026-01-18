@@ -202,8 +202,11 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle }: DynamicSidebar
     
     if (menusToOpen.length > 0) {
       setOpenMenus(prev => {
-        const newMenus = [...new Set([...prev, ...menusToOpen])];
-        return newMenus;
+        // Only update if there are actual new menus to add
+        const currentSet = new Set(prev);
+        const hasNew = menusToOpen.some(code => !currentSet.has(code));
+        if (!hasNew) return prev; // Return same reference to prevent re-render
+        return [...new Set([...prev, ...menusToOpen])];
       });
     }
   }, [location.pathname, menuItems]);
