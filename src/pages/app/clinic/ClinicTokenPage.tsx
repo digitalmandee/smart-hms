@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,11 +29,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useDoctors } from "@/hooks/useDoctors";
 import { usePatients, useCreatePatient } from "@/hooks/usePatients";
 import { useCreateAppointment } from "@/hooks/useAppointments";
+import { useCreateInvoice, useRecordPayment, usePaymentMethods } from "@/hooks/useBilling";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   UserPlus, Search, Stethoscope, CreditCard, Ticket, 
-  Printer, Check, Users, Phone 
+  Printer, Check, Users, Phone, Receipt
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -79,14 +81,35 @@ export default function ClinicTokenPage() {
   
   // Result state
   const [tokenNumber, setTokenNumber] = useState<number | null>(null);
+  const [invoiceNumber, setInvoiceNumber] = useState<string | null>(null);
   const [showPrintDialog, setShowPrintDialog] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   
   // Queries
   const { data: doctors, isLoading: doctorsLoading } = useDoctors();
   const { data: patients, isLoading: patientsLoading } = usePatients();
+  const { data: paymentMethods } = usePaymentMethods();
   const createPatient = useCreatePatient();
   const createAppointment = useCreateAppointment();
+  const createInvoice = useCreateInvoice();
+  const recordPayment = useRecordPayment();
+
+  // Fetch today's queue counts for all doctors
+  const { data: todayAppointments } = useQuery({
+    queryKey: ['today-queue-counts', profile?.branch_id],
+    queryFn: async () => {
+      if (!profile?.branch_id) return [];
+      const today = format(new Date(), 'yyyy-MM-dd');
+      const { data } = await supabase
+        .from('appointments')
+        .select('doctor_id')
+        .eq('branch_id', profile.branch_id)
+        .eq('appointment_date', today)
+        .in('status', ['scheduled', 'checked_in', 'in_progress']);
+      return data || [];
+    },
+    enabled: !!profile?.branch_id,
+  });
 
   // Filter patients by search
   const filteredPatients = patients?.filter(p => 
@@ -98,10 +121,20 @@ export default function ClinicTokenPage() {
     )
   ).slice(0, 5);
 
-  // Get today's queue count for each doctor
+  // Get today's queue count for each doctor (real count from appointments)
   const getDoctorQueueCount = (doctorId: string) => {
-    // This would be a real query in production
-    return Math.floor(Math.random() * 15);
+    return todayAppointments?.filter(a => a.doctor_id === doctorId).length || 0;
+  };
+
+  // Get payment method ID from payment type
+  const getPaymentMethodId = (type: PaymentMethod): string | undefined => {
+    const codeMap: Record<PaymentMethod, string> = {
+      cash: 'CASH',
+      card: 'CARD',
+      mobile_wallet: 'JAZZCASH',
+      upi: 'EASYPAISA',
+    };
+    return paymentMethods?.find(m => m.code === codeMap[type])?.id;
   };
 
   const handlePatientSelect = (patient: { id: string; first_name: string; last_name: string }) => {
@@ -171,10 +204,11 @@ export default function ClinicTokenPage() {
       return;
     }
 
-    if (!profile?.branch_id) {
+    const paymentMethodId = getPaymentMethodId(paymentMethod);
+    if (!paymentMethodId) {
       toast({
         title: "Error",
-        description: "Branch not assigned. Please contact administrator.",
+        description: "Payment method not configured. Please contact administrator.",
         variant: "destructive",
       });
       return;
@@ -182,7 +216,28 @@ export default function ClinicTokenPage() {
 
     setIsProcessing(true);
     try {
-      // Create appointment (this will auto-generate token)
+      // 1. Create Invoice with consultation fee
+      const invoice = await createInvoice.mutateAsync({
+        patientId: selectedPatientId,
+        branchId: profile.branch_id,
+        items: [{
+          description: `${selectedDoctor.specialty} Consultation - ${selectedDoctor.name}`,
+          quantity: 1,
+          unit_price: selectedDoctor.fee,
+        }],
+        status: "pending",
+      });
+
+      // 2. Record Payment (marks invoice as paid)
+      await recordPayment.mutateAsync({
+        invoiceId: invoice.id,
+        amount: selectedDoctor.fee,
+        paymentMethodId,
+        referenceNumber: referenceNumber || undefined,
+        notes: `Token payment via ${paymentMethod}`,
+      });
+
+      // 3. Create Appointment with checked_in status
       const appointment = await createAppointment.mutateAsync({
         patient_id: selectedPatientId,
         doctor_id: selectedDoctor.id,
@@ -194,17 +249,14 @@ export default function ClinicTokenPage() {
         chief_complaint: "Consultation",
       });
 
-      // Note: Invoice creation would be handled separately via billing module
-      // For now, we just create the appointment with checked_in status
-      // The fee is shown for reference, actual billing is done in billing module
-
       setTokenNumber(appointment.token_number || 0);
+      setInvoiceNumber(invoice.invoice_number);
       setStep("complete");
       setShowPrintDialog(true);
       
       toast({
         title: "Token Generated",
-        description: `Token #${appointment.token_number} created successfully`,
+        description: `Token #${appointment.token_number} created with Invoice ${invoice.invoice_number}`,
       });
     } catch (error) {
       toast({
@@ -218,19 +270,30 @@ export default function ClinicTokenPage() {
   };
 
   const handlePrintToken = () => {
-    // Print token slip
+    // Print token slip with invoice info
     const printContent = `
-      <div style="text-align: center; font-family: Arial; padding: 20px;">
-        <h2>Token Slip</h2>
+      <div style="text-align: center; font-family: Arial; padding: 20px; max-width: 300px; margin: 0 auto;">
+        <h2 style="margin-bottom: 5px;">Al-Noor Family Clinic</h2>
+        <p style="font-size: 12px; color: #666; margin-top: 0;">Token Slip</p>
         <hr />
-        <h1 style="font-size: 48px; margin: 20px 0;">#${tokenNumber}</h1>
-        <p><strong>Patient:</strong> ${selectedPatientName}</p>
-        <p><strong>Doctor:</strong> ${selectedDoctor?.name}</p>
-        <p><strong>Fee:</strong> Rs. ${selectedDoctor?.fee} (Paid)</p>
-        <p><strong>Date:</strong> ${format(new Date(), "dd MMM yyyy")}</p>
-        <p><strong>Time:</strong> ${format(new Date(), "hh:mm a")}</p>
+        <h1 style="font-size: 56px; margin: 15px 0; font-weight: bold;">#${tokenNumber}</h1>
+        <table style="width: 100%; text-align: left; font-size: 14px;">
+          <tr><td><strong>Patient:</strong></td><td>${selectedPatientName}</td></tr>
+          <tr><td><strong>Doctor:</strong></td><td>${selectedDoctor?.name}</td></tr>
+          <tr><td><strong>Specialty:</strong></td><td>${selectedDoctor?.specialty}</td></tr>
+        </table>
         <hr />
-        <p style="font-size: 12px;">Please wait for your token to be called</p>
+        <table style="width: 100%; text-align: left; font-size: 14px;">
+          <tr><td><strong>Invoice:</strong></td><td>${invoiceNumber}</td></tr>
+          <tr><td><strong>Amount Paid:</strong></td><td>Rs. ${selectedDoctor?.fee?.toLocaleString()}</td></tr>
+          <tr><td><strong>Payment:</strong></td><td style="text-transform: capitalize;">${paymentMethod.replace('_', ' ')}</td></tr>
+        </table>
+        <hr />
+        <p style="font-size: 12px; margin-top: 10px;">
+          <strong>Date:</strong> ${format(new Date(), "dd MMM yyyy")} &nbsp;|&nbsp;
+          <strong>Time:</strong> ${format(new Date(), "hh:mm a")}
+        </p>
+        <p style="font-size: 11px; color: #666; margin-top: 15px;">Please wait for your token to be called</p>
       </div>
     `;
     
@@ -262,6 +325,7 @@ export default function ClinicTokenPage() {
     setAmountReceived("");
     setReferenceNumber("");
     setTokenNumber(null);
+    setInvoiceNumber(null);
     setShowPrintDialog(false);
   };
 
@@ -642,9 +706,15 @@ export default function ClinicTokenPage() {
             <div className="text-6xl font-bold text-primary my-6">
               #{tokenNumber}
             </div>
-            <p className="text-muted-foreground mb-6">
+            <p className="text-muted-foreground mb-2">
               Patient: {selectedPatientName} • Doctor: {selectedDoctor?.name}
             </p>
+            {invoiceNumber && (
+              <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground mb-6">
+                <Receipt className="h-4 w-4" />
+                <span>Invoice: {invoiceNumber} • Rs. {selectedDoctor?.fee?.toLocaleString()} Paid</span>
+              </div>
+            )}
             <div className="flex gap-3 justify-center">
               <Button variant="outline" onClick={handlePrintToken}>
                 <Printer className="h-4 w-4 mr-2" />
