@@ -163,7 +163,7 @@ export default function LabTestTemplatesListPage() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              onClick={() => navigate(`/app/lab/templates/${template.id}`)}
+                              onClick={() => navigate(`/app/lab/templates/${template.id}/edit`)}
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
