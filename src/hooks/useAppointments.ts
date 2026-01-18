@@ -109,10 +109,10 @@ export function useAppointment(id: string) {
           branch:branches(id, name, address, phone)
         `)
         .eq('id', id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
-      return data as AppointmentWithRelations;
+      return data as AppointmentWithRelations | null;
     },
     enabled: !!id,
   });
