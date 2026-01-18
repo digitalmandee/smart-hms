@@ -349,6 +349,7 @@ function App() {
               <Route path="patients/new" element={<PatientFormPage />} />
               <Route path="patients/:id" element={<PatientDetailPage />} />
               <Route path="patients/:id/edit" element={<PatientFormPage />} />
+              <Route path="patients/reports" element={<PatientReportsPage />} />
               
               {/* Appointment routes */}
               <Route path="appointments" element={<AppointmentsListPage />} />
@@ -363,6 +364,7 @@ function App() {
               <Route path="appointments/:id" element={<AppointmentDetailPage />} />
               <Route path="appointments/:id/edit" element={<AppointmentFormPage />} />
               <Route path="appointments/:id/check-in" element={<CheckInPage />} />
+              <Route path="appointments/reports" element={<AppointmentReportsPage />} />
 
               {/* Blood Bank routes */}
               <Route path="blood-bank" element={<BloodBankDashboard />} />
@@ -392,6 +394,7 @@ function App() {
               <Route path="opd/history" element={<ConsultationHistoryPage />} />
               <Route path="opd/consultations/:id" element={<ConsultationDetailPage />} />
               <Route path="opd/gynecology" element={<GynecologyDashboard />} />
+              <Route path="opd/reports" element={<DoctorReportsPage />} />
               
               {/* Pharmacy routes */}
               <Route path="pharmacy" element={<PharmacyDashboard />} />
@@ -479,6 +482,7 @@ function App() {
               <Route path="lab/templates/new" element={<LabTestTemplateFormPage />} />
               <Route path="lab/templates/:id/edit" element={<LabTestTemplateFormPage />} />
               <Route path="lab/categories" element={<LabTestCategoriesPage />} />
+              <Route path="lab/reports" element={<LabReportsPage />} />
               
               {/* Inventory routes */}
               <Route path="inventory" element={<InventoryDashboard />} />
