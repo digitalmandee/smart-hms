@@ -434,8 +434,23 @@ function App() {
               <Route path="ipd/rounds" element={<DailyRoundsPage />} />
               <Route path="ipd/rounds/:admissionId" element={<DailyRoundsPage />} />
               <Route path="ipd/nursing" element={<NursingStationPage />} />
+              <Route path="ipd/nursing-notes" element={<NursingNotesPage />} />
               <Route path="ipd/discharges" element={<DischargesPage />} />
               <Route path="ipd/discharge/:id" element={<DischargeFormPage />} />
+              <Route path="ipd/discharge-summaries" element={<DischargesPage />} />
+              <Route path="ipd/discharge-billing" element={<IPDChargesPage />} />
+              <Route path="ipd/transfers" element={<BedTransfersPage />} />
+              <Route path="ipd/care-plans" element={<CarePlansPage />} />
+              <Route path="ipd/diet" element={<DietManagementPage />} />
+              <Route path="ipd/vitals" element={<IPDVitalsPage />} />
+              <Route path="ipd/charges" element={<IPDChargesPage />} />
+              <Route path="ipd/medication-chart" element={<MedicationChartPage />} />
+              <Route path="ipd/emar" element={<MedicationChartPage />} />
+              <Route path="ipd/history" element={<AdmissionHistoryPage />} />
+              <Route path="ipd/reports" element={<IPDReportsPage />} />
+              <Route path="ipd/birth-records" element={<BirthRecordsPage />} />
+              <Route path="ipd/birth-records/new" element={<BirthRecordFormPage />} />
+              <Route path="ipd/death-records" element={<DeathRecordsPage />} />
               
               {/* Emergency routes */}
               <Route path="emergency" element={<EmergencyDashboard />} />
