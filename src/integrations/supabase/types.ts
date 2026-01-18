@@ -11849,6 +11849,7 @@ export type Database = {
           name: string
           nurse_in_charge_id: string | null
           organization_id: string
+          room_section: string | null
           total_beds: number | null
           updated_at: string | null
           ward_type: Database["public"]["Enums"]["ward_type"] | null
@@ -11868,6 +11869,7 @@ export type Database = {
           name: string
           nurse_in_charge_id?: string | null
           organization_id: string
+          room_section?: string | null
           total_beds?: number | null
           updated_at?: string | null
           ward_type?: Database["public"]["Enums"]["ward_type"] | null
@@ -11887,6 +11889,7 @@ export type Database = {
           name?: string
           nurse_in_charge_id?: string | null
           organization_id?: string
+          room_section?: string | null
           total_beds?: number | null
           updated_at?: string | null
           ward_type?: Database["public"]["Enums"]["ward_type"] | null

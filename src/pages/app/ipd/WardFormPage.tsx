@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -36,9 +36,12 @@ const wardFormSchema = z.object({
     "pediatric", "surgical", "medical", "orthopedic", "oncology", "vip"
   ]),
   total_beds: z.coerce.number().min(1, "Must have at least 1 bed"),
+  building: z.string().optional(),
   floor: z.string().optional(),
+  room_section: z.string().optional(),
   contact_extension: z.string().optional(),
   is_active: z.boolean().default(true),
+  auto_create_beds: z.boolean().default(false),
 });
 
 type WardFormValues = z.infer<typeof wardFormSchema>;
@@ -75,9 +78,12 @@ export default function WardFormPage() {
       code: "",
       ward_type: "general",
       total_beds: 10,
+      building: "",
       floor: "",
+      room_section: "",
       contact_extension: "",
       is_active: true,
+      auto_create_beds: false,
     },
   });
 
@@ -90,9 +96,12 @@ export default function WardFormPage() {
           code: ward.code,
           ward_type: ward.ward_type as any || "general",
           total_beds: ward.total_beds || 10,
+          building: (ward as any).building || "",
           floor: ward.floor || "",
+          room_section: (ward as any).room_section || "",
           contact_extension: ward.contact_extension || "",
           is_active: ward.is_active ?? true,
+          auto_create_beds: false,
         });
       }
     }
@@ -106,7 +115,18 @@ export default function WardFormPage() {
 
     try {
       if (isEditing && id) {
-        await updateWard({ id, ...values });
+        await updateWard({ 
+          id, 
+          name: values.name,
+          code: values.code,
+          ward_type: values.ward_type,
+          total_beds: values.total_beds,
+          building: values.building,
+          floor: values.floor,
+          room_section: values.room_section,
+          contact_extension: values.contact_extension,
+          is_active: values.is_active,
+        });
         toast.success("Ward updated successfully");
       } else {
         await createWard({
@@ -114,7 +134,9 @@ export default function WardFormPage() {
           code: values.code,
           ward_type: values.ward_type,
           branch_id: profile.branch_id,
+          building: values.building,
           floor: values.floor,
+          room_section: values.room_section,
           total_beds: values.total_beds,
           contact_extension: values.contact_extension,
         });
@@ -213,12 +235,40 @@ export default function WardFormPage() {
 
               <FormField
                 control={form.control}
+                name="building"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Building</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., Main Building, Block A" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
                 name="floor"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Floor</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., 2nd Floor" {...field} />
+                      <Input placeholder="e.g., Ground Floor, 2nd Floor" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="room_section"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Room/Section</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., Section A, Wing B" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

@@ -97,7 +97,9 @@ export const useCreateWard = () => {
       code: string;
       ward_type: string;
       branch_id: string;
+      building?: string;
       floor?: string;
+      room_section?: string;
       total_beds?: number;
       description?: string;
       nurse_in_charge_id?: string;
@@ -145,7 +147,9 @@ export const useUpdateWard = () => {
       name: string;
       code: string;
       ward_type: string;
+      building: string;
       floor: string;
+      room_section: string;
       total_beds: number;
       description: string;
       nurse_in_charge_id: string;
@@ -158,7 +162,9 @@ export const useUpdateWard = () => {
       if (wardData.name) updateData.name = wardData.name;
       if (wardData.code) updateData.code = wardData.code;
       if (wardData.ward_type) updateData.ward_type = wardData.ward_type as "general" | "icu";
-      if (wardData.floor) updateData.floor = wardData.floor;
+      if (wardData.building !== undefined) updateData.building = wardData.building;
+      if (wardData.floor !== undefined) updateData.floor = wardData.floor;
+      if (wardData.room_section !== undefined) updateData.room_section = wardData.room_section;
       if (wardData.total_beds) updateData.total_beds = wardData.total_beds;
       if (wardData.description) updateData.description = wardData.description;
       if (wardData.nurse_in_charge_id) updateData.nurse_in_charge_id = wardData.nurse_in_charge_id;

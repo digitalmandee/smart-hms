@@ -16,8 +16,9 @@ import { BedMap } from "@/components/ipd/BedMap";
 import { BedDetailCard } from "@/components/ipd/BedDetailCard";
 import { BedActionsMenu } from "@/components/ipd/BedActionsMenu";
 import { BedTransferModal } from "@/components/ipd/BedTransferModal";
+import { QuickAddBedModal } from "@/components/ipd/QuickAddBedModal";
 import { Badge } from "@/components/ui/badge";
-import { Building2, Bed, Plus, Search, Wrench, Sparkles } from "lucide-react";
+import { Building2, Bed, Plus, Search, Wrench, Sparkles, Grid3X3 } from "lucide-react";
 
 type BedStatusFilter = "all" | "available" | "occupied" | "reserved" | "maintenance" | "housekeeping";
 
@@ -28,6 +29,7 @@ export default function BedsPage() {
   const [statusFilter, setStatusFilter] = useState<BedStatusFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [transferModalOpen, setTransferModalOpen] = useState(false);
+  const [quickAddModalOpen, setQuickAddModalOpen] = useState(false);
 
   const { data: wards, isLoading: loadingWards } = useWards();
   const { data: beds, isLoading: loadingBeds, refetch: refetchBeds } = useBeds(selectedWardId || undefined);
@@ -62,10 +64,18 @@ export default function BedsPage() {
         title="Bed Management"
         description="View and manage bed allocation across wards"
         actions={
-          <Button onClick={() => navigate(`/app/ipd/beds/new${selectedWardId ? `?wardId=${selectedWardId}` : ""}`)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Bed
-          </Button>
+          <div className="flex gap-2">
+            {selectedWardId && (
+              <Button variant="outline" onClick={() => setQuickAddModalOpen(true)}>
+                <Grid3X3 className="h-4 w-4 mr-2" />
+                Quick Add
+              </Button>
+            )}
+            <Button onClick={() => navigate(`/app/ipd/beds/new${selectedWardId ? `?wardId=${selectedWardId}` : ""}`)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Bed
+            </Button>
+          </div>
         }
       />
 
@@ -294,6 +304,17 @@ export default function BedsPage() {
             bed: selectedBed,
           }}
           onSuccess={handleTransferSuccess}
+        />
+      )}
+
+      {/* Quick Add Modal */}
+      {selectedWardId && (
+        <QuickAddBedModal
+          open={quickAddModalOpen}
+          onOpenChange={setQuickAddModalOpen}
+          wardId={selectedWardId}
+          wardName={selectedWard?.name}
+          onSuccess={() => refetchBeds()}
         />
       )}
     </div>
