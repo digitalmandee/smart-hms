@@ -35,8 +35,8 @@ export const useMenuItems = () => {
         if (error) throw error;
 
         if (data) {
-          // Filter by permissions and enabled modules
-          const filteredItems = data.filter((item) => {
+          // Helper to check if an item should be visible based on permissions
+          const canViewItem = (item: MenuItem): boolean => {
             // Super admin sees everything
             if (isSuperAdmin) return true;
 
@@ -45,44 +45,51 @@ export const useMenuItems = () => {
 
             // Check if module is enabled for this organization
             if (item.required_module && enabledModules) {
-              // enabledModules is an array of module_code strings
               const isModuleEnabled = enabledModules.includes(item.required_module);
               if (!isModuleEnabled) return false;
             }
 
+            // If no permission required, it's visible
+            if (!item.required_permission) return true;
+
             // Check permission if required
-            if (item.required_permission) {
-              return hasPermission(item.required_permission);
-            }
-
-            return true;
-          });
-
-          // Build tree structure
-          const itemMap = new Map<string, MenuItem>();
-          const rootItems: MenuItem[] = [];
+            return hasPermission(item.required_permission);
+          };
 
           // First pass: create map of all items
-          filteredItems.forEach((item) => {
+          const itemMap = new Map<string, MenuItem>();
+          data.forEach((item) => {
             itemMap.set(item.id, { ...item, children: [] });
           });
 
-          // Second pass: build tree
-          filteredItems.forEach((item) => {
+          // Second pass: build tree and filter children
+          const rootItems: MenuItem[] = [];
+          data.forEach((item) => {
             const menuItem = itemMap.get(item.id)!;
             if (item.parent_id && itemMap.has(item.parent_id)) {
-              const parent = itemMap.get(item.parent_id)!;
-              parent.children = parent.children || [];
-              parent.children.push(menuItem);
+              // Only add child if it passes permission check
+              if (canViewItem(item)) {
+                const parent = itemMap.get(item.parent_id)!;
+                parent.children = parent.children || [];
+                parent.children.push(menuItem);
+              }
             } else if (!item.parent_id) {
               rootItems.push(menuItem);
             }
           });
 
-          // Filter out parent items that have no visible children
+          // Filter root items: show if they have a path and can view, OR if they have visible children
           const finalItems = rootItems.filter((item) => {
-            if (item.path) return true; // Has direct path
-            return item.children && item.children.length > 0;
+            // For items with direct path, check permission
+            if (item.path) return canViewItem(item);
+            
+            // For parent items (no path), show if they have visible children
+            // AND either no permission required OR has permission
+            if (item.children && item.children.length > 0) {
+              return canViewItem(item);
+            }
+            
+            return false;
           });
 
           setMenuItems(finalItems);
