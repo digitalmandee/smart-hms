@@ -35,14 +35,23 @@ import { StatusBadge } from "@/components/StatusBadge";
 type AppRole = Database["public"]["Enums"]["app_role"];
 
 const ALL_ROLES: { value: AppRole; label: string; description: string }[] = [
+  { value: "super_admin", label: "Super Admin", description: "Platform-wide access to all organizations" },
   { value: "org_admin", label: "Organization Admin", description: "Full access to organization settings" },
   { value: "branch_admin", label: "Branch Admin", description: "Manage branch operations" },
   { value: "doctor", label: "Doctor", description: "Consultations and prescriptions" },
-  { value: "nurse", label: "Nurse", description: "Patient vitals and assistance" },
+  { value: "nurse", label: "Nurse", description: "OPD patient vitals and assistance" },
+  { value: "ipd_nurse", label: "IPD Nurse", description: "Inpatient ward nursing care" },
   { value: "receptionist", label: "Receptionist", description: "Appointments and patient registration" },
   { value: "pharmacist", label: "Pharmacist", description: "Pharmacy and medicine dispensing" },
   { value: "lab_technician", label: "Lab Technician", description: "Laboratory tests and results" },
+  { value: "radiologist", label: "Radiologist", description: "Radiology interpretation and reporting" },
+  { value: "radiology_technician", label: "Radiology Tech", description: "Imaging procedures and capture" },
+  { value: "blood_bank_technician", label: "Blood Bank Tech", description: "Blood services and transfusions" },
   { value: "accountant", label: "Accountant", description: "Billing and financial reports" },
+  { value: "finance_manager", label: "Finance Manager", description: "Financial oversight and approvals" },
+  { value: "hr_manager", label: "HR Manager", description: "Staff management and payroll" },
+  { value: "hr_officer", label: "HR Officer", description: "HR operations and attendance" },
+  { value: "store_manager", label: "Store Manager", description: "Inventory management" },
 ];
 
 const userSchema = z.object({
