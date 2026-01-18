@@ -27,12 +27,28 @@ export default function DoctorReportsPage() {
     }
   });
 
-  // Fetch doctors for filter
+  // Fetch doctors with profiles for names
   const { data: doctors = [] } = useQuery({
-    queryKey: ['doctors-filter'],
+    queryKey: ['doctors-filter-with-profiles'],
     queryFn: async () => {
-      const { data } = await supabase.from('doctors').select('id, first_name, last_name, specialty').eq('is_active', true);
-      return (data || []) as Array<{ id: string; first_name: string; last_name: string; specialty: string | null }>;
+      const { data } = await supabase
+        .from('doctors')
+        .select('id, specialization, consultation_fee, profile_id')
+        .eq('is_available', true);
+      
+      if (!data || data.length === 0) return [];
+      
+      // Fetch profiles for doctor names
+      const profileIds = data.map(d => d.profile_id).filter(Boolean);
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .in('id', profileIds);
+      
+      return data.map(d => ({
+        ...d,
+        name: profiles?.find(p => p.id === d.profile_id)?.full_name || 'Unknown Doctor'
+      }));
     }
   });
 
@@ -42,15 +58,9 @@ export default function DoctorReportsPage() {
     queryFn: async () => {
       let query = supabase
         .from('consultations')
-        .select(`
-          id,
-          consultation_date,
-          status,
-          consultation_fee,
-          doctor_id
-        `)
-        .gte('consultation_date', format(dateRange.from, 'yyyy-MM-dd'))
-        .lte('consultation_date', format(dateRange.to, 'yyyy-MM-dd'));
+        .select('id, created_at, doctor_id, branch_id')
+        .gte('created_at', format(dateRange.from, 'yyyy-MM-dd'))
+        .lte('created_at', format(dateRange.to, 'yyyy-MM-dd') + 'T23:59:59');
 
       if (selectedBranch) {
         query = query.eq('branch_id', selectedBranch);
@@ -60,13 +70,7 @@ export default function DoctorReportsPage() {
       }
 
       const { data } = await query;
-      return (data || []) as Array<{
-        id: string;
-        consultation_date: string;
-        status: string;
-        consultation_fee: number | null;
-        doctor_id: string;
-      }>;
+      return data || [];
     }
   });
 
@@ -77,25 +81,21 @@ export default function DoctorReportsPage() {
       specialty: string;
       patients: number;
       revenue: number;
-      completed: number;
     }>();
 
     consultations.forEach((c) => {
       const doctor = doctors.find(d => d.id === c.doctor_id);
       if (!doctor) return;
       
-      const doctorName = `Dr. ${doctor.first_name} ${doctor.last_name}`;
       const existing = doctorMap.get(c.doctor_id) || {
-        name: doctorName,
-        specialty: doctor.specialty || 'General',
+        name: `Dr. ${doctor.name}`,
+        specialty: doctor.specialization || 'General',
         patients: 0,
-        revenue: 0,
-        completed: 0
+        revenue: 0
       };
 
       existing.patients++;
-      existing.revenue += c.consultation_fee || 0;
-      if (c.status === 'completed') existing.completed++;
+      existing.revenue += doctor.consultation_fee || 0;
 
       doctorMap.set(c.doctor_id, existing);
     });
@@ -116,21 +116,31 @@ export default function DoctorReportsPage() {
     const days = eachDayOfInterval({ start: dateRange.from, end: dateRange.to });
     return days.map(day => {
       const dayStr = format(day, 'yyyy-MM-dd');
-      const dayConsultations = consultations.filter((c) => c.consultation_date === dayStr);
+      const dayConsultations = consultations.filter((c) => 
+        c.created_at?.startsWith(dayStr)
+      );
+      
+      // Calculate revenue based on doctor fees
+      let revenue = 0;
+      dayConsultations.forEach(c => {
+        const doctor = doctors.find(d => d.id === c.doctor_id);
+        revenue += doctor?.consultation_fee || 0;
+      });
+      
       return {
         date: format(day, 'MMM dd'),
         consultations: dayConsultations.length,
-        revenue: dayConsultations.reduce((sum: number, c) => sum + (c.consultation_fee || 0), 0)
+        revenue
       };
     });
-  }, [consultations, dateRange]);
+  }, [consultations, dateRange, doctors]);
 
   // Specialty distribution
   const specialtyDistribution = useMemo(() => {
     const specialtyMap = new Map<string, number>();
     consultations.forEach((c) => {
       const doctor = doctors.find(d => d.id === c.doctor_id);
-      const specialty = doctor?.specialty || 'General';
+      const specialty = doctor?.specialization || 'General';
       specialtyMap.set(specialty, (specialtyMap.get(specialty) || 0) + 1);
     });
     return Array.from(specialtyMap.entries()).map(([name, value]) => ({ name, value }));
@@ -138,7 +148,7 @@ export default function DoctorReportsPage() {
 
   // Summary stats
   const totalPatients = consultations.length;
-  const totalRevenue = consultations.reduce((sum: number, c) => sum + (c.consultation_fee || 0), 0);
+  const totalRevenue = doctorPerformance.reduce((sum, d) => sum + d.revenue, 0);
   const activeDoctors = doctorPerformance.length;
   const avgPatientsPerDoctor = activeDoctors > 0 ? Math.round(totalPatients / activeDoctors) : 0;
 
@@ -147,7 +157,6 @@ export default function DoctorReportsPage() {
       { key: 'name', header: 'Doctor' },
       { key: 'specialty', header: 'Specialty' },
       { key: 'patients', header: 'Patients Seen' },
-      { key: 'completed', header: 'Completed' },
       { key: 'revenue', header: 'Revenue', format: formatCurrency }
     ]);
   };
@@ -167,7 +176,7 @@ export default function DoctorReportsPage() {
         selectedBranch={selectedBranch}
         onBranchChange={setSelectedBranch}
         showDoctorFilter
-        doctorOptions={doctors.map(d => ({ value: d.id, label: `Dr. ${d.first_name} ${d.last_name}` }))}
+        doctorOptions={doctors.map(d => ({ value: d.id, label: `Dr. ${d.name}` }))}
         selectedDoctor={selectedDoctor}
         onDoctorChange={setSelectedDoctor}
         onExportCSV={handleExportCSV}
@@ -293,7 +302,6 @@ export default function DoctorReportsPage() {
                   <th className="text-left py-3 px-4 font-medium">Doctor</th>
                   <th className="text-left py-3 px-4 font-medium">Specialty</th>
                   <th className="text-right py-3 px-4 font-medium">Patients</th>
-                  <th className="text-right py-3 px-4 font-medium">Completed</th>
                   <th className="text-right py-3 px-4 font-medium">Revenue</th>
                   <th className="text-right py-3 px-4 font-medium">Avg/Patient</th>
                 </tr>
@@ -304,7 +312,6 @@ export default function DoctorReportsPage() {
                     <td className="py-3 px-4 font-medium">{doctor.name}</td>
                     <td className="py-3 px-4">{doctor.specialty}</td>
                     <td className="py-3 px-4 text-right">{doctor.patients}</td>
-                    <td className="py-3 px-4 text-right">{doctor.completed}</td>
                     <td className="py-3 px-4 text-right">{formatCurrency(doctor.revenue)}</td>
                     <td className="py-3 px-4 text-right">
                       {formatCurrency(doctor.patients > 0 ? doctor.revenue / doctor.patients : 0)}
@@ -313,7 +320,7 @@ export default function DoctorReportsPage() {
                 ))}
                 {doctorPerformance.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="py-8 text-center text-muted-foreground">
+                    <td colSpan={5} className="py-8 text-center text-muted-foreground">
                       No data available for selected period
                     </td>
                   </tr>

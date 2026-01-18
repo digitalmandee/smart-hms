@@ -18,8 +18,6 @@ const TRIAGE_COLORS: Record<number, string> = {
   5: '#3b82f6', // Non-Urgent - Blue
 };
 
-type ERStatus = 'absconded' | 'admitted' | 'discharged' | 'expired' | 'in_treatment' | 'in_triage' | 'lama' | 'transferred' | 'waiting';
-
 export default function ERReportsPage() {
   const [dateRange, setDateRange] = useState({
     from: startOfMonth(new Date()),
@@ -37,7 +35,7 @@ export default function ERReportsPage() {
     }
   });
 
-  // Fetch ER registrations
+  // Fetch ER registrations - use arrival_time instead of registration_time
   const { data: erCases = [], isLoading } = useQuery({
     queryKey: ['er-cases-report', dateRange, selectedBranch, selectedStatus],
     queryFn: async () => {
@@ -46,51 +44,47 @@ export default function ERReportsPage() {
         .select(`
           id,
           er_number,
-          registration_time,
+          arrival_time,
           triage_level,
           triage_time,
           status,
-          disposition,
           disposition_time,
+          disposition_notes,
           chief_complaint,
           arrival_mode,
-          patient_id
+          patient_id,
+          admission_id
         `)
-        .gte('registration_time', format(dateRange.from, 'yyyy-MM-dd'))
-        .lte('registration_time', format(dateRange.to, 'yyyy-MM-dd') + 'T23:59:59');
+        .gte('arrival_time', format(dateRange.from, 'yyyy-MM-dd'))
+        .lte('arrival_time', format(dateRange.to, 'yyyy-MM-dd') + 'T23:59:59');
 
       if (selectedBranch) {
         query = query.eq('branch_id', selectedBranch);
       }
+      // Skip status filter to avoid type issues - filter client-side
+      
+      const { data } = await query.order('arrival_time', { ascending: false });
+      
+      // Filter by status client-side if needed
+      let filtered = data || [];
       if (selectedStatus) {
-        query = query.eq('status', selectedStatus as ERStatus);
+        filtered = filtered.filter(c => c.status === selectedStatus);
       }
-
-      const { data } = await query.order('registration_time', { ascending: false });
-      return (data || []) as Array<{
-        id: string;
-        er_number: string;
-        registration_time: string;
-        triage_level: number | null;
-        triage_time: string | null;
-        status: string;
-        disposition: string | null;
-        disposition_time: string | null;
-        chief_complaint: string | null;
-        arrival_mode: string | null;
-        patient_id: string;
-      }>;
+      return filtered;
     }
   });
 
-  // Fetch patients for ER cases
+  // Fetch patients for ER cases - use patient_number instead of mr_number
   const { data: patients = [] } = useQuery({
     queryKey: ['er-patients', erCases.map(c => c.patient_id)],
     queryFn: async () => {
-      const patientIds = [...new Set(erCases.map(c => c.patient_id))];
+      const patientIds = [...new Set(erCases.map(c => c.patient_id).filter(Boolean))];
       if (patientIds.length === 0) return [];
-      const { data } = await supabase.from('patients').select('id, first_name, last_name, mr_number').in('id', patientIds);
-      return (data || []) as Array<{ id: string; first_name: string; last_name: string; mr_number: string }>;
+      const { data } = await supabase
+        .from('patients')
+        .select('id, first_name, last_name, patient_number')
+        .in('id', patientIds);
+      return data || [];
     },
     enabled: erCases.length > 0
   });
@@ -107,7 +101,7 @@ export default function ERReportsPage() {
 
     const triageMap = new Map<number, number>();
     erCases.forEach((c) => {
-      const level = c.triage_level || 5;
+      const level = typeof c.triage_level === 'number' ? c.triage_level : 5;
       triageMap.set(level, (triageMap.get(level) || 0) + 1);
     });
 
@@ -121,27 +115,28 @@ export default function ERReportsPage() {
       }));
   }, [erCases]);
 
-  // Disposition breakdown
-  const dispositionBreakdown = useMemo(() => {
-    const dispositionLabels: Record<string, string> = {
-      'discharged': 'Discharged',
+  // Status breakdown (disposition)
+  const statusBreakdown = useMemo(() => {
+    const statusLabels: Record<string, string> = {
+      'waiting': 'Waiting',
+      'in_triage': 'In Triage',
+      'in_treatment': 'In Treatment',
       'admitted': 'Admitted',
+      'discharged': 'Discharged',
       'transferred': 'Transferred',
-      'left_ama': 'Left AMA',
-      'deceased': 'Deceased',
-      'observation': 'Observation'
+      'lama': 'Left AMA',
+      'expired': 'Expired'
     };
 
-    const dispositionMap = new Map<string, number>();
+    const statusMap = new Map<string, number>();
     erCases.forEach((c) => {
-      if (c.disposition) {
-        dispositionMap.set(c.disposition, (dispositionMap.get(c.disposition) || 0) + 1);
-      }
+      const status = c.status || 'waiting';
+      statusMap.set(status, (statusMap.get(status) || 0) + 1);
     });
 
-    return Array.from(dispositionMap.entries())
+    return Array.from(statusMap.entries())
       .map(([key, value]) => ({
-        name: dispositionLabels[key] || key,
+        name: statusLabels[key] || key,
         value
       }))
       .sort((a, b) => b.value - a.value);
@@ -153,18 +148,19 @@ export default function ERReportsPage() {
     return days.map(day => {
       const dayStr = format(day, 'yyyy-MM-dd');
       const dayCases = erCases.filter((c) => 
-        c.registration_time?.startsWith(dayStr)
+        c.arrival_time?.startsWith(dayStr)
       );
       
-      const criticalCases = dayCases.filter((c) => 
-        c.triage_level === 1 || c.triage_level === 2
-      );
+      const criticalCases = dayCases.filter((c) => {
+        const level = Number(c.triage_level) || 5;
+        return level === 1 || level === 2;
+      });
 
       return {
         date: format(day, 'MMM dd'),
         total: dayCases.length,
         critical: criticalCases.length,
-        admitted: dayCases.filter((c) => c.disposition === 'admitted').length
+        admitted: dayCases.filter((c) => c.admission_id != null).length
       };
     });
   }, [erCases, dateRange]);
@@ -178,8 +174,8 @@ export default function ERReportsPage() {
     }));
 
     erCases.forEach((c) => {
-      if (c.registration_time) {
-        const hour = new Date(c.registration_time).getHours();
+      if (c.arrival_time) {
+        const hour = new Date(c.arrival_time).getHours();
         hours[hour].count++;
       }
     });
@@ -222,29 +218,35 @@ export default function ERReportsPage() {
 
   // Summary stats
   const totalCases = erCases.length;
-  const criticalCases = erCases.filter((c) => c.triage_level === 1 || c.triage_level === 2).length;
-  const admittedCases = erCases.filter((c) => c.disposition === 'admitted').length;
+  const criticalCases = erCases.filter((c) => {
+    const level = Number(c.triage_level) || 5;
+    return level === 1 || level === 2;
+  }).length;
+  const admittedCases = erCases.filter((c) => c.admission_id != null).length;
   const activeCases = erCases.filter((c) => 
-    ['waiting', 'in_triage', 'in_treatment'].includes(c.status)
+    ['waiting', 'in_triage', 'in_treatment'].includes(c.status || '')
   ).length;
 
   const handleExportCSV = () => {
     const exportData = erCases.map(c => {
       const patient = patients.find(p => p.id === c.patient_id);
       return {
-        ...c,
-        patient_name: patient ? `${patient.first_name} ${patient.last_name}` : '-'
+        er_number: c.er_number,
+        arrival_time: c.arrival_time,
+        patient_name: patient ? `${patient.first_name} ${patient.last_name}` : '-',
+        triage_level: c.triage_level,
+        chief_complaint: c.chief_complaint,
+        status: c.status
       };
     });
     
     exportToCSV(exportData, `er-report-${format(dateRange.from, 'yyyy-MM-dd')}`, [
       { key: 'er_number', header: 'ER #' },
-      { key: 'registration_time', header: 'Registration', format: formatDateTime },
+      { key: 'arrival_time', header: 'Arrival', format: formatDateTime },
       { key: 'patient_name', header: 'Patient' },
       { key: 'triage_level', header: 'Triage Level' },
       { key: 'chief_complaint', header: 'Chief Complaint' },
-      { key: 'status', header: 'Status' },
-      { key: 'disposition', header: 'Disposition' }
+      { key: 'status', header: 'Status' }
     ]);
   };
 
@@ -379,23 +381,23 @@ export default function ERReportsPage() {
 
       {/* Second Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Disposition Breakdown */}
+        {/* Status Breakdown */}
         <Card>
           <CardHeader>
-            <CardTitle>Disposition Outcomes</CardTitle>
+            <CardTitle>Status Distribution</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
-                  data={dispositionBreakdown}
+                  data={statusBreakdown}
                   cx="50%"
                   cy="50%"
                   outerRadius={100}
                   dataKey="value"
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  label={({ name, percent }: { name: string; percent: number }) => `${name} ${(percent * 100).toFixed(0)}%`}
                 >
-                  {dispositionBreakdown.map((_, index) => (
+                  {statusBreakdown.map((_, index) => (
                     <Cell key={index} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
@@ -454,7 +456,7 @@ export default function ERReportsPage() {
                 <tr className="border-b">
                   <th className="text-left py-3 px-4 font-medium">ER #</th>
                   <th className="text-left py-3 px-4 font-medium">Patient</th>
-                  <th className="text-left py-3 px-4 font-medium">Registration</th>
+                  <th className="text-left py-3 px-4 font-medium">Arrival</th>
                   <th className="text-left py-3 px-4 font-medium">Triage</th>
                   <th className="text-left py-3 px-4 font-medium">Chief Complaint</th>
                   <th className="text-left py-3 px-4 font-medium">Status</th>
@@ -462,7 +464,7 @@ export default function ERReportsPage() {
               </thead>
               <tbody>
                 {erCases
-                  .filter((c) => ['waiting', 'in_triage', 'in_treatment'].includes(c.status))
+                  .filter((c) => ['waiting', 'in_triage', 'in_treatment'].includes(c.status || ''))
                   .slice(0, 10)
                   .map((erCase) => {
                     const patient = patients.find(p => p.id === erCase.patient_id);
@@ -472,7 +474,7 @@ export default function ERReportsPage() {
                         <td className="py-3 px-4">
                           {patient ? `${patient.first_name} ${patient.last_name}` : '-'}
                         </td>
-                        <td className="py-3 px-4">{formatDateTime(erCase.registration_time)}</td>
+                        <td className="py-3 px-4">{formatDateTime(erCase.arrival_time)}</td>
                         <td className="py-3 px-4">
                           <Badge 
                             style={{ backgroundColor: TRIAGE_COLORS[erCase.triage_level || 5] || '#gray' }}
