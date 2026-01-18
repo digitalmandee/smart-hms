@@ -5,13 +5,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from "recharts";
 import { ReportFilters } from "@/components/reports/ReportFilters";
-import { exportToCSV, formatCurrency, formatDate } from "@/lib/exportUtils";
+import { exportToCSV, formatDate } from "@/lib/exportUtils";
 import { FlaskConical, Clock, TrendingUp, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 const COLORS = ['hsl(var(--primary))', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
-
-type LabOrderStatus = 'cancelled' | 'collected' | 'completed' | 'ordered' | 'processing';
 
 export default function LabReportsPage() {
   const [dateRange, setDateRange] = useState({
@@ -30,60 +28,43 @@ export default function LabReportsPage() {
     }
   });
 
-  // Fetch lab orders
+  // Fetch lab orders - use created_at instead of order_date
   const { data: labOrders = [], isLoading } = useQuery({
     queryKey: ['lab-orders-report', dateRange, selectedBranch, selectedStatus],
     queryFn: async () => {
       let query = supabase
         .from('lab_orders')
-        .select(`
-          id,
-          order_number,
-          order_date,
-          status,
-          priority,
-          total_amount,
-          created_at,
-          sample_collected_at,
-          results_entered_at,
-          verified_at,
-          patient_id
-        `)
-        .gte('order_date', format(dateRange.from, 'yyyy-MM-dd'))
-        .lte('order_date', format(dateRange.to, 'yyyy-MM-dd'));
+        .select('id, order_number, created_at, status, priority, completed_at, patient_id, branch_id')
+        .gte('created_at', format(dateRange.from, 'yyyy-MM-dd'))
+        .lte('created_at', format(dateRange.to, 'yyyy-MM-dd') + 'T23:59:59');
 
       if (selectedBranch) {
         query = query.eq('branch_id', selectedBranch);
       }
+      // Skip status filter in query to avoid type issues - filter client-side
+      
+      const { data } = await query.order('created_at', { ascending: false });
+      
+      // Filter by status client-side if needed
+      let filtered = data || [];
       if (selectedStatus) {
-        query = query.eq('status', selectedStatus as LabOrderStatus);
+        filtered = filtered.filter(o => o.status === selectedStatus);
       }
-
-      const { data } = await query.order('order_date', { ascending: false });
-      return (data || []) as Array<{
-        id: string;
-        order_number: string;
-        order_date: string;
-        status: string;
-        priority: string;
-        total_amount: number;
-        created_at: string;
-        sample_collected_at: string | null;
-        results_entered_at: string | null;
-        verified_at: string | null;
-        patient_id: string;
-      }>;
+      return filtered;
     }
   });
 
-  // Fetch patients for lab orders
+  // Fetch patients for lab orders - use patient_number instead of mr_number
   const { data: patients = [] } = useQuery({
     queryKey: ['lab-patients', labOrders.map(o => o.patient_id)],
     queryFn: async () => {
-      const patientIds = [...new Set(labOrders.map(o => o.patient_id))];
+      const patientIds = [...new Set(labOrders.map(o => o.patient_id).filter(Boolean))];
       if (patientIds.length === 0) return [];
-      const { data } = await supabase.from('patients').select('id, first_name, last_name, mr_number').in('id', patientIds);
-      return (data || []) as Array<{ id: string; first_name: string; last_name: string; mr_number: string }>;
+      const { data } = await supabase
+        .from('patients')
+        .select('id, first_name, last_name, patient_number')
+        .in('id', patientIds);
+      return data || [];
     },
     enabled: labOrders.length > 0
   });
@@ -97,29 +78,12 @@ export default function LabReportsPage() {
 
       const { data } = await supabase
         .from('lab_order_items')
-        .select(`
-          id,
-          lab_order_id,
-          price,
-          lab_test_id
-        `)
+        .select('id, lab_order_id, test_name, test_category, status')
         .in('lab_order_id', orderIds);
 
-      return (data || []) as Array<{ id: string; lab_order_id: string; price: number; lab_test_id: string }>;
+      return data || [];
     },
     enabled: labOrders.length > 0
-  });
-
-  // Fetch lab tests for category info
-  const { data: labTests = [] } = useQuery({
-    queryKey: ['lab-tests-report', labOrderItems.map(i => i.lab_test_id)],
-    queryFn: async () => {
-      const testIds = [...new Set(labOrderItems.map(i => i.lab_test_id))];
-      if (testIds.length === 0) return [];
-      const { data } = await supabase.from('lab_tests').select('id, name, category').in('id', testIds);
-      return (data || []) as Array<{ id: string; name: string; category: string }>;
-    },
-    enabled: labOrderItems.length > 0
   });
 
   // Calculate order status breakdown
@@ -137,30 +101,25 @@ export default function LabReportsPage() {
 
   // Calculate test category breakdown
   const categoryBreakdown = useMemo(() => {
-    const categoryMap = new Map<string, { count: number; revenue: number }>();
+    const categoryMap = new Map<string, number>();
     labOrderItems.forEach((item) => {
-      const test = labTests.find(t => t.id === item.lab_test_id);
-      const category = test?.category || 'Other';
-      const existing = categoryMap.get(category) || { count: 0, revenue: 0 };
-      existing.count++;
-      existing.revenue += item.price || 0;
-      categoryMap.set(category, existing);
+      const category = item.test_category || 'Other';
+      categoryMap.set(category, (categoryMap.get(category) || 0) + 1);
     });
     return Array.from(categoryMap.entries())
-      .map(([name, data]) => ({ name, ...data }))
+      .map(([name, count]) => ({ name, count }))
       .sort((a, b) => b.count - a.count);
-  }, [labOrderItems, labTests]);
+  }, [labOrderItems]);
 
   // Daily trends
   const dailyTrends = useMemo(() => {
     const days = eachDayOfInterval({ start: dateRange.from, end: dateRange.to });
     return days.map(day => {
       const dayStr = format(day, 'yyyy-MM-dd');
-      const dayOrders = labOrders.filter(o => o.order_date === dayStr);
+      const dayOrders = labOrders.filter(o => o.created_at?.startsWith(dayStr));
       return {
         date: format(day, 'MMM dd'),
         orders: dayOrders.length,
-        revenue: dayOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0),
         completed: dayOrders.filter(o => o.status === 'completed').length
       };
     });
@@ -169,13 +128,13 @@ export default function LabReportsPage() {
   // Turnaround time analysis
   const tatAnalysis = useMemo(() => {
     const completedOrders = labOrders.filter(o => 
-      o.status === 'completed' && o.created_at && o.verified_at
+      o.status === 'completed' && o.created_at && o.completed_at
     );
 
     if (completedOrders.length === 0) return { avg: 0, min: 0, max: 0 };
 
     const tatHours = completedOrders.map(o => 
-      differenceInHours(new Date(o.verified_at!), new Date(o.created_at))
+      differenceInHours(new Date(o.completed_at!), new Date(o.created_at!))
     );
 
     return {
@@ -187,30 +146,31 @@ export default function LabReportsPage() {
 
   // Pending orders
   const pendingOrders = labOrders.filter(o => 
-    ['ordered', 'collected', 'processing'].includes(o.status)
+    ['ordered', 'collected', 'processing'].includes(o.status || '')
   );
 
   // Summary stats
   const totalOrders = labOrders.length;
-  const totalRevenue = labOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
   const urgentOrders = labOrders.filter(o => o.priority === 'urgent' || o.priority === 'stat').length;
 
   const handleExportCSV = () => {
     const exportData = labOrders.map(o => {
       const patient = patients.find(p => p.id === o.patient_id);
       return {
-        ...o,
-        patient_name: patient ? `${patient.first_name} ${patient.last_name}` : '-'
+        order_number: o.order_number,
+        created_at: o.created_at,
+        patient_name: patient ? `${patient.first_name} ${patient.last_name}` : '-',
+        status: o.status,
+        priority: o.priority
       };
     });
     
     exportToCSV(exportData, `lab-report-${format(dateRange.from, 'yyyy-MM-dd')}`, [
       { key: 'order_number', header: 'Order #' },
-      { key: 'order_date', header: 'Date', format: formatDate },
+      { key: 'created_at', header: 'Date', format: formatDate },
       { key: 'patient_name', header: 'Patient' },
       { key: 'status', header: 'Status' },
-      { key: 'priority', header: 'Priority' },
-      { key: 'total_amount', header: 'Amount', format: formatCurrency }
+      { key: 'priority', header: 'Priority' }
     ]);
   };
 
@@ -218,7 +178,7 @@ export default function LabReportsPage() {
     <div className="space-y-6 p-6">
       <div>
         <h1 className="text-2xl font-bold">Lab Reports</h1>
-        <p className="text-muted-foreground">Test volumes, turnaround times, and revenue analysis</p>
+        <p className="text-muted-foreground">Test volumes, turnaround times, and analysis</p>
       </div>
 
       <ReportFilters
@@ -264,8 +224,8 @@ export default function LabReportsPage() {
                 <TrendingUp className="h-6 w-6 text-green-500" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Total Revenue</p>
-                <p className="text-2xl font-bold">{formatCurrency(totalRevenue)}</p>
+                <p className="text-sm text-muted-foreground">Tests Count</p>
+                <p className="text-2xl font-bold">{labOrderItems.length}</p>
               </div>
             </div>
           </CardContent>
@@ -357,12 +317,9 @@ export default function LabReportsPage() {
             <BarChart data={categoryBreakdown}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" fontSize={12} />
-              <YAxis yAxisId="left" fontSize={12} />
-              <YAxis yAxisId="right" orientation="right" fontSize={12} />
+              <YAxis fontSize={12} />
               <Tooltip />
-              <Legend />
-              <Bar yAxisId="left" dataKey="count" fill="hsl(var(--primary))" name="Tests Count" />
-              <Bar yAxisId="right" dataKey="revenue" fill="#10b981" name="Revenue (Rs.)" />
+              <Bar dataKey="count" fill="hsl(var(--primary))" name="Tests Count" />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
@@ -383,7 +340,6 @@ export default function LabReportsPage() {
                   <th className="text-left py-3 px-4 font-medium">Date</th>
                   <th className="text-left py-3 px-4 font-medium">Status</th>
                   <th className="text-left py-3 px-4 font-medium">Priority</th>
-                  <th className="text-right py-3 px-4 font-medium">Amount</th>
                 </tr>
               </thead>
               <tbody>
@@ -395,7 +351,7 @@ export default function LabReportsPage() {
                       <td className="py-3 px-4">
                         {patient ? `${patient.first_name} ${patient.last_name}` : '-'}
                       </td>
-                      <td className="py-3 px-4">{formatDate(order.order_date)}</td>
+                      <td className="py-3 px-4">{formatDate(order.created_at)}</td>
                       <td className="py-3 px-4">
                         <Badge variant="outline">
                           {order.status?.replace(/_/g, ' ')}
@@ -406,13 +362,12 @@ export default function LabReportsPage() {
                           {order.priority || 'Normal'}
                         </Badge>
                       </td>
-                      <td className="py-3 px-4 text-right">{formatCurrency(order.total_amount)}</td>
                     </tr>
                   );
                 })}
                 {pendingOrders.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="py-8 text-center text-muted-foreground">
+                    <td colSpan={5} className="py-8 text-center text-muted-foreground">
                       No pending orders
                     </td>
                   </tr>

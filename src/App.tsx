@@ -173,6 +173,13 @@ import ERQueueDisplayPage from "./pages/app/emergency/ERQueueDisplayPage";
 import AmbulanceAlertsPage from "./pages/app/emergency/AmbulanceAlertsPage";
 import QuickAdmissionPage from "./pages/app/emergency/QuickAdmissionPage";
 import ERDischargeFormPage from "./pages/app/emergency/ERDischargeFormPage";
+import ERReportsPage from "./pages/app/emergency/ERReportsPage";
+
+// Report pages
+import DoctorReportsPage from "./pages/app/opd/DoctorReportsPage";
+import LabReportsPage from "./pages/app/lab/LabReportsPage";
+import AppointmentReportsPage from "./pages/app/appointments/AppointmentReportsPage";
+import PatientReportsPage from "./pages/app/patients/PatientReportsPage";
 
 // OT pages
 import OTDashboard from "./pages/app/ot/OTDashboard";
