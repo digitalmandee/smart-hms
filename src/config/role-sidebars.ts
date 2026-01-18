@@ -39,7 +39,15 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
           { name: "Reports", path: "/app/opd/reports", icon: "BarChart3" },
         ]
       },
-      { name: "Patients", path: "/app/patients", icon: "Users" },
+      { 
+        name: "Patients", 
+        path: "", 
+        icon: "Users",
+        children: [
+          { name: "Search Patients", path: "/app/patients", icon: "Search" },
+          { name: "My Patients", path: "/app/patients?doctor=me", icon: "UserCheck" },
+        ]
+      },
       { 
         name: "IPD", 
         path: "", 

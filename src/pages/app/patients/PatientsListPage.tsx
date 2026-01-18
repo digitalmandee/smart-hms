@@ -19,15 +19,22 @@ import { Database } from "@/integrations/supabase/types";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { Search } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 type Patient = Database["public"]["Tables"]["patients"]["Row"];
 
 export function PatientsListPage() {
   const navigate = useNavigate();
+  const { roles } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const { data: patients, isLoading } = usePatients(searchQuery);
   const { data: stats } = usePatientStats();
   const updatePatient = useUpdatePatient();
+
+  // Only receptionist, nurse, and admin roles can register patients
+  const canRegisterPatient = roles.some(r => 
+    ['receptionist', 'nurse', 'org_admin', 'branch_admin', 'super_admin'].includes(r)
+  );
 
   const handleToggleActive = (id: string, currentStatus: boolean) => {
     updatePatient.mutate({ id, data: { is_active: !currentStatus } });
@@ -160,12 +167,14 @@ export function PatientsListPage() {
         description="Manage patient records and registrations"
         breadcrumbs={[{ label: "Patients" }]}
         actions={
-          <Link to="/app/patients/new">
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Register Patient
-            </Button>
-          </Link>
+          canRegisterPatient && (
+            <Link to="/app/patients/new">
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Register Patient
+              </Button>
+            </Link>
+          )
         }
       />
 

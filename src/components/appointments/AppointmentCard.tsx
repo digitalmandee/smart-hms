@@ -1,4 +1,4 @@
-import { Clock, User, Phone, MoreVertical, AlertTriangle, Activity, Zap } from 'lucide-react';
+import { Clock, User, Phone, MoreVertical, AlertTriangle, Activity, Zap, Stethoscope } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -28,6 +28,7 @@ interface AppointmentCardProps {
   onCancel?: () => void;
   onNoShow?: () => void;
   onClick?: () => void;
+  showConsultButton?: boolean;
 }
 
 const statusConfig: Record<string, { bg: string; label: string }> = {
@@ -48,6 +49,7 @@ export function AppointmentCard({
   onCancel,
   onNoShow,
   onClick,
+  showConsultButton = false,
 }: AppointmentCardProps) {
   const patient = appointment.patient;
   const doctor = appointment.doctor;
@@ -132,6 +134,17 @@ export function AppointmentCard({
                 {statusStyle.label}
               </Badge>
             </div>
+            {/* Show consultation button for doctors */}
+            {showConsultButton && (status === 'checked_in' || status === 'in_progress') && (
+              <Button 
+                size="sm" 
+                onClick={(e) => { e.stopPropagation(); onClick?.(); }}
+                className="gap-1"
+              >
+                <Stethoscope className="h-3.5 w-3.5" />
+                {status === 'in_progress' ? 'Continue' : 'Start'} Consultation
+              </Button>
+            )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-8 w-8">
