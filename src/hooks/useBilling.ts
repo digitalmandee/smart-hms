@@ -620,10 +620,14 @@ export function useServiceTypes() {
   return useQuery({
     queryKey: ["service-types", profile?.organization_id],
     queryFn: async () => {
+      if (!profile?.organization_id) throw new Error("No organization");
+      
       const { data, error } = await supabase
         .from("service_types")
         .select("*")
+        .eq("organization_id", profile.organization_id)
         .eq("is_active", true)
+        .order("category")
         .order("name");
 
       if (error) throw error;
@@ -639,9 +643,12 @@ export function useAllServiceTypes() {
   return useQuery({
     queryKey: ["all-service-types", profile?.organization_id],
     queryFn: async () => {
+      if (!profile?.organization_id) throw new Error("No organization");
+      
       const { data, error } = await supabase
         .from("service_types")
         .select("*")
+        .eq("organization_id", profile.organization_id)
         .order("category", { ascending: true })
         .order("name", { ascending: true });
 

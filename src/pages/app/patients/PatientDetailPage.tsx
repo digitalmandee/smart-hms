@@ -126,14 +126,26 @@ export function PatientDetailPage() {
           { label: fullName },
         ]}
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <StatusBadge status={patient.is_active ? "active" : "inactive"} />
-            <Button variant="outline" onClick={() => handlePrint({ title: "Patient ID Card" })}>
+            <Link to={`/app/appointments/new?patientId=${patient.id}`}>
+              <Button variant="outline" size="sm">
+                <Calendar className="h-4 w-4 mr-2" />
+                Book Visit
+              </Button>
+            </Link>
+            <Link to={`/app/billing/invoices/new?patientId=${patient.id}`}>
+              <Button variant="outline" size="sm">
+                <Receipt className="h-4 w-4 mr-2" />
+                Create Invoice
+              </Button>
+            </Link>
+            <Button variant="outline" size="sm" onClick={() => handlePrint({ title: "Patient ID Card" })}>
               <Printer className="h-4 w-4 mr-2" />
               Print ID Card
             </Button>
             <Link to={`/app/patients/${patient.id}/edit`}>
-              <Button variant="outline">
+              <Button variant="outline" size="sm">
                 <Edit className="h-4 w-4 mr-2" />
                 Edit
               </Button>

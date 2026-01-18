@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -19,6 +21,7 @@ import {
 import { useServiceTypes } from "@/hooks/useBilling";
 import { Plus, Trash2 } from "lucide-react";
 import { InvoiceItemInput } from "@/hooks/useBilling";
+import { cn } from "@/lib/utils";
 
 interface InvoiceItemsBuilderProps {
   items: InvoiceItemInput[];
@@ -26,12 +29,24 @@ interface InvoiceItemsBuilderProps {
   disabled?: boolean;
 }
 
+type CategoryFilter = "all" | "consultation" | "procedure" | "lab" | "room" | "other";
+
+const categoryLabels: Record<CategoryFilter, string> = {
+  all: "All",
+  consultation: "Consultation",
+  procedure: "Procedure",
+  lab: "Lab",
+  room: "Room",
+  other: "Other",
+};
+
 export function InvoiceItemsBuilder({
   items,
   onChange,
   disabled,
 }: InvoiceItemsBuilderProps) {
   const { data: serviceTypes } = useServiceTypes();
+  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all");
   const [newItem, setNewItem] = useState<InvoiceItemInput>({
     description: "",
     quantity: 1,
@@ -39,6 +54,22 @@ export function InvoiceItemsBuilder({
     discount_percent: 0,
     service_type_id: null,
   });
+
+  // Group services by category
+  const groupedServices = useMemo(() => {
+    if (!serviceTypes) return {};
+    
+    const filtered = categoryFilter === "all" 
+      ? serviceTypes 
+      : serviceTypes.filter(s => s.category === categoryFilter);
+    
+    return filtered.reduce((acc, service) => {
+      const cat = service.category || "other";
+      if (!acc[cat]) acc[cat] = [];
+      acc[cat].push(service);
+      return acc;
+    }, {} as Record<string, typeof serviceTypes>);
+  }, [serviceTypes, categoryFilter]);
 
   const handleAddItem = () => {
     if (!newItem.description || newItem.unit_price <= 0) return;
@@ -71,6 +102,8 @@ export function InvoiceItemsBuilder({
   const calculateItemTotal = (item: InvoiceItemInput) => {
     return item.quantity * item.unit_price * (1 - (item.discount_percent || 0) / 100);
   };
+
+  const categories: CategoryFilter[] = ["all", "consultation", "procedure", "lab", "room", "other"];
 
   return (
     <div className="space-y-4">
@@ -120,17 +153,42 @@ export function InvoiceItemsBuilder({
 
       {!disabled && (
         <div className="border rounded-lg p-4 bg-muted/30 space-y-4">
+          {/* Category Filter Pills */}
+          <div className="flex flex-wrap gap-2">
+            {categories.map((cat) => (
+              <Button
+                key={cat}
+                variant={categoryFilter === cat ? "default" : "outline"}
+                size="sm"
+                onClick={() => setCategoryFilter(cat)}
+                className={cn(
+                  "capitalize",
+                  categoryFilter === cat && "bg-primary text-primary-foreground"
+                )}
+              >
+                {categoryLabels[cat]}
+              </Button>
+            ))}
+          </div>
+
           <div className="grid gap-4 md:grid-cols-6">
             <div className="md:col-span-2">
               <Select onValueChange={handleServiceSelect}>
                 <SelectTrigger>
                   <SelectValue placeholder="Quick add service..." />
                 </SelectTrigger>
-                <SelectContent>
-                  {serviceTypes?.map((service) => (
-                    <SelectItem key={service.id} value={service.id}>
-                      {service.name} - Rs. {service.default_price}
-                    </SelectItem>
+                <SelectContent className="max-h-80">
+                  {Object.entries(groupedServices).map(([category, services]) => (
+                    <SelectGroup key={category}>
+                      <SelectLabel className="capitalize font-semibold text-primary">
+                        {categoryLabels[category as CategoryFilter] || category}
+                      </SelectLabel>
+                      {services.map((service) => (
+                        <SelectItem key={service.id} value={service.id}>
+                          {service.name} - Rs. {service.default_price?.toLocaleString()}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
                   ))}
                 </SelectContent>
               </Select>
