@@ -1190,6 +1190,42 @@ export type Database = {
           },
         ]
       }
+      available_modules: {
+        Row: {
+          category: string | null
+          code: string
+          description: string | null
+          icon: string | null
+          id: string
+          is_core: boolean | null
+          is_hospital_only: boolean | null
+          name: string
+          sort_order: number | null
+        }
+        Insert: {
+          category?: string | null
+          code: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_core?: boolean | null
+          is_hospital_only?: boolean | null
+          name: string
+          sort_order?: number | null
+        }
+        Update: {
+          category?: string | null
+          code?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_core?: boolean | null
+          is_hospital_only?: boolean | null
+          name?: string
+          sort_order?: number | null
+        }
+        Relationships: []
+      }
       bank_accounts: {
         Row: {
           account_holder_name: string | null
@@ -3438,6 +3474,51 @@ export type Database = {
           },
         ]
       }
+      doctor_fee_schedule: {
+        Row: {
+          appointment_type: string
+          created_at: string | null
+          doctor_id: string
+          fee: number
+          id: string
+          organization_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          appointment_type: string
+          created_at?: string | null
+          doctor_id: string
+          fee?: number
+          id?: string
+          organization_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          appointment_type?: string
+          created_at?: string | null
+          doctor_id?: string
+          fee?: number
+          id?: string
+          organization_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "doctor_fee_schedule_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "doctor_fee_schedule_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       doctor_schedules: {
         Row: {
           created_at: string
@@ -3487,7 +3568,9 @@ export type Database = {
           branch_id: string | null
           consultation_fee: number | null
           created_at: string
+          emergency_fee: number | null
           employee_id: string | null
+          followup_fee: number | null
           id: string
           is_available: boolean | null
           license_number: string | null
@@ -3501,7 +3584,9 @@ export type Database = {
           branch_id?: string | null
           consultation_fee?: number | null
           created_at?: string
+          emergency_fee?: number | null
           employee_id?: string | null
+          followup_fee?: number | null
           id?: string
           is_available?: boolean | null
           license_number?: string | null
@@ -3515,7 +3600,9 @@ export type Database = {
           branch_id?: string | null
           consultation_fee?: number | null
           created_at?: string
+          emergency_fee?: number | null
           employee_id?: string | null
+          followup_fee?: number | null
           id?: string
           is_available?: boolean | null
           license_number?: string | null
@@ -8285,10 +8372,12 @@ export type Database = {
       organizations: {
         Row: {
           address: string | null
+          billing_workflow: string | null
           city: string | null
           country: string | null
           created_at: string
           email: string | null
+          facility_type: string | null
           id: string
           logo_url: string | null
           name: string
@@ -8307,10 +8396,12 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          billing_workflow?: string | null
           city?: string | null
           country?: string | null
           created_at?: string
           email?: string | null
+          facility_type?: string | null
           id?: string
           logo_url?: string | null
           name: string
@@ -8329,10 +8420,12 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          billing_workflow?: string | null
           city?: string | null
           country?: string | null
           created_at?: string
           email?: string | null
+          facility_type?: string | null
           id?: string
           logo_url?: string | null
           name?: string
