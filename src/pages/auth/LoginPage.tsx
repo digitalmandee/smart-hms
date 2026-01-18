@@ -12,7 +12,8 @@ import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Eye, EyeOff, Crown, Building, Building2, Stethoscope, Heart, UserCheck, Pill, FlaskConical, Calculator, Lock, Unlock, Warehouse, Users, Banknote, Droplets, ScanLine, Bed, Scissors } from "lucide-react";
 
-const demoAccounts = [
+// Hospital Demo Accounts (Shifa Medical Center)
+const hospitalDemoAccounts = [
   // Admin Roles
   { email: "superadmin@healthos.demo", role: "Super Admin", icon: Crown, color: "bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 border-amber-500/20" },
   { email: "orgadmin@healthos.demo", role: "Org Admin", icon: Building, color: "bg-purple-500/10 text-purple-600 hover:bg-purple-500/20 border-purple-500/20" },
@@ -26,15 +27,20 @@ const demoAccounts = [
   { email: "labtech@healthos.demo", role: "Lab Tech", icon: FlaskConical, color: "bg-violet-500/10 text-violet-600 hover:bg-violet-500/20 border-violet-500/20" },
   { email: "bloodbank@healthos.demo", role: "Blood Bank", icon: Droplets, color: "bg-red-500/10 text-red-600 hover:bg-red-500/20 border-red-500/20" },
   { email: "radiologist@healthos.demo", role: "Radiologist", icon: ScanLine, color: "bg-cyan-500/10 text-cyan-600 hover:bg-cyan-500/20 border-cyan-500/20" },
-  { email: "radtech@healthos.demo", role: "Rad Tech", icon: ScanLine, color: "bg-cyan-500/10 text-cyan-600 hover:bg-cyan-500/20 border-cyan-500/20" },
   { email: "ipdnurse@healthos.demo", role: "IPD Nurse", icon: Bed, color: "bg-indigo-500/10 text-indigo-600 hover:bg-indigo-500/20 border-indigo-500/20" },
   { email: "ottechnician@healthos.demo", role: "OT Tech", icon: Scissors, color: "bg-rose-500/10 text-rose-600 hover:bg-rose-500/20 border-rose-500/20" },
   // Administrative Roles
   { email: "accountant@healthos.demo", role: "Accountant", icon: Calculator, color: "bg-slate-500/10 text-slate-600 hover:bg-slate-500/20 border-slate-500/20" },
   { email: "storemanager@healthos.demo", role: "Store Manager", icon: Warehouse, color: "bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 border-emerald-500/20" },
   { email: "hrmanager@healthos.demo", role: "HR Manager", icon: Users, color: "bg-sky-500/10 text-sky-600 hover:bg-sky-500/20 border-sky-500/20" },
-  { email: "hrofficer@healthos.demo", role: "HR Officer", icon: Users, color: "bg-sky-500/10 text-sky-600 hover:bg-sky-500/20 border-sky-500/20" },
-  { email: "financemanager@healthos.demo", role: "Finance", icon: Banknote, color: "bg-lime-500/10 text-lime-600 hover:bg-lime-500/20 border-lime-500/20" },
+];
+
+// Clinic Demo Accounts (Al-Noor Family Clinic)
+const clinicDemoAccounts = [
+  { email: "clinic.admin@healthos.demo", role: "Clinic Admin", icon: Building, color: "bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 border-emerald-500/20" },
+  { email: "clinic.doctor@healthos.demo", role: "Clinic Doctor", icon: Stethoscope, color: "bg-green-500/10 text-green-600 hover:bg-green-500/20 border-green-500/20" },
+  { email: "clinic.receptionist@healthos.demo", role: "Token Counter", icon: UserCheck, color: "bg-teal-500/10 text-teal-600 hover:bg-teal-500/20 border-teal-500/20" },
+  { email: "clinic.pharmacist@healthos.demo", role: "Pharmacy POS", icon: Pill, color: "bg-orange-500/10 text-orange-600 hover:bg-orange-500/20 border-orange-500/20" },
 ];
 
 const DEMO_PASSWORD = "Demo@123";
