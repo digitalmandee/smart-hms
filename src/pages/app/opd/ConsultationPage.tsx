@@ -41,8 +41,12 @@ export default function ConsultationPage() {
   // Find current doctor
   const currentDoctor = doctors.find(d => d.profile?.id === profile?.id);
 
+  // Pre-fill vitals from nurse check-in if available
+  const nurseVitals = appointment?.check_in_vitals as Vitals | undefined;
+  const initialVitals = existingConsultation?.vitals as Vitals || nurseVitals || {};
+  
   // Form state
-  const [vitals, setVitals] = useState<Vitals>(existingConsultation?.vitals as Vitals || {});
+  const [vitals, setVitals] = useState<Vitals>(initialVitals);
   const [symptoms, setSymptoms] = useState<string[]>(
     existingConsultation?.symptoms?.split(", ") || []
   );
