@@ -13,8 +13,9 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePatientInsurance, useCreateInsuranceClaim } from "@/hooks/useInsurance";
 import { supabase } from "@/integrations/supabase/client";
-import { FileCheck, ArrowLeft, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { formatCurrency } from "@/lib/currency";
 
 interface ClaimFormData {
   patient_insurance_id: string;
@@ -94,13 +95,6 @@ export default function ClaimFormPage() {
     }
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'PKR',
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
 
   const totalClaimAmount = claimItems.reduce((sum, item) => sum + item.total_amount, 0);
 
