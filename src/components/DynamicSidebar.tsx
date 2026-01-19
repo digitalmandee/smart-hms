@@ -193,17 +193,20 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle, showDesktopToggl
   const navigate = useNavigate();
   const [openMenus, setOpenMenus] = useState<string[]>([]);
 
-  // Determine if user is an admin (uses dynamic database menus)
+  // Determine role and sidebar type
   const primaryRole = getPrimaryRole(roles);
-  const isAdminRole = ADMIN_ROLES.includes(primaryRole) || isSuperAdmin;
+  
+  // Super admin and org_admin use static configs; only branch_admin uses database menus
+  const usesStaticSidebar = isSuperAdmin || primaryRole === 'super_admin' || primaryRole === 'org_admin';
+  const usesDatabaseMenus = ADMIN_ROLES.includes(primaryRole) && !usesStaticSidebar;
 
   // Get sidebar config based on role
-  const sidebarConfig = isAdminRole 
-    ? null // Admin uses database menu items
+  const sidebarConfig = usesDatabaseMenus 
+    ? null // Only branch_admin uses database menu items
     : (ROLE_SIDEBAR_CONFIG[primaryRole] || ROLE_SIDEBAR_CONFIG.default);
 
   // Convert static config to menu items format for rendering
-  const menuItems = isAdminRole 
+  const menuItems = usesDatabaseMenus 
     ? dbMenuItems 
     : (sidebarConfig?.items.map((item, index) => ({
         id: `role-menu-${index}`,
@@ -279,7 +282,7 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle, showDesktopToggl
       .slice(0, 2);
   };
 
-  const isLoading = isAdminRole && menuLoading;
+  const isLoading = usesDatabaseMenus && menuLoading;
 
   return (
     <aside
