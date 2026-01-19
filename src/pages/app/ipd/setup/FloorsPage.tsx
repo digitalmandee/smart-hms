@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Plus, Pencil, Trash2, Building2 } from "lucide-react";
 import { useFloors, useCreateFloor, useUpdateFloor, useDeleteFloor, Floor } from "@/hooks/useIPDConfig";
 import { useBranches } from "@/hooks/useBranches";
-import { PageHeader } from "@/components/ui/page-header";
+import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

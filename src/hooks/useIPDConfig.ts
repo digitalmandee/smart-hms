@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
 // =====================================================
@@ -91,12 +91,18 @@ export const useCreateBedType = () => {
 
   return useMutation({
     mutationFn: async (data: Partial<BedType>) => {
+      const insertData = {
+        name: data.name || "",
+        code: data.code || "",
+        description: data.description,
+        daily_rate: data.daily_rate ?? 0,
+        is_active: data.is_active ?? true,
+        sort_order: data.sort_order ?? 0,
+        organization_id: profile?.organization_id!,
+      };
       const { data: result, error } = await supabase
         .from("ipd_bed_types")
-        .insert({
-          ...data,
-          organization_id: profile?.organization_id,
-        })
+        .insert(insertData)
         .select()
         .single();
       
@@ -191,21 +197,23 @@ export const useCreateBedFeature = () => {
 
   return useMutation({
     mutationFn: async (data: Partial<BedFeature>) => {
+      const insertData = {
+        name: data.name || "",
+        code: data.code || "",
+        description: data.description,
+        icon: data.icon,
+        is_active: data.is_active ?? true,
+        sort_order: data.sort_order ?? 0,
+        organization_id: profile?.organization_id!,
+      };
       const { data: result, error } = await supabase
         .from("ipd_bed_features")
-        .insert({
-          ...data,
-          organization_id: profile?.organization_id,
-        })
+        .insert(insertData)
         .select()
         .single();
       
       if (error) throw error;
       return result;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["ipd-bed-features"] });
-      toast.success("Bed feature created successfully");
     },
     onError: (error: Error) => {
       toast.error(`Failed to create bed feature: ${error.message}`);
@@ -291,21 +299,23 @@ export const useCreateWardType = () => {
 
   return useMutation({
     mutationFn: async (data: Partial<WardType>) => {
+      const insertData = {
+        name: data.name || "",
+        code: data.code || "",
+        description: data.description,
+        color: data.color,
+        is_active: data.is_active ?? true,
+        sort_order: data.sort_order ?? 0,
+        organization_id: profile?.organization_id!,
+      };
       const { data: result, error } = await supabase
         .from("ipd_ward_types")
-        .insert({
-          ...data,
-          organization_id: profile?.organization_id,
-        })
+        .insert(insertData)
         .select()
         .single();
       
       if (error) throw error;
       return result;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["ipd-ward-types"] });
-      toast.success("Ward type created successfully");
     },
     onError: (error: Error) => {
       toast.error(`Failed to create ward type: ${error.message}`);
@@ -398,21 +408,24 @@ export const useCreateFloor = () => {
 
   return useMutation({
     mutationFn: async (data: Partial<Floor>) => {
+      const insertData = {
+        building: data.building || "",
+        floor_name: data.floor_name || "",
+        floor_number: data.floor_number,
+        description: data.description,
+        branch_id: data.branch_id,
+        is_active: data.is_active ?? true,
+        sort_order: data.sort_order ?? 0,
+        organization_id: profile?.organization_id!,
+      };
       const { data: result, error } = await supabase
         .from("ipd_floors")
-        .insert({
-          ...data,
-          organization_id: profile?.organization_id,
-        })
+        .insert(insertData)
         .select()
         .single();
       
       if (error) throw error;
       return result;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["ipd-floors"] });
-      toast.success("Floor created successfully");
     },
     onError: (error: Error) => {
       toast.error(`Failed to create floor: ${error.message}`);
