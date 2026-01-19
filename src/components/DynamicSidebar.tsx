@@ -82,6 +82,8 @@ import {
   Scale,
   ArrowLeftRight,
   ClipboardCheck,
+  PanelLeftClose,
+  PanelLeft,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -160,9 +162,10 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
 interface DynamicSidebarProps {
   isCollapsed?: boolean;
   onToggle?: () => void;
+  showDesktopToggle?: boolean;
 }
 
-export const DynamicSidebar = ({ isCollapsed = false, onToggle }: DynamicSidebarProps) => {
+export const DynamicSidebar = ({ isCollapsed = false, onToggle, showDesktopToggle = false }: DynamicSidebarProps) => {
   // Use database menu items for admin roles, static config for operational roles
   const { menuItems: dbMenuItems, isLoading: menuLoading } = useMenuItems();
   const { profile, roles, signOut, isSuperAdmin } = useAuth();
@@ -273,7 +276,9 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle }: DynamicSidebar
         {!isCollapsed && (
           <span className="text-lg font-semibold text-sidebar-foreground">HealthOS</span>
         )}
-        {onToggle && (
+        
+        {/* Mobile close button */}
+        {onToggle && !showDesktopToggle && (
           <Button
             variant="ghost"
             size="icon"
@@ -281,6 +286,26 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle }: DynamicSidebar
             className="ml-auto text-sidebar-foreground hover:bg-sidebar-accent lg:hidden"
           >
             <X className="h-5 w-5" />
+          </Button>
+        )}
+        
+        {/* Desktop collapse toggle */}
+        {showDesktopToggle && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onToggle}
+            className={cn(
+              "text-sidebar-foreground hover:bg-sidebar-accent",
+              isCollapsed ? "mx-auto" : "ml-auto"
+            )}
+            title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {isCollapsed ? (
+              <PanelLeft className="h-5 w-5" />
+            ) : (
+              <PanelLeftClose className="h-5 w-5" />
+            )}
           </Button>
         )}
       </div>
@@ -317,6 +342,7 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle }: DynamicSidebar
                         "w-full justify-start gap-3 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                         isCollapsed && "justify-center px-2"
                       )}
+                      title={isCollapsed ? item.name : undefined}
                     >
                       {IconComponent && <IconComponent className="h-5 w-5 flex-shrink-0" />}
                       {!isCollapsed && (
@@ -369,6 +395,7 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle }: DynamicSidebar
                   isCollapsed && "justify-center px-2",
                   itemIsActive && "bg-sidebar-accent text-sidebar-accent-foreground"
                 )}
+                title={isCollapsed ? item.name : undefined}
               >
                 {IconComponent && <IconComponent className="h-5 w-5 flex-shrink-0" />}
                 {!isCollapsed && <span>{item.name}</span>}
@@ -414,6 +441,18 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle }: DynamicSidebar
             </Button>
           )}
         </div>
+        {/* Collapsed sign out */}
+        {isCollapsed && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleSignOut}
+            className="w-full mt-2 text-sidebar-foreground hover:bg-sidebar-accent"
+            title="Sign out"
+          >
+            <LogOut className="h-4 w-4" />
+          </Button>
+        )}
       </div>
     </aside>
   );
