@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { PageHeader } from "@/components/ui/page-header";
+import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -39,7 +39,7 @@ export default function PayrollReportsPage() {
   // Monthly payroll data for the selected year
   const monthlyData = MONTHS.map((month, index) => {
     const run = payrollRuns?.find(
-      (r: any) => r.payroll_year === parseInt(selectedYear) && r.payroll_month === index + 1
+      (r: any) => r.year === parseInt(selectedYear) && r.month === index + 1
     );
     return {
       month,
@@ -68,15 +68,15 @@ export default function PayrollReportsPage() {
   // YTD Summary
   const ytdSummary = {
     totalGross: payrollRuns
-      ?.filter((r: any) => r.payroll_year === parseInt(selectedYear))
+      ?.filter((r: any) => r.year === parseInt(selectedYear))
       .reduce((sum: number, r: any) => sum + (r.total_gross || 0), 0) || 0,
     totalDeductions: payrollRuns
-      ?.filter((r: any) => r.payroll_year === parseInt(selectedYear))
+      ?.filter((r: any) => r.year === parseInt(selectedYear))
       .reduce((sum: number, r: any) => sum + (r.total_deductions || 0), 0) || 0,
     totalNet: payrollRuns
-      ?.filter((r: any) => r.payroll_year === parseInt(selectedYear))
+      ?.filter((r: any) => r.year === parseInt(selectedYear))
       .reduce((sum: number, r: any) => sum + (r.total_net || 0), 0) || 0,
-    runCount: payrollRuns?.filter((r: any) => r.payroll_year === parseInt(selectedYear)).length || 0,
+    runCount: payrollRuns?.filter((r: any) => r.year === parseInt(selectedYear)).length || 0,
   };
 
   // Loan summary
@@ -92,8 +92,8 @@ export default function PayrollReportsPage() {
         title="Payroll Reports"
         description="Analytics and reports for payroll management"
         breadcrumbs={[
-          { label: "HR", path: "/app/hr" },
-          { label: "Payroll", path: "/app/hr/payroll" },
+          { label: "HR", href: "/app/hr" },
+          { label: "Payroll", href: "/app/hr/payroll" },
           { label: "Reports" },
         ]}
       />

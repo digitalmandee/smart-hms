@@ -303,15 +303,18 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
   
   hr_manager: {
     items: [
-      { name: "HR Dashboard", path: "/app/hr", icon: "Users" },
+      { name: "Dashboard", path: "/app/hr", icon: "LayoutDashboard" },
       { 
         name: "Employees", 
         path: "", 
-        icon: "UserCog",
+        icon: "Users",
         children: [
           { name: "Directory", path: "/app/hr/employees", icon: "Users" },
           { name: "Add Employee", path: "/app/hr/employees/new", icon: "UserPlus" },
+          { name: "Doctors", path: "/app/hr/doctors", icon: "Stethoscope" },
+          { name: "Nurses", path: "/app/hr/nurses", icon: "HeartPulse" },
           { name: "Departments", path: "/app/hr/departments", icon: "Building2" },
+          { name: "Designations", path: "/app/hr/designations", icon: "UserCog" },
         ]
       },
       { 
@@ -320,7 +323,8 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         icon: "Clock",
         children: [
           { name: "Daily Attendance", path: "/app/hr/attendance", icon: "ClipboardList" },
-          { name: "Leave Requests", path: "/app/hr/leave", icon: "CalendarDays" },
+          { name: "Attendance Sheet", path: "/app/hr/attendance/sheet", icon: "FileSpreadsheet" },
+          { name: "Leave Requests", path: "/app/hr/leaves", icon: "CalendarDays" },
           { name: "Shifts", path: "/app/hr/shifts", icon: "CalendarClock" },
         ]
       },
@@ -329,8 +333,12 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         path: "", 
         icon: "DollarSign",
         children: [
-          { name: "Process Payroll", path: "/app/hr/payroll", icon: "Calculator" },
-          { name: "Salary Slips", path: "/app/hr/payroll/slips", icon: "FileText" },
+          { name: "Dashboard", path: "/app/hr/payroll", icon: "LayoutDashboard" },
+          { name: "Process Payroll", path: "/app/hr/payroll/process", icon: "Calculator" },
+          { name: "Employee Salaries", path: "/app/hr/payroll/salaries", icon: "Users" },
+          { name: "Loans & Advances", path: "/app/hr/payroll/loans", icon: "Landmark" },
+          { name: "Payslips", path: "/app/hr/payroll/slips", icon: "FileText" },
+          { name: "Reports", path: "/app/hr/payroll/reports", icon: "PieChart" },
         ]
       },
       { name: "Reports", path: "/app/hr/reports", icon: "BarChart3" },
@@ -339,13 +347,15 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
 
   hr_officer: {
     items: [
-      { name: "HR Dashboard", path: "/app/hr", icon: "Users" },
+      { name: "Dashboard", path: "/app/hr", icon: "LayoutDashboard" },
       { 
         name: "Employees", 
         path: "", 
-        icon: "UserCog",
+        icon: "Users",
         children: [
           { name: "Directory", path: "/app/hr/employees", icon: "Users" },
+          { name: "Doctors", path: "/app/hr/doctors", icon: "Stethoscope" },
+          { name: "Nurses", path: "/app/hr/nurses", icon: "HeartPulse" },
           { name: "Departments", path: "/app/hr/departments", icon: "Building2" },
         ]
       },
@@ -355,7 +365,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         icon: "Clock",
         children: [
           { name: "Daily Attendance", path: "/app/hr/attendance", icon: "ClipboardList" },
-          { name: "Leave Requests", path: "/app/hr/leave", icon: "CalendarDays" },
+          { name: "Leave Requests", path: "/app/hr/leaves", icon: "CalendarDays" },
         ]
       },
     ]

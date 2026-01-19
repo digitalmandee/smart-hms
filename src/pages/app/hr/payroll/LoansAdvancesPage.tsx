@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { PageHeader } from "@/components/ui/page-header";
+import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -73,8 +73,8 @@ export default function LoansAdvancesPage() {
         title="Loans & Advances"
         description="Manage employee loans and salary advances"
         breadcrumbs={[
-          { label: "HR", path: "/app/hr" },
-          { label: "Payroll", path: "/app/hr/payroll" },
+          { label: "HR", href: "/app/hr" },
+          { label: "Payroll", href: "/app/hr/payroll" },
           { label: "Loans & Advances" },
         ]}
       />

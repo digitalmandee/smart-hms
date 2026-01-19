@@ -1,16 +1,16 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { PageHeader } from "@/components/ui/page-header";
+import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Calculator, Users, DollarSign, Check, ArrowRight, ArrowLeft, AlertCircle } from "lucide-react";
+import { Calculator, Users, Check, ArrowRight, ArrowLeft, AlertCircle } from "lucide-react";
 import { useEmployeeSalaries, useCreatePayrollRun, useEmployeeLoans } from "@/hooks/usePayroll";
+import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
@@ -27,6 +27,7 @@ const STEPS = [
 
 export default function ProcessPayrollPage() {
   const navigate = useNavigate();
+  const { profile } = useAuth();
   const currentDate = new Date();
   const [step, setStep] = useState(1);
   const [selectedMonth, setSelectedMonth] = useState((currentDate.getMonth() + 1).toString());
@@ -86,12 +87,18 @@ export default function ProcessPayrollPage() {
       return;
     }
 
+    if (!profile?.organization_id) {
+      toast.error("Organization not found");
+      return;
+    }
+
     setIsProcessing(true);
     try {
       const totals = calculateTotals();
       await createPayrollRun.mutateAsync({
-        payroll_month: parseInt(selectedMonth),
-        payroll_year: parseInt(selectedYear),
+        organization_id: profile.organization_id,
+        month: parseInt(selectedMonth),
+        year: parseInt(selectedYear),
         run_date: new Date().toISOString(),
         status: "draft",
         total_employees: totals.employees,
@@ -116,8 +123,8 @@ export default function ProcessPayrollPage() {
         title="Process Payroll"
         description="Run monthly payroll for employees"
         breadcrumbs={[
-          { label: "HR", path: "/app/hr" },
-          { label: "Payroll", path: "/app/hr/payroll" },
+          { label: "HR", href: "/app/hr" },
+          { label: "Payroll", href: "/app/hr/payroll" },
           { label: "Process" },
         ]}
       />

@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { PageHeader } from "@/components/ui/page-header";
+import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,9 +33,9 @@ export default function PayslipsPage() {
   const years = Array.from({ length: 5 }, (_, i) => (currentYear - 2 + i).toString());
 
   const filteredRuns = payrollRuns?.filter((run: any) => {
-    if (run.payroll_year?.toString() !== selectedYear) return false;
-    if (selectedMonth !== "all" && run.payroll_month?.toString() !== selectedMonth) return false;
-    return run.status === "completed" || run.status === "approved";
+    if (run.year?.toString() !== selectedYear) return false;
+    if (selectedMonth !== "all" && run.month?.toString() !== selectedMonth) return false;
+    return run.status === "completed";
   });
 
   const formatCurrency = (amount: number) =>
@@ -89,8 +89,8 @@ export default function PayslipsPage() {
         title="Payslips"
         description="View and print employee payslips"
         breadcrumbs={[
-          { label: "HR", path: "/app/hr" },
-          { label: "Payroll", path: "/app/hr/payroll" },
+          { label: "HR", href: "/app/hr" },
+          { label: "Payroll", href: "/app/hr/payroll" },
           { label: "Payslips" },
         ]}
       />
@@ -114,7 +114,7 @@ export default function PayslipsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {payrollRuns?.filter((r: any) => r.payroll_year === currentYear).length || 0}
+              {payrollRuns?.filter((r: any) => r.year === currentYear).length || 0}
             </div>
             <p className="text-xs text-muted-foreground">Payroll runs in {currentYear}</p>
           </CardContent>
@@ -187,10 +187,10 @@ export default function PayslipsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredRuns?.map((run: any) => (
+                  {filteredRuns?.map((run: any) => (
                   <TableRow key={run.id}>
                     <TableCell className="font-medium">
-                      {MONTHS[(run.payroll_month || 1) - 1]} {run.payroll_year}
+                      {MONTHS[(run.month || 1) - 1]} {run.year}
                     </TableCell>
                     <TableCell>{run.total_employees || 0}</TableCell>
                     <TableCell>{formatCurrency(run.total_gross || 0)}</TableCell>
@@ -216,8 +216,8 @@ export default function PayslipsPage() {
                           onClick={() => {
                             setSelectedPayslip({
                               ...run,
-                              month: run.payroll_month,
-                              year: run.payroll_year,
+                              month: run.month,
+                              year: run.year,
                             });
                             setIsPreviewOpen(true);
                           }}

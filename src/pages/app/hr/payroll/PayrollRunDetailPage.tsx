@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { PageHeader } from "@/components/ui/page-header";
+import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -34,10 +34,8 @@ export default function PayrollRunDetailPage() {
     switch (status) {
       case "draft":
         return <Badge variant="outline" className="bg-yellow-50 text-yellow-700"><Clock className="h-3 w-3 mr-1" /> Draft</Badge>;
-      case "pending_approval":
-        return <Badge variant="outline" className="bg-blue-50 text-blue-700"><Clock className="h-3 w-3 mr-1" /> Pending Approval</Badge>;
-      case "approved":
-        return <Badge variant="default" className="bg-green-100 text-green-700"><CheckCircle className="h-3 w-3 mr-1" /> Approved</Badge>;
+      case "processing":
+        return <Badge variant="outline" className="bg-blue-50 text-blue-700"><Clock className="h-3 w-3 mr-1" /> Processing</Badge>;
       case "completed":
         return <Badge variant="default"><CheckCircle className="h-3 w-3 mr-1" /> Completed</Badge>;
       case "cancelled":
@@ -81,7 +79,7 @@ export default function PayrollRunDetailPage() {
     );
   }
 
-  const periodLabel = `${MONTHS[(payrollRun.payroll_month || 1) - 1]} ${payrollRun.payroll_year}`;
+  const periodLabel = `${MONTHS[(payrollRun.month || 1) - 1]} ${payrollRun.year}`;
 
   return (
     <div className="space-y-6">
@@ -89,8 +87,8 @@ export default function PayrollRunDetailPage() {
         title={`Payroll Run - ${periodLabel}`}
         description="View and manage payroll run details"
         breadcrumbs={[
-          { label: "HR", path: "/app/hr" },
-          { label: "Payroll", path: "/app/hr/payroll" },
+          { label: "HR", href: "/app/hr" },
+          { label: "Payroll", href: "/app/hr/payroll" },
           { label: periodLabel },
         ]}
         actions={
@@ -188,8 +186,8 @@ export default function PayrollRunDetailPage() {
           <div className="flex gap-3">
             {payrollRun.status === "draft" && (
               <>
-                <Button onClick={() => handleStatusUpdate("pending_approval")} disabled={updatePayrollRun.isPending}>
-                  Submit for Approval
+                <Button onClick={() => handleStatusUpdate("processing")} disabled={updatePayrollRun.isPending}>
+                  Submit for Processing
                 </Button>
                 <Button variant="destructive" onClick={() => handleStatusUpdate("cancelled")} disabled={updatePayrollRun.isPending}>
                   <XCircle className="h-4 w-4 mr-2" />
@@ -197,22 +195,16 @@ export default function PayrollRunDetailPage() {
                 </Button>
               </>
             )}
-            {payrollRun.status === "pending_approval" && (
+            {payrollRun.status === "processing" && (
               <>
-                <Button onClick={() => handleStatusUpdate("approved")} disabled={updatePayrollRun.isPending}>
+                <Button onClick={() => handleStatusUpdate("completed")} disabled={updatePayrollRun.isPending}>
                   <CheckCircle className="h-4 w-4 mr-2" />
-                  Approve
+                  Mark as Completed
                 </Button>
                 <Button variant="outline" onClick={() => handleStatusUpdate("draft")} disabled={updatePayrollRun.isPending}>
                   Return to Draft
                 </Button>
               </>
-            )}
-            {payrollRun.status === "approved" && (
-              <Button onClick={() => handleStatusUpdate("completed")} disabled={updatePayrollRun.isPending}>
-                <CheckCircle className="h-4 w-4 mr-2" />
-                Mark as Completed
-              </Button>
             )}
             {payrollRun.status === "completed" && (
               <Button variant="outline" onClick={() => navigate("/app/hr/payroll/slips")}>
