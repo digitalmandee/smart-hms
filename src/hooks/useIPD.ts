@@ -43,7 +43,12 @@ export const useWards = () => {
   return useQuery({
     queryKey: ["wards", profile?.organization_id],
     queryFn: async () => {
-      if (!profile?.organization_id) return [];
+      if (!profile?.organization_id) {
+        console.warn("[useWards] No organization_id in profile");
+        return [];
+      }
+
+      console.log("[useWards] Fetching wards for org:", profile.organization_id);
 
       const { data, error } = await supabase
         .from("wards")
@@ -54,9 +59,15 @@ export const useWards = () => {
           beds(id, bed_number, status)
         `)
         .eq("organization_id", profile.organization_id)
+        .eq("is_active", true)
         .order("name");
 
-      if (error) throw error;
+      if (error) {
+        console.error("[useWards] Error:", error);
+        throw error;
+      }
+      
+      console.log("[useWards] Found wards:", data?.length);
       return data || [];
     },
     enabled: !!profile?.organization_id,
