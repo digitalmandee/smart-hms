@@ -376,7 +376,7 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle, showDesktopToggl
                             variant="ghost"
                             onClick={() => handleNavigation(child.path)}
                             className={cn(
-                              "w-full justify-start gap-3 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                              "w-full justify-start gap-3 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative z-10",
                               childIsActive && "bg-sidebar-accent text-sidebar-accent-foreground"
                             )}
                           >
