@@ -28,12 +28,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Save } from "lucide-react";
 import { toast } from "sonner";
 
+// Ward types matching database enum: general, semi_private, private, deluxe, vip, icu, nicu, picu, ccu, isolation, emergency, maternity, pediatric, surgical
 const wardFormSchema = z.object({
   name: z.string().min(1, "Ward name is required"),
   code: z.string().min(1, "Ward code is required"),
   ward_type: z.enum([
-    "general", "icu", "nicu", "picu", "ccu", "hdu", "maternity",
-    "pediatric", "surgical", "medical", "orthopedic", "oncology", "vip"
+    "general", "semi_private", "private", "deluxe", "vip",
+    "icu", "nicu", "picu", "ccu", "isolation", "emergency",
+    "maternity", "pediatric", "surgical"
   ]),
   total_beds: z.coerce.number().min(1, "Must have at least 1 bed"),
   building: z.string().optional(),
@@ -48,18 +50,19 @@ type WardFormValues = z.infer<typeof wardFormSchema>;
 
 const wardTypes = [
   { value: "general", label: "General Ward" },
+  { value: "semi_private", label: "Semi-Private" },
+  { value: "private", label: "Private" },
+  { value: "deluxe", label: "Deluxe" },
+  { value: "vip", label: "VIP" },
   { value: "icu", label: "ICU" },
   { value: "nicu", label: "NICU" },
   { value: "picu", label: "PICU" },
   { value: "ccu", label: "CCU" },
-  { value: "hdu", label: "HDU" },
+  { value: "isolation", label: "Isolation" },
+  { value: "emergency", label: "Emergency" },
   { value: "maternity", label: "Maternity" },
   { value: "pediatric", label: "Pediatric" },
   { value: "surgical", label: "Surgical" },
-  { value: "medical", label: "Medical" },
-  { value: "orthopedic", label: "Orthopedic" },
-  { value: "oncology", label: "Oncology" },
-  { value: "vip", label: "VIP" },
 ];
 
 export default function WardFormPage() {
