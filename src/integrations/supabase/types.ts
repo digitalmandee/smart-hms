@@ -2463,7 +2463,14 @@ export type Database = {
           name: string
           organization_id: string
           phone: string | null
+          receipt_footer: string | null
+          receipt_header: string | null
+          tax_rate: number | null
+          timezone: string | null
           updated_at: string
+          working_days: string[] | null
+          working_hours_end: string | null
+          working_hours_start: string | null
         }
         Insert: {
           address?: string | null
@@ -2477,7 +2484,14 @@ export type Database = {
           name: string
           organization_id: string
           phone?: string | null
+          receipt_footer?: string | null
+          receipt_header?: string | null
+          tax_rate?: number | null
+          timezone?: string | null
           updated_at?: string
+          working_days?: string[] | null
+          working_hours_end?: string | null
+          working_hours_start?: string | null
         }
         Update: {
           address?: string | null
@@ -2491,7 +2505,14 @@ export type Database = {
           name?: string
           organization_id?: string
           phone?: string | null
+          receipt_footer?: string | null
+          receipt_header?: string | null
+          tax_rate?: number | null
+          timezone?: string | null
           updated_at?: string
+          working_days?: string[] | null
+          working_hours_end?: string | null
+          working_hours_start?: string | null
         }
         Relationships: [
           {
@@ -8376,12 +8397,15 @@ export type Database = {
           city: string | null
           country: string | null
           created_at: string
+          default_tax_rate: number | null
           email: string | null
           facility_type: string | null
           id: string
           logo_url: string | null
           name: string
           phone: string | null
+          receipt_footer: string | null
+          receipt_header: string | null
           slug: string
           subscription_plan:
             | Database["public"]["Enums"]["subscription_plan"]
@@ -8393,6 +8417,9 @@ export type Database = {
           trial_ends_at: string | null
           updated_at: string
           website: string | null
+          working_days: string[] | null
+          working_hours_end: string | null
+          working_hours_start: string | null
         }
         Insert: {
           address?: string | null
@@ -8400,12 +8427,15 @@ export type Database = {
           city?: string | null
           country?: string | null
           created_at?: string
+          default_tax_rate?: number | null
           email?: string | null
           facility_type?: string | null
           id?: string
           logo_url?: string | null
           name: string
           phone?: string | null
+          receipt_footer?: string | null
+          receipt_header?: string | null
           slug: string
           subscription_plan?:
             | Database["public"]["Enums"]["subscription_plan"]
@@ -8417,6 +8447,9 @@ export type Database = {
           trial_ends_at?: string | null
           updated_at?: string
           website?: string | null
+          working_days?: string[] | null
+          working_hours_end?: string | null
+          working_hours_start?: string | null
         }
         Update: {
           address?: string | null
@@ -8424,12 +8457,15 @@ export type Database = {
           city?: string | null
           country?: string | null
           created_at?: string
+          default_tax_rate?: number | null
           email?: string | null
           facility_type?: string | null
           id?: string
           logo_url?: string | null
           name?: string
           phone?: string | null
+          receipt_footer?: string | null
+          receipt_header?: string | null
           slug?: string
           subscription_plan?:
             | Database["public"]["Enums"]["subscription_plan"]
@@ -8441,6 +8477,9 @@ export type Database = {
           trial_ends_at?: string | null
           updated_at?: string
           website?: string | null
+          working_days?: string[] | null
+          working_hours_end?: string | null
+          working_hours_start?: string | null
         }
         Relationships: []
       }
