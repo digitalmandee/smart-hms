@@ -148,6 +148,7 @@ import HolidaysPage from "./pages/app/hr/setup/HolidaysPage";
 import AttendancePage from "./pages/app/hr/attendance/AttendancePage";
 import AttendanceSheetPage from "./pages/app/hr/attendance/AttendanceSheetPage";
 import LeavesPage from "./pages/app/hr/leaves/LeavesPage";
+import LeaveBalancesPage from "./pages/app/hr/leaves/LeaveBalancesPage";
 import PayrollPage from "./pages/app/hr/payroll/PayrollPage";
 import ProcessPayrollPage from "./pages/app/hr/payroll/ProcessPayrollPage";
 import EmployeeSalariesPage from "./pages/app/hr/payroll/EmployeeSalariesPage";
@@ -601,6 +602,7 @@ function App() {
               <Route path="hr/attendance" element={<AttendancePage />} />
               <Route path="hr/attendance/sheet" element={<AttendanceSheetPage />} />
               <Route path="hr/leaves" element={<LeavesPage />} />
+              <Route path="hr/leaves/balances" element={<LeaveBalancesPage />} />
               <Route path="hr/payroll" element={<PayrollPage />} />
               <Route path="hr/payroll/process" element={<ProcessPayrollPage />} />
               <Route path="hr/payroll/salaries" element={<EmployeeSalariesPage />} />

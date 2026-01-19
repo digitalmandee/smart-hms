@@ -84,6 +84,9 @@ import {
   ClipboardCheck,
   PanelLeftClose,
   PanelLeft,
+  Briefcase,
+  Gift,
+  CalendarCheck,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -157,6 +160,9 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Scale,
   ArrowLeftRight,
   ClipboardCheck,
+  Briefcase,
+  Gift,
+  CalendarCheck,
 };
 
 interface DynamicSidebarProps {

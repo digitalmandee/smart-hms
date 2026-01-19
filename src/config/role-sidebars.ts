@@ -320,8 +320,6 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
           { name: "Add Employee", path: "/app/hr/employees/new", icon: "UserPlus" },
           { name: "Doctors", path: "/app/hr/doctors", icon: "Stethoscope" },
           { name: "Nurses", path: "/app/hr/nurses", icon: "HeartPulse" },
-          { name: "Departments", path: "/app/hr/departments", icon: "Building2" },
-          { name: "Designations", path: "/app/hr/designations", icon: "UserCog" },
         ]
       },
       { 
@@ -331,8 +329,15 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         children: [
           { name: "Daily Attendance", path: "/app/hr/attendance", icon: "ClipboardList" },
           { name: "Attendance Sheet", path: "/app/hr/attendance/sheet", icon: "FileSpreadsheet" },
-          { name: "Leave Requests", path: "/app/hr/leaves", icon: "CalendarDays" },
-          { name: "Shifts", path: "/app/hr/shifts", icon: "CalendarClock" },
+        ]
+      },
+      { 
+        name: "Leave Management", 
+        path: "", 
+        icon: "CalendarDays",
+        children: [
+          { name: "Leave Requests", path: "/app/hr/leaves", icon: "FileText" },
+          { name: "Leave Balances", path: "/app/hr/leaves/balances", icon: "PieChart" },
         ]
       },
       { 
@@ -346,6 +351,19 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
           { name: "Loans & Advances", path: "/app/hr/payroll/loans", icon: "Landmark" },
           { name: "Payslips", path: "/app/hr/payroll/slips", icon: "FileText" },
           { name: "Reports", path: "/app/hr/payroll/reports", icon: "PieChart" },
+        ]
+      },
+      { 
+        name: "Setup", 
+        path: "", 
+        icon: "Settings",
+        children: [
+          { name: "Departments", path: "/app/hr/setup/departments", icon: "Building2" },
+          { name: "Designations", path: "/app/hr/setup/designations", icon: "UserCog" },
+          { name: "Employee Categories", path: "/app/hr/setup/categories", icon: "Briefcase" },
+          { name: "Leave Types", path: "/app/hr/setup/leave-types", icon: "CalendarCheck" },
+          { name: "Shifts", path: "/app/hr/setup/shifts", icon: "CalendarClock" },
+          { name: "Holidays", path: "/app/hr/setup/holidays", icon: "Gift" },
         ]
       },
       { name: "Reports", path: "/app/hr/reports", icon: "BarChart3" },
@@ -363,7 +381,6 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
           { name: "Directory", path: "/app/hr/employees", icon: "Users" },
           { name: "Doctors", path: "/app/hr/doctors", icon: "Stethoscope" },
           { name: "Nurses", path: "/app/hr/nurses", icon: "HeartPulse" },
-          { name: "Departments", path: "/app/hr/departments", icon: "Building2" },
         ]
       },
       { 
@@ -372,7 +389,14 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         icon: "Clock",
         children: [
           { name: "Daily Attendance", path: "/app/hr/attendance", icon: "ClipboardList" },
-          { name: "Leave Requests", path: "/app/hr/leaves", icon: "CalendarDays" },
+        ]
+      },
+      { 
+        name: "Leave Management", 
+        path: "", 
+        icon: "CalendarDays",
+        children: [
+          { name: "Leave Requests", path: "/app/hr/leaves", icon: "FileText" },
         ]
       },
     ]
