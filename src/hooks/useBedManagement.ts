@@ -2,6 +2,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
+import { ipdLogger } from "@/lib/logger";
+import { formatErrorForLogging, getErrorMessage, categorizeError } from "@/lib/supabase-errors";
 import type { Database } from "@/integrations/supabase/types";
 
 type BedStatus = Database["public"]["Enums"]["bed_status"];
@@ -32,7 +34,12 @@ export const useBed = (bedId: string | undefined) => {
   return useQuery({
     queryKey: ["bed", bedId],
     queryFn: async () => {
-      if (!bedId) return null;
+      if (!bedId) {
+        ipdLogger.debug("useBed: No bedId provided, returning null");
+        return null;
+      }
+
+      ipdLogger.debug("Fetching single bed", { bedId });
 
       const { data, error } = await supabase
         .from("beds")
@@ -47,9 +54,20 @@ export const useBed = (bedId: string | undefined) => {
           )
         `)
         .eq("id", bedId)
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
+      if (error) {
+        const errorContext = formatErrorForLogging(error, { bedId, hook: "useBed" });
+        ipdLogger.error("useBed: Query failed", error, errorContext);
+        throw new Error(`Failed to fetch bed: ${getErrorMessage(error)}`);
+      }
+
+      if (!data) {
+        ipdLogger.warn("useBed: Bed not found", { bedId });
+        return null;
+      }
+
+      ipdLogger.debug("Bed fetched", { bedId, bedNumber: data.bed_number });
       return data;
     },
     enabled: !!bedId,
@@ -62,12 +80,20 @@ export const useDeleteBed = () => {
 
   return useMutation({
     mutationFn: async (bedId: string) => {
+      ipdLogger.debug("Deleting bed", { bedId });
+
       const { error } = await supabase
         .from("beds")
         .delete()
         .eq("id", bedId);
 
-      if (error) throw error;
+      if (error) {
+        const errorContext = formatErrorForLogging(error, { bedId, hook: "useDeleteBed" });
+        ipdLogger.error("useDeleteBed: Delete failed", error, errorContext);
+        throw new Error(`Failed to delete bed: ${getErrorMessage(error)}`);
+      }
+
+      ipdLogger.info("Bed deleted successfully", { bedId });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["beds"] });
@@ -93,12 +119,24 @@ export const useBulkCreateBeds = () => {
       position_col?: number;
       notes?: string;
     }>) => {
+      ipdLogger.debug("Bulk creating beds", { count: bedsData.length, wardId: bedsData[0]?.ward_id });
+
       const { data, error } = await supabase
         .from("beds")
         .insert(bedsData)
         .select();
 
-      if (error) throw error;
+      if (error) {
+        const errorContext = formatErrorForLogging(error, { 
+          count: bedsData.length, 
+          wardId: bedsData[0]?.ward_id,
+          hook: "useBulkCreateBeds",
+        });
+        ipdLogger.error("useBulkCreateBeds: Bulk insert failed", error, errorContext);
+        throw new Error(`Failed to create beds: ${getErrorMessage(error)}`);
+      }
+
+      ipdLogger.info("Beds created successfully", { count: data.length });
       return data;
     },
     onSuccess: (data) => {
@@ -126,6 +164,8 @@ export const useUpdateBedStatus = () => {
       status: BedStatus; 
       notes?: string;
     }) => {
+      ipdLogger.debug("Updating bed status", { bedId, status, notes });
+
       const { data, error } = await supabase
         .from("beds")
         .update({ 
@@ -137,7 +177,13 @@ export const useUpdateBedStatus = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        const errorContext = formatErrorForLogging(error, { bedId, status, hook: "useUpdateBedStatus" });
+        ipdLogger.error("useUpdateBedStatus: Update failed", error, errorContext);
+        throw new Error(`Failed to update bed status: ${getErrorMessage(error)}`);
+      }
+
+      ipdLogger.info("Bed status updated", { bedId, newStatus: status });
       return data;
     },
     onSuccess: (_, variables) => {
@@ -145,9 +191,16 @@ export const useUpdateBedStatus = () => {
       queryClient.invalidateQueries({ queryKey: ["bed", variables.bedId] });
       queryClient.invalidateQueries({ queryKey: ["wards"] });
       queryClient.invalidateQueries({ queryKey: ["ipd-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["housekeeping-queue"] });
+      queryClient.invalidateQueries({ queryKey: ["maintenance-queue"] });
+      ipdLogger.debug("Bed status cache invalidated", { bedId: variables.bedId });
       toast({ title: "Bed status updated" });
     },
-    onError: (error: Error) => {
+    onError: (error: Error, variables) => {
+      ipdLogger.error("Bed status update failed", error, { 
+        bedId: variables.bedId, 
+        attemptedStatus: variables.status,
+      });
       toast({ title: "Failed to update bed status", description: error.message, variant: "destructive" });
     },
   });
@@ -165,6 +218,8 @@ export const useReserveBed = () => {
       bedId: string; 
       notes?: string;
     }) => {
+      ipdLogger.debug("Reserving bed", { bedId, notes });
+
       const { data, error } = await supabase
         .from("beds")
         .update({ 
@@ -177,7 +232,20 @@ export const useReserveBed = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        const errorContext = formatErrorForLogging(error, { bedId, hook: "useReserveBed" });
+        
+        // Check if it's a "no rows returned" error (bed not available)
+        if (categorizeError(error.code) === 'not_found') {
+          ipdLogger.warn("useReserveBed: Bed not available for reservation", { bedId });
+          throw new Error("Bed is not available for reservation - it may already be occupied or reserved");
+        }
+        
+        ipdLogger.error("useReserveBed: Reserve failed", error, errorContext);
+        throw new Error(`Failed to reserve bed: ${getErrorMessage(error)}`);
+      }
+
+      ipdLogger.info("Bed reserved successfully", { bedId });
       return data;
     },
     onSuccess: () => {
@@ -186,7 +254,8 @@ export const useReserveBed = () => {
       queryClient.invalidateQueries({ queryKey: ["ipd-stats"] });
       toast({ title: "Bed reserved successfully" });
     },
-    onError: (error: Error) => {
+    onError: (error: Error, variables) => {
+      ipdLogger.error("Bed reservation failed", error, { bedId: variables.bedId });
       toast({ title: "Failed to reserve bed", description: error.message, variant: "destructive" });
     },
   });
@@ -198,6 +267,8 @@ export const useReleaseBed = () => {
 
   return useMutation({
     mutationFn: async (bedId: string) => {
+      ipdLogger.debug("Releasing bed", { bedId });
+
       const { data, error } = await supabase
         .from("beds")
         .update({ 
@@ -209,7 +280,13 @@ export const useReleaseBed = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        const errorContext = formatErrorForLogging(error, { bedId, hook: "useReleaseBed" });
+        ipdLogger.error("useReleaseBed: Release failed", error, errorContext);
+        throw new Error(`Failed to release bed: ${getErrorMessage(error)}`);
+      }
+
+      ipdLogger.info("Bed released successfully", { bedId });
       return data;
     },
     onSuccess: () => {
@@ -229,7 +306,12 @@ export const useBedTransfers = (admissionId?: string) => {
   return useQuery({
     queryKey: ["bed-transfers", admissionId],
     queryFn: async () => {
-      if (!admissionId) return [];
+      if (!admissionId) {
+        ipdLogger.debug("useBedTransfers: No admissionId provided");
+        return [];
+      }
+
+      ipdLogger.debug("Fetching bed transfers", { admissionId });
 
       const { data, error } = await supabase
         .from("bed_transfers")
@@ -245,7 +327,13 @@ export const useBedTransfers = (admissionId?: string) => {
         .eq("admission_id", admissionId)
         .order("transferred_at", { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        const errorContext = formatErrorForLogging(error, { admissionId, hook: "useBedTransfers" });
+        ipdLogger.error("useBedTransfers: Query failed", error, errorContext);
+        throw new Error(`Failed to fetch bed transfers: ${getErrorMessage(error)}`);
+      }
+
+      ipdLogger.debug("Bed transfers fetched", { admissionId, count: data?.length ?? 0 });
       return data || [];
     },
     enabled: !!admissionId,
@@ -259,7 +347,14 @@ export const useHousekeepingQueue = () => {
   return useQuery({
     queryKey: ["housekeeping-queue", profile?.organization_id],
     queryFn: async () => {
-      if (!profile?.organization_id) return [];
+      if (!profile?.organization_id) {
+        ipdLogger.warn("useHousekeepingQueue: No organization_id");
+        return [];
+      }
+
+      ipdLogger.debug("Fetching housekeeping queue", { 
+        organizationId: profile.organization_id 
+      });
 
       const { data, error } = await supabase
         .from("beds")
@@ -271,7 +366,22 @@ export const useHousekeepingQueue = () => {
         .eq("status", "housekeeping")
         .order("updated_at", { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        const errorContext = formatErrorForLogging(error, {
+          organizationId: profile.organization_id,
+          hook: "useHousekeepingQueue",
+        });
+        
+        if (categorizeError(error.code) === 'relationship') {
+          ipdLogger.error("useHousekeepingQueue: Relationship query failed - check beds->wards FK", error, errorContext);
+        } else {
+          ipdLogger.error("useHousekeepingQueue: Query failed", error, errorContext);
+        }
+        
+        throw new Error(`Failed to fetch housekeeping queue: ${getErrorMessage(error)}`);
+      }
+
+      ipdLogger.info("Housekeeping queue fetched", { count: data?.length ?? 0 });
       return data || [];
     },
     enabled: !!profile?.organization_id,
@@ -285,7 +395,14 @@ export const useMaintenanceQueue = () => {
   return useQuery({
     queryKey: ["maintenance-queue", profile?.organization_id],
     queryFn: async () => {
-      if (!profile?.organization_id) return [];
+      if (!profile?.organization_id) {
+        ipdLogger.warn("useMaintenanceQueue: No organization_id");
+        return [];
+      }
+
+      ipdLogger.debug("Fetching maintenance queue", { 
+        organizationId: profile.organization_id 
+      });
 
       const { data, error } = await supabase
         .from("beds")
@@ -297,7 +414,22 @@ export const useMaintenanceQueue = () => {
         .eq("status", "maintenance")
         .order("updated_at", { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        const errorContext = formatErrorForLogging(error, {
+          organizationId: profile.organization_id,
+          hook: "useMaintenanceQueue",
+        });
+        
+        if (categorizeError(error.code) === 'relationship') {
+          ipdLogger.error("useMaintenanceQueue: Relationship query failed - check beds->wards FK", error, errorContext);
+        } else {
+          ipdLogger.error("useMaintenanceQueue: Query failed", error, errorContext);
+        }
+        
+        throw new Error(`Failed to fetch maintenance queue: ${getErrorMessage(error)}`);
+      }
+
+      ipdLogger.info("Maintenance queue fetched", { count: data?.length ?? 0 });
       return data || [];
     },
     enabled: !!profile?.organization_id,
