@@ -2,6 +2,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
+import { ipdLogger } from "@/lib/logger";
+import { formatErrorForLogging, getErrorMessage, categorizeError } from "@/lib/supabase-errors";
 
 export const BED_TYPES = [
   "General",
@@ -43,11 +45,16 @@ export const useWards = () => {
     queryKey: ["wards", profile?.organization_id],
     queryFn: async () => {
       if (!profile?.organization_id) {
-        console.warn("[useWards] No organization_id in profile");
+        ipdLogger.warn("useWards: No organization_id in profile", {
+          userId: profile?.id,
+          email: profile?.email,
+        });
         return [];
       }
 
-      console.log("[useWards] Fetching wards for org:", profile.organization_id);
+      ipdLogger.debug("Fetching wards", { 
+        organizationId: profile.organization_id 
+      });
 
       const { data, error } = await supabase
         .from("wards")
@@ -62,11 +69,31 @@ export const useWards = () => {
         .order("name");
 
       if (error) {
-        console.error("[useWards] Error:", error);
-        throw error;
+        const errorContext = formatErrorForLogging(error, {
+          organizationId: profile.organization_id,
+          hook: "useWards",
+        });
+        
+        const category = categorizeError(error.code);
+        
+        if (category === 'relationship') {
+          ipdLogger.error("useWards: Relationship query failed - check foreign key constraints", error, errorContext);
+        } else if (category === 'permission') {
+          ipdLogger.error("useWards: RLS policy denied access", error, errorContext);
+        } else if (category === 'not_found') {
+          ipdLogger.error("useWards: Table or column not found", error, errorContext);
+        } else {
+          ipdLogger.error("useWards: Query failed", error, errorContext);
+        }
+        
+        throw new Error(`Failed to fetch wards: ${getErrorMessage(error)} (Code: ${error.code || 'unknown'})`);
       }
       
-      console.log("[useWards] Found wards:", data?.length);
+      ipdLogger.info("Wards fetched successfully", { 
+        count: data?.length ?? 0,
+        organizationId: profile.organization_id,
+      });
+      
       return data || [];
     },
     enabled: !!profile?.organization_id,
@@ -77,7 +104,12 @@ export const useWard = (wardId: string | undefined) => {
   return useQuery({
     queryKey: ["ward", wardId],
     queryFn: async () => {
-      if (!wardId) return null;
+      if (!wardId) {
+        ipdLogger.debug("useWard: No wardId provided, returning null");
+        return null;
+      }
+
+      ipdLogger.debug("Fetching single ward", { wardId });
 
       const { data, error } = await supabase
         .from("wards")
@@ -88,9 +120,20 @@ export const useWard = (wardId: string | undefined) => {
           beds(*)
         `)
         .eq("id", wardId)
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
+      if (error) {
+        const errorContext = formatErrorForLogging(error, { wardId, hook: "useWard" });
+        ipdLogger.error("useWard: Failed to fetch ward", error, errorContext);
+        throw new Error(`Failed to fetch ward: ${getErrorMessage(error)}`);
+      }
+
+      if (!data) {
+        ipdLogger.warn("useWard: Ward not found", { wardId });
+        return null;
+      }
+
+      ipdLogger.debug("Ward fetched", { wardId, wardName: data.name });
       return data;
     },
     enabled: !!wardId,
@@ -117,7 +160,16 @@ export const useCreateWard = () => {
       facilities?: string[];
       contact_extension?: string;
     }) => {
-      if (!profile?.organization_id) throw new Error("No organization");
+      if (!profile?.organization_id) {
+        ipdLogger.error("useCreateWard: No organization_id", new Error("No organization"));
+        throw new Error("No organization");
+      }
+
+      ipdLogger.debug("Creating ward", { 
+        name: wardData.name, 
+        code: wardData.code,
+        organizationId: profile.organization_id,
+      });
 
       const { data, error } = await supabase
         .from("wards")
@@ -138,7 +190,13 @@ export const useCreateWard = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        const errorContext = formatErrorForLogging(error, { wardData, hook: "useCreateWard" });
+        ipdLogger.error("useCreateWard: Insert failed", error, errorContext);
+        throw new Error(`Failed to create ward: ${getErrorMessage(error)}`);
+      }
+
+      ipdLogger.info("Ward created successfully", { wardId: data.id, name: data.name });
       return data;
     },
     onSuccess: () => {
@@ -170,6 +228,8 @@ export const useUpdateWard = () => {
       contact_extension: string;
       is_active: boolean;
     }>) => {
+      ipdLogger.debug("Updating ward", { wardId: id, updates: Object.keys(wardData) });
+
       const updateData: Record<string, unknown> = {};
       if (wardData.name) updateData.name = wardData.name;
       if (wardData.code) updateData.code = wardData.code;
@@ -191,7 +251,13 @@ export const useUpdateWard = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        const errorContext = formatErrorForLogging(error, { wardId: id, updateData, hook: "useUpdateWard" });
+        ipdLogger.error("useUpdateWard: Update failed", error, errorContext);
+        throw new Error(`Failed to update ward: ${getErrorMessage(error)}`);
+      }
+
+      ipdLogger.info("Ward updated successfully", { wardId: id });
       return data;
     },
     onSuccess: () => {
@@ -212,7 +278,15 @@ export const useBeds = (wardId?: string) => {
   return useQuery({
     queryKey: ["beds", profile?.organization_id, wardId],
     queryFn: async () => {
-      if (!profile?.organization_id) return [];
+      if (!profile?.organization_id) {
+        ipdLogger.warn("useBeds: No organization_id in profile");
+        return [];
+      }
+
+      ipdLogger.debug("Fetching beds", { 
+        organizationId: profile.organization_id,
+        wardId: wardId || "all",
+      });
 
       let query = supabase
         .from("beds")
@@ -234,7 +308,31 @@ export const useBeds = (wardId?: string) => {
 
       const { data, error } = await query;
 
-      if (error) throw error;
+      if (error) {
+        const errorContext = formatErrorForLogging(error, {
+          organizationId: profile.organization_id,
+          wardId,
+          hook: "useBeds",
+        });
+        
+        const category = categorizeError(error.code);
+        
+        if (category === 'relationship') {
+          ipdLogger.error("useBeds: Relationship query failed - check FK constraints on beds/wards/admissions", error, errorContext);
+        } else if (category === 'permission') {
+          ipdLogger.error("useBeds: RLS policy denied access", error, errorContext);
+        } else {
+          ipdLogger.error("useBeds: Query failed", error, errorContext);
+        }
+        
+        throw new Error(`Failed to fetch beds: ${getErrorMessage(error)} (Code: ${error.code || 'unknown'})`);
+      }
+
+      ipdLogger.info("Beds fetched successfully", { 
+        count: data?.length ?? 0,
+        wardId: wardId || "all",
+      });
+      
       return data || [];
     },
     enabled: !!profile?.organization_id,
@@ -254,6 +352,11 @@ export const useCreateBed = () => {
       features?: Record<string, unknown>;
       notes?: string;
     }) => {
+      ipdLogger.debug("Creating bed", { 
+        wardId: bedData.ward_id, 
+        bedNumber: bedData.bed_number,
+      });
+
       const { data, error } = await supabase
         .from("beds")
         .insert({
@@ -267,7 +370,13 @@ export const useCreateBed = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        const errorContext = formatErrorForLogging(error, { bedData, hook: "useCreateBed" });
+        ipdLogger.error("useCreateBed: Insert failed", error, errorContext);
+        throw new Error(`Failed to create bed: ${getErrorMessage(error)}`);
+      }
+
+      ipdLogger.info("Bed created successfully", { bedId: data.id, bedNumber: data.bed_number });
       return data;
     },
     onSuccess: () => {
@@ -295,6 +404,8 @@ export const useUpdateBed = () => {
       notes: string;
       is_active: boolean;
     }>) => {
+      ipdLogger.debug("Updating bed", { bedId: id, updates: Object.keys(bedData) });
+
       const updateData: Record<string, unknown> = {};
       if (bedData.bed_number) updateData.bed_number = bedData.bed_number;
       if (bedData.bed_type) updateData.bed_type = bedData.bed_type;
@@ -311,7 +422,13 @@ export const useUpdateBed = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        const errorContext = formatErrorForLogging(error, { bedId: id, updateData, hook: "useUpdateBed" });
+        ipdLogger.error("useUpdateBed: Update failed", error, errorContext);
+        throw new Error(`Failed to update bed: ${getErrorMessage(error)}`);
+      }
+
+      ipdLogger.info("Bed updated successfully", { bedId: id });
       return data;
     },
     onSuccess: () => {
@@ -333,52 +450,71 @@ export const useIPDStats = () => {
     queryKey: ["ipd-stats", profile?.organization_id],
     queryFn: async () => {
       if (!profile?.organization_id) {
+        ipdLogger.debug("useIPDStats: No organization_id, returning defaults");
         return { totalWards: 0, totalBeds: 0, occupiedBeds: 0, availableBeds: 0, activeAdmissions: 0, todayAdmissions: 0, todayDischarges: 0 };
       }
 
+      ipdLogger.debug("Fetching IPD stats", { organizationId: profile.organization_id });
+
       const today = new Date().toISOString().split("T")[0];
 
-      const [wardsRes, bedsRes, admissionsRes, todayAdmRes, todayDisRes] = await Promise.all([
-        supabase
-          .from("wards")
-          .select("id", { count: "exact" })
-          .eq("organization_id", profile.organization_id)
-          .eq("is_active", true),
-        supabase
-          .from("beds")
-          .select("id, status, ward:wards!inner(organization_id)")
-          .eq("ward.organization_id", profile.organization_id)
-          .eq("is_active", true),
-        supabase
-          .from("admissions")
-          .select("id", { count: "exact" })
-          .eq("organization_id", profile.organization_id)
-          .eq("status", "admitted"),
-        supabase
-          .from("admissions")
-          .select("id", { count: "exact" })
-          .eq("organization_id", profile.organization_id)
-          .eq("admission_date", today),
-        supabase
-          .from("admissions")
-          .select("id", { count: "exact" })
-          .eq("organization_id", profile.organization_id)
-          .eq("actual_discharge_date", today),
-      ]);
+      try {
+        const [wardsRes, bedsRes, admissionsRes, todayAdmRes, todayDisRes] = await Promise.all([
+          supabase
+            .from("wards")
+            .select("id", { count: "exact" })
+            .eq("organization_id", profile.organization_id)
+            .eq("is_active", true),
+          supabase
+            .from("beds")
+            .select("id, status, ward:wards!inner(organization_id)")
+            .eq("ward.organization_id", profile.organization_id)
+            .eq("is_active", true),
+          supabase
+            .from("admissions")
+            .select("id", { count: "exact" })
+            .eq("organization_id", profile.organization_id)
+            .eq("status", "admitted"),
+          supabase
+            .from("admissions")
+            .select("id", { count: "exact" })
+            .eq("organization_id", profile.organization_id)
+            .eq("admission_date", today),
+          supabase
+            .from("admissions")
+            .select("id", { count: "exact" })
+            .eq("organization_id", profile.organization_id)
+            .eq("actual_discharge_date", today),
+        ]);
 
-      const beds = bedsRes.data || [];
-      const occupiedBeds = beds.filter((b) => b.status === "occupied").length;
-      const availableBeds = beds.filter((b) => b.status === "available").length;
+        // Check for errors in any query
+        if (wardsRes.error) {
+          ipdLogger.warn("useIPDStats: Wards query failed", { error: wardsRes.error });
+        }
+        if (bedsRes.error) {
+          ipdLogger.warn("useIPDStats: Beds query failed", { error: bedsRes.error });
+        }
 
-      return {
-        totalWards: wardsRes.count || 0,
-        totalBeds: beds.length,
-        occupiedBeds,
-        availableBeds,
-        activeAdmissions: admissionsRes.count || 0,
-        todayAdmissions: todayAdmRes.count || 0,
-        todayDischarges: todayDisRes.count || 0,
-      };
+        const beds = bedsRes.data || [];
+        const occupiedBeds = beds.filter((b) => b.status === "occupied").length;
+        const availableBeds = beds.filter((b) => b.status === "available").length;
+
+        const stats = {
+          totalWards: wardsRes.count || 0,
+          totalBeds: beds.length,
+          occupiedBeds,
+          availableBeds,
+          activeAdmissions: admissionsRes.count || 0,
+          todayAdmissions: todayAdmRes.count || 0,
+          todayDischarges: todayDisRes.count || 0,
+        };
+
+        ipdLogger.info("IPD stats fetched", stats);
+        return stats;
+      } catch (error) {
+        ipdLogger.error("useIPDStats: Failed to fetch stats", error as Error);
+        throw error;
+      }
     },
     enabled: !!profile?.organization_id,
   });
