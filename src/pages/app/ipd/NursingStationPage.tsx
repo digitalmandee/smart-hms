@@ -113,9 +113,9 @@ export default function NursingStationPage() {
             <Building2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
             <p className="font-medium">No wards have been created for your organization yet.</p>
             <p className="text-sm mt-2 mb-4">
-              Please create wards in IPD → Beds & Wards → Wards Management
+              Please create wards in IPD → Wards
             </p>
-            <Button onClick={() => navigate("/app/ipd/beds/wards")}>
+            <Button onClick={() => navigate("/app/ipd/wards")}>
               <Plus className="h-4 w-4 mr-2" />
               Create First Ward
             </Button>
