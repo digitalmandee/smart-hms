@@ -28,15 +28,16 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         children: [
           { name: "Today's Queue", path: "/app/appointments/queue", icon: "ListOrdered" },
           { name: "My Schedule", path: "/app/appointments/calendar", icon: "CalendarDays" },
+          { name: "All Appointments", path: "/app/appointments", icon: "Calendar" },
         ]
       },
       { 
-        name: "OPD", 
+        name: "Consultations", 
         path: "", 
         icon: "Stethoscope",
         children: [
-          { name: "Consultation History", path: "/app/opd/history", icon: "FileText" },
-          { name: "Reports", path: "/app/opd/reports", icon: "BarChart3" },
+          { name: "History", path: "/app/opd/history", icon: "FileText" },
+          { name: "Reports", path: "/app/reports", icon: "BarChart3" },
         ]
       },
       { 
@@ -44,8 +45,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         path: "", 
         icon: "Users",
         children: [
-          { name: "Search Patients", path: "/app/patients", icon: "Search" },
-          { name: "My Patients", path: "/app/patients?doctor=me", icon: "UserCheck" },
+          { name: "Search", path: "/app/patients", icon: "Search" },
         ]
       },
       { 
@@ -62,15 +62,15 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
 
   nurse: {
     items: [
-      { name: "Nurse Station", path: "/app/opd/nursing", icon: "HeartPulse" },
+      { name: "Dashboard", path: "/app/opd/nursing", icon: "LayoutDashboard" },
       { name: "Patient Queue", path: "/app/appointments/queue", icon: "ListOrdered" },
       { 
         name: "Triage", 
         path: "", 
         icon: "Activity",
         children: [
-          { name: "ER Triage", path: "/app/emergency/triage", icon: "Gauge" },
           { name: "Vitals Entry", path: "/app/opd/vitals", icon: "HeartPulse" },
+          { name: "ER Triage", path: "/app/emergency/triage", icon: "Gauge" },
         ]
       },
       { name: "Patients", path: "/app/patients", icon: "Users" },
@@ -79,16 +79,16 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
 
   ipd_nurse: {
     items: [
-      { name: "IPD Dashboard", path: "/app/ipd/nursing", icon: "Bed" },
+      { name: "Dashboard", path: "/app/ipd/nursing", icon: "LayoutDashboard" },
       { 
         name: "Patient Care", 
         path: "", 
         icon: "HeartPulse",
         children: [
           { name: "Ward Rounds", path: "/app/ipd/rounds", icon: "ClipboardList" },
-          { name: "eMAR", path: "/app/ipd/emar", icon: "Pill" },
           { name: "Vitals", path: "/app/ipd/vitals", icon: "Activity" },
-          { name: "Nursing Notes", path: "/app/ipd/notes", icon: "FileText" },
+          { name: "Nursing Notes", path: "/app/ipd/nursing-notes", icon: "FileText" },
+          { name: "Medication Chart", path: "/app/ipd/medication-chart", icon: "Pill" },
         ]
       },
       { 
@@ -109,7 +109,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
   
   receptionist: {
     items: [
-      { name: "Dashboard", path: "/app/reception", icon: "ConciergeBell" },
+      { name: "Dashboard", path: "/app/reception", icon: "LayoutDashboard" },
       { 
         name: "Appointments", 
         path: "", 
@@ -127,7 +127,6 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         children: [
           { name: "All Patients", path: "/app/patients", icon: "Users" },
           { name: "Register Patient", path: "/app/patients/new", icon: "UserPlus" },
-          { name: "Check-In", path: "/app/reception/check-in", icon: "ClipboardList" },
         ]
       },
       { 
@@ -147,14 +146,15 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
   
   pharmacist: {
     items: [
-      { name: "Dashboard", path: "/app/pharmacy", icon: "Pill" },
+      { name: "Dashboard", path: "/app/pharmacy", icon: "LayoutDashboard" },
       { 
         name: "Dispensing", 
         path: "", 
         icon: "ClipboardList",
         children: [
-          { name: "Prescriptions", path: "/app/pharmacy/prescriptions", icon: "FileText" },
+          { name: "Prescriptions", path: "/app/pharmacy/queue", icon: "FileText" },
           { name: "POS Terminal", path: "/app/pharmacy/pos", icon: "Calculator" },
+          { name: "Transactions", path: "/app/pharmacy/pos/transactions", icon: "Receipt" },
         ]
       },
       { 
@@ -162,21 +162,23 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         path: "", 
         icon: "Package",
         children: [
-          { name: "Stock List", path: "/app/pharmacy/inventory", icon: "ListTree" },
+          { name: "Medicines", path: "/app/pharmacy/medicines", icon: "Pill" },
+          { name: "Stock", path: "/app/pharmacy/inventory", icon: "ListTree" },
           { name: "Add Stock", path: "/app/pharmacy/inventory/add", icon: "PackageCheck" },
           { name: "Stock Alerts", path: "/app/pharmacy/alerts", icon: "AlertTriangle" },
-          { name: "Expiry Management", path: "/app/pharmacy/expiry", icon: "Clock" },
+          { name: "Movements", path: "/app/pharmacy/stock-movements", icon: "ArrowLeftRight" },
         ]
       },
       { 
-        name: "Reports", 
+        name: "Setup", 
         path: "", 
-        icon: "BarChart3",
+        icon: "Settings",
         children: [
-          { name: "Sales Report", path: "/app/pharmacy/reports/sales", icon: "TrendingUp" },
-          { name: "Stock Report", path: "/app/pharmacy/reports/stock", icon: "Package" },
+          { name: "Categories", path: "/app/pharmacy/categories", icon: "FolderTree" },
+          { name: "Settings", path: "/app/pharmacy/settings", icon: "Settings" },
         ]
       },
+      { name: "Reports", path: "/app/pharmacy/reports", icon: "BarChart3" },
     ]
   },
 
@@ -184,24 +186,22 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
   
   lab_technician: {
     items: [
-      { name: "Dashboard", path: "/app/lab", icon: "TestTube" },
+      { name: "Dashboard", path: "/app/lab", icon: "LayoutDashboard" },
       { 
         name: "Lab Work", 
         path: "", 
         icon: "FlaskConical",
         children: [
           { name: "Sample Queue", path: "/app/lab/queue", icon: "ListOrdered" },
-          { name: "Pending Tests", path: "/app/lab/pending", icon: "Clock" },
-          { name: "Enter Results", path: "/app/lab/results", icon: "FileInput" },
         ]
       },
       { 
-        name: "Management", 
+        name: "Setup", 
         path: "", 
         icon: "Settings",
         children: [
           { name: "Test Templates", path: "/app/lab/templates", icon: "FileSpreadsheet" },
-          { name: "Panels", path: "/app/lab/panels", icon: "ListChecks" },
+          { name: "Categories", path: "/app/lab/categories", icon: "FolderTree" },
         ]
       },
       { name: "Reports", path: "/app/lab/reports", icon: "BarChart3" },
@@ -212,31 +212,38 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
   
   radiologist: {
     items: [
-      { name: "Dashboard", path: "/app/radiology", icon: "Scan" },
+      { name: "Dashboard", path: "/app/radiology", icon: "LayoutDashboard" },
       { 
         name: "Reporting", 
         path: "", 
         icon: "FileText",
         children: [
-          { name: "Worklist", path: "/app/radiology/worklist", icon: "ListOrdered" },
-          { name: "Pending Reports", path: "/app/radiology/pending", icon: "Clock" },
-          { name: "Completed", path: "/app/radiology/completed", icon: "ListChecks" },
+          { name: "Worklist", path: "/app/radiology/reporting", icon: "ListOrdered" },
+          { name: "Verification", path: "/app/radiology/verification", icon: "ListChecks" },
         ]
       },
-      { name: "Templates", path: "/app/radiology/templates", icon: "FileSpreadsheet" },
+      { 
+        name: "Setup", 
+        path: "", 
+        icon: "Settings",
+        children: [
+          { name: "Modalities", path: "/app/radiology/modalities", icon: "Scan" },
+          { name: "Procedures", path: "/app/radiology/procedures", icon: "FileSpreadsheet" },
+        ]
+      },
     ]
   },
 
   radiology_technician: {
     items: [
-      { name: "Worklist", path: "/app/radiology/worklist", icon: "ListOrdered" },
+      { name: "Dashboard", path: "/app/radiology/worklist", icon: "LayoutDashboard" },
       { 
         name: "Imaging", 
         path: "", 
         icon: "Scan",
         children: [
-          { name: "Capture Images", path: "/app/radiology/capture", icon: "FileInput" },
-          { name: "Upload Images", path: "/app/radiology/upload", icon: "FilePlus" },
+          { name: "Worklist", path: "/app/radiology/worklist", icon: "ListOrdered" },
+          { name: "Orders", path: "/app/radiology/orders", icon: "FileText" },
         ]
       },
       { name: "Schedule", path: "/app/radiology/schedule", icon: "Calendar" },
@@ -247,7 +254,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
   
   blood_bank_technician: {
     items: [
-      { name: "Dashboard", path: "/app/blood-bank", icon: "Droplet" },
+      { name: "Dashboard", path: "/app/blood-bank", icon: "LayoutDashboard" },
       { 
         name: "Donors", 
         path: "", 
@@ -261,14 +268,14 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
       { 
         name: "Blood Work", 
         path: "", 
-        icon: "TestTubes",
+        icon: "Droplet",
         children: [
           { name: "Inventory", path: "/app/blood-bank/inventory", icon: "Package" },
           { name: "Cross Match", path: "/app/blood-bank/cross-match", icon: "Activity" },
           { name: "Requests", path: "/app/blood-bank/requests", icon: "FileText" },
+          { name: "Transfusions", path: "/app/blood-bank/transfusions", icon: "HeartPulse" },
         ]
       },
-      { name: "Reports", path: "/app/blood-bank/reports", icon: "BarChart3" },
     ]
   },
 
@@ -276,13 +283,13 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
   
   ot_technician: {
     items: [
-      { name: "OT Dashboard", path: "/app/ot", icon: "Scissors" },
+      { name: "Dashboard", path: "/app/ot", icon: "LayoutDashboard" },
       { 
         name: "Surgeries", 
         path: "", 
-        icon: "ClipboardList",
+        icon: "Scissors",
         children: [
-          { name: "Today's Schedule", path: "/app/ot/schedule", icon: "Calendar" },
+          { name: "Schedule", path: "/app/ot/schedule", icon: "Calendar" },
           { name: "Surgery List", path: "/app/ot/surgeries", icon: "ListOrdered" },
         ]
       },
@@ -292,7 +299,6 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         icon: "HeartPulse",
         children: [
           { name: "PACU", path: "/app/ot/pacu", icon: "Bed" },
-          { name: "Post-Op Notes", path: "/app/ot/notes", icon: "FileText" },
         ]
       },
       { name: "OT Rooms", path: "/app/ot/rooms", icon: "Building" },
@@ -375,15 +381,15 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
   
   finance_manager: {
     items: [
-      { name: "Dashboard", path: "/app/accounts", icon: "DollarSign" },
+      { name: "Dashboard", path: "/app/accounts", icon: "LayoutDashboard" },
       { 
         name: "Accounting", 
         path: "", 
         icon: "Calculator",
         children: [
-          { name: "Chart of Accounts", path: "/app/accounts/chart", icon: "ListTree" },
-          { name: "Journal Entries", path: "/app/accounts/journal", icon: "BookOpen" },
-          { name: "Ledger", path: "/app/accounts/ledger", icon: "FileText" },
+          { name: "Chart of Accounts", path: "/app/accounts/chart-of-accounts", icon: "ListTree" },
+          { name: "Journal Entries", path: "/app/accounts/journal-entries", icon: "BookOpen" },
+          { name: "General Ledger", path: "/app/accounts/ledger", icon: "FileText" },
         ]
       },
       { 
@@ -392,7 +398,6 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         icon: "TrendingUp",
         children: [
           { name: "Outstanding", path: "/app/accounts/receivables", icon: "FileText" },
-          { name: "Collections", path: "/app/accounts/collections", icon: "CreditCard" },
         ]
       },
       { 
@@ -401,7 +406,15 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         icon: "Receipt",
         children: [
           { name: "Vendor Bills", path: "/app/accounts/payables", icon: "FileText" },
-          { name: "Payments", path: "/app/accounts/payments", icon: "DollarSign" },
+        ]
+      },
+      { 
+        name: "Banking", 
+        path: "", 
+        icon: "Building",
+        children: [
+          { name: "Bank Accounts", path: "/app/accounts/bank-accounts", icon: "Building" },
+          { name: "Budgets", path: "/app/accounts/budgets", icon: "PieChart" },
         ]
       },
       { 
@@ -410,7 +423,18 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         icon: "BarChart3",
         children: [
           { name: "Financial Reports", path: "/app/accounts/reports", icon: "FileSpreadsheet" },
-          { name: "Tax Reports", path: "/app/accounts/tax", icon: "Receipt" },
+          { name: "Trial Balance", path: "/app/accounts/reports/trial-balance", icon: "Scale" },
+          { name: "Profit & Loss", path: "/app/accounts/reports/profit-loss", icon: "TrendingUp" },
+          { name: "Balance Sheet", path: "/app/accounts/reports/balance-sheet", icon: "FileText" },
+          { name: "Cash Flow", path: "/app/accounts/reports/cash-flow", icon: "DollarSign" },
+        ]
+      },
+      { 
+        name: "Setup", 
+        path: "", 
+        icon: "Settings",
+        children: [
+          { name: "Account Types", path: "/app/accounts/types", icon: "FolderTree" },
         ]
       },
     ]
@@ -418,24 +442,22 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
 
   accountant: {
     items: [
-      { name: "Dashboard", path: "/app/accounts", icon: "DollarSign" },
+      { name: "Dashboard", path: "/app/accounts", icon: "LayoutDashboard" },
       { 
         name: "Accounting", 
         path: "", 
         icon: "Calculator",
         children: [
-          { name: "Journal Entries", path: "/app/accounts/journal", icon: "BookOpen" },
-          { name: "Ledger", path: "/app/accounts/ledger", icon: "FileText" },
-          { name: "Vouchers", path: "/app/accounts/vouchers", icon: "Ticket" },
+          { name: "Journal Entries", path: "/app/accounts/journal-entries", icon: "BookOpen" },
+          { name: "General Ledger", path: "/app/accounts/ledger", icon: "FileText" },
         ]
       },
       { 
         name: "Banking", 
         path: "", 
-        icon: "PiggyBank",
+        icon: "Building",
         children: [
-          { name: "Bank Accounts", path: "/app/accounts/bank", icon: "Building" },
-          { name: "Reconciliation", path: "/app/accounts/reconciliation", icon: "ListChecks" },
+          { name: "Bank Accounts", path: "/app/accounts/bank-accounts", icon: "Building" },
         ]
       },
       { name: "Reports", path: "/app/accounts/reports", icon: "BarChart3" },
@@ -446,13 +468,13 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
   
   store_manager: {
     items: [
-      { name: "Dashboard", path: "/app/inventory", icon: "Warehouse" },
+      { name: "Dashboard", path: "/app/inventory", icon: "LayoutDashboard" },
       { 
         name: "Stock", 
         path: "", 
         icon: "Package",
         children: [
-          { name: "Item Master", path: "/app/inventory/items", icon: "Box" },
+          { name: "Items", path: "/app/inventory/items", icon: "Box" },
           { name: "Stock Levels", path: "/app/inventory/stock", icon: "ListTree" },
           { name: "Categories", path: "/app/inventory/categories", icon: "FolderTree" },
         ]
@@ -462,18 +484,17 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         path: "", 
         icon: "Boxes",
         children: [
-          { name: "Purchase Orders", path: "/app/inventory/po", icon: "FileEdit" },
+          { name: "Purchase Orders", path: "/app/inventory/purchase-orders", icon: "FileEdit" },
           { name: "GRN", path: "/app/inventory/grn", icon: "PackageCheck" },
           { name: "Vendors", path: "/app/inventory/vendors", icon: "Store" },
         ]
       },
       { 
-        name: "Issuance", 
+        name: "Requests", 
         path: "", 
         icon: "ClipboardList",
         children: [
-          { name: "Issue Stock", path: "/app/inventory/issue", icon: "Package" },
-          { name: "Returns", path: "/app/inventory/returns", icon: "Folders" },
+          { name: "Requisitions", path: "/app/inventory/requisitions", icon: "FileText" },
         ]
       },
       { name: "Reports", path: "/app/inventory/reports", icon: "BarChart3" },
