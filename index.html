@@ -87,20 +87,27 @@
           }
         });
 
-        // Detect dev tools open via debugger
-        const devtools = { open: false };
-        const threshold = 160;
-        setInterval(function() {
-          if (window.outerWidth - window.innerWidth > threshold || 
-              window.outerHeight - window.innerHeight > threshold) {
-            if (!devtools.open) {
-              devtools.open = true;
-              document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;"><h1>Developer tools are not allowed.</h1></div>';
+        // Detect dev tools open via debugger (desktop only)
+        // Skip on mobile/tablet to prevent false positives from virtual keyboard
+        const isMobileOrTablet = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+          ('ontouchstart' in window) ||
+          (navigator.maxTouchPoints > 0);
+        
+        if (!isMobileOrTablet) {
+          const devtools = { open: false };
+          const threshold = 160;
+          setInterval(function() {
+            if (window.outerWidth - window.innerWidth > threshold || 
+                window.outerHeight - window.innerHeight > threshold) {
+              if (!devtools.open) {
+                devtools.open = true;
+                document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;"><h1>Developer tools are not allowed.</h1></div>';
+              }
+            } else {
+              devtools.open = false;
             }
-          } else {
-            devtools.open = false;
-          }
-        }, 500);
+          }, 500);
+        }
       })();
     </script>
   </body>
