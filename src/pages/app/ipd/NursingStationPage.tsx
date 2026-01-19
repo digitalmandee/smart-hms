@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { PageHeader } from "@/components/PageHeader";
@@ -31,7 +31,9 @@ import {
   Clock,
   CheckCircle2,
   AlertCircle,
+  Loader2,
 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 import { useWards } from "@/hooks/useIPD";
 import { useAdmissions } from "@/hooks/useAdmissions";
 import { useIPDVitals } from "@/hooks/useDailyRounds";
@@ -41,6 +43,7 @@ import { NursingNotesForm } from "@/components/ipd/NursingNotesForm";
 
 export default function NursingStationPage() {
   const navigate = useNavigate();
+  const { profile, isLoading: authLoading } = useAuth();
   const [selectedWardId, setSelectedWardId] = useState<string>("");
   const [activeTab, setActiveTab] = useState("patients");
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
@@ -49,6 +52,13 @@ export default function NursingStationPage() {
 
   const { data: wards, isLoading: loadingWards } = useWards();
   const { data: admissions, isLoading: loadingAdmissions } = useAdmissions("admitted");
+
+  // Auto-select first ward when wards load
+  useEffect(() => {
+    if (wards && wards.length > 0 && !selectedWardId) {
+      setSelectedWardId(wards[0].id);
+    }
+  }, [wards, selectedWardId]);
 
   const selectedWard = wards?.find((w: any) => w.id === selectedWardId);
 
@@ -59,6 +69,61 @@ export default function NursingStationPage() {
 
   // Get all admission IDs for bulk fetching
   const admissionIds = wardPatients.map((adm: any) => adm.id);
+
+  // Show loading state while auth is loading
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  // Show error if no organization
+  if (!profile?.organization_id) {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          title="Nursing Station"
+          description="Manage patient care, medications, and nursing documentation"
+        />
+        <Card>
+          <CardContent className="py-12 text-center">
+            <AlertCircle className="h-12 w-12 mx-auto mb-4 text-destructive" />
+            <p className="text-destructive font-medium">Your profile is not associated with an organization.</p>
+            <p className="text-sm text-muted-foreground mt-2">
+              Please contact your administrator.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Show empty state if no wards exist
+  if (!loadingWards && (!wards || wards.length === 0)) {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          title="Nursing Station"
+          description="Manage patient care, medications, and nursing documentation"
+        />
+        <Card>
+          <CardContent className="py-12 text-center text-muted-foreground">
+            <Building2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
+            <p className="font-medium">No wards have been created for your organization yet.</p>
+            <p className="text-sm mt-2 mb-4">
+              Please create wards in IPD → Beds & Wards → Wards Management
+            </p>
+            <Button onClick={() => navigate("/app/ipd/beds/wards")}>
+              <Plus className="h-4 w-4 mr-2" />
+              Create First Ward
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
