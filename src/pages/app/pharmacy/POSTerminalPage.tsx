@@ -216,32 +216,36 @@ export default function POSTerminalPage() {
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden">
       {/* Header Bar */}
-      <header className="flex items-center justify-between px-4 py-2 border-b bg-card shrink-0">
+      <header className="h-14 flex items-center justify-between px-4 border-b bg-primary text-primary-foreground shrink-0">
         <div className="flex items-center gap-3">
           <Button 
             variant="ghost" 
             size="icon"
             onClick={() => navigate("/app/pharmacy")}
-            className="lg:hidden"
+            className="text-primary-foreground hover:bg-primary-foreground/10"
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-            <Heart className="h-4 w-4 text-primary-foreground" />
-          </div>
-          <div>
-            <h1 className="text-lg font-semibold">POS Terminal</h1>
-            <p className="text-xs text-muted-foreground hidden sm:block">Retail Point of Sale</p>
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-lg bg-primary-foreground/20 flex items-center justify-center">
+              <ShoppingCart className="h-5 w-5" />
+            </div>
+            <div>
+              <h1 className="text-lg font-bold tracking-tight">POS Terminal</h1>
+              <p className="text-xs text-primary-foreground/70">
+                {profile?.full_name || "Cashier"} • {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </p>
+            </div>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
           <Button
-            variant="outline"
+            variant="secondary"
             size="sm"
             onClick={handleHoldTransaction}
             disabled={cart.length === 0 || holdTransactionMutation.isPending}
-            className="hidden sm:flex"
+            className="hidden sm:flex bg-primary-foreground/20 hover:bg-primary-foreground/30 text-primary-foreground border-0"
           >
             <Pause className="h-4 w-4 mr-1" />
             Hold
@@ -252,6 +256,7 @@ export default function POSTerminalPage() {
             size="icon"
             onClick={() => navigate("/app/pharmacy/settings")}
             title="Settings"
+            className="text-primary-foreground hover:bg-primary-foreground/10"
           >
             <Settings className="h-5 w-5" />
           </Button>
