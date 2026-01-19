@@ -288,6 +288,7 @@ import IPDChargesPage from "./pages/app/ipd/IPDChargesPage";
 import BedTransfersPage from "./pages/app/ipd/BedTransfersPage";
 import MedicationChartPage from "./pages/app/ipd/MedicationChartPage";
 import IPDReportsPage from "./pages/app/ipd/IPDReportsPage";
+import DietTypesPage from "./pages/app/ipd/setup/DietTypesPage";
 
 // Gynecology & Certificates pages
 import GynecologyDashboard from "./pages/app/opd/GynecologyDashboard";
@@ -591,6 +592,7 @@ function App() {
               <Route path="ipd/births" element={<BirthRecordsPage />} />
               <Route path="ipd/births/new" element={<BirthRecordFormPage />} />
               <Route path="ipd/deaths" element={<DeathRecordsPage />} />
+              <Route path="ipd/setup/diet-types" element={<DietTypesPage />} />
               
               {/* Certificates routes */}
               <Route path="certificates" element={<CertificatesPage />} />

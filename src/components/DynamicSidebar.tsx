@@ -87,6 +87,13 @@ import {
   Briefcase,
   Gift,
   CalendarCheck,
+  Apple,
+  Sparkles,
+  History,
+  DoorOpen,
+  UtensilsCrossed,
+  Plus,
+  Settings2,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -163,6 +170,13 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Briefcase,
   Gift,
   CalendarCheck,
+  Apple,
+  Sparkles,
+  History,
+  DoorOpen,
+  UtensilsCrossed,
+  Plus,
+  Settings2,
 };
 
 interface DynamicSidebarProps {
