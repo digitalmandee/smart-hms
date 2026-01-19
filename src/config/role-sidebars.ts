@@ -13,7 +13,7 @@ export interface SidebarConfig {
 }
 
 // Admin roles get full dynamic menu access (handled separately)
-// Note: super_admin uses static sidebar, not database-driven menus
+// Note: super_admin and org_admin use static sidebar, not database-driven menus
 export const ADMIN_ROLES = ['branch_admin'];
 
 export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
@@ -33,13 +33,30 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
       },
       { 
         name: "Branches", 
-        path: "/super-admin/branches", 
-        icon: "GitBranch"
+        path: "", 
+        icon: "GitBranch",
+        children: [
+          { name: "All Branches", path: "/super-admin/branches", icon: "List" },
+          { name: "Branch Analytics", path: "/super-admin/branches/analytics", icon: "BarChart3" },
+        ]
       },
       { 
         name: "Platform Users", 
-        path: "/super-admin/users", 
-        icon: "Users"
+        path: "", 
+        icon: "Users",
+        children: [
+          { name: "All Users", path: "/super-admin/users", icon: "Users" },
+          { name: "Role Management", path: "/super-admin/roles", icon: "Shield" },
+        ]
+      },
+      { 
+        name: "Billing & Plans", 
+        path: "", 
+        icon: "CreditCard",
+        children: [
+          { name: "Subscription Plans", path: "/super-admin/plans", icon: "DollarSign" },
+          { name: "Organization Billing", path: "/super-admin/billing", icon: "Receipt" },
+        ]
       },
       { 
         name: "System", 
@@ -49,6 +66,15 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
           { name: "Platform Settings", path: "/super-admin/settings", icon: "Cog" },
           { name: "Module Catalog", path: "/super-admin/modules", icon: "Puzzle" },
           { name: "Audit Logs", path: "/super-admin/audit-logs", icon: "ScrollText" },
+          { name: "System Health", path: "/super-admin/health", icon: "Activity" },
+        ]
+      },
+      { 
+        name: "Support", 
+        path: "", 
+        icon: "Headphones",
+        children: [
+          { name: "Support Tickets", path: "/super-admin/support", icon: "Ticket" },
         ]
       },
     ]
@@ -66,6 +92,8 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         children: [
           { name: "All Branches", path: "/app/settings/branches", icon: "List" },
           { name: "Add Branch", path: "/app/settings/branches/new", icon: "Plus" },
+          { name: "Branch Branding", path: "/app/settings/branch-branding", icon: "Palette" },
+          { name: "Branch Roles", path: "/app/settings/branch-roles", icon: "Shield" },
         ]
       },
       { 
@@ -75,6 +103,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         children: [
           { name: "All Users", path: "/app/settings/users", icon: "Users" },
           { name: "Roles & Permissions", path: "/app/settings/roles", icon: "Shield" },
+          { name: "Invite Users", path: "/app/settings/users/invite", icon: "UserPlus" },
         ]
       },
       { 
@@ -83,7 +112,9 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         icon: "Building2",
         children: [
           { name: "Profile", path: "/app/settings/organization", icon: "Building2" },
+          { name: "Branding & Logo", path: "/app/settings/organization/branding", icon: "Palette" },
           { name: "Modules", path: "/app/settings/modules", icon: "Puzzle" },
+          { name: "Billing", path: "/app/settings/billing", icon: "CreditCard" },
           { name: "Audit Logs", path: "/app/settings/audit-logs", icon: "ScrollText" },
         ]
       },
@@ -96,6 +127,17 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
           { name: "Payment Methods", path: "/app/settings/payment-methods", icon: "CreditCard" },
           { name: "Specializations", path: "/app/settings/specializations", icon: "Award" },
           { name: "Qualifications", path: "/app/settings/qualifications", icon: "GraduationCap" },
+          { name: "Tax Settings", path: "/app/settings/tax", icon: "Percent" },
+          { name: "Receipt Templates", path: "/app/settings/receipts", icon: "FileText" },
+        ]
+      },
+      { 
+        name: "Reports", 
+        path: "", 
+        icon: "BarChart3",
+        children: [
+          { name: "Organization Reports", path: "/app/reports/organization", icon: "PieChart" },
+          { name: "Branch Comparison", path: "/app/reports/branches", icon: "BarChart3" },
         ]
       },
     ]

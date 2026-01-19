@@ -17,23 +17,22 @@ export const BED_TYPES = [
   "Emergency",
 ] as const;
 
+// Ward types matching database enum exactly
 export const WARD_TYPES = [
   "General",
-  "Private",
   "Semi-Private",
+  "Private",
+  "Deluxe",
+  "VIP",
   "ICU",
   "NICU",
   "PICU",
   "CCU",
+  "Isolation",
   "Emergency",
   "Maternity",
   "Pediatric",
   "Surgical",
-  "Medical",
-  "Orthopedic",
-  "Cardiac",
-  "Oncology",
-  "Psychiatric",
 ] as const;
 
 // Wards
