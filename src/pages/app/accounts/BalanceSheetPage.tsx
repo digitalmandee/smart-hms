@@ -7,21 +7,15 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useBalanceSheet } from "@/hooks/useFinancialReports";
-import { CalendarIcon, Download, Printer, Building2, Scale } from "lucide-react";
+import { CalendarIcon, Download, Printer, Scale } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatCurrency } from "@/lib/currency";
 
 export default function BalanceSheetPage() {
   const [asOfDate, setAsOfDate] = useState<Date>(new Date());
   
   const { data: balanceSheet, isLoading } = useBalanceSheet(format(asOfDate, 'yyyy-MM-dd'));
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'PKR',
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
 
   const renderAccountGroup = (accounts: any[], title: string, isSubGroup = false) => {
     if (!accounts || accounts.length === 0) return null;

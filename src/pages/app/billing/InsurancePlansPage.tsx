@@ -11,7 +11,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useInsuranceCompanies, useInsurancePlans, useCreateInsurancePlan, useUpdateInsurancePlan } from "@/hooks/useInsurance";
-import { Plus, FileText, Search, Edit, Percent, DollarSign } from "lucide-react";
+import { Plus, FileText, Search, Edit, Percent } from "lucide-react";
+import { formatCurrency } from "@/lib/currency";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 
@@ -54,13 +55,6 @@ export default function InsurancePlansPage() {
     plan.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'PKR',
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
 
   const onSubmit = async (data: PlanFormData) => {
     try {

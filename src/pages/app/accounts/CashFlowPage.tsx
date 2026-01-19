@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useCashFlow } from "@/hooks/useFinancialReports";
 import { CalendarIcon, Download, Printer, ArrowUpRight, ArrowDownRight, Banknote } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatCurrency } from "@/lib/currency";
 
 export default function CashFlowPage() {
   const [startDate, setStartDate] = useState<Date>(startOfMonth(new Date()));
@@ -19,13 +20,6 @@ export default function CashFlowPage() {
     format(endDate, 'yyyy-MM-dd')
   );
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'PKR',
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
 
   const renderCashFlowSection = (
     title: string,

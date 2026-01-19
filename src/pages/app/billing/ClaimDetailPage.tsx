@@ -12,11 +12,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useInsuranceClaim, useUpdateInsuranceClaim } from "@/hooks/useInsurance";
-import { 
-  FileCheck, ArrowLeft, Send, CheckCircle, XCircle, 
-  DollarSign, Clock, Building2, User, FileText 
-} from "lucide-react";
+import { ArrowLeft, Send, CheckCircle, XCircle, DollarSign, Building2, FileText } from "lucide-react";
 import { toast } from "sonner";
+import { formatCurrency } from "@/lib/currency";
 
 const statusColors: Record<string, string> = {
   draft: "bg-gray-500",
@@ -39,13 +37,6 @@ export default function ClaimDetailPage() {
   const { data: claim, isLoading } = useInsuranceClaim(id!);
   const updateClaim = useUpdateInsuranceClaim();
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'PKR',
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
 
   const handleSubmitClaim = async () => {
     try {
