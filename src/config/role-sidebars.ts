@@ -167,6 +167,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
           { name: "Add Stock", path: "/app/pharmacy/inventory/add", icon: "PackageCheck" },
           { name: "Stock Alerts", path: "/app/pharmacy/alerts", icon: "AlertTriangle" },
           { name: "Movements", path: "/app/pharmacy/stock-movements", icon: "ArrowLeftRight" },
+          { name: "Suppliers", path: "/app/inventory/vendors", icon: "Store" },
         ]
       },
       { 

@@ -1,16 +1,18 @@
-import { useState, useRef } from "react";
-import { PageHeader } from "@/components/PageHeader";
+import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { POSProductSearch } from "@/components/pharmacy/POSProductSearch";
 import { POSCart } from "@/components/pharmacy/POSCart";
 import { POSPaymentModal } from "@/components/pharmacy/POSPaymentModal";
 import { POSReceiptPreview } from "@/components/pharmacy/POSReceiptPreview";
 import { POSPatientSearch } from "@/components/pharmacy/POSPatientSearch";
 import { POSHeldTransactionsDialog } from "@/components/pharmacy/POSHeldTransactions";
+import { POSOrderReview } from "@/components/pharmacy/POSOrderReview";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Dialog,
   DialogContent,
@@ -29,9 +31,22 @@ import { PatientForPOS } from "@/hooks/usePatientPrescriptionsForPOS";
 import { usePrint } from "@/hooks/usePrint";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrganizationModules } from "@/hooks/useOrganizationModules";
-import { Keyboard, AlertTriangle, Pause } from "lucide-react";
+import { 
+  Heart, 
+  Keyboard, 
+  AlertTriangle, 
+  Pause, 
+  History, 
+  Settings, 
+  Printer,
+  X,
+  User,
+  ShoppingCart,
+  ArrowLeft,
+} from "lucide-react";
 
 export default function POSTerminalPage() {
+  const navigate = useNavigate();
   const { profile } = useAuth();
   const { data: enabledModules } = useOrganizationModules(profile?.organization_id);
   
@@ -39,6 +54,7 @@ export default function POSTerminalPage() {
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [discountPercent, setDiscountPercent] = useState(0);
+  const [showOrderReview, setShowOrderReview] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [completedTransaction, setCompletedTransaction] = useState<POSTransaction | null>(null);
   const [showReceipt, setShowReceipt] = useState(false);
@@ -52,9 +68,13 @@ export default function POSTerminalPage() {
   const holdTransactionMutation = useHoldTransaction();
   
   // Check if patients module is enabled - if not, use standalone mode
-  // enabledModules is an array of module_code strings
   const isPatientsModuleEnabled = enabledModules?.includes("patients");
   const isStandaloneMode = !isPatientsModuleEnabled;
+
+  // Focus barcode input on mount
+  useEffect(() => {
+    barcodeInputRef.current?.focus();
+  }, []);
 
   // Calculate totals
   const subtotal = cart.reduce((sum, item) => {
@@ -139,6 +159,16 @@ export default function POSTerminalPage() {
     }
   };
 
+  const handleCheckout = () => {
+    if (cart.length === 0) return;
+    setShowOrderReview(true);
+  };
+
+  const handleProceedToPayment = () => {
+    setShowOrderReview(false);
+    setShowPaymentModal(true);
+  };
+
   const handlePaymentComplete = (payments: Omit<POSPayment, "id" | "transaction_id">[]) => {
     if (cart.length === 0) return;
 
@@ -170,12 +200,8 @@ export default function POSTerminalPage() {
   // Show error if no branch assigned
   if (!hasBranch) {
     return (
-      <div className="space-y-4">
-        <PageHeader
-          title="POS Terminal"
-          description="Retail point of sale for walk-in customers"
-        />
-        <Alert variant="destructive">
+      <div className="h-screen flex items-center justify-center bg-background p-4">
+        <Alert variant="destructive" className="max-w-md">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Branch Not Assigned</AlertTitle>
           <AlertDescription>
@@ -188,37 +214,63 @@ export default function POSTerminalPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <PageHeader
-        title="POS Terminal"
-        description="Retail point of sale for walk-in customers"
-        actions={
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleHoldTransaction}
-              disabled={cart.length === 0 || holdTransactionMutation.isPending}
-            >
-              <Pause className="h-4 w-4 mr-1" />
-              Hold
-            </Button>
-            <POSHeldTransactionsDialog onRecall={handleRecallTransaction} />
+    <div className="h-screen flex flex-col bg-background overflow-hidden">
+      {/* Header Bar */}
+      <header className="flex items-center justify-between px-4 py-2 border-b bg-card shrink-0">
+        <div className="flex items-center gap-3">
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={() => navigate("/app/pharmacy")}
+            className="lg:hidden"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
+            <Heart className="h-4 w-4 text-primary-foreground" />
           </div>
-        }
-      />
+          <div>
+            <h1 className="text-lg font-semibold">POS Terminal</h1>
+            <p className="text-xs text-muted-foreground hidden sm:block">Retail Point of Sale</p>
+          </div>
+        </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Product Search - Left Side */}
-        <div className="lg:col-span-2 space-y-4">
-          {/* Hidden barcode input */}
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleHoldTransaction}
+            disabled={cart.length === 0 || holdTransactionMutation.isPending}
+            className="hidden sm:flex"
+          >
+            <Pause className="h-4 w-4 mr-1" />
+            Hold
+          </Button>
+          <POSHeldTransactionsDialog onRecall={handleRecallTransaction} />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate("/app/pharmacy/settings")}
+            title="Settings"
+          >
+            <Settings className="h-5 w-5" />
+          </Button>
+        </div>
+      </header>
+
+      {/* Main Content - Split Layout */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Left Panel - Products */}
+        <div className="flex-1 lg:flex-[2] flex flex-col overflow-hidden border-r">
+          {/* Barcode Scanner Indicator */}
+          <div className="px-4 py-2 border-b bg-muted/30 flex items-center gap-2 text-sm text-muted-foreground shrink-0">
             <Keyboard className="h-4 w-4" />
-            <span>Barcode scanner ready - scan or search below</span>
+            <span className="hidden sm:inline">Barcode scanner ready</span>
+            <span className="sm:hidden">Scanner ready</span>
             <input
               ref={barcodeInputRef}
               type="text"
-              className="sr-only"
+              className="absolute opacity-0 pointer-events-none"
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   // Handle barcode scan
@@ -227,65 +279,84 @@ export default function POSTerminalPage() {
             />
           </div>
 
-          <POSProductSearch onAddToCart={handleAddToCart} />
-          
-          {/* Patient Search for Prescription Lookup - only show if patients module is enabled */}
-          {!isStandaloneMode && (
-            <POSPatientSearch
-              onAddToCart={handleAddToCart}
-              onPatientSelect={handlePatientSelect}
-              selectedPatient={selectedPatient}
-            />
-          )}
+          {/* Product Search */}
+          <ScrollArea className="flex-1">
+            <div className="p-4 space-y-4">
+              <POSProductSearch onAddToCart={handleAddToCart} />
+              
+              {/* Patient Search for Prescription Lookup - only show if patients module is enabled */}
+              {!isStandaloneMode && (
+                <POSPatientSearch
+                  onAddToCart={handleAddToCart}
+                  onPatientSelect={handlePatientSelect}
+                  selectedPatient={selectedPatient}
+                />
+              )}
+            </div>
+          </ScrollArea>
         </div>
 
-        {/* Cart - Right Side */}
-        <div className="space-y-4">
+        {/* Right Panel - Cart */}
+        <div className="w-full lg:w-[400px] xl:w-[450px] flex flex-col overflow-hidden bg-muted/20">
           {/* Customer Info */}
-          <Card>
-            <CardHeader className="py-3">
-              <CardTitle className="text-sm font-medium">Customer Info (Optional)</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3 pt-0">
-              <div>
-                <Label htmlFor="customerName" className="text-xs">Name</Label>
-                <Input
-                  id="customerName"
-                  value={customerName}
-                  onChange={(e) => setCustomerName(e.target.value)}
-                  placeholder="Walk-in Customer"
-                  className="h-8"
-                />
-              </div>
-              <div>
-                <Label htmlFor="customerPhone" className="text-xs">Phone</Label>
-                <Input
-                  id="customerPhone"
-                  value={customerPhone}
-                  onChange={(e) => setCustomerPhone(e.target.value)}
-                  placeholder="03XX-XXXXXXX"
-                  className="h-8"
-                />
-              </div>
-            </CardContent>
-          </Card>
+          <div className="p-3 border-b bg-card shrink-0">
+            <div className="flex items-center gap-2 mb-2">
+              <User className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm font-medium">Customer (Optional)</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <Input
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+                placeholder="Name"
+                className="h-8 text-sm"
+              />
+              <Input
+                value={customerPhone}
+                onChange={(e) => setCustomerPhone(e.target.value)}
+                placeholder="Phone"
+                className="h-8 text-sm"
+              />
+            </div>
+          </div>
 
           {/* Cart */}
-          <POSCart
-            items={cart}
-            subtotal={subtotal}
-            discountPercent={discountPercent}
-            discountAmount={discountAmount}
-            taxAmount={taxAmount}
-            total={totalAmount}
-            onUpdateQuantity={handleUpdateQuantity}
-            onRemoveItem={handleRemoveItem}
-            onDiscountChange={setDiscountPercent}
-            onCheckout={() => setShowPaymentModal(true)}
-            disabled={createTransactionMutation.isPending}
-          />
+          <div className="flex-1 overflow-hidden flex flex-col">
+            <POSCart
+              items={cart}
+              subtotal={subtotal}
+              discountPercent={discountPercent}
+              discountAmount={discountAmount}
+              taxAmount={taxAmount}
+              total={totalAmount}
+              onUpdateQuantity={handleUpdateQuantity}
+              onRemoveItem={handleRemoveItem}
+              onDiscountChange={setDiscountPercent}
+              onCheckout={handleCheckout}
+              disabled={createTransactionMutation.isPending}
+            />
+          </div>
         </div>
       </div>
+
+      {/* Order Review Modal */}
+      <POSOrderReview
+        open={showOrderReview}
+        onClose={() => setShowOrderReview(false)}
+        items={cart}
+        customerName={customerName}
+        customerPhone={customerPhone}
+        subtotal={subtotal}
+        discountPercent={discountPercent}
+        discountAmount={discountAmount}
+        taxAmount={taxAmount}
+        total={totalAmount}
+        onUpdateQuantity={handleUpdateQuantity}
+        onRemoveItem={handleRemoveItem}
+        onCustomerNameChange={setCustomerName}
+        onCustomerPhoneChange={setCustomerPhone}
+        onProceedToPayment={handleProceedToPayment}
+      />
 
       {/* Payment Modal */}
       <POSPaymentModal
@@ -307,7 +378,10 @@ export default function POSTerminalPage() {
       <Dialog open={showReceipt} onOpenChange={setShowReceipt}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Sale Complete</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <Printer className="h-5 w-5" />
+              Sale Complete
+            </DialogTitle>
           </DialogHeader>
           {completedTransaction && (
             <div ref={printRef}>

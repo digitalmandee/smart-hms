@@ -3,16 +3,21 @@ import { Outlet } from "react-router-dom";
 import { DynamicSidebar } from "@/components/DynamicSidebar";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu } from "lucide-react";
+import { Menu, PanelLeftClose, PanelLeft } from "lucide-react";
 
 export const DashboardLayout = () => {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [isDesktopCollapsed, setIsDesktopCollapsed] = useState(false);
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       {/* Desktop Sidebar */}
-      <div className="hidden lg:block">
-        <DynamicSidebar />
+      <div className="hidden lg:block relative">
+        <DynamicSidebar 
+          isCollapsed={isDesktopCollapsed} 
+          onToggle={() => setIsDesktopCollapsed(!isDesktopCollapsed)}
+          showDesktopToggle
+        />
       </div>
 
       {/* Mobile Sidebar */}
@@ -26,7 +31,7 @@ export const DashboardLayout = () => {
             <Menu className="h-5 w-5" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="p-0 w-64">
+        <SheetContent side="left" className="p-0 w-64" hideCloseButton>
           <DynamicSidebar onToggle={() => setIsMobileOpen(false)} />
         </SheetContent>
       </Sheet>
