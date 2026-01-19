@@ -34,6 +34,8 @@ const organizationSchema = z.object({
   address: z.string().optional(),
   city: z.string().optional(),
   country: z.string().optional(),
+  facility_type: z.enum(["hospital", "clinic", "diagnostic_center", "pharmacy"]),
+  billing_workflow: z.enum(["post_visit", "pre_visit"]),
   subscription_plan: z.enum(["basic", "professional", "enterprise"]),
   subscription_status: z.enum(["trial", "active", "suspended", "cancelled"]),
 });
@@ -54,6 +56,8 @@ export function CreateOrganizationPage() {
       address: "",
       city: "",
       country: "Pakistan",
+      facility_type: "hospital",
+      billing_workflow: "post_visit",
       subscription_plan: "basic",
       subscription_status: "trial",
     },
@@ -78,6 +82,8 @@ export function CreateOrganizationPage() {
         address: data.address || null,
         city: data.city || null,
         country: data.country || null,
+        facility_type: data.facility_type,
+        billing_workflow: data.billing_workflow,
         subscription_plan: data.subscription_plan,
         subscription_status: data.subscription_status,
         trial_ends_at: data.subscription_status === "trial" 
@@ -214,6 +220,69 @@ export function CreateOrganizationPage() {
                       <FormControl>
                         <Input {...field} placeholder="Pakistan" />
                       </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Facility Configuration</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="facility_type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Facility Type</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="hospital">Hospital</SelectItem>
+                          <SelectItem value="clinic">Clinic</SelectItem>
+                          <SelectItem value="diagnostic_center">Diagnostic Center</SelectItem>
+                          <SelectItem value="pharmacy">Pharmacy</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">
+                        Determines available modules and workflows
+                      </p>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="billing_workflow"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Billing Workflow</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select workflow" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="post_visit">Post-Visit Billing</SelectItem>
+                          <SelectItem value="pre_visit">Pre-Visit Billing</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">
+                        {field.value === "pre_visit" 
+                          ? "Payment collected before consultation" 
+                          : "Payment collected after services rendered"}
+                      </p>
                       <FormMessage />
                     </FormItem>
                   )}

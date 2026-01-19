@@ -54,10 +54,10 @@ export default function PayablesPage() {
   });
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-    }).format(amount);
+    return `Rs. ${amount.toLocaleString('en-PK', { 
+      minimumFractionDigits: 2, 
+      maximumFractionDigits: 2 
+    })}`;
   };
 
   const calculateAging = (createdAt: string) => {

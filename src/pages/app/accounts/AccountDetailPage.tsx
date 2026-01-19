@@ -39,11 +39,10 @@ export default function AccountDetailPage() {
   );
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-      minimumFractionDigits: 2,
-    }).format(amount);
+    return `Rs. ${amount.toLocaleString('en-PK', { 
+      minimumFractionDigits: 2, 
+      maximumFractionDigits: 2 
+    })}`;
   };
 
   // Calculate running balance

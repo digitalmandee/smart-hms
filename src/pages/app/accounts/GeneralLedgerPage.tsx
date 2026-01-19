@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { formatCurrency } from "@/lib/currency";
 import { format } from "date-fns";
 import { BookOpen } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
@@ -103,7 +104,7 @@ const GeneralLedgerPage = () => {
               <div className="text-right">
                 <p className="text-sm text-muted-foreground">Current Balance</p>
                 <p className="text-xl font-bold">
-                  ₹{selectedAccount?.current_balance?.toLocaleString() || "0"}
+                  {formatCurrency(selectedAccount?.current_balance || 0)}
                 </p>
               </div>
             </div>
@@ -146,16 +147,16 @@ const GeneralLedgerPage = () => {
                       </TableCell>
                       <TableCell className="text-right">
                         {entry.debit_amount > 0
-                          ? `₹${entry.debit_amount.toLocaleString()}`
+                          ? formatCurrency(entry.debit_amount)
                           : "-"}
                       </TableCell>
                       <TableCell className="text-right">
                         {entry.credit_amount > 0
-                          ? `₹${entry.credit_amount.toLocaleString()}`
+                          ? formatCurrency(entry.credit_amount)
                           : "-"}
                       </TableCell>
                       <TableCell className="text-right font-medium">
-                        ₹{entry.running_balance?.toLocaleString() || "0"}
+                        {formatCurrency(entry.running_balance || 0)}
                       </TableCell>
                     </TableRow>
                   ))}

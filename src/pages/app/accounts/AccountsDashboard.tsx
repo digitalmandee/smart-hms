@@ -27,12 +27,10 @@ export default function AccountsDashboard() {
   const { data: currentFiscalYear } = useCurrentFiscalYear();
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
+    return `Rs. ${amount.toLocaleString('en-PK', { 
+      minimumFractionDigits: 0, 
+      maximumFractionDigits: 0 
+    })}`;
   };
 
   // Calculate summary figures from accounts
