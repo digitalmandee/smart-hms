@@ -33,6 +33,8 @@ import { SystemSettingsPage } from "./pages/super-admin/SystemSettingsPage";
 import { PlatformUsersPage } from "./pages/super-admin/PlatformUsersPage";
 import { PlatformAuditLogsPage } from "./pages/super-admin/PlatformAuditLogsPage";
 import { ModuleCatalogPage } from "./pages/super-admin/ModuleCatalogPage";
+import AllBranchesListPage from "./pages/super-admin/AllBranchesListPage";
+import OrgModulesPage from "./pages/app/settings/OrgModulesPage";
 
 // Settings pages
 import { BranchesListPage } from "./pages/app/settings/BranchesListPage";
@@ -656,6 +658,7 @@ function App() {
               <Route path="settings/specializations" element={<SpecializationsPage />} />
               <Route path="settings/qualifications" element={<QualificationsPage />} />
               <Route path="settings/doctor-fees" element={<DoctorFeesPage />} />
+              <Route path="settings/modules" element={<OrgModulesPage />} />
             </Route>
 
             {/* Super Admin routes */}
@@ -676,6 +679,7 @@ function App() {
               <Route path="users" element={<PlatformUsersPage />} />
               <Route path="audit-logs" element={<PlatformAuditLogsPage />} />
               <Route path="modules" element={<ModuleCatalogPage />} />
+              <Route path="branches" element={<AllBranchesListPage />} />
             </Route>
 
             {/* Catch-all */}

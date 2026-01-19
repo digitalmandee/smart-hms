@@ -14,7 +14,7 @@ export interface SidebarConfig {
 
 // Admin roles get full dynamic menu access (handled separately)
 // Note: super_admin uses static sidebar, not database-driven menus
-export const ADMIN_ROLES = ['org_admin', 'branch_admin'];
+export const ADMIN_ROLES = ['branch_admin'];
 
 export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
   // ==================== SUPER ADMIN (Platform Level) ====================
@@ -32,6 +32,11 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         ]
       },
       { 
+        name: "Branches", 
+        path: "/super-admin/branches", 
+        icon: "GitBranch"
+      },
+      { 
         name: "Platform Users", 
         path: "/super-admin/users", 
         icon: "Users"
@@ -44,6 +49,53 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
           { name: "Platform Settings", path: "/super-admin/settings", icon: "Cog" },
           { name: "Module Catalog", path: "/super-admin/modules", icon: "Puzzle" },
           { name: "Audit Logs", path: "/super-admin/audit-logs", icon: "ScrollText" },
+        ]
+      },
+    ]
+  },
+
+  // ==================== ORGANIZATION ADMIN (Organization Level) ====================
+  
+  org_admin: {
+    items: [
+      { name: "Dashboard", path: "/app/dashboard", icon: "LayoutDashboard" },
+      { 
+        name: "Branches", 
+        path: "", 
+        icon: "GitBranch",
+        children: [
+          { name: "All Branches", path: "/app/settings/branches", icon: "List" },
+          { name: "Add Branch", path: "/app/settings/branches/new", icon: "Plus" },
+        ]
+      },
+      { 
+        name: "Users & Staff", 
+        path: "", 
+        icon: "Users",
+        children: [
+          { name: "All Users", path: "/app/settings/users", icon: "Users" },
+          { name: "Roles & Permissions", path: "/app/settings/roles", icon: "Shield" },
+        ]
+      },
+      { 
+        name: "Organization", 
+        path: "", 
+        icon: "Building2",
+        children: [
+          { name: "Profile", path: "/app/settings/organization", icon: "Building2" },
+          { name: "Modules", path: "/app/settings/modules", icon: "Puzzle" },
+          { name: "Audit Logs", path: "/app/settings/audit-logs", icon: "ScrollText" },
+        ]
+      },
+      { 
+        name: "Configuration", 
+        path: "", 
+        icon: "Settings",
+        children: [
+          { name: "Services", path: "/app/settings/services", icon: "Stethoscope" },
+          { name: "Payment Methods", path: "/app/settings/payment-methods", icon: "CreditCard" },
+          { name: "Specializations", path: "/app/settings/specializations", icon: "Award" },
+          { name: "Qualifications", path: "/app/settings/qualifications", icon: "GraduationCap" },
         ]
       },
     ]
