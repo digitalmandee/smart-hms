@@ -128,11 +128,15 @@ export const BedActionsMenu = ({
           <DropdownMenuSeparator />
 
           {/* Status-specific actions */}
-          {bed.status === "available" && (
+{bed.status === "available" && (
             <>
               <DropdownMenuItem onClick={() => setReserveOpen(true)}>
                 <CalendarClock className="h-4 w-4 mr-2" />
                 Reserve Bed
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleSetHousekeeping}>
+                <Sparkles className="h-4 w-4 mr-2" />
+                Send to Housekeeping
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setMaintenanceOpen(true)}>
                 <Wrench className="h-4 w-4 mr-2" />
