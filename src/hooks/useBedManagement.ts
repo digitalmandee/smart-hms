@@ -45,12 +45,12 @@ export const useBed = (bedId: string | undefined) => {
         .from("beds")
         .select(`
           *,
-          ward:wards(id, name, code, ward_type, organization_id),
-          current_admission:admissions(
+          ward:wards!beds_ward_id_fkey(id, name, code, ward_type, organization_id),
+          current_admission:admissions!beds_current_admission_id_fkey(
             id,
             admission_number,
             admission_date,
-            patient:patients(id, first_name, last_name, patient_number, date_of_birth, gender)
+            patient:patients!admissions_patient_id_fkey(id, first_name, last_name, patient_number, date_of_birth, gender)
           )
         `)
         .eq("id", bedId)
@@ -360,7 +360,7 @@ export const useHousekeepingQueue = () => {
         .from("beds")
         .select(`
           *,
-          ward:wards!inner(id, name, code, organization_id)
+          ward:wards!beds_ward_id_fkey!inner(id, name, code, organization_id)
         `)
         .eq("ward.organization_id", profile.organization_id)
         .eq("status", "housekeeping")
@@ -408,7 +408,7 @@ export const useMaintenanceQueue = () => {
         .from("beds")
         .select(`
           *,
-          ward:wards!inner(id, name, code, organization_id)
+          ward:wards!beds_ward_id_fkey!inner(id, name, code, organization_id)
         `)
         .eq("ward.organization_id", profile.organization_id)
         .eq("status", "maintenance")

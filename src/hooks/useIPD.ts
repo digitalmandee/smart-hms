@@ -60,8 +60,8 @@ export const useWards = () => {
         .from("wards")
         .select(`
           *,
-          branch:branches(id, name),
-          nurse_in_charge:profiles(id, full_name),
+          branch:branches!wards_branch_id_fkey(id, name),
+          nurse_in_charge:profiles!wards_nurse_in_charge_id_fkey(id, full_name),
           beds(id, bed_number, status)
         `)
         .eq("organization_id", profile.organization_id)
@@ -115,8 +115,8 @@ export const useWard = (wardId: string | undefined) => {
         .from("wards")
         .select(`
           *,
-          branch:branches(id, name),
-          nurse_in_charge:profiles(id, full_name),
+          branch:branches!wards_branch_id_fkey(id, name),
+          nurse_in_charge:profiles!wards_nurse_in_charge_id_fkey(id, full_name),
           beds(*)
         `)
         .eq("id", wardId)
@@ -292,11 +292,11 @@ export const useBeds = (wardId?: string) => {
         .from("beds")
         .select(`
           *,
-          ward:wards(id, name, code, ward_type),
-          current_admission:admissions(
+          ward:wards!beds_ward_id_fkey!inner(id, name, code, ward_type, organization_id),
+          current_admission:admissions!beds_current_admission_id_fkey(
             id,
             admission_number,
-            patient:patients(id, first_name, last_name, patient_number)
+            patient:patients!admissions_patient_id_fkey(id, first_name, last_name, patient_number)
           )
         `)
         .eq("ward.organization_id", profile.organization_id)
@@ -467,7 +467,7 @@ export const useIPDStats = () => {
             .eq("is_active", true),
           supabase
             .from("beds")
-            .select("id, status, ward:wards!inner(organization_id)")
+            .select("id, status, ward:wards!beds_ward_id_fkey!inner(organization_id)")
             .eq("ward.organization_id", profile.organization_id)
             .eq("is_active", true),
           supabase

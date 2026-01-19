@@ -11989,27 +11989,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_wards_branch"
-            columns: ["branch_id"]
-            isOneToOne: false
-            referencedRelation: "branches"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_wards_nurse_in_charge"
-            columns: ["nurse_in_charge_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_wards_organization"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "wards_branch_id_fkey"
             columns: ["branch_id"]
             isOneToOne: false
