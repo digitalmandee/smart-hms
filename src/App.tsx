@@ -149,6 +149,12 @@ import AttendancePage from "./pages/app/hr/attendance/AttendancePage";
 import AttendanceSheetPage from "./pages/app/hr/attendance/AttendanceSheetPage";
 import LeavesPage from "./pages/app/hr/leaves/LeavesPage";
 import PayrollPage from "./pages/app/hr/payroll/PayrollPage";
+import ProcessPayrollPage from "./pages/app/hr/payroll/ProcessPayrollPage";
+import EmployeeSalariesPage from "./pages/app/hr/payroll/EmployeeSalariesPage";
+import LoansAdvancesPage from "./pages/app/hr/payroll/LoansAdvancesPage";
+import PayslipsPage from "./pages/app/hr/payroll/PayslipsPage";
+import PayrollReportsPage from "./pages/app/hr/payroll/PayrollReportsPage";
+import PayrollRunDetailPage from "./pages/app/hr/payroll/PayrollRunDetailPage";
 import DoctorsListPage from "./pages/app/hr/DoctorsListPage";
 import NursesListPage from "./pages/app/hr/NursesListPage";
 
@@ -596,6 +602,12 @@ function App() {
               <Route path="hr/attendance/sheet" element={<AttendanceSheetPage />} />
               <Route path="hr/leaves" element={<LeavesPage />} />
               <Route path="hr/payroll" element={<PayrollPage />} />
+              <Route path="hr/payroll/process" element={<ProcessPayrollPage />} />
+              <Route path="hr/payroll/salaries" element={<EmployeeSalariesPage />} />
+              <Route path="hr/payroll/loans" element={<LoansAdvancesPage />} />
+              <Route path="hr/payroll/slips" element={<PayslipsPage />} />
+              <Route path="hr/payroll/reports" element={<PayrollReportsPage />} />
+              <Route path="hr/payroll/:id" element={<PayrollRunDetailPage />} />
               <Route path="hr/doctors" element={<DoctorsListPage />} />
               <Route path="hr/nurses" element={<NursesListPage />} />
               <Route path="hr/setup/departments" element={<DepartmentsPage />} />

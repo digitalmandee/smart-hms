@@ -74,6 +74,10 @@ import {
   Folders,
   BedDouble,
   Scan,
+  Landmark,
+  PieChart,
+  Search,
+  UserCheck,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -139,6 +143,10 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Folders,
   BedDouble,
   Scan,
+  Landmark,
+  PieChart,
+  Search,
+  UserCheck,
 };
 
 interface DynamicSidebarProps {
