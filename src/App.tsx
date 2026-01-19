@@ -89,6 +89,7 @@ import LabTestCategoriesPage from "./pages/app/lab/LabTestCategoriesPage";
 // Pharmacy pages
 import PharmacyDashboard from "./pages/app/pharmacy/PharmacyDashboard";
 import PrescriptionQueuePage from "./pages/app/pharmacy/PrescriptionQueuePage";
+import PrescriptionHistoryPage from "./pages/app/pharmacy/PrescriptionHistoryPage";
 import DispensingPage from "./pages/app/pharmacy/DispensingPage";
 import MedicinesListPage from "./pages/app/pharmacy/MedicinesListPage";
 import MedicineFormPage from "./pages/app/pharmacy/MedicineFormPage";
@@ -419,6 +420,7 @@ function App() {
               <Route path="pharmacy/pos/transactions/:id" element={<POSTransactionDetailPage />} />
               <Route path="pharmacy/pos/sessions" element={<POSSessionsPage />} />
               <Route path="pharmacy/queue" element={<PrescriptionQueuePage />} />
+              <Route path="pharmacy/history" element={<PrescriptionHistoryPage />} />
               <Route path="pharmacy/dispense/:prescriptionId" element={<DispensingPage />} />
               <Route path="pharmacy/medicines" element={<MedicinesListPage />} />
               <Route path="pharmacy/medicines/new" element={<MedicineFormPage />} />
