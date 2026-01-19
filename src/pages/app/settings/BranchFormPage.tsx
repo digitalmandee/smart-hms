@@ -30,7 +30,7 @@ import {
 import { useBranch, useCreateBranch, useUpdateBranch } from "@/hooks/useBranches";
 import { useOrganizationDefaults } from "@/hooks/useOrganizationDefaults";
 import { useAuth } from "@/contexts/AuthContext";
-import { Loader2, Settings2 } from "lucide-react";
+import { Loader2, Settings2, Palette } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { WorkingHoursEditor } from "@/components/settings/WorkingHoursEditor";
 import { ReceiptSettingsEditor } from "@/components/settings/ReceiptSettingsEditor";
@@ -79,6 +79,10 @@ export function BranchFormPage() {
   const [startTime, setStartTime] = useState("08:00");
   const [endTime, setEndTime] = useState("20:00");
   const [timezone, setTimezone] = useState("Asia/Karachi");
+  
+  // Branding
+  const [logoUrl, setLogoUrl] = useState("");
+  const [brandColor, setBrandColor] = useState("#0ea5e9");
 
   const form = useForm<BranchFormData>({
     resolver: zodResolver(branchSchema),
@@ -119,6 +123,8 @@ export function BranchFormPage() {
       setStartTime(branchAny.working_hours_start || "08:00");
       setEndTime(branchAny.working_hours_end || "20:00");
       setTimezone(branchAny.timezone || "Asia/Karachi");
+      setLogoUrl(branchAny.logo_url || "");
+      setBrandColor(branchAny.brand_color || "#0ea5e9");
     }
   }, [branch, form]);
 
@@ -150,6 +156,9 @@ export function BranchFormPage() {
       working_hours_end: useOrgHours ? null : (endTime || null),
       working_days: useOrgHours ? null : (workingDays.length > 0 ? workingDays : null),
       timezone: timezone,
+      // Branding
+      logo_url: logoUrl || null,
+      brand_color: brandColor || null,
     };
 
     try {
@@ -451,6 +460,73 @@ export function BranchFormPage() {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Palette className="h-5 w-5" />
+                Branch Branding
+              </CardTitle>
+              <CardDescription>
+                Customize the visual identity for this branch (logo, colors for receipts and reports).
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Logo URL */}
+              <div className="space-y-2">
+                <Label>Branch Logo URL</Label>
+                <Input
+                  type="url"
+                  value={logoUrl}
+                  onChange={(e) => setLogoUrl(e.target.value)}
+                  placeholder="https://example.com/logo.png"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Enter a URL for the branch logo (appears on receipts and reports)
+                </p>
+                {logoUrl && (
+                  <div className="mt-2 p-4 border rounded-lg bg-muted/50">
+                    <img 
+                      src={logoUrl} 
+                      alt="Branch logo preview" 
+                      className="max-h-20 object-contain"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Brand Color */}
+              <div className="space-y-2">
+                <Label>Brand Color</Label>
+                <div className="flex gap-3 items-center">
+                  <Input
+                    type="color"
+                    value={brandColor}
+                    onChange={(e) => setBrandColor(e.target.value)}
+                    className="w-16 h-10 p-1 cursor-pointer"
+                  />
+                  <Input
+                    type="text"
+                    value={brandColor}
+                    onChange={(e) => setBrandColor(e.target.value)}
+                    placeholder="#0ea5e9"
+                    className="w-32"
+                    maxLength={7}
+                  />
+                  <div 
+                    className="h-10 w-10 rounded border"
+                    style={{ backgroundColor: brandColor }}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Primary color used for headers and accents on this branch's documents
+                </p>
               </div>
             </CardContent>
           </Card>

@@ -2412,6 +2412,51 @@ export type Database = {
           },
         ]
       }
+      branch_role_restrictions: {
+        Row: {
+          branch_id: string
+          created_at: string | null
+          id: string
+          is_allowed: boolean | null
+          restricted_by: string | null
+          role: Database["public"]["Enums"]["app_role"]
+          updated_at: string | null
+        }
+        Insert: {
+          branch_id: string
+          created_at?: string | null
+          id?: string
+          is_allowed?: boolean | null
+          restricted_by?: string | null
+          role: Database["public"]["Enums"]["app_role"]
+          updated_at?: string | null
+        }
+        Update: {
+          branch_id?: string
+          created_at?: string | null
+          id?: string
+          is_allowed?: boolean | null
+          restricted_by?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "branch_role_restrictions_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "branch_role_restrictions_restricted_by_fkey"
+            columns: ["restricted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       branch_settings: {
         Row: {
           branch_id: string
@@ -2453,13 +2498,16 @@ export type Database = {
       branches: {
         Row: {
           address: string | null
+          brand_color: string | null
           city: string | null
           code: string
           created_at: string
+          custom_styles: Json | null
           email: string | null
           id: string
           is_active: boolean | null
           is_main_branch: boolean | null
+          logo_url: string | null
           name: string
           organization_id: string
           phone: string | null
@@ -2474,13 +2522,16 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          brand_color?: string | null
           city?: string | null
           code: string
           created_at?: string
+          custom_styles?: Json | null
           email?: string | null
           id?: string
           is_active?: boolean | null
           is_main_branch?: boolean | null
+          logo_url?: string | null
           name: string
           organization_id: string
           phone?: string | null
@@ -2495,13 +2546,16 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          brand_color?: string | null
           city?: string | null
           code?: string
           created_at?: string
+          custom_styles?: Json | null
           email?: string | null
           id?: string
           is_active?: boolean | null
           is_main_branch?: boolean | null
+          logo_url?: string | null
           name?: string
           organization_id?: string
           phone?: string | null
