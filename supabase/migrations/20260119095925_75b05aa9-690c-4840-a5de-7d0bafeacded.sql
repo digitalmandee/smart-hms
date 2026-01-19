@@ -1,0 +1,25 @@
+-- Fix Shifa Medical Center profiles (9 accounts)
+UPDATE profiles 
+SET organization_id = 'b1111111-1111-1111-1111-111111111111',
+    branch_id = 'c1111111-1111-1111-1111-111111111111'
+WHERE id IN (
+  '00000000-0000-0000-0000-000000000024', -- bloodbank
+  'd2222222-2222-2222-2222-222222222222', -- cardiologist
+  '00000000-0000-0000-0000-000000000023', -- financemanager
+  '00000000-0000-0000-0000-000000000021', -- hrmanager
+  '00000000-0000-0000-0000-000000000022', -- hrofficer
+  'd3333333-3333-3333-3333-333333333333', -- pediatrician
+  '00000000-0000-0000-0000-000000000025', -- radiologist
+  '00000000-0000-0000-0000-000000000026', -- radtech
+  '00000000-0000-0000-0000-000000000020'  -- storemanager
+);
+
+-- Fix Al-Noor Family Clinic profiles (3 accounts)
+UPDATE profiles 
+SET organization_id = 'b2222222-2222-2222-2222-222222222222',
+    branch_id = 'c2222222-2222-2222-2222-222222222222'
+WHERE id IN (
+  'a2222222-1111-1111-1111-111111111111', -- clinic.admin
+  'a2222222-4444-4444-4444-444444444444', -- clinic.pharmacist
+  'a2222222-3333-3333-3333-333333333333'  -- clinic.receptionist
+);
