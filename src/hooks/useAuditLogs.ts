@@ -29,6 +29,7 @@ export interface AuditLogFilters {
   startDate?: string;
   endDate?: string;
   search?: string;
+  organizationId?: string; // For super admin filtering
 }
 
 // =====================
@@ -70,6 +71,9 @@ export function useAuditLogs(filters?: AuditLogFilters, page = 1, limit = 50) {
       }
       if (filters?.search) {
         query = query.or(`entity_type.ilike.%${filters.search}%,action.ilike.%${filters.search}%`);
+      }
+      if (filters?.organizationId) {
+        query = query.eq("organization_id", filters.organizationId);
       }
 
       const { data, error, count } = await query;
