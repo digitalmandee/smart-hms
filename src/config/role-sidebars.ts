@@ -13,9 +13,42 @@ export interface SidebarConfig {
 }
 
 // Admin roles get full dynamic menu access (handled separately)
-export const ADMIN_ROLES = ['super_admin', 'org_admin', 'branch_admin'];
+// Note: super_admin uses static sidebar, not database-driven menus
+export const ADMIN_ROLES = ['org_admin', 'branch_admin'];
 
 export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
+  // ==================== SUPER ADMIN (Platform Level) ====================
+  
+  super_admin: {
+    items: [
+      { name: "Dashboard", path: "/super-admin/dashboard", icon: "LayoutDashboard" },
+      { 
+        name: "Organizations", 
+        path: "", 
+        icon: "Building2",
+        children: [
+          { name: "All Organizations", path: "/super-admin/organizations", icon: "List" },
+          { name: "Add Organization", path: "/super-admin/organizations/new", icon: "Plus" },
+        ]
+      },
+      { 
+        name: "Platform Users", 
+        path: "/super-admin/users", 
+        icon: "Users"
+      },
+      { 
+        name: "System", 
+        path: "", 
+        icon: "Settings",
+        children: [
+          { name: "Platform Settings", path: "/super-admin/settings", icon: "Cog" },
+          { name: "Module Catalog", path: "/super-admin/modules", icon: "Puzzle" },
+          { name: "Audit Logs", path: "/super-admin/audit-logs", icon: "ScrollText" },
+        ]
+      },
+    ]
+  },
+
   // ==================== CLINICAL ROLES ====================
   
   doctor: {

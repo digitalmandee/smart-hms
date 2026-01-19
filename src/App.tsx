@@ -31,6 +31,8 @@ import { CreateOrganizationPage } from "./pages/super-admin/CreateOrganizationPa
 import { OrganizationDetailPage } from "./pages/super-admin/OrganizationDetailPage";
 import { SystemSettingsPage } from "./pages/super-admin/SystemSettingsPage";
 import { PlatformUsersPage } from "./pages/super-admin/PlatformUsersPage";
+import { PlatformAuditLogsPage } from "./pages/super-admin/PlatformAuditLogsPage";
+import { ModuleCatalogPage } from "./pages/super-admin/ModuleCatalogPage";
 
 // Settings pages
 import { BranchesListPage } from "./pages/app/settings/BranchesListPage";
@@ -672,6 +674,8 @@ function App() {
               <Route path="organizations/:id" element={<OrganizationDetailPage />} />
               <Route path="settings" element={<SystemSettingsPage />} />
               <Route path="users" element={<PlatformUsersPage />} />
+              <Route path="audit-logs" element={<PlatformAuditLogsPage />} />
+              <Route path="modules" element={<ModuleCatalogPage />} />
             </Route>
 
             {/* Catch-all */}
