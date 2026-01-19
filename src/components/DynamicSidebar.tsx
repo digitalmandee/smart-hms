@@ -78,6 +78,10 @@ import {
   PieChart,
   Search,
   UserCheck,
+  Camera,
+  Scale,
+  ArrowLeftRight,
+  ClipboardCheck,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -147,6 +151,10 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   PieChart,
   Search,
   UserCheck,
+  Camera,
+  Scale,
+  ArrowLeftRight,
+  ClipboardCheck,
 };
 
 interface DynamicSidebarProps {
