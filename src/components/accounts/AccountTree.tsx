@@ -57,11 +57,10 @@ function AccountNode({
   };
 
   const formatBalance = (balance: number) => {
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-      minimumFractionDigits: 2,
-    }).format(balance);
+    return `Rs. ${balance.toLocaleString('en-PK', { 
+      minimumFractionDigits: 2, 
+      maximumFractionDigits: 2 
+    })}`;
   };
 
   return (

@@ -203,7 +203,7 @@ export default function ProceduresListPage() {
                     <TableCell>{procedure.body_part || '-'}</TableCell>
                     <TableCell>{procedure.estimated_duration_minutes} min</TableCell>
                     <TableCell>
-                      {procedure.base_price ? `₹${procedure.base_price}` : '-'}
+                      {procedure.base_price ? `Rs. ${procedure.base_price.toLocaleString('en-PK')}` : '-'}
                     </TableCell>
                     <TableCell>
                       <Badge variant={procedure.is_active ? 'default' : 'secondary'}>
@@ -302,7 +302,7 @@ export default function ProceduresListPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="price">Base Price (₹)</Label>
+                <Label htmlFor="price">Base Price (Rs.)</Label>
                 <Input
                   id="price"
                   type="number"

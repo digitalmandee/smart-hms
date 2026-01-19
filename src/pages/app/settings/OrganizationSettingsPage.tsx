@@ -18,8 +18,9 @@ import {
 } from "@/components/ui/form";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrganization, useUpdateOrganization } from "@/hooks/useOrganizations";
-import { Loader2, Building2 } from "lucide-react";
+import { Loader2, Building2, Settings2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 
 const orgSettingsSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -264,6 +265,42 @@ export function OrganizationSettingsPage() {
                     </FormItem>
                   )}
                 />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Settings2 className="h-5 w-5" />
+                Facility Configuration
+              </CardTitle>
+              <CardDescription>
+                These settings are configured by Super Admin
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="p-4 rounded-lg bg-muted/50">
+                  <p className="text-sm font-medium text-muted-foreground">Facility Type</p>
+                  <p className="text-lg font-semibold capitalize mt-1">
+                    {((org as any).facility_type || "hospital").replace("_", " ")}
+                  </p>
+                  <Badge variant="outline" className="mt-2">
+                    {(org as any).facility_type === "hospital" ? "Full Modules" : "Limited Modules"}
+                  </Badge>
+                </div>
+                <div className="p-4 rounded-lg bg-muted/50">
+                  <p className="text-sm font-medium text-muted-foreground">Billing Workflow</p>
+                  <p className="text-lg font-semibold capitalize mt-1">
+                    {((org as any).billing_workflow || "post_visit").replace("_", " ")}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    {(org as any).billing_workflow === "pre_visit" 
+                      ? "Payment required before consultation"
+                      : "Payment collected after services"}
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>
