@@ -265,7 +265,24 @@ export function useLabSettings(branchId?: string) {
     queryFn: async (): Promise<LabSettings | null> => {
       if (!profile?.organization_id) return null;
 
-      // Return default settings until types are regenerated
+      // Try to fetch from database first
+      const { data, error } = await (supabase as any)
+        .from("lab_settings")
+        .select("*")
+        .eq("organization_id", profile.organization_id)
+        .is("branch_id", branchId || null)
+        .maybeSingle();
+
+      if (error) {
+        console.error("Error fetching lab settings:", error);
+      }
+
+      // Return fetched data or defaults
+      if (data) {
+        return data as LabSettings;
+      }
+
+      // Return default settings if none found
       return {
         id: "",
         organization_id: profile.organization_id,
