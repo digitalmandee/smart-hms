@@ -266,7 +266,7 @@ export default function BedProfilePage() {
                           </TableCell>
                           <TableCell>{los} days</TableCell>
                           <TableCell>
-                            {admission.attending_doctor?.profiles?.first_name} {admission.attending_doctor?.profiles?.last_name}
+                            {admission.attending_doctor?.profile?.first_name} {admission.attending_doctor?.profile?.last_name}
                           </TableCell>
                           <TableCell>
                             <Badge variant={admission.status === "active" ? "default" : "secondary"}>
