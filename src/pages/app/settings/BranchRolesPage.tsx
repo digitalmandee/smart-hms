@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Database } from "@/integrations/supabase/types";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -68,7 +69,7 @@ export default function BranchRolesPage() {
       if (!selectedBranchId) throw new Error("No branch selected");
       await supabase.from("branch_role_restrictions").delete().eq("branch_id", selectedBranchId);
       if (restrictedRoles.length > 0) {
-        const { error } = await supabase.from("branch_role_restrictions").insert(restrictedRoles.map((role) => ({ branch_id: selectedBranchId, role })));
+        const { error } = await supabase.from("branch_role_restrictions").insert(restrictedRoles.map((role) => ({ branch_id: selectedBranchId, role: role as Database["public"]["Enums"]["app_role"] })));
         if (error) throw error;
       }
     },
