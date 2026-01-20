@@ -8227,11 +8227,14 @@ export type Database = {
           created_at: string
           doctor_id: string
           id: string
+          invoice_id: string | null
           is_published: boolean | null
           notification_sent_at: string | null
           order_number: string
+          ordered_by: string | null
           patient_id: string
           patient_notified: boolean | null
+          payment_status: string | null
           priority: Database["public"]["Enums"]["lab_order_priority"]
           published_at: string | null
           result_notes: string | null
@@ -8249,11 +8252,14 @@ export type Database = {
           created_at?: string
           doctor_id: string
           id?: string
+          invoice_id?: string | null
           is_published?: boolean | null
           notification_sent_at?: string | null
           order_number: string
+          ordered_by?: string | null
           patient_id: string
           patient_notified?: boolean | null
+          payment_status?: string | null
           priority?: Database["public"]["Enums"]["lab_order_priority"]
           published_at?: string | null
           result_notes?: string | null
@@ -8271,11 +8277,14 @@ export type Database = {
           created_at?: string
           doctor_id?: string
           id?: string
+          invoice_id?: string | null
           is_published?: boolean | null
           notification_sent_at?: string | null
           order_number?: string
+          ordered_by?: string | null
           patient_id?: string
           patient_notified?: boolean | null
+          payment_status?: string | null
           priority?: Database["public"]["Enums"]["lab_order_priority"]
           published_at?: string | null
           result_notes?: string | null
@@ -8304,6 +8313,20 @@ export type Database = {
             columns: ["doctor_id"]
             isOneToOne: false
             referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_orders_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_orders_ordered_by_fkey"
+            columns: ["ordered_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
