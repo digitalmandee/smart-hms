@@ -201,6 +201,117 @@ interface DynamicSidebarProps {
   showDesktopToggle?: boolean;
 }
 
+// Recursive menu item component for 3-level nesting support
+interface RecursiveMenuItemProps {
+  item: {
+    id: string;
+    code: string;
+    name: string;
+    icon?: string;
+    path: string | null;
+    children?: RecursiveMenuItemProps['item'][];
+  };
+  level: number;
+  index: number;
+  isCollapsed: boolean;
+  openMenus: string[];
+  toggleMenu: (code: string) => void;
+  isActive: (path: string | null) => boolean;
+  handleNavigation: (path: string | null) => void;
+  iconMap: Record<string, React.ComponentType<{ className?: string }>>;
+}
+
+const RecursiveMenuItem = ({
+  item,
+  level,
+  index,
+  isCollapsed,
+  openMenus,
+  toggleMenu,
+  isActive,
+  handleNavigation,
+  iconMap,
+}: RecursiveMenuItemProps) => {
+  const IconComponent = item.icon ? iconMap[item.icon] : (level === 0 ? iconMap.LayoutDashboard : null);
+  const hasChildren = item.children && item.children.length > 0;
+  const menuCode = item.code || `menu-${level}-${index}`;
+  const isOpen = openMenus.includes(menuCode);
+  const itemIsActive = isActive(item.path);
+
+  // Indentation based on level
+  const paddingLeft = level === 0 ? "" : level === 1 ? "pl-4" : "pl-8";
+  const iconSize = level === 0 ? "h-5 w-5" : "h-4 w-4";
+
+  if (hasChildren) {
+    return (
+      <Collapsible
+        open={isOpen}
+        onOpenChange={() => toggleMenu(menuCode)}
+      >
+        <CollapsibleTrigger asChild>
+          <Button
+            variant="ghost"
+            className={cn(
+              "w-full justify-start gap-3 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+              isCollapsed && level === 0 && "justify-center px-2",
+              paddingLeft
+            )}
+            title={isCollapsed ? item.name : undefined}
+          >
+            {IconComponent && <IconComponent className={cn(iconSize, "flex-shrink-0")} />}
+            {!isCollapsed && (
+              <>
+                <span className="flex-1 text-left">{item.name}</span>
+                <ChevronDown
+                  className={cn(
+                    "h-4 w-4 transition-transform",
+                    isOpen && "rotate-180"
+                  )}
+                />
+              </>
+            )}
+          </Button>
+        </CollapsibleTrigger>
+        {!isCollapsed && (
+          <CollapsibleContent className="space-y-1 mt-1">
+            {item.children?.map((child, childIndex) => (
+              <RecursiveMenuItem
+                key={child.id}
+                item={child}
+                level={level + 1}
+                index={childIndex}
+                isCollapsed={isCollapsed}
+                openMenus={openMenus}
+                toggleMenu={toggleMenu}
+                isActive={isActive}
+                handleNavigation={handleNavigation}
+                iconMap={iconMap}
+              />
+            ))}
+          </CollapsibleContent>
+        )}
+      </Collapsible>
+    );
+  }
+
+  return (
+    <Button
+      variant="ghost"
+      onClick={() => handleNavigation(item.path)}
+      className={cn(
+        "w-full justify-start gap-3 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+        isCollapsed && level === 0 && "justify-center px-2",
+        itemIsActive && "bg-sidebar-accent text-sidebar-accent-foreground",
+        paddingLeft
+      )}
+      title={isCollapsed ? item.name : undefined}
+    >
+      {IconComponent && <IconComponent className={cn(iconSize, "flex-shrink-0")} />}
+      {!isCollapsed && <span>{item.name}</span>}
+    </Button>
+  );
+};
+
 export const DynamicSidebar = ({ isCollapsed = false, onToggle, showDesktopToggle = false }: DynamicSidebarProps) => {
   // Use database menu items for admin roles, static config for operational roles
   const { menuItems: dbMenuItems, isLoading: menuLoading } = useMenuItems();
@@ -240,22 +351,38 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle, showDesktopToggl
         })) || [],
       })) || []);
 
-  // Auto-expand parent menu based on current route
-  useEffect(() => {
-    const currentPath = location.pathname;
+  // Recursively find all parent menus that should be expanded for current route
+  const findMenusToExpand = (items: typeof menuItems, currentPath: string): string[] => {
     const menusToOpen: string[] = [];
     
-    menuItems.forEach((item, index) => {
-      const menuCode = item.code || `menu-${index}`;
+    const checkItem = (item: typeof menuItems[0], parentCodes: string[] = []): boolean => {
+      const itemCode = item.code || item.id;
+      
+      // Check if this item matches current path
+      if (item.path && (currentPath === item.path || currentPath.startsWith(item.path + "/"))) {
+        menusToOpen.push(...parentCodes);
+        return true;
+      }
+      
+      // Check children recursively
       if (item.children && item.children.length > 0) {
-        const hasActiveChild = item.children.some(child => 
-          child.path && (currentPath === child.path || currentPath.startsWith(child.path + "/"))
-        );
-        if (hasActiveChild) {
-          menusToOpen.push(menuCode);
+        for (const child of item.children) {
+          if (checkItem(child, [...parentCodes, itemCode])) {
+            return true;
+          }
         }
       }
-    });
+      
+      return false;
+    };
+    
+    items.forEach(item => checkItem(item));
+    return menusToOpen;
+  };
+
+  // Auto-expand parent menus based on current route
+  useEffect(() => {
+    const menusToOpen = findMenusToExpand(menuItems, location.pathname);
     
     if (menusToOpen.length > 0) {
       setOpenMenus(prev => {
@@ -360,87 +487,20 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle, showDesktopToggl
             </div>
           ) : (
             <>
-          {menuItems.map((item, index) => {
-            const IconComponent = item.icon ? iconMap[item.icon] : LayoutDashboard;
-            const hasChildren = item.children && item.children.length > 0;
-            const menuCode = item.code || `menu-${index}`;
-            const isOpen = openMenus.includes(menuCode);
-            const itemIsActive = isActive(item.path);
-
-            if (hasChildren) {
-              return (
-                <Collapsible
-                  key={item.id}
-                  open={isOpen}
-                  onOpenChange={() => toggleMenu(menuCode)}
-                >
-                  <CollapsibleTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className={cn(
-                        "w-full justify-start gap-3 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                        isCollapsed && "justify-center px-2"
-                      )}
-                      title={isCollapsed ? item.name : undefined}
-                    >
-                      {IconComponent && <IconComponent className="h-5 w-5 flex-shrink-0" />}
-                      {!isCollapsed && (
-                        <>
-                          <span className="flex-1 text-left">{item.name}</span>
-                          <ChevronDown
-                            className={cn(
-                              "h-4 w-4 transition-transform",
-                              isOpen && "rotate-180"
-                            )}
-                          />
-                        </>
-                      )}
-                    </Button>
-                  </CollapsibleTrigger>
-                  {!isCollapsed && (
-                    <CollapsibleContent className="pl-4 space-y-1 mt-1">
-                      {item.children?.map((child) => {
-                        const ChildIcon = child.icon ? iconMap[child.icon] : null;
-                        const childIsActive = isActive(child.path);
-
-                        return (
-                          <Button
-                            key={child.id}
-                            variant="ghost"
-                            onClick={() => handleNavigation(child.path)}
-                            className={cn(
-                              "w-full justify-start gap-3 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative z-10",
-                              childIsActive && "bg-sidebar-accent text-sidebar-accent-foreground"
-                            )}
-                          >
-                            {ChildIcon && <ChildIcon className="h-4 w-4 flex-shrink-0" />}
-                            <span>{child.name}</span>
-                          </Button>
-                        );
-                      })}
-                    </CollapsibleContent>
-                  )}
-                </Collapsible>
-              );
-            }
-
-            return (
-              <Button
-                key={item.id}
-                variant="ghost"
-                onClick={() => handleNavigation(item.path)}
-                className={cn(
-                  "w-full justify-start gap-3 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                  isCollapsed && "justify-center px-2",
-                  itemIsActive && "bg-sidebar-accent text-sidebar-accent-foreground"
-                )}
-                title={isCollapsed ? item.name : undefined}
-              >
-                {IconComponent && <IconComponent className="h-5 w-5 flex-shrink-0" />}
-                {!isCollapsed && <span>{item.name}</span>}
-              </Button>
-            );
-          })}
+          {menuItems.map((item, index) => (
+            <RecursiveMenuItem
+              key={item.id}
+              item={item}
+              level={0}
+              index={index}
+              isCollapsed={isCollapsed}
+              openMenus={openMenus}
+              toggleMenu={toggleMenu}
+              isActive={isActive}
+              handleNavigation={handleNavigation}
+              iconMap={iconMap}
+            />
+          ))}
           </>
           )}
         </nav>
