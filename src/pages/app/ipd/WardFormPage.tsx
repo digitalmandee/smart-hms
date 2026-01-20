@@ -24,19 +24,16 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useWards, useCreateWard, useUpdateWard } from "@/hooks/useIPD";
+import { useWardTypes } from "@/hooks/useIPDConfig";
 import { useAuth } from "@/contexts/AuthContext";
 import { Save } from "lucide-react";
 import { toast } from "sonner";
 
-// Ward types matching database enum: general, semi_private, private, deluxe, vip, icu, nicu, picu, ccu, isolation, emergency, maternity, pediatric, surgical
+// Ward form schema - ward_type is now dynamic from database
 const wardFormSchema = z.object({
   name: z.string().min(1, "Ward name is required"),
   code: z.string().min(1, "Ward code is required"),
-  ward_type: z.enum([
-    "general", "semi_private", "private", "deluxe", "vip",
-    "icu", "nicu", "picu", "ccu", "isolation", "emergency",
-    "maternity", "pediatric", "surgical"
-  ]),
+  ward_type: z.string().min(1, "Ward type is required"),
   total_beds: z.coerce.number().min(1, "Must have at least 1 bed"),
   building: z.string().optional(),
   floor: z.string().optional(),
@@ -48,31 +45,18 @@ const wardFormSchema = z.object({
 
 type WardFormValues = z.infer<typeof wardFormSchema>;
 
-const wardTypes = [
-  { value: "general", label: "General Ward" },
-  { value: "semi_private", label: "Semi-Private" },
-  { value: "private", label: "Private" },
-  { value: "deluxe", label: "Deluxe" },
-  { value: "vip", label: "VIP" },
-  { value: "icu", label: "ICU" },
-  { value: "nicu", label: "NICU" },
-  { value: "picu", label: "PICU" },
-  { value: "ccu", label: "CCU" },
-  { value: "isolation", label: "Isolation" },
-  { value: "emergency", label: "Emergency" },
-  { value: "maternity", label: "Maternity" },
-  { value: "pediatric", label: "Pediatric" },
-  { value: "surgical", label: "Surgical" },
-];
-
 export default function WardFormPage() {
   const navigate = useNavigate();
   const { id } = useParams();
   const { profile } = useAuth();
   const { data: wards } = useWards();
+  const { data: wardTypesData, isLoading: loadingWardTypes } = useWardTypes();
   const { mutateAsync: createWard, isPending: isCreatingWard } = useCreateWard();
   const { mutateAsync: updateWard, isPending: isUpdatingWard } = useUpdateWard();
   const isEditing = Boolean(id);
+  
+  // Filter to only show active ward types
+  const activeWardTypes = wardTypesData?.filter(wt => wt.is_active) || [];
 
   const form = useForm<WardFormValues>({
     resolver: zodResolver(wardFormSchema),
@@ -203,16 +187,16 @@ export default function WardFormPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Ward Type *</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value} disabled={loadingWardTypes}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select type" />
+                          <SelectValue placeholder={loadingWardTypes ? "Loading..." : "Select type"} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {wardTypes.map((type) => (
-                          <SelectItem key={type.value} value={type.value}>
-                            {type.label}
+                        {activeWardTypes.map((type) => (
+                          <SelectItem key={type.id} value={type.code}>
+                            {type.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
