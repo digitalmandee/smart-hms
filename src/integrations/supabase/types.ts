@@ -2757,6 +2757,432 @@ export type Database = {
           },
         ]
       }
+      config_admission_types: {
+        Row: {
+          code: string
+          color: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          organization_id: string | null
+          sort_order: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          code: string
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          organization_id?: string | null
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          organization_id?: string | null
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "config_admission_types_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      config_arrival_modes: {
+        Row: {
+          code: string
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          organization_id: string | null
+          sort_order: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          organization_id?: string | null
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          organization_id?: string | null
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "config_arrival_modes_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      config_condition_statuses: {
+        Row: {
+          code: string
+          color: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          organization_id: string | null
+          severity_level: number | null
+          sort_order: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          code: string
+          color?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          organization_id?: string | null
+          severity_level?: number | null
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string
+          color?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          organization_id?: string | null
+          severity_level?: number | null
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "config_condition_statuses_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      config_discharge_types: {
+        Row: {
+          code: string
+          color: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          organization_id: string | null
+          requires_reason: boolean | null
+          sort_order: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          code: string
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          organization_id?: string | null
+          requires_reason?: boolean | null
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          organization_id?: string | null
+          requires_reason?: boolean | null
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "config_discharge_types_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      config_er_zones: {
+        Row: {
+          capacity: number | null
+          code: string
+          color: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          organization_id: string | null
+          sort_order: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          capacity?: number | null
+          code: string
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          organization_id?: string | null
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          capacity?: number | null
+          code?: string
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          organization_id?: string | null
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "config_er_zones_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      config_imaging_modalities: {
+        Row: {
+          code: string
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          organization_id: string | null
+          sort_order: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          organization_id?: string | null
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          organization_id?: string | null
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "config_imaging_modalities_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      config_imaging_priorities: {
+        Row: {
+          code: string
+          color: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          max_wait_hours: number | null
+          name: string
+          organization_id: string | null
+          sort_order: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          code: string
+          color: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_wait_hours?: number | null
+          name: string
+          organization_id?: string | null
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string
+          color?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_wait_hours?: number | null
+          name?: string
+          organization_id?: string | null
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "config_imaging_priorities_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      config_transfer_reasons: {
+        Row: {
+          code: string
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          organization_id: string | null
+          sort_order: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          organization_id?: string | null
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          organization_id?: string | null
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "config_transfer_reasons_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      config_triage_levels: {
+        Row: {
+          color: string
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          level: number
+          max_wait_minutes: number | null
+          name: string
+          organization_id: string | null
+          sort_order: number | null
+          updated_at: string | null
+          zone: string | null
+        }
+        Insert: {
+          color: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          level: number
+          max_wait_minutes?: number | null
+          name: string
+          organization_id?: string | null
+          sort_order?: number | null
+          updated_at?: string | null
+          zone?: string | null
+        }
+        Update: {
+          color?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          level?: number
+          max_wait_minutes?: number | null
+          name?: string
+          organization_id?: string | null
+          sort_order?: number | null
+          updated_at?: string | null
+          zone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "config_triage_levels_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       consultations: {
         Row: {
           appointment_id: string

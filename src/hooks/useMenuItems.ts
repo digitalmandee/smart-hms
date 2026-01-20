@@ -56,42 +56,50 @@ export const useMenuItems = () => {
             return hasPermission(item.required_permission);
           };
 
-          // First pass: create map of all items
+          // First pass: create map of all items with empty children arrays
           const itemMap = new Map<string, MenuItem>();
           data.forEach((item) => {
             itemMap.set(item.id, { ...item, children: [] });
           });
 
-          // Second pass: build tree and filter children
+          // Second pass: build parent-child relationships (attach ALL children first)
           const rootItems: MenuItem[] = [];
           data.forEach((item) => {
             const menuItem = itemMap.get(item.id)!;
             if (item.parent_id && itemMap.has(item.parent_id)) {
-              // Only add child if it passes permission check
-              if (canViewItem(item)) {
-                const parent = itemMap.get(item.parent_id)!;
-                parent.children = parent.children || [];
-                parent.children.push(menuItem);
-              }
+              const parent = itemMap.get(item.parent_id)!;
+              parent.children = parent.children || [];
+              parent.children.push(menuItem);
             } else if (!item.parent_id) {
               rootItems.push(menuItem);
             }
           });
 
-          // Filter root items: show if they have a path and can view, OR if they have visible children
-          const finalItems = rootItems.filter((item) => {
-            // For items with direct path, check permission
-            if (item.path) return canViewItem(item);
-            
-            // For parent items (no path), show if they have visible children
-            // AND either no permission required OR has permission
-            if (item.children && item.children.length > 0) {
-              return canViewItem(item);
-            }
-            
-            return false;
-          });
+          // Third pass: recursively filter items based on permissions
+          // This ensures children are filtered before parents are evaluated
+          const filterItemsRecursively = (items: MenuItem[]): MenuItem[] => {
+            return items
+              .map((item) => {
+                // First, recursively filter children
+                if (item.children && item.children.length > 0) {
+                  item.children = filterItemsRecursively(item.children);
+                }
+                return item;
+              })
+              .filter((item) => {
+                // Check if user can view this item
+                if (!canViewItem(item)) return false;
 
+                // If item has a path, it's a leaf/navigable item - show it
+                if (item.path) return true;
+
+                // If item has no path, it's a parent container
+                // Only show if it has visible children after filtering
+                return item.children && item.children.length > 0;
+              });
+          };
+
+          const finalItems = filterItemsRecursively(rootItems);
           setMenuItems(finalItems);
         }
       } catch (error) {
