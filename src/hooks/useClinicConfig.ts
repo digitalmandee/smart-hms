@@ -152,8 +152,20 @@ export function useConfigDosageFrequencies() {
   return useQuery({
     queryKey: ["config-dosage-frequencies", profile?.organization_id],
     queryFn: async () => {
-      // Return defaults - config tables will be used once types are regenerated
-      return DEFAULT_FREQUENCIES;
+      if (!profile?.organization_id) return DEFAULT_FREQUENCIES;
+
+      const { data, error } = await (supabase as any)
+        .from('config_dosage_frequencies')
+        .select('code, label')
+        .eq('organization_id', profile.organization_id)
+        .eq('is_active', true)
+        .order('sort_order');
+
+      if (error || !data || data.length === 0) {
+        return DEFAULT_FREQUENCIES;
+      }
+
+      return data.map((f: { code: string; label: string }) => ({ value: f.code, label: f.label }));
     },
     enabled: !!profile?.organization_id,
     placeholderData: DEFAULT_FREQUENCIES,
@@ -167,7 +179,20 @@ export function useConfigDurationOptions() {
   return useQuery({
     queryKey: ["config-duration-options", profile?.organization_id],
     queryFn: async () => {
-      return DEFAULT_DURATIONS;
+      if (!profile?.organization_id) return DEFAULT_DURATIONS;
+
+      const { data, error } = await (supabase as any)
+        .from('config_duration_options')
+        .select('value, label')
+        .eq('organization_id', profile.organization_id)
+        .eq('is_active', true)
+        .order('sort_order');
+
+      if (error || !data || data.length === 0) {
+        return DEFAULT_DURATIONS;
+      }
+
+      return data.map((d: { value: string; label: string }) => ({ value: d.value, label: d.label }));
     },
     enabled: !!profile?.organization_id,
     placeholderData: DEFAULT_DURATIONS,
@@ -181,7 +206,20 @@ export function useConfigInstructions() {
   return useQuery({
     queryKey: ["config-instructions", profile?.organization_id],
     queryFn: async () => {
-      return DEFAULT_INSTRUCTIONS;
+      if (!profile?.organization_id) return DEFAULT_INSTRUCTIONS;
+
+      const { data, error } = await (supabase as any)
+        .from('config_instructions')
+        .select('text')
+        .eq('organization_id', profile.organization_id)
+        .eq('is_active', true)
+        .order('sort_order');
+
+      if (error || !data || data.length === 0) {
+        return DEFAULT_INSTRUCTIONS;
+      }
+
+      return data.map((i: { text: string }) => i.text);
     },
     enabled: !!profile?.organization_id,
     placeholderData: DEFAULT_INSTRUCTIONS,
@@ -195,7 +233,23 @@ export function useConfigLabPanels() {
   return useQuery({
     queryKey: ["config-lab-panels", profile?.organization_id],
     queryFn: async () => {
-      return DEFAULT_LAB_PANELS;
+      if (!profile?.organization_id) return DEFAULT_LAB_PANELS;
+
+      const { data, error } = await (supabase as any)
+        .from('config_lab_panels')
+        .select('name, tests')
+        .eq('organization_id', profile.organization_id)
+        .eq('is_active', true)
+        .order('sort_order');
+
+      if (error || !data || data.length === 0) {
+        return DEFAULT_LAB_PANELS;
+      }
+
+      return data.map((p: { name: string; tests: Array<{ test_name: string; test_category: string }> }) => ({
+        name: p.name,
+        tests: p.tests
+      }));
     },
     enabled: !!profile?.organization_id,
     placeholderData: DEFAULT_LAB_PANELS,
