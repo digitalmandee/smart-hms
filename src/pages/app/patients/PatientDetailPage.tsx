@@ -1,7 +1,7 @@
-import { useState, useRef } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useRef } from "react";
+import { useParams, Link } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,11 +9,13 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { usePatient } from "@/hooks/usePatients";
 import { useMedicalHistory } from "@/hooks/useMedicalHistory";
 import { usePatientProfileStats } from "@/hooks/usePatientProfileStats";
+import { usePatientCurrentVisit } from "@/hooks/usePatientCurrentVisit";
 import { useOrganization } from "@/hooks/useOrganizations";
 import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PrintablePatientCard } from "@/components/patients/PrintablePatientCard";
 import { PatientRecentActivity } from "@/components/patients/PatientRecentActivity";
+import { PatientCurrentVisit } from "@/components/patients/PatientCurrentVisit";
 import { usePrint } from "@/hooks/usePrint";
 import {
   User,
@@ -55,11 +57,11 @@ import { Baby, Award } from "lucide-react";
 
 export function PatientDetailPage() {
   const { id } = useParams();
-  const navigate = useNavigate();
   const { profile } = useAuth();
   const { data: patient, isLoading } = usePatient(id);
   const { data: medicalHistory } = useMedicalHistory(id);
   const { data: profileStats } = usePatientProfileStats(id);
+  const { data: currentVisit } = usePatientCurrentVisit(id);
   const { data: organization } = useOrganization(profile?.organization_id);
   const { printRef, handlePrint } = usePrint();
 
@@ -153,6 +155,9 @@ export function PatientDetailPage() {
           </div>
         }
       />
+
+      {/* Current Visit Alert */}
+      {currentVisit && <PatientCurrentVisit visit={currentVisit} />}
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Patient Profile Card */}

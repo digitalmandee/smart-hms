@@ -12,6 +12,9 @@ import {
   Droplet,
   AlertTriangle,
   ChevronRight,
+  Activity,
+  Thermometer,
+  Heart,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -27,9 +30,18 @@ interface PatientQuickInfoProps {
     gender: string | null;
     blood_group: string | null;
   };
+  vitals?: {
+    blood_pressure_systolic?: number;
+    blood_pressure_diastolic?: number;
+    pulse?: number;
+    temperature?: number;
+    spo2?: number;
+    weight?: number;
+    height?: number;
+  } | null;
 }
 
-export function PatientQuickInfo({ patient }: PatientQuickInfoProps) {
+export function PatientQuickInfo({ patient, vitals }: PatientQuickInfoProps) {
   const { data: medicalHistory = [] } = useMedicalHistory(patient.id);
 
   const allergies = medicalHistory.filter((h) => h.condition_type === "allergy");
@@ -98,6 +110,57 @@ export function PatientQuickInfo({ patient }: PatientQuickInfoProps) {
             </div>
           )}
         </div>
+
+        {/* Vitals Summary - From Check-in */}
+        {vitals && Object.keys(vitals).length > 0 && (
+          <>
+            <Separator />
+            <div>
+              <h4 className="text-sm font-medium mb-2 flex items-center gap-1">
+                <Activity className="h-4 w-4 text-primary" />
+                Check-in Vitals
+              </h4>
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                {vitals.blood_pressure_systolic && vitals.blood_pressure_diastolic && (
+                  <div className="flex items-center gap-2">
+                    <Heart className="h-3 w-3 text-muted-foreground" />
+                    <span>BP: {vitals.blood_pressure_systolic}/{vitals.blood_pressure_diastolic}</span>
+                  </div>
+                )}
+                {vitals.pulse && (
+                  <div className="flex items-center gap-2">
+                    <Activity className="h-3 w-3 text-muted-foreground" />
+                    <span>Pulse: {vitals.pulse}</span>
+                  </div>
+                )}
+                {vitals.temperature && (
+                  <div className="flex items-center gap-2">
+                    <Thermometer className="h-3 w-3 text-muted-foreground" />
+                    <span>Temp: {vitals.temperature}°F</span>
+                  </div>
+                )}
+                {vitals.spo2 && (
+                  <div className="flex items-center gap-2">
+                    <Activity className="h-3 w-3 text-muted-foreground" />
+                    <span>SpO2: {vitals.spo2}%</span>
+                  </div>
+                )}
+                {vitals.weight && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-muted-foreground">Wt:</span>
+                    <span>{vitals.weight} kg</span>
+                  </div>
+                )}
+                {vitals.height && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-muted-foreground">Ht:</span>
+                    <span>{vitals.height} cm</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
+        )}
 
         <Separator />
 

@@ -253,7 +253,7 @@ export default function ConsultationPage() {
 
         {/* Sidebar */}
         <div className="space-y-6">
-          {patient && <PatientQuickInfo patient={patient} />}
+          {patient && <PatientQuickInfo patient={patient} vitals={nurseVitals} />}
           {patient && (
             <PreviousVisits
               patientId={patient.id}
