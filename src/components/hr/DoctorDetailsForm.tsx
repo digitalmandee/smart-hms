@@ -17,41 +17,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Stethoscope, Award, CreditCard, Calendar, Loader2 } from "lucide-react";
-import { useSpecializations } from "@/hooks/useConfiguration";
+import { useSpecializations, useQualifications } from "@/hooks/useConfiguration";
 
 interface DoctorDetailsFormProps {
   form: UseFormReturn<any>;
 }
 
-// Fallback specializations in case database is empty
-const FALLBACK_SPECIALIZATIONS = [
-  "General Medicine",
-  "Cardiology",
-  "Dermatology",
-  "ENT",
-  "Gastroenterology",
-  "General Surgery",
-  "Gynecology",
-  "Nephrology",
-  "Neurology",
-  "Oncology",
-  "Ophthalmology",
-  "Orthopedics",
-  "Pediatrics",
-  "Psychiatry",
-  "Pulmonology",
-  "Radiology",
-  "Urology",
-  "Other",
-];
-
 export function DoctorDetailsForm({ form }: DoctorDetailsFormProps) {
   const { data: specializations, isLoading: specsLoading } = useSpecializations();
-  
-  // Use database specializations or fallback
-  const specializationOptions = specializations?.length 
-    ? specializations.map(s => s.name)
-    : FALLBACK_SPECIALIZATIONS;
+  const { data: qualifications, isLoading: qualsLoading } = useQualifications();
 
   return (
     <Card>
@@ -86,9 +60,9 @@ export function DoctorDetailsForm({ form }: DoctorDetailsFormProps) {
                       <Loader2 className="h-4 w-4 animate-spin" />
                     </div>
                   ) : (
-                    specializationOptions.map((spec) => (
-                      <SelectItem key={spec} value={spec}>
-                        {spec}
+                    specializations?.map((spec) => (
+                      <SelectItem key={spec.id} value={spec.name}>
+                        {spec.name}
                       </SelectItem>
                     ))
                   )}
@@ -108,9 +82,26 @@ export function DoctorDetailsForm({ form }: DoctorDetailsFormProps) {
                 <Award className="h-4 w-4 text-muted-foreground" />
                 Qualification
               </FormLabel>
-              <FormControl>
-                <Input placeholder="MBBS, MD, FCPS" {...field} />
-              </FormControl>
+              <Select onValueChange={field.onChange} value={field.value || ""}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder={qualsLoading ? "Loading..." : "Select qualification"} />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {qualsLoading ? (
+                    <div className="flex items-center justify-center py-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    </div>
+                  ) : (
+                    qualifications?.map((qual) => (
+                      <SelectItem key={qual.id} value={qual.abbreviation || qual.name}>
+                        {qual.abbreviation || qual.name}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}

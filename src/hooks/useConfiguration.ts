@@ -208,6 +208,34 @@ export function useDeleteQualification() {
   });
 }
 
+// Appointment Types hook
+interface AppointmentType {
+  id: string;
+  organization_id: string;
+  code: string;
+  name: string;
+  description: string | null;
+  is_fee_applicable: boolean;
+  sort_order: number;
+  is_active: boolean;
+}
+
+export function useAppointmentTypes() {
+  return useQuery({
+    queryKey: ["appointment-types"],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("config_appointment_types")
+        .select("*")
+        .eq("is_active", true)
+        .order("sort_order");
+      
+      if (error) throw error;
+      return data as AppointmentType[];
+    },
+  });
+}
+
 // Doctor fee schedule hooks
 export function useDoctorFeeSchedule(doctorId?: string) {
   return useQuery({

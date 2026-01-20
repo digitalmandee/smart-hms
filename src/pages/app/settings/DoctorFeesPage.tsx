@@ -21,22 +21,14 @@ import {
 } from "@/components/ui/table";
 import { Stethoscope, Loader2, Save, CreditCard } from "lucide-react";
 import { useAllDoctors } from "@/hooks/useDoctors";
-import { useDoctorFeeSchedule, useUpdateDoctorFees } from "@/hooks/useConfiguration";
-
-const APPOINTMENT_TYPES = [
-  { value: "new_consultation", label: "New Consultation" },
-  { value: "follow_up", label: "Follow-up" },
-  { value: "urgent", label: "Urgent/Priority" },
-  { value: "emergency", label: "Emergency" },
-  { value: "home_visit", label: "Home Visit" },
-  { value: "telemedicine", label: "Telemedicine" },
-];
+import { useDoctorFeeSchedule, useUpdateDoctorFees, useAppointmentTypes } from "@/hooks/useConfiguration";
 
 export default function DoctorFeesPage() {
   const [selectedDoctorId, setSelectedDoctorId] = useState<string>("");
   const [fees, setFees] = useState<Record<string, number>>({});
 
   const { data: doctors, isLoading: doctorsLoading } = useAllDoctors();
+  const { data: appointmentTypes, isLoading: typesLoading } = useAppointmentTypes();
   const { data: feeSchedule, isLoading: feesLoading } = useDoctorFeeSchedule(selectedDoctorId);
   const updateFees = useUpdateDoctorFees();
 
@@ -108,7 +100,7 @@ export default function DoctorFeesPage() {
             </div>
 
             {selectedDoctorId ? (
-              feesLoading ? (
+              feesLoading || typesLoading ? (
                 <div className="flex justify-center py-8">
                   <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                 </div>
@@ -122,15 +114,15 @@ export default function DoctorFeesPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {APPOINTMENT_TYPES.map((type) => (
-                        <TableRow key={type.value}>
-                          <TableCell className="font-medium">{type.label}</TableCell>
+                      {appointmentTypes?.map((type) => (
+                        <TableRow key={type.code}>
+                          <TableCell className="font-medium">{type.name}</TableCell>
                           <TableCell>
                             <Input
                               type="number"
                               placeholder="0"
-                              value={fees[type.value] ?? currentFees[type.value] ?? ""}
-                              onChange={(e) => handleFeeChange(type.value, e.target.value)}
+                              value={fees[type.code] ?? currentFees[type.code] ?? ""}
+                              onChange={(e) => handleFeeChange(type.code, e.target.value)}
                             />
                           </TableCell>
                         </TableRow>
