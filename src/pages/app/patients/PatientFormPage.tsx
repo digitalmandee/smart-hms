@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
+import { usePatientConfig } from "@/hooks/usePatientConfig";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -95,12 +96,6 @@ const patientSchema = z.object({
 type PatientFormData = z.infer<typeof patientSchema>;
 
 const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
-const CITIES = ["Lahore", "Karachi", "Islamabad", "Rawalpindi", "Faisalabad", "Multan", "Peshawar", "Quetta", "Sialkot", "Gujranwala"];
-const LANGUAGES = ["Urdu", "English", "Punjabi", "Sindhi", "Pashto", "Balochi", "Saraiki"];
-const OCCUPATIONS = ["Business", "Government Employee", "Private Employee", "Doctor", "Engineer", "Teacher", "Student", "Housewife", "Retired", "Farmer", "Labour", "Other"];
-const RELATIONS = ["Spouse", "Son", "Daughter", "Father", "Mother", "Brother", "Sister", "Friend", "Other"];
-const REFERRAL_SOURCES = ["Doctor Referral", "Hospital Referral", "Walk-in", "Online", "Friend/Family", "Advertisement", "Other"];
-const INSURANCE_PROVIDERS = ["State Life", "Jubilee Life", "EFU Life", "Adamjee Insurance", "Allianz EFU", "IGI Insurance", "Other"];
 
 export function PatientFormPage() {
   const { id } = useParams();
@@ -110,6 +105,9 @@ export function PatientFormPage() {
   const [showAllFields, setShowAllFields] = useState(false);
   const [printCardAfterSave, setPrintCardAfterSave] = useState(false);
   const [savedPatient, setSavedPatient] = useState<any>(null);
+
+  // Dynamic configuration data
+  const { cities, languages, occupations, relations, referralSources, insuranceProviders } = usePatientConfig();
 
   const { data: patient, isLoading: patientLoading } = usePatient(id);
   const { data: branches } = useBranches();
@@ -447,8 +445,8 @@ export function PatientFormPage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {CITIES.map((city) => (
-                            <SelectItem key={city} value={city}>{city}</SelectItem>
+                          {(cities.data || []).map((city) => (
+                            <SelectItem key={city.id} value={city.name}>{city.name}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
@@ -569,8 +567,8 @@ export function PatientFormPage() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {OCCUPATIONS.map((occ) => (
-                                <SelectItem key={occ} value={occ}>{occ}</SelectItem>
+                              {(occupations.data || []).map((occ) => (
+                                <SelectItem key={occ.id} value={occ.name}>{occ.name}</SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
@@ -592,8 +590,8 @@ export function PatientFormPage() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {LANGUAGES.map((lang) => (
-                                <SelectItem key={lang} value={lang}>{lang}</SelectItem>
+                              {(languages.data || []).map((lang) => (
+                                <SelectItem key={lang.id} value={lang.name}>{lang.name}</SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
@@ -740,8 +738,8 @@ export function PatientFormPage() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {RELATIONS.map((rel) => (
-                                <SelectItem key={rel} value={rel}>{rel}</SelectItem>
+                              {(relations.data || []).map((rel) => (
+                                <SelectItem key={rel.id} value={rel.name}>{rel.name}</SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
@@ -790,8 +788,8 @@ export function PatientFormPage() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {INSURANCE_PROVIDERS.map((ins) => (
-                                <SelectItem key={ins} value={ins}>{ins}</SelectItem>
+                              {(insuranceProviders.data || []).map((ins) => (
+                                <SelectItem key={ins.id} value={ins.name}>{ins.name}</SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
@@ -840,8 +838,8 @@ export function PatientFormPage() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {REFERRAL_SOURCES.map((ref) => (
-                                <SelectItem key={ref} value={ref}>{ref}</SelectItem>
+                              {(referralSources.data || []).map((ref) => (
+                                <SelectItem key={ref.id} value={ref.name}>{ref.name}</SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
