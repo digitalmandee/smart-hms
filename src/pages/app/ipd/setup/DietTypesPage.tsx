@@ -1,8 +1,8 @@
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { DIET_TYPES } from "@/hooks/useDietCharts";
-import { Apple, Droplet, Heart, AlertTriangle, Pill, Utensils, Ban, Leaf, Beef, FlaskConical, Salad, Sparkles, Syringe, Settings2 } from "lucide-react";
+import { useDietTypesConfig, DEFAULT_DIET_TYPES } from "@/hooks/useDietTypesConfig";
+import { Apple, Droplet, Heart, AlertTriangle, Pill, Utensils, Ban, Leaf, Beef, FlaskConical, Salad, Sparkles, Syringe, Settings2, Loader2 } from "lucide-react";
 
 const DIET_TYPE_CONFIG: Record<string, { label: string; description: string; icon: React.ReactNode; color: string }> = {
   normal: {
@@ -98,6 +98,11 @@ const DIET_TYPE_CONFIG: Record<string, { label: string; description: string; ico
 };
 
 export default function DietTypesPage() {
+  const { data: dietTypes, isLoading } = useDietTypesConfig();
+  
+  // Use database config or fall back to defaults
+  const displayTypes = dietTypes || DEFAULT_DIET_TYPES.map((dt, i) => ({ ...dt, id: `default-${i}`, sort_order: i, is_active: true }));
+  
   return (
     <div className="space-y-6">
       <PageHeader
@@ -113,36 +118,42 @@ export default function DietTypesPage() {
           </CardTitle>
           <CardDescription>
             These diet types are available when prescribing nutrition plans for admitted patients.
-            Contact system administrator to add or modify diet types.
+            Go to Settings → IPD Config to add or modify diet types.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {DIET_TYPES.map((type) => {
-              const config = DIET_TYPE_CONFIG[type] || {
-                label: type.replace(/_/g, " ").toUpperCase(),
-                description: "Diet type configuration",
-                icon: <Utensils className="h-5 w-5" />,
-                color: "bg-gray-100 text-gray-800 border-gray-200",
-              };
+          {isLoading ? (
+            <div className="flex justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {displayTypes.map((type) => {
+                const config = DIET_TYPE_CONFIG[type.code] || {
+                  label: type.name || type.code.replace(/_/g, " ").toUpperCase(),
+                  description: type.description || "Diet type configuration",
+                  icon: <Utensils className="h-5 w-5" />,
+                  color: type.color || "bg-gray-100 text-gray-800 border-gray-200",
+                };
 
-              return (
-                <div
-                  key={type}
-                  className={`p-4 rounded-lg border ${config.color} flex items-start gap-3`}
-                >
-                  <div className="mt-0.5">{config.icon}</div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium">{config.label}</h3>
-                    <p className="text-sm opacity-80 mt-1">{config.description}</p>
-                    <Badge variant="outline" className="mt-2 text-xs">
-                      {type}
-                    </Badge>
+                return (
+                  <div
+                    key={type.id}
+                    className={`p-4 rounded-lg border ${config.color} flex items-start gap-3`}
+                  >
+                    <div className="mt-0.5">{config.icon}</div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-medium">{config.label}</h3>
+                      <p className="text-sm opacity-80 mt-1">{config.description}</p>
+                      <Badge variant="outline" className="mt-2 text-xs">
+                        {type.code}
+                      </Badge>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </CardContent>
       </Card>
 

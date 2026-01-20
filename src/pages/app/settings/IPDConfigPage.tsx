@@ -54,12 +54,17 @@ export default function IPDConfigPage() {
   });
 
   const createMutation = useMutation({
-    mutationFn: async (data: Partial<DietType>) => {
-      const { error } = await supabase.from("config_diet_types").insert([{
-        ...data,
-        organization_id: profile?.organization_id,
+    mutationFn: async (insertData: Partial<DietType>) => {
+      if (!insertData.code || !insertData.name) throw new Error("Code and name are required");
+      const { error } = await supabase.from("config_diet_types").insert({
+        code: insertData.code,
+        name: insertData.name,
+        description: insertData.description,
+        icon: insertData.icon,
+        color: insertData.color,
+        organization_id: profile?.organization_id!,
         sort_order: (items?.length || 0) + 1,
-      }]);
+      });
       if (error) throw error;
     },
     onSuccess: () => {

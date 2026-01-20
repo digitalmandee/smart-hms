@@ -50,13 +50,13 @@ export default function PatientConfigPage() {
     queryKey: ["patient-config", activeTab, profile?.organization_id],
     queryFn: async () => {
       if (!profile?.organization_id) return [];
-      const { data, error } = await supabase
-        .from(currentTab.table)
+      const { data, error } = await (supabase
+        .from(currentTab.table as "config_cities")
         .select("*")
         .eq("organization_id", profile.organization_id)
-        .order("sort_order");
+        .order("sort_order") as unknown as Promise<{ data: ConfigItem[] | null; error: Error | null }>);
       if (error) throw error;
-      return (data || []) as unknown as ConfigItem[];
+      return data || [];
     },
     enabled: !!profile?.organization_id,
   });

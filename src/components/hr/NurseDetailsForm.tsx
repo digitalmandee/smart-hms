@@ -19,7 +19,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Heart, Award, Building2 } from "lucide-react";
-import { NURSE_SPECIALIZATIONS } from "@/hooks/useNurses";
+import { useNurseSpecializationOptions } from "@/hooks/useNurseSpecializationsConfig";
 
 interface NurseDetailsFormProps {
   form: UseFormReturn<any>;
@@ -27,6 +27,8 @@ interface NurseDetailsFormProps {
 }
 
 export function NurseDetailsForm({ form, wards }: NurseDetailsFormProps) {
+  const { options: nurseSpecializations } = useNurseSpecializationOptions();
+  
   return (
     <div className="space-y-6">
       <Card>
@@ -50,7 +52,7 @@ export function NurseDetailsForm({ form, wards }: NurseDetailsFormProps) {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {NURSE_SPECIALIZATIONS.map((spec) => (
+                    {nurseSpecializations.map((spec) => (
                       <SelectItem key={spec.value} value={spec.value}>
                         {spec.label}
                       </SelectItem>
@@ -200,12 +202,14 @@ export function NurseDetailsForm({ form, wards }: NurseDetailsFormProps) {
           <div className="pt-4 border-t">
             <p className="text-sm text-muted-foreground mb-2">Quick Reference:</p>
             <div className="flex flex-wrap gap-2">
-              {NURSE_SPECIALIZATIONS.slice(0, 6).map((spec) => (
+              {nurseSpecializations.slice(0, 6).map((spec) => (
                 <Badge key={spec.value} variant="outline" className="text-xs">
                   {spec.label}
                 </Badge>
               ))}
-              <Badge variant="secondary" className="text-xs">+{NURSE_SPECIALIZATIONS.length - 6} more</Badge>
+              {nurseSpecializations.length > 6 && (
+                <Badge variant="secondary" className="text-xs">+{nurseSpecializations.length - 6} more</Badge>
+              )}
             </div>
           </div>
         </CardContent>

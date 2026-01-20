@@ -153,6 +153,9 @@ import QualificationsPage from "./pages/app/settings/QualificationsPage";
 import DoctorFeesPage from "./pages/app/settings/DoctorFeesPage";
 import ClinicalConfigPage from "./pages/app/settings/ClinicalConfigPage";
 import LabSettingsPage from "./pages/app/settings/LabSettingsPage";
+import PatientConfigPage from "./pages/app/settings/PatientConfigPage";
+import HRConfigPage from "./pages/app/settings/HRConfigPage";
+import IPDConfigPage from "./pages/app/settings/IPDConfigPage";
 
 // HR pages
 import HRDashboard from "./pages/app/hr/HRDashboard";
@@ -703,6 +706,9 @@ function App() {
               <Route path="settings/receipts" element={<ReceiptTemplatesPage />} />
               <Route path="settings/clinical" element={<ClinicalConfigPage />} />
               <Route path="settings/lab" element={<LabSettingsPage />} />
+              <Route path="settings/patient-config" element={<PatientConfigPage />} />
+              <Route path="settings/hr-config" element={<HRConfigPage />} />
+              <Route path="settings/ipd-config" element={<IPDConfigPage />} />
             </Route>
 
             {/* Super Admin routes */}
