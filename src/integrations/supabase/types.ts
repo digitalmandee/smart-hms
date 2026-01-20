@@ -10041,10 +10041,12 @@ export type Database = {
           batch_number: string | null
           created_at: string
           discount_amount: number | null
+          discount_percent: number | null
           id: string
           inventory_id: string | null
           medicine_id: string
           quantity: number
+          tax_percent: number | null
           total_price: number
           transaction_id: string
           unit_price: number
@@ -10053,10 +10055,12 @@ export type Database = {
           batch_number?: string | null
           created_at?: string
           discount_amount?: number | null
+          discount_percent?: number | null
           id?: string
           inventory_id?: string | null
           medicine_id: string
           quantity: number
+          tax_percent?: number | null
           total_price: number
           transaction_id: string
           unit_price: number
@@ -10065,10 +10069,12 @@ export type Database = {
           batch_number?: string | null
           created_at?: string
           discount_amount?: number | null
+          discount_percent?: number | null
           id?: string
           inventory_id?: string | null
           medicine_id?: string
           quantity?: number
+          tax_percent?: number | null
           total_price?: number
           transaction_id?: string
           unit_price?: number
