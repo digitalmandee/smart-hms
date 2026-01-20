@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Stethoscope, Plus, X } from "lucide-react";
+import { useConfigSymptoms } from "@/hooks/useClinicConfig";
 
 interface SymptomsInputProps {
   symptoms: string[];
@@ -12,26 +13,9 @@ interface SymptomsInputProps {
   readOnly?: boolean;
 }
 
-const COMMON_SYMPTOMS = [
-  "Fever",
-  "Cough",
-  "Cold",
-  "Headache",
-  "Body ache",
-  "Fatigue",
-  "Nausea",
-  "Vomiting",
-  "Diarrhea",
-  "Chest pain",
-  "Shortness of breath",
-  "Dizziness",
-  "Loss of appetite",
-  "Sore throat",
-  "Runny nose",
-];
-
 export function SymptomsInput({ symptoms, onChange, readOnly = false }: SymptomsInputProps) {
   const [inputValue, setInputValue] = useState("");
+  const { data: COMMON_SYMPTOMS = [] } = useConfigSymptoms();
 
   const addSymptom = (symptom: string) => {
     const trimmed = symptom.trim();
