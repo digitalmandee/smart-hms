@@ -2412,6 +2412,61 @@ export type Database = {
           },
         ]
       }
+      branch_modules: {
+        Row: {
+          branch_id: string
+          created_at: string | null
+          enabled_at: string | null
+          enabled_by: string | null
+          id: string
+          is_enabled: boolean | null
+          module_code: string
+          updated_at: string | null
+        }
+        Insert: {
+          branch_id: string
+          created_at?: string | null
+          enabled_at?: string | null
+          enabled_by?: string | null
+          id?: string
+          is_enabled?: boolean | null
+          module_code: string
+          updated_at?: string | null
+        }
+        Update: {
+          branch_id?: string
+          created_at?: string | null
+          enabled_at?: string | null
+          enabled_by?: string | null
+          id?: string
+          is_enabled?: boolean | null
+          module_code?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "branch_modules_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "branch_modules_enabled_by_fkey"
+            columns: ["enabled_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "branch_modules_module_code_fkey"
+            columns: ["module_code"]
+            isOneToOne: false
+            referencedRelation: "available_modules"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       branch_role_restrictions: {
         Row: {
           branch_id: string
