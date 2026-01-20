@@ -10,7 +10,8 @@ import { useAppointments } from "@/hooks/useAppointments";
 import { useDoctors } from "@/hooks/useDoctors";
 import { useTodayConsultationStats } from "@/hooks/useConsultations";
 import { useAuth } from "@/contexts/AuthContext";
-import { Users, CheckCircle, Clock, Play, Stethoscope, History, AlertTriangle } from "lucide-react";
+import { Users, CheckCircle, Clock, Play, Stethoscope, History, AlertTriangle, Search } from "lucide-react";
+import { PatientGlobalSearch } from "@/components/patients/PatientGlobalSearch";
 
 export default function DoctorDashboard() {
   const { profile } = useAuth();
@@ -64,6 +65,21 @@ export default function DoctorDashboard() {
           </Button>
         }
       />
+
+      {/* Patient Search */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Search className="h-4 w-4" />
+            Find Patient
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <PatientGlobalSearch 
+            placeholder="Search any patient by MR#, name, or phone..."
+          />
+        </CardContent>
+      </Card>
 
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-4">

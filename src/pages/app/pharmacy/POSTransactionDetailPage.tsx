@@ -85,7 +85,7 @@ export default function POSTransactionDetailPage() {
               <Printer className="mr-2 h-4 w-4" />
               Print Receipt
             </Button>
-            {transaction.payment_status === 'paid' && (
+            {transaction.status === 'paid' && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="destructive">
@@ -125,8 +125,8 @@ export default function POSTransactionDetailPage() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle>Transaction Details</CardTitle>
-                <Badge variant={statusVariants[transaction.payment_status] || "secondary"}>
-                  {transaction.payment_status.charAt(0).toUpperCase() + transaction.payment_status.slice(1)}
+                <Badge variant={statusVariants[transaction.status] || "secondary"}>
+                  {transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1)}
                 </Badge>
               </div>
             </CardHeader>

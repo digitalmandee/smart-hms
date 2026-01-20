@@ -72,14 +72,31 @@ const ERQueueDisplayPage = () => {
     return () => clearInterval(interval);
   }, [refetch]);
 
-  // Group patients by zone
+  // Group patients by zone with fallback based on triage level
   const patientsByZone: Record<string, EmergencyRegistration[]> = Object.fromEntries(
     ER_ZONES.map(zone => [zone, []])
   );
 
+  // Map triage levels to zones as fallback
+  const triageToZone: Record<string, string> = {
+    "1": "Resuscitation Bay",
+    "2": "Trauma Bay",
+    "3": "Yellow Zone",
+    "4": "Green Zone",
+    "5": "Green Zone",
+  };
+
   queue?.forEach((patient) => {
-    if (patient.assigned_zone && patientsByZone[patient.assigned_zone]) {
-      patientsByZone[patient.assigned_zone].push(patient);
+    // Use assigned_zone or fallback to zone based on triage level
+    const zone = patient.assigned_zone || 
+      (patient.triage_level ? triageToZone[patient.triage_level] : "Green Zone") || 
+      "Green Zone";
+    
+    if (patientsByZone[zone]) {
+      patientsByZone[zone].push(patient);
+    } else {
+      // Default to Green Zone if zone doesn't match
+      patientsByZone["Green Zone"].push(patient);
     }
   });
 

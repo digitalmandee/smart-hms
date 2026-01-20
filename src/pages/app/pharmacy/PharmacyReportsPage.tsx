@@ -56,7 +56,7 @@ export default function PharmacyReportsPage() {
   const { data: inventory = [] } = useInventory();
 
   // Calculate sales summary
-  const paidTx = transactions.filter(tx => tx.payment_status === 'paid');
+  const paidTx = transactions.filter(tx => tx.status === 'paid');
   const totalSales = paidTx.reduce((sum, tx) => sum + (tx.total_amount || 0), 0);
   const totalTransactions = paidTx.length;
   const avgTransaction = totalTransactions > 0 ? totalSales / totalTransactions : 0;
