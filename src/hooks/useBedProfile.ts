@@ -21,7 +21,7 @@ export const useBedProfile = (bedId: string | undefined) => {
             admission_date, 
             status,
             patient:patients(id, first_name, last_name, patient_number, date_of_birth, gender),
-            attending_doctor:doctors!admissions_attending_doctor_id_fkey(id, profiles(first_name, last_name))
+            attending_doctor:doctors!admissions_attending_doctor_id_fkey(id, profile:profiles!doctors_profile_id_fkey(first_name, last_name))
           )
         `)
         .eq("id", bedId)
@@ -52,8 +52,8 @@ export const useBedOccupancyHistory = (bedId: string | undefined) => {
           discharge_time,
           status,
           patient:patients(id, first_name, last_name, patient_number, gender),
-          attending_doctor:doctors!admissions_attending_doctor_id_fkey(id, profiles(first_name, last_name)),
-          admitting_doctor:doctors!admissions_admitting_doctor_id_fkey(id, profiles(first_name, last_name))
+          attending_doctor:doctors!admissions_attending_doctor_id_fkey(id, profile:profiles!doctors_profile_id_fkey(first_name, last_name)),
+          admitting_doctor:doctors!admissions_admitting_doctor_id_fkey(id, profile:profiles!doctors_profile_id_fkey(first_name, last_name))
         `)
         .eq("bed_id", bedId)
         .order("admission_date", { ascending: false });
