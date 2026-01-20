@@ -151,6 +151,8 @@ import EmailTemplatesPage from "./pages/app/settings/EmailTemplatesPage";
 import SpecializationsPage from "./pages/app/settings/SpecializationsPage";
 import QualificationsPage from "./pages/app/settings/QualificationsPage";
 import DoctorFeesPage from "./pages/app/settings/DoctorFeesPage";
+import ClinicalConfigPage from "./pages/app/settings/ClinicalConfigPage";
+import LabSettingsPage from "./pages/app/settings/LabSettingsPage";
 
 // HR pages
 import HRDashboard from "./pages/app/hr/HRDashboard";
@@ -699,6 +701,8 @@ function App() {
               <Route path="settings/billing" element={<BillingSettingsPage />} />
               <Route path="settings/tax" element={<TaxSettingsPage />} />
               <Route path="settings/receipts" element={<ReceiptTemplatesPage />} />
+              <Route path="settings/clinical" element={<ClinicalConfigPage />} />
+              <Route path="settings/lab" element={<LabSettingsPage />} />
             </Route>
 
             {/* Super Admin routes */}
