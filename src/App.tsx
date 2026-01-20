@@ -102,6 +102,7 @@ import LabResultEntryPage from "./pages/app/lab/LabResultEntryPage";
 import LabTestTemplatesListPage from "./pages/app/lab/LabTestTemplatesListPage";
 import LabTestTemplateFormPage from "./pages/app/lab/LabTestTemplateFormPage";
 import LabTestCategoriesPage from "./pages/app/lab/LabTestCategoriesPage";
+import CreateLabOrderPage from "./pages/app/lab/CreateLabOrderPage";
 // Pharmacy pages
 import PharmacyDashboard from "./pages/app/pharmacy/PharmacyDashboard";
 import PrescriptionQueuePage from "./pages/app/pharmacy/PrescriptionQueuePage";
@@ -542,6 +543,7 @@ function App() {
               {/* Lab routes */}
               <Route path="lab" element={<LabDashboard />} />
               <Route path="lab/queue" element={<LabQueuePage />} />
+              <Route path="lab/create-order" element={<CreateLabOrderPage />} />
               <Route path="lab/orders/:orderId" element={<LabResultEntryPage />} />
               <Route path="lab/templates" element={<LabTestTemplatesListPage />} />
               <Route path="lab/templates/new" element={<LabTestTemplateFormPage />} />

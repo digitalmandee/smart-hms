@@ -27,17 +27,7 @@ import {
 } from "@/components/ui/command";
 import { TestTube, Plus, Trash2, AlertCircle } from "lucide-react";
 import type { LabOrderItemInput } from "@/hooks/useLabOrders";
-
-// Common lab test panels for quick add
-const QUICK_PANELS = [
-  { name: "CBC", tests: [{ test_name: "Complete Blood Count (CBC)", test_category: "blood" }] },
-  { name: "LFT", tests: [{ test_name: "Liver Function Test", test_category: "blood" }] },
-  { name: "RFT", tests: [{ test_name: "Renal Function Test", test_category: "blood" }] },
-  { name: "Lipid", tests: [{ test_name: "Lipid Profile", test_category: "blood" }] },
-  { name: "Thyroid", tests: [{ test_name: "Thyroid Function Test (TSH, T3, T4)", test_category: "blood" }] },
-  { name: "HbA1c", tests: [{ test_name: "HbA1c", test_category: "blood" }] },
-  { name: "Urine", tests: [{ test_name: "Urine Routine & Microscopy", test_category: "pathology" }] },
-];
+import { useConfigLabPanels } from "@/hooks/useClinicConfig";
 
 const TEST_CATEGORIES = [
   { value: "blood", label: "Blood" },
@@ -73,6 +63,13 @@ export function LabOrderBuilder({
 }: LabOrderBuilderProps) {
   const [search, setSearch] = useState("");
   const [openSearch, setOpenSearch] = useState(false);
+  const { data: labPanels = [] } = useConfigLabPanels();
+
+  // Convert lab panels to quick panels format
+  const quickPanels = labPanels.map(panel => ({
+    name: panel.name,
+    tests: panel.tests
+  }));
 
   const addItem = (item: LabOrderItemInput) => {
     // Avoid duplicates
@@ -91,7 +88,7 @@ export function LabOrderBuilder({
     onChange(items.filter((_, i) => i !== index));
   };
 
-  const addQuickPanel = (panel: typeof QUICK_PANELS[0]) => {
+  const addQuickPanel = (panel: { name: string; tests: Array<{ test_name: string; test_category: string }> }) => {
     const newItems = panel.tests.filter(
       (t) => !items.some((i) => i.test_name === t.test_name)
     );
@@ -229,7 +226,7 @@ export function LabOrderBuilder({
           <div className="space-y-2">
             <Label className="text-sm">Quick Panels</Label>
             <div className="flex flex-wrap gap-2">
-              {QUICK_PANELS.map((panel) => (
+              {quickPanels.map((panel) => (
                 <Button
                   key={panel.name}
                   type="button"

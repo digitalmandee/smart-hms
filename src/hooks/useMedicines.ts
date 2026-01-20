@@ -64,43 +64,9 @@ export function useMedicine(id: string | undefined) {
   });
 }
 
-// Common dosage frequencies
-export const DOSAGE_FREQUENCIES = [
-  { value: "1-0-0", label: "Once daily (Morning)" },
-  { value: "0-0-1", label: "Once daily (Night)" },
-  { value: "1-0-1", label: "Twice daily (BD)" },
-  { value: "1-1-1", label: "Three times daily (TDS)" },
-  { value: "1-1-1-1", label: "Four times daily (QDS)" },
-  { value: "SOS", label: "As needed (SOS)" },
-  { value: "STAT", label: "Immediately (STAT)" },
-  { value: "HS", label: "At bedtime (HS)" },
-  { value: "AC", label: "Before meals (AC)" },
-  { value: "PC", label: "After meals (PC)" },
-] as const;
-
-// Common durations
-export const DURATION_OPTIONS = [
-  { value: "3 days", label: "3 Days" },
-  { value: "5 days", label: "5 Days" },
-  { value: "7 days", label: "7 Days" },
-  { value: "10 days", label: "10 Days" },
-  { value: "14 days", label: "14 Days" },
-  { value: "1 month", label: "1 Month" },
-  { value: "2 months", label: "2 Months" },
-  { value: "3 months", label: "3 Months" },
-  { value: "Continuous", label: "Continuous" },
-] as const;
-
-// Common instructions
-export const INSTRUCTION_OPTIONS = [
-  "Take with water",
-  "Take after meals",
-  "Take before meals",
-  "Take with food",
-  "Take on empty stomach",
-  "Avoid alcohol",
-  "Avoid dairy products",
-  "Do not crush or chew",
-  "Apply topically",
-  "Use as directed",
-] as const;
+// Re-export from useClinicConfig for backward compatibility
+export { 
+  DOSAGE_FREQUENCIES, 
+  DURATION_OPTIONS, 
+  INSTRUCTION_OPTIONS 
+} from "./useClinicConfig";

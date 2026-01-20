@@ -25,7 +25,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useMedicines, DOSAGE_FREQUENCIES, DURATION_OPTIONS, INSTRUCTION_OPTIONS } from "@/hooks/useMedicines";
+import { useMedicines } from "@/hooks/useMedicines";
+import { usePrescriptionConfig } from "@/hooks/useClinicConfig";
 import { PrescriptionItemInput } from "@/hooks/usePrescriptions";
 import { Pill, Plus, Trash2, Search, Copy } from "lucide-react";
 
@@ -47,6 +48,7 @@ export function PrescriptionBuilder({
   const [search, setSearch] = useState("");
   const [openMedicineSearch, setOpenMedicineSearch] = useState<number | null>(null);
   const { data: medicines = [] } = useMedicines(search);
+  const { frequencies, durations, instructions } = usePrescriptionConfig();
 
   const addItem = () => {
     onChange([
@@ -233,7 +235,7 @@ export function PrescriptionBuilder({
                           <SelectValue placeholder="Select" />
                         </SelectTrigger>
                         <SelectContent>
-                          {DOSAGE_FREQUENCIES.map((freq) => (
+                          {frequencies.map((freq) => (
                             <SelectItem key={freq.value} value={freq.value}>
                               {freq.value} - {freq.label}
                             </SelectItem>
@@ -254,7 +256,7 @@ export function PrescriptionBuilder({
                           <SelectValue placeholder="Select" />
                         </SelectTrigger>
                         <SelectContent>
-                          {DURATION_OPTIONS.map((dur) => (
+                          {durations.map((dur) => (
                             <SelectItem key={dur.value} value={dur.value}>
                               {dur.label}
                             </SelectItem>
@@ -275,7 +277,7 @@ export function PrescriptionBuilder({
                           <SelectValue placeholder="Select instruction" />
                         </SelectTrigger>
                         <SelectContent>
-                          {INSTRUCTION_OPTIONS.map((inst) => (
+                          {instructions.map((inst) => (
                             <SelectItem key={inst} value={inst}>
                               {inst}
                             </SelectItem>
