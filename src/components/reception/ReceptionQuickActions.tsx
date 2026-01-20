@@ -7,6 +7,7 @@ import {
   Monitor,
   FileText,
   Footprints,
+  TestTube,
 } from "lucide-react";
 
 interface QuickAction {
@@ -38,6 +39,13 @@ const quickActions: QuickAction[] = [
     path: "/app/opd/walk-in",
     variant: "default",
     description: "Register & collect fee",
+  },
+  {
+    label: "Create Lab Test",
+    icon: TestTube,
+    path: "/app/lab/create-order",
+    variant: "outline",
+    description: "Order lab tests",
   },
   {
     label: "View Patients",

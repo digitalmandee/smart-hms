@@ -123,12 +123,14 @@ export function useCreateLabOrder() {
       items,
     }: {
       labOrder: {
-        consultation_id: string;
+        consultation_id?: string; // Made optional for direct lab orders
         patient_id: string;
-        doctor_id: string;
+        doctor_id?: string; // Made optional for direct lab orders
         branch_id: string;
+        organization_id?: string;
         priority?: "routine" | "urgent" | "stat";
         clinical_notes?: string;
+        ordered_by?: string; // Track who created the order
       };
       items: LabOrderItemInput[];
     }) => {
@@ -145,9 +147,9 @@ export function useCreateLabOrder() {
         .from("lab_orders")
         .insert({
           order_number: "TEMP", // Will be replaced by trigger
-          consultation_id: labOrder.consultation_id,
+          consultation_id: labOrder.consultation_id || null,
           patient_id: labOrder.patient_id,
-          doctor_id: labOrder.doctor_id,
+          doctor_id: labOrder.doctor_id || null,
           branch_id: labOrder.branch_id,
           priority: labOrder.priority || "routine",
           clinical_notes: labOrder.clinical_notes,
