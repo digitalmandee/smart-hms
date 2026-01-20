@@ -64,6 +64,7 @@ export interface POSItem {
   discount_amount: number;
   tax_percent: number;
   tax_amount: number;
+  total_price: number;
   line_total: number;
 }
 
@@ -246,20 +247,28 @@ export function useCreateTransaction() {
       posLogger.debug("Transaction record created", { transactionId: transaction.id });
 
       // Insert items
-      const itemsToInsert = items.map((item) => ({
-        transaction_id: transaction.id,
-        inventory_id: item.inventory_id,
-        medicine_id: item.medicine_id,
-        medicine_name: item.medicine_name,
-        batch_number: item.batch_number,
-        quantity: item.quantity,
-        unit_price: item.unit_price,
-        discount_percent: item.discount_percent,
-        discount_amount: item.quantity * item.unit_price * (item.discount_percent / 100),
-        tax_percent: item.tax_percent,
-        tax_amount: item.quantity * item.unit_price * (item.tax_percent / 100),
-        line_total: item.quantity * item.unit_price * (1 - item.discount_percent / 100),
-      }));
+      const itemsToInsert = items.map((item) => {
+        const lineSubtotal = item.quantity * item.unit_price;
+        const lineDiscount = lineSubtotal * (item.discount_percent / 100);
+        const totalPrice = lineSubtotal - lineDiscount;
+        const lineTax = totalPrice * (item.tax_percent / 100);
+        
+        return {
+          transaction_id: transaction.id,
+          inventory_id: item.inventory_id,
+          medicine_id: item.medicine_id,
+          medicine_name: item.medicine_name,
+          batch_number: item.batch_number,
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+          discount_percent: item.discount_percent,
+          discount_amount: lineDiscount,
+          tax_percent: item.tax_percent,
+          tax_amount: lineTax,
+          total_price: totalPrice,
+          line_total: totalPrice,
+        };
+      });
 
       const { error: itemsError } = await queryPOSTable("pharmacy_pos_items")
         .insert(itemsToInsert);
@@ -275,7 +284,6 @@ export function useCreateTransaction() {
         payment_method: payment.payment_method,
         amount: payment.amount,
         reference_number: payment.reference_number || null,
-        notes: payment.notes || null,
       }));
 
       const { error: paymentsError } = await queryPOSTable("pharmacy_pos_payments")
