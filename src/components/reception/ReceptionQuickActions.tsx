@@ -35,9 +35,9 @@ const quickActions: QuickAction[] = [
   {
     label: "Walk-in Patient",
     icon: Footprints,
-    path: "/app/appointments/new?type=walk_in",
-    variant: "outline",
-    description: "Quick registration",
+    path: "/app/opd/walk-in",
+    variant: "default",
+    description: "Register & collect fee",
   },
   {
     label: "View Patients",

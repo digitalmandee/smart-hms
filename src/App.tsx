@@ -87,6 +87,7 @@ import KioskTerminalPage from "./pages/kiosk/KioskTerminalPage";
 import FilteredQueueDisplayPage from "./pages/display/FilteredQueueDisplayPage";
 // OPD pages
 import DoctorDashboard from "./pages/app/opd/DoctorDashboard";
+import OPDWalkInPage from "./pages/app/opd/OPDWalkInPage";
 import ConsultationPage from "./pages/app/opd/ConsultationPage";
 import OPDVitalsPage from "./pages/app/opd/OPDVitalsPage";
 import ConsultationHistoryPage from "./pages/app/opd/ConsultationHistoryPage";
@@ -426,6 +427,7 @@ function App() {
 
               {/* OPD routes */}
               <Route path="opd" element={<DoctorDashboard />} />
+              <Route path="opd/walk-in" element={<OPDWalkInPage />} />
               <Route path="opd/nursing" element={<NurseDashboard />} />
               
               {/* Reception routes */}
