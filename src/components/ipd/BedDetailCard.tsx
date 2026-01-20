@@ -17,6 +17,7 @@ interface BedDetailCardProps {
     ward?: {
       id: string;
       name: string;
+      code?: string;
       floor?: number;
     };
     current_admission?: {
@@ -28,6 +29,7 @@ interface BedDetailCardProps {
         last_name: string;
         patient_number: string;
         date_of_birth?: string;
+        gender?: string;
       };
     } | null;
   };
@@ -72,7 +74,7 @@ export const BedDetailCard = ({
           {bed.ward && (
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Ward</span>
-              <span className="font-medium">{bed.ward.name} ({bed.ward.code})</span>
+              <span className="font-medium">{bed.ward.name}{bed.ward.code ? ` (${bed.ward.code})` : ''}</span>
             </div>
           )}
           {bed.bed_type && (
