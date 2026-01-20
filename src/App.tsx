@@ -35,6 +35,17 @@ import { PlatformAuditLogsPage } from "./pages/super-admin/PlatformAuditLogsPage
 import { ModuleCatalogPage } from "./pages/super-admin/ModuleCatalogPage";
 import AllBranchesListPage from "./pages/super-admin/AllBranchesListPage";
 import OrgModulesPage from "./pages/app/settings/OrgModulesPage";
+import UserInvitePage from "./pages/app/settings/UserInvitePage";
+import OrganizationBrandingPage from "./pages/app/settings/OrganizationBrandingPage";
+import BranchBrandingPage from "./pages/app/settings/BranchBrandingPage";
+import BranchRolesPage from "./pages/app/settings/BranchRolesPage";
+import BranchModulesPage from "./pages/app/settings/BranchModulesPage";
+import BillingSettingsPage from "./pages/app/settings/BillingSettingsPage";
+import TaxSettingsPage from "./pages/app/settings/TaxSettingsPage";
+import ReceiptTemplatesPage from "./pages/app/settings/ReceiptTemplatesPage";
+import OrgAdminDashboardPage from "./pages/app/OrgAdminDashboardPage";
+import OrganizationReportsPage from "./pages/app/reports/OrganizationReportsPage";
+import BranchComparisonPage from "./pages/app/reports/BranchComparisonPage";
 
 // Settings pages
 import { BranchesListPage } from "./pages/app/settings/BranchesListPage";
@@ -363,6 +374,11 @@ function App() {
               
               {/* Reports Hub */}
               <Route path="reports" element={<ReportsHubPage />} />
+              <Route path="reports/organization" element={<OrganizationReportsPage />} />
+              <Route path="reports/branches" element={<BranchComparisonPage />} />
+              
+              {/* Organization Admin Dashboard */}
+              <Route path="org-dashboard" element={<OrgAdminDashboardPage />} />
               
               {/* Clinic routes */}
               <Route path="clinic" element={<ClinicDashboard />} />
@@ -667,6 +683,14 @@ function App() {
               <Route path="settings/qualifications" element={<QualificationsPage />} />
               <Route path="settings/doctor-fees" element={<DoctorFeesPage />} />
               <Route path="settings/modules" element={<OrgModulesPage />} />
+              <Route path="settings/branch-modules" element={<BranchModulesPage />} />
+              <Route path="settings/branch-roles" element={<BranchRolesPage />} />
+              <Route path="settings/branch-branding" element={<BranchBrandingPage />} />
+              <Route path="settings/organization/branding" element={<OrganizationBrandingPage />} />
+              <Route path="settings/users/invite" element={<UserInvitePage />} />
+              <Route path="settings/billing" element={<BillingSettingsPage />} />
+              <Route path="settings/tax" element={<TaxSettingsPage />} />
+              <Route path="settings/receipts" element={<ReceiptTemplatesPage />} />
             </Route>
 
             {/* Super Admin routes */}
