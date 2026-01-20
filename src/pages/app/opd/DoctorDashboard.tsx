@@ -1,5 +1,5 @@
-import { Link } from "react-router-dom";
-import { format } from "date-fns";
+import { Link, useNavigate } from "react-router-dom";
+import { format, differenceInYears } from "date-fns";
 import { PageHeader } from "@/components/PageHeader";
 import { StatsCard } from "@/components/StatsCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,10 +10,11 @@ import { useAppointments } from "@/hooks/useAppointments";
 import { useDoctors } from "@/hooks/useDoctors";
 import { useTodayConsultationStats } from "@/hooks/useConsultations";
 import { useAuth } from "@/contexts/AuthContext";
-import { Users, CheckCircle, Clock, Play, Stethoscope, History } from "lucide-react";
+import { Users, CheckCircle, Clock, Play, Stethoscope, History, AlertTriangle } from "lucide-react";
 
 export default function DoctorDashboard() {
   const { profile } = useAuth();
+  const navigate = useNavigate();
   const today = format(new Date(), "yyyy-MM-dd");
 
   const { data: doctors = [] } = useDoctors();
@@ -32,6 +33,22 @@ export default function DoctorDashboard() {
 
   const currentPatient = todayAppointments.find(a => a.status === "in_progress");
   const nextPatient = queuedPatients.find(a => a.status === "checked_in");
+
+  const getAge = (dob: string | null) => {
+    if (!dob) return null;
+    return differenceInYears(new Date(), new Date(dob));
+  };
+
+  const getPriorityBadge = (priority: number | null) => {
+    if (!priority || priority <= 1) return null;
+    if (priority >= 3) return <Badge variant="destructive" className="text-xs">Emergency</Badge>;
+    if (priority === 2) return <Badge variant="default" className="text-xs bg-warning text-warning-foreground">Urgent</Badge>;
+    return null;
+  };
+
+  const handleQueueItemClick = (appointmentId: string) => {
+    navigate(`/app/opd/consultation/${appointmentId}`);
+  };
 
   return (
     <div className="space-y-6">
@@ -154,29 +171,60 @@ export default function DoctorDashboard() {
               </p>
             ) : (
               <div className="space-y-2">
-                {queuedPatients.map((apt) => (
-                  <div
-                    key={apt.id}
-                    className="flex items-center justify-between p-3 border rounded-lg"
-                  >
-                    <div className="flex items-center gap-3">
-                      <Badge variant={apt.status === "in_progress" ? "default" : "outline"}>
-                        #{apt.token_number}
-                      </Badge>
-                      <div>
-                        <p className="font-medium">
-                          {(apt.patient as any)?.first_name} {(apt.patient as any)?.last_name}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {apt.appointment_time || "Walk-in"}
-                        </p>
+                {queuedPatients.map((apt) => {
+                  const patient = apt.patient as any;
+                  const age = getAge(patient?.date_of_birth);
+                  const priorityBadge = getPriorityBadge(apt.priority);
+                  
+                  return (
+                    <div
+                      key={apt.id}
+                      onClick={() => handleQueueItemClick(apt.id)}
+                      className="flex items-center justify-between p-3 border rounded-lg cursor-pointer hover:bg-accent/50 hover:border-primary/30 transition-colors group"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Badge variant={apt.status === "in_progress" ? "default" : "outline"} className="min-w-[50px] justify-center">
+                          #{apt.token_number}
+                        </Badge>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="font-medium group-hover:text-primary transition-colors">
+                              {patient?.first_name} {patient?.last_name}
+                            </p>
+                            {priorityBadge}
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <span>MR# {patient?.patient_number}</span>
+                            {age !== null && (
+                              <>
+                                <span>•</span>
+                                <span>{age}y {patient?.gender ? `/ ${patient.gender.charAt(0).toUpperCase()}` : ""}</span>
+                              </>
+                            )}
+                            {apt.appointment_time && (
+                              <>
+                                <span>•</span>
+                                <span>{apt.appointment_time}</span>
+                              </>
+                            )}
+                          </div>
+                          {apt.chief_complaint && (
+                            <p className="text-xs text-muted-foreground mt-1 line-clamp-1">
+                              <AlertTriangle className="h-3 w-3 inline mr-1" />
+                              {apt.chief_complaint}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant={apt.status === "in_progress" ? "default" : "secondary"}>
+                          {apt.status === "in_progress" ? "In Progress" : "Waiting"}
+                        </Badge>
+                        <Play className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                       </div>
                     </div>
-                    <Badge variant={apt.status === "in_progress" ? "default" : "secondary"}>
-                      {apt.status === "in_progress" ? "In Progress" : "Waiting"}
-                    </Badge>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </CardContent>
