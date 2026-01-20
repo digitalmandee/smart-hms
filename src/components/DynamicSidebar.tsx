@@ -238,37 +238,23 @@ const RecursiveMenuItem = ({
   const isOpen = openMenus.includes(menuCode);
   const itemIsActive = isActive(item.path);
 
-  // Visual hierarchy based on level
+  // Visual hierarchy based on level - using progressive indentation only
   const getLevelStyles = () => {
+    const common = {
+      iconSize: "h-4 w-4",
+      textStyle: "font-medium text-sm",
+      hoverBg: "hover:bg-sidebar-accent",
+      activeBg: "bg-sidebar-accent",
+    };
+
     switch (level) {
       case 0:
-        return {
-          padding: "",
-          iconSize: "h-5 w-5",
-          textStyle: "font-semibold text-base",
-          hoverBg: "hover:bg-sidebar-accent",
-          activeBg: "bg-sidebar-accent",
-          activeIndicator: "",
-        };
+        return { ...common, padding: "pl-3" };
       case 1:
-        return {
-          padding: "pl-4",
-          iconSize: "h-4 w-4",
-          textStyle: "font-medium text-sm",
-          hoverBg: "hover:bg-sidebar-accent/70",
-          activeBg: "bg-sidebar-accent/70",
-          activeIndicator: "border-l-2 border-sidebar-primary",
-        };
+        return { ...common, padding: "pl-8" };
       case 2:
       default:
-        return {
-          padding: "pl-8",
-          iconSize: "h-3.5 w-3.5",
-          textStyle: "font-normal text-sm",
-          hoverBg: "hover:bg-sidebar-accent/50",
-          activeBg: "bg-sidebar-accent/50",
-          activeIndicator: "border-l-2 border-sidebar-primary/60",
-        };
+        return { ...common, padding: "pl-12" };
     }
   };
 
@@ -337,18 +323,11 @@ const RecursiveMenuItem = ({
         styles.hoverBg,
         styles.textStyle,
         isCollapsed && level === 0 && "justify-center px-2",
-        itemIsActive && cn(styles.activeBg, "text-sidebar-accent-foreground", styles.activeIndicator),
+        itemIsActive && cn(styles.activeBg, "text-sidebar-accent-foreground"),
         styles.padding
       )}
       title={isCollapsed ? item.name : undefined}
     >
-      {/* Show dot indicator for level 2+ when no icon */}
-      {level >= 2 && !IconComponent && !isCollapsed && (
-        <span className={cn(
-          "w-1.5 h-1.5 rounded-full flex-shrink-0",
-          itemIsActive ? "bg-sidebar-primary" : "bg-sidebar-foreground/40"
-        )} />
-      )}
       {IconComponent && <IconComponent className={cn(styles.iconSize, "flex-shrink-0")} />}
       {!isCollapsed && <span>{item.name}</span>}
     </Button>
