@@ -10240,7 +10240,7 @@ export type Database = {
           organization_id: string
           patient_id: string | null
           prescription_id: string | null
-          session_id: string
+          session_id: string | null
           status: string
           subtotal: number
           tax_amount: number
@@ -10266,7 +10266,7 @@ export type Database = {
           organization_id: string
           patient_id?: string | null
           prescription_id?: string | null
-          session_id: string
+          session_id?: string | null
           status?: string
           subtotal?: number
           tax_amount?: number
@@ -10292,7 +10292,7 @@ export type Database = {
           organization_id?: string
           patient_id?: string | null
           prescription_id?: string | null
-          session_id?: string
+          session_id?: string | null
           status?: string
           subtotal?: number
           tax_amount?: number
