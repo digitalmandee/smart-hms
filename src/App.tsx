@@ -185,6 +185,8 @@ import AdmissionFormPage from "./pages/app/ipd/AdmissionFormPage";
 import AdmissionDetailPage from "./pages/app/ipd/AdmissionDetailPage";
 import BedsPage from "./pages/app/ipd/BedsPage";
 import BedFormPage from "./pages/app/ipd/BedFormPage";
+import BedProfilePage from "./pages/app/ipd/BedProfilePage";
+import BedDashboardPage from "./pages/app/ipd/BedDashboardPage";
 import HousekeepingQueuePage from "./pages/app/ipd/HousekeepingQueuePage";
 import DailyRoundsPage from "./pages/app/ipd/DailyRoundsPage";
 import NursingStationPage from "./pages/app/ipd/NursingStationPage";
