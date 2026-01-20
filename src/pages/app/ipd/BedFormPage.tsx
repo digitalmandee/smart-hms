@@ -27,8 +27,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useWards, useCreateBed, useUpdateBed, BED_TYPES } from "@/hooks/useIPD";
-import { useBed, useBulkCreateBeds, BED_FEATURES } from "@/hooks/useBedManagement";
+import { useWards, useCreateBed, useUpdateBed } from "@/hooks/useIPD";
+import { useBed, useBulkCreateBeds } from "@/hooks/useBedManagement";
+import { useBedTypes, useBedFeatures } from "@/hooks/useIPDConfig";
 import { ArrowLeft, Bed, Plus, Save } from "lucide-react";
 
 const bedFormSchema = z.object({
@@ -65,9 +66,15 @@ export default function BedFormPage() {
 
   const { data: wards, isLoading: loadingWards } = useWards();
   const { data: bed, isLoading: loadingBed } = useBed(id);
+  const { data: bedTypesData, isLoading: loadingBedTypes } = useBedTypes();
+  const { data: bedFeaturesData, isLoading: loadingBedFeatures } = useBedFeatures();
   const { mutate: createBed, isPending: isCreating } = useCreateBed();
   const { mutate: updateBed, isPending: isUpdating } = useUpdateBed();
   const { mutate: bulkCreateBeds, isPending: isBulkCreating } = useBulkCreateBeds();
+  
+  // Filter to only show active bed types and features
+  const activeBedTypes = bedTypesData?.filter(bt => bt.is_active) || [];
+  const activeBedFeatures = bedFeaturesData?.filter(bf => bf.is_active) || [];
 
   const form = useForm<BedFormValues>({
     resolver: zodResolver(bedFormSchema),
@@ -243,16 +250,16 @@ export default function BedFormPage() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Bed Type</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value}>
+                            <Select onValueChange={field.onChange} value={field.value} disabled={loadingBedTypes}>
                               <FormControl>
                                 <SelectTrigger>
-                                  <SelectValue placeholder="Select type" />
+                                  <SelectValue placeholder={loadingBedTypes ? "Loading..." : "Select type"} />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                {BED_TYPES.map((type) => (
-                                  <SelectItem key={type} value={type}>
-                                    {type}
+                                {activeBedTypes.map((type) => (
+                                  <SelectItem key={type.id} value={type.code}>
+                                    {type.name}
                                   </SelectItem>
                                 ))}
                               </SelectContent>
@@ -298,35 +305,39 @@ export default function BedFormPage() {
                       render={() => (
                         <FormItem>
                           <FormLabel>Bed Features</FormLabel>
-                          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-                            {BED_FEATURES.map((feature) => (
-                              <FormField
-                                key={feature}
-                                control={form.control}
-                                name="features"
-                                render={({ field }) => (
-                                  <FormItem className="flex items-center space-x-2 space-y-0">
-                                    <FormControl>
-                                      <Checkbox
-                                        checked={field.value?.includes(feature)}
-                                        onCheckedChange={(checked) => {
-                                          const current = field.value || [];
-                                          if (checked) {
-                                            field.onChange([...current, feature]);
-                                          } else {
-                                            field.onChange(current.filter((v) => v !== feature));
-                                          }
-                                        }}
-                                      />
-                                    </FormControl>
-                                    <Label className="text-sm font-normal capitalize">
-                                      {feature.replace(/_/g, " ")}
-                                    </Label>
-                                  </FormItem>
-                                )}
-                              />
-                            ))}
-                          </div>
+                          {loadingBedFeatures ? (
+                            <p className="text-sm text-muted-foreground">Loading features...</p>
+                          ) : (
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                              {activeBedFeatures.map((feature) => (
+                                <FormField
+                                  key={feature.id}
+                                  control={form.control}
+                                  name="features"
+                                  render={({ field }) => (
+                                    <FormItem className="flex items-center space-x-2 space-y-0">
+                                      <FormControl>
+                                        <Checkbox
+                                          checked={field.value?.includes(feature.code)}
+                                          onCheckedChange={(checked) => {
+                                            const current = field.value || [];
+                                            if (checked) {
+                                              field.onChange([...current, feature.code]);
+                                            } else {
+                                              field.onChange(current.filter((v) => v !== feature.code));
+                                            }
+                                          }}
+                                        />
+                                      </FormControl>
+                                      <Label className="text-sm font-normal">
+                                        {feature.name}
+                                      </Label>
+                                    </FormItem>
+                                  )}
+                                />
+                              ))}
+                            </div>
+                          )}
                         </FormItem>
                       )}
                     />
@@ -403,16 +414,16 @@ export default function BedFormPage() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Bed Type</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value}>
+                            <Select onValueChange={field.onChange} value={field.value} disabled={loadingBedTypes}>
                               <FormControl>
                                 <SelectTrigger>
-                                  <SelectValue placeholder="Select type" />
+                                  <SelectValue placeholder={loadingBedTypes ? "Loading..." : "Select type"} />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                {BED_TYPES.map((type) => (
-                                  <SelectItem key={type} value={type}>
-                                    {type}
+                                {activeBedTypes.map((type) => (
+                                  <SelectItem key={type.id} value={type.code}>
+                                    {type.name}
                                   </SelectItem>
                                 ))}
                               </SelectContent>
@@ -584,16 +595,16 @@ export default function BedFormPage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Bed Type</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value} disabled={loadingBedTypes}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select type" />
+                              <SelectValue placeholder={loadingBedTypes ? "Loading..." : "Select type"} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {BED_TYPES.map((type) => (
-                              <SelectItem key={type} value={type}>
-                                {type}
+                            {activeBedTypes.map((type) => (
+                              <SelectItem key={type.id} value={type.code}>
+                                {type.name}
                               </SelectItem>
                             ))}
                           </SelectContent>
