@@ -21,7 +21,7 @@ export const useBedProfile = (bedId: string | undefined) => {
             admission_date, 
             status,
             patient:patients(id, first_name, last_name, patient_number, date_of_birth, gender),
-            attending_doctor:doctors!admissions_attending_doctor_id_fkey(id, profile:profiles!doctors_profile_id_fkey(first_name, last_name))
+            attending_doctor:doctors!admissions_attending_doctor_id_fkey(id, profile:profiles!doctors_profile_id_fkey(full_name))
           )
         `)
         .eq("id", bedId)
@@ -52,8 +52,8 @@ export const useBedOccupancyHistory = (bedId: string | undefined) => {
           discharge_time,
           status,
           patient:patients(id, first_name, last_name, patient_number, gender),
-          attending_doctor:doctors!admissions_attending_doctor_id_fkey(id, profile:profiles!doctors_profile_id_fkey(first_name, last_name)),
-          admitting_doctor:doctors!admissions_admitting_doctor_id_fkey(id, profile:profiles!doctors_profile_id_fkey(first_name, last_name))
+          attending_doctor:doctors!admissions_attending_doctor_id_fkey(id, profile:profiles!doctors_profile_id_fkey(full_name)),
+          admitting_doctor:doctors!admissions_admitting_doctor_id_fkey(id, profile:profiles!doctors_profile_id_fkey(full_name))
         `)
         .eq("bed_id", bedId)
         .order("admission_date", { ascending: false });
@@ -88,8 +88,8 @@ export const useBedTransferHistory = (bedId: string | undefined) => {
           ),
           from_bed:beds!bed_transfers_from_bed_id_fkey(id, bed_number, ward:wards(id, name)),
           to_bed:beds!bed_transfers_to_bed_id_fkey(id, bed_number, ward:wards(id, name)),
-          ordered_by_profile:profiles!bed_transfers_ordered_by_fkey(id, first_name, last_name),
-          transferred_by_profile:profiles!bed_transfers_transferred_by_fkey(id, first_name, last_name)
+          ordered_by_profile:profiles!bed_transfers_ordered_by_fkey(id, full_name),
+          transferred_by_profile:profiles!bed_transfers_transferred_by_fkey(id, full_name)
         `)
         .or(`from_bed_id.eq.${bedId},to_bed_id.eq.${bedId}`)
         .order("transferred_at", { ascending: false });
@@ -120,8 +120,8 @@ export const useBedIssueLogs = (bedId: string | undefined) => {
           resolution_notes,
           reported_by,
           resolved_by,
-          reported_by_profile:profiles!bed_issue_logs_reported_by_fkey(id, first_name, last_name),
-          resolved_by_profile:profiles!bed_issue_logs_resolved_by_fkey(id, first_name, last_name)
+          reported_by_profile:profiles!bed_issue_logs_reported_by_fkey(id, full_name),
+          resolved_by_profile:profiles!bed_issue_logs_resolved_by_fkey(id, full_name)
         `)
         .eq("bed_id", bedId)
         .order("reported_at", { ascending: false });
