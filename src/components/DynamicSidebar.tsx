@@ -1,13 +1,20 @@
 import { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { useMenuItems } from "@/hooks/useMenuItems";
-import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ROLE_SIDEBAR_CONFIG, ADMIN_ROLES, getPrimaryRole, SidebarMenuItem } from "@/config/role-sidebars";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   LayoutDashboard,
   Users,
@@ -35,11 +42,6 @@ import {
   Building,
   Cog,
   TrendingUp,
-  ChevronDown,
-  LogOut,
-  Heart,
-  Menu,
-  X,
   ConciergeBell,
   CalendarClock,
   CalendarPlus,
@@ -57,6 +59,7 @@ import {
   Droplet,
   Scissors,
   TestTubes,
+  Heart,
   Box,
   FolderTree,
   PackageCheck,
@@ -82,15 +85,12 @@ import {
   Scale,
   ArrowLeftRight,
   ClipboardCheck,
-  PanelLeftClose,
-  PanelLeft,
   Briefcase,
   Gift,
   CalendarCheck,
   Apple,
   Sparkles,
   History,
-  DoorOpen,
   GitBranch,
   Puzzle,
   ScrollText,
@@ -99,11 +99,37 @@ import {
   Percent,
   Award,
   GraduationCap,
+  DoorOpen,
   UtensilsCrossed,
   Plus,
   Settings2,
+  // HR icons
+  UserCircle,
+  Table2,
+  Inbox,
+  PlayCircle,
+  BadgeCheck,
+  Tag,
+  CheckSquare,
+  Fingerprint,
+  Book,
+  CalendarX,
+  CalendarOff,
+  Edit,
+  ChevronDown,
+  ChevronRight,
+  Menu,
+  X,
+  LogOut,
+  PanelLeft,
+  PanelLeftClose,
 } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useMenuItems } from "@/hooks/useMenuItems";
+import { useAuth } from "@/contexts/AuthContext";
+import { ROLE_SIDEBAR_CONFIG, getPrimaryRole } from "@/config/role-sidebars";
+
+const ADMIN_ROLES = ["super_admin", "org_admin"];
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   LayoutDashboard,
@@ -193,6 +219,19 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   UtensilsCrossed,
   Plus,
   Settings2,
+  // HR icons
+  UserCircle,
+  Table2,
+  Inbox,
+  PlayCircle,
+  BadgeCheck,
+  Tag,
+  CheckSquare,
+  Fingerprint,
+  Book,
+  CalendarX,
+  CalendarOff,
+  Edit,
 };
 
 interface DynamicSidebarProps {
