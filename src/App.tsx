@@ -293,6 +293,10 @@ import BedTransfersPage from "./pages/app/ipd/BedTransfersPage";
 import MedicationChartPage from "./pages/app/ipd/MedicationChartPage";
 import IPDReportsPage from "./pages/app/ipd/IPDReportsPage";
 import DietTypesPage from "./pages/app/ipd/setup/DietTypesPage";
+import WardTypesPage from "./pages/app/ipd/setup/WardTypesPage";
+import BedTypesPage from "./pages/app/ipd/setup/BedTypesPage";
+import BedFeaturesPage from "./pages/app/ipd/setup/BedFeaturesPage";
+import FloorsPage from "./pages/app/ipd/setup/FloorsPage";
 
 // Gynecology & Certificates pages
 import GynecologyDashboard from "./pages/app/opd/GynecologyDashboard";
@@ -597,6 +601,10 @@ function App() {
               <Route path="ipd/births/new" element={<BirthRecordFormPage />} />
               <Route path="ipd/deaths" element={<DeathRecordsPage />} />
               <Route path="ipd/setup/diet-types" element={<DietTypesPage />} />
+              <Route path="ipd/setup/ward-types" element={<WardTypesPage />} />
+              <Route path="ipd/setup/bed-types" element={<BedTypesPage />} />
+              <Route path="ipd/setup/bed-features" element={<BedFeaturesPage />} />
+              <Route path="ipd/setup/floors" element={<FloorsPage />} />
               
               {/* Certificates routes */}
               <Route path="certificates" element={<CertificatesPage />} />

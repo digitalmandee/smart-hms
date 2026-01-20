@@ -61,7 +61,7 @@ export const useWards = () => {
         .select(`
           *,
           branch:branches!wards_branch_id_fkey(id, name),
-          nurse_in_charge:profiles!wards_nurse_in_charge_id_fkey(id, full_name),
+          nurse_in_charge:employees!wards_nurse_in_charge_id_fkey(id, first_name, last_name),
           beds(id, bed_number, status)
         `)
         .eq("organization_id", profile.organization_id)
@@ -116,7 +116,7 @@ export const useWard = (wardId: string | undefined) => {
         .select(`
           *,
           branch:branches!wards_branch_id_fkey(id, name),
-          nurse_in_charge:profiles!wards_nurse_in_charge_id_fkey(id, full_name),
+          nurse_in_charge:employees!wards_nurse_in_charge_id_fkey(id, first_name, last_name),
           beds(*)
         `)
         .eq("id", wardId)
