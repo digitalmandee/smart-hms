@@ -315,7 +315,20 @@ export function useCreateTransaction() {
         prescriptionItemsDispensed: prescriptionItemIds.length
       });
 
-      return transaction as POSTransaction;
+      // Return transaction with items and payments attached for receipt display
+      const fullTransaction: POSTransaction = {
+        ...transaction,
+        items: itemsToInsert.map((item, index) => ({
+          id: `temp-${index}`,
+          ...item,
+        })) as POSItem[],
+        payments: paymentsToInsert.map((payment, index) => ({
+          id: `temp-${index}`,
+          ...payment,
+        })) as POSPayment[],
+      };
+
+      return fullTransaction;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["pos-transactions"] });
