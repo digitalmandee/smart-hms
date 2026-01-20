@@ -124,16 +124,20 @@ export function useConfigSymptoms() {
     queryFn: async () => {
       if (!profile?.organization_id) return DEFAULT_SYMPTOMS;
 
-      const { data, error } = await supabase
-        .rpc('get_config_symptoms', { org_id: profile.organization_id })
-        .throwOnError();
+      // Query config_symptoms table directly
+      // Note: Using 'any' cast as types may not be regenerated yet
+      const { data, error } = await (supabase as any)
+        .from('config_symptoms')
+        .select('name')
+        .eq('organization_id', profile.organization_id)
+        .eq('is_active', true)
+        .order('sort_order');
 
-      // Fallback to direct query if RPC doesn't exist
-      if (error || !data) {
+      if (error || !data || data.length === 0) {
         return DEFAULT_SYMPTOMS;
       }
 
-      return (data as ConfigSymptom[]).map(s => s.name);
+      return data.map((s: { name: string }) => s.name);
     },
     enabled: !!profile?.organization_id,
     // Use defaults while loading
