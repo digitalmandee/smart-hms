@@ -53,6 +53,7 @@ import { PatientBloodHistory } from "@/components/patients/PatientBloodHistory";
 import { PatientImagingHistory } from "@/components/patients/PatientImagingHistory";
 import { PatientPregnanciesHistory } from "@/components/patients/PatientPregnanciesHistory";
 import { PatientCertificatesHistory } from "@/components/patients/PatientCertificatesHistory";
+import { LabResultsPreview } from "@/components/lab/LabResultsPreview";
 import { Baby, Award } from "lucide-react";
 
 export function PatientDetailPage() {
@@ -381,6 +382,9 @@ export function PatientDetailPage() {
 
                 {/* Recent Activity - Now with real data */}
                 <PatientRecentActivity patientId={patient.id} />
+
+                {/* Lab Results Quick Preview */}
+                <LabResultsPreview patientId={patient.id} patientName={`${patient.first_name} ${patient.last_name}`} />
               </div>
             </TabsContent>
 

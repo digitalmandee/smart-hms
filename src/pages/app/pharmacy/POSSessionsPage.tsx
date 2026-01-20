@@ -46,11 +46,11 @@ export default function POSSessionsPage() {
       ),
     },
     {
-      accessorKey: "payment_status",
+      accessorKey: "status",
       header: "Status",
       cell: ({ row }) => (
-        <Badge variant={row.original.payment_status === 'paid' ? 'default' : 'secondary'}>
-          {row.original.payment_status}
+        <Badge variant={row.original.status === 'paid' ? 'default' : 'secondary'}>
+          {row.original.status}
         </Badge>
       ),
     },
@@ -62,7 +62,7 @@ export default function POSSessionsPage() {
   ];
 
   // Calculate summary stats
-  const paidTransactions = transactions.filter(t => t.payment_status === 'paid');
+  const paidTransactions = transactions.filter(t => t.status === 'paid');
   const totalSales = paidTransactions.reduce((sum, t) => sum + (Number(t.total_amount) || 0), 0);
   const avgSale = paidTransactions.length > 0 ? totalSales / paidTransactions.length : 0;
 
@@ -125,7 +125,7 @@ export default function POSSessionsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-destructive">
-              {transactions.filter(t => t.payment_status === 'voided').length}
+              {transactions.filter(t => t.status === 'voided').length}
             </div>
             <p className="text-xs text-muted-foreground">Cancelled sales</p>
           </CardContent>

@@ -39,7 +39,7 @@ export interface POSTransaction {
   total_amount: number;
   amount_paid: number;
   change_amount: number;
-  payment_status: "pending" | "paid" | "voided" | "refunded";
+  status: "pending" | "paid" | "voided" | "refunded";
   voided_at: string | null;
   voided_by: string | null;
   void_reason: string | null;
@@ -130,7 +130,7 @@ export function usePOSTransactions(branchId?: string, filters?: { date?: string;
       }
 
       if (filters?.status) {
-        query = query.eq("payment_status", filters.status);
+        query = query.eq("status", filters.status);
       }
 
       const { data, error } = await query;
@@ -231,7 +231,7 @@ export function useCreateTransaction() {
           total_amount: totalAmount,
           amount_paid: amountPaid,
           change_amount: changeAmount,
-          payment_status: "paid",
+          status: "paid",
           notes: notes || null,
           created_by: profile.id,
         })
@@ -346,7 +346,7 @@ export function useVoidTransaction() {
 
       const { data, error } = await queryPOSTable("pharmacy_pos_transactions")
         .update({
-          payment_status: "voided",
+          status: "voided",
           voided_at: new Date().toISOString(),
           voided_by: profile?.id,
           void_reason: reason,
@@ -405,7 +405,7 @@ export function usePOSDashboardStats(branchId?: string) {
       const { data: transactions } = await queryPOSTable("pharmacy_pos_transactions")
         .select("total_amount")
         .eq("branch_id", targetBranchId)
-        .eq("payment_status", "paid")
+        .eq("status", "paid")
         .gte("created_at", `${today}T00:00:00`)
         .lte("created_at", `${today}T23:59:59`);
 

@@ -62,10 +62,10 @@ export default function POSTransactionsPage() {
       ),
     },
     {
-      accessorKey: "payment_status",
+      accessorKey: "status",
       header: "Status",
       cell: ({ row }) => {
-        const status = row.original.payment_status;
+        const status = row.original.status;
         const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
           paid: "default",
           pending: "secondary",
@@ -99,7 +99,7 @@ export default function POSTransactionsPage() {
   ];
 
   // Calculate summary
-  const paidTx = filteredTransactions.filter(tx => tx.payment_status === 'paid');
+  const paidTx = filteredTransactions.filter(tx => tx.status === 'paid');
   const totalSales = paidTx.reduce((sum, tx) => sum + (tx.total_amount || 0), 0);
 
   return (
