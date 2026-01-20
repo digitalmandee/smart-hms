@@ -338,7 +338,7 @@ export default function BedProfilePage() {
                         </TableCell>
                         <TableCell>{transfer.transfer_reason || "-"}</TableCell>
                         <TableCell>
-                          {transfer.ordered_by?.first_name} {transfer.ordered_by?.last_name}
+                          {transfer.ordered_by_profile?.first_name} {transfer.ordered_by_profile?.last_name}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -417,7 +417,7 @@ export default function BedProfilePage() {
                             {format(parseISO(issue.reported_at), "MMM d, yyyy")}
                           </div>
                           <div className="text-sm text-muted-foreground">
-                            {issue.reported_by?.first_name} {issue.reported_by?.last_name}
+                            {issue.reported_by_profile?.first_name} {issue.reported_by_profile?.last_name}
                           </div>
                         </TableCell>
                         <TableCell>
@@ -425,7 +425,7 @@ export default function BedProfilePage() {
                             <div>
                               {format(parseISO(issue.resolved_at), "MMM d, yyyy")}
                               <div className="text-sm text-muted-foreground">
-                                {issue.resolved_by?.first_name} {issue.resolved_by?.last_name}
+                                {issue.resolved_by_profile?.first_name} {issue.resolved_by_profile?.last_name}
                               </div>
                             </div>
                           ) : "-"}
