@@ -467,7 +467,9 @@ function App() {
               <Route path="ipd/wards/:id/edit" element={<WardFormPage />} />
               <Route path="ipd/beds" element={<BedsPage />} />
               <Route path="ipd/beds/new" element={<BedFormPage />} />
+              <Route path="ipd/beds/:bedId/profile" element={<BedProfilePage />} />
               <Route path="ipd/beds/:id/edit" element={<BedFormPage />} />
+              <Route path="ipd/bed-dashboard" element={<BedDashboardPage />} />
               <Route path="ipd/housekeeping" element={<HousekeepingQueuePage />} />
               <Route path="ipd/admissions" element={<AdmissionsListPage />} />
               <Route path="ipd/admissions/new" element={<AdmissionFormPage />} />

@@ -10,13 +10,17 @@ interface BedDetailCardProps {
   bed: {
     id: string;
     bed_number: string;
-    status: string;
     bed_type?: string;
+    status: string;
     notes?: string;
-    ward?: { id: string; name: string; code: string; ward_type?: string };
+    ward_id: string;
+    ward?: {
+      id: string;
+      name: string;
+      floor?: number;
+    };
     current_admission?: {
       id: string;
-      admission_number: string;
       admission_date: string;
       patient?: {
         id: string;
@@ -24,7 +28,6 @@ interface BedDetailCardProps {
         last_name: string;
         patient_number: string;
         date_of_birth?: string;
-        gender?: string;
       };
     } | null;
   };
@@ -32,6 +35,7 @@ interface BedDetailCardProps {
   onTransfer?: () => void;
   onViewPatient?: (patientId: string) => void;
   onViewAdmission?: (admissionId: string) => void;
+  onAdmitPatient?: (bedId: string, wardId: string) => void;
 }
 
 export const BedDetailCard = ({
@@ -40,6 +44,7 @@ export const BedDetailCard = ({
   onTransfer,
   onViewPatient,
   onViewAdmission,
+  onAdmitPatient,
 }: BedDetailCardProps) => {
   const patient = bed.current_admission?.patient;
 

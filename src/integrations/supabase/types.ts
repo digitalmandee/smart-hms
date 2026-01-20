@@ -1404,6 +1404,83 @@ export type Database = {
           },
         ]
       }
+      bed_issue_logs: {
+        Row: {
+          bed_id: string
+          created_at: string | null
+          description: string | null
+          id: string
+          issue_type: string
+          organization_id: string
+          reported_at: string | null
+          reported_by: string | null
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          bed_id: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          issue_type: string
+          organization_id: string
+          reported_at?: string | null
+          reported_by?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          bed_id?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          issue_type?: string
+          organization_id?: string
+          reported_at?: string | null
+          reported_by?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bed_issue_logs_bed_id_fkey"
+            columns: ["bed_id"]
+            isOneToOne: false
+            referencedRelation: "beds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bed_issue_logs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bed_issue_logs_reported_by_fkey"
+            columns: ["reported_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bed_issue_logs_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bed_transfers: {
         Row: {
           admission_id: string
