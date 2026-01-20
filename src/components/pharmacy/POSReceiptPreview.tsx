@@ -49,7 +49,7 @@ export const POSReceiptPreview = forwardRef<HTMLDivElement, POSReceiptPreviewPro
 
         {/* Items */}
         <div className="mb-2">
-          <div className="flex justify-between font-semibold mb-1">
+          <div style={{ display: "flex", justifyContent: "space-between" }} className="font-semibold mb-1">
             <span>Item</span>
             <span>Amount</span>
           </div>
@@ -57,8 +57,8 @@ export const POSReceiptPreview = forwardRef<HTMLDivElement, POSReceiptPreviewPro
           
           {transaction.items?.map((item, index) => (
             <div key={index} className="mb-1">
-              <div className="flex justify-between">
-                <span className="flex-1 truncate pr-2">{item.medicine_name}</span>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", paddingRight: "8px" }}>{item.medicine_name}</span>
                 <span>Rs. {item.line_total.toFixed(2)}</span>
               </div>
               <div className="text-[10px] text-gray-600 pl-2">
@@ -72,21 +72,21 @@ export const POSReceiptPreview = forwardRef<HTMLDivElement, POSReceiptPreviewPro
         <div className="border-b border-dashed border-gray-400 my-2" />
 
         {/* Totals */}
-        <div className="space-y-1">
-          <div className="flex justify-between">
+        <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
             <span>Subtotal:</span>
             <span>Rs. {Number(transaction.subtotal).toFixed(2)}</span>
           </div>
           
           {Number(transaction.discount_amount) > 0 && (
-            <div className="flex justify-between">
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
               <span>Discount ({transaction.discount_percent}%):</span>
               <span>-Rs. {Number(transaction.discount_amount).toFixed(2)}</span>
             </div>
           )}
           
           {Number(transaction.tax_amount) > 0 && (
-            <div className="flex justify-between">
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
               <span>Tax:</span>
               <span>Rs. {Number(transaction.tax_amount).toFixed(2)}</span>
             </div>
@@ -94,7 +94,7 @@ export const POSReceiptPreview = forwardRef<HTMLDivElement, POSReceiptPreviewPro
           
           <div className="border-b border-gray-300" />
           
-          <div className="flex justify-between font-bold text-sm">
+          <div style={{ display: "flex", justifyContent: "space-between" }} className="font-bold text-sm">
             <span>TOTAL:</span>
             <span>Rs. {Number(transaction.total_amount).toFixed(2)}</span>
           </div>
@@ -103,16 +103,16 @@ export const POSReceiptPreview = forwardRef<HTMLDivElement, POSReceiptPreviewPro
         <div className="border-b border-dashed border-gray-400 my-2" />
 
         {/* Payment Info */}
-        <div className="space-y-1">
+        <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
           {transaction.payments?.map((payment, index) => (
-            <div key={index} className="flex justify-between">
+            <div key={index} style={{ display: "flex", justifyContent: "space-between" }}>
               <span>{paymentMethodLabels[payment.payment_method]}:</span>
               <span>Rs. {Number(payment.amount).toFixed(2)}</span>
             </div>
           ))}
           
           {Number(transaction.change_amount) > 0 && (
-            <div className="flex justify-between font-semibold">
+            <div style={{ display: "flex", justifyContent: "space-between" }} className="font-semibold">
               <span>Change:</span>
               <span>Rs. {Number(transaction.change_amount).toFixed(2)}</span>
             </div>
