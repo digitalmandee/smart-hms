@@ -39,7 +39,7 @@ export interface POSTransaction {
   total_amount: number;
   amount_paid: number;
   change_amount: number;
-  status: "pending" | "paid" | "voided" | "refunded";
+  status: "completed" | "voided" | "refunded";
   voided_at: string | null;
   voided_by: string | null;
   void_reason: string | null;
@@ -231,7 +231,7 @@ export function useCreateTransaction() {
           total_amount: totalAmount,
           amount_paid: amountPaid,
           change_amount: changeAmount,
-          status: "paid",
+          status: "completed",
           notes: notes || null,
           created_by: profile.id,
         })
@@ -405,7 +405,7 @@ export function usePOSDashboardStats(branchId?: string) {
       const { data: transactions } = await queryPOSTable("pharmacy_pos_transactions")
         .select("total_amount")
         .eq("branch_id", targetBranchId)
-        .eq("status", "paid")
+        .eq("status", "completed")
         .gte("created_at", `${today}T00:00:00`)
         .lte("created_at", `${today}T23:59:59`);
 

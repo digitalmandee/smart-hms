@@ -67,8 +67,7 @@ export default function POSTransactionsPage() {
       cell: ({ row }) => {
         const status = row.original.status;
         const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-          paid: "default",
-          pending: "secondary",
+          completed: "default",
           refunded: "outline",
           voided: "destructive",
         };
@@ -99,8 +98,8 @@ export default function POSTransactionsPage() {
   ];
 
   // Calculate summary
-  const paidTx = filteredTransactions.filter(tx => tx.status === 'paid');
-  const totalSales = paidTx.reduce((sum, tx) => sum + (tx.total_amount || 0), 0);
+  const completedTx = filteredTransactions.filter(tx => tx.status === 'completed');
+  const totalSales = completedTx.reduce((sum, tx) => sum + (tx.total_amount || 0), 0);
 
   return (
     <div className="space-y-6">
@@ -138,8 +137,7 @@ export default function POSTransactionsPage() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="paid">Paid</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
+            <SelectItem value="completed">Completed</SelectItem>
             <SelectItem value="refunded">Refunded</SelectItem>
             <SelectItem value="voided">Voided</SelectItem>
           </SelectContent>
@@ -153,8 +151,8 @@ export default function POSTransactionsPage() {
           <p className="text-2xl font-bold">{filteredTransactions.length}</p>
         </div>
         <div className="bg-card border rounded-lg p-4">
-          <p className="text-sm text-muted-foreground">Paid Sales</p>
-          <p className="text-2xl font-bold">{paidTx.length}</p>
+          <p className="text-sm text-muted-foreground">Completed Sales</p>
+          <p className="text-2xl font-bold">{completedTx.length}</p>
         </div>
         <div className="bg-card border rounded-lg p-4">
           <p className="text-sm text-muted-foreground">Total Revenue</p>

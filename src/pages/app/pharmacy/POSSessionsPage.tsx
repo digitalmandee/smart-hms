@@ -49,7 +49,7 @@ export default function POSSessionsPage() {
       accessorKey: "status",
       header: "Status",
       cell: ({ row }) => (
-        <Badge variant={row.original.status === 'paid' ? 'default' : 'secondary'}>
+        <Badge variant={row.original.status === 'completed' ? 'default' : 'secondary'}>
           {row.original.status}
         </Badge>
       ),
@@ -62,7 +62,7 @@ export default function POSSessionsPage() {
   ];
 
   // Calculate summary stats
-  const paidTransactions = transactions.filter(t => t.status === 'paid');
+  const paidTransactions = transactions.filter(t => t.status === 'completed');
   const totalSales = paidTransactions.reduce((sum, t) => sum + (Number(t.total_amount) || 0), 0);
   const avgSale = paidTransactions.length > 0 ? totalSales / paidTransactions.length : 0;
 

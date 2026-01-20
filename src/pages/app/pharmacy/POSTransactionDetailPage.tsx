@@ -85,7 +85,7 @@ export default function POSTransactionDetailPage() {
               <Printer className="mr-2 h-4 w-4" />
               Print Receipt
             </Button>
-            {transaction.status === 'paid' && (
+            {transaction.status === 'completed' && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="destructive">
