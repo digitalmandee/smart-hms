@@ -238,9 +238,41 @@ const RecursiveMenuItem = ({
   const isOpen = openMenus.includes(menuCode);
   const itemIsActive = isActive(item.path);
 
-  // Indentation based on level
-  const paddingLeft = level === 0 ? "" : level === 1 ? "pl-4" : "pl-8";
-  const iconSize = level === 0 ? "h-5 w-5" : "h-4 w-4";
+  // Visual hierarchy based on level
+  const getLevelStyles = () => {
+    switch (level) {
+      case 0:
+        return {
+          padding: "",
+          iconSize: "h-5 w-5",
+          textStyle: "font-semibold text-base",
+          hoverBg: "hover:bg-sidebar-accent",
+          activeBg: "bg-sidebar-accent",
+          activeIndicator: "",
+        };
+      case 1:
+        return {
+          padding: "pl-4",
+          iconSize: "h-4 w-4",
+          textStyle: "font-medium text-sm",
+          hoverBg: "hover:bg-sidebar-accent/70",
+          activeBg: "bg-sidebar-accent/70",
+          activeIndicator: "border-l-2 border-sidebar-primary",
+        };
+      case 2:
+      default:
+        return {
+          padding: "pl-8",
+          iconSize: "h-3.5 w-3.5",
+          textStyle: "font-normal text-sm",
+          hoverBg: "hover:bg-sidebar-accent/50",
+          activeBg: "bg-sidebar-accent/50",
+          activeIndicator: "border-l-2 border-sidebar-primary/60",
+        };
+    }
+  };
+
+  const styles = getLevelStyles();
 
   if (hasChildren) {
     return (
@@ -252,19 +284,21 @@ const RecursiveMenuItem = ({
           <Button
             variant="ghost"
             className={cn(
-              "w-full justify-start gap-3 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+              "w-full justify-start gap-3 text-sidebar-foreground hover:text-sidebar-accent-foreground",
+              styles.hoverBg,
+              styles.textStyle,
               isCollapsed && level === 0 && "justify-center px-2",
-              paddingLeft
+              styles.padding
             )}
             title={isCollapsed ? item.name : undefined}
           >
-            {IconComponent && <IconComponent className={cn(iconSize, "flex-shrink-0")} />}
+            {IconComponent && <IconComponent className={cn(styles.iconSize, "flex-shrink-0")} />}
             {!isCollapsed && (
               <>
                 <span className="flex-1 text-left">{item.name}</span>
                 <ChevronDown
                   className={cn(
-                    "h-4 w-4 transition-transform",
+                    "h-4 w-4 transition-transform opacity-60",
                     isOpen && "rotate-180"
                   )}
                 />
@@ -273,7 +307,7 @@ const RecursiveMenuItem = ({
           </Button>
         </CollapsibleTrigger>
         {!isCollapsed && (
-          <CollapsibleContent className="space-y-1 mt-1">
+          <CollapsibleContent className="space-y-0.5 mt-0.5 relative z-10">
             {item.children?.map((child, childIndex) => (
               <RecursiveMenuItem
                 key={child.id}
@@ -299,14 +333,23 @@ const RecursiveMenuItem = ({
       variant="ghost"
       onClick={() => handleNavigation(item.path)}
       className={cn(
-        "w-full justify-start gap-3 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+        "w-full justify-start gap-3 text-sidebar-foreground hover:text-sidebar-accent-foreground relative z-10",
+        styles.hoverBg,
+        styles.textStyle,
         isCollapsed && level === 0 && "justify-center px-2",
-        itemIsActive && "bg-sidebar-accent text-sidebar-accent-foreground",
-        paddingLeft
+        itemIsActive && cn(styles.activeBg, "text-sidebar-accent-foreground", styles.activeIndicator),
+        styles.padding
       )}
       title={isCollapsed ? item.name : undefined}
     >
-      {IconComponent && <IconComponent className={cn(iconSize, "flex-shrink-0")} />}
+      {/* Show dot indicator for level 2+ when no icon */}
+      {level >= 2 && !IconComponent && !isCollapsed && (
+        <span className={cn(
+          "w-1.5 h-1.5 rounded-full flex-shrink-0",
+          itemIsActive ? "bg-sidebar-primary" : "bg-sidebar-foreground/40"
+        )} />
+      )}
+      {IconComponent && <IconComponent className={cn(styles.iconSize, "flex-shrink-0")} />}
       {!isCollapsed && <span>{item.name}</span>}
     </Button>
   );
@@ -402,7 +445,8 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle, showDesktopToggl
 
   const isActive = (path: string | null) => {
     if (!path) return false;
-    return location.pathname === path || location.pathname.startsWith(path + "/");
+    // Use exact match to prevent multiple items highlighting
+    return location.pathname === path;
   };
 
   const handleNavigation = (path: string | null) => {
