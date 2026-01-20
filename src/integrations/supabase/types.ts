@@ -10046,6 +10046,7 @@ export type Database = {
           inventory_id: string | null
           line_total: number | null
           medicine_id: string
+          medicine_name: string | null
           quantity: number
           tax_amount: number | null
           tax_percent: number | null
@@ -10062,6 +10063,7 @@ export type Database = {
           inventory_id?: string | null
           line_total?: number | null
           medicine_id: string
+          medicine_name?: string | null
           quantity: number
           tax_amount?: number | null
           tax_percent?: number | null
@@ -10078,6 +10080,7 @@ export type Database = {
           inventory_id?: string | null
           line_total?: number | null
           medicine_id?: string
+          medicine_name?: string | null
           quantity?: number
           tax_amount?: number | null
           tax_percent?: number | null
