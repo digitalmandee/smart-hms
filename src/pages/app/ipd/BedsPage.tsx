@@ -262,6 +262,8 @@ export default function BedsPage() {
                   onTransfer={() => setTransferModalOpen(true)}
                   onViewPatient={(patientId) => navigate(`/app/patients/${patientId}`)}
                   onViewAdmission={(admissionId) => navigate(`/app/ipd/admissions/${admissionId}`)}
+                  onViewProfile={(bedId) => navigate(`/app/ipd/beds/${bedId}/profile`)}
+                  onAdmitPatient={(bedId, wardId) => navigate(`/app/ipd/admissions/new?bedId=${bedId}&wardId=${wardId}`)}
                 />
                 <div className="flex gap-2">
                   <Button
@@ -281,6 +283,7 @@ export default function BedsPage() {
                     onViewAdmission={selectedBed.current_admission?.id 
                       ? () => navigate(`/app/ipd/admissions/${selectedBed.current_admission.id}`) 
                       : undefined}
+                    onViewProfile={() => navigate(`/app/ipd/beds/${selectedBed.id}/profile`)}
                   />
                 </div>
               </div>

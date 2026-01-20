@@ -39,6 +39,7 @@ import {
   CheckCircle,
   User,
   ArrowRightLeft,
+  FileText,
 } from "lucide-react";
 import { useUpdateBedStatus, useDeleteBed, useReserveBed, useReleaseBed } from "@/hooks/useBedManagement";
 import { useNavigate } from "react-router-dom";
@@ -56,6 +57,7 @@ interface BedActionsMenuProps {
   onTransfer?: () => void;
   onViewPatient?: () => void;
   onViewAdmission?: () => void;
+  onViewProfile?: () => void;
 }
 
 export const BedActionsMenu = ({
@@ -63,6 +65,7 @@ export const BedActionsMenu = ({
   onTransfer,
   onViewPatient,
   onViewAdmission,
+  onViewProfile,
 }: BedActionsMenuProps) => {
   const navigate = useNavigate();
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -119,6 +122,14 @@ export const BedActionsMenu = ({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-48">
+          {/* View Profile - Always available */}
+          {onViewProfile && (
+            <DropdownMenuItem onClick={onViewProfile}>
+              <FileText className="h-4 w-4 mr-2" />
+              View Bed Profile
+            </DropdownMenuItem>
+          )}
+
           {/* Edit - Always available */}
           <DropdownMenuItem onClick={() => navigate(`/app/ipd/beds/${bed.id}/edit`)}>
             <Edit className="h-4 w-4 mr-2" />

@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Bed, User, Calendar, ArrowRightLeft, X, Clock, AlertTriangle } from "lucide-react";
+import { Bed, User, Calendar, ArrowRightLeft, X, Clock, AlertTriangle, FileText, UserPlus } from "lucide-react";
 import { BedStatusBadge } from "./BedStatusBadge";
 import { format } from "date-fns";
 
@@ -38,6 +38,7 @@ interface BedDetailCardProps {
   onViewPatient?: (patientId: string) => void;
   onViewAdmission?: (admissionId: string) => void;
   onAdmitPatient?: (bedId: string, wardId: string) => void;
+  onViewProfile?: (bedId: string) => void;
 }
 
 export const BedDetailCard = ({
@@ -47,6 +48,7 @@ export const BedDetailCard = ({
   onViewPatient,
   onViewAdmission,
   onAdmitPatient,
+  onViewProfile,
 }: BedDetailCardProps) => {
   const patient = bed.current_admission?.patient;
 
@@ -180,18 +182,28 @@ export const BedDetailCard = ({
         )}
 
         {/* Actions */}
-        {bed.status === "occupied" && onTransfer && (
-          <Button variant="outline" className="w-full" onClick={onTransfer}>
-            <ArrowRightLeft className="h-4 w-4 mr-2" />
-            Transfer Patient
-          </Button>
-        )}
+        <div className="space-y-2">
+          {bed.status === "occupied" && onTransfer && (
+            <Button variant="outline" className="w-full" onClick={onTransfer}>
+              <ArrowRightLeft className="h-4 w-4 mr-2" />
+              Transfer Patient
+            </Button>
+          )}
 
-        {bed.status === "available" && (
-          <div className="text-center text-sm text-muted-foreground py-2">
-            This bed is available for admission
-          </div>
-        )}
+          {bed.status === "available" && onAdmitPatient && (
+            <Button className="w-full" onClick={() => onAdmitPatient(bed.id, bed.ward_id)}>
+              <UserPlus className="h-4 w-4 mr-2" />
+              Admit Patient to This Bed
+            </Button>
+          )}
+
+          {onViewProfile && (
+            <Button variant="outline" className="w-full" onClick={() => onViewProfile(bed.id)}>
+              <FileText className="h-4 w-4 mr-2" />
+              View Bed Profile
+            </Button>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
