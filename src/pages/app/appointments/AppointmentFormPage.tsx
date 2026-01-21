@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -31,7 +31,12 @@ import { useCreateAppointment, useUpdateAppointment, useAppointment } from '@/ho
 import { useDoctors } from '@/hooks/useDoctors';
 import { useBranches } from '@/hooks/useBranches';
 import { useAuth } from '@/contexts/AuthContext';
-import { Clock, Users } from 'lucide-react';
+import { useCreateInvoice, useRecordPayment, usePaymentMethods } from '@/hooks/useBilling';
+import { useOrganization } from '@/hooks/useOrganizations';
+import { PaymentMethodSelector } from '@/components/billing/PaymentMethodSelector';
+import { PrintableTokenSlip } from '@/components/clinic/PrintableTokenSlip';
+import { usePrint } from '@/hooks/usePrint';
+import { Clock, Users, CheckCircle, Printer, Banknote } from 'lucide-react';
 
 const appointmentSchema = z.object({
   patient_id: z.string().min(1, 'Please select a patient'),
@@ -63,14 +68,33 @@ export default function AppointmentFormPage() {
   const isEditing = !!id;
 
   const [selectedPatient, setSelectedPatient] = useState<any>(null);
+  
+  // Pay-first workflow state
+  const [showPaymentStep, setShowPaymentStep] = useState(false);
+  const [pendingFormData, setPendingFormData] = useState<AppointmentFormData | null>(null);
+  const [paymentMethodId, setPaymentMethodId] = useState<string>("");
+  const [referenceNumber, setReferenceNumber] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [completedData, setCompletedData] = useState<{
+    tokenNumber: number;
+    invoiceNumber: string;
+    amountPaid: number;
+    paymentMethodName: string;
+  } | null>(null);
+  
+  // Print ref
+  const { printRef, handlePrint } = usePrint();
 
   const { data: existingAppointment, isLoading: loadingAppointment } = useAppointment(id || '');
   const { data: doctors } = useDoctors();
   const { data: branches } = useBranches();
+  const { data: organization } = useOrganization(profile?.organization_id);
+  const { data: paymentMethods } = usePaymentMethods();
 
   const createAppointment = useCreateAppointment();
   const updateAppointment = useUpdateAppointment();
-
+  const createInvoice = useCreateInvoice();
+  const recordPayment = useRecordPayment();
   const form = useForm<AppointmentFormData>({
     resolver: zodResolver(appointmentSchema),
     defaultValues: {
@@ -108,8 +132,16 @@ export default function AppointmentFormPage() {
   const selectedDate = form.watch('appointment_date');
   const appointmentType = form.watch('appointment_type');
 
+  // Get selected doctor details for fee
+  const selectedDoctor = doctors?.find(d => d.id === selectedDoctorId);
+  const consultationFee = (selectedDoctor as any)?.consultation_fee || 500;
+  const selectedPaymentMethod = paymentMethods?.find(p => p.id === paymentMethodId);
+
   // Check if time slot selection is needed
   const requiresTimeSlot = appointmentType === 'scheduled' || appointmentType === 'follow_up';
+  
+  // Check if pay-first workflow is needed
+  const requiresPayFirst = !isEditing && (appointmentType === 'walk_in' || appointmentType === 'emergency');
 
   // Clear time when switching to walk-in/emergency
   useEffect(() => {
@@ -119,6 +151,14 @@ export default function AppointmentFormPage() {
   }, [requiresTimeSlot, form]);
 
   const onSubmit = async (data: AppointmentFormData) => {
+    // For walk-in and emergency, show payment step first
+    if (requiresPayFirst) {
+      setPendingFormData(data);
+      setShowPaymentStep(true);
+      return;
+    }
+    
+    // Normal scheduled/follow-up appointment flow
     try {
       if (isEditing && id) {
         await updateAppointment.mutateAsync({ id, ...data });
@@ -146,6 +186,86 @@ export default function AppointmentFormPage() {
     }
   };
 
+  // Handle payment and create appointment for walk-in/emergency
+  const handlePaymentAndCreate = async () => {
+    if (!pendingFormData || !paymentMethodId || !profile?.branch_id) {
+      toast({
+        title: 'Error',
+        description: 'Missing required information',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      // 1. Create Invoice with consultation fee
+      const invoice = await createInvoice.mutateAsync({
+        patientId: pendingFormData.patient_id,
+        branchId: pendingFormData.branch_id,
+        items: [{
+          description: `${selectedDoctor?.specialization || 'Doctor'} Consultation - Dr. ${selectedDoctor?.profile?.full_name || 'Unknown'}`,
+          quantity: 1,
+          unit_price: consultationFee,
+        }],
+        status: "pending",
+      });
+
+      // 2. Record Payment (marks invoice as paid)
+      await recordPayment.mutateAsync({
+        invoiceId: invoice.id,
+        amount: consultationFee,
+        paymentMethodId,
+        referenceNumber: referenceNumber || undefined,
+        notes: `${pendingFormData.appointment_type === 'emergency' ? 'Emergency' : 'Walk-in'} appointment payment`,
+      });
+
+      // 3. Create Appointment with checked_in status
+      const appointment = await createAppointment.mutateAsync({
+        patient_id: pendingFormData.patient_id,
+        doctor_id: pendingFormData.doctor_id,
+        branch_id: pendingFormData.branch_id,
+        appointment_date: pendingFormData.appointment_date,
+        appointment_time: format(new Date(), 'HH:mm'),
+        appointment_type: pendingFormData.appointment_type,
+        chief_complaint: pendingFormData.chief_complaint || null,
+        notes: pendingFormData.notes || null,
+        status: 'checked_in',
+      });
+
+      // 4. Show success with token
+      setCompletedData({
+        tokenNumber: appointment.token_number || 0,
+        invoiceNumber: invoice.invoice_number,
+        amountPaid: consultationFee,
+        paymentMethodName: selectedPaymentMethod?.name || 'Cash',
+      });
+
+      toast({ 
+        title: 'Token Generated Successfully',
+        description: `Token #${appointment.token_number} created with Invoice ${invoice.invoice_number}`,
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const resetForm = () => {
+    setCompletedData(null);
+    setShowPaymentStep(false);
+    setPendingFormData(null);
+    setPaymentMethodId('');
+    setReferenceNumber('');
+    setSelectedPatient(null);
+    form.reset();
+  };
+
   const handlePatientSelect = (patient: any) => {
     setSelectedPatient(patient);
     if (patient) {
@@ -157,6 +277,200 @@ export default function AppointmentFormPage() {
 
   if (isEditing && loadingAppointment) {
     return <div>Loading...</div>;
+  }
+
+  // Success screen after payment
+  if (completedData) {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          title="Token Generated"
+          description="Appointment created and payment recorded"
+          breadcrumbs={[
+            { label: 'Dashboard', href: '/app' },
+            { label: 'Appointments', href: '/app/appointments' },
+            { label: 'Success' },
+          ]}
+        />
+
+        <Card className="max-w-xl mx-auto">
+          <CardContent className="pt-6 text-center space-y-6">
+            <CheckCircle className="h-16 w-16 text-primary mx-auto" />
+            
+            <div>
+              <p className="text-sm text-muted-foreground mb-2">Token Number</p>
+              <div className="text-6xl font-bold text-primary">#{completedData.tokenNumber}</div>
+            </div>
+
+            <div className="border-t pt-4 space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Invoice:</span>
+                <span className="font-mono font-medium">{completedData.invoiceNumber}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Amount Paid:</span>
+                <span className="font-semibold">Rs. {completedData.amountPaid.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Payment Method:</span>
+                <span>{completedData.paymentMethodName}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Patient:</span>
+                <span>{selectedPatient?.full_name || selectedPatient?.first_name}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Doctor:</span>
+                <span>Dr. {selectedDoctor?.profile?.full_name}</span>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
+              <Button onClick={() => handlePrint({ title: 'Token Slip' })}>
+                <Printer className="mr-2 h-4 w-4" />
+                Print Token
+              </Button>
+              <Button variant="outline" onClick={() => navigate('/app/appointments')}>
+                Back to Appointments
+              </Button>
+              <Button variant="ghost" onClick={resetForm}>
+                New Appointment
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Hidden Printable Token Slip */}
+        <div className="hidden">
+          {organization && (
+            <PrintableTokenSlip
+              ref={printRef}
+              tokenNumber={completedData.tokenNumber}
+              patient={{
+                name: selectedPatient?.full_name || `${selectedPatient?.first_name} ${selectedPatient?.last_name || ''}`.trim(),
+                mrNumber: selectedPatient?.patient_number,
+              }}
+              doctor={{
+                name: `Dr. ${selectedDoctor?.profile?.full_name || 'Unknown'}`,
+                specialty: selectedDoctor?.specialization || 'General',
+              }}
+              invoiceNumber={completedData.invoiceNumber}
+              amountPaid={completedData.amountPaid}
+              paymentMethod={completedData.paymentMethodName}
+              organization={{
+                name: organization.name,
+                address: organization.address,
+                phone: organization.phone,
+                logo_url: organization.logo_url,
+                slug: organization.slug,
+              }}
+            />
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Payment step for walk-in/emergency
+  if (showPaymentStep && pendingFormData) {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          title="Collect Payment"
+          description="Collect consultation fee before generating token"
+          breadcrumbs={[
+            { label: 'Dashboard', href: '/app' },
+            { label: 'Appointments', href: '/app/appointments' },
+            { label: 'Payment' },
+          ]}
+        />
+
+        <div className="max-w-xl mx-auto space-y-6">
+          {/* Summary Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Banknote className="h-5 w-5" />
+                Payment Summary
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Patient:</span>
+                  <span className="font-medium">{selectedPatient?.full_name || selectedPatient?.first_name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Doctor:</span>
+                  <span>Dr. {selectedDoctor?.profile?.full_name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Specialty:</span>
+                  <span>{selectedDoctor?.specialization || 'General'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Type:</span>
+                  <span className="capitalize">{pendingFormData.appointment_type.replace('_', ' ')}</span>
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <div className="flex justify-between text-lg font-semibold">
+                  <span>Consultation Fee</span>
+                  <span className="text-primary">Rs. {consultationFee.toLocaleString()}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Payment Method Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Payment Method</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Select Payment Method</label>
+                <PaymentMethodSelector
+                  value={paymentMethodId}
+                  onValueChange={setPaymentMethodId}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Reference Number (Optional)</label>
+                <Input
+                  placeholder="Transaction ID or reference..."
+                  value={referenceNumber}
+                  onChange={(e) => setReferenceNumber(e.target.value)}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Actions */}
+          <div className="flex gap-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setShowPaymentStep(false);
+                setPendingFormData(null);
+              }}
+            >
+              Back
+            </Button>
+            <Button
+              onClick={handlePaymentAndCreate}
+              disabled={!paymentMethodId || isProcessing}
+              className="flex-1"
+            >
+              {isProcessing ? 'Processing...' : `Collect Rs. ${consultationFee.toLocaleString()} & Generate Token`}
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -277,7 +591,7 @@ export default function AppointmentFormPage() {
                             <SelectItem value="follow_up">Follow-up</SelectItem>
                             <SelectItem value="emergency">
                               <span className="flex items-center gap-2">
-                                <span className="w-2 h-2 rounded-full bg-red-500" />
+                                <span className="w-2 h-2 rounded-full bg-destructive" />
                                 Emergency
                               </span>
                             </SelectItem>
@@ -341,7 +655,7 @@ export default function AppointmentFormPage() {
                       {appointmentType === 'walk_in' ? 'Walk-in Appointment' : 'Emergency Appointment'}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="space-y-4">
                     <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg">
                       <Clock className="h-8 w-8 text-primary" />
                       <div>
@@ -352,13 +666,20 @@ export default function AppointmentFormPage() {
                           }
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {appointmentType === 'walk_in'
-                            ? 'A token number will be assigned automatically'
-                            : 'Emergency cases are handled with top priority'
-                          }
+                          Payment will be collected before generating token
                         </p>
                       </div>
                     </div>
+                    
+                    {/* Show fee preview */}
+                    {selectedDoctorId && (
+                      <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground">Consultation Fee:</span>
+                          <span className="font-semibold text-primary">Rs. {consultationFee.toLocaleString()}</span>
+                        </div>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               )}
@@ -424,6 +745,8 @@ export default function AppointmentFormPage() {
                 ? 'Saving...'
                 : isEditing
                 ? 'Update Appointment'
+                : requiresPayFirst
+                ? 'Continue to Payment'
                 : 'Book Appointment'}
             </Button>
           </div>
