@@ -31,7 +31,7 @@ function usePatientAdmissions(patientId: string) {
         .select(`
           *,
           ward:wards(id, name),
-          bed:beds(id, bed_number)
+          bed:beds!admissions_bed_id_fkey(id, bed_number)
         `)
         .eq("patient_id", patientId)
         .order("admission_date", { ascending: false });

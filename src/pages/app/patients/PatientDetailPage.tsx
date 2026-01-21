@@ -75,7 +75,7 @@ export function PatientDetailPage() {
     queryFn: async () => {
       const { data } = await supabase
         .from("admissions")
-        .select("*, ward:wards(name), bed:beds(bed_number)")
+        .select("*, ward:wards(name), bed:beds!admissions_bed_id_fkey(bed_number)")
         .eq("patient_id", id!)
         .in("status", ["admitted", "pending"])
         .order("admission_date", { ascending: false })
