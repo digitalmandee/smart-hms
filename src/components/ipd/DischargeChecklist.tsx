@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
 import { 
   FileText, 
   CreditCard, 
@@ -12,6 +13,7 @@ import {
   AlertTriangle,
   CheckCircle2 
 } from "lucide-react";
+import { useDischargeChecklist, useSaveChecklistItem } from "@/hooks/useDischargeChecklist";
 
 interface ChecklistItem {
   id: string;
@@ -112,22 +114,84 @@ interface DischargeChecklistProps {
   admissionId: string;
   initialCompleted?: string[];
   onComplete?: (completed: string[]) => void;
+  autoCheckBilling?: boolean;
+  autoCheckSummary?: boolean;
 }
 
 export function DischargeChecklist({
   admissionId,
   initialCompleted = [],
   onComplete,
+  autoCheckBilling = false,
+  autoCheckSummary = false,
 }: DischargeChecklistProps) {
+  const { data: savedItems, isLoading } = useDischargeChecklist(admissionId);
+  const { mutate: saveItem } = useSaveChecklistItem();
+  
   const [completed, setCompleted] = useState<string[]>(initialCompleted);
+  const [initialized, setInitialized] = useState(false);
+
+  // Load saved items from database
+  useEffect(() => {
+    if (savedItems && !initialized) {
+      const completedIds = savedItems
+        .filter(item => item.completed)
+        .map(item => item.item_id);
+      
+      // Merge with initial completed and auto-checks
+      const mergedCompleted = new Set([...completedIds, ...initialCompleted]);
+      
+      if (autoCheckBilling && !mergedCompleted.has("billing_cleared")) {
+        mergedCompleted.add("billing_cleared");
+      }
+      if (autoCheckSummary && !mergedCompleted.has("discharge_summary")) {
+        mergedCompleted.add("discharge_summary");
+      }
+      
+      const newCompleted = Array.from(mergedCompleted);
+      setCompleted(newCompleted);
+      onComplete?.(newCompleted);
+      setInitialized(true);
+    }
+  }, [savedItems, initialized, initialCompleted, autoCheckBilling, autoCheckSummary, onComplete]);
+
+  // Auto-check items when props change
+  useEffect(() => {
+    if (initialized) {
+      let updated = false;
+      const newCompleted = [...completed];
+      
+      if (autoCheckBilling && !completed.includes("billing_cleared")) {
+        newCompleted.push("billing_cleared");
+        updated = true;
+      }
+      if (autoCheckSummary && !completed.includes("discharge_summary")) {
+        newCompleted.push("discharge_summary");
+        updated = true;
+      }
+      
+      if (updated) {
+        setCompleted(newCompleted);
+        onComplete?.(newCompleted);
+      }
+    }
+  }, [autoCheckBilling, autoCheckSummary, initialized]);
 
   const handleToggle = (itemId: string) => {
-    const newCompleted = completed.includes(itemId)
-      ? completed.filter((id) => id !== itemId)
-      : [...completed, itemId];
+    const isNowCompleted = !completed.includes(itemId);
+    const newCompleted = isNowCompleted
+      ? [...completed, itemId]
+      : completed.filter((id) => id !== itemId);
     
     setCompleted(newCompleted);
     onComplete?.(newCompleted);
+    
+    // Save to database
+    saveItem({
+      admissionId,
+      itemId,
+      completed: isNowCompleted,
+    });
   };
 
   const requiredItems = defaultChecklist.filter((item) => item.required);
@@ -153,13 +217,13 @@ export function DischargeChecklist({
   const getCategoryColor = (category: string) => {
     switch (category) {
       case "clinical":
-        return "text-blue-600";
+        return "text-info";
       case "billing":
-        return "text-green-600";
+        return "text-success";
       case "documentation":
-        return "text-purple-600";
+        return "text-primary";
       case "medications":
-        return "text-orange-600";
+        return "text-warning";
       default:
         return "text-muted-foreground";
     }
@@ -180,6 +244,16 @@ export function DischargeChecklist({
     medications: "Medications",
   };
 
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <Skeleton className="h-32 w-full" />
+        <Skeleton className="h-48 w-full" />
+        <Skeleton className="h-48 w-full" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <Card>
@@ -187,12 +261,12 @@ export function DischargeChecklist({
           <CardTitle>Discharge Checklist</CardTitle>
           <div className="flex items-center gap-2">
             {allRequiredComplete ? (
-              <Badge className="bg-green-100 text-green-800">
+              <Badge className="bg-success/10 text-success border-success">
                 <CheckCircle2 className="h-3 w-3 mr-1" />
                 Ready for Discharge
               </Badge>
             ) : (
-              <Badge variant="outline" className="text-amber-600 border-amber-600">
+              <Badge variant="outline" className="text-warning border-warning">
                 <AlertTriangle className="h-3 w-3 mr-1" />
                 {requiredItems.length - requiredCompleted.length} Items Pending
               </Badge>
