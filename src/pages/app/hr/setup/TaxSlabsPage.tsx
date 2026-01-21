@@ -144,33 +144,28 @@ export default function TaxSlabsPage() {
 
   return (
     <div className="space-y-6 p-6">
-      <PageHeader
-        title="Tax Slabs"
-        description="Configure income tax brackets for payroll calculation"
-        breadcrumbs={[
-          { label: "HR", href: "/app/hr" },
-          { label: "Setup" },
-          { label: "Tax Slabs" },
-        ]}
-        actions={
-          <div className="flex items-center gap-2">
-            <Select value={selectedYear} onValueChange={setSelectedYear}>
-              <SelectTrigger className="w-40">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {fiscalYears.map(year => (
-                  <SelectItem key={year} value={year}>{year}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button onClick={() => handleOpenDialog()}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Tax Slab
-            </Button>
-          </div>
-        }
-      />
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Tax Slabs</h1>
+          <p className="text-muted-foreground">Configure income tax brackets for payroll calculation</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Select value={selectedYear} onValueChange={setSelectedYear}>
+            <SelectTrigger className="w-40">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {fiscalYears.map(year => (
+                <SelectItem key={year} value={year}>{year}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button onClick={() => handleOpenDialog()}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Tax Slab
+          </Button>
+        </div>
+      </div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -192,13 +187,13 @@ export default function TaxSlabsPage() {
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
-              <div className="p-3 rounded-full bg-amber-500/10">
+              <div className="p-3 rounded-full bg-amber-100 dark:bg-amber-900/30">
                 <Percent className="h-6 w-6 text-amber-600" />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Max Tax Rate</p>
                 <p className="text-2xl font-bold">
-                  {Math.max(...(activeSlabs.map(s => s.tax_rate) || [0]))}%
+                  {Math.max(...(activeSlabs.map(s => s.tax_percentage) || [0]))}%
                 </p>
                 <p className="text-xs text-muted-foreground">Highest bracket</p>
               </div>

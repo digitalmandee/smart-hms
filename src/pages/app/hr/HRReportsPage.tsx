@@ -68,32 +68,28 @@ export default function HRReportsPage() {
 
   return (
     <div className="space-y-6 p-6">
-      <PageHeader
-        title="HR Reports & Analytics"
-        description="Comprehensive workforce analytics and statistics"
-        breadcrumbs={[
-          { label: "HR", href: "/app/hr" },
-          { label: "Reports" },
-        ]}
-        actions={
-          <div className="flex items-center gap-2">
-            <Select value={year} onValueChange={setYear}>
-              <SelectTrigger className="w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="2026">2026</SelectItem>
-                <SelectItem value="2025">2025</SelectItem>
-                <SelectItem value="2024">2024</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button variant="outline" size="sm">
-              <Download className="h-4 w-4 mr-2" />
-              Export
-            </Button>
-          </div>
-        }
-      />
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">HR Reports & Analytics</h1>
+          <p className="text-muted-foreground">Comprehensive workforce analytics and statistics</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Select value={year} onValueChange={setYear}>
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="2026">2026</SelectItem>
+              <SelectItem value="2025">2025</SelectItem>
+              <SelectItem value="2024">2024</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button variant="outline" size="sm">
+            <Download className="h-4 w-4 mr-2" />
+            Export
+          </Button>
+        </div>
+      </div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -139,7 +135,7 @@ export default function HRReportsPage() {
                 <p className="text-sm text-muted-foreground">On Leave</p>
                 <p className="text-2xl font-bold">{attendanceStats?.onLeave || 0}</p>
                 <p className="text-xs text-muted-foreground">
-                  {leaveStats?.pendingRequests || 0} pending requests
+                  Approved leaves today
                 </p>
               </div>
             </div>
@@ -271,19 +267,19 @@ export default function HRReportsPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card>
               <CardContent className="pt-6 text-center">
-                <p className="text-4xl font-bold text-primary">{leaveStats?.totalLeavesTaken || 0}</p>
+                <p className="text-4xl font-bold text-primary">--</p>
                 <p className="text-sm text-muted-foreground mt-2">Total Leaves Taken</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-6 text-center">
-                <p className="text-4xl font-bold text-amber-600">{leaveStats?.pendingRequests || 0}</p>
+                <p className="text-4xl font-bold text-amber-600">--</p>
                 <p className="text-sm text-muted-foreground mt-2">Pending Approvals</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-6 text-center">
-                <p className="text-4xl font-bold text-green-600">{leaveStats?.approvedThisMonth || 0}</p>
+                <p className="text-4xl font-bold text-green-600">--</p>
                 <p className="text-sm text-muted-foreground mt-2">Approved This Month</p>
               </CardContent>
             </Card>

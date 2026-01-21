@@ -18,6 +18,8 @@ import {
   FileText,
   ArrowRight,
   Ticket,
+  Clock,
+  UserCheck,
 } from "lucide-react";
 
 interface ReportCard {
@@ -126,6 +128,33 @@ const financialReports: ReportCard[] = [
   },
 ];
 
+const hrReports: ReportCard[] = [
+  {
+    title: "HR Reports",
+    description: "Employee statistics, workforce analytics, department distribution",
+    icon: Users,
+    path: "/app/hr/reports",
+    module: "HR",
+    color: "bg-violet-500",
+  },
+  {
+    title: "Attendance Reports",
+    description: "Attendance trends, late arrivals, department-wise analysis",
+    icon: Clock,
+    path: "/app/hr/attendance/reports",
+    module: "HR",
+    color: "bg-slate-500",
+  },
+  {
+    title: "Payroll Reports",
+    description: "Salary trends, deductions, monthly payroll summary",
+    icon: DollarSign,
+    path: "/app/hr/payroll/reports",
+    module: "HR",
+    color: "bg-lime-500",
+  },
+];
+
 const ReportCardItem = ({ report }: { report: ReportCard }) => {
   const navigate = useNavigate();
   const Icon = report.icon;
@@ -174,7 +203,7 @@ const ReportSection = ({ title, reports }: { title: string; reports: ReportCard[
 );
 
 export default function ReportsHubPage() {
-  const totalReports = clinicalReports.length + operationalReports.length + financialReports.length;
+  const totalReports = clinicalReports.length + operationalReports.length + financialReports.length + hrReports.length;
 
   return (
     <div className="space-y-8 p-6">
@@ -202,11 +231,11 @@ export default function ReportsHubPage() {
         <Card className="bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20">
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
-              <div className="p-3 rounded-full bg-green-500/20">
+              <div className="p-3 rounded-full bg-green-100 dark:bg-green-900/30">
                 <BarChart3 className="h-6 w-6 text-green-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold">3</p>
+                <p className="text-2xl font-bold">4</p>
                 <p className="text-sm text-muted-foreground">Report Categories</p>
               </div>
             </div>
@@ -231,6 +260,7 @@ export default function ReportsHubPage() {
       {/* Report Sections */}
       <ReportSection title="Clinical Reports" reports={clinicalReports} />
       <ReportSection title="Operational Reports" reports={operationalReports} />
+      <ReportSection title="HR & Staff Reports" reports={hrReports} />
       <ReportSection title="Financial Reports" reports={financialReports} />
     </div>
   );
