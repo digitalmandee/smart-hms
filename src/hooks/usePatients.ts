@@ -79,7 +79,7 @@ export function useCreatePatient() {
           organization_id: profile.organization_id,
           branch_id: data.branch_id || profile.branch_id,
           created_by: user?.id,
-          patient_number: "TEMP", // Will be overwritten by trigger
+          patient_number: null as any, // Trigger will generate the number
         })
         .select()
         .single();
