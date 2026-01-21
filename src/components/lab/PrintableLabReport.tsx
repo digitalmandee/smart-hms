@@ -19,27 +19,28 @@ interface PrintableLabReportProps {
   performedBy?: string;
 }
 
-// Inline styles for A4 print compatibility (matches PrintableInvoice pattern)
+// Professional A4 styles matching Chughtai Lab reference
 const styles = {
   container: {
     backgroundColor: "white",
-    padding: "15mm",
+    padding: "12mm 15mm",
     minHeight: "297mm",
     maxWidth: "210mm",
     margin: "0 auto",
     fontFamily: "'Segoe UI', Arial, sans-serif",
-    fontSize: "9pt",
-    lineHeight: 1.4,
-    color: "#1a1a1a",
+    fontSize: "8pt",
+    lineHeight: 1.5,
+    color: "#1f2937",
     position: "relative" as const,
   },
+  // Header Section
   header: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    borderBottom: "2px solid #0d9488",
-    paddingBottom: "10pt",
-    marginBottom: "12pt",
+    borderBottom: "2px solid #1e40af",
+    paddingBottom: "8pt",
+    marginBottom: "10pt",
   },
   headerLeft: {
     display: "flex",
@@ -47,124 +48,163 @@ const styles = {
     gap: "10pt",
   },
   logo: {
-    width: "50px",
-    height: "50px",
+    width: "55px",
+    height: "55px",
     objectFit: "contain" as const,
   },
+  orgInfo: {
+    display: "flex",
+    flexDirection: "column" as const,
+  },
   orgName: {
-    fontSize: "14pt",
+    fontSize: "16pt",
     fontWeight: "bold" as const,
-    color: "#0d9488",
-    margin: "0 0 3pt 0",
+    color: "#1e40af",
+    margin: "0 0 2pt 0",
+    letterSpacing: "0.3px",
   },
-  orgAddress: {
-    fontSize: "8pt",
-    color: "#4b5563",
-    margin: "1pt 0",
-  },
-  contactRow: {
-    display: "flex",
-    gap: "10pt",
-    fontSize: "8pt",
-    color: "#4b5563",
-    marginTop: "1pt",
-  },
-  regRow: {
-    display: "flex",
-    gap: "10pt",
+  tagline: {
     fontSize: "7pt",
+    fontWeight: "600" as const,
     color: "#6b7280",
-    marginTop: "1pt",
+    fontStyle: "italic" as const,
+    marginBottom: "3pt",
+  },
+  contactInfo: {
+    fontSize: "7pt",
+    color: "#4b5563",
+    lineHeight: 1.4,
   },
   headerRight: {
     textAlign: "right" as const,
+    display: "flex",
+    flexDirection: "column" as const,
+    alignItems: "flex-end",
   },
-  reportBadge: {
-    display: "inline-block",
-    backgroundColor: "#1e40af",
-    color: "white",
-    padding: "4pt 10pt",
-    borderRadius: "3px",
+  reportTitle: {
+    fontSize: "12pt",
+    fontWeight: "bold" as const,
+    color: "#1e40af",
+    marginBottom: "4pt",
+    letterSpacing: "1px",
+  },
+  reportNumber: {
+    fontSize: "9pt",
+    fontWeight: "bold" as const,
+    color: "#374151",
     marginBottom: "4pt",
   },
-  reportBadgeText: {
-    fontSize: "11pt",
+  priorityBadge: {
+    fontSize: "8pt",
     fontWeight: "bold" as const,
-    letterSpacing: "0.5px",
-    margin: 0,
+    padding: "2pt 6pt",
+    borderRadius: "2px",
+    marginBottom: "4pt",
   },
   qrContainer: {
-    marginTop: "6pt",
+    marginTop: "4pt",
+    textAlign: "right" as const,
   },
   qrImage: {
-    marginLeft: "auto",
-    width: "50px",
-    height: "50px",
+    width: "45px",
+    height: "45px",
   },
   qrText: {
     fontSize: "6pt",
     color: "#6b7280",
     marginTop: "1pt",
   },
-  reportNumber: {
-    fontSize: "10pt",
-    fontWeight: "bold" as const,
-    color: "#1f2937",
-    margin: "3pt 0",
-  },
+
+  // Patient Section - Bordered Box
   patientSection: {
-    backgroundColor: "#f8fafc",
-    padding: "10pt",
-    borderRadius: "4px",
-    marginBottom: "12pt",
+    border: "1px solid #d1d5db",
+    marginBottom: "10pt",
+  },
+  patientHeader: {
+    backgroundColor: "#1e40af",
+    color: "white",
+    padding: "4pt 10pt",
+    fontSize: "9pt",
+    fontWeight: "bold" as const,
   },
   patientGrid: {
     display: "grid",
-    gridTemplateColumns: "repeat(4, 1fr)",
-    gap: "8pt",
-  },
-  patientItem: {
-    display: "flex",
-    flexDirection: "column" as const,
-  },
-  label: {
-    fontSize: "7pt",
-    color: "#6b7280",
-    marginBottom: "1pt",
-    textTransform: "uppercase" as const,
-    letterSpacing: "0.3px",
-  },
-  value: {
-    fontSize: "9pt",
-    fontWeight: "500" as const,
-    color: "#1f2937",
-  },
-  smallValue: {
+    gridTemplateColumns: "1fr 1fr",
     fontSize: "8pt",
-    color: "#4b5563",
   },
-  categoryTitle: {
-    fontSize: "10pt",
+  patientRow: {
+    display: "flex",
+    borderBottom: "1px solid #e5e7eb",
+    padding: "4pt 10pt",
+  },
+  patientRowAlt: {
+    display: "flex",
+    borderBottom: "1px solid #e5e7eb",
+    padding: "4pt 10pt",
+    backgroundColor: "#f9fafb",
+  },
+  patientLabel: {
+    fontSize: "8pt",
     fontWeight: "bold" as const,
-    color: "#1e40af",
-    borderBottom: "1.5px solid #1e40af",
-    paddingBottom: "3pt",
-    marginBottom: "8pt",
-    marginTop: "12pt",
-    textTransform: "uppercase" as const,
-    letterSpacing: "0.3px",
+    color: "#374151",
+    width: "35%",
+    minWidth: "80px",
   },
-  testName: {
-    fontSize: "9pt",
+  patientValue: {
+    fontSize: "8pt",
     fontWeight: "600" as const,
     color: "#1f2937",
-    marginBottom: "4pt",
-    marginTop: "8pt",
+    flex: 1,
   },
+
+  // Clinical Notes
+  clinicalNotes: {
+    backgroundColor: "#eff6ff",
+    border: "1px solid #bfdbfe",
+    padding: "6pt 10pt",
+    fontSize: "8pt",
+    color: "#1e40af",
+    marginBottom: "10pt",
+  },
+
+  // Department/Category Header
+  departmentHeader: {
+    fontSize: "10pt",
+    fontWeight: "bold" as const,
+    color: "#1f2937",
+    backgroundColor: "#f3f4f6",
+    borderBottom: "2px solid #374151",
+    padding: "5pt 8pt",
+    marginTop: "12pt",
+    marginBottom: "2pt",
+    textTransform: "uppercase" as const,
+    letterSpacing: "0.5px",
+  },
+  collectionInfo: {
+    display: "flex",
+    justifyContent: "space-between",
+    fontSize: "7pt",
+    color: "#4b5563",
+    padding: "3pt 8pt",
+    backgroundColor: "#f9fafb",
+    marginBottom: "6pt",
+    fontWeight: "500" as const,
+  },
+
+  // Test Name
+  testName: {
+    fontSize: "9pt",
+    fontWeight: "bold" as const,
+    color: "#1e40af",
+    padding: "6pt 0 4pt 0",
+    borderBottom: "1px solid #e5e7eb",
+    marginBottom: "4pt",
+  },
+
+  // Table Styles
   table: {
     width: "100%",
     borderCollapse: "collapse" as const,
-    fontSize: "8pt",
     marginBottom: "6pt",
   },
   tableHeader: {
@@ -172,79 +212,86 @@ const styles = {
     color: "white",
   },
   th: {
-    padding: "4pt 6pt",
+    padding: "5pt 8pt",
     textAlign: "left" as const,
-    fontWeight: "600" as const,
-    fontSize: "7pt",
-    textTransform: "uppercase" as const,
-    letterSpacing: "0.3px",
+    fontWeight: "bold" as const,
+    fontSize: "8pt",
+    borderBottom: "1px solid #1e40af",
   },
   thCenter: {
-    padding: "4pt 6pt",
+    padding: "5pt 8pt",
     textAlign: "center" as const,
-    fontWeight: "600" as const,
-    fontSize: "7pt",
-    textTransform: "uppercase" as const,
-    letterSpacing: "0.3px",
+    fontWeight: "bold" as const,
+    fontSize: "8pt",
+    borderBottom: "1px solid #1e40af",
   },
   td: {
-    padding: "4pt 6pt",
+    padding: "4pt 8pt",
     borderBottom: "1px solid #e5e7eb",
-    verticalAlign: "middle" as const,
     fontSize: "8pt",
+    fontWeight: "500" as const,
+    verticalAlign: "middle" as const,
+  },
+  tdParameter: {
+    padding: "4pt 8pt",
+    borderBottom: "1px solid #e5e7eb",
+    fontSize: "8pt",
+    fontWeight: "bold" as const,
+    color: "#1f2937",
+    verticalAlign: "middle" as const,
   },
   tdCenter: {
-    padding: "4pt 6pt",
+    padding: "4pt 8pt",
     borderBottom: "1px solid #e5e7eb",
     textAlign: "center" as const,
-    verticalAlign: "middle" as const,
     fontSize: "8pt",
+    fontWeight: "500" as const,
+    verticalAlign: "middle" as const,
   },
   tdAbnormal: {
-    padding: "4pt 6pt",
+    padding: "4pt 8pt",
     borderBottom: "1px solid #e5e7eb",
     textAlign: "center" as const,
     fontWeight: "bold" as const,
     color: "#dc2626",
-    verticalAlign: "middle" as const,
     fontSize: "8pt",
+    verticalAlign: "middle" as const,
   },
   abnormalIndicator: {
     display: "inline-block",
-    fontSize: "6pt",
+    fontSize: "7pt",
     fontWeight: "bold" as const,
     color: "#dc2626",
     marginLeft: "3pt",
   },
+  rowEven: {
+    backgroundColor: "#f9fafb",
+  },
+
+  // Notes Box
   notesBox: {
     backgroundColor: "#fef3c7",
-    padding: "6pt 10pt",
-    borderRadius: "3px",
+    border: "1px solid #fcd34d",
+    padding: "5pt 10pt",
     fontSize: "8pt",
     color: "#92400e",
-    marginTop: "6pt",
-    marginBottom: "8pt",
-  },
-  clinicalNotes: {
-    backgroundColor: "#f0f9ff",
-    padding: "8pt 10pt",
-    borderRadius: "3px",
-    fontSize: "8pt",
-    color: "#0369a1",
-    marginBottom: "12pt",
+    marginTop: "4pt",
+    marginBottom: "6pt",
   },
   noTemplate: {
     backgroundColor: "#f9fafb",
     padding: "6pt 10pt",
-    borderRadius: "3px",
     fontSize: "8pt",
     color: "#374151",
     fontStyle: "italic" as const,
+    border: "1px solid #e5e7eb",
   },
+
+  // Footer Section
   footer: {
-    marginTop: "16pt",
-    paddingTop: "12pt",
-    borderTop: "1px solid #e5e7eb",
+    marginTop: "auto",
+    paddingTop: "10pt",
+    borderTop: "1px solid #d1d5db",
   },
   footerGrid: {
     display: "grid",
@@ -253,45 +300,59 @@ const styles = {
   },
   footerLeft: {
     fontSize: "7pt",
-    color: "#6b7280",
+    color: "#4b5563",
   },
   footerRight: {
     textAlign: "right" as const,
   },
   signatureArea: {
-    marginTop: "10pt",
+    marginTop: "6pt",
+  },
+  signatureLine: {
+    borderTop: "1px solid #374151",
+    width: "100px",
+    marginTop: "20pt",
+    marginLeft: "auto",
   },
   signatureName: {
     fontSize: "9pt",
-    fontWeight: "600" as const,
+    fontWeight: "bold" as const,
     color: "#1f2937",
+    marginTop: "3pt",
   },
   signatureTitle: {
     fontSize: "7pt",
     color: "#6b7280",
     marginTop: "1pt",
   },
-  signatureLine: {
-    borderTop: "1px solid #374151",
-    width: "120px",
-    marginTop: "24pt",
-    marginLeft: "auto",
-  },
   legend: {
     fontSize: "6pt",
     color: "#6b7280",
     marginTop: "6pt",
+    lineHeight: 1.4,
   },
+  disclaimer: {
+    fontSize: "7pt",
+    color: "#6b7280",
+    fontStyle: "italic" as const,
+    textAlign: "center" as const,
+    marginTop: "8pt",
+    paddingTop: "6pt",
+    borderTop: "1px dotted #d1d5db",
+  },
+
+  // Watermark
   watermark: {
     position: "absolute" as const,
     top: "50%",
     left: "50%",
     transform: "translate(-50%, -50%) rotate(-30deg)",
-    fontSize: "48pt",
+    fontSize: "42pt",
     fontWeight: "bold" as const,
-    color: "rgba(34, 197, 94, 0.06)",
+    color: "rgba(34, 197, 94, 0.05)",
     pointerEvents: "none" as const,
     zIndex: 0,
+    letterSpacing: "8px",
   },
 };
 
@@ -305,13 +366,11 @@ export const PrintableLabReport = forwardRef<HTMLDivElement, PrintableLabReportP
       ? differenceInYears(new Date(), new Date(patient.date_of_birth))
       : null;
 
-    // Generate verification URL and QR code
     const verificationUrl = organization?.slug
       ? `https://smart-hms.lovable.app/lab-reports?order=${labOrder.order_number}`
       : "";
-    const qrCodeUrl = verificationUrl ? generateQRCodeUrl(verificationUrl, 60) : "";
+    const qrCodeUrl = verificationUrl ? generateQRCodeUrl(verificationUrl, 55) : "";
 
-    // Group items by category
     const itemsByCategory = labOrder.items?.reduce((acc, item) => {
       const category = item.test_category || "General";
       if (!acc[category]) acc[category] = [];
@@ -358,10 +417,9 @@ export const PrintableLabReport = forwardRef<HTMLDivElement, PrintableLabReportP
 
     return (
       <div ref={ref} style={styles.container}>
-        {/* Completed Watermark */}
         {isCompleted && <div style={styles.watermark}>VERIFIED</div>}
 
-        {/* ===== LETTERHEAD HEADER ===== */}
+        {/* ===== HEADER ===== */}
         <div style={styles.header}>
           <div style={styles.headerLeft}>
             {organization?.logo_url && (
@@ -375,52 +433,48 @@ export const PrintableLabReport = forwardRef<HTMLDivElement, PrintableLabReportP
                 }}
               />
             )}
-            <div>
+            <div style={styles.orgInfo}>
               <h1 style={styles.orgName}>
                 {organization?.name || "Healthcare Laboratory"}
               </h1>
-              {organization?.address && (
-                <p style={styles.orgAddress}>{organization.address}</p>
-              )}
-              <div style={styles.contactRow}>
-                {organization?.phone && <span>Tel: {organization.phone}</span>}
-                {organization?.phone && organization?.email && <span>|</span>}
-                {organization?.email && <span>{organization.email}</span>}
-              </div>
-              {(organization?.registration_number || organization?.tax_id) && (
-                <div style={styles.regRow}>
-                  {organization?.registration_number && (
-                    <span>Reg: {organization.registration_number}</span>
-                  )}
-                  {organization?.tax_id && (
-                    <span>Tax ID: {organization.tax_id}</span>
-                  )}
+              <p style={styles.tagline}>Quality Healthcare Services</p>
+              <div style={styles.contactInfo}>
+                {organization?.address && <div>{organization.address}</div>}
+                <div>
+                  {organization?.phone && <span>Tel: {organization.phone}</span>}
+                  {organization?.phone && organization?.email && <span> | </span>}
+                  {organization?.email && <span>{organization.email}</span>}
                 </div>
-              )}
+                {(organization?.registration_number || organization?.tax_id) && (
+                  <div>
+                    {organization?.registration_number && <span>Reg: {organization.registration_number}</span>}
+                    {organization?.registration_number && organization?.tax_id && <span> | </span>}
+                    {organization?.tax_id && <span>Tax: {organization.tax_id}</span>}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
           <div style={styles.headerRight}>
-            <div style={styles.reportBadge}>
-              <p style={styles.reportBadgeText}>LAB REPORT</p>
-            </div>
-            <p style={styles.reportNumber}>{labOrder.order_number}</p>
-            <p style={{ fontSize: "9pt", color: "#6b7280" }}>
-              {labOrder.priority !== "routine" && (
-                <span style={{ color: labOrder.priority === "stat" ? "#dc2626" : "#ea580c", fontWeight: "bold" }}>
-                  [{labOrder.priority.toUpperCase()}]{" "}
-                </span>
-              )}
+            <div style={styles.reportTitle}>LABORATORY REPORT</div>
+            <div style={styles.reportNumber}>Case #: {labOrder.order_number}</div>
+            {labOrder.priority !== "routine" && (
+              <div style={{
+                ...styles.priorityBadge,
+                backgroundColor: labOrder.priority === "stat" ? "#dc2626" : "#ea580c",
+                color: "white",
+              }}>
+                {labOrder.priority.toUpperCase()}
+              </div>
+            )}
+            <div style={{ fontSize: "8pt", color: "#6b7280" }}>
               {format(new Date(labOrder.created_at), "dd MMM yyyy")}
-            </p>
+            </div>
             {qrCodeUrl && (
               <div style={styles.qrContainer}>
-                <img
-                  src={qrCodeUrl}
-                  alt="Verification QR"
-                  style={styles.qrImage}
-                />
-                <p style={styles.qrText}>Scan to verify</p>
+                <img src={qrCodeUrl} alt="Verify" style={styles.qrImage} />
+                <div style={styles.qrText}>Scan to verify</div>
               </div>
             )}
           </div>
@@ -428,29 +482,46 @@ export const PrintableLabReport = forwardRef<HTMLDivElement, PrintableLabReportP
 
         {/* ===== PATIENT INFORMATION ===== */}
         <div style={styles.patientSection}>
+          <div style={styles.patientHeader}>Patient Information</div>
           <div style={styles.patientGrid}>
-            <div style={styles.patientItem}>
-              <span style={styles.label}>Patient Name</span>
-              <span style={styles.value}>
+            <div style={styles.patientRow}>
+              <span style={styles.patientLabel}>Patient Name:</span>
+              <span style={styles.patientValue}>
                 {patient?.first_name} {patient?.last_name}
               </span>
             </div>
-            <div style={styles.patientItem}>
-              <span style={styles.label}>MR Number</span>
-              <span style={styles.value}>{patient?.patient_number}</span>
+            <div style={styles.patientRowAlt}>
+              <span style={styles.patientLabel}>MR Number:</span>
+              <span style={styles.patientValue}>{patient?.patient_number}</span>
             </div>
-            <div style={styles.patientItem}>
-              <span style={styles.label}>Age / Gender</span>
-              <span style={styles.value}>
+            <div style={styles.patientRowAlt}>
+              <span style={styles.patientLabel}>Age / Gender:</span>
+              <span style={styles.patientValue}>
                 {patientAge !== null ? `${patientAge} Years` : "-"} / {patient?.gender ? patient.gender.charAt(0).toUpperCase() : "-"}
               </span>
             </div>
-            <div style={styles.patientItem}>
-              <span style={styles.label}>Referred By</span>
-              <span style={styles.value}>Dr. {doctor?.profile?.full_name || "Unknown"}</span>
-              {doctor?.specialization && (
-                <span style={styles.smallValue}>{doctor.specialization}</span>
-              )}
+            <div style={styles.patientRow}>
+              <span style={styles.patientLabel}>Registration:</span>
+              <span style={styles.patientValue}>
+                {format(new Date(labOrder.created_at), "dd/MM/yyyy hh:mm a")}
+              </span>
+            </div>
+            <div style={styles.patientRow}>
+              <span style={styles.patientLabel}>Referred By:</span>
+              <span style={styles.patientValue}>
+                Dr. {doctor?.profile?.full_name || "Self"}
+                {doctor?.specialization && ` (${doctor.specialization})`}
+              </span>
+            </div>
+            <div style={styles.patientRowAlt}>
+              <span style={styles.patientLabel}>Report Status:</span>
+              <span style={{
+                ...styles.patientValue,
+                color: isCompleted ? "#059669" : "#ea580c",
+                fontWeight: "bold",
+              }}>
+                {isCompleted ? "FINAL" : "PENDING"}
+              </span>
             </div>
           </div>
         </div>
@@ -465,7 +536,13 @@ export const PrintableLabReport = forwardRef<HTMLDivElement, PrintableLabReportP
         {/* ===== TEST RESULTS BY CATEGORY ===== */}
         {Object.entries(itemsByCategory).map(([category, items]) => (
           <div key={category}>
-            <div style={styles.categoryTitle}>{getCategoryTitle(category)}</div>
+            <div style={styles.departmentHeader}>{getCategoryTitle(category)}</div>
+            <div style={styles.collectionInfo}>
+              <span>Collection: {format(new Date(labOrder.created_at), "dd/MM/yyyy hh:mm a")}</span>
+              <span>Reported: {labOrder.completed_at 
+                ? format(new Date(labOrder.completed_at), "dd/MM/yyyy hh:mm a")
+                : "Pending"}</span>
+            </div>
 
             {items?.map((item) => {
               const template = getTemplate(item.test_name);
@@ -473,16 +550,16 @@ export const PrintableLabReport = forwardRef<HTMLDivElement, PrintableLabReportP
 
               return (
                 <div key={item.id}>
-                  <p style={styles.testName}>{item.test_name}</p>
+                  <div style={styles.testName}>{item.test_name}</div>
 
                   {template ? (
                     <table style={styles.table}>
                       <thead>
                         <tr style={styles.tableHeader}>
-                          <th style={styles.th}>Parameter</th>
-                          <th style={styles.thCenter}>Result</th>
-                          <th style={styles.thCenter}>Unit</th>
-                          <th style={styles.thCenter}>Reference Range</th>
+                          <th style={{ ...styles.th, width: "35%" }}>Test Parameter</th>
+                          <th style={{ ...styles.thCenter, width: "20%" }}>Result</th>
+                          <th style={{ ...styles.thCenter, width: "15%" }}>Unit</th>
+                          <th style={{ ...styles.thCenter, width: "30%" }}>Reference Range</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -490,11 +567,11 @@ export const PrintableLabReport = forwardRef<HTMLDivElement, PrintableLabReportP
                           const value = resultValues[field.name];
                           const abnormal = isValueAbnormal(field, value);
                           const indicator = getAbnormalIndicator(field, value);
-                          const rowBg = idx % 2 === 1 ? { backgroundColor: "#f9fafb" } : {};
+                          const rowStyle = idx % 2 === 1 ? styles.rowEven : {};
 
                           return (
-                            <tr key={field.name} style={rowBg}>
-                              <td style={styles.td}>{field.name}</td>
+                            <tr key={field.name} style={rowStyle}>
+                              <td style={styles.tdParameter}>{field.name}</td>
                               <td style={abnormal ? styles.tdAbnormal : styles.tdCenter}>
                                 {value || "-"}
                                 {indicator && (
@@ -517,9 +594,9 @@ export const PrintableLabReport = forwardRef<HTMLDivElement, PrintableLabReportP
                       </tbody>
                     </table>
                   ) : (
-                    <p style={styles.noTemplate}>
+                    <div style={styles.noTemplate}>
                       {resultValues["result"] || "No result recorded"}
-                    </p>
+                    </div>
                   )}
 
                   {item.result_notes && (
@@ -535,8 +612,8 @@ export const PrintableLabReport = forwardRef<HTMLDivElement, PrintableLabReportP
 
         {/* ===== OVERALL NOTES ===== */}
         {labOrder.result_notes && (
-          <div style={{ ...styles.clinicalNotes, marginTop: "16pt" }}>
-            <strong>Lab Notes:</strong> {labOrder.result_notes}
+          <div style={{ ...styles.clinicalNotes, marginTop: "12pt" }}>
+            <strong>Lab Comments:</strong> {labOrder.result_notes}
           </div>
         )}
 
@@ -544,28 +621,27 @@ export const PrintableLabReport = forwardRef<HTMLDivElement, PrintableLabReportP
         <div style={styles.footer}>
           <div style={styles.footerGrid}>
             <div style={styles.footerLeft}>
-              <p>
+              <div>
                 <strong>Report Generated:</strong>{" "}
                 {labOrder.completed_at
                   ? format(new Date(labOrder.completed_at), "dd MMM yyyy 'at' hh:mm a")
                   : format(new Date(), "dd MMM yyyy 'at' hh:mm a")}
-              </p>
-              <p style={styles.legend}>
-                * Values marked in <span style={{ color: "#dc2626", fontWeight: "bold" }}>red</span> are outside normal range.
-                <br />
-                H = High, L = Low
-              </p>
-              <p style={{ marginTop: "8pt", fontSize: "8pt" }}>
-                This is a computer-generated report.
-              </p>
+              </div>
+              <div style={styles.legend}>
+                <strong>Legend:</strong> Values in <span style={{ color: "#dc2626", fontWeight: "bold" }}>red</span> are outside normal range.
+                <br />H = High | L = Low
+              </div>
             </div>
             <div style={styles.footerRight}>
               <div style={styles.signatureArea}>
                 <div style={styles.signatureLine} />
-                <p style={styles.signatureName}>{performedBy || "Lab Technician"}</p>
-                <p style={styles.signatureTitle}>Authorized Signatory</p>
+                <div style={styles.signatureName}>{performedBy || "Lab Technician"}</div>
+                <div style={styles.signatureTitle}>Authorized Signatory</div>
               </div>
             </div>
+          </div>
+          <div style={styles.disclaimer}>
+            This is an electronically verified report. Results relate only to the sample tested.
           </div>
         </div>
       </div>
