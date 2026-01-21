@@ -201,6 +201,7 @@ import BedProfilePage from "./pages/app/ipd/BedProfilePage";
 import BedDashboardPage from "./pages/app/ipd/BedDashboardPage";
 import HousekeepingQueuePage from "./pages/app/ipd/HousekeepingQueuePage";
 import DailyRoundsPage from "./pages/app/ipd/DailyRoundsPage";
+import RoundDetailPage from "./pages/app/ipd/RoundDetailPage";
 import NursingStationPage from "./pages/app/ipd/NursingStationPage";
 import DischargesPage from "./pages/app/ipd/DischargesPage";
 import DischargeFormPage from "./pages/app/ipd/DischargeFormPage";
@@ -494,7 +495,7 @@ function App() {
               <Route path="ipd/admissions/new" element={<AdmissionFormPage />} />
               <Route path="ipd/admissions/:id" element={<AdmissionDetailPage />} />
               <Route path="ipd/rounds" element={<DailyRoundsPage />} />
-              <Route path="ipd/rounds/:admissionId" element={<DailyRoundsPage />} />
+              <Route path="ipd/rounds/:admissionId" element={<RoundDetailPage />} />
               <Route path="ipd/nursing" element={<NursingStationPage />} />
               <Route path="ipd/nursing-notes" element={<NursingNotesPage />} />
               <Route path="ipd/discharges" element={<DischargesPage />} />
