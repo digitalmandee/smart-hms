@@ -58,7 +58,8 @@ import { PatientImagingHistory } from "@/components/patients/PatientImagingHisto
 import { PatientPregnanciesHistory } from "@/components/patients/PatientPregnanciesHistory";
 import { PatientCertificatesHistory } from "@/components/patients/PatientCertificatesHistory";
 import { LabResultsPreview } from "@/components/lab/LabResultsPreview";
-import { Baby, Award } from "lucide-react";
+import { PatientVitalsHistory } from "@/components/patients/PatientVitalsHistory";
+import { Baby, Award, Thermometer } from "lucide-react";
 
 export function PatientDetailPage() {
   const { id } = useParams();
@@ -303,6 +304,10 @@ export function PatientDetailPage() {
                 <Activity className="h-4 w-4" />
                 Overview
               </TabsTrigger>
+              <TabsTrigger value="vitals" className="gap-2">
+                <Thermometer className="h-4 w-4" />
+                Vitals
+              </TabsTrigger>
               <TabsTrigger value="history" className="gap-2">
                 <Heart className="h-4 w-4" />
                 Medical
@@ -453,6 +458,10 @@ export function PatientDetailPage() {
                 {/* Lab Results Quick Preview */}
                 <LabResultsPreview patientId={patient.id} patientName={`${patient.first_name} ${patient.last_name}`} />
               </div>
+            </TabsContent>
+
+            <TabsContent value="vitals">
+              <PatientVitalsHistory patientId={patient.id} />
             </TabsContent>
 
             <TabsContent value="history">
