@@ -103,10 +103,11 @@ export function usePrescriptionForDispensing(prescriptionId: string | undefined)
   });
 }
 
-// Dispense prescription mutation
+// Dispense prescription mutation - auto-adds charges for IPD patients
 export function useDispensePrescription() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { profile } = useAuth();
 
   return useMutation({
     mutationFn: async ({
@@ -118,6 +119,23 @@ export function useDispensePrescription() {
       dispensedItems: { itemId: string; inventoryId?: string; quantityDispensed: number }[];
       notes?: string;
     }) => {
+      // Get prescription with patient info
+      const { data: prescription, error: prescError } = await supabase
+        .from("prescriptions")
+        .select("patient_id, prescription_number")
+        .eq("id", prescriptionId)
+        .single();
+
+      if (prescError) throw prescError;
+
+      // Check if patient has active admission (IPD patient)
+      const { data: activeAdmission } = await supabase
+        .from("admissions")
+        .select("id, branch_id, admission_number")
+        .eq("patient_id", prescription.patient_id)
+        .eq("status", "admitted")
+        .maybeSingle();
+
       // Update prescription items as dispensed
       for (const item of dispensedItems) {
         const { error: itemError } = await supabase
@@ -131,7 +149,7 @@ export function useDispensePrescription() {
         if (item.inventoryId && item.quantityDispensed > 0) {
           const { data: inventory, error: invError } = await supabase
             .from("medicine_inventory")
-            .select("quantity")
+            .select("quantity, selling_price, medicine:medicines(id, name)")
             .eq("id", item.inventoryId)
             .single();
 
@@ -145,6 +163,26 @@ export function useDispensePrescription() {
             .eq("id", item.inventoryId);
 
           if (updateError) throw updateError;
+
+          // If patient is admitted (IPD), create IPD charge for medication
+          if (activeAdmission && profile?.id) {
+            const medicineName = (inventory.medicine as any)?.name || "Medication";
+            const unitPrice = inventory.selling_price || 0;
+            const totalAmount = item.quantityDispensed * unitPrice;
+
+            await supabase.from("ipd_charges").insert({
+              admission_id: activeAdmission.id,
+              charge_date: new Date().toISOString().split("T")[0],
+              charge_type: "medication",
+              description: `Medication: ${medicineName}`,
+              quantity: item.quantityDispensed,
+              unit_price: unitPrice,
+              total_amount: totalAmount,
+              is_billed: false,
+              added_by: profile.id,
+              notes: `Dispensed from prescription ${prescription.prescription_number}`,
+            });
+          }
         }
       }
 
@@ -170,16 +208,26 @@ export function useDispensePrescription() {
 
       if (presError) throw presError;
 
-      return { status: newStatus };
+      return { status: newStatus, isIPDPatient: !!activeAdmission };
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ["prescription-queue"] });
       queryClient.invalidateQueries({ queryKey: ["prescriptions"] });
       queryClient.invalidateQueries({ queryKey: ["medicine-inventory"] });
-      toast({
-        title: "Prescription dispensed",
-        description: "The prescription has been dispensed successfully.",
-      });
+      
+      if (result.isIPDPatient) {
+        queryClient.invalidateQueries({ queryKey: ["ipd-charges"] });
+        queryClient.invalidateQueries({ queryKey: ["ipd-billing-stats"] });
+        toast({
+          title: "Prescription dispensed",
+          description: "Medication charges added to IPD patient account.",
+        });
+      } else {
+        toast({
+          title: "Prescription dispensed",
+          description: "The prescription has been dispensed successfully.",
+        });
+      }
     },
     onError: (error: Error) => {
       toast({

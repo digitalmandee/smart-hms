@@ -311,6 +311,7 @@ import NursingNotesPage from "./pages/app/ipd/NursingNotesPage";
 import CarePlansPage from "./pages/app/ipd/CarePlansPage";
 import DietManagementPage from "./pages/app/ipd/DietManagementPage";
 import IPDChargesPage from "./pages/app/ipd/IPDChargesPage";
+import IPDBillingDashboard from "./pages/app/ipd/IPDBillingDashboard";
 import BedTransfersPage from "./pages/app/ipd/BedTransfersPage";
 import MedicationChartPage from "./pages/app/ipd/MedicationChartPage";
 import IPDReportsPage from "./pages/app/ipd/IPDReportsPage";
@@ -499,6 +500,7 @@ function App() {
               <Route path="ipd/diet" element={<DietManagementPage />} />
               <Route path="ipd/vitals" element={<IPDVitalsPage />} />
               <Route path="ipd/charges" element={<IPDChargesPage />} />
+              <Route path="ipd/billing" element={<IPDBillingDashboard />} />
               <Route path="ipd/medication-chart" element={<MedicationChartPage />} />
               <Route path="ipd/emar" element={<MedicationChartPage />} />
               <Route path="ipd/history" element={<AdmissionHistoryPage />} />

@@ -12,7 +12,8 @@ import {
   LogOut,
   ClipboardList,
   Plus,
-  ArrowRight
+  ArrowRight,
+  Wallet
 } from "lucide-react";
 import { useIPDStats } from "@/hooks/useIPD";
 import { useAdmissions } from "@/hooks/useAdmissions";
@@ -231,6 +232,17 @@ export default function IPDDashboard() {
               <Users className="h-6 w-6" />
             </div>
             <span className="font-medium">Admissions</span>
+          </CardContent>
+        </Card>
+        <Card 
+          className="cursor-pointer transition-all hover:shadow-lg hover:-translate-y-1 group"
+          onClick={() => navigate("/app/ipd/billing")}
+        >
+          <CardContent className="flex flex-col items-center gap-2 py-6">
+            <div className="p-3 rounded-xl bg-gradient-to-br from-success to-success/80 text-success-foreground shadow-lg shadow-success/30 group-hover:scale-110 transition-transform">
+              <Wallet className="h-6 w-6" />
+            </div>
+            <span className="font-medium">IPD Billing</span>
           </CardContent>
         </Card>
         <Card 
