@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAdmissionFinancials } from "@/hooks/useAdmissionFinancials";
+import { usePatientCreditBalance } from "@/hooks/usePharmacyCredits";
 import { formatCurrency } from "@/lib/currency";
 import { 
   Wallet, 
@@ -12,7 +13,8 @@ import {
   TestTube, 
   TrendingUp,
   AlertCircle,
-  RefreshCw
+  RefreshCw,
+  Clock
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -168,10 +170,24 @@ export function AdmissionFinancialSummary({
             {financials.otherCharges > 0 && (
               <div className="flex items-center justify-between py-2 border-b">
                 <div className="flex items-center gap-2">
-                  <Receipt className="h-4 w-4 text-gray-500" />
+                  <Receipt className="h-4 w-4 text-muted-foreground" />
                   <span>Other Charges</span>
                 </div>
                 <span className="font-medium">{formatCurrency(financials.otherCharges)}</span>
+              </div>
+            )}
+
+            {/* Pharmacy Credits (Pay Later) */}
+            {financials.pharmacyCreditsAmount > 0 && (
+              <div className="flex items-center justify-between py-2 border-b bg-amber-50/50 dark:bg-amber-950/20">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-amber-600" />
+                  <span>Pharmacy Credits ({financials.pharmacyCreditsCount})</span>
+                  <Badge variant="outline" className="text-xs text-amber-600 border-amber-300">
+                    Pay Later
+                  </Badge>
+                </div>
+                <span className="font-medium text-amber-600">{formatCurrency(financials.pharmacyCreditsAmount)}</span>
               </div>
             )}
 

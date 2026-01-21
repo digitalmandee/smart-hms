@@ -26,6 +26,7 @@ export interface AdmissionFinancials {
   medicationCharges: number;
   labCharges: number;
   otherCharges: number;
+  pharmacyCreditsAmount: number;
   // Outstanding invoices (lab, pharmacy, etc.)
   outstandingInvoices: OutstandingInvoiceInfo[];
   outstandingAmount: number;
@@ -34,6 +35,7 @@ export interface AdmissionFinancials {
   balance: number;
   // Charge counts
   chargeItemCount: number;
+  pharmacyCreditsCount: number;
   // Status
   hasUnbilledCharges: boolean;
 }
@@ -118,6 +120,18 @@ export function useAdmissionFinancials(admissionId?: string) {
 
       const outstandingAmount = outstandingInvoices.reduce((sum, inv) => sum + inv.outstanding, 0);
 
+      // Fetch pharmacy credits (Pay Later purchases)
+      const { data: pharmacyCredits } = await supabase
+        .from("pharmacy_patient_credits")
+        .select("id, amount, paid_amount")
+        .eq("patient_id", admission.patient_id)
+        .neq("status", "paid");
+
+      const pharmacyCreditsAmount = (pharmacyCredits || []).reduce(
+        (sum, credit) => sum + (credit.amount - credit.paid_amount), 
+        0
+      );
+
       // Calculate days admitted
       const today = new Date();
       const admissionDate = new Date(admission.admission_date);
@@ -156,8 +170,8 @@ export function useAdmissionFinancials(admissionId?: string) {
         }
       });
 
-      // Include outstanding invoices in total
-      const totalCharges = roomCharges + serviceCharges + medicationCharges + labCharges + otherCharges + outstandingAmount;
+      // Include outstanding invoices and pharmacy credits in total
+      const totalCharges = roomCharges + serviceCharges + medicationCharges + labCharges + otherCharges + outstandingAmount + pharmacyCreditsAmount;
       const depositAmount = admission.deposit_amount || 0;
       const balance = totalCharges - depositAmount;
 
@@ -176,11 +190,13 @@ export function useAdmissionFinancials(admissionId?: string) {
         medicationCharges,
         labCharges,
         otherCharges,
+        pharmacyCreditsAmount,
         outstandingInvoices,
         outstandingAmount,
         totalCharges,
         balance,
         chargeItemCount: charges?.length || 0,
+        pharmacyCreditsCount: pharmacyCredits?.length || 0,
         hasUnbilledCharges,
       };
     },

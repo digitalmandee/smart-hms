@@ -351,6 +351,21 @@ export const useGenerateIPDInvoice = () => {
 
       if (chargesError) throw chargesError;
 
+      // Fetch outstanding pharmacy credits for this patient
+      const { data: pharmacyCredits, error: creditsError } = await supabase
+        .from("pharmacy_patient_credits")
+        .select("id, amount, paid_amount, notes, transaction_id")
+        .eq("patient_id", patientId)
+        .neq("status", "paid");
+
+      if (creditsError) throw creditsError;
+
+      // Calculate pharmacy credits total
+      const pharmacyCreditsTotal = (pharmacyCredits || []).reduce(
+        (sum, credit) => sum + (credit.amount - credit.paid_amount), 
+        0
+      );
+
       // Calculate service charges total
       const serviceChargesTotal = charges?.reduce((sum, charge) => sum + (charge.total_amount || 0), 0) || 0;
 
@@ -362,8 +377,8 @@ export const useGenerateIPDInvoice = () => {
       // Calculate room charges
       const roomCharges = Math.max(1, daysAdmitted) * dailyRate;
 
-      // Calculate totals
-      const subtotal = serviceChargesTotal + roomCharges + additionalItemsTotal;
+      // Calculate totals (include pharmacy credits)
+      const subtotal = serviceChargesTotal + roomCharges + additionalItemsTotal + pharmacyCreditsTotal;
       const totalAmount = subtotal;
 
       // Generate invoice number
@@ -448,6 +463,23 @@ export const useGenerateIPDInvoice = () => {
         });
       }
 
+      // Add pharmacy credits as invoice items
+      if (pharmacyCredits && pharmacyCredits.length > 0) {
+        pharmacyCredits.forEach((credit) => {
+          const outstanding = credit.amount - credit.paid_amount;
+          if (outstanding > 0) {
+            invoiceItems.push({
+              invoice_id: invoice.id,
+              description: `Pharmacy Credit - ${credit.notes || 'POS Purchase'}`,
+              quantity: 1,
+              unit_price: outstanding,
+              discount_percent: 0,
+              total_price: outstanding,
+            });
+          }
+        });
+      }
+
       // Insert all invoice items
       if (invoiceItems.length > 0) {
         const { error: itemsError } = await supabase
@@ -455,6 +487,14 @@ export const useGenerateIPDInvoice = () => {
           .insert(invoiceItems);
 
         if (itemsError) throw itemsError;
+      }
+
+      // Mark pharmacy credits as invoiced
+      if (pharmacyCredits && pharmacyCredits.length > 0) {
+        await supabase
+          .from("pharmacy_patient_credits")
+          .update({ status: "invoiced", notes: `Added to discharge invoice ${invoice.invoice_number}` })
+          .in("id", pharmacyCredits.map(c => c.id));
       }
 
       // If deposit was applied, create payment record
@@ -475,10 +515,11 @@ export const useGenerateIPDInvoice = () => {
       return { 
         invoice, 
         invoiceId: invoice.id,
-        chargesCount: (charges?.length || 0) + (additionalItems?.length || 0) + (roomCharges > 0 ? 1 : 0), 
+        chargesCount: (charges?.length || 0) + (additionalItems?.length || 0) + (pharmacyCredits?.length || 0) + (roomCharges > 0 ? 1 : 0), 
         totalAmount,
         roomCharges,
         serviceCharges: serviceChargesTotal,
+        pharmacyCredits: pharmacyCreditsTotal,
         additionalCharges: additionalItemsTotal,
       };
     },
