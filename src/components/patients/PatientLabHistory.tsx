@@ -161,17 +161,15 @@ export function PatientLabHistory({ patientId }: PatientLabHistoryProps) {
         </CardContent>
       </Card>
       
-      {/* Hidden printable report - uses print:block to show only when printing */}
-      <div className="hidden print:block">
-        {selectedOrder && (
-          <PrintableLabReport
-            ref={printRef}
-            labOrder={selectedOrder}
-            organization={branding}
-            performedBy={profile?.full_name}
-          />
-        )}
-      </div>
+      {/* Hidden printable report - component handles its own print visibility */}
+      {selectedOrder && (
+        <PrintableLabReport
+          ref={printRef}
+          labOrder={selectedOrder}
+          organization={branding}
+          performedBy={profile?.full_name}
+        />
+      )}
     </>
   );
 }
