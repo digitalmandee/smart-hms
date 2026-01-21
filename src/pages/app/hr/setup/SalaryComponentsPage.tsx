@@ -127,21 +127,16 @@ export default function SalaryComponentsPage() {
 
   return (
     <div className="space-y-6 p-6">
-      <PageHeader
-        title="Salary Components"
-        description="Manage earning and deduction components for payroll"
-        breadcrumbs={[
-          { label: "HR", href: "/app/hr" },
-          { label: "Setup" },
-          { label: "Salary Components" },
-        ]}
-        actions={
-          <Button onClick={() => handleOpenDialog()}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Component
-          </Button>
-        }
-      />
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Salary Components</h1>
+          <p className="text-muted-foreground">Manage earning and deduction components for payroll</p>
+        </div>
+        <Button onClick={() => handleOpenDialog()}>
+          <Plus className="h-4 w-4 mr-2" />
+          Add Component
+        </Button>
+      </div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
