@@ -61,10 +61,8 @@ export function useCreateDepositInvoice() {
           description: `Admission Deposit - ${params.wardName || "IPD"} ${params.bedNumber ? `(Bed ${params.bedNumber})` : ""}`,
           quantity: 1,
           unit_price: params.depositAmount,
-          amount: params.depositAmount,
-          tax_amount: 0,
-          discount_amount: 0,
-          total_amount: params.depositAmount,
+          discount_percent: 0,
+          total_price: params.depositAmount,
         });
 
       if (itemError) throw itemError;
