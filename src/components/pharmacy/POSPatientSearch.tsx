@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -45,18 +45,21 @@ export function POSPatientSearch({
 }: POSPatientSearchProps) {
   const [search, setSearch] = useState("");
   const [showResults, setShowResults] = useState(false);
-  const [lastAdmissionId, setLastAdmissionId] = useState<string | null>(null);
+  const lastAdmissionIdRef = useRef<string | null>(null);
   
   const { data: patients, isLoading: searchLoading } = useSearchPatientForPOS(search);
   const { data: prescriptions, isLoading: rxLoading } = usePatientPrescriptionsForPOS(selectedPatient?.id);
   const { data: admissionStatus } = usePatientAdmissionStatus(selectedPatient?.id);
   const { data: inventory } = useInventory();
 
-  // Notify parent when admission status changes (using useEffect pattern)
-  if (admissionStatus?.id !== lastAdmissionId) {
-    setLastAdmissionId(admissionStatus?.id || null);
-    onAdmissionStatusChange?.(admissionStatus || null);
-  }
+  // Notify parent when admission status changes (using proper useEffect)
+  useEffect(() => {
+    const currentId = admissionStatus?.id || null;
+    if (currentId !== lastAdmissionIdRef.current) {
+      lastAdmissionIdRef.current = currentId;
+      onAdmissionStatusChange?.(admissionStatus || null);
+    }
+  }, [admissionStatus, onAdmissionStatusChange]);
 
   const handlePatientClick = (patient: PatientForPOS) => {
     onPatientSelect(patient);
