@@ -3,10 +3,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Building2, Users, CalendarCheck, Stethoscope, TrendingUp, Activity } from "lucide-react";
+import { Building2, Users, CalendarCheck, Stethoscope, Activity, TrendingUp, ArrowRight } from "lucide-react";
+import { ModernPageHeader } from "@/components/ModernPageHeader";
+import { ModernStatsCard } from "@/components/ModernStatsCard";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 export default function OrgAdminDashboardPage() {
   const { profile } = useAuth();
+  const navigate = useNavigate();
 
   const { data: stats, isLoading } = useQuery({
     queryKey: ["org-admin-stats", profile?.organization_id],
@@ -66,101 +71,123 @@ export default function OrgAdminDashboardPage() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <div><h1 className="text-2xl font-bold">Organization Dashboard</h1></div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-32" />)}
+        <Skeleton className="h-32 w-full" />
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+          {[1, 2, 3, 4, 5].map((i) => <Skeleton key={i} className="h-32" />)}
         </div>
+        <Skeleton className="h-64 w-full" />
       </div>
     );
   }
 
+  const firstName = profile?.full_name?.split(" ")[0] || "Admin";
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Organization Dashboard</h1>
-        <p className="text-muted-foreground">Overview of all branches and organization-wide metrics</p>
-      </div>
+      <ModernPageHeader
+        title="Organization Overview"
+        userName={firstName}
+        showGreeting
+        variant="gradient"
+        icon={Building2}
+        iconColor="primary"
+        quickStats={[
+          { label: "Branches", value: stats?.branchCount || 0, variant: "default" },
+          { label: "Total Staff", value: stats?.staffCount || 0 },
+          { label: "Today's Appointments", value: stats?.appointmentsToday || 0, variant: "success" },
+        ]}
+        actions={
+          <Button onClick={() => navigate("/app/settings/branches")} className="gap-2">
+            Manage Branches
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+        }
+      />
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Active Branches</CardTitle>
-            <Building2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.branchCount}</div>
-            <p className="text-xs text-muted-foreground">Across organization</p>
-          </CardContent>
-        </Card>
+        <ModernStatsCard
+          title="Active Branches"
+          value={stats?.branchCount || 0}
+          icon={Building2}
+          variant="primary"
+          description="Across organization"
+          onClick={() => navigate("/app/settings/branches")}
+        />
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Patients</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.patientCount?.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">All branches</p>
-          </CardContent>
-        </Card>
+        <ModernStatsCard
+          title="Total Patients"
+          value={stats?.patientCount?.toLocaleString() || "0"}
+          icon={Users}
+          variant="info"
+          description="All branches"
+        />
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Staff Members</CardTitle>
-            <Stethoscope className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.staffCount}</div>
-            <p className="text-xs text-muted-foreground">Active users</p>
-          </CardContent>
-        </Card>
+        <ModernStatsCard
+          title="Staff Members"
+          value={stats?.staffCount || 0}
+          icon={Stethoscope}
+          variant="success"
+          description="Active users"
+          onClick={() => navigate("/app/settings/users")}
+        />
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Today's Appointments</CardTitle>
-            <CalendarCheck className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.appointmentsToday}</div>
-            <p className="text-xs text-muted-foreground">All branches</p>
-          </CardContent>
-        </Card>
+        <ModernStatsCard
+          title="Today's Appointments"
+          value={stats?.appointmentsToday || 0}
+          icon={CalendarCheck}
+          variant="warning"
+          description="All branches"
+        />
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Active Consultations</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.activeConsultations}</div>
-            <p className="text-xs text-muted-foreground">In progress</p>
-          </CardContent>
-        </Card>
+        <ModernStatsCard
+          title="Active Consultations"
+          value={stats?.activeConsultations || 0}
+          icon={Activity}
+          variant="accent"
+          description="In progress"
+        />
       </div>
 
-      <Card>
-        <CardHeader>
+      <Card className="overflow-hidden border-primary/10">
+        <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent">
           <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="h-5 w-5" />
+            <div className="p-2 rounded-lg bg-primary/10">
+              <TrendingUp className="h-5 w-5 text-primary" />
+            </div>
             Branch Overview
           </CardTitle>
-          <CardDescription>Quick view of all active branches</CardDescription>
+          <CardDescription>Quick view of all active branches in your organization</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           {stats?.branches && stats.branches.length > 0 ? (
-            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-              {stats.branches.map((branch) => (
-                <div key={branch.id} className="flex items-center gap-3 p-3 border rounded-lg">
-                  <Building2 className="h-8 w-8 text-primary" />
-                  <div>
-                    <p className="font-medium">{branch.name}</p>
-                    <p className="text-sm text-muted-foreground">{branch.code}</p>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {stats.branches.map((branch, index) => (
+                <div 
+                  key={branch.id} 
+                  className="group flex items-center gap-4 p-4 border rounded-xl bg-gradient-to-br from-card to-muted/20 hover:border-primary/30 hover:shadow-md transition-all duration-300 cursor-pointer"
+                  style={{ animationDelay: `${index * 50}ms` }}
+                  onClick={() => navigate(`/app/settings/branches/${branch.id}`)}
+                >
+                  <div className="p-3 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors">
+                    <Building2 className="h-6 w-6 text-primary" />
                   </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-foreground truncate">{branch.name}</p>
+                    <p className="text-sm text-muted-foreground font-mono">{branch.code}</p>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-muted-foreground text-center py-8">No active branches found</p>
+            <div className="text-center py-12 text-muted-foreground">
+              <Building2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p className="text-lg font-medium">No active branches found</p>
+              <p className="text-sm mt-1">Create your first branch to get started</p>
+              <Button variant="outline" className="mt-4" onClick={() => navigate("/app/settings/branches/new")}>
+                Create Branch
+              </Button>
+            </div>
           )}
         </CardContent>
       </Card>

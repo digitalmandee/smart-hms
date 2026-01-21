@@ -511,7 +511,7 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle, showDesktopToggl
             variant="ghost"
             size="icon"
             onClick={onToggle}
-            className="ml-auto text-sidebar-foreground hover:bg-sidebar-accent lg:hidden"
+            className="ml-auto text-white hover:bg-white/20 lg:hidden"
           >
             <X className="h-5 w-5" />
           </Button>
@@ -524,7 +524,7 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle, showDesktopToggl
             size="icon"
             onClick={onToggle}
             className={cn(
-              "text-sidebar-foreground hover:bg-sidebar-accent",
+              "text-white hover:bg-white/20",
               isCollapsed ? "mx-auto" : "ml-auto"
             )}
             title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
