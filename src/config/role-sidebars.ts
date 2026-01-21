@@ -368,6 +368,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         children: [
           { name: "Studies", path: "/app/radiology/pacs", icon: "Image" },
           { name: "Settings", path: "/app/radiology/pacs/settings", icon: "Server" },
+          { name: "Setup Guide", path: "/app/radiology/pacs/guide", icon: "BookOpen" },
         ]
       },
       { 
