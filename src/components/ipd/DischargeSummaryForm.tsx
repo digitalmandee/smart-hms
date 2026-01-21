@@ -22,12 +22,12 @@ import { cn } from "@/lib/utils";
 
 const dischargeSummarySchema = z.object({
   admission_diagnosis: z.string().optional(),
-  discharge_diagnosis: z.string().optional(),
+  discharge_diagnosis: z.string().min(1, "Discharge diagnosis is required"),
   condition_at_admission: z.string().optional(),
-  condition_at_discharge: z.string().optional(),
+  condition_at_discharge: z.string().min(1, "Condition at discharge is required"),
   hospital_course: z.string().optional(),
   significant_findings: z.string().optional(),
-  follow_up_instructions: z.string().optional(),
+  follow_up_instructions: z.string().min(1, "Follow-up instructions are required"),
   follow_up_date: z.date().optional(),
   diet_instructions: z.string().optional(),
   activity_instructions: z.string().optional(),
@@ -145,7 +145,7 @@ export function DischargeSummaryForm({
               name="discharge_diagnosis"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Discharge Diagnosis</FormLabel>
+                  <FormLabel>Discharge Diagnosis <span className="text-destructive">*</span></FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="Final diagnosis at discharge..."
@@ -181,7 +181,7 @@ export function DischargeSummaryForm({
               name="condition_at_discharge"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Condition at Discharge</FormLabel>
+                  <FormLabel>Condition at Discharge <span className="text-destructive">*</span></FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="Patient's condition at discharge..."
@@ -249,7 +249,7 @@ export function DischargeSummaryForm({
               name="follow_up_instructions"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Follow-up Instructions</FormLabel>
+                  <FormLabel>Follow-up Instructions <span className="text-destructive">*</span></FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="Follow-up care instructions..."

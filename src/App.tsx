@@ -494,7 +494,7 @@ function App() {
               <Route path="ipd/discharges" element={<DischargesPage />} />
               <Route path="ipd/discharge/:id" element={<DischargeFormPage />} />
               <Route path="ipd/discharge-summaries" element={<DischargesPage />} />
-              <Route path="ipd/discharge-billing" element={<IPDChargesPage />} />
+              <Route path="ipd/discharge-billing" element={<DischargesPage />} />
               <Route path="ipd/transfers" element={<BedTransfersPage />} />
               <Route path="ipd/care-plans" element={<CarePlansPage />} />
               <Route path="ipd/diet" element={<DietManagementPage />} />
