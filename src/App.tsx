@@ -295,6 +295,7 @@ import ChartOfAccountsPage from "./pages/app/accounts/ChartOfAccountsPage";
 import AccountFormPage from "./pages/app/accounts/AccountFormPage";
 import AccountDetailPage from "./pages/app/accounts/AccountDetailPage";
 import JournalEntriesPage from "./pages/app/accounts/JournalEntriesPage";
+import JournalEntryDetailPage from "./pages/app/accounts/JournalEntryDetailPage";
 import GeneralLedgerPage from "./pages/app/accounts/GeneralLedgerPage";
 import ReceivablesPage from "./pages/app/accounts/ReceivablesPage";
 import PayablesPage from "./pages/app/accounts/PayablesPage";
@@ -613,6 +614,7 @@ function App() {
               <Route path="accounts/chart-of-accounts/:id" element={<AccountDetailPage />} />
               <Route path="accounts/chart-of-accounts/:id/edit" element={<AccountFormPage />} />
               <Route path="accounts/journal-entries" element={<JournalEntriesPage />} />
+              <Route path="accounts/journal-entries/:id" element={<JournalEntryDetailPage />} />
               <Route path="accounts/ledger" element={<GeneralLedgerPage />} />
               <Route path="accounts/receivables" element={<ReceivablesPage />} />
               <Route path="accounts/payables" element={<PayablesPage />} />
