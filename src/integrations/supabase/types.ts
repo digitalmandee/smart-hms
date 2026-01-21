@@ -14295,6 +14295,7 @@ export type Database = {
         | "pharmacy"
         | "room"
         | "other"
+        | "radiology"
       setting_type: "string" | "number" | "boolean" | "json"
       shift_type:
         | "morning"
@@ -14801,6 +14802,7 @@ export const Constants = {
         "pharmacy",
         "room",
         "other",
+        "radiology",
       ],
       setting_type: ["string", "number", "boolean", "json"],
       shift_type: [
