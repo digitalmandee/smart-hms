@@ -97,12 +97,13 @@ export function QuickPatientModal({ onPatientCreated, trigger }: QuickPatientMod
       const result = await createPatient.mutateAsync({
         first_name: data.first_name,
         last_name: data.last_name || null,
-        phone: data.phone,
+        phone: data.phone || null,
         gender: data.gender as any,
-        date_of_birth,
+        date_of_birth: date_of_birth || null,
         national_id: data.national_id || null,
         emergency_contact_name: data.emergency_contact_name || null,
         emergency_contact_phone: data.emergency_contact_phone || null,
+        // branch_id is handled by the hook using profile.branch_id
       });
 
       setCreatedPatient(result);

@@ -72,12 +72,17 @@ export function useCreatePatient() {
         phone: data.phone 
       });
 
+      // Ensure branch_id is properly set - empty string should fall back to profile branch
+      const effectiveBranchId = data.branch_id && data.branch_id.trim() !== '' 
+        ? data.branch_id 
+        : profile.branch_id;
+
       const { data: patient, error } = await supabase
         .from("patients")
         .insert({
           ...data,
           organization_id: profile.organization_id,
-          branch_id: data.branch_id || profile.branch_id,
+          branch_id: effectiveBranchId,
           created_by: user?.id,
           patient_number: null as any, // Trigger will generate the number
         })
