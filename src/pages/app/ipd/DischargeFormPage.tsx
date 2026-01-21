@@ -38,6 +38,7 @@ import { useBedTypes } from "@/hooks/useIPDConfig";
 import { useAdmissionSurgeries } from "@/hooks/useOT";
 import { useInvoice } from "@/hooks/useBilling";
 import { useOutstandingInvoices, calculateOutstandingTotal } from "@/hooks/useOutstandingInvoices";
+import { usePatientPharmacyCredits, usePatientCreditBalance } from "@/hooks/usePharmacyCredits";
 import { DischargeChecklist } from "@/components/ipd/DischargeChecklist";
 import { DischargeSummaryForm } from "@/components/ipd/DischargeSummaryForm";
 import { PrintableDischargeSummary } from "@/components/ipd/PrintableDischargeSummary";
@@ -114,6 +115,11 @@ export default function DischargeFormPage() {
   );
   const outstandingTotal = calculateOutstandingTotal(outstandingInvoices);
 
+  // Fetch pharmacy credits (Pay Later purchases)
+  const { data: pharmacyCredits = [] } = usePatientPharmacyCredits(admission?.patient_id);
+  const { data: creditBalance } = usePatientCreditBalance(admission?.patient_id);
+  const pharmacyCreditsTotal = creditBalance?.total || 0;
+  const pendingPharmacyCredits = pharmacyCredits.filter(c => c.status !== "paid");
   const isLoading = loadingAdmission || loadingSummary;
   const invoiceGenerated = !!invoiceId;
 
@@ -253,8 +259,8 @@ export default function DischargeFormPage() {
   }, 0);
   const serviceCharges = charges.reduce((sum: number, c: any) => sum + (c.total_amount || 0), 0);
   const roomCharges = Math.max(1, daysAdmitted) * dailyRate;
-  // Include outstanding invoices (lab, pharmacy) in total
-  const totalCharges = serviceCharges + roomCharges + additionalChargesTotal + outstandingTotal;
+  // Include outstanding invoices (lab, pharmacy) and pharmacy credits in total
+  const totalCharges = serviceCharges + roomCharges + additionalChargesTotal + outstandingTotal + pharmacyCreditsTotal;
   const depositAmount = admission?.deposit_amount || 0;
   const balanceDue = totalCharges - depositAmount;
 
@@ -540,6 +546,34 @@ export default function DischargeFormPage() {
                       <div className="flex justify-between text-sm font-medium pt-1 border-t border-dashed">
                         <span>Outstanding Subtotal</span>
                         <span className="text-destructive">Rs. {outstandingTotal.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* Pharmacy Credits (Pay Later) */}
+                {pendingPharmacyCredits.length > 0 && (
+                  <>
+                    <Separator className="my-2" />
+                    <div className="space-y-2">
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+                        <Clock className="h-3 w-3" />
+                        Pharmacy Credits (Pay Later)
+                      </p>
+                      {pendingPharmacyCredits.map((credit) => (
+                        <div key={credit.id} className="flex justify-between items-center">
+                          <span className="flex items-center gap-2 text-muted-foreground">
+                            <Pill className="h-4 w-4" />
+                            <span className="text-sm">{credit.transaction?.transaction_number || 'POS Credit'}</span>
+                          </span>
+                          <span className="font-medium text-destructive">
+                            Rs. {(credit.amount - credit.paid_amount).toLocaleString()}
+                          </span>
+                        </div>
+                      ))}
+                      <div className="flex justify-between text-sm font-medium pt-1 border-t border-dashed">
+                        <span>Credits Subtotal</span>
+                        <span className="text-destructive">Rs. {pharmacyCreditsTotal.toLocaleString()}</span>
                       </div>
                     </div>
                   </>
