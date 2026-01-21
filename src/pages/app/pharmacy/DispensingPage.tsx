@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format, differenceInYears } from "date-fns";
 import { PageHeader } from "@/components/PageHeader";
@@ -9,18 +9,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Switch } from "@/components/ui/switch";
 import { BatchSelector } from "@/components/pharmacy/BatchSelector";
 import { StockLevelBadge } from "@/components/pharmacy/StockLevelBadge";
-import { usePrescriptionForDispensing, useDispensePrescription, useMedicineBatches } from "@/hooks/usePharmacy";
-import { useCreateInvoice } from "@/hooks/useBilling";
+import { usePrescriptionForDispensing, useDispensePrescription, useMedicineBatches, useInventory } from "@/hooks/usePharmacy";
 import { usePatientActiveAdmission } from "@/hooks/useIPDBilling";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, User, Calendar, Stethoscope, Pill, AlertTriangle, FileText, Receipt, Bed } from "lucide-react";
+import { ArrowLeft, User, Stethoscope, Pill, AlertTriangle, Bed, ShoppingCart } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
+import { CartItem } from "@/hooks/usePOS";
 
 interface DispensingItem {
   itemId: string;
@@ -114,12 +112,11 @@ export default function DispensingPage() {
   const { profile } = useAuth();
   const { data: prescription, isLoading } = usePrescriptionForDispensing(prescriptionId);
   const dispenseMutation = useDispensePrescription();
-  const createInvoiceMutation = useCreateInvoice();
+  const { data: inventory } = useInventory();
   const patientId = (prescription?.patient as any)?.id;
   const { data: activeAdmission } = usePatientActiveAdmission(patientId);
   const [items, setItems] = useState<DispensingItem[]>([]);
   const [notes, setNotes] = useState("");
-  const [generateInvoice, setGenerateInvoice] = useState(true);
 
   useEffect(() => {
     if (prescription?.items) {
@@ -158,7 +155,74 @@ export default function DispensingPage() {
     );
   };
 
-  const handleDispense = async () => {
+  // Get batch details from inventory for building cart
+  const getBatchDetails = (batchId: string) => {
+    return inventory?.find(inv => inv.id === batchId);
+  };
+
+  // Check for stock issues in selected items
+  const stockIssues = useMemo(() => {
+    return items.filter(item => {
+      if (!item.selected || item.isDispensed) return false;
+      if (!item.selectedBatchId) return true; // No batch selected
+      const batch = getBatchDetails(item.selectedBatchId);
+      return !batch || (batch.quantity || 0) < item.quantityToDispense;
+    });
+  }, [items, inventory]);
+
+  const hasStockIssues = stockIssues.length > 0;
+
+  // Handle sending to POS (for OPD patients) or direct dispense (for IPD patients)
+  const handleSendToPOS = () => {
+    const selectedItems = items.filter(item => item.selected && !item.isDispensed && item.selectedBatchId);
+    
+    if (selectedItems.length === 0) {
+      toast.error("Please select items and batches to dispense");
+      return;
+    }
+
+    // Build cart items for POS
+    const cartItems: CartItem[] = selectedItems.map(item => {
+      const batch = getBatchDetails(item.selectedBatchId!);
+      return {
+        id: `rx-${item.itemId}`,
+        inventory_id: item.selectedBatchId || null,
+        medicine_id: item.medicineId || null,
+        medicine_name: item.medicineName,
+        batch_number: batch?.batch_number || null,
+        quantity: item.quantityToDispense,
+        unit_price: batch?.selling_price || 0,
+        selling_price: batch?.selling_price || 0,
+        available_quantity: batch?.quantity || 0,
+        discount_percent: 0,
+        tax_percent: 0,
+        prescription_id: prescriptionId,
+        prescription_item_id: item.itemId,
+      };
+    });
+
+    const patient = prescription?.patient as any;
+    
+    // Navigate to POS with prescription context
+    navigate("/app/pharmacy/pos", {
+      state: {
+        prescriptionCart: cartItems,
+        patient: patient ? {
+          id: patient.id,
+          patient_number: patient.patient_number,
+          first_name: patient.first_name,
+          last_name: patient.last_name,
+          phone: patient.phone,
+          date_of_birth: patient.date_of_birth,
+          gender: patient.gender,
+        } : null,
+        prescriptionNumber: prescription?.prescription_number,
+      },
+    });
+  };
+
+  // Handle direct dispense for IPD patients (charges added to IPD account)
+  const handleIPDDispense = async () => {
     const itemsToDispense = items
       .filter((item) => item.selected && !item.isDispensed)
       .map((item) => ({
@@ -176,61 +240,10 @@ export default function DispensingPage() {
         notes,
       },
       {
-        onSuccess: async () => {
-          // Generate invoice if option is checked
-          if (generateInvoice && prescription && profile?.branch_id) {
-            try {
-              // Get dispensed items with actual prices from batches
-              const selectedItems = items.filter(
-                (item) => item.selected && !item.isDispensed && item.selectedBatchId
-              );
-
-              // Fetch batch prices
-              const batchIds = selectedItems.map((item) => item.selectedBatchId).filter(Boolean);
-              const { data: batchData } = await (supabase as any)
-                .from("medicine_inventory")
-                .select("id, selling_price")
-                .in("id", batchIds);
-
-              const batchPrices = new Map<string, number>();
-              batchData?.forEach((batch: any) => {
-                batchPrices.set(batch.id, batch.selling_price || 0);
-              });
-
-              const invoiceItems = selectedItems.map((item) => ({
-                description: item.medicineName,
-                quantity: item.quantityToDispense,
-                unit_price: batchPrices.get(item.selectedBatchId!) || 0,
-                discount_percent: 0,
-                medicine_inventory_id: item.selectedBatchId,
-              }));
-
-              if (invoiceItems.length > 0) {
-                const patient = prescription.patient as any;
-                const invoice = await createInvoiceMutation.mutateAsync({
-                  patientId: patient.id,
-                  branchId: profile.branch_id,
-                  items: invoiceItems,
-                  notes: `Invoice for prescription ${prescription.prescription_number}`,
-                  taxAmount: 0,
-                  discountAmount: 0,
-                  status: "pending",
-                });
-                
-                toast.success("Invoice generated", {
-                  description: `Invoice created for dispensed medicines`,
-                  action: {
-                    label: "View Invoice",
-                    onClick: () => navigate(`/app/billing/invoices/${invoice.id}`),
-                  },
-                });
-              }
-            } catch (error) {
-              console.error("Failed to create invoice:", error);
-              toast.error("Failed to generate invoice");
-            }
-          }
-          
+        onSuccess: () => {
+          toast.success("Dispensed to IPD Patient", {
+            description: "Medication charges added to patient's IPD account",
+          });
           navigate("/app/pharmacy/queue");
         },
       }
@@ -392,36 +405,19 @@ export default function DispensingPage() {
             </CardContent>
           </Card>
 
-          {/* Invoice Option */}
-          {!allDispensed && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Receipt className="h-5 w-5" />
-                  Billing
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="generate-invoice">Generate Invoice</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Create invoice after dispensing
-                    </p>
-                  </div>
-                  <Switch
-                    id="generate-invoice"
-                    checked={generateInvoice}
-                    onCheckedChange={setGenerateInvoice}
-                  />
-                </div>
-              </CardContent>
-            </Card>
+          {/* Stock Issues Warning */}
+          {hasStockIssues && !allDispensed && (
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                {stockIssues.length} item(s) have insufficient stock or missing batch selection.
+              </AlertDescription>
+            </Alert>
           )}
 
           {/* Action */}
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="pt-6 space-y-3">
               {allDispensed ? (
                 <div className="text-center space-y-3">
                   <Badge variant="secondary" className="text-lg py-2 px-4">
@@ -430,23 +426,40 @@ export default function DispensingPage() {
                   <Button
                     variant="outline"
                     className="w-full"
-                    onClick={() => navigate(`/app/billing/invoices/new?patientId=${(prescription.patient as any)?.id}`)}
+                    onClick={() => navigate("/app/pharmacy/queue")}
                   >
-                    <FileText className="mr-2 h-4 w-4" />
-                    Create Invoice
+                    Back to Queue
                   </Button>
                 </div>
-              ) : (
+              ) : activeAdmission ? (
+                // IPD Patient - Direct dispense (charges added to IPD account)
                 <Button
                   className="w-full"
                   size="lg"
-                  onClick={handleDispense}
-                  disabled={selectedCount === 0 || dispenseMutation.isPending || createInvoiceMutation.isPending}
+                  onClick={handleIPDDispense}
+                  disabled={selectedCount === 0 || hasStockIssues || dispenseMutation.isPending}
                 >
-                  {dispenseMutation.isPending || createInvoiceMutation.isPending
+                  {dispenseMutation.isPending
                     ? "Processing..."
-                    : `Dispense ${selectedCount} Item(s)`}
+                    : `Dispense to IPD (${selectedCount} Items)`}
                 </Button>
+              ) : (
+                // OPD Patient - Send to POS for payment
+                <Button
+                  className="w-full"
+                  size="lg"
+                  onClick={handleSendToPOS}
+                  disabled={selectedCount === 0 || hasStockIssues}
+                >
+                  <ShoppingCart className="mr-2 h-4 w-4" />
+                  Send to POS ({selectedCount} Items)
+                </Button>
+              )}
+              
+              {!allDispensed && !activeAdmission && (
+                <p className="text-xs text-muted-foreground text-center">
+                  Items will be sent to POS for payment processing
+                </p>
               )}
             </CardContent>
           </Card>

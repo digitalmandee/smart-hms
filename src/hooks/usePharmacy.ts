@@ -149,20 +149,44 @@ export function useDispensePrescription() {
         if (item.inventoryId && item.quantityDispensed > 0) {
           const { data: inventory, error: invError } = await supabase
             .from("medicine_inventory")
-            .select("quantity, selling_price, medicine:medicines(id, name)")
+            .select("quantity, selling_price, batch_number, medicine:medicines(id, name)")
             .eq("id", item.inventoryId)
             .single();
 
           if (invError) throw invError;
 
-          const newQuantity = (inventory.quantity || 0) - item.quantityDispensed;
+          const previousStock = inventory.quantity || 0;
+          const newQuantity = Math.max(0, previousStock - item.quantityDispensed);
           
           const { error: updateError } = await supabase
             .from("medicine_inventory")
-            .update({ quantity: Math.max(0, newQuantity) })
+            .update({ quantity: newQuantity })
             .eq("id", item.inventoryId);
 
           if (updateError) throw updateError;
+
+          // Log stock movement for clinical dispensing
+          const medicineId = (inventory.medicine as any)?.id;
+          if (medicineId && profile?.organization_id && profile?.branch_id) {
+            await (supabase as any).from("pharmacy_stock_movements").insert({
+              organization_id: profile.organization_id,
+              branch_id: profile.branch_id,
+              medicine_id: medicineId,
+              inventory_id: item.inventoryId,
+              movement_type: "dispense",
+              quantity: -item.quantityDispensed,
+              previous_stock: previousStock,
+              new_stock: newQuantity,
+              reference_type: "prescription",
+              reference_id: prescriptionId,
+              reference_number: prescription.prescription_number,
+              batch_number: inventory.batch_number,
+              unit_cost: inventory.selling_price,
+              total_value: item.quantityDispensed * (inventory.selling_price || 0),
+              notes: activeAdmission ? "IPD Prescription Dispense" : "Clinical Dispense",
+              created_by: profile.id,
+            });
+          }
 
           // If patient is admitted (IPD), create IPD charge for medication
           if (activeAdmission && profile?.id) {

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { POSProductSearch } from "@/components/pharmacy/POSProductSearch";
 import { POSCart } from "@/components/pharmacy/POSCart";
 import { POSPaymentModal } from "@/components/pharmacy/POSPaymentModal";
@@ -12,7 +12,7 @@ import { POSRecentProducts } from "@/components/pharmacy/POSRecentProducts";
 import { POSTodaySummary } from "@/components/pharmacy/POSTodaySummary";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -37,26 +37,33 @@ import { usePrint } from "@/hooks/usePrint";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrganizationModules } from "@/hooks/useOrganizationModules";
 import { 
-  Heart, 
-  Keyboard, 
   AlertTriangle, 
   Pause, 
   History, 
   Settings, 
   Printer,
-  X,
   User,
   ShoppingCart,
   ArrowLeft,
   Volume2,
   VolumeX,
   BedDouble,
+  FileText,
 } from "lucide-react";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { formatCurrency } from "@/lib/currency";
+import { toast } from "sonner";
+
+// Location state type for prescription cart
+interface PrescriptionCartState {
+  prescriptionCart?: CartItem[];
+  patient?: PatientForPOS | null;
+  prescriptionNumber?: string;
+}
 
 export default function POSTerminalPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { profile } = useAuth();
   const { data: enabledModules } = useOrganizationModules(profile?.organization_id);
   
@@ -73,6 +80,7 @@ export default function POSTerminalPage() {
   const [showPostToProfileConfirm, setShowPostToProfileConfirm] = useState(false);
   const [showLastSaleReceipt, setShowLastSaleReceipt] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [prescriptionNumber, setPrescriptionNumber] = useState<string | null>(null);
   
   const barcodeInputRef = useRef<HTMLInputElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -90,6 +98,27 @@ export default function POSTerminalPage() {
   // Check if patients module is enabled - if not, use standalone mode
   const isPatientsModuleEnabled = enabledModules?.includes("patients");
   const isStandaloneMode = !isPatientsModuleEnabled;
+
+  // Handle incoming prescription cart from Dispensing page
+  useEffect(() => {
+    const state = location.state as PrescriptionCartState | null;
+    if (state?.prescriptionCart && state.prescriptionCart.length > 0) {
+      setCart(state.prescriptionCart);
+      if (state.patient) {
+        setSelectedPatient(state.patient);
+        setCustomerName(`${state.patient.first_name} ${state.patient.last_name || ""}`);
+        setCustomerPhone(state.patient.phone || "");
+      }
+      if (state.prescriptionNumber) {
+        setPrescriptionNumber(state.prescriptionNumber);
+      }
+      // Clear navigation state to prevent re-loading on refresh
+      window.history.replaceState({}, document.title);
+      toast.success("Prescription items loaded", {
+        description: `${state.prescriptionCart.length} item(s) added to cart`,
+      });
+    }
+  }, [location.state]);
 
   // Focus barcode input on mount
   useEffect(() => {
@@ -193,6 +222,7 @@ export default function POSTerminalPage() {
     setDiscountPercent(0);
     setSelectedPatient(null);
     setPatientAdmission(null);
+    setPrescriptionNumber(null);
   };
 
   const handleHoldTransaction = () => {
@@ -420,11 +450,22 @@ export default function POSTerminalPage() {
 
         {/* Right Panel - Cart */}
         <div className="w-full lg:w-[400px] xl:w-[450px] flex flex-col overflow-hidden bg-muted/20">
+          {/* Prescription Info Banner */}
+          {prescriptionNumber && (
+            <div className="p-2 bg-primary/10 border-b flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <FileText className="h-4 w-4 text-primary" />
+                <span className="text-sm font-medium text-primary">Rx: {prescriptionNumber}</span>
+              </div>
+              <Badge variant="outline" className="text-xs">From Prescription</Badge>
+            </div>
+          )}
+          
           {/* Customer Info */}
           <div className="p-3 border-b bg-card shrink-0">
             <div className="flex items-center gap-2 mb-2">
               <User className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium">Customer (Optional)</span>
+              <span className="text-sm font-medium">Customer {selectedPatient ? "" : "(Optional)"}</span>
             </div>
             <div className="grid grid-cols-2 gap-2">
               <Input
@@ -432,12 +473,14 @@ export default function POSTerminalPage() {
                 onChange={(e) => setCustomerName(e.target.value)}
                 placeholder="Name"
                 className="h-8 text-sm"
+                readOnly={!!selectedPatient}
               />
               <Input
                 value={customerPhone}
                 onChange={(e) => setCustomerPhone(e.target.value)}
                 placeholder="Phone"
                 className="h-8 text-sm"
+                readOnly={!!selectedPatient}
               />
             </div>
           </div>

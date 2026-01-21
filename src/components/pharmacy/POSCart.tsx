@@ -1,9 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Trash2, Minus, Plus, ShoppingCart, Percent } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Trash2, Minus, Plus, ShoppingCart, Percent, AlertTriangle } from "lucide-react";
 import { CartItem } from "@/hooks/usePOS";
 import { cn } from "@/lib/utils";
+import { useMemo } from "react";
 
 interface POSCartProps {
   items: CartItem[];
@@ -34,6 +36,12 @@ export function POSCart({
   onCheckout,
   disabled,
 }: POSCartProps) {
+  // Check for stock issues
+  const stockIssues = useMemo(() => {
+    return items.filter(item => item.quantity > item.available_quantity);
+  }, [items]);
+
+  const hasStockIssues = stockIssues.length > 0;
   return (
     <div className="flex flex-col h-full bg-card">
       {/* Header */}
@@ -77,16 +85,21 @@ export function POSCart({
           ) : (
             items.map((item) => {
               const lineTotal = item.selling_price * item.quantity * (1 - item.discount_percent / 100);
+              const isOutOfStock = item.quantity > item.available_quantity;
+              const isLowStock = item.available_quantity > 0 && item.available_quantity <= 5;
               
               return (
                 <div
                   key={item.id}
-                  className="p-3 rounded-lg bg-background border hover:border-primary/30 transition-colors"
+                  className={cn(
+                    "p-3 rounded-lg bg-background border hover:border-primary/30 transition-colors",
+                    isOutOfStock && "border-destructive/50 bg-destructive/5"
+                  )}
                 >
                   <div className="flex justify-between items-start gap-2">
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-sm truncate">{item.medicine_name}</p>
-                      <div className="flex items-center gap-2 mt-0.5">
+                      <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                         <span className="text-xs text-muted-foreground">
                           Rs. {item.selling_price.toFixed(2)}
                         </span>
@@ -99,6 +112,16 @@ export function POSCart({
                           <span className="text-xs px-1.5 py-0.5 rounded bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
                             -{item.discount_percent}%
                           </span>
+                        )}
+                        {isOutOfStock && (
+                          <Badge variant="destructive" className="text-xs h-5">
+                            Out of Stock
+                          </Badge>
+                        )}
+                        {!isOutOfStock && isLowStock && (
+                          <Badge variant="outline" className="text-xs h-5 border-amber-500 text-amber-600">
+                            Low: {item.available_quantity}
+                          </Badge>
                         )}
                       </div>
                     </div>
@@ -130,7 +153,10 @@ export function POSCart({
                           const val = parseInt(e.target.value) || 1;
                           onUpdateQuantity(item.id, Math.max(1, Math.min(val, item.available_quantity)));
                         }}
-                        className="h-7 w-12 text-center border-0 bg-transparent font-medium"
+                        className={cn(
+                          "h-7 w-12 text-center border-0 bg-transparent font-medium",
+                          isOutOfStock && "text-destructive"
+                        )}
                         min={1}
                         max={item.available_quantity}
                       />
@@ -147,7 +173,7 @@ export function POSCart({
                     <p className="font-semibold text-sm">Rs. {lineTotal.toFixed(2)}</p>
                   </div>
 
-                  {item.quantity >= item.available_quantity && (
+                  {item.quantity >= item.available_quantity && !isOutOfStock && (
                     <p className="text-xs text-amber-600 mt-1.5 flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
                       Maximum stock reached
@@ -228,15 +254,25 @@ export function POSCart({
           </div>
         </div>
 
+        {/* Stock Issue Warning */}
+        {hasStockIssues && (
+          <div className="px-3 pb-2">
+            <div className="flex items-center gap-2 p-2 rounded-lg bg-destructive/10 text-destructive text-sm">
+              <AlertTriangle className="h-4 w-4 shrink-0" />
+              <span>{stockIssues.length} item(s) exceed available stock</span>
+            </div>
+          </div>
+        )}
+
         {/* Checkout Button */}
         <div className="p-3 pt-0">
           <Button
             className="w-full h-14 text-lg font-semibold bg-primary hover:bg-primary/90"
             onClick={onCheckout}
-            disabled={disabled || items.length === 0}
+            disabled={disabled || items.length === 0 || hasStockIssues}
           >
             <ShoppingCart className="h-5 w-5 mr-2" />
-            Checkout — Rs. {total.toFixed(2)}
+            {hasStockIssues ? "Fix Stock Issues" : `Checkout — Rs. ${total.toFixed(2)}`}
           </Button>
         </div>
       </div>
