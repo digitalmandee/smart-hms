@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { PageHeader } from "@/components/PageHeader";
@@ -35,6 +35,7 @@ import {
   CreditCard,
   AlertTriangle,
   DollarSign,
+  Bell,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWards } from "@/hooks/useIPD";
@@ -47,9 +48,13 @@ import { AdmissionConfirmationDialog } from "@/components/ipd/AdmissionConfirmat
 import { QuickPaymentDialog } from "@/components/ipd/QuickPaymentDialog";
 import { formatCurrency } from "@/lib/currency";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function NursingStationPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { profile, isLoading: authLoading } = useAuth();
   const [selectedWardId, setSelectedWardId] = useState<string>("");
   const [activeTab, setActiveTab] = useState("pending");
@@ -61,7 +66,7 @@ export default function NursingStationPage() {
 
   const { data: wards, isLoading: loadingWards } = useWards();
   const { data: admissions, isLoading: loadingAdmissions } = useAdmissions("admitted");
-  const { data: pendingAdmissions = [], isLoading: loadingPending } = usePendingAdmissions(selectedWardId || undefined);
+  const { data: pendingAdmissions = [], isLoading: loadingPending, refetch: refetchPending } = usePendingAdmissions(selectedWardId || undefined);
 
   // Auto-select first ward when wards load
   useEffect(() => {
@@ -69,6 +74,40 @@ export default function NursingStationPage() {
       setSelectedWardId(wards[0].id);
     }
   }, [wards, selectedWardId]);
+
+  // Real-time subscription for new pending admissions
+  useEffect(() => {
+    if (!profile?.organization_id) return;
+
+    const channel = supabase
+      .channel('pending-admissions-alerts')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'admissions',
+          filter: `organization_id=eq.${profile.organization_id}`,
+        },
+        (payload) => {
+          // Check if the new admission is pending
+          if (payload.new && (payload.new as any).status === 'pending') {
+            toast({
+              title: "🔔 New Admission Pending",
+              description: "A new patient admission requires confirmation",
+            });
+            // Refetch pending admissions list
+            refetchPending();
+            queryClient.invalidateQueries({ queryKey: ["admissions"] });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [profile?.organization_id, refetchPending, queryClient]);
 
   const selectedWard = wards?.find((w: any) => w.id === selectedWardId);
 
