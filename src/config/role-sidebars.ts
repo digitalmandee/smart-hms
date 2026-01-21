@@ -257,6 +257,17 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         ]
       },
       { 
+        name: "Beds & Rooms", 
+        path: "", 
+        icon: "BedDouble",
+        children: [
+          { name: "Bed Availability", path: "/app/ipd/beds", icon: "BedDouble" },
+          { name: "Ward View", path: "/app/ipd/wards", icon: "Building" },
+          { name: "New Admission", path: "/app/ipd/admissions/new", icon: "UserPlus" },
+          { name: "Active Admissions", path: "/app/ipd/admissions", icon: "ClipboardList" },
+        ]
+      },
+      { 
         name: "Billing", 
         path: "", 
         icon: "Receipt",
