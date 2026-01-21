@@ -105,9 +105,22 @@ export function useCreatePatient() {
       });
     },
     onError: (error: Error) => {
+      patientLogger.error("Patient creation failed", error);
+      
+      let message = error.message;
+      if (error.message.includes("duplicate key") || error.message.includes("violates unique")) {
+        message = "A patient with this phone number or email already exists.";
+      } else if (error.message.includes("permission denied") || error.message.includes("RLS")) {
+        message = "You don't have permission to register patients. Please contact your administrator.";
+      } else if (error.message.includes("null value in column")) {
+        message = "Please fill in all required fields.";
+      } else if (error.message.includes("network") || error.message.includes("fetch")) {
+        message = "Network error. Please check your connection and try again.";
+      }
+      
       toast({
-        title: "Error",
-        description: error.message,
+        title: "Failed to register patient",
+        description: message,
         variant: "destructive",
       });
     },
