@@ -262,7 +262,14 @@ export default function InvoiceDetailPage() {
         <PrintableInvoice
           ref={printRef}
           invoice={invoice}
-          organization={organization || undefined}
+          organization={organization ? {
+            name: organization.name,
+            address: organization.address,
+            phone: organization.phone,
+            email: organization.email,
+            logo_url: organization.logo_url,
+            slug: organization.slug,
+          } : undefined}
         />
       </div>
     </div>
