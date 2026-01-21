@@ -21,55 +21,174 @@ interface PrintableReceiptProps {
   };
 }
 
+const styles = {
+  container: {
+    backgroundColor: 'white',
+    padding: '24px',
+    maxWidth: '80mm',
+    margin: '0 auto',
+    fontFamily: "'Courier New', Courier, monospace",
+    fontSize: '12px',
+    color: 'black',
+  } as React.CSSProperties,
+  header: {
+    textAlign: 'center' as const,
+    borderBottom: '2px dashed black',
+    paddingBottom: '12px',
+    marginBottom: '16px',
+  } as React.CSSProperties,
+  orgName: {
+    fontSize: '18px',
+    fontWeight: 'bold',
+    margin: 0,
+  } as React.CSSProperties,
+  orgAddress: {
+    fontSize: '11px',
+    margin: '2px 0',
+  } as React.CSSProperties,
+  receiptTitle: {
+    fontWeight: 'bold',
+    marginTop: '8px',
+  } as React.CSSProperties,
+  section: {
+    marginBottom: '16px',
+  } as React.CSSProperties,
+  row: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    marginBottom: '4px',
+  } as React.CSSProperties,
+  label: {
+    color: '#6b7280',
+  } as React.CSSProperties,
+  value: {
+    fontFamily: "'Courier New', Courier, monospace",
+  } as React.CSSProperties,
+  dashedBorder: {
+    borderTop: '1px dashed #9ca3af',
+    paddingTop: '8px',
+    marginBottom: '12px',
+  } as React.CSSProperties,
+  patientSection: {
+    borderTop: '1px dashed #9ca3af',
+    paddingTop: '8px',
+    marginBottom: '16px',
+  } as React.CSSProperties,
+  patientName: {
+    fontWeight: '600',
+    fontSize: '13px',
+    margin: 0,
+  } as React.CSSProperties,
+  patientNumber: {
+    fontSize: '11px',
+    color: '#6b7280',
+    margin: '2px 0 0 0',
+  } as React.CSSProperties,
+  paymentSection: {
+    borderTop: '1px dashed #9ca3af',
+    padding: '16px 0',
+  } as React.CSSProperties,
+  amountPaidRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    fontSize: '18px',
+    fontWeight: 'bold',
+    marginBottom: '8px',
+  } as React.CSSProperties,
+  methodRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    fontSize: '11px',
+    marginBottom: '4px',
+  } as React.CSSProperties,
+  summarySection: {
+    borderTop: '1px dashed #9ca3af',
+    paddingTop: '12px',
+  } as React.CSSProperties,
+  summaryRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    fontSize: '11px',
+    marginBottom: '4px',
+  } as React.CSSProperties,
+  balanceRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    fontWeight: 'bold',
+    fontSize: '13px',
+    paddingTop: '4px',
+    borderTop: '1px solid #d1d5db',
+    marginTop: '4px',
+  } as React.CSSProperties,
+  balanceDue: {
+    color: '#dc2626',
+  } as React.CSSProperties,
+  footer: {
+    marginTop: '24px',
+    paddingTop: '12px',
+    borderTop: '1px dashed #9ca3af',
+    textAlign: 'center' as const,
+  } as React.CSSProperties,
+  receivedBy: {
+    fontSize: '11px',
+    marginBottom: '4px',
+  } as React.CSSProperties,
+  thankYou: {
+    fontSize: '11px',
+    color: '#6b7280',
+    marginTop: '8px',
+  } as React.CSSProperties,
+};
+
 export const PrintableReceipt = forwardRef<HTMLDivElement, PrintableReceiptProps>(
   ({ payment, invoice, patient, organization }, ref) => {
     const previousPaid = (invoice.paid_amount || 0) - Number(payment.amount);
     const balanceDue = (invoice.total_amount || 0) - (invoice.paid_amount || 0);
 
     return (
-      <div ref={ref} className="p-6 bg-white text-black max-w-[80mm] mx-auto text-sm">
+      <div ref={ref} style={styles.container}>
         {/* Header */}
-        <div className="text-center border-b-2 border-dashed border-black pb-3 mb-4">
-          <h1 className="text-lg font-bold">{organization?.name || "Healthcare Clinic"}</h1>
-          {organization?.address && <p className="text-xs">{organization.address}</p>}
-          {organization?.phone && <p className="text-xs">Tel: {organization.phone}</p>}
-          <p className="font-bold mt-2">PAYMENT RECEIPT</p>
+        <div style={styles.header}>
+          <h1 style={styles.orgName}>{organization?.name || "Healthcare Clinic"}</h1>
+          {organization?.address && <p style={styles.orgAddress}>{organization.address}</p>}
+          {organization?.phone && <p style={styles.orgAddress}>Tel: {organization.phone}</p>}
+          <p style={styles.receiptTitle}>PAYMENT RECEIPT</p>
         </div>
 
         {/* Receipt Details */}
-        <div className="space-y-1 mb-4">
-          <div className="flex justify-between">
-            <span className="text-gray-600">Date:</span>
-            <span>
+        <div style={styles.section}>
+          <div style={styles.row}>
+            <span style={styles.label}>Date:</span>
+            <span style={styles.value}>
               {format(new Date(payment.payment_date || payment.created_at), "MMM dd, yyyy hh:mm a")}
             </span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">Invoice#:</span>
-            <span className="font-mono">{invoice.invoice_number}</span>
+          <div style={styles.row}>
+            <span style={styles.label}>Invoice#:</span>
+            <span style={styles.value}>{invoice.invoice_number}</span>
           </div>
         </div>
 
         {/* Patient */}
-        <div className="border-t border-dashed pt-2 mb-4">
-          <p className="font-semibold">
+        <div style={styles.patientSection}>
+          <p style={styles.patientName}>
             {patient.first_name} {patient.last_name}
           </p>
-          <p className="text-xs text-gray-600">{patient.patient_number}</p>
+          <p style={styles.patientNumber}>{patient.patient_number}</p>
         </div>
 
         {/* Payment Details */}
-        <div className="border-t border-dashed py-4 space-y-2">
-          <div className="flex justify-between text-lg font-bold">
+        <div style={styles.paymentSection}>
+          <div style={styles.amountPaidRow}>
             <span>Amount Paid:</span>
-            <span>Rs. {Number(payment.amount).toFixed(2)}</span>
+            <span>Rs. {Number(payment.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
           </div>
-          <div className="flex justify-between text-xs">
+          <div style={styles.methodRow}>
             <span>Method:</span>
             <span>{payment.payment_method?.name || "Cash"}</span>
           </div>
           {payment.reference_number && (
-            <div className="flex justify-between text-xs">
+            <div style={styles.methodRow}>
               <span>Reference:</span>
               <span>{payment.reference_number}</span>
             </div>
@@ -77,33 +196,33 @@ export const PrintableReceipt = forwardRef<HTMLDivElement, PrintableReceiptProps
         </div>
 
         {/* Summary */}
-        <div className="border-t border-dashed pt-3 space-y-1 text-xs">
-          <div className="flex justify-between">
+        <div style={styles.summarySection}>
+          <div style={styles.summaryRow}>
             <span>Invoice Total:</span>
-            <span>Rs. {Number(invoice.total_amount).toFixed(2)}</span>
+            <span>Rs. {Number(invoice.total_amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
           </div>
-          <div className="flex justify-between">
+          <div style={styles.summaryRow}>
             <span>Previous Paid:</span>
-            <span>Rs. {previousPaid.toFixed(2)}</span>
+            <span>Rs. {previousPaid.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
           </div>
-          <div className="flex justify-between">
+          <div style={styles.summaryRow}>
             <span>This Payment:</span>
-            <span>Rs. {Number(payment.amount).toFixed(2)}</span>
+            <span>Rs. {Number(payment.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
           </div>
-          <div className="flex justify-between font-bold text-sm pt-1 border-t">
+          <div style={styles.balanceRow}>
             <span>Balance Due:</span>
-            <span className={balanceDue > 0 ? "text-red-600" : ""}>
-              Rs. {balanceDue.toFixed(2)}
+            <span style={balanceDue > 0 ? styles.balanceDue : undefined}>
+              Rs. {balanceDue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="mt-6 pt-3 border-t border-dashed text-center">
+        <div style={styles.footer}>
           {payment.received_by_profile && (
-            <p className="text-xs">Received by: {payment.received_by_profile.full_name}</p>
+            <p style={styles.receivedBy}>Received by: {payment.received_by_profile.full_name}</p>
           )}
-          <p className="text-xs text-gray-500 mt-2">Thank you for your payment!</p>
+          <p style={styles.thankYou}>Thank you for your payment!</p>
         </div>
       </div>
     );
