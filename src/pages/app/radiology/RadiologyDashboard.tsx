@@ -45,6 +45,7 @@ export default function RadiologyDashboard() {
   const quickActionItems = [
     { title: "Technician Worklist", subtitle: `${stats.pendingOrders + stats.inProgress} studies`, icon: Radio, color: "bg-blue-100 text-blue-600", path: "/app/radiology/worklist" },
     { title: "Reporting Worklist", subtitle: `${stats.awaitingReport} pending`, icon: FileText, color: "bg-purple-100 text-purple-600", path: "/app/radiology/reporting" },
+    { title: "PACS Studies", subtitle: "View DICOM images", icon: Scan, color: "bg-indigo-100 text-indigo-600", path: "/app/radiology/pacs" },
     { title: "Schedule", subtitle: "View calendar", icon: Calendar, color: "bg-green-100 text-green-600", path: "/app/radiology/schedule" },
     { title: "All Orders", subtitle: `${orders?.length || 0} total`, icon: Activity, color: "bg-orange-100 text-orange-600", path: "/app/radiology/orders" },
   ];
@@ -105,7 +106,7 @@ export default function RadiologyDashboard() {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-5">
         {quickActionItems.map((item, idx) => (
           <Card 
             key={item.title}

@@ -362,6 +362,15 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         ]
       },
       { 
+        name: "PACS", 
+        path: "", 
+        icon: "Radio",
+        children: [
+          { name: "Studies", path: "/app/radiology/pacs", icon: "Image" },
+          { name: "Settings", path: "/app/radiology/pacs/settings", icon: "Server" },
+        ]
+      },
+      { 
         name: "Setup", 
         path: "", 
         icon: "Settings",
@@ -386,6 +395,14 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         ]
       },
       { name: "Schedule", path: "/app/radiology/schedule", icon: "Calendar" },
+      { 
+        name: "PACS", 
+        path: "", 
+        icon: "Radio",
+        children: [
+          { name: "Studies", path: "/app/radiology/pacs", icon: "Image" },
+        ]
+      },
     ]
   },
 
