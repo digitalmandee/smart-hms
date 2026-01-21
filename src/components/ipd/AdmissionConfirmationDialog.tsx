@@ -22,6 +22,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { useConfirmAdmission } from "@/hooks/useAdmissions";
+import { toast } from "@/hooks/use-toast";
 
 interface AdmissionConfirmationDialogProps {
   open: boolean;
@@ -55,12 +56,22 @@ export function AdmissionConfirmationDialog({
   const confirmAdmission = useConfirmAdmission();
 
   const handleConfirm = async () => {
-    await confirmAdmission.mutateAsync({
-      admissionId: admission.id,
-      notes: notes || "Patient admitted and settled to bed.",
-    });
-    setNotes("");
-    onOpenChange(false);
+    try {
+      await confirmAdmission.mutateAsync({
+        admissionId: admission.id,
+        notes: notes || "Patient admitted and settled to bed.",
+      });
+      setNotes("");
+      onOpenChange(false);
+    } catch (error: any) {
+      console.error("Admission confirmation failed:", error);
+      // Show detailed error for debugging
+      toast({
+        title: "Failed to Admit Patient",
+        description: error?.message || "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
