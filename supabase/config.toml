@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.send-sms]
 verify_jwt = false
+
+[functions.post-daily-room-charges]
+verify_jwt = false
