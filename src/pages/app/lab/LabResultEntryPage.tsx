@@ -4,6 +4,7 @@ import { useLabOrder, useUpdateLabOrderItem, useMarkSampleCollected, useComplete
 import { usePublishLabReport } from "@/hooks/usePublicLabReport";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePrint } from "@/hooks/usePrint";
+import { useOrganizationBranding } from "@/hooks/useOrganizationBranding";
 import { PageHeader } from "@/components/PageHeader";
 import { TestResultForm } from "@/components/lab/TestResultForm";
 import { PrintableLabReport } from "@/components/lab/PrintableLabReport";
@@ -38,6 +39,7 @@ export default function LabResultEntryPage() {
   const navigate = useNavigate();
   const { profile } = useAuth();
   const { data: labOrder, isLoading } = useLabOrder(orderId);
+  const { data: branding } = useOrganizationBranding();
   const updateItem = useUpdateLabOrderItem();
   const markCollected = useMarkSampleCollected();
   const completeOrder = useCompleteLabOrder();
@@ -470,6 +472,16 @@ export default function LabResultEntryPage() {
         <PrintableLabReport
           ref={printRef}
           labOrder={labOrder}
+          organization={branding ? {
+            name: branding.name,
+            address: branding.address,
+            phone: branding.phone,
+            email: branding.email,
+            logo_url: branding.logo_url,
+            slug: branding.slug,
+            registration_number: branding.registration_number,
+            tax_id: branding.tax_id,
+          } : undefined}
           performedBy={profile?.full_name}
         />
       </div>

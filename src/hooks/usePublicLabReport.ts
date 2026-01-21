@@ -32,6 +32,14 @@ export interface PublicLabReport {
     result_values: Record<string, string | number> | null;
     result_notes: string | null;
   }>;
+  organization?: {
+    name: string;
+    address: string | null;
+    phone: string | null;
+    email: string | null;
+    logo_url: string | null;
+    slug: string;
+  } | null;
 }
 
 export function usePublicLabReport(orderNumber: string, verificationCode: string) {
@@ -55,6 +63,7 @@ export function usePublicLabReport(orderNumber: string, verificationCode: string
           is_published,
           published_at,
           access_code,
+          branch_id,
           patient:patients!inner(
             first_name,
             last_name,
@@ -74,6 +83,16 @@ export function usePublicLabReport(orderNumber: string, verificationCode: string
             status,
             result_values,
             result_notes
+          ),
+          branch:branches(
+            organization:organizations(
+              name,
+              address,
+              phone,
+              email,
+              logo_url,
+              slug
+            )
           )
         `)
         .eq("order_number", orderNumber.toUpperCase())
@@ -100,6 +119,10 @@ export function usePublicLabReport(orderNumber: string, verificationCode: string
         return null;
       }
 
+      // Extract organization from branch
+      const branch = labOrder.branch as { organization: PublicLabReport["organization"] } | null;
+      const organization = branch?.organization || null;
+
       // Transform to correct type
       return {
         id: labOrder.id,
@@ -115,6 +138,7 @@ export function usePublicLabReport(orderNumber: string, verificationCode: string
         patient: patient,
         doctor: labOrder.doctor as PublicLabReport["doctor"],
         items: (labOrder.items || []) as PublicLabReport["items"],
+        organization,
       };
     },
     enabled: !!orderNumber && !!verificationCode && orderNumber.length >= 6,
@@ -205,6 +229,7 @@ export function useSearchPublicLabReport() {
           is_published,
           published_at,
           access_code,
+          branch_id,
           patient:patients!inner(
             first_name,
             last_name,
@@ -224,6 +249,16 @@ export function useSearchPublicLabReport() {
             status,
             result_values,
             result_notes
+          ),
+          branch:branches(
+            organization:organizations(
+              name,
+              address,
+              phone,
+              email,
+              logo_url,
+              slug
+            )
           )
         `)
         .eq("order_number", orderNumber.toUpperCase())
@@ -247,6 +282,10 @@ export function useSearchPublicLabReport() {
         throw new Error("Invalid verification code");
       }
 
+      // Extract organization from branch
+      const branch = labOrder.branch as { organization: PublicLabReport["organization"] } | null;
+      const organization = branch?.organization || null;
+
       return {
         id: labOrder.id,
         order_number: labOrder.order_number,
@@ -261,6 +300,7 @@ export function useSearchPublicLabReport() {
         patient: patient,
         doctor: labOrder.doctor as PublicLabReport["doctor"],
         items: (labOrder.items || []) as PublicLabReport["items"],
+        organization,
       };
     },
   });
