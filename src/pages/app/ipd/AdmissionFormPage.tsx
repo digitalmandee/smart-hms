@@ -32,7 +32,10 @@ import { usePatients } from "@/hooks/usePatients";
 import { useDoctors } from "@/hooks/useDoctors";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCreateDepositInvoice, useRecordDepositPayment, useLinkAdmissionInvoice } from "@/hooks/useIPDDeposit";
+import { useIPDBedTypeRates } from "@/hooks/useIPDBedTypeRates";
 import { AdmissionPaymentDialog } from "@/components/ipd/AdmissionPaymentDialog";
+import { BedRateDisplay } from "@/components/ipd/BedRateDisplay";
+import { PaymentModeSelector, PaymentMode } from "@/components/ipd/PaymentModeSelector";
 import { Save, CalendarIcon, Search } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -42,6 +45,7 @@ const admissionFormSchema = z.object({
   admission_date: z.date(),
   admission_time: z.string().min(1, "Admission time is required"),
   admission_type: z.enum(["emergency", "elective", "transfer", "referral"]),
+  payment_mode: z.enum(["cash", "insurance", "corporate", "government"]).default("cash"),
   ward_id: z.string().min(1, "Ward is required"),
   bed_id: z.string().optional(),
   attending_doctor_id: z.string().optional(),
@@ -52,6 +56,11 @@ const admissionFormSchema = z.object({
   clinical_notes: z.string().optional(),
   deposit_amount: z.coerce.number().min(0).optional(),
   expected_discharge_date: z.date().optional(),
+  // Insurance fields
+  insurance_policy_number: z.string().optional(),
+  authorization_number: z.string().optional(),
+  // Corporate fields
+  credit_limit: z.coerce.number().optional(),
 });
 
 type AdmissionFormValues = z.infer<typeof admissionFormSchema>;
@@ -66,11 +75,22 @@ export default function AdmissionFormPage() {
   const { data: beds } = useBeds();
   const { data: patients } = usePatients();
   const { data: doctors } = useDoctors();
+  const { data: bedTypeRates } = useIPDBedTypeRates();
   const [selectedWard, setSelectedWard] = useState<string>("");
   const [patientSearch, setPatientSearch] = useState("");
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [pendingAdmissionData, setPendingAdmissionData] = useState<any>(null);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [insuranceFields, setInsuranceFields] = useState<{
+    providerId?: string;
+    policyNumber?: string;
+    authorizationNumber?: string;
+  }>({});
+  const [corporateFields, setCorporateFields] = useState<{
+    corporateId?: string;
+    employeeId?: string;
+    creditLimit?: number;
+  }>({});
 
   const createDepositInvoice = useCreateDepositInvoice();
   const recordPayment = useRecordDepositPayment();
@@ -83,6 +103,7 @@ export default function AdmissionFormPage() {
       admission_date: new Date(),
       admission_time: format(new Date(), "HH:mm"),
       admission_type: "elective",
+      payment_mode: "cash",
       ward_id: "",
       bed_id: "",
       attending_doctor_id: "",
@@ -412,6 +433,18 @@ export default function AdmissionFormPage() {
                   </FormItem>
                 )}
               />
+
+              {/* Payment Mode */}
+              <div className="md:col-span-2">
+                <PaymentModeSelector
+                  value={form.watch("payment_mode") as PaymentMode}
+                  onChange={(mode) => form.setValue("payment_mode", mode)}
+                  insuranceFields={insuranceFields}
+                  onInsuranceFieldsChange={setInsuranceFields}
+                  corporateFields={corporateFields}
+                  onCorporateFieldsChange={setCorporateFields}
+                />
+              </div>
             </CardContent>
           </Card>
 
@@ -543,6 +576,26 @@ export default function AdmissionFormPage() {
                   </FormItem>
                 )}
               />
+
+              {/* Bed Rate Display - show when bed is selected */}
+              {form.watch("bed_id") && (
+                <div className="md:col-span-2">
+                  <BedRateDisplay
+                    bedType={beds?.find(b => b.id === form.watch("bed_id"))?.bed_type}
+                    bedNumber={beds?.find(b => b.id === form.watch("bed_id"))?.bed_number}
+                    wardName={wards?.find(w => w.id === form.watch("ward_id"))?.name}
+                    bedTypeRates={bedTypeRates}
+                    expectedDischargeDate={form.watch("expected_discharge_date")}
+                    admissionDate={form.watch("admission_date")}
+                    onSuggestedDepositChange={(amount) => {
+                      // Only auto-fill if deposit is 0
+                      if (!form.watch("deposit_amount")) {
+                        form.setValue("deposit_amount", amount);
+                      }
+                    }}
+                  />
+                </div>
+              )}
             </CardContent>
           </Card>
 
