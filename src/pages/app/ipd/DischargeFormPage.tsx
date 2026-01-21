@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format, differenceInDays } from "date-fns";
 import { PageHeader } from "@/components/PageHeader";
@@ -24,12 +24,20 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { useAdmission, useDischargePatient } from "@/hooks/useAdmissions";
 import { useDischargeSummary, useApproveDischargeSummary, useIPDCharges, useGenerateIPDInvoice } from "@/hooks/useDischarge";
 import { useBedTypes } from "@/hooks/useIPDConfig";
+import { useAdmissionSurgeries } from "@/hooks/useOT";
 import { DischargeChecklist } from "@/components/ipd/DischargeChecklist";
 import { DischargeSummaryForm } from "@/components/ipd/DischargeSummaryForm";
 import { PrintableDischargeSummary } from "@/components/ipd/PrintableDischargeSummary";
+import { InvoiceItemsBuilder } from "@/components/billing/InvoiceItemsBuilder";
+import { InvoiceItemInput } from "@/hooks/useBilling";
 import { usePrint } from "@/hooks/usePrint";
 import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
@@ -47,6 +55,11 @@ import {
   LogOut,
   Receipt,
   Loader2,
+  Pill,
+  Scissors,
+  ChevronDown,
+  Plus,
+  Stethoscope,
 } from "lucide-react";
 
 const DISCHARGE_TYPES = [
@@ -69,11 +82,14 @@ export default function DischargeFormPage() {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [invoiceGenerated, setInvoiceGenerated] = useState(false);
   const [generatedInvoiceId, setGeneratedInvoiceId] = useState<string | null>(null);
+  const [additionalCharges, setAdditionalCharges] = useState<InvoiceItemInput[]>([]);
+  const [showAddCharges, setShowAddCharges] = useState(false);
 
   const { data: admission, isLoading: loadingAdmission } = useAdmission(id);
   const { data: dischargeSummary, isLoading: loadingSummary, refetch: refetchSummary } = useDischargeSummary(id);
   const { data: charges = [] } = useIPDCharges(id);
   const { data: bedTypes = [] } = useBedTypes();
+  const { data: surgeries = [] } = useAdmissionSurgeries(id);
   const { mutateAsync: dischargePatient, isPending: discharging } = useDischargePatient();
   const { mutateAsync: approveSummary, isPending: approving } = useApproveDischargeSummary();
   const { mutateAsync: generateInvoice, isPending: generatingInvoice } = useGenerateIPDInvoice();
@@ -158,6 +174,15 @@ export default function DischargeFormPage() {
     }
 
     try {
+      // Transform additional charges to the format expected by the hook
+      const additionalItemsForInvoice = additionalCharges.map(item => ({
+        description: item.description,
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+        discount_percent: item.discount_percent,
+        service_type_id: item.service_type_id,
+      }));
+
       const result = await generateInvoice({
         admissionId: id,
         patientId: admission.patient_id,
@@ -166,6 +191,7 @@ export default function DischargeFormPage() {
         daysAdmitted,
         dailyRate,
         bedTypeName: currentBedType?.name || bedTypeName,
+        additionalItems: additionalItemsForInvoice,
       });
       
       setInvoiceGenerated(true);
@@ -176,10 +202,38 @@ export default function DischargeFormPage() {
     }
   };
 
+  // Categorize charges for breakdown display
+  const chargesBreakdown = useMemo(() => {
+    const medication = charges.filter((c: any) => c.charge_type === 'medication');
+    const procedure = charges.filter((c: any) => c.charge_type === 'procedure');
+    const other = charges.filter((c: any) => !['medication', 'procedure'].includes(c.charge_type || ''));
+    
+    return {
+      medication: {
+        items: medication,
+        total: medication.reduce((sum: number, c: any) => sum + (c.total_amount || 0), 0),
+      },
+      procedure: {
+        items: procedure,
+        total: procedure.reduce((sum: number, c: any) => sum + (c.total_amount || 0), 0),
+      },
+      other: {
+        items: other,
+        total: other.reduce((sum: number, c: any) => sum + (c.total_amount || 0), 0),
+      },
+    };
+  }, [charges]);
+
+  // Calculate additional charges total
+  const additionalChargesTotal = additionalCharges.reduce((sum, item) => {
+    const itemTotal = item.quantity * item.unit_price * (1 - (item.discount_percent || 0) / 100);
+    return sum + itemTotal;
+  }, 0);
+
   // Calculate charges breakdown
   const serviceCharges = charges.reduce((sum: number, c: any) => sum + (c.total_amount || 0), 0);
   const roomCharges = Math.max(1, daysAdmitted) * dailyRate;
-  const totalCharges = serviceCharges + roomCharges;
+  const totalCharges = serviceCharges + roomCharges + additionalChargesTotal;
   const depositAmount = admission?.deposit_amount || 0;
   const balanceDue = totalCharges - depositAmount;
 
@@ -264,7 +318,7 @@ export default function DischargeFormPage() {
               </div>
             </div>
 
-            <Badge variant="outline" className="text-amber-600 border-amber-600">
+            <Badge variant="outline" className="text-warning border-warning">
               Pending Discharge
             </Badge>
           </div>
@@ -273,10 +327,10 @@ export default function DischargeFormPage() {
 
       {/* Discharge Status Overview */}
       <div className="grid md:grid-cols-3 gap-4">
-        <Card className={isSummaryApproved ? "border-green-200 bg-green-50/50" : ""}>
+        <Card className={isSummaryApproved ? "border-success/50 bg-success/5" : ""}>
           <CardContent className="p-4 flex items-center gap-4">
             {isSummaryApproved ? (
-              <CheckCircle2 className="h-8 w-8 text-green-600" />
+              <CheckCircle2 className="h-8 w-8 text-success" />
             ) : (
               <FileText className="h-8 w-8 text-muted-foreground" />
             )}
@@ -291,10 +345,10 @@ export default function DischargeFormPage() {
           </CardContent>
         </Card>
 
-        <Card className={allRequiredComplete ? "border-green-200 bg-green-50/50" : ""}>
+        <Card className={allRequiredComplete ? "border-success/50 bg-success/5" : ""}>
           <CardContent className="p-4 flex items-center gap-4">
             {allRequiredComplete ? (
-              <CheckCircle2 className="h-8 w-8 text-green-600" />
+              <CheckCircle2 className="h-8 w-8 text-success" />
             ) : (
               <ClipboardCheck className="h-8 w-8 text-muted-foreground" />
             )}
@@ -328,9 +382,9 @@ export default function DischargeFormPage() {
 
       {/* Warning for non-normal discharge */}
       {["against_advice", "absconded", "expired"].includes(dischargeType) && (
-        <Card className="border-amber-500/50 bg-amber-500/10">
+        <Card className="border-warning/50 bg-warning/10">
           <CardContent className="p-4 flex items-center gap-3">
-            <AlertTriangle className="h-5 w-5 text-amber-600" />
+            <AlertTriangle className="h-5 w-5 text-warning" />
             <p className="text-sm">
               {dischargeType === "against_advice" && "Patient is leaving against medical advice. Ensure proper documentation and consent."}
               {dischargeType === "absconded" && "Patient has absconded. Document the circumstances and notify security."}
@@ -350,36 +404,130 @@ export default function DischargeFormPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Itemized Breakdown */}
-          <div className="space-y-2 text-sm">
+          <div className="space-y-3 text-sm">
+            {/* Room Charges */}
             <div className="flex justify-between">
-              <span className="text-muted-foreground">
+              <span className="flex items-center gap-2 text-muted-foreground">
+                <Bed className="h-4 w-4" />
                 Room Charges ({daysAdmitted} day{daysAdmitted !== 1 ? 's' : ''} × Rs. {dailyRate.toLocaleString()})
               </span>
               <span className="font-medium">Rs. {roomCharges.toLocaleString()}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">
-                Service Charges ({charges.length} item{charges.length !== 1 ? 's' : ''})
-              </span>
-              <span className="font-medium">Rs. {serviceCharges.toLocaleString()}</span>
-            </div>
+
+            {/* Pharmacy/Medication Charges */}
+            {chargesBreakdown.medication.items.length > 0 && (
+              <Collapsible>
+                <div className="flex justify-between items-center">
+                  <CollapsibleTrigger className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
+                    <Pill className="h-4 w-4" />
+                    <span>Pharmacy Charges ({chargesBreakdown.medication.items.length} items)</span>
+                    <ChevronDown className="h-3 w-3" />
+                  </CollapsibleTrigger>
+                  <span className="font-medium">Rs. {chargesBreakdown.medication.total.toLocaleString()}</span>
+                </div>
+                <CollapsibleContent className="pl-6 pt-2 space-y-1">
+                  {chargesBreakdown.medication.items.map((charge: any, idx: number) => (
+                    <div key={idx} className="flex justify-between text-xs text-muted-foreground">
+                      <span>{charge.description}</span>
+                      <span>Rs. {(charge.total_amount || 0).toLocaleString()}</span>
+                    </div>
+                  ))}
+                </CollapsibleContent>
+              </Collapsible>
+            )}
+
+            {/* Surgery/Procedure Charges */}
+            {chargesBreakdown.procedure.items.length > 0 && (
+              <Collapsible>
+                <div className="flex justify-between items-center">
+                  <CollapsibleTrigger className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
+                    <Scissors className="h-4 w-4" />
+                    <span>Surgery Charges ({chargesBreakdown.procedure.items.length} items)</span>
+                    <ChevronDown className="h-3 w-3" />
+                  </CollapsibleTrigger>
+                  <span className="font-medium">Rs. {chargesBreakdown.procedure.total.toLocaleString()}</span>
+                </div>
+                <CollapsibleContent className="pl-6 pt-2 space-y-1">
+                  {chargesBreakdown.procedure.items.map((charge: any, idx: number) => (
+                    <div key={idx} className="flex justify-between text-xs text-muted-foreground">
+                      <span>{charge.description}</span>
+                      <span>Rs. {(charge.total_amount || 0).toLocaleString()}</span>
+                    </div>
+                  ))}
+                </CollapsibleContent>
+              </Collapsible>
+            )}
+
+            {/* Other Service Charges */}
+            {chargesBreakdown.other.items.length > 0 && (
+              <Collapsible>
+                <div className="flex justify-between items-center">
+                  <CollapsibleTrigger className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
+                    <Stethoscope className="h-4 w-4" />
+                    <span>Other Services ({chargesBreakdown.other.items.length} items)</span>
+                    <ChevronDown className="h-3 w-3" />
+                  </CollapsibleTrigger>
+                  <span className="font-medium">Rs. {chargesBreakdown.other.total.toLocaleString()}</span>
+                </div>
+                <CollapsibleContent className="pl-6 pt-2 space-y-1">
+                  {chargesBreakdown.other.items.map((charge: any, idx: number) => (
+                    <div key={idx} className="flex justify-between text-xs text-muted-foreground">
+                      <span>{charge.description}</span>
+                      <span>Rs. {(charge.total_amount || 0).toLocaleString()}</span>
+                    </div>
+                  ))}
+                </CollapsibleContent>
+              </Collapsible>
+            )}
+
+            {/* Additional Charges (added during discharge) */}
+            {additionalCharges.length > 0 && (
+              <div className="flex justify-between">
+                <span className="flex items-center gap-2 text-muted-foreground">
+                  <Plus className="h-4 w-4" />
+                  Additional Charges ({additionalCharges.length} items)
+                </span>
+                <span className="font-medium">Rs. {additionalChargesTotal.toLocaleString()}</span>
+              </div>
+            )}
+
             <Separator />
             <div className="flex justify-between font-semibold">
               <span>Subtotal</span>
               <span>Rs. {totalCharges.toLocaleString()}</span>
             </div>
-            <div className="flex justify-between text-green-600">
+            <div className="flex justify-between text-success">
               <span>Deposit Paid</span>
               <span>- Rs. {depositAmount.toLocaleString()}</span>
             </div>
             <Separator />
             <div className="flex justify-between text-lg font-bold">
               <span>Balance Due</span>
-              <span className={balanceDue > 0 ? 'text-destructive' : 'text-green-600'}>
+              <span className={balanceDue > 0 ? 'text-destructive' : 'text-success'}>
                 Rs. {balanceDue.toLocaleString()}
               </span>
             </div>
           </div>
+
+          {/* Add Additional Charges Section */}
+          <Collapsible open={showAddCharges} onOpenChange={setShowAddCharges}>
+            <CollapsibleTrigger asChild>
+              <Button variant="outline" className="w-full justify-between" disabled={invoiceGenerated}>
+                <span className="flex items-center gap-2">
+                  <Plus className="h-4 w-4" />
+                  Add Additional Charges
+                </span>
+                <ChevronDown className={`h-4 w-4 transition-transform ${showAddCharges ? 'rotate-180' : ''}`} />
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="pt-4">
+              <InvoiceItemsBuilder
+                items={additionalCharges}
+                onChange={setAdditionalCharges}
+                disabled={invoiceGenerated}
+              />
+            </CollapsibleContent>
+          </Collapsible>
 
           {/* Actions */}
           <div className="flex gap-2 pt-2">
@@ -406,7 +554,7 @@ export default function DischargeFormPage() {
           </div>
 
           {dailyRate === 0 && (
-            <p className="text-sm text-amber-600">⚠️ No daily rate configured for this bed type. Room charges will be Rs. 0.</p>
+            <p className="text-sm text-warning">⚠️ No daily rate configured for this bed type. Room charges will be Rs. 0.</p>
           )}
         </CardContent>
       </Card>
@@ -432,11 +580,11 @@ export default function DischargeFormPage() {
 
         <TabsContent value="summary" className="mt-6 space-y-4">
           {dischargeSummary?.status === "pending_approval" && (
-            <Card className="border-blue-200 bg-blue-50">
+            <Card className="border-info/50 bg-info/10">
               <CardContent className="p-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <FileText className="h-5 w-5 text-blue-600" />
-                  <p className="text-sm text-blue-800">
+                  <FileText className="h-5 w-5 text-info" />
+                  <p className="text-sm text-info">
                     Discharge summary is pending approval.
                   </p>
                 </div>

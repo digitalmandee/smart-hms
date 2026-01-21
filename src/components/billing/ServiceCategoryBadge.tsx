@@ -1,14 +1,17 @@
 import { Badge } from "@/components/ui/badge";
 import { Database } from "@/integrations/supabase/types";
-import { Stethoscope, Syringe, FlaskConical, Pill, Building, MoreHorizontal } from "lucide-react";
+import { Stethoscope, Syringe, FlaskConical, Pill, Building, MoreHorizontal, Scissors } from "lucide-react";
 
 type ServiceCategory = Database["public"]["Enums"]["service_category"];
 
+// Extended type to include OT which may be added in future or used programmatically
+type ExtendedCategory = ServiceCategory | "ot" | "medication";
+
 interface ServiceCategoryBadgeProps {
-  category: ServiceCategory | null;
+  category: ExtendedCategory | null;
 }
 
-const categoryConfig: Record<ServiceCategory, { label: string; variant: "default" | "secondary" | "outline"; icon: React.ReactNode; className: string }> = {
+const categoryConfig: Record<string, { label: string; variant: "default" | "secondary" | "outline"; icon: React.ReactNode; className: string }> = {
   consultation: {
     label: "Consultation",
     variant: "default",
@@ -33,11 +36,23 @@ const categoryConfig: Record<ServiceCategory, { label: string; variant: "default
     icon: <Pill className="h-3 w-3" />,
     className: "bg-green-100 text-green-800 hover:bg-green-100 border-green-200",
   },
+  medication: {
+    label: "Medication",
+    variant: "secondary",
+    icon: <Pill className="h-3 w-3" />,
+    className: "bg-green-100 text-green-800 hover:bg-green-100 border-green-200",
+  },
   room: {
     label: "Room",
     variant: "secondary",
     icon: <Building className="h-3 w-3" />,
     className: "bg-cyan-100 text-cyan-800 hover:bg-cyan-100 border-cyan-200",
+  },
+  ot: {
+    label: "Surgery",
+    variant: "secondary",
+    icon: <Scissors className="h-3 w-3" />,
+    className: "bg-indigo-100 text-indigo-800 hover:bg-indigo-100 border-indigo-200",
   },
   other: {
     label: "Other",
@@ -48,7 +63,7 @@ const categoryConfig: Record<ServiceCategory, { label: string; variant: "default
 };
 
 export function ServiceCategoryBadge({ category }: ServiceCategoryBadgeProps) {
-  const config = categoryConfig[category || "other"];
+  const config = categoryConfig[category || "other"] || categoryConfig.other;
 
   return (
     <Badge variant={config.variant} className={`gap-1 ${config.className}`}>
