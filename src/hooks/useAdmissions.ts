@@ -37,8 +37,8 @@ export const useAdmissions = (status?: AdmissionStatus) => {
         .select(`
           *,
           patient:patients(id, first_name, last_name, patient_number, date_of_birth, gender, phone),
-          ward:wards(id, name, code),
-          bed:beds(id, bed_number),
+          ward:wards!admissions_ward_id_fkey(id, name, code),
+          bed:beds!admissions_bed_id_fkey(id, bed_number),
           admitting_doctor:doctors!admissions_admitting_doctor_id_fkey(
             id,
             profile:profiles(full_name)
@@ -76,8 +76,8 @@ export const useAdmission = (admissionId: string | undefined) => {
         .select(`
           *,
           patient:patients(*),
-          ward:wards(id, name, code, ward_type),
-          bed:beds(id, bed_number, bed_type),
+          ward:wards!admissions_ward_id_fkey(id, name, code, ward_type),
+          bed:beds!admissions_bed_id_fkey(id, bed_number, bed_type),
           admitting_doctor:doctors!admissions_admitting_doctor_id_fkey(
             id,
             profile:profiles(full_name),
