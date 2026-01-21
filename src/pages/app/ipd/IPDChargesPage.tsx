@@ -20,7 +20,8 @@ import { useAdmissions } from "@/hooks/useAdmissions";
 import { useIPDCharges, useCreateIPDCharge } from "@/hooks/useDischarge";
 import { usePostRoomCharges } from "@/hooks/useAdmissionFinancials";
 import { useBedTypes } from "@/hooks/useIPDConfig";
-import { Receipt, Plus, DollarSign, Loader2, AlertCircle, BedDouble, Calendar } from "lucide-react";
+import { useLatestDailyChargeLog } from "@/hooks/useDailyChargeLogs";
+import { Receipt, Plus, DollarSign, Loader2, AlertCircle, BedDouble, Calendar, Clock, CheckCircle2 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { formatCurrency } from "@/lib/currency";
@@ -40,6 +41,7 @@ const IPDChargesPage = () => {
   const { data: charges = [], isLoading: loadingCharges, refetch: refetchCharges } = useIPDCharges(selectedAdmission || undefined);
   const { mutateAsync: createCharge, isPending: creatingCharge } = useCreateIPDCharge();
   const { data: bedTypes = [] } = useBedTypes();
+  const { data: latestAutoCharge } = useLatestDailyChargeLog();
   const postRoomCharges = usePostRoomCharges();
 
   const selectedAdmissionData = admissions.find((a: any) => a.id === selectedAdmission);
@@ -115,7 +117,7 @@ const IPDChargesPage = () => {
               Automatically post today's room charges for all admitted patients based on their bed type rates
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-3">
             <div className="flex items-center justify-between">
               <div className="text-sm text-muted-foreground">
                 <p>{admissions.length} patients currently admitted</p>
@@ -135,6 +137,27 @@ const IPDChargesPage = () => {
                 Post Today's Charges
               </Button>
             </div>
+            {latestAutoCharge && (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground border-t pt-3">
+                {latestAutoCharge.run_date === new Date().toISOString().split("T")[0] ? (
+                  <>
+                    <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
+                    <span>
+                      Today's charges posted: {latestAutoCharge.charges_posted} charged, {latestAutoCharge.skipped} skipped
+                      {latestAutoCharge.errors > 0 && `, ${latestAutoCharge.errors} errors`}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <Clock className="h-3.5 w-3.5" />
+                    <span>
+                      Last run: {format(new Date(latestAutoCharge.created_at), "dd MMM yyyy, HH:mm")} 
+                      ({latestAutoCharge.charges_posted} posted)
+                    </span>
+                  </>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
 

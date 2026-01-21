@@ -7630,6 +7630,50 @@ export type Database = {
           },
         ]
       }
+      ipd_daily_charge_logs: {
+        Row: {
+          charges_posted: number | null
+          created_at: string | null
+          error_details: Json | null
+          errors: number | null
+          id: string
+          organization_id: string | null
+          run_date: string
+          skipped: number | null
+          total_admissions: number | null
+        }
+        Insert: {
+          charges_posted?: number | null
+          created_at?: string | null
+          error_details?: Json | null
+          errors?: number | null
+          id?: string
+          organization_id?: string | null
+          run_date: string
+          skipped?: number | null
+          total_admissions?: number | null
+        }
+        Update: {
+          charges_posted?: number | null
+          created_at?: string | null
+          error_details?: Json | null
+          errors?: number | null
+          id?: string
+          organization_id?: string | null
+          run_date?: string
+          skipped?: number | null
+          total_admissions?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ipd_daily_charge_logs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ipd_floors: {
         Row: {
           branch_id: string | null
