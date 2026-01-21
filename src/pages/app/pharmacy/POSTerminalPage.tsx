@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { POSProductSearch } from "@/components/pharmacy/POSProductSearch";
 import { POSCart } from "@/components/pharmacy/POSCart";
@@ -7,6 +7,9 @@ import { POSReceiptPreview } from "@/components/pharmacy/POSReceiptPreview";
 import { POSPatientSearch } from "@/components/pharmacy/POSPatientSearch";
 import { POSHeldTransactionsDialog } from "@/components/pharmacy/POSHeldTransactions";
 import { POSOrderReview } from "@/components/pharmacy/POSOrderReview";
+import { POSQuickActions } from "@/components/pharmacy/POSQuickActions";
+import { POSRecentProducts } from "@/components/pharmacy/POSRecentProducts";
+import { POSTodaySummary } from "@/components/pharmacy/POSTodaySummary";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,6 +25,7 @@ import {
 } from "@/components/ui/dialog";
 import { 
   useCreateTransaction,
+  usePOSTransactions,
   CartItem,
   POSTransaction,
   POSPayment,
@@ -43,6 +47,8 @@ import {
   User,
   ShoppingCart,
   ArrowLeft,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 
 export default function POSTerminalPage() {
@@ -59,13 +65,20 @@ export default function POSTerminalPage() {
   const [completedTransaction, setCompletedTransaction] = useState<POSTransaction | null>(null);
   const [showReceipt, setShowReceipt] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState<PatientForPOS | null>(null);
+  const [showLastSaleReceipt, setShowLastSaleReceipt] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(true);
   
   const barcodeInputRef = useRef<HTMLInputElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const { printRef, handlePrint } = usePrint();
 
   const hasBranch = !!profile?.branch_id;
   const createTransactionMutation = useCreateTransaction();
   const holdTransactionMutation = useHoldTransaction();
+  
+  // Fetch last transaction for "Last Sale" feature
+  const { data: recentTransactions } = usePOSTransactions(profile?.branch_id, {});
+  const lastTransaction = recentTransactions?.[0];
   
   // Check if patients module is enabled - if not, use standalone mode
   const isPatientsModuleEnabled = enabledModules?.includes("patients");
@@ -75,6 +88,48 @@ export default function POSTerminalPage() {
   useEffect(() => {
     barcodeInputRef.current?.focus();
   }, []);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if user is typing in an input
+      if ((e.target as HTMLElement).tagName === "INPUT") return;
+
+      switch (e.key) {
+        case "F2":
+          e.preventDefault();
+          searchInputRef.current?.focus();
+          break;
+        case "F4":
+          e.preventDefault();
+          if (cart.length > 0) handleHoldTransaction();
+          break;
+        case "F12":
+          e.preventDefault();
+          if (cart.length > 0) handleCheckout();
+          break;
+        case "Escape":
+          e.preventDefault();
+          if (showOrderReview) setShowOrderReview(false);
+          else if (showPaymentModal) setShowPaymentModal(false);
+          else if (showReceipt) setShowReceipt(false);
+          break;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [cart.length, showOrderReview, showPaymentModal, showReceipt]);
+
+  // Play sound on successful sale
+  const playSuccessSound = useCallback(() => {
+    if (!soundEnabled) return;
+    try {
+      const audio = new Audio("/sounds/success.mp3");
+      audio.volume = 0.3;
+      audio.play().catch(() => {});
+    } catch {}
+  }, [soundEnabled]);
 
   // Calculate totals
   const subtotal = cart.reduce((sum, item) => {
@@ -240,6 +295,16 @@ export default function POSTerminalPage() {
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Sound Toggle */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setSoundEnabled(!soundEnabled)}
+            title={soundEnabled ? "Sound On" : "Sound Off"}
+            className="text-primary-foreground hover:bg-primary-foreground/10"
+          >
+            {soundEnabled ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
+          </Button>
           <Button
             variant="secondary"
             size="sm"
@@ -267,27 +332,23 @@ export default function POSTerminalPage() {
       <div className="flex-1 flex overflow-hidden">
         {/* Left Panel - Products */}
         <div className="flex-1 lg:flex-[2] flex flex-col overflow-hidden border-r">
-          {/* Barcode Scanner Indicator */}
-          <div className="px-4 py-2 border-b bg-muted/30 flex items-center gap-2 text-sm text-muted-foreground shrink-0">
-            <Keyboard className="h-4 w-4" />
-            <span className="hidden sm:inline">Barcode scanner ready</span>
-            <span className="sm:hidden">Scanner ready</span>
-            <input
-              ref={barcodeInputRef}
-              type="text"
-              className="absolute opacity-0 pointer-events-none"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  // Handle barcode scan
-                }
-              }}
-            />
-          </div>
+          {/* Quick Actions Bar */}
+          <POSQuickActions 
+            onShowLastSale={() => {
+              if (lastTransaction) {
+                setCompletedTransaction(lastTransaction);
+                setShowLastSaleReceipt(true);
+              }
+            }}
+          />
 
-          {/* Product Search */}
+          {/* Product Search & Recent Products */}
           <ScrollArea className="flex-1">
             <div className="p-4 space-y-4">
               <POSProductSearch onAddToCart={handleAddToCart} />
+              
+              {/* Recent Products Quick Add */}
+              <POSRecentProducts onAddToCart={handleAddToCart} />
               
               {/* Patient Search for Prescription Lookup - only show if patients module is enabled */}
               {!isStandaloneMode && (
@@ -299,6 +360,9 @@ export default function POSTerminalPage() {
               )}
             </div>
           </ScrollArea>
+
+          {/* Today's Summary Widget */}
+          <POSTodaySummary />
         </div>
 
         {/* Right Panel - Cart */}
@@ -398,6 +462,31 @@ export default function POSTerminalPage() {
               Close
             </Button>
             <Button onClick={handlePrintReceipt}>
+              Print Receipt
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Last Sale Receipt Dialog */}
+      <Dialog open={showLastSaleReceipt} onOpenChange={setShowLastSaleReceipt}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <History className="h-5 w-5" />
+              Last Sale
+            </DialogTitle>
+          </DialogHeader>
+          {completedTransaction && (
+            <POSReceiptPreview transaction={completedTransaction} />
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowLastSaleReceipt(false)}>
+              Close
+            </Button>
+            <Button onClick={() => {
+              handlePrint({ title: "Last Sale Receipt" });
+            }}>
               Print Receipt
             </Button>
           </DialogFooter>
