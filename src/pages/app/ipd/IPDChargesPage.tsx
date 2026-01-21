@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -18,13 +18,17 @@ import {
 } from "@/components/ui/dialog";
 import { useAdmissions } from "@/hooks/useAdmissions";
 import { useIPDCharges, useCreateIPDCharge } from "@/hooks/useDischarge";
-import { Receipt, Plus, DollarSign, Loader2, AlertCircle } from "lucide-react";
+import { usePostRoomCharges } from "@/hooks/useAdmissionFinancials";
+import { useBedTypes } from "@/hooks/useIPDConfig";
+import { Receipt, Plus, DollarSign, Loader2, AlertCircle, BedDouble, Calendar } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { formatCurrency } from "@/lib/currency";
 
 const IPDChargesPage = () => {
   const [selectedAdmission, setSelectedAdmission] = useState<string>("");
   const [addChargeOpen, setAddChargeOpen] = useState(false);
+  const [postingRoomCharges, setPostingRoomCharges] = useState(false);
   const [chargeForm, setChargeForm] = useState({
     description: "",
     quantity: "1",
@@ -33,11 +37,19 @@ const IPDChargesPage = () => {
   });
 
   const { data: admissions = [], isLoading: loadingAdmissions } = useAdmissions("admitted");
-  const { data: charges = [], isLoading: loadingCharges } = useIPDCharges(selectedAdmission || undefined);
+  const { data: charges = [], isLoading: loadingCharges, refetch: refetchCharges } = useIPDCharges(selectedAdmission || undefined);
   const { mutateAsync: createCharge, isPending: creatingCharge } = useCreateIPDCharge();
+  const { data: bedTypes = [] } = useBedTypes();
+  const postRoomCharges = usePostRoomCharges();
 
   const selectedAdmissionData = admissions.find((a: any) => a.id === selectedAdmission);
   const totalCharges = charges.reduce((sum: number, c: any) => sum + (c.total_amount || 0), 0);
+
+  // Group charges by type
+  const roomCharges = charges.filter((c: any) => c.charge_type === "room");
+  const serviceCharges = charges.filter((c: any) => c.charge_type === "service");
+  const medicationCharges = charges.filter((c: any) => c.charge_type === "medication");
+  const otherCharges = charges.filter((c: any) => !["room", "service", "medication"].includes(c.charge_type));
 
   const handleAddCharge = async () => {
     if (!selectedAdmission || !chargeForm.description || !chargeForm.unit_price) {
@@ -63,6 +75,27 @@ const IPDChargesPage = () => {
     }
   };
 
+  const handlePostRoomCharges = async () => {
+    setPostingRoomCharges(true);
+    try {
+      const result = await postRoomCharges();
+      toast.success(`Room charges posted`, {
+        description: `${result.chargesPosted} charges posted, ${result.skipped} skipped (already charged or no rate)`,
+      });
+      refetchCharges();
+    } catch (error) {
+      toast.error("Failed to post room charges");
+    } finally {
+      setPostingRoomCharges(false);
+    }
+  };
+
+  // Get bed type rate for display
+  const getBedTypeRate = (bedTypeCode: string) => {
+    const bedType = bedTypes.find((bt) => bt.code === bedTypeCode);
+    return bedType?.daily_rate || 0;
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -70,47 +103,86 @@ const IPDChargesPage = () => {
         description="Manage daily charges for admitted patients"
       />
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Select Patient</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loadingAdmissions ? (
-            <Skeleton className="h-10 w-full max-w-md" />
-          ) : admissions.length === 0 ? (
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <AlertCircle className="h-4 w-4" />
-              <span>No admitted patients found</span>
+      {/* Action Cards */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <BedDouble className="h-5 w-5" />
+              Post Daily Room Charges
+            </CardTitle>
+            <CardDescription>
+              Automatically post today's room charges for all admitted patients based on their bed type rates
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-muted-foreground">
+                <p>{admissions.length} patients currently admitted</p>
+                {bedTypes.length > 0 && (
+                  <p className="mt-1">
+                    Rates: {bedTypes.slice(0, 3).map(bt => `${bt.name}: ${formatCurrency(bt.daily_rate || 0)}`).join(", ")}
+                    {bedTypes.length > 3 && "..."}
+                  </p>
+                )}
+              </div>
+              <Button 
+                onClick={handlePostRoomCharges} 
+                disabled={postingRoomCharges || admissions.length === 0}
+              >
+                {postingRoomCharges && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                <Calendar className="h-4 w-4 mr-2" />
+                Post Today's Charges
+              </Button>
             </div>
-          ) : (
-            <Select value={selectedAdmission} onValueChange={setSelectedAdmission}>
-              <SelectTrigger className="max-w-md">
-                <SelectValue placeholder="Select admitted patient" />
-              </SelectTrigger>
-              <SelectContent>
-                {admissions.map((admission: any) => (
-                  <SelectItem key={admission.id} value={admission.id}>
-                    {admission.admission_number} - {admission.patient?.first_name}{" "}
-                    {admission.patient?.last_name} 
-                    {admission.bed?.bed_number ? ` (Bed ${admission.bed.bed_number})` : ""}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg">Select Patient</CardTitle>
+            <CardDescription>
+              View and add charges for a specific patient
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loadingAdmissions ? (
+              <Skeleton className="h-10 w-full" />
+            ) : admissions.length === 0 ? (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <AlertCircle className="h-4 w-4" />
+                <span>No admitted patients found</span>
+              </div>
+            ) : (
+              <Select value={selectedAdmission} onValueChange={setSelectedAdmission}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select admitted patient" />
+                </SelectTrigger>
+                <SelectContent>
+                  {admissions.map((admission: any) => (
+                    <SelectItem key={admission.id} value={admission.id}>
+                      {admission.admission_number} - {admission.patient?.first_name}{" "}
+                      {admission.patient?.last_name} 
+                      {admission.bed?.bed_number ? ` (Bed ${admission.bed.bed_number})` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
       {selectedAdmission && (
         <>
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-4">
             <Card>
               <CardContent className="pt-6">
                 <div className="flex items-center gap-2">
                   <DollarSign className="h-8 w-8 text-primary" />
                   <div>
                     <p className="text-sm text-muted-foreground">Total Charges</p>
-                    <p className="text-2xl font-bold">Rs. {totalCharges.toLocaleString()}</p>
+                    <p className="text-2xl font-bold">{formatCurrency(totalCharges)}</p>
                   </div>
                 </div>
               </CardContent>
@@ -118,7 +190,20 @@ const IPDChargesPage = () => {
             <Card>
               <CardContent className="pt-6">
                 <div className="flex items-center gap-2">
-                  <Receipt className="h-8 w-8 text-blue-500" />
+                  <BedDouble className="h-8 w-8 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Room Charges</p>
+                    <p className="text-2xl font-bold">
+                      {formatCurrency(roomCharges.reduce((sum: number, c: any) => sum + (c.total_amount || 0), 0))}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-2">
+                  <Receipt className="h-8 w-8 text-muted-foreground" />
                   <div>
                     <p className="text-sm text-muted-foreground">Items</p>
                     <p className="text-2xl font-bold">{charges.length}</p>
@@ -186,6 +271,7 @@ const IPDChargesPage = () => {
                       <TableHead className="text-right">Qty</TableHead>
                       <TableHead className="text-right">Unit Price</TableHead>
                       <TableHead className="text-right">Amount</TableHead>
+                      <TableHead className="text-center">Status</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -198,24 +284,39 @@ const IPDChargesPage = () => {
                         </TableCell>
                         <TableCell>{charge.description}</TableCell>
                         <TableCell>
-                          <Badge variant="outline" className="capitalize">
+                          <Badge 
+                            variant={
+                              charge.charge_type === "room" ? "default" :
+                              charge.charge_type === "medication" ? "secondary" :
+                              "outline"
+                            } 
+                            className="capitalize"
+                          >
                             {charge.charge_type || "service"}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right">{charge.quantity}</TableCell>
                         <TableCell className="text-right">
-                          Rs. {(charge.unit_price || 0).toLocaleString()}
+                          {formatCurrency(charge.unit_price || 0)}
                         </TableCell>
                         <TableCell className="text-right font-medium">
-                          Rs. {(charge.total_amount || 0).toLocaleString()}
+                          {formatCurrency(charge.total_amount || 0)}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {charge.is_billed ? (
+                            <Badge variant="secondary">Billed</Badge>
+                          ) : (
+                            <Badge variant="outline">Pending</Badge>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}
                     <TableRow className="bg-muted/50">
                       <TableCell colSpan={5} className="font-bold">Total</TableCell>
                       <TableCell className="text-right font-bold">
-                        Rs. {totalCharges.toLocaleString()}
+                        {formatCurrency(totalCharges)}
                       </TableCell>
+                      <TableCell />
                     </TableRow>
                   </TableBody>
                 </Table>
@@ -236,7 +337,7 @@ const IPDChargesPage = () => {
               <Label htmlFor="description">Description *</Label>
               <Input
                 id="description"
-                placeholder="e.g., Room Charges, Nursing Care, Lab Test"
+                placeholder="e.g., Nursing Care, Procedure, Lab Test"
                 value={chargeForm.description}
                 onChange={(e) => setChargeForm({ ...chargeForm, description: e.target.value })}
               />
