@@ -454,20 +454,76 @@ export function useRecordPayment() {
 
       if (updateError) throw updateError;
 
-      // If invoice is fully paid, check for lab items and log for future lab order creation
-      // Note: Full lab order creation requires consultation_id which may not be available
-      // Lab orders from invoices will be handled via a separate workflow
+      // If invoice is fully paid, check for lab items and create lab order
       if (newStatus === "paid" && profile?.organization_id) {
         const labItems = invoice.items?.filter(
           (item: any) => item.service_type?.category === "lab"
         );
 
         if (labItems && labItems.length > 0) {
-          billingLogger.info("Invoice paid with lab items - ready for sample collection", {
+          billingLogger.info("Invoice paid with lab items - creating lab order", {
             invoiceId,
             labItemsCount: labItems.length,
             items: labItems.map((item: any) => item.description),
           });
+
+          // Check if lab order already exists for this invoice
+          const { data: existingLabOrder } = await supabase
+            .from("lab_orders")
+            .select("id")
+            .eq("invoice_id", invoiceId)
+            .maybeSingle();
+
+          if (!existingLabOrder) {
+            // Generate order number (format: LAB-YYMMDD-XXXX)
+            const now = new Date();
+            const datePart = now.toISOString().slice(2, 10).replace(/-/g, '');
+            const randomPart = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+            const orderNumber = `LAB-${datePart}-${randomPart}`;
+
+            // Create lab order
+            const { data: labOrder, error: labOrderError } = await supabase
+              .from("lab_orders")
+              .insert({
+                order_number: orderNumber,
+                patient_id: invoice.patient_id,
+                branch_id: invoice.branch_id,
+                organization_id: profile.organization_id,
+                invoice_id: invoiceId,
+                payment_status: "paid" as const,
+                status: "ordered" as const,
+                priority: "routine" as const,
+                clinical_notes: `Created from Invoice ${invoice.invoice_number}`,
+              })
+              .select()
+              .single();
+
+            if (labOrderError) {
+              billingLogger.error("Failed to create lab order from invoice", { error: labOrderError });
+            } else if (labOrder) {
+              // Create lab order items from invoice items
+              const labOrderItems = labItems.map((item: any) => ({
+                lab_order_id: labOrder.id,
+                service_type_id: item.service_type_id,
+                test_name: item.description || item.service_type?.name || "Lab Test",
+                test_category: item.service_type?.category || "lab",
+                status: "pending" as const,
+              }));
+
+              const { error: itemsError } = await supabase
+                .from("lab_order_items")
+                .insert(labOrderItems);
+
+              if (itemsError) {
+                billingLogger.error("Failed to create lab order items", { error: itemsError });
+              } else {
+                billingLogger.info("Lab order created successfully from invoice", {
+                  labOrderId: labOrder.id,
+                  itemsCount: labOrderItems.length,
+                });
+              }
+            }
+          }
         }
       }
 
