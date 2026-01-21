@@ -282,7 +282,7 @@ export default function POSTerminalPage() {
     setShowPaymentModal(true);
   };
 
-  const handlePaymentComplete = (payments: Omit<POSPayment, "id" | "transaction_id">[]) => {
+  const handlePaymentComplete = (payments: Omit<POSPayment, "id" | "transaction_id">[], isCredit?: boolean, dueDate?: string) => {
     if (cart.length === 0) return;
 
     createTransactionMutation.mutate({
@@ -296,6 +296,9 @@ export default function POSTerminalPage() {
       customerName: customerName || undefined,
       customerPhone: customerPhone || undefined,
       discountAmount,
+      patientId: selectedPatient?.id,
+      isCredit,
+      dueDate,
     }, {
       onSuccess: (transaction) => {
         setShowPaymentModal(false);
@@ -537,6 +540,7 @@ export default function POSTerminalPage() {
         onCustomerPhoneChange={setCustomerPhone}
         onConfirmPayment={handlePaymentComplete}
         isProcessing={createTransactionMutation.isPending}
+        selectedPatientId={selectedPatient?.id}
       />
 
       {/* Receipt Preview */}
