@@ -171,6 +171,8 @@ export type Database = {
           admission_type: Database["public"]["Enums"]["admission_type"] | null
           admitting_doctor_id: string | null
           attending_doctor_id: string | null
+          authorization_number: string | null
+          bed_charges_start_at: string | null
           bed_id: string | null
           branch_id: string
           chief_complaint: string | null
@@ -179,8 +181,10 @@ export type Database = {
           confirmed_at: string | null
           confirmed_by: string | null
           consultation_id: string | null
+          corporate_id: string | null
           created_at: string | null
           created_by: string | null
+          credit_limit: number | null
           deposit_amount: number | null
           diagnosis_on_admission: string | null
           discharge_diagnosis: string | null
@@ -197,8 +201,11 @@ export type Database = {
           follow_up_instructions: string | null
           history_of_present_illness: string | null
           id: string
+          insurance_policy_number: string | null
+          insurance_provider_id: string | null
           organization_id: string
           patient_id: string
+          payment_mode: string | null
           payment_status: string | null
           referring_doctor_id: string | null
           status: Database["public"]["Enums"]["admission_status"] | null
@@ -214,6 +221,8 @@ export type Database = {
           admission_type?: Database["public"]["Enums"]["admission_type"] | null
           admitting_doctor_id?: string | null
           attending_doctor_id?: string | null
+          authorization_number?: string | null
+          bed_charges_start_at?: string | null
           bed_id?: string | null
           branch_id: string
           chief_complaint?: string | null
@@ -222,8 +231,10 @@ export type Database = {
           confirmed_at?: string | null
           confirmed_by?: string | null
           consultation_id?: string | null
+          corporate_id?: string | null
           created_at?: string | null
           created_by?: string | null
+          credit_limit?: number | null
           deposit_amount?: number | null
           diagnosis_on_admission?: string | null
           discharge_diagnosis?: string | null
@@ -240,8 +251,11 @@ export type Database = {
           follow_up_instructions?: string | null
           history_of_present_illness?: string | null
           id?: string
+          insurance_policy_number?: string | null
+          insurance_provider_id?: string | null
           organization_id: string
           patient_id: string
+          payment_mode?: string | null
           payment_status?: string | null
           referring_doctor_id?: string | null
           status?: Database["public"]["Enums"]["admission_status"] | null
@@ -257,6 +271,8 @@ export type Database = {
           admission_type?: Database["public"]["Enums"]["admission_type"] | null
           admitting_doctor_id?: string | null
           attending_doctor_id?: string | null
+          authorization_number?: string | null
+          bed_charges_start_at?: string | null
           bed_id?: string | null
           branch_id?: string
           chief_complaint?: string | null
@@ -265,8 +281,10 @@ export type Database = {
           confirmed_at?: string | null
           confirmed_by?: string | null
           consultation_id?: string | null
+          corporate_id?: string | null
           created_at?: string | null
           created_by?: string | null
+          credit_limit?: number | null
           deposit_amount?: number | null
           diagnosis_on_admission?: string | null
           discharge_diagnosis?: string | null
@@ -283,8 +301,11 @@ export type Database = {
           follow_up_instructions?: string | null
           history_of_present_illness?: string | null
           id?: string
+          insurance_policy_number?: string | null
+          insurance_provider_id?: string | null
           organization_id?: string
           patient_id?: string
+          payment_mode?: string | null
           payment_status?: string | null
           referring_doctor_id?: string | null
           status?: Database["public"]["Enums"]["admission_status"] | null
