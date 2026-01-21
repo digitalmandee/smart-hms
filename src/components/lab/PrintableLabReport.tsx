@@ -354,7 +354,7 @@ export const PrintableLabReport = forwardRef<HTMLDivElement, PrintableLabReportP
     const isCompleted = labOrder.status === "completed";
 
     return (
-      <div ref={ref} style={styles.container}>
+      <div ref={ref} style={styles.container} className="hidden print:block">
         {/* Completed Watermark */}
         {isCompleted && <div style={styles.watermark}>VERIFIED</div>}
 
