@@ -26,11 +26,14 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useAdmission, useDischargePatient } from "@/hooks/useAdmissions";
 import { useDischargeSummary, useApproveDischargeSummary, useIPDCharges, useGenerateIPDInvoice } from "@/hooks/useDischarge";
+import { useBedTypes } from "@/hooks/useIPDConfig";
 import { DischargeChecklist } from "@/components/ipd/DischargeChecklist";
 import { DischargeSummaryForm } from "@/components/ipd/DischargeSummaryForm";
 import { PrintableDischargeSummary } from "@/components/ipd/PrintableDischargeSummary";
 import { usePrint } from "@/hooks/usePrint";
 import { toast } from "sonner";
+import { Separator } from "@/components/ui/separator";
+import { Link } from "react-router-dom";
 import {
   User,
   Calendar,
@@ -65,15 +68,22 @@ export default function DischargeFormPage() {
   const [completedChecklist, setCompletedChecklist] = useState<string[]>([]);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [invoiceGenerated, setInvoiceGenerated] = useState(false);
+  const [generatedInvoiceId, setGeneratedInvoiceId] = useState<string | null>(null);
 
   const { data: admission, isLoading: loadingAdmission } = useAdmission(id);
   const { data: dischargeSummary, isLoading: loadingSummary, refetch: refetchSummary } = useDischargeSummary(id);
   const { data: charges = [] } = useIPDCharges(id);
+  const { data: bedTypes = [] } = useBedTypes();
   const { mutateAsync: dischargePatient, isPending: discharging } = useDischargePatient();
   const { mutateAsync: approveSummary, isPending: approving } = useApproveDischargeSummary();
   const { mutateAsync: generateInvoice, isPending: generatingInvoice } = useGenerateIPDInvoice();
 
   const isLoading = loadingAdmission || loadingSummary;
+
+  // Get bed type info for room charge calculation
+  const bedTypeName = admission?.bed?.bed_type || "Standard";
+  const currentBedType = bedTypes.find(bt => bt.code === bedTypeName || bt.name === bedTypeName);
+  const dailyRate = currentBedType?.daily_rate || 0;
 
   // Calculate days admitted
   const daysAdmitted = admission?.admission_date
@@ -153,17 +163,23 @@ export default function DischargeFormPage() {
         patientId: admission.patient_id,
         branchId: admission.branch_id,
         depositAmount: admission.deposit_amount || 0,
+        daysAdmitted,
+        dailyRate,
+        bedTypeName: currentBedType?.name || bedTypeName,
       });
       
       setInvoiceGenerated(true);
+      setGeneratedInvoiceId(result.invoiceId);
       toast.success(`Invoice generated: Rs. ${result.totalAmount.toLocaleString()} (${result.chargesCount} items)`);
     } catch (error: any) {
       toast.error(error.message || "Failed to generate invoice");
     }
   };
 
-  // Calculate total charges
-  const totalCharges = charges.reduce((sum: number, c: any) => sum + (c.total_amount || 0), 0);
+  // Calculate charges breakdown
+  const serviceCharges = charges.reduce((sum: number, c: any) => sum + (c.total_amount || 0), 0);
+  const roomCharges = Math.max(1, daysAdmitted) * dailyRate;
+  const totalCharges = serviceCharges + roomCharges;
   const depositAmount = admission?.deposit_amount || 0;
   const balanceDue = totalCharges - depositAmount;
 
@@ -332,40 +348,65 @@ export default function DischargeFormPage() {
             Billing Summary
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-4">
-            <div>
-              <p className="text-sm text-muted-foreground">Total Charges</p>
-              <p className="text-xl font-bold">Rs. {totalCharges.toLocaleString()}</p>
+        <CardContent className="space-y-4">
+          {/* Itemized Breakdown */}
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">
+                Room Charges ({daysAdmitted} day{daysAdmitted !== 1 ? 's' : ''} × Rs. {dailyRate.toLocaleString()})
+              </span>
+              <span className="font-medium">Rs. {roomCharges.toLocaleString()}</span>
             </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Deposit Paid</p>
-              <p className="text-xl font-bold text-green-600">Rs. {depositAmount.toLocaleString()}</p>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">
+                Service Charges ({charges.length} item{charges.length !== 1 ? 's' : ''})
+              </span>
+              <span className="font-medium">Rs. {serviceCharges.toLocaleString()}</span>
             </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Balance Due</p>
-              <p className={`text-xl font-bold ${balanceDue > 0 ? 'text-destructive' : 'text-green-600'}`}>
+            <Separator />
+            <div className="flex justify-between font-semibold">
+              <span>Subtotal</span>
+              <span>Rs. {totalCharges.toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between text-green-600">
+              <span>Deposit Paid</span>
+              <span>- Rs. {depositAmount.toLocaleString()}</span>
+            </div>
+            <Separator />
+            <div className="flex justify-between text-lg font-bold">
+              <span>Balance Due</span>
+              <span className={balanceDue > 0 ? 'text-destructive' : 'text-green-600'}>
                 Rs. {balanceDue.toLocaleString()}
-              </p>
-            </div>
-            <div className="flex items-end">
-              <Button 
-                onClick={handleGenerateInvoice} 
-                disabled={generatingInvoice || invoiceGenerated || charges.length === 0}
-                className="w-full"
-              >
-                {generatingInvoice ? (
-                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Generating...</>
-                ) : invoiceGenerated ? (
-                  <><CheckCircle2 className="h-4 w-4 mr-2" />Invoice Generated</>
-                ) : (
-                  <><Receipt className="h-4 w-4 mr-2" />Generate Invoice</>
-                )}
-              </Button>
+              </span>
             </div>
           </div>
-          {charges.length === 0 && (
-            <p className="text-sm text-muted-foreground mt-2">No charges recorded for this admission.</p>
+
+          {/* Actions */}
+          <div className="flex gap-2 pt-2">
+            <Button 
+              onClick={handleGenerateInvoice} 
+              disabled={generatingInvoice || invoiceGenerated}
+              className="flex-1"
+            >
+              {generatingInvoice ? (
+                <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Generating...</>
+              ) : invoiceGenerated ? (
+                <><CheckCircle2 className="h-4 w-4 mr-2" />Invoice Generated</>
+              ) : (
+                <><Receipt className="h-4 w-4 mr-2" />Generate Final Invoice</>
+              )}
+            </Button>
+            {invoiceGenerated && generatedInvoiceId && (
+              <Button variant="outline" asChild>
+                <Link to={`/app/billing/invoices/${generatedInvoiceId}`}>
+                  View Invoice
+                </Link>
+              </Button>
+            )}
+          </div>
+
+          {dailyRate === 0 && (
+            <p className="text-sm text-amber-600">⚠️ No daily rate configured for this bed type. Room charges will be Rs. 0.</p>
           )}
         </CardContent>
       </Card>
