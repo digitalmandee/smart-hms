@@ -206,7 +206,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
 
   ipd_nurse: {
     items: [
-      { name: "Dashboard", path: "/app/ipd/nursing", icon: "LayoutDashboard" },
+      { name: "Dashboard", path: "/app/ipd/nursing-notes", icon: "LayoutDashboard" },
       { 
         name: "Patient Care", 
         path: "", 
