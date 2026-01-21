@@ -54,7 +54,7 @@ export function PatientLabHistory({ patientId }: PatientLabHistoryProps) {
       // Small delay to ensure DOM is fully painted
       const timer = setTimeout(() => {
         handlePrintRef.current?.();
-      }, 100);
+      }, 300);
       return () => clearTimeout(timer);
     }
   }, [shouldPrint, selectedOrder]);
@@ -90,86 +90,88 @@ export function PatientLabHistory({ patientId }: PatientLabHistoryProps) {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Lab Results</CardTitle>
-        <CardDescription>{labOrders.length} lab order(s) on record</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {labOrders.map((order) => (
-          <div
-            key={order.id}
-            className="flex items-start justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
-          >
-            <div className="flex items-start gap-4">
-              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                <TestTubes className="h-5 w-5 text-primary" />
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>Lab Results</CardTitle>
+          <CardDescription>{labOrders.length} lab order(s) on record</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {labOrders.map((order) => (
+            <div
+              key={order.id}
+              className="flex items-start justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+            >
+              <div className="flex items-start gap-4">
+                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <TestTubes className="h-5 w-5 text-primary" />
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium">{order.order_number}</p>
+                    <Badge className={statusColors[order.status] || 'bg-muted'}>
+                      {order.status?.replace('_', ' ')}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Calendar className="h-3 w-3" />
+                    {format(new Date(order.created_at), "MMM dd, yyyy")}
+                  </div>
+                  {order.items && order.items.length > 0 && (
+                    <p className="text-sm">
+                      <span className="font-medium">Tests:</span>{' '}
+                      {order.items.map(i => i.test_name).join(', ')}
+                    </p>
+                  )}
+                  {order.priority === 'urgent' || order.priority === 'stat' ? (
+                    <Badge variant="destructive" className="text-xs mt-1">
+                      {order.priority.toUpperCase()}
+                    </Badge>
+                  ) : null}
+                </div>
               </div>
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <p className="font-medium">{order.order_number}</p>
-                  <Badge className={statusColors[order.status] || 'bg-muted'}>
-                    {order.status?.replace('_', ' ')}
+              <div className="flex items-center gap-2">
+                {order.status === 'completed' && (order as any).is_published && (
+                  <Badge variant="secondary" className="text-xs">
+                    <Globe className="h-3 w-3 mr-1" />
+                    Published
                   </Badge>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Calendar className="h-3 w-3" />
-                  {format(new Date(order.created_at), "MMM dd, yyyy")}
-                </div>
-                {order.items && order.items.length > 0 && (
-                  <p className="text-sm">
-                    <span className="font-medium">Tests:</span>{' '}
-                    {order.items.map(i => i.test_name).join(', ')}
-                  </p>
                 )}
-                {order.priority === 'urgent' || order.priority === 'stat' ? (
-                  <Badge variant="destructive" className="text-xs mt-1">
-                    {order.priority.toUpperCase()}
-                  </Badge>
-                ) : null}
+                {order.status === 'completed' && (
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    disabled={selectedOrderId === order.id && shouldPrint}
+                    onClick={() => {
+                      setSelectedOrderId(order.id);
+                      setShouldPrint(true);
+                    }}
+                  >
+                    <Printer className="h-4 w-4" />
+                  </Button>
+                )}
+                <Link to={`/app/lab/orders/${order.id}`} target="_blank" rel="noopener noreferrer">
+                  <Button variant="ghost" size="sm">
+                    <ExternalLink className="h-4 w-4" />
+                  </Button>
+                </Link>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              {order.status === 'completed' && (order as any).is_published && (
-                <Badge variant="secondary" className="text-xs">
-                  <Globe className="h-3 w-3 mr-1" />
-                  Published
-                </Badge>
-              )}
-              {order.status === 'completed' && (
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  disabled={selectedOrderId === order.id && shouldPrint}
-                  onClick={() => {
-                    setSelectedOrderId(order.id);
-                    setShouldPrint(true);
-                  }}
-                >
-                  <Printer className="h-4 w-4" />
-                </Button>
-              )}
-              <Link to={`/app/lab/orders/${order.id}`} target="_blank" rel="noopener noreferrer">
-                <Button variant="ghost" size="sm">
-                  <ExternalLink className="h-4 w-4" />
-                </Button>
-              </Link>
-            </div>
-          </div>
-        ))}
-        
-        {/* Hidden printable report - positioned off-screen for print */}
+          ))}
+        </CardContent>
+      </Card>
+      
+      {/* Hidden printable report - uses print:block to show only when printing */}
+      <div className="hidden print:block">
         {selectedOrder && (
-          <div style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
-            <PrintableLabReport
-              ref={printRef}
-              labOrder={selectedOrder}
-              organization={branding}
-              performedBy={profile?.full_name}
-            />
-          </div>
+          <PrintableLabReport
+            ref={printRef}
+            labOrder={selectedOrder}
+            organization={branding}
+            performedBy={profile?.full_name}
+          />
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </>
   );
 }
