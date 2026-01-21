@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Database } from "@/integrations/supabase/types";
-import { Stethoscope, Syringe, FlaskConical, Pill, Building, MoreHorizontal, Scissors } from "lucide-react";
+import { Stethoscope, Syringe, FlaskConical, Pill, Building, MoreHorizontal, Scissors, Scan } from "lucide-react";
 
 type ServiceCategory = Database["public"]["Enums"]["service_category"];
 
@@ -29,6 +29,12 @@ const categoryConfig: Record<string, { label: string; variant: "default" | "seco
     variant: "secondary",
     icon: <FlaskConical className="h-3 w-3" />,
     className: "bg-orange-100 text-orange-800 hover:bg-orange-100 border-orange-200",
+  },
+  radiology: {
+    label: "Radiology",
+    variant: "secondary",
+    icon: <Scan className="h-3 w-3" />,
+    className: "bg-pink-100 text-pink-800 hover:bg-pink-100 border-pink-200",
   },
   pharmacy: {
     label: "Pharmacy",

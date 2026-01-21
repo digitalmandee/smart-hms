@@ -11,11 +11,11 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useServiceType, useCreateServiceType, useUpdateServiceType } from "@/hooks/useBilling";
-import { Loader2, Stethoscope, Syringe, FlaskConical, Pill, Building, MoreHorizontal } from "lucide-react";
+import { Loader2, Stethoscope, Syringe, FlaskConical, Pill, Building, MoreHorizontal, Scan } from "lucide-react";
 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required"),
-  category: z.enum(["consultation", "procedure", "lab", "pharmacy", "room", "other"]),
+  category: z.enum(["consultation", "procedure", "lab", "pharmacy", "room", "radiology", "other"]),
   default_price: z.coerce.number().min(0, "Price must be positive"),
   is_active: z.boolean(),
 });
@@ -26,6 +26,7 @@ const categoryOptions = [
   { value: "consultation", label: "Consultation", icon: Stethoscope },
   { value: "procedure", label: "Procedure", icon: Syringe },
   { value: "lab", label: "Lab", icon: FlaskConical },
+  { value: "radiology", label: "Radiology", icon: Scan },
   { value: "pharmacy", label: "Pharmacy", icon: Pill },
   { value: "room", label: "Room", icon: Building },
   { value: "other", label: "Other", icon: MoreHorizontal },

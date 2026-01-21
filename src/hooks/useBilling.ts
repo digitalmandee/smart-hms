@@ -879,7 +879,7 @@ export function useCreateServiceType() {
   return useMutation({
     mutationFn: async (values: {
       name: string;
-      category: "consultation" | "procedure" | "lab" | "pharmacy" | "room" | "other";
+      category: "consultation" | "procedure" | "lab" | "pharmacy" | "room" | "radiology" | "other";
       default_price?: number;
       is_active?: boolean;
     }) => {
@@ -918,7 +918,7 @@ export function useUpdateServiceType() {
     mutationFn: async (values: {
       id: string;
       name?: string;
-      category?: "consultation" | "procedure" | "lab" | "pharmacy" | "room" | "other";
+      category?: "consultation" | "procedure" | "lab" | "pharmacy" | "room" | "radiology" | "other";
       default_price?: number;
       is_active?: boolean;
     }) => {
