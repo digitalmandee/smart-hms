@@ -107,6 +107,7 @@ export default function AdmissionsListPage() {
       {/* Status Tabs */}
       <Tabs value={statusFilter} onValueChange={setStatusFilter}>
         <TabsList>
+          <TabsTrigger value="pending">Pending</TabsTrigger>
           <TabsTrigger value="admitted">Active</TabsTrigger>
           <TabsTrigger value="discharged">Discharged</TabsTrigger>
           <TabsTrigger value="transferred">Transferred</TabsTrigger>

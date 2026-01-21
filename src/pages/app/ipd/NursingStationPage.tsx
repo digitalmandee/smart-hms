@@ -35,23 +35,27 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWards } from "@/hooks/useIPD";
-import { useAdmissions } from "@/hooks/useAdmissions";
+import { useAdmissions, usePendingAdmissions } from "@/hooks/useAdmissions";
 import { useIPDVitals } from "@/hooks/useDailyRounds";
 import { useNursingNotes, useIPDMedications } from "@/hooks/useNursingCare";
 import { IPDVitalsForm } from "@/components/ipd/IPDVitalsForm";
 import { NursingNotesForm } from "@/components/ipd/NursingNotesForm";
+import { AdmissionConfirmationDialog } from "@/components/ipd/AdmissionConfirmationDialog";
 
 export default function NursingStationPage() {
   const navigate = useNavigate();
   const { profile, isLoading: authLoading } = useAuth();
   const [selectedWardId, setSelectedWardId] = useState<string>("");
-  const [activeTab, setActiveTab] = useState("patients");
+  const [activeTab, setActiveTab] = useState("pending");
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
+  const [selectedAdmission, setSelectedAdmission] = useState<any>(null);
   const [vitalsDialogOpen, setVitalsDialogOpen] = useState(false);
   const [notesDialogOpen, setNotesDialogOpen] = useState(false);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
 
   const { data: wards, isLoading: loadingWards } = useWards();
   const { data: admissions, isLoading: loadingAdmissions } = useAdmissions("admitted");
+  const { data: pendingAdmissions = [], isLoading: loadingPending } = usePendingAdmissions(selectedWardId || undefined);
 
   // Auto-select first ward when wards load
   useEffect(() => {
@@ -167,6 +171,10 @@ export default function NursingStationPage() {
       {selectedWardId ? (
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList>
+            <TabsTrigger value="pending" className="flex items-center gap-2">
+              <Clock className="h-4 w-4" />
+              Pending {pendingAdmissions.length > 0 && `(${pendingAdmissions.length})`}
+            </TabsTrigger>
             <TabsTrigger value="patients" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               Patients
@@ -184,6 +192,69 @@ export default function NursingStationPage() {
               Notes
             </TabsTrigger>
           </TabsList>
+
+          {/* Pending Admissions Tab */}
+          <TabsContent value="pending" className="mt-4">
+            {loadingPending ? (
+              <div className="text-center py-8 text-muted-foreground">Loading...</div>
+            ) : pendingAdmissions.length > 0 ? (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {pendingAdmissions.map((adm: any) => (
+                  <Card key={adm.id} className="hover:shadow-md transition-shadow border-warning/50">
+                    <CardHeader className="pb-2">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="h-10 w-10 rounded-full bg-warning/10 flex items-center justify-center">
+                            <Clock className="h-5 w-5 text-warning" />
+                          </div>
+                          <div>
+                            <CardTitle className="text-base">
+                              {adm.patient?.first_name} {adm.patient?.last_name}
+                            </CardTitle>
+                            <p className="text-sm text-muted-foreground flex items-center gap-1">
+                              <Bed className="h-3 w-3" />
+                              Bed {adm.bed?.bed_number} (Reserved)
+                            </p>
+                          </div>
+                        </div>
+                        <Badge variant="outline" className="bg-warning/10 text-warning border-warning/20">
+                          Pending
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="text-sm text-muted-foreground">
+                        Created: {format(new Date(adm.created_at), "dd MMM yyyy HH:mm")}
+                      </div>
+                      {adm.chief_complaint && (
+                        <div className="text-sm line-clamp-2">
+                          <span className="text-muted-foreground">CC: </span>
+                          {adm.chief_complaint}
+                        </div>
+                      )}
+                      <Button
+                        className="w-full"
+                        onClick={() => {
+                          setSelectedAdmission(adm);
+                          setConfirmDialogOpen(true);
+                        }}
+                      >
+                        <CheckCircle2 className="h-4 w-4 mr-2" />
+                        Admit to Bed
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="py-12 text-center text-muted-foreground">
+                  <CheckCircle2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>No pending admissions in this ward</p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
 
           {/* Patients Tab */}
           <TabsContent value="patients" className="mt-4">
@@ -390,6 +461,18 @@ export default function NursingStationPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Admission Confirmation Dialog */}
+      {selectedAdmission && (
+        <AdmissionConfirmationDialog
+          open={confirmDialogOpen}
+          onOpenChange={(open) => {
+            setConfirmDialogOpen(open);
+            if (!open) setSelectedAdmission(null);
+          }}
+          admission={selectedAdmission}
+        />
+      )}
     </div>
   );
 }
