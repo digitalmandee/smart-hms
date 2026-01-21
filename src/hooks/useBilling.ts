@@ -272,7 +272,6 @@ export function useCreateInvoice() {
               order_number: orderNumber,
               patient_id: patientId,
               branch_id: branchId,
-              organization_id: profile.organization_id,
               invoice_id: invoice.id,
               payment_status: "pending" as const,
               status: "ordered" as const,
