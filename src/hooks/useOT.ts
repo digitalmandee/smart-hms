@@ -643,16 +643,102 @@ export function useStartSurgery() {
 }
 
 export function useCompleteSurgery() {
-  const updateSurgery = useUpdateSurgery();
+  const queryClient = useQueryClient();
+  const { profile } = useAuth();
 
   return useMutation({
     mutationFn: async (surgeryId: string) => {
-      return updateSurgery.mutateAsync({
-        id: surgeryId,
-        status: 'completed',
-        actual_end_time: new Date().toISOString(),
-      });
+      // First update surgery status
+      const { data: surgery, error: updateError } = await supabase
+        .from('surgeries')
+        .update({
+          status: 'completed',
+          actual_end_time: new Date().toISOString(),
+        })
+        .eq('id', surgeryId)
+        .select(`
+          *,
+          patient:patients(first_name, last_name)
+        `)
+        .single();
+
+      if (updateError) throw updateError;
+
+      // If surgery is billable and linked to an admission, create IPD charge
+      if (surgery.admission_id && surgery.is_billable) {
+        const chargeDescription = `Surgery: ${surgery.procedure_name}`;
+        const chargeAmount = surgery.estimated_cost || 0;
+
+        const { error: chargeError } = await supabase
+          .from('ipd_charges')
+          .insert({
+            admission_id: surgery.admission_id,
+            charge_date: new Date().toISOString().split('T')[0],
+            charge_type: 'procedure',
+            description: chargeDescription,
+            quantity: 1,
+            unit_price: chargeAmount,
+            total_amount: chargeAmount,
+            is_billed: false,
+            added_by: profile?.id,
+            notes: `Surgery #${surgery.surgery_number}`,
+          });
+
+        if (chargeError) {
+          console.error('Failed to create IPD charge for surgery:', chargeError);
+          // Don't throw - surgery is still completed, just log the billing failure
+        }
+
+        // Invalidate IPD charges cache
+        queryClient.invalidateQueries({ queryKey: ['ipd-charges', surgery.admission_id] });
+        queryClient.invalidateQueries({ queryKey: ['ipd-billing-stats'] });
+      }
+
+      return surgery;
     },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['surgeries'] });
+      queryClient.invalidateQueries({ queryKey: ['ot-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['ot-rooms'] });
+      toast.success('Surgery completed successfully');
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to complete surgery');
+    },
+  });
+}
+
+// Hook to fetch surgeries linked to an admission
+export function useAdmissionSurgeries(admissionId?: string) {
+  return useQuery({
+    queryKey: ['admission-surgeries', admissionId],
+    queryFn: async () => {
+      if (!admissionId) return [];
+
+      const { data, error } = await supabase
+        .from('surgeries')
+        .select(`
+          id,
+          surgery_number,
+          procedure_name,
+          estimated_cost,
+          status,
+          actual_start_time,
+          actual_end_time,
+          is_billable,
+          lead_surgeon:doctors!surgeries_lead_surgeon_id_fkey(
+            id,
+            profile:profiles(full_name)
+          )
+        `)
+        .eq('admission_id', admissionId)
+        .in('status', ['completed', 'in_progress'])
+        .order('scheduled_date', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!admissionId,
   });
 }
 

@@ -324,6 +324,7 @@ export const useGenerateIPDInvoice = () => {
       daysAdmitted,
       dailyRate = 0,
       bedTypeName = "Standard",
+      additionalItems = [],
     }: {
       admissionId: string;
       patientId: string;
@@ -332,6 +333,13 @@ export const useGenerateIPDInvoice = () => {
       daysAdmitted: number;
       dailyRate?: number;
       bedTypeName?: string;
+      additionalItems?: Array<{
+        description: string;
+        quantity: number;
+        unit_price: number;
+        discount_percent?: number;
+        service_type_id?: string | null;
+      }>;
     }) => {
       if (!profile?.organization_id) throw new Error("No organization");
 
@@ -346,11 +354,16 @@ export const useGenerateIPDInvoice = () => {
       // Calculate service charges total
       const serviceChargesTotal = charges?.reduce((sum, charge) => sum + (charge.total_amount || 0), 0) || 0;
 
+      // Calculate additional items total
+      const additionalItemsTotal = additionalItems.reduce((sum, item) => {
+        return sum + (item.quantity * item.unit_price * (1 - (item.discount_percent || 0) / 100));
+      }, 0);
+
       // Calculate room charges
       const roomCharges = Math.max(1, daysAdmitted) * dailyRate;
 
       // Calculate totals
-      const subtotal = serviceChargesTotal + roomCharges;
+      const subtotal = serviceChargesTotal + roomCharges + additionalItemsTotal;
       const totalAmount = subtotal;
 
       // Generate invoice number
@@ -419,6 +432,22 @@ export const useGenerateIPDInvoice = () => {
         });
       }
 
+      // Add additional items (charges added during discharge)
+      if (additionalItems && additionalItems.length > 0) {
+        additionalItems.forEach((item) => {
+          const itemTotal = item.quantity * item.unit_price * (1 - (item.discount_percent || 0) / 100);
+          invoiceItems.push({
+            invoice_id: invoice.id,
+            description: item.description,
+            quantity: item.quantity,
+            unit_price: item.unit_price,
+            discount_percent: item.discount_percent || 0,
+            total_price: itemTotal,
+            service_type_id: item.service_type_id,
+          });
+        });
+      }
+
       // Insert all invoice items
       if (invoiceItems.length > 0) {
         const { error: itemsError } = await supabase
@@ -446,10 +475,11 @@ export const useGenerateIPDInvoice = () => {
       return { 
         invoice, 
         invoiceId: invoice.id,
-        chargesCount: (charges?.length || 0) + (roomCharges > 0 ? 1 : 0), 
+        chargesCount: (charges?.length || 0) + (additionalItems?.length || 0) + (roomCharges > 0 ? 1 : 0), 
         totalAmount,
         roomCharges,
         serviceCharges: serviceChargesTotal,
+        additionalCharges: additionalItemsTotal,
       };
     },
     onSuccess: (data) => {

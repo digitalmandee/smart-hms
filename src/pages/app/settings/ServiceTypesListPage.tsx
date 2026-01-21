@@ -97,7 +97,7 @@ export default function ServiceTypesListPage() {
           <SelectContent>
             <SelectItem value="all">All Categories</SelectItem>
             <SelectItem value="consultation">Consultation</SelectItem>
-            <SelectItem value="procedure">Procedure</SelectItem>
+            <SelectItem value="procedure">Procedure / OT</SelectItem>
             <SelectItem value="lab">Lab</SelectItem>
             <SelectItem value="pharmacy">Pharmacy</SelectItem>
             <SelectItem value="room">Room</SelectItem>
