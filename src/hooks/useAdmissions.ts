@@ -130,6 +130,8 @@ export const useCreateAdmission = () => {
       deposit_amount?: number;
       estimated_cost?: number;
       consultation_id?: string;
+      payment_status?: "pending" | "paid" | "partial" | "pay_later" | "waived";
+      admission_invoice_id?: string;
     }) => {
       if (!profile?.organization_id) throw new Error("No organization");
 
