@@ -723,6 +723,7 @@ export default function AdmissionFormPage() {
       <IPDBedPickerDialog
         open={showBedPicker}
         onOpenChange={setShowBedPicker}
+        initialWardId={selectedWard}
         onConfirm={(selection: IPDBedSelection) => {
           form.setValue("ward_id", selection.wardId);
           form.setValue("bed_id", selection.bedId);
