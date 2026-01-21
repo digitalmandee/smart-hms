@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -27,9 +28,13 @@ import {
   XCircle,
   User,
   DollarSign,
+  BookOpen,
+  ExternalLink,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePrint } from "@/hooks/usePrint";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function InvoiceDetailPage() {
   const { id } = useParams();
@@ -40,6 +45,22 @@ export default function InvoiceDetailPage() {
   const { data: invoice, isLoading } = useInvoice(id);
   const { data: organizations } = useOrganizations();
   const cancelMutation = useCancelInvoice();
+
+  // Query for linked journal entry
+  const { data: journalEntry } = useQuery({
+    queryKey: ["journal-entry-for-invoice", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("journal_entries")
+        .select("id, entry_number, entry_date, is_posted")
+        .eq("reference_type", "invoice")
+        .eq("reference_id", id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id,
+  });
 
   const organization = organizations?.find(
     (o) => o.id === profile?.organization_id
@@ -227,6 +248,51 @@ export default function InvoiceDetailPage() {
                 discountAmount={Number(invoice.discount_amount) || 0}
                 paidAmount={Number(invoice.paid_amount) || 0}
               />
+            </CardContent>
+          </Card>
+
+          {/* Accounting Status */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BookOpen className="h-5 w-5" />
+                Accounting
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {journalEntry ? (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Status</span>
+                    <Badge variant={journalEntry.is_posted ? "default" : "secondary"}>
+                      {journalEntry.is_posted ? "Posted" : "Draft"}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Entry #</span>
+                    <span className="font-medium">{journalEntry.entry_number}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Date</span>
+                    <span>{format(new Date(journalEntry.entry_date), "MMM dd, yyyy")}</span>
+                  </div>
+                  <Separator />
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => navigate("/app/accounts/journal-entries")}
+                  >
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    View in Accounts
+                  </Button>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-2">
+                  {invoice.status === 'draft' 
+                    ? "Journal entry will be created when invoice is finalized"
+                    : "No journal entry linked"}
+                </p>
+              )}
             </CardContent>
           </Card>
 

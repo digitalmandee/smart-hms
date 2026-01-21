@@ -117,7 +117,7 @@ export function PatientBloodHistory({ patientId }: PatientBloodHistoryProps) {
         {donorRecord && (
           <div>
             <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
-              <Heart className="h-4 w-4 text-red-500" />
+              <Heart className="h-4 w-4 text-destructive" />
               Donor Status
             </h4>
             <div className="p-3 bg-muted/50 rounded-lg mb-3">
@@ -143,7 +143,7 @@ export function PatientBloodHistory({ patientId }: PatientBloodHistoryProps) {
                 {donations.slice(0, 3).map((donation) => (
                   <div
                     key={donation.id}
-                    className="flex items-center justify-between p-2 bg-green-50 rounded-lg text-sm"
+                    className="flex items-center justify-between p-2 bg-primary/10 rounded-lg text-sm"
                   >
                     <span>{donation.donation_number}</span>
                     <span className="text-muted-foreground">
