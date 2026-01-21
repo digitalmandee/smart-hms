@@ -18,8 +18,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import { useServiceTypes } from "@/hooks/useBilling";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, TestTube, Bed } from "lucide-react";
 import { InvoiceItemInput } from "@/hooks/useBilling";
 import { cn } from "@/lib/utils";
 
@@ -119,9 +120,28 @@ export function InvoiceItemsBuilder({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {items.map((item, index) => (
+          {items.map((item, index) => {
+            const service = serviceTypes?.find(s => s.id === item.service_type_id);
+            const category = service?.category;
+            return (
             <TableRow key={index}>
-              <TableCell>{item.description}</TableCell>
+              <TableCell>
+                <div className="flex items-center gap-2">
+                  {category === "lab" && (
+                    <Badge variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-300">
+                      <TestTube className="h-3 w-3 mr-1" />
+                      Lab
+                    </Badge>
+                  )}
+                  {category === "room" && (
+                    <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-300">
+                      <Bed className="h-3 w-3 mr-1" />
+                      Room
+                    </Badge>
+                  )}
+                  <span>{item.description}</span>
+                </div>
+              </TableCell>
               <TableCell className="text-right">{item.quantity}</TableCell>
               <TableCell className="text-right">Rs. {item.unit_price.toFixed(2)}</TableCell>
               <TableCell className="text-right">{item.discount_percent || 0}%</TableCell>
@@ -139,7 +159,8 @@ export function InvoiceItemsBuilder({
                 </Button>
               </TableCell>
             </TableRow>
-          ))}
+            );
+          })}
 
           {items.length === 0 && (
             <TableRow>

@@ -56,6 +56,12 @@ export interface InvoiceItemInput {
   discount_percent?: number;
   service_type_id?: string | null;
   medicine_inventory_id?: string | null;
+  // For room bookings
+  bed_id?: string | null;
+  booking_start_date?: string | null;
+  booking_end_date?: string | null;
+  // Category tracking for special handling
+  category?: string | null;
 }
 
 // ========== INVOICES ==========
@@ -414,10 +420,16 @@ export function useRecordPayment() {
 
       if (paymentError) throw paymentError;
 
-      // Get invoice to update paid amount
+      // Get invoice with items to update paid amount and check for lab services
       const { data: invoice, error: invoiceError } = await supabase
         .from("invoices")
-        .select("total_amount, paid_amount")
+        .select(`
+          *,
+          items:invoice_items(
+            *,
+            service_type:service_types(id, name, category)
+          )
+        `)
         .eq("id", invoiceId)
         .single();
 
@@ -442,6 +454,23 @@ export function useRecordPayment() {
 
       if (updateError) throw updateError;
 
+      // If invoice is fully paid, check for lab items and log for future lab order creation
+      // Note: Full lab order creation requires consultation_id which may not be available
+      // Lab orders from invoices will be handled via a separate workflow
+      if (newStatus === "paid" && profile?.organization_id) {
+        const labItems = invoice.items?.filter(
+          (item: any) => item.service_type?.category === "lab"
+        );
+
+        if (labItems && labItems.length > 0) {
+          billingLogger.info("Invoice paid with lab items - ready for sample collection", {
+            invoiceId,
+            labItemsCount: labItems.length,
+            items: labItems.map((item: any) => item.description),
+          });
+        }
+      }
+
       return payment;
     },
     onSuccess: () => {
@@ -449,6 +478,7 @@ export function useRecordPayment() {
       queryClient.invalidateQueries({ queryKey: ["invoice"] });
       queryClient.invalidateQueries({ queryKey: ["payments"] });
       queryClient.invalidateQueries({ queryKey: ["billing-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["lab-orders"] });
       toast.success("Payment recorded successfully");
     },
     onError: (error) => {

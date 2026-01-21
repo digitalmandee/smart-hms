@@ -7114,11 +7114,15 @@ export type Database = {
       }
       invoice_items: {
         Row: {
+          bed_id: string | null
+          booking_end_date: string | null
+          booking_start_date: string | null
           created_at: string
           description: string
           discount_percent: number | null
           id: string
           invoice_id: string
+          lab_order_id: string | null
           medicine_inventory_id: string | null
           quantity: number | null
           service_type_id: string | null
@@ -7126,11 +7130,15 @@ export type Database = {
           unit_price: number | null
         }
         Insert: {
+          bed_id?: string | null
+          booking_end_date?: string | null
+          booking_start_date?: string | null
           created_at?: string
           description: string
           discount_percent?: number | null
           id?: string
           invoice_id: string
+          lab_order_id?: string | null
           medicine_inventory_id?: string | null
           quantity?: number | null
           service_type_id?: string | null
@@ -7138,11 +7146,15 @@ export type Database = {
           unit_price?: number | null
         }
         Update: {
+          bed_id?: string | null
+          booking_end_date?: string | null
+          booking_start_date?: string | null
           created_at?: string
           description?: string
           discount_percent?: number | null
           id?: string
           invoice_id?: string
+          lab_order_id?: string | null
           medicine_inventory_id?: string | null
           quantity?: number | null
           service_type_id?: string | null
@@ -7151,10 +7163,24 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "invoice_items_bed_id_fkey"
+            columns: ["bed_id"]
+            isOneToOne: false
+            referencedRelation: "beds"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "invoice_items_invoice_id_fkey"
             columns: ["invoice_id"]
             isOneToOne: false
             referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_items_lab_order_id_fkey"
+            columns: ["lab_order_id"]
+            isOneToOne: false
+            referencedRelation: "lab_orders"
             referencedColumns: ["id"]
           },
           {
