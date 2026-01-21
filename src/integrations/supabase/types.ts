@@ -2021,6 +2021,7 @@ export type Database = {
           last_name: string
           notes: string | null
           organization_id: string
+          patient_id: string | null
           phone: string
           pulse_rate: number | null
           status: Database["public"]["Enums"]["donor_status"]
@@ -2049,6 +2050,7 @@ export type Database = {
           last_name: string
           notes?: string | null
           organization_id: string
+          patient_id?: string | null
           phone: string
           pulse_rate?: number | null
           status?: Database["public"]["Enums"]["donor_status"]
@@ -2077,6 +2079,7 @@ export type Database = {
           last_name?: string
           notes?: string | null
           organization_id?: string
+          patient_id?: string | null
           phone?: string
           pulse_rate?: number | null
           status?: Database["public"]["Enums"]["donor_status"]
@@ -2104,6 +2107,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blood_donors_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
             referencedColumns: ["id"]
           },
         ]
