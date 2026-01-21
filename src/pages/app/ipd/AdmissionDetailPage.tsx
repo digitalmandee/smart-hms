@@ -20,6 +20,7 @@ import { IPDMedicationOrderForm } from "@/components/ipd/IPDMedicationOrderForm"
 import { CarePlansList } from "@/components/ipd/CarePlansList";
 import { DietChartCard } from "@/components/ipd/DietChartCard";
 import { TriageBadge } from "@/components/emergency/TriageBadge";
+import { AdmissionFinancialSummary } from "@/components/ipd/AdmissionFinancialSummary";
 import {
   User,
   Bed,
@@ -36,6 +37,7 @@ import {
   Siren,
   ExternalLink,
   Droplets,
+  Receipt,
 } from "lucide-react";
 
 export default function AdmissionDetailPage() {
@@ -242,6 +244,10 @@ export default function AdmissionDetailPage() {
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList className="flex-wrap">
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="billing">
+            <Receipt className="h-4 w-4 mr-1" />
+            Billing
+          </TabsTrigger>
           <TabsTrigger value="rounds">Daily Rounds</TabsTrigger>
           <TabsTrigger value="vitals">Vitals</TabsTrigger>
           <TabsTrigger value="nursing">Nursing Notes</TabsTrigger>
@@ -366,6 +372,10 @@ export default function AdmissionDetailPage() {
               </Card>
             </div>
           </div>
+        </TabsContent>
+
+        <TabsContent value="billing" className="space-y-4">
+          <AdmissionFinancialSummary admissionId={id!} />
         </TabsContent>
 
         <TabsContent value="rounds" className="space-y-4">
