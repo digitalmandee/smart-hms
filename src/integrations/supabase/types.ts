@@ -8464,9 +8464,9 @@ export type Database = {
           branch_id: string
           clinical_notes: string | null
           completed_at: string | null
-          consultation_id: string
+          consultation_id: string | null
           created_at: string
-          doctor_id: string
+          doctor_id: string | null
           id: string
           invoice_id: string | null
           is_published: boolean | null
@@ -8489,9 +8489,9 @@ export type Database = {
           branch_id: string
           clinical_notes?: string | null
           completed_at?: string | null
-          consultation_id: string
+          consultation_id?: string | null
           created_at?: string
-          doctor_id: string
+          doctor_id?: string | null
           id?: string
           invoice_id?: string | null
           is_published?: boolean | null
@@ -8514,9 +8514,9 @@ export type Database = {
           branch_id?: string
           clinical_notes?: string | null
           completed_at?: string | null
-          consultation_id?: string
+          consultation_id?: string | null
           created_at?: string
-          doctor_id?: string
+          doctor_id?: string | null
           id?: string
           invoice_id?: string | null
           is_published?: boolean | null
