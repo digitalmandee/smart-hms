@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -9,7 +10,6 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -119,6 +119,9 @@ export function POSQuickActions({ onShowLastSale }: POSQuickActionsProps) {
               <Keyboard className="h-5 w-5" />
               Keyboard Shortcuts
             </DialogTitle>
+            <DialogDescription>
+              Use these shortcuts to speed up your workflow
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-2 mt-2">
             {shortcuts.map((shortcut) => (

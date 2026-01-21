@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
-import { PageHeader } from "@/components/PageHeader";
-import { StatsCard } from "@/components/StatsCard";
+import { ModernPageHeader } from "@/components/ModernPageHeader";
+import { ModernStatsCard } from "@/components/ModernStatsCard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -31,6 +31,7 @@ export default function OTDashboard() {
 
   const startSurgery = useStartSurgery();
   const completeSurgery = useCompleteSurgery();
+  const firstName = profile?.full_name?.split(" ")[0] || "Doctor";
 
   const handleStartSurgery = async (surgeryId: string) => {
     try {
@@ -55,64 +56,70 @@ export default function OTDashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <PageHeader
-          title="Operation Theatre"
-          description="Manage surgical scheduling, OT rooms, and post-op recovery"
-        />
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={handleRefresh}>
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
-          <Button onClick={() => navigate("/app/ot/surgeries/new")}>
-            <Plus className="h-4 w-4 mr-2" />
-            Schedule Surgery
-          </Button>
-        </div>
-      </div>
+      <ModernPageHeader
+        title="Operation Theatre"
+        subtitle="Manage surgical scheduling, OT rooms, and post-op recovery"
+        userName={firstName}
+        showGreeting
+        variant="gradient"
+        actions={
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={handleRefresh}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh
+            </Button>
+            <Button onClick={() => navigate("/app/ot/surgeries/new")}>
+              <Plus className="h-4 w-4 mr-2" />
+              Schedule Surgery
+            </Button>
+          </div>
+        }
+        quickStats={[
+          { label: "In Progress", value: stats?.inProgress || 0, variant: "warning" },
+          { label: "Completed", value: stats?.completed || 0, variant: "success" },
+          { label: "Emergency", value: stats?.emergencyCases || 0, variant: "destructive" },
+        ]}
+      />
 
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {statsLoading ? (
-          <>
-            {[1, 2, 3, 4].map(i => (
-              <Card key={i}>
-                <CardHeader className="pb-2">
-                  <Skeleton className="h-4 w-24" />
-                </CardHeader>
-                <CardContent>
-                  <Skeleton className="h-8 w-16" />
-                </CardContent>
-              </Card>
-            ))}
-          </>
+          Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-32" />
+          ))
         ) : (
           <>
-            <StatsCard
+            <ModernStatsCard
               title="Today's Surgeries"
               value={stats?.todaySurgeries || 0}
               icon={Scissors}
               description={`${stats?.inProgress || 0} in progress`}
+              variant="primary"
+              delay={0}
             />
-            <StatsCard
+            <ModernStatsCard
               title="Available Rooms"
               value={`${stats?.availableRooms || 0}/${stats?.totalRooms || 0}`}
               icon={Building2}
               description="OT rooms ready"
+              variant="info"
+              delay={100}
             />
-            <StatsCard
+            <ModernStatsCard
               title="In PACU"
               value={stats?.pacuPatients || 0}
               icon={HeartPulse}
               description="Recovering patients"
+              variant="success"
+              delay={200}
             />
-            <StatsCard
+            <ModernStatsCard
               title="Emergency Cases"
               value={stats?.emergencyCases || 0}
               icon={AlertTriangle}
               description="Today"
-              className={stats?.emergencyCases ? "border-red-200 bg-red-50" : ""}
+              variant={stats?.emergencyCases ? "destructive" : "default"}
+              delay={300}
             />
           </>
         )}
@@ -120,10 +127,13 @@ export default function OTDashboard() {
 
       {/* Quick Stats Row */}
       <div className="grid gap-4 md:grid-cols-3">
-        <Card className="cursor-pointer hover:bg-accent/50 transition-colors" onClick={() => navigate("/app/ot/schedule")}>
+        <Card 
+          className="cursor-pointer transition-all hover:shadow-lg hover:-translate-y-1 group" 
+          onClick={() => navigate("/app/ot/schedule")}
+        >
           <CardContent className="flex items-center gap-4 py-4">
-            <div className="p-2 rounded-lg bg-blue-100">
-              <Calendar className="h-5 w-5 text-blue-600" />
+            <div className="p-3 rounded-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/30 group-hover:scale-110 transition-transform">
+              <Calendar className="h-5 w-5" />
             </div>
             <div>
               <p className="text-2xl font-bold">{stats?.scheduledThisWeek || 0}</p>
@@ -132,10 +142,13 @@ export default function OTDashboard() {
           </CardContent>
         </Card>
         
-        <Card className="cursor-pointer hover:bg-accent/50 transition-colors" onClick={() => navigate("/app/ot/surgeries")}>
+        <Card 
+          className="cursor-pointer transition-all hover:shadow-lg hover:-translate-y-1 group" 
+          onClick={() => navigate("/app/ot/surgeries")}
+        >
           <CardContent className="flex items-center gap-4 py-4">
-            <div className="p-2 rounded-lg bg-purple-100">
-              <Clock className="h-5 w-5 text-purple-600" />
+            <div className="p-3 rounded-xl bg-gradient-to-br from-warning to-warning/80 text-warning-foreground shadow-lg shadow-warning/30 group-hover:scale-110 transition-transform">
+              <Clock className="h-5 w-5" />
             </div>
             <div>
               <p className="text-2xl font-bold">{stats?.inProgress || 0}</p>
@@ -144,10 +157,13 @@ export default function OTDashboard() {
           </CardContent>
         </Card>
         
-        <Card className="cursor-pointer hover:bg-accent/50 transition-colors" onClick={() => navigate("/app/ot/pacu")}>
+        <Card 
+          className="cursor-pointer transition-all hover:shadow-lg hover:-translate-y-1 group" 
+          onClick={() => navigate("/app/ot/pacu")}
+        >
           <CardContent className="flex items-center gap-4 py-4">
-            <div className="p-2 rounded-lg bg-green-100">
-              <CheckCircle2 className="h-5 w-5 text-green-600" />
+            <div className="p-3 rounded-xl bg-gradient-to-br from-success to-success/80 text-success-foreground shadow-lg shadow-success/30 group-hover:scale-110 transition-transform">
+              <CheckCircle2 className="h-5 w-5" />
             </div>
             <div>
               <p className="text-2xl font-bold">{stats?.completed || 0}</p>
@@ -160,11 +176,16 @@ export default function OTDashboard() {
       {/* Main Content */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* OT Room Status */}
-        <Card>
+        <Card className="transition-all hover:shadow-lg">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>OT Room Status</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <Building2 className="h-4 w-4 text-primary" />
+                  </div>
+                  OT Room Status
+                </CardTitle>
                 <CardDescription>Current status of all operating rooms</CardDescription>
               </div>
               <Button variant="outline" size="sm" onClick={() => navigate("/app/ot/rooms")}>
@@ -183,11 +204,16 @@ export default function OTDashboard() {
         </Card>
 
         {/* Today's Surgery Queue */}
-        <Card>
+        <Card className="transition-all hover:shadow-lg">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>Today's Surgeries</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <div className="p-2 rounded-lg bg-warning/10">
+                    <Scissors className="h-4 w-4 text-warning" />
+                  </div>
+                  Today's Surgeries
+                </CardTitle>
                 <CardDescription>Surgery queue for today</CardDescription>
               </div>
               <Button variant="outline" size="sm" onClick={() => navigate("/app/ot/schedule")}>

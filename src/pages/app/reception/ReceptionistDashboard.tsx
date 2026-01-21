@@ -1,8 +1,7 @@
-import { format } from "date-fns";
 import { Calendar, UserPlus, Clock, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { PageHeader } from "@/components/PageHeader";
-import { StatsCard } from "@/components/StatsCard";
+import { ModernPageHeader } from "@/components/ModernPageHeader";
+import { ModernStatsCard } from "@/components/ModernStatsCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -12,20 +11,25 @@ import { TodayScheduleList } from "@/components/reception/TodayScheduleList";
 import { UpcomingAppointmentCard } from "@/components/reception/UpcomingAppointmentCard";
 import { ReceptionQuickActions } from "@/components/reception/ReceptionQuickActions";
 import { RecentRegistrationCard } from "@/components/reception/RecentRegistrationCard";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function ReceptionistDashboard() {
   const navigate = useNavigate();
+  const { profile } = useAuth();
   const { data: dashboardData, isLoading: dashboardLoading } = useReceptionDashboard();
   const { data: patientStats, isLoading: statsLoading } = usePatientStats();
   const { data: recentPatients, isLoading: recentLoading } = useRecentPatients(5);
 
   const isLoading = dashboardLoading || statsLoading;
+  const firstName = profile?.full_name?.split(" ")[0] || "Receptionist";
 
   return (
     <div className="space-y-6">
-      <PageHeader
+      <ModernPageHeader
         title="Reception Desk"
-        description={`Today is ${format(new Date(), "EEEE, MMMM d, yyyy")}`}
+        userName={firstName}
+        showGreeting
+        variant="gradient"
         actions={
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => navigate("/app/appointments/calendar")}>
@@ -38,46 +42,58 @@ export default function ReceptionistDashboard() {
             </Button>
           </div>
         }
+        quickStats={[
+          { label: "Scheduled", value: dashboardData?.statusCounts.scheduled || 0, variant: "warning" },
+          { label: "Checked In", value: dashboardData?.statusCounts.checked_in || 0, variant: "success" },
+          { label: "Completed", value: dashboardData?.statusCounts.completed || 0 },
+        ]}
       />
 
       {/* Stats Overview */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatsCard
+        <ModernStatsCard
           title="Today's Appointments"
           value={isLoading ? "..." : dashboardData?.todaysAppointments.length || 0}
           icon={Calendar}
           description="Total scheduled for today"
+          variant="primary"
+          delay={0}
         />
-        <StatsCard
+        <ModernStatsCard
           title="Registered Today"
           value={statsLoading ? "..." : patientStats?.today || 0}
           icon={UserPlus}
           description="New patients today"
           variant="success"
+          delay={100}
         />
-        <StatsCard
+        <ModernStatsCard
           title="Registered This Month"
           value={statsLoading ? "..." : patientStats?.thisMonth || 0}
           icon={Users}
           description="New patients this month"
           variant="info"
+          delay={200}
         />
-        <StatsCard
+        <ModernStatsCard
           title="Waiting (Scheduled)"
           value={isLoading ? "..." : dashboardData?.statusCounts.scheduled || 0}
           icon={Clock}
           description="Yet to check in"
           variant="warning"
+          delay={300}
         />
       </div>
 
       {/* Main Content: 3-Column Layout */}
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Column 1: Today's Schedule */}
-        <Card className="lg:col-span-1">
+        <Card className="lg:col-span-1 transition-all hover:shadow-lg">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-primary" />
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Calendar className="h-4 w-4 text-primary" />
+              </div>
               Today's Schedule
             </CardTitle>
           </CardHeader>
@@ -92,10 +108,12 @@ export default function ReceptionistDashboard() {
         </Card>
 
         {/* Column 2: Upcoming Appointments */}
-        <Card className="lg:col-span-1">
+        <Card className="lg:col-span-1 transition-all hover:shadow-lg">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center gap-2">
-              <Clock className="h-5 w-5 text-amber-500" />
+              <div className="p-2 rounded-lg bg-warning/10">
+                <Clock className="h-4 w-4 text-warning" />
+              </div>
               Upcoming (Next)
             </CardTitle>
           </CardHeader>
@@ -122,7 +140,7 @@ export default function ReceptionistDashboard() {
         </Card>
 
         {/* Column 3: Quick Actions */}
-        <Card className="lg:col-span-1">
+        <Card className="lg:col-span-1 transition-all hover:shadow-lg">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg">Quick Actions</CardTitle>
           </CardHeader>
@@ -133,10 +151,12 @@ export default function ReceptionistDashboard() {
       </div>
 
       {/* Recent Registrations Strip */}
-      <Card>
+      <Card className="transition-all hover:shadow-lg">
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center gap-2">
-            <UserPlus className="h-5 w-5 text-green-500" />
+            <div className="p-2 rounded-lg bg-success/10">
+              <UserPlus className="h-4 w-4 text-success" />
+            </div>
             Recently Registered
           </CardTitle>
         </CardHeader>

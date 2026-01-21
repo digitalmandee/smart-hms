@@ -1,29 +1,35 @@
 import { useNavigate } from "react-router-dom";
-import { PageHeader } from "@/components/PageHeader";
-import { StatsCard } from "@/components/StatsCard";
-import { Button } from "@/components/ui/button";
+import { Package, ClipboardList, AlertTriangle, Clock, Pill, TrendingUp, Plus } from "lucide-react";
+import { ModernPageHeader } from "@/components/ModernPageHeader";
+import { ModernStatsCard } from "@/components/ModernStatsCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { usePharmacyStats, usePrescriptionQueue, useLowStockItems, useExpiringItems } from "@/hooks/usePharmacy";
 import { LowStockAlert } from "@/components/pharmacy/LowStockAlert";
 import { ExpiryAlert } from "@/components/pharmacy/ExpiryAlert";
-import { PrescriptionQueueCard } from "@/components/pharmacy/PrescriptionQueueCard";
 import { DailySalesSummary } from "@/components/pharmacy/DailySalesSummary";
-import { usePharmacyStats, usePrescriptionQueue, useLowStockItems, useExpiringItems } from "@/hooks/usePharmacy";
-import { ClipboardList, Package, Pill, AlertTriangle, History, Plus } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
+import { PrescriptionQueueCard } from "@/components/pharmacy/PrescriptionQueueCard";
+import { useAuth } from "@/contexts/AuthContext";
+
 export default function PharmacyDashboard() {
   const navigate = useNavigate();
+  const { profile } = useAuth();
   const { data: stats, isLoading: statsLoading } = usePharmacyStats();
   const { data: queue, isLoading: queueLoading } = usePrescriptionQueue();
   const { data: lowStockItems } = useLowStockItems();
   const { data: expiringItems } = useExpiringItems();
 
   const recentQueue = queue?.slice(0, 4) || [];
+  const firstName = profile?.full_name?.split(" ")[0] || "Pharmacist";
 
   return (
     <div className="space-y-6">
-      <PageHeader
+      <ModernPageHeader
         title="Pharmacy"
-        description="Manage prescriptions and inventory"
+        userName={firstName}
+        showGreeting
+        variant="gradient"
         actions={
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => navigate("/app/pharmacy/inventory")}>
@@ -36,6 +42,11 @@ export default function PharmacyDashboard() {
             </Button>
           </div>
         }
+        quickStats={[
+          { label: "Pending", value: stats?.pendingPrescriptions || 0, variant: "warning" },
+          { label: "Dispensed", value: stats?.dispensedToday || 0, variant: "success" },
+          { label: "Low Stock", value: lowStockItems?.length || 0, variant: "destructive" },
+        ]}
       />
 
       {/* Alerts */}
@@ -47,44 +58,41 @@ export default function PharmacyDashboard() {
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {statsLoading ? (
-          <>
-            {[...Array(4)].map((_, i) => (
-              <Card key={i}>
-                <CardHeader className="pb-2">
-                  <Skeleton className="h-4 w-24" />
-                </CardHeader>
-                <CardContent>
-                  <Skeleton className="h-8 w-16" />
-                </CardContent>
-              </Card>
-            ))}
-          </>
+          Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-32" />
+          ))
         ) : (
           <>
-            <StatsCard
+            <ModernStatsCard
               title="Pending Prescriptions"
               value={stats?.pendingPrescriptions || 0}
               icon={ClipboardList}
+              variant="warning"
               onClick={() => navigate("/app/pharmacy/queue")}
+              delay={0}
             />
-            <StatsCard
+            <ModernStatsCard
               title="Dispensed Today"
               value={stats?.dispensedToday || 0}
-              icon={History}
+              icon={Pill}
+              variant="success"
+              delay={100}
             />
-            <StatsCard
+            <ModernStatsCard
               title="Low Stock Items"
               value={stats?.lowStockItems || 0}
               icon={AlertTriangle}
-              className={stats?.lowStockItems ? "border-orange-200" : ""}
+              variant="destructive"
               onClick={() => navigate("/app/pharmacy/inventory?filter=lowStock")}
+              delay={200}
             />
-            <StatsCard
+            <ModernStatsCard
               title="Expiring Soon"
               value={stats?.expiringItems || 0}
-              icon={Pill}
-              className={stats?.expiringItems ? "border-amber-200" : ""}
+              icon={Clock}
+              variant="info"
               onClick={() => navigate("/app/pharmacy/inventory?filter=expiring")}
+              delay={300}
             />
           </>
         )}
@@ -92,10 +100,13 @@ export default function PharmacyDashboard() {
 
       {/* Quick Actions + Daily Summary */}
       <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
-        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate("/app/pharmacy/medicines")}>
+        <Card 
+          className="cursor-pointer transition-all hover:shadow-lg hover:-translate-y-1 group" 
+          onClick={() => navigate("/app/pharmacy/medicines")}
+        >
           <CardContent className="flex items-center gap-4 pt-6">
-            <div className="p-3 bg-primary/10 rounded-lg">
-              <Pill className="h-6 w-6 text-primary" />
+            <div className="p-3 rounded-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/30 group-hover:scale-110 transition-transform">
+              <Pill className="h-6 w-6" />
             </div>
             <div>
               <h3 className="font-semibold">Medicine Catalog</h3>
@@ -104,10 +115,13 @@ export default function PharmacyDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate("/app/pharmacy/inventory/add")}>
+        <Card 
+          className="cursor-pointer transition-all hover:shadow-lg hover:-translate-y-1 group" 
+          onClick={() => navigate("/app/pharmacy/inventory/add")}
+        >
           <CardContent className="flex items-center gap-4 pt-6">
-            <div className="p-3 bg-green-100 rounded-lg">
-              <Plus className="h-6 w-6 text-green-600" />
+            <div className="p-3 rounded-xl bg-gradient-to-br from-success to-success/80 text-success-foreground shadow-lg shadow-success/30 group-hover:scale-110 transition-transform">
+              <Plus className="h-6 w-6" />
             </div>
             <div>
               <h3 className="font-semibold">Add Stock</h3>
@@ -116,10 +130,13 @@ export default function PharmacyDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate("/app/pharmacy/inventory")}>
+        <Card 
+          className="cursor-pointer transition-all hover:shadow-lg hover:-translate-y-1 group" 
+          onClick={() => navigate("/app/pharmacy/inventory")}
+        >
           <CardContent className="flex items-center gap-4 pt-6">
-            <div className="p-3 bg-blue-100 rounded-lg">
-              <Package className="h-6 w-6 text-blue-600" />
+            <div className="p-3 rounded-xl bg-gradient-to-br from-info to-info/80 text-info-foreground shadow-lg shadow-info/30 group-hover:scale-110 transition-transform">
+              <Package className="h-6 w-6" />
             </div>
             <div>
               <h3 className="font-semibold">View Inventory</h3>
@@ -135,9 +152,14 @@ export default function PharmacyDashboard() {
       </div>
 
       {/* Prescription Queue Preview */}
-      <Card>
+      <Card className="transition-all hover:shadow-lg">
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Prescription Queue</CardTitle>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <div className="p-2 rounded-lg bg-warning/10">
+              <ClipboardList className="h-4 w-4 text-warning" />
+            </div>
+            Prescription Queue
+          </CardTitle>
           {queue && queue.length > 4 && (
             <Button variant="ghost" size="sm" onClick={() => navigate("/app/pharmacy/queue")}>
               View All ({queue.length})
@@ -147,12 +169,8 @@ export default function PharmacyDashboard() {
         <CardContent>
           {queueLoading ? (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              {[...Array(4)].map((_, i) => (
-                <Card key={i}>
-                  <CardContent className="pt-6">
-                    <Skeleton className="h-32 w-full" />
-                  </CardContent>
-                </Card>
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton key={i} className="h-32" />
               ))}
             </div>
           ) : recentQueue.length === 0 ? (

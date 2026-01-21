@@ -1,11 +1,4 @@
 import { useNavigate } from "react-router-dom";
-import { PageHeader } from "@/components/PageHeader";
-import { StatsCard } from "@/components/StatsCard";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useLabDashboardStats, useRecentLabOrders } from "@/hooks/useLabDashboardStats";
 import { 
   TestTube, 
   AlertTriangle, 
@@ -16,18 +9,29 @@ import {
   Clock
 } from "lucide-react";
 import { format } from "date-fns";
+import { ModernPageHeader } from "@/components/ModernPageHeader";
+import { ModernStatsCard } from "@/components/ModernStatsCard";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useLabDashboardStats, useRecentLabOrders } from "@/hooks/useLabDashboardStats";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function LabDashboard() {
   const navigate = useNavigate();
+  const { profile } = useAuth();
   const { data: stats, isLoading: statsLoading } = useLabDashboardStats();
   const { data: recentOrders, isLoading: ordersLoading } = useRecentLabOrders(5);
+
+  const firstName = profile?.full_name?.split(" ")[0] || "Lab Tech";
 
   const getPriorityBadge = (priority: string) => {
     switch (priority) {
       case "stat":
-        return <Badge variant="destructive">STAT</Badge>;
+        return <Badge variant="destructive" className="animate-pulse-soft">STAT</Badge>;
       case "urgent":
-        return <Badge className="bg-orange-500 hover:bg-orange-600">Urgent</Badge>;
+        return <Badge className="bg-warning text-warning-foreground">Urgent</Badge>;
       default:
         return <Badge variant="secondary">Routine</Badge>;
     }
@@ -36,13 +40,13 @@ export default function LabDashboard() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "ordered":
-        return <Badge variant="outline" className="text-blue-600 border-blue-300">Ordered</Badge>;
+        return <Badge className="bg-info/10 text-info border-info/20">Ordered</Badge>;
       case "collected":
-        return <Badge variant="outline" className="text-amber-600 border-amber-300">Collected</Badge>;
+        return <Badge className="bg-warning/10 text-warning border-warning/20">Collected</Badge>;
       case "processing":
-        return <Badge variant="outline" className="text-purple-600 border-purple-300">Processing</Badge>;
+        return <Badge className="bg-primary/10 text-primary border-primary/20">Processing</Badge>;
       case "completed":
-        return <Badge variant="outline" className="text-green-600 border-green-300">Completed</Badge>;
+        return <Badge className="bg-success/10 text-success border-success/20">Completed</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -50,9 +54,12 @@ export default function LabDashboard() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
+      <ModernPageHeader
         title="Laboratory"
-        description="Manage lab orders and results"
+        subtitle="Manage lab orders and results"
+        userName={firstName}
+        showGreeting
+        variant="gradient"
         actions={
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => navigate("/app/lab/orders")}>
@@ -65,11 +72,16 @@ export default function LabDashboard() {
             </Button>
           </div>
         }
+        quickStats={[
+          { label: "Pending", value: stats?.pendingOrders || 0, variant: "warning" },
+          { label: "STAT", value: stats?.statOrders || 0, variant: "destructive" },
+          { label: "Completed", value: stats?.completedToday || 0, variant: "success" },
+        ]}
       />
 
       {/* STAT Alert */}
       {stats && stats.statOrders > 0 && (
-        <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/30 flex items-center gap-3">
+        <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/30 flex items-center gap-3 animate-pulse-soft">
           <AlertTriangle className="h-5 w-5 text-destructive" />
           <div className="flex-1">
             <p className="font-medium text-destructive">
@@ -92,40 +104,40 @@ export default function LabDashboard() {
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {statsLoading ? (
-          [...Array(4)].map((_, i) => (
-            <Card key={i}>
-              <CardHeader className="pb-2">
-                <Skeleton className="h-4 w-24" />
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-8 w-16" />
-              </CardContent>
-            </Card>
+          Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-32" />
           ))
         ) : (
           <>
-            <StatsCard
+            <ModernStatsCard
               title="Pending Orders"
               value={stats?.pendingOrders || 0}
               icon={TestTube}
+              variant="warning"
               onClick={() => navigate("/app/lab/queue")}
+              delay={0}
             />
-            <StatsCard
+            <ModernStatsCard
               title="STAT Orders"
               value={stats?.statOrders || 0}
               icon={AlertTriangle}
-              className={stats?.statOrders ? "border-destructive/50 bg-destructive/5" : ""}
+              variant="destructive"
               onClick={() => navigate("/app/lab/queue?priority=stat")}
+              delay={100}
             />
-            <StatsCard
+            <ModernStatsCard
               title="Collected Today"
               value={stats?.collectedToday || 0}
               icon={Droplet}
+              variant="info"
+              delay={200}
             />
-            <StatsCard
+            <ModernStatsCard
               title="Completed Today"
               value={stats?.completedToday || 0}
               icon={CheckCircle2}
+              variant="success"
+              delay={300}
             />
           </>
         )}
@@ -134,12 +146,12 @@ export default function LabDashboard() {
       {/* Quick Actions */}
       <div className="grid gap-4 md:grid-cols-2">
         <Card 
-          className="cursor-pointer hover:shadow-md transition-shadow" 
+          className="cursor-pointer transition-all hover:shadow-lg hover:-translate-y-1 group" 
           onClick={() => navigate("/app/lab/queue")}
         >
           <CardContent className="flex items-center gap-4 pt-6">
-            <div className="p-3 bg-primary/10 rounded-lg">
-              <ClipboardList className="h-6 w-6 text-primary" />
+            <div className="p-3 rounded-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/30 group-hover:scale-110 transition-transform">
+              <ClipboardList className="h-6 w-6" />
             </div>
             <div className="flex-1">
               <h3 className="font-semibold">Lab Queue</h3>
@@ -150,12 +162,12 @@ export default function LabDashboard() {
         </Card>
 
         <Card 
-          className="cursor-pointer hover:shadow-md transition-shadow" 
+          className="cursor-pointer transition-all hover:shadow-lg hover:-translate-y-1 group" 
           onClick={() => navigate("/app/lab/orders")}
         >
           <CardContent className="flex items-center gap-4 pt-6">
-            <div className="p-3 bg-green-100 rounded-lg">
-              <CheckCircle2 className="h-6 w-6 text-green-600" />
+            <div className="p-3 rounded-xl bg-gradient-to-br from-success to-success/80 text-success-foreground shadow-lg shadow-success/30 group-hover:scale-110 transition-transform">
+              <CheckCircle2 className="h-6 w-6" />
             </div>
             <div className="flex-1">
               <h3 className="font-semibold">Enter Results</h3>
@@ -167,9 +179,14 @@ export default function LabDashboard() {
       </div>
 
       {/* Recent Orders */}
-      <Card>
+      <Card className="transition-all hover:shadow-lg">
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Recent Orders</CardTitle>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <TestTube className="h-4 w-4 text-primary" />
+            </div>
+            Recent Orders
+          </CardTitle>
           <Button variant="ghost" size="sm" onClick={() => navigate("/app/lab/queue")}>
             View All
           </Button>
@@ -177,8 +194,8 @@ export default function LabDashboard() {
         <CardContent>
           {ordersLoading ? (
             <div className="space-y-3">
-              {[...Array(5)].map((_, i) => (
-                <Skeleton key={i} className="h-16 w-full" />
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Skeleton key={i} className="h-16" />
               ))}
             </div>
           ) : !recentOrders || recentOrders.length === 0 ? (
