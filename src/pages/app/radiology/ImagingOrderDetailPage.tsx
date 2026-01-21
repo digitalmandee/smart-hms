@@ -9,7 +9,9 @@ import { ImagingPriorityBadge } from '@/components/radiology/ImagingPriorityBadg
 import { ModalityBadge } from '@/components/radiology/ModalityBadge';
 import { ImageViewer } from '@/components/radiology/ImageViewer';
 import { PrintableImagingReport } from '@/components/radiology/PrintableImagingReport';
+import { PaymentStatusBadge } from '@/components/radiology/PaymentStatusBadge';
 import { usePrint } from '@/hooks/usePrint';
+import { useInvoice } from '@/hooks/useBilling';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { 
@@ -18,7 +20,9 @@ import {
   Play, 
   CheckCircle,
   FileText,
-  User
+  User,
+  Receipt,
+  ExternalLink
 } from 'lucide-react';
 
 export default function ImagingOrderDetailPage() {
@@ -26,6 +30,7 @@ export default function ImagingOrderDetailPage() {
   const navigate = useNavigate();
   const { data: order, isLoading } = useImagingOrder(id);
   const { data: result } = useImagingResult(id);
+  const { data: invoice } = useInvoice(order?.invoice_id);
   const { mutate: updateOrder, isPending: isUpdating } = useUpdateImagingOrder();
   const { printRef, handlePrint } = usePrint();
 
@@ -199,6 +204,66 @@ export default function ImagingOrderDetailPage() {
               </div>
             ) : (
               <p className="text-muted-foreground text-sm">Patient ID: {order.patient_id}</p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Billing Info */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Receipt className="h-5 w-5" />
+              Billing
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Status:</span>
+              <PaymentStatusBadge status={order.payment_status || 'pending'} />
+            </div>
+
+            {order.invoice_id && invoice ? (
+              <div className="space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Invoice:</span>
+                  <span className="font-mono">{invoice.invoice_number}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Total:</span>
+                  <span className="font-medium">Rs. {invoice.total_amount?.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Paid:</span>
+                  <span className="font-medium text-primary">Rs. {(invoice.paid_amount || 0).toLocaleString()}</span>
+                </div>
+                {invoice.total_amount > (invoice.paid_amount || 0) && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Balance:</span>
+                    <span className="font-medium text-destructive">Rs. {(invoice.total_amount - (invoice.paid_amount || 0)).toLocaleString()}</span>
+                  </div>
+                )}
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full"
+                  onClick={() => navigate(`/app/billing/invoices/${order.invoice_id}`)}
+                >
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  View Invoice
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">No invoice linked</p>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full"
+                  onClick={() => navigate(`/app/billing/invoices/new?patientId=${order.patient_id}`)}
+                >
+                  Create Invoice
+                </Button>
+              </div>
             )}
           </CardContent>
         </Card>

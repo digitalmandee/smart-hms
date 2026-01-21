@@ -74,6 +74,9 @@ export interface ImagingOrder {
   notes?: string;
   created_at: string;
   updated_at: string;
+  // Billing fields
+  invoice_id?: string;
+  payment_status?: 'pending' | 'paid' | 'partial' | 'waived';
 }
 
 export interface ImagingOrderWithRelations extends ImagingOrder {
@@ -101,8 +104,15 @@ export interface ImagingOrderWithRelations extends ImagingOrder {
       last_name: string;
     };
   };
-  procedure?: ImagingProcedure;
+  procedure?: Partial<ImagingProcedure> | null;
   result?: ImagingResult[];
+  invoice?: {
+    id: string;
+    invoice_number: string;
+    total_amount: number;
+    paid_amount: number;
+    status: string;
+  };
 }
 
 export interface ImagingResult {

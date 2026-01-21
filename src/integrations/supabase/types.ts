@@ -6316,6 +6316,7 @@ export type Database = {
           created_at: string | null
           er_registration_id: string | null
           id: string
+          invoice_id: string | null
           modality: Database["public"]["Enums"]["imaging_modality"]
           notes: string | null
           order_number: string
@@ -6323,6 +6324,7 @@ export type Database = {
           ordered_by: string
           organization_id: string
           patient_id: string
+          payment_status: string | null
           performed_at: string | null
           priority: Database["public"]["Enums"]["imaging_priority"]
           procedure_id: string | null
@@ -6349,6 +6351,7 @@ export type Database = {
           created_at?: string | null
           er_registration_id?: string | null
           id?: string
+          invoice_id?: string | null
           modality: Database["public"]["Enums"]["imaging_modality"]
           notes?: string | null
           order_number: string
@@ -6356,6 +6359,7 @@ export type Database = {
           ordered_by: string
           organization_id: string
           patient_id: string
+          payment_status?: string | null
           performed_at?: string | null
           priority?: Database["public"]["Enums"]["imaging_priority"]
           procedure_id?: string | null
@@ -6382,6 +6386,7 @@ export type Database = {
           created_at?: string | null
           er_registration_id?: string | null
           id?: string
+          invoice_id?: string | null
           modality?: Database["public"]["Enums"]["imaging_modality"]
           notes?: string | null
           order_number?: string
@@ -6389,6 +6394,7 @@ export type Database = {
           ordered_by?: string
           organization_id?: string
           patient_id?: string
+          payment_status?: string | null
           performed_at?: string | null
           priority?: Database["public"]["Enums"]["imaging_priority"]
           procedure_id?: string | null
@@ -6437,6 +6443,13 @@ export type Database = {
             columns: ["er_registration_id"]
             isOneToOne: false
             referencedRelation: "emergency_registrations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "imaging_orders_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
             referencedColumns: ["id"]
           },
           {
