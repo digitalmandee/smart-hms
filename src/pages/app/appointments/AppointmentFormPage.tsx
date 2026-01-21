@@ -77,9 +77,10 @@ export default function AppointmentFormPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [completedData, setCompletedData] = useState<{
     tokenNumber: number;
-    invoiceNumber: string;
-    amountPaid: number;
-    paymentMethodName: string;
+    invoiceNumber?: string;
+    amountPaid?: number;
+    paymentMethodName?: string;
+    isPaid: boolean;
   } | null>(null);
   
   // Print ref
@@ -239,11 +240,59 @@ export default function AppointmentFormPage() {
         invoiceNumber: invoice.invoice_number,
         amountPaid: consultationFee,
         paymentMethodName: selectedPaymentMethod?.name || 'Cash',
+        isPaid: true,
       });
 
       toast({ 
         title: 'Token Generated Successfully',
         description: `Token #${appointment.token_number} created with Invoice ${invoice.invoice_number}`,
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Handle pay later - create appointment without payment
+  const handlePayLater = async () => {
+    if (!pendingFormData || !profile?.branch_id) {
+      toast({
+        title: 'Error',
+        description: 'Missing required information',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      // Create Appointment with checked_in status (no invoice/payment)
+      const appointment = await createAppointment.mutateAsync({
+        patient_id: pendingFormData.patient_id,
+        doctor_id: pendingFormData.doctor_id,
+        branch_id: pendingFormData.branch_id,
+        appointment_date: pendingFormData.appointment_date,
+        appointment_time: format(new Date(), 'HH:mm'),
+        appointment_type: pendingFormData.appointment_type,
+        chief_complaint: pendingFormData.chief_complaint || null,
+        notes: pendingFormData.notes || null,
+        status: 'checked_in',
+      });
+
+      // Show success with token (no payment info)
+      setCompletedData({
+        tokenNumber: appointment.token_number || 0,
+        isPaid: false,
+      });
+
+      toast({ 
+        title: 'Token Generated',
+        description: `Token #${appointment.token_number} created - Payment pending`,
       });
     } catch (error: any) {
       toast({
@@ -279,13 +328,13 @@ export default function AppointmentFormPage() {
     return <div>Loading...</div>;
   }
 
-  // Success screen after payment
+  // Success screen after token generation
   if (completedData) {
     return (
       <div className="space-y-6">
         <PageHeader
           title="Token Generated"
-          description="Appointment created and payment recorded"
+          description={completedData.isPaid ? "Appointment created and payment recorded" : "Appointment created - Payment pending"}
           breadcrumbs={[
             { label: 'Dashboard', href: '/app' },
             { label: 'Appointments', href: '/app/appointments' },
@@ -302,19 +351,38 @@ export default function AppointmentFormPage() {
               <div className="text-6xl font-bold text-primary">#{completedData.tokenNumber}</div>
             </div>
 
+            {/* Payment Status Badge */}
+            <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${
+              completedData.isPaid 
+                ? 'bg-primary/10 text-primary' 
+                : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+            }`}>
+              {completedData.isPaid ? 'Paid' : 'Payment Pending'}
+            </div>
+
             <div className="border-t pt-4 space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Invoice:</span>
-                <span className="font-mono font-medium">{completedData.invoiceNumber}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Amount Paid:</span>
-                <span className="font-semibold">Rs. {completedData.amountPaid.toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Payment Method:</span>
-                <span>{completedData.paymentMethodName}</span>
-              </div>
+              {completedData.isPaid && completedData.invoiceNumber && (
+                <>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Invoice:</span>
+                    <span className="font-mono font-medium">{completedData.invoiceNumber}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Amount Paid:</span>
+                    <span className="font-semibold">Rs. {completedData.amountPaid?.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Payment Method:</span>
+                    <span>{completedData.paymentMethodName}</span>
+                  </div>
+                </>
+              )}
+              {!completedData.isPaid && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Consultation Fee:</span>
+                  <span className="font-semibold text-amber-600">Rs. {consultationFee.toLocaleString()} (Due)</span>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Patient:</span>
                 <span>{selectedPatient?.full_name || selectedPatient?.first_name}</span>
@@ -449,23 +517,44 @@ export default function AppointmentFormPage() {
           </Card>
 
           {/* Actions */}
-          <div className="flex gap-4">
+          <div className="flex flex-col gap-3">
+            <div className="flex gap-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setShowPaymentStep(false);
+                  setPendingFormData(null);
+                }}
+              >
+                Back
+              </Button>
+              <Button
+                onClick={handlePaymentAndCreate}
+                disabled={!paymentMethodId || isProcessing}
+                className="flex-1"
+              >
+                {isProcessing ? 'Processing...' : `Collect Rs. ${consultationFee.toLocaleString()} & Generate Token`}
+              </Button>
+            </div>
+            
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">or</span>
+              </div>
+            </div>
+            
             <Button
               type="button"
-              variant="outline"
-              onClick={() => {
-                setShowPaymentStep(false);
-                setPendingFormData(null);
-              }}
+              variant="ghost"
+              onClick={handlePayLater}
+              disabled={isProcessing}
+              className="text-muted-foreground"
             >
-              Back
-            </Button>
-            <Button
-              onClick={handlePaymentAndCreate}
-              disabled={!paymentMethodId || isProcessing}
-              className="flex-1"
-            >
-              {isProcessing ? 'Processing...' : `Collect Rs. ${consultationFee.toLocaleString()} & Generate Token`}
+              Skip Payment - Generate Token Only (Pay Later)
             </Button>
           </div>
         </div>
