@@ -1,11 +1,14 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { usePatientImagingHistory } from "@/hooks/useImaging";
 import { format } from "date-fns";
-import { Scan, Calendar, ExternalLink, FileCheck2 } from "lucide-react";
+import { Scan, Calendar, ChevronDown, ChevronUp, FileCheck2, Eye, Download, Printer, FileText } from "lucide-react";
+import { ImageViewer } from "@/components/radiology/ImageViewer";
+import { ImagingDetailDialog } from "@/components/radiology/ImagingDetailDialog";
 
 interface PatientImagingHistoryProps {
   patientId: string;
@@ -36,6 +39,35 @@ const modalityIcons: Record<string, string> = {
 
 export function PatientImagingHistory({ patientId }: PatientImagingHistoryProps) {
   const { data: imagingOrders, isLoading } = usePatientImagingHistory(patientId);
+  const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+
+  const toggleExpanded = (orderId: string) => {
+    setExpandedOrders(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(orderId)) {
+        newSet.delete(orderId);
+      } else {
+        newSet.add(orderId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleDownloadImages = (order: any) => {
+    const images = order.result?.images || [];
+    if (images.length === 0) return;
+    
+    images.forEach((url: string, index: number) => {
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${order.order_number}-image-${index + 1}.jpg`;
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+  };
 
   if (isLoading) {
     return (
@@ -68,64 +100,138 @@ export function PatientImagingHistory({ patientId }: PatientImagingHistoryProps)
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Imaging History</CardTitle>
-        <CardDescription>{imagingOrders.length} imaging order(s) on record</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {imagingOrders.map((order) => (
-          <div
-            key={order.id}
-            className="flex items-start justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
-          >
-            <div className="flex items-start gap-4">
-              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-lg">
-                {modalityIcons[order.modality] || <Scan className="h-5 w-5 text-primary" />}
-              </div>
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <p className="font-medium">{order.order_number}</p>
-                  <Badge className={statusColors[order.status] || 'bg-muted'}>
-                    {order.status?.replace('_', ' ')}
-                  </Badge>
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>Imaging History</CardTitle>
+          <CardDescription>{imagingOrders.length} imaging order(s) on record</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {imagingOrders.map((order) => {
+            const isExpanded = expandedOrders.has(order.id);
+            const result = order.result as any;
+            const images = (result?.images || []) as string[];
+            const hasResult = result && (result.findings || result.impression);
+
+            return (
+              <Collapsible key={order.id} open={isExpanded} onOpenChange={() => toggleExpanded(order.id)}>
+                <div className="border rounded-lg overflow-hidden">
+                  <CollapsibleTrigger asChild>
+                    <div className="flex items-start justify-between p-4 hover:bg-muted/50 transition-colors cursor-pointer">
+                      <div className="flex items-start gap-4">
+                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-lg">
+                          {modalityIcons[order.modality] || <Scan className="h-5 w-5 text-primary" />}
+                        </div>
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium">{order.order_number}</p>
+                            <Badge className={statusColors[order.status] || 'bg-muted'}>
+                              {order.status?.replace('_', ' ')}
+                            </Badge>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Calendar className="h-3 w-3" />
+                            {format(new Date(order.created_at), "MMM dd, yyyy")}
+                          </div>
+                          <p className="text-sm">
+                            <span className="font-medium capitalize">{order.modality?.replace('_', ' ')}:</span>{' '}
+                            {order.procedure?.name || 'General imaging'}
+                          </p>
+                          <div className="flex items-center gap-2 mt-1">
+                            {(order.priority === 'urgent' || order.priority === 'stat') && (
+                              <Badge variant="destructive" className="text-xs">
+                                {order.priority.toUpperCase()}
+                              </Badge>
+                            )}
+                            {order.status === 'verified' && (
+                              <Badge variant="outline" className="text-xs gap-1">
+                                <FileCheck2 className="h-3 w-3" />
+                                Report Ready
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <Button variant="ghost" size="icon" className="shrink-0">
+                        {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                  </CollapsibleTrigger>
+                  
+                  <CollapsibleContent>
+                    <div className="px-4 pb-4 pt-0 border-t bg-muted/30">
+                      <div className="space-y-4 pt-4">
+                        {/* Clinical Indication */}
+                        {order.clinical_indication && (
+                          <div>
+                            <p className="text-xs font-medium text-muted-foreground mb-1">Clinical Indication</p>
+                            <p className="text-sm">{order.clinical_indication}</p>
+                          </div>
+                        )}
+
+                        {/* Images */}
+                        {images.length > 0 && (
+                          <div>
+                            <p className="text-xs font-medium text-muted-foreground mb-2">Images ({images.length})</p>
+                            <ImageViewer images={images} className="max-h-[200px]" />
+                          </div>
+                        )}
+
+                        {/* Report Summary */}
+                        {hasResult && (
+                          <div className="space-y-3">
+                            {result.impression && (
+                              <div className="p-3 bg-primary/5 rounded-lg border-l-4 border-primary">
+                                <p className="text-xs font-medium text-muted-foreground mb-1">Impression</p>
+                                <p className="text-sm line-clamp-3">{result.impression}</p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {!hasResult && order.status !== 'verified' && order.status !== 'reported' && (
+                          <div className="text-center py-4">
+                            <FileText className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+                            <p className="text-sm text-muted-foreground">Report pending</p>
+                          </div>
+                        )}
+
+                        {/* Actions */}
+                        <div className="flex flex-wrap gap-2 pt-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => setSelectedOrderId(order.id)}
+                          >
+                            <Eye className="h-4 w-4 mr-2" />
+                            View Details
+                          </Button>
+                          {images.length > 0 && (
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleDownloadImages(order)}
+                            >
+                              <Download className="h-4 w-4 mr-2" />
+                              Download Images
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </CollapsibleContent>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Calendar className="h-3 w-3" />
-                  {format(new Date(order.created_at), "MMM dd, yyyy")}
-                </div>
-                <p className="text-sm">
-                  <span className="font-medium capitalize">{order.modality?.replace('_', ' ')}:</span>{' '}
-                  {order.procedure?.name || 'General imaging'}
-                </p>
-                {order.clinical_indication && (
-                  <p className="text-sm text-muted-foreground line-clamp-1">
-                    {order.clinical_indication}
-                  </p>
-                )}
-                <div className="flex items-center gap-2 mt-1">
-                  {order.priority === 'urgent' || order.priority === 'stat' ? (
-                    <Badge variant="destructive" className="text-xs">
-                      {order.priority.toUpperCase()}
-                    </Badge>
-                  ) : null}
-                  {order.status === 'verified' && (
-                    <Badge variant="outline" className="text-xs gap-1">
-                      <FileCheck2 className="h-3 w-3" />
-                      Report Ready
-                    </Badge>
-                  )}
-                </div>
-              </div>
-            </div>
-            <Link to={`/app/radiology/orders/${order.id}`}>
-              <Button variant="ghost" size="sm">
-                <ExternalLink className="h-4 w-4" />
-              </Button>
-            </Link>
-          </div>
-        ))}
-      </CardContent>
-    </Card>
+              </Collapsible>
+            );
+          })}
+        </CardContent>
+      </Card>
+
+      <ImagingDetailDialog
+        orderId={selectedOrderId}
+        open={!!selectedOrderId}
+        onOpenChange={(open) => !open && setSelectedOrderId(null)}
+      />
+    </>
   );
 }

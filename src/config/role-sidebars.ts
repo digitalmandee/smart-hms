@@ -359,6 +359,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         children: [
           { name: "Worklist", path: "/app/radiology/reporting", icon: "ListOrdered" },
           { name: "Verification", path: "/app/radiology/verification", icon: "ListChecks" },
+          { name: "Archive", path: "/app/radiology/archive", icon: "Archive" },
         ]
       },
       { 
