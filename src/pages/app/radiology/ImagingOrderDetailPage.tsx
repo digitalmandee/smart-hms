@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
@@ -10,6 +11,7 @@ import { ModalityBadge } from '@/components/radiology/ModalityBadge';
 import { ImageViewer } from '@/components/radiology/ImageViewer';
 import { PrintableImagingReport } from '@/components/radiology/PrintableImagingReport';
 import { PaymentStatusBadge } from '@/components/radiology/PaymentStatusBadge';
+import { InvoiceLinkDialog } from '@/components/radiology/InvoiceLinkDialog';
 import { usePrint } from '@/hooks/usePrint';
 import { useInvoice } from '@/hooks/useBilling';
 import { format } from 'date-fns';
@@ -22,17 +24,19 @@ import {
   FileText,
   User,
   Receipt,
-  ExternalLink
+  ExternalLink,
+  Link2
 } from 'lucide-react';
 
 export default function ImagingOrderDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { data: order, isLoading } = useImagingOrder(id);
+  const { data: order, isLoading, refetch } = useImagingOrder(id);
   const { data: result } = useImagingResult(id);
-  const { data: invoice } = useInvoice(order?.invoice_id);
+  const { data: invoice, refetch: refetchInvoice } = useInvoice(order?.invoice_id);
   const { mutate: updateOrder, isPending: isUpdating } = useUpdateImagingOrder();
   const { printRef, handlePrint } = usePrint();
+  const [showInvoiceLinkDialog, setShowInvoiceLinkDialog] = useState(false);
 
   if (isLoading) {
     return <div className="text-center py-12">Loading...</div>;
@@ -70,6 +74,20 @@ export default function ImagingOrderDetailPage() {
 
   const onPrint = () => {
     handlePrint({ title: `Imaging Report - ${order.order_number}` });
+  };
+
+  const handleLinkInvoice = async (invoiceId: string) => {
+    updateOrder({ 
+      id: order.id, 
+      invoice_id: invoiceId,
+      payment_status: 'pending' 
+    }, {
+      onSuccess: () => {
+        toast.success('Invoice linked successfully');
+        refetch();
+        refetchInvoice();
+      }
+    });
   };
 
   return (
@@ -236,10 +254,10 @@ export default function ImagingOrderDetailPage() {
                   <span className="text-muted-foreground">Paid:</span>
                   <span className="font-medium text-primary">Rs. {(invoice.paid_amount || 0).toLocaleString()}</span>
                 </div>
-                {invoice.total_amount > (invoice.paid_amount || 0) && (
+                {(invoice.total_amount || 0) > (invoice.paid_amount || 0) && (
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Balance:</span>
-                    <span className="font-medium text-destructive">Rs. {(invoice.total_amount - (invoice.paid_amount || 0)).toLocaleString()}</span>
+                    <span className="font-medium text-destructive">Rs. {((invoice.total_amount || 0) - (invoice.paid_amount || 0)).toLocaleString()}</span>
                   </div>
                 )}
                 <Button 
@@ -255,7 +273,16 @@ export default function ImagingOrderDetailPage() {
             ) : (
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">No invoice linked</p>
-                <Button 
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={() => setShowInvoiceLinkDialog(true)}
+                >
+                  <Link2 className="h-4 w-4 mr-2" />
+                  Link Existing Invoice
+                </Button>
+                <Button
                   variant="outline" 
                   size="sm" 
                   className="w-full"
@@ -313,6 +340,16 @@ export default function ImagingOrderDetailPage() {
             <PrintableImagingReport order={order} result={result} />
           </div>
         </div>
+      )}
+
+      {/* Invoice Link Dialog */}
+      {order.patient_id && (
+        <InvoiceLinkDialog
+          open={showInvoiceLinkDialog}
+          onOpenChange={setShowInvoiceLinkDialog}
+          patientId={order.patient_id}
+          onSelect={handleLinkInvoice}
+        />
       )}
     </div>
   );

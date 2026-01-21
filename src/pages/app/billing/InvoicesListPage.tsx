@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { DataTable } from "@/components/DataTable";
@@ -10,13 +10,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useInvoices } from "@/hooks/useBilling";
 import { useAuth } from "@/contexts/AuthContext";
 import { InvoiceStatusBadge } from "@/components/billing/InvoiceStatusBadge";
-import { Plus } from "lucide-react";
+import { Plus, FileText, FlaskConical, Radio, Stethoscope } from "lucide-react";
 import { format } from "date-fns";
 import { ColumnDef } from "@tanstack/react-table";
 import { Database } from "@/integrations/supabase/types";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
 type InvoiceStatus = Database["public"]["Enums"]["invoice_status"];
 
@@ -33,6 +36,8 @@ interface InvoiceRow {
     patient_number: string;
   };
 }
+
+type CategoryFilter = "all" | "lab" | "radiology" | "consultation";
 
 const columns: ColumnDef<InvoiceRow>[] = [
   {
@@ -103,6 +108,61 @@ const columns: ColumnDef<InvoiceRow>[] = [
   },
 ];
 
+// Hook to get invoices with their service categories
+function useInvoicesWithCategories(branchId?: string, statusFilter?: InvoiceStatus | "all") {
+  return useQuery({
+    queryKey: ["invoices-with-categories", branchId, statusFilter],
+    queryFn: async () => {
+      // Get invoices with their items and service types
+      let query = supabase
+        .from("invoices")
+        .select(`
+          *,
+          patient:patients!invoices_patient_id_fkey(id, first_name, last_name, patient_number, phone),
+          items:invoice_items(
+            service_type:service_types(category)
+          )
+        `)
+        .order("created_at", { ascending: false });
+
+      if (branchId) {
+        query = query.eq("branch_id", branchId);
+      }
+
+      if (statusFilter && statusFilter !== "all") {
+        query = query.eq("status", statusFilter);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+
+      // Process invoices to add category info
+      return data?.map(invoice => {
+        const categories = new Set<string>();
+        invoice.items?.forEach((item: any) => {
+          if (item.service_type?.category) {
+            categories.add(item.service_type.category);
+          }
+        });
+
+        // Check for radiology by looking at procedure items with imaging keywords
+        const hasRadiology = invoice.items?.some((item: any) => {
+          const category = item.service_type?.category;
+          return category === 'radiology' || category === 'imaging';
+        }) || false;
+
+        return {
+          ...invoice,
+          categories: Array.from(categories),
+          hasLab: categories.has('lab'),
+          hasRadiology,
+          hasConsultation: categories.has('consultation'),
+        };
+      }) || [];
+    },
+  });
+}
+
 export default function InvoicesListPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -110,11 +170,32 @@ export default function InvoicesListPage() {
   const [statusFilter, setStatusFilter] = useState<InvoiceStatus | "all">(
     (searchParams.get("status") as InvoiceStatus) || "all"
   );
+  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all");
 
-  const { data: invoices, isLoading } = useInvoices(
+  const { data: invoicesWithCategories, isLoading } = useInvoicesWithCategories(
     profile?.branch_id || undefined,
-    { status: statusFilter }
+    statusFilter
   );
+
+  // Filter invoices by category
+  const filteredInvoices = useMemo(() => {
+    if (!invoicesWithCategories) return [];
+    
+    if (categoryFilter === "all") return invoicesWithCategories;
+    
+    return invoicesWithCategories.filter(invoice => {
+      switch (categoryFilter) {
+        case "lab":
+          return invoice.hasLab;
+        case "radiology":
+          return invoice.hasRadiology || invoice.categories?.includes('procedure');
+        case "consultation":
+          return invoice.hasConsultation;
+        default:
+          return true;
+      }
+    });
+  }, [invoicesWithCategories, categoryFilter]);
 
   return (
     <div className="space-y-6">
@@ -128,6 +209,28 @@ export default function InvoicesListPage() {
           </Button>
         }
       />
+
+      {/* Category Tabs */}
+      <Tabs value={categoryFilter} onValueChange={(v) => setCategoryFilter(v as CategoryFilter)}>
+        <TabsList>
+          <TabsTrigger value="all" className="gap-2">
+            <FileText className="h-4 w-4" />
+            All Invoices
+          </TabsTrigger>
+          <TabsTrigger value="lab" className="gap-2">
+            <FlaskConical className="h-4 w-4" />
+            Lab
+          </TabsTrigger>
+          <TabsTrigger value="radiology" className="gap-2">
+            <Radio className="h-4 w-4" />
+            Radiology
+          </TabsTrigger>
+          <TabsTrigger value="consultation" className="gap-2">
+            <Stethoscope className="h-4 w-4" />
+            Consultation
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
 
       <div className="flex items-center gap-4">
         <Select
@@ -150,7 +253,7 @@ export default function InvoicesListPage() {
 
       <DataTable
         columns={columns}
-        data={(invoices as InvoiceRow[]) || []}
+        data={(filteredInvoices as InvoiceRow[]) || []}
         searchKey="invoice_number"
         searchPlaceholder="Search invoices..."
         isLoading={isLoading}

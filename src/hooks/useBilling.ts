@@ -306,25 +306,48 @@ export function useCreateInvoice() {
           }
         }
 
-        // Check for radiology/imaging items (using 'procedure' category as radiology tests)
-        const radiologyServiceIds = serviceTypes
-          ?.filter(st => st.category === "procedure")
-          .map(st => st.id) || [];
-
-        const radiologyItems = items.filter(item => 
-          item.service_type_id && radiologyServiceIds.includes(item.service_type_id) &&
-          (item.description?.toLowerCase().includes('x-ray') ||
-           item.description?.toLowerCase().includes('ct') ||
-           item.description?.toLowerCase().includes('mri') ||
-           item.description?.toLowerCase().includes('ultrasound') ||
-           item.description?.toLowerCase().includes('scan') ||
-           item.category === 'radiology' ||
-           item.category === 'imaging')
-        );
+        // Check for radiology/imaging items
+        // Detect by: category 'radiology', category 'procedure' with imaging keywords, or imaging-related names
+        const radiologyKeywords = ['x-ray', 'xray', 'ct', 'mri', 'ultrasound', 'scan', 'mammography', 'ecg', 'echo', 'fluoroscopy', 'pet', 'dexa', 'angiography', 'radiograph'];
+        
+        const radiologyItems = items.filter(item => {
+          const serviceType = serviceTypes?.find(st => st.id === item.service_type_id);
+          const desc = (item.description || '').toLowerCase();
+          const name = (serviceType?.name || '').toLowerCase();
+          const category = serviceType?.category || item.category;
+          
+          // Check if category is radiology/imaging
+          if (category === 'radiology' || category === 'imaging') return true;
+          
+          // Check if category is procedure AND has imaging keywords
+          if (category === 'procedure') {
+            return radiologyKeywords.some(kw => desc.includes(kw) || name.includes(kw));
+          }
+          
+          // Check item category override
+          if (item.category === 'radiology' || item.category === 'imaging') return true;
+          
+          return false;
+        });
 
         if (radiologyItems.length > 0) {
           for (const item of radiologyItems) {
             const serviceType = serviceTypes?.find(st => st.id === item.service_type_id);
+            const procedureName = item.description || serviceType?.name || "Imaging";
+            
+            // Determine modality from procedure name
+            const procLower = procedureName.toLowerCase();
+            let modality: 'xray' | 'ct_scan' | 'mri' | 'ultrasound' | 'mammography' | 'fluoroscopy' | 'pet_ct' | 'dexa' | 'ecg' | 'echo' | 'other' = 'other';
+            if (procLower.includes('x-ray') || procLower.includes('xray') || procLower.includes('radiograph')) modality = 'xray';
+            else if (procLower.includes('ct') || procLower.includes('computed tomography')) modality = 'ct_scan';
+            else if (procLower.includes('mri') || procLower.includes('magnetic resonance')) modality = 'mri';
+            else if (procLower.includes('ultrasound') || procLower.includes('sonograph') || procLower.includes('usg')) modality = 'ultrasound';
+            else if (procLower.includes('mammograph')) modality = 'mammography';
+            else if (procLower.includes('fluoro')) modality = 'fluoroscopy';
+            else if (procLower.includes('pet')) modality = 'pet_ct';
+            else if (procLower.includes('dexa') || procLower.includes('bone density')) modality = 'dexa';
+            else if (procLower.includes('ecg') || procLower.includes('electrocardiograph')) modality = 'ecg';
+            else if (procLower.includes('echo') || procLower.includes('echocardiograph')) modality = 'echo';
             
             // Create imaging order linked to invoice
             const { error: imagingError } = await supabase
@@ -336,8 +359,8 @@ export function useCreateInvoice() {
                 organization_id: profile.organization_id,
                 invoice_id: invoice.id,
                 payment_status: "pending",
-                modality: "other" as const,
-                procedure_name: item.description || serviceType?.name || "Imaging",
+                modality,
+                procedure_name: procedureName,
                 status: "ordered" as const,
                 priority: "routine" as const,
                 clinical_indication: `Created from Invoice ${invoiceNumber}`,
@@ -350,6 +373,7 @@ export function useCreateInvoice() {
               billingLogger.info("Imaging order created from invoice", {
                 invoiceId: invoice.id,
                 serviceName: serviceType?.name,
+                modality,
               });
             }
           }
