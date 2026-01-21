@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -11,18 +12,8 @@ const corsHeaders = {
  * This edge function serves as a gateway to integrate with external PACS (Picture Archiving 
  * and Communication System) servers using the DICOMweb protocol.
  * 
- * Supported operations:
- * - GET /studies?patientId=xxx - Query studies by patient MRN (QIDO-RS)
- * - GET /studies/:studyUid/series - Get series for a study
- * - GET /studies/:studyUid/series/:seriesUid/instances - Get instances
- * - GET /instances/:sopInstanceUid/rendered - Get rendered image (WADO-RS)
- * - POST /studies - Store DICOM study (STOW-RS)
- * 
- * Required environment variables:
- * - PACS_SERVER_URL: Base URL of the PACS server (e.g., http://orthanc:8042)
- * - PACS_USERNAME: Username for PACS authentication (optional)
- * - PACS_PASSWORD: Password for PACS authentication (optional)
- * - PACS_AE_TITLE: Application Entity Title (optional, default: LOVABLE_HMS)
+ * Configuration is read from organization_settings table in the database.
+ * Falls back to environment variables for backward compatibility.
  */
 
 interface PACSConfig {
@@ -32,15 +23,43 @@ interface PACSConfig {
   aeTitle: string;
 }
 
-function getPACSConfig(): PACSConfig {
-  const serverUrl = Deno.env.get("PACS_SERVER_URL");
+async function getPACSConfigFromDB(supabase: any, organizationId: string): Promise<PACSConfig | null> {
+  const { data, error } = await supabase
+    .from('organization_settings')
+    .select('setting_key, setting_value')
+    .eq('organization_id', organizationId)
+    .in('setting_key', ['pacs_server_url', 'pacs_username', 'pacs_password', 'pacs_ae_title']);
   
-  if (!serverUrl) {
-    throw new Error("PACS_SERVER_URL environment variable is not configured");
+  if (error || !data || data.length === 0) {
+    return null;
+  }
+  
+  const settings: Record<string, string> = {};
+  data.forEach((row: { setting_key: string; setting_value: string }) => {
+    settings[row.setting_key] = row.setting_value;
+  });
+  
+  if (!settings.pacs_server_url) {
+    return null;
   }
   
   return {
-    serverUrl: serverUrl.replace(/\/$/, ""), // Remove trailing slash
+    serverUrl: settings.pacs_server_url.replace(/\/$/, ''),
+    username: settings.pacs_username || undefined,
+    password: settings.pacs_password || undefined,
+    aeTitle: settings.pacs_ae_title || 'LOVABLE_HMS',
+  };
+}
+
+function getPACSConfigFromEnv(): PACSConfig | null {
+  const serverUrl = Deno.env.get("PACS_SERVER_URL");
+  
+  if (!serverUrl) {
+    return null;
+  }
+  
+  return {
+    serverUrl: serverUrl.replace(/\/$/, ""),
     username: Deno.env.get("PACS_USERNAME"),
     password: Deno.env.get("PACS_PASSWORD"),
     aeTitle: Deno.env.get("PACS_AE_TITLE") || "LOVABLE_HMS",
@@ -70,7 +89,6 @@ async function queryStudies(config: PACSConfig, patientId?: string, studyDate?: 
     params.append("StudyDate", studyDate);
   }
   
-  // Include common fields in response
   params.append("includefield", "StudyInstanceUID");
   params.append("includefield", "PatientName");
   params.append("includefield", "PatientID");
@@ -95,7 +113,6 @@ async function queryStudies(config: PACSConfig, patientId?: string, studyDate?: 
   
   const data = await response.json();
   
-  // Transform DICOM JSON to simpler format
   const studies = data.map((study: any) => ({
     studyInstanceUID: study["0020000D"]?.Value?.[0] || "",
     patientName: study["00100010"]?.Value?.[0]?.Alphabetic || "",
@@ -217,7 +234,6 @@ async function getThumbnail(config: PACSConfig, studyUid: string, seriesUid: str
   });
   
   if (!response.ok) {
-    // Fallback: try to get first instance
     const instancesUrl = `${config.serverUrl}/dicom-web/studies/${studyUid}/series/${seriesUid}/instances`;
     const instancesRes = await fetch(instancesUrl, { headers: getAuthHeaders(config) });
     
@@ -245,7 +261,6 @@ async function getThumbnail(config: PACSConfig, studyUid: string, seriesUid: str
 }
 
 serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -254,18 +269,51 @@ serve(async (req) => {
     const url = new URL(req.url);
     const path = url.pathname.replace("/pacs-gateway", "");
     
-    // Check if PACS is configured
-    const pacsUrl = Deno.env.get("PACS_SERVER_URL");
+    // Initialize Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
-    // Health check endpoints - return proper status even when not configured
+    // Try to get organization ID from auth header
+    let organizationId: string | null = null;
+    const authHeader = req.headers.get('Authorization');
+    
+    if (authHeader) {
+      const token = authHeader.replace('Bearer ', '');
+      const { data: { user } } = await supabase.auth.getUser(token);
+      
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('organization_id')
+          .eq('id', user.id)
+          .single();
+        
+        organizationId = profile?.organization_id || null;
+      }
+    }
+    
+    // Try to get config from database first, then fall back to env vars
+    let config: PACSConfig | null = null;
+    
+    if (organizationId) {
+      config = await getPACSConfigFromDB(supabase, organizationId);
+      console.log("PACS config from DB:", config ? "found" : "not found");
+    }
+    
+    if (!config) {
+      config = getPACSConfigFromEnv();
+      console.log("PACS config from env:", config ? "found" : "not found");
+    }
+    
+    // Health check endpoints
     if (path === "/health" || path === "/") {
-      if (!pacsUrl) {
-        // Return 200 with not_configured status for health check
+      if (!config) {
         return new Response(
           JSON.stringify({
             status: "not_configured",
             configured: false,
-            message: "PACS server URL has not been configured. Please set PACS_SERVER_URL in Edge Function secrets.",
+            message: "PACS server has not been configured. Please configure it in the PACS Settings page.",
           }),
           {
             status: 200,
@@ -274,9 +322,6 @@ serve(async (req) => {
         );
       }
       
-      const config = getPACSConfig();
-      
-      // Health check - test PACS connectivity
       try {
         const testUrl = `${config.serverUrl}/dicom-web/studies?limit=1`;
         console.log("Testing PACS connection:", testUrl);
@@ -322,11 +367,11 @@ serve(async (req) => {
     }
     
     // For non-health endpoints, return 503 if not configured
-    if (!pacsUrl) {
+    if (!config) {
       return new Response(
         JSON.stringify({
           error: "PACS not configured",
-          message: "The PACS server URL has not been configured.",
+          message: "The PACS server has not been configured.",
           configured: false,
         }),
         {
@@ -335,8 +380,6 @@ serve(async (req) => {
         }
       );
     }
-    
-    const config = getPACSConfig();
     
     // GET /studies - Query studies
     if (path === "/studies" && req.method === "GET") {

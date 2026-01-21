@@ -11,3 +11,9 @@ verify_jwt = false
 
 [functions.post-daily-room-charges]
 verify_jwt = false
+
+[functions.pacs-gateway]
+verify_jwt = false
+
+[functions.pacs-settings]
+verify_jwt = false
