@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
-import { PageHeader } from "@/components/PageHeader";
-import { StatsCard } from "@/components/StatsCard";
+import { ModernPageHeader } from "@/components/ModernPageHeader";
+import { ModernStatsCard } from "@/components/ModernStatsCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,7 +11,6 @@ import {
   UserPlus, 
   LogOut,
   ClipboardList,
-  AlertCircle,
   Plus,
   ArrowRight
 } from "lucide-react";
@@ -21,62 +20,84 @@ import { usePendingRounds } from "@/hooks/useDailyRounds";
 import { usePendingDischarges } from "@/hooks/useDischarge";
 import { AdmissionCard } from "@/components/ipd/AdmissionCard";
 import { format } from "date-fns";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function IPDDashboard() {
   const navigate = useNavigate();
+  const { profile } = useAuth();
   const { data: stats, isLoading: loadingStats } = useIPDStats();
   const { data: recentAdmissions, isLoading: loadingAdmissions } = useAdmissions("admitted");
   const { data: pendingRounds, isLoading: loadingRounds } = usePendingRounds();
   const { data: pendingDischarges, isLoading: loadingDischarges } = usePendingDischarges();
 
+  const firstName = profile?.full_name?.split(" ")[0] || "Doctor";
+
   return (
     <div className="space-y-6">
-      <PageHeader
+      <ModernPageHeader
         title="IPD Dashboard"
-        description="Inpatient department overview and management"
+        subtitle="Inpatient department overview and management"
+        userName={firstName}
+        showGreeting
+        variant="gradient"
         actions={
           <Button onClick={() => navigate("/app/ipd/admissions/new")}>
             <Plus className="h-4 w-4 mr-2" />
             New Admission
           </Button>
         }
+        quickStats={[
+          { label: "Active", value: stats?.activeAdmissions || 0, variant: "success" },
+          { label: "Pending Rounds", value: pendingRounds?.length || 0, variant: "warning" },
+          { label: "Discharges", value: pendingDischarges?.length || 0 },
+        ]}
       />
 
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatsCard
+        <ModernStatsCard
           title="Total Wards"
           value={stats?.totalWards || 0}
           icon={Building2}
           description="Active wards"
+          variant="primary"
+          delay={0}
         />
-        <StatsCard
+        <ModernStatsCard
           title="Bed Occupancy"
           value={`${stats?.occupiedBeds || 0}/${stats?.totalBeds || 0}`}
           icon={Bed}
           description={`${stats?.availableBeds || 0} available`}
+          variant="info"
+          delay={100}
         />
-        <StatsCard
+        <ModernStatsCard
           title="Active Patients"
           value={stats?.activeAdmissions || 0}
           icon={Users}
           description="Currently admitted"
+          variant="success"
+          delay={200}
         />
-        <StatsCard
+        <ModernStatsCard
           title="Today's Activity"
           value={`+${stats?.todayAdmissions || 0} / -${stats?.todayDischarges || 0}`}
           icon={UserPlus}
           description="Admissions / Discharges"
+          variant="warning"
+          delay={300}
         />
       </div>
 
       {/* Quick Actions & Alerts */}
       <div className="grid gap-6 md:grid-cols-2">
         {/* Pending Rounds */}
-        <Card>
+        <Card className="transition-all hover:shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-lg flex items-center gap-2">
-              <ClipboardList className="h-5 w-5 text-primary" />
+              <div className="p-2 rounded-lg bg-primary/10">
+                <ClipboardList className="h-4 w-4 text-primary" />
+              </div>
               Pending Rounds
             </CardTitle>
             <Badge variant="outline">{pendingRounds?.length || 0}</Badge>
@@ -128,10 +149,12 @@ export default function IPDDashboard() {
         </Card>
 
         {/* Pending Discharges */}
-        <Card>
+        <Card className="transition-all hover:shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-lg flex items-center gap-2">
-              <LogOut className="h-5 w-5 text-warning" />
+              <div className="p-2 rounded-lg bg-warning/10">
+                <LogOut className="h-4 w-4 text-warning" />
+              </div>
               Pending Discharges
             </CardTitle>
             <Badge variant="outline" className="bg-warning/10 text-warning">
@@ -177,44 +200,61 @@ export default function IPDDashboard() {
 
       {/* Quick Navigation */}
       <div className="grid gap-4 md:grid-cols-4">
-        <Button
-          variant="outline"
-          className="h-auto py-4 flex flex-col items-center gap-2"
+        <Card 
+          className="cursor-pointer transition-all hover:shadow-lg hover:-translate-y-1 group"
           onClick={() => navigate("/app/ipd/wards")}
         >
-          <Building2 className="h-6 w-6" />
-          <span>Wards</span>
-        </Button>
-        <Button
-          variant="outline"
-          className="h-auto py-4 flex flex-col items-center gap-2"
+          <CardContent className="flex flex-col items-center gap-2 py-6">
+            <div className="p-3 rounded-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/30 group-hover:scale-110 transition-transform">
+              <Building2 className="h-6 w-6" />
+            </div>
+            <span className="font-medium">Wards</span>
+          </CardContent>
+        </Card>
+        <Card 
+          className="cursor-pointer transition-all hover:shadow-lg hover:-translate-y-1 group"
           onClick={() => navigate("/app/ipd/beds")}
         >
-          <Bed className="h-6 w-6" />
-          <span>Bed Map</span>
-        </Button>
-        <Button
-          variant="outline"
-          className="h-auto py-4 flex flex-col items-center gap-2"
+          <CardContent className="flex flex-col items-center gap-2 py-6">
+            <div className="p-3 rounded-xl bg-gradient-to-br from-info to-info/80 text-info-foreground shadow-lg shadow-info/30 group-hover:scale-110 transition-transform">
+              <Bed className="h-6 w-6" />
+            </div>
+            <span className="font-medium">Bed Map</span>
+          </CardContent>
+        </Card>
+        <Card 
+          className="cursor-pointer transition-all hover:shadow-lg hover:-translate-y-1 group"
           onClick={() => navigate("/app/ipd/admissions")}
         >
-          <Users className="h-6 w-6" />
-          <span>Admissions</span>
-        </Button>
-        <Button
-          variant="outline"
-          className="h-auto py-4 flex flex-col items-center gap-2"
+          <CardContent className="flex flex-col items-center gap-2 py-6">
+            <div className="p-3 rounded-xl bg-gradient-to-br from-success to-success/80 text-success-foreground shadow-lg shadow-success/30 group-hover:scale-110 transition-transform">
+              <Users className="h-6 w-6" />
+            </div>
+            <span className="font-medium">Admissions</span>
+          </CardContent>
+        </Card>
+        <Card 
+          className="cursor-pointer transition-all hover:shadow-lg hover:-translate-y-1 group"
           onClick={() => navigate("/app/ipd/nursing")}
         >
-          <ClipboardList className="h-6 w-6" />
-          <span>Nursing Station</span>
-        </Button>
+          <CardContent className="flex flex-col items-center gap-2 py-6">
+            <div className="p-3 rounded-xl bg-gradient-to-br from-warning to-warning/80 text-warning-foreground shadow-lg shadow-warning/30 group-hover:scale-110 transition-transform">
+              <ClipboardList className="h-6 w-6" />
+            </div>
+            <span className="font-medium">Nursing Station</span>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Recent Admissions */}
-      <Card>
+      <Card className="transition-all hover:shadow-lg">
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-lg">Recent Admissions</CardTitle>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <div className="p-2 rounded-lg bg-success/10">
+              <UserPlus className="h-4 w-4 text-success" />
+            </div>
+            Recent Admissions
+          </CardTitle>
           <Button variant="link" onClick={() => navigate("/app/ipd/admissions")}>
             View All
             <ArrowRight className="h-4 w-4 ml-1" />
