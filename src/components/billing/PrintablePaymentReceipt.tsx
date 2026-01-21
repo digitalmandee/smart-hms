@@ -35,6 +35,222 @@ interface PrintablePaymentReceiptProps {
   showQR?: boolean;
 }
 
+const styles = {
+  container: {
+    backgroundColor: 'white',
+    padding: '16px',
+    maxWidth: '80mm',
+    margin: '0 auto',
+    fontFamily: "'Arial', sans-serif",
+    fontSize: '12px',
+    color: 'black',
+  } as React.CSSProperties,
+  header: {
+    textAlign: 'center' as const,
+    borderBottom: '2px dashed black',
+    paddingBottom: '12px',
+    marginBottom: '12px',
+  } as React.CSSProperties,
+  logo: {
+    height: '40px',
+    margin: '0 auto 8px',
+    objectFit: 'contain' as const,
+    display: 'block',
+  } as React.CSSProperties,
+  orgName: {
+    fontSize: '16px',
+    fontWeight: 'bold',
+    margin: 0,
+  } as React.CSSProperties,
+  orgAddress: {
+    fontSize: '10px',
+    margin: '2px 0',
+  } as React.CSSProperties,
+  receiptTitle: {
+    textAlign: 'center' as const,
+    marginBottom: '12px',
+  } as React.CSSProperties,
+  receiptTitleText: {
+    fontSize: '13px',
+    fontWeight: 'bold',
+    textTransform: 'uppercase' as const,
+    letterSpacing: '1px',
+  } as React.CSSProperties,
+  receiptNumber: {
+    fontSize: '10px',
+    color: '#6b7280',
+    marginTop: '2px',
+  } as React.CSSProperties,
+  section: {
+    marginBottom: '12px',
+    fontSize: '11px',
+  } as React.CSSProperties,
+  row: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    marginBottom: '4px',
+  } as React.CSSProperties,
+  label: {
+    color: '#6b7280',
+  } as React.CSSProperties,
+  value: {
+    fontFamily: "'Courier New', Courier, monospace",
+  } as React.CSSProperties,
+  dashedBorder: {
+    borderTop: '1px dashed #9ca3af',
+    paddingTop: '8px',
+    marginBottom: '12px',
+  } as React.CSSProperties,
+  patientSection: {
+    borderTop: '1px dashed #9ca3af',
+    paddingTop: '8px',
+    marginBottom: '12px',
+    fontSize: '11px',
+  } as React.CSSProperties,
+  patientName: {
+    fontWeight: '600',
+    fontSize: '12px',
+    margin: 0,
+  } as React.CSSProperties,
+  patientNumber: {
+    fontSize: '10px',
+    color: '#6b7280',
+    margin: '2px 0 0 0',
+  } as React.CSSProperties,
+  // Table styles
+  tableSection: {
+    borderTop: '1px dashed #9ca3af',
+    paddingTop: '8px',
+    marginBottom: '12px',
+  } as React.CSSProperties,
+  table: {
+    width: '100%',
+    borderCollapse: 'collapse' as const,
+    fontSize: '10px',
+  } as React.CSSProperties,
+  tableHeader: {
+    borderBottom: '1px solid #d1d5db',
+  } as React.CSSProperties,
+  tableHeaderCell: {
+    padding: '4px 2px',
+    textAlign: 'left' as const,
+    fontWeight: 600,
+    fontSize: '10px',
+  } as React.CSSProperties,
+  tableHeaderCellRight: {
+    padding: '4px 2px',
+    textAlign: 'right' as const,
+    fontWeight: 600,
+    fontSize: '10px',
+  } as React.CSSProperties,
+  tableRow: {
+    borderBottom: 'none',
+  } as React.CSSProperties,
+  tableCell: {
+    padding: '4px 2px',
+    fontSize: '10px',
+  } as React.CSSProperties,
+  tableCellRight: {
+    padding: '4px 2px',
+    textAlign: 'right' as const,
+    fontSize: '10px',
+  } as React.CSSProperties,
+  // Totals section
+  totalsSection: {
+    borderTop: '1px dashed #9ca3af',
+    paddingTop: '8px',
+    marginBottom: '12px',
+    fontSize: '11px',
+  } as React.CSSProperties,
+  totalsRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    marginBottom: '4px',
+  } as React.CSSProperties,
+  discountRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    marginBottom: '4px',
+    color: '#16a34a',
+  } as React.CSSProperties,
+  totalRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    fontWeight: 'bold',
+    fontSize: '13px',
+    paddingTop: '4px',
+    borderTop: '1px solid #d1d5db',
+  } as React.CSSProperties,
+  // Payment section
+  paymentSection: {
+    borderTop: '1px dashed #9ca3af',
+    padding: '12px 0',
+  } as React.CSSProperties,
+  amountPaidRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    fontSize: '16px',
+    fontWeight: 'bold',
+    marginBottom: '4px',
+  } as React.CSSProperties,
+  amountPaidValue: {
+    color: '#15803d',
+  } as React.CSSProperties,
+  methodRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    fontSize: '11px',
+    marginBottom: '4px',
+  } as React.CSSProperties,
+  balanceDueRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    fontWeight: 'bold',
+    fontSize: '13px',
+    color: '#dc2626',
+    paddingTop: '4px',
+    borderTop: '1px solid #fecaca',
+  } as React.CSSProperties,
+  // QR section
+  qrSection: {
+    textAlign: 'center' as const,
+    borderTop: '1px dashed #9ca3af',
+    paddingTop: '12px',
+    margin: '12px 0',
+  } as React.CSSProperties,
+  qrImage: {
+    width: '80px',
+    height: '80px',
+    margin: '0 auto',
+    display: 'block',
+  } as React.CSSProperties,
+  qrText: {
+    fontSize: '9px',
+    color: '#6b7280',
+    marginTop: '4px',
+  } as React.CSSProperties,
+  // Footer
+  footer: {
+    textAlign: 'center' as const,
+    borderTop: '1px dashed #9ca3af',
+    paddingTop: '12px',
+    marginTop: '8px',
+    fontSize: '11px',
+  } as React.CSSProperties,
+  receivedBy: {
+    color: '#6b7280',
+    marginBottom: '4px',
+  } as React.CSSProperties,
+  thankYou: {
+    fontWeight: '600',
+  } as React.CSSProperties,
+  computerGenerated: {
+    fontSize: '9px',
+    color: '#6b7280',
+    marginTop: '8px',
+  } as React.CSSProperties,
+};
+
 export const PrintablePaymentReceipt = forwardRef<HTMLDivElement, PrintablePaymentReceiptProps>(
   ({ 
     receiptNumber,
@@ -56,63 +272,64 @@ export const PrintablePaymentReceipt = forwardRef<HTMLDivElement, PrintablePayme
     const qrData = getInvoiceVerificationUrl(invoiceNumber, organization.slug);
 
     return (
-      <div ref={ref} className="p-4 bg-white text-black max-w-[80mm] mx-auto text-sm font-sans">
+      <div ref={ref} style={styles.container}>
         {/* Header with Organization Branding */}
-        <div className="text-center border-b-2 border-dashed border-black pb-3 mb-3">
+        <div style={styles.header}>
           {organization.logo_url && (
             <img 
               src={organization.logo_url} 
               alt={organization.name}
-              className="h-10 mx-auto mb-2 object-contain"
+              style={styles.logo}
+              crossOrigin="anonymous"
             />
           )}
-          <h1 className="text-base font-bold">{organization.name}</h1>
-          {organization.address && <p className="text-xs">{organization.address}</p>}
-          {organization.phone && <p className="text-xs">Tel: {organization.phone}</p>}
-          {organization.email && <p className="text-xs">{organization.email}</p>}
+          <h1 style={styles.orgName}>{organization.name}</h1>
+          {organization.address && <p style={styles.orgAddress}>{organization.address}</p>}
+          {organization.phone && <p style={styles.orgAddress}>Tel: {organization.phone}</p>}
+          {organization.email && <p style={styles.orgAddress}>{organization.email}</p>}
         </div>
 
         {/* Receipt Title */}
-        <div className="text-center mb-3">
-          <p className="text-sm font-bold uppercase tracking-wide">Payment Receipt</p>
-          {receiptNumber && <p className="text-xs text-gray-600">#{receiptNumber}</p>}
+        <div style={styles.receiptTitle}>
+          <p style={styles.receiptTitleText}>Payment Receipt</p>
+          {receiptNumber && <p style={styles.receiptNumber}>#{receiptNumber}</p>}
         </div>
 
         {/* Receipt Details */}
-        <div className="space-y-1 text-xs mb-3">
-          <div className="flex justify-between">
-            <span className="text-gray-600">Date:</span>
-            <span>{format(new Date(), "MMM dd, yyyy hh:mm a")}</span>
+        <div style={styles.section}>
+          <div style={styles.row}>
+            <span style={styles.label}>Date:</span>
+            <span style={styles.value}>{format(new Date(), "MMM dd, yyyy hh:mm a")}</span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">Invoice#:</span>
-            <span className="font-mono">{invoiceNumber}</span>
+          <div style={styles.row}>
+            <span style={styles.label}>Invoice#:</span>
+            <span style={styles.value}>{invoiceNumber}</span>
           </div>
         </div>
 
         {/* Patient Info */}
-        <div className="border-t border-dashed pt-2 mb-3 text-xs">
-          <p className="font-semibold">{patient.name}</p>
-          {patient.mrNumber && <p className="text-gray-600">{patient.mrNumber}</p>}
+        <div style={styles.patientSection}>
+          <p style={styles.patientName}>{patient.name}</p>
+          {patient.mrNumber && <p style={styles.patientNumber}>{patient.mrNumber}</p>}
         </div>
 
         {/* Items (if provided) */}
         {items && items.length > 0 && (
-          <div className="border-t border-dashed pt-2 mb-3">
-            <table className="w-full text-xs">
+          <div style={styles.tableSection}>
+            <table style={styles.table}>
               <thead>
-                <tr className="border-b">
-                  <th className="text-left py-1">Item</th>
-                  <th className="text-right py-1">Qty</th>
-                  <th className="text-right py-1">Amount</th>
+                <tr style={styles.tableHeader}>
+                  <th style={styles.tableHeaderCell}>Item</th>
+                  <th style={styles.tableHeaderCellRight}>Qty</th>
+                  <th style={styles.tableHeaderCellRight}>Amount</th>
                 </tr>
               </thead>
               <tbody>
                 {items.map((item, index) => (
-                  <tr key={index}>
-                    <td className="py-1">{item.description}</td>
-                    <td className="text-right">{item.quantity}</td>
-                    <td className="text-right">Rs. {item.total.toLocaleString()}</td>
+                  <tr key={index} style={styles.tableRow}>
+                    <td style={styles.tableCell}>{item.description}</td>
+                    <td style={styles.tableCellRight}>{item.quantity}</td>
+                    <td style={styles.tableCellRight}>Rs. {item.total.toLocaleString()}</td>
                   </tr>
                 ))}
               </tbody>
@@ -121,49 +338,49 @@ export const PrintablePaymentReceipt = forwardRef<HTMLDivElement, PrintablePayme
         )}
 
         {/* Totals */}
-        <div className="border-t border-dashed py-2 space-y-1 text-xs">
+        <div style={styles.totalsSection}>
           {subtotal !== undefined && (
-            <div className="flex justify-between">
+            <div style={styles.totalsRow}>
               <span>Subtotal:</span>
               <span>Rs. {subtotal.toLocaleString()}</span>
             </div>
           )}
           {tax !== undefined && tax > 0 && (
-            <div className="flex justify-between">
+            <div style={styles.totalsRow}>
               <span>Tax:</span>
               <span>Rs. {tax.toLocaleString()}</span>
             </div>
           )}
           {discount !== undefined && discount > 0 && (
-            <div className="flex justify-between text-green-600">
+            <div style={styles.discountRow}>
               <span>Discount:</span>
               <span>-Rs. {discount.toLocaleString()}</span>
             </div>
           )}
-          <div className="flex justify-between font-bold text-sm pt-1 border-t">
+          <div style={styles.totalRow}>
             <span>Total:</span>
             <span>Rs. {totalAmount.toLocaleString()}</span>
           </div>
         </div>
 
         {/* Payment Details */}
-        <div className="border-t border-dashed py-3 space-y-1">
-          <div className="flex justify-between text-base font-bold">
+        <div style={styles.paymentSection}>
+          <div style={styles.amountPaidRow}>
             <span>Amount Paid:</span>
-            <span className="text-green-700">Rs. {paidAmount.toLocaleString()}</span>
+            <span style={styles.amountPaidValue}>Rs. {paidAmount.toLocaleString()}</span>
           </div>
-          <div className="flex justify-between text-xs">
-            <span className="text-gray-600">Method:</span>
-            <span className="capitalize">{paymentMethod.replace('_', ' ')}</span>
+          <div style={styles.methodRow}>
+            <span style={styles.label}>Method:</span>
+            <span style={{ textTransform: 'capitalize' }}>{paymentMethod.replace('_', ' ')}</span>
           </div>
           {referenceNumber && (
-            <div className="flex justify-between text-xs">
-              <span className="text-gray-600">Reference:</span>
-              <span className="font-mono">{referenceNumber}</span>
+            <div style={styles.methodRow}>
+              <span style={styles.label}>Reference:</span>
+              <span style={styles.value}>{referenceNumber}</span>
             </div>
           )}
           {balanceDue > 0 && (
-            <div className="flex justify-between text-sm font-bold text-red-600 pt-1 border-t">
+            <div style={styles.balanceDueRow}>
               <span>Balance Due:</span>
               <span>Rs. {balanceDue.toLocaleString()}</span>
             </div>
@@ -172,23 +389,23 @@ export const PrintablePaymentReceipt = forwardRef<HTMLDivElement, PrintablePayme
 
         {/* QR Code */}
         {showQR && (
-          <div className="text-center my-3 border-t border-dashed pt-3">
+          <div style={styles.qrSection}>
             <img 
               src={generateQRCodeUrl(qrData, 80)} 
               alt="Invoice QR Code"
-              className="mx-auto w-20 h-20"
+              style={styles.qrImage}
             />
-            <p className="text-[10px] text-gray-500 mt-1">Scan to verify payment</p>
+            <p style={styles.qrText}>Scan to verify payment</p>
           </div>
         )}
 
         {/* Footer */}
-        <div className="text-center text-xs border-t border-dashed pt-3 mt-2">
+        <div style={styles.footer}>
           {receivedBy && (
-            <p className="text-gray-600 mb-1">Received by: {receivedBy}</p>
+            <p style={styles.receivedBy}>Received by: {receivedBy}</p>
           )}
-          <p className="font-semibold">Thank you for your payment!</p>
-          <p className="text-[10px] text-gray-500 mt-2">
+          <p style={styles.thankYou}>Thank you for your payment!</p>
+          <p style={styles.computerGenerated}>
             This is a computer-generated receipt
           </p>
         </div>
