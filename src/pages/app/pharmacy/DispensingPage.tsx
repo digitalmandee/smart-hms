@@ -14,9 +14,10 @@ import { BatchSelector } from "@/components/pharmacy/BatchSelector";
 import { StockLevelBadge } from "@/components/pharmacy/StockLevelBadge";
 import { usePrescriptionForDispensing, useDispensePrescription, useMedicineBatches } from "@/hooks/usePharmacy";
 import { useCreateInvoice } from "@/hooks/useBilling";
+import { usePatientActiveAdmission } from "@/hooks/useIPDBilling";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, User, Calendar, Stethoscope, Pill, AlertTriangle, FileText, Receipt } from "lucide-react";
+import { ArrowLeft, User, Calendar, Stethoscope, Pill, AlertTriangle, FileText, Receipt, Bed } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
@@ -114,6 +115,8 @@ export default function DispensingPage() {
   const { data: prescription, isLoading } = usePrescriptionForDispensing(prescriptionId);
   const dispenseMutation = useDispensePrescription();
   const createInvoiceMutation = useCreateInvoice();
+  const patientId = (prescription?.patient as any)?.id;
+  const { data: activeAdmission } = usePatientActiveAdmission(patientId);
   const [items, setItems] = useState<DispensingItem[]>([]);
   const [notes, setNotes] = useState("");
   const [generateInvoice, setGenerateInvoice] = useState(true);
@@ -328,11 +331,35 @@ export default function DispensingPage() {
             </CardHeader>
             <CardContent className="space-y-3">
               <div>
-                <p className="font-semibold text-lg">
-                  {patient?.first_name} {patient?.last_name}
-                </p>
+                <div className="flex items-center gap-2">
+                  <p className="font-semibold text-lg">
+                    {patient?.first_name} {patient?.last_name}
+                  </p>
+                  {activeAdmission && (
+                    <Badge variant="secondary" className="bg-info/20 text-info">
+                      <Bed className="h-3 w-3 mr-1" />
+                      IPD
+                    </Badge>
+                  )}
+                </div>
                 <p className="text-sm text-muted-foreground">{patient?.patient_number}</p>
               </div>
+              
+              {activeAdmission && (
+                <>
+                  <Separator />
+                  <div className="p-2 bg-info/10 rounded-lg text-sm">
+                    <p className="font-medium text-info">Admitted Patient</p>
+                    <p className="text-muted-foreground">
+                      {(activeAdmission.ward as any)?.name} - Bed {(activeAdmission.bed as any)?.bed_number}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Charges will be added to IPD account
+                    </p>
+                  </div>
+                </>
+              )}
+              
               <Separator />
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div>
