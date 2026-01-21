@@ -14,13 +14,16 @@ import {
   X, 
   Pill,
   Calendar,
-  Stethoscope
+  Stethoscope,
+  BedDouble
 } from "lucide-react";
 import { 
   useSearchPatientForPOS, 
   usePatientPrescriptionsForPOS,
+  usePatientAdmissionStatus,
   PatientForPOS,
-  PrescriptionForPOS 
+  PrescriptionForPOS,
+  PatientAdmissionStatus
 } from "@/hooks/usePatientPrescriptionsForPOS";
 import { CartItem } from "@/hooks/usePOS";
 import { useInventory } from "@/hooks/usePharmacy";
@@ -31,15 +34,29 @@ interface POSPatientSearchProps {
   onAddToCart: (item: CartItem) => void;
   onPatientSelect: (patient: PatientForPOS | null) => void;
   selectedPatient: PatientForPOS | null;
+  onAdmissionStatusChange?: (admission: PatientAdmissionStatus | null) => void;
 }
 
-export function POSPatientSearch({ onAddToCart, onPatientSelect, selectedPatient }: POSPatientSearchProps) {
+export function POSPatientSearch({ 
+  onAddToCart, 
+  onPatientSelect, 
+  selectedPatient,
+  onAdmissionStatusChange 
+}: POSPatientSearchProps) {
   const [search, setSearch] = useState("");
   const [showResults, setShowResults] = useState(false);
+  const [lastAdmissionId, setLastAdmissionId] = useState<string | null>(null);
   
   const { data: patients, isLoading: searchLoading } = useSearchPatientForPOS(search);
   const { data: prescriptions, isLoading: rxLoading } = usePatientPrescriptionsForPOS(selectedPatient?.id);
+  const { data: admissionStatus } = usePatientAdmissionStatus(selectedPatient?.id);
   const { data: inventory } = useInventory();
+
+  // Notify parent when admission status changes (using useEffect pattern)
+  if (admissionStatus?.id !== lastAdmissionId) {
+    setLastAdmissionId(admissionStatus?.id || null);
+    onAdmissionStatusChange?.(admissionStatus || null);
+  }
 
   const handlePatientClick = (patient: PatientForPOS) => {
     onPatientSelect(patient);
@@ -151,6 +168,13 @@ export function POSPatientSearch({ onAddToCart, onPatientSelect, selectedPatient
                   {selectedPatient.token_number && (
                     <Badge variant="default" className="text-xs bg-green-600 hover:bg-green-700">
                       Today Token #{selectedPatient.token_number}
+                    </Badge>
+                  )}
+                  {admissionStatus && (
+                    <Badge variant="default" className="text-xs bg-blue-600 hover:bg-blue-700">
+                      <BedDouble className="h-3 w-3 mr-1" />
+                      Admitted - {admissionStatus.ward?.name || "Ward"} 
+                      {admissionStatus.bed?.bed_number && ` / Bed ${admissionStatus.bed.bed_number}`}
                     </Badge>
                   )}
                   {selectedPatient.phone && (

@@ -2,6 +2,34 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
+export interface PatientAdmissionStatus {
+  id: string;
+  admission_number: string;
+  ward: { name: string } | null;
+  bed: { bed_number: string } | null;
+}
+
+// Check if patient is currently admitted (for Post to Profile feature)
+export function usePatientAdmissionStatus(patientId?: string) {
+  return useQuery({
+    queryKey: ["patient-admission-status", patientId],
+    queryFn: async () => {
+      if (!patientId) return null;
+
+      const { data, error } = await supabase
+        .from("admissions")
+        .select("id, admission_number, ward:wards(name), bed:beds(bed_number)")
+        .eq("patient_id", patientId)
+        .eq("status", "admitted")
+        .maybeSingle();
+
+      if (error) throw error;
+      return data as PatientAdmissionStatus | null;
+    },
+    enabled: !!patientId,
+  });
+}
+
 export interface PatientForPOS {
   id: string;
   patient_number: string;
