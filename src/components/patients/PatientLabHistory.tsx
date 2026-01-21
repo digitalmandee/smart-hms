@@ -33,6 +33,7 @@ export function PatientLabHistory({ patientId }: PatientLabHistoryProps) {
   const printRef = useRef<HTMLDivElement>(null);
   
   const { data: selectedOrder } = useLabOrder(selectedOrderId || undefined);
+  const handlePrintRef = useRef<(() => void) | null>(null);
 
   const handlePrint = useReactToPrint({
     contentRef: printRef,
@@ -42,12 +43,21 @@ export function PatientLabHistory({ patientId }: PatientLabHistoryProps) {
     },
   });
 
+  // Store latest handlePrint in ref to avoid stale closure
+  useEffect(() => {
+    handlePrintRef.current = handlePrint;
+  }, [handlePrint]);
+
   // Trigger print when data is loaded AND shouldPrint is true
   useEffect(() => {
     if (shouldPrint && selectedOrder && printRef.current) {
-      handlePrint();
+      // Small delay to ensure DOM is fully painted
+      const timer = setTimeout(() => {
+        handlePrintRef.current?.();
+      }, 100);
+      return () => clearTimeout(timer);
     }
-  }, [shouldPrint, selectedOrder, handlePrint]);
+  }, [shouldPrint, selectedOrder]);
 
   if (isLoading) {
     return (
@@ -139,7 +149,7 @@ export function PatientLabHistory({ patientId }: PatientLabHistoryProps) {
                   <Printer className="h-4 w-4" />
                 </Button>
               )}
-              <Link to={`/app/lab/orders/${order.id}`}>
+              <Link to={`/app/lab/orders/${order.id}`} target="_blank" rel="noopener noreferrer">
                 <Button variant="ghost" size="sm">
                   <ExternalLink className="h-4 w-4" />
                 </Button>
