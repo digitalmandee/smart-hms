@@ -20,11 +20,24 @@ interface MenuItem {
 export const useMenuItems = () => {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { hasPermission, isSuperAdmin, profile } = useAuth();
-  const { data: enabledModules } = useOrganizationModules(profile?.organization_id);
+  const { hasPermission, isSuperAdmin, profile, isLoading: authLoading } = useAuth();
+  const { data: enabledModules, isLoading: modulesLoading } = useOrganizationModules(profile?.organization_id);
 
   useEffect(() => {
+    // Wait for auth to be ready
+    if (authLoading) {
+      setIsLoading(true);
+      return;
+    }
+
+    // For non-super admins, wait for modules to load
+    if (!isSuperAdmin && profile?.organization_id && modulesLoading) {
+      setIsLoading(true);
+      return;
+    }
+
     const fetchMenuItems = async () => {
+      setIsLoading(true);
       try {
         const { data, error } = await supabase
           .from("menu_items")
@@ -110,7 +123,7 @@ export const useMenuItems = () => {
     };
 
     fetchMenuItems();
-  }, [hasPermission, isSuperAdmin, enabledModules]);
+  }, [hasPermission, isSuperAdmin, enabledModules, authLoading, modulesLoading, profile?.organization_id]);
 
   return { menuItems, isLoading };
 };
