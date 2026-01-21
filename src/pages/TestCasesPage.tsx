@@ -146,6 +146,288 @@ const JOURNEY_TEST_CASES = [
       { step: 20, role: "PACU Nurse", action: "Transfer to ward", location: "Transfer Form", expected: "Patient transferred to IPD bed", data: "Handover to IPD nurse, post-op orders given" }
     ]
   },
+  // ============ COMPREHENSIVE IPD FLOW SCENARIOS ============
+  {
+    id: "journey-elective-surgery-complete",
+    name: "IPD Flow 1: Elective Surgery (Complete Journey)",
+    icon: Syringe,
+    description: "Planned surgery patient from OPD referral through pre-op, surgery, recovery, and discharge with full billing integration",
+    roles: ["Receptionist", "OPD Doctor", "Surgeon", "Anesthetist", "OT Tech", "PACU Nurse", "IPD Nurse", "Pharmacist", "Dietitian", "Accountant", "Housekeeping"],
+    estimatedTime: "45-60 minutes",
+    steps: [
+      // Phase 1: OPD & Admission Planning
+      { step: 1, role: "Receptionist", action: "Search existing patient or register new", location: "/app/patients", expected: "Patient found/created with MR#", data: "Patient: Ahmad Raza, MR-2024-00050" },
+      { step: 2, role: "Receptionist", action: "Create OPD appointment with Surgeon", location: "/app/appointments/new", expected: "Token generated for Surgery OPD", data: "Dr. Surgical Specialist" },
+      { step: 3, role: "OPD Doctor", action: "Complete surgical consultation", location: "/app/opd/consultation", expected: "Diagnosis recorded, surgery recommended", data: "Diagnosis: Cholecystitis, Plan: Laparoscopic Cholecystectomy" },
+      { step: 4, role: "OPD Doctor", action: "Order pre-operative lab tests", location: "Lab Orders", expected: "Pre-op panel ordered", data: "CBC, PT/INR, LFT, RFT, Blood Group, HBsAg, HCV" },
+      { step: 5, role: "OPD Doctor", action: "Order chest X-ray and ECG", location: "Radiology Orders", expected: "Imaging orders created", data: "Chest PA view, 12-lead ECG" },
+      { step: 6, role: "Receptionist", action: "Schedule planned admission", location: "/app/ipd/admissions/new", expected: "Future admission created", data: "Admission date: 3 days from today" },
+      { step: 7, role: "Receptionist", action: "Reserve surgical ward bed", location: "Bed Selection", expected: "Bed status: Reserved", data: "Surgical Ward, Bed SW-05" },
+      { step: 8, role: "Receptionist", action: "Collect admission deposit (50%)", location: "Deposit Form", expected: "Deposit receipt generated", data: "PKR 75,000 advance for surgery" },
+      
+      // Phase 2: Pre-operative Preparation
+      { step: 9, role: "Lab Tech", action: "Complete all pre-op lab tests", location: "/app/lab/queue", expected: "All results published", data: "Results within normal limits" },
+      { step: 10, role: "Radiologist", action: "Report chest X-ray and ECG", location: "/app/radiology", expected: "Reports finalized", data: "NAD on CXR, Normal sinus rhythm" },
+      { step: 11, role: "Surgeon", action: "Review all pre-op results", location: "Patient Profile", expected: "Patient cleared for surgery", data: "All investigations reviewed and cleared" },
+      { step: 12, role: "Anesthetist", action: "Pre-anesthesia checkup (PAC)", location: "/app/ot/pac", expected: "PAC assessment complete", data: "ASA Grade II, airway Mallampati 2" },
+      { step: 13, role: "Anesthetist", action: "Document anesthesia plan", location: "PAC Form", expected: "Plan documented", data: "General anesthesia, LMA planned, NPO 6hrs" },
+      { step: 14, role: "Receptionist", action: "Schedule OT slot", location: "/app/ot/schedule", expected: "Surgery scheduled", data: "OT Room 2, 09:00 AM, Duration: 2 hours" },
+      
+      // Phase 3: Admission Day
+      { step: 15, role: "IPD Nurse", action: "Patient arrives - activate admission", location: "/app/ipd/admissions", expected: "Status: Active, Bed: Occupied", data: "Click 'Admit Now' on scheduled admission" },
+      { step: 16, role: "IPD Nurse", action: "Complete admission nursing assessment", location: "Assessment Form", expected: "Full assessment documented", data: "Allergies: None, Fall risk: Low, Skin intact" },
+      { step: 17, role: "IPD Nurse", action: "Record baseline vitals", location: "/app/ipd/vitals", expected: "Vitals charted", data: "BP: 130/85, Pulse: 78, Temp: 98.4°F, SpO2: 99%" },
+      { step: 18, role: "IPD Nurse", action: "Verify NPO status from midnight", location: "Nursing Notes", expected: "NPO compliance confirmed", data: "Last meal: 10 PM previous day" },
+      { step: 19, role: "IPD Nurse", action: "Prepare patient for OT", location: "Pre-op Checklist", expected: "Checklist complete", data: "Consent signed, site marked, jewelry removed" },
+      { step: 20, role: "IPD Nurse", action: "Administer pre-op medications", location: "/app/ipd/emar", expected: "Pre-op meds given", data: "Pantoprazole 40mg IV, Ondansetron 4mg IV" },
+      
+      // Phase 4: Surgery (OT)
+      { step: 21, role: "OT Tech", action: "Receive patient in OT holding", location: "OT Check-in", expected: "Patient checked in", data: "Identity verified, consent reviewed" },
+      { step: 22, role: "OT Tech", action: "Complete WHO Sign-In checklist", location: "WHO Checklist", expected: "Sign-In complete", data: "Patient identity, allergies, site marking verified" },
+      { step: 23, role: "Anesthetist", action: "Induce general anesthesia", location: "/app/ot/anesthesia", expected: "Induction logged", data: "Propofol 150mg, Fentanyl 100mcg, Rocuronium 40mg" },
+      { step: 24, role: "Anesthetist", action: "Secure airway with LMA", location: "Anesthesia Record", expected: "Airway secured", data: "LMA #4, first attempt, no complications" },
+      { step: 25, role: "Surgeon", action: "Complete WHO Time-Out", location: "WHO Checklist", expected: "Time-Out complete", data: "Team confirms patient, procedure, antibiotics given" },
+      { step: 26, role: "Surgeon", action: "Perform laparoscopic cholecystectomy", location: "/app/ot/surgery-notes", expected: "Procedure documented", data: "4-port technique, gallbladder removed intact" },
+      { step: 27, role: "OT Tech", action: "Log all consumables used", location: "Consumables Form", expected: "Items recorded for billing", data: "Trocars x4, clip appliers, endobag" },
+      { step: 28, role: "Surgeon", action: "Complete WHO Sign-Out", location: "WHO Checklist", expected: "Sign-Out complete", data: "Counts correct, specimen labeled, recovery plan" },
+      { step: 29, role: "Anesthetist", action: "Reverse anesthesia, extubate", location: "Anesthesia Record", expected: "Emergence complete", data: "Sugammadex 200mg, smooth extubation" },
+      { step: 30, role: "Anesthetist", action: "Complete anesthesia record", location: "Anesthesia Form", expected: "Full record saved", data: "Duration: 1hr 45min, EBL: 50ml, stable vitals" },
+      
+      // Phase 5: Post-Operative Recovery (PACU)
+      { step: 31, role: "PACU Nurse", action: "Receive patient in recovery", location: "/app/ot/pacu", expected: "PACU admission logged", data: "Aldrete score: 7 on arrival" },
+      { step: 32, role: "PACU Nurse", action: "Monitor vitals every 5 minutes initially", location: "PACU Monitoring", expected: "Continuous monitoring documented", data: "BP, pulse, SpO2, consciousness level" },
+      { step: 33, role: "PACU Nurse", action: "Assess pain and administer analgesia", location: "PACU Chart", expected: "Pain managed", data: "Pain score 6/10, Tramadol 50mg IV given" },
+      { step: 34, role: "PACU Nurse", action: "Monitor for complications", location: "PACU Notes", expected: "No complications noted", data: "No nausea, bleeding, or respiratory issues" },
+      { step: 35, role: "PACU Nurse", action: "Achieve discharge criteria", location: "PACU Discharge", expected: "Aldrete score ≥9", data: "Score: 10, stable vitals, pain controlled" },
+      { step: 36, role: "PACU Nurse", action: "Handover to ward nurse", location: "Transfer Form", expected: "Handover completed", data: "Post-op orders, drain status, pain plan" },
+      
+      // Phase 6: Post-Operative Ward Care
+      { step: 37, role: "IPD Nurse", action: "Receive patient from PACU", location: "/app/ipd/nursing-station", expected: "Patient back in ward bed", data: "Verify identity, review handover notes" },
+      { step: 38, role: "IPD Nurse", action: "Record post-op vitals", location: "/app/ipd/vitals", expected: "First ward vitals logged", data: "2-hourly vitals for first 12 hours" },
+      { step: 39, role: "Surgeon", action: "Post-operative round", location: "/app/ipd/rounds", expected: "Post-op orders documented", data: "Ambulation, diet progression, drain care" },
+      { step: 40, role: "Surgeon", action: "Order post-op medications", location: "Prescription", expected: "IPD prescription created", data: "IV antibiotics, analgesics, DVT prophylaxis" },
+      { step: 41, role: "IPD Nurse", action: "Administer evening medications", location: "/app/ipd/emar", expected: "All doses recorded", data: "Ceftriaxone 1g IV, Paracetamol 1g IV" },
+      { step: 42, role: "Dietitian", action: "Assign post-surgical diet", location: "/app/ipd/diet", expected: "Diet plan active", data: "Clear liquids Day 0, soft diet Day 1" },
+      { step: 43, role: "IPD Nurse", action: "Complete shift nursing notes", location: "/app/ipd/nursing-notes", expected: "Shift summary documented", data: "Patient stable, no complications" },
+      
+      // Phase 7: Recovery Days
+      { step: 44, role: "IPD Nurse", action: "Day 1 morning vitals & assessment", location: "/app/ipd/vitals", expected: "Vitals within normal limits", data: "Temp: 99°F (low-grade expected)" },
+      { step: 45, role: "Surgeon", action: "Day 1 round - assess wound", location: "/app/ipd/rounds", expected: "Progress documented", data: "Wound dry, drain output 30ml, ambulatory" },
+      { step: 46, role: "IPD Nurse", action: "Remove drain as ordered", location: "Nursing Procedure", expected: "Drain removal documented", data: "Drain removed, site clean" },
+      { step: 47, role: "Surgeon", action: "Day 2 round - discharge planning", location: "/app/ipd/rounds", expected: "Discharge planned", data: "Clinically fit, plan discharge today" },
+      
+      // Phase 8: Discharge Process
+      { step: 48, role: "Surgeon", action: "Create discharge medications", location: "Prescription", expected: "Take-home Rx created", data: "Oral antibiotics 5 days, analgesics PRN" },
+      { step: 49, role: "Surgeon", action: "Initiate discharge", location: "/app/ipd/discharges", expected: "Discharge workflow started", data: "Status: Pending Billing Clearance" },
+      { step: 50, role: "Pharmacist", action: "Dispense discharge medications", location: "/app/pharmacy/pos", expected: "Medications dispensed", data: "Patient counseled on medications" },
+      { step: 51, role: "Accountant", action: "Generate final IPD bill", location: "/app/billing", expected: "All charges compiled", data: "Room: PKR 12K, OT: PKR 80K, Meds: PKR 15K" },
+      { step: 52, role: "Accountant", action: "Apply deposit, collect balance", location: "Payment Modal", expected: "Final payment collected", data: "Total: PKR 150K, Deposit: 75K, Balance: 75K" },
+      { step: 53, role: "Accountant", action: "Mark billing cleared", location: "Invoice", expected: "Status: Paid", data: "Print invoice and receipt" },
+      { step: 54, role: "IPD Nurse", action: "Generate discharge summary", location: "/app/ipd/discharges", expected: "Summary created", data: "Diagnosis, procedure, meds, follow-up" },
+      { step: 55, role: "IPD Nurse", action: "Complete final discharge", location: "Discharge Form", expected: "Patient discharged", data: "Bed released, summary printed" },
+      { step: 56, role: "Housekeeping", action: "Mark bed for cleaning", location: "/app/ipd/housekeeping", expected: "Bed status: Cleaning Required", data: "Appears in housekeeping queue" },
+      { step: 57, role: "Housekeeping", action: "Complete bed cleaning", location: "/app/ipd/housekeeping", expected: "Bed status: Available", data: "Ready for next admission" }
+    ]
+  },
+  {
+    id: "journey-emergency-icu-complete",
+    name: "IPD Flow 2: Emergency ICU Admission (Critical Care)",
+    icon: HeartPulse,
+    description: "Critical emergency patient through ER stabilization, ICU admission, intensive monitoring, step-down transfer, and discharge",
+    roles: ["ER Staff", "ER Doctor", "ICU Nurse", "Intensivist", "Lab Tech", "Pharmacist", "IPD Nurse", "Respiratory Therapist", "Accountant"],
+    estimatedTime: "50-60 minutes",
+    steps: [
+      // Phase 1: Emergency Arrival & Stabilization
+      { step: 1, role: "ER Staff", action: "Ambulance arrival notification", location: "/app/emergency", expected: "Alert displayed on ER dashboard", data: "ETA 5 mins, chest pain, BP 80/50" },
+      { step: 2, role: "ER Staff", action: "Quick registration (unknown patient)", location: "/app/emergency/register", expected: "ER# generated immediately", data: "Unknown Male, ~55 years" },
+      { step: 3, role: "ER Staff", action: "Triage: ESI Level 1 (Resuscitation)", location: "Triage Form", expected: "Red 'Resuscitation' badge", data: "Chief complaint: Crushing chest pain, diaphoresis" },
+      { step: 4, role: "ER Staff", action: "Record critical vitals", location: "Vitals Section", expected: "All values highlighted as abnormal", data: "BP: 80/50, HR: 130, RR: 28, SpO2: 88%" },
+      { step: 5, role: "ER Doctor", action: "Immediately assess patient", location: "/app/emergency", expected: "Treatment form opens", data: "Patient at top of queue (red priority)" },
+      { step: 6, role: "ER Doctor", action: "Order STAT cardiac workup", location: "Orders Section", expected: "Urgent orders created", data: "Troponin, ECG, Chest X-ray STAT" },
+      { step: 7, role: "ER Doctor", action: "Initiate resuscitation measures", location: "Treatment Notes", expected: "Interventions logged", data: "O2 15L NRB, 2 large bore IV, fluid bolus" },
+      { step: 8, role: "ER Doctor", action: "Administer emergency medications", location: "Medications", expected: "Meds logged with times", data: "Aspirin 325mg, Heparin 5000U, Morphine 4mg" },
+      { step: 9, role: "Lab Tech", action: "STAT lab results reported", location: "/app/lab/queue", expected: "Critical value alert", data: "Troponin: 8.5 ng/mL (CRITICAL HIGH)" },
+      { step: 10, role: "ER Doctor", action: "Diagnosis: STEMI", location: "ER Notes", expected: "Diagnosis documented", data: "Acute anterior STEMI, hemodynamically unstable" },
+      { step: 11, role: "ER Doctor", action: "Decision: ICU admission", location: "Disposition", expected: "ICU admission initiated", data: "Requires intensive monitoring and possible cath" },
+      
+      // Phase 2: ICU Admission
+      { step: 12, role: "ICU Nurse", action: "Accept admission from ER", location: "/app/ipd/admissions", expected: "ICU admission created", data: "All ER data transferred" },
+      { step: 13, role: "ICU Nurse", action: "Assign ICU bed with monitor", location: "Bed Selection", expected: "Bed occupied with monitoring", data: "ICU Bed 03 with cardiac monitor" },
+      { step: 14, role: "ICU Nurse", action: "Complete ICU admission assessment", location: "ICU Assessment", expected: "Critical care assessment done", data: "Sedation scale, pain, skin, lines, drains" },
+      { step: 15, role: "ICU Nurse", action: "Initiate continuous monitoring", location: "/app/ipd/vitals", expected: "Continuous charting started", data: "15-minute vital recording" },
+      { step: 16, role: "ICU Nurse", action: "Insert Foley catheter, document", location: "Procedures", expected: "Urinary output monitoring started", data: "Target UOP >0.5 ml/kg/hr" },
+      { step: 17, role: "Intensivist", action: "Complete ICU admission orders", location: "/app/ipd/rounds", expected: "Comprehensive orders set", data: "Ventilator, sedation, pressors, labs" },
+      { step: 18, role: "Intensivist", action: "Order continuous cardiac monitoring", location: "Orders", expected: "Cardiac monitoring active", data: "Continuous ECG, q4h troponin" },
+      { step: 19, role: "Intensivist", action: "Initiate vasopressor support", location: "Medication Orders", expected: "Drip started", data: "Norepinephrine 0.1 mcg/kg/min titrate to MAP >65" },
+      { step: 20, role: "Pharmacist", action: "Verify and dispense ICU medications", location: "/app/pharmacy", expected: "Critical meds dispensed", data: "High-risk medications double-checked" },
+      
+      // Phase 3: ICU Days - Intensive Monitoring
+      { step: 21, role: "ICU Nurse", action: "Document hourly I/O", location: "/app/ipd/io-chart", expected: "Fluid balance tracked", data: "Input: IV fluids, Output: Urine, drains" },
+      { step: 22, role: "ICU Nurse", action: "Administer medications per eMAR", location: "/app/ipd/emar", expected: "All doses with times recorded", data: "Heparin drip, antibiotics, sedation" },
+      { step: 23, role: "Lab Tech", action: "Process serial cardiac markers", location: "/app/lab/queue", expected: "Trending troponins reported", data: "Troponin trending down: 8.5→6.2→4.1" },
+      { step: 24, role: "Intensivist", action: "Day 1 ICU round", location: "/app/ipd/rounds", expected: "SOAP note documented", data: "Hemodynamically stable on low-dose pressors" },
+      { step: 25, role: "Respiratory Therapist", action: "Assess respiratory status", location: "RT Notes", expected: "RT assessment complete", data: "ABG: pH 7.38, pCO2 42, pO2 85, O2 2L NC" },
+      { step: 26, role: "ICU Nurse", action: "Complete nursing care bundle", location: "ICU Bundles", expected: "DVT/VAP prevention documented", data: "HOB 30°, SCDs on, CHG bath done" },
+      { step: 27, role: "Intensivist", action: "Day 2 round - wean pressors", location: "/app/ipd/rounds", expected: "Weaning plan documented", data: "Norepinephrine weaned off, MAP stable" },
+      { step: 28, role: "Dietitian", action: "Initiate ICU nutrition", location: "/app/ipd/diet", expected: "Enteral feeding started", data: "Tube feeding 40ml/hr, goal 80ml/hr" },
+      
+      // Phase 4: Step-Down Transfer
+      { step: 29, role: "Intensivist", action: "Assess for step-down readiness", location: "/app/ipd/rounds", expected: "Transfer criteria met", data: "Off pressors 24hrs, stable on room air" },
+      { step: 30, role: "Intensivist", action: "Order step-down transfer", location: "Transfer Order", expected: "Transfer request created", data: "To Cardiac Step-Down Unit" },
+      { step: 31, role: "ICU Nurse", action: "Complete transfer nursing summary", location: "Transfer Notes", expected: "Comprehensive handover prepared", data: "All lines, drains, meds, plan summarized" },
+      { step: 32, role: "ICU Nurse", action: "Initiate bed transfer", location: "/app/ipd/bed-transfers", expected: "Transfer logged", data: "From ICU-03 to Step-Down-05" },
+      { step: 33, role: "IPD Nurse", action: "Accept patient in step-down", location: "/app/ipd/nursing-station", expected: "Patient received", data: "Verify all equipment and orders" },
+      { step: 34, role: "IPD Nurse", action: "Initial step-down assessment", location: "Nursing Assessment", expected: "New baseline established", data: "Telemetry monitoring initiated" },
+      
+      // Phase 5: General Ward & Discharge
+      { step: 35, role: "Intensivist", action: "Day 4 round - discharge planning", location: "/app/ipd/rounds", expected: "Discharge plan initiated", data: "Stable, transition to oral meds" },
+      { step: 36, role: "Intensivist", action: "Create discharge medications", location: "Prescription", expected: "Cardiac discharge regimen", data: "Aspirin, Clopidogrel, Atorvastatin, Metoprolol" },
+      { step: 37, role: "IPD Nurse", action: "Patient education", location: "Discharge Teaching", expected: "Education documented", data: "Cardiac diet, warning signs, follow-up" },
+      { step: 38, role: "Intensivist", action: "Initiate discharge", location: "/app/ipd/discharges", expected: "Discharge workflow started", data: "Pending billing clearance" },
+      { step: 39, role: "Accountant", action: "Generate ICU billing", location: "/app/billing", expected: "All ICU charges compiled", data: "ICU days, meds, procedures, monitoring" },
+      { step: 40, role: "Accountant", action: "Process insurance claim", location: "Insurance Module", expected: "Claim submitted", data: "Pre-auth verified, claim processed" },
+      { step: 41, role: "Accountant", action: "Collect patient portion", location: "Payment", expected: "Copay collected", data: "Print final invoice" },
+      { step: 42, role: "IPD Nurse", action: "Complete discharge summary", location: "/app/ipd/discharges", expected: "Summary generated", data: "STEMI, ICU course, cardiac rehab referral" },
+      { step: 43, role: "IPD Nurse", action: "Final discharge", location: "Discharge Form", expected: "Patient discharged", data: "Follow-up: Cardiology in 1 week" }
+    ]
+  },
+  {
+    id: "journey-medical-investigation",
+    name: "IPD Flow 3: Medical Investigation Stay (Diagnostic Workup)",
+    icon: TestTube,
+    description: "Patient admitted for comprehensive diagnostic workup with serial labs, imaging, and specialist consultations",
+    roles: ["Receptionist", "Admitting Doctor", "IPD Nurse", "Lab Tech", "Radiologist", "Specialist", "Pharmacist", "Accountant"],
+    estimatedTime: "40-50 minutes",
+    steps: [
+      // Phase 1: OPD Assessment & Admission Decision
+      { step: 1, role: "Receptionist", action: "Patient presents with chronic symptoms", location: "/app/patients", expected: "Patient record accessed", data: "MR-2024-00075, 6-month weight loss, fatigue" },
+      { step: 2, role: "Admitting Doctor", action: "OPD consultation - needs workup", location: "/app/opd/consultation", expected: "Admission recommended", data: "R/O malignancy, requires inpatient workup" },
+      { step: 3, role: "Admitting Doctor", action: "Order initial lab panel", location: "Lab Orders", expected: "Baseline labs ordered", data: "CBC, CMP, LFT, TFT, LDH, Tumor markers" },
+      { step: 4, role: "Receptionist", action: "Create planned admission", location: "/app/ipd/admissions/new", expected: "Admission scheduled", data: "Medical ward, investigation stay" },
+      { step: 5, role: "Receptionist", action: "Assign bed in medical ward", location: "Bed Selection", expected: "Bed reserved", data: "Medical Ward B, Bed MW-12" },
+      { step: 6, role: "Receptionist", action: "Collect investigation deposit", location: "Deposit Form", expected: "Deposit recorded", data: "PKR 30,000 for investigations" },
+      
+      // Phase 2: Admission & Initial Assessment
+      { step: 7, role: "IPD Nurse", action: "Admit patient", location: "/app/ipd/admissions", expected: "Admission activated", data: "Status: Active, ward assigned" },
+      { step: 8, role: "IPD Nurse", action: "Complete admission assessment", location: "Assessment Form", expected: "Full history documented", data: "6-month history, 10kg weight loss, night sweats" },
+      { step: 9, role: "IPD Nurse", action: "Record baseline vitals", location: "/app/ipd/vitals", expected: "Vitals charted", data: "Temp: 99.5°F (low-grade fever)" },
+      { step: 10, role: "Admitting Doctor", action: "Document admission plan", location: "/app/ipd/rounds", expected: "Investigation plan documented", data: "Day 1-2: Labs, Day 2-3: Imaging, Day 3+: Biopsy if needed" },
+      { step: 11, role: "Admitting Doctor", action: "Order Day 1 investigations", location: "Orders", expected: "Serial labs ordered", data: "CBC, ESR, CRP, Peripheral smear, Bone marrow aspiration" },
+      
+      // Phase 3: Day 1 - Laboratory Workup
+      { step: 12, role: "Lab Tech", action: "Collect blood samples", location: "/app/lab/queue", expected: "Samples collected", data: "Multiple tubes for various tests" },
+      { step: 13, role: "Lab Tech", action: "Process and report CBC", location: "Lab Results", expected: "Abnormal results flagged", data: "WBC: 25,000 (HIGH), Hgb: 8.5 (LOW), Plt: 95K (LOW)" },
+      { step: 14, role: "Lab Tech", action: "Report peripheral smear", location: "Lab Results", expected: "Morphology reported", data: "Atypical lymphocytes seen, blast cells 15%" },
+      { step: 15, role: "Lab Tech", action: "Tumor markers reported", location: "Lab Results", expected: "Results available", data: "LDH: 850 (HIGH), AFP: Normal, CEA: Borderline" },
+      { step: 16, role: "IPD Nurse", action: "Record 6-hourly vitals", location: "/app/ipd/vitals", expected: "Vitals trending", data: "Temperature trend documented" },
+      { step: 17, role: "Admitting Doctor", action: "Review Day 1 results", location: "/app/ipd/rounds", expected: "Findings documented", data: "Concerning for hematologic malignancy" },
+      { step: 18, role: "Admitting Doctor", action: "Request Hematology consult", location: "Consult Request", expected: "Specialist consult ordered", data: "Urgent hematology opinion" },
+      
+      // Phase 4: Day 2 - Imaging & Specialist Input
+      { step: 19, role: "Admitting Doctor", action: "Order imaging studies", location: "Radiology Orders", expected: "Imaging scheduled", data: "CT Chest/Abdomen/Pelvis, Bone scan" },
+      { step: 20, role: "Radiologist", action: "Perform CT scan", location: "/app/radiology", expected: "Images acquired", data: "Contrast-enhanced CT complete" },
+      { step: 21, role: "Radiologist", action: "Report CT findings", location: "Radiology Report", expected: "Findings documented", data: "Multiple enlarged lymph nodes, splenomegaly" },
+      { step: 22, role: "Specialist", action: "Hematology consultation", location: "/app/ipd/consultations", expected: "Specialist notes documented", data: "Recommend bone marrow biopsy, flow cytometry" },
+      { step: 23, role: "Specialist", action: "Order bone marrow biopsy", location: "Procedure Orders", expected: "Biopsy scheduled", data: "Posterior iliac crest, Day 3 morning" },
+      { step: 24, role: "IPD Nurse", action: "Prepare for biopsy", location: "Nursing Notes", expected: "Pre-procedure checklist", data: "Consent obtained, coags reviewed, NPO from midnight" },
+      
+      // Phase 5: Day 3 - Procedure & Serial Monitoring
+      { step: 25, role: "Specialist", action: "Perform bone marrow biopsy", location: "Procedure Room", expected: "Procedure completed", data: "Aspirate and trephine obtained" },
+      { step: 26, role: "IPD Nurse", action: "Post-procedure monitoring", location: "/app/ipd/vitals", expected: "Hourly vitals x4", data: "Monitor for bleeding, pain management" },
+      { step: 27, role: "Lab Tech", action: "Process bone marrow sample", location: "/app/lab", expected: "Samples sent for analysis", data: "Morphology, flow cytometry, cytogenetics" },
+      { step: 28, role: "Pharmacist", action: "Dispense supportive medications", location: "/app/pharmacy", expected: "Medications provided", data: "Analgesics, antiemetics, supplements" },
+      { step: 29, role: "IPD Nurse", action: "Administer ordered medications", location: "/app/ipd/emar", expected: "All doses documented", data: "Iron, B12, blood transfusion if needed" },
+      
+      // Phase 6: Day 4-5 - Results & Diagnosis
+      { step: 30, role: "Lab Tech", action: "Report bone marrow results", location: "/app/lab", expected: "Diagnostic results", data: "Acute Lymphoblastic Leukemia (ALL) confirmed" },
+      { step: 31, role: "Specialist", action: "Review all results", location: "Case Summary", expected: "Final diagnosis made", data: "B-ALL, standard risk features" },
+      { step: 32, role: "Specialist", action: "Family meeting & counseling", location: "Progress Notes", expected: "Discussion documented", data: "Diagnosis explained, treatment options discussed" },
+      { step: 33, role: "Specialist", action: "Treatment plan documentation", location: "/app/ipd/rounds", expected: "Chemo protocol selected", data: "BFM protocol, start after port placement" },
+      { step: 34, role: "Admitting Doctor", action: "Coordinate oncology referral", location: "Referral", expected: "Outpatient oncology scheduled", data: "Transfer to oncology center for treatment" },
+      
+      // Phase 7: Discharge Planning
+      { step: 35, role: "Specialist", action: "Create discharge medications", location: "Prescription", expected: "Supportive care Rx", data: "Folic acid, B12, iron supplements" },
+      { step: 36, role: "Specialist", action: "Initiate discharge", location: "/app/ipd/discharges", expected: "Discharge workflow started", data: "Investigation workup complete" },
+      { step: 37, role: "Accountant", action: "Generate investigation bill", location: "/app/billing", expected: "All charges compiled", data: "Labs: PKR 45K, CT: PKR 25K, Biopsy: PKR 20K" },
+      { step: 38, role: "Accountant", action: "Process payment", location: "Payment", expected: "Bill settled", data: "Insurance + patient copay" },
+      { step: 39, role: "IPD Nurse", action: "Complete discharge summary", location: "/app/ipd/discharges", expected: "Comprehensive summary", data: "Diagnosis, workup results, oncology follow-up" },
+      { step: 40, role: "IPD Nurse", action: "Patient education & handover", location: "Discharge Teaching", expected: "Education documented", data: "Warning signs, infection precautions, follow-up dates" }
+    ]
+  },
+  {
+    id: "journey-maternity-complete",
+    name: "IPD Flow 4: Maternity - Labor & Delivery (Mother-Baby Care)",
+    icon: Building2,
+    description: "Complete maternity journey from labor admission through delivery, newborn care, and mother-baby discharge",
+    roles: ["Receptionist", "L&D Nurse", "Obstetrician", "Pediatrician", "Anesthetist", "Nursery Nurse", "Pharmacist", "Accountant"],
+    estimatedTime: "50-60 minutes",
+    steps: [
+      // Phase 1: Labor Admission
+      { step: 1, role: "Receptionist", action: "Pregnant patient arrives in labor", location: "/app/emergency", expected: "Quick maternity registration", data: "Fatima Khan, G2P1, 39 weeks, contractions" },
+      { step: 2, role: "Receptionist", action: "Access existing ANC record", location: "Patient Profile", expected: "Antenatal history available", data: "Low-risk pregnancy, all ANC visits complete" },
+      { step: 3, role: "L&D Nurse", action: "Initial labor assessment", location: "/app/ipd/labor-tracking", expected: "Labor status documented", data: "Contractions q5min, cervix 4cm, membranes intact" },
+      { step: 4, role: "L&D Nurse", action: "Apply fetal monitor", location: "Labor Monitoring", expected: "CTG tracing started", data: "FHR: 140bpm, reactive, no decelerations" },
+      { step: 5, role: "L&D Nurse", action: "Record admission vitals", location: "/app/ipd/vitals", expected: "Baseline vitals charted", data: "BP: 120/80, Pulse: 88, Temp: 98.6°F" },
+      { step: 6, role: "Obstetrician", action: "Admission examination", location: "/app/ipd/rounds", expected: "Obstetric assessment documented", data: "Vertex presentation, adequate pelvis, plan vaginal delivery" },
+      { step: 7, role: "Receptionist", action: "Create L&D admission", location: "/app/ipd/admissions/new", expected: "Maternity admission created", data: "L&D Room 3, labor bed assigned" },
+      
+      // Phase 2: Active Labor
+      { step: 8, role: "L&D Nurse", action: "Hourly labor progress", location: "/app/ipd/labor-tracking", expected: "Partograph updated", data: "Cervix 6cm at 2 hours, progressing well" },
+      { step: 9, role: "L&D Nurse", action: "Continuous fetal monitoring", location: "CTG Monitoring", expected: "FHR patterns documented", data: "Category 1 tracing, reassuring" },
+      { step: 10, role: "L&D Nurse", action: "Pain assessment", location: "Nursing Notes", expected: "Pain score documented", data: "Pain 8/10, patient requests epidural" },
+      { step: 11, role: "Obstetrician", action: "Order epidural analgesia", location: "Orders", expected: "Anesthesia consult placed", data: "Epidural for labor analgesia" },
+      { step: 12, role: "Anesthetist", action: "Place epidural catheter", location: "Anesthesia Record", expected: "Epidural placed successfully", data: "L3-4 space, test dose negative" },
+      { step: 13, role: "L&D Nurse", action: "Post-epidural monitoring", location: "/app/ipd/vitals", expected: "Vitals stable post-epidural", data: "BP maintained, pain relief achieved" },
+      { step: 14, role: "L&D Nurse", action: "Progress check - 8cm", location: "/app/ipd/labor-tracking", expected: "Active labor continuing", data: "Cervix 8cm, station 0, membranes ruptured" },
+      
+      // Phase 3: Second Stage & Delivery
+      { step: 15, role: "L&D Nurse", action: "Full dilation achieved", location: "/app/ipd/labor-tracking", expected: "Second stage started", data: "Cervix 10cm, head at +1 station" },
+      { step: 16, role: "L&D Nurse", action: "Prepare for delivery", location: "Delivery Setup", expected: "Delivery room ready", data: "Resuscitation equipment, warmer ready" },
+      { step: 17, role: "Obstetrician", action: "Conduct delivery", location: "Delivery Notes", expected: "Vaginal delivery documented", data: "SVD, male baby, 3.2 kg, cried immediately" },
+      { step: 18, role: "Obstetrician", action: "Active third stage management", location: "Delivery Notes", expected: "Placenta delivered", data: "Oxytocin given, placenta complete, EBL 300ml" },
+      { step: 19, role: "Obstetrician", action: "Perineal repair if needed", location: "Procedure Notes", expected: "Repair documented", data: "Second-degree tear, repaired with Vicryl" },
+      { step: 20, role: "L&D Nurse", action: "Immediate newborn care", location: "Newborn Assessment", expected: "APGAR documented", data: "APGAR: 8 at 1min, 9 at 5min" },
+      { step: 21, role: "L&D Nurse", action: "Initiate skin-to-skin contact", location: "Nursing Notes", expected: "Bonding documented", data: "Mother-baby skin contact, breastfeeding initiated" },
+      
+      // Phase 4: Newborn Registration & Care
+      { step: 22, role: "Receptionist", action: "Register newborn patient", location: "/app/ipd/birth-records/new", expected: "Baby MR# generated", data: "Baby of Fatima Khan, linked to mother" },
+      { step: 23, role: "Pediatrician", action: "Newborn examination", location: "/app/opd/gynecology", expected: "Full newborn exam documented", data: "Term baby, AGA, no anomalies" },
+      { step: 24, role: "Nursery Nurse", action: "Administer newborn medications", location: "Baby eMAR", expected: "Prophylaxis given", data: "Vitamin K 1mg IM, eye prophylaxis" },
+      { step: 25, role: "Nursery Nurse", action: "Record newborn vitals", location: "Baby Vitals", expected: "Baseline vitals charted", data: "Temp: 98.6°F, HR: 140, RR: 44, SpO2: 98%" },
+      { step: 26, role: "Pediatrician", action: "Order newborn screening", location: "Lab Orders", expected: "Screening tests ordered", data: "Hearing screen, bilirubin, metabolic screen" },
+      { step: 27, role: "L&D Nurse", action: "Apply newborn ID band", location: "ID Verification", expected: "ID band applied", data: "Matching mother-baby ID bands" },
+      
+      // Phase 5: Postpartum Care
+      { step: 28, role: "L&D Nurse", action: "Transfer to postpartum room", location: "/app/ipd/bed-transfers", expected: "Transfer completed", data: "Mother and baby to Postpartum Room 5" },
+      { step: 29, role: "L&D Nurse", action: "Postpartum assessment", location: "Nursing Assessment", expected: "Post-delivery assessment done", data: "Fundus firm, lochia normal, perineum intact" },
+      { step: 30, role: "L&D Nurse", action: "Monitor for postpartum hemorrhage", location: "/app/ipd/vitals", expected: "Vitals stable", data: "2-hourly vitals x4, then 4-hourly" },
+      { step: 31, role: "Obstetrician", action: "Postpartum round", location: "/app/ipd/rounds", expected: "Day 1 assessment documented", data: "Mother stable, plan discharge Day 2" },
+      { step: 32, role: "Obstetrician", action: "Order postpartum medications", location: "Prescription", expected: "Medications ordered", data: "Iron, calcium, analgesics, stool softener" },
+      { step: 33, role: "L&D Nurse", action: "Breastfeeding support", location: "Nursing Notes", expected: "Feeding assessment done", data: "Good latch, colostrum expressed" },
+      { step: 34, role: "Nursery Nurse", action: "Monitor newborn feeding", location: "Baby Notes", expected: "Feeding log maintained", data: "Breastfed q2-3hr, good urine/stool output" },
+      { step: 35, role: "Lab Tech", action: "Newborn bilirubin check", location: "/app/lab/queue", expected: "Bilirubin result", data: "Total bilirubin: 8 mg/dL (normal)" },
+      
+      // Phase 6: Day 2 - Discharge Preparation
+      { step: 36, role: "Pediatrician", action: "Day 2 newborn exam", location: "Pediatric Notes", expected: "Pre-discharge exam done", data: "Baby well, no jaundice, feeding well" },
+      { step: 37, role: "Pediatrician", action: "Order vaccinations", location: "Immunization Orders", expected: "Birth vaccines ordered", data: "BCG, Hepatitis B (Birth dose)" },
+      { step: 38, role: "Nursery Nurse", action: "Administer vaccinations", location: "Baby eMAR", expected: "Vaccines given", data: "BCG left arm, HepB right thigh" },
+      { step: 39, role: "Obstetrician", action: "Maternal discharge clearance", location: "/app/ipd/rounds", expected: "Mother fit for discharge", data: "Vitals stable, wound healing, ambulating" },
+      { step: 40, role: "Obstetrician", action: "Create maternal discharge Rx", location: "Prescription", expected: "Take-home medications", data: "Iron, calcium, vitamins for 3 months" },
+      { step: 41, role: "Pediatrician", action: "Create newborn discharge Rx", location: "Prescription", expected: "Baby medications", data: "Vitamin D drops 400IU daily" },
+      
+      // Phase 7: Discharge Process
+      { step: 42, role: "Obstetrician", action: "Initiate discharge", location: "/app/ipd/discharges", expected: "Discharge workflow started", data: "Both mother and baby discharge" },
+      { step: 43, role: "Pharmacist", action: "Dispense maternal medications", location: "/app/pharmacy/pos", expected: "Meds dispensed", data: "Patient counseled on all medications" },
+      { step: 44, role: "Pharmacist", action: "Dispense baby medications", location: "/app/pharmacy/pos", expected: "Baby meds dispensed", data: "Vitamin D administration explained" },
+      { step: 45, role: "Accountant", action: "Generate combined bill", location: "/app/billing", expected: "Mother + baby charges", data: "Delivery: PKR 80K, Baby: PKR 15K" },
+      { step: 46, role: "Accountant", action: "Process payment", location: "Payment", expected: "Bill settled", data: "Insurance claim + patient copay" },
+      { step: 47, role: "L&D Nurse", action: "Maternal discharge teaching", location: "Discharge Teaching", expected: "Education documented", data: "Warning signs, contraception, follow-up" },
+      { step: 48, role: "Nursery Nurse", action: "Newborn care teaching", location: "Discharge Teaching", expected: "Baby care education", data: "Feeding, cord care, danger signs, follow-up" },
+      { step: 49, role: "L&D Nurse", action: "Generate birth certificate", location: "/app/ipd/birth-records", expected: "Certificate ready", data: "Official birth documentation" },
+      { step: 50, role: "L&D Nurse", action: "Complete discharge summaries", location: "/app/ipd/discharges", expected: "Both summaries generated", data: "Mother summary + baby discharge card" },
+      { step: 51, role: "L&D Nurse", action: "Final discharge", location: "Discharge Form", expected: "Both patients discharged", data: "Follow-up: OB 6 weeks, Peds 1 week" }
+    ]
+  },
   {
     id: "journey-lab",
     name: "Laboratory Complete Flow",
@@ -615,7 +897,7 @@ export default function TestCasesPage() {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold">HMS Comprehensive Test Cases</h1>
-            <p className="text-sm text-muted-foreground">14 End-to-End Journeys · 190+ Module Tests · 19 Demo Accounts</p>
+            <p className="text-sm text-muted-foreground">18 End-to-End Journeys · 200+ Module Tests · 19 Demo Accounts</p>
           </div>
           <Button onClick={() => handlePrint()}><Download className="h-4 w-4 mr-2" />Download PDF</Button>
         </div>
