@@ -129,7 +129,7 @@ import { useMenuItems } from "@/hooks/useMenuItems";
 import { useAuth } from "@/contexts/AuthContext";
 import { ROLE_SIDEBAR_CONFIG, getPrimaryRole } from "@/config/role-sidebars";
 
-const ADMIN_ROLES = ["super_admin", "org_admin"];
+const ADMIN_ROLES = ["super_admin", "org_admin", "branch_admin"];
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   LayoutDashboard,
