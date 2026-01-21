@@ -19,6 +19,8 @@ export function POSProductSearch({ onAddToCart, disabled }: POSProductSearchProp
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const blurTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
   const { data: inventory, isLoading } = useInventory(undefined, { 
     search,
     categoryId: selectedCategory || undefined,
@@ -34,6 +36,9 @@ export function POSProductSearch({ onAddToCart, disabled }: POSProductSearchProp
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (disabled) return;
+      
+      // Skip barcode detection when user is typing in search input
+      if (document.activeElement === inputRef.current) return;
       
       const now = Date.now();
       if (now - lastKeyTime < 50 && e.key.length === 1) {
@@ -52,6 +57,31 @@ export function POSProductSearch({ onAddToCart, disabled }: POSProductSearchProp
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [lastKeyTime, barcodeBuffer, disabled]);
 
+  // Cleanup blur timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (blurTimeoutRef.current) {
+        clearTimeout(blurTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleFocus = () => {
+    // Cancel any pending blur timeout to prevent race condition
+    if (blurTimeoutRef.current) {
+      clearTimeout(blurTimeoutRef.current);
+      blurTimeoutRef.current = null;
+    }
+    setIsFocused(true);
+  };
+
+  const handleBlur = () => {
+    // Delay blur to allow click events on results
+    blurTimeoutRef.current = setTimeout(() => {
+      setIsFocused(false);
+    }, 200);
+  };
+
   const handleSelectItem = (item: InventoryWithMedicine) => {
     const cartItem: CartItem = {
       id: crypto.randomUUID(),
@@ -68,7 +98,11 @@ export function POSProductSearch({ onAddToCart, disabled }: POSProductSearchProp
     };
     onAddToCart(cartItem);
     setSearch("");
-    inputRef.current?.focus();
+    
+    // Ensure focus after DOM updates
+    requestAnimationFrame(() => {
+      inputRef.current?.focus();
+    });
   };
 
   const showResults = isFocused && search.length > 0;
@@ -90,8 +124,8 @@ export function POSProductSearch({ onAddToCart, disabled }: POSProductSearchProp
             placeholder="Search medicine or scan barcode..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setTimeout(() => setIsFocused(false), 200)}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
             className="pl-10 pr-10 h-12 text-lg"
             disabled={disabled}
           />
@@ -119,6 +153,7 @@ export function POSProductSearch({ onAddToCart, disabled }: POSProductSearchProp
                           "flex items-center justify-between p-3 rounded-lg cursor-pointer",
                           "hover:bg-muted transition-colors"
                         )}
+                        onMouseDown={(e) => e.preventDefault()}
                         onClick={() => handleSelectItem(item)}
                       >
                         <div className="flex items-center gap-3">
