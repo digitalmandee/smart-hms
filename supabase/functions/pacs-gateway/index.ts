@@ -256,11 +256,77 @@ serve(async (req) => {
     
     // Check if PACS is configured
     const pacsUrl = Deno.env.get("PACS_SERVER_URL");
+    
+    // Health check endpoints - return proper status even when not configured
+    if (path === "/health" || path === "/") {
+      if (!pacsUrl) {
+        // Return 200 with not_configured status for health check
+        return new Response(
+          JSON.stringify({
+            status: "not_configured",
+            configured: false,
+            message: "PACS server URL has not been configured. Please set PACS_SERVER_URL in Edge Function secrets.",
+          }),
+          {
+            status: 200,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+      
+      const config = getPACSConfig();
+      
+      // Health check - test PACS connectivity
+      try {
+        const testUrl = `${config.serverUrl}/dicom-web/studies?limit=1`;
+        console.log("Testing PACS connection:", testUrl);
+        
+        const response = await fetch(testUrl, {
+          method: "GET",
+          headers: getAuthHeaders(config),
+        });
+        
+        console.log("PACS response status:", response.status);
+        
+        return new Response(
+          JSON.stringify({
+            status: response.ok ? "connected" : "error",
+            pacsServer: config.serverUrl,
+            aeTitle: config.aeTitle,
+            configured: true,
+            message: response.ok ? "Connected to PACS server" : `PACS returned status ${response.status}`,
+          }),
+          {
+            status: 200,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Connection failed';
+        console.error("PACS connection error:", errorMessage);
+        
+        return new Response(
+          JSON.stringify({
+            status: "error",
+            message: errorMessage,
+            pacsServer: config.serverUrl,
+            aeTitle: config.aeTitle,
+            configured: true,
+          }),
+          {
+            status: 200,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+    }
+    
+    // For non-health endpoints, return 503 if not configured
     if (!pacsUrl) {
       return new Response(
         JSON.stringify({
           error: "PACS not configured",
-          message: "The PACS server URL has not been configured. Please set the PACS_SERVER_URL environment variable.",
+          message: "The PACS server URL has not been configured.",
           configured: false,
         }),
         {
@@ -271,44 +337,6 @@ serve(async (req) => {
     }
     
     const config = getPACSConfig();
-    
-    // Route handlers
-    if (path === "/health" || path === "/") {
-      // Health check - test PACS connectivity
-      try {
-        const testUrl = `${config.serverUrl}/dicom-web/studies?limit=1`;
-        const response = await fetch(testUrl, {
-          method: "GET",
-          headers: getAuthHeaders(config),
-        });
-        
-        return new Response(
-          JSON.stringify({
-            status: response.ok ? "connected" : "error",
-            pacsServer: config.serverUrl,
-            aeTitle: config.aeTitle,
-            configured: true,
-          }),
-          {
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
-        );
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Connection failed';
-        return new Response(
-          JSON.stringify({
-            status: "error",
-            message: errorMessage,
-            pacsServer: config.serverUrl,
-            configured: true,
-          }),
-          {
-            status: 503,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
-        );
-      }
-    }
     
     // GET /studies - Query studies
     if (path === "/studies" && req.method === "GET") {
