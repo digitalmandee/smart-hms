@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -24,14 +24,23 @@ interface IPDBedPickerDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: (selection: IPDBedSelection) => void;
+  initialWardId?: string;
 }
 
 export function IPDBedPickerDialog({
   open,
   onOpenChange,
   onConfirm,
+  initialWardId,
 }: IPDBedPickerDialogProps) {
   const [selectedBed, setSelectedBed] = useState<{ wardId?: string; bedId?: string }>({});
+  
+  // Pre-select ward when dialog opens
+  useEffect(() => {
+    if (open && initialWardId) {
+      setSelectedBed({ wardId: initialWardId });
+    }
+  }, [open, initialWardId]);
   
   const { data: beds } = useBeds(selectedBed.wardId);
   const { data: bedTypeRates } = useIPDBedTypeRates();
