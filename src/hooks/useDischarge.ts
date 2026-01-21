@@ -310,7 +310,7 @@ export const useCreateIPDCharge = () => {
   });
 };
 
-// Generate IPD Invoice from charges
+// Generate IPD Invoice from charges with automatic room calculation
 export const useGenerateIPDInvoice = () => {
   const queryClient = useQueryClient();
   const { profile } = useAuth();
@@ -321,11 +321,17 @@ export const useGenerateIPDInvoice = () => {
       patientId,
       branchId,
       depositAmount = 0,
+      daysAdmitted,
+      dailyRate = 0,
+      bedTypeName = "Standard",
     }: {
       admissionId: string;
       patientId: string;
       branchId: string;
       depositAmount?: number;
+      daysAdmitted: number;
+      dailyRate?: number;
+      bedTypeName?: string;
     }) => {
       if (!profile?.organization_id) throw new Error("No organization");
 
@@ -337,12 +343,14 @@ export const useGenerateIPDInvoice = () => {
 
       if (chargesError) throw chargesError;
 
-      if (!charges || charges.length === 0) {
-        throw new Error("No charges found for this admission");
-      }
+      // Calculate service charges total
+      const serviceChargesTotal = charges?.reduce((sum, charge) => sum + (charge.total_amount || 0), 0) || 0;
+
+      // Calculate room charges
+      const roomCharges = Math.max(1, daysAdmitted) * dailyRate;
 
       // Calculate totals
-      const subtotal = charges.reduce((sum, charge) => sum + (charge.total_amount || 0), 0);
+      const subtotal = serviceChargesTotal + roomCharges;
       const totalAmount = subtotal;
 
       // Generate invoice number
@@ -363,9 +371,9 @@ export const useGenerateIPDInvoice = () => {
           discount_amount: 0,
           tax_amount: 0,
           total_amount: totalAmount,
-          paid_amount: depositAmount,
+          paid_amount: Math.min(depositAmount, totalAmount),
           status: depositAmount >= totalAmount ? "paid" : "pending",
-          notes: `IPD Invoice for Admission`,
+          notes: `IPD Invoice for Admission - ${daysAdmitted} day(s) stay`,
           created_by: profile.id,
         })
         .select()
@@ -373,22 +381,52 @@ export const useGenerateIPDInvoice = () => {
 
       if (invoiceError) throw invoiceError;
 
-      // Create invoice items from charges
-      const invoiceItems = charges.map((charge) => ({
-        invoice_id: invoice.id,
-        description: charge.description,
-        quantity: charge.quantity,
-        unit_price: charge.unit_price,
-        discount_percent: 0,
-        total_price: charge.total_amount,
-        service_type_id: charge.service_type_id,
-      }));
+      // Create invoice items - room charge first, then service charges
+      const invoiceItems: Array<{
+        invoice_id: string;
+        description: string;
+        quantity: number;
+        unit_price: number;
+        discount_percent: number;
+        total_price: number;
+        service_type_id?: string;
+      }> = [];
 
-      const { error: itemsError } = await supabase
-        .from("invoice_items")
-        .insert(invoiceItems);
+      // Add room charges as first item
+      if (roomCharges > 0) {
+        invoiceItems.push({
+          invoice_id: invoice.id,
+          description: `Room Charges - ${bedTypeName} (${daysAdmitted} day${daysAdmitted !== 1 ? 's' : ''})`,
+          quantity: daysAdmitted,
+          unit_price: dailyRate,
+          discount_percent: 0,
+          total_price: roomCharges,
+        });
+      }
 
-      if (itemsError) throw itemsError;
+      // Add service charges from ipd_charges
+      if (charges && charges.length > 0) {
+        charges.forEach((charge) => {
+          invoiceItems.push({
+            invoice_id: invoice.id,
+            description: charge.description,
+            quantity: charge.quantity,
+            unit_price: charge.unit_price,
+            discount_percent: 0,
+            total_price: charge.total_amount,
+            service_type_id: charge.service_type_id,
+          });
+        });
+      }
+
+      // Insert all invoice items
+      if (invoiceItems.length > 0) {
+        const { error: itemsError } = await supabase
+          .from("invoice_items")
+          .insert(invoiceItems);
+
+        if (itemsError) throw itemsError;
+      }
 
       // If deposit was applied, create payment record
       if (depositAmount > 0) {
@@ -405,12 +443,22 @@ export const useGenerateIPDInvoice = () => {
           });
       }
 
-      return { invoice, chargesCount: charges.length, totalAmount };
+      return { 
+        invoice, 
+        invoiceId: invoice.id,
+        chargesCount: (charges?.length || 0) + (roomCharges > 0 ? 1 : 0), 
+        totalAmount,
+        roomCharges,
+        serviceCharges: serviceChargesTotal,
+      };
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
       queryClient.invalidateQueries({ queryKey: ["ipd-charges"] });
-      toast({ title: "IPD Invoice generated successfully" });
+      toast({ 
+        title: "IPD Invoice generated successfully",
+        description: `Invoice total: Rs. ${data.totalAmount.toLocaleString()}`,
+      });
     },
     onError: (error: Error) => {
       toast({ title: "Failed to generate invoice", description: error.message, variant: "destructive" });
