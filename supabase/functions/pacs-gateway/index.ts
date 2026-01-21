@@ -173,6 +173,12 @@ async function getRenderedImage(
   instanceUid: string,
   frame?: number
 ): Promise<Response> {
+  let url = `${config.serverUrl}/dicom-web/studies/${studyUid}/series/${seriesUid}/instances/${instanceUid}/rendered`;
+  
+  if (frame) {
+    url += `/frames/${frame}`;
+  }
+  
   const headers: Record<string, string> = {
     ...getAuthHeaders(config) as Record<string, string>,
     "Accept": "image/jpeg",
