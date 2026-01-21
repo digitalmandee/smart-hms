@@ -1,4 +1,7 @@
 import { useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useParams, Link } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -65,6 +68,23 @@ export function PatientDetailPage() {
   const { data: currentVisit } = usePatientCurrentVisit(id);
   const { data: organization } = useOrganization(profile?.organization_id);
   const { printRef, handlePrint } = usePrint();
+
+  // Check for active admission
+  const { data: activeAdmission } = useQuery({
+    queryKey: ["patient-active-admission", id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("admissions")
+        .select("*, ward:wards(name), bed:beds(bed_number)")
+        .eq("patient_id", id!)
+        .in("status", ["admitted", "pending"])
+        .order("admission_date", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!id,
+  });
 
   const getAge = (dob: string | null) => {
     if (!dob) return null;
@@ -159,6 +179,28 @@ export function PatientDetailPage() {
 
       {/* Current Visit Alert */}
       {currentVisit && <PatientCurrentVisit visit={currentVisit} />}
+
+      {/* Active Admission Alert */}
+      {activeAdmission && (
+        <Alert className="mb-4 border-blue-500 bg-blue-50 dark:bg-blue-950/30">
+          <Bed className="h-4 w-4 text-blue-600" />
+          <AlertTitle className="text-blue-800 dark:text-blue-200">
+            {activeAdmission.status === 'pending' ? 'Pending Admission' : 'Currently Admitted'}
+          </AlertTitle>
+          <AlertDescription className="flex items-center justify-between">
+            <span className="text-blue-700 dark:text-blue-300">
+              {activeAdmission.admission_number}
+              {(activeAdmission.ward as any)?.name && ` • Ward: ${(activeAdmission.ward as any).name}`}
+              {(activeAdmission.bed as any)?.bed_number && ` • Bed: ${(activeAdmission.bed as any).bed_number}`}
+            </span>
+            <Link to={`/app/ipd/admissions/${activeAdmission.id}`}>
+              <Button variant="link" size="sm" className="text-blue-600">
+                View Admission →
+              </Button>
+            </Link>
+          </AlertDescription>
+        </Alert>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Patient Profile Card */}
@@ -315,26 +357,62 @@ export function PatientDetailPage() {
             <TabsContent value="overview">
               <div className="grid gap-6">
                 {/* Quick Stats */}
-                <div className="grid gap-4 md:grid-cols-3">
+                <div className="grid gap-4 grid-cols-2 md:grid-cols-5">
                   <Card>
-                    <CardContent className="p-4 flex items-center gap-4">
-                      <div className="p-3 rounded-lg bg-primary/10">
-                        <Stethoscope className="h-5 w-5 text-primary" />
+                    <CardContent className="p-4 flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-primary/10">
+                        <Stethoscope className="h-4 w-4 text-primary" />
                       </div>
                       <div>
-                        <p className="text-2xl font-bold">{profileStats?.totalVisits || 0}</p>
-                        <p className="text-sm text-muted-foreground">Total Visits</p>
+                        <p className="text-xl font-bold">{profileStats?.totalVisits || 0}</p>
+                        <p className="text-xs text-muted-foreground">Visits</p>
                       </div>
                     </CardContent>
                   </Card>
 
                   <Card>
-                    <CardContent className="p-4 flex items-center gap-4">
-                      <div className="p-3 rounded-lg bg-info/10">
-                        <Clock className="h-5 w-5 text-info" />
+                    <CardContent className="p-4 flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-blue-500/10">
+                        <Bed className="h-4 w-4 text-blue-500" />
                       </div>
                       <div>
-                        <p className="text-2xl font-bold">
+                        <p className="text-xl font-bold">{profileStats?.totalAdmissions || 0}</p>
+                        <p className="text-xs text-muted-foreground">IPD</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="p-4 flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-destructive/10">
+                        <Siren className="h-4 w-4 text-destructive" />
+                      </div>
+                      <div>
+                        <p className="text-xl font-bold">{profileStats?.totalERVisits || 0}</p>
+                        <p className="text-xs text-muted-foreground">ER</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="p-4 flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-warning/10">
+                        <Heart className="h-4 w-4 text-warning" />
+                      </div>
+                      <div>
+                        <p className="text-xl font-bold">{medicalHistory?.length || 0}</p>
+                        <p className="text-xs text-muted-foreground">Records</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="p-4 flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-info/10">
+                        <Clock className="h-4 w-4 text-info" />
+                      </div>
+                      <div>
+                        <p className="text-xl font-bold">
                           {profileStats?.lastVisit 
                             ? formatDistanceToNow(new Date(profileStats.lastVisit), { addSuffix: false })
                                 .replace(" days", "d")
@@ -348,19 +426,7 @@ export function PatientDetailPage() {
                             : "-"
                           }
                         </p>
-                        <p className="text-sm text-muted-foreground">Last Visit</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardContent className="p-4 flex items-center gap-4">
-                      <div className="p-3 rounded-lg bg-warning/10">
-                        <Heart className="h-5 w-5 text-warning" />
-                      </div>
-                      <div>
-                        <p className="text-2xl font-bold">{medicalHistory?.length || 0}</p>
-                        <p className="text-sm text-muted-foreground">Medical Records</p>
+                        <p className="text-xs text-muted-foreground">Last Visit</p>
                       </div>
                     </CardContent>
                   </Card>
