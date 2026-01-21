@@ -89,15 +89,12 @@ export function useRecordDepositPayment() {
       const { data: payment, error: paymentError } = await supabase
         .from("payments")
         .insert({
-          organization_id: profile!.organization_id,
-          branch_id: profile!.branch_id!,
           invoice_id: params.invoiceId,
           amount: params.amount,
           payment_method_id: params.paymentMethodId,
-          payment_date: new Date().toISOString().split("T")[0],
+          payment_date: new Date().toISOString(),
           reference_number: params.referenceNumber,
           notes: params.notes,
-          status: "completed",
           received_by: profile!.id,
         })
         .select()
