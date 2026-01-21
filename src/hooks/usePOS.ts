@@ -278,6 +278,64 @@ export function useCreateTransaction() {
         throw itemsError;
       }
 
+      // Deduct inventory and log stock movements
+      for (const item of items) {
+        if (item.inventory_id && item.quantity > 0) {
+          // Get current inventory
+          const { data: inventory, error: invError } = await supabase
+            .from("medicine_inventory")
+            .select("id, quantity, medicine_id, batch_number, selling_price")
+            .eq("id", item.inventory_id)
+            .single();
+
+          if (invError) {
+            posLogger.error("Failed to fetch inventory for deduction", invError, { inventoryId: item.inventory_id });
+            continue;
+          }
+
+          const previousStock = inventory.quantity || 0;
+          const newStock = Math.max(0, previousStock - item.quantity);
+
+          // Update inventory
+          const { error: updateError } = await supabase
+            .from("medicine_inventory")
+            .update({ quantity: newStock })
+            .eq("id", item.inventory_id);
+
+          if (updateError) {
+            posLogger.error("Failed to deduct inventory", updateError, { inventoryId: item.inventory_id });
+            continue;
+          }
+
+          // Log stock movement
+          await queryPOSTable("pharmacy_stock_movements").insert({
+            organization_id: profile.organization_id,
+            branch_id: profile.branch_id,
+            medicine_id: item.medicine_id,
+            inventory_id: item.inventory_id,
+            movement_type: "sale",
+            quantity: -item.quantity,
+            previous_stock: previousStock,
+            new_stock: newStock,
+            reference_type: "pos_transaction",
+            reference_id: transaction.id,
+            reference_number: transaction.transaction_number,
+            batch_number: inventory.batch_number,
+            unit_cost: item.unit_price,
+            total_value: item.quantity * item.unit_price,
+            notes: "POS Sale",
+            created_by: profile.id,
+          });
+
+          posLogger.debug("Stock deducted", { 
+            inventoryId: item.inventory_id, 
+            previousStock, 
+            newStock, 
+            deducted: item.quantity 
+          });
+        }
+      }
+
       // Insert payments
       const paymentsToInsert = payments.map((payment) => ({
         transaction_id: transaction.id,
@@ -493,6 +551,64 @@ export function usePostToPatientProfile() {
       if (chargesError) {
         posLogger.error("Failed to post charges to patient profile", chargesError);
         throw chargesError;
+      }
+
+      // Deduct inventory and log stock movements
+      for (const item of items) {
+        if (item.inventory_id && item.quantity > 0) {
+          // Get current inventory
+          const { data: inventory, error: invError } = await supabase
+            .from("medicine_inventory")
+            .select("id, quantity, medicine_id, batch_number, selling_price")
+            .eq("id", item.inventory_id)
+            .single();
+
+          if (invError) {
+            posLogger.error("Failed to fetch inventory for IPD deduction", invError, { inventoryId: item.inventory_id });
+            continue;
+          }
+
+          const previousStock = inventory.quantity || 0;
+          const newStock = Math.max(0, previousStock - item.quantity);
+
+          // Update inventory
+          const { error: updateError } = await supabase
+            .from("medicine_inventory")
+            .update({ quantity: newStock })
+            .eq("id", item.inventory_id);
+
+          if (updateError) {
+            posLogger.error("Failed to deduct inventory for IPD", updateError, { inventoryId: item.inventory_id });
+            continue;
+          }
+
+          // Log stock movement
+          await queryPOSTable("pharmacy_stock_movements").insert({
+            organization_id: profile.organization_id,
+            branch_id: profile.branch_id,
+            medicine_id: item.medicine_id,
+            inventory_id: item.inventory_id,
+            movement_type: "dispense",
+            quantity: -item.quantity,
+            previous_stock: previousStock,
+            new_stock: newStock,
+            reference_type: "ipd_charge",
+            reference_id: admissionId,
+            reference_number: null,
+            batch_number: inventory.batch_number,
+            unit_cost: item.selling_price,
+            total_value: item.quantity * item.selling_price,
+            notes: "IPD Patient Dispense",
+            created_by: profile.id,
+          });
+
+          posLogger.debug("IPD stock deducted", { 
+            inventoryId: item.inventory_id, 
+            previousStock, 
+            newStock, 
+            deducted: item.quantity 
+          });
+        }
       }
 
       // Auto-mark prescription items as dispensed
