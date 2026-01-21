@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Bed, IndianRupee, Calendar, Calculator } from "lucide-react";
+import { Bed, Banknote, Calendar, Calculator } from "lucide-react";
 import { formatCurrency } from "@/lib/currency";
 import { BedTypeRate, getBedDailyRate, calculateSuggestedDeposit } from "@/hooks/useIPDBedTypeRates";
 import { differenceInDays } from "date-fns";
@@ -65,7 +65,7 @@ export function BedRateDisplay({
         {/* Daily Rate */}
         <div className="flex items-center justify-between py-2 border-t border-dashed">
           <div className="flex items-center gap-2 text-sm">
-            <IndianRupee className="h-4 w-4 text-muted-foreground" />
+            <Banknote className="h-4 w-4 text-muted-foreground" />
             <span>Daily Rate:</span>
           </div>
           <span className="font-semibold text-primary">

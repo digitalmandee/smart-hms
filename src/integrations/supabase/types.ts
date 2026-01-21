@@ -7369,6 +7369,7 @@ export type Database = {
       }
       invoices: {
         Row: {
+          balance_amount: number | null
           branch_id: string
           created_at: string
           created_by: string | null
@@ -7387,6 +7388,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          balance_amount?: number | null
           branch_id: string
           created_at?: string
           created_by?: string | null
@@ -7405,6 +7407,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          balance_amount?: number | null
           branch_id?: string
           created_at?: string
           created_by?: string | null

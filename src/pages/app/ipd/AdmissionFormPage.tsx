@@ -36,7 +36,8 @@ import { useIPDBedTypeRates } from "@/hooks/useIPDBedTypeRates";
 import { AdmissionPaymentDialog } from "@/components/ipd/AdmissionPaymentDialog";
 import { BedRateDisplay } from "@/components/ipd/BedRateDisplay";
 import { PaymentModeSelector, PaymentMode } from "@/components/ipd/PaymentModeSelector";
-import { Save, CalendarIcon, Search } from "lucide-react";
+import { IPDBedPickerDialog, IPDBedSelection } from "@/components/ipd/IPDBedPickerDialog";
+import { Save, CalendarIcon, Search, Bed } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -79,6 +80,7 @@ export default function AdmissionFormPage() {
   const [selectedWard, setSelectedWard] = useState<string>("");
   const [patientSearch, setPatientSearch] = useState("");
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [showBedPicker, setShowBedPicker] = useState(false);
   const [pendingAdmissionData, setPendingAdmissionData] = useState<any>(null);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [insuranceFields, setInsuranceFields] = useState<{
@@ -485,32 +487,43 @@ export default function AdmissionFormPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Bed</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value}
-                      disabled={!selectedWard}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder={selectedWard ? "Select bed" : "Select ward first"} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {availableBeds.map((bed) => (
-                          <SelectItem key={bed.id} value={bed.id}>
-                            <div className="flex items-center gap-2">
-                              <span>Bed {bed.bed_number}</span>
-                              <span className="text-muted-foreground">({bed.bed_type || "Standard"})</span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                        {availableBeds.length === 0 && selectedWard && (
-                          <SelectItem value="none" disabled>
-                            No available beds in this ward
-                          </SelectItem>
-                        )}
-                      </SelectContent>
-                    </Select>
+                    <div className="flex gap-2">
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                        disabled={!selectedWard}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="flex-1">
+                            <SelectValue placeholder={selectedWard ? "Select bed" : "Select ward first"} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {availableBeds.map((bed) => (
+                            <SelectItem key={bed.id} value={bed.id}>
+                              <div className="flex items-center gap-2">
+                                <span>Bed {bed.bed_number}</span>
+                                <span className="text-muted-foreground">({bed.bed_type || "Standard"})</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                          {availableBeds.length === 0 && selectedWard && (
+                            <SelectItem value="none" disabled>
+                              No available beds in this ward
+                            </SelectItem>
+                          )}
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setShowBedPicker(true)}
+                        title="Browse all beds"
+                      >
+                        <Bed className="h-4 w-4" />
+                      </Button>
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -704,6 +717,17 @@ export default function AdmissionFormPage() {
         onPayLater={handlePayLater}
         onSkipDeposit={handleSkipDeposit}
         isProcessing={isProcessingPayment}
+      />
+
+      {/* Visual Bed Picker Dialog */}
+      <IPDBedPickerDialog
+        open={showBedPicker}
+        onOpenChange={setShowBedPicker}
+        onConfirm={(selection: IPDBedSelection) => {
+          form.setValue("ward_id", selection.wardId);
+          form.setValue("bed_id", selection.bedId);
+          setSelectedWard(selection.wardId);
+        }}
       />
     </div>
   );
