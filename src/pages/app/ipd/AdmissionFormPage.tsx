@@ -31,6 +31,8 @@ import { useWards, useBeds } from "@/hooks/useIPD";
 import { usePatients } from "@/hooks/usePatients";
 import { useDoctors } from "@/hooks/useDoctors";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCreateDepositInvoice, useRecordDepositPayment, useLinkAdmissionInvoice } from "@/hooks/useIPDDeposit";
+import { AdmissionPaymentDialog } from "@/components/ipd/AdmissionPaymentDialog";
 import { Save, CalendarIcon, Search } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -66,6 +68,13 @@ export default function AdmissionFormPage() {
   const { data: doctors } = useDoctors();
   const [selectedWard, setSelectedWard] = useState<string>("");
   const [patientSearch, setPatientSearch] = useState("");
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [pendingAdmissionData, setPendingAdmissionData] = useState<any>(null);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+
+  const createDepositInvoice = useCreateDepositInvoice();
+  const recordPayment = useRecordDepositPayment();
+  const linkAdmissionInvoice = useLinkAdmissionInvoice();
 
   const form = useForm<AdmissionFormValues>({
     resolver: zodResolver(admissionFormSchema),
@@ -111,10 +120,28 @@ export default function AdmissionFormPage() {
       return;
     }
 
+    const depositAmount = values.deposit_amount || 0;
+    
+    // If deposit amount > 0, show payment dialog
+    if (depositAmount > 0) {
+      setPendingAdmissionData(values);
+      setShowPaymentDialog(true);
+      return;
+    }
+
+    // No deposit - create admission directly with waived status
+    await createAdmissionWithPaymentStatus(values, "waived");
+  };
+
+  const createAdmissionWithPaymentStatus = async (
+    values: AdmissionFormValues,
+    paymentStatus: "pending" | "paid" | "partial" | "pay_later" | "waived",
+    invoiceId?: string
+  ) => {
     try {
-      await createAdmission({
+      const admission = await createAdmission({
         patient_id: values.patient_id,
-        branch_id: profile.branch_id,
+        branch_id: profile!.branch_id!,
         admission_date: format(values.admission_date, "yyyy-MM-dd"),
         admission_time: values.admission_time,
         admission_type: values.admission_type,
@@ -130,12 +157,97 @@ export default function AdmissionFormPage() {
         expected_discharge_date: values.expected_discharge_date
           ? format(values.expected_discharge_date, "yyyy-MM-dd")
           : undefined,
+        payment_status: paymentStatus,
+        admission_invoice_id: invoiceId,
       });
-      toast.success("Patient admitted successfully");
+      toast.success("Patient admission created successfully");
       navigate("/app/ipd/admissions");
     } catch (error) {
       toast.error("Failed to create admission");
     }
+  };
+
+  const handlePaymentComplete = async (paymentData: {
+    amount: number;
+    paymentMethodId: string;
+    referenceNumber?: string;
+    notes?: string;
+  }) => {
+    if (!pendingAdmissionData) return;
+    
+    setIsProcessingPayment(true);
+    try {
+      const selectedPatient = patients?.find((p) => p.id === pendingAdmissionData.patient_id);
+      const wardInfo = wards?.find((w) => w.id === pendingAdmissionData.ward_id);
+      const bedInfo = beds?.find((b) => b.id === pendingAdmissionData.bed_id);
+
+      // Create deposit invoice
+      const invoice = await createDepositInvoice.mutateAsync({
+        patientId: pendingAdmissionData.patient_id,
+        depositAmount: pendingAdmissionData.deposit_amount,
+        wardName: wardInfo?.name,
+        bedNumber: bedInfo?.bed_number,
+      });
+
+      // Record payment
+      await recordPayment.mutateAsync({
+        invoiceId: invoice.id,
+        amount: paymentData.amount,
+        paymentMethodId: paymentData.paymentMethodId,
+        referenceNumber: paymentData.referenceNumber,
+        notes: paymentData.notes,
+      });
+
+      // Create admission with paid status
+      const paymentStatus = paymentData.amount >= pendingAdmissionData.deposit_amount ? "paid" : "partial";
+      await createAdmissionWithPaymentStatus(pendingAdmissionData, paymentStatus, invoice.id);
+      
+      setShowPaymentDialog(false);
+      setPendingAdmissionData(null);
+    } catch (error) {
+      toast.error("Failed to process payment");
+    } finally {
+      setIsProcessingPayment(false);
+    }
+  };
+
+  const handlePayLater = async () => {
+    if (!pendingAdmissionData) return;
+    
+    setIsProcessingPayment(true);
+    try {
+      const wardInfo = wards?.find((w) => w.id === pendingAdmissionData.ward_id);
+      const bedInfo = beds?.find((b) => b.id === pendingAdmissionData.bed_id);
+
+      // Create deposit invoice (unpaid)
+      const invoice = await createDepositInvoice.mutateAsync({
+        patientId: pendingAdmissionData.patient_id,
+        depositAmount: pendingAdmissionData.deposit_amount,
+        wardName: wardInfo?.name,
+        bedNumber: bedInfo?.bed_number,
+        notes: "Pay Later - Deposit pending collection",
+      });
+
+      // Create admission with pay_later status
+      await createAdmissionWithPaymentStatus(pendingAdmissionData, "pay_later", invoice.id);
+      
+      setShowPaymentDialog(false);
+      setPendingAdmissionData(null);
+    } catch (error) {
+      toast.error("Failed to create admission");
+    } finally {
+      setIsProcessingPayment(false);
+    }
+  };
+
+  const handleSkipDeposit = async () => {
+    if (!pendingAdmissionData) return;
+    
+    // Create admission without deposit
+    const modifiedData = { ...pendingAdmissionData, deposit_amount: 0 };
+    await createAdmissionWithPaymentStatus(modifiedData, "waived");
+    setShowPaymentDialog(false);
+    setPendingAdmissionData(null);
   };
 
   const selectedPatient = patients?.find((p) => p.id === form.watch("patient_id"));
@@ -518,13 +630,28 @@ export default function AdmissionFormPage() {
             <Button type="button" variant="outline" onClick={() => navigate("/app/ipd/admissions")}>
               Cancel
             </Button>
-            <Button type="submit" disabled={isCreatingAdmission}>
+            <Button type="submit" disabled={isCreatingAdmission || isProcessingPayment}>
               <Save className="h-4 w-4 mr-2" />
-              Admit Patient
+              {form.watch("deposit_amount") > 0 ? "Continue to Payment" : "Admit Patient"}
             </Button>
           </div>
         </form>
       </Form>
+
+      {/* Payment Dialog */}
+      <AdmissionPaymentDialog
+        open={showPaymentDialog}
+        onOpenChange={setShowPaymentDialog}
+        patientName={selectedPatient ? `${selectedPatient.first_name} ${selectedPatient.last_name}` : ""}
+        patientNumber={selectedPatient?.patient_number || ""}
+        depositAmount={pendingAdmissionData?.deposit_amount || 0}
+        wardName={wards?.find(w => w.id === pendingAdmissionData?.ward_id)?.name}
+        bedNumber={beds?.find(b => b.id === pendingAdmissionData?.bed_id)?.bed_number}
+        onPaymentComplete={handlePaymentComplete}
+        onPayLater={handlePayLater}
+        onSkipDeposit={handleSkipDeposit}
+        isProcessing={isProcessingPayment}
+      />
     </div>
   );
 }

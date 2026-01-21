@@ -32,6 +32,9 @@ import {
   CheckCircle2,
   AlertCircle,
   Loader2,
+  CreditCard,
+  AlertTriangle,
+  DollarSign,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWards } from "@/hooks/useIPD";
@@ -41,6 +44,9 @@ import { useNursingNotes, useIPDMedications } from "@/hooks/useNursingCare";
 import { IPDVitalsForm } from "@/components/ipd/IPDVitalsForm";
 import { NursingNotesForm } from "@/components/ipd/NursingNotesForm";
 import { AdmissionConfirmationDialog } from "@/components/ipd/AdmissionConfirmationDialog";
+import { QuickPaymentDialog } from "@/components/ipd/QuickPaymentDialog";
+import { formatCurrency } from "@/lib/currency";
+import { cn } from "@/lib/utils";
 
 export default function NursingStationPage() {
   const navigate = useNavigate();
@@ -199,52 +205,110 @@ export default function NursingStationPage() {
               <div className="text-center py-8 text-muted-foreground">Loading...</div>
             ) : pendingAdmissions.length > 0 ? (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {pendingAdmissions.map((adm: any) => (
-                  <Card key={adm.id} className="hover:shadow-md transition-shadow border-warning/50">
-                    <CardHeader className="pb-2">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="h-10 w-10 rounded-full bg-warning/10 flex items-center justify-center">
-                            <Clock className="h-5 w-5 text-warning" />
-                          </div>
-                          <div>
-                            <CardTitle className="text-base">
-                              {adm.patient?.first_name} {adm.patient?.last_name}
-                            </CardTitle>
-                            <p className="text-sm text-muted-foreground flex items-center gap-1">
-                              <Bed className="h-3 w-3" />
-                              Bed {adm.bed?.bed_number} (Reserved)
-                            </p>
-                          </div>
-                        </div>
-                        <Badge variant="outline" className="bg-warning/10 text-warning border-warning/20">
-                          Pending
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      <div className="text-sm text-muted-foreground">
-                        Created: {format(new Date(adm.created_at), "dd MMM yyyy HH:mm")}
-                      </div>
-                      {adm.chief_complaint && (
-                        <div className="text-sm line-clamp-2">
-                          <span className="text-muted-foreground">CC: </span>
-                          {adm.chief_complaint}
-                        </div>
+                {pendingAdmissions.map((adm: any) => {
+                  const paymentStatus = adm.payment_status || "pending";
+                  const isPaid = paymentStatus === "paid";
+                  const isPayLater = paymentStatus === "pay_later";
+                  const isWaived = paymentStatus === "waived";
+                  const depositAmount = adm.deposit_amount || 0;
+
+                  return (
+                    <Card 
+                      key={adm.id} 
+                      className={cn(
+                        "hover:shadow-md transition-shadow",
+                        isPaid ? "border-green-500/50" : isPayLater ? "border-warning/50" : "border-muted"
                       )}
-                      <Button
-                        className="w-full"
-                        onClick={() => {
-                          setSelectedAdmission(adm);
-                          setConfirmDialogOpen(true);
-                        }}
-                      >
-                        <CheckCircle2 className="h-4 w-4 mr-2" />
-                        Admit to Bed
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
+                    >
+                      <CardHeader className="pb-2">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-2">
+                            <div className={cn(
+                              "h-10 w-10 rounded-full flex items-center justify-center",
+                              isPaid ? "bg-green-500/10" : isPayLater ? "bg-warning/10" : "bg-muted"
+                            )}>
+                              {isPaid ? (
+                                <CheckCircle2 className="h-5 w-5 text-green-500" />
+                              ) : isPayLater ? (
+                                <AlertTriangle className="h-5 w-5 text-warning" />
+                              ) : (
+                                <Clock className="h-5 w-5 text-muted-foreground" />
+                              )}
+                            </div>
+                            <div>
+                              <CardTitle className="text-base">
+                                {adm.patient?.first_name} {adm.patient?.last_name}
+                              </CardTitle>
+                              <p className="text-sm text-muted-foreground flex items-center gap-1">
+                                <Bed className="h-3 w-3" />
+                                Bed {adm.bed?.bed_number} (Reserved)
+                              </p>
+                            </div>
+                          </div>
+                          {isPaid ? (
+                            <Badge variant="default" className="bg-green-500">
+                              <CheckCircle2 className="h-3 w-3 mr-1" />
+                              Paid
+                            </Badge>
+                          ) : isPayLater ? (
+                            <Badge variant="outline" className="bg-warning/10 text-warning border-warning/20">
+                              <Clock className="h-3 w-3 mr-1" />
+                              Pay Later
+                            </Badge>
+                          ) : isWaived ? (
+                            <Badge variant="outline">No Deposit</Badge>
+                          ) : (
+                            <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/20">
+                              <DollarSign className="h-3 w-3 mr-1" />
+                              Unpaid
+                            </Badge>
+                          )}
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="text-sm text-muted-foreground">
+                          Created: {format(new Date(adm.created_at), "dd MMM yyyy HH:mm")}
+                        </div>
+                        {depositAmount > 0 && (
+                          <div className="text-sm">
+                            <span className="text-muted-foreground">Deposit: </span>
+                            <span className={cn(
+                              "font-medium",
+                              isPaid ? "text-green-500" : "text-foreground"
+                            )}>
+                              {formatCurrency(depositAmount)}
+                            </span>
+                          </div>
+                        )}
+                        {adm.chief_complaint && (
+                          <div className="text-sm line-clamp-2">
+                            <span className="text-muted-foreground">CC: </span>
+                            {adm.chief_complaint}
+                          </div>
+                        )}
+                        
+                        {/* Show warning for pay later admissions */}
+                        {isPayLater && (
+                          <div className="p-2 bg-warning/10 rounded-md text-sm text-warning flex items-center gap-2">
+                            <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+                            Deposit of {formatCurrency(depositAmount)} pending
+                          </div>
+                        )}
+
+                        <Button
+                          className="w-full"
+                          onClick={() => {
+                            setSelectedAdmission(adm);
+                            setConfirmDialogOpen(true);
+                          }}
+                        >
+                          <CheckCircle2 className="h-4 w-4 mr-2" />
+                          Admit to Bed
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             ) : (
               <Card>
