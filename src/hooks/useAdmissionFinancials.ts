@@ -3,6 +3,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { differenceInDays } from "date-fns";
 
+export interface OutstandingInvoiceInfo {
+  id: string;
+  invoice_number: string;
+  outstanding: number;
+}
+
 export interface AdmissionFinancials {
   admissionId: string;
   admissionNumber: string;
@@ -20,6 +26,10 @@ export interface AdmissionFinancials {
   medicationCharges: number;
   labCharges: number;
   otherCharges: number;
+  // Outstanding invoices (lab, pharmacy, etc.)
+  outstandingInvoices: OutstandingInvoiceInfo[];
+  outstandingAmount: number;
+  // Totals
   totalCharges: number;
   balance: number;
   // Charge counts
@@ -47,6 +57,9 @@ export function useAdmissionFinancials(admissionId?: string) {
           admission_number,
           admission_date,
           deposit_amount,
+          patient_id,
+          admission_invoice_id,
+          discharge_invoice_id,
           ward:wards(id, name, charge_per_day),
           bed:beds(id, bed_number, bed_type)
         `)
@@ -81,6 +94,29 @@ export function useAdmissionFinancials(admissionId?: string) {
         .eq("admission_id", admissionId);
 
       if (chargesError) throw chargesError;
+
+      // Fetch outstanding invoices (lab, pharmacy, etc.) for this patient during admission
+      const excludeIds = [admission.admission_invoice_id, admission.discharge_invoice_id].filter(Boolean);
+      let outstandingQuery = supabase
+        .from("invoices")
+        .select("id, invoice_number, total_amount, paid_amount")
+        .eq("patient_id", admission.patient_id)
+        .in("status", ["pending", "partially_paid"])
+        .gte("created_at", admission.admission_date);
+
+      if (excludeIds.length > 0) {
+        outstandingQuery = outstandingQuery.not("id", "in", `(${excludeIds.join(",")})`);
+      }
+
+      const { data: outstandingInvoicesData } = await outstandingQuery;
+
+      const outstandingInvoices: OutstandingInvoiceInfo[] = (outstandingInvoicesData || []).map((inv) => ({
+        id: inv.id,
+        invoice_number: inv.invoice_number,
+        outstanding: (inv.total_amount || 0) - (inv.paid_amount || 0),
+      }));
+
+      const outstandingAmount = outstandingInvoices.reduce((sum, inv) => sum + inv.outstanding, 0);
 
       // Calculate days admitted
       const today = new Date();
@@ -120,7 +156,8 @@ export function useAdmissionFinancials(admissionId?: string) {
         }
       });
 
-      const totalCharges = roomCharges + serviceCharges + medicationCharges + labCharges + otherCharges;
+      // Include outstanding invoices in total
+      const totalCharges = roomCharges + serviceCharges + medicationCharges + labCharges + otherCharges + outstandingAmount;
       const depositAmount = admission.deposit_amount || 0;
       const balance = totalCharges - depositAmount;
 
@@ -139,6 +176,8 @@ export function useAdmissionFinancials(admissionId?: string) {
         medicationCharges,
         labCharges,
         otherCharges,
+        outstandingInvoices,
+        outstandingAmount,
         totalCharges,
         balance,
         chargeItemCount: charges?.length || 0,
