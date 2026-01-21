@@ -1,6 +1,7 @@
 import { forwardRef } from "react";
 import { format } from "date-fns";
 import { generateQRCodeUrl, getAppointmentVerificationUrl } from "@/lib/qrcode";
+import React from "react";
 
 interface PrintableTokenSlipProps {
   tokenNumber: number;
@@ -23,77 +24,229 @@ interface PrintableTokenSlipProps {
     slug?: string;
   };
   showQR?: boolean;
+  showPayment?: boolean;
+  customMessage?: string;
+  customFooter?: string;
+  primaryColor?: string;
 }
 
+const styles: Record<string, React.CSSProperties> = {
+  container: {
+    backgroundColor: "white",
+    padding: "16px",
+    maxWidth: "80mm",
+    margin: "0 auto",
+    fontSize: "12px",
+    fontFamily: "'Segoe UI', Arial, sans-serif",
+    color: "#1a1a1a",
+  },
+  header: {
+    textAlign: "center",
+    borderBottom: "2px dashed black",
+    paddingBottom: "12px",
+    marginBottom: "12px",
+  },
+  logo: {
+    height: "40px",
+    margin: "0 auto 8px",
+    objectFit: "contain",
+    display: "block",
+  },
+  orgName: {
+    fontSize: "14px",
+    fontWeight: "bold",
+    margin: 0,
+  },
+  orgDetails: {
+    fontSize: "10px",
+    color: "#4b5563",
+    margin: "2px 0 0",
+  },
+  tokenTitle: {
+    textAlign: "center",
+    marginBottom: "12px",
+  },
+  tokenLabel: {
+    fontSize: "10px",
+    fontWeight: 600,
+    textTransform: "uppercase",
+    letterSpacing: "1px",
+    margin: 0,
+  },
+  tokenNumber: {
+    fontSize: "48px",
+    fontWeight: "bold",
+    textAlign: "center",
+    margin: "16px 0",
+    fontFamily: "monospace",
+    lineHeight: 1,
+  },
+  infoSection: {
+    marginBottom: "12px",
+  },
+  infoRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    marginBottom: "4px",
+    fontSize: "11px",
+  },
+  infoLabel: {
+    color: "#6b7280",
+  },
+  infoValue: {
+    fontWeight: 500,
+    textAlign: "right",
+  },
+  infoValueMono: {
+    fontFamily: "monospace",
+    textAlign: "right",
+  },
+  dashedBorder: {
+    borderTop: "1px dashed #9ca3af",
+    paddingTop: "8px",
+    marginTop: "8px",
+    marginBottom: "12px",
+  },
+  paymentSection: {
+    borderTop: "1px dashed #9ca3af",
+    paddingTop: "8px",
+    marginBottom: "12px",
+  },
+  paymentRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    marginBottom: "4px",
+    fontSize: "11px",
+  },
+  paymentAmount: {
+    fontWeight: "bold",
+  },
+  qrSection: {
+    textAlign: "center",
+    borderTop: "1px dashed #9ca3af",
+    paddingTop: "12px",
+    marginTop: "12px",
+  },
+  qrImage: {
+    width: "80px",
+    height: "80px",
+    margin: "0 auto",
+    display: "block",
+  },
+  qrLabel: {
+    fontSize: "9px",
+    color: "#9ca3af",
+    marginTop: "4px",
+  },
+  dateTimeSection: {
+    textAlign: "center",
+    fontSize: "10px",
+    borderTop: "1px dashed #9ca3af",
+    paddingTop: "8px",
+    marginTop: "8px",
+  },
+  footer: {
+    textAlign: "center",
+    fontSize: "9px",
+    color: "#6b7280",
+    marginTop: "12px",
+    paddingTop: "8px",
+    borderTop: "1px dashed #9ca3af",
+  },
+};
+
 export const PrintableTokenSlip = forwardRef<HTMLDivElement, PrintableTokenSlipProps>(
-  ({ tokenNumber, patient, doctor, invoiceNumber, amountPaid, paymentMethod, organization, showQR = true }, ref) => {
+  (
+    {
+      tokenNumber,
+      patient,
+      doctor,
+      invoiceNumber,
+      amountPaid,
+      paymentMethod,
+      organization,
+      showQR = true,
+      showPayment = true,
+      customMessage,
+      customFooter,
+      primaryColor,
+    },
+    ref
+  ) => {
     const qrData = getAppointmentVerificationUrl(tokenNumber, organization.slug);
+    const currentDate = format(new Date(), "dd MMM yyyy");
+    const currentTime = format(new Date(), "hh:mm a");
+
+    const accentStyle: React.CSSProperties = primaryColor
+      ? { borderColor: primaryColor }
+      : {};
 
     return (
-      <div ref={ref} className="p-4 bg-white text-black max-w-[80mm] mx-auto text-sm font-sans">
+      <div ref={ref} style={styles.container}>
         {/* Header with Organization Branding */}
-        <div className="text-center border-b-2 border-dashed border-black pb-3 mb-3">
+        <div style={{ ...styles.header, ...accentStyle }}>
           {organization.logo_url && (
-            <img 
-              src={organization.logo_url} 
+            <img
+              src={organization.logo_url}
               alt={organization.name}
-              className="h-10 mx-auto mb-2 object-contain"
+              style={styles.logo}
+              crossOrigin="anonymous"
             />
           )}
-          <h1 className="text-base font-bold">{organization.name}</h1>
-          {organization.address && <p className="text-xs">{organization.address}</p>}
-          {organization.phone && <p className="text-xs">Tel: {organization.phone}</p>}
+          <p style={styles.orgName}>{organization.name}</p>
+          {organization.address && <p style={styles.orgDetails}>{organization.address}</p>}
+          {organization.phone && <p style={styles.orgDetails}>Tel: {organization.phone}</p>}
         </div>
 
         {/* Token Title */}
-        <div className="text-center mb-3">
-          <p className="text-xs font-semibold uppercase tracking-wide">OPD Token</p>
+        <div style={styles.tokenTitle}>
+          <p style={styles.tokenLabel}>OPD Token</p>
         </div>
 
         {/* Large Token Number */}
-        <div className="text-center my-4">
-          <div className="text-5xl font-bold">#{tokenNumber}</div>
-        </div>
+        <div style={styles.tokenNumber}>#{tokenNumber}</div>
 
         {/* Patient & Doctor Info */}
-        <div className="space-y-1 text-xs mb-3">
-          <div className="flex justify-between">
-            <span className="text-gray-600">Patient:</span>
-            <span className="font-medium">{patient.name}</span>
+        <div style={styles.infoSection}>
+          <div style={styles.infoRow}>
+            <span style={styles.infoLabel}>Patient:</span>
+            <span style={styles.infoValue}>{patient.name}</span>
           </div>
           {patient.mrNumber && (
-            <div className="flex justify-between">
-              <span className="text-gray-600">MR#:</span>
-              <span className="font-mono">{patient.mrNumber}</span>
+            <div style={styles.infoRow}>
+              <span style={styles.infoLabel}>MR#:</span>
+              <span style={styles.infoValueMono}>{patient.mrNumber}</span>
             </div>
           )}
-          <div className="flex justify-between">
-            <span className="text-gray-600">Doctor:</span>
-            <span className="font-medium">{doctor.name}</span>
+          <div style={styles.infoRow}>
+            <span style={styles.infoLabel}>Doctor:</span>
+            <span style={styles.infoValue}>{doctor.name}</span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">Specialty:</span>
-            <span>{doctor.specialty}</span>
+          <div style={styles.infoRow}>
+            <span style={styles.infoLabel}>Specialty:</span>
+            <span style={styles.infoValue}>{doctor.specialty}</span>
           </div>
         </div>
 
-        {/* Payment Info (if paid) */}
-        {invoiceNumber && (
-          <div className="border-t border-dashed pt-2 mb-3 space-y-1 text-xs">
-            <div className="flex justify-between">
-              <span className="text-gray-600">Invoice:</span>
-              <span className="font-mono">{invoiceNumber}</span>
+        {/* Payment Info */}
+        {showPayment && invoiceNumber && (
+          <div style={styles.paymentSection}>
+            <div style={styles.paymentRow}>
+              <span style={styles.infoLabel}>Invoice:</span>
+              <span style={styles.infoValueMono}>{invoiceNumber}</span>
             </div>
             {amountPaid !== undefined && (
-              <div className="flex justify-between">
-                <span className="text-gray-600">Paid:</span>
-                <span className="font-bold">Rs. {amountPaid.toLocaleString()}</span>
+              <div style={styles.paymentRow}>
+                <span style={styles.infoLabel}>Paid:</span>
+                <span style={styles.paymentAmount}>Rs. {amountPaid.toLocaleString()}</span>
               </div>
             )}
             {paymentMethod && (
-              <div className="flex justify-between">
-                <span className="text-gray-600">Method:</span>
-                <span className="capitalize">{paymentMethod.replace('_', ' ')}</span>
+              <div style={styles.paymentRow}>
+                <span style={styles.infoLabel}>Method:</span>
+                <span style={{ ...styles.infoValue, textTransform: "capitalize" }}>
+                  {paymentMethod.replace("_", " ")}
+                </span>
               </div>
             )}
           </div>
@@ -101,27 +254,32 @@ export const PrintableTokenSlip = forwardRef<HTMLDivElement, PrintableTokenSlipP
 
         {/* QR Code */}
         {showQR && (
-          <div className="text-center my-3 border-t border-dashed pt-3">
-            <img 
-              src={generateQRCodeUrl(qrData, 80)} 
+          <div style={styles.qrSection}>
+            <img
+              src={generateQRCodeUrl(qrData, 80)}
               alt="Token QR Code"
-              className="mx-auto w-20 h-20"
+              style={styles.qrImage}
             />
-            <p className="text-[10px] text-gray-500 mt-1">Scan to verify</p>
+            <p style={styles.qrLabel}>Scan to verify</p>
           </div>
         )}
 
         {/* Date/Time */}
-        <div className="text-center text-xs border-t border-dashed pt-2 mt-2">
-          <p>
-            <strong>Date:</strong> {format(new Date(), "dd MMM yyyy")} &nbsp;|&nbsp;
-            <strong>Time:</strong> {format(new Date(), "hh:mm a")}
+        <div style={styles.dateTimeSection}>
+          <p style={{ margin: 0 }}>
+            <strong>Date:</strong> {currentDate} &nbsp;|&nbsp;
+            <strong>Time:</strong> {currentTime}
           </p>
         </div>
 
         {/* Footer */}
-        <div className="text-center text-[10px] text-gray-500 mt-3 pt-2 border-t border-dashed">
-          <p>Please wait for your token to be called</p>
+        <div style={styles.footer}>
+          <p style={{ margin: 0 }}>
+            {customMessage || "Please wait for your token to be called"}
+          </p>
+          {customFooter && (
+            <p style={{ margin: "4px 0 0", fontSize: "8px" }}>{customFooter}</p>
+          )}
         </div>
       </div>
     );

@@ -1,5 +1,6 @@
-import { forwardRef } from 'react';
-import { format } from 'date-fns';
+import { forwardRef } from "react";
+import { format } from "date-fns";
+import React from "react";
 
 interface Patient {
   first_name: string;
@@ -26,6 +27,7 @@ interface Organization {
   name: string;
   address?: string | null;
   phone?: string | null;
+  logo_url?: string | null;
 }
 
 interface PrintableTokenSlipProps {
@@ -33,145 +35,263 @@ interface PrintableTokenSlipProps {
   patient: Patient;
   doctor?: Doctor | null;
   organization?: Organization;
+  customMessage?: string;
+  customFooter?: string;
+  showQR?: boolean;
+  primaryColor?: string;
 }
 
 const priorityLabels: Record<number, string> = {
-  0: 'NORMAL',
-  1: 'URGENT',
-  2: 'EMERGENCY',
+  0: "NORMAL",
+  1: "URGENT",
+  2: "EMERGENCY",
+};
+
+const priorityColors: Record<number, string> = {
+  0: "#d1fae5", // green
+  1: "#fef3c7", // amber
+  2: "#fee2e2", // red
 };
 
 const formatTime = (time: string | null): string => {
-  if (!time) return 'Walk-in';
-  const [hours, minutes] = time.split(':').map(Number);
-  const period = hours >= 12 ? 'PM' : 'AM';
+  if (!time) return "Walk-in";
+  const [hours, minutes] = time.split(":").map(Number);
+  const period = hours >= 12 ? "PM" : "AM";
   const hour12 = hours % 12 || 12;
-  return `${hour12}:${minutes.toString().padStart(2, '0')} ${period}`;
+  return `${hour12}:${minutes.toString().padStart(2, "0")} ${period}`;
+};
+
+const styles: Record<string, React.CSSProperties> = {
+  // Wrapper for screen (hidden) - actual print styles applied via print:block
+  wrapper: {
+    display: "none",
+  },
+  container: {
+    backgroundColor: "white",
+    margin: "0 auto",
+    padding: "16px",
+    width: "80mm",
+    fontSize: "12px",
+    fontFamily: "'Segoe UI', Arial, sans-serif",
+    color: "#1a1a1a",
+  },
+  header: {
+    textAlign: "center",
+    borderBottom: "2px solid black",
+    paddingBottom: "8px",
+    marginBottom: "12px",
+  },
+  logo: {
+    height: "40px",
+    margin: "0 auto 8px",
+    objectFit: "contain",
+    display: "block",
+  },
+  orgName: {
+    fontSize: "14px",
+    fontWeight: "bold",
+    margin: 0,
+  },
+  orgDetails: {
+    fontSize: "10px",
+    color: "#4b5563",
+    margin: "2px 0 0",
+  },
+  tokenTitle: {
+    textAlign: "center",
+    fontWeight: "bold",
+    marginBottom: "12px",
+    padding: "4px 0",
+    fontSize: "14px",
+    border: "2px solid black",
+    backgroundColor: "#f0f0f0",
+  },
+  tokenNumber: {
+    textAlign: "center",
+    padding: "16px 0",
+    marginBottom: "12px",
+    fontSize: "48px",
+    fontWeight: "bold",
+    fontFamily: "monospace",
+    lineHeight: 1,
+    border: "1px dashed #666",
+  },
+  priorityBadge: {
+    display: "inline-block",
+    padding: "4px 12px",
+    fontWeight: "bold",
+    fontSize: "10px",
+    border: "1px solid black",
+    textAlign: "center",
+  },
+  priorityContainer: {
+    textAlign: "center",
+    marginBottom: "12px",
+  },
+  infoSection: {
+    marginBottom: "12px",
+  },
+  infoRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    marginBottom: "4px",
+    fontSize: "11px",
+  },
+  infoLabel: {
+    color: "#6b7280",
+  },
+  infoValue: {
+    fontWeight: 500,
+    textAlign: "right",
+  },
+  infoValueMono: {
+    fontFamily: "monospace",
+    fontWeight: 500,
+    textAlign: "right",
+  },
+  instructionsSection: {
+    textAlign: "center",
+    padding: "8px 0",
+    borderTop: "1px dashed #9ca3af",
+    fontSize: "10px",
+  },
+  instructionsText: {
+    fontWeight: 500,
+    margin: "0 0 4px",
+  },
+  subText: {
+    color: "#6b7280",
+    margin: 0,
+  },
+  timestamp: {
+    textAlign: "center",
+    marginTop: "8px",
+    fontSize: "9px",
+    color: "#9ca3af",
+  },
+  footer: {
+    textAlign: "center",
+    fontSize: "9px",
+    color: "#6b7280",
+    marginTop: "8px",
+    paddingTop: "8px",
+    borderTop: "1px dashed #9ca3af",
+  },
 };
 
 export const PrintableTokenSlip = forwardRef<HTMLDivElement, PrintableTokenSlipProps>(
-  ({ appointment, patient, doctor, organization }, ref) => {
+  (
+    {
+      appointment,
+      patient,
+      doctor,
+      organization,
+      customMessage,
+      customFooter,
+      showQR = false,
+      primaryColor,
+    },
+    ref
+  ) => {
     const priority = appointment.priority ?? 0;
-    const fullName = `${patient.first_name} ${patient.last_name || ''}`.trim();
-    
+    const fullName = `${patient.first_name} ${patient.last_name || ""}`.trim();
+    const tokenNumber = appointment.token_number || "-";
+
+    const accentStyle: React.CSSProperties = primaryColor
+      ? { borderColor: primaryColor }
+      : {};
+
     return (
-      <div ref={ref} className="hidden print:block">
-        {/* Token Slip - Small receipt size (80mm width typical) */}
-        <div 
-          className="bg-white text-black mx-auto"
-          style={{ 
-            width: '80mm', 
-            padding: '4mm',
-            fontSize: '9pt',
-            fontFamily: 'Arial, sans-serif'
-          }}
-        >
+      <div ref={ref} style={styles.wrapper} className="hidden print:block">
+        <div style={styles.container}>
           {/* Header */}
-          <div className="text-center border-b-2 border-black pb-2 mb-3">
-            <div className="font-bold" style={{ fontSize: '12pt' }}>
-              {organization?.name || 'Medical Center'}
-            </div>
+          <div style={{ ...styles.header, ...accentStyle }}>
+            {organization?.logo_url && (
+              <img
+                src={organization.logo_url}
+                alt={organization.name}
+                style={styles.logo}
+                crossOrigin="anonymous"
+              />
+            )}
+            <p style={styles.orgName}>{organization?.name || "Medical Center"}</p>
             {organization?.address && (
-              <div style={{ fontSize: '8pt' }} className="text-gray-600">
-                {organization.address}
-              </div>
+              <p style={styles.orgDetails}>{organization.address}</p>
             )}
             {organization?.phone && (
-              <div style={{ fontSize: '8pt' }} className="text-gray-600">
-                Tel: {organization.phone}
-              </div>
+              <p style={styles.orgDetails}>Tel: {organization.phone}</p>
             )}
           </div>
 
           {/* OPD Token Title */}
-          <div 
-            className="text-center font-bold mb-3 py-1"
-            style={{ 
-              fontSize: '14pt',
-              border: '2pt solid #000',
-              background: '#f0f0f0'
-            }}
-          >
-            OPD TOKEN
-          </div>
+          <div style={styles.tokenTitle}>OPD TOKEN</div>
 
           {/* Large Token Number */}
-          <div 
-            className="text-center py-4 mb-3"
-            style={{ 
-              fontSize: '48pt',
-              fontWeight: 'bold',
-              fontFamily: 'monospace',
-              lineHeight: '1',
-              border: '1pt dashed #666'
-            }}
-          >
-            {appointment.token_number || '-'}
-          </div>
+          <div style={styles.tokenNumber}>{tokenNumber}</div>
 
           {/* Priority Badge */}
-          <div className="text-center mb-3">
-            <span 
-              className="inline-block px-3 py-1 font-bold"
-              style={{ 
-                fontSize: '10pt',
-                border: '1pt solid #000',
-                background: priority === 2 ? '#fee2e2' : priority === 1 ? '#fef3c7' : '#d1fae5'
+          <div style={styles.priorityContainer}>
+            <span
+              style={{
+                ...styles.priorityBadge,
+                backgroundColor: priorityColors[priority] || priorityColors[0],
               }}
             >
-              {priorityLabels[priority] || 'NORMAL'}
+              {priorityLabels[priority] || "NORMAL"}
             </span>
           </div>
 
           {/* Patient Details */}
-          <div className="space-y-1 mb-3" style={{ fontSize: '9pt' }}>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Patient:</span>
-              <span className="font-medium">{fullName}</span>
+          <div style={styles.infoSection}>
+            <div style={styles.infoRow}>
+              <span style={styles.infoLabel}>Patient:</span>
+              <span style={styles.infoValue}>{fullName}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">MR#:</span>
-              <span className="font-mono font-medium">{patient.patient_number}</span>
+            <div style={styles.infoRow}>
+              <span style={styles.infoLabel}>MR#:</span>
+              <span style={styles.infoValueMono}>{patient.patient_number}</span>
             </div>
             {doctor && (
-              <div className="flex justify-between">
-                <span className="text-gray-600">Doctor:</span>
-                <span className="font-medium">Dr. {doctor.profile?.full_name || 'N/A'}</span>
+              <div style={styles.infoRow}>
+                <span style={styles.infoLabel}>Doctor:</span>
+                <span style={styles.infoValue}>
+                  Dr. {doctor.profile?.full_name || "N/A"}
+                </span>
               </div>
             )}
-            <div className="flex justify-between">
-              <span className="text-gray-600">Date:</span>
-              <span className="font-medium">
-                {format(new Date(appointment.appointment_date), 'MMM dd, yyyy')}
+            <div style={styles.infoRow}>
+              <span style={styles.infoLabel}>Date:</span>
+              <span style={styles.infoValue}>
+                {format(new Date(appointment.appointment_date), "MMM dd, yyyy")}
               </span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Time:</span>
-              <span className="font-medium">{formatTime(appointment.appointment_time)}</span>
+            <div style={styles.infoRow}>
+              <span style={styles.infoLabel}>Time:</span>
+              <span style={styles.infoValue}>
+                {formatTime(appointment.appointment_time)}
+              </span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Type:</span>
-              <span className="font-medium capitalize">
-                {appointment.appointment_type?.replace('_', ' ') || 'OPD'}
+            <div style={styles.infoRow}>
+              <span style={styles.infoLabel}>Type:</span>
+              <span style={{ ...styles.infoValue, textTransform: "capitalize" }}>
+                {appointment.appointment_type?.replace("_", " ") || "OPD"}
               </span>
             </div>
           </div>
 
           {/* Instructions */}
-          <div 
-            className="text-center py-2 border-t border-dashed border-gray-400"
-            style={{ fontSize: '8pt' }}
-          >
-            <div className="font-medium mb-1">Please wait for your number to be called</div>
-            <div className="text-gray-500">Keep this slip for reference</div>
+          <div style={styles.instructionsSection}>
+            <p style={styles.instructionsText}>
+              {customMessage || "Please wait for your number to be called"}
+            </p>
+            <p style={styles.subText}>
+              {customFooter || "Keep this slip for reference"}
+            </p>
           </div>
 
           {/* Timestamp */}
-          <div 
-            className="text-center mt-2 text-gray-400"
-            style={{ fontSize: '7pt' }}
-          >
-            Printed: {format(new Date(), 'dd/MM/yyyy HH:mm')}
+          <div style={styles.timestamp}>
+            Printed: {format(new Date(), "dd/MM/yyyy HH:mm")}
           </div>
         </div>
       </div>
@@ -179,4 +299,4 @@ export const PrintableTokenSlip = forwardRef<HTMLDivElement, PrintableTokenSlipP
   }
 );
 
-PrintableTokenSlip.displayName = 'PrintableTokenSlip';
+PrintableTokenSlip.displayName = "PrintableTokenSlip";
