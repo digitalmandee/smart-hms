@@ -309,3 +309,111 @@ export const useCreateIPDCharge = () => {
     },
   });
 };
+
+// Generate IPD Invoice from charges
+export const useGenerateIPDInvoice = () => {
+  const queryClient = useQueryClient();
+  const { profile } = useAuth();
+
+  return useMutation({
+    mutationFn: async ({
+      admissionId,
+      patientId,
+      branchId,
+      depositAmount = 0,
+    }: {
+      admissionId: string;
+      patientId: string;
+      branchId: string;
+      depositAmount?: number;
+    }) => {
+      if (!profile?.organization_id) throw new Error("No organization");
+
+      // Fetch all IPD charges for this admission
+      const { data: charges, error: chargesError } = await supabase
+        .from("ipd_charges")
+        .select("*")
+        .eq("admission_id", admissionId);
+
+      if (chargesError) throw chargesError;
+
+      if (!charges || charges.length === 0) {
+        throw new Error("No charges found for this admission");
+      }
+
+      // Calculate totals
+      const subtotal = charges.reduce((sum, charge) => sum + (charge.total_amount || 0), 0);
+      const totalAmount = subtotal;
+
+      // Generate invoice number
+      const today = new Date();
+      const dateStr = today.toISOString().slice(0, 10).replace(/-/g, "");
+      const randomSuffix = Math.floor(Math.random() * 1000).toString().padStart(3, "0");
+      const invoiceNumber = `IPD-${dateStr}-${randomSuffix}`;
+
+      // Create invoice
+      const { data: invoice, error: invoiceError } = await supabase
+        .from("invoices")
+        .insert({
+          invoice_number: invoiceNumber,
+          patient_id: patientId,
+          branch_id: branchId,
+          organization_id: profile.organization_id,
+          subtotal,
+          discount_amount: 0,
+          tax_amount: 0,
+          total_amount: totalAmount,
+          paid_amount: depositAmount,
+          status: depositAmount >= totalAmount ? "paid" : "pending",
+          notes: `IPD Invoice for Admission`,
+          created_by: profile.id,
+        })
+        .select()
+        .single();
+
+      if (invoiceError) throw invoiceError;
+
+      // Create invoice items from charges
+      const invoiceItems = charges.map((charge) => ({
+        invoice_id: invoice.id,
+        description: charge.description,
+        quantity: charge.quantity,
+        unit_price: charge.unit_price,
+        discount_percent: 0,
+        total_price: charge.total_amount,
+        service_type_id: charge.service_type_id,
+      }));
+
+      const { error: itemsError } = await supabase
+        .from("invoice_items")
+        .insert(invoiceItems);
+
+      if (itemsError) throw itemsError;
+
+      // If deposit was applied, create payment record
+      if (depositAmount > 0) {
+        await supabase
+          .from("payments")
+          .insert({
+            invoice_id: invoice.id,
+            amount: Math.min(depositAmount, totalAmount),
+            payment_method: "deposit",
+            payment_date: new Date().toISOString().split("T")[0],
+            notes: "IPD Deposit applied to final invoice",
+            organization_id: profile.organization_id,
+            received_by: profile.id,
+          });
+      }
+
+      return { invoice, chargesCount: charges.length, totalAmount };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      queryClient.invalidateQueries({ queryKey: ["ipd-charges"] });
+      toast({ title: "IPD Invoice generated successfully" });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Failed to generate invoice", description: error.message, variant: "destructive" });
+    },
+  });
+};

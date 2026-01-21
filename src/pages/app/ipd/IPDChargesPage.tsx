@@ -6,26 +6,62 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { useAdmissions } from "@/hooks/useAdmissions";
-import { Receipt, Plus, DollarSign } from "lucide-react";
+import { useIPDCharges, useCreateIPDCharge } from "@/hooks/useDischarge";
+import { Receipt, Plus, DollarSign, Loader2, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 const IPDChargesPage = () => {
   const [selectedAdmission, setSelectedAdmission] = useState<string>("");
-  const [newCharge, setNewCharge] = useState({ description: "", amount: "" });
+  const [addChargeOpen, setAddChargeOpen] = useState(false);
+  const [chargeForm, setChargeForm] = useState({
+    description: "",
+    quantity: "1",
+    unit_price: "",
+    notes: "",
+  });
 
-  const { data: admissions = [] } = useAdmissions();
-  const activeAdmissions = admissions.filter((a) => a.status === "admitted");
-  const selectedAdmissionData = admissions.find((a) => a.id === selectedAdmission);
+  const { data: admissions = [], isLoading: loadingAdmissions } = useAdmissions("admitted");
+  const { data: charges = [], isLoading: loadingCharges } = useIPDCharges(selectedAdmission || undefined);
+  const { mutateAsync: createCharge, isPending: creatingCharge } = useCreateIPDCharge();
 
-  // Mock charges data - would come from a hook in production
-  const charges = selectedAdmission ? [
-    { id: "1", date: new Date(), description: "Room Charges - Private", amount: 5000, category: "accommodation" },
-    { id: "2", date: new Date(), description: "Nursing Care", amount: 1500, category: "nursing" },
-    { id: "3", date: new Date(), description: "Doctor Visit", amount: 2000, category: "consultation" },
-  ] : [];
+  const selectedAdmissionData = admissions.find((a: any) => a.id === selectedAdmission);
+  const totalCharges = charges.reduce((sum: number, c: any) => sum + (c.total_amount || 0), 0);
 
-  const totalCharges = charges.reduce((sum, c) => sum + c.amount, 0);
+  const handleAddCharge = async () => {
+    if (!selectedAdmission || !chargeForm.description || !chargeForm.unit_price) {
+      toast.error("Please fill in required fields");
+      return;
+    }
+
+    try {
+      await createCharge({
+        admission_id: selectedAdmission,
+        description: chargeForm.description,
+        quantity: parseInt(chargeForm.quantity) || 1,
+        unit_price: parseFloat(chargeForm.unit_price) || 0,
+        charge_date: new Date().toISOString().split("T")[0],
+        notes: chargeForm.notes || undefined,
+      });
+      
+      setAddChargeOpen(false);
+      setChargeForm({ description: "", quantity: "1", unit_price: "", notes: "" });
+      toast.success("Charge added successfully");
+    } catch (error) {
+      toast.error("Failed to add charge");
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -39,19 +75,29 @@ const IPDChargesPage = () => {
           <CardTitle className="text-lg">Select Patient</CardTitle>
         </CardHeader>
         <CardContent>
-          <Select value={selectedAdmission} onValueChange={setSelectedAdmission}>
-            <SelectTrigger className="max-w-md">
-              <SelectValue placeholder="Select admitted patient" />
-            </SelectTrigger>
-            <SelectContent>
-              {activeAdmissions.map((admission) => (
-                <SelectItem key={admission.id} value={admission.id}>
-                  {admission.admission_number} - {admission.patient?.first_name}{" "}
-                  {admission.patient?.last_name} ({admission.bed?.bed_number})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {loadingAdmissions ? (
+            <Skeleton className="h-10 w-full max-w-md" />
+          ) : admissions.length === 0 ? (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <AlertCircle className="h-4 w-4" />
+              <span>No admitted patients found</span>
+            </div>
+          ) : (
+            <Select value={selectedAdmission} onValueChange={setSelectedAdmission}>
+              <SelectTrigger className="max-w-md">
+                <SelectValue placeholder="Select admitted patient" />
+              </SelectTrigger>
+              <SelectContent>
+                {admissions.map((admission: any) => (
+                  <SelectItem key={admission.id} value={admission.id}>
+                    {admission.admission_number} - {admission.patient?.first_name}{" "}
+                    {admission.patient?.last_name} 
+                    {admission.bed?.bed_number ? ` (Bed ${admission.bed.bed_number})` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </CardContent>
       </Card>
 
@@ -88,7 +134,9 @@ const IPDChargesPage = () => {
                     {selectedAdmissionData?.patient?.first_name} {selectedAdmissionData?.patient?.last_name}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    Bed: {selectedAdmissionData?.bed?.bed_number}
+                    {selectedAdmissionData?.bed?.bed_number 
+                      ? `Bed: ${selectedAdmissionData.bed.bed_number}` 
+                      : "No bed assigned"}
                   </p>
                 </div>
               </CardContent>
@@ -102,17 +150,31 @@ const IPDChargesPage = () => {
                   <Receipt className="h-5 w-5" />
                   Charge Items
                 </CardTitle>
-                <Button size="sm">
+                <Button size="sm" onClick={() => setAddChargeOpen(true)}>
                   <Plus className="h-4 w-4 mr-2" />
                   Add Charge
                 </Button>
               </div>
             </CardHeader>
             <CardContent>
-              {charges.length === 0 ? (
+              {loadingCharges ? (
+                <div className="space-y-2">
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              ) : charges.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   <Receipt className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <p>No charges recorded yet</p>
+                  <Button 
+                    variant="outline" 
+                    className="mt-4"
+                    onClick={() => setAddChargeOpen(true)}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add First Charge
+                  </Button>
                 </div>
               ) : (
                 <Table>
@@ -120,27 +182,37 @@ const IPDChargesPage = () => {
                     <TableRow>
                       <TableHead>Date</TableHead>
                       <TableHead>Description</TableHead>
-                      <TableHead>Category</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead className="text-right">Qty</TableHead>
+                      <TableHead className="text-right">Unit Price</TableHead>
                       <TableHead className="text-right">Amount</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {charges.map((charge) => (
+                    {charges.map((charge: any) => (
                       <TableRow key={charge.id}>
-                        <TableCell>{format(charge.date, "dd MMM yyyy")}</TableCell>
+                        <TableCell>
+                          {charge.charge_date 
+                            ? format(new Date(charge.charge_date), "dd MMM yyyy")
+                            : "-"}
+                        </TableCell>
                         <TableCell>{charge.description}</TableCell>
                         <TableCell>
                           <Badge variant="outline" className="capitalize">
-                            {charge.category}
+                            {charge.charge_type || "service"}
                           </Badge>
                         </TableCell>
+                        <TableCell className="text-right">{charge.quantity}</TableCell>
+                        <TableCell className="text-right">
+                          Rs. {(charge.unit_price || 0).toLocaleString()}
+                        </TableCell>
                         <TableCell className="text-right font-medium">
-                          Rs. {charge.amount.toLocaleString()}
+                          Rs. {(charge.total_amount || 0).toLocaleString()}
                         </TableCell>
                       </TableRow>
                     ))}
                     <TableRow className="bg-muted/50">
-                      <TableCell colSpan={3} className="font-bold">Total</TableCell>
+                      <TableCell colSpan={5} className="font-bold">Total</TableCell>
                       <TableCell className="text-right font-bold">
                         Rs. {totalCharges.toLocaleString()}
                       </TableCell>
@@ -152,6 +224,68 @@ const IPDChargesPage = () => {
           </Card>
         </>
       )}
+
+      {/* Add Charge Dialog */}
+      <Dialog open={addChargeOpen} onOpenChange={setAddChargeOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add New Charge</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="description">Description *</Label>
+              <Input
+                id="description"
+                placeholder="e.g., Room Charges, Nursing Care, Lab Test"
+                value={chargeForm.description}
+                onChange={(e) => setChargeForm({ ...chargeForm, description: e.target.value })}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="quantity">Quantity</Label>
+                <Input
+                  id="quantity"
+                  type="number"
+                  min="1"
+                  value={chargeForm.quantity}
+                  onChange={(e) => setChargeForm({ ...chargeForm, quantity: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="unit_price">Unit Price (Rs.) *</Label>
+                <Input
+                  id="unit_price"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="0.00"
+                  value={chargeForm.unit_price}
+                  onChange={(e) => setChargeForm({ ...chargeForm, unit_price: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="notes">Notes (optional)</Label>
+              <Textarea
+                id="notes"
+                placeholder="Additional notes..."
+                value={chargeForm.notes}
+                onChange={(e) => setChargeForm({ ...chargeForm, notes: e.target.value })}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAddChargeOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleAddCharge} disabled={creatingCharge}>
+              {creatingCharge && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Add Charge
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

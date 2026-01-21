@@ -139,6 +139,25 @@ export const useCreateAdmission = () => {
         admissionType: admissionData.admission_type
       });
 
+      // If bed is specified, verify it's available first
+      if (admissionData.bed_id) {
+        const { data: bed, error: bedCheckError } = await supabase
+          .from("beds")
+          .select("id, status, current_admission_id")
+          .eq("id", admissionData.bed_id)
+          .single();
+
+        if (bedCheckError) {
+          ipdLogger.error("Failed to verify bed availability", bedCheckError);
+          throw new Error("Failed to verify bed availability");
+        }
+
+        if (bed.status !== "available" && bed.status !== "reserved") {
+          ipdLogger.warn("Bed not available", { bedId: admissionData.bed_id, status: bed.status });
+          throw new Error(`Bed is not available (current status: ${bed.status})`);
+        }
+      }
+
       // Generate admission number
       const { data: lastAdmission } = await supabase
         .from("admissions")
@@ -153,6 +172,7 @@ export const useCreateAdmission = () => {
         : 0;
       const admission_number = `ADM${String(lastNumber + 1).padStart(6, "0")}`;
 
+      // Create admission
       const { data, error } = await supabase
         .from("admissions")
         .insert({
@@ -170,13 +190,31 @@ export const useCreateAdmission = () => {
         throw error;
       }
 
-      // Update bed status to occupied if bed is assigned
+      // Update bed status to occupied if bed is assigned - with error handling
       if (admissionData.bed_id) {
         ipdLogger.debug("Assigning bed to admission", { bedId: admissionData.bed_id, admissionId: data.id });
-        await supabase
+        
+        const { error: bedError } = await supabase
           .from("beds")
-          .update({ status: "occupied", current_admission_id: data.id })
+          .update({ 
+            status: "occupied", 
+            current_admission_id: data.id 
+          })
           .eq("id", admissionData.bed_id);
+
+        if (bedError) {
+          ipdLogger.error("Failed to update bed status", bedError, { 
+            bedId: admissionData.bed_id, 
+            admissionId: data.id 
+          });
+          // Don't throw - admission was created, bed status can be fixed later
+          // But log the issue for monitoring
+        } else {
+          ipdLogger.info("Bed assigned successfully", { 
+            bedId: admissionData.bed_id, 
+            admissionId: data.id 
+          });
+        }
       }
 
       ipdLogger.info("Admission created", { 
@@ -190,6 +228,7 @@ export const useCreateAdmission = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admissions"] });
       queryClient.invalidateQueries({ queryKey: ["beds"] });
+      queryClient.invalidateQueries({ queryKey: ["wards"] });
       queryClient.invalidateQueries({ queryKey: ["ipd-stats"] });
       toast({ title: "Patient admitted successfully" });
     },
