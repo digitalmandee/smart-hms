@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format, differenceInDays } from "date-fns";
 import { useReactToPrint } from "react-to-print";
@@ -37,6 +37,7 @@ import { useDischargeSummary, useApproveDischargeSummary, useIPDCharges, useGene
 import { useBedTypes } from "@/hooks/useIPDConfig";
 import { useAdmissionSurgeries } from "@/hooks/useOT";
 import { useInvoice } from "@/hooks/useBilling";
+import { useOutstandingInvoices, calculateOutstandingTotal } from "@/hooks/useOutstandingInvoices";
 import { DischargeChecklist } from "@/components/ipd/DischargeChecklist";
 import { DischargeSummaryForm } from "@/components/ipd/DischargeSummaryForm";
 import { PrintableDischargeSummary } from "@/components/ipd/PrintableDischargeSummary";
@@ -65,6 +66,8 @@ import {
   ChevronDown,
   Plus,
   Stethoscope,
+  TestTube,
+  ExternalLink,
 } from "lucide-react";
 
 const DISCHARGE_TYPES = [
@@ -101,6 +104,15 @@ export default function DischargeFormPage() {
   // Get invoice if already generated
   const invoiceId = admission?.discharge_invoice_id;
   const { data: existingInvoice, refetch: refetchInvoice } = useInvoice(invoiceId || undefined);
+
+  // Fetch outstanding invoices (lab, pharmacy, etc.) for this patient during admission
+  const excludeInvoiceIds = [admission?.admission_invoice_id, admission?.discharge_invoice_id].filter(Boolean) as string[];
+  const { data: outstandingInvoices = [] } = useOutstandingInvoices(
+    admission?.patient_id,
+    admission?.admission_date,
+    excludeInvoiceIds
+  );
+  const outstandingTotal = calculateOutstandingTotal(outstandingInvoices);
 
   const isLoading = loadingAdmission || loadingSummary;
   const invoiceGenerated = !!invoiceId;
@@ -241,7 +253,8 @@ export default function DischargeFormPage() {
   }, 0);
   const serviceCharges = charges.reduce((sum: number, c: any) => sum + (c.total_amount || 0), 0);
   const roomCharges = Math.max(1, daysAdmitted) * dailyRate;
-  const totalCharges = serviceCharges + roomCharges + additionalChargesTotal;
+  // Include outstanding invoices (lab, pharmacy) in total
+  const totalCharges = serviceCharges + roomCharges + additionalChargesTotal + outstandingTotal;
   const depositAmount = admission?.deposit_amount || 0;
   const balanceDue = totalCharges - depositAmount;
 
@@ -429,6 +442,7 @@ export default function DischargeFormPage() {
               invoiceNumber={existingInvoice.invoice_number}
               totalAmount={existingInvoice.total_amount || 0}
               paidAmount={existingInvoice.paid_amount || 0}
+              depositAmount={depositAmount}
               status={existingInvoice.status || "pending"}
               onPaymentRecorded={() => refetchInvoice()}
             />
@@ -496,6 +510,39 @@ export default function DischargeFormPage() {
                     </span>
                     <span className="font-medium">Rs. {additionalChargesTotal.toLocaleString()}</span>
                   </div>
+                )}
+
+                {/* Outstanding Invoices (Lab, Pharmacy, etc.) */}
+                {outstandingInvoices.length > 0 && (
+                  <>
+                    <Separator className="my-2" />
+                    <div className="space-y-2">
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                        Outstanding Invoices (Lab, Pharmacy, etc.)
+                      </p>
+                      {outstandingInvoices.map((inv) => (
+                        <div key={inv.id} className="flex justify-between items-center">
+                          <span className="flex items-center gap-2 text-muted-foreground">
+                            <TestTube className="h-4 w-4" />
+                            <span className="text-sm">{inv.invoice_number}</span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-5 w-5 p-0"
+                              onClick={() => navigate(`/app/billing/invoices/${inv.id}`)}
+                            >
+                              <ExternalLink className="h-3 w-3" />
+                            </Button>
+                          </span>
+                          <span className="font-medium text-destructive">Rs. {inv.outstanding.toLocaleString()}</span>
+                        </div>
+                      ))}
+                      <div className="flex justify-between text-sm font-medium pt-1 border-t border-dashed">
+                        <span>Outstanding Subtotal</span>
+                        <span className="text-destructive">Rs. {outstandingTotal.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </>
                 )}
 
                 <Separator />

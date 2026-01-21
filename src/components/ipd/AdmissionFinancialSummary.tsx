@@ -175,6 +175,17 @@ export function AdmissionFinancialSummary({
               </div>
             )}
 
+            {/* Outstanding Invoices */}
+            {financials.outstandingAmount > 0 && (
+              <div className="flex items-center justify-between py-2 border-b bg-warning/5">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4 text-warning" />
+                  <span>Outstanding Invoices ({financials.outstandingInvoices.length})</span>
+                </div>
+                <span className="font-medium text-warning">{formatCurrency(financials.outstandingAmount)}</span>
+              </div>
+            )}
+
             {/* Total */}
             <div className="flex items-center justify-between py-2 bg-muted/50 px-2 rounded font-semibold">
               <span>Total Charges</span>
