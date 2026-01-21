@@ -2,7 +2,7 @@ import { LucideIcon, TrendingUp, TrendingDown } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-interface ModernStatsCardProps {
+export interface ModernStatsCardProps {
   title: string;
   value: string | number;
   icon: LucideIcon;
@@ -11,10 +11,12 @@ interface ModernStatsCardProps {
     isPositive: boolean;
   };
   description?: string;
-  variant?: "default" | "primary" | "success" | "warning" | "info" | "destructive";
+  change?: string;
+  variant?: "default" | "primary" | "success" | "warning" | "info" | "destructive" | "accent";
   onClick?: () => void;
   className?: string;
   delay?: number;
+  loading?: boolean;
 }
 
 const variantStyles = {
@@ -48,6 +50,11 @@ const variantStyles = {
     icon: "bg-gradient-to-br from-destructive to-destructive/80 text-destructive-foreground",
     iconGlow: "shadow-lg shadow-destructive/30",
   },
+  accent: {
+    card: "bg-gradient-to-br from-accent/5 to-accent/10 border-accent/20 hover:border-accent/40 hover:shadow-lg hover:shadow-accent/10",
+    icon: "bg-gradient-to-br from-accent to-accent/80 text-accent-foreground",
+    iconGlow: "shadow-lg shadow-accent/30",
+  },
 };
 
 export function ModernStatsCard({
@@ -56,10 +63,12 @@ export function ModernStatsCard({
   icon: Icon,
   trend,
   description,
+  change,
   variant = "default",
   onClick,
   className,
   delay = 0,
+  loading = false,
 }: ModernStatsCardProps) {
   const styles = variantStyles[variant];
 
@@ -102,8 +111,8 @@ export function ModernStatsCard({
                 </div>
               )}
             </div>
-            {description && (
-              <p className="text-xs text-muted-foreground">{description}</p>
+            {(description || change) && (
+              <p className="text-xs text-muted-foreground">{description || change}</p>
             )}
           </div>
           <div

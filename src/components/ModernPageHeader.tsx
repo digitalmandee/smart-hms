@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { ChevronRight, Sun, Moon, Sunset, CloudSun } from "lucide-react";
+import { ChevronRight, Sun, Moon, Sunset, CloudSun, LucideIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -14,7 +14,7 @@ interface QuickStat {
   variant?: "default" | "success" | "warning" | "destructive";
 }
 
-interface ModernPageHeaderProps {
+export interface ModernPageHeaderProps {
   title: string;
   subtitle?: string;
   userName?: string;
@@ -23,6 +23,8 @@ interface ModernPageHeaderProps {
   quickStats?: QuickStat[];
   showGreeting?: boolean;
   variant?: "default" | "gradient" | "subtle";
+  icon?: LucideIcon;
+  iconColor?: string;
 }
 
 function getTimeOfDay(): { greeting: string; icon: React.ReactNode } {
@@ -60,6 +62,8 @@ export function ModernPageHeader({
   quickStats,
   showGreeting = false,
   variant = "default",
+  icon: HeaderIcon,
+  iconColor = "text-primary",
 }: ModernPageHeaderProps) {
   const { greeting, icon } = getTimeOfDay();
   const today = format(new Date(), "EEEE, MMMM d, yyyy");
@@ -101,9 +105,14 @@ export function ModernPageHeader({
           )}
 
           {/* Title */}
-          <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
-            {title}
-          </h1>
+          <div className="flex items-center gap-3">
+            {HeaderIcon && (
+              <div className={cn("p-2 rounded-xl bg-muted/50", iconColor)}>
+                <HeaderIcon className="h-6 w-6" />
+              </div>
+            )}
+            <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+          </div>
 
           {/* Subtitle or Date */}
           {subtitle ? (

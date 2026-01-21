@@ -1,7 +1,6 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { PageHeader } from "@/components/PageHeader";
-import { StatsCard } from "@/components/StatsCard";
+import { ModernPageHeader } from "@/components/ModernPageHeader";
+import { ModernStatsCard } from "@/components/ModernStatsCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,7 +16,6 @@ import { useExpiringLicenses } from "@/hooks/useEmployeeDocuments";
 import {
   Users,
   UserCheck,
-  UserX,
   Calendar,
   Clock,
   DollarSign,
@@ -25,9 +23,9 @@ import {
   ChevronRight,
   Gift,
   FileText,
-  Loader2,
   Stethoscope,
   Heart,
+  Building2,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -52,121 +50,111 @@ export default function HRDashboard() {
     await approveLeave.mutateAsync({ id, approved: false });
   };
 
+  const quickAccessItems = [
+    { title: "Doctors", subtitle: "Manage physicians", icon: Stethoscope, color: "bg-blue-100 text-blue-600", path: "/app/hr/doctors" },
+    { title: "Nurses", subtitle: "Nursing staff", icon: Heart, color: "bg-pink-100 text-pink-600", path: "/app/hr/nurses" },
+    { title: "Attendance", subtitle: "Track time", icon: Clock, color: "bg-green-100 text-green-600", path: "/app/hr/attendance" },
+    { title: "Payroll", subtitle: "Salary processing", icon: DollarSign, color: "bg-purple-100 text-purple-600", path: "/app/hr/payroll" },
+  ];
+
   return (
     <div className="space-y-6">
-      <PageHeader
+      <ModernPageHeader
         title="HR Dashboard"
-        description={`Overview for ${format(new Date(), "EEEE, MMMM d, yyyy")}`}
+        subtitle={`Overview for ${format(new Date(), "EEEE, MMMM d, yyyy")}`}
+        icon={Building2}
+        iconColor="text-primary"
       />
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatsCard
+        <ModernStatsCard
           title="Total Employees"
-          value={loadingEmployeeStats ? "-" : employeeStats?.total || 0}
+          value={employeeStats?.total || 0}
+          change="Active workforce"
           icon={Users}
-          description="Active workforce"
+          variant="primary"
+          loading={loadingEmployeeStats}
+          onClick={() => navigate("/app/hr/employees")}
         />
-        <StatsCard
+        <ModernStatsCard
           title="Present Today"
-          value={loadingAttendanceStats ? "-" : attendanceStats?.present || 0}
+          value={attendanceStats?.present || 0}
+          change={`${attendanceStats?.late || 0} late arrivals`}
           icon={UserCheck}
-          description={`${attendanceStats?.late || 0} late arrivals`}
-          trend={attendanceStats?.present ? { value: Math.round((attendanceStats.present / (employeeStats?.active || 1)) * 100), isPositive: true } : undefined}
+          variant="success"
+          loading={loadingAttendanceStats}
+          onClick={() => navigate("/app/hr/attendance")}
         />
-        <StatsCard
+        <ModernStatsCard
           title="On Leave Today"
-          value={loadingLeaveStats ? "-" : leaveStats?.onLeaveToday || 0}
+          value={leaveStats?.onLeaveToday || 0}
+          change={`${leaveStats?.pendingRequests || 0} pending requests`}
           icon={Calendar}
-          description={`${leaveStats?.pendingRequests || 0} pending requests`}
+          variant="warning"
+          loading={loadingLeaveStats}
+          onClick={() => navigate("/app/hr/leaves")}
         />
-        <StatsCard
+        <ModernStatsCard
           title="Payroll Status"
-          value={loadingPayrollStats ? "-" : payrollStats?.currentPayrollStatus === "completed" ? "Done" : "Pending"}
+          value={payrollStats?.currentPayrollStatus === "completed" ? "Done" : "Pending"}
+          change="This month"
           icon={DollarSign}
-          description="This month"
+          variant={payrollStats?.currentPayrollStatus === "completed" ? "success" : "info"}
+          loading={loadingPayrollStats}
+          onClick={() => navigate("/app/hr/payroll")}
         />
       </div>
 
       {/* Quick Access Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card 
-          className="cursor-pointer hover:shadow-md transition-shadow"
-          onClick={() => navigate("/app/hr/doctors")}
-        >
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Stethoscope className="h-5 w-5 text-blue-600" />
-            </div>
-            <div>
-              <p className="font-medium">Doctors</p>
-              <p className="text-sm text-muted-foreground">Manage physicians</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card 
-          className="cursor-pointer hover:shadow-md transition-shadow"
-          onClick={() => navigate("/app/hr/nurses")}
-        >
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 bg-pink-100 rounded-lg">
-              <Heart className="h-5 w-5 text-pink-600" />
-            </div>
-            <div>
-              <p className="font-medium">Nurses</p>
-              <p className="text-sm text-muted-foreground">Nursing staff</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card 
-          className="cursor-pointer hover:shadow-md transition-shadow"
-          onClick={() => navigate("/app/hr/attendance")}
-        >
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <Clock className="h-5 w-5 text-green-600" />
-            </div>
-            <div>
-              <p className="font-medium">Attendance</p>
-              <p className="text-sm text-muted-foreground">Track time</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card 
-          className="cursor-pointer hover:shadow-md transition-shadow"
-          onClick={() => navigate("/app/hr/payroll")}
-        >
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <DollarSign className="h-5 w-5 text-purple-600" />
-            </div>
-            <div>
-              <p className="font-medium">Payroll</p>
-              <p className="text-sm text-muted-foreground">Salary processing</p>
-            </div>
-          </CardContent>
-        </Card>
+        {quickAccessItems.map((item, idx) => (
+          <Card 
+            key={item.title}
+            className="cursor-pointer hover:shadow-md hover:border-primary/20 transition-all duration-200 animate-fade-in"
+            style={{ animationDelay: `${idx * 50}ms` }}
+            onClick={() => navigate(item.path)}
+          >
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className={`p-2.5 rounded-xl ${item.color}`}>
+                <item.icon className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="font-medium">{item.title}</p>
+                <p className="text-sm text-muted-foreground">{item.subtitle}</p>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Pending Leave Requests */}
-        <Card className="lg:col-span-2">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-base">Pending Leave Requests</CardTitle>
+        <Card className="lg:col-span-2 shadow-soft overflow-hidden">
+          <CardHeader className="flex flex-row items-center justify-between bg-gradient-to-r from-warning/5 to-transparent">
+            <CardTitle className="text-base flex items-center gap-2">
+              <div className="p-1.5 rounded-lg bg-warning/10">
+                <FileText className="h-4 w-4 text-warning" />
+              </div>
+              Pending Leave Requests
+            </CardTitle>
             <Button variant="ghost" size="sm" onClick={() => navigate("/app/hr/leaves/approvals")}>
               View All
               <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-3 pt-4">
             {loadingPendingLeaves ? (
               Array.from({ length: 3 }).map((_, i) => (
                 <Skeleton key={i} className="h-32 w-full" />
               ))
             ) : pendingLeaves?.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p>No pending leave requests</p>
+                <div className="p-4 rounded-full bg-muted/50 w-fit mx-auto mb-3">
+                  <FileText className="h-8 w-8 opacity-50" />
+                </div>
+                <p className="font-medium">No pending requests</p>
+                <p className="text-sm">All leave requests have been processed</p>
               </div>
             ) : (
               pendingLeaves?.slice(0, 3).map((request) => (
@@ -184,33 +172,35 @@ export default function HRDashboard() {
         {/* Quick Stats & Alerts */}
         <div className="space-y-6">
           {/* Today's Attendance Summary */}
-          <Card>
-            <CardHeader>
+          <Card className="shadow-soft overflow-hidden">
+            <CardHeader className="bg-gradient-to-r from-success/5 to-transparent">
               <CardTitle className="text-base flex items-center gap-2">
-                <Clock className="h-4 w-4" />
+                <div className="p-1.5 rounded-lg bg-success/10">
+                  <Clock className="h-4 w-4 text-success" />
+                </div>
                 Today's Attendance
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-3 pt-4">
               {loadingAttendanceStats ? (
                 <Skeleton className="h-20 w-full" />
               ) : (
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="p-3 bg-green-50 rounded-lg text-center">
-                    <p className="text-2xl font-bold text-green-700">{attendanceStats?.present || 0}</p>
-                    <p className="text-xs text-green-600">Present</p>
+                  <div className="p-3 bg-success/10 rounded-xl text-center border border-success/20">
+                    <p className="text-2xl font-bold text-success">{attendanceStats?.present || 0}</p>
+                    <p className="text-xs text-success/80 font-medium">Present</p>
                   </div>
-                  <div className="p-3 bg-red-50 rounded-lg text-center">
-                    <p className="text-2xl font-bold text-red-700">{attendanceStats?.absent || 0}</p>
-                    <p className="text-xs text-red-600">Absent</p>
+                  <div className="p-3 bg-destructive/10 rounded-xl text-center border border-destructive/20">
+                    <p className="text-2xl font-bold text-destructive">{attendanceStats?.absent || 0}</p>
+                    <p className="text-xs text-destructive/80 font-medium">Absent</p>
                   </div>
-                  <div className="p-3 bg-yellow-50 rounded-lg text-center">
-                    <p className="text-2xl font-bold text-yellow-700">{attendanceStats?.late || 0}</p>
-                    <p className="text-xs text-yellow-600">Late</p>
+                  <div className="p-3 bg-warning/10 rounded-xl text-center border border-warning/20">
+                    <p className="text-2xl font-bold text-warning">{attendanceStats?.late || 0}</p>
+                    <p className="text-xs text-warning/80 font-medium">Late</p>
                   </div>
-                  <div className="p-3 bg-blue-50 rounded-lg text-center">
-                    <p className="text-2xl font-bold text-blue-700">{attendanceStats?.onLeave || 0}</p>
-                    <p className="text-xs text-blue-600">On Leave</p>
+                  <div className="p-3 bg-info/10 rounded-xl text-center border border-info/20">
+                    <p className="text-2xl font-bold text-info">{attendanceStats?.onLeave || 0}</p>
+                    <p className="text-xs text-info/80 font-medium">On Leave</p>
                   </div>
                 </div>
               )}
@@ -221,14 +211,16 @@ export default function HRDashboard() {
           </Card>
 
           {/* Birthdays This Month */}
-          <Card>
-            <CardHeader>
+          <Card className="shadow-soft overflow-hidden">
+            <CardHeader className="bg-gradient-to-r from-accent/5 to-transparent">
               <CardTitle className="text-base flex items-center gap-2">
-                <Gift className="h-4 w-4" />
+                <div className="p-1.5 rounded-lg bg-accent/10">
+                  <Gift className="h-4 w-4 text-accent" />
+                </div>
                 Birthdays This Month
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-4">
               {loadingEmployeeStats ? (
                 <Skeleton className="h-12 w-full" />
               ) : employeeStats?.birthdaysThisMonth === 0 ? (
@@ -236,45 +228,47 @@ export default function HRDashboard() {
                   No birthdays this month
                 </p>
               ) : (
-                <div className="flex items-center justify-between">
-                  <span className="text-3xl font-bold">{employeeStats?.birthdaysThisMonth}</span>
-                  <Badge variant="secondary">This month</Badge>
+                <div className="flex items-center justify-between p-3 bg-accent/5 rounded-xl border border-accent/20">
+                  <span className="text-3xl font-bold text-accent">{employeeStats?.birthdaysThisMonth}</span>
+                  <Badge variant="secondary" className="bg-accent/10 text-accent border-accent/20">This month</Badge>
                 </div>
               )}
             </CardContent>
           </Card>
 
           {/* Alerts */}
-          <Card>
-            <CardHeader>
+          <Card className="shadow-soft overflow-hidden">
+            <CardHeader className="bg-gradient-to-r from-destructive/5 to-transparent">
               <CardTitle className="text-base flex items-center gap-2">
-                <AlertCircle className="h-4 w-4" />
+                <div className="p-1.5 rounded-lg bg-destructive/10">
+                  <AlertCircle className="h-4 w-4 text-destructive" />
+                </div>
                 Alerts
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
+            <CardContent className="space-y-2 pt-4">
               {leaveStats?.pendingRequests ? (
-                <div className="flex items-center justify-between p-2 bg-yellow-50 rounded-lg">
-                  <span className="text-sm">{leaveStats.pendingRequests} pending leave requests</span>
-                  <Badge variant="outline" className="bg-yellow-100">Action</Badge>
+                <div className="flex items-center justify-between p-3 bg-warning/5 rounded-xl border border-warning/20">
+                  <span className="text-sm font-medium">{leaveStats.pendingRequests} pending leave requests</span>
+                  <Badge variant="outline" className="bg-warning/10 text-warning border-warning/30">Action</Badge>
                 </div>
               ) : null}
               {payrollStats?.pendingLoanApprovals ? (
-                <div className="flex items-center justify-between p-2 bg-orange-50 rounded-lg">
-                  <span className="text-sm">{payrollStats.pendingLoanApprovals} loan approvals pending</span>
-                  <Badge variant="outline" className="bg-orange-100">Action</Badge>
+                <div className="flex items-center justify-between p-3 bg-orange-50 rounded-xl border border-orange-200">
+                  <span className="text-sm font-medium">{payrollStats.pendingLoanApprovals} loan approvals pending</span>
+                  <Badge variant="outline" className="bg-orange-100 text-orange-700 border-orange-300">Action</Badge>
                 </div>
               ) : null}
               {expiringLicenses && expiringLicenses.length > 0 && (
-                <div className="flex items-center justify-between p-2 bg-red-50 rounded-lg">
-                  <span className="text-sm">{expiringLicenses.length} licenses expiring soon</span>
-                  <Badge variant="outline" className="bg-red-100">Urgent</Badge>
+                <div className="flex items-center justify-between p-3 bg-destructive/5 rounded-xl border border-destructive/20">
+                  <span className="text-sm font-medium">{expiringLicenses.length} licenses expiring soon</span>
+                  <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/30">Urgent</Badge>
                 </div>
               )}
               {!leaveStats?.pendingRequests && !payrollStats?.pendingLoanApprovals && (!expiringLicenses || expiringLicenses.length === 0) && (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  No pending alerts
-                </p>
+                <div className="text-center py-4 text-muted-foreground">
+                  <p className="text-sm">No pending alerts</p>
+                </div>
               )}
             </CardContent>
           </Card>
@@ -285,15 +279,20 @@ export default function HRDashboard() {
       <LicenseExpiryAlerts daysAhead={90} limit={5} />
 
       {/* Recent Employees */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-base">Recent Employees</CardTitle>
+      <Card className="shadow-soft overflow-hidden">
+        <CardHeader className="flex flex-row items-center justify-between bg-gradient-to-r from-primary/5 to-transparent">
+          <CardTitle className="text-base flex items-center gap-2">
+            <div className="p-1.5 rounded-lg bg-primary/10">
+              <Users className="h-4 w-4 text-primary" />
+            </div>
+            Recent Employees
+          </CardTitle>
           <Button variant="ghost" size="sm" onClick={() => navigate("/app/hr/employees")}>
             View All
             <ChevronRight className="h-4 w-4 ml-1" />
           </Button>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-4">
           {loadingRecentEmployees ? (
             <div className="grid md:grid-cols-3 gap-4">
               {Array.from({ length: 3 }).map((_, i) => (
@@ -302,21 +301,24 @@ export default function HRDashboard() {
             </div>
           ) : recentEmployees?.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p>No employees found</p>
+              <div className="p-4 rounded-full bg-muted/50 w-fit mx-auto mb-3">
+                <Users className="h-8 w-8 opacity-50" />
+              </div>
+              <p className="font-medium">No employees found</p>
               <Button className="mt-4" onClick={() => navigate("/app/hr/employees/new")}>
                 Add First Employee
               </Button>
             </div>
           ) : (
             <div className="grid md:grid-cols-3 gap-4">
-              {recentEmployees?.slice(0, 6).map((employee) => (
-                <EmployeeCard
-                  key={employee.id}
-                  employee={employee}
-                  compact
-                  onClick={() => navigate(`/app/hr/employees/${employee.id}`)}
-                />
+              {recentEmployees?.slice(0, 6).map((employee, idx) => (
+                <div key={employee.id} className="animate-fade-in" style={{ animationDelay: `${idx * 50}ms` }}>
+                  <EmployeeCard
+                    employee={employee}
+                    compact
+                    onClick={() => navigate(`/app/hr/employees/${employee.id}`)}
+                  />
+                </div>
               ))}
             </div>
           )}
