@@ -25,7 +25,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useAdmission, useDischargePatient } from "@/hooks/useAdmissions";
-import { useDischargeSummary, useApproveDischargeSummary } from "@/hooks/useDischarge";
+import { useDischargeSummary, useApproveDischargeSummary, useIPDCharges, useGenerateIPDInvoice } from "@/hooks/useDischarge";
 import { DischargeChecklist } from "@/components/ipd/DischargeChecklist";
 import { DischargeSummaryForm } from "@/components/ipd/DischargeSummaryForm";
 import { PrintableDischargeSummary } from "@/components/ipd/PrintableDischargeSummary";
@@ -42,6 +42,8 @@ import {
   AlertTriangle,
   Printer,
   LogOut,
+  Receipt,
+  Loader2,
 } from "lucide-react";
 
 const DISCHARGE_TYPES = [
@@ -62,11 +64,14 @@ export default function DischargeFormPage() {
   const [dischargeType, setDischargeType] = useState("normal");
   const [completedChecklist, setCompletedChecklist] = useState<string[]>([]);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [invoiceGenerated, setInvoiceGenerated] = useState(false);
 
   const { data: admission, isLoading: loadingAdmission } = useAdmission(id);
   const { data: dischargeSummary, isLoading: loadingSummary, refetch: refetchSummary } = useDischargeSummary(id);
+  const { data: charges = [] } = useIPDCharges(id);
   const { mutateAsync: dischargePatient, isPending: discharging } = useDischargePatient();
   const { mutateAsync: approveSummary, isPending: approving } = useApproveDischargeSummary();
+  const { mutateAsync: generateInvoice, isPending: generatingInvoice } = useGenerateIPDInvoice();
 
   const isLoading = loadingAdmission || loadingSummary;
 
@@ -135,6 +140,32 @@ export default function DischargeFormPage() {
       toast.error("Failed to approve summary");
     }
   };
+
+  const handleGenerateInvoice = async () => {
+    if (!id || !admission?.patient_id || !admission?.branch_id) {
+      toast.error("Missing required information for invoice");
+      return;
+    }
+
+    try {
+      const result = await generateInvoice({
+        admissionId: id,
+        patientId: admission.patient_id,
+        branchId: admission.branch_id,
+        depositAmount: admission.deposit_amount || 0,
+      });
+      
+      setInvoiceGenerated(true);
+      toast.success(`Invoice generated: Rs. ${result.totalAmount.toLocaleString()} (${result.chargesCount} items)`);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to generate invoice");
+    }
+  };
+
+  // Calculate total charges
+  const totalCharges = charges.reduce((sum: number, c: any) => sum + (c.total_amount || 0), 0);
+  const depositAmount = admission?.deposit_amount || 0;
+  const balanceDue = totalCharges - depositAmount;
 
   if (isLoading) {
     return (
@@ -281,10 +312,10 @@ export default function DischargeFormPage() {
 
       {/* Warning for non-normal discharge */}
       {["against_advice", "absconded", "expired"].includes(dischargeType) && (
-        <Card className="border-amber-200 bg-amber-50">
+        <Card className="border-amber-500/50 bg-amber-500/10">
           <CardContent className="p-4 flex items-center gap-3">
             <AlertTriangle className="h-5 w-5 text-amber-600" />
-            <p className="text-sm text-amber-800">
+            <p className="text-sm">
               {dischargeType === "against_advice" && "Patient is leaving against medical advice. Ensure proper documentation and consent."}
               {dischargeType === "absconded" && "Patient has absconded. Document the circumstances and notify security."}
               {dischargeType === "expired" && "Patient has expired. Ensure death certificate and body handling procedures are followed."}
@@ -293,7 +324,51 @@ export default function DischargeFormPage() {
         </Card>
       )}
 
-      {/* Main Content Tabs */}
+      {/* Billing Summary Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Receipt className="h-5 w-5" />
+            Billing Summary
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-4">
+            <div>
+              <p className="text-sm text-muted-foreground">Total Charges</p>
+              <p className="text-xl font-bold">Rs. {totalCharges.toLocaleString()}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Deposit Paid</p>
+              <p className="text-xl font-bold text-green-600">Rs. {depositAmount.toLocaleString()}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Balance Due</p>
+              <p className={`text-xl font-bold ${balanceDue > 0 ? 'text-destructive' : 'text-green-600'}`}>
+                Rs. {balanceDue.toLocaleString()}
+              </p>
+            </div>
+            <div className="flex items-end">
+              <Button 
+                onClick={handleGenerateInvoice} 
+                disabled={generatingInvoice || invoiceGenerated || charges.length === 0}
+                className="w-full"
+              >
+                {generatingInvoice ? (
+                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Generating...</>
+                ) : invoiceGenerated ? (
+                  <><CheckCircle2 className="h-4 w-4 mr-2" />Invoice Generated</>
+                ) : (
+                  <><Receipt className="h-4 w-4 mr-2" />Generate Invoice</>
+                )}
+              </Button>
+            </div>
+          </div>
+          {charges.length === 0 && (
+            <p className="text-sm text-muted-foreground mt-2">No charges recorded for this admission.</p>
+          )}
+        </CardContent>
+      </Card>
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="checklist" className="flex items-center gap-2">
