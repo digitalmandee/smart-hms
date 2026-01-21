@@ -123,7 +123,7 @@ export const BedMap = ({
             <Button
               variant="outline"
               className={cn(
-                "h-24 w-28 flex flex-col items-center justify-between p-2 border-2 transition-all gap-0",
+                "h-[100px] w-28 flex flex-col items-center justify-between p-2 border-2 transition-all gap-0",
                 statusColors[bed.status] || statusColors.available,
                 isSelected && "ring-2 ring-primary ring-offset-2",
                 bed.status === "maintenance" && "cursor-not-allowed opacity-60"
@@ -142,7 +142,7 @@ export const BedMap = ({
               <div className="text-sm font-bold text-foreground">{bed.bed_number}</div>
 
               {/* Patient Name or Status */}
-              <div className="text-[10px] text-muted-foreground truncate w-full text-center h-3">
+              <div className="text-[10px] text-muted-foreground truncate w-full text-center leading-tight min-h-[14px] capitalize">
                 {patient ? `${patient.first_name} ${patient.last_name.charAt(0)}.` : bed.status}
               </div>
             </Button>
@@ -176,7 +176,7 @@ export const BedMap = ({
       return (
         <div
           key={`empty-${row}-${col}`}
-          className="h-24 w-28 border-2 border-dashed border-muted rounded-lg"
+          className="h-[100px] w-28 border-2 border-dashed border-muted rounded-lg"
         />
       );
     }
@@ -206,7 +206,7 @@ export const BedMap = ({
         <Button
           variant="ghost"
           className={cn(
-            "h-24 w-28 border-2 border-dashed border-muted rounded-lg flex flex-col items-center justify-center gap-1 transition-all",
+            "h-[100px] w-28 border-2 border-dashed border-muted rounded-lg flex flex-col items-center justify-center gap-1 transition-all",
             "hover:border-primary hover:bg-primary/5",
             isActive && "border-primary bg-primary/10"
           )}
@@ -244,7 +244,7 @@ export const BedMap = ({
               {Array.from({ length: maxRow }, (_, rowIdx) => (
                 <div key={rowIdx} className="flex gap-2">
                   {/* Row label */}
-                  <div className="w-6 h-24 flex items-center justify-center text-xs text-muted-foreground font-medium">
+                  <div className="w-6 h-[100px] flex items-center justify-center text-xs text-muted-foreground font-medium">
                     {rowIdx + 1}
                   </div>
                   {Array.from({ length: maxCol }, (_, colIdx) => {
