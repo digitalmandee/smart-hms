@@ -31,16 +31,26 @@ import { useCreateAppointment, useUpdateAppointment, useAppointment } from '@/ho
 import { useDoctors } from '@/hooks/useDoctors';
 import { useBranches } from '@/hooks/useBranches';
 import { useAuth } from '@/contexts/AuthContext';
+import { Clock, Users } from 'lucide-react';
 
 const appointmentSchema = z.object({
   patient_id: z.string().min(1, 'Please select a patient'),
   doctor_id: z.string().min(1, 'Please select a doctor'),
   branch_id: z.string().min(1, 'Please select a branch'),
   appointment_date: z.string().min(1, 'Please select a date'),
-  appointment_time: z.string().min(1, 'Please select a time slot'),
+  appointment_time: z.string().optional(),
   appointment_type: z.enum(['walk_in', 'scheduled', 'follow_up', 'emergency']),
   chief_complaint: z.string().optional(),
   notes: z.string().optional(),
+}).refine((data) => {
+  // Time slot is required for scheduled and follow_up appointments
+  if (data.appointment_type === 'scheduled' || data.appointment_type === 'follow_up') {
+    return !!data.appointment_time && data.appointment_time.length > 0;
+  }
+  return true;
+}, {
+  message: 'Please select a time slot',
+  path: ['appointment_time'],
 });
 
 type AppointmentFormData = z.infer<typeof appointmentSchema>;
@@ -96,6 +106,17 @@ export default function AppointmentFormPage() {
 
   const selectedDoctorId = form.watch('doctor_id');
   const selectedDate = form.watch('appointment_date');
+  const appointmentType = form.watch('appointment_type');
+
+  // Check if time slot selection is needed
+  const requiresTimeSlot = appointmentType === 'scheduled' || appointmentType === 'follow_up';
+
+  // Clear time when switching to walk-in/emergency
+  useEffect(() => {
+    if (!requiresTimeSlot) {
+      form.setValue('appointment_time', '');
+    }
+  }, [requiresTimeSlot, form]);
 
   const onSubmit = async (data: AppointmentFormData) => {
     try {
@@ -108,7 +129,7 @@ export default function AppointmentFormPage() {
           doctor_id: data.doctor_id,
           branch_id: data.branch_id,
           appointment_date: data.appointment_date,
-          appointment_time: data.appointment_time,
+          appointment_time: data.appointment_time || null,
           appointment_type: data.appointment_type,
           chief_complaint: data.chief_complaint || null,
           notes: data.notes || null,
@@ -286,31 +307,61 @@ export default function AppointmentFormPage() {
 
             {/* Right Column */}
             <div className="space-y-6">
-              {/* Time Slot Selection */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Select Time Slot</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <FormField
-                    control={form.control}
-                    name="appointment_time"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <TimeSlotPicker
-                            doctorId={selectedDoctorId}
-                            date={selectedDate}
-                            selectedSlot={field.value}
-                            onSelect={field.onChange}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </CardContent>
-              </Card>
+              {/* Time Slot Selection - Only for scheduled/follow-up */}
+              {requiresTimeSlot ? (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Select Time Slot</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <FormField
+                      control={form.control}
+                      name="appointment_time"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <TimeSlotPicker
+                              doctorId={selectedDoctorId}
+                              date={selectedDate}
+                              selectedSlot={field.value || ''}
+                              onSelect={field.onChange}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Users className="h-5 w-5" />
+                      {appointmentType === 'walk_in' ? 'Walk-in Appointment' : 'Emergency Appointment'}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg">
+                      <Clock className="h-8 w-8 text-primary" />
+                      <div>
+                        <p className="font-medium">
+                          {appointmentType === 'walk_in' 
+                            ? 'Patient will be added to the queue'
+                            : 'Patient will be prioritized immediately'
+                          }
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {appointmentType === 'walk_in'
+                            ? 'A token number will be assigned automatically'
+                            : 'Emergency cases are handled with top priority'
+                          }
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Additional Info */}
               <Card>
