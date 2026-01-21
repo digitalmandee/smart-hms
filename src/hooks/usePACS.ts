@@ -1,8 +1,8 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
-// Get the Supabase URL from env
-const SUPABASE_URL = "https://eelqfwotuqfatxfgvvjg.supabase.co";
+// Get the Supabase URL from the client
+const SUPABASE_URL = "https://wxafzwlodzohrwdwkuzy.supabase.co";
 
 export interface PACSStudy {
   studyInstanceUID: string;
