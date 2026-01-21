@@ -70,19 +70,23 @@ const NursingNotesPage = () => {
           <CardTitle className="text-lg">Select Patient</CardTitle>
         </CardHeader>
         <CardContent>
-          <Select value={selectedAdmission} onValueChange={setSelectedAdmission}>
-            <SelectTrigger className="max-w-md">
-              <SelectValue placeholder="Select admitted patient" />
-            </SelectTrigger>
-            <SelectContent>
-              {activeAdmissions.map((admission) => (
-                <SelectItem key={admission.id} value={admission.id}>
-                  {admission.admission_number} - {admission.patient?.first_name}{" "}
-                  {admission.patient?.last_name} ({admission.bed?.bed_number})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {activeAdmissions.length === 0 ? (
+            <p className="text-muted-foreground">No admitted patients found</p>
+          ) : (
+            <Select value={selectedAdmission} onValueChange={setSelectedAdmission}>
+              <SelectTrigger className="max-w-md">
+                <SelectValue placeholder="Select admitted patient" />
+              </SelectTrigger>
+              <SelectContent>
+                {activeAdmissions.map((admission) => (
+                  <SelectItem key={admission.id} value={admission.id}>
+                    {admission.admission_number} - {admission.patient?.first_name}{" "}
+                    {admission.patient?.last_name} {admission.bed?.bed_number ? `(${admission.bed.bed_number})` : ''}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </CardContent>
       </Card>
 
