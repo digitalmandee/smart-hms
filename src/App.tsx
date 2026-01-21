@@ -182,6 +182,10 @@ import PayrollReportsPage from "./pages/app/hr/payroll/PayrollReportsPage";
 import PayrollRunDetailPage from "./pages/app/hr/payroll/PayrollRunDetailPage";
 import DoctorsListPage from "./pages/app/hr/DoctorsListPage";
 import NursesListPage from "./pages/app/hr/NursesListPage";
+import HRReportsPage from "./pages/app/hr/HRReportsPage";
+import AttendanceReportsPage from "./pages/app/hr/attendance/AttendanceReportsPage";
+import SalaryComponentsPage from "./pages/app/hr/setup/SalaryComponentsPage";
+import TaxSlabsPage from "./pages/app/hr/setup/TaxSlabsPage";
 
 // IPD pages
 import IPDDashboard from "./pages/app/ipd/IPDDashboard";
@@ -669,6 +673,10 @@ function App() {
               <Route path="hr/setup/shifts" element={<ShiftsPage />} />
               <Route path="hr/setup/leave-types" element={<LeaveTypesPage />} />
               <Route path="hr/setup/holidays" element={<HolidaysPage />} />
+              <Route path="hr/reports" element={<HRReportsPage />} />
+              <Route path="hr/attendance/reports" element={<AttendanceReportsPage />} />
+              <Route path="hr/setup/salary-components" element={<SalaryComponentsPage />} />
+              <Route path="hr/setup/tax-slabs" element={<TaxSlabsPage />} />
               
               {/* Settings routes */}
               <Route path="settings/branches" element={<BranchesListPage />} />
