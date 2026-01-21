@@ -182,6 +182,7 @@ export type Database = {
           diagnosis_on_admission: string | null
           discharge_diagnosis: string | null
           discharge_instructions: string | null
+          discharge_invoice_id: string | null
           discharge_summary: string | null
           discharge_time: string | null
           discharge_type: Database["public"]["Enums"]["discharge_type"] | null
@@ -220,6 +221,7 @@ export type Database = {
           diagnosis_on_admission?: string | null
           discharge_diagnosis?: string | null
           discharge_instructions?: string | null
+          discharge_invoice_id?: string | null
           discharge_summary?: string | null
           discharge_time?: string | null
           discharge_type?: Database["public"]["Enums"]["discharge_type"] | null
@@ -258,6 +260,7 @@ export type Database = {
           diagnosis_on_admission?: string | null
           discharge_diagnosis?: string | null
           discharge_instructions?: string | null
+          discharge_invoice_id?: string | null
           discharge_summary?: string | null
           discharge_time?: string | null
           discharge_type?: Database["public"]["Enums"]["discharge_type"] | null
@@ -317,6 +320,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admissions_discharge_invoice_id_fkey"
+            columns: ["discharge_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
             referencedColumns: ["id"]
           },
           {
@@ -4643,6 +4653,50 @@ export type Database = {
             columns: ["prescribed_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      discharge_checklist_items: {
+        Row: {
+          admission_id: string
+          completed: boolean
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string | null
+          id: string
+          item_id: string
+          notes: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          admission_id: string
+          completed?: boolean
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string | null
+          id?: string
+          item_id: string
+          notes?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          admission_id?: string
+          completed?: boolean
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string | null
+          id?: string
+          item_id?: string
+          notes?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discharge_checklist_items_admission_id_fkey"
+            columns: ["admission_id"]
+            isOneToOne: false
+            referencedRelation: "admissions"
             referencedColumns: ["id"]
           },
         ]

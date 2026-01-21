@@ -1,12 +1,14 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format, differenceInDays } from "date-fns";
+import { useReactToPrint } from "react-to-print";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Select,
   SelectContent,
@@ -25,23 +27,26 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useAdmission, useDischargePatient } from "@/hooks/useAdmissions";
 import { useDischargeSummary, useApproveDischargeSummary, useIPDCharges, useGenerateIPDInvoice } from "@/hooks/useDischarge";
 import { useBedTypes } from "@/hooks/useIPDConfig";
 import { useAdmissionSurgeries } from "@/hooks/useOT";
+import { useInvoice } from "@/hooks/useBilling";
 import { DischargeChecklist } from "@/components/ipd/DischargeChecklist";
 import { DischargeSummaryForm } from "@/components/ipd/DischargeSummaryForm";
 import { PrintableDischargeSummary } from "@/components/ipd/PrintableDischargeSummary";
+import { PrintableDischargeForm } from "@/components/ipd/PrintableDischargeForm";
+import { InvoiceStatusPanel } from "@/components/ipd/InvoiceStatusPanel";
 import { InvoiceItemsBuilder } from "@/components/billing/InvoiceItemsBuilder";
 import { InvoiceItemInput } from "@/hooks/useBilling";
-import { usePrint } from "@/hooks/usePrint";
 import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
-import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import {
   User,
   Calendar,
@@ -63,29 +68,28 @@ import {
 } from "lucide-react";
 
 const DISCHARGE_TYPES = [
-  { value: "normal", label: "Normal Discharge", color: "bg-green-100 text-green-800" },
-  { value: "against_advice", label: "Left Against Medical Advice", color: "bg-amber-100 text-amber-800" },
-  { value: "referred", label: "Referred to Another Facility", color: "bg-blue-100 text-blue-800" },
-  { value: "transfer", label: "Transfer to Another Facility", color: "bg-blue-100 text-blue-800" },
-  { value: "absconded", label: "Absconded", color: "bg-red-100 text-red-800" },
-  { value: "expired", label: "Expired", color: "bg-gray-100 text-gray-800" },
+  { value: "normal", label: "Normal Discharge", color: "bg-success/10 text-success" },
+  { value: "against_advice", label: "Left Against Medical Advice", color: "bg-warning/10 text-warning" },
+  { value: "referred", label: "Referred to Another Facility", color: "bg-info/10 text-info" },
+  { value: "transfer", label: "Transfer to Another Facility", color: "bg-info/10 text-info" },
+  { value: "absconded", label: "Absconded", color: "bg-destructive/10 text-destructive" },
+  { value: "expired", label: "Expired", color: "bg-muted text-muted-foreground" },
 ];
 
 export default function DischargeFormPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { printRef, handlePrint } = usePrint();
+  const summaryPrintRef = useRef<HTMLDivElement>(null);
+  const formPrintRef = useRef<HTMLDivElement>(null);
 
-  const [activeTab, setActiveTab] = useState("checklist");
+  const [activeTab, setActiveTab] = useState("billing");
   const [dischargeType, setDischargeType] = useState("normal");
   const [completedChecklist, setCompletedChecklist] = useState<string[]>([]);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [invoiceGenerated, setInvoiceGenerated] = useState(false);
-  const [generatedInvoiceId, setGeneratedInvoiceId] = useState<string | null>(null);
   const [additionalCharges, setAdditionalCharges] = useState<InvoiceItemInput[]>([]);
   const [showAddCharges, setShowAddCharges] = useState(false);
 
-  const { data: admission, isLoading: loadingAdmission } = useAdmission(id);
+  const { data: admission, isLoading: loadingAdmission, refetch: refetchAdmission } = useAdmission(id);
   const { data: dischargeSummary, isLoading: loadingSummary, refetch: refetchSummary } = useDischargeSummary(id);
   const { data: charges = [] } = useIPDCharges(id);
   const { data: bedTypes = [] } = useBedTypes();
@@ -94,7 +98,23 @@ export default function DischargeFormPage() {
   const { mutateAsync: approveSummary, isPending: approving } = useApproveDischargeSummary();
   const { mutateAsync: generateInvoice, isPending: generatingInvoice } = useGenerateIPDInvoice();
 
+  // Get invoice if already generated
+  const invoiceId = admission?.discharge_invoice_id;
+  const { data: existingInvoice, refetch: refetchInvoice } = useInvoice(invoiceId || undefined);
+
   const isLoading = loadingAdmission || loadingSummary;
+  const invoiceGenerated = !!invoiceId;
+
+  // Print handlers
+  const handlePrintSummary = useReactToPrint({
+    contentRef: summaryPrintRef,
+    documentTitle: `Discharge_Summary_${admission?.admission_number}`,
+  });
+
+  const handlePrintForm = useReactToPrint({
+    contentRef: formPrintRef,
+    documentTitle: `Discharge_Form_${admission?.admission_number}`,
+  });
 
   // Get bed type info for room charge calculation
   const bedTypeName = admission?.bed?.bed_type || "Standard";
@@ -109,19 +129,15 @@ export default function DischargeFormPage() {
   // Check if summary is approved
   const isSummaryApproved = dischargeSummary?.status === "approved" || dischargeSummary?.status === "finalized";
   
-  // Check if all required checklist items are complete
+  // Check billing status
+  const isBillingCleared = existingInvoice?.status === "paid";
+  
+  // Required checklist items
   const requiredChecklistItems = [
-    "discharge_summary",
-    "diagnosis_updated",
-    "medications_reconciled",
-    "prescription_printed",
-    "billing_cleared",
-    "follow_up_scheduled",
-    "instructions_explained",
-    "reports_handed",
-    "valuables_returned",
-    "nursing_clearance",
-    "bed_vacated",
+    "discharge_summary", "diagnosis_updated", "medications_reconciled",
+    "prescription_printed", "billing_cleared", "follow_up_scheduled",
+    "instructions_explained", "reports_handed", "valuables_returned",
+    "nursing_clearance", "bed_vacated",
   ];
   const allRequiredComplete = requiredChecklistItems.every((item) => 
     completedChecklist.includes(item)
@@ -174,7 +190,6 @@ export default function DischargeFormPage() {
     }
 
     try {
-      // Transform additional charges to the format expected by the hook
       const additionalItemsForInvoice = additionalCharges.map(item => ({
         description: item.description,
         quantity: item.quantity,
@@ -194,9 +209,14 @@ export default function DischargeFormPage() {
         additionalItems: additionalItemsForInvoice,
       });
       
-      setInvoiceGenerated(true);
-      setGeneratedInvoiceId(result.invoiceId);
-      toast.success(`Invoice generated: Rs. ${result.totalAmount.toLocaleString()} (${result.chargesCount} items)`);
+      // Save invoice ID to admission
+      await supabase
+        .from("admissions")
+        .update({ discharge_invoice_id: result.invoiceId })
+        .eq("id", id);
+      
+      refetchAdmission();
+      toast.success(`Invoice generated: Rs. ${result.totalAmount.toLocaleString()}`);
     } catch (error: any) {
       toast.error(error.message || "Failed to generate invoice");
     }
@@ -209,33 +229,24 @@ export default function DischargeFormPage() {
     const other = charges.filter((c: any) => !['medication', 'procedure'].includes(c.charge_type || ''));
     
     return {
-      medication: {
-        items: medication,
-        total: medication.reduce((sum: number, c: any) => sum + (c.total_amount || 0), 0),
-      },
-      procedure: {
-        items: procedure,
-        total: procedure.reduce((sum: number, c: any) => sum + (c.total_amount || 0), 0),
-      },
-      other: {
-        items: other,
-        total: other.reduce((sum: number, c: any) => sum + (c.total_amount || 0), 0),
-      },
+      medication: { items: medication, total: medication.reduce((sum: number, c: any) => sum + (c.total_amount || 0), 0) },
+      procedure: { items: procedure, total: procedure.reduce((sum: number, c: any) => sum + (c.total_amount || 0), 0) },
+      other: { items: other, total: other.reduce((sum: number, c: any) => sum + (c.total_amount || 0), 0) },
     };
   }, [charges]);
 
-  // Calculate additional charges total
+  // Calculate totals
   const additionalChargesTotal = additionalCharges.reduce((sum, item) => {
-    const itemTotal = item.quantity * item.unit_price * (1 - (item.discount_percent || 0) / 100);
-    return sum + itemTotal;
+    return sum + (item.quantity * item.unit_price * (1 - (item.discount_percent || 0) / 100));
   }, 0);
-
-  // Calculate charges breakdown
   const serviceCharges = charges.reduce((sum: number, c: any) => sum + (c.total_amount || 0), 0);
   const roomCharges = Math.max(1, daysAdmitted) * dailyRate;
   const totalCharges = serviceCharges + roomCharges + additionalChargesTotal;
   const depositAmount = admission?.deposit_amount || 0;
   const balanceDue = totalCharges - depositAmount;
+
+  // Count unbilled charges
+  const unbilledCount = charges.filter((c: any) => !c.is_billed).length;
 
   if (isLoading) {
     return (
@@ -251,9 +262,7 @@ export default function DischargeFormPage() {
     return (
       <div className="text-center py-12">
         <h2 className="text-lg font-semibold">Admission not found</h2>
-        <Button onClick={() => navigate("/app/ipd/admissions")} className="mt-4">
-          Back to Admissions
-        </Button>
+        <Button onClick={() => navigate("/app/ipd/admissions")} className="mt-4">Back to Admissions</Button>
       </div>
     );
   }
@@ -272,14 +281,31 @@ export default function DischargeFormPage() {
           { label: "Discharge" },
         ]}
         actions={
-          <div className="flex gap-2">
-            {dischargeSummary && (
-              <Button variant="outline" onClick={() => handlePrint()}>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">
                 <Printer className="h-4 w-4 mr-2" />
-                Print Summary
+                Print
+                <ChevronDown className="h-4 w-4 ml-2" />
               </Button>
-            )}
-          </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handlePrintSummary()} disabled={!dischargeSummary}>
+                <FileText className="h-4 w-4 mr-2" />
+                Discharge Summary
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handlePrintForm()}>
+                <ClipboardCheck className="h-4 w-4 mr-2" />
+                Discharge Form (with signatures)
+              </DropdownMenuItem>
+              {invoiceGenerated && (
+                <DropdownMenuItem onClick={() => navigate(`/app/billing/invoices/${invoiceId}?print=true`)}>
+                  <Receipt className="h-4 w-4 mr-2" />
+                  Print Invoice
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         }
       />
 
@@ -292,15 +318,12 @@ export default function DischargeFormPage() {
                 <User className="h-8 w-8 text-primary" />
               </div>
               <div>
-                <h2 className="text-xl font-semibold">
-                  {patient?.first_name} {patient?.last_name}
-                </h2>
+                <h2 className="text-xl font-semibold">{patient?.first_name} {patient?.last_name}</h2>
                 <p className="text-sm text-muted-foreground">
                   {patient?.patient_number} • {patient?.gender}, {patient?.date_of_birth ? format(new Date(patient.date_of_birth), "dd MMM yyyy") : "N/A"}
                 </p>
               </div>
             </div>
-            
             <div className="flex flex-wrap gap-4">
               <div className="flex items-center gap-2 text-sm">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -312,34 +335,23 @@ export default function DischargeFormPage() {
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <Bed className="h-4 w-4 text-muted-foreground" />
-                <span>
-                  {admission.ward?.name} - Bed {admission.bed?.bed_number}
-                </span>
+                <span>{admission.ward?.name} - Bed {admission.bed?.bed_number}</span>
               </div>
             </div>
-
-            <Badge variant="outline" className="text-warning border-warning">
-              Pending Discharge
-            </Badge>
+            <Badge variant="outline" className="text-warning border-warning">Pending Discharge</Badge>
           </div>
         </CardContent>
       </Card>
 
-      {/* Discharge Status Overview */}
+      {/* Status Cards */}
       <div className="grid md:grid-cols-3 gap-4">
         <Card className={isSummaryApproved ? "border-success/50 bg-success/5" : ""}>
           <CardContent className="p-4 flex items-center gap-4">
-            {isSummaryApproved ? (
-              <CheckCircle2 className="h-8 w-8 text-success" />
-            ) : (
-              <FileText className="h-8 w-8 text-muted-foreground" />
-            )}
+            {isSummaryApproved ? <CheckCircle2 className="h-8 w-8 text-success" /> : <FileText className="h-8 w-8 text-muted-foreground" />}
             <div>
               <p className="font-medium">Discharge Summary</p>
               <p className="text-sm text-muted-foreground">
-                {dischargeSummary?.status === "approved" ? "Approved" : 
-                 dischargeSummary?.status === "pending_approval" ? "Pending Approval" :
-                 dischargeSummary?.status === "draft" ? "Draft" : "Not Started"}
+                {dischargeSummary?.status === "approved" ? "Approved" : dischargeSummary?.status === "pending_approval" ? "Pending Approval" : dischargeSummary?.status === "draft" ? "Draft" : "Not Started"}
               </p>
             </div>
           </CardContent>
@@ -347,16 +359,10 @@ export default function DischargeFormPage() {
 
         <Card className={allRequiredComplete ? "border-success/50 bg-success/5" : ""}>
           <CardContent className="p-4 flex items-center gap-4">
-            {allRequiredComplete ? (
-              <CheckCircle2 className="h-8 w-8 text-success" />
-            ) : (
-              <ClipboardCheck className="h-8 w-8 text-muted-foreground" />
-            )}
+            {allRequiredComplete ? <CheckCircle2 className="h-8 w-8 text-success" /> : <ClipboardCheck className="h-8 w-8 text-muted-foreground" />}
             <div>
               <p className="font-medium">Pre-Discharge Checklist</p>
-              <p className="text-sm text-muted-foreground">
-                {completedChecklist.length} of {requiredChecklistItems.length} items complete
-              </p>
+              <p className="text-sm text-muted-foreground">{completedChecklist.length} of {requiredChecklistItems.length} items</p>
             </div>
           </CardContent>
         </Card>
@@ -365,14 +371,10 @@ export default function DischargeFormPage() {
           <CardContent className="p-4">
             <p className="text-sm font-medium mb-2">Discharge Type</p>
             <Select value={dischargeType} onValueChange={setDischargeType}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
+              <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 {DISCHARGE_TYPES.map((type) => (
-                  <SelectItem key={type.value} value={type.value}>
-                    {type.label}
-                  </SelectItem>
+                  <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -382,223 +384,184 @@ export default function DischargeFormPage() {
 
       {/* Warning for non-normal discharge */}
       {["against_advice", "absconded", "expired"].includes(dischargeType) && (
-        <Card className="border-warning/50 bg-warning/10">
-          <CardContent className="p-4 flex items-center gap-3">
-            <AlertTriangle className="h-5 w-5 text-warning" />
-            <p className="text-sm">
-              {dischargeType === "against_advice" && "Patient is leaving against medical advice. Ensure proper documentation and consent."}
-              {dischargeType === "absconded" && "Patient has absconded. Document the circumstances and notify security."}
-              {dischargeType === "expired" && "Patient has expired. Ensure death certificate and body handling procedures are followed."}
-            </p>
-          </CardContent>
-        </Card>
+        <Alert className="border-warning/50 bg-warning/10">
+          <AlertTriangle className="h-4 w-4 text-warning" />
+          <AlertDescription>
+            {dischargeType === "against_advice" && "Patient is leaving against medical advice. Ensure proper documentation."}
+            {dischargeType === "absconded" && "Patient has absconded. Document circumstances and notify security."}
+            {dischargeType === "expired" && "Patient has expired. Ensure death certificate procedures are followed."}
+          </AlertDescription>
+        </Alert>
       )}
 
-      {/* Billing Summary Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Receipt className="h-5 w-5" />
-            Billing Summary
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Itemized Breakdown */}
-          <div className="space-y-3 text-sm">
-            {/* Room Charges */}
-            <div className="flex justify-between">
-              <span className="flex items-center gap-2 text-muted-foreground">
-                <Bed className="h-4 w-4" />
-                Room Charges ({daysAdmitted} day{daysAdmitted !== 1 ? 's' : ''} × Rs. {dailyRate.toLocaleString()})
-              </span>
-              <span className="font-medium">Rs. {roomCharges.toLocaleString()}</span>
-            </div>
-
-            {/* Pharmacy/Medication Charges */}
-            {chargesBreakdown.medication.items.length > 0 && (
-              <Collapsible>
-                <div className="flex justify-between items-center">
-                  <CollapsibleTrigger className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
-                    <Pill className="h-4 w-4" />
-                    <span>Pharmacy Charges ({chargesBreakdown.medication.items.length} items)</span>
-                    <ChevronDown className="h-3 w-3" />
-                  </CollapsibleTrigger>
-                  <span className="font-medium">Rs. {chargesBreakdown.medication.total.toLocaleString()}</span>
-                </div>
-                <CollapsibleContent className="pl-6 pt-2 space-y-1">
-                  {chargesBreakdown.medication.items.map((charge: any, idx: number) => (
-                    <div key={idx} className="flex justify-between text-xs text-muted-foreground">
-                      <span>{charge.description}</span>
-                      <span>Rs. {(charge.total_amount || 0).toLocaleString()}</span>
-                    </div>
-                  ))}
-                </CollapsibleContent>
-              </Collapsible>
-            )}
-
-            {/* Surgery/Procedure Charges */}
-            {chargesBreakdown.procedure.items.length > 0 && (
-              <Collapsible>
-                <div className="flex justify-between items-center">
-                  <CollapsibleTrigger className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
-                    <Scissors className="h-4 w-4" />
-                    <span>Surgery Charges ({chargesBreakdown.procedure.items.length} items)</span>
-                    <ChevronDown className="h-3 w-3" />
-                  </CollapsibleTrigger>
-                  <span className="font-medium">Rs. {chargesBreakdown.procedure.total.toLocaleString()}</span>
-                </div>
-                <CollapsibleContent className="pl-6 pt-2 space-y-1">
-                  {chargesBreakdown.procedure.items.map((charge: any, idx: number) => (
-                    <div key={idx} className="flex justify-between text-xs text-muted-foreground">
-                      <span>{charge.description}</span>
-                      <span>Rs. {(charge.total_amount || 0).toLocaleString()}</span>
-                    </div>
-                  ))}
-                </CollapsibleContent>
-              </Collapsible>
-            )}
-
-            {/* Other Service Charges */}
-            {chargesBreakdown.other.items.length > 0 && (
-              <Collapsible>
-                <div className="flex justify-between items-center">
-                  <CollapsibleTrigger className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
-                    <Stethoscope className="h-4 w-4" />
-                    <span>Other Services ({chargesBreakdown.other.items.length} items)</span>
-                    <ChevronDown className="h-3 w-3" />
-                  </CollapsibleTrigger>
-                  <span className="font-medium">Rs. {chargesBreakdown.other.total.toLocaleString()}</span>
-                </div>
-                <CollapsibleContent className="pl-6 pt-2 space-y-1">
-                  {chargesBreakdown.other.items.map((charge: any, idx: number) => (
-                    <div key={idx} className="flex justify-between text-xs text-muted-foreground">
-                      <span>{charge.description}</span>
-                      <span>Rs. {(charge.total_amount || 0).toLocaleString()}</span>
-                    </div>
-                  ))}
-                </CollapsibleContent>
-              </Collapsible>
-            )}
-
-            {/* Additional Charges (added during discharge) */}
-            {additionalCharges.length > 0 && (
-              <div className="flex justify-between">
-                <span className="flex items-center gap-2 text-muted-foreground">
-                  <Plus className="h-4 w-4" />
-                  Additional Charges ({additionalCharges.length} items)
-                </span>
-                <span className="font-medium">Rs. {additionalChargesTotal.toLocaleString()}</span>
-              </div>
-            )}
-
-            <Separator />
-            <div className="flex justify-between font-semibold">
-              <span>Subtotal</span>
-              <span>Rs. {totalCharges.toLocaleString()}</span>
-            </div>
-            <div className="flex justify-between text-success">
-              <span>Deposit Paid</span>
-              <span>- Rs. {depositAmount.toLocaleString()}</span>
-            </div>
-            <Separator />
-            <div className="flex justify-between text-lg font-bold">
-              <span>Balance Due</span>
-              <span className={balanceDue > 0 ? 'text-destructive' : 'text-success'}>
-                Rs. {balanceDue.toLocaleString()}
-              </span>
-            </div>
-          </div>
-
-          {/* Add Additional Charges Section */}
-          <Collapsible open={showAddCharges} onOpenChange={setShowAddCharges}>
-            <CollapsibleTrigger asChild>
-              <Button variant="outline" className="w-full justify-between" disabled={invoiceGenerated}>
-                <span className="flex items-center gap-2">
-                  <Plus className="h-4 w-4" />
-                  Add Additional Charges
-                </span>
-                <ChevronDown className={`h-4 w-4 transition-transform ${showAddCharges ? 'rotate-180' : ''}`} />
-              </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="pt-4">
-              <InvoiceItemsBuilder
-                items={additionalCharges}
-                onChange={setAdditionalCharges}
-                disabled={invoiceGenerated}
-              />
-            </CollapsibleContent>
-          </Collapsible>
-
-          {/* Actions */}
-          <div className="flex gap-2 pt-2">
-            <Button 
-              onClick={handleGenerateInvoice} 
-              disabled={generatingInvoice || invoiceGenerated}
-              className="flex-1"
-            >
-              {generatingInvoice ? (
-                <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Generating...</>
-              ) : invoiceGenerated ? (
-                <><CheckCircle2 className="h-4 w-4 mr-2" />Invoice Generated</>
-              ) : (
-                <><Receipt className="h-4 w-4 mr-2" />Generate Final Invoice</>
-              )}
-            </Button>
-            {invoiceGenerated && generatedInvoiceId && (
-              <Button variant="outline" asChild>
-                <Link to={`/app/billing/invoices/${generatedInvoiceId}`}>
-                  View Invoice
-                </Link>
-              </Button>
-            )}
-          </div>
-
-          {dailyRate === 0 && (
-            <p className="text-sm text-warning">⚠️ No daily rate configured for this bed type. Room charges will be Rs. 0.</p>
-          )}
-        </CardContent>
-      </Card>
+      {/* Main Content Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="checklist" className="flex items-center gap-2">
-            <ClipboardCheck className="h-4 w-4" />
-            Pre-Discharge Checklist
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="billing" className="flex items-center gap-2">
+            <Receipt className="h-4 w-4" />
+            Billing
           </TabsTrigger>
           <TabsTrigger value="summary" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
-            Discharge Summary
+            Summary
+          </TabsTrigger>
+          <TabsTrigger value="checklist" className="flex items-center gap-2">
+            <ClipboardCheck className="h-4 w-4" />
+            Checklist
           </TabsTrigger>
         </TabsList>
 
+        {/* Billing Tab */}
+        <TabsContent value="billing" className="mt-6 space-y-4">
+          {unbilledCount > 0 && !invoiceGenerated && (
+            <Alert className="border-warning/50 bg-warning/10">
+              <AlertTriangle className="h-4 w-4 text-warning" />
+              <AlertDescription>
+                {unbilledCount} unbilled charge(s) found. These will be included in the final invoice.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Invoice Status Panel (if generated) */}
+          {invoiceGenerated && existingInvoice && (
+            <InvoiceStatusPanel
+              invoiceId={invoiceId!}
+              invoiceNumber={existingInvoice.invoice_number}
+              totalAmount={existingInvoice.total_amount || 0}
+              paidAmount={existingInvoice.paid_amount || 0}
+              status={existingInvoice.status || "pending"}
+              onPaymentRecorded={() => refetchInvoice()}
+            />
+          )}
+
+          {/* Billing Summary */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Receipt className="h-5 w-5" />
+                Billing Summary
+              </CardTitle>
+              {!invoiceGenerated && (
+                <Button size="sm" variant="outline" onClick={() => setShowAddCharges(!showAddCharges)}>
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add Services
+                </Button>
+              )}
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3 text-sm">
+                <div className="flex justify-between">
+                  <span className="flex items-center gap-2 text-muted-foreground">
+                    <Bed className="h-4 w-4" />
+                    Room ({daysAdmitted} day{daysAdmitted !== 1 ? 's' : ''} × Rs. {dailyRate.toLocaleString()})
+                  </span>
+                  <span className="font-medium">Rs. {roomCharges.toLocaleString()}</span>
+                </div>
+
+                {chargesBreakdown.medication.items.length > 0 && (
+                  <div className="flex justify-between">
+                    <span className="flex items-center gap-2 text-muted-foreground">
+                      <Pill className="h-4 w-4" />
+                      Pharmacy ({chargesBreakdown.medication.items.length} items)
+                    </span>
+                    <span className="font-medium">Rs. {chargesBreakdown.medication.total.toLocaleString()}</span>
+                  </div>
+                )}
+
+                {chargesBreakdown.procedure.items.length > 0 && (
+                  <div className="flex justify-between">
+                    <span className="flex items-center gap-2 text-muted-foreground">
+                      <Scissors className="h-4 w-4" />
+                      Surgery ({chargesBreakdown.procedure.items.length} items)
+                    </span>
+                    <span className="font-medium">Rs. {chargesBreakdown.procedure.total.toLocaleString()}</span>
+                  </div>
+                )}
+
+                {chargesBreakdown.other.items.length > 0 && (
+                  <div className="flex justify-between">
+                    <span className="flex items-center gap-2 text-muted-foreground">
+                      <Stethoscope className="h-4 w-4" />
+                      Other Services ({chargesBreakdown.other.items.length} items)
+                    </span>
+                    <span className="font-medium">Rs. {chargesBreakdown.other.total.toLocaleString()}</span>
+                  </div>
+                )}
+
+                {additionalCharges.length > 0 && (
+                  <div className="flex justify-between">
+                    <span className="flex items-center gap-2 text-muted-foreground">
+                      <Plus className="h-4 w-4" />
+                      Additional ({additionalCharges.length} items)
+                    </span>
+                    <span className="font-medium">Rs. {additionalChargesTotal.toLocaleString()}</span>
+                  </div>
+                )}
+
+                <Separator />
+                <div className="flex justify-between font-semibold">
+                  <span>Subtotal</span>
+                  <span>Rs. {totalCharges.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between text-success">
+                  <span>Deposit Paid</span>
+                  <span>- Rs. {depositAmount.toLocaleString()}</span>
+                </div>
+                <Separator />
+                <div className="flex justify-between text-lg font-bold">
+                  <span>Balance Due</span>
+                  <span className={balanceDue > 0 ? 'text-destructive' : 'text-success'}>
+                    Rs. {balanceDue.toLocaleString()}
+                  </span>
+                </div>
+              </div>
+
+              {/* Add Services Section */}
+              {showAddCharges && !invoiceGenerated && (
+                <div className="border-t pt-4">
+                  <h4 className="font-medium mb-3">Add Additional Charges</h4>
+                  <InvoiceItemsBuilder items={additionalCharges} onChange={setAdditionalCharges} />
+                </div>
+              )}
+
+              {/* Generate Invoice Button */}
+              {!invoiceGenerated && (
+                <Button onClick={handleGenerateInvoice} disabled={generatingInvoice} className="w-full">
+                  {generatingInvoice ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Generating...</> : <><Receipt className="h-4 w-4 mr-2" />Generate Final Invoice</>}
+                </Button>
+              )}
+
+              {dailyRate === 0 && (
+                <p className="text-sm text-warning">⚠️ No daily rate configured for this bed type.</p>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Summary Tab */}
+        <TabsContent value="summary" className="mt-6 space-y-4">
+          {dischargeSummary?.status === "pending_approval" && (
+            <Alert className="border-info/50 bg-info/10">
+              <FileText className="h-4 w-4 text-info" />
+              <AlertDescription className="flex items-center justify-between">
+                <span>Discharge summary is pending approval.</span>
+                <Button size="sm" onClick={handleApproveSummary} disabled={approving}>
+                  {approving ? "Approving..." : "Approve Summary"}
+                </Button>
+              </AlertDescription>
+            </Alert>
+          )}
+          <DischargeSummaryForm admissionId={id!} existingSummary={dischargeSummary} onSuccess={() => refetchSummary()} />
+        </TabsContent>
+
+        {/* Checklist Tab */}
         <TabsContent value="checklist" className="mt-6">
           <DischargeChecklist
             admissionId={id!}
             initialCompleted={completedChecklist}
             onComplete={setCompletedChecklist}
-          />
-        </TabsContent>
-
-        <TabsContent value="summary" className="mt-6 space-y-4">
-          {dischargeSummary?.status === "pending_approval" && (
-            <Card className="border-info/50 bg-info/10">
-              <CardContent className="p-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <FileText className="h-5 w-5 text-info" />
-                  <p className="text-sm text-info">
-                    Discharge summary is pending approval.
-                  </p>
-                </div>
-                <Button onClick={handleApproveSummary} disabled={approving}>
-                  {approving ? "Approving..." : "Approve Summary"}
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-
-          <DischargeSummaryForm
-            admissionId={id!}
-            existingSummary={dischargeSummary}
-            onSuccess={() => refetchSummary()}
+            autoCheckBilling={isBillingCleared}
+            autoCheckSummary={isSummaryApproved}
           />
         </TabsContent>
       </Tabs>
@@ -610,16 +573,10 @@ export default function DischargeFormPage() {
             <div>
               <h3 className="font-semibold">Complete Discharge</h3>
               <p className="text-sm text-muted-foreground">
-                {canDischarge
-                  ? "All requirements met. You can now discharge the patient."
-                  : "Complete the checklist and approve the discharge summary to proceed."}
+                {canDischarge ? "All requirements met. You can now discharge the patient." : "Complete the checklist and approve the discharge summary to proceed."}
               </p>
             </div>
-            <Button
-              size="lg"
-              disabled={!canDischarge || discharging}
-              onClick={() => setShowConfirmDialog(true)}
-            >
+            <Button size="lg" disabled={!canDischarge || discharging} onClick={() => setShowConfirmDialog(true)}>
               <LogOut className="h-4 w-4 mr-2" />
               {discharging ? "Processing..." : "Complete Discharge"}
             </Button>
@@ -633,38 +590,37 @@ export default function DischargeFormPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Confirm Patient Discharge</AlertDialogTitle>
             <AlertDialogDescription>
-              You are about to discharge {patient?.first_name} {patient?.last_name} with discharge type: <strong>{DISCHARGE_TYPES.find((t) => t.value === dischargeType)?.label}</strong>.
-              <br /><br />
-              This action will:
-              <ul className="list-disc list-inside mt-2 space-y-1">
-                <li>Update admission status to discharged</li>
-                <li>Mark the bed as available for housekeeping</li>
-                <li>Record the discharge time</li>
-              </ul>
-              <br />
+              You are about to discharge {patient?.first_name} {patient?.last_name} with type: <strong>{DISCHARGE_TYPES.find((t) => t.value === dischargeType)?.label}</strong>.
               This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleCompleteDischarge}>
-              Confirm Discharge
-            </AlertDialogAction>
+            <AlertDialogAction onClick={handleCompleteDischarge}>Confirm Discharge</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Hidden Printable Summary */}
-      {dischargeSummary && admission && (
-        <div className="hidden">
-          <div ref={printRef}>
-            <PrintableDischargeSummary
-              admission={admission}
-              summary={dischargeSummary}
-            />
-          </div>
+      {/* Hidden Printable Elements */}
+      <div className="hidden">
+        <div ref={summaryPrintRef}>
+          {dischargeSummary && admission && (
+            <PrintableDischargeSummary admission={admission} summary={dischargeSummary} />
+          )}
         </div>
-      )}
+        <div ref={formPrintRef}>
+          <PrintableDischargeForm
+            admission={admission}
+            summary={dischargeSummary}
+            invoice={existingInvoice ? {
+              invoice_number: existingInvoice.invoice_number,
+              total_amount: existingInvoice.total_amount || 0,
+              paid_amount: existingInvoice.paid_amount || 0,
+              status: existingInvoice.status || "pending",
+            } : null}
+          />
+        </div>
+      </div>
     </div>
   );
 }
