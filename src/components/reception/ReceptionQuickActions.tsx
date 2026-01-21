@@ -8,6 +8,7 @@ import {
   FileText,
   Footprints,
   TestTube,
+  BedDouble,
 } from "lucide-react";
 
 interface QuickAction {
@@ -39,6 +40,13 @@ const quickActions: QuickAction[] = [
     path: "/app/opd/walk-in",
     variant: "default",
     description: "Register & collect fee",
+  },
+  {
+    label: "View Beds",
+    icon: BedDouble,
+    path: "/app/ipd/beds",
+    variant: "outline",
+    description: "Check bed availability",
   },
   {
     label: "Create Lab Test",
