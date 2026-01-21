@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useImagingOrder, useUpdateImagingOrder } from '@/hooks/useImaging';
 import { ImagingStatusBadge } from '@/components/radiology/ImagingStatusBadge';
 import { ModalityBadge } from '@/components/radiology/ModalityBadge';
@@ -16,15 +17,21 @@ import {
   CheckCircle, 
   Upload,
   Image as ImageIcon,
-  X
+  X,
+  MonitorUp,
+  HardDrive
 } from 'lucide-react';
+
+type ImageSource = 'pacs' | 'upload';
 
 export default function ImageCapturePage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data: order, isLoading } = useImagingOrder(id);
   const { mutate: updateOrder, isPending: isUpdating } = useUpdateImagingOrder();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [imageSource, setImageSource] = useState<ImageSource>('upload');
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [techNotes, setTechNotes] = useState('');
 
@@ -63,11 +70,38 @@ export default function ImageCapturePage() {
     });
   };
 
-  const handleImageUpload = () => {
-    // Simulated image upload - in real app would integrate with PACS/file storage
-    const mockImageUrl = `https://placehold.co/600x400?text=Image+${uploadedImages.length + 1}`;
-    setUploadedImages(prev => [...prev, mockImageUrl]);
-    toast.success('Image uploaded');
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    Array.from(files).forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          setUploadedImages(prev => [...prev, event.target!.result as string]);
+          toast.success(`${file.name} uploaded`);
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // Reset input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handlePACSFetch = () => {
+    // Simulated PACS fetch - in production would call PACS gateway
+    toast.info('Fetching images from PACS...');
+    setTimeout(() => {
+      const mockImages = [
+        `https://placehold.co/600x400/1a1a2e/eee?text=PACS+Image+1`,
+        `https://placehold.co/600x400/1a1a2e/eee?text=PACS+Image+2`,
+      ];
+      setUploadedImages(prev => [...prev, ...mockImages]);
+      toast.success('Images fetched from PACS');
+    }, 1500);
   };
 
   const handleRemoveImage = (index: number) => {
@@ -87,6 +121,30 @@ export default function ImageCapturePage() {
         }
       />
 
+      {/* Image Source Toggle */}
+      <Card>
+        <CardContent className="pt-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium">Image Source</p>
+              <p className="text-xs text-muted-foreground">Choose how to capture/import images</p>
+            </div>
+            <Tabs value={imageSource} onValueChange={(v) => setImageSource(v as ImageSource)}>
+              <TabsList>
+                <TabsTrigger value="pacs" className="gap-2">
+                  <HardDrive className="h-4 w-4" />
+                  PACS
+                </TabsTrigger>
+                <TabsTrigger value="upload" className="gap-2">
+                  <MonitorUp className="h-4 w-4" />
+                  Upload
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="grid gap-6 md:grid-cols-3">
         {/* Order Summary */}
         <Card>
@@ -98,6 +156,14 @@ export default function ImageCapturePage() {
               <ModalityBadge modality={order.modality} />
               <ImagingStatusBadge status={order.status} />
               <ImagingPriorityBadge priority={order.priority} showIcon />
+            </div>
+            
+            <div>
+              <p className="text-sm text-muted-foreground">Patient</p>
+              <p className="text-sm font-medium">
+                {order.patient?.first_name} {order.patient?.last_name}
+              </p>
+              <p className="text-xs text-muted-foreground">{order.patient?.patient_number}</p>
             </div>
             
             <div>
@@ -157,19 +223,41 @@ export default function ImageCapturePage() {
                   </div>
                 )}
 
-                {/* Upload Button */}
-                <div 
-                  className="border-2 border-dashed rounded-lg p-8 text-center cursor-pointer hover:bg-accent/50 transition-colors"
-                  onClick={handleImageUpload}
-                >
-                  <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-                  <p className="text-sm text-muted-foreground">
-                    Click to capture/upload images
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    (In production, this would integrate with PACS)
-                  </p>
-                </div>
+                {/* PACS or Upload UI */}
+                {imageSource === 'pacs' ? (
+                  <div className="border-2 border-dashed rounded-lg p-8 text-center">
+                    <HardDrive className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
+                    <p className="text-sm font-medium mb-2">PACS Integration</p>
+                    <p className="text-xs text-muted-foreground mb-4">
+                      Fetch images directly from your PACS server
+                    </p>
+                    <Button onClick={handlePACSFetch}>
+                      <HardDrive className="h-4 w-4 mr-2" />
+                      Fetch from PACS
+                    </Button>
+                  </div>
+                ) : (
+                  <>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleFileUpload}
+                      className="hidden"
+                    />
+                    <div 
+                      className="border-2 border-dashed rounded-lg p-8 text-center cursor-pointer hover:bg-accent/50 transition-colors"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <Upload className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
+                      <p className="text-sm font-medium mb-1">Click to upload images</p>
+                      <p className="text-xs text-muted-foreground">
+                        Supports JPG, PNG, DICOM files
+                      </p>
+                    </div>
+                  </>
+                )}
               </div>
             )}
           </CardContent>
