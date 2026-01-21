@@ -165,6 +165,7 @@ export type Database = {
         Row: {
           actual_discharge_date: string | null
           admission_date: string
+          admission_invoice_id: string | null
           admission_number: string
           admission_time: string
           admission_type: Database["public"]["Enums"]["admission_type"] | null
@@ -198,6 +199,7 @@ export type Database = {
           id: string
           organization_id: string
           patient_id: string
+          payment_status: string | null
           referring_doctor_id: string | null
           status: Database["public"]["Enums"]["admission_status"] | null
           updated_at: string | null
@@ -206,6 +208,7 @@ export type Database = {
         Insert: {
           actual_discharge_date?: string | null
           admission_date: string
+          admission_invoice_id?: string | null
           admission_number: string
           admission_time: string
           admission_type?: Database["public"]["Enums"]["admission_type"] | null
@@ -239,6 +242,7 @@ export type Database = {
           id?: string
           organization_id: string
           patient_id: string
+          payment_status?: string | null
           referring_doctor_id?: string | null
           status?: Database["public"]["Enums"]["admission_status"] | null
           updated_at?: string | null
@@ -247,6 +251,7 @@ export type Database = {
         Update: {
           actual_discharge_date?: string | null
           admission_date?: string
+          admission_invoice_id?: string | null
           admission_number?: string
           admission_time?: string
           admission_type?: Database["public"]["Enums"]["admission_type"] | null
@@ -280,12 +285,20 @@ export type Database = {
           id?: string
           organization_id?: string
           patient_id?: string
+          payment_status?: string | null
           referring_doctor_id?: string | null
           status?: Database["public"]["Enums"]["admission_status"] | null
           updated_at?: string | null
           ward_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "admissions_admission_invoice_id_fkey"
+            columns: ["admission_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "admissions_admitting_doctor_id_fkey"
             columns: ["admitting_doctor_id"]
@@ -1715,6 +1728,63 @@ export type Database = {
           },
           {
             foreignKeyName: "biometric_devices_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      biometric_sync_logs: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          device_id: string | null
+          error_message: string | null
+          id: string
+          organization_id: string
+          records_failed: number | null
+          records_synced: number | null
+          started_at: string | null
+          status: string | null
+          sync_type: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          device_id?: string | null
+          error_message?: string | null
+          id?: string
+          organization_id: string
+          records_failed?: number | null
+          records_synced?: number | null
+          started_at?: string | null
+          status?: string | null
+          sync_type?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          device_id?: string | null
+          error_message?: string | null
+          id?: string
+          organization_id?: string
+          records_failed?: number | null
+          records_synced?: number | null
+          started_at?: string | null
+          status?: string | null
+          sync_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "biometric_sync_logs_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "biometric_devices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "biometric_sync_logs_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"

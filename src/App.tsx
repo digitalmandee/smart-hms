@@ -184,6 +184,7 @@ import DoctorsListPage from "./pages/app/hr/DoctorsListPage";
 import NursesListPage from "./pages/app/hr/NursesListPage";
 import HRReportsPage from "./pages/app/hr/HRReportsPage";
 import AttendanceReportsPage from "./pages/app/hr/attendance/AttendanceReportsPage";
+import BiometricDevicesPage from "./pages/app/hr/attendance/BiometricDevicesPage";
 import SalaryComponentsPage from "./pages/app/hr/setup/SalaryComponentsPage";
 import TaxSlabsPage from "./pages/app/hr/setup/TaxSlabsPage";
 
@@ -656,6 +657,7 @@ function App() {
               <Route path="hr/employees/:id/edit" element={<EmployeeFormPage />} />
               <Route path="hr/attendance" element={<AttendancePage />} />
               <Route path="hr/attendance/sheet" element={<AttendanceSheetPage />} />
+              <Route path="hr/attendance/biometric" element={<BiometricDevicesPage />} />
               <Route path="hr/leaves" element={<LeavesPage />} />
               <Route path="hr/leaves/balances" element={<LeaveBalancesPage />} />
               <Route path="hr/payroll" element={<PayrollPage />} />
