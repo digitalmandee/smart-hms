@@ -6,8 +6,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format, differenceInDays } from "date-fns";
-import { Bed, Calendar, ExternalLink, Clock } from "lucide-react";
-
+import { Bed, Calendar, ExternalLink, Clock, Pill } from "lucide-react";
+import { useAdmissionUnbilledCharges } from "@/hooks/usePatientIPDCharges";
 interface PatientAdmissionHistoryProps {
   patientId: string;
 }
@@ -83,65 +83,87 @@ export function PatientAdmissionHistory({ patientId }: PatientAdmissionHistoryPr
         <CardDescription>{admissions.length} admission(s) on record</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {admissions.map((admission) => {
-          const stayDays = admission.actual_discharge_date
-            ? differenceInDays(new Date(admission.actual_discharge_date), new Date(admission.admission_date))
-            : differenceInDays(new Date(), new Date(admission.admission_date));
-
-          return (
-            <div
-              key={admission.id}
-              className="flex items-start justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
-            >
-              <div className="flex items-start gap-4">
-                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Bed className="h-5 w-5 text-primary" />
-                </div>
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <p className="font-medium">{admission.admission_number}</p>
-                    <Badge className={statusColors[admission.status || ''] || 'bg-muted'}>
-                      {admission.status}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Calendar className="h-3 w-3" />
-                    {format(new Date(admission.admission_date), "MMM dd, yyyy")}
-                    {admission.actual_discharge_date && (
-                      <>
-                        <span>→</span>
-                        {format(new Date(admission.actual_discharge_date), "MMM dd, yyyy")}
-                      </>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-4 text-sm">
-                    <span className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      {stayDays} day(s)
-                    </span>
-                    {(admission.ward as any)?.name && (
-                      <span>Ward: {(admission.ward as any).name}</span>
-                    )}
-                    {(admission.bed as any)?.bed_number && (
-                      <span>Bed: {(admission.bed as any).bed_number}</span>
-                    )}
-                  </div>
-                  {admission.diagnosis_on_admission && (
-                    <p className="text-sm text-muted-foreground">
-                      <span className="font-medium">Diagnosis:</span> {admission.diagnosis_on_admission}
-                    </p>
-                  )}
-                </div>
-              </div>
-              <Link to={`/app/ipd/admissions/${admission.id}`}>
-                <Button variant="ghost" size="sm">
-                  <ExternalLink className="h-4 w-4" />
-                </Button>
-              </Link>
-            </div>
-          );
-        })}
+        {admissions.map((admission) => (
+          <AdmissionCard key={admission.id} admission={admission} />
+        ))}
       </CardContent>
     </Card>
+  );
+}
+
+interface AdmissionCardProps {
+  admission: any;
+}
+
+function AdmissionCard({ admission }: AdmissionCardProps) {
+  const { data: unbilledData } = useAdmissionUnbilledCharges(
+    admission.status === "admitted" || admission.status === "pending" ? admission.id : undefined
+  );
+
+  const stayDays = admission.actual_discharge_date
+    ? differenceInDays(new Date(admission.actual_discharge_date), new Date(admission.admission_date))
+    : differenceInDays(new Date(), new Date(admission.admission_date));
+
+  const hasUnbilledCharges = unbilledData && unbilledData.count > 0;
+
+  return (
+    <div className="flex items-start justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+      <div className="flex items-start gap-4">
+        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+          <Bed className="h-5 w-5 text-primary" />
+        </div>
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <p className="font-medium">{admission.admission_number}</p>
+            <Badge className={statusColors[admission.status || ''] || 'bg-muted'}>
+              {admission.status}
+            </Badge>
+            {hasUnbilledCharges && (
+              <Badge variant="outline" className="gap-1 text-amber-700 border-amber-300 bg-amber-50">
+                <Pill className="h-3 w-3" />
+                {unbilledData.count} unbilled
+              </Badge>
+            )}
+          </div>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Calendar className="h-3 w-3" />
+            {format(new Date(admission.admission_date), "MMM dd, yyyy")}
+            {admission.actual_discharge_date && (
+              <>
+                <span>→</span>
+                {format(new Date(admission.actual_discharge_date), "MMM dd, yyyy")}
+              </>
+            )}
+          </div>
+          <div className="flex items-center gap-4 text-sm">
+            <span className="flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+              {stayDays} day(s)
+            </span>
+            {(admission.ward as any)?.name && (
+              <span>Ward: {(admission.ward as any).name}</span>
+            )}
+            {(admission.bed as any)?.bed_number && (
+              <span>Bed: {(admission.bed as any).bed_number}</span>
+            )}
+          </div>
+          {admission.diagnosis_on_admission && (
+            <p className="text-sm text-muted-foreground">
+              <span className="font-medium">Diagnosis:</span> {admission.diagnosis_on_admission}
+            </p>
+          )}
+          {hasUnbilledCharges && (
+            <p className="text-xs text-amber-600">
+              Rs. {unbilledData.total.toLocaleString()} in pending charges
+            </p>
+          )}
+        </div>
+      </div>
+      <Link to={`/app/ipd/admissions/${admission.id}`}>
+        <Button variant="ghost" size="sm">
+          <ExternalLink className="h-4 w-4" />
+        </Button>
+      </Link>
+    </div>
   );
 }
