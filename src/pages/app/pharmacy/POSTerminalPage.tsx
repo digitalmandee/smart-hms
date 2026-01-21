@@ -26,12 +26,13 @@ import {
 import { 
   useCreateTransaction,
   usePOSTransactions,
+  usePostToPatientProfile,
   CartItem,
   POSTransaction,
   POSPayment,
 } from "@/hooks/usePOS";
 import { useHoldTransaction } from "@/hooks/useHeldTransactions";
-import { PatientForPOS } from "@/hooks/usePatientPrescriptionsForPOS";
+import { PatientForPOS, PatientAdmissionStatus } from "@/hooks/usePatientPrescriptionsForPOS";
 import { usePrint } from "@/hooks/usePrint";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrganizationModules } from "@/hooks/useOrganizationModules";
@@ -49,7 +50,10 @@ import {
   ArrowLeft,
   Volume2,
   VolumeX,
+  BedDouble,
 } from "lucide-react";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { formatCurrency } from "@/lib/currency";
 
 export default function POSTerminalPage() {
   const navigate = useNavigate();
@@ -65,6 +69,8 @@ export default function POSTerminalPage() {
   const [completedTransaction, setCompletedTransaction] = useState<POSTransaction | null>(null);
   const [showReceipt, setShowReceipt] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState<PatientForPOS | null>(null);
+  const [patientAdmission, setPatientAdmission] = useState<PatientAdmissionStatus | null>(null);
+  const [showPostToProfileConfirm, setShowPostToProfileConfirm] = useState(false);
   const [showLastSaleReceipt, setShowLastSaleReceipt] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   
@@ -74,6 +80,7 @@ export default function POSTerminalPage() {
 
   const hasBranch = !!profile?.branch_id;
   const createTransactionMutation = useCreateTransaction();
+  const postToProfileMutation = usePostToPatientProfile();
   const holdTransactionMutation = useHoldTransaction();
   
   // Fetch last transaction for "Last Sale" feature
@@ -185,6 +192,7 @@ export default function POSTerminalPage() {
     setCustomerPhone("");
     setDiscountPercent(0);
     setSelectedPatient(null);
+    setPatientAdmission(null);
   };
 
   const handleHoldTransaction = () => {
@@ -212,6 +220,26 @@ export default function POSTerminalPage() {
       setCustomerName(`${patient.first_name} ${patient.last_name}`);
       setCustomerPhone(patient.phone || "");
     }
+  };
+
+  const handlePostToProfile = () => {
+    if (!patientAdmission || cart.length === 0) return;
+    setShowPostToProfileConfirm(true);
+  };
+
+  const confirmPostToProfile = () => {
+    if (!patientAdmission || cart.length === 0) return;
+    
+    postToProfileMutation.mutate({
+      admissionId: patientAdmission.id,
+      items: cart,
+      notes: `Dispensed by ${profile?.full_name || "POS"} at ${new Date().toLocaleString()}`,
+    }, {
+      onSuccess: () => {
+        handleClearCart();
+        setShowPostToProfileConfirm(false);
+      },
+    });
   };
 
   const handleCheckout = () => {
@@ -356,7 +384,32 @@ export default function POSTerminalPage() {
                   onAddToCart={handleAddToCart}
                   onPatientSelect={handlePatientSelect}
                   selectedPatient={selectedPatient}
+                  onAdmissionStatusChange={setPatientAdmission}
                 />
+              )}
+
+              {/* Post to Profile Info - shown when admitted patient selected */}
+              {patientAdmission && cart.length > 0 && (
+                <Card className="border-blue-500/50 bg-blue-500/5">
+                  <CardContent className="p-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <BedDouble className="h-4 w-4 text-blue-600" />
+                      <span className="text-sm font-medium text-blue-600">Admitted Patient</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      This patient is currently admitted. You can post these items to their IPD charges 
+                      and they will be billed at discharge.
+                    </p>
+                    <Button 
+                      onClick={handlePostToProfile}
+                      disabled={postToProfileMutation.isPending}
+                      className="w-full bg-blue-600 hover:bg-blue-700"
+                    >
+                      <BedDouble className="h-4 w-4 mr-2" />
+                      Post to Profile ({formatCurrency(totalAmount)})
+                    </Button>
+                  </CardContent>
+                </Card>
               )}
             </div>
           </ScrollArea>
@@ -492,6 +545,17 @@ export default function POSTerminalPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Post to Profile Confirmation Dialog */}
+      <ConfirmDialog
+        open={showPostToProfileConfirm}
+        onOpenChange={setShowPostToProfileConfirm}
+        title="Post to Patient Profile?"
+        description={`Post ${cart.length} item(s) totaling ${formatCurrency(totalAmount)} to ${selectedPatient?.first_name} ${selectedPatient?.last_name}'s IPD charges? These will be billed at discharge.`}
+        confirmLabel="Post to Profile"
+        onConfirm={confirmPostToProfile}
+        isLoading={postToProfileMutation.isPending}
+      />
     </div>
   );
 }

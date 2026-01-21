@@ -441,3 +441,97 @@ export function usePOSDashboardStats(branchId?: string) {
     enabled: !!targetBranchId,
   });
 }
+
+// Post to Patient Profile (for admitted patients - charges to IPD)
+export function usePostToPatientProfile() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const { profile } = useAuth();
+
+  return useMutation({
+    mutationFn: async ({
+      admissionId,
+      items,
+      notes,
+    }: {
+      admissionId: string;
+      items: CartItem[];
+      notes?: string;
+    }) => {
+      if (!profile?.organization_id || !profile?.branch_id) {
+        throw new Error("No organization or branch context");
+      }
+
+      posLogger.info("Posting items to patient profile", { 
+        admissionId,
+        itemsCount: items.length,
+      });
+
+      const today = new Date().toISOString().split("T")[0];
+      const chargesInsert = items.map((item) => {
+        const lineSubtotal = item.quantity * item.selling_price;
+        const lineDiscount = lineSubtotal * (item.discount_percent / 100);
+        const totalAmount = lineSubtotal - lineDiscount;
+
+        return {
+          admission_id: admissionId,
+          charge_date: today,
+          charge_type: "medication",
+          description: `Pharmacy: ${item.medicine_name}${item.batch_number ? ` (Batch: ${item.batch_number})` : ""}`,
+          quantity: item.quantity,
+          unit_price: item.selling_price,
+          total_amount: totalAmount,
+          is_billed: false,
+          notes: notes || null,
+        };
+      });
+
+      const { error: chargesError } = await supabase
+        .from("ipd_charges")
+        .insert(chargesInsert);
+
+      if (chargesError) {
+        posLogger.error("Failed to post charges to patient profile", chargesError);
+        throw chargesError;
+      }
+
+      // Auto-mark prescription items as dispensed
+      const prescriptionItemIds = items
+        .filter(i => i.prescription_item_id)
+        .map(i => i.prescription_item_id);
+
+      if (prescriptionItemIds.length > 0) {
+        posLogger.info("Marking prescription items as dispensed", { count: prescriptionItemIds.length });
+        await supabase
+          .from("prescription_items")
+          .update({ is_dispensed: true })
+          .in("id", prescriptionItemIds);
+      }
+
+      posLogger.info("Items posted to patient profile", { 
+        admissionId,
+        chargesCount: chargesInsert.length,
+        totalAmount: chargesInsert.reduce((sum, c) => sum + c.total_amount, 0),
+      });
+
+      return { success: true, chargesCount: chargesInsert.length };
+    },
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ["ipd-charges"] });
+      queryClient.invalidateQueries({ queryKey: ["admission-financials"] });
+      queryClient.invalidateQueries({ queryKey: ["medicine-inventory"] });
+      toast({
+        title: "Posted to Profile",
+        description: `${result.chargesCount} item(s) added to patient's IPD charges for billing at discharge.`,
+      });
+    },
+    onError: (error: Error) => {
+      posLogger.error("Failed to post to profile", error);
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+}
