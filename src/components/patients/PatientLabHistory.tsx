@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useRef, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,7 +9,7 @@ import { useOrganizationBranding } from "@/hooks/useOrganizationBranding";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 import { TestTubes, Calendar, ExternalLink, Globe, Printer, Download } from "lucide-react";
-import { useReactToPrint } from "react-to-print";
+import { usePrint } from "@/hooks/usePrint";
 import { PrintableLabReport } from "@/components/lab/PrintableLabReport";
 
 interface PatientLabHistoryProps {
@@ -30,34 +30,21 @@ export function PatientLabHistory({ patientId }: PatientLabHistoryProps) {
   const { profile } = useAuth();
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [shouldPrint, setShouldPrint] = useState(false);
-  const printRef = useRef<HTMLDivElement>(null);
   
   const { data: selectedOrder } = useLabOrder(selectedOrderId || undefined);
-  const handlePrintRef = useRef<(() => void) | null>(null);
-
-  const handlePrint = useReactToPrint({
-    contentRef: printRef,
-    onAfterPrint: () => {
-      setSelectedOrderId(null);
-      setShouldPrint(false);
-    },
-  });
-
-  // Store latest handlePrint in ref to avoid stale closure
-  useEffect(() => {
-    handlePrintRef.current = handlePrint;
-  }, [handlePrint]);
+  const { printRef, handlePrint } = usePrint();
 
   // Trigger print when data is loaded AND shouldPrint is true
   useEffect(() => {
     if (shouldPrint && selectedOrder && printRef.current) {
-      // Small delay to ensure DOM is fully painted
       const timer = setTimeout(() => {
-        handlePrintRef.current?.();
+        handlePrint({ title: `Lab Report - ${selectedOrder.order_number}` });
+        setSelectedOrderId(null);
+        setShouldPrint(false);
       }, 300);
       return () => clearTimeout(timer);
     }
-  }, [shouldPrint, selectedOrder]);
+  }, [shouldPrint, selectedOrder, handlePrint, printRef]);
 
   if (isLoading) {
     return (
@@ -173,8 +160,8 @@ export function PatientLabHistory({ patientId }: PatientLabHistoryProps) {
         </CardContent>
       </Card>
       
-      {/* Hidden printable report - wrapper hides it, component stays rendered for ref */}
-      <div className="hidden">
+      {/* Off-screen printable report - positioned off-screen so it renders in DOM but isn't visible */}
+      <div style={{ position: 'absolute', left: '-9999px', top: 0 }}>
         {selectedOrder && (
           <PrintableLabReport
             ref={printRef}
