@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, X, Maximize2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, X, Maximize2, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+import { toast } from 'sonner';
 
 interface ImageViewerProps {
   images: string[];
@@ -35,6 +36,27 @@ export function ImageViewer({ images, className }: ImageViewerProps) {
 
   const handleZoomIn = () => setZoom((prev) => Math.min(prev + 0.25, 3));
   const handleZoomOut = () => setZoom((prev) => Math.max(prev - 0.25, 0.5));
+
+  const handleDownload = (imageUrl: string, index: number) => {
+    try {
+      const link = document.createElement('a');
+      link.href = imageUrl;
+      link.download = `image-${index + 1}.jpg`;
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast.success('Download started');
+    } catch (error) {
+      toast.error('Failed to download image');
+    }
+  };
+
+  const handleDownloadAll = () => {
+    images.forEach((url, index) => {
+      setTimeout(() => handleDownload(url, index), index * 200);
+    });
+  };
 
   return (
     <>
@@ -74,6 +96,16 @@ export function ImageViewer({ images, className }: ImageViewerProps) {
             </Button>
 
             <div className="w-px h-6 bg-white/30 mx-1" />
+
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-white hover:bg-white/20"
+              onClick={() => handleDownload(images[selectedIndex], selectedIndex)}
+              title="Download image"
+            >
+              <Download className="h-4 w-4" />
+            </Button>
 
             <Button
               variant="ghost"
@@ -169,6 +201,18 @@ export function ImageViewer({ images, className }: ImageViewerProps) {
                 onClick={handleZoomIn}
               >
                 <ZoomIn className="h-5 w-5" />
+              </Button>
+
+              <div className="w-px h-6 bg-white/30 mx-1" />
+
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 text-white hover:bg-white/20"
+                onClick={() => handleDownload(images[selectedIndex], selectedIndex)}
+                title="Download current image"
+              >
+                <Download className="h-5 w-5" />
               </Button>
 
               <span className="text-white text-sm px-4">

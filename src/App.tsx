@@ -271,6 +271,7 @@ import ProceduresListPage from "./pages/app/radiology/ProceduresListPage";
 import PACSStudiesPage from "./pages/app/radiology/PACSStudiesPage";
 import PACSSettingsPage from "./pages/app/radiology/PACSSettingsPage";
 import PACSSetupGuidePage from "./pages/app/radiology/PACSSetupGuidePage";
+import RadiologyArchivePage from "./pages/app/radiology/RadiologyArchivePage";
 
 // Inventory pages
 import InventoryDashboard from "./pages/app/inventory/InventoryDashboard";
@@ -558,6 +559,7 @@ function App() {
               <Route path="radiology/reporting" element={<ReportingWorklistPage />} />
               <Route path="radiology/report/:id" element={<ReportEntryPage />} />
               <Route path="radiology/verification" element={<ReportVerificationPage />} />
+              <Route path="radiology/archive" element={<RadiologyArchivePage />} />
               <Route path="radiology/modalities" element={<ModalitiesListPage />} />
               <Route path="radiology/procedures" element={<ProceduresListPage />} />
               <Route path="radiology/pacs" element={<PACSStudiesPage />} />

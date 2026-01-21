@@ -472,7 +472,20 @@ export function usePatientImagingHistory(patientId: string | undefined, limit = 
         .select(`
           *,
           procedure:imaging_procedures(name),
-          result:imaging_results(finding_status, impression)
+          result:imaging_results(
+            id,
+            findings,
+            impression,
+            recommendations,
+            images,
+            finding_status,
+            technique,
+            created_at,
+            verified_at,
+            radiologist_id,
+            radiologist_profile:profiles!imaging_results_radiologist_id_fkey(first_name, last_name),
+            verified_by_profile:profiles!imaging_results_verified_by_fkey(first_name, last_name)
+          )
         `)
         .eq('patient_id', patientId)
         .order('created_at', { ascending: false })
@@ -482,6 +495,46 @@ export function usePatientImagingHistory(patientId: string | undefined, limit = 
       return data;
     },
     enabled: !!patientId,
+  });
+}
+
+// Fetch all verified imaging orders for archive
+export function useVerifiedImagingOrders() {
+  const { profile } = useAuth();
+
+  return useQuery({
+    queryKey: ['verified-imaging-orders', profile?.organization_id],
+    queryFn: async () => {
+      if (!profile?.organization_id) throw new Error('Organization required');
+
+      const { data, error } = await supabase
+        .from('imaging_orders')
+        .select(`
+          *,
+          patient:patients(id, first_name, last_name, patient_number, date_of_birth, gender),
+          procedure:imaging_procedures(name),
+          result:imaging_results(
+            id,
+            findings,
+            impression,
+            recommendations,
+            images,
+            finding_status,
+            technique,
+            created_at,
+            verified_at,
+            radiologist_profile:profiles!imaging_results_radiologist_id_fkey(first_name, last_name),
+            verified_by_profile:profiles!imaging_results_verified_by_fkey(first_name, last_name)
+          )
+        `)
+        .eq('organization_id', profile.organization_id)
+        .eq('status', 'verified')
+        .order('updated_at', { ascending: false });
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!profile?.organization_id,
   });
 }
 
