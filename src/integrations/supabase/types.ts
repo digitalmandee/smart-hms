@@ -175,6 +175,8 @@ export type Database = {
           chief_complaint: string | null
           clinical_notes: string | null
           condition_at_discharge: string | null
+          confirmed_at: string | null
+          confirmed_by: string | null
           consultation_id: string | null
           created_at: string | null
           created_by: string | null
@@ -214,6 +216,8 @@ export type Database = {
           chief_complaint?: string | null
           clinical_notes?: string | null
           condition_at_discharge?: string | null
+          confirmed_at?: string | null
+          confirmed_by?: string | null
           consultation_id?: string | null
           created_at?: string | null
           created_by?: string | null
@@ -253,6 +257,8 @@ export type Database = {
           chief_complaint?: string | null
           clinical_notes?: string | null
           condition_at_discharge?: string | null
+          confirmed_at?: string | null
+          confirmed_by?: string | null
           consultation_id?: string | null
           created_at?: string | null
           created_by?: string | null
@@ -306,6 +312,13 @@ export type Database = {
             columns: ["branch_id"]
             isOneToOne: false
             referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admissions_confirmed_by_fkey"
+            columns: ["confirmed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -13730,6 +13743,7 @@ export type Database = {
     }
     Enums: {
       admission_status:
+        | "pending"
         | "admitted"
         | "discharged"
         | "transferred"
@@ -14202,6 +14216,7 @@ export const Constants = {
   public: {
     Enums: {
       admission_status: [
+        "pending",
         "admitted",
         "discharged",
         "transferred",
