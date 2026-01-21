@@ -376,7 +376,7 @@ const RecursiveMenuItem = ({
 export const DynamicSidebar = ({ isCollapsed = false, onToggle, showDesktopToggle = false }: DynamicSidebarProps) => {
   // Use database menu items for admin roles, static config for operational roles
   const { menuItems: dbMenuItems, isLoading: menuLoading } = useMenuItems();
-  const { profile, roles, signOut, isSuperAdmin } = useAuth();
+  const { profile, roles, signOut, isSuperAdmin, isLoading: authLoading } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [openMenus, setOpenMenus] = useState<string[]>([]);
@@ -487,7 +487,7 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle, showDesktopToggl
       .slice(0, 2);
   };
 
-  const isLoading = usesDatabaseMenus && menuLoading;
+  const isLoading = authLoading || (usesDatabaseMenus && menuLoading);
 
   return (
     <aside
