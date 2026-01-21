@@ -163,7 +163,7 @@ export interface BloodTransfusion {
 // BLOOD DONORS HOOKS
 // =============================================
 
-export function useBloodDonors(filters?: { status?: DonorStatus; bloodGroup?: BloodGroupType; search?: string }) {
+export function useBloodDonors(filters?: { status?: DonorStatus; bloodGroup?: BloodGroupType; search?: string; patientId?: string }) {
   const { profile } = useAuth();
 
   return useQuery({
@@ -180,6 +180,9 @@ export function useBloodDonors(filters?: { status?: DonorStatus; bloodGroup?: Bl
       }
       if (filters?.bloodGroup) {
         query = query.eq("blood_group", filters.bloodGroup);
+      }
+      if (filters?.patientId) {
+        query = query.eq("patient_id", filters.patientId);
       }
       if (filters?.search) {
         query = query.or(`first_name.ilike.%${filters.search}%,last_name.ilike.%${filters.search}%,donor_number.ilike.%${filters.search}%,phone.ilike.%${filters.search}%`);

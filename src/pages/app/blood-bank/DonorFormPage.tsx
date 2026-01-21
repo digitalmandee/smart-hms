@@ -1,8 +1,8 @@
-import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,13 +14,15 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
-import { ArrowLeft, Save, Loader2 } from "lucide-react";
+import { ArrowLeft, Save, Loader2, Link2, X, User } from "lucide-react";
 import { 
   useBloodDonor, 
   useCreateDonor, 
   useUpdateDonor,
   type BloodGroupType 
 } from "@/hooks/useBloodBank";
+import { usePatients } from "@/hooks/usePatients";
+import { differenceInYears } from "date-fns";
 
 const bloodGroups: BloodGroupType[] = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 const genders = ['male', 'female', 'other'];
@@ -28,11 +30,19 @@ const genders = ['male', 'female', 'other'];
 export default function DonorFormPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
+  const preselectedPatientId = searchParams.get('patientId');
   const isEditing = !!id;
 
   const { data: existingDonor, isLoading: loadingDonor } = useBloodDonor(id || '');
   const createDonor = useCreateDonor();
   const updateDonor = useUpdateDonor();
+
+  // Patient search for linking
+  const [patientSearch, setPatientSearch] = useState('');
+  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(preselectedPatientId);
+  const { data: patients } = usePatients(patientSearch);
+  const selectedPatient = patients?.find(p => p.id === selectedPatientId);
 
   const [formData, setFormData] = useState({
     first_name: '',
@@ -54,8 +64,26 @@ export default function DonorFormPage() {
     consent_given: false,
   });
 
+  // Auto-fill form when patient is selected
+  useEffect(() => {
+    if (selectedPatient && !isEditing) {
+      setFormData(prev => ({
+        ...prev,
+        first_name: selectedPatient.first_name || prev.first_name,
+        last_name: selectedPatient.last_name || prev.last_name,
+        date_of_birth: selectedPatient.date_of_birth || prev.date_of_birth,
+        gender: selectedPatient.gender || prev.gender,
+        blood_group: (selectedPatient.blood_group as BloodGroupType) || prev.blood_group,
+        phone: selectedPatient.phone || prev.phone,
+        email: selectedPatient.email || prev.email,
+        address: selectedPatient.address || prev.address,
+        city: selectedPatient.city || prev.city,
+      }));
+    }
+  }, [selectedPatient, isEditing]);
+
   // Populate form when editing
-  useState(() => {
+  useEffect(() => {
     if (existingDonor) {
       setFormData({
         first_name: existingDonor.first_name,
@@ -77,7 +105,7 @@ export default function DonorFormPage() {
         consent_given: existingDonor.consent_given,
       });
     }
-  });
+  }, [existingDonor]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,6 +124,7 @@ export default function DonorFormPage() {
       hemoglobin_level: formData.hemoglobin_level ? parseFloat(formData.hemoglobin_level) : null,
       consent_given: formData.consent_given,
       consent_date: formData.consent_given ? new Date().toISOString() : null,
+      patient_id: selectedPatientId || null,
     };
 
     try {
@@ -134,6 +163,81 @@ export default function DonorFormPage() {
       />
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Link to Patient (Optional) */}
+        {!isEditing && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Link2 className="h-5 w-5" />
+                Link to Patient (Optional)
+              </CardTitle>
+              <CardDescription>
+                If this donor is a registered patient, link their records for complete blood history tracking
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {selectedPatient ? (
+                <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <User className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-medium">
+                        {selectedPatient.first_name} {selectedPatient.last_name}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {selectedPatient.patient_number} • {selectedPatient.phone}
+                        {selectedPatient.blood_group && ` • ${selectedPatient.blood_group}`}
+                      </p>
+                    </div>
+                  </div>
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => setSelectedPatientId(null)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Label>Search Patient</Label>
+                  <Input
+                    placeholder="Search by name, phone, or patient number..."
+                    value={patientSearch}
+                    onChange={(e) => setPatientSearch(e.target.value)}
+                  />
+                  {patientSearch && patients && patients.length > 0 && (
+                    <div className="border rounded-lg divide-y max-h-48 overflow-y-auto">
+                      {patients.slice(0, 5).map((patient) => (
+                        <button
+                          key={patient.id}
+                          type="button"
+                          className="w-full text-left p-3 hover:bg-muted/50 transition-colors"
+                          onClick={() => {
+                            setSelectedPatientId(patient.id);
+                            setPatientSearch('');
+                          }}
+                        >
+                          <p className="font-medium">
+                            {patient.first_name} {patient.last_name}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {patient.patient_number} • {patient.phone}
+                            {patient.blood_group && ` • ${patient.blood_group}`}
+                          </p>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
         <Card>
           <CardHeader>
             <CardTitle>Personal Information</CardTitle>

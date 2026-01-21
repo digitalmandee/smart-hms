@@ -3,10 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useBloodTransfusions, useBloodRequests } from "@/hooks/useBloodBank";
+import { useBloodTransfusions, useBloodRequests, useBloodDonors, useBloodDonations } from "@/hooks/useBloodBank";
 import { BloodGroupBadge } from "@/components/blood-bank/BloodGroupBadge";
 import { format } from "date-fns";
-import { Droplets, Calendar, ExternalLink, Clock, CheckCircle } from "lucide-react";
+import { Droplets, Calendar, ExternalLink, Clock, CheckCircle, Heart, UserPlus } from "lucide-react";
 
 interface PatientBloodHistoryProps {
   patientId: string;
@@ -33,8 +33,11 @@ const requestStatusColors: Record<string, string> = {
 export function PatientBloodHistory({ patientId }: PatientBloodHistoryProps) {
   const { data: transfusions, isLoading: loadingTransfusions } = useBloodTransfusions({ patientId });
   const { data: requests, isLoading: loadingRequests } = useBloodRequests({ patientId });
+  const { data: donors, isLoading: loadingDonors } = useBloodDonors({ patientId });
+  const donorRecord = donors?.[0]; // Patient can only have one donor record
+  const { data: donations, isLoading: loadingDonations } = useBloodDonations({ donorId: donorRecord?.id });
 
-  const isLoading = loadingTransfusions || loadingRequests;
+  const isLoading = loadingTransfusions || loadingRequests || loadingDonors || loadingDonations;
 
   if (isLoading) {
     return (
@@ -51,7 +54,7 @@ export function PatientBloodHistory({ patientId }: PatientBloodHistoryProps) {
     );
   }
 
-  const hasData = (transfusions && transfusions.length > 0) || (requests && requests.length > 0);
+  const hasData = (transfusions && transfusions.length > 0) || (requests && requests.length > 0) || donorRecord;
 
   if (!hasData) {
     return (
@@ -62,9 +65,17 @@ export function PatientBloodHistory({ patientId }: PatientBloodHistoryProps) {
               <CardTitle>Blood Bank</CardTitle>
               <CardDescription>Blood requests and transfusion history</CardDescription>
             </div>
-            <Link to={`/app/blood-bank/requests/new?patientId=${patientId}`}>
-              <Button size="sm">Request Blood</Button>
-            </Link>
+            <div className="flex gap-2">
+              <Link to={`/app/blood-bank/donors/new?patientId=${patientId}`}>
+                <Button size="sm" variant="outline">
+                  <UserPlus className="h-4 w-4 mr-1" />
+                  Register as Donor
+                </Button>
+              </Link>
+              <Link to={`/app/blood-bank/requests/new?patientId=${patientId}`}>
+                <Button size="sm">Request Blood</Button>
+              </Link>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="text-center py-8">
@@ -82,15 +93,68 @@ export function PatientBloodHistory({ patientId }: PatientBloodHistoryProps) {
           <div>
             <CardTitle>Blood Bank</CardTitle>
             <CardDescription>
+              {donorRecord && `Donor: ${donorRecord.donor_number} • `}
               {requests?.length || 0} request(s), {transfusions?.length || 0} transfusion(s)
             </CardDescription>
           </div>
-          <Link to={`/app/blood-bank/requests/new?patientId=${patientId}`}>
-            <Button size="sm">Request Blood</Button>
-          </Link>
+          <div className="flex gap-2">
+            {!donorRecord && (
+              <Link to={`/app/blood-bank/donors/new?patientId=${patientId}`}>
+                <Button size="sm" variant="outline">
+                  <UserPlus className="h-4 w-4 mr-1" />
+                  Register as Donor
+                </Button>
+              </Link>
+            )}
+            <Link to={`/app/blood-bank/requests/new?patientId=${patientId}`}>
+              <Button size="sm">Request Blood</Button>
+            </Link>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Donor Status & Donations */}
+        {donorRecord && (
+          <div>
+            <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
+              <Heart className="h-4 w-4 text-red-500" />
+              Donor Status
+            </h4>
+            <div className="p-3 bg-muted/50 rounded-lg mb-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <BloodGroupBadge group={donorRecord.blood_group} />
+                  <div>
+                    <p className="font-medium">{donorRecord.donor_number}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {donorRecord.total_donations} donation(s) • Status: {donorRecord.status}
+                    </p>
+                  </div>
+                </div>
+                <Link to={`/app/blood-bank/donors/${donorRecord.id}`}>
+                  <Button variant="ghost" size="sm">
+                    <ExternalLink className="h-3 w-3" />
+                  </Button>
+                </Link>
+              </div>
+            </div>
+            {donations && donations.length > 0 && (
+              <div className="space-y-2">
+                {donations.slice(0, 3).map((donation) => (
+                  <div
+                    key={donation.id}
+                    className="flex items-center justify-between p-2 bg-green-50 rounded-lg text-sm"
+                  >
+                    <span>{donation.donation_number}</span>
+                    <span className="text-muted-foreground">
+                      {format(new Date(donation.donation_date), "MMM dd, yyyy")}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
         {/* Transfusions */}
         {transfusions && transfusions.length > 0 && (
           <div>
