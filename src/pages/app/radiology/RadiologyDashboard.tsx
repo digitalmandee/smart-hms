@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PageHeader } from '@/components/PageHeader';
-import { StatsCard } from '@/components/StatsCard';
+import { ModernPageHeader } from '@/components/ModernPageHeader';
+import { ModernStatsCard } from '@/components/ModernStatsCard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -15,7 +15,8 @@ import {
   FileText, 
   Plus, 
   Radio, 
-  AlertTriangle 
+  AlertTriangle,
+  Scan
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -41,14 +42,23 @@ export default function RadiologyDashboard() {
   const inProgressOrders = orders?.filter(o => o.status === 'in_progress') || [];
   const awaitingReportOrders = orders?.filter(o => o.status === 'completed') || [];
 
+  const quickActionItems = [
+    { title: "Technician Worklist", subtitle: `${stats.pendingOrders + stats.inProgress} studies`, icon: Radio, color: "bg-blue-100 text-blue-600", path: "/app/radiology/worklist" },
+    { title: "Reporting Worklist", subtitle: `${stats.awaitingReport} pending`, icon: FileText, color: "bg-purple-100 text-purple-600", path: "/app/radiology/reporting" },
+    { title: "Schedule", subtitle: "View calendar", icon: Calendar, color: "bg-green-100 text-green-600", path: "/app/radiology/schedule" },
+    { title: "All Orders", subtitle: `${orders?.length || 0} total`, icon: Activity, color: "bg-orange-100 text-orange-600", path: "/app/radiology/orders" },
+  ];
+
   return (
     <div className="space-y-6">
-      <PageHeader
+      <ModernPageHeader
         title="Radiology & Imaging"
-        description="Manage imaging orders, reports, and workflows"
+        subtitle="Manage imaging orders, reports, and workflows"
+        icon={Scan}
+        iconColor="text-primary"
         actions={
-          <Button onClick={() => navigate('/app/radiology/orders/new')}>
-            <Plus className="h-4 w-4 mr-2" />
+          <Button onClick={() => navigate('/app/radiology/orders/new')} className="gap-2">
+            <Plus className="h-4 w-4" />
             New Order
           </Button>
         }
@@ -56,95 +66,79 @@ export default function RadiologyDashboard() {
 
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-        <StatsCard
+        <ModernStatsCard
           title="Pending Orders"
           value={stats.pendingOrders}
           icon={Clock}
+          variant="warning"
+          onClick={() => setActiveTab('pending')}
         />
-        <StatsCard
+        <ModernStatsCard
           title="In Progress"
           value={stats.inProgress}
           icon={Activity}
+          variant="info"
+          onClick={() => setActiveTab('inProgress')}
         />
-        <StatsCard
+        <ModernStatsCard
           title="Awaiting Report"
           value={stats.awaitingReport}
           icon={FileText}
+          variant="primary"
+          onClick={() => setActiveTab('awaitingReport')}
         />
-        <StatsCard
+        <ModernStatsCard
           title="Completed Today"
           value={stats.completedToday}
           icon={CheckCircle}
           variant="success"
         />
         {stats.statOrders > 0 && (
-          <StatsCard
+          <ModernStatsCard
             title="STAT Orders"
             value={stats.statOrders}
             icon={AlertTriangle}
-            variant="warning"
+            variant="accent"
+            className="border-l-4 border-l-destructive animate-pulse"
           />
         )}
       </div>
 
       {/* Quick Actions */}
       <div className="grid gap-4 md:grid-cols-4">
-        <Card className="cursor-pointer hover:bg-accent/50 transition-colors" onClick={() => navigate('/app/radiology/worklist')}>
-          <CardContent className="flex items-center gap-4 p-4">
-            <div className="p-3 rounded-full bg-blue-100">
-              <Radio className="h-5 w-5 text-blue-600" />
-            </div>
-            <div>
-              <p className="font-medium">Technician Worklist</p>
-              <p className="text-sm text-muted-foreground">{stats.pendingOrders + stats.inProgress} studies</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="cursor-pointer hover:bg-accent/50 transition-colors" onClick={() => navigate('/app/radiology/reporting')}>
-          <CardContent className="flex items-center gap-4 p-4">
-            <div className="p-3 rounded-full bg-purple-100">
-              <FileText className="h-5 w-5 text-purple-600" />
-            </div>
-            <div>
-              <p className="font-medium">Reporting Worklist</p>
-              <p className="text-sm text-muted-foreground">{stats.awaitingReport} pending</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="cursor-pointer hover:bg-accent/50 transition-colors" onClick={() => navigate('/app/radiology/schedule')}>
-          <CardContent className="flex items-center gap-4 p-4">
-            <div className="p-3 rounded-full bg-green-100">
-              <Calendar className="h-5 w-5 text-green-600" />
-            </div>
-            <div>
-              <p className="font-medium">Schedule</p>
-              <p className="text-sm text-muted-foreground">View calendar</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="cursor-pointer hover:bg-accent/50 transition-colors" onClick={() => navigate('/app/radiology/orders')}>
-          <CardContent className="flex items-center gap-4 p-4">
-            <div className="p-3 rounded-full bg-orange-100">
-              <Activity className="h-5 w-5 text-orange-600" />
-            </div>
-            <div>
-              <p className="font-medium">All Orders</p>
-              <p className="text-sm text-muted-foreground">{orders?.length || 0} total</p>
-            </div>
-          </CardContent>
-        </Card>
+        {quickActionItems.map((item, idx) => (
+          <Card 
+            key={item.title}
+            className="cursor-pointer hover:shadow-md hover:border-primary/20 transition-all duration-200 animate-fade-in" 
+            style={{ animationDelay: `${idx * 50}ms` }}
+            onClick={() => navigate(item.path)}
+          >
+            <CardContent className="flex items-center gap-4 p-4">
+              <div className={`p-3 rounded-xl ${item.color}`}>
+                <item.icon className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="font-medium">{item.title}</p>
+                <p className="text-sm text-muted-foreground">{item.subtitle}</p>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       {/* Order Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="pending">
+        <TabsList className="bg-muted/50">
+          <TabsTrigger value="pending" className="gap-2">
+            <Clock className="h-4 w-4" />
             Pending ({pendingOrders.length})
           </TabsTrigger>
-          <TabsTrigger value="inProgress">
+          <TabsTrigger value="inProgress" className="gap-2">
+            <Activity className="h-4 w-4" />
             In Progress ({inProgressOrders.length})
           </TabsTrigger>
-          <TabsTrigger value="awaitingReport">
+          <TabsTrigger value="awaitingReport" className="gap-2">
+            <FileText className="h-4 w-4" />
             Awaiting Report ({awaitingReportOrders.length})
           </TabsTrigger>
         </TabsList>
@@ -153,15 +147,21 @@ export default function RadiologyDashboard() {
           {isLoading ? (
             <div className="text-center py-8 text-muted-foreground">Loading...</div>
           ) : pendingOrders.length === 0 ? (
-            <Card>
-              <CardContent className="text-center py-8 text-muted-foreground">
-                No pending orders
+            <Card className="shadow-soft">
+              <CardContent className="text-center py-12 text-muted-foreground">
+                <div className="p-4 rounded-full bg-muted/50 w-fit mx-auto mb-3">
+                  <Clock className="h-8 w-8 opacity-50" />
+                </div>
+                <p className="font-medium">No pending orders</p>
+                <p className="text-sm">All imaging orders have been processed</p>
               </CardContent>
             </Card>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {pendingOrders.slice(0, 6).map(order => (
-                <ImagingOrderCard key={order.id} order={order} />
+              {pendingOrders.slice(0, 6).map((order, idx) => (
+                <div key={order.id} className="animate-fade-in" style={{ animationDelay: `${idx * 50}ms` }}>
+                  <ImagingOrderCard order={order} />
+                </div>
               ))}
             </div>
           )}
@@ -169,15 +169,20 @@ export default function RadiologyDashboard() {
 
         <TabsContent value="inProgress" className="mt-4">
           {inProgressOrders.length === 0 ? (
-            <Card>
-              <CardContent className="text-center py-8 text-muted-foreground">
-                No studies in progress
+            <Card className="shadow-soft">
+              <CardContent className="text-center py-12 text-muted-foreground">
+                <div className="p-4 rounded-full bg-muted/50 w-fit mx-auto mb-3">
+                  <Activity className="h-8 w-8 opacity-50" />
+                </div>
+                <p className="font-medium">No studies in progress</p>
               </CardContent>
             </Card>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {inProgressOrders.map(order => (
-                <ImagingOrderCard key={order.id} order={order} />
+              {inProgressOrders.map((order, idx) => (
+                <div key={order.id} className="animate-fade-in" style={{ animationDelay: `${idx * 50}ms` }}>
+                  <ImagingOrderCard order={order} />
+                </div>
               ))}
             </div>
           )}
@@ -185,15 +190,20 @@ export default function RadiologyDashboard() {
 
         <TabsContent value="awaitingReport" className="mt-4">
           {awaitingReportOrders.length === 0 ? (
-            <Card>
-              <CardContent className="text-center py-8 text-muted-foreground">
-                No studies awaiting report
+            <Card className="shadow-soft">
+              <CardContent className="text-center py-12 text-muted-foreground">
+                <div className="p-4 rounded-full bg-muted/50 w-fit mx-auto mb-3">
+                  <FileText className="h-8 w-8 opacity-50" />
+                </div>
+                <p className="font-medium">No studies awaiting report</p>
               </CardContent>
             </Card>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {awaitingReportOrders.map(order => (
-                <ImagingOrderCard key={order.id} order={order} />
+              {awaitingReportOrders.map((order, idx) => (
+                <div key={order.id} className="animate-fade-in" style={{ animationDelay: `${idx * 50}ms` }}>
+                  <ImagingOrderCard order={order} />
+                </div>
               ))}
             </div>
           )}
