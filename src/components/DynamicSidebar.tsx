@@ -125,9 +125,12 @@ import {
   PanelLeftClose,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 import { useMenuItems } from "@/hooks/useMenuItems";
 import { useAuth } from "@/contexts/AuthContext";
 import { ROLE_SIDEBAR_CONFIG, getPrimaryRole } from "@/config/role-sidebars";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const ADMIN_ROLES = ["super_admin", "org_admin", "branch_admin"];
 
@@ -258,6 +261,7 @@ interface RecursiveMenuItemProps {
   isActive: (path: string | null) => boolean;
   handleNavigation: (path: string | null) => void;
   iconMap: Record<string, React.ComponentType<{ className?: string }>>;
+  badgeCounts?: Record<string, number>;
 }
 
 const RecursiveMenuItem = ({
@@ -270,12 +274,14 @@ const RecursiveMenuItem = ({
   isActive,
   handleNavigation,
   iconMap,
+  badgeCounts = {},
 }: RecursiveMenuItemProps) => {
   const IconComponent = item.icon ? iconMap[item.icon] : (level === 0 ? iconMap.LayoutDashboard : null);
   const hasChildren = item.children && item.children.length > 0;
   const menuCode = item.code || `menu-${level}-${index}`;
   const isOpen = openMenus.includes(menuCode);
   const itemIsActive = isActive(item.path);
+  const badgeCount = item.path ? badgeCounts[item.path] : undefined;
 
   // Visual hierarchy based on level - using progressive indentation only
   const getLevelStyles = () => {
@@ -345,6 +351,7 @@ const RecursiveMenuItem = ({
                 isActive={isActive}
                 handleNavigation={handleNavigation}
                 iconMap={iconMap}
+                badgeCounts={badgeCounts}
               />
             ))}
           </CollapsibleContent>
@@ -368,7 +375,21 @@ const RecursiveMenuItem = ({
       title={isCollapsed ? item.name : undefined}
     >
       {IconComponent && <IconComponent className={cn(styles.iconSize, "flex-shrink-0")} />}
-      {!isCollapsed && <span>{item.name}</span>}
+      {!isCollapsed && (
+        <>
+          <span className="flex-1 text-left">{item.name}</span>
+          {badgeCount !== undefined && badgeCount > 0 && (
+            <Badge variant="destructive" className="h-5 min-w-5 px-1.5 text-xs">
+              {badgeCount > 99 ? "99+" : badgeCount}
+            </Badge>
+          )}
+        </>
+      )}
+      {isCollapsed && badgeCount !== undefined && badgeCount > 0 && (
+        <span className="absolute -top-1 -right-1 h-4 min-w-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] flex items-center justify-center">
+          {badgeCount > 9 ? "9+" : badgeCount}
+        </span>
+      )}
     </Button>
   );
 };
@@ -387,6 +408,28 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle, showDesktopToggl
   // Super admin and org_admin use static configs; only branch_admin uses database menus
   const usesStaticSidebar = isSuperAdmin || primaryRole === 'super_admin' || primaryRole === 'org_admin';
   const usesDatabaseMenus = ADMIN_ROLES.includes(primaryRole) && !usesStaticSidebar;
+
+  // Fetch pending admissions count for badge
+  const { data: pendingAdmissionsCount = 0 } = useQuery({
+    queryKey: ["pending-admissions-count", profile?.organization_id],
+    queryFn: async () => {
+      if (!profile?.organization_id) return 0;
+      const { count, error } = await supabase
+        .from("admissions")
+        .select("*", { count: 'exact', head: true })
+        .eq("organization_id", profile.organization_id)
+        .eq("status", "pending");
+      if (error) return 0;
+      return count || 0;
+    },
+    enabled: !!profile?.organization_id,
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+
+  // Badge counts for specific menu paths
+  const badgeCounts: Record<string, number> = {
+    "/app/ipd/nursing": pendingAdmissionsCount,
+  };
 
   // Get sidebar config based on role
   const sidebarConfig = usesDatabaseMenus 
@@ -561,6 +604,7 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle, showDesktopToggl
               isActive={isActive}
               handleNavigation={handleNavigation}
               iconMap={iconMap}
+              badgeCounts={badgeCounts}
             />
           ))}
           </>
