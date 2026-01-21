@@ -8,7 +8,7 @@ import { useLabOrders, useLabOrder } from "@/hooks/useLabOrders";
 import { useOrganizationBranding } from "@/hooks/useOrganizationBranding";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
-import { TestTubes, Calendar, ExternalLink, Globe, Printer } from "lucide-react";
+import { TestTubes, Calendar, ExternalLink, Globe, Printer, Download } from "lucide-react";
 import { useReactToPrint } from "react-to-print";
 import { PrintableLabReport } from "@/components/lab/PrintableLabReport";
 
@@ -138,17 +138,29 @@ export function PatientLabHistory({ patientId }: PatientLabHistoryProps) {
                   </Badge>
                 )}
                 {order.status === 'completed' && (
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    disabled={selectedOrderId === order.id && shouldPrint}
-                    onClick={() => {
-                      setSelectedOrderId(order.id);
-                      setShouldPrint(true);
-                    }}
-                  >
-                    <Printer className="h-4 w-4" />
-                  </Button>
+                  <>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      disabled={selectedOrderId === order.id && shouldPrint}
+                      onClick={() => {
+                        setSelectedOrderId(order.id);
+                        setShouldPrint(true);
+                      }}
+                    >
+                      <Printer className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        window.open(`/app/lab/orders/${order.id}`, '_blank');
+                      }}
+                      title="Open in new tab to download as PDF"
+                    >
+                      <Download className="h-4 w-4" />
+                    </Button>
+                  </>
                 )}
                 <Link to={`/app/lab/orders/${order.id}`} target="_blank" rel="noopener noreferrer">
                   <Button variant="ghost" size="sm">
@@ -161,15 +173,17 @@ export function PatientLabHistory({ patientId }: PatientLabHistoryProps) {
         </CardContent>
       </Card>
       
-      {/* Hidden printable report - component handles its own print visibility */}
-      {selectedOrder && (
-        <PrintableLabReport
-          ref={printRef}
-          labOrder={selectedOrder}
-          organization={branding}
-          performedBy={profile?.full_name}
-        />
-      )}
+      {/* Hidden printable report - wrapper hides it, component stays rendered for ref */}
+      <div className="hidden">
+        {selectedOrder && (
+          <PrintableLabReport
+            ref={printRef}
+            labOrder={selectedOrder}
+            organization={branding}
+            performedBy={profile?.full_name}
+          />
+        )}
+      </div>
     </>
   );
 }
