@@ -38,7 +38,10 @@ export function PatientLabHistory({ patientId }: PatientLabHistoryProps) {
   useEffect(() => {
     if (shouldPrint && selectedOrder && printRef.current) {
       const timer = setTimeout(() => {
-        handlePrint({ title: `Lab Report - ${selectedOrder.order_number}` });
+        handlePrint({ 
+          title: `Lab Report - ${selectedOrder.order_number}`,
+          skipDefaultStyles: true
+        });
         setSelectedOrderId(null);
         setShouldPrint(false);
       }, 300);
