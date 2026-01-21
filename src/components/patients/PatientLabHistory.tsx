@@ -1,11 +1,16 @@
 import { Link } from "react-router-dom";
+import { useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useLabOrders } from "@/hooks/useLabOrders";
+import { useLabOrders, useLabOrder } from "@/hooks/useLabOrders";
+import { useOrganizationBranding } from "@/hooks/useOrganizationBranding";
+import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
-import { TestTubes, Calendar, ExternalLink } from "lucide-react";
+import { TestTubes, Calendar, ExternalLink, Globe, Printer } from "lucide-react";
+import { useReactToPrint } from "react-to-print";
+import { PrintableLabReport } from "@/components/lab/PrintableLabReport";
 
 interface PatientLabHistoryProps {
   patientId: string;
@@ -21,6 +26,17 @@ const statusColors: Record<string, string> = {
 
 export function PatientLabHistory({ patientId }: PatientLabHistoryProps) {
   const { data: labOrders, isLoading } = useLabOrders({ patientId });
+  const { data: branding } = useOrganizationBranding();
+  const { profile } = useAuth();
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const printRef = useRef<HTMLDivElement>(null);
+  
+  const { data: selectedOrder } = useLabOrder(selectedOrderId || undefined);
+
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    onAfterPrint: () => setSelectedOrderId(null),
+  });
 
   if (isLoading) {
     return (
@@ -92,13 +108,45 @@ export function PatientLabHistory({ patientId }: PatientLabHistoryProps) {
                 ) : null}
               </div>
             </div>
-            <Link to={`/app/lab/orders/${order.id}`}>
-              <Button variant="ghost" size="sm">
-                <ExternalLink className="h-4 w-4" />
-              </Button>
-            </Link>
+            <div className="flex items-center gap-2">
+              {order.status === 'completed' && (order as any).is_published && (
+                <Badge variant="secondary" className="text-xs">
+                  <Globe className="h-3 w-3 mr-1" />
+                  Published
+                </Badge>
+              )}
+              {order.status === 'completed' && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    setSelectedOrderId(order.id);
+                    setTimeout(() => handlePrint(), 100);
+                  }}
+                >
+                  <Printer className="h-4 w-4" />
+                </Button>
+              )}
+              <Link to={`/app/lab/orders/${order.id}`}>
+                <Button variant="ghost" size="sm">
+                  <ExternalLink className="h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
           </div>
         ))}
+        
+        {/* Hidden printable report */}
+        {selectedOrder && (
+          <div className="hidden">
+            <PrintableLabReport
+              ref={printRef}
+              labOrder={selectedOrder}
+              organization={branding}
+              performedBy={profile?.full_name}
+            />
+          </div>
+        )}
       </CardContent>
     </Card>
   );
