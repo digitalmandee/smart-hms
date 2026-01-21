@@ -51,6 +51,7 @@ import { PatientVisitsHistory } from "@/components/patients/PatientVisitsHistory
 import { PatientPrescriptionsHistory } from "@/components/patients/PatientPrescriptionsHistory";
 import { PatientLabHistory } from "@/components/patients/PatientLabHistory";
 import { PatientAdmissionHistory } from "@/components/patients/PatientAdmissionHistory";
+import { PatientIPDChargesPreview } from "@/components/patients/PatientIPDChargesPreview";
 import { PatientEmergencyHistory } from "@/components/patients/PatientEmergencyHistory";
 import { PatientBloodHistory } from "@/components/patients/PatientBloodHistory";
 import { PatientImagingHistory } from "@/components/patients/PatientImagingHistory";
@@ -474,7 +475,8 @@ export function PatientDetailPage() {
               <PatientImagingHistory patientId={patient.id} />
             </TabsContent>
 
-            <TabsContent value="ipd">
+            <TabsContent value="ipd" className="space-y-6">
+              <PatientIPDChargesPreview patientId={patient.id} />
               <PatientAdmissionHistory patientId={patient.id} />
             </TabsContent>
 
