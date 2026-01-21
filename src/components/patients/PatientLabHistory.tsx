@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -29,14 +29,25 @@ export function PatientLabHistory({ patientId }: PatientLabHistoryProps) {
   const { data: branding } = useOrganizationBranding();
   const { profile } = useAuth();
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [shouldPrint, setShouldPrint] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
   
   const { data: selectedOrder } = useLabOrder(selectedOrderId || undefined);
 
   const handlePrint = useReactToPrint({
     contentRef: printRef,
-    onAfterPrint: () => setSelectedOrderId(null),
+    onAfterPrint: () => {
+      setSelectedOrderId(null);
+      setShouldPrint(false);
+    },
   });
+
+  // Trigger print when data is loaded AND shouldPrint is true
+  useEffect(() => {
+    if (shouldPrint && selectedOrder && printRef.current) {
+      handlePrint();
+    }
+  }, [shouldPrint, selectedOrder, handlePrint]);
 
   if (isLoading) {
     return (
@@ -119,9 +130,10 @@ export function PatientLabHistory({ patientId }: PatientLabHistoryProps) {
                 <Button 
                   variant="outline" 
                   size="sm"
+                  disabled={selectedOrderId === order.id && shouldPrint}
                   onClick={() => {
                     setSelectedOrderId(order.id);
-                    setTimeout(() => handlePrint(), 100);
+                    setShouldPrint(true);
                   }}
                 >
                   <Printer className="h-4 w-4" />
@@ -136,9 +148,9 @@ export function PatientLabHistory({ patientId }: PatientLabHistoryProps) {
           </div>
         ))}
         
-        {/* Hidden printable report */}
+        {/* Hidden printable report - positioned off-screen for print */}
         {selectedOrder && (
-          <div className="hidden">
+          <div style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
             <PrintableLabReport
               ref={printRef}
               labOrder={selectedOrder}
