@@ -20,11 +20,11 @@ import { ColumnDef } from "@tanstack/react-table";
 export default function POSTransactionsPage() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
-  const [dateFilter, setDateFilter] = useState(format(new Date(), "yyyy-MM-dd"));
+  const [dateFilter, setDateFilter] = useState<string>(""); // Empty = all dates
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
   const { data: transactions = [], isLoading } = usePOSTransactions(undefined, {
-    date: dateFilter,
+    date: dateFilter || undefined, // Only apply filter if set
     status: statusFilter !== "all" ? statusFilter : undefined,
   });
 
@@ -65,15 +65,19 @@ export default function POSTransactionsPage() {
       accessorKey: "status",
       header: "Status",
       cell: ({ row }) => {
-        const status = row.original.status;
+        const status = row.original.status as string;
         const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
           completed: "default",
+          credit: "secondary",
           refunded: "outline",
           voided: "destructive",
         };
+        const labels: Record<string, string> = {
+          credit: "Pay Later",
+        };
         return (
           <Badge variant={variants[status] || "secondary"}>
-            {status.charAt(0).toUpperCase() + status.slice(1)}
+            {labels[status] || status.charAt(0).toUpperCase() + status.slice(1)}
           </Badge>
         );
       },
@@ -125,12 +129,24 @@ export default function POSTransactionsPage() {
             className="pl-9"
           />
         </div>
-        <Input
-          type="date"
-          value={dateFilter}
-          onChange={(e) => setDateFilter(e.target.value)}
-          className="w-auto"
-        />
+        <div className="flex gap-2">
+          <Input
+            type="date"
+            value={dateFilter}
+            onChange={(e) => setDateFilter(e.target.value)}
+            className="w-auto"
+          />
+          {dateFilter && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setDateFilter("")}
+              className="text-muted-foreground"
+            >
+              Clear
+            </Button>
+          )}
+        </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-[150px]">
             <SelectValue placeholder="Status" />
@@ -138,6 +154,7 @@ export default function POSTransactionsPage() {
           <SelectContent>
             <SelectItem value="all">All Status</SelectItem>
             <SelectItem value="completed">Completed</SelectItem>
+            <SelectItem value="credit">Credit</SelectItem>
             <SelectItem value="refunded">Refunded</SelectItem>
             <SelectItem value="voided">Voided</SelectItem>
           </SelectContent>

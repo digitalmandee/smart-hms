@@ -180,6 +180,9 @@ export function useCreateTransaction() {
       customerPhone,
       discountAmount = 0,
       notes,
+      patientId,
+      isCredit,
+      dueDate,
     }: {
       items: CartItem[];
       payments: PaymentEntry[];
@@ -187,6 +190,9 @@ export function useCreateTransaction() {
       customerPhone?: string;
       discountAmount?: number;
       notes?: string;
+      patientId?: string;
+      isCredit?: boolean;
+      dueDate?: string;
     }) => {
       if (!profile?.organization_id || !profile?.branch_id) {
         throw new Error("No organization or branch context");
@@ -225,14 +231,16 @@ export function useCreateTransaction() {
           session_id: null, // No session required
           customer_name: customerName || null,
           customer_phone: customerPhone || null,
+          patient_id: patientId || null,
           subtotal,
           discount_amount: discountAmount,
           discount_percent: 0,
           tax_amount: taxAmount,
           total_amount: totalAmount,
-          amount_paid: amountPaid,
-          change_amount: changeAmount,
-          status: "completed",
+          amount_paid: isCredit ? 0 : amountPaid,
+          change_amount: isCredit ? 0 : changeAmount,
+          status: isCredit ? "credit" : "completed",
+          due_date: dueDate || null,
           notes: notes || null,
           created_by: profile.id,
         })
@@ -370,8 +378,30 @@ export function useCreateTransaction() {
         totalAmount,
         itemsCount: items.length,
         paymentMethod: payments[0]?.payment_method,
-        prescriptionItemsDispensed: prescriptionItemIds.length
+        prescriptionItemsDispensed: prescriptionItemIds.length,
+        isCredit
       });
+
+      // If credit sale, create a pharmacy credit record
+      if (isCredit && patientId) {
+        await queryPOSTable("pharmacy_patient_credits").insert({
+          organization_id: profile.organization_id,
+          branch_id: profile.branch_id,
+          patient_id: patientId,
+          transaction_id: transaction.id,
+          amount: totalAmount,
+          paid_amount: 0,
+          status: "pending",
+          due_date: dueDate || null,
+          notes: `POS Credit Sale - ${transaction.transaction_number}`,
+          created_by: profile.id,
+        });
+        posLogger.info("Pharmacy credit record created", { 
+          patientId, 
+          transactionNumber: transaction.transaction_number,
+          amount: totalAmount 
+        });
+      }
 
       // Return transaction with items and payments attached for receipt display
       const fullTransaction: POSTransaction = {
@@ -388,12 +418,15 @@ export function useCreateTransaction() {
 
       return fullTransaction;
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["pos-transactions"] });
       queryClient.invalidateQueries({ queryKey: ["medicine-inventory"] });
+      queryClient.invalidateQueries({ queryKey: ["pharmacy-credits"] });
       toast({
-        title: "Sale Completed",
-        description: "Transaction has been recorded successfully.",
+        title: variables.isCredit ? "Credit Sale Recorded" : "Sale Completed",
+        description: variables.isCredit 
+          ? "Credit sale has been recorded. Payment can be collected later."
+          : "Transaction has been recorded successfully.",
       });
     },
     onError: (error: Error) => {

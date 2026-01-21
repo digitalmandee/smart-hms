@@ -10913,6 +10913,106 @@ export type Database = {
         }
         Relationships: []
       }
+      pharmacy_patient_credits: {
+        Row: {
+          amount: number
+          balance: number | null
+          branch_id: string
+          created_at: string | null
+          created_by: string | null
+          due_date: string | null
+          id: string
+          notes: string | null
+          organization_id: string
+          paid_amount: number | null
+          paid_at: string | null
+          paid_by: string | null
+          patient_id: string
+          status: string | null
+          transaction_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          balance?: number | null
+          branch_id: string
+          created_at?: string | null
+          created_by?: string | null
+          due_date?: string | null
+          id?: string
+          notes?: string | null
+          organization_id: string
+          paid_amount?: number | null
+          paid_at?: string | null
+          paid_by?: string | null
+          patient_id: string
+          status?: string | null
+          transaction_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          balance?: number | null
+          branch_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          due_date?: string | null
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          paid_amount?: number | null
+          paid_at?: string | null
+          paid_by?: string | null
+          patient_id?: string
+          status?: string | null
+          transaction_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pharmacy_patient_credits_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_patient_credits_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_patient_credits_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_patient_credits_paid_by_fkey"
+            columns: ["paid_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_patient_credits_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_patient_credits_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_pos_transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pharmacy_pos_held_transactions: {
         Row: {
           branch_id: string
@@ -11227,6 +11327,7 @@ export type Database = {
           customer_phone: string | null
           discount_amount: number
           discount_percent: number | null
+          due_date: string | null
           id: string
           notes: string | null
           organization_id: string
@@ -11253,6 +11354,7 @@ export type Database = {
           customer_phone?: string | null
           discount_amount?: number
           discount_percent?: number | null
+          due_date?: string | null
           id?: string
           notes?: string | null
           organization_id: string
@@ -11279,6 +11381,7 @@ export type Database = {
           customer_phone?: string | null
           discount_amount?: number
           discount_percent?: number | null
+          due_date?: string | null
           id?: string
           notes?: string | null
           organization_id?: string

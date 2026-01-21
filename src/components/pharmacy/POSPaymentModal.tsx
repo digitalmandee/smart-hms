@@ -15,6 +15,7 @@ import {
   Phone,
   Calculator,
   CheckCircle,
+  Clock,
 } from "lucide-react";
 import { POSPayment } from "@/hooks/usePOS";
 
@@ -29,8 +30,9 @@ interface POSPaymentModalProps {
   customerPhone: string;
   onCustomerNameChange: (name: string) => void;
   onCustomerPhoneChange: (phone: string) => void;
-  onConfirmPayment: (payments: Omit<POSPayment, "id" | "transaction_id">[]) => void;
+  onConfirmPayment: (payments: Omit<POSPayment, "id" | "transaction_id">[], isCredit?: boolean, dueDate?: string) => void;
   isProcessing?: boolean;
+  selectedPatientId?: string | null;
 }
 
 const PAYMENT_METHODS = [
@@ -39,6 +41,7 @@ const PAYMENT_METHODS = [
   { value: "jazzcash", label: "JazzCash", icon: Smartphone },
   { value: "easypaisa", label: "EasyPaisa", icon: Smartphone },
   { value: "bank_transfer", label: "Bank", icon: Building2 },
+  { value: "credit", label: "Pay Later", icon: Clock },
 ] as const;
 
 const QUICK_CASH_AMOUNTS = [100, 500, 1000, 2000, 5000];
@@ -56,27 +59,33 @@ export function POSPaymentModal({
   onCustomerPhoneChange,
   onConfirmPayment,
   isProcessing,
+  selectedPatientId,
 }: POSPaymentModalProps) {
   const [selectedMethod, setSelectedMethod] = useState<string>("cash");
   const [cashReceived, setCashReceived] = useState<number>(total);
   const [cardReference, setCardReference] = useState("");
   const [mobileReference, setMobileReference] = useState("");
+  const [creditDueDate, setCreditDueDate] = useState<string>("");
 
   const changeAmount = Math.max(0, cashReceived - total);
+  const isCredit = selectedMethod === "credit";
+  const isCreditValid = isCredit && selectedPatientId;
   const isPaymentValid = selectedMethod === "cash" 
     ? cashReceived >= total 
+    : selectedMethod === "credit"
+    ? !!selectedPatientId
     : (selectedMethod === "card" || selectedMethod === "jazzcash" || selectedMethod === "easypaisa" || selectedMethod === "bank_transfer");
 
   const handleConfirm = () => {
     const payment: Omit<POSPayment, "id" | "transaction_id"> = {
-      payment_method: selectedMethod as POSPayment["payment_method"],
-      amount: total,
+      payment_method: (isCredit ? "other" : selectedMethod) as POSPayment["payment_method"],
+      amount: isCredit ? 0 : total,
       reference_number: selectedMethod === "card" ? cardReference : 
                         (selectedMethod === "jazzcash" || selectedMethod === "easypaisa") ? mobileReference : null,
-      notes: null,
+      notes: isCredit ? "Pay Later - Credit Sale" : null,
     };
 
-    onConfirmPayment([payment]);
+    onConfirmPayment([payment], isCredit, creditDueDate || undefined);
   };
 
   const handleQuickCash = (amount: number) => {
@@ -149,7 +158,7 @@ export function POSPaymentModal({
 
           {/* Payment Method */}
           <Tabs value={selectedMethod} onValueChange={setSelectedMethod}>
-            <TabsList className="grid grid-cols-5 h-auto">
+            <TabsList className="grid grid-cols-6 h-auto">
               {PAYMENT_METHODS.map(({ value, label, icon: Icon }) => (
                 <TabsTrigger
                   key={value}
@@ -194,9 +203,9 @@ export function POSPaymentModal({
               </div>
 
               {cashReceived >= total && (
-                <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg border border-green-200">
-                  <span className="font-medium text-green-700">Change</span>
-                  <Badge variant="default" className="text-lg bg-green-600">
+                <div className="flex justify-between items-center p-3 bg-success/10 rounded-lg border border-success/20">
+                  <span className="font-medium text-success">Change</span>
+                  <Badge variant="default" className="text-lg bg-success">
                     Rs. {changeAmount.toFixed(2)}
                   </Badge>
                 </div>
@@ -259,6 +268,35 @@ export function POSPaymentModal({
                 Amount: Rs. {total.toFixed(2)}
               </p>
             </TabsContent>
+
+            <TabsContent value="credit" className="space-y-3 mt-4">
+              {!selectedPatientId ? (
+                <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+                  <p className="text-sm text-destructive font-medium">Patient Required</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    "Pay Later" requires a registered patient. Please select a patient before proceeding.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <div className="p-3 bg-warning/10 border border-warning/20 rounded-lg">
+                    <p className="text-sm font-medium text-warning">Credit Sale</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      This sale will be recorded as credit. Amount: Rs. {total.toFixed(2)}
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Due Date (Optional)</Label>
+                    <Input
+                      type="date"
+                      value={creditDueDate}
+                      onChange={(e) => setCreditDueDate(e.target.value)}
+                      min={new Date().toISOString().split("T")[0]}
+                    />
+                  </div>
+                </>
+              )}
+            </TabsContent>
           </Tabs>
         </div>
 
@@ -269,10 +307,15 @@ export function POSPaymentModal({
           <Button
             onClick={handleConfirm}
             disabled={!isPaymentValid || isProcessing}
-            className="min-w-32"
+            className={`min-w-32 ${isCredit ? "bg-warning hover:bg-warning/90" : ""}`}
           >
             {isProcessing ? (
               "Processing..."
+            ) : isCredit ? (
+              <>
+                <Clock className="mr-2 h-4 w-4" />
+                Record Credit Sale
+              </>
             ) : (
               <>
                 <CheckCircle className="mr-2 h-4 w-4" />
