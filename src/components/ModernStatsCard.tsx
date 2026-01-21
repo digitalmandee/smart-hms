@@ -21,38 +21,38 @@ export interface ModernStatsCardProps {
 
 const variantStyles = {
   default: {
-    card: "bg-card hover:shadow-lg",
-    icon: "bg-muted text-muted-foreground",
-    iconGlow: "",
+    card: "bg-gradient-to-br from-card to-muted/30 border-border/50 hover:border-primary/30",
+    icon: "bg-muted text-foreground",
+    iconGlow: "shadow-md",
   },
   primary: {
-    card: "bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/10",
-    icon: "bg-gradient-to-br from-primary to-primary/80 text-primary-foreground",
+    card: "bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20 hover:border-primary/40",
+    icon: "bg-primary text-primary-foreground",
     iconGlow: "shadow-lg shadow-primary/30",
   },
   success: {
-    card: "bg-gradient-to-br from-success/5 to-success/10 border-success/20 hover:border-success/40 hover:shadow-lg hover:shadow-success/10",
-    icon: "bg-gradient-to-br from-success to-success/80 text-success-foreground",
-    iconGlow: "shadow-lg shadow-success/30",
+    card: "bg-gradient-to-br from-green-500/5 to-green-500/10 border-green-500/20 hover:border-green-500/40",
+    icon: "bg-green-500 text-white",
+    iconGlow: "shadow-lg shadow-green-500/30",
   },
   warning: {
-    card: "bg-gradient-to-br from-warning/5 to-warning/10 border-warning/20 hover:border-warning/40 hover:shadow-lg hover:shadow-warning/10",
-    icon: "bg-gradient-to-br from-warning to-warning/80 text-warning-foreground",
-    iconGlow: "shadow-lg shadow-warning/30",
+    card: "bg-gradient-to-br from-amber-500/5 to-amber-500/10 border-amber-500/20 hover:border-amber-500/40",
+    icon: "bg-amber-500 text-white",
+    iconGlow: "shadow-lg shadow-amber-500/30",
   },
   info: {
-    card: "bg-gradient-to-br from-info/5 to-info/10 border-info/20 hover:border-info/40 hover:shadow-lg hover:shadow-info/10",
-    icon: "bg-gradient-to-br from-info to-info/80 text-info-foreground",
-    iconGlow: "shadow-lg shadow-info/30",
+    card: "bg-gradient-to-br from-blue-500/5 to-blue-500/10 border-blue-500/20 hover:border-blue-500/40",
+    icon: "bg-blue-500 text-white",
+    iconGlow: "shadow-lg shadow-blue-500/30",
   },
   destructive: {
-    card: "bg-gradient-to-br from-destructive/5 to-destructive/10 border-destructive/20 hover:border-destructive/40 hover:shadow-lg hover:shadow-destructive/10",
-    icon: "bg-gradient-to-br from-destructive to-destructive/80 text-destructive-foreground",
+    card: "bg-gradient-to-br from-destructive/5 to-destructive/10 border-destructive/20 hover:border-destructive/40",
+    icon: "bg-destructive text-destructive-foreground",
     iconGlow: "shadow-lg shadow-destructive/30",
   },
   accent: {
-    card: "bg-gradient-to-br from-accent/5 to-accent/10 border-accent/20 hover:border-accent/40 hover:shadow-lg hover:shadow-accent/10",
-    icon: "bg-gradient-to-br from-accent to-accent/80 text-accent-foreground",
+    card: "bg-gradient-to-br from-accent/30 to-accent/50 border-accent/40 hover:border-accent/60",
+    icon: "bg-accent text-accent-foreground",
     iconGlow: "shadow-lg shadow-accent/30",
   },
 };
