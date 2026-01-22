@@ -63,6 +63,7 @@ const ROLE_LABELS: Record<AppRole, string> = {
   radiology_technician: "Radiology Tech",
   ipd_nurse: "IPD Nurse",
   ot_technician: "OT Technician",
+  ot_nurse: "OT Nurse",
 };
 
 export function RolesPermissionsPage() {

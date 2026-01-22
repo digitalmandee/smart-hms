@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Eye, EyeOff, Crown, Building, Building2, Stethoscope, Heart, UserCheck, Pill, FlaskConical, Calculator, Lock, Unlock, Warehouse, Users, Banknote, Droplets, ScanLine, Bed, Scissors } from "lucide-react";
+import { Loader2, Eye, EyeOff, Crown, Building, Building2, Stethoscope, Heart, UserCheck, Pill, FlaskConical, Calculator, Lock, Unlock, Warehouse, Users, Banknote, Droplets, ScanLine, Bed, Scissors, Syringe, HeartPulse } from "lucide-react";
 
 // Hospital Demo Accounts (Shifa Medical Center)
 const hospitalDemoAccounts = [
@@ -22,6 +22,10 @@ const hospitalDemoAccounts = [
   { email: "doctor@healthos.demo", role: "Doctor", icon: Stethoscope, color: "bg-green-500/10 text-green-600 hover:bg-green-500/20 border-green-500/20" },
   { email: "nurse@healthos.demo", role: "Nurse", icon: Heart, color: "bg-pink-500/10 text-pink-600 hover:bg-pink-500/20 border-pink-500/20" },
   { email: "receptionist@healthos.demo", role: "Receptionist", icon: UserCheck, color: "bg-teal-500/10 text-teal-600 hover:bg-teal-500/20 border-teal-500/20" },
+  // OT Roles
+  { email: "surgeon@healthos.demo", role: "Surgeon", icon: Scissors, color: "bg-rose-500/10 text-rose-600 hover:bg-rose-500/20 border-rose-500/20" },
+  { email: "anesthetist@healthos.demo", role: "Anesthetist", icon: Syringe, color: "bg-fuchsia-500/10 text-fuchsia-600 hover:bg-fuchsia-500/20 border-fuchsia-500/20" },
+  { email: "otnurse@healthos.demo", role: "OT Nurse", icon: HeartPulse, color: "bg-lime-500/10 text-lime-600 hover:bg-lime-500/20 border-lime-500/20" },
   // Department Roles
   { email: "pharmacist@healthos.demo", role: "Pharmacist", icon: Pill, color: "bg-orange-500/10 text-orange-600 hover:bg-orange-500/20 border-orange-500/20" },
   { email: "labtech@healthos.demo", role: "Lab Tech", icon: FlaskConical, color: "bg-violet-500/10 text-violet-600 hover:bg-violet-500/20 border-violet-500/20" },
