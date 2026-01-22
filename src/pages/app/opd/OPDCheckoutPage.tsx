@@ -1,0 +1,515 @@
+import { useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import { 
+  ArrowLeft, 
+  Receipt, 
+  CreditCard, 
+  Pill, 
+  TestTubes, 
+  Stethoscope,
+  CheckCircle2,
+  Clock,
+  Loader2
+} from "lucide-react";
+import { generateVisitId } from "@/lib/visit-id";
+import { useCreateInvoice, useRecordPayment } from "@/hooks/useBilling";
+import { useAuth } from "@/contexts/AuthContext";
+import { PaymentMethodSelector } from "@/components/billing/PaymentMethodSelector";
+import { toast } from "sonner";
+
+interface ChargeItem {
+  id: string;
+  type: "consultation" | "lab" | "prescription";
+  description: string;
+  amount: number;
+  status: "pending" | "invoiced" | "paid";
+  referenceId?: string;
+}
+
+export default function OPDCheckoutPage() {
+  const { appointmentId } = useParams();
+  const navigate = useNavigate();
+  const { profile } = useAuth();
+  const [selectedCharges, setSelectedCharges] = useState<string[]>([]);
+  const [paymentMethodId, setPaymentMethodId] = useState<string>("");
+  const [isProcessing, setIsProcessing] = useState(false);
+  
+  const createInvoice = useCreateInvoice();
+  const recordPayment = useRecordPayment();
+
+  // Fetch appointment with related data
+  const { data: appointment, isLoading: appointmentLoading } = useQuery({
+    queryKey: ["opd-checkout-appointment", appointmentId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("appointments")
+        .select(`
+          *,
+          patient:patients(id, first_name, last_name, patient_number),
+          doctor:doctors(id, profiles(full_name), consultation_fee),
+          branch:branches(id, name)
+        `)
+        .eq("id", appointmentId!)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!appointmentId,
+  });
+
+  // Fetch consultation for this appointment
+  const { data: consultation } = useQuery({
+    queryKey: ["opd-checkout-consultation", appointmentId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("consultations")
+        .select("*")
+        .eq("appointment_id", appointmentId!)
+        .maybeSingle();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!appointmentId,
+  });
+
+  // Fetch lab orders for this consultation
+  const { data: labOrders } = useQuery({
+    queryKey: ["opd-checkout-lab-orders", consultation?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("lab_orders")
+        .select(`
+          *,
+          items:lab_order_items(*, test:lab_tests(name, price))
+        `)
+        .eq("consultation_id", consultation!.id);
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!consultation?.id,
+  });
+
+  // Fetch prescriptions for this consultation
+  const { data: prescriptions } = useQuery({
+    queryKey: ["opd-checkout-prescriptions", consultation?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("prescriptions")
+        .select(`
+          *,
+          items:prescription_items(*)
+        `)
+        .eq("consultation_id", consultation!.id);
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!consultation?.id,
+  });
+
+  // Build charge items
+  const charges: ChargeItem[] = [];
+
+  // Consultation fee (if not already paid)
+  if (appointment && appointment.payment_status !== "paid") {
+    const fee = appointment.doctor?.consultation_fee || 0;
+    if (fee > 0) {
+      charges.push({
+        id: `consultation-${appointment.id}`,
+        type: "consultation",
+        description: `Consultation Fee - Dr. ${appointment.doctor?.profiles?.full_name || "Doctor"}`,
+        amount: fee,
+        status: appointment.invoice_id ? "invoiced" : "pending",
+        referenceId: appointment.id,
+      });
+    }
+  }
+
+  // Lab order fees
+  labOrders?.forEach((order) => {
+    if (!order.invoice_id) {
+      const totalAmount = order.items?.reduce((sum: number, item: any) => 
+        sum + (item.test?.price || 0), 0) || 0;
+      
+      if (totalAmount > 0) {
+        charges.push({
+          id: `lab-${order.id}`,
+          type: "lab",
+          description: `Lab Tests: ${order.items?.map((i: any) => i.test?.name).join(", ") || "Various tests"}`,
+          amount: totalAmount,
+          status: "pending",
+          referenceId: order.id,
+        });
+      }
+    }
+  });
+
+  // Prescription items (if not dispensed through pharmacy)
+  prescriptions?.forEach((rx) => {
+    if (rx.status === "created") {
+      const itemCount = rx.items?.length || 0;
+      if (itemCount > 0) {
+        charges.push({
+          id: `rx-${rx.id}`,
+          type: "prescription",
+          description: `Prescription: ${itemCount} medicine(s) - Pending Dispensing`,
+          amount: 0, // Pharmacy handles pricing
+          status: "pending",
+          referenceId: rx.id,
+        });
+      }
+    }
+  });
+
+  const pendingCharges = charges.filter(c => c.status === "pending" && c.amount > 0);
+  const selectedTotal = pendingCharges
+    .filter(c => selectedCharges.includes(c.id))
+    .reduce((sum, c) => sum + c.amount, 0);
+
+  const handleSelectAll = () => {
+    if (selectedCharges.length === pendingCharges.length) {
+      setSelectedCharges([]);
+    } else {
+      setSelectedCharges(pendingCharges.map(c => c.id));
+    }
+  };
+
+  const handleToggleCharge = (id: string) => {
+    setSelectedCharges(prev => 
+      prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]
+    );
+  };
+
+  const handleGenerateInvoice = async () => {
+    if (!appointment || !profile?.organization_id || selectedCharges.length === 0) return;
+    
+    setIsProcessing(true);
+    try {
+      const itemsToInvoice = pendingCharges.filter(c => selectedCharges.includes(c.id));
+      
+      // Create invoice
+      const invoiceData = await createInvoice.mutateAsync({
+        patientId: appointment.patient_id,
+        branchId: appointment.branch_id,
+        items: itemsToInvoice.map(item => ({
+          description: item.description,
+          quantity: 1,
+          unit_price: item.amount,
+          discount_percent: 0,
+          total_price: item.amount,
+        })),
+        notes: `OPD Visit: ${generateVisitId(appointment)}`,
+      });
+
+      toast.success("Invoice generated successfully");
+      navigate(`/app/billing/invoices/${invoiceData.id}`);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to generate invoice");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handlePayNow = async () => {
+    if (!appointment || !profile?.organization_id || selectedCharges.length === 0 || !paymentMethodId) return;
+    
+    setIsProcessing(true);
+    try {
+      const itemsToInvoice = pendingCharges.filter(c => selectedCharges.includes(c.id));
+      
+      // Create invoice
+      const invoiceData = await createInvoice.mutateAsync({
+        patientId: appointment.patient_id,
+        branchId: appointment.branch_id,
+        items: itemsToInvoice.map(item => ({
+          description: item.description,
+          quantity: 1,
+          unit_price: item.amount,
+          discount_percent: 0,
+          total_price: item.amount,
+        })),
+        notes: `OPD Visit: ${generateVisitId(appointment)}`,
+      });
+
+      // Record payment
+      await recordPayment.mutateAsync({
+        invoiceId: invoiceData.id,
+        amount: selectedTotal,
+        paymentMethodId,
+        notes: "OPD Checkout - Full Payment",
+      });
+
+      // Update appointment payment status
+      await supabase
+        .from("appointments")
+        .update({ 
+          invoice_id: invoiceData.id,
+          payment_status: "paid" 
+        })
+        .eq("id", appointment.id);
+
+      toast.success("Payment recorded successfully");
+      navigate(`/app/billing/invoices/${invoiceData.id}`);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to process payment");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  if (appointmentLoading) {
+    return (
+      <div className="container py-6 space-y-6">
+        <Skeleton className="h-10 w-64" />
+        <div className="grid gap-6 md:grid-cols-3">
+          <div className="md:col-span-2 space-y-4">
+            <Skeleton className="h-48" />
+            <Skeleton className="h-48" />
+          </div>
+          <Skeleton className="h-64" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!appointment) {
+    return (
+      <div className="container py-6">
+        <Card className="p-8 text-center">
+          <p className="text-muted-foreground">Appointment not found</p>
+          <Button variant="link" onClick={() => navigate(-1)}>Go Back</Button>
+        </Card>
+      </div>
+    );
+  }
+
+  const visitId = generateVisitId(appointment);
+  const patient = appointment.patient;
+
+  return (
+    <div className="container py-6 space-y-6">
+      {/* Page Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">OPD Checkout</h1>
+          <p className="text-muted-foreground">Complete billing for visit {visitId}</p>
+        </div>
+        <Button variant="outline" onClick={() => navigate(-1)}>
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back
+        </Button>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-3">
+        {/* Charges List */}
+        <div className="md:col-span-2 space-y-4">
+          {/* Visit Info */}
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg">Visit Details</CardTitle>
+                  <CardDescription>
+                    {format(new Date(appointment.appointment_date), "MMMM d, yyyy")}
+                  </CardDescription>
+                </div>
+                <Badge variant="secondary" className="font-mono">
+                  {visitId}
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between text-sm">
+                <div>
+                  <p className="font-medium">{patient?.first_name} {patient?.last_name}</p>
+                  <p className="text-muted-foreground">{patient?.patient_number}</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-medium">
+                    Dr. {appointment.doctor?.profiles?.full_name || "Doctor"}
+                  </p>
+                  <p className="text-muted-foreground">{appointment.branch?.name}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Pending Charges */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Receipt className="h-5 w-5" />
+                  Pending Charges
+                </CardTitle>
+                {pendingCharges.length > 0 && (
+                  <Button variant="outline" size="sm" onClick={handleSelectAll}>
+                    {selectedCharges.length === pendingCharges.length ? "Deselect All" : "Select All"}
+                  </Button>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent>
+              {charges.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <CheckCircle2 className="h-12 w-12 mx-auto mb-3 text-green-500" />
+                  <p>All charges have been processed!</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {charges.map((charge) => {
+                    const Icon = charge.type === "consultation" ? Stethoscope 
+                      : charge.type === "lab" ? TestTubes 
+                      : Pill;
+                    const isSelected = selectedCharges.includes(charge.id);
+                    const isPending = charge.status === "pending" && charge.amount > 0;
+                    
+                    return (
+                      <div
+                        key={charge.id}
+                        className={`flex items-center gap-3 p-3 rounded-lg border transition-colors ${
+                          isPending 
+                            ? isSelected 
+                              ? "border-primary bg-primary/5 cursor-pointer" 
+                              : "border-border hover:border-primary/50 cursor-pointer"
+                            : "border-border bg-muted/30 opacity-60"
+                        }`}
+                        onClick={() => isPending && handleToggleCharge(charge.id)}
+                      >
+                        <div className={`p-2 rounded-full ${
+                          charge.type === "consultation" ? "bg-primary/10 text-primary" :
+                          charge.type === "lab" ? "bg-secondary text-secondary-foreground" :
+                          "bg-accent text-accent-foreground"
+                        }`}>
+                          <Icon className="h-4 w-4" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm truncate">{charge.description}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            {charge.status === "paid" && (
+                              <Badge variant="default" className="text-xs">Paid</Badge>
+                            )}
+                            {charge.status === "invoiced" && (
+                              <Badge variant="secondary" className="text-xs">Invoiced</Badge>
+                            )}
+                            {charge.status === "pending" && charge.amount === 0 && (
+                              <Badge variant="outline" className="text-xs">
+                                <Clock className="h-3 w-3 mr-1" />
+                                Pharmacy
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          {charge.amount > 0 ? (
+                            <p className="font-bold">Rs. {charge.amount.toLocaleString()}</p>
+                          ) : (
+                            <p className="text-sm text-muted-foreground">—</p>
+                          )}
+                        </div>
+                        {isPending && (
+                          <div className={`h-5 w-5 rounded border-2 flex items-center justify-center ${
+                            isSelected ? "bg-primary border-primary" : "border-muted-foreground"
+                          }`}>
+                            {isSelected && <CheckCircle2 className="h-4 w-4 text-primary-foreground" />}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Payment Summary */}
+        <div className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <CreditCard className="h-5 w-5" />
+                Payment
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Selected Items</span>
+                  <span>{selectedCharges.length}</span>
+                </div>
+                <Separator />
+                <div className="flex justify-between font-bold text-lg">
+                  <span>Total</span>
+                  <span>Rs. {selectedTotal.toLocaleString()}</span>
+                </div>
+              </div>
+
+              {selectedCharges.length > 0 && (
+                <>
+                  <Separator />
+                  <div className="space-y-3">
+                    <label className="text-sm font-medium">Payment Method</label>
+                    <PaymentMethodSelector
+                      value={paymentMethodId}
+                      onValueChange={setPaymentMethodId}
+                    />
+                  </div>
+
+                  <div className="space-y-2 pt-2">
+                    <Button 
+                      className="w-full" 
+                      onClick={handlePayNow}
+                      disabled={!paymentMethodId || isProcessing}
+                    >
+                      {isProcessing ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <CreditCard className="h-4 w-4 mr-2" />
+                      )}
+                      Pay Now
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={handleGenerateInvoice}
+                      disabled={isProcessing}
+                    >
+                      <Receipt className="h-4 w-4 mr-2" />
+                      Generate Invoice Only
+                    </Button>
+                  </div>
+                </>
+              )}
+
+              {selectedCharges.length === 0 && pendingCharges.length > 0 && (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  Select charges to proceed with payment
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+          <Button 
+            variant="ghost" 
+            className="w-full"
+            onClick={() => navigate("/app/opd")}
+          >
+            Skip & Return to OPD
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
