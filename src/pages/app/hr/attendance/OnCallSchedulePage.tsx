@@ -30,7 +30,7 @@ export default function OnCallSchedulePage() {
   const selectedDepts = selectedDepartment === "all" ? clinicalDepts : clinicalDepts?.filter(d => d.id === selectedDepartment);
 
   const getDeptEmployees = (deptId: string) => {
-    return employees?.filter(emp => emp.department_id === deptId && emp.status === "active")?.slice(0, 5) || [];
+    return employees?.filter(emp => emp.department_id === deptId && (emp as any).status === "active")?.slice(0, 5) || [];
   };
 
   const isLoading = loadingEmployees || loadingDepts;
