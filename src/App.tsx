@@ -214,6 +214,8 @@ import OTDutyRosterPage from "./pages/app/hr/attendance/OTDutyRosterPage";
 import EmergencyRosterPage from "./pages/app/hr/attendance/EmergencyRosterPage";
 import PublishRosterPage from "./pages/app/hr/attendance/PublishRosterPage";
 import RosterReportsPage from "./pages/app/hr/attendance/RosterReportsPage";
+import MySchedulePage from "./pages/app/MySchedulePage";
+import MyAttendancePage from "./pages/app/MyAttendancePage";
 
 import IPDDashboard from "./pages/app/ipd/IPDDashboard";
 import WardsListPage from "./pages/app/ipd/WardsListPage";
@@ -424,6 +426,10 @@ function App() {
             >
               <Route index element={<Navigate to="dashboard" replace />} />
               <Route path="dashboard" element={<DashboardPage />} />
+              
+              {/* Employee Self-Service */}
+              <Route path="my-schedule" element={<MySchedulePage />} />
+              <Route path="my-attendance" element={<MyAttendancePage />} />
               
               {/* Reports Hub */}
               <Route path="reports" element={<ReportsHubPage />} />

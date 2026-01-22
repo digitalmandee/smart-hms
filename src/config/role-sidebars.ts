@@ -196,6 +196,15 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
           { name: "Discharges", path: "/app/ipd/discharges", icon: "FileText" },
         ]
       },
+      { 
+        name: "My Work", 
+        path: "", 
+        icon: "Briefcase",
+        children: [
+          { name: "My Schedule", path: "/app/my-schedule", icon: "Calendar" },
+          { name: "My Attendance", path: "/app/my-attendance", icon: "Clock" },
+        ]
+      },
     ]
   },
 
@@ -214,6 +223,15 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         ]
       },
       { name: "Patients", path: "/app/patients", icon: "Users" },
+      { 
+        name: "My Work", 
+        path: "", 
+        icon: "Briefcase",
+        children: [
+          { name: "My Schedule", path: "/app/my-schedule", icon: "Calendar" },
+          { name: "My Attendance", path: "/app/my-attendance", icon: "Clock" },
+        ]
+      },
     ]
   },
 
