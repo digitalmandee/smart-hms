@@ -8014,6 +8014,7 @@ export type Database = {
           is_billed: boolean | null
           quantity: number | null
           service_type_id: string | null
+          surgery_id: string | null
           total_amount: number
           unit_price: number
         }
@@ -8030,6 +8031,7 @@ export type Database = {
           is_billed?: boolean | null
           quantity?: number | null
           service_type_id?: string | null
+          surgery_id?: string | null
           total_amount: number
           unit_price: number
         }
@@ -8046,6 +8048,7 @@ export type Database = {
           is_billed?: boolean | null
           quantity?: number | null
           service_type_id?: string | null
+          surgery_id?: string | null
           total_amount?: number
           unit_price?: number
         }
@@ -8076,6 +8079,13 @@ export type Database = {
             columns: ["service_type_id"]
             isOneToOne: false
             referencedRelation: "service_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ipd_charges_surgery_id_fkey"
+            columns: ["surgery_id"]
+            isOneToOne: false
+            referencedRelation: "surgeries"
             referencedColumns: ["id"]
           },
         ]
