@@ -37,7 +37,7 @@ const REASON_OPTIONS = [
 
 export default function ResignationsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [statusFilter, setStatusFilter] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [formData, setFormData] = useState({
     employee_id: "",
     resignation_date: new Date().toISOString().split("T")[0],
@@ -47,7 +47,7 @@ export default function ResignationsPage() {
     notice_period_days: 30,
   });
 
-  const { data: resignations, isLoading } = useResignations(statusFilter || undefined);
+  const { data: resignations, isLoading } = useResignations(statusFilter !== "all" ? statusFilter : undefined);
   const { data: employees } = useEmployees();
   const createResignation = useCreateResignation();
   const updateResignation = useUpdateResignation();
@@ -283,7 +283,7 @@ export default function ResignationsPage() {
             <SelectValue placeholder="All Status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Status</SelectItem>
+            <SelectItem value="all">All Status</SelectItem>
             {STATUS_OPTIONS.map((s) => (
               <SelectItem key={s.value} value={s.value}>
                 {s.label}
