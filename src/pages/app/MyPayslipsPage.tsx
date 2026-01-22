@@ -24,11 +24,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useMyPayslips } from "@/hooks/usePayroll";
 import { useAuth } from "@/contexts/AuthContext";
 import { PayslipPreview } from "@/components/hr/PayslipPreview";
-import { Loader2, Eye, FileText, Download } from "lucide-react";
+import { Loader2, Eye, FileText, AlertTriangle } from "lucide-react";
 import { format } from "date-fns";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
@@ -36,10 +39,26 @@ const MONTHS = [
 ];
 
 export default function MyPayslipsPage() {
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const { data: payslips, isLoading } = useMyPayslips();
   const [selectedPayslip, setSelectedPayslip] = useState<any | null>(null);
-  const [yearFilter, setYearFilter] = useState<string>("all");
+  const currentYear = new Date().getFullYear();
+  const [yearFilter, setYearFilter] = useState<string>(currentYear.toString());
+
+  // Check if employee is linked to profile
+  const { data: myEmployee } = useQuery({
+    queryKey: ["my-employee-link", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data } = await supabase
+        .from("employees")
+        .select("id, first_name, last_name")
+        .eq("profile_id", user.id)
+        .single();
+      return data;
+    },
+    enabled: !!user?.id,
+  });
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-PK", {
@@ -49,8 +68,10 @@ export default function MyPayslipsPage() {
     }).format(amount);
   };
 
-  // Get unique years from payslips
-  const years = [...new Set(payslips?.map(p => p.payroll_run?.year).filter(Boolean))].sort((a, b) => b - a);
+  // Get unique years from payslips, default to current year if none
+  const years = payslips?.length 
+    ? [...new Set(payslips.map(p => p.payroll_run?.year).filter(Boolean))].sort((a, b) => b - a)
+    : [currentYear];
 
   // Filter payslips by year
   const filteredPayslips = yearFilter === "all" 
@@ -96,27 +117,34 @@ export default function MyPayslipsPage() {
         ]}
       />
 
+      {!isLoading && !myEmployee && (
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            Your employee record is not linked to your account. Please contact HR to link your profile to view payslips.
+          </AlertDescription>
+        </Alert>
+      )}
+
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-lg flex items-center gap-2">
             <FileText className="h-5 w-5" />
             Salary History
           </CardTitle>
-          {years.length > 0 && (
-            <Select value={yearFilter} onValueChange={setYearFilter}>
-              <SelectTrigger className="w-[140px]">
-                <SelectValue placeholder="Filter by year" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Years</SelectItem>
-                {years.map(year => (
-                  <SelectItem key={year} value={year?.toString() || ""}>
-                    {year}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
+          <Select value={yearFilter} onValueChange={setYearFilter}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="Filter by year" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Years</SelectItem>
+              {years.map(year => (
+                <SelectItem key={year} value={year?.toString() || ""}>
+                  {year}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </CardHeader>
         <CardContent>
           {!filteredPayslips?.length ? (

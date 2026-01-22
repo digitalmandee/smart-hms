@@ -485,6 +485,17 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
           { name: "Studies", path: "/app/radiology/pacs", icon: "Image" },
         ]
       },
+      { 
+        name: "My Work", 
+        path: "", 
+        icon: "Briefcase",
+        children: [
+          { name: "My Schedule", path: "/app/my-schedule", icon: "Calendar" },
+          { name: "My Attendance", path: "/app/my-attendance", icon: "Clock" },
+          { name: "My Leaves", path: "/app/my-leaves", icon: "CalendarOff" },
+          { name: "My Payslips", path: "/app/my-payslips", icon: "FileText" },
+        ]
+      },
     ]
   },
 
@@ -512,6 +523,17 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
           { name: "Cross Match", path: "/app/blood-bank/cross-match", icon: "Activity" },
           { name: "Requests", path: "/app/blood-bank/requests", icon: "FileText" },
           { name: "Transfusions", path: "/app/blood-bank/transfusions", icon: "HeartPulse" },
+        ]
+      },
+      { 
+        name: "My Work", 
+        path: "", 
+        icon: "Briefcase",
+        children: [
+          { name: "My Schedule", path: "/app/my-schedule", icon: "Calendar" },
+          { name: "My Attendance", path: "/app/my-attendance", icon: "Clock" },
+          { name: "My Leaves", path: "/app/my-leaves", icon: "CalendarOff" },
+          { name: "My Payslips", path: "/app/my-payslips", icon: "FileText" },
         ]
       },
     ]
@@ -552,6 +574,17 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
           { name: "IPD Patients", path: "/app/ipd/rounds", icon: "Bed" },
         ]
       },
+      { 
+        name: "My Work", 
+        path: "", 
+        icon: "Briefcase",
+        children: [
+          { name: "My Schedule", path: "/app/my-schedule", icon: "Calendar" },
+          { name: "My Attendance", path: "/app/my-attendance", icon: "Clock" },
+          { name: "My Leaves", path: "/app/my-leaves", icon: "CalendarOff" },
+          { name: "My Payslips", path: "/app/my-payslips", icon: "FileText" },
+        ]
+      },
     ]
   },
 
@@ -583,6 +616,17 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         icon: "HeartPulse",
         children: [
           { name: "PACU", path: "/app/ot/pacu", icon: "Bed" },
+        ]
+      },
+      { 
+        name: "My Work", 
+        path: "", 
+        icon: "Briefcase",
+        children: [
+          { name: "My Schedule", path: "/app/my-schedule", icon: "Calendar" },
+          { name: "My Attendance", path: "/app/my-attendance", icon: "Clock" },
+          { name: "My Leaves", path: "/app/my-leaves", icon: "CalendarOff" },
+          { name: "My Payslips", path: "/app/my-payslips", icon: "FileText" },
         ]
       },
     ]
@@ -619,6 +663,17 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         ]
       },
       { name: "OT Rooms", path: "/app/ot/rooms", icon: "Building" },
+      { 
+        name: "My Work", 
+        path: "", 
+        icon: "Briefcase",
+        children: [
+          { name: "My Schedule", path: "/app/my-schedule", icon: "Calendar" },
+          { name: "My Attendance", path: "/app/my-attendance", icon: "Clock" },
+          { name: "My Leaves", path: "/app/my-leaves", icon: "CalendarOff" },
+          { name: "My Payslips", path: "/app/my-payslips", icon: "FileText" },
+        ]
+      },
     ]
   },
 
@@ -644,6 +699,17 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         ]
       },
       { name: "OT Rooms", path: "/app/ot/rooms", icon: "Building" },
+      { 
+        name: "My Work", 
+        path: "", 
+        icon: "Briefcase",
+        children: [
+          { name: "My Schedule", path: "/app/my-schedule", icon: "Calendar" },
+          { name: "My Attendance", path: "/app/my-attendance", icon: "Clock" },
+          { name: "My Leaves", path: "/app/my-leaves", icon: "CalendarOff" },
+          { name: "My Payslips", path: "/app/my-payslips", icon: "FileText" },
+        ]
+      },
     ]
   },
 
@@ -752,6 +818,17 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         ]
       },
       { name: "Reports", path: "/app/hr/reports", icon: "BarChart3" },
+      { 
+        name: "My Work", 
+        path: "", 
+        icon: "Briefcase",
+        children: [
+          { name: "My Schedule", path: "/app/my-schedule", icon: "Calendar" },
+          { name: "My Attendance", path: "/app/my-attendance", icon: "Clock" },
+          { name: "My Leaves", path: "/app/my-leaves", icon: "CalendarOff" },
+          { name: "My Payslips", path: "/app/my-payslips", icon: "FileText" },
+        ]
+      },
     ]
   },
 
@@ -783,6 +860,17 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         icon: "CalendarDays",
         children: [
           { name: "Leave Requests", path: "/app/hr/leaves", icon: "FileText" },
+        ]
+      },
+      { 
+        name: "My Work", 
+        path: "", 
+        icon: "Briefcase",
+        children: [
+          { name: "My Schedule", path: "/app/my-schedule", icon: "Calendar" },
+          { name: "My Attendance", path: "/app/my-attendance", icon: "Clock" },
+          { name: "My Leaves", path: "/app/my-leaves", icon: "CalendarOff" },
+          { name: "My Payslips", path: "/app/my-payslips", icon: "FileText" },
         ]
       },
     ]
@@ -848,6 +936,17 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
           { name: "Account Types", path: "/app/accounts/types", icon: "FolderTree" },
         ]
       },
+      { 
+        name: "My Work", 
+        path: "", 
+        icon: "Briefcase",
+        children: [
+          { name: "My Schedule", path: "/app/my-schedule", icon: "Calendar" },
+          { name: "My Attendance", path: "/app/my-attendance", icon: "Clock" },
+          { name: "My Leaves", path: "/app/my-leaves", icon: "CalendarOff" },
+          { name: "My Payslips", path: "/app/my-payslips", icon: "FileText" },
+        ]
+      },
     ]
   },
 
@@ -872,6 +971,17 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         ]
       },
       { name: "Reports", path: "/app/accounts/reports", icon: "BarChart3" },
+      { 
+        name: "My Work", 
+        path: "", 
+        icon: "Briefcase",
+        children: [
+          { name: "My Schedule", path: "/app/my-schedule", icon: "Calendar" },
+          { name: "My Attendance", path: "/app/my-attendance", icon: "Clock" },
+          { name: "My Leaves", path: "/app/my-leaves", icon: "CalendarOff" },
+          { name: "My Payslips", path: "/app/my-payslips", icon: "FileText" },
+        ]
+      },
     ]
   },
 
@@ -909,6 +1019,17 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         ]
       },
       { name: "Reports", path: "/app/inventory/reports", icon: "BarChart3" },
+      { 
+        name: "My Work", 
+        path: "", 
+        icon: "Briefcase",
+        children: [
+          { name: "My Schedule", path: "/app/my-schedule", icon: "Calendar" },
+          { name: "My Attendance", path: "/app/my-attendance", icon: "Clock" },
+          { name: "My Leaves", path: "/app/my-leaves", icon: "CalendarOff" },
+          { name: "My Payslips", path: "/app/my-payslips", icon: "FileText" },
+        ]
+      },
     ]
   },
 
