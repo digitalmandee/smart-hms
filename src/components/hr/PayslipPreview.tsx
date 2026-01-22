@@ -35,10 +35,23 @@ interface PayslipPreviewProps {
 }
 
 export function PayslipPreview({ data, organizationName }: PayslipPreviewProps) {
-  const monthName = format(new Date(data.period.year, data.period.month - 1), "MMMM yyyy");
+  // Safely format month name with validation
+  const getMonthName = () => {
+    const year = data?.period?.year;
+    const month = data?.period?.month;
+    if (!year || !month || isNaN(year) || isNaN(month)) {
+      return "Unknown Period";
+    }
+    try {
+      return format(new Date(year, month - 1), "MMMM yyyy");
+    } catch {
+      return `${month}/${year}`;
+    }
+  };
+  const monthName = getMonthName();
   
-  const totalEarnings = data.earnings.reduce((sum, e) => sum + e.amount, 0);
-  const totalDeductions = data.deductions.reduce((sum, d) => sum + d.amount, 0);
+  const totalEarnings = data.earnings?.reduce((sum, e) => sum + (e.amount || 0), 0) || 0;
+  const totalDeductions = data.deductions?.reduce((sum, d) => sum + (d.amount || 0), 0) || 0;
   const netSalary = totalEarnings - totalDeductions;
 
   const formatCurrency = (amount: number) =>
@@ -155,7 +168,14 @@ export function PayslipPreview({ data, organizationName }: PayslipPreviewProps) 
               <p className="text-sm text-muted-foreground">Net Salary</p>
               {data.paymentDate && (
                 <p className="text-xs text-muted-foreground">
-                  Paid on {format(new Date(data.paymentDate), "dd MMM yyyy")}
+                  Paid on {(() => {
+                    try {
+                      const date = new Date(data.paymentDate);
+                      return isNaN(date.getTime()) ? data.paymentDate : format(date, "dd MMM yyyy");
+                    } catch {
+                      return data.paymentDate;
+                    }
+                  })()}
                   {data.paymentMethod && ` via ${data.paymentMethod}`}
                 </p>
               )}
