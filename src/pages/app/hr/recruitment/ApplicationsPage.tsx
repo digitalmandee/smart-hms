@@ -26,8 +26,8 @@ const STATUS_OPTIONS = [
 export default function ApplicationsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedApplication, setSelectedApplication] = useState<any>(null);
-  const [statusFilter, setStatusFilter] = useState<string>("");
-  const [jobFilter, setJobFilter] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [jobFilter, setJobFilter] = useState<string>("all");
   const [formData, setFormData] = useState({
     job_opening_id: "",
     applicant_name: "",
@@ -42,9 +42,10 @@ export default function ApplicationsPage() {
     skills: "",
   });
 
-  const { data: applications, isLoading } = useJobApplications(
-    jobFilter ? { jobOpeningId: jobFilter, status: statusFilter || undefined } : { status: statusFilter || undefined }
-  );
+  const { data: applications, isLoading } = useJobApplications({
+    jobOpeningId: jobFilter !== "all" ? jobFilter : undefined,
+    status: statusFilter !== "all" ? statusFilter : undefined,
+  });
   const filteredApplications = applications;
   const { data: jobs } = useJobOpenings("open");
   const createApplication = useCreateJobApplication();
@@ -325,7 +326,7 @@ export default function ApplicationsPage() {
                 <SelectValue placeholder="All Positions" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Positions</SelectItem>
+                <SelectItem value="all">All Positions</SelectItem>
                 {jobs?.map((job) => (
                   <SelectItem key={job.id} value={job.id}>
                     {job.title}
@@ -338,7 +339,7 @@ export default function ApplicationsPage() {
                 <SelectValue placeholder="All Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Status</SelectItem>
+                <SelectItem value="all">All Status</SelectItem>
                 {STATUS_OPTIONS.map((s) => (
                   <SelectItem key={s.value} value={s.value}>
                     {s.label}
