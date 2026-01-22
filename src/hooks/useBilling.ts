@@ -809,6 +809,16 @@ export function useTogglePaymentMethodStatus() {
 
 // ========== SERVICE TYPES ==========
 
+export interface ServiceTypeWithCategory extends ServiceType {
+  category_info?: {
+    id: string;
+    code: string;
+    name: string;
+    icon: string;
+    color: string;
+  } | null;
+}
+
 export function useServiceTypes() {
   const { profile } = useAuth();
 
@@ -819,14 +829,16 @@ export function useServiceTypes() {
       
       const { data, error } = await supabase
         .from("service_types")
-        .select("*")
+        .select(`
+          *,
+          category_info:service_categories(id, code, name, icon, color)
+        `)
         .eq("organization_id", profile.organization_id)
         .eq("is_active", true)
-        .order("category")
         .order("name");
 
       if (error) throw error;
-      return data as ServiceType[];
+      return data as ServiceTypeWithCategory[];
     },
     enabled: !!profile?.organization_id,
   });

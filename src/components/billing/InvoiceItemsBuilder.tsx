@@ -2,14 +2,18 @@ import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Table,
   TableBody,
@@ -19,36 +23,20 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { useServiceTypes } from "@/hooks/useBilling";
+import { useServiceTypes, ServiceTypeWithCategory } from "@/hooks/useBilling";
+import { useServiceCategories } from "@/hooks/useServiceCategories";
 import { useBeds, useWards } from "@/hooks/useIPD";
 import { BedPickerDialog, BedBookingData } from "@/components/billing/BedPickerDialog";
-import { Plus, Trash2, TestTube, Bed, Calendar } from "lucide-react";
+import { Plus, Trash2, Bed, Calendar, ChevronsUpDown, Check } from "lucide-react";
 import { InvoiceItemInput } from "@/hooks/useBilling";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { ServiceCategoryBadge } from "./ServiceCategoryBadge";
 
 interface InvoiceItemsBuilderProps {
   items: InvoiceItemInput[];
   onChange: (items: InvoiceItemInput[]) => void;
   disabled?: boolean;
-}
-
-type CategoryFilter = "all" | "consultation" | "procedure" | "lab" | "room" | "other";
-
-const categoryLabels: Record<CategoryFilter, string> = {
-  all: "All",
-  consultation: "Consultation",
-  procedure: "Procedure",
-  lab: "Lab",
-  room: "Room",
-  other: "Other",
-};
-
-interface ServiceType {
-  id: string;
-  name: string;
-  category: string | null;
-  default_price: number | null;
 }
 
 export function InvoiceItemsBuilder({
@@ -57,10 +45,12 @@ export function InvoiceItemsBuilder({
   disabled,
 }: InvoiceItemsBuilderProps) {
   const { data: serviceTypes } = useServiceTypes();
+  const { data: categories } = useServiceCategories();
   const { data: beds } = useBeds();
   const { data: wards } = useWards();
   
-  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [servicePickerOpen, setServicePickerOpen] = useState(false);
   const [newItem, setNewItem] = useState<InvoiceItemInput>({
     description: "",
     quantity: 1,
@@ -71,22 +61,23 @@ export function InvoiceItemsBuilder({
 
   // State for bed picker dialog
   const [showBedPicker, setShowBedPicker] = useState(false);
-  const [pendingRoomService, setPendingRoomService] = useState<ServiceType | null>(null);
+  const [pendingRoomService, setPendingRoomService] = useState<ServiceTypeWithCategory | null>(null);
 
-  // Group services by category
+  // Group services by category_info.code (from joined data)
   const groupedServices = useMemo(() => {
     if (!serviceTypes) return {};
     
     const filtered = categoryFilter === "all" 
       ? serviceTypes 
-      : serviceTypes.filter(s => s.category === categoryFilter);
+      : serviceTypes.filter(s => s.category_info?.code === categoryFilter || s.category === categoryFilter);
     
     return filtered.reduce((acc, service) => {
-      const cat = service.category || "other";
-      if (!acc[cat]) acc[cat] = [];
-      acc[cat].push(service);
+      const catCode = service.category_info?.code || service.category || "other";
+      const catName = service.category_info?.name || catCode.charAt(0).toUpperCase() + catCode.slice(1);
+      if (!acc[catCode]) acc[catCode] = { name: catName, services: [] };
+      acc[catCode].services.push(service);
       return acc;
-    }, {} as Record<string, typeof serviceTypes>);
+    }, {} as Record<string, { name: string; services: ServiceTypeWithCategory[] }>);
   }, [serviceTypes, categoryFilter]);
 
   const handleAddItem = () => {
@@ -109,9 +100,11 @@ export function InvoiceItemsBuilder({
     const service = serviceTypes?.find((s) => s.id === serviceId);
     if (service) {
       // Check if it's a room category service - open bed picker
-      if (service.category === "room") {
-        setPendingRoomService(service as ServiceType);
+      const categoryCode = service.category_info?.code || service.category;
+      if (categoryCode === "room") {
+        setPendingRoomService(service);
         setShowBedPicker(true);
+        setServicePickerOpen(false);
         return; // Don't add immediately, wait for bed selection
       }
 
@@ -122,6 +115,7 @@ export function InvoiceItemsBuilder({
         unit_price: service.default_price || 0,
         service_type_id: service.id,
       });
+      setServicePickerOpen(false);
     }
   };
 
@@ -160,8 +154,6 @@ export function InvoiceItemsBuilder({
     return item.quantity * item.unit_price * (1 - (item.discount_percent || 0) / 100);
   };
 
-  const categories: CategoryFilter[] = ["all", "consultation", "procedure", "lab", "room", "other"];
-
   return (
     <div className="space-y-4">
       <Table>
@@ -178,25 +170,16 @@ export function InvoiceItemsBuilder({
         <TableBody>
           {items.map((item, index) => {
             const service = serviceTypes?.find(s => s.id === item.service_type_id);
-            const category = item.category || service?.category;
-            const isRoomItem = category === "room" && item.bed_id;
+            const categoryCode = item.category || service?.category_info?.code || service?.category;
+            const isRoomItem = categoryCode === "room" && item.bed_id;
             
             return (
               <TableRow key={index}>
                 <TableCell>
                   <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-2">
-                      {category === "lab" && (
-                        <Badge variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-300">
-                          <TestTube className="h-3 w-3 mr-1" />
-                          Lab
-                        </Badge>
-                      )}
-                      {category === "room" && (
-                        <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-300">
-                          <Bed className="h-3 w-3 mr-1" />
-                          Room
-                        </Badge>
+                      {categoryCode && (
+                        <ServiceCategoryBadge category={categoryCode as any} />
                       )}
                       <span className={isRoomItem ? "font-medium" : ""}>{item.description}</span>
                     </div>
@@ -243,49 +226,79 @@ export function InvoiceItemsBuilder({
 
       {!disabled && (
         <div className="border rounded-lg p-4 bg-muted/30 space-y-4">
-          {/* Category Filter Pills */}
+          {/* Dynamic Category Filter Pills */}
           <div className="flex flex-wrap gap-2">
-            {categories.map((cat) => (
+            <Button
+              variant={categoryFilter === "all" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setCategoryFilter("all")}
+            >
+              All
+            </Button>
+            {categories?.map((cat) => (
               <Button
-                key={cat}
-                variant={categoryFilter === cat ? "default" : "outline"}
+                key={cat.id}
+                variant={categoryFilter === cat.code ? "default" : "outline"}
                 size="sm"
-                onClick={() => setCategoryFilter(cat)}
-                className={cn(
-                  "capitalize",
-                  categoryFilter === cat && "bg-primary text-primary-foreground"
-                )}
+                onClick={() => setCategoryFilter(cat.code)}
               >
-                {cat === "room" && <Bed className="h-3 w-3 mr-1" />}
-                {cat === "lab" && <TestTube className="h-3 w-3 mr-1" />}
-                {categoryLabels[cat]}
+                {cat.name}
               </Button>
             ))}
           </div>
 
           <div className="grid gap-4 md:grid-cols-6">
             <div className="md:col-span-2">
-              <Select onValueChange={handleServiceSelect}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Quick add service..." />
-                </SelectTrigger>
-                <SelectContent className="max-h-80">
-                  {Object.entries(groupedServices).map(([category, services]) => (
-                    <SelectGroup key={category}>
-                      <SelectLabel className="capitalize font-semibold text-primary flex items-center gap-1">
-                        {category === "room" && <Bed className="h-3 w-3" />}
-                        {category === "lab" && <TestTube className="h-3 w-3" />}
-                        {categoryLabels[category as CategoryFilter] || category}
-                      </SelectLabel>
-                      {services.map((service) => (
-                        <SelectItem key={service.id} value={service.id}>
-                          {service.name} - Rs. {service.default_price?.toLocaleString()}
-                        </SelectItem>
+              {/* Searchable Service Selector */}
+              <Popover open={servicePickerOpen} onOpenChange={setServicePickerOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={servicePickerOpen}
+                    className="w-full justify-between"
+                  >
+                    <span className="truncate">
+                      {newItem.service_type_id
+                        ? serviceTypes?.find(s => s.id === newItem.service_type_id)?.name || "Select service..."
+                        : "Select service..."}
+                    </span>
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[400px] p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Search services..." />
+                    <CommandList>
+                      <CommandEmpty>No services found.</CommandEmpty>
+                      {Object.entries(groupedServices).map(([code, { name, services }]) => (
+                        <CommandGroup key={code} heading={name}>
+                          {services.map((service) => (
+                            <CommandItem
+                              key={service.id}
+                              value={`${service.name} ${name}`}
+                              onSelect={() => handleServiceSelect(service.id)}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  newItem.service_type_id === service.id ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              <div className="flex-1 flex justify-between items-center">
+                                <span>{service.name}</span>
+                                <span className="text-muted-foreground text-sm">
+                                  Rs. {service.default_price?.toLocaleString()}
+                                </span>
+                              </div>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
                       ))}
-                    </SelectGroup>
-                  ))}
-                </SelectContent>
-              </Select>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
 
