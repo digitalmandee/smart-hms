@@ -702,7 +702,7 @@ function App() {
               <Route path="settings/users/:id" element={<UserDetailPage />} />
               <Route path="settings/organization" element={<OrganizationSettingsPage />} />
               <Route path="settings/roles" element={<RolesPermissionsPage />} />
-              <Route path="settings/services" element={<ServiceTypesListPage />} />
+              <Route path="settings/services" element={<ServicesPage />} />
               <Route path="settings/services/new" element={<ServiceTypeFormPage />} />
               <Route path="settings/services/:id" element={<ServiceTypeFormPage />} />
               <Route path="settings/kiosks" element={<KiosksListPage />} />
