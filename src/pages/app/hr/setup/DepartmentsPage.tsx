@@ -48,8 +48,8 @@ export default function DepartmentsPage() {
     name: "",
     code: "",
     description: "",
-    parent_department_id: "",
-    head_employee_id: "",
+    parent_department_id: "none",
+    head_employee_id: "none",
     is_active: true,
   });
 
@@ -60,8 +60,8 @@ export default function DepartmentsPage() {
         name: department.name,
         code: department.code,
         description: department.description || "",
-        parent_department_id: department.parent_department_id || "",
-        head_employee_id: department.head_employee_id || "",
+        parent_department_id: department.parent_department_id || "none",
+        head_employee_id: department.head_employee_id || "none",
         is_active: department.is_active ?? true,
       });
     } else {
@@ -70,8 +70,8 @@ export default function DepartmentsPage() {
         name: "",
         code: "",
         description: "",
-        parent_department_id: "",
-        head_employee_id: "",
+        parent_department_id: "none",
+        head_employee_id: "none",
         is_active: true,
       });
     }
@@ -81,8 +81,8 @@ export default function DepartmentsPage() {
   const handleSubmit = async () => {
     const data = {
       ...formData,
-      parent_department_id: formData.parent_department_id || null,
-      head_employee_id: formData.head_employee_id || null,
+      parent_department_id: formData.parent_department_id === "none" ? null : formData.parent_department_id,
+      head_employee_id: formData.head_employee_id === "none" ? null : formData.head_employee_id,
       organization_id: profile?.organization_id!,
     };
 
@@ -189,7 +189,7 @@ export default function DepartmentsPage() {
                   <SelectValue placeholder="None (Root department)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None (Root department)</SelectItem>
+                  <SelectItem value="none">None (Root department)</SelectItem>
                   {departments
                     ?.filter((d) => d.id !== editingDepartment?.id)
                     .map((dept) => (
@@ -213,7 +213,7 @@ export default function DepartmentsPage() {
                   <SelectValue placeholder="Select head..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No head assigned</SelectItem>
+                  <SelectItem value="none">No head assigned</SelectItem>
                   {employees?.map((emp) => (
                     <SelectItem key={emp.id} value={emp.id}>
                       {emp.first_name} {emp.last_name} ({emp.employee_number})
