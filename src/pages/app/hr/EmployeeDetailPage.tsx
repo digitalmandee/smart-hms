@@ -10,6 +10,7 @@ import { useDoctorByEmployeeId } from "@/hooks/useDoctors";
 import { useNurseByEmployeeId, NURSE_SPECIALIZATIONS } from "@/hooks/useNurses";
 import { useEmployeeLeaveBalance } from "@/hooks/useLeaves";
 import { EmployeeDocumentsSection } from "@/components/hr/EmployeeDocumentsSection";
+import { EmployeePayrollTab } from "@/components/hr/EmployeePayrollTab";
 import { 
   Loader2, 
   Pencil, 
@@ -23,7 +24,8 @@ import {
   Heart,
   CreditCard,
   Clock,
-  FileText
+  FileText,
+  Wallet
 } from "lucide-react";
 import { format } from "date-fns";
 import { LeaveBalanceWidget } from "@/components/hr/LeaveBalanceWidget";
@@ -219,6 +221,10 @@ export default function EmployeeDetailPage() {
             </TabsTrigger>
           )}
           <TabsTrigger value="leaves">Leaves</TabsTrigger>
+          <TabsTrigger value="payroll" className="flex items-center gap-1.5">
+            <Wallet className="h-4 w-4" />
+            Payroll
+          </TabsTrigger>
           <TabsTrigger value="documents" className="flex items-center gap-1.5">
             <FileText className="h-4 w-4" />
             Documents
@@ -466,6 +472,16 @@ export default function EmployeeDetailPage() {
               </CardContent>
             </Card>
           )}
+        </TabsContent>
+
+        <TabsContent value="payroll">
+          <EmployeePayrollTab 
+            employeeId={id || ""} 
+            employeeName={`${employee.first_name} ${employee.last_name || ""}`}
+            employeeNumber={employee.employee_number}
+            departmentName={employee.department?.name}
+            designationName={employee.designation?.name}
+          />
         </TabsContent>
 
         <TabsContent value="documents">
