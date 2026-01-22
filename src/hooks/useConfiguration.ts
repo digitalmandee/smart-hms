@@ -8,6 +8,8 @@ interface Specialization {
   organization_id: string | null;
   name: string;
   code: string | null;
+  category: 'surgeon' | 'consultant' | 'anesthesia' | 'radiologist' | 'pathologist' | null;
+  description: string | null;
   is_active: boolean;
   display_order: number;
   created_at: string;
