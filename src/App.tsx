@@ -54,7 +54,8 @@ import { UsersListPage } from "./pages/app/settings/UsersListPage";
 import { UserDetailPage } from "./pages/app/settings/UserDetailPage";
 import { OrganizationSettingsPage } from "./pages/app/settings/OrganizationSettingsPage";
 import { RolesPermissionsPage } from "./pages/app/settings/RolesPermissionsPage";
-import ServicesPage from "./pages/app/settings/ServicesPage";
+import ServicesListPage from "./pages/app/services/ServicesListPage";
+import ServiceFormPage from "./pages/app/services/ServiceFormPage";
 
 // Patient pages
 import { PatientsListPage } from "./pages/app/patients/PatientsListPage";
@@ -702,9 +703,17 @@ function App() {
               <Route path="settings/users/:id" element={<UserDetailPage />} />
               <Route path="settings/organization" element={<OrganizationSettingsPage />} />
               <Route path="settings/roles" element={<RolesPermissionsPage />} />
-              <Route path="settings/services" element={<ServicesPage />} />
-              <Route path="settings/services/new" element={<ServiceTypeFormPage />} />
-              <Route path="settings/services/:id" element={<ServiceTypeFormPage />} />
+              
+              {/* Services routes - top level */}
+              <Route path="services" element={<ServicesListPage />} />
+              <Route path="services/new" element={<ServiceFormPage />} />
+              <Route path="services/:id" element={<ServiceFormPage />} />
+              <Route path="services/doctor-fees" element={<DoctorFeesPage />} />
+              
+              {/* Legacy redirect */}
+              <Route path="settings/services" element={<Navigate to="/app/services" replace />} />
+              <Route path="settings/services/*" element={<Navigate to="/app/services" replace />} />
+              
               <Route path="settings/kiosks" element={<KiosksListPage />} />
               <Route path="settings/kiosks/new" element={<KioskFormPage />} />
               <Route path="settings/kiosks/:id" element={<KioskFormPage />} />
