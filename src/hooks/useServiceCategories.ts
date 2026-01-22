@@ -3,6 +3,29 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
+// Fetch a single category by code
+export function useServiceCategoryByCode(code: string | undefined) {
+  const { profile } = useAuth();
+
+  return useQuery({
+    queryKey: ["service-category-by-code", profile?.organization_id, code],
+    queryFn: async () => {
+      if (!profile?.organization_id || !code) throw new Error("Missing params");
+
+      const { data, error } = await supabase
+        .from("service_categories")
+        .select("*")
+        .eq("organization_id", profile.organization_id)
+        .eq("code", code)
+        .single();
+
+      if (error) throw error;
+      return data as ServiceCategory;
+    },
+    enabled: !!profile?.organization_id && !!code,
+  });
+}
+
 export interface ServiceCategory {
   id: string;
   organization_id: string;
