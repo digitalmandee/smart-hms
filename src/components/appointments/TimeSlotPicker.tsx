@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useAvailableSlots } from '@/hooks/useDoctors';
 import { cn } from '@/lib/utils';
 import { Clock } from 'lucide-react';
@@ -7,6 +8,7 @@ interface TimeSlotPickerProps {
   doctorId: string;
   date: string;
   selectedSlot: string | null;
+  initialSlot?: string | null; // Pre-fill from URL params
   onSelect: (slot: string) => void;
 }
 
@@ -14,9 +16,20 @@ export function TimeSlotPicker({
   doctorId,
   date,
   selectedSlot,
+  initialSlot,
   onSelect,
 }: TimeSlotPickerProps) {
   const { data: slots, isLoading } = useAvailableSlots(doctorId, date);
+
+  // Auto-select initial slot when slots are loaded and no slot is selected yet
+  useEffect(() => {
+    if (initialSlot && slots && slots.length > 0 && !selectedSlot) {
+      const matchingSlot = slots.find(s => s.time === initialSlot && s.available);
+      if (matchingSlot) {
+        onSelect(matchingSlot.time);
+      }
+    }
+  }, [initialSlot, slots, selectedSlot, onSelect]);
 
   if (!doctorId || !date) {
     return (
