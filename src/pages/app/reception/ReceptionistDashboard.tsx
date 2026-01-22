@@ -12,6 +12,7 @@ import { UpcomingAppointmentCard } from "@/components/reception/UpcomingAppointm
 import { ReceptionQuickActions } from "@/components/reception/ReceptionQuickActions";
 import { RecentRegistrationCard } from "@/components/reception/RecentRegistrationCard";
 import { PendingSurgeryRequestsCard } from "@/components/reception/PendingSurgeryRequestsCard";
+import { UpcomingSurgeriesCard } from "@/components/reception/UpcomingSurgeriesCard";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function ReceptionistDashboard() {
@@ -110,6 +111,9 @@ export default function ReceptionistDashboard() {
 
         {/* Pending Surgery Requests */}
         <PendingSurgeryRequestsCard maxItems={4} />
+
+        {/* Upcoming Scheduled Surgeries */}
+        <UpcomingSurgeriesCard maxItems={4} />
 
         {/* Upcoming Appointments */}
         <Card className="transition-all hover:shadow-lg">
