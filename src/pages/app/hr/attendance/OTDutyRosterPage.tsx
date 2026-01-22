@@ -64,7 +64,7 @@ export default function OTDutyRosterPage() {
   // Filter employees who work in OT
   const otEmployees = allEmployees?.filter(e => {
     const deptName = typeof e.department === "string" ? e.department : e.department?.name || "";
-    const desig = e.designation || "";
+    const desig = typeof e.designation === "string" ? e.designation : e.designation?.name || "";
     return (
       deptName.toLowerCase().includes("surgery") ||
       deptName.toLowerCase().includes("ot") ||

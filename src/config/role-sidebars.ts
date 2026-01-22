@@ -608,7 +608,11 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
           { name: "Daily Attendance", path: "/app/hr/attendance", icon: "ClipboardList" },
           { name: "Attendance Sheet", path: "/app/hr/attendance/sheet", icon: "FileSpreadsheet" },
           { name: "Duty Roster", path: "/app/hr/attendance/roster", icon: "Calendar" },
+          { name: "OT Roster", path: "/app/hr/attendance/ot-roster", icon: "Scissors" },
+          { name: "Emergency Roster", path: "/app/hr/attendance/emergency-roster", icon: "Siren" },
           { name: "On-Call Schedule", path: "/app/hr/attendance/on-call", icon: "Phone" },
+          { name: "Publish Roster", path: "/app/hr/attendance/publish", icon: "Send" },
+          { name: "Roster Reports", path: "/app/hr/attendance/roster-reports", icon: "FileBarChart" },
           { name: "Overtime", path: "/app/hr/attendance/overtime", icon: "Clock" },
         ]
       },

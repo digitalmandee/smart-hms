@@ -59,7 +59,7 @@ export default function EmergencyRosterPage() {
   // Filter employees who work in Emergency
   const erEmployees = allEmployees?.filter(e => {
     const deptName = typeof e.department === "string" ? e.department : e.department?.name || "";
-    const desig = e.designation || "";
+    const desig = typeof e.designation === "string" ? e.designation : e.designation?.name || "";
     return (
       deptName.toLowerCase().includes("emergency") ||
       deptName.toLowerCase().includes("er") ||
