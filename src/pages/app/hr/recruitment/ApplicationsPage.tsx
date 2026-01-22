@@ -42,11 +42,11 @@ export default function ApplicationsPage() {
     skills: "",
   });
 
-  const { data: applications, isLoading } = useJobApplications(jobFilter || undefined);
-  const filteredApplications = statusFilter 
-    ? applications?.filter(a => a.status === statusFilter) 
-    : applications;
-  const { data: jobs } = useJobOpenings({ status: "open" });
+  const { data: applications, isLoading } = useJobApplications(
+    jobFilter ? { jobOpeningId: jobFilter, status: statusFilter || undefined } : { status: statusFilter || undefined }
+  );
+  const filteredApplications = applications;
+  const { data: jobs } = useJobOpenings("open");
   const createApplication = useCreateJobApplication();
   const updateApplication = useUpdateJobApplication();
 

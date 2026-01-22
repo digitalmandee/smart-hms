@@ -623,11 +623,31 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
           { name: "Dashboard", path: "/app/hr/payroll", icon: "LayoutDashboard" },
           { name: "Process Payroll", path: "/app/hr/payroll/process", icon: "Calculator" },
           { name: "Employee Salaries", path: "/app/hr/payroll/salaries", icon: "Users" },
+          { name: "Doctor Compensation", path: "/app/hr/payroll/doctor-compensation", icon: "Stethoscope" },
+          { name: "Doctor Earnings", path: "/app/hr/payroll/doctor-earnings", icon: "Receipt" },
           { name: "Loans & Advances", path: "/app/hr/payroll/loans", icon: "Landmark" },
           { name: "Payslips", path: "/app/hr/payroll/slips", icon: "FileText" },
           { name: "Reports", path: "/app/hr/payroll/reports", icon: "PieChart" },
         ]
       },
+      { 
+        name: "Recruitment", 
+        path: "", 
+        icon: "UserPlus",
+        children: [
+          { name: "Job Openings", path: "/app/hr/recruitment/jobs", icon: "Briefcase" },
+          { name: "Applications", path: "/app/hr/recruitment/applications", icon: "FileText" },
+        ]
+      },
+      { 
+        name: "Exit Management", 
+        path: "", 
+        icon: "LogOut",
+        children: [
+          { name: "Resignations", path: "/app/hr/exit/resignations", icon: "UserMinus" },
+        ]
+      },
+      { name: "Compliance", path: "/app/hr/compliance", icon: "Shield" },
       { 
         name: "Setup", 
         path: "", 
