@@ -380,7 +380,7 @@ export function useShifts() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("shifts")
-        .select("*")
+        .select("*, color")
         .order("start_time");
       if (error) throw error;
       return data;
@@ -528,6 +528,177 @@ export function useDeleteHoliday() {
     },
     onError: (error: Error) => {
       toast.error("Failed to delete holiday: " + error.message);
+    },
+  });
+}
+
+// Shift Assignments
+type ShiftAssignmentInsert = Database["public"]["Tables"]["shift_assignments"]["Insert"];
+
+export function useShiftAssignments(startDate?: string, endDate?: string) {
+  return useQuery({
+    queryKey: ["shift-assignments", startDate, endDate],
+    queryFn: async () => {
+      let query = supabase
+        .from("shift_assignments")
+        .select(`
+          *,
+          employee:employee_id(id, first_name, last_name, employee_number),
+          shift:shift_id(id, name, code, start_time, end_time, is_active, is_night_shift)
+        `)
+        .eq("is_current", true);
+      
+      if (startDate) {
+        query = query.lte("effective_from", endDate || startDate);
+      }
+      if (endDate) {
+        query = query.or(`effective_to.is.null,effective_to.gte.${startDate}`);
+      }
+      
+      const { data, error } = await query;
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
+export function useCreateShiftAssignment() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (assignment: ShiftAssignmentInsert) => {
+      // First, set all existing assignments for this employee to not current
+      await supabase
+        .from("shift_assignments")
+        .update({ is_current: false, effective_to: assignment.effective_from })
+        .eq("employee_id", assignment.employee_id)
+        .eq("is_current", true);
+      
+      // Create the new assignment
+      const { data, error } = await supabase
+        .from("shift_assignments")
+        .insert({ ...assignment, is_current: true })
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["shift-assignments"] });
+      toast.success("Shift assignment created successfully");
+    },
+    onError: (error: Error) => {
+      toast.error("Failed to create shift assignment: " + error.message);
+    },
+  });
+}
+
+export function useDeleteShiftAssignment() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("shift_assignments").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["shift-assignments"] });
+      toast.success("Shift assignment removed");
+    },
+    onError: (error: Error) => {
+      toast.error("Failed to remove shift assignment: " + error.message);
+    },
+  });
+}
+
+// On-Call Schedules
+type OnCallSchedule = Database["public"]["Tables"]["on_call_schedules"]["Row"];
+type OnCallScheduleInsert = Database["public"]["Tables"]["on_call_schedules"]["Insert"];
+
+export function useOnCallSchedules(startDate?: string, endDate?: string) {
+  return useQuery({
+    queryKey: ["on-call-schedules", startDate, endDate],
+    queryFn: async () => {
+      let query = supabase
+        .from("on_call_schedules")
+        .select(`
+          *,
+          employee:employee_id(id, first_name, last_name, employee_number, profile_photo_url),
+          department:department_id(id, name)
+        `)
+        .order("schedule_date");
+      
+      if (startDate) {
+        query = query.gte("schedule_date", startDate);
+      }
+      if (endDate) {
+        query = query.lte("schedule_date", endDate);
+      }
+      
+      const { data, error } = await query;
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!startDate,
+  });
+}
+
+export function useCreateOnCallSchedule() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (schedule: OnCallScheduleInsert) => {
+      const { data, error } = await supabase
+        .from("on_call_schedules")
+        .insert(schedule)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["on-call-schedules"] });
+      toast.success("On-call schedule created successfully");
+    },
+    onError: (error: Error) => {
+      toast.error("Failed to create on-call schedule: " + error.message);
+    },
+  });
+}
+
+export function useUpdateOnCallSchedule() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...data }: Partial<OnCallSchedule> & { id: string }) => {
+      const { data: result, error } = await supabase
+        .from("on_call_schedules")
+        .update(data)
+        .eq("id", id)
+        .select()
+        .single();
+      if (error) throw error;
+      return result;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["on-call-schedules"] });
+      toast.success("On-call schedule updated successfully");
+    },
+    onError: (error: Error) => {
+      toast.error("Failed to update on-call schedule: " + error.message);
+    },
+  });
+}
+
+export function useDeleteOnCallSchedule() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("on_call_schedules").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["on-call-schedules"] });
+      toast.success("On-call schedule deleted");
+    },
+    onError: (error: Error) => {
+      toast.error("Failed to delete on-call schedule: " + error.message);
     },
   });
 }
