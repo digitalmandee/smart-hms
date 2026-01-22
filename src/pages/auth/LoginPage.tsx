@@ -28,7 +28,6 @@ const hospitalDemoAccounts = [
   { email: "bloodbank@healthos.demo", role: "Blood Bank", icon: Droplets, color: "bg-red-500/10 text-red-600 hover:bg-red-500/20 border-red-500/20" },
   { email: "radiologist@healthos.demo", role: "Radiologist", icon: ScanLine, color: "bg-cyan-500/10 text-cyan-600 hover:bg-cyan-500/20 border-cyan-500/20" },
   { email: "ipdnurse@healthos.demo", role: "IPD Nurse", icon: Bed, color: "bg-indigo-500/10 text-indigo-600 hover:bg-indigo-500/20 border-indigo-500/20" },
-  { email: "ottechnician@healthos.demo", role: "OT Tech", icon: Scissors, color: "bg-rose-500/10 text-rose-600 hover:bg-rose-500/20 border-rose-500/20" },
   // Administrative Roles
   { email: "accountant@healthos.demo", role: "Accountant", icon: Calculator, color: "bg-slate-500/10 text-slate-600 hover:bg-slate-500/20 border-slate-500/20" },
   { email: "storemanager@healthos.demo", role: "Store Manager", icon: Warehouse, color: "bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 border-emerald-500/20" },
