@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Search, Eye, Printer, Settings, FileSpreadsheet } from "lucide-react";
-import { PayslipPreview } from "./PayslipPreview";
+import { PrintablePayslip } from "./PrintablePayslip";
 import { useReactToPrint } from "react-to-print";
 import { exportToCSV } from "@/lib/exportUtils";
 import { BankSheetTemplateDialog, BankSheetField, useBankSheetTemplate } from "./BankSheetTemplateDialog";
@@ -148,9 +148,15 @@ export function EmployeePayslipsDialog({
       workingDays: entry.total_working_days || 26,
       daysWorked: entry.present_days || 0,
       leaveDays: entry.leave_days || 0,
+      grossSalary: entry.gross_salary || 0,
+      netSalary: entry.net_salary || 0,
       paymentDate: payrollRun?.pay_date,
       paymentMethod: entry.bank_name ? "Bank Transfer" : "Cash",
     };
+  };
+
+  const branding = {
+    name: organizationName,
   };
 
   const periodLabel = payrollRun 
@@ -283,9 +289,9 @@ export function EmployeePayslipsDialog({
           </DialogHeader>
           {selectedEntry && (
             <div ref={printRef}>
-              <PayslipPreview
+              <PrintablePayslip
                 data={generatePayslipData(selectedEntry)}
-                organizationName={organizationName}
+                branding={branding}
               />
             </div>
           )}

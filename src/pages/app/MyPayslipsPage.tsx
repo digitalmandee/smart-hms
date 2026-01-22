@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -27,11 +27,13 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useMyPayslips } from "@/hooks/usePayroll";
 import { useAuth } from "@/contexts/AuthContext";
-import { PayslipPreview } from "@/components/hr/PayslipPreview";
-import { Loader2, Eye, FileText, AlertTriangle } from "lucide-react";
+import { useOrganizationBranding } from "@/hooks/useOrganizationBranding";
+import { PrintablePayslip } from "@/components/hr/PrintablePayslip";
+import { Loader2, Eye, FileText, AlertTriangle, Printer, Download } from "lucide-react";
 import { format } from "date-fns";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useReactToPrint } from "react-to-print";
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
@@ -41,23 +43,36 @@ const MONTHS = [
 export default function MyPayslipsPage() {
   const { profile, user } = useAuth();
   const { data: payslips, isLoading } = useMyPayslips();
+  const { data: branding } = useOrganizationBranding();
   const [selectedPayslip, setSelectedPayslip] = useState<any | null>(null);
   const currentYear = new Date().getFullYear();
   const [yearFilter, setYearFilter] = useState<string>(currentYear.toString());
+  const printRef = useRef<HTMLDivElement>(null);
 
-  // Check if employee is linked to profile
+  // Check if employee is linked to profile with full details
   const { data: myEmployee } = useQuery({
-    queryKey: ["my-employee-link", user?.id],
+    queryKey: ["my-employee-full", user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
       const { data } = await supabase
         .from("employees")
-        .select("id, first_name, last_name")
+        .select(`
+          id, first_name, last_name, employee_number,
+          department:departments(name),
+          designation:designations(name)
+        `)
         .eq("profile_id", user.id)
         .single();
       return data;
     },
     enabled: !!user?.id,
+  });
+
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: selectedPayslip 
+      ? `Payslip-${MONTHS[(selectedPayslip.payroll_run?.month || 1) - 1]}-${selectedPayslip.payroll_run?.year}` 
+      : "Payslip",
   });
 
   const formatCurrency = (amount: number) => {
@@ -78,25 +93,36 @@ export default function MyPayslipsPage() {
     ? payslips 
     : payslips?.filter(p => p.payroll_run?.year?.toString() === yearFilter);
 
-  const getPayslipData = (payslip: any) => ({
-    employee: {
-      name: profile?.full_name || "Employee",
-      employeeNumber: payslip.employee_number || "N/A",
-      department: payslip.department_name,
-      designation: payslip.designation_name,
-    },
-    period: {
-      month: payslip.payroll_run?.month || 1,
-      year: payslip.payroll_run?.year || new Date().getFullYear(),
-    },
-    earnings: Array.isArray(payslip.earnings) ? payslip.earnings : [],
-    deductions: Array.isArray(payslip.deductions) ? payslip.deductions : [],
-    workingDays: payslip.total_working_days || 0,
-    daysWorked: payslip.present_days || 0,
-    leaveDays: payslip.leave_days || 0,
-    paymentDate: payslip.payroll_run?.pay_date,
-    paymentMethod: payslip.payment_method || "Bank Transfer",
-  });
+  const getPayslipData = (payslip: any) => {
+    // If earnings array is empty, show basic_salary as main earning
+    const earnings = Array.isArray(payslip.earnings) && payslip.earnings.length > 0 
+      ? payslip.earnings 
+      : [{ name: "Basic Salary", amount: payslip.basic_salary || 0 }];
+
+    return {
+      employee: {
+        name: myEmployee 
+          ? `${myEmployee.first_name} ${myEmployee.last_name}` 
+          : profile?.full_name || "Employee",
+        employeeNumber: myEmployee?.employee_number || payslip.employee_number || "N/A",
+        department: (myEmployee?.department as any)?.name || payslip.department_name,
+        designation: (myEmployee?.designation as any)?.name || payslip.designation_name,
+      },
+      period: {
+        month: payslip.payroll_run?.month || 1,
+        year: payslip.payroll_run?.year || new Date().getFullYear(),
+      },
+      earnings,
+      deductions: Array.isArray(payslip.deductions) ? payslip.deductions : [],
+      workingDays: payslip.total_working_days || 26,
+      daysWorked: payslip.present_days || 0,
+      leaveDays: payslip.leave_days || 0,
+      grossSalary: payslip.gross_salary || 0,
+      netSalary: payslip.net_salary || 0,
+      paymentDate: payslip.payroll_run?.pay_date,
+      paymentMethod: payslip.bank_name ? "Bank Transfer" : "Cash",
+    };
+  };
 
   if (isLoading) {
     return (
@@ -211,12 +237,29 @@ export default function MyPayslipsPage() {
 
       {/* Payslip Preview Dialog */}
       <Dialog open={!!selectedPayslip} onOpenChange={() => setSelectedPayslip(null)}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[95vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Payslip Details</DialogTitle>
+            <DialogTitle className="flex items-center justify-between">
+              <span>Payslip Details</span>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => handlePrint()}>
+                  <Printer className="h-4 w-4 mr-2" />
+                  Print
+                </Button>
+                <Button variant="default" size="sm" onClick={() => handlePrint()}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Download PDF
+                </Button>
+              </div>
+            </DialogTitle>
           </DialogHeader>
           {selectedPayslip && (
-            <PayslipPreview data={getPayslipData(selectedPayslip)} />
+            <div ref={printRef}>
+              <PrintablePayslip 
+                data={getPayslipData(selectedPayslip)} 
+                branding={branding}
+              />
+            </div>
           )}
         </DialogContent>
       </Dialog>
