@@ -48,6 +48,7 @@ import { MedicalHistorySection } from "@/components/patients/MedicalHistorySecti
 import { PatientBillingHistory } from "@/components/patients/PatientBillingHistory";
 import { PatientSurgicalHistory } from "@/components/ot/PatientSurgicalHistory";
 import { PatientVisitsHistory } from "@/components/patients/PatientVisitsHistory";
+import { PatientUpcomingAppointments } from "@/components/patients/PatientUpcomingAppointments";
 import { PatientPrescriptionsHistory } from "@/components/patients/PatientPrescriptionsHistory";
 import { PatientLabHistory } from "@/components/patients/PatientLabHistory";
 import { PatientAdmissionHistory } from "@/components/patients/PatientAdmissionHistory";
@@ -468,7 +469,8 @@ export function PatientDetailPage() {
               <MedicalHistorySection patientId={patient.id} />
             </TabsContent>
 
-            <TabsContent value="visits">
+            <TabsContent value="visits" className="space-y-6">
+              <PatientUpcomingAppointments patientId={patient.id} />
               <PatientVisitsHistory patientId={patient.id} />
             </TabsContent>
 

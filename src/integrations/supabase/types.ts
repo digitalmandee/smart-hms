@@ -881,10 +881,12 @@ export type Database = {
           created_by: string | null
           doctor_id: string | null
           id: string
+          invoice_id: string | null
           kiosk_id: string | null
           notes: string | null
           organization_id: string
           patient_id: string
+          payment_status: string | null
           priority: number | null
           status: Database["public"]["Enums"]["appointment_status"] | null
           token_number: number | null
@@ -905,10 +907,12 @@ export type Database = {
           created_by?: string | null
           doctor_id?: string | null
           id?: string
+          invoice_id?: string | null
           kiosk_id?: string | null
           notes?: string | null
           organization_id: string
           patient_id: string
+          payment_status?: string | null
           priority?: number | null
           status?: Database["public"]["Enums"]["appointment_status"] | null
           token_number?: number | null
@@ -929,10 +933,12 @@ export type Database = {
           created_by?: string | null
           doctor_id?: string | null
           id?: string
+          invoice_id?: string | null
           kiosk_id?: string | null
           notes?: string | null
           organization_id?: string
           patient_id?: string
+          payment_status?: string | null
           priority?: number | null
           status?: Database["public"]["Enums"]["appointment_status"] | null
           token_number?: number | null
@@ -965,6 +971,13 @@ export type Database = {
             columns: ["doctor_id"]
             isOneToOne: false
             referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
             referencedColumns: ["id"]
           },
           {

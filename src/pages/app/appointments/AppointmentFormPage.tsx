@@ -136,13 +136,20 @@ export default function AppointmentFormPage() {
   }, [existingAppointment, isEditing, form]);
 
   // Pre-fill from URL params (calendar click-to-book)
+  // Wait for doctors to load before setting doctor_id to ensure dropdown shows selection
   useEffect(() => {
-    if (!isEditing) {
+    if (!isEditing && doctors && doctors.length > 0) {
       if (prefillDate) form.setValue('appointment_date', prefillDate);
-      if (prefillTime) form.setValue('appointment_time', prefillTime);
-      if (prefillDoctor) form.setValue('doctor_id', prefillDoctor);
+      // Time will be handled by TimeSlotPicker's initialSlot prop
+      if (prefillDoctor) {
+        // Verify doctor exists before setting
+        const doctorExists = doctors.some(d => d.id === prefillDoctor);
+        if (doctorExists) {
+          form.setValue('doctor_id', prefillDoctor);
+        }
+      }
     }
-  }, [prefillDate, prefillTime, prefillDoctor, isEditing, form]);
+  }, [prefillDate, prefillDoctor, isEditing, form, doctors]);
 
   const selectedDoctorId = form.watch('doctor_id');
   const selectedDate = form.watch('appointment_date');
@@ -742,6 +749,7 @@ export default function AppointmentFormPage() {
                               doctorId={selectedDoctorId}
                               date={selectedDate}
                               selectedSlot={field.value || ''}
+                              initialSlot={prefillTime}
                               onSelect={field.onChange}
                             />
                           </FormControl>
