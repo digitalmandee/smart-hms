@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { 
   Plus, 
   Trash2, 
@@ -16,6 +17,7 @@ import {
   Clock
 } from "lucide-react";
 import type { AnesthesiaRecord, AnesthesiaType } from "@/hooks/useOT";
+import { useConfigAnesthesiaTypes, useConfigAirwayDevices } from "@/hooks/useOTConfig";
 
 interface AnesthesiaRecordFormProps {
   surgeryId: string;
@@ -44,7 +46,8 @@ interface VitalEntry {
   etco2: string;
 }
 
-const ANESTHESIA_TYPES: { value: AnesthesiaType; label: string }[] = [
+// Fallback values if config not loaded
+const FALLBACK_ANESTHESIA_TYPES: { value: AnesthesiaType; label: string }[] = [
   { value: 'general', label: 'General Anesthesia' },
   { value: 'spinal', label: 'Spinal Anesthesia' },
   { value: 'epidural', label: 'Epidural Anesthesia' },
@@ -54,7 +57,7 @@ const ANESTHESIA_TYPES: { value: AnesthesiaType; label: string }[] = [
   { value: 'combined', label: 'Combined (GA + Regional)' },
 ];
 
-const AIRWAY_DEVICES = [
+const FALLBACK_AIRWAY_DEVICES = [
   'ETT (Endotracheal Tube)',
   'LMA (Laryngeal Mask Airway)',
   'I-gel',
@@ -69,6 +72,19 @@ export function AnesthesiaRecordForm({
   isLoading,
   anesthetistId 
 }: AnesthesiaRecordFormProps) {
+  // Fetch dynamic config
+  const { data: configAnesthesiaTypes, isLoading: typesLoading } = useConfigAnesthesiaTypes();
+  const { data: configAirwayDevices, isLoading: devicesLoading } = useConfigAirwayDevices();
+
+  // Use config or fallback
+  const anesthesiaTypes = configAnesthesiaTypes?.length 
+    ? configAnesthesiaTypes.map(t => ({ value: t.code as AnesthesiaType, label: t.name }))
+    : FALLBACK_ANESTHESIA_TYPES;
+  
+  const airwayDevices = configAirwayDevices?.length
+    ? configAirwayDevices.map(d => d.name)
+    : FALLBACK_AIRWAY_DEVICES;
+
   const [formData, setFormData] = useState({
     anesthesia_type: record?.anesthesia_type || '' as AnesthesiaType,
     anesthesia_plan: record?.anesthesia_plan || '',
@@ -256,7 +272,7 @@ export function AnesthesiaRecordForm({
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent>
-                  {ANESTHESIA_TYPES.map(type => (
+                  {anesthesiaTypes.map(type => (
                     <SelectItem key={type.value} value={type.value}>
                       {type.label}
                     </SelectItem>
@@ -348,7 +364,7 @@ export function AnesthesiaRecordForm({
                   <SelectValue placeholder="Select device" />
                 </SelectTrigger>
                 <SelectContent>
-                  {AIRWAY_DEVICES.map(device => (
+                  {airwayDevices.map(device => (
                     <SelectItem key={device} value={device}>{device}</SelectItem>
                   ))}
                 </SelectContent>

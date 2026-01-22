@@ -241,6 +241,9 @@ import PACUPage from "./pages/app/ot/PACUPage";
 import PreOpAssessmentPage from "./pages/app/ot/PreOpAssessmentPage";
 import AnesthesiaRecordPage from "./pages/app/ot/AnesthesiaRecordPage";
 import IntraOpNotesPage from "./pages/app/ot/IntraOpNotesPage";
+import AnesthesiaDashboard from "./pages/app/ot/AnesthesiaDashboard";
+import PreAnesthesiaAssessmentPage from "./pages/app/ot/PreAnesthesiaAssessmentPage";
+import OTConfigPage from "./pages/app/settings/OTConfigPage";
 
 // Blood Bank pages
 import BloodBankDashboard from "./pages/app/blood-bank/BloodBankDashboard";
@@ -547,7 +550,9 @@ function App() {
               <Route path="ot/surgeries/:id/edit" element={<SurgeryFormPage />} />
               <Route path="ot/surgeries/:id/pre-op" element={<PreOpAssessmentPage />} />
               <Route path="ot/surgeries/:id/anesthesia" element={<AnesthesiaRecordPage />} />
+              <Route path="ot/surgeries/:id/pre-anesthesia" element={<PreAnesthesiaAssessmentPage />} />
               <Route path="ot/surgeries/:id/op-notes" element={<IntraOpNotesPage />} />
+              <Route path="ot/anesthesia" element={<AnesthesiaDashboard />} />
               <Route path="ot/rooms" element={<OTRoomsPage />} />
               <Route path="ot/rooms/new" element={<OTRoomFormPage />} />
               <Route path="ot/rooms/:id/edit" element={<OTRoomFormPage />} />
@@ -752,6 +757,7 @@ function App() {
               <Route path="settings/patient-config" element={<PatientConfigPage />} />
               <Route path="settings/hr-config" element={<HRConfigPage />} />
               <Route path="settings/ipd-config" element={<IPDConfigPage />} />
+              <Route path="settings/ot-config" element={<OTConfigPage />} />
             </Route>
 
             {/* Super Admin routes */}
