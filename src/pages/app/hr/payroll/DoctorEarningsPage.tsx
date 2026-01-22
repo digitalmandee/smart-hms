@@ -27,9 +27,9 @@ const SOURCE_TYPES = [
 ];
 
 export default function DoctorEarningsPage() {
-  const [selectedDoctor, setSelectedDoctor] = useState<string>("");
-  const [isPaidFilter, setIsPaidFilter] = useState<string>("");
-  const [sourceFilter, setSourceFilter] = useState<string>("");
+  const [selectedDoctor, setSelectedDoctor] = useState<string>("all");
+  const [isPaidFilter, setIsPaidFilter] = useState<string>("all");
+  const [sourceFilter, setSourceFilter] = useState<string>("all");
   const [selectedEarnings, setSelectedEarnings] = useState<string[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -42,9 +42,9 @@ export default function DoctorEarningsPage() {
   });
 
   const { data: earnings, isLoading } = useDoctorEarnings({
-    doctorId: selectedDoctor || undefined,
-    isPaid: isPaidFilter === "" ? undefined : isPaidFilter === "true",
-    sourceType: sourceFilter || undefined,
+    doctorId: selectedDoctor !== "all" ? selectedDoctor : undefined,
+    isPaid: isPaidFilter === "all" ? undefined : isPaidFilter === "true",
+    sourceType: sourceFilter !== "all" ? sourceFilter : undefined,
   });
   const { data: doctors } = useDoctors();
   const createEarning = useCreateDoctorEarning();
@@ -339,7 +339,7 @@ export default function DoctorEarningsPage() {
                   <SelectValue placeholder="All Doctors" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Doctors</SelectItem>
+                  <SelectItem value="all">All Doctors</SelectItem>
                   {doctors?.map((doc) => (
                     <SelectItem key={doc.id} value={doc.id}>
                       {doc.employee?.first_name} {doc.employee?.last_name}
@@ -353,7 +353,7 @@ export default function DoctorEarningsPage() {
                 <SelectValue placeholder="All Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Status</SelectItem>
+                <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="false">Unpaid</SelectItem>
                 <SelectItem value="true">Paid</SelectItem>
               </SelectContent>
@@ -363,7 +363,7 @@ export default function DoctorEarningsPage() {
                 <SelectValue placeholder="All Sources" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Sources</SelectItem>
+                <SelectItem value="all">All Sources</SelectItem>
                 {SOURCE_TYPES.map((st) => (
                   <SelectItem key={st.value} value={st.value}>
                     {st.label}
