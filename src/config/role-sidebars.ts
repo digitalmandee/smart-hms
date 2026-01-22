@@ -165,8 +165,8 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         path: "", 
         icon: "Calendar",
         children: [
+          { name: "My Calendar", path: "/app/appointments/my-calendar", icon: "CalendarDays" },
           { name: "Today's Queue", path: "/app/appointments/queue", icon: "ListOrdered" },
-          { name: "My Schedule", path: "/app/appointments/calendar", icon: "CalendarDays" },
           { name: "All Appointments", path: "/app/appointments", icon: "Calendar" },
         ]
       },
@@ -202,6 +202,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
   nurse: {
     items: [
       { name: "Dashboard", path: "/app/opd/nursing", icon: "LayoutDashboard" },
+      { name: "My Calendar", path: "/app/appointments/my-calendar", icon: "CalendarDays" },
       { name: "Patient Queue", path: "/app/appointments/queue", icon: "ListOrdered" },
       { 
         name: "Triage", 
@@ -456,6 +457,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
   surgeon: {
     items: [
       { name: "Dashboard", path: "/app/ot", icon: "LayoutDashboard" },
+      { name: "My Calendar", path: "/app/appointments/my-calendar", icon: "CalendarDays" },
       { 
         name: "Surgeries", 
         path: "", 

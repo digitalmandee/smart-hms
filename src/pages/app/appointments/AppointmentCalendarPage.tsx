@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   format,
   startOfMonth,
@@ -9,11 +9,11 @@ import {
   addDays,
   addMonths,
   subMonths,
+  subDays,
   isSameMonth,
   isSameDay,
-  parseISO,
 } from 'date-fns';
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Grid3X3, CalendarDays } from 'lucide-react';
 import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -28,67 +28,174 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useAppointments } from '@/hooks/useAppointments';
 import { useDoctors } from '@/hooks/useDoctors';
+import { useBranches } from '@/hooks/useBranches';
+import { useAuth } from '@/contexts/AuthContext';
+import { DoctorGridCalendar } from '@/components/appointments/DoctorGridCalendar';
 
 const statusColors: Record<string, string> = {
   scheduled: 'bg-blue-500',
   checked_in: 'bg-yellow-500',
   in_progress: 'bg-green-500',
-  completed: 'bg-gray-400',
+  completed: 'bg-muted-foreground',
   cancelled: 'bg-red-500',
   no_show: 'bg-orange-500',
 };
 
 export default function AppointmentCalendarPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { profile } = useAuth();
+  
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [doctorFilter, setDoctorFilter] = useState<string>('all');
+  const [branchFilter, setBranchFilter] = useState<string>(profile?.branch_id || 'all');
+  const [viewMode, setViewMode] = useState<'month' | 'day'>('day');
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
 
+  // For day view, fetch just that day's appointments
+  const dateFrom = viewMode === 'day' 
+    ? format(selectedDate, 'yyyy-MM-dd')
+    : format(monthStart, 'yyyy-MM-dd');
+  const dateTo = viewMode === 'day'
+    ? format(selectedDate, 'yyyy-MM-dd')
+    : format(monthEnd, 'yyyy-MM-dd');
+
   const { data: appointments } = useAppointments({
-    dateFrom: format(monthStart, 'yyyy-MM-dd'),
-    dateTo: format(monthEnd, 'yyyy-MM-dd'),
+    dateFrom,
+    dateTo,
     doctorId: doctorFilter !== 'all' ? doctorFilter : undefined,
+    branchId: branchFilter !== 'all' ? branchFilter : undefined,
   });
 
-  const { data: doctors } = useDoctors();
+  const { data: doctors } = useDoctors(branchFilter !== 'all' ? branchFilter : undefined);
+  const { data: branches } = useBranches();
 
   const getAppointmentsForDate = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
     return appointments?.filter((a) => a.appointment_date === dateStr) || [];
   };
 
+  // Handle slot click from grid view
+  const handleSlotClick = (doctorId: string, time: string) => {
+    const dateStr = format(selectedDate, 'yyyy-MM-dd');
+    navigate(`/app/appointments/new?date=${dateStr}&time=${time}&doctor=${doctorId}`);
+  };
+
+  // Handle appointment click
+  const handleAppointmentClick = (appointmentId: string) => {
+    navigate(`/app/appointments/${appointmentId}`);
+  };
+
+  // Filter doctors for grid view
+  const filteredDoctors = doctorFilter !== 'all' 
+    ? doctors?.filter(d => d.id === doctorFilter) || []
+    : doctors || [];
+
   const renderHeader = () => (
-    <div className="flex items-center justify-between mb-6">
+    <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
       <div className="flex items-center gap-4">
-        <Button variant="outline" size="icon" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}>
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
-        <h2 className="text-xl font-semibold min-w-[180px] text-center">
-          {format(currentMonth, 'MMMM yyyy')}
-        </h2>
-        <Button variant="outline" size="icon" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}>
-          <ChevronRight className="h-4 w-4" />
-        </Button>
-        <Button variant="outline" onClick={() => setCurrentMonth(new Date())}>
-          Today
-        </Button>
+        {/* View Mode Toggle */}
+        <div className="flex border rounded-md">
+          <Button
+            variant={viewMode === 'day' ? 'secondary' : 'ghost'}
+            size="sm"
+            className="rounded-r-none gap-2"
+            onClick={() => setViewMode('day')}
+          >
+            <Grid3X3 className="h-4 w-4" />
+            Day
+          </Button>
+          <Button
+            variant={viewMode === 'month' ? 'secondary' : 'ghost'}
+            size="sm"
+            className="rounded-l-none gap-2"
+            onClick={() => setViewMode('month')}
+          >
+            <CalendarDays className="h-4 w-4" />
+            Month
+          </Button>
+        </div>
+
+        {/* Date Navigation */}
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            size="icon" 
+            onClick={() => {
+              if (viewMode === 'day') {
+                setSelectedDate(subDays(selectedDate, 1));
+              } else {
+                setCurrentMonth(subMonths(currentMonth, 1));
+              }
+            }}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <h2 className="text-xl font-semibold min-w-[180px] text-center">
+            {viewMode === 'day' 
+              ? format(selectedDate, 'EEE, MMM d, yyyy')
+              : format(currentMonth, 'MMMM yyyy')
+            }
+          </h2>
+          <Button 
+            variant="outline" 
+            size="icon" 
+            onClick={() => {
+              if (viewMode === 'day') {
+                setSelectedDate(addDays(selectedDate, 1));
+              } else {
+                setCurrentMonth(addMonths(currentMonth, 1));
+              }
+            }}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={() => {
+              setSelectedDate(new Date());
+              setCurrentMonth(new Date());
+            }}
+          >
+            Today
+          </Button>
+        </div>
       </div>
-      <Select value={doctorFilter} onValueChange={setDoctorFilter}>
-        <SelectTrigger className="w-48">
-          <SelectValue placeholder="All Doctors" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All Doctors</SelectItem>
-          {doctors?.map((doctor) => (
-            <SelectItem key={doctor.id} value={doctor.id}>
-              Dr. {doctor.profile?.full_name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+
+      <div className="flex items-center gap-2">
+        {/* Branch Filter */}
+        <Select value={branchFilter} onValueChange={setBranchFilter}>
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="All Branches" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Branches</SelectItem>
+            {branches?.map((branch) => (
+              <SelectItem key={branch.id} value={branch.id}>
+                {branch.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {/* Doctor Filter */}
+        <Select value={doctorFilter} onValueChange={setDoctorFilter}>
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="All Doctors" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Doctors</SelectItem>
+            {doctors?.map((doctor) => (
+              <SelectItem key={doctor.id} value={doctor.id}>
+                Dr. {doctor.profile?.full_name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
     </div>
   );
 
@@ -135,7 +242,10 @@ export default function AppointmentCalendarPage() {
               isSelected && 'bg-primary/10',
               'hover:bg-muted/50'
             )}
-            onClick={() => setSelectedDate(currentDay)}
+            onClick={() => {
+              setSelectedDate(currentDay);
+              setViewMode('day');
+            }}
           >
             <div className="flex items-center justify-between mb-1">
               <span
@@ -194,77 +304,11 @@ export default function AppointmentCalendarPage() {
     return <div>{rows}</div>;
   };
 
-  const renderSelectedDatePanel = () => {
-    if (!selectedDate) return null;
-
-    const dayAppointments = getAppointmentsForDate(selectedDate);
-
-    return (
-      <Card className="mt-6">
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold">
-              {format(selectedDate, 'EEEE, MMMM d, yyyy')}
-            </h3>
-            <Button
-              size="sm"
-              onClick={() =>
-                navigate(`/app/appointments/new?date=${format(selectedDate, 'yyyy-MM-dd')}`)
-              }
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Book Appointment
-            </Button>
-          </div>
-
-          {dayAppointments.length === 0 ? (
-            <p className="text-muted-foreground text-center py-4">
-              No appointments scheduled
-            </p>
-          ) : (
-            <div className="space-y-2">
-              {dayAppointments
-                .sort((a, b) => (a.appointment_time || '').localeCompare(b.appointment_time || ''))
-                .map((appt) => (
-                  <div
-                    key={appt.id}
-                    className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted cursor-pointer"
-                    onClick={() => navigate(`/app/appointments/${appt.id}`)}
-                  >
-                    <div className="flex items-center gap-3">
-                      <span
-                        className={cn(
-                          'w-3 h-3 rounded-full',
-                          statusColors[appt.status || 'scheduled']
-                        )}
-                      />
-                      <div>
-                        <p className="font-medium">
-                          {appt.patient?.first_name} {appt.patient?.last_name}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {appt.appointment_time?.substring(0, 5)} •{' '}
-                          {appt.doctor && `Dr. ${appt.doctor.profile?.full_name}`}
-                        </p>
-                      </div>
-                    </div>
-                    <Badge variant="outline" className="capitalize">
-                      {appt.status?.replace('_', ' ')}
-                    </Badge>
-                  </div>
-                ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    );
-  };
-
   return (
     <div className="space-y-6">
       <PageHeader
         title="Appointment Calendar"
-        description="View and manage appointments in calendar view"
+        description="View and manage appointments - click on any slot to book"
         breadcrumbs={[
           { label: 'Dashboard', href: '/app' },
           { label: 'Appointments', href: '/app/appointments' },
@@ -281,12 +325,23 @@ export default function AppointmentCalendarPage() {
       <Card>
         <CardContent className="p-6">
           {renderHeader()}
-          {renderDays()}
-          {renderCells()}
+          
+          {viewMode === 'month' ? (
+            <>
+              {renderDays()}
+              {renderCells()}
+            </>
+          ) : (
+            <DoctorGridCalendar
+              date={selectedDate}
+              doctors={filteredDoctors}
+              appointments={appointments || []}
+              onSlotClick={handleSlotClick}
+              onAppointmentClick={handleAppointmentClick}
+            />
+          )}
         </CardContent>
       </Card>
-
-      {renderSelectedDatePanel()}
 
       {/* Legend */}
       <div className="flex flex-wrap gap-4 text-sm">
