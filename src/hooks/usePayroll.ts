@@ -308,6 +308,61 @@ export function usePayrollDetails(payrollRunId: string) {
   });
 }
 
+// Employee Payslips (for employee profile view)
+export function useEmployeePayslips(employeeId: string) {
+  return useQuery({
+    queryKey: ["employee-payslips", employeeId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("payroll_entries")
+        .select(`
+          *,
+          payroll_run:payroll_runs(id, month, year, pay_date, status)
+        `)
+        .eq("employee_id", employeeId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!employeeId,
+  });
+}
+
+// My Payslips (for self-service - uses profile_id to find employee)
+export function useMyPayslips() {
+  return useQuery({
+    queryKey: ["my-payslips"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+      
+      // First, find the employee by profile_id
+      const { data: employee, error: empError } = await supabase
+        .from("employees")
+        .select("id")
+        .eq("profile_id", user.id)
+        .single();
+      
+      if (empError || !employee) {
+        return [];
+      }
+      
+      // Then fetch their payslips
+      const { data, error } = await supabase
+        .from("payroll_entries")
+        .select(`
+          *,
+          payroll_run:payroll_runs(id, month, year, pay_date, status)
+        `)
+        .eq("employee_id", employee.id)
+        .order("created_at", { ascending: false });
+      
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
 export function useCreatePayrollRun() {
   const queryClient = useQueryClient();
   return useMutation({

@@ -216,6 +216,7 @@ import PublishRosterPage from "./pages/app/hr/attendance/PublishRosterPage";
 import RosterReportsPage from "./pages/app/hr/attendance/RosterReportsPage";
 import MySchedulePage from "./pages/app/MySchedulePage";
 import MyAttendancePage from "./pages/app/MyAttendancePage";
+import MyPayslipsPage from "./pages/app/MyPayslipsPage";
 
 import IPDDashboard from "./pages/app/ipd/IPDDashboard";
 import WardsListPage from "./pages/app/ipd/WardsListPage";
@@ -438,6 +439,11 @@ function App() {
               
               {/* Organization Admin Dashboard */}
               <Route path="org-dashboard" element={<OrgAdminDashboardPage />} />
+              
+              {/* Employee Self-Service routes */}
+              <Route path="my-schedule" element={<MySchedulePage />} />
+              <Route path="my-attendance" element={<MyAttendancePage />} />
+              <Route path="my-payslips" element={<MyPayslipsPage />} />
               
               {/* Clinic routes */}
               <Route path="clinic" element={<ClinicDashboard />} />
