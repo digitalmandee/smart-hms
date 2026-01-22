@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import {
   Dialog,
@@ -22,6 +22,7 @@ import {
   Stethoscope,
   Activity,
   Loader2,
+  Receipt,
 } from "lucide-react";
 import { generateVisitId } from "@/lib/visit-id";
 import { Vitals } from "@/hooks/useConsultations";
@@ -55,6 +56,8 @@ interface VisitSummaryDialogProps {
   onPrintPrescription?: () => void;
   onPrintSummary?: () => void;
   isCompleting: boolean;
+  hasPendingCharges?: boolean;
+  consultationFee?: number;
 }
 
 export function VisitSummaryDialog({

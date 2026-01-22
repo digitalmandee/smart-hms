@@ -176,6 +176,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         icon: "Stethoscope",
         children: [
           { name: "History", path: "/app/opd/history", icon: "FileText" },
+          { name: "OPD Orders", path: "/app/opd/orders", icon: "ClipboardList" },
           { name: "Reports", path: "/app/reports", icon: "BarChart3" },
         ]
       },
@@ -224,8 +225,9 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
           { name: "ER Triage", path: "/app/emergency/triage", icon: "Gauge" },
         ]
       },
+      { name: "OPD Orders", path: "/app/opd/orders", icon: "ClipboardList" },
       { name: "Patients", path: "/app/patients", icon: "Users" },
-      { 
+      {
         name: "My Work", 
         path: "", 
         icon: "Briefcase",
@@ -318,12 +320,13 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         path: "", 
         icon: "Receipt",
         children: [
+          { name: "OPD Checkout", path: "/app/opd/checkout", icon: "Receipt" },
           { name: "New Invoice", path: "/app/billing/invoices/new", icon: "FilePlus" },
           { name: "Invoices", path: "/app/billing/invoices", icon: "FileText" },
           { name: "Payments", path: "/app/billing/payments", icon: "CreditCard" },
         ]
       },
-      { 
+      {
         name: "My Work", 
         path: "", 
         icon: "Briefcase",
