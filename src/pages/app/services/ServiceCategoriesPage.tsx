@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -59,6 +60,7 @@ import {
   Microscope,
   Scissors,
   Bandage,
+  ExternalLink,
 } from "lucide-react";
 
 const iconOptions = [
@@ -103,6 +105,7 @@ interface FormData {
 }
 
 export default function CategoriesPage() {
+  const navigate = useNavigate();
   const { data: categories, isLoading } = useServiceCategories(true);
   const createMutation = useCreateServiceCategory();
   const updateMutation = useUpdateServiceCategory();
@@ -217,7 +220,17 @@ export default function CategoriesPage() {
                           <IconComp className="h-4 w-4" />
                         </div>
                       </TableCell>
-                      <TableCell className="font-medium">{category.name}</TableCell>
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => navigate(`/app/services/category/${category.code}`)}
+                          className="text-primary hover:text-primary font-medium"
+                        >
+                          {category.name}
+                          <ExternalLink className="ml-2 h-3 w-3" />
+                        </Button>
+                      </TableCell>
                       <TableCell className="text-muted-foreground font-mono text-sm">
                         {category.code}
                       </TableCell>
