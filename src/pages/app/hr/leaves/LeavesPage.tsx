@@ -1,5 +1,8 @@
 import { useState } from "react";
-import { format } from "date-fns";
+import { format, differenceInDays } from "date-fns";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -29,20 +32,45 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { useLeaveRequests, useLeaveTypes, useApproveLeaveRequest } from "@/hooks/useLeaves";
+import { useLeaveRequests, useLeaveTypes, useApproveLeaveRequest, useCreateLeaveRequest } from "@/hooks/useLeaves";
 import { Loader2, Search, Plus, Check, X, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 export default function LeavesPage() {
+  const { user, profile } = useAuth();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [leaveForm, setLeaveForm] = useState({
+    leave_type_id: "",
+    start_date: "",
+    end_date: "",
+    reason: "",
+    employee_id: "",
+  });
 
   const { data: leaveRequests, isLoading } = useLeaveRequests({
     status: statusFilter !== "all" ? statusFilter : undefined,
   });
   const { data: leaveTypes } = useLeaveTypes();
   const approveLeaveRequest = useApproveLeaveRequest();
-  const { toast } = useToast();
+  const createLeaveRequest = useCreateLeaveRequest();
+  const { toast: toastLegacy } = useToast();
+
+  // Get employees for HR to select when applying leave on behalf
+  const { data: employees } = useQuery({
+    queryKey: ["employees-for-leave"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("employees")
+        .select("id, first_name, last_name, employee_number")
+        .eq("employment_status", "active")
+        .order("first_name");
+      if (error) throw error;
+      return data || [];
+    },
+  });
 
   const filteredRequests = leaveRequests?.filter((request) => {
     const employeeName = `${request.employee?.first_name} ${request.employee?.last_name}`.toLowerCase();
@@ -52,9 +80,9 @@ export default function LeavesPage() {
   const handleApprove = async (id: string) => {
     try {
       await approveLeaveRequest.mutateAsync({ id, approved: true });
-      toast({ title: "Leave request approved" });
+      toastLegacy({ title: "Leave request approved" });
     } catch (error: any) {
-      toast({
+      toastLegacy({
         title: "Error",
         description: error.message || "Failed to approve leave",
         variant: "destructive",
@@ -65,13 +93,56 @@ export default function LeavesPage() {
   const handleReject = async (id: string) => {
     try {
       await approveLeaveRequest.mutateAsync({ id, approved: false });
-      toast({ title: "Leave request rejected" });
+      toastLegacy({ title: "Leave request rejected" });
     } catch (error: any) {
-      toast({
+      toastLegacy({
         title: "Error",
         description: error.message || "Failed to reject leave",
         variant: "destructive",
       });
+    }
+  };
+
+  const handleSubmitLeave = async () => {
+    if (!leaveForm.leave_type_id || !leaveForm.start_date || !leaveForm.end_date || !leaveForm.employee_id) {
+      toast.error("Please fill all required fields");
+      return;
+    }
+
+    // Get the employee's organization_id
+    const selectedEmployee = employees?.find(e => e.id === leaveForm.employee_id);
+    if (!selectedEmployee) {
+      toast.error("Employee not found");
+      return;
+    }
+
+    const totalDays = differenceInDays(
+      new Date(leaveForm.end_date),
+      new Date(leaveForm.start_date)
+    ) + 1;
+
+    if (totalDays <= 0) {
+      toast.error("End date must be after start date");
+      return;
+    }
+
+    try {
+      await createLeaveRequest.mutateAsync({
+        employee_id: leaveForm.employee_id,
+        organization_id: profile?.organization_id || "",
+        leave_type_id: leaveForm.leave_type_id,
+        start_date: leaveForm.start_date,
+        end_date: leaveForm.end_date,
+        total_days: totalDays,
+        reason: leaveForm.reason || null,
+        status: "pending",
+      });
+
+      toast.success("Leave request submitted successfully");
+      setIsDialogOpen(false);
+      setLeaveForm({ leave_type_id: "", start_date: "", end_date: "", reason: "", employee_id: "" });
+    } catch (error: any) {
+      toast.error(error.message || "Failed to submit leave request");
     }
   };
 
@@ -100,7 +171,7 @@ export default function LeavesPage() {
           { label: "Leaves" },
         ]}
         actions={
-          <Dialog>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
@@ -113,8 +184,29 @@ export default function LeavesPage() {
               </DialogHeader>
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
-                  <Label>Leave Type</Label>
-                  <Select>
+                  <Label>Employee <span className="text-destructive">*</span></Label>
+                  <Select
+                    value={leaveForm.employee_id}
+                    onValueChange={(v) => setLeaveForm({ ...leaveForm, employee_id: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select employee" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {employees?.map((emp) => (
+                        <SelectItem key={emp.id} value={emp.id}>
+                          {emp.first_name} {emp.last_name} ({emp.employee_number})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label>Leave Type <span className="text-destructive">*</span></Label>
+                  <Select
+                    value={leaveForm.leave_type_id}
+                    onValueChange={(v) => setLeaveForm({ ...leaveForm, leave_type_id: v })}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select leave type" />
                     </SelectTrigger>
@@ -126,22 +218,47 @@ export default function LeavesPage() {
                       ))}
                     </SelectContent>
                   </Select>
+                  {leaveTypes?.length === 0 && (
+                    <p className="text-sm text-muted-foreground">
+                      No leave types configured. Go to Setup → Leave Types to add them.
+                    </p>
+                  )}
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
-                    <Label>From Date</Label>
-                    <Input type="date" />
+                    <Label>From Date <span className="text-destructive">*</span></Label>
+                    <Input
+                      type="date"
+                      value={leaveForm.start_date}
+                      onChange={(e) => setLeaveForm({ ...leaveForm, start_date: e.target.value })}
+                    />
                   </div>
                   <div className="grid gap-2">
-                    <Label>To Date</Label>
-                    <Input type="date" />
+                    <Label>To Date <span className="text-destructive">*</span></Label>
+                    <Input
+                      type="date"
+                      value={leaveForm.end_date}
+                      onChange={(e) => setLeaveForm({ ...leaveForm, end_date: e.target.value })}
+                      min={leaveForm.start_date}
+                    />
                   </div>
                 </div>
                 <div className="grid gap-2">
                   <Label>Reason</Label>
-                  <Textarea placeholder="Reason for leave..." />
+                  <Textarea
+                    placeholder="Reason for leave..."
+                    value={leaveForm.reason}
+                    onChange={(e) => setLeaveForm({ ...leaveForm, reason: e.target.value })}
+                  />
                 </div>
-                <Button className="w-full">Submit Request</Button>
+                <Button
+                  className="w-full"
+                  onClick={handleSubmitLeave}
+                  disabled={createLeaveRequest.isPending || !leaveForm.leave_type_id || !leaveForm.employee_id}
+                >
+                  {createLeaveRequest.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                  Submit Request
+                </Button>
               </div>
             </DialogContent>
           </Dialog>
