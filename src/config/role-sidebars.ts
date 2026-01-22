@@ -125,10 +125,10 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         children: [
           { name: "All Services", path: "/app/services", icon: "List" },
           { name: "Categories", path: "/app/services/categories", icon: "FolderTree" },
-          { name: "Consultations", path: "/app/services/doctor-fees", icon: "Stethoscope" },
-          { name: "Lab Tests", path: "/app/lab/templates", icon: "FlaskConical" },
-          { name: "Radiology", path: "/app/radiology/procedures", icon: "Scan" },
-          { name: "Rooms & Beds", path: "/app/ipd/setup/bed-types", icon: "BedDouble" },
+          { name: "Consultations", path: "/app/services/category/consultation", icon: "Stethoscope" },
+          { name: "Lab Tests", path: "/app/services/category/lab", icon: "FlaskConical" },
+          { name: "Radiology", path: "/app/services/category/radiology", icon: "Scan" },
+          { name: "Rooms & Beds", path: "/app/services/category/room", icon: "BedDouble" },
         ]
       },
       { 

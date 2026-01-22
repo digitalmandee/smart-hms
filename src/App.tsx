@@ -57,6 +57,7 @@ import { RolesPermissionsPage } from "./pages/app/settings/RolesPermissionsPage"
 import ServicesListPage from "./pages/app/services/ServicesListPage";
 import ServiceFormPage from "./pages/app/services/ServiceFormPage";
 import ServiceCategoriesPage from "./pages/app/services/ServiceCategoriesPage";
+import CategoryServicesPage from "./pages/app/services/CategoryServicesPage";
 
 // Patient pages
 import { PatientsListPage } from "./pages/app/patients/PatientsListPage";
@@ -709,6 +710,7 @@ function App() {
               <Route path="services" element={<ServicesListPage />} />
               <Route path="services/new" element={<ServiceFormPage />} />
               <Route path="services/categories" element={<ServiceCategoriesPage />} />
+              <Route path="services/category/:categoryCode" element={<CategoryServicesPage />} />
               <Route path="services/:id" element={<ServiceFormPage />} />
               <Route path="services/doctor-fees" element={<DoctorFeesPage />} />
               
