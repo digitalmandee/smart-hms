@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { PatientSearch } from "@/components/appointments/PatientSearch";
 import { ArrowLeft, CalendarIcon, Clock, Save, Loader2 } from "lucide-react";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { useCreateSurgery, useOTRooms, type SurgeryPriority } from "@/hooks/useOT";
 import { useDoctors } from "@/hooks/useDoctors";
 import { useAuth } from "@/contexts/AuthContext";
@@ -20,25 +20,43 @@ import { toast } from "sonner";
 
 export default function SurgeryFormPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { profile } = useAuth();
   
+  // Get prefill values from URL params
+  const prefillDate = searchParams.get('date');
+  const prefillTime = searchParams.get('time');
+  const prefillRoom = searchParams.get('room');
+  
   const [selectedPatient, setSelectedPatient] = useState<any>(null);
-  const [scheduledDate, setScheduledDate] = useState<Date>();
+  const [scheduledDate, setScheduledDate] = useState<Date | undefined>(
+    prefillDate ? parseISO(prefillDate) : undefined
+  );
   const [formData, setFormData] = useState({
     branchId: profile?.branch_id || "",
     procedureName: "",
     diagnosis: "",
     priority: "elective" as SurgeryPriority,
     leadSurgeonId: "",
-    otRoomId: "",
-    scheduledStartTime: "09:00",
+    otRoomId: prefillRoom || "",
+    scheduledStartTime: prefillTime || "09:00",
     estimatedDuration: "60",
     specialRequirements: "",
   });
 
+  // Update room when rooms load (if prefillRoom is set)
   const { data: branches } = useBranches();
   const { data: doctors } = useDoctors();
   const { data: rooms } = useOTRooms(formData.branchId || undefined);
+  
+  useEffect(() => {
+    if (prefillRoom && rooms?.length) {
+      const room = rooms.find(r => r.id === prefillRoom);
+      if (room) {
+        setFormData(prev => ({ ...prev, otRoomId: prefillRoom }));
+      }
+    }
+  }, [prefillRoom, rooms]);
   
   const createSurgery = useCreateSurgery();
 

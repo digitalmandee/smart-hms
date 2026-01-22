@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { SurgeryQueueList } from "@/components/ot/SurgeryQueueList";
+import { OTRoomGridCalendar } from "@/components/ot/OTRoomGridCalendar";
 import { OTStatusBadge } from "@/components/ot/OTStatusBadge";
 import { PriorityBadge } from "@/components/ot/PriorityBadge";
 import { 
@@ -16,10 +17,12 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
-  Filter
+  Filter,
+  LayoutGrid,
+  List
 } from "lucide-react";
 import { format, addDays, subDays, startOfWeek, endOfWeek, eachDayOfInterval } from "date-fns";
-import { useSurgeries, useStartSurgery, useCompleteSurgery, type SurgeryStatus, type SurgeryPriority } from "@/hooks/useOT";
+import { useSurgeries, useStartSurgery, useCompleteSurgery, useOTRooms, type SurgeryStatus, type SurgeryPriority } from "@/hooks/useOT";
 import { useDoctors } from "@/hooks/useDoctors";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
@@ -29,7 +32,7 @@ export default function OTSchedulePage() {
   const { profile } = useAuth();
   
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [viewMode, setViewMode] = useState<'day' | 'week'>('day');
+  const [viewMode, setViewMode] = useState<'day' | 'week' | 'grid'>('grid');
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
   const [surgeonFilter, setSurgeonFilter] = useState<string>("all");
@@ -52,6 +55,7 @@ export default function OTSchedulePage() {
   });
 
   const { data: doctors } = useDoctors();
+  const { data: otRooms } = useOTRooms(profile?.branch_id);
 
   const startSurgery = useStartSurgery();
   const completeSurgery = useCompleteSurgery();
@@ -68,11 +72,28 @@ export default function OTSchedulePage() {
   });
 
   const handlePrevious = () => {
-    setSelectedDate(viewMode === 'day' ? subDays(selectedDate, 1) : subDays(selectedDate, 7));
+    if (viewMode === 'week') {
+      setSelectedDate(subDays(selectedDate, 7));
+    } else {
+      setSelectedDate(subDays(selectedDate, 1));
+    }
   };
 
   const handleNext = () => {
-    setSelectedDate(viewMode === 'day' ? addDays(selectedDate, 1) : addDays(selectedDate, 7));
+    if (viewMode === 'week') {
+      setSelectedDate(addDays(selectedDate, 7));
+    } else {
+      setSelectedDate(addDays(selectedDate, 1));
+    }
+  };
+
+  const handleSlotClick = (roomId: string, time: string) => {
+    const dateStr = format(selectedDate, 'yyyy-MM-dd');
+    navigate(`/app/ot/surgeries/new?date=${dateStr}&time=${time}&room=${roomId}`);
+  };
+
+  const handleSurgeryClick = (surgeryId: string) => {
+    navigate(`/app/ot/surgeries/${surgeryId}`);
   };
 
   const getSurgeriesForDay = (date: Date) => {
@@ -129,11 +150,21 @@ export default function OTSchedulePage() {
             {/* View Mode Toggle */}
             <div className="flex border rounded-md">
               <Button
-                variant={viewMode === 'day' ? 'secondary' : 'ghost'}
+                variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
                 size="sm"
                 className="rounded-r-none"
+                onClick={() => setViewMode('grid')}
+              >
+                <LayoutGrid className="h-4 w-4 mr-1" />
+                Grid
+              </Button>
+              <Button
+                variant={viewMode === 'day' ? 'secondary' : 'ghost'}
+                size="sm"
+                className="rounded-none border-x"
                 onClick={() => setViewMode('day')}
               >
+                <List className="h-4 w-4 mr-1" />
                 Day
               </Button>
               <Button
@@ -205,7 +236,28 @@ export default function OTSchedulePage() {
       </Card>
 
       {/* Schedule View */}
-      {viewMode === 'day' ? (
+      {viewMode === 'grid' ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              {format(selectedDate, 'EEEE, MMMM d, yyyy')} - Room Grid View
+              <span className="text-muted-foreground font-normal ml-2">
+                ({otRooms?.length || 0} rooms)
+              </span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <OTRoomGridCalendar
+              date={selectedDate}
+              rooms={otRooms || []}
+              surgeries={filteredSurgeries || []}
+              onSlotClick={handleSlotClick}
+              onSurgeryClick={handleSurgeryClick}
+              isLoading={isLoading}
+            />
+          </CardContent>
+        </Card>
+      ) : viewMode === 'day' ? (
         <Card>
           <CardHeader>
             <CardTitle>

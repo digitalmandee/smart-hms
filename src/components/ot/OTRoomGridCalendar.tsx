@@ -15,6 +15,7 @@ interface OTRoomGridCalendarProps {
   onSurgeryClick: (surgeryId: string) => void;
   startHour?: number;
   endHour?: number;
+  isLoading?: boolean;
 }
 
 export function OTRoomGridCalendar({
@@ -25,6 +26,7 @@ export function OTRoomGridCalendar({
   onSurgeryClick,
   startHour = 7,
   endHour = 20,
+  isLoading = false,
 }: OTRoomGridCalendarProps) {
   // Generate hourly time slots
   const timeSlots = useMemo(() => {
@@ -81,6 +83,14 @@ export function OTRoomGridCalendar({
     const displayHour = hours % 12 || 12;
     return `${displayHour}:00 ${period}`;
   };
+
+  if (isLoading) {
+    return (
+      <div className="text-center py-12 text-muted-foreground">
+        Loading schedule...
+      </div>
+    );
+  }
 
   if (rooms.length === 0) {
     return (
