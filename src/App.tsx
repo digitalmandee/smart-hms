@@ -198,6 +198,18 @@ import JobOpeningsPage from "./pages/app/hr/recruitment/JobOpeningsPage";
 import ApplicationsPage from "./pages/app/hr/recruitment/ApplicationsPage";
 import ResignationsPage from "./pages/app/hr/exit/ResignationsPage";
 import ComplianceDashboardPage from "./pages/app/hr/compliance/ComplianceDashboardPage";
+import MedicalFitnessPage from "./pages/app/hr/compliance/MedicalFitnessPage";
+import VaccinationsPage from "./pages/app/hr/compliance/VaccinationsPage";
+import DisciplinaryPage from "./pages/app/hr/compliance/DisciplinaryPage";
+import ClearancePage from "./pages/app/hr/exit/ClearancePage";
+import SettlementsPage from "./pages/app/hr/exit/SettlementsPage";
+import ExitInterviewsPage from "./pages/app/hr/exit/ExitInterviewsPage";
+import ParamedicalStaffPage from "./pages/app/hr/ParamedicalStaffPage";
+import SupportStaffPage from "./pages/app/hr/SupportStaffPage";
+import VisitingDoctorsPage from "./pages/app/hr/VisitingDoctorsPage";
+import DutyRosterPage from "./pages/app/hr/attendance/DutyRosterPage";
+import OnCallSchedulePage from "./pages/app/hr/attendance/OnCallSchedulePage";
+import OvertimePage from "./pages/app/hr/attendance/OvertimePage";
 
 import IPDDashboard from "./pages/app/ipd/IPDDashboard";
 import WardsListPage from "./pages/app/ipd/WardsListPage";
@@ -713,7 +725,19 @@ function App() {
               <Route path="hr/recruitment/jobs" element={<JobOpeningsPage />} />
               <Route path="hr/recruitment/applications" element={<ApplicationsPage />} />
               <Route path="hr/exit/resignations" element={<ResignationsPage />} />
+              <Route path="hr/exit/clearance" element={<ClearancePage />} />
+              <Route path="hr/exit/settlements" element={<SettlementsPage />} />
+              <Route path="hr/exit/interviews" element={<ExitInterviewsPage />} />
               <Route path="hr/compliance" element={<ComplianceDashboardPage />} />
+              <Route path="hr/compliance/medical-fitness" element={<MedicalFitnessPage />} />
+              <Route path="hr/compliance/vaccinations" element={<VaccinationsPage />} />
+              <Route path="hr/compliance/disciplinary" element={<DisciplinaryPage />} />
+              <Route path="hr/paramedical" element={<ParamedicalStaffPage />} />
+              <Route path="hr/support-staff" element={<SupportStaffPage />} />
+              <Route path="hr/visiting-doctors" element={<VisitingDoctorsPage />} />
+              <Route path="hr/attendance/roster" element={<DutyRosterPage />} />
+              <Route path="hr/attendance/on-call" element={<OnCallSchedulePage />} />
+              <Route path="hr/attendance/overtime" element={<OvertimePage />} />
               
               {/* Settings routes */}
               <Route path="settings/branches" element={<BranchesListPage />} />
