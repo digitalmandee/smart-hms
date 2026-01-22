@@ -3,7 +3,9 @@ import { ModernPageHeader } from "@/components/ModernPageHeader";
 import { ModernStatsCard } from "@/components/ModernStatsCard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { OTRoomBoard } from "@/components/ot/OTRoomBoard";
 import { SurgeryQueueList } from "@/components/ot/SurgeryQueueList";
 import { 
@@ -15,9 +17,12 @@ import {
   Plus,
   Calendar,
   CheckCircle2,
-  RefreshCw
+  RefreshCw,
+  ArrowRight,
+  User
 } from "lucide-react";
-import { useOTStats, useOTRooms, useTodaySurgeries, useStartSurgery, useCompleteSurgery } from "@/hooks/useOT";
+import { format, addDays } from "date-fns";
+import { useOTStats, useOTRooms, useTodaySurgeries, useSurgeries, useStartSurgery, useCompleteSurgery } from "@/hooks/useOT";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
@@ -28,6 +33,16 @@ export default function OTDashboard() {
   const { data: stats, isLoading: statsLoading, refetch } = useOTStats();
   const { data: rooms, isLoading: roomsLoading } = useOTRooms(profile?.branch_id || undefined);
   const { data: surgeries, isLoading: surgeriesLoading } = useTodaySurgeries(profile?.branch_id || undefined);
+  
+  // Fetch upcoming surgeries (next 7 days)
+  const today = format(new Date(), 'yyyy-MM-dd');
+  const futureDate = format(addDays(new Date(), 7), 'yyyy-MM-dd');
+  const { data: upcomingSurgeries } = useSurgeries({
+    dateFrom: today,
+    dateTo: futureDate,
+    branchId: profile?.branch_id || undefined,
+    status: ['scheduled', 'pre_op'],
+  });
 
   const startSurgery = useStartSurgery();
   const completeSurgery = useCompleteSurgery();
@@ -233,6 +248,85 @@ export default function OTDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Upcoming Surgeries (Next 7 Days) */}
+      <Card className="transition-all hover:shadow-lg">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <div className="p-2 rounded-lg bg-info/10">
+                  <Calendar className="h-4 w-4 text-info" />
+                </div>
+                Upcoming Surgeries
+                {upcomingSurgeries && upcomingSurgeries.length > 0 && (
+                  <Badge variant="secondary">{upcomingSurgeries.length}</Badge>
+                )}
+              </CardTitle>
+              <CardDescription>Scheduled for the next 7 days</CardDescription>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => navigate("/app/ot/schedule")}>
+              View Schedule
+              <ArrowRight className="h-4 w-4 ml-1" />
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {!upcomingSurgeries || upcomingSurgeries.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <Calendar className="h-12 w-12 mx-auto mb-3" />
+              <p>No upcoming surgeries scheduled</p>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="mt-3"
+                onClick={() => navigate("/app/ot/surgeries/new")}
+              >
+                Schedule Surgery
+              </Button>
+            </div>
+          ) : (
+            <ScrollArea className="max-h-[300px]">
+              <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+                {upcomingSurgeries.slice(0, 6).map((surgery) => {
+                  const isToday = surgery.scheduled_date === today;
+                  return (
+                    <div
+                      key={surgery.id}
+                      className="p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
+                      onClick={() => navigate(`/app/ot/surgeries/${surgery.id}`)}
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <Badge variant={isToday ? "default" : "outline"} className="text-xs">
+                          {isToday ? "Today" : format(new Date(surgery.scheduled_date), "MMM d")}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground">
+                          {format(new Date(`2000-01-01T${surgery.scheduled_start_time}`), 'h:mm a')}
+                        </span>
+                      </div>
+                      <p className="font-medium text-sm truncate">{surgery.procedure_name}</p>
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+                        <User className="h-3 w-3" />
+                        {surgery.patient?.first_name} {surgery.patient?.last_name}
+                      </div>
+                      {surgery.ot_room?.name && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Room: {surgery.ot_room.name}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              {upcomingSurgeries.length > 6 && (
+                <p className="text-center text-sm text-muted-foreground mt-3">
+                  +{upcomingSurgeries.length - 6} more surgeries
+                </p>
+              )}
+            </ScrollArea>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -101,17 +102,50 @@ export default function OTSchedulePage() {
     return filteredSurgeries?.filter(s => s.scheduled_date === dateStr) || [];
   };
 
+  // Check if there are any upcoming surgeries when current view is empty
+  const hasUpcoming = surgeries && surgeries.length > 0;
+  const currentViewEmpty = !filteredSurgeries || filteredSurgeries.length === 0;
+  
+  // Find next surgery date for "jump to" feature
+  const jumpToNextSurgery = () => {
+    if (surgeries && surgeries.length > 0) {
+      const nextSurgery = surgeries[0];
+      if (nextSurgery?.scheduled_date) {
+        setSelectedDate(new Date(nextSurgery.scheduled_date));
+      }
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <PageHeader
-          title="Surgery Schedule"
-          description="View and manage scheduled surgeries"
-        />
-        <Button onClick={() => navigate("/app/ot/surgeries/new")}>
-          <Plus className="h-4 w-4 mr-2" />
-          Schedule Surgery
-        </Button>
+        <div className="flex items-center gap-4">
+          <PageHeader
+            title="Surgery Schedule"
+            description="View and manage scheduled surgeries"
+          />
+          {surgeries && surgeries.length > 0 && (
+            <Badge 
+              variant="secondary" 
+              className="cursor-pointer hover:bg-secondary/80"
+              onClick={jumpToNextSurgery}
+            >
+              {surgeries.length} upcoming
+            </Badge>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          {currentViewEmpty && hasUpcoming && (
+            <Button variant="outline" onClick={jumpToNextSurgery}>
+              <Calendar className="h-4 w-4 mr-2" />
+              Jump to Next Surgery
+            </Button>
+          )}
+          <Button onClick={() => navigate("/app/ot/surgeries/new")}>
+            <Plus className="h-4 w-4 mr-2" />
+            Schedule Surgery
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}

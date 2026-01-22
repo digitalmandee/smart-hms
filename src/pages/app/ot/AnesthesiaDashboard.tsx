@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   Clock, 
   CheckCircle2, 
@@ -13,16 +14,27 @@ import {
   User,
   Activity,
   Stethoscope,
+  ArrowRight,
   type LucideIcon
 } from "lucide-react";
-import { format } from "date-fns";
-import { useTodaySurgeries, type Surgery } from "@/hooks/useOT";
+import { format, addDays } from "date-fns";
+import { useTodaySurgeries, useSurgeries, type Surgery } from "@/hooks/useOT";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function AnesthesiaDashboard() {
   const navigate = useNavigate();
   const { profile } = useAuth();
   const { data: todaySurgeries, isLoading } = useTodaySurgeries(profile?.branch_id);
+  
+  // Fetch upcoming surgeries (next 7 days)
+  const today = format(new Date(), 'yyyy-MM-dd');
+  const futureDate = format(addDays(new Date(), 7), 'yyyy-MM-dd');
+  const { data: upcomingSurgeries } = useSurgeries({
+    dateFrom: today,
+    dateTo: futureDate,
+    branchId: profile?.branch_id || undefined,
+    status: ['scheduled', 'pre_op'],
+  });
 
   // Filter surgeries where current user is the anesthetist (via team_members)
   const mySurgeries = todaySurgeries?.filter(s => 
@@ -215,6 +227,68 @@ export default function AnesthesiaDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Upcoming Surgeries (Next 7 Days) */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5 text-primary" />
+                Upcoming Surgeries
+                {upcomingSurgeries && upcomingSurgeries.length > 0 && (
+                  <Badge variant="secondary">{upcomingSurgeries.length}</Badge>
+                )}
+              </CardTitle>
+              <CardDescription>Next 7 days - requiring anesthesia planning</CardDescription>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => navigate("/app/ot/schedule")}>
+              Full Schedule
+              <ArrowRight className="h-4 w-4 ml-1" />
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {!upcomingSurgeries || upcomingSurgeries.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <Calendar className="h-12 w-12 mx-auto mb-3" />
+              <p>No upcoming surgeries scheduled</p>
+            </div>
+          ) : (
+            <ScrollArea className="max-h-[250px]">
+              <div className="space-y-3">
+                {upcomingSurgeries.slice(0, 5).map((surgery) => {
+                  const isToday = surgery.scheduled_date === today;
+                  return (
+                    <div
+                      key={surgery.id}
+                      className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 cursor-pointer"
+                      onClick={() => navigate(`/app/ot/surgeries/${surgery.id}`)}
+                    >
+                      <div>
+                        <p className="font-medium">{surgery.procedure_name}</p>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <User className="h-3 w-3" />
+                          {surgery.patient?.first_name} {surgery.patient?.last_name}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <Badge variant={isToday ? "default" : "outline"}>
+                          {isToday ? "Today" : format(new Date(surgery.scheduled_date), "MMM d")}
+                        </Badge>
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+                          <Clock className="h-3 w-3" />
+                          {format(new Date(`2000-01-01T${surgery.scheduled_start_time}`), 'h:mm a')}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </ScrollArea>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

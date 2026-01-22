@@ -11,13 +11,14 @@ import {
   Bed, 
   Siren,
   Clock,
-  FileCheck
+  FileCheck,
+  Scissors
 } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 
 interface ActivityItem {
   id: string;
-  type: "visit" | "prescription" | "lab_order" | "admission" | "discharge" | "emergency";
+  type: "visit" | "prescription" | "lab_order" | "admission" | "discharge" | "emergency" | "surgery";
   title: string;
   subtitle: string | null;
   timestamp: string;
@@ -35,7 +36,7 @@ export function PatientRecentActivity({ patientId }: PatientRecentActivityProps)
       const allActivities: ActivityItem[] = [];
 
       // Fetch data from multiple tables in parallel
-      const [consultations, prescriptions, labOrders, admissions, erVisits] = await Promise.all([
+      const [consultations, prescriptions, labOrders, admissions, erVisits, surgeries] = await Promise.all([
         // Recent consultations
         supabase
           .from("consultations")
@@ -83,6 +84,17 @@ export function PatientRecentActivity({ patientId }: PatientRecentActivityProps)
           .select("id, er_number, arrival_time, triage_level, status")
           .eq("patient_id", patientId)
           .order("arrival_time", { ascending: false })
+          .limit(5),
+        
+        // Recent surgeries
+        supabase
+          .from("surgeries")
+          .select(`
+            id, surgery_number, scheduled_date, procedure_name, status,
+            lead_surgeon:doctors(profile:profiles(full_name))
+          `)
+          .eq("patient_id", patientId)
+          .order("scheduled_date", { ascending: false })
           .limit(5),
       ]);
 
@@ -158,6 +170,20 @@ export function PatientRecentActivity({ patientId }: PatientRecentActivityProps)
         });
       });
 
+      // Process surgeries
+      surgeries.data?.forEach((item: any) => {
+        allActivities.push({
+          id: item.id,
+          type: "surgery",
+          title: `Surgery: ${item.procedure_name}`,
+          subtitle: item.lead_surgeon?.profile?.full_name 
+            ? `Surgeon: Dr. ${item.lead_surgeon.profile.full_name}` 
+            : null,
+          timestamp: item.scheduled_date,
+          status: item.status,
+        });
+      });
+
       // Sort by timestamp descending
       return allActivities.sort(
         (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
@@ -181,6 +207,8 @@ export function PatientRecentActivity({ patientId }: PatientRecentActivityProps)
         return <FileCheck className="h-4 w-4 text-green-600" />;
       case "emergency":
         return <Siren className="h-4 w-4 text-red-500" />;
+      case "surgery":
+        return <Scissors className="h-4 w-4 text-purple-500" />;
       default:
         return <Clock className="h-4 w-4 text-muted-foreground" />;
     }
