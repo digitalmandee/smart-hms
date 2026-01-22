@@ -54,7 +54,7 @@ export default function DesignationsPage() {
   const [formData, setFormData] = useState({
     name: "",
     code: "",
-    department_id: "",
+    department_id: "none",
     level: 1,
     min_salary: 0,
     max_salary: 0,
@@ -68,7 +68,7 @@ export default function DesignationsPage() {
       setFormData({
         name: designation.name,
         code: designation.code,
-        department_id: designation.department_id || "",
+        department_id: designation.department_id || "none",
         level: designation.level || 1,
         min_salary: designation.min_salary || 0,
         max_salary: designation.max_salary || 0,
@@ -80,7 +80,7 @@ export default function DesignationsPage() {
       setFormData({
         name: "",
         code: "",
-        department_id: "",
+        department_id: "none",
         level: 1,
         min_salary: 0,
         max_salary: 0,
@@ -94,7 +94,7 @@ export default function DesignationsPage() {
   const handleSubmit = async () => {
     const data = {
       ...formData,
-      department_id: formData.department_id || null,
+      department_id: formData.department_id === "none" ? null : formData.department_id,
       organization_id: profile?.organization_id!,
     };
 
@@ -249,7 +249,7 @@ export default function DesignationsPage() {
                   <SelectValue placeholder="Select department..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No specific department</SelectItem>
+                  <SelectItem value="none">No specific department</SelectItem>
                   {departments?.map((dept) => (
                     <SelectItem key={dept.id} value={dept.id}>
                       {dept.name}
