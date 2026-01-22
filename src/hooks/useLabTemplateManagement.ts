@@ -153,12 +153,15 @@ export function useUpdateLabTestCategory() {
 // =====================
 
 export function useLabTestTemplates() {
+  const { profile } = useAuth();
+  
   return useQuery({
-    queryKey: ["lab-test-templates"],
+    queryKey: ["lab-test-templates", profile?.organization_id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("lab_test_templates")
         .select("*")
+        .eq("organization_id", profile?.organization_id)
         .eq("is_active", true)
         .order("test_name");
 
@@ -169,16 +172,20 @@ export function useLabTestTemplates() {
         fields: (template.fields as unknown as TemplateField[]) || [],
       })) as LabTestTemplate[];
     },
+    enabled: !!profile?.organization_id,
   });
 }
 
 export function useAllLabTestTemplates() {
+  const { profile } = useAuth();
+  
   return useQuery({
-    queryKey: ["all-lab-test-templates"],
+    queryKey: ["all-lab-test-templates", profile?.organization_id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("lab_test_templates")
         .select("*")
+        .eq("organization_id", profile?.organization_id)
         .order("test_name");
 
       if (error) throw error;
@@ -188,6 +195,7 @@ export function useAllLabTestTemplates() {
         fields: (template.fields as unknown as TemplateField[]) || [],
       })) as LabTestTemplate[];
     },
+    enabled: !!profile?.organization_id,
   });
 }
 
