@@ -155,31 +155,31 @@ export const BedPicker = ({
                     return (
                       <TooltipProvider key={bed.id}>
                         <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className={cn(
-                                "h-12 w-full flex flex-col items-center justify-center border-2 p-1 transition-all relative",
-                                statusColors[bed.status],
-                                isSelected && "ring-2 ring-primary ring-offset-2",
-                                !canSelect && "pointer-events-none"
-                              )}
-                              onClick={() => handleBedClick(bed)}
-                              disabled={!canSelect}
-                            >
-                              {isSelected && (
-                                <Check className="h-3 w-3 absolute top-0.5 right-0.5" />
-                              )}
-                              {bed.status === "occupied" ? (
-                                <User className="h-3 w-3" />
-                              ) : (
-                                <Bed className="h-3 w-3" />
-                              )}
-                              <span className="text-[10px] font-medium truncate w-full text-center">
-                                {bed.bed_number}
-                              </span>
-                            </Button>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className={cn(
+                                  "h-12 w-full flex flex-col items-center justify-center border-2 p-1 transition-all relative",
+                                  statusColors[bed.status],
+                                  isSelected && "ring-2 ring-primary ring-offset-2",
+                                  !canSelect && "pointer-events-none opacity-50 grayscale"
+                                )}
+                                onClick={() => handleBedClick(bed)}
+                                disabled={!canSelect}
+                              >
+                                {isSelected && (
+                                  <Check className="h-3 w-3 absolute top-0.5 right-0.5" />
+                                )}
+                                {bed.status === "occupied" ? (
+                                  <User className="h-3 w-3" />
+                                ) : (
+                                  <Bed className="h-3 w-3" />
+                                )}
+                                <span className="text-[10px] font-medium truncate w-full text-center">
+                                  {bed.bed_number}
+                                </span>
+                              </Button>
                           </TooltipTrigger>
                           <TooltipContent>
                             <div className="text-xs space-y-1">

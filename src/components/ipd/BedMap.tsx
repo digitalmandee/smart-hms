@@ -37,6 +37,12 @@ interface BedMapProps {
   isEditMode?: boolean;
   gridSize?: { rows: number; cols: number };
   onBedCreated?: () => void;
+  /** 
+   * Selection mode controls which beds can be clicked:
+   * - "view" (default): All beds clickable except maintenance (for viewing details)
+   * - "select-available": Only available/reserved beds clickable (for admission workflows)
+   */
+  selectionMode?: "view" | "select-available";
 }
 
 const statusColors: Record<string, string> = {
@@ -84,9 +90,19 @@ export const BedMap = ({
   isEditMode = false,
   gridSize,
   onBedCreated,
+  selectionMode = "view",
 }: BedMapProps) => {
   const [hoveredBed, setHoveredBed] = useState<string | null>(null);
   const [activeCreator, setActiveCreator] = useState<{ row: number; col: number } | null>(null);
+
+  // Determine if a bed can be clicked based on selection mode
+  const canClickBed = (status: string) => {
+    if (selectionMode === "select-available") {
+      return status === "available" || status === "reserved";
+    }
+    // View mode: allow clicking all except maintenance
+    return status !== "maintenance";
+  };
 
   // Calculate grid dimensions
   const maxRow = gridSize?.rows || Math.max(...beds.map((b) => b.position_row || 1), 3);
@@ -115,6 +131,7 @@ export const BedMap = ({
   const renderBed = (bed: BedData) => {
     const isSelected = selectedBedId === bed.id;
     const patient = bed.current_admission?.patient;
+    const isClickable = canClickBed(bed.status);
 
     return (
       <TooltipProvider key={bed.id}>
@@ -126,12 +143,12 @@ export const BedMap = ({
                 "h-[100px] w-28 flex flex-col items-center justify-between p-2 border-2 transition-all gap-0",
                 statusColors[bed.status] || statusColors.available,
                 isSelected && "ring-2 ring-primary ring-offset-2",
-                bed.status === "maintenance" && "cursor-not-allowed opacity-60"
+                !isClickable && "cursor-not-allowed opacity-50 grayscale"
               )}
-              onClick={() => onBedClick?.(bed)}
+              onClick={() => isClickable && onBedClick?.(bed)}
               onMouseEnter={() => setHoveredBed(bed.id)}
               onMouseLeave={() => setHoveredBed(null)}
-              disabled={bed.status === "maintenance"}
+              disabled={!isClickable}
             >
               {/* Bed Icon */}
               <div className="flex-1 flex items-center justify-center">

@@ -2,10 +2,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Bed, User, Calendar, ArrowRightLeft, X, Clock, AlertTriangle, FileText, UserPlus } from "lucide-react";
+import { Bed, User, Calendar, ArrowRightLeft, X, Clock, AlertTriangle, FileText, UserPlus, Sparkles } from "lucide-react";
 import { BedStatusBadge } from "./BedStatusBadge";
 import { format } from "date-fns";
-
+import { useUpdateBedStatus } from "@/hooks/useBedManagement";
+import { toast } from "sonner";
 interface BedDetailCardProps {
   bed: {
     id: string;
@@ -51,6 +52,21 @@ export const BedDetailCard = ({
   onViewProfile,
 }: BedDetailCardProps) => {
   const patient = bed.current_admission?.patient;
+  const updateBedStatus = useUpdateBedStatus();
+
+  const handleMarkAsClean = () => {
+    updateBedStatus.mutate(
+      { bedId: bed.id, status: "available", notes: undefined },
+      {
+        onSuccess: () => {
+          toast.success(`Bed ${bed.bed_number} marked as available`);
+        },
+        onError: () => {
+          toast.error("Failed to update bed status");
+        },
+      }
+    );
+  };
 
   return (
     <Card className="w-full max-w-md">
@@ -109,10 +125,22 @@ export const BedDetailCard = ({
         )}
 
         {bed.status === "housekeeping" && (
-          <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 space-y-1">
-            <div className="flex items-center gap-2 text-sm font-medium text-blue-600">
-              <Clock className="h-4 w-4" />
-              Awaiting Housekeeping
+          <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-sm font-medium text-blue-600">
+                <Clock className="h-4 w-4" />
+                Awaiting Housekeeping
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 text-xs"
+                onClick={handleMarkAsClean}
+                disabled={updateBedStatus.isPending}
+              >
+                <Sparkles className="h-3 w-3 mr-1" />
+                Mark as Clean
+              </Button>
             </div>
             {bed.notes && <p className="text-sm text-muted-foreground">{bed.notes}</p>}
           </div>
