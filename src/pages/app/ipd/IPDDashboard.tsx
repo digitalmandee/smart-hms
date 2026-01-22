@@ -13,12 +13,14 @@ import {
   ClipboardList,
   Plus,
   ArrowRight,
-  Wallet
+  Wallet,
+  RefreshCw
 } from "lucide-react";
 import { useIPDStats } from "@/hooks/useIPD";
 import { useAdmissions } from "@/hooks/useAdmissions";
 import { usePendingRounds } from "@/hooks/useDailyRounds";
 import { usePendingDischarges } from "@/hooks/useDischarge";
+import { usePostTodayRoomCharges } from "@/hooks/useRoomChargeSync";
 import { AdmissionCard } from "@/components/ipd/AdmissionCard";
 import { format } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
@@ -30,6 +32,7 @@ export default function IPDDashboard() {
   const { data: recentAdmissions, isLoading: loadingAdmissions } = useAdmissions("admitted");
   const { data: pendingRounds, isLoading: loadingRounds } = usePendingRounds();
   const { data: pendingDischarges, isLoading: loadingDischarges } = usePendingDischarges();
+  const { postCharges, isPosting } = usePostTodayRoomCharges();
 
   const firstName = profile?.full_name?.split(" ")[0] || "Doctor";
 
@@ -42,10 +45,20 @@ export default function IPDDashboard() {
         showGreeting
         variant="gradient"
         actions={
-          <Button onClick={() => navigate("/app/ipd/admissions/new")}>
-            <Plus className="h-4 w-4 mr-2" />
-            New Admission
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => postCharges()}
+              disabled={isPosting}
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${isPosting ? 'animate-spin' : ''}`} />
+              Post Room Charges
+            </Button>
+            <Button onClick={() => navigate("/app/ipd/admissions/new")}>
+              <Plus className="h-4 w-4 mr-2" />
+              New Admission
+            </Button>
+          </div>
         }
         quickStats={[
           { label: "Active", value: stats?.activeAdmissions || 0, variant: "success" },

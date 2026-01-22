@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format, differenceInDays } from "date-fns";
 import { useReactToPrint } from "react-to-print";
@@ -44,6 +44,8 @@ import { DischargeSummaryForm } from "@/components/ipd/DischargeSummaryForm";
 import { PrintableDischargeSummary } from "@/components/ipd/PrintableDischargeSummary";
 import { PrintableDischargeForm } from "@/components/ipd/PrintableDischargeForm";
 import { InvoiceStatusPanel } from "@/components/ipd/InvoiceStatusPanel";
+import { RoomChargesSyncButton } from "@/components/ipd/RoomChargesSyncButton";
+import { useBackfillRoomCharges } from "@/hooks/useRoomChargeSync";
 import { InvoiceItemsBuilder } from "@/components/billing/InvoiceItemsBuilder";
 import { InvoiceItemInput } from "@/hooks/useBilling";
 import { toast } from "sonner";
@@ -95,12 +97,13 @@ export default function DischargeFormPage() {
 
   const { data: admission, isLoading: loadingAdmission, refetch: refetchAdmission } = useAdmission(id);
   const { data: dischargeSummary, isLoading: loadingSummary, refetch: refetchSummary } = useDischargeSummary(id);
-  const { data: charges = [] } = useIPDCharges(id);
+  const { data: charges = [], refetch: refetchCharges } = useIPDCharges(id);
   const { data: bedTypes = [] } = useBedTypes();
   const { data: surgeries = [] } = useAdmissionSurgeries(id);
   const { mutateAsync: dischargePatient, isPending: discharging } = useDischargePatient();
   const { mutateAsync: approveSummary, isPending: approving } = useApproveDischargeSummary();
   const { mutateAsync: generateInvoice, isPending: generatingInvoice } = useGenerateIPDInvoice();
+  const { mutate: backfillRoomCharges } = useBackfillRoomCharges();
 
   // Get invoice if already generated
   const invoiceId = admission?.discharge_invoice_id;
@@ -143,6 +146,20 @@ export default function DischargeFormPage() {
   const daysAdmitted = admission?.admission_date
     ? differenceInDays(new Date(), new Date(admission.admission_date)) + 1
     : 0;
+
+  // Auto-sync room charges on page load to ensure all days are covered
+  useEffect(() => {
+    if (admission?.id && admission?.admission_date && !isLoading) {
+      // Trigger backfill to ensure room charges exist for all days
+      backfillRoomCharges({
+        admissionId: admission.id,
+        admissionDate: admission.admission_date,
+        bedType: admission.bed?.bed_type || null,
+        bedNumber: admission.bed?.bed_number || null,
+        wardChargePerDay: dailyRate,
+      });
+    }
+  }, [admission?.id, admission?.admission_date, isLoading, dailyRate]);
 
   // Check if summary is approved
   const isSummaryApproved = dischargeSummary?.status === "approved" || dischargeSummary?.status === "finalized";
@@ -244,21 +261,30 @@ export default function DischargeFormPage() {
   const chargesBreakdown = useMemo(() => {
     const medication = charges.filter((c: any) => c.charge_type === 'medication');
     const procedure = charges.filter((c: any) => c.charge_type === 'procedure');
-    const other = charges.filter((c: any) => !['medication', 'procedure'].includes(c.charge_type || ''));
+    const room = charges.filter((c: any) => c.charge_type === 'room');
+    const other = charges.filter((c: any) => !['medication', 'procedure', 'room'].includes(c.charge_type || ''));
     
     return {
       medication: { items: medication, total: medication.reduce((sum: number, c: any) => sum + (c.total_amount || 0), 0) },
       procedure: { items: procedure, total: procedure.reduce((sum: number, c: any) => sum + (c.total_amount || 0), 0) },
+      room: { items: room, total: room.reduce((sum: number, c: any) => sum + (c.total_amount || 0), 0) },
       other: { items: other, total: other.reduce((sum: number, c: any) => sum + (c.total_amount || 0), 0) },
     };
   }, [charges]);
 
-  // Calculate totals
+  // Calculate totals - now using posted room charges from DB instead of calculated estimate
   const additionalChargesTotal = additionalCharges.reduce((sum, item) => {
     return sum + (item.quantity * item.unit_price * (1 - (item.discount_percent || 0) / 100));
   }, 0);
-  const serviceCharges = charges.reduce((sum: number, c: any) => sum + (c.total_amount || 0), 0);
-  const roomCharges = Math.max(1, daysAdmitted) * dailyRate;
+  // Service charges now exclude room charges (they're tracked separately)
+  const nonRoomCharges = charges.filter((c: any) => c.charge_type !== 'room');
+  const serviceCharges = nonRoomCharges.reduce((sum: number, c: any) => sum + (c.total_amount || 0), 0);
+  // Use posted room charges from DB - this reflects actual days charged
+  const postedRoomCharges = chargesBreakdown.room.total;
+  // Calculate expected room charges for comparison
+  const expectedRoomCharges = Math.max(1, daysAdmitted) * dailyRate;
+  // Use posted charges if available, otherwise fall back to expected (for display before sync)
+  const roomCharges = postedRoomCharges > 0 ? postedRoomCharges : expectedRoomCharges;
   // Include outstanding invoices (lab, pharmacy) and pharmacy credits in total
   const totalCharges = serviceCharges + roomCharges + additionalChargesTotal + outstandingTotal + pharmacyCreditsTotal;
   const depositAmount = admission?.deposit_amount || 0;
@@ -470,12 +496,30 @@ export default function DischargeFormPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-3 text-sm">
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center">
                   <span className="flex items-center gap-2 text-muted-foreground">
                     <Bed className="h-4 w-4" />
-                    Room ({daysAdmitted} day{daysAdmitted !== 1 ? 's' : ''} × Rs. {dailyRate.toLocaleString()})
+                    Room ({chargesBreakdown.room.items.length} day{chargesBreakdown.room.items.length !== 1 ? 's' : ''} posted)
+                    {chargesBreakdown.room.items.length < daysAdmitted && (
+                      <Badge variant="outline" className="text-warning border-warning text-xs">
+                        {daysAdmitted - chargesBreakdown.room.items.length} pending
+                      </Badge>
+                    )}
                   </span>
-                  <span className="font-medium">Rs. {roomCharges.toLocaleString()}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">Rs. {roomCharges.toLocaleString()}</span>
+                    {!invoiceGenerated && admission && (
+                      <RoomChargesSyncButton
+                        admissionId={admission.id}
+                        admissionDate={admission.admission_date}
+                        bedType={admission.bed?.bed_type || null}
+                        bedNumber={admission.bed?.bed_number || null}
+                        wardChargePerDay={dailyRate}
+                        size="sm"
+                        variant="ghost"
+                      />
+                    )}
+                  </div>
                 </div>
 
                 {chargesBreakdown.medication.items.length > 0 && (
