@@ -3,6 +3,18 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
+// Re-export imaging template hooks for convenience
+export {
+  useImagingReportTemplates,
+  useAllImagingReportTemplates,
+  useImagingReportTemplate,
+  useDefaultImagingTemplate,
+  useCreateImagingReportTemplate,
+  useUpdateImagingReportTemplate,
+  useDeleteImagingReportTemplate,
+  type ImagingReportTemplate,
+} from './useImagingTemplates';
+
 // Types
 export type ImagingModality = 'xray' | 'ultrasound' | 'ct_scan' | 'mri' | 'fluoroscopy' | 'mammography' | 'dexa' | 'ecg' | 'echo' | 'pet_ct' | 'other';
 export type ImagingOrderStatus = 'ordered' | 'scheduled' | 'in_progress' | 'completed' | 'reported' | 'verified' | 'cancelled';
