@@ -14882,6 +14882,93 @@ export type Database = {
           },
         ]
       }
+      roster_publish_status: {
+        Row: {
+          branch_id: string | null
+          created_at: string | null
+          department_id: string | null
+          id: string
+          notes: string | null
+          organization_id: string
+          published_at: string | null
+          published_by: string | null
+          roster_type: string | null
+          status: string | null
+          submitted_at: string | null
+          submitted_by: string | null
+          updated_at: string | null
+          week_start: string
+        }
+        Insert: {
+          branch_id?: string | null
+          created_at?: string | null
+          department_id?: string | null
+          id?: string
+          notes?: string | null
+          organization_id: string
+          published_at?: string | null
+          published_by?: string | null
+          roster_type?: string | null
+          status?: string | null
+          submitted_at?: string | null
+          submitted_by?: string | null
+          updated_at?: string | null
+          week_start: string
+        }
+        Update: {
+          branch_id?: string | null
+          created_at?: string | null
+          department_id?: string | null
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          published_at?: string | null
+          published_by?: string | null
+          roster_type?: string | null
+          status?: string | null
+          submitted_at?: string | null
+          submitted_by?: string | null
+          updated_at?: string | null
+          week_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "roster_publish_status_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "roster_publish_status_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "roster_publish_status_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "roster_publish_status_published_by_fkey"
+            columns: ["published_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "roster_publish_status_submitted_by_fkey"
+            columns: ["submitted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       salary_components: {
         Row: {
           affects_overtime: boolean | null
