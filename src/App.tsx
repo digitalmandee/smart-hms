@@ -210,6 +210,10 @@ import VisitingDoctorsPage from "./pages/app/hr/VisitingDoctorsPage";
 import DutyRosterPage from "./pages/app/hr/attendance/DutyRosterPage";
 import OnCallSchedulePage from "./pages/app/hr/attendance/OnCallSchedulePage";
 import OvertimePage from "./pages/app/hr/attendance/OvertimePage";
+import OTDutyRosterPage from "./pages/app/hr/attendance/OTDutyRosterPage";
+import EmergencyRosterPage from "./pages/app/hr/attendance/EmergencyRosterPage";
+import PublishRosterPage from "./pages/app/hr/attendance/PublishRosterPage";
+import RosterReportsPage from "./pages/app/hr/attendance/RosterReportsPage";
 
 import IPDDashboard from "./pages/app/ipd/IPDDashboard";
 import WardsListPage from "./pages/app/ipd/WardsListPage";
@@ -738,6 +742,10 @@ function App() {
               <Route path="hr/attendance/roster" element={<DutyRosterPage />} />
               <Route path="hr/attendance/on-call" element={<OnCallSchedulePage />} />
               <Route path="hr/attendance/overtime" element={<OvertimePage />} />
+              <Route path="hr/attendance/ot-roster" element={<OTDutyRosterPage />} />
+              <Route path="hr/attendance/emergency-roster" element={<EmergencyRosterPage />} />
+              <Route path="hr/attendance/publish" element={<PublishRosterPage />} />
+              <Route path="hr/attendance/roster-reports" element={<RosterReportsPage />} />
               
               {/* Settings routes */}
               <Route path="settings/branches" element={<BranchesListPage />} />
