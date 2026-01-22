@@ -14860,6 +14860,7 @@ export type Database = {
         | "radiology_technician"
         | "ipd_nurse"
         | "ot_technician"
+        | "ot_nurse"
       appointment_status:
         | "scheduled"
         | "checked_in"
@@ -15337,6 +15338,7 @@ export const Constants = {
         "radiology_technician",
         "ipd_nurse",
         "ot_technician",
+        "ot_nurse",
       ],
       appointment_status: [
         "scheduled",

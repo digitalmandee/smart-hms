@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.pacs-settings]
 verify_jwt = false
+
+[functions.setup-demo-users]
+verify_jwt = false
