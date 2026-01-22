@@ -4,112 +4,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 
 // ========================
-// TYPES
-// ========================
-
-export interface Resignation {
-  id: string;
-  organization_id: string;
-  employee_id: string;
-  resignation_date: string;
-  last_working_date: string;
-  notice_period_days: number | null;
-  notice_period_served: number | null;
-  notice_period_shortage: number | null;
-  reason_category: string | null;
-  reason_details: string | null;
-  is_notice_buyout: boolean;
-  buyout_amount: number | null;
-  status: 'submitted' | 'acknowledged' | 'accepted' | 'withdrawn' | 'on_hold' | 'completed';
-  acknowledged_by: string | null;
-  acknowledged_at: string | null;
-  approved_by: string | null;
-  approved_at: string | null;
-  resignation_letter_url: string | null;
-  notes: string | null;
-  created_at: string;
-  employee?: {
-    full_name: string;
-    employee_number: string;
-    department?: { name: string };
-    designation?: { name: string };
-  };
-}
-
-export interface EmployeeClearance {
-  id: string;
-  organization_id: string;
-  resignation_id: string;
-  department: string;
-  item_description: string;
-  is_cleared: boolean;
-  cleared_by: string | null;
-  cleared_at: string | null;
-  remarks: string | null;
-  pending_items: string | null;
-  recovery_amount: number;
-}
-
-export interface FinalSettlement {
-  id: string;
-  organization_id: string;
-  resignation_id: string;
-  employee_id: string;
-  basic_salary_days: number;
-  basic_salary_amount: number;
-  leave_encashment_days: number;
-  leave_encashment_amount: number;
-  bonus_amount: number;
-  gratuity_amount: number;
-  other_earnings: number;
-  other_earnings_details: string | null;
-  total_earnings: number;
-  notice_period_shortage_amount: number;
-  loan_recovery: number;
-  advance_recovery: number;
-  tax_deduction: number;
-  other_deductions: number;
-  other_deductions_details: string | null;
-  total_deductions: number;
-  net_payable: number;
-  payment_date: string | null;
-  payment_mode: string | null;
-  payment_reference: string | null;
-  status: 'draft' | 'pending_approval' | 'approved' | 'paid' | 'on_hold';
-  approved_by: string | null;
-  approved_at: string | null;
-  notes: string | null;
-  created_at: string;
-  resignation?: Resignation;
-  employee?: {
-    full_name: string;
-    employee_number: string;
-  };
-}
-
-export interface ExitInterview {
-  id: string;
-  organization_id: string;
-  resignation_id: string;
-  interview_date: string | null;
-  interviewer_id: string | null;
-  rating_management: number | null;
-  rating_work_environment: number | null;
-  rating_compensation: number | null;
-  rating_growth_opportunities: number | null;
-  rating_work_life_balance: number | null;
-  primary_reason_leaving: string | null;
-  what_liked_most: string | null;
-  what_could_improve: string | null;
-  would_recommend: boolean | null;
-  would_rejoin: boolean | null;
-  suggestions: string | null;
-  additional_comments: string | null;
-  status: 'pending' | 'scheduled' | 'completed' | 'declined';
-  created_at: string;
-}
-
-// ========================
 // RESIGNATIONS HOOKS
 // ========================
 
@@ -121,15 +15,7 @@ export function useResignations(status?: string) {
     queryFn: async () => {
       let query = supabase
         .from("resignations")
-        .select(`
-          *,
-          employee:employees(
-            full_name,
-            employee_number,
-            department:departments(name),
-            designation:designations(name)
-          )
-        `)
+        .select("*")
         .eq("organization_id", profile!.organization_id!)
         .order("created_at", { ascending: false });
 
@@ -139,7 +25,7 @@ export function useResignations(status?: string) {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as Resignation[];
+      return data;
     },
     enabled: !!profile?.organization_id,
   });
@@ -151,20 +37,12 @@ export function useResignation(id: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("resignations")
-        .select(`
-          *,
-          employee:employees(
-            full_name,
-            employee_number,
-            department:departments(name),
-            designation:designations(name)
-          )
-        `)
+        .select("*")
         .eq("id", id!)
         .single();
 
       if (error) throw error;
-      return data as Resignation;
+      return data;
     },
     enabled: !!id,
   });
@@ -176,11 +54,27 @@ export function useCreateResignation() {
   const { profile } = useAuth();
 
   return useMutation({
-    mutationFn: async (data: Partial<Resignation>) => {
+    mutationFn: async (record: {
+      employee_id: string;
+      resignation_date: string;
+      last_working_date: string;
+      notice_period_days?: number;
+      reason_category?: string;
+      reason_details?: string;
+      resignation_letter_url?: string;
+      notes?: string;
+    }) => {
       const { data: result, error } = await supabase
         .from("resignations")
         .insert({
-          ...data,
+          employee_id: record.employee_id,
+          resignation_date: record.resignation_date,
+          last_working_date: record.last_working_date,
+          notice_period_days: record.notice_period_days,
+          reason_category: record.reason_category,
+          reason_details: record.reason_details,
+          resignation_letter_url: record.resignation_letter_url,
+          notes: record.notes,
           organization_id: profile!.organization_id!,
         })
         .select()
@@ -202,12 +96,34 @@ export function useCreateResignation() {
 export function useUpdateResignation() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { profile } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ id, ...data }: Partial<Resignation> & { id: string }) => {
+    mutationFn: async ({ id, status, acknowledged_by, approved_by, ...rest }: {
+      id: string;
+      status?: string;
+      acknowledged_by?: string;
+      approved_by?: string;
+      notes?: string;
+    }) => {
+      const updateData: Record<string, unknown> = { 
+        ...rest,
+        updated_at: new Date().toISOString() 
+      };
+
+      if (status) updateData.status = status;
+      if (status === 'acknowledged') {
+        updateData.acknowledged_by = profile!.id;
+        updateData.acknowledged_at = new Date().toISOString();
+      }
+      if (status === 'accepted') {
+        updateData.approved_by = profile!.id;
+        updateData.approved_at = new Date().toISOString();
+      }
+
       const { error } = await supabase
         .from("resignations")
-        .update({ ...data, updated_at: new Date().toISOString() })
+        .update(updateData)
         .eq("id", id);
 
       if (error) throw error;
@@ -237,7 +153,7 @@ export function useEmployeeClearance(resignationId: string | undefined) {
         .order("department");
 
       if (error) throw error;
-      return data as EmployeeClearance[];
+      return data;
     },
     enabled: !!resignationId,
   });
@@ -249,12 +165,16 @@ export function useCreateClearanceItems() {
   const { profile } = useAuth();
 
   return useMutation({
-    mutationFn: async (data: { resignationId: string; items: Partial<EmployeeClearance>[] }) => {
+    mutationFn: async (data: { 
+      resignationId: string; 
+      items: Array<{ department: string; item_description: string }> 
+    }) => {
       const { error } = await supabase
         .from("employee_clearance")
         .insert(
           data.items.map(item => ({
-            ...item,
+            department: item.department,
+            item_description: item.item_description,
             resignation_id: data.resignationId,
             organization_id: profile!.organization_id!,
           }))
@@ -278,12 +198,22 @@ export function useUpdateClearanceItem() {
   const { profile } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ id, ...data }: Partial<EmployeeClearance> & { id: string }) => {
-      const updateData: Record<string, unknown> = { ...data };
-      if (data.is_cleared) {
-        updateData.cleared_by = profile!.id;
-        updateData.cleared_at = new Date().toISOString();
+    mutationFn: async ({ id, is_cleared, remarks, recovery_amount }: {
+      id: string;
+      is_cleared?: boolean;
+      remarks?: string;
+      recovery_amount?: number;
+    }) => {
+      const updateData: Record<string, unknown> = {};
+      if (is_cleared !== undefined) {
+        updateData.is_cleared = is_cleared;
+        if (is_cleared) {
+          updateData.cleared_by = profile!.id;
+          updateData.cleared_at = new Date().toISOString();
+        }
       }
+      if (remarks !== undefined) updateData.remarks = remarks;
+      if (recovery_amount !== undefined) updateData.recovery_amount = recovery_amount;
 
       const { error } = await supabase
         .from("employee_clearance")
@@ -314,14 +244,7 @@ export function useFinalSettlements(status?: string) {
     queryFn: async () => {
       let query = supabase
         .from("final_settlements")
-        .select(`
-          *,
-          resignation:resignations(
-            resignation_date,
-            last_working_date,
-            employee:employees(full_name, employee_number)
-          )
-        `)
+        .select("*")
         .eq("organization_id", profile!.organization_id!)
         .order("created_at", { ascending: false });
 
@@ -331,7 +254,7 @@ export function useFinalSettlements(status?: string) {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as FinalSettlement[];
+      return data;
     },
     enabled: !!profile?.organization_id,
   });
@@ -348,7 +271,7 @@ export function useFinalSettlement(resignationId: string | undefined) {
         .maybeSingle();
 
       if (error) throw error;
-      return data as FinalSettlement | null;
+      return data;
     },
     enabled: !!resignationId,
   });
@@ -360,11 +283,60 @@ export function useCreateFinalSettlement() {
   const { profile } = useAuth();
 
   return useMutation({
-    mutationFn: async (data: Partial<FinalSettlement>) => {
+    mutationFn: async (record: {
+      resignation_id: string;
+      employee_id: string;
+      basic_salary_days?: number;
+      basic_salary_amount?: number;
+      leave_encashment_days?: number;
+      leave_encashment_amount?: number;
+      bonus_amount?: number;
+      gratuity_amount?: number;
+      other_earnings?: number;
+      other_earnings_details?: string;
+      notice_period_shortage_amount?: number;
+      loan_recovery?: number;
+      advance_recovery?: number;
+      tax_deduction?: number;
+      other_deductions?: number;
+      other_deductions_details?: string;
+      notes?: string;
+    }) => {
+      const totalEarnings = (record.basic_salary_amount || 0) + 
+        (record.leave_encashment_amount || 0) + 
+        (record.bonus_amount || 0) + 
+        (record.gratuity_amount || 0) + 
+        (record.other_earnings || 0);
+      
+      const totalDeductions = (record.notice_period_shortage_amount || 0) + 
+        (record.loan_recovery || 0) + 
+        (record.advance_recovery || 0) + 
+        (record.tax_deduction || 0) + 
+        (record.other_deductions || 0);
+
       const { data: result, error } = await supabase
         .from("final_settlements")
         .insert({
-          ...data,
+          resignation_id: record.resignation_id,
+          employee_id: record.employee_id,
+          basic_salary_days: record.basic_salary_days,
+          basic_salary_amount: record.basic_salary_amount,
+          leave_encashment_days: record.leave_encashment_days,
+          leave_encashment_amount: record.leave_encashment_amount,
+          bonus_amount: record.bonus_amount,
+          gratuity_amount: record.gratuity_amount,
+          other_earnings: record.other_earnings,
+          other_earnings_details: record.other_earnings_details,
+          total_earnings: totalEarnings,
+          notice_period_shortage_amount: record.notice_period_shortage_amount,
+          loan_recovery: record.loan_recovery,
+          advance_recovery: record.advance_recovery,
+          tax_deduction: record.tax_deduction,
+          other_deductions: record.other_deductions,
+          other_deductions_details: record.other_deductions_details,
+          total_deductions: totalDeductions,
+          net_payable: totalEarnings - totalDeductions,
+          notes: record.notes,
           organization_id: profile!.organization_id!,
           created_by: profile!.id,
         })
@@ -390,16 +362,25 @@ export function useUpdateFinalSettlement() {
   const { profile } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ id, ...data }: Partial<FinalSettlement> & { id: string }) => {
+    mutationFn: async ({ id, status, payment_date, payment_mode, payment_reference }: {
+      id: string;
+      status?: string;
+      payment_date?: string;
+      payment_mode?: string;
+      payment_reference?: string;
+    }) => {
       const updateData: Record<string, unknown> = { 
-        ...data, 
         updated_at: new Date().toISOString() 
       };
       
-      if (data.status === 'approved') {
+      if (status) updateData.status = status;
+      if (status === 'approved') {
         updateData.approved_by = profile!.id;
         updateData.approved_at = new Date().toISOString();
       }
+      if (payment_date) updateData.payment_date = payment_date;
+      if (payment_mode) updateData.payment_mode = payment_mode;
+      if (payment_reference) updateData.payment_reference = payment_reference;
 
       const { error } = await supabase
         .from("final_settlements")
@@ -430,17 +411,12 @@ export function useExitInterviews() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("exit_interviews")
-        .select(`
-          *,
-          resignation:resignations(
-            employee:employees(full_name, employee_number)
-          )
-        `)
+        .select("*")
         .eq("organization_id", profile!.organization_id!)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data as ExitInterview[];
+      return data;
     },
     enabled: !!profile?.organization_id,
   });
@@ -457,7 +433,7 @@ export function useExitInterview(resignationId: string | undefined) {
         .maybeSingle();
 
       if (error) throw error;
-      return data as ExitInterview | null;
+      return data;
     },
     enabled: !!resignationId,
   });
@@ -469,11 +445,43 @@ export function useCreateExitInterview() {
   const { profile } = useAuth();
 
   return useMutation({
-    mutationFn: async (data: Partial<ExitInterview>) => {
+    mutationFn: async (record: {
+      resignation_id: string;
+      interview_date?: string;
+      interviewer_id?: string;
+      rating_management?: number;
+      rating_work_environment?: number;
+      rating_compensation?: number;
+      rating_growth_opportunities?: number;
+      rating_work_life_balance?: number;
+      primary_reason_leaving?: string;
+      what_liked_most?: string;
+      what_could_improve?: string;
+      would_recommend?: boolean;
+      would_rejoin?: boolean;
+      suggestions?: string;
+      additional_comments?: string;
+      status?: string;
+    }) => {
       const { data: result, error } = await supabase
         .from("exit_interviews")
         .insert({
-          ...data,
+          resignation_id: record.resignation_id,
+          interview_date: record.interview_date,
+          interviewer_id: record.interviewer_id,
+          rating_management: record.rating_management,
+          rating_work_environment: record.rating_work_environment,
+          rating_compensation: record.rating_compensation,
+          rating_growth_opportunities: record.rating_growth_opportunities,
+          rating_work_life_balance: record.rating_work_life_balance,
+          primary_reason_leaving: record.primary_reason_leaving,
+          what_liked_most: record.what_liked_most,
+          what_could_improve: record.what_could_improve,
+          would_recommend: record.would_recommend,
+          would_rejoin: record.would_rejoin,
+          suggestions: record.suggestions,
+          additional_comments: record.additional_comments,
+          status: record.status,
           organization_id: profile!.organization_id!,
         })
         .select()
@@ -497,7 +505,7 @@ export function useUpdateExitInterview() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ id, ...data }: Partial<ExitInterview> & { id: string }) => {
+    mutationFn: async ({ id, ...data }: { id: string } & Record<string, unknown>) => {
       const { error } = await supabase
         .from("exit_interviews")
         .update(data)
