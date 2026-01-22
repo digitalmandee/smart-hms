@@ -31,7 +31,7 @@ const EMPLOYMENT_TYPES = [
 export default function JobOpeningsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingJob, setEditingJob] = useState<any>(null);
-  const [statusFilter, setStatusFilter] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [formData, setFormData] = useState({
     title: "",
     department_id: "",
@@ -49,7 +49,7 @@ export default function JobOpeningsPage() {
     status: "draft" as const,
   });
 
-  const { data: jobs, isLoading } = useJobOpenings(statusFilter || undefined);
+  const { data: jobs, isLoading } = useJobOpenings(statusFilter !== "all" ? statusFilter : undefined);
   const { data: departments } = useDepartments();
   const { data: designations } = useDesignations();
   const createJob = useCreateJobOpening();
@@ -391,7 +391,7 @@ export default function JobOpeningsPage() {
             <SelectValue placeholder="All Status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Status</SelectItem>
+            <SelectItem value="all">All Status</SelectItem>
             {STATUS_OPTIONS.map((s) => (
               <SelectItem key={s.value} value={s.value}>
                 {s.label}
