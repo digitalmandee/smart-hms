@@ -5,17 +5,36 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/PageHeader";
-import { useEmployees, useDepartments, useShifts } from "@/hooks/useHR";
-import { Calendar, ChevronLeft, ChevronRight, Users, Clock, Building2 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { useEmployees, useDepartments, useShifts, useShiftAssignments, useCreateShiftAssignment } from "@/hooks/useHR";
+import { useAuth } from "@/contexts/AuthContext";
+import { Calendar, ChevronLeft, ChevronRight, Users, Clock, Building2, Plus, Loader2 } from "lucide-react";
 import { format, startOfWeek, addDays, addWeeks, subWeeks } from "date-fns";
 
 export default function DutyRosterPage() {
+  const { profile } = useAuth();
   const [selectedDepartment, setSelectedDepartment] = useState<string>("all");
   const [currentWeekStart, setCurrentWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
+  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
+  const [selectedShift, setSelectedShift] = useState<string>("");
+  
+  const weekEnd = addDays(currentWeekStart, 6);
+  const startDateStr = format(currentWeekStart, "yyyy-MM-dd");
+  const endDateStr = format(weekEnd, "yyyy-MM-dd");
   
   const { data: employees, isLoading: loadingEmployees } = useEmployees();
   const { data: departments, isLoading: loadingDepts } = useDepartments();
   const { data: shifts, isLoading: loadingShifts } = useShifts();
+  const { data: shiftAssignments, isLoading: loadingAssignments } = useShiftAssignments(startDateStr, endDateStr);
+  const createAssignment = useCreateShiftAssignment();
 
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(currentWeekStart, i));
 
@@ -23,21 +42,64 @@ export default function DutyRosterPage() {
     ? employees 
     : employees?.filter(emp => emp.department_id === selectedDepartment);
 
-  const getShiftName = (shiftId: string | null) => {
-    if (!shiftId) return "Unassigned";
-    const shift = shifts?.find(s => s.id === shiftId);
-    return shift?.name || "Unknown";
+  const getEmployeeShift = (employeeId: string) => {
+    // First check shift_assignments table
+    const assignment = shiftAssignments?.find(a => a.employee_id === employeeId);
+    if (assignment?.shift) {
+      return assignment.shift;
+    }
+    // Fallback to employee.shift_id if no assignment found
+    const employee = employees?.find(e => e.id === employeeId);
+    if (employee?.shift_id) {
+      return shifts?.find(s => s.id === employee.shift_id);
+    }
+    return null;
   };
 
-  const getShiftColor = (shiftName: string) => {
-    const name = shiftName.toLowerCase();
-    if (name.includes("morning") || name.includes("day")) return "bg-amber-100 text-amber-800";
-    if (name.includes("evening") || name.includes("afternoon")) return "bg-blue-100 text-blue-800";
-    if (name.includes("night")) return "bg-purple-100 text-purple-800";
-    return "bg-muted text-muted-foreground";
+  const getShiftDisplay = (shift: any) => {
+    if (!shift) return { name: "Unassigned", color: "bg-muted text-muted-foreground", style: undefined };
+    
+    const name = shift.name?.toLowerCase() || "";
+    let colorClass = "bg-muted text-muted-foreground";
+    
+    if (shift.is_night_shift) {
+      colorClass = "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300";
+    } else if (name.includes("morning") || name.includes("day")) {
+      colorClass = "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300";
+    } else if (name.includes("evening") || name.includes("afternoon")) {
+      colorClass = "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300";
+    } else if (name.includes("night")) {
+      colorClass = "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300";
+    }
+    
+    return { name: shift.name, color: colorClass, style: undefined };
   };
 
-  const isLoading = loadingEmployees || loadingDepts || loadingShifts;
+  const handleOpenAssignDialog = (employee: any) => {
+    setSelectedEmployee(employee);
+    const currentShift = getEmployeeShift(employee.id);
+    setSelectedShift(currentShift?.id || "");
+    setAssignDialogOpen(true);
+  };
+
+  const handleAssignShift = async () => {
+    if (!selectedEmployee || !selectedShift) return;
+    
+    await createAssignment.mutateAsync({
+      employee_id: selectedEmployee.id,
+      shift_id: selectedShift,
+      effective_from: format(new Date(), "yyyy-MM-dd"),
+      is_current: true,
+    });
+    
+    setAssignDialogOpen(false);
+    setSelectedEmployee(null);
+    setSelectedShift("");
+  };
+
+  const isLoading = loadingEmployees || loadingDepts || loadingShifts || loadingAssignments;
+  const activeShifts = shifts?.filter(s => s.is_active) || [];
+  const assignedCount = shiftAssignments?.length || 0;
 
   return (
     <div className="space-y-6">
@@ -72,8 +134,8 @@ export default function DutyRosterPage() {
                 <Clock className="h-5 w-5 text-green-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Active Shifts</p>
-                <p className="text-2xl font-bold">{shifts?.filter(s => s.is_active)?.length || 0}</p>
+                <p className="text-sm text-muted-foreground">Assigned</p>
+                <p className="text-2xl font-bold">{assignedCount}</p>
               </div>
             </div>
           </CardContent>
@@ -85,8 +147,8 @@ export default function DutyRosterPage() {
                 <Building2 className="h-5 w-5 text-blue-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Departments</p>
-                <p className="text-2xl font-bold">{departments?.length || 0}</p>
+                <p className="text-sm text-muted-foreground">Active Shifts</p>
+                <p className="text-2xl font-bold">{activeShifts.length}</p>
               </div>
             </div>
           </CardContent>
@@ -152,7 +214,7 @@ export default function DutyRosterPage() {
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left p-3 font-medium text-muted-foreground min-w-[180px]">Employee</th>
+                    <th className="text-left p-3 font-medium text-muted-foreground min-w-[200px]">Employee</th>
                     {weekDays.map((day) => (
                       <th key={day.toString()} className="text-center p-3 font-medium text-muted-foreground min-w-[100px]">
                         <div className="flex flex-col">
@@ -161,11 +223,13 @@ export default function DutyRosterPage() {
                         </div>
                       </th>
                     ))}
+                    <th className="text-center p-3 font-medium text-muted-foreground w-[80px]">Action</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredEmployees?.slice(0, 20).map((employee) => {
-                    const shiftName = getShiftName(employee.shift_id);
+                    const shift = getEmployeeShift(employee.id);
+                    const display = getShiftDisplay(shift);
                     return (
                       <tr key={employee.id} className="border-b hover:bg-muted/50">
                         <td className="p-3">
@@ -176,11 +240,24 @@ export default function DutyRosterPage() {
                         </td>
                         {weekDays.map((day) => (
                           <td key={day.toString()} className="text-center p-2">
-                            <Badge variant="secondary" className={getShiftColor(shiftName)}>
-                              {shiftName}
+                            <Badge 
+                              variant="secondary" 
+                              className={display.color}
+                              style={display.style}
+                            >
+                              {display.name}
                             </Badge>
                           </td>
                         ))}
+                        <td className="text-center p-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleOpenAssignDialog(employee)}
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </td>
                       </tr>
                     );
                   })}
@@ -195,6 +272,59 @@ export default function DutyRosterPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Assign Shift Dialog */}
+      <Dialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Assign Shift</DialogTitle>
+          </DialogHeader>
+          
+          {selectedEmployee && (
+            <div className="space-y-4">
+              <div className="p-3 bg-muted rounded-lg">
+                <p className="font-medium">{selectedEmployee.first_name} {selectedEmployee.last_name}</p>
+                <p className="text-sm text-muted-foreground">{selectedEmployee.designation?.name || "N/A"}</p>
+              </div>
+              
+              <div className="space-y-2">
+                <Label>Select Shift</Label>
+                <Select value={selectedShift} onValueChange={setSelectedShift}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a shift" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {activeShifts.map((shift) => (
+                      <SelectItem key={shift.id} value={shift.id}>
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className={`w-3 h-3 rounded-full ${shift.is_night_shift ? 'bg-purple-500' : 'bg-amber-500'}`}
+                          />
+                          <span>{shift.name}</span>
+                          <span className="text-muted-foreground text-xs">
+                            ({shift.start_time} - {shift.end_time})
+                          </span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAssignDialogOpen(false)}>Cancel</Button>
+            <Button 
+              onClick={handleAssignShift} 
+              disabled={!selectedShift || createAssignment.isPending}
+            >
+              {createAssignment.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Assign Shift
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
