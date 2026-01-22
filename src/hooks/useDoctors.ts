@@ -5,6 +5,7 @@ import { Database } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
 
 type Doctor = Database['public']['Tables']['doctors']['Row'];
+type DoctorCategory = 'surgeon' | 'consultant' | 'anesthesia' | 'radiologist' | 'pathologist';
 type DoctorInsert = Database['public']['Tables']['doctors']['Insert'];
 
 export interface DoctorWithProfile extends Doctor {
@@ -113,6 +114,112 @@ export function useAllDoctors() {
     },
     enabled: !!profile?.organization_id,
   });
+}
+
+// =====================================================
+// CATEGORY-BASED DOCTOR QUERIES
+// =====================================================
+
+export interface DoctorWithCategory extends DoctorWithProfile {
+  specialization_info?: {
+    id: string;
+    name: string;
+    category: DoctorCategory | null;
+  } | null;
+}
+
+/**
+ * Get doctors filtered by specialization category
+ * @param category - surgeon, consultant, anesthesia, radiologist, pathologist
+ * @param branchId - optional branch filter
+ */
+export function useDoctorsByCategory(category: DoctorCategory, branchId?: string) {
+  const { profile } = useAuth();
+
+  return useQuery({
+    queryKey: ['doctors', 'by-category', category, profile?.organization_id, branchId],
+    queryFn: async () => {
+      if (!profile?.organization_id) return [];
+
+      // First get specializations with this category
+      const { data: specs, error: specError } = await supabase
+        .from('specializations')
+        .select('id, name')
+        .eq('organization_id', profile.organization_id)
+        .eq('category', category);
+
+      if (specError) throw specError;
+      if (!specs || specs.length === 0) return [];
+
+      const specNames = specs.map(s => s.name);
+
+      // Now get doctors with these specializations
+      let query = supabase
+        .from('doctors')
+        .select(`
+          *,
+          profile:profiles!doctors_profile_id_fkey(id, full_name, email, phone, avatar_url),
+          branch:branches(id, name),
+          employee:employees(
+            id, 
+            employee_number, 
+            first_name, 
+            last_name,
+            department:department_id(id, name),
+            designation:designation_id(id, name),
+            category:category_id(id, name, color)
+          )
+        `)
+        .eq('organization_id', profile.organization_id)
+        .eq('is_available', true)
+        .in('specialization', specNames);
+
+      if (branchId) {
+        query = query.eq('branch_id', branchId);
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: true });
+
+      if (error) throw error;
+      return data as DoctorWithProfile[];
+    },
+    enabled: !!profile?.organization_id,
+  });
+}
+
+/**
+ * Get surgeons only (specializations with category = 'surgeon')
+ */
+export function useSurgeons(branchId?: string) {
+  return useDoctorsByCategory('surgeon', branchId);
+}
+
+/**
+ * Get anesthesiologists only (specializations with category = 'anesthesia')
+ */
+export function useAnesthesiologists(branchId?: string) {
+  return useDoctorsByCategory('anesthesia', branchId);
+}
+
+/**
+ * Get consultants only (specializations with category = 'consultant')
+ */
+export function useConsultants(branchId?: string) {
+  return useDoctorsByCategory('consultant', branchId);
+}
+
+/**
+ * Get radiologists only (specializations with category = 'radiologist')
+ */
+export function useRadiologists(branchId?: string) {
+  return useDoctorsByCategory('radiologist', branchId);
+}
+
+/**
+ * Get pathologists only (specializations with category = 'pathologist')
+ */
+export function usePathologists(branchId?: string) {
+  return useDoctorsByCategory('pathologist', branchId);
 }
 
 export function useDoctor(id: string) {

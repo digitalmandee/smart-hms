@@ -3060,6 +3060,106 @@ export type Database = {
           },
         ]
       }
+      config_airway_devices: {
+        Row: {
+          code: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          is_invasive: boolean | null
+          name: string
+          organization_id: string
+          sizes_available: Json | null
+          sort_order: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_invasive?: boolean | null
+          name: string
+          organization_id: string
+          sizes_available?: Json | null
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_invasive?: boolean | null
+          name?: string
+          organization_id?: string
+          sizes_available?: Json | null
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "config_airway_devices_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      config_anesthesia_types: {
+        Row: {
+          code: string
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          monitoring_level: string | null
+          name: string
+          organization_id: string
+          requires_intubation: boolean | null
+          sort_order: number | null
+          typical_duration_minutes: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          monitoring_level?: string | null
+          name: string
+          organization_id: string
+          requires_intubation?: boolean | null
+          sort_order?: number | null
+          typical_duration_minutes?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          monitoring_level?: string | null
+          name?: string
+          organization_id?: string
+          requires_intubation?: boolean | null
+          sort_order?: number | null
+          typical_duration_minutes?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "config_anesthesia_types_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       config_appointment_types: {
         Row: {
           code: string
@@ -3141,6 +3241,53 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "config_arrival_modes_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      config_asa_classes: {
+        Row: {
+          class_level: string
+          created_at: string | null
+          description: string
+          id: string
+          is_active: boolean | null
+          name: string
+          organization_id: string
+          risk_level: string | null
+          sort_order: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          class_level: string
+          created_at?: string | null
+          description: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          organization_id: string
+          risk_level?: string | null
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          class_level?: string
+          created_at?: string | null
+          description?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          organization_id?: string
+          risk_level?: string | null
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "config_asa_classes_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -3870,6 +4017,53 @@ export type Database = {
           },
         ]
       }
+      config_ot_team_roles: {
+        Row: {
+          category: string | null
+          code: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          is_required: boolean | null
+          name: string
+          organization_id: string
+          sort_order: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string | null
+          code: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_required?: boolean | null
+          name: string
+          organization_id: string
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string | null
+          code?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_required?: boolean | null
+          name?: string
+          organization_id?: string
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "config_ot_team_roles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       config_referral_sources: {
         Row: {
           created_at: string | null
@@ -3936,6 +4130,169 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      config_surgery_priorities: {
+        Row: {
+          code: string
+          color: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          max_wait_hours: number | null
+          name: string
+          organization_id: string
+          requires_immediate_attention: boolean | null
+          sort_order: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          code: string
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_wait_hours?: number | null
+          name: string
+          organization_id: string
+          requires_immediate_attention?: boolean | null
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_wait_hours?: number | null
+          name?: string
+          organization_id?: string
+          requires_immediate_attention?: boolean | null
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "config_surgery_priorities_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      config_surgical_positions: {
+        Row: {
+          code: string
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          organization_id: string
+          precautions: string | null
+          sort_order: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          organization_id: string
+          precautions?: string | null
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          organization_id?: string
+          precautions?: string | null
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "config_surgical_positions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      config_surgical_procedures: {
+        Row: {
+          category: string | null
+          code: string
+          created_at: string | null
+          equipment_checklist: Json | null
+          id: string
+          is_active: boolean | null
+          name: string
+          organization_id: string
+          requires_general_anesthesia: boolean | null
+          specialization_id: string | null
+          typical_blood_requirement: string | null
+          typical_duration_minutes: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string | null
+          code: string
+          created_at?: string | null
+          equipment_checklist?: Json | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          organization_id: string
+          requires_general_anesthesia?: boolean | null
+          specialization_id?: string | null
+          typical_blood_requirement?: string | null
+          typical_duration_minutes?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string | null
+          code?: string
+          created_at?: string | null
+          equipment_checklist?: Json | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          organization_id?: string
+          requires_general_anesthesia?: boolean | null
+          specialization_id?: string | null
+          typical_blood_requirement?: string | null
+          typical_duration_minutes?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "config_surgical_procedures_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "config_surgical_procedures_specialization_id_fkey"
+            columns: ["specialization_id"]
+            isOneToOne: false
+            referencedRelation: "specializations"
             referencedColumns: ["id"]
           },
         ]
@@ -4068,6 +4425,53 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "config_triage_levels_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      config_who_checklist_items: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          is_critical: boolean | null
+          item_key: string
+          item_label: string
+          organization_id: string
+          phase: string
+          sort_order: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_critical?: boolean | null
+          item_key: string
+          item_label: string
+          organization_id: string
+          phase: string
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_critical?: boolean | null
+          item_key?: string
+          item_label?: string
+          organization_id?: string
+          phase?: string
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "config_who_checklist_items_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -11810,6 +12214,230 @@ export type Database = {
           },
         ]
       }
+      pre_anesthesia_assessments: {
+        Row: {
+          airway_notes: string | null
+          anticoagulant_status: string | null
+          asa_class_id: string | null
+          assessed_by: string | null
+          assessment_date: string | null
+          blood_pressure: string | null
+          blood_sugar: number | null
+          bmi: number | null
+          cardiac_risk_score: string | null
+          chest_xray_findings: string | null
+          clearance_notes: string | null
+          consent_notes: string | null
+          consent_obtained: boolean | null
+          consent_obtained_at: string | null
+          created_at: string | null
+          creatinine: number | null
+          current_medications: Json | null
+          dental_status: string | null
+          ecg_findings: string | null
+          family_anesthesia_complications: boolean | null
+          family_complications_details: string | null
+          heart_rate: number | null
+          height_cm: number | null
+          hemoglobin: number | null
+          id: string
+          inr: number | null
+          known_allergies: Json | null
+          last_anticoagulant_dose: string | null
+          last_clear_fluid: string | null
+          last_solid_food: string | null
+          latex_allergy: boolean | null
+          mallampati_score: string | null
+          mouth_opening: string | null
+          neck_mobility: string | null
+          npo_notes: string | null
+          npo_verified: boolean | null
+          organization_id: string
+          overall_risk: string | null
+          planned_airway_device_id: string | null
+          planned_anesthesia_type_id: string | null
+          planned_position_id: string | null
+          platelets: number | null
+          predicted_difficult_airway: boolean | null
+          previous_anesthesia: boolean | null
+          previous_anesthesia_type: string | null
+          previous_complications: boolean | null
+          previous_complications_details: string | null
+          pulmonary_risk_score: string | null
+          special_considerations: string | null
+          spo2: number | null
+          status: string | null
+          surgery_id: string
+          thyromental_distance: string | null
+          updated_at: string | null
+          weight_kg: number | null
+        }
+        Insert: {
+          airway_notes?: string | null
+          anticoagulant_status?: string | null
+          asa_class_id?: string | null
+          assessed_by?: string | null
+          assessment_date?: string | null
+          blood_pressure?: string | null
+          blood_sugar?: number | null
+          bmi?: number | null
+          cardiac_risk_score?: string | null
+          chest_xray_findings?: string | null
+          clearance_notes?: string | null
+          consent_notes?: string | null
+          consent_obtained?: boolean | null
+          consent_obtained_at?: string | null
+          created_at?: string | null
+          creatinine?: number | null
+          current_medications?: Json | null
+          dental_status?: string | null
+          ecg_findings?: string | null
+          family_anesthesia_complications?: boolean | null
+          family_complications_details?: string | null
+          heart_rate?: number | null
+          height_cm?: number | null
+          hemoglobin?: number | null
+          id?: string
+          inr?: number | null
+          known_allergies?: Json | null
+          last_anticoagulant_dose?: string | null
+          last_clear_fluid?: string | null
+          last_solid_food?: string | null
+          latex_allergy?: boolean | null
+          mallampati_score?: string | null
+          mouth_opening?: string | null
+          neck_mobility?: string | null
+          npo_notes?: string | null
+          npo_verified?: boolean | null
+          organization_id: string
+          overall_risk?: string | null
+          planned_airway_device_id?: string | null
+          planned_anesthesia_type_id?: string | null
+          planned_position_id?: string | null
+          platelets?: number | null
+          predicted_difficult_airway?: boolean | null
+          previous_anesthesia?: boolean | null
+          previous_anesthesia_type?: string | null
+          previous_complications?: boolean | null
+          previous_complications_details?: string | null
+          pulmonary_risk_score?: string | null
+          special_considerations?: string | null
+          spo2?: number | null
+          status?: string | null
+          surgery_id: string
+          thyromental_distance?: string | null
+          updated_at?: string | null
+          weight_kg?: number | null
+        }
+        Update: {
+          airway_notes?: string | null
+          anticoagulant_status?: string | null
+          asa_class_id?: string | null
+          assessed_by?: string | null
+          assessment_date?: string | null
+          blood_pressure?: string | null
+          blood_sugar?: number | null
+          bmi?: number | null
+          cardiac_risk_score?: string | null
+          chest_xray_findings?: string | null
+          clearance_notes?: string | null
+          consent_notes?: string | null
+          consent_obtained?: boolean | null
+          consent_obtained_at?: string | null
+          created_at?: string | null
+          creatinine?: number | null
+          current_medications?: Json | null
+          dental_status?: string | null
+          ecg_findings?: string | null
+          family_anesthesia_complications?: boolean | null
+          family_complications_details?: string | null
+          heart_rate?: number | null
+          height_cm?: number | null
+          hemoglobin?: number | null
+          id?: string
+          inr?: number | null
+          known_allergies?: Json | null
+          last_anticoagulant_dose?: string | null
+          last_clear_fluid?: string | null
+          last_solid_food?: string | null
+          latex_allergy?: boolean | null
+          mallampati_score?: string | null
+          mouth_opening?: string | null
+          neck_mobility?: string | null
+          npo_notes?: string | null
+          npo_verified?: boolean | null
+          organization_id?: string
+          overall_risk?: string | null
+          planned_airway_device_id?: string | null
+          planned_anesthesia_type_id?: string | null
+          planned_position_id?: string | null
+          platelets?: number | null
+          predicted_difficult_airway?: boolean | null
+          previous_anesthesia?: boolean | null
+          previous_anesthesia_type?: string | null
+          previous_complications?: boolean | null
+          previous_complications_details?: string | null
+          pulmonary_risk_score?: string | null
+          special_considerations?: string | null
+          spo2?: number | null
+          status?: string | null
+          surgery_id?: string
+          thyromental_distance?: string | null
+          updated_at?: string | null
+          weight_kg?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pre_anesthesia_assessments_asa_class_id_fkey"
+            columns: ["asa_class_id"]
+            isOneToOne: false
+            referencedRelation: "config_asa_classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pre_anesthesia_assessments_assessed_by_fkey"
+            columns: ["assessed_by"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pre_anesthesia_assessments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pre_anesthesia_assessments_planned_airway_device_id_fkey"
+            columns: ["planned_airway_device_id"]
+            isOneToOne: false
+            referencedRelation: "config_airway_devices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pre_anesthesia_assessments_planned_anesthesia_type_id_fkey"
+            columns: ["planned_anesthesia_type_id"]
+            isOneToOne: false
+            referencedRelation: "config_anesthesia_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pre_anesthesia_assessments_planned_position_id_fkey"
+            columns: ["planned_position_id"]
+            isOneToOne: false
+            referencedRelation: "config_surgical_positions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pre_anesthesia_assessments_surgery_id_fkey"
+            columns: ["surgery_id"]
+            isOneToOne: false
+            referencedRelation: "surgeries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pre_op_assessments: {
         Row: {
           airway_assessment: Json | null
@@ -12900,6 +13528,7 @@ export type Database = {
       }
       specializations: {
         Row: {
+          category: string | null
           code: string | null
           created_at: string | null
           description: string | null
@@ -12910,6 +13539,7 @@ export type Database = {
           organization_id: string | null
         }
         Insert: {
+          category?: string | null
           code?: string | null
           created_at?: string | null
           description?: string | null
@@ -12920,6 +13550,7 @@ export type Database = {
           organization_id?: string | null
         }
         Update: {
+          category?: string | null
           code?: string | null
           created_at?: string | null
           description?: string | null
@@ -13124,6 +13755,8 @@ export type Database = {
           actual_end_time: string | null
           actual_start_time: string | null
           admission_id: string | null
+          anesthetist_id: string | null
+          assistant_surgeon_id: string | null
           blood_reservation: Json | null
           branch_id: string
           cancellation_reason: string | null
@@ -13150,7 +13783,9 @@ export type Database = {
           post_op_instructions: string | null
           postponement_reason: string | null
           priority: Database["public"]["Enums"]["surgery_priority"]
+          priority_id: string | null
           procedure_code: string | null
+          procedure_id: string | null
           procedure_name: string
           procedure_type: string | null
           rescheduled_from: string | null
@@ -13166,6 +13801,8 @@ export type Database = {
           actual_end_time?: string | null
           actual_start_time?: string | null
           admission_id?: string | null
+          anesthetist_id?: string | null
+          assistant_surgeon_id?: string | null
           blood_reservation?: Json | null
           branch_id: string
           cancellation_reason?: string | null
@@ -13192,7 +13829,9 @@ export type Database = {
           post_op_instructions?: string | null
           postponement_reason?: string | null
           priority?: Database["public"]["Enums"]["surgery_priority"]
+          priority_id?: string | null
           procedure_code?: string | null
+          procedure_id?: string | null
           procedure_name: string
           procedure_type?: string | null
           rescheduled_from?: string | null
@@ -13208,6 +13847,8 @@ export type Database = {
           actual_end_time?: string | null
           actual_start_time?: string | null
           admission_id?: string | null
+          anesthetist_id?: string | null
+          assistant_surgeon_id?: string | null
           blood_reservation?: Json | null
           branch_id?: string
           cancellation_reason?: string | null
@@ -13234,7 +13875,9 @@ export type Database = {
           post_op_instructions?: string | null
           postponement_reason?: string | null
           priority?: Database["public"]["Enums"]["surgery_priority"]
+          priority_id?: string | null
           procedure_code?: string | null
+          procedure_id?: string | null
           procedure_name?: string
           procedure_type?: string | null
           rescheduled_from?: string | null
@@ -13252,6 +13895,20 @@ export type Database = {
             columns: ["admission_id"]
             isOneToOne: false
             referencedRelation: "admissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surgeries_anesthetist_id_fkey"
+            columns: ["anesthetist_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surgeries_assistant_surgeon_id_fkey"
+            columns: ["assistant_surgeon_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
             referencedColumns: ["id"]
           },
           {
@@ -13301,6 +13958,20 @@ export type Database = {
             columns: ["patient_id"]
             isOneToOne: false
             referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surgeries_priority_id_fkey"
+            columns: ["priority_id"]
+            isOneToOne: false
+            referencedRelation: "config_surgery_priorities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surgeries_procedure_id_fkey"
+            columns: ["procedure_id"]
+            isOneToOne: false
+            referencedRelation: "config_surgical_procedures"
             referencedColumns: ["id"]
           },
           {
