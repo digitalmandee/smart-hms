@@ -1,16 +1,13 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Printer, Download, Eye, FileText, Calendar } from "lucide-react";
-import { usePayrollRuns, useEmployeeSalaries } from "@/hooks/usePayroll";
-import { PayslipPreview } from "@/components/hr/PayslipPreview";
-import { useReactToPrint } from "react-to-print";
+import { Eye, FileText, Calendar, Users } from "lucide-react";
+import { usePayrollRuns, usePayrollDetails, useEmployeeSalaries } from "@/hooks/usePayroll";
+import { EmployeePayslipsDialog } from "@/components/hr/EmployeePayslipsDialog";
 import { format } from "date-fns";
 
 const MONTHS = [
@@ -19,15 +16,14 @@ const MONTHS = [
 ];
 
 export default function PayslipsPage() {
-  const [searchTerm, setSearchTerm] = useState("");
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
-  const [selectedPayslip, setSelectedPayslip] = useState<any>(null);
-  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  const printRef = useRef<HTMLDivElement>(null);
+  const [selectedRun, setSelectedRun] = useState<any>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const { data: payrollRuns, isLoading } = usePayrollRuns();
   const { data: salaries } = useEmployeeSalaries({ isCurrent: true });
+  const { data: payrollEntries, isLoading: isLoadingEntries } = usePayrollDetails(selectedRun?.id || "");
 
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 5 }, (_, i) => (currentYear - 2 + i).toString());
@@ -45,42 +41,9 @@ export default function PayslipsPage() {
       minimumFractionDigits: 0,
     }).format(amount);
 
-  const handlePrint = useReactToPrint({
-    contentRef: printRef,
-    documentTitle: selectedPayslip ? `Payslip-${selectedPayslip.month}-${selectedPayslip.year}` : "Payslip",
-  });
-
-  // Generate mock payslip data for preview
-  const generatePayslipData = (run: any) => {
-    // This would normally come from payroll details API
-    return {
-      employee: {
-        name: "Sample Employee",
-        employeeNumber: "EMP-001",
-        department: "Operations",
-        designation: "Staff",
-      },
-      period: {
-        month: run.payroll_month,
-        year: run.payroll_year,
-      },
-      earnings: [
-        { name: "Basic Salary", amount: run.total_gross * 0.5 },
-        { name: "House Rent Allowance", amount: run.total_gross * 0.25 },
-        { name: "Medical Allowance", amount: run.total_gross * 0.15 },
-        { name: "Transport Allowance", amount: run.total_gross * 0.1 },
-      ],
-      deductions: [
-        { name: "Provident Fund", amount: run.total_deductions * 0.6 },
-        { name: "Tax", amount: run.total_deductions * 0.3 },
-        { name: "Other", amount: run.total_deductions * 0.1 },
-      ],
-      workingDays: 26,
-      daysWorked: 24,
-      leaveDays: 2,
-      paymentDate: run.pay_date,
-      paymentMethod: "Bank Transfer",
-    };
+  const handleViewPayslips = (run: any) => {
+    setSelectedRun(run);
+    setIsDialogOpen(true);
   };
 
   return (
@@ -122,7 +85,7 @@ export default function PayslipsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Active Employees</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
+            <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{salaries?.length || 0}</div>
@@ -187,17 +150,17 @@ export default function PayslipsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                  {filteredRuns?.map((run: any) => (
+                {filteredRuns?.map((run: any) => (
                   <TableRow key={run.id}>
                     <TableCell className="font-medium">
                       {MONTHS[(run.month || 1) - 1]} {run.year}
                     </TableCell>
                     <TableCell>{run.total_employees || 0}</TableCell>
                     <TableCell>{formatCurrency(run.total_gross || 0)}</TableCell>
-                    <TableCell className="text-red-600">
+                    <TableCell className="text-destructive">
                       -{formatCurrency(run.total_deductions || 0)}
                     </TableCell>
-                    <TableCell className="font-medium text-green-600">
+                    <TableCell className="font-medium text-primary">
                       {formatCurrency(run.total_net || 0)}
                     </TableCell>
                     <TableCell>
@@ -209,22 +172,14 @@ export default function PayslipsPage() {
                       {run.pay_date ? format(new Date(run.pay_date), "dd MMM yyyy") : "-"}
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => {
-                            setSelectedPayslip({
-                              ...run,
-                              month: run.month,
-                              year: run.year,
-                            });
-                            setIsPreviewOpen(true);
-                          }}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleViewPayslips(run)}
+                      >
+                        <Eye className="h-4 w-4 mr-2" />
+                        View Payslips
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -234,28 +189,15 @@ export default function PayslipsPage() {
         </CardContent>
       </Card>
 
-      {/* Payslip Preview Dialog */}
-      <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center justify-between">
-              <span>Payslip Preview</span>
-              <Button variant="outline" size="sm" onClick={() => handlePrint()}>
-                <Printer className="h-4 w-4 mr-2" />
-                Print
-              </Button>
-            </DialogTitle>
-          </DialogHeader>
-          {selectedPayslip && (
-            <div ref={printRef}>
-              <PayslipPreview
-                data={generatePayslipData(selectedPayslip)}
-                organizationName="Shifa Medical Center"
-              />
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* Employee Payslips Dialog */}
+      <EmployeePayslipsDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        payrollRun={selectedRun}
+        entries={payrollEntries || []}
+        isLoading={isLoadingEntries}
+        organizationName="Shifa Medical Center"
+      />
     </div>
   );
 }
