@@ -7,11 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Progress } from "@/components/ui/progress";
 import { Calculator, Users, Check, ArrowRight, ArrowLeft, AlertCircle } from "lucide-react";
-import { useEmployeeSalaries, useCreatePayrollRun, useEmployeeLoans } from "@/hooks/usePayroll";
+import { useEmployeeSalaries, useCreatePayrollRun, useEmployeeLoans, useCreatePayrollEntries } from "@/hooks/usePayroll";
 import { useAuth } from "@/contexts/AuthContext";
-import { format } from "date-fns";
 import { toast } from "sonner";
 
 const MONTHS = [
@@ -38,6 +36,7 @@ export default function ProcessPayrollPage() {
   const { data: salaries, isLoading: salariesLoading } = useEmployeeSalaries({ isCurrent: true });
   const { data: loans } = useEmployeeLoans({ status: "active" });
   const createPayrollRun = useCreatePayrollRun();
+  const createPayrollEntries = useCreatePayrollEntries();
 
   const years = Array.from({ length: 5 }, (_, i) => (currentDate.getFullYear() - 2 + i).toString());
 
@@ -95,7 +94,9 @@ export default function ProcessPayrollPage() {
     setIsProcessing(true);
     try {
       const totals = calculateTotals();
-      await createPayrollRun.mutateAsync({
+      
+      // Step 1: Create the payroll run
+      const payrollRun = await createPayrollRun.mutateAsync({
         organization_id: profile.organization_id,
         month: parseInt(selectedMonth),
         year: parseInt(selectedYear),
@@ -106,10 +107,38 @@ export default function ProcessPayrollPage() {
         total_deductions: totals.deductions,
         total_net: totals.net,
       });
-      toast.success("Payroll run created successfully!");
+
+      // Step 2: Create individual payroll entries for each selected employee
+      const selectedSalaries = salaries?.filter((s: any) => selectedEmployees.includes(s.employee_id)) || [];
+      const entries = selectedSalaries.map((salary: any) => {
+        const loanDeduction = getEmployeeLoanDeductions(salary.employee_id);
+        const basicSalary = salary.basic_salary || 0;
+        const netSalary = basicSalary - loanDeduction;
+        
+        return {
+          payroll_run_id: payrollRun.id,
+          employee_id: salary.employee_id,
+          basic_salary: basicSalary,
+          gross_salary: basicSalary,
+          net_salary: netSalary,
+          total_deductions: loanDeduction,
+          total_working_days: 26,
+          present_days: 24,
+          absent_days: 0,
+          leave_days: 2,
+          earnings: [{ name: "Basic Salary", amount: basicSalary }],
+          deductions: loanDeduction > 0 ? [{ name: "Loan EMI", amount: loanDeduction }] : [],
+          bank_name: null,
+          account_number: null,
+        };
+      });
+
+      await createPayrollEntries.mutateAsync(entries);
+      
+      toast.success(`Payroll run created with ${entries.length} employee entries!`);
       navigate("/app/hr/payroll");
     } catch (error) {
-      // Error handled in hook
+      // Error handled in hooks
     } finally {
       setIsProcessing(false);
     }

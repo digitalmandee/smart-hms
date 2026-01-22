@@ -143,7 +143,10 @@ export default function DoctorEarningsPage() {
 
   const getDoctorName = (doctorId: string) => {
     const doctor = doctors?.find((d) => d.id === doctorId);
-    return doctor?.employee ? `${doctor.employee.first_name} ${doctor.employee.last_name || ""}` : "Unknown";
+    if (doctor?.employee?.first_name) {
+      return `${doctor.employee.first_name} ${doctor.employee.last_name || ""}`;
+    }
+    return doctor?.profile?.full_name || "Unknown";
   };
 
   return (
@@ -183,7 +186,9 @@ export default function DoctorEarningsPage() {
                       <SelectContent>
                         {doctors?.map((doc) => (
                           <SelectItem key={doc.id} value={doc.id}>
-                            {doc.employee?.first_name} {doc.employee?.last_name}
+                            {doc.employee?.first_name 
+                              ? `${doc.employee.first_name} ${doc.employee.last_name || ""}`
+                              : doc.profile?.full_name || "Unknown Doctor"}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -342,7 +347,9 @@ export default function DoctorEarningsPage() {
                   <SelectItem value="all">All Doctors</SelectItem>
                   {doctors?.map((doc) => (
                     <SelectItem key={doc.id} value={doc.id}>
-                      {doc.employee?.first_name} {doc.employee?.last_name}
+                      {doc.employee?.first_name 
+                        ? `${doc.employee.first_name} ${doc.employee.last_name || ""}`
+                        : doc.profile?.full_name || "Unknown Doctor"}
                     </SelectItem>
                   ))}
                 </SelectContent>
