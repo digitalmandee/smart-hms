@@ -45,7 +45,7 @@ import { format } from "date-fns";
 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required"),
-  category: z.string().min(1, "Category is required"),
+  category_id: z.string().min(1, "Category is required"),
   default_price: z.coerce.number().min(0, "Price must be positive"),
   is_active: z.boolean(),
   price_change_reason: z.string().optional(),
@@ -89,7 +89,7 @@ export default function ServiceFormPage() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-      category: categories?.[0]?.code || "consultation",
+      category_id: "",
       default_price: 0,
       is_active: true,
       price_change_reason: "",
@@ -103,7 +103,7 @@ export default function ServiceFormPage() {
     if (service) {
       form.reset({
         name: service.name,
-        category: service.category || "other",
+        category_id: service.category_id || "",
         default_price: Number(service.default_price) || 0,
         is_active: service.is_active ?? true,
         price_change_reason: "",
@@ -113,14 +113,11 @@ export default function ServiceFormPage() {
   }, [service, form]);
 
   const onSubmit = async (values: FormValues) => {
-    // Cast category to match the expected type
-    const categoryValue = values.category as "consultation" | "procedure" | "lab" | "pharmacy" | "room" | "radiology" | "other";
-    
     if (isEditing && id) {
       await updateMutation.mutateAsync({ 
         id, 
         name: values.name,
-        category: categoryValue,
+        category_id: values.category_id,
         default_price: values.default_price,
         is_active: values.is_active,
         price_change_reason: priceChanged ? values.price_change_reason : undefined,
@@ -128,7 +125,7 @@ export default function ServiceFormPage() {
     } else {
       await createMutation.mutateAsync({
         name: values.name,
-        category: categoryValue,
+        category_id: values.category_id,
         default_price: values.default_price,
         is_active: values.is_active,
       });
@@ -227,7 +224,7 @@ export default function ServiceFormPage() {
 
                       <FormField
                         control={form.control}
-                        name="category"
+                        name="category_id"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Category</FormLabel>
@@ -241,7 +238,7 @@ export default function ServiceFormPage() {
                                 {categories?.map((cat) => {
                                   const IconComp = iconMap[cat.icon] || Circle;
                                   return (
-                                    <SelectItem key={cat.id} value={cat.code}>
+                                    <SelectItem key={cat.id} value={cat.id}>
                                       <div className="flex items-center gap-2">
                                         <IconComp className="h-4 w-4" />
                                         {cat.name}

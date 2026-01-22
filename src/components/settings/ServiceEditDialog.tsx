@@ -8,9 +8,28 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Stethoscope, Syringe, FlaskConical, Pill, Building, MoreHorizontal, Scan, History } from "lucide-react";
-import { UnifiedService, ServiceCategory, useServicePriceHistory } from "@/hooks/useUnifiedServices";
+import { Loader2, Stethoscope, Syringe, FlaskConical, Pill, Building, MoreHorizontal, Scan, History, Circle, Heart, Activity, Thermometer, Microscope, Scissors, Bandage } from "lucide-react";
+import { UnifiedService, useServicePriceHistory } from "@/hooks/useUnifiedServices";
+import { useServiceCategories } from "@/hooks/useServiceCategories";
 import { formatDistanceToNow } from "date-fns";
+
+// Icon mapping for dynamic categories
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+  stethoscope: Stethoscope,
+  syringe: Syringe,
+  "flask-conical": FlaskConical,
+  scan: Scan,
+  pill: Pill,
+  building: Building,
+  "more-horizontal": MoreHorizontal,
+  circle: Circle,
+  heart: Heart,
+  activity: Activity,
+  thermometer: Thermometer,
+  microscope: Microscope,
+  scissors: Scissors,
+  bandage: Bandage,
+};
 
 interface ServiceEditDialogProps {
   open: boolean;
@@ -19,23 +38,13 @@ interface ServiceEditDialogProps {
   onSave: (values: {
     id?: string;
     name: string;
-    category: ServiceCategory;
+    category_id: string;
     default_price: number;
     is_active: boolean;
     price_change_reason?: string;
   }) => Promise<void>;
   isPending?: boolean;
 }
-
-const categoryOptions = [
-  { value: "consultation", label: "Consultation", icon: Stethoscope },
-  { value: "procedure", label: "Procedure / OT", icon: Syringe },
-  { value: "lab", label: "Lab Test", icon: FlaskConical },
-  { value: "radiology", label: "Radiology", icon: Scan },
-  { value: "pharmacy", label: "Pharmacy", icon: Pill },
-  { value: "room", label: "Room / Bed", icon: Building },
-  { value: "other", label: "Other", icon: MoreHorizontal },
-];
 
 export function ServiceEditDialog({
   open,
@@ -47,31 +56,32 @@ export function ServiceEditDialog({
   const isEditing = !!service;
   
   const [name, setName] = useState("");
-  const [category, setCategory] = useState<ServiceCategory>("consultation");
+  const [categoryId, setCategoryId] = useState("");
   const [price, setPrice] = useState("");
   const [isActive, setIsActive] = useState(true);
   const [priceChangeReason, setPriceChangeReason] = useState("");
   const [showPriceReason, setShowPriceReason] = useState(false);
 
+  const { data: categories } = useServiceCategories();
   const { data: priceHistory, isLoading: historyLoading } = useServicePriceHistory(service?.id);
 
   useEffect(() => {
     if (service) {
       setName(service.name);
-      setCategory(service.category);
+      setCategoryId(service.category_id || "");
       setPrice(String(service.default_price || 0));
       setIsActive(service.is_active);
       setPriceChangeReason("");
       setShowPriceReason(false);
     } else {
       setName("");
-      setCategory("consultation");
+      setCategoryId(categories?.[0]?.id || "");
       setPrice("0");
       setIsActive(true);
       setPriceChangeReason("");
       setShowPriceReason(false);
     }
-  }, [service, open]);
+  }, [service, open, categories]);
 
   // Check if price changed
   useEffect(() => {
@@ -86,7 +96,7 @@ export function ServiceEditDialog({
     await onSave({
       id: service?.id,
       name,
-      category,
+      category_id: categoryId,
       default_price: parseFloat(price) || 0,
       is_active: isActive,
       price_change_reason: priceChangeReason || undefined,
@@ -178,19 +188,22 @@ export function ServiceEditDialog({
 
             <div className="space-y-2">
               <Label>Category</Label>
-              <Select value={category} onValueChange={(v) => setCategory(v as ServiceCategory)}>
+              <Select value={categoryId} onValueChange={setCategoryId}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
-                  {categoryOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      <div className="flex items-center gap-2">
-                        <option.icon className="h-4 w-4" />
-                        {option.label}
-                      </div>
-                    </SelectItem>
-                  ))}
+                  {categories?.map((cat) => {
+                    const IconComp = iconMap[cat.icon] || Circle;
+                    return (
+                      <SelectItem key={cat.id} value={cat.id}>
+                        <div className="flex items-center gap-2">
+                          <IconComp className="h-4 w-4" />
+                          {cat.name}
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>
@@ -279,7 +292,7 @@ export function ServiceEditDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit} disabled={isPending || !name.trim()}>
+          <Button onClick={handleSubmit} disabled={isPending || !name.trim() || !categoryId}>
             {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {isEditing ? "Update Service" : "Create Service"}
           </Button>

@@ -179,7 +179,9 @@ export default function ServicesListPage() {
                   <TableRow key={service.id}>
                     <TableCell className="font-medium">{service.name}</TableCell>
                     <TableCell>
-                      <ServiceCategoryBadge category={service.category} />
+                      <ServiceCategoryBadge 
+                        category={service.category_info?.code as any || service.category} 
+                      />
                     </TableCell>
                     <TableCell className="text-right font-mono">
                       {(service.default_price || 0).toLocaleString()}

@@ -94,7 +94,7 @@ export default function ServicesPage() {
   const handleSave = async (values: {
     id?: string;
     name: string;
-    category: ServiceCategory;
+    category_id: string;
     default_price: number;
     is_active: boolean;
     price_change_reason?: string;
@@ -103,13 +103,18 @@ export default function ServicesPage() {
       await updateMutation.mutateAsync({
         id: values.id,
         name: values.name,
-        category: values.category,
+        category_id: values.category_id,
         default_price: values.default_price,
         is_active: values.is_active,
         price_change_reason: values.price_change_reason,
       });
     } else {
-      await createMutation.mutateAsync(values);
+      await createMutation.mutateAsync({
+        name: values.name,
+        category_id: values.category_id,
+        default_price: values.default_price,
+        is_active: values.is_active,
+      });
     }
     setDialogOpen(false);
   };
@@ -221,7 +226,9 @@ export default function ServicesPage() {
                   <TableRow key={service.id}>
                     <TableCell className="font-medium">{service.name}</TableCell>
                     <TableCell>
-                      <ServiceCategoryBadge category={service.category} />
+                      <ServiceCategoryBadge 
+                        category={service.category_info?.code as any || service.category} 
+                      />
                     </TableCell>
                     <TableCell className="text-right font-mono">
                       {(service.default_price || 0).toLocaleString()}

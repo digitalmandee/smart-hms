@@ -9,7 +9,15 @@ export type ServiceCategory = Database["public"]["Enums"]["service_category"];
 export interface UnifiedService {
   id: string;
   name: string;
-  category: ServiceCategory;
+  category: ServiceCategory | null; // Legacy ENUM (for display compatibility)
+  category_id: string | null; // New FK to service_categories
+  category_info?: {
+    id: string;
+    code: string;
+    name: string;
+    icon: string;
+    color: string;
+  } | null;
   default_price: number | null;
   is_active: boolean;
   organization_id: string;
@@ -56,20 +64,28 @@ export function useUnifiedServices(category?: ServiceCategory | "all") {
     queryFn: async () => {
       if (!profile?.organization_id) throw new Error("No organization");
 
-      // Fetch base service types
+      // Fetch base service types with joined category
       let query = supabase
         .from("service_types")
-        .select("*")
+        .select(`
+          *,
+          category_info:service_categories(id, code, name, icon, color)
+        `)
         .eq("organization_id", profile.organization_id)
-        .order("category")
         .order("name");
 
       if (category && category !== "all") {
-        query = query.eq("category", category);
+        // Filter by category code using joined table
+        query = query.eq("service_categories.code", category);
       }
 
       const { data: services, error } = await query;
       if (error) throw error;
+      
+      // Filter out services that don't match category if filtering
+      const filteredServices = category && category !== "all"
+        ? services?.filter(s => (s.category_info as any)?.code === category || s.category === category)
+        : services;
 
       // Fetch linked imaging procedures
       const { data: imagingProcedures } = await supabase
@@ -97,8 +113,9 @@ export function useUnifiedServices(category?: ServiceCategory | "all") {
       const bedMap = new Map(bedTypes?.map(bt => [bt.service_type_id, bt]) || []);
       const labMap = new Map(labTemplates?.map(lt => [lt.service_type_id, lt]) || []);
 
-      return services.map(service => ({
+      return (filteredServices || []).map(service => ({
         ...service,
+        category_info: service.category_info as UnifiedService['category_info'],
         linked_imaging_procedure: imagingMap.get(service.id) || null,
         linked_bed_type: bedMap.get(service.id) || null,
         linked_lab_template: labMap.get(service.id) || null,
@@ -116,7 +133,7 @@ export function useCreateUnifiedService() {
   return useMutation({
     mutationFn: async (values: {
       name: string;
-      category: ServiceCategory;
+      category_id: string; // Now uses UUID
       default_price?: number;
       is_active?: boolean;
     }) => {
@@ -126,7 +143,7 @@ export function useCreateUnifiedService() {
         .from("service_types")
         .insert({
           name: values.name,
-          category: values.category,
+          category_id: values.category_id,
           default_price: values.default_price ?? 0,
           is_active: values.is_active ?? true,
           organization_id: profile.organization_id,
@@ -158,7 +175,7 @@ export function useUpdateUnifiedService() {
     mutationFn: async (values: {
       id: string;
       name?: string;
-      category?: ServiceCategory;
+      category_id?: string; // Now uses UUID
       default_price?: number;
       is_active?: boolean;
       price_change_reason?: string;
