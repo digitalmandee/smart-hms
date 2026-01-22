@@ -12641,6 +12641,56 @@ export type Database = {
           },
         ]
       }
+      service_categories: {
+        Row: {
+          code: string
+          color: string | null
+          created_at: string | null
+          icon: string | null
+          id: string
+          is_active: boolean | null
+          is_system: boolean | null
+          name: string
+          organization_id: string
+          sort_order: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          code: string
+          color?: string | null
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_system?: boolean | null
+          name: string
+          organization_id: string
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string
+          color?: string | null
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_system?: boolean | null
+          name?: string
+          organization_id?: string
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_categories_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       service_price_history: {
         Row: {
           changed_at: string
@@ -12689,6 +12739,7 @@ export type Database = {
       service_types: {
         Row: {
           category: Database["public"]["Enums"]["service_category"] | null
+          category_id: string | null
           created_at: string
           default_price: number | null
           id: string
@@ -12700,6 +12751,7 @@ export type Database = {
         }
         Insert: {
           category?: Database["public"]["Enums"]["service_category"] | null
+          category_id?: string | null
           created_at?: string
           default_price?: number | null
           id?: string
@@ -12711,6 +12763,7 @@ export type Database = {
         }
         Update: {
           category?: Database["public"]["Enums"]["service_category"] | null
+          category_id?: string | null
           created_at?: string
           default_price?: number | null
           id?: string
@@ -12721,6 +12774,13 @@ export type Database = {
           price_updated_by?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "service_types_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "service_categories"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "service_types_organization_id_fkey"
             columns: ["organization_id"]

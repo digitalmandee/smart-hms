@@ -124,6 +124,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         icon: "Banknote",
         children: [
           { name: "All Services", path: "/app/services", icon: "List" },
+          { name: "Categories", path: "/app/services/categories", icon: "FolderTree" },
           { name: "Consultations", path: "/app/services/doctor-fees", icon: "Stethoscope" },
           { name: "Lab Tests", path: "/app/lab/templates", icon: "FlaskConical" },
           { name: "Radiology", path: "/app/radiology/procedures", icon: "Scan" },
