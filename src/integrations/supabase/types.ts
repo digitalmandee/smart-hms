@@ -6518,6 +6518,7 @@ export type Database = {
           name: string
           organization_id: string
           preparation: string | null
+          service_type_id: string | null
           updated_at: string | null
         }
         Insert: {
@@ -6534,6 +6535,7 @@ export type Database = {
           name: string
           organization_id: string
           preparation?: string | null
+          service_type_id?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -6550,6 +6552,7 @@ export type Database = {
           name?: string
           organization_id?: string
           preparation?: string | null
+          service_type_id?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -6565,6 +6568,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "imaging_procedures_service_type_id_fkey"
+            columns: ["service_type_id"]
+            isOneToOne: false
+            referencedRelation: "service_types"
             referencedColumns: ["id"]
           },
         ]
@@ -7526,6 +7536,7 @@ export type Database = {
           is_active: boolean | null
           name: string
           organization_id: string
+          service_type_id: string | null
           sort_order: number | null
           updated_at: string | null
         }
@@ -7538,6 +7549,7 @@ export type Database = {
           is_active?: boolean | null
           name: string
           organization_id: string
+          service_type_id?: string | null
           sort_order?: number | null
           updated_at?: string | null
         }
@@ -7550,6 +7562,7 @@ export type Database = {
           is_active?: boolean | null
           name?: string
           organization_id?: string
+          service_type_id?: string | null
           sort_order?: number | null
           updated_at?: string | null
         }
@@ -7559,6 +7572,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ipd_bed_types_service_type_id_fkey"
+            columns: ["service_type_id"]
+            isOneToOne: false
+            referencedRelation: "service_types"
             referencedColumns: ["id"]
           },
         ]
@@ -8697,6 +8717,8 @@ export type Database = {
           id: string
           is_active: boolean | null
           organization_id: string | null
+          price: number | null
+          service_type_id: string | null
           test_category: string
           test_name: string
         }
@@ -8706,6 +8728,8 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           organization_id?: string | null
+          price?: number | null
+          service_type_id?: string | null
           test_category?: string
           test_name: string
         }
@@ -8715,6 +8739,8 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           organization_id?: string | null
+          price?: number | null
+          service_type_id?: string | null
           test_category?: string
           test_name?: string
         }
@@ -8724,6 +8750,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_test_templates_service_type_id_fkey"
+            columns: ["service_type_id"]
+            isOneToOne: false
+            referencedRelation: "service_types"
             referencedColumns: ["id"]
           },
         ]
@@ -12608,6 +12641,51 @@ export type Database = {
           },
         ]
       }
+      service_price_history: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          id: string
+          new_price: number
+          old_price: number | null
+          reason: string | null
+          service_type_id: string
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          new_price: number
+          old_price?: number | null
+          reason?: string | null
+          service_type_id: string
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          new_price?: number
+          old_price?: number | null
+          reason?: string | null
+          service_type_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_price_history_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_price_history_service_type_id_fkey"
+            columns: ["service_type_id"]
+            isOneToOne: false
+            referencedRelation: "service_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       service_types: {
         Row: {
           category: Database["public"]["Enums"]["service_category"] | null
@@ -12617,6 +12695,8 @@ export type Database = {
           is_active: boolean | null
           name: string
           organization_id: string
+          price_updated_at: string | null
+          price_updated_by: string | null
         }
         Insert: {
           category?: Database["public"]["Enums"]["service_category"] | null
@@ -12626,6 +12706,8 @@ export type Database = {
           is_active?: boolean | null
           name: string
           organization_id: string
+          price_updated_at?: string | null
+          price_updated_by?: string | null
         }
         Update: {
           category?: Database["public"]["Enums"]["service_category"] | null
@@ -12635,6 +12717,8 @@ export type Database = {
           is_active?: boolean | null
           name?: string
           organization_id?: string
+          price_updated_at?: string | null
+          price_updated_by?: string | null
         }
         Relationships: [
           {
@@ -12642,6 +12726,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_types_price_updated_by_fkey"
+            columns: ["price_updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]

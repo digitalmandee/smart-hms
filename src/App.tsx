@@ -54,6 +54,7 @@ import { UsersListPage } from "./pages/app/settings/UsersListPage";
 import { UserDetailPage } from "./pages/app/settings/UserDetailPage";
 import { OrganizationSettingsPage } from "./pages/app/settings/OrganizationSettingsPage";
 import { RolesPermissionsPage } from "./pages/app/settings/RolesPermissionsPage";
+import ServicesPage from "./pages/app/settings/ServicesPage";
 
 // Patient pages
 import { PatientsListPage } from "./pages/app/patients/PatientsListPage";
