@@ -290,8 +290,19 @@ export function usePayrollDetails(payrollRunId: string) {
   return useQuery({
     queryKey: ["payroll-details", payrollRunId],
     queryFn: async () => {
-      // payroll_details table may not exist yet - return empty array
-      return [];
+      const { data, error } = await supabase
+        .from("payroll_entries")
+        .select(`
+          *,
+          employee:employees(
+            id, first_name, last_name, employee_number,
+            department:departments(name),
+            designation:designations(name)
+          )
+        `)
+        .eq("payroll_run_id", payrollRunId);
+      if (error) throw error;
+      return data;
     },
     enabled: !!payrollRunId,
   });
