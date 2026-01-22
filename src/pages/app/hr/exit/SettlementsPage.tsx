@@ -23,12 +23,12 @@ const statusColors: Record<string, string> = {
 };
 
 export default function SettlementsPage() {
-  const [statusFilter, setStatusFilter] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedResignation, setSelectedResignation] = useState<string>("");
   const [viewSettlement, setViewSettlement] = useState<string | null>(null);
   
-  const { data: settlements, isLoading } = useFinalSettlements(statusFilter || undefined);
+  const { data: settlements, isLoading } = useFinalSettlements(statusFilter !== "all" ? statusFilter : undefined);
   const { data: resignations } = useResignations("accepted");
   const { data: employees } = useEmployees();
   const { data: existingSettlement } = useFinalSettlement(selectedResignation || undefined);
@@ -169,7 +169,7 @@ export default function SettlementsPage() {
             <SelectValue placeholder="All Statuses" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Statuses</SelectItem>
+            <SelectItem value="all">All Statuses</SelectItem>
             <SelectItem value="draft">Draft</SelectItem>
             <SelectItem value="pending_approval">Pending Approval</SelectItem>
             <SelectItem value="approved">Approved</SelectItem>
