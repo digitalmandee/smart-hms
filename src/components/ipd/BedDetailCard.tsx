@@ -146,13 +146,25 @@ export const BedDetailCard = ({
                   {patient.gender && <span>{patient.gender}</span>}
                   {patient.date_of_birth && (
                     <span>
-                      DOB: {format(new Date(patient.date_of_birth), "dd MMM yyyy")}
+                      DOB: {(() => {
+                        try {
+                          return format(new Date(patient.date_of_birth), "dd MMM yyyy");
+                        } catch {
+                          return patient.date_of_birth;
+                        }
+                      })()}
                     </span>
                   )}
                 </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Calendar className="h-3 w-3" />
-                  Admitted: {format(new Date(bed.current_admission.admission_date), "dd MMM yyyy")}
+                  Admitted: {(() => {
+                    try {
+                      return format(new Date(bed.current_admission.admission_date), "dd MMM yyyy");
+                    } catch {
+                      return bed.current_admission.admission_date || "Unknown";
+                    }
+                  })()}
                 </div>
                 <div className="flex gap-2 pt-2">
                   {onViewPatient && (
