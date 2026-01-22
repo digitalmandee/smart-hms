@@ -21,6 +21,7 @@ import { CarePlansList } from "@/components/ipd/CarePlansList";
 import { DietChartCard } from "@/components/ipd/DietChartCard";
 import { TriageBadge } from "@/components/emergency/TriageBadge";
 import { AdmissionFinancialSummary } from "@/components/ipd/AdmissionFinancialSummary";
+import { AdmissionOTChargesCard } from "@/components/ipd/AdmissionOTChargesCard";
 import {
   User,
   Bed,
@@ -375,7 +376,14 @@ export default function AdmissionDetailPage() {
         </TabsContent>
 
         <TabsContent value="billing" className="space-y-4">
-          <AdmissionFinancialSummary admissionId={id!} />
+          <div className="grid gap-4 lg:grid-cols-3">
+            <div className="lg:col-span-2">
+              <AdmissionFinancialSummary admissionId={id!} />
+            </div>
+            <div>
+              <AdmissionOTChargesCard admissionId={id!} patientId={patient?.id || ""} />
+            </div>
+          </div>
         </TabsContent>
 
         <TabsContent value="rounds" className="space-y-4">

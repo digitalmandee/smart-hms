@@ -10,12 +10,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { PatientSearch } from "@/components/appointments/PatientSearch";
-import { ArrowLeft, CalendarIcon, Clock, Save, Loader2 } from "lucide-react";
+import { OTRoomPicker } from "@/components/ot/OTRoomPicker";
+import { OTServicesBuilder } from "@/components/ot/OTServicesBuilder";
+import { ArrowLeft, CalendarIcon, Clock, Save, Loader2, BedDouble, AlertCircle } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { useCreateSurgery, useOTRooms, type SurgeryPriority } from "@/hooks/useOT";
 import { useDoctors } from "@/hooks/useDoctors";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBranches } from "@/hooks/useBranches";
+import { usePatientActiveAdmission } from "@/hooks/useIPDBilling";
+import { OTServiceItem, calculateOTServicesTotal } from "@/hooks/useOTServices";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export default function SurgeryFormPage() {
@@ -32,6 +37,7 @@ export default function SurgeryFormPage() {
   const [scheduledDate, setScheduledDate] = useState<Date | undefined>(
     prefillDate ? parseISO(prefillDate) : undefined
   );
+  const [otServices, setOTServices] = useState<OTServiceItem[]>([]);
   const [formData, setFormData] = useState({
     branchId: profile?.branch_id || "",
     procedureName: "",
@@ -43,6 +49,9 @@ export default function SurgeryFormPage() {
     estimatedDuration: "60",
     specialRequirements: "",
   });
+
+  // Check if patient is admitted
+  const { data: activeAdmission, isLoading: admissionLoading } = usePatientActiveAdmission(selectedPatient?.id);
 
   // Update room when rooms load (if prefillRoom is set)
   const { data: branches } = useBranches();
@@ -71,6 +80,8 @@ export default function SurgeryFormPage() {
     d.specialization?.toLowerCase().includes('plastic')
   ) || doctors;
 
+  const totalOTCharges = calculateOTServicesTotal(otServices);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -92,7 +103,8 @@ export default function SurgeryFormPage() {
     }
 
     try {
-      await createSurgery.mutateAsync({
+      // Create the surgery
+      const surgery = await createSurgery.mutateAsync({
         patient_id: selectedPatient.id,
         branch_id: formData.branchId,
         procedure_name: formData.procedureName,
@@ -104,7 +116,42 @@ export default function SurgeryFormPage() {
         scheduled_start_time: formData.scheduledStartTime,
         estimated_duration_minutes: parseInt(formData.estimatedDuration) || 60,
         special_requirements: formData.specialRequirements || undefined,
+        admission_id: activeAdmission?.id, // Auto-link to admission if exists
+        is_billable: !!activeAdmission, // Billable if IPD patient
+        estimated_cost: totalOTCharges, // Total from services
       });
+
+      // If patient is admitted and has OT services, post charges to IPD
+      if (activeAdmission && otServices.length > 0 && surgery) {
+        const chargeDate = format(scheduledDate, 'yyyy-MM-dd');
+        
+        // Post each OT service as a separate IPD charge
+        for (const service of otServices) {
+          const { error: chargeError } = await supabase
+            .from('ipd_charges')
+            .insert({
+              admission_id: activeAdmission.id,
+              charge_date: chargeDate,
+              charge_type: 'procedure',
+              service_type_id: service.service_type_id,
+              description: service.name,
+              quantity: service.quantity,
+              unit_price: service.unit_price,
+              total_amount: service.total,
+              is_billed: false,
+              added_by: profile?.id,
+              surgery_id: surgery.id,
+              notes: `Surgery: ${formData.procedureName}`,
+            });
+
+          if (chargeError) {
+            console.error('Failed to create IPD charge:', chargeError);
+          }
+        }
+
+        toast.success(`Surgery scheduled with Rs. ${totalOTCharges.toLocaleString()} added to admission bill`);
+      }
+
       navigate("/app/ot/schedule");
     } catch (error) {
       // Error handled in hook
@@ -133,11 +180,46 @@ export default function SurgeryFormPage() {
                 <CardTitle>Patient</CardTitle>
                 <CardDescription>Select the patient for surgery</CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-4">
                 <PatientSearch
                   selectedPatient={selectedPatient}
                   onSelect={setSelectedPatient}
                 />
+
+                {/* Admission Status Banner */}
+                {selectedPatient && !admissionLoading && activeAdmission && (
+                  <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg">
+                    <div className="flex items-start gap-3">
+                      <BedDouble className="h-5 w-5 text-primary mt-0.5" />
+                      <div className="flex-1">
+                        <p className="font-medium text-primary">IPD Patient</p>
+                        <p className="text-sm text-muted-foreground">
+                          Admission: {activeAdmission.admission_number} •{" "}
+                          {(activeAdmission.ward as any)?.name} - Bed{" "}
+                          {(activeAdmission.bed as any)?.bed_number}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          OT charges will be added to the patient's admission bill
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* OPD Patient Notice */}
+                {selectedPatient && !admissionLoading && !activeAdmission && (
+                  <div className="p-4 bg-muted border border-border rounded-lg">
+                    <div className="flex items-start gap-3">
+                      <AlertCircle className="h-5 w-5 text-muted-foreground mt-0.5" />
+                      <div className="flex-1">
+                        <p className="font-medium">OPD Patient</p>
+                        <p className="text-sm text-muted-foreground">
+                          Patient is not currently admitted. Surgery billing will be handled separately.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -218,14 +300,33 @@ export default function SurgeryFormPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* OT Services & Charges - Only show for IPD patients */}
+            {activeAdmission && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>OT Services & Charges</CardTitle>
+                  <CardDescription>
+                    Add services to calculate surgery cost. These will be added to the admission bill.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <OTServicesBuilder
+                    items={otServices}
+                    onChange={setOTServices}
+                  />
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           {/* Scheduling Sidebar */}
           <div className="space-y-6">
-            {/* Branch & Room */}
+            {/* Branch & OT Room */}
             <Card>
               <CardHeader>
-                <CardTitle>Location</CardTitle>
+                <CardTitle>OT Room</CardTitle>
+                <CardDescription>Select branch and OT room</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
@@ -247,25 +348,14 @@ export default function SurgeryFormPage() {
                   </Select>
                 </div>
 
-                <div className="space-y-2">
-                  <Label>OT Room</Label>
-                  <Select
+                {formData.branchId && (
+                  <OTRoomPicker
                     value={formData.otRoomId}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, otRoomId: value }))}
-                    disabled={!formData.branchId}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select room (optional)" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {rooms?.filter(r => r.status === 'available').map(room => (
-                        <SelectItem key={room.id} value={room.id}>
-                          {room.name} ({room.room_number})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                    onChange={(roomId) => setFormData(prev => ({ ...prev, otRoomId: roomId }))}
+                    branchId={formData.branchId}
+                    showOnlyAvailable={true}
+                  />
+                )}
               </CardContent>
             </Card>
 
@@ -323,6 +413,23 @@ export default function SurgeryFormPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Cost Summary - Only show for IPD patients with services */}
+            {activeAdmission && otServices.length > 0 && (
+              <Card className="bg-primary/5 border-primary/20">
+                <CardContent className="pt-6">
+                  <div className="text-center">
+                    <p className="text-sm text-muted-foreground">Total OT Charges</p>
+                    <p className="text-2xl font-bold text-primary">
+                      Rs. {totalOTCharges.toLocaleString()}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Will be added to admission bill
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Submit */}
             <Button 
