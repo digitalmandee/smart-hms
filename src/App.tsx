@@ -217,6 +217,7 @@ import RosterReportsPage from "./pages/app/hr/attendance/RosterReportsPage";
 import MySchedulePage from "./pages/app/MySchedulePage";
 import MyAttendancePage from "./pages/app/MyAttendancePage";
 import MyPayslipsPage from "./pages/app/MyPayslipsPage";
+import MyLeavesPage from "./pages/app/MyLeavesPage";
 
 import IPDDashboard from "./pages/app/ipd/IPDDashboard";
 import WardsListPage from "./pages/app/ipd/WardsListPage";
@@ -444,6 +445,7 @@ function App() {
               <Route path="my-schedule" element={<MySchedulePage />} />
               <Route path="my-attendance" element={<MyAttendancePage />} />
               <Route path="my-payslips" element={<MyPayslipsPage />} />
+              <Route path="my-leaves" element={<MyLeavesPage />} />
               
               {/* Clinic routes */}
               <Route path="clinic" element={<ClinicDashboard />} />

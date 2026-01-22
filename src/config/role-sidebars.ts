@@ -203,6 +203,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         children: [
           { name: "My Schedule", path: "/app/my-schedule", icon: "Calendar" },
           { name: "My Attendance", path: "/app/my-attendance", icon: "Clock" },
+          { name: "My Leaves", path: "/app/my-leaves", icon: "CalendarOff" },
           { name: "My Payslips", path: "/app/my-payslips", icon: "FileText" },
         ]
       },
@@ -231,6 +232,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         children: [
           { name: "My Schedule", path: "/app/my-schedule", icon: "Calendar" },
           { name: "My Attendance", path: "/app/my-attendance", icon: "Clock" },
+          { name: "My Leaves", path: "/app/my-leaves", icon: "CalendarOff" },
           { name: "My Payslips", path: "/app/my-payslips", icon: "FileText" },
         ]
       },
@@ -269,6 +271,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         children: [
           { name: "My Schedule", path: "/app/my-schedule", icon: "Calendar" },
           { name: "My Attendance", path: "/app/my-attendance", icon: "Clock" },
+          { name: "My Leaves", path: "/app/my-leaves", icon: "CalendarOff" },
           { name: "My Payslips", path: "/app/my-payslips", icon: "FileText" },
         ]
       },
@@ -327,6 +330,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         children: [
           { name: "My Schedule", path: "/app/my-schedule", icon: "Calendar" },
           { name: "My Attendance", path: "/app/my-attendance", icon: "Clock" },
+          { name: "My Leaves", path: "/app/my-leaves", icon: "CalendarOff" },
           { name: "My Payslips", path: "/app/my-payslips", icon: "FileText" },
         ]
       },
@@ -378,6 +382,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         children: [
           { name: "My Schedule", path: "/app/my-schedule", icon: "Calendar" },
           { name: "My Attendance", path: "/app/my-attendance", icon: "Clock" },
+          { name: "My Leaves", path: "/app/my-leaves", icon: "CalendarOff" },
           { name: "My Payslips", path: "/app/my-payslips", icon: "FileText" },
         ]
       },
@@ -414,6 +419,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         children: [
           { name: "My Schedule", path: "/app/my-schedule", icon: "Calendar" },
           { name: "My Attendance", path: "/app/my-attendance", icon: "Clock" },
+          { name: "My Leaves", path: "/app/my-leaves", icon: "CalendarOff" },
           { name: "My Payslips", path: "/app/my-payslips", icon: "FileText" },
         ]
       },
@@ -667,6 +673,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         children: [
           { name: "Daily Attendance", path: "/app/hr/attendance", icon: "ClipboardList" },
           { name: "Attendance Sheet", path: "/app/hr/attendance/sheet", icon: "FileSpreadsheet" },
+          { name: "Biometric Setup", path: "/app/hr/attendance/biometric", icon: "Fingerprint" },
           { name: "Duty Roster", path: "/app/hr/attendance/roster", icon: "Calendar" },
           { name: "OT Roster", path: "/app/hr/attendance/ot-roster", icon: "Scissors" },
           { name: "Emergency Roster", path: "/app/hr/attendance/emergency-roster", icon: "Siren" },
@@ -767,6 +774,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         icon: "Clock",
         children: [
           { name: "Daily Attendance", path: "/app/hr/attendance", icon: "ClipboardList" },
+          { name: "Biometric Setup", path: "/app/hr/attendance/biometric", icon: "Fingerprint" },
         ]
       },
       { 
