@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -63,9 +63,15 @@ type AppointmentFormData = z.infer<typeof appointmentSchema>;
 export default function AppointmentFormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const { profile } = useAuth();
   const isEditing = !!id;
+
+  // Pre-fill from URL params (from calendar click)
+  const prefillDate = searchParams.get('date');
+  const prefillTime = searchParams.get('time');
+  const prefillDoctor = searchParams.get('doctor');
 
   const [selectedPatient, setSelectedPatient] = useState<any>(null);
   
@@ -128,6 +134,15 @@ export default function AppointmentFormPage() {
       }
     }
   }, [existingAppointment, isEditing, form]);
+
+  // Pre-fill from URL params (calendar click-to-book)
+  useEffect(() => {
+    if (!isEditing) {
+      if (prefillDate) form.setValue('appointment_date', prefillDate);
+      if (prefillTime) form.setValue('appointment_time', prefillTime);
+      if (prefillDoctor) form.setValue('doctor_id', prefillDoctor);
+    }
+  }, [prefillDate, prefillTime, prefillDoctor, isEditing, form]);
 
   const selectedDoctorId = form.watch('doctor_id');
   const selectedDate = form.watch('appointment_date');

@@ -70,6 +70,7 @@ import AppointmentFormPage from "./pages/app/appointments/AppointmentFormPage";
 import AppointmentDetailPage from "./pages/app/appointments/AppointmentDetailPage";
 import AppointmentQueuePage from "./pages/app/appointments/AppointmentQueuePage";
 import AppointmentCalendarPage from "./pages/app/appointments/AppointmentCalendarPage";
+import MyCalendarPage from "./pages/app/appointments/MyCalendarPage";
 import DoctorSchedulePage from "./pages/app/appointments/DoctorSchedulePage";
 import CheckInPage from "./pages/app/appointments/CheckInPage";
 import QueueDisplayPage from "./pages/app/appointments/QueueDisplayPage";
@@ -428,6 +429,7 @@ function App() {
               <Route path="appointments/new" element={<AppointmentFormPage />} />
               <Route path="appointments/queue" element={<AppointmentQueuePage />} />
               <Route path="appointments/calendar" element={<AppointmentCalendarPage />} />
+              <Route path="appointments/my-calendar" element={<MyCalendarPage />} />
               <Route path="appointments/schedules" element={<DoctorSchedulePage />} />
               <Route path="appointments/display" element={<QueueDisplayPage />} />
               <Route path="appointments/token-display" element={<TokenKioskPage />} />
