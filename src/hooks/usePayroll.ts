@@ -290,21 +290,27 @@ export function usePayrollDetails(payrollRunId: string) {
   return useQuery({
     queryKey: ["payroll-details", payrollRunId],
     queryFn: async () => {
+      if (!payrollRunId) return [];
+      
       const { data, error } = await supabase
         .from("payroll_entries")
         .select(`
           *,
-          employee:employees(
+          employee:employees!payroll_entries_employee_id_fkey(
             id, first_name, last_name, employee_number,
             department:departments(name),
             designation:designations(name)
           )
         `)
         .eq("payroll_run_id", payrollRunId);
-      if (error) throw error;
-      return data;
+      
+      if (error) {
+        console.error("Payroll details error:", error);
+        throw error;
+      }
+      return data || [];
     },
-    enabled: !!payrollRunId,
+    enabled: !!payrollRunId && payrollRunId.length > 0,
   });
 }
 
@@ -377,10 +383,45 @@ export function useCreatePayrollRun() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["payroll-runs"] });
-      toast.success("Payroll run created");
     },
     onError: (error: Error) => {
       toast.error("Failed to create payroll run: " + error.message);
+    },
+  });
+}
+
+// Create payroll entries for each employee in a payroll run
+export function useCreatePayrollEntries() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (entries: Array<{
+      payroll_run_id: string;
+      employee_id: string;
+      basic_salary: number;
+      gross_salary: number;
+      net_salary: number;
+      total_deductions: number;
+      total_working_days?: number;
+      present_days?: number;
+      absent_days?: number;
+      leave_days?: number;
+      earnings?: any;
+      deductions?: any;
+      bank_name?: string | null;
+      account_number?: string | null;
+    }>) => {
+      const { error } = await supabase
+        .from("payroll_entries")
+        .insert(entries);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["payroll-details"] });
+      queryClient.invalidateQueries({ queryKey: ["employee-payslips"] });
+      queryClient.invalidateQueries({ queryKey: ["my-payslips"] });
+    },
+    onError: (error: Error) => {
+      toast.error("Failed to create payroll entries: " + error.message);
     },
   });
 }

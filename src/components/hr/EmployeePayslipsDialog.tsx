@@ -1,13 +1,13 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Eye, Printer, Download, FileSpreadsheet } from "lucide-react";
+import { Search, Eye, Printer, Settings, FileSpreadsheet } from "lucide-react";
 import { PayslipPreview } from "./PayslipPreview";
 import { useReactToPrint } from "react-to-print";
 import { exportToCSV } from "@/lib/exportUtils";
+import { BankSheetTemplateDialog, BankSheetField, useBankSheetTemplate } from "./BankSheetTemplateDialog";
 
 interface PayrollEntry {
   id: string;
@@ -64,7 +64,9 @@ export function EmployeePayslipsDialog({
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedEntry, setSelectedEntry] = useState<PayrollEntry | null>(null);
   const [showPayslip, setShowPayslip] = useState(false);
+  const [showTemplateDialog, setShowTemplateDialog] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
+  const { fields: templateFields, setFields: setTemplateFields } = useBankSheetTemplate();
 
   const handlePrint = useReactToPrint({
     contentRef: printRef,
@@ -86,24 +88,40 @@ export function EmployeePayslipsDialog({
     return name.includes(searchTerm.toLowerCase()) || empNumber.includes(searchTerm.toLowerCase());
   }) || [];
 
+  const getFieldValue = (e: PayrollEntry, key: string) => {
+    switch (key) {
+      case "employeeName": return `${e.employee?.first_name || ""} ${e.employee?.last_name || ""}`.trim();
+      case "employeeNumber": return e.employee?.employee_number || "N/A";
+      case "department": return e.employee?.department?.name || "N/A";
+      case "designation": return e.employee?.designation?.name || "N/A";
+      case "bankName": return e.bank_name || "N/A";
+      case "branchCode": return "N/A"; // Could be added to payroll_entries if needed
+      case "accountNumber": return e.account_number || "N/A";
+      case "iban": return "N/A"; // Could be added to payroll_entries if needed
+      case "basicSalary": return e.basic_salary || 0;
+      case "grossSalary": return e.gross_salary || 0;
+      case "deductions": return e.total_deductions || 0;
+      case "netSalary": return e.net_salary || 0;
+      default: return "N/A";
+    }
+  };
+
   const downloadBankSheet = () => {
     if (!entries?.length || !payrollRun) return;
 
-    const columns = [
-      { key: "employeeName", header: "Employee Name" },
-      { key: "employeeNumber", header: "Employee Number" },
-      { key: "bankName", header: "Bank Name" },
-      { key: "accountNumber", header: "Account Number" },
-      { key: "netSalary", header: "Net Salary" },
-    ];
-
-    const data = entries.map((e) => ({
-      employeeName: `${e.employee?.first_name || ""} ${e.employee?.last_name || ""}`.trim(),
-      employeeNumber: e.employee?.employee_number || "N/A",
-      bankName: e.bank_name || "N/A",
-      accountNumber: e.account_number || "N/A",
-      netSalary: e.net_salary || 0,
+    const enabledFields = templateFields.filter(f => f.enabled);
+    const columns = enabledFields.map(f => ({
+      key: f.key,
+      header: f.header,
     }));
+
+    const data = entries.map((e) => {
+      const row: Record<string, any> = {};
+      enabledFields.forEach(f => {
+        row[f.key] = getFieldValue(e, f.key);
+      });
+      return row;
+    });
 
     const month = MONTHS[(payrollRun.month || 1) - 1];
     exportToCSV(data, `bank-sheet-${month}-${payrollRun.year}`, columns);
@@ -146,10 +164,16 @@ export function EmployeePayslipsDialog({
           <DialogHeader>
             <DialogTitle className="flex items-center justify-between">
               <span>Employee Payslips - {periodLabel}</span>
-              <Button variant="outline" size="sm" onClick={downloadBankSheet}>
-                <FileSpreadsheet className="h-4 w-4 mr-2" />
-                Download Bank Sheet
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => setShowTemplateDialog(true)}>
+                  <Settings className="h-4 w-4 mr-2" />
+                  Configure
+                </Button>
+                <Button variant="outline" size="sm" onClick={downloadBankSheet}>
+                  <FileSpreadsheet className="h-4 w-4 mr-2" />
+                  Download Bank Sheet
+                </Button>
+              </div>
             </DialogTitle>
           </DialogHeader>
 
@@ -267,6 +291,13 @@ export function EmployeePayslipsDialog({
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Bank Sheet Template Configuration Dialog */}
+      <BankSheetTemplateDialog
+        open={showTemplateDialog}
+        onOpenChange={setShowTemplateDialog}
+        onSave={setTemplateFields}
+      />
     </>
   );
 }
