@@ -143,7 +143,7 @@ export const BedMap = ({
 
               {/* Patient Name or Status */}
               <div className="text-[10px] text-muted-foreground truncate w-full text-center leading-tight min-h-[14px] capitalize">
-                {patient ? `${patient.first_name} ${patient.last_name.charAt(0)}.` : bed.status}
+                {patient ? `${patient.first_name || ""} ${(patient.last_name || "").charAt(0) || ""}.`.trim() : bed.status}
               </div>
             </Button>
           </TooltipTrigger>
@@ -159,9 +159,9 @@ export const BedMap = ({
               {patient && (
                 <div className="pt-1 border-t mt-1">
                   <p className="text-sm font-medium">
-                    {patient.first_name} {patient.last_name}
+                    {patient.first_name || ""} {patient.last_name || ""}
                   </p>
-                  <p className="text-xs text-muted-foreground">{patient.patient_number}</p>
+                  <p className="text-xs text-muted-foreground">{patient.patient_number || ""}</p>
                 </div>
               )}
             </div>
