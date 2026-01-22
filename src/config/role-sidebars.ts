@@ -452,6 +452,109 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
 
   // ==================== OPERATION THEATRE ====================
   
+  // SURGEON - Surgery-focused workflow
+  surgeon: {
+    items: [
+      { name: "Dashboard", path: "/app/ot", icon: "LayoutDashboard" },
+      { 
+        name: "Surgeries", 
+        path: "", 
+        icon: "Scissors",
+        children: [
+          { name: "Today's Schedule", path: "/app/ot/schedule", icon: "Calendar" },
+          { name: "All Surgeries", path: "/app/ot/surgeries", icon: "ListOrdered" },
+          { name: "Schedule Surgery", path: "/app/ot/surgeries/new", icon: "CalendarPlus" },
+        ]
+      },
+      { 
+        name: "Pre-Op", 
+        path: "", 
+        icon: "ClipboardCheck",
+        children: [
+          { name: "Assessments", path: "/app/ot/pre-op", icon: "FileText" },
+          { name: "Consent Forms", path: "/app/ot/consent", icon: "FileSpreadsheet" },
+        ]
+      },
+      { 
+        name: "Patients", 
+        path: "", 
+        icon: "Users",
+        children: [
+          { name: "Search", path: "/app/patients", icon: "Search" },
+          { name: "IPD Patients", path: "/app/ipd/rounds", icon: "Bed" },
+        ]
+      },
+    ]
+  },
+
+  // ANESTHETIST - Anesthesia-focused workflow
+  anesthetist: {
+    items: [
+      { name: "Dashboard", path: "/app/ot/anesthesia", icon: "LayoutDashboard" },
+      { 
+        name: "Assessments", 
+        path: "", 
+        icon: "ClipboardList",
+        children: [
+          { name: "Pre-Anesthesia", path: "/app/ot/pre-anesthesia", icon: "FileText" },
+          { name: "Pending", path: "/app/ot/anesthesia/pending", icon: "Clock" },
+        ]
+      },
+      { 
+        name: "Surgeries", 
+        path: "", 
+        icon: "Scissors",
+        children: [
+          { name: "Today's Schedule", path: "/app/ot/schedule", icon: "Calendar" },
+          { name: "My Cases", path: "/app/ot/anesthesia/cases", icon: "ListOrdered" },
+        ]
+      },
+      { 
+        name: "Recovery", 
+        path: "", 
+        icon: "HeartPulse",
+        children: [
+          { name: "PACU", path: "/app/ot/pacu", icon: "Bed" },
+        ]
+      },
+    ]
+  },
+
+  // OT NURSE - OT Nursing workflows
+  ot_nurse: {
+    items: [
+      { name: "Dashboard", path: "/app/ot", icon: "LayoutDashboard" },
+      { 
+        name: "Surgeries", 
+        path: "", 
+        icon: "Scissors",
+        children: [
+          { name: "Today's Schedule", path: "/app/ot/schedule", icon: "Calendar" },
+          { name: "Surgery List", path: "/app/ot/surgeries", icon: "ListOrdered" },
+        ]
+      },
+      { 
+        name: "Nursing", 
+        path: "", 
+        icon: "HeartPulse",
+        children: [
+          { name: "Intra-Op Notes", path: "/app/ot/nursing-notes", icon: "FileText" },
+          { name: "Instrument Count", path: "/app/ot/instruments", icon: "ClipboardCheck" },
+        ]
+      },
+      { 
+        name: "Recovery", 
+        path: "", 
+        icon: "Activity",
+        children: [
+          { name: "PACU", path: "/app/ot/pacu", icon: "Bed" },
+        ]
+      },
+      { name: "OT Rooms", path: "/app/ot/rooms", icon: "Building" },
+    ]
+  },
+
+  // OT TECHNICIAN - General OT support
   ot_technician: {
     items: [
       { name: "Dashboard", path: "/app/ot", icon: "LayoutDashboard" },
@@ -712,9 +815,12 @@ export const getPrimaryRole = (roles: string[]): string => {
     'super_admin',
     'org_admin', 
     'branch_admin',
+    'surgeon',        // OT roles before generic doctor
+    'anesthetist',    // OT roles before generic doctor
     'doctor',
     'nurse',
     'ipd_nurse',
+    'ot_nurse',       // OT nurse role
     'receptionist',
     'pharmacist',
     'lab_technician',

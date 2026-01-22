@@ -14,7 +14,7 @@ const OT_DEMO_USERS = [
     id: "00000000-0000-0000-0000-000000000030",
     email: "surgeon@healthos.demo",
     full_name: "Dr. Ahmed Raza",
-    role: "doctor",
+    role: "surgeon",  // Dedicated surgeon role
     specialization: "General Surgery",
     specialization_code: "SURG",
     is_doctor: true,
@@ -26,7 +26,7 @@ const OT_DEMO_USERS = [
     id: "00000000-0000-0000-0000-000000000031",
     email: "anesthetist@healthos.demo",
     full_name: "Dr. Hina Bukhari",
-    role: "doctor",
+    role: "anesthetist",  // Dedicated anesthetist role
     specialization: "Anesthesiology",
     specialization_code: "ANES",
     is_doctor: true,
