@@ -56,6 +56,7 @@ import { OrganizationSettingsPage } from "./pages/app/settings/OrganizationSetti
 import { RolesPermissionsPage } from "./pages/app/settings/RolesPermissionsPage";
 import ServicesListPage from "./pages/app/services/ServicesListPage";
 import ServiceFormPage from "./pages/app/services/ServiceFormPage";
+import ServiceCategoriesPage from "./pages/app/services/ServiceCategoriesPage";
 
 // Patient pages
 import { PatientsListPage } from "./pages/app/patients/PatientsListPage";
@@ -707,6 +708,7 @@ function App() {
               {/* Services routes - top level */}
               <Route path="services" element={<ServicesListPage />} />
               <Route path="services/new" element={<ServiceFormPage />} />
+              <Route path="services/categories" element={<ServiceCategoriesPage />} />
               <Route path="services/:id" element={<ServiceFormPage />} />
               <Route path="services/doctor-fees" element={<DoctorFeesPage />} />
               

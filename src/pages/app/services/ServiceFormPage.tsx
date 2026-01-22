@@ -18,27 +18,34 @@ import {
   useCreateUnifiedService, 
   useUpdateUnifiedService,
   useServicePriceHistory,
-  ServiceCategory,
   UnifiedService
 } from "@/hooks/useUnifiedServices";
+import { useServiceCategories } from "@/hooks/useServiceCategories";
 import { 
   Loader2, 
-  Stethoscope, 
-  Syringe, 
-  FlaskConical, 
-  Pill, 
-  Building, 
-  MoreHorizontal, 
-  Scan,
   Link2,
   ExternalLink,
-  Clock
+  Clock,
+  Stethoscope,
+  Syringe,
+  FlaskConical,
+  Scan,
+  Pill,
+  Building,
+  MoreHorizontal,
+  Circle,
+  Heart,
+  Activity,
+  Thermometer,
+  Microscope,
+  Scissors,
+  Bandage,
 } from "lucide-react";
 import { format } from "date-fns";
 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required"),
-  category: z.enum(["consultation", "procedure", "lab", "pharmacy", "room", "radiology", "other"]),
+  category: z.string().min(1, "Category is required"),
   default_price: z.coerce.number().min(0, "Price must be positive"),
   is_active: z.boolean(),
   price_change_reason: z.string().optional(),
@@ -46,15 +53,23 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-const categoryOptions = [
-  { value: "consultation", label: "Consultation", icon: Stethoscope },
-  { value: "procedure", label: "Procedure", icon: Syringe },
-  { value: "lab", label: "Lab", icon: FlaskConical },
-  { value: "radiology", label: "Radiology", icon: Scan },
-  { value: "pharmacy", label: "Pharmacy", icon: Pill },
-  { value: "room", label: "Room", icon: Building },
-  { value: "other", label: "Other", icon: MoreHorizontal },
-];
+// Icon mapping for dynamic categories
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+  stethoscope: Stethoscope,
+  syringe: Syringe,
+  "flask-conical": FlaskConical,
+  scan: Scan,
+  pill: Pill,
+  building: Building,
+  "more-horizontal": MoreHorizontal,
+  circle: Circle,
+  heart: Heart,
+  activity: Activity,
+  thermometer: Thermometer,
+  microscope: Microscope,
+  scissors: Scissors,
+  bandage: Bandage,
+};
 
 export default function ServiceFormPage() {
   const { id } = useParams();
@@ -63,6 +78,7 @@ export default function ServiceFormPage() {
   const [originalPrice, setOriginalPrice] = useState<number | null>(null);
 
   const { data: services, isLoading: loadingServices } = useUnifiedServices("all");
+  const { data: categories, isLoading: loadingCategories } = useServiceCategories();
   const service = services?.find(s => s.id === id);
   
   const { data: priceHistory, isLoading: loadingHistory } = useServicePriceHistory(id);
@@ -73,7 +89,7 @@ export default function ServiceFormPage() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-      category: "consultation",
+      category: categories?.[0]?.code || "consultation",
       default_price: 0,
       is_active: true,
       price_change_reason: "",
@@ -97,11 +113,14 @@ export default function ServiceFormPage() {
   }, [service, form]);
 
   const onSubmit = async (values: FormValues) => {
+    // Cast category to match the expected type
+    const categoryValue = values.category as "consultation" | "procedure" | "lab" | "pharmacy" | "room" | "radiology" | "other";
+    
     if (isEditing && id) {
       await updateMutation.mutateAsync({ 
         id, 
         name: values.name,
-        category: values.category,
+        category: categoryValue,
         default_price: values.default_price,
         is_active: values.is_active,
         price_change_reason: priceChanged ? values.price_change_reason : undefined,
@@ -109,7 +128,7 @@ export default function ServiceFormPage() {
     } else {
       await createMutation.mutateAsync({
         name: values.name,
-        category: values.category,
+        category: categoryValue,
         default_price: values.default_price,
         is_active: values.is_active,
       });
@@ -145,7 +164,7 @@ export default function ServiceFormPage() {
     return null;
   };
 
-  if (isEditing && loadingServices) {
+  if ((isEditing && loadingServices) || loadingCategories) {
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -219,14 +238,17 @@ export default function ServiceFormPage() {
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                {categoryOptions.map((option) => (
-                                  <SelectItem key={option.value} value={option.value}>
-                                    <div className="flex items-center gap-2">
-                                      <option.icon className="h-4 w-4" />
-                                      {option.label}
-                                    </div>
-                                  </SelectItem>
-                                ))}
+                                {categories?.map((cat) => {
+                                  const IconComp = iconMap[cat.icon] || Circle;
+                                  return (
+                                    <SelectItem key={cat.id} value={cat.code}>
+                                      <div className="flex items-center gap-2">
+                                        <IconComp className="h-4 w-4" />
+                                        {cat.name}
+                                      </div>
+                                    </SelectItem>
+                                  );
+                                })}
                               </SelectContent>
                             </Select>
                             <FormMessage />
