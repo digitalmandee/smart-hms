@@ -48,6 +48,7 @@ import { MedicalHistorySection } from "@/components/patients/MedicalHistorySecti
 import { PatientBillingHistory } from "@/components/patients/PatientBillingHistory";
 import { PatientSurgicalHistory } from "@/components/ot/PatientSurgicalHistory";
 import { PatientVisitsHistory } from "@/components/patients/PatientVisitsHistory";
+import { PatientOPDVisits } from "@/components/patients/PatientOPDVisits";
 import { PatientUpcomingAppointments } from "@/components/patients/PatientUpcomingAppointments";
 import { PatientPrescriptionsHistory } from "@/components/patients/PatientPrescriptionsHistory";
 import { PatientLabHistory } from "@/components/patients/PatientLabHistory";
@@ -60,7 +61,7 @@ import { PatientPregnanciesHistory } from "@/components/patients/PatientPregnanc
 import { PatientCertificatesHistory } from "@/components/patients/PatientCertificatesHistory";
 import { LabResultsPreview } from "@/components/lab/LabResultsPreview";
 import { PatientVitalsHistory } from "@/components/patients/PatientVitalsHistory";
-import { Baby, Award, Thermometer } from "lucide-react";
+import { Baby, Award, Thermometer, Ticket } from "lucide-react";
 
 export function PatientDetailPage() {
   const { id } = useParams();
@@ -313,9 +314,13 @@ export function PatientDetailPage() {
                 <Heart className="h-4 w-4" />
                 Medical
               </TabsTrigger>
+              <TabsTrigger value="opd-visits" className="gap-2">
+                <Ticket className="h-4 w-4" />
+                OPD
+              </TabsTrigger>
               <TabsTrigger value="visits" className="gap-2">
                 <Stethoscope className="h-4 w-4" />
-                Visits
+                Consults
               </TabsTrigger>
               <TabsTrigger value="prescriptions" className="gap-2">
                 <Pill className="h-4 w-4" />
@@ -467,6 +472,10 @@ export function PatientDetailPage() {
 
             <TabsContent value="history">
               <MedicalHistorySection patientId={patient.id} />
+            </TabsContent>
+
+            <TabsContent value="opd-visits">
+              <PatientOPDVisits patientId={patient.id} />
             </TabsContent>
 
             <TabsContent value="visits" className="space-y-6">

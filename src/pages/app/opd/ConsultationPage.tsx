@@ -21,6 +21,8 @@ import { PrescriptionBuilder } from "@/components/consultation/PrescriptionBuild
 import { LabOrderBuilder } from "@/components/consultation/LabOrderBuilder";
 import { PatientQuickInfo } from "@/components/consultation/PatientQuickInfo";
 import { PreviousVisits } from "@/components/consultation/PreviousVisits";
+import { VisitSummaryDialog } from "@/components/consultation/VisitSummaryDialog";
+import { generateVisitId } from "@/lib/visit-id";
 import { cn } from "@/lib/utils";
 
 export default function ConsultationPage() {
@@ -65,6 +67,13 @@ export default function ConsultationPage() {
   );
   const [isSaving, setIsSaving] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
+  const [showVisitSummary, setShowVisitSummary] = useState(false);
+
+  // Generate Visit ID for display
+  const visitId = appointment ? generateVisitId({
+    appointment_date: appointment.appointment_date,
+    token_number: appointment.token_number,
+  }) : "";
 
   if (loadingAppointment) {
     return (
@@ -166,17 +175,22 @@ export default function ConsultationPage() {
     setIsSaving(false);
   };
 
-  const handleComplete = async () => {
+  const handleComplete = () => {
+    setShowVisitSummary(true);
+  };
+
+  const handleConfirmComplete = async () => {
     setIsCompleting(true);
     await saveConsultation(true);
     setIsCompleting(false);
+    setShowVisitSummary(false);
   };
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Consultation"
-        description={`${patient?.first_name} ${patient?.last_name || ""} - Token #${appointment.token_number || "N/A"}`}
+        description={`${patient?.first_name} ${patient?.last_name || ""} - Visit: ${visitId}`}
         actions={
           <Button variant="outline" onClick={() => navigate(-1)}>
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -270,6 +284,36 @@ export default function ConsultationPage() {
           )}
         </div>
       </div>
+
+      {/* Visit Summary Dialog */}
+      {patient && (
+        <VisitSummaryDialog
+          open={showVisitSummary}
+          onOpenChange={setShowVisitSummary}
+          appointment={{
+            id: appointment.id,
+            appointment_date: appointment.appointment_date,
+            token_number: appointment.token_number,
+            patient: {
+              first_name: patient.first_name,
+              last_name: patient.last_name,
+              patient_number: patient.patient_number,
+            },
+          }}
+          consultation={{
+            chiefComplaint,
+            symptoms,
+            diagnosis,
+            clinicalNotes,
+            vitals,
+            followUpDate,
+          }}
+          prescriptionItems={prescriptionItems}
+          labOrderItems={labOrderItems}
+          onConfirm={handleConfirmComplete}
+          isCompleting={isCompleting}
+        />
+      )}
     </div>
   );
 }
