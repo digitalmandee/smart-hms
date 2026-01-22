@@ -595,6 +595,9 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
           { name: "Add Employee", path: "/app/hr/employees/new", icon: "UserPlus" },
           { name: "Doctors", path: "/app/hr/doctors", icon: "Stethoscope" },
           { name: "Nurses", path: "/app/hr/nurses", icon: "HeartPulse" },
+          { name: "Paramedical Staff", path: "/app/hr/paramedical", icon: "Activity" },
+          { name: "Support Staff", path: "/app/hr/support-staff", icon: "HardHat" },
+          { name: "Visiting Doctors", path: "/app/hr/visiting-doctors", icon: "UserCheck" },
         ]
       },
       { 
@@ -604,6 +607,9 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         children: [
           { name: "Daily Attendance", path: "/app/hr/attendance", icon: "ClipboardList" },
           { name: "Attendance Sheet", path: "/app/hr/attendance/sheet", icon: "FileSpreadsheet" },
+          { name: "Duty Roster", path: "/app/hr/attendance/roster", icon: "Calendar" },
+          { name: "On-Call Schedule", path: "/app/hr/attendance/on-call", icon: "Phone" },
+          { name: "Overtime", path: "/app/hr/attendance/overtime", icon: "Clock" },
         ]
       },
       { 
@@ -645,9 +651,22 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         icon: "LogOut",
         children: [
           { name: "Resignations", path: "/app/hr/exit/resignations", icon: "UserMinus" },
+          { name: "Clearance", path: "/app/hr/exit/clearance", icon: "ClipboardCheck" },
+          { name: "Final Settlement", path: "/app/hr/exit/settlements", icon: "Calculator" },
+          { name: "Exit Interviews", path: "/app/hr/exit/interviews", icon: "MessageSquare" },
         ]
       },
-      { name: "Compliance", path: "/app/hr/compliance", icon: "Shield" },
+      { 
+        name: "Compliance", 
+        path: "", 
+        icon: "Shield",
+        children: [
+          { name: "Dashboard", path: "/app/hr/compliance", icon: "LayoutDashboard" },
+          { name: "Medical Fitness", path: "/app/hr/compliance/medical-fitness", icon: "HeartPulse" },
+          { name: "Vaccinations", path: "/app/hr/compliance/vaccinations", icon: "Syringe" },
+          { name: "Disciplinary", path: "/app/hr/compliance/disciplinary", icon: "AlertTriangle" },
+        ]
+      },
       { 
         name: "Setup", 
         path: "", 
