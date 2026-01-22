@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 import { useAppointments, type AppointmentWithRelations } from '@/hooks/useAppointments';
 import { useDoctorByEmployeeId } from '@/hooks/useDoctors';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAppointmentNotifications } from '@/hooks/useAppointmentNotifications';
 
 const statusColors: Record<string, string> = {
   scheduled: 'bg-blue-500',
@@ -38,6 +39,12 @@ export default function MyCalendarPage() {
 
   // Get doctor linked to current user's employee
   const { data: doctor } = useDoctorByEmployeeId(profile?.id || '');
+
+  // Enable realtime notifications for this doctor
+  useAppointmentNotifications({
+    doctorId: doctor?.id,
+    enabled: !!doctor?.id,
+  });
 
   const dateStr = format(selectedDate, 'yyyy-MM-dd');
 
