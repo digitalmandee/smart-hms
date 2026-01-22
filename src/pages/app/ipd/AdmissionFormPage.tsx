@@ -33,11 +33,12 @@ import { useDoctors } from "@/hooks/useDoctors";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCreateDepositInvoice, useRecordDepositPayment, useLinkAdmissionInvoice } from "@/hooks/useIPDDeposit";
 import { useIPDBedTypeRates } from "@/hooks/useIPDBedTypeRates";
+import { useSurgeryRequest, useUpdateSurgeryRequest } from "@/hooks/useSurgeryRequests";
 import { AdmissionPaymentDialog } from "@/components/ipd/AdmissionPaymentDialog";
 import { BedRateDisplay } from "@/components/ipd/BedRateDisplay";
 import { PaymentModeSelector, PaymentMode } from "@/components/ipd/PaymentModeSelector";
 import { IPDBedPickerDialog, IPDBedSelection } from "@/components/ipd/IPDBedPickerDialog";
-import { Save, CalendarIcon, Search, Bed } from "lucide-react";
+import { Save, CalendarIcon, Search, Bed, Scissors } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -70,6 +71,7 @@ export default function AdmissionFormPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const patientIdFromUrl = searchParams.get("patientId");
+  const surgeryRequestId = searchParams.get("surgeryRequestId");
   const { profile } = useAuth();
   const { mutateAsync: createAdmission, isPending: isCreatingAdmission } = useCreateAdmission();
   const { data: wards } = useWards();
@@ -77,6 +79,8 @@ export default function AdmissionFormPage() {
   const { data: patients } = usePatients();
   const { data: doctors } = useDoctors();
   const { data: bedTypeRates } = useIPDBedTypeRates();
+  const { data: surgeryRequest } = useSurgeryRequest(surgeryRequestId || undefined);
+  const updateSurgeryRequest = useUpdateSurgeryRequest();
   const [selectedWard, setSelectedWard] = useState<string>("");
   const [patientSearch, setPatientSearch] = useState("");
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
@@ -172,10 +176,10 @@ export default function AdmissionFormPage() {
         bed_id: values.bed_id || undefined,
         attending_doctor_id: values.attending_doctor_id || undefined,
         admitting_doctor_id: values.admitting_doctor_id || undefined,
-        chief_complaint: values.chief_complaint || undefined,
-        diagnosis_on_admission: values.diagnosis_on_admission || undefined,
+        chief_complaint: values.chief_complaint || surgeryRequest?.procedure_name || undefined,
+        diagnosis_on_admission: values.diagnosis_on_admission || surgeryRequest?.diagnosis || undefined,
         history_of_present_illness: values.history_of_present_illness || undefined,
-        clinical_notes: values.clinical_notes || undefined,
+        clinical_notes: values.clinical_notes || surgeryRequest?.clinical_notes || undefined,
         deposit_amount: values.deposit_amount || undefined,
         expected_discharge_date: values.expected_discharge_date
           ? format(values.expected_discharge_date, "yyyy-MM-dd")
@@ -183,8 +187,24 @@ export default function AdmissionFormPage() {
         payment_status: paymentStatus,
         admission_invoice_id: invoiceId,
       });
+
+      // If this admission is linked to a surgery request, update it
+      if (surgeryRequestId && admission) {
+        await updateSurgeryRequest.mutateAsync({
+          id: surgeryRequestId,
+          request_status: "admitted",
+          admission_id: admission.id,
+        });
+      }
+
       toast.success("Patient admission created successfully");
-      navigate("/app/ipd/admissions");
+      
+      // If surgery request exists, navigate to OT booking
+      if (surgeryRequestId) {
+        navigate(`/app/ot/surgeries/new?surgeryRequestId=${surgeryRequestId}`);
+      } else {
+        navigate("/app/ipd/admissions");
+      }
     } catch (error) {
       toast.error("Failed to create admission");
     }
@@ -288,6 +308,25 @@ export default function AdmissionFormPage() {
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          {/* Surgery Request Banner */}
+          {surgeryRequest && (
+            <div className="p-4 bg-warning/10 border border-warning/20 rounded-lg">
+              <div className="flex items-start gap-3">
+                <Scissors className="h-5 w-5 text-warning mt-0.5" />
+                <div className="flex-1">
+                  <p className="font-medium text-warning">Surgery Recommended</p>
+                  <p className="text-sm">
+                    <span className="font-medium">{surgeryRequest.procedure_name}</span>
+                    {surgeryRequest.diagnosis && ` • ${surgeryRequest.diagnosis}`}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    After admission, you'll be redirected to schedule the OT.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Patient Selection */}
           <Card>
             <CardHeader>

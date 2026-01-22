@@ -11,6 +11,7 @@ import { TodayScheduleList } from "@/components/reception/TodayScheduleList";
 import { UpcomingAppointmentCard } from "@/components/reception/UpcomingAppointmentCard";
 import { ReceptionQuickActions } from "@/components/reception/ReceptionQuickActions";
 import { RecentRegistrationCard } from "@/components/reception/RecentRegistrationCard";
+import { PendingSurgeryRequestsCard } from "@/components/reception/PendingSurgeryRequestsCard";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function ReceptionistDashboard() {
@@ -85,10 +86,10 @@ export default function ReceptionistDashboard() {
         />
       </div>
 
-      {/* Main Content: 3-Column Layout */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Column 1: Today's Schedule */}
-        <Card className="lg:col-span-1 transition-all hover:shadow-lg">
+      {/* Main Content: 2x2 Grid */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Today's Schedule */}
+        <Card className="transition-all hover:shadow-lg">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center gap-2">
               <div className="p-2 rounded-lg bg-primary/10">
@@ -98,7 +99,7 @@ export default function ReceptionistDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <ScrollArea className="h-[400px]">
+            <ScrollArea className="h-[350px]">
               <TodayScheduleList 
                 appointments={dashboardData?.todaysAppointments || []} 
                 isLoading={dashboardLoading}
@@ -107,8 +108,11 @@ export default function ReceptionistDashboard() {
           </CardContent>
         </Card>
 
-        {/* Column 2: Upcoming Appointments */}
-        <Card className="lg:col-span-1 transition-all hover:shadow-lg">
+        {/* Pending Surgery Requests */}
+        <PendingSurgeryRequestsCard maxItems={4} />
+
+        {/* Upcoming Appointments */}
+        <Card className="transition-all hover:shadow-lg">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center gap-2">
               <div className="p-2 rounded-lg bg-warning/10">
@@ -118,7 +122,7 @@ export default function ReceptionistDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <ScrollArea className="h-[400px]">
+            <ScrollArea className="h-[350px]">
               <div className="space-y-2 p-4 pt-0">
                 {dashboardLoading ? (
                   <p className="text-sm text-muted-foreground text-center py-8">Loading...</p>
@@ -139,8 +143,8 @@ export default function ReceptionistDashboard() {
           </CardContent>
         </Card>
 
-        {/* Column 3: Quick Actions */}
-        <Card className="lg:col-span-1 transition-all hover:shadow-lg">
+        {/* Quick Actions */}
+        <Card className="transition-all hover:shadow-lg">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg">Quick Actions</CardTitle>
           </CardHeader>

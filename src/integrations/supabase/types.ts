@@ -14006,6 +14006,148 @@ export type Database = {
           },
         ]
       }
+      surgery_requests: {
+        Row: {
+          admission_id: string | null
+          branch_id: string | null
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
+          clinical_notes: string | null
+          consultation_id: string | null
+          created_at: string | null
+          created_by: string | null
+          diagnosis: string | null
+          estimated_duration_minutes: number | null
+          id: string
+          organization_id: string
+          patient_id: string
+          preferred_date_from: string | null
+          preferred_date_to: string | null
+          priority: string | null
+          procedure_name: string
+          recommended_by: string | null
+          recommended_date: string | null
+          request_status: string | null
+          surgery_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          admission_id?: string | null
+          branch_id?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          clinical_notes?: string | null
+          consultation_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          diagnosis?: string | null
+          estimated_duration_minutes?: number | null
+          id?: string
+          organization_id: string
+          patient_id: string
+          preferred_date_from?: string | null
+          preferred_date_to?: string | null
+          priority?: string | null
+          procedure_name: string
+          recommended_by?: string | null
+          recommended_date?: string | null
+          request_status?: string | null
+          surgery_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          admission_id?: string | null
+          branch_id?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          clinical_notes?: string | null
+          consultation_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          diagnosis?: string | null
+          estimated_duration_minutes?: number | null
+          id?: string
+          organization_id?: string
+          patient_id?: string
+          preferred_date_from?: string | null
+          preferred_date_to?: string | null
+          priority?: string | null
+          procedure_name?: string
+          recommended_by?: string | null
+          recommended_date?: string | null
+          request_status?: string | null
+          surgery_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "surgery_requests_admission_id_fkey"
+            columns: ["admission_id"]
+            isOneToOne: false
+            referencedRelation: "admissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surgery_requests_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surgery_requests_cancelled_by_fkey"
+            columns: ["cancelled_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surgery_requests_consultation_id_fkey"
+            columns: ["consultation_id"]
+            isOneToOne: false
+            referencedRelation: "consultations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surgery_requests_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surgery_requests_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surgery_requests_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surgery_requests_recommended_by_fkey"
+            columns: ["recommended_by"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surgery_requests_surgery_id_fkey"
+            columns: ["surgery_id"]
+            isOneToOne: false
+            referencedRelation: "surgeries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       surgery_team_members: {
         Row: {
           confirmed_at: string | null
