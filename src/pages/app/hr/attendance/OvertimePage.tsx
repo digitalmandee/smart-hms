@@ -24,10 +24,10 @@ export default function OvertimePage() {
   const monthStart = startOfMonth(new Date(selectedMonth + "-01"));
   const monthEnd = endOfMonth(monthStart);
   
-  const { data: attendanceRecords, isLoading: loadingAttendance } = useAttendanceRecords(
-    format(monthStart, "yyyy-MM-dd"),
-    format(monthEnd, "yyyy-MM-dd")
-  );
+  const { data: attendanceRecords, isLoading: loadingAttendance } = useAttendanceRecords({
+    startDate: format(monthStart, "yyyy-MM-dd"),
+    endDate: format(monthEnd, "yyyy-MM-dd")
+  });
 
   // Calculate overtime per employee from attendance records
   const employeeOvertimeData = employees?.map(emp => {
