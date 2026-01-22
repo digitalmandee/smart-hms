@@ -4,105 +4,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 
 // ========================
-// TYPES
-// ========================
-
-export interface JobOpening {
-  id: string;
-  organization_id: string;
-  branch_id: string | null;
-  title: string;
-  department_id: string | null;
-  designation_id: string | null;
-  positions_available: number;
-  employment_type: 'permanent' | 'contract' | 'temporary' | 'internship';
-  experience_required: string | null;
-  qualification_required: string | null;
-  skills_required: string[] | null;
-  job_description: string | null;
-  requirements: string | null;
-  salary_range_min: number | null;
-  salary_range_max: number | null;
-  benefits: string | null;
-  status: 'draft' | 'open' | 'on_hold' | 'closed' | 'filled' | 'cancelled';
-  published_at: string | null;
-  closes_at: string | null;
-  created_at: string;
-  updated_at: string;
-  department?: { name: string };
-  designation?: { name: string };
-  _count?: { applications: number };
-}
-
-export interface JobApplication {
-  id: string;
-  organization_id: string;
-  job_opening_id: string;
-  applicant_name: string;
-  email: string;
-  phone: string | null;
-  cnic: string | null;
-  current_employer: string | null;
-  current_designation: string | null;
-  experience_years: number | null;
-  expected_salary: number | null;
-  notice_period_days: number | null;
-  resume_url: string | null;
-  cover_letter: string | null;
-  source: string | null;
-  referred_by: string | null;
-  status: 'received' | 'screening' | 'shortlisted' | 'interview' | 'offer' | 'hired' | 'rejected' | 'withdrawn';
-  rejection_reason: string | null;
-  notes: string | null;
-  applied_at: string;
-  updated_at: string;
-  job_opening?: JobOpening;
-}
-
-export interface Interview {
-  id: string;
-  organization_id: string;
-  application_id: string;
-  interview_round: number;
-  interview_type: 'phone' | 'video' | 'in_person' | 'technical' | 'hr' | 'panel';
-  scheduled_at: string;
-  duration_minutes: number;
-  location: string | null;
-  meeting_link: string | null;
-  interviewer_ids: string[] | null;
-  status: 'scheduled' | 'completed' | 'cancelled' | 'no_show' | 'rescheduled';
-  feedback: string | null;
-  strengths: string | null;
-  weaknesses: string | null;
-  rating: number | null;
-  recommendation: 'strongly_hire' | 'hire' | 'maybe' | 'no_hire' | 'strongly_no_hire' | null;
-  notes: string | null;
-  created_at: string;
-  application?: JobApplication;
-}
-
-export interface OfferLetter {
-  id: string;
-  organization_id: string;
-  application_id: string;
-  offered_salary: number;
-  offered_designation_id: string | null;
-  offered_department_id: string | null;
-  joining_date: string | null;
-  probation_months: number;
-  benefits: string | null;
-  terms_conditions: string | null;
-  offer_date: string;
-  valid_until: string | null;
-  status: 'pending' | 'sent' | 'accepted' | 'rejected' | 'expired' | 'withdrawn';
-  accepted_at: string | null;
-  rejected_reason: string | null;
-  document_url: string | null;
-  created_at: string;
-  application?: JobApplication;
-}
-
-// ========================
 // JOB OPENINGS HOOKS
 // ========================
 
@@ -114,11 +15,7 @@ export function useJobOpenings(status?: string) {
     queryFn: async () => {
       let query = supabase
         .from("job_openings")
-        .select(`
-          *,
-          department:departments(name),
-          designation:designations(name)
-        `)
+        .select("*")
         .eq("organization_id", profile!.organization_id!)
         .order("created_at", { ascending: false });
 
@@ -131,20 +28,24 @@ export function useJobOpenings(status?: string) {
 
       // Get application counts
       const jobIds = data.map(j => j.id);
-      const { data: appCounts } = await supabase
-        .from("job_applications")
-        .select("job_opening_id")
-        .in("job_opening_id", jobIds);
+      if (jobIds.length > 0) {
+        const { data: appCounts } = await supabase
+          .from("job_applications")
+          .select("job_opening_id")
+          .in("job_opening_id", jobIds);
 
-      const countMap = new Map<string, number>();
-      appCounts?.forEach(app => {
-        countMap.set(app.job_opening_id, (countMap.get(app.job_opening_id) || 0) + 1);
-      });
+        const countMap = new Map<string, number>();
+        appCounts?.forEach(app => {
+          countMap.set(app.job_opening_id, (countMap.get(app.job_opening_id) || 0) + 1);
+        });
 
-      return data.map(job => ({
-        ...job,
-        _count: { applications: countMap.get(job.id) || 0 }
-      })) as JobOpening[];
+        return data.map(job => ({
+          ...job,
+          _count: { applications: countMap.get(job.id) || 0 }
+        }));
+      }
+
+      return data.map(job => ({ ...job, _count: { applications: 0 } }));
     },
     enabled: !!profile?.organization_id,
   });
@@ -156,16 +57,12 @@ export function useJobOpening(id: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("job_openings")
-        .select(`
-          *,
-          department:departments(name),
-          designation:designations(name)
-        `)
+        .select("*")
         .eq("id", id!)
         .single();
 
       if (error) throw error;
-      return data as JobOpening;
+      return data;
     },
     enabled: !!id,
   });
@@ -177,11 +74,43 @@ export function useCreateJobOpening() {
   const { profile } = useAuth();
 
   return useMutation({
-    mutationFn: async (data: Partial<JobOpening>) => {
+    mutationFn: async (record: {
+      title: string;
+      department_id?: string;
+      designation_id?: string;
+      branch_id?: string;
+      positions_available?: number;
+      employment_type?: string;
+      experience_required?: string;
+      qualification_required?: string;
+      skills_required?: string[];
+      job_description?: string;
+      requirements?: string;
+      salary_range_min?: number;
+      salary_range_max?: number;
+      benefits?: string;
+      status?: string;
+      closes_at?: string;
+    }) => {
       const { data: result, error } = await supabase
         .from("job_openings")
         .insert({
-          ...data,
+          title: record.title,
+          department_id: record.department_id,
+          designation_id: record.designation_id,
+          branch_id: record.branch_id,
+          positions_available: record.positions_available,
+          employment_type: record.employment_type,
+          experience_required: record.experience_required,
+          qualification_required: record.qualification_required,
+          skills_required: record.skills_required,
+          job_description: record.job_description,
+          requirements: record.requirements,
+          salary_range_min: record.salary_range_min,
+          salary_range_max: record.salary_range_max,
+          benefits: record.benefits,
+          status: record.status || 'draft',
+          closes_at: record.closes_at,
           organization_id: profile!.organization_id!,
           created_by: profile!.id,
         })
@@ -206,7 +135,7 @@ export function useUpdateJobOpening() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ id, ...data }: Partial<JobOpening> & { id: string }) => {
+    mutationFn: async ({ id, ...data }: { id: string } & Record<string, unknown>) => {
       const { error } = await supabase
         .from("job_openings")
         .update({ ...data, updated_at: new Date().toISOString() })
@@ -236,10 +165,7 @@ export function useJobApplications(filters?: { jobOpeningId?: string; status?: s
     queryFn: async () => {
       let query = supabase
         .from("job_applications")
-        .select(`
-          *,
-          job_opening:job_openings(title, department:departments(name))
-        `)
+        .select("*")
         .eq("organization_id", profile!.organization_id!)
         .order("applied_at", { ascending: false });
 
@@ -252,7 +178,7 @@ export function useJobApplications(filters?: { jobOpeningId?: string; status?: s
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as JobApplication[];
+      return data;
     },
     enabled: !!profile?.organization_id,
   });
@@ -264,15 +190,12 @@ export function useJobApplication(id: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("job_applications")
-        .select(`
-          *,
-          job_opening:job_openings(*)
-        `)
+        .select("*")
         .eq("id", id!)
         .single();
 
       if (error) throw error;
-      return data as JobApplication;
+      return data;
     },
     enabled: !!id,
   });
@@ -284,11 +207,41 @@ export function useCreateJobApplication() {
   const { profile } = useAuth();
 
   return useMutation({
-    mutationFn: async (data: Partial<JobApplication>) => {
+    mutationFn: async (record: {
+      job_opening_id: string;
+      applicant_name: string;
+      email: string;
+      phone?: string;
+      cnic?: string;
+      current_employer?: string;
+      current_designation?: string;
+      experience_years?: number;
+      expected_salary?: number;
+      notice_period_days?: number;
+      resume_url?: string;
+      cover_letter?: string;
+      source?: string;
+      referred_by?: string;
+      notes?: string;
+    }) => {
       const { data: result, error } = await supabase
         .from("job_applications")
         .insert({
-          ...data,
+          job_opening_id: record.job_opening_id,
+          applicant_name: record.applicant_name,
+          email: record.email,
+          phone: record.phone,
+          cnic: record.cnic,
+          current_employer: record.current_employer,
+          current_designation: record.current_designation,
+          experience_years: record.experience_years,
+          expected_salary: record.expected_salary,
+          notice_period_days: record.notice_period_days,
+          resume_url: record.resume_url,
+          cover_letter: record.cover_letter,
+          source: record.source,
+          referred_by: record.referred_by,
+          notes: record.notes,
           organization_id: profile!.organization_id!,
         })
         .select()
@@ -312,7 +265,7 @@ export function useUpdateJobApplication() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ id, ...data }: Partial<JobApplication> & { id: string }) => {
+    mutationFn: async ({ id, ...data }: { id: string } & Record<string, unknown>) => {
       const { error } = await supabase
         .from("job_applications")
         .update({ ...data, updated_at: new Date().toISOString() })
@@ -342,13 +295,7 @@ export function useInterviews(filters?: { applicationId?: string; status?: strin
     queryFn: async () => {
       let query = supabase
         .from("interviews")
-        .select(`
-          *,
-          application:job_applications(
-            applicant_name,
-            job_opening:job_openings(title)
-          )
-        `)
+        .select("*")
         .eq("organization_id", profile!.organization_id!)
         .order("scheduled_at", { ascending: true });
 
@@ -361,7 +308,7 @@ export function useInterviews(filters?: { applicationId?: string; status?: strin
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as Interview[];
+      return data;
     },
     enabled: !!profile?.organization_id,
   });
@@ -373,21 +320,47 @@ export function useCreateInterview() {
   const { profile } = useAuth();
 
   return useMutation({
-    mutationFn: async (data: Partial<Interview>) => {
+    mutationFn: async (record: {
+      application_id: string;
+      interview_round?: number;
+      interview_type?: string;
+      scheduled_at: string;
+      duration_minutes?: number;
+      location?: string;
+      meeting_link?: string;
+      interviewer_ids?: string[];
+      notes?: string;
+    }) => {
       const { data: result, error } = await supabase
         .from("interviews")
         .insert({
-          ...data,
+          application_id: record.application_id,
+          interview_round: record.interview_round || 1,
+          interview_type: record.interview_type || 'in_person',
+          scheduled_at: record.scheduled_at,
+          duration_minutes: record.duration_minutes || 30,
+          location: record.location,
+          meeting_link: record.meeting_link,
+          interviewer_ids: record.interviewer_ids,
+          notes: record.notes,
           organization_id: profile!.organization_id!,
         })
         .select()
         .single();
 
       if (error) throw error;
+
+      // Update application status to 'interview'
+      await supabase
+        .from("job_applications")
+        .update({ status: "interview" })
+        .eq("id", record.application_id);
+
       return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["interviews"] });
+      queryClient.invalidateQueries({ queryKey: ["job-applications"] });
       toast({ title: "Success", description: "Interview scheduled successfully" });
     },
     onError: (error: Error) => {
@@ -401,7 +374,7 @@ export function useUpdateInterview() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ id, ...data }: Partial<Interview> & { id: string }) => {
+    mutationFn: async ({ id, ...data }: { id: string } & Record<string, unknown>) => {
       const { error } = await supabase
         .from("interviews")
         .update({ ...data, updated_at: new Date().toISOString() })
@@ -431,19 +404,12 @@ export function useOfferLetters() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("offer_letters")
-        .select(`
-          *,
-          application:job_applications(
-            applicant_name,
-            email,
-            job_opening:job_openings(title)
-          )
-        `)
+        .select("*")
         .eq("organization_id", profile!.organization_id!)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data as OfferLetter[];
+      return data;
     },
     enabled: !!profile?.organization_id,
   });
@@ -455,11 +421,29 @@ export function useCreateOfferLetter() {
   const { profile } = useAuth();
 
   return useMutation({
-    mutationFn: async (data: Partial<OfferLetter>) => {
+    mutationFn: async (record: {
+      application_id: string;
+      offered_salary: number;
+      offered_designation_id?: string;
+      offered_department_id?: string;
+      joining_date?: string;
+      probation_months?: number;
+      benefits?: string;
+      terms_conditions?: string;
+      valid_until?: string;
+    }) => {
       const { data: result, error } = await supabase
         .from("offer_letters")
         .insert({
-          ...data,
+          application_id: record.application_id,
+          offered_salary: record.offered_salary,
+          offered_designation_id: record.offered_designation_id,
+          offered_department_id: record.offered_department_id,
+          joining_date: record.joining_date,
+          probation_months: record.probation_months || 3,
+          benefits: record.benefits,
+          terms_conditions: record.terms_conditions,
+          valid_until: record.valid_until,
           organization_id: profile!.organization_id!,
           created_by: profile!.id,
         })
@@ -472,7 +456,7 @@ export function useCreateOfferLetter() {
       await supabase
         .from("job_applications")
         .update({ status: "offer" })
-        .eq("id", data.application_id);
+        .eq("id", record.application_id);
 
       return result;
     },
@@ -492,7 +476,7 @@ export function useUpdateOfferLetter() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ id, ...data }: Partial<OfferLetter> & { id: string }) => {
+    mutationFn: async ({ id, ...data }: { id: string } & Record<string, unknown>) => {
       const { error } = await supabase
         .from("offer_letters")
         .update(data)
