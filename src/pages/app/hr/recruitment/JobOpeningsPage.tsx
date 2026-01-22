@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, Briefcase, Users, Clock, CheckCircle, Loader2, Eye, Pencil, MapPin } from "lucide-react";
 import { useJobOpenings, useCreateJobOpening, useUpdateJobOpening } from "@/hooks/useRecruitment";
-import { useDepartments, useDesignations } from "@/hooks/useOrganizationSetup";
+import { useDepartments, useDesignations } from "@/hooks/useHR";
 import { format } from "date-fns";
 
 const STATUS_OPTIONS = [

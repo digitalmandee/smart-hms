@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, Users, Clock, CheckCircle, XCircle, Loader2, FileText } from "lucide-react";
 import { useResignations, useCreateResignation, useUpdateResignation } from "@/hooks/useExitManagement";
-import { useEmployees } from "@/hooks/useEmployees";
+import { useEmployees } from "@/hooks/useHR";
 import { format, differenceInDays } from "date-fns";
 
 const STATUS_OPTIONS = [
@@ -138,7 +138,7 @@ export default function ResignationsPage() {
                       <SelectValue placeholder="Select employee" />
                     </SelectTrigger>
                     <SelectContent>
-                      {employees?.filter((e) => e.status === "active").map((emp) => (
+                      {employees?.filter((e) => e.employment_status === "active").map((emp) => (
                         <SelectItem key={emp.id} value={emp.id}>
                           {emp.first_name} {emp.last_name} ({emp.employee_number})
                         </SelectItem>
@@ -329,7 +329,7 @@ export default function ResignationsPage() {
                     <TableCell>
                       {differenceInDays(new Date(resignation.last_working_date), new Date(resignation.resignation_date))} days
                     </TableCell>
-                    <TableCell className="capitalize">{resignation.primary_reason?.replace("_", " ") || "-"}</TableCell>
+                    <TableCell className="capitalize">-</TableCell>
                     <TableCell>{getStatusBadge(resignation.status)}</TableCell>
                     <TableCell className="text-right">
                       <Select

@@ -20,7 +20,7 @@ import {
   useCreateMedicalFitnessRecord, useCreateVaccinationRecord, useCreateDisciplinaryAction, useCreateIncidentReport,
   type IncidentReport
 } from "@/hooks/useCompliance";
-import { useEmployees } from "@/hooks/useEmployees";
+import { useEmployees } from "@/hooks/useHR";
 import { format, differenceInDays } from "date-fns";
 
 const FITNESS_STATUS = [
@@ -79,7 +79,14 @@ export default function ComplianceDashboardPage() {
   const openIncidents = incidents?.filter((i) => i.investigation_status !== "closed").length || 0;
 
   // Form states
-  const [fitnessForm, setFitnessForm] = useState({
+  const [fitnessForm, setFitnessForm] = useState<{
+    employee_id: string;
+    examination_date: string;
+    examiner: string;
+    fitness_status: "fit" | "fit_with_restrictions" | "temporarily_unfit" | "permanently_unfit";
+    restrictions: string;
+    next_examination_date: string;
+  }>({
     employee_id: "",
     examination_date: new Date().toISOString().split("T")[0],
     examiner: "",
@@ -288,7 +295,7 @@ export default function ComplianceDashboardPage() {
                         </div>
                         <div className="space-y-2">
                           <Label>Status</Label>
-                          <Select value={fitnessForm.fitness_status} onValueChange={(v) => setFitnessForm({ ...fitnessForm, fitness_status: v })}>
+                          <Select value={fitnessForm.fitness_status} onValueChange={(v: "fit" | "fit_with_restrictions" | "temporarily_unfit" | "permanently_unfit") => setFitnessForm({ ...fitnessForm, fitness_status: v })}>
                             <SelectTrigger><SelectValue /></SelectTrigger>
                             <SelectContent>
                               {FITNESS_STATUS.map((s) => (
@@ -364,7 +371,7 @@ export default function ComplianceDashboardPage() {
                         </div>
                         <div className="space-y-2">
                           <Label>Severity</Label>
-                          <Select value={incidentForm.severity} onValueChange={(v) => setIncidentForm({ ...incidentForm, severity: v })}>
+                          <Select value={incidentForm.severity} onValueChange={(v: "minor" | "moderate" | "major" | "critical") => setIncidentForm({ ...incidentForm, severity: v })}>
                             <SelectTrigger><SelectValue /></SelectTrigger>
                             <SelectContent>
                               {INCIDENT_SEVERITY.map((s) => (

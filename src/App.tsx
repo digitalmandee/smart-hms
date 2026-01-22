@@ -192,8 +192,13 @@ import AttendanceReportsPage from "./pages/app/hr/attendance/AttendanceReportsPa
 import BiometricDevicesPage from "./pages/app/hr/attendance/BiometricDevicesPage";
 import SalaryComponentsPage from "./pages/app/hr/setup/SalaryComponentsPage";
 import TaxSlabsPage from "./pages/app/hr/setup/TaxSlabsPage";
+import DoctorCompensationPage from "./pages/app/hr/payroll/DoctorCompensationPage";
+import DoctorEarningsPage from "./pages/app/hr/payroll/DoctorEarningsPage";
+import JobOpeningsPage from "./pages/app/hr/recruitment/JobOpeningsPage";
+import ApplicationsPage from "./pages/app/hr/recruitment/ApplicationsPage";
+import ResignationsPage from "./pages/app/hr/exit/ResignationsPage";
+import ComplianceDashboardPage from "./pages/app/hr/compliance/ComplianceDashboardPage";
 
-// IPD pages
 import IPDDashboard from "./pages/app/ipd/IPDDashboard";
 import WardsListPage from "./pages/app/ipd/WardsListPage";
 import WardFormPage from "./pages/app/ipd/WardFormPage";
@@ -703,6 +708,12 @@ function App() {
               <Route path="hr/attendance/reports" element={<AttendanceReportsPage />} />
               <Route path="hr/setup/salary-components" element={<SalaryComponentsPage />} />
               <Route path="hr/setup/tax-slabs" element={<TaxSlabsPage />} />
+              <Route path="hr/payroll/doctor-compensation" element={<DoctorCompensationPage />} />
+              <Route path="hr/payroll/doctor-earnings" element={<DoctorEarningsPage />} />
+              <Route path="hr/recruitment/jobs" element={<JobOpeningsPage />} />
+              <Route path="hr/recruitment/applications" element={<ApplicationsPage />} />
+              <Route path="hr/exit/resignations" element={<ResignationsPage />} />
+              <Route path="hr/compliance" element={<ComplianceDashboardPage />} />
               
               {/* Settings routes */}
               <Route path="settings/branches" element={<BranchesListPage />} />
