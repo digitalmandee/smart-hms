@@ -44,16 +44,6 @@ export default function ParamedicalStaffPage() {
     return paramedicalCategoryIds.includes(emp.category_id || "") || isParamedicalDept;
   }) || [];
 
-  // Filter employees by paramedical category or department
-  const paramedicalStaff = employees?.filter((emp) => {
-    const dept = departments?.find((d) => d.id === emp.department_id);
-    const isParamedicalDept = dept?.name.toLowerCase().includes("lab") ||
-      dept?.name.toLowerCase().includes("radiology") ||
-      dept?.name.toLowerCase().includes("pharmacy") ||
-      dept?.name.toLowerCase().includes("pathology");
-    
-    return paramedicalCategoryIds.includes(emp.employee_category_id || "") || isParamedicalDept;
-  }) || [];
 
   const filteredStaff = paramedicalStaff.filter((emp) =>
     `${emp.first_name} ${emp.last_name}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
