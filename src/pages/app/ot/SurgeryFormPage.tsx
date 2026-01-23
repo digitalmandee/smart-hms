@@ -32,6 +32,7 @@ export default function SurgeryFormPage() {
   const prefillDate = searchParams.get('date');
   const prefillTime = searchParams.get('time');
   const prefillRoom = searchParams.get('room');
+  const surgeryRequestId = searchParams.get('surgeryRequestId');
   
   const [selectedPatient, setSelectedPatient] = useState<any>(null);
   const [scheduledDate, setScheduledDate] = useState<Date | undefined>(
@@ -120,6 +121,21 @@ export default function SurgeryFormPage() {
         is_billable: !!activeAdmission, // Billable if IPD patient
         estimated_cost: totalOTCharges, // Total from services
       });
+
+      // If surgery was created from a surgery request, update the request status
+      if (surgeryRequestId && surgery) {
+        const { error: requestError } = await supabase
+          .from('surgery_requests')
+          .update({ 
+            request_status: 'scheduled',
+            surgery_id: surgery.id 
+          })
+          .eq('id', surgeryRequestId);
+
+        if (requestError) {
+          console.error('Failed to update surgery request:', requestError);
+        }
+      }
 
       // If patient is admitted and has OT services, post charges to IPD
       if (activeAdmission && otServices.length > 0 && surgery) {
