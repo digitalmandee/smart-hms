@@ -1,5 +1,4 @@
 import { format } from "date-fns";
-import { Separator } from "@/components/ui/separator";
 
 interface PrintableDischargeSummaryProps {
   admission: any;
@@ -12,19 +11,56 @@ export function PrintableDischargeSummary({
   summary,
   organization,
 }: PrintableDischargeSummaryProps) {
-  const patient = admission?.patients;
+  const patient = admission?.patients || admission?.patient;
 
   return (
-    <div className="p-8 bg-white text-black print:p-4" id="discharge-summary-print">
-      {/* Header */}
-      <div className="text-center mb-6">
-        <h1 className="text-2xl font-bold">{organization?.name || "Hospital Name"}</h1>
-        <p className="text-sm text-gray-600">{organization?.address}</p>
-        <p className="text-sm text-gray-600">
-          Phone: {organization?.phone} | Email: {organization?.email}
-        </p>
-        <Separator className="my-4" />
-        <h2 className="text-xl font-semibold">DISCHARGE SUMMARY</h2>
+    <div 
+      className="bg-white text-black min-h-[297mm] w-[210mm] mx-auto" 
+      id="discharge-summary-print"
+      style={{ 
+        padding: "15mm",
+        fontFamily: "'Times New Roman', serif",
+        fontSize: "11pt",
+        lineHeight: "1.4",
+      }}
+    >
+      {/* Professional Letterhead Header */}
+      <div className="border-b-2 border-blue-800 pb-4 mb-6">
+        <div className="flex items-start justify-between">
+          {/* Logo placeholder */}
+          <div className="w-20 h-20 border border-gray-300 flex items-center justify-center text-xs text-gray-400">
+            {organization?.logo_url ? (
+              <img src={organization.logo_url} alt="Logo" className="max-w-full max-h-full object-contain" />
+            ) : (
+              "LOGO"
+            )}
+          </div>
+          
+          {/* Organization Info */}
+          <div className="text-center flex-1 px-4">
+            <h1 className="text-2xl font-bold text-blue-800 uppercase tracking-wide">
+              {organization?.name || "Hospital Name"}
+            </h1>
+            <p className="text-sm mt-1">{organization?.address}</p>
+            <p className="text-sm">
+              {organization?.phone && `Tel: ${organization.phone}`}
+              {organization?.email && ` | Email: ${organization.email}`}
+            </p>
+            {organization?.registration_number && (
+              <p className="text-xs mt-1 text-gray-600">
+                Reg. No: {organization.registration_number}
+              </p>
+            )}
+          </div>
+          
+          {/* Empty space for symmetry */}
+          <div className="w-20"></div>
+        </div>
+        
+        {/* Document Title */}
+        <div className="mt-4 py-2 bg-blue-800 text-white text-center">
+          <h2 className="text-lg font-bold uppercase tracking-wider">Discharge Summary</h2>
+        </div>
       </div>
 
       {/* Patient Information */}
@@ -72,7 +108,7 @@ export function PrintableDischargeSummary({
         </div>
       </div>
 
-      <Separator className="my-4" />
+      <div className="border-t border-gray-300 my-4"></div>
 
       {/* Diagnosis */}
       <div className="mb-6">
@@ -128,7 +164,7 @@ export function PrintableDischargeSummary({
         </div>
       )}
 
-      <Separator className="my-4" />
+      <div className="border-t border-gray-300 my-4"></div>
 
       {/* Medications */}
       <div className="mb-6">
@@ -210,7 +246,7 @@ export function PrintableDischargeSummary({
         )}
       </div>
 
-      <Separator className="my-6" />
+      <div className="border-t border-gray-300 my-6"></div>
 
       {/* Signatures */}
       <div className="grid grid-cols-3 gap-4 mt-8 text-sm">
@@ -237,12 +273,28 @@ export function PrintableDischargeSummary({
       </div>
 
       {/* Footer */}
-      <div className="mt-8 text-center text-xs text-gray-500">
+      <div className="mt-8 pt-4 border-t border-gray-300 text-center text-xs text-gray-500">
         <p>
-          Generated on {format(new Date(), "dd/MM/yyyy HH:mm")} | This is a computer-generated
-          document
+          Generated on {format(new Date(), "dd/MM/yyyy HH:mm")} | This is a computer-generated document
+        </p>
+        <p className="mt-1">
+          {organization?.name} • {organization?.address}
         </p>
       </div>
+      
+      {/* Print Styles */}
+      <style>{`
+        @media print {
+          @page {
+            size: A4;
+            margin: 0;
+          }
+          #discharge-summary-print {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

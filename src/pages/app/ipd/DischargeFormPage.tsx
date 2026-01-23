@@ -48,6 +48,7 @@ import { RoomChargesSyncButton } from "@/components/ipd/RoomChargesSyncButton";
 import { useBackfillRoomCharges } from "@/hooks/useRoomChargeSync";
 import { InvoiceItemsBuilder } from "@/components/billing/InvoiceItemsBuilder";
 import { InvoiceItemInput } from "@/hooks/useBilling";
+import { useOrganizationBranding } from "@/hooks/useOrganizationBranding";
 import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
@@ -123,6 +124,7 @@ export default function DischargeFormPage() {
   const { data: creditBalance } = usePatientCreditBalance(admission?.patient_id);
   const pharmacyCreditsTotal = creditBalance?.total || 0;
   const pendingPharmacyCredits = pharmacyCredits.filter(c => c.status !== "paid");
+  const { data: branding } = useOrganizationBranding();
   const isLoading = loadingAdmission || loadingSummary;
   const invoiceGenerated = !!invoiceId;
 
@@ -730,13 +732,14 @@ export default function DischargeFormPage() {
       <div className="hidden">
         <div ref={summaryPrintRef}>
           {dischargeSummary && admission && (
-            <PrintableDischargeSummary admission={admission} summary={dischargeSummary} />
+            <PrintableDischargeSummary admission={admission} summary={dischargeSummary} organization={branding} />
           )}
         </div>
         <div ref={formPrintRef}>
           <PrintableDischargeForm
             admission={admission}
             summary={dischargeSummary}
+            organization={branding}
             invoice={existingInvoice ? {
               invoice_number: existingInvoice.invoice_number,
               total_amount: existingInvoice.total_amount || 0,

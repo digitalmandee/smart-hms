@@ -194,7 +194,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         icon: "Bed",
         children: [
           { name: "My Patients", path: "/app/ipd/rounds", icon: "ClipboardList" },
-          { name: "Discharges", path: "/app/ipd/discharges", icon: "FileText" },
+          { name: "Request Discharge", path: "/app/ipd/discharges", icon: "Send" },
         ]
       },
       { 

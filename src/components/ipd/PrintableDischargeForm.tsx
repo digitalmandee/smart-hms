@@ -1,5 +1,4 @@
 import { format } from "date-fns";
-import { Separator } from "@/components/ui/separator";
 
 interface PrintableDischargeFormProps {
   admission: any;
@@ -31,29 +30,57 @@ export function PrintableDischargeForm({
   };
 
   return (
-    <div className="p-8 bg-white text-black print:p-4 min-h-[297mm]" id="discharge-form-print">
-      {/* Header */}
-      <div className="text-center mb-6 border-b-2 border-black pb-4">
-        <h1 className="text-2xl font-bold uppercase">
-          {organization?.name || "Hospital Name"}
-        </h1>
-        {organization?.address && (
-          <p className="text-sm">{organization.address}</p>
-        )}
-        <p className="text-sm">
-          {organization?.phone && `Tel: ${organization.phone}`}
-          {organization?.email && ` | Email: ${organization.email}`}
-        </p>
-        {organization?.registration_number && (
-          <p className="text-xs mt-1">Reg. No: {organization.registration_number}</p>
-        )}
-        <div className="mt-4 py-2 bg-gray-100 border border-gray-300">
-          <h2 className="text-xl font-bold">DISCHARGE FORM</h2>
+    <div 
+      className="bg-white text-black min-h-[297mm] w-[210mm] mx-auto" 
+      id="discharge-form-print"
+      style={{ 
+        padding: "15mm",
+        fontFamily: "'Times New Roman', serif",
+        fontSize: "11pt",
+        lineHeight: "1.4",
+      }}
+    >
+      {/* Professional Letterhead Header */}
+      <div className="border-b-2 border-blue-800 pb-4 mb-6">
+        <div className="flex items-start justify-between">
+          {/* Logo placeholder */}
+          <div className="w-20 h-20 border border-gray-300 flex items-center justify-center text-xs text-gray-400">
+            {organization?.logo_url ? (
+              <img src={organization.logo_url} alt="Logo" className="max-w-full max-h-full object-contain" />
+            ) : (
+              "LOGO"
+            )}
+          </div>
+          
+          {/* Organization Info */}
+          <div className="text-center flex-1 px-4">
+            <h1 className="text-2xl font-bold text-blue-800 uppercase tracking-wide">
+              {organization?.name || "Hospital Name"}
+            </h1>
+            <p className="text-sm mt-1">{organization?.address}</p>
+            <p className="text-sm">
+              {organization?.phone && `Tel: ${organization.phone}`}
+              {organization?.email && ` | Email: ${organization.email}`}
+            </p>
+            {organization?.registration_number && (
+              <p className="text-xs mt-1 text-gray-600">
+                Reg. No: {organization.registration_number}
+              </p>
+            )}
+          </div>
+          
+          {/* Empty space for symmetry */}
+          <div className="w-20"></div>
+        </div>
+        
+        {/* Document Title */}
+        <div className="mt-4 py-2 bg-blue-800 text-white text-center">
+          <h2 className="text-lg font-bold uppercase tracking-wider">Discharge Form</h2>
         </div>
       </div>
 
       {/* Patient Information Box */}
-      <div className="border border-gray-400 p-4 mb-6">
+      <div className="border border-gray-400 p-4 mb-4">
         <h3 className="font-bold text-sm mb-3 uppercase bg-gray-100 -m-4 mb-3 p-2 border-b">
           Patient Information
         </h3>
@@ -90,7 +117,7 @@ export function PrintableDischargeForm({
       </div>
 
       {/* Admission Details Box */}
-      <div className="border border-gray-400 p-4 mb-6">
+      <div className="border border-gray-400 p-4 mb-4">
         <h3 className="font-bold text-sm mb-3 uppercase bg-gray-100 -m-4 mb-3 p-2 border-b">
           Admission Details
         </h3>
@@ -126,20 +153,20 @@ export function PrintableDischargeForm({
       </div>
 
       {/* Diagnosis Box */}
-      <div className="border border-gray-400 p-4 mb-6">
+      <div className="border border-gray-400 p-4 mb-4">
         <h3 className="font-bold text-sm mb-3 uppercase bg-gray-100 -m-4 mb-3 p-2 border-b">
           Diagnosis
         </h3>
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
             <p className="font-semibold">Admission Diagnosis:</p>
-            <p className="mt-1 min-h-[40px] border-b border-dashed border-gray-300 pb-1">
+            <p className="mt-1 min-h-[30px] border-b border-dashed border-gray-300 pb-1">
               {summary?.admission_diagnosis || admission?.diagnosis_on_admission || "________________"}
             </p>
           </div>
           <div>
             <p className="font-semibold">Discharge Diagnosis:</p>
-            <p className="mt-1 min-h-[40px] border-b border-dashed border-gray-300 pb-1">
+            <p className="mt-1 min-h-[30px] border-b border-dashed border-gray-300 pb-1">
               {summary?.discharge_diagnosis || admission?.discharge_diagnosis || "________________"}
             </p>
           </div>
@@ -147,7 +174,7 @@ export function PrintableDischargeForm({
       </div>
 
       {/* Condition Box */}
-      <div className="border border-gray-400 p-4 mb-6">
+      <div className="border border-gray-400 p-4 mb-4">
         <h3 className="font-bold text-sm mb-3 uppercase bg-gray-100 -m-4 mb-3 p-2 border-b">
           Condition
         </h3>
@@ -165,7 +192,7 @@ export function PrintableDischargeForm({
 
       {/* Billing Summary Box */}
       {invoice && (
-        <div className="border border-gray-400 p-4 mb-6">
+        <div className="border border-gray-400 p-4 mb-4">
           <h3 className="font-bold text-sm mb-3 uppercase bg-gray-100 -m-4 mb-3 p-2 border-b">
             Billing Summary
           </h3>
@@ -193,7 +220,7 @@ export function PrintableDischargeForm({
       )}
 
       {/* Follow-up Instructions Box */}
-      <div className="border border-gray-400 p-4 mb-6">
+      <div className="border border-gray-400 p-4 mb-4">
         <h3 className="font-bold text-sm mb-3 uppercase bg-gray-100 -m-4 mb-3 p-2 border-b">
           Follow-up Instructions
         </h3>
@@ -211,7 +238,7 @@ export function PrintableDischargeForm({
       </div>
 
       {/* Patient Belongings Checklist */}
-      <div className="border border-gray-400 p-4 mb-6">
+      <div className="border border-gray-400 p-4 mb-4">
         <h3 className="font-bold text-sm mb-3 uppercase bg-gray-100 -m-4 mb-3 p-2 border-b">
           Patient Belongings & Documents Returned
         </h3>
@@ -244,11 +271,11 @@ export function PrintableDischargeForm({
       </div>
 
       {/* Signatures Section */}
-      <div className="mt-8">
+      <div className="mt-6">
         <h3 className="font-bold text-sm mb-4 uppercase border-b border-gray-400 pb-2">
           Authorization & Signatures
         </h3>
-        <div className="grid grid-cols-4 gap-4 mt-12 text-sm">
+        <div className="grid grid-cols-4 gap-4 mt-10 text-sm">
           <div className="text-center">
             <div className="border-t border-black pt-2">
               <p className="font-semibold">Billing / Cashier</p>
@@ -280,14 +307,14 @@ export function PrintableDischargeForm({
       </div>
 
       {/* Acknowledgment */}
-      <div className="mt-8 p-4 border border-gray-400 text-xs">
+      <div className="mt-6 p-3 border border-gray-400 text-xs">
         <p className="font-semibold mb-2">Patient / Attendant Acknowledgment:</p>
         <p>
           I hereby acknowledge that I have received all the belongings, documents, and reports of the patient. 
           The discharge instructions and follow-up care have been explained to me, and I understand them clearly. 
           I am taking the patient at my own risk and will follow the prescribed treatment plan.
         </p>
-        <div className="mt-4 flex justify-between">
+        <div className="mt-3 flex justify-between">
           <span>Name: _______________________________</span>
           <span>Relation: _______________</span>
           <span>Signature: _______________</span>
@@ -295,11 +322,28 @@ export function PrintableDischargeForm({
       </div>
 
       {/* Footer */}
-      <div className="mt-6 text-center text-xs text-gray-500 border-t pt-2">
+      <div className="mt-4 pt-3 border-t border-gray-300 text-center text-xs text-gray-500">
         <p>
           Generated on {format(today, "dd/MM/yyyy HH:mm")} | This is a computer-generated document
         </p>
+        <p className="mt-1">
+          {organization?.name} • {organization?.address}
+        </p>
       </div>
+      
+      {/* Print Styles */}
+      <style>{`
+        @media print {
+          @page {
+            size: A4;
+            margin: 0;
+          }
+          #discharge-form-print {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }
