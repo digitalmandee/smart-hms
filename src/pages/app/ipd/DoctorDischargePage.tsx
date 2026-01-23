@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format, differenceInDays } from "date-fns";
 import { PageHeader } from "@/components/PageHeader";
@@ -7,20 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { useAdmission } from "@/hooks/useAdmissions";
-import { useDischargeSummary, useApproveDischargeSummary } from "@/hooks/useDischarge";
+import { useDischargeSummary } from "@/hooks/useDischarge";
 import { DischargeSummaryForm } from "@/components/ipd/DischargeSummaryForm";
-import { toast } from "sonner";
 import {
   User,
   Calendar,
@@ -28,19 +16,15 @@ import {
   Clock,
   FileText,
   CheckCircle2,
-  AlertTriangle,
-  Send,
   Stethoscope,
 } from "lucide-react";
 
 export default function DoctorDischargePage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   const { data: admission, isLoading: loadingAdmission } = useAdmission(id);
   const { data: dischargeSummary, isLoading: loadingSummary, refetch: refetchSummary } = useDischargeSummary(id);
-  const { mutateAsync: approveSummary, isPending: approving } = useApproveDischargeSummary();
 
   const isLoading = loadingAdmission || loadingSummary;
   
@@ -51,26 +35,7 @@ export default function DoctorDischargePage() {
 
   // Check summary status
   const summaryStatus = dischargeSummary?.status || "not_started";
-  const isSummaryDraft = summaryStatus === "draft";
-  const isSummaryPending = summaryStatus === "pending_approval";
   const isSummaryApproved = summaryStatus === "approved" || summaryStatus === "finalized";
-  const canApprove = isSummaryDraft || isSummaryPending;
-
-  const handleApproveAndSend = async () => {
-    if (!dischargeSummary?.id) {
-      toast.error("Please save the discharge summary first");
-      return;
-    }
-
-    try {
-      await approveSummary(dischargeSummary.id);
-      refetchSummary();
-      toast.success("Discharge approved and sent to reception for billing");
-      setShowConfirmDialog(false);
-    } catch (error) {
-      toast.error("Failed to approve discharge summary");
-    }
-  };
 
   if (isLoading) {
     return (
@@ -151,16 +116,10 @@ export default function DoctorDischargePage() {
               className={
                 isSummaryApproved 
                   ? "text-success border-success" 
-                  : isSummaryPending 
-                    ? "text-info border-info"
-                    : "text-warning border-warning"
+                  : "text-warning border-warning"
               }
             >
-              {isSummaryApproved 
-                ? "Sent to Reception" 
-                : isSummaryPending 
-                  ? "Pending Approval" 
-                  : "Draft"}
+              {isSummaryApproved ? "Sent to Reception" : "Draft"}
             </Badge>
           </div>
         </CardContent>
@@ -184,99 +143,7 @@ export default function DoctorDischargePage() {
         </Alert>
       )}
 
-      {isSummaryPending && (
-        <Alert className="border-info/50 bg-info/10">
-          <AlertTriangle className="h-4 w-4 text-info" />
-          <AlertDescription className="flex items-center justify-between">
-            <span>Discharge summary is ready. Click "Approve & Send to Reception" to proceed.</span>
-          </AlertDescription>
-        </Alert>
-      )}
-
       {/* Diagnosis Info from Admission */}
-      {admission.diagnosis_on_admission && (
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Stethoscope className="h-4 w-4" />
-              Admission Diagnosis
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground whitespace-pre-line">
-              {admission.diagnosis_on_admission}
-            </p>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Discharge Summary Form - Doctor fills this */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Discharge Summary
-          </CardTitle>
-          <CardDescription>
-            Complete the clinical discharge summary including diagnosis, medications, and follow-up instructions.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <DischargeSummaryForm
-            admissionId={id!}
-            existingSummary={dischargeSummary}
-            onSuccess={() => refetchSummary()}
-          />
-        </CardContent>
-      </Card>
-
-      {/* Approve and Send Button */}
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-semibold">Approve & Send to Reception</h3>
-              <p className="text-sm text-muted-foreground">
-                {isSummaryApproved
-                  ? "Discharge has been sent to reception for billing."
-                  : canApprove && dischargeSummary
-                    ? "Once approved, reception will handle billing and final checkout."
-                    : "Save the discharge summary first, then approve."}
-              </p>
-            </div>
-            <Button
-              size="lg"
-              disabled={!canApprove || !dischargeSummary || approving || isSummaryApproved}
-              onClick={() => setShowConfirmDialog(true)}
-            >
-              <Send className="h-4 w-4 mr-2" />
-              {approving ? "Sending..." : isSummaryApproved ? "Already Sent" : "Approve & Send"}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Confirmation Dialog */}
-      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Approve Discharge Summary</AlertDialogTitle>
-            <AlertDialogDescription>
-              You are approving the discharge summary for{" "}
-              <strong>
-                {patient?.first_name} {patient?.last_name}
-              </strong>
-              . This will send the patient to reception for billing and final checkout.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleApproveAndSend}>
-              Approve & Send to Reception
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }
