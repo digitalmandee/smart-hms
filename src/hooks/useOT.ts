@@ -495,9 +495,17 @@ export function useTodaySurgeries(branchId?: string) {
   });
 }
 
+// Fetch all scheduled surgeries without date filter (for reception views)
+export function useAllScheduledSurgeries(branchId?: string) {
+  return useSurgeries({ 
+    branchId,
+    status: ['scheduled', 'pre_op', 'in_progress', 'completed'] 
+  });
+}
+
 export function useSurgeryQueue(branchId?: string) {
   const today = new Date().toISOString().split('T')[0];
-  return useSurgeries({ 
+  return useSurgeries({
     date: today, 
     branchId,
     status: ['scheduled', 'pre_op', 'in_progress'] 
