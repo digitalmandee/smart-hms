@@ -611,8 +611,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         path: "", 
         icon: "ClipboardList",
         children: [
-          { name: "Pre-Anesthesia", path: "/app/ot/anesthesia", icon: "FileText" },
-          { name: "Pending", path: "/app/ot/anesthesia/pending", icon: "Clock" },
+          { name: "Pre-Anesthesia", path: "/app/ot/schedule", icon: "FileText" },
         ]
       },
       { 
@@ -621,7 +620,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         icon: "Scissors",
         children: [
           { name: "Today's Schedule", path: "/app/ot/schedule", icon: "Calendar" },
-          { name: "My Cases", path: "/app/ot/anesthesia/cases", icon: "ListOrdered" },
+          { name: "All Surgeries", path: "/app/ot/surgeries", icon: "ListOrdered" },
         ]
       },
       { 
