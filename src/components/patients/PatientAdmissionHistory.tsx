@@ -8,6 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { format, differenceInDays } from "date-fns";
 import { Bed, Calendar, ExternalLink, Clock, Pill } from "lucide-react";
 import { useAdmissionUnbilledCharges } from "@/hooks/usePatientIPDCharges";
+import { AdmissionDetailsSummary } from "./AdmissionDetailsSummary";
+
 interface PatientAdmissionHistoryProps {
   patientId: string;
 }
@@ -157,6 +159,9 @@ function AdmissionCard({ admission }: AdmissionCardProps) {
               Rs. {unbilledData.total.toLocaleString()} in pending charges
             </p>
           )}
+          
+          {/* Expandable details section */}
+          <AdmissionDetailsSummary admissionId={admission.id} />
         </div>
       </div>
       <Link to={`/app/ipd/admissions/${admission.id}`}>
