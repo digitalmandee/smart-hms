@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { radiologyLogger } from '@/lib/logger';
 
 // Re-export imaging template hooks for convenience
 export {
@@ -320,6 +321,14 @@ export function useCreateImagingOrder() {
 
   return useMutation({
     mutationFn: async (order: Partial<ImagingOrder>) => {
+      radiologyLogger.info('Creating imaging order', {
+        patientId: order.patient_id,
+        modality: order.modality,
+        procedure: order.procedure_name,
+        priority: order.priority,
+        userId: profile?.id,
+      });
+
       const insertData = {
         ...order,
         organization_id: profile?.organization_id,
@@ -333,7 +342,18 @@ export function useCreateImagingOrder() {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        radiologyLogger.error('Failed to create imaging order', error, {
+          patientId: order.patient_id,
+          modality: order.modality,
+        });
+        throw error;
+      }
+
+      radiologyLogger.info('Imaging order created successfully', {
+        orderId: data.id,
+        orderNumber: data.order_number,
+      });
       return data;
     },
     onSuccess: () => {
@@ -351,6 +371,12 @@ export function useUpdateImagingOrder() {
 
   return useMutation({
     mutationFn: async ({ id, ...updates }: Partial<ImagingOrder> & { id: string }) => {
+      radiologyLogger.info('Updating imaging order', {
+        orderId: id,
+        updates: Object.keys(updates),
+        newStatus: updates.status,
+      });
+
       const { data, error } = await supabase
         .from('imaging_orders')
         .update(updates)
@@ -358,7 +384,15 @@ export function useUpdateImagingOrder() {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        radiologyLogger.error('Failed to update imaging order', error, { orderId: id });
+        throw error;
+      }
+
+      radiologyLogger.info('Imaging order updated successfully', {
+        orderId: data.id,
+        status: data.status,
+      });
       return data;
     },
     onSuccess: (data) => {
@@ -397,15 +431,28 @@ export function useSaveImagingResult() {
 
   return useMutation({
     mutationFn: async ({ orderId, ...result }: Partial<ImagingResult> & { orderId: string }) => {
+      radiologyLogger.info('Saving imaging result', {
+        orderId,
+        findingStatus: result.finding_status,
+        hasFindings: !!result.findings,
+        hasImpression: !!result.impression,
+        userId: profile?.id,
+      });
+
       // Check if result exists
-      const { data: existing } = await supabase
+      const { data: existing, error: checkError } = await supabase
         .from('imaging_results')
         .select('id')
         .eq('order_id', orderId)
         .maybeSingle();
 
+      if (checkError) {
+        radiologyLogger.error('Failed to check existing result', checkError, { orderId });
+      }
+
       if (existing) {
         // Update
+        radiologyLogger.debug('Updating existing result', { resultId: existing.id });
         const { data, error } = await supabase
           .from('imaging_results')
           .update(result as any)
@@ -413,10 +460,16 @@ export function useSaveImagingResult() {
           .select()
           .single();
 
-        if (error) throw error;
+        if (error) {
+          radiologyLogger.error('Failed to update imaging result', error, { resultId: existing.id });
+          throw error;
+        }
+
+        radiologyLogger.info('Imaging result updated', { resultId: data.id });
         return data;
       } else {
         // Insert
+        radiologyLogger.debug('Creating new result', { orderId });
         const insertData = {
           ...result,
           order_id: orderId,
@@ -428,7 +481,12 @@ export function useSaveImagingResult() {
           .select()
           .single();
 
-        if (error) throw error;
+        if (error) {
+          radiologyLogger.error('Failed to create imaging result', error, { orderId });
+          throw error;
+        }
+
+        radiologyLogger.info('Imaging result created', { resultId: data.id, orderId });
         return data;
       }
     },

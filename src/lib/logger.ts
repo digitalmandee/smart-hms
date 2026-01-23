@@ -206,4 +206,15 @@ export const pharmacyLogger = createLogger('PHARMACY');
 export const kioskLogger = createLogger('KIOSK');
 export const settingsLogger = createLogger('SETTINGS');
 
+// Additional module loggers
+export const radiologyLogger = createLogger('RADIOLOGY');
+export const otLogger = createLogger('OT');
+export const accountsLogger = createLogger('ACCOUNTS');
+export const navigationLogger = createLogger('NAVIGATION');
+export const systemLogger = createLogger('SYSTEM');
+export const returnsLogger = createLogger('RETURNS');
+export const inventoryOpsLogger = createLogger('INVENTORY_OPS');
+export const admissionsLogger = createLogger('ADMISSIONS');
+export const servicesLogger = createLogger('SERVICES');
+
 export default Logger;

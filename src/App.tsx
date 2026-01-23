@@ -9,6 +9,8 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AuthLayout } from "@/layouts/AuthLayout";
 import { DashboardLayout } from "@/layouts/DashboardLayout";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { systemLogger } from "@/lib/logger";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import TestCasesPage from "./pages/TestCasesPage";
@@ -385,6 +387,14 @@ const queryClient = new QueryClient({
       staleTime: 5 * 60 * 1000,
       retry: 1,
     },
+    mutations: {
+      onError: (error: Error) => {
+        systemLogger.error('Mutation failed globally', error, {
+          errorName: error.name,
+          errorMessage: error.message,
+        });
+      },
+    },
   },
 });
 
@@ -392,13 +402,14 @@ function App() {
   return (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <Routes>
-            {/* Public routes */}
-            <Route path="/" element={<Index />} />
+      <ErrorBoundary>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AuthProvider>
+            <Routes>
+              {/* Public routes */}
+              <Route path="/" element={<Index />} />
             
             {/* Public display routes - NO AUTH REQUIRED for TV displays and kiosks */}
             <Route path="/display/queue/:organizationId" element={<PublicQueueDisplay />} />
@@ -854,6 +865,7 @@ function App() {
           </Routes>
         </AuthProvider>
       </BrowserRouter>
+      </ErrorBoundary>
     </TooltipProvider>
   </QueryClientProvider>
   );
