@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
 import {
   Select,
   SelectContent,
@@ -52,6 +53,8 @@ import {
   Clock,
   User,
   Syringe,
+  Package,
+  Loader2,
 } from 'lucide-react';
 
 interface OTMedicationPanelProps {
@@ -104,6 +107,7 @@ export function OTMedicationPanel({ surgeryId }: OTMedicationPanelProps) {
     route: 'IV',
     timing: 'pre_op' as MedicationTiming,
     notes: '',
+    requestFromPharmacy: false,
   });
 
   const resetCustomForm = () => {
@@ -113,10 +117,11 @@ export function OTMedicationPanel({ surgeryId }: OTMedicationPanelProps) {
       route: 'IV',
       timing: 'pre_op',
       notes: '',
+      requestFromPharmacy: false,
     });
   };
 
-  const handleAddQuickMed = async (med: typeof COMMON_PREOP_MEDICATIONS[0]) => {
+  const handleAddQuickMed = async (med: typeof COMMON_PREOP_MEDICATIONS[0], requestFromPharmacy = false) => {
     await createMedication.mutateAsync({
       surgery_id: surgeryId,
       medication_name: med.name,
@@ -124,6 +129,7 @@ export function OTMedicationPanel({ surgeryId }: OTMedicationPanelProps) {
       route: 'IV',
       timing: 'pre_op',
       notes: med.timing,
+      pharmacy_status: requestFromPharmacy ? 'requested' : 'not_required',
     });
   };
 
@@ -132,7 +138,12 @@ export function OTMedicationPanel({ surgeryId }: OTMedicationPanelProps) {
 
     await createMedication.mutateAsync({
       surgery_id: surgeryId,
-      ...customMed,
+      medication_name: customMed.medication_name,
+      dosage: customMed.dosage,
+      route: customMed.route,
+      timing: customMed.timing,
+      notes: customMed.notes,
+      pharmacy_status: customMed.requestFromPharmacy ? 'requested' : 'not_required',
     });
 
     resetCustomForm();
@@ -327,12 +338,26 @@ export function OTMedicationPanel({ surgeryId }: OTMedicationPanelProps) {
                   />
                 </div>
 
+                <div className="flex items-center justify-between p-3 border rounded-lg bg-muted/30">
+                  <div className="flex items-center gap-2">
+                    <Package className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <Label className="text-sm font-medium">Request from Pharmacy</Label>
+                      <p className="text-xs text-muted-foreground">Enable if medication is not in OT cart</p>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={customMed.requestFromPharmacy}
+                    onCheckedChange={(checked) => setCustomMed({ ...customMed, requestFromPharmacy: checked })}
+                  />
+                </div>
+
                 <Button
                   onClick={handleAddCustomMed}
                   disabled={!customMed.medication_name.trim() || createMedication.isPending}
                   className="w-full"
                 >
-                  Add Medication
+                  {customMed.requestFromPharmacy ? 'Add & Request from Pharmacy' : 'Add Medication'}
                 </Button>
               </div>
             </div>
@@ -445,6 +470,18 @@ function MedicationCard({
                 </Badge>
               )}
               <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
+              {medication.pharmacy_status === 'requested' && (
+                <Badge variant="secondary" className="text-xs gap-1">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  Awaiting Pharmacy
+                </Badge>
+              )}
+              {medication.pharmacy_status === 'dispensed' && (
+                <Badge variant="default" className="text-xs gap-1">
+                  <Package className="h-3 w-3" />
+                  Dispensed
+                </Badge>
+              )}
             </div>
 
             <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground flex-wrap">

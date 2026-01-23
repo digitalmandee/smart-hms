@@ -16335,58 +16335,79 @@ export type Database = {
         Row: {
           administered_at: string | null
           administered_by: string | null
+          batch_number: string | null
           created_at: string | null
+          dispensed_at: string | null
+          dispensed_by: string | null
           dosage: string | null
           hold_reason: string | null
           id: string
+          inventory_item_id: string | null
+          is_billed: boolean | null
           medication_name: string
           notes: string | null
           ordered_at: string | null
           ordered_by: string | null
           organization_id: string
+          pharmacy_status: string | null
           route: string | null
           scheduled_time: string | null
           status: string
           surgery_id: string
           timing: string
+          unit_price: number | null
           updated_at: string | null
         }
         Insert: {
           administered_at?: string | null
           administered_by?: string | null
+          batch_number?: string | null
           created_at?: string | null
+          dispensed_at?: string | null
+          dispensed_by?: string | null
           dosage?: string | null
           hold_reason?: string | null
           id?: string
+          inventory_item_id?: string | null
+          is_billed?: boolean | null
           medication_name: string
           notes?: string | null
           ordered_at?: string | null
           ordered_by?: string | null
           organization_id: string
+          pharmacy_status?: string | null
           route?: string | null
           scheduled_time?: string | null
           status?: string
           surgery_id: string
           timing?: string
+          unit_price?: number | null
           updated_at?: string | null
         }
         Update: {
           administered_at?: string | null
           administered_by?: string | null
+          batch_number?: string | null
           created_at?: string | null
+          dispensed_at?: string | null
+          dispensed_by?: string | null
           dosage?: string | null
           hold_reason?: string | null
           id?: string
+          inventory_item_id?: string | null
+          is_billed?: boolean | null
           medication_name?: string
           notes?: string | null
           ordered_at?: string | null
           ordered_by?: string | null
           organization_id?: string
+          pharmacy_status?: string | null
           route?: string | null
           scheduled_time?: string | null
           status?: string
           surgery_id?: string
           timing?: string
+          unit_price?: number | null
           updated_at?: string | null
         }
         Relationships: [
@@ -16395,6 +16416,20 @@ export type Database = {
             columns: ["administered_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surgery_medications_dispensed_by_fkey"
+            columns: ["dispensed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surgery_medications_inventory_item_id_fkey"
+            columns: ["inventory_item_id"]
+            isOneToOne: false
+            referencedRelation: "medicine_inventory"
             referencedColumns: ["id"]
           },
           {
