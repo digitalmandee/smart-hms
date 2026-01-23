@@ -177,9 +177,13 @@ export function useProcessReturn() {
         throw new Error("User profile not found");
       }
 
+      // Generate a unique return number
+      const returnNumber = `RET-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+
       // 1. Create pharmacy_return record using raw query helper
       const { data: returnRecord, error: returnError } = await queryPOSTable("pharmacy_returns")
         .insert({
+          return_number: returnNumber,
           original_transaction_id: transactionId,
           return_type: refundMethod,
           total_refund_amount: totalRefundAmount,
