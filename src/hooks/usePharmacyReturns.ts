@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { POSTransaction } from "@/hooks/usePOS";
 import { SelectedReturnItem } from "@/components/pharmacy/ReturnItemSelector";
 import { RefundMethod } from "@/components/pharmacy/RefundMethodSelector";
+import { returnsLogger, inventoryOpsLogger } from "@/lib/logger";
 
 // Helper for raw SQL queries to POS tables (bypasses type checking)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -173,14 +174,29 @@ export function useProcessReturn() {
       totalRefundAmount: number;
       restockItems?: boolean;
     }) => {
+      const operationTimer = returnsLogger.startOperation('processReturn');
+      
+      returnsLogger.info('Processing pharmacy return', {
+        transactionId,
+        itemCount: selectedItems.length,
+        totalRefundAmount,
+        refundMethod,
+        restockItems,
+        userId: profile?.id,
+        branchId: profile?.branch_id,
+      });
+
       if (!profile?.organization_id || !profile?.branch_id) {
+        returnsLogger.error('User profile not found during return processing');
         throw new Error("User profile not found");
       }
 
       // Generate a unique return number
       const returnNumber = `RET-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+      returnsLogger.debug('Generated return number', { returnNumber });
 
       // 1. Create pharmacy_return record using raw query helper
+      returnsLogger.debug('Creating pharmacy_return record', { transactionId, returnNumber });
       const { data: returnRecord, error: returnError } = await queryPOSTable("pharmacy_returns")
         .insert({
           return_number: returnNumber,
@@ -195,7 +211,12 @@ export function useProcessReturn() {
         .select()
         .single();
 
-      if (returnError) throw returnError;
+      if (returnError) {
+        returnsLogger.error('Failed to create pharmacy_return record', returnError, { transactionId });
+        throw returnError;
+      }
+      
+      returnsLogger.info('Created pharmacy_return record', { returnId: returnRecord.id, returnNumber });
 
       // 2. Create pharmacy_return_items for each returned item
       const returnItems = selectedItems.map(item => ({
@@ -209,10 +230,16 @@ export function useProcessReturn() {
         batch_number: item.batch_number,
       }));
 
+      returnsLogger.debug('Inserting pharmacy_return_items', { itemCount: returnItems.length });
       const { error: itemsError } = await queryPOSTable("pharmacy_return_items")
         .insert(returnItems);
 
-      if (itemsError) throw itemsError;
+      if (itemsError) {
+        returnsLogger.error('Failed to insert pharmacy_return_items', itemsError, { returnId: returnRecord.id });
+        throw itemsError;
+      }
+      
+      returnsLogger.info('Created pharmacy_return_items', { itemCount: returnItems.length });
 
       // 3. Get original transaction to check if full or partial refund
       const { data: originalTx } = await queryPOSTable("pharmacy_pos_transactions")
@@ -228,8 +255,11 @@ export function useProcessReturn() {
           return orig && si.return_quantity === orig.quantity;
         });
 
+      returnsLogger.debug('Refund type determined', { isFullRefund, originalItemCount, returnedItemCount });
+
       // 4. If full refund, mark transaction as refunded
       if (isFullRefund) {
+        returnsLogger.info('Processing full refund - marking transaction as refunded', { transactionId });
         await queryPOSTable("pharmacy_pos_transactions")
           .update({
             status: "refunded",
@@ -242,7 +272,18 @@ export function useProcessReturn() {
 
       // 5. Restock inventory if requested
       if (restockItems) {
+        returnsLogger.info('Starting inventory restock', { itemCount: selectedItems.length });
+        let restockedCount = 0;
+        
         for (const item of selectedItems) {
+          inventoryOpsLogger.debug('Processing item for restock', {
+            itemId: item.id,
+            medicineName: item.medicine_name,
+            inventoryId: item.inventory_id,
+            medicineId: item.medicine_id,
+            returnQuantity: item.return_quantity,
+          });
+          
           if (item.inventory_id) {
             // Get current inventory quantity
             const { data: inventory, error: invError } = await supabase
@@ -251,18 +292,41 @@ export function useProcessReturn() {
               .eq("id", item.inventory_id)
               .single();
 
+            if (invError) {
+              inventoryOpsLogger.error('Failed to fetch inventory for restock', invError, {
+                inventoryId: item.inventory_id,
+                medicineName: item.medicine_name,
+              });
+            }
+
             if (!invError && inventory) {
               const previousStock = inventory.quantity || 0;
               const newStock = previousStock + item.return_quantity;
 
+              inventoryOpsLogger.info('Updating inventory quantity', {
+                inventoryId: item.inventory_id,
+                medicineName: item.medicine_name,
+                previousStock,
+                returnQuantity: item.return_quantity,
+                newStock,
+              });
+
               // Update inventory - ADD quantity back
-              await supabase
+              const { error: updateError } = await supabase
                 .from("medicine_inventory")
                 .update({ quantity: newStock })
                 .eq("id", item.inventory_id);
 
+              if (updateError) {
+                inventoryOpsLogger.error('Failed to update inventory quantity', updateError, {
+                  inventoryId: item.inventory_id,
+                });
+              } else {
+                restockedCount++;
+              }
+
               // Log stock movement
-              await queryPOSTable("pharmacy_stock_movements").insert({
+              const { error: movementError } = await queryPOSTable("pharmacy_stock_movements").insert({
                 organization_id: profile.organization_id,
                 branch_id: profile.branch_id,
                 medicine_id: item.medicine_id || inventory.medicine_id,
@@ -279,27 +343,73 @@ export function useProcessReturn() {
                 notes: `Return: ${reason}`,
                 created_by: profile.id,
               });
+
+              if (movementError) {
+                inventoryOpsLogger.error('Failed to log stock movement', movementError, {
+                  inventoryId: item.inventory_id,
+                  returnId: returnRecord.id,
+                });
+              } else {
+                inventoryOpsLogger.info('Stock movement logged successfully', {
+                  inventoryId: item.inventory_id,
+                  movementType: 'return',
+                  quantity: item.return_quantity,
+                });
+              }
             }
+          } else {
+            inventoryOpsLogger.warn('Item missing inventory_id - cannot restock', {
+              itemId: item.id,
+              medicineName: item.medicine_name,
+              medicineId: item.medicine_id,
+            });
           }
         }
+        
+        returnsLogger.info('Inventory restock completed', { 
+          totalItems: selectedItems.length, 
+          restockedCount,
+          skippedCount: selectedItems.length - restockedCount,
+        });
       }
 
       // 6. TODO: Handle credit adjustments if refundMethod is add_credit or deduct_outstanding
       // This would update pharmacy_patient_credits table
 
+      returnsLogger.info('Return processing completed successfully', {
+        returnId: returnRecord.id,
+        returnNumber,
+        totalRefundAmount,
+        itemCount: selectedItems.length,
+      });
+
       return returnRecord;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (data, variables) => {
+      returnsLogger.info('Return mutation succeeded', {
+        returnId: data.id,
+        itemCount: variables.selectedItems.length,
+      });
+      
       queryClient.invalidateQueries({ queryKey: ["pos-transactions"] });
       queryClient.invalidateQueries({ queryKey: ["recent-returns"] });
       queryClient.invalidateQueries({ queryKey: ["returns-stats"] });
       queryClient.invalidateQueries({ queryKey: ["search-transaction-return"] });
+      queryClient.invalidateQueries({ queryKey: ["medicine-inventory"] });
+      queryClient.invalidateQueries({ queryKey: ["stock-movements"] });
+      
       toast({
         title: "Return Processed",
         description: `${variables.selectedItems.length} item(s) returned successfully.`,
       });
     },
-    onError: (error: Error) => {
+    onError: (error: Error, variables) => {
+      returnsLogger.error('Return mutation failed', error, {
+        transactionId: variables.transactionId,
+        itemCount: variables.selectedItems.length,
+        refundMethod: variables.refundMethod,
+      });
+      
       toast({
         title: "Error",
         description: error.message,
