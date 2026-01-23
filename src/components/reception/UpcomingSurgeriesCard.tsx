@@ -22,7 +22,7 @@ const priorityConfig = {
 
 export function UpcomingSurgeriesCard({ 
   maxItems = 5, 
-  daysAhead = 7 
+  daysAhead = 30 
 }: UpcomingSurgeriesCardProps) {
   const navigate = useNavigate();
   const { profile } = useAuth();
