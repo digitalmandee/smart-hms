@@ -1,10 +1,11 @@
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { OTStatusBadge } from './OTStatusBadge';
 import { PriorityBadge } from './PriorityBadge';
+import { otLogger } from '@/lib/logger';
 import type { OTRoom, Surgery } from '@/hooks/useOT';
 
 interface OTRoomGridCalendarProps {
@@ -28,6 +29,50 @@ export function OTRoomGridCalendar({
   endHour = 20,
   isLoading = false,
 }: OTRoomGridCalendarProps) {
+  const dateStr = format(date, 'yyyy-MM-dd');
+
+  // Filter surgeries to only those for the current date
+  const surgeriesForDate = useMemo(() => {
+    const filtered = surgeries.filter(s => s.scheduled_date === dateStr);
+    return filtered;
+  }, [surgeries, dateStr]);
+
+  // Debug logging for surgery visibility
+  useEffect(() => {
+    otLogger.debug('OTRoomGridCalendar: Rendering', {
+      date: dateStr,
+      totalSurgeries: surgeries.length,
+      surgeriesForDate: surgeriesForDate.length,
+      roomCount: rooms.length,
+    });
+
+    // Log details of each surgery for the date
+    surgeriesForDate.forEach(s => {
+      otLogger.debug('OTRoomGridCalendar: Surgery for date', {
+        id: s.id,
+        surgeryNumber: s.surgery_number,
+        scheduledDate: s.scheduled_date,
+        scheduledStartTime: s.scheduled_start_time,
+        otRoomId: s.ot_room_id,
+        status: s.status,
+        roomMatch: rooms.some(r => r.id === s.ot_room_id),
+      });
+    });
+
+    // Log any surgeries that won't display due to missing room
+    const orphanedSurgeries = surgeriesForDate.filter(s => !rooms.some(r => r.id === s.ot_room_id));
+    if (orphanedSurgeries.length > 0) {
+      otLogger.warn('OTRoomGridCalendar: Surgeries with no matching room', {
+        orphanedCount: orphanedSurgeries.length,
+        surgeries: orphanedSurgeries.map(s => ({
+          id: s.id,
+          surgeryNumber: s.surgery_number,
+          otRoomId: s.ot_room_id,
+        })),
+      });
+    }
+  }, [surgeries, surgeriesForDate, rooms, dateStr]);
+
   // Generate hourly time slots
   const timeSlots = useMemo(() => {
     const slots: string[] = [];
@@ -38,9 +83,12 @@ export function OTRoomGridCalendar({
     return slots;
   }, [startHour, endHour]);
 
-  // Parse time to minutes since midnight
+  // Parse time to minutes since midnight - handles HH:MM:SS and HH:MM formats
   const parseTime = (timeStr: string): number => {
-    const [hours, minutes] = timeStr.split(':').map(Number);
+    if (!timeStr) return 0;
+    const parts = timeStr.split(':').map(Number);
+    const hours = parts[0] || 0;
+    const minutes = parts[1] || 0;
     return hours * 60 + minutes;
   };
 
@@ -48,7 +96,7 @@ export function OTRoomGridCalendar({
   const getSurgeryForSlot = (roomId: string, slotTime: string) => {
     const slotMinutes = parseTime(slotTime);
     
-    return surgeries.find((s) => {
+    return surgeriesForDate.find((s) => {
       if (s.ot_room_id !== roomId || s.status === 'cancelled') return false;
       
       const startMinutes = parseTime(s.scheduled_start_time);
@@ -63,7 +111,7 @@ export function OTRoomGridCalendar({
   const isSurgeryStartSlot = (roomId: string, slotTime: string) => {
     const slotMinutes = parseTime(slotTime);
     
-    return surgeries.find((s) => {
+    return surgeriesForDate.find((s) => {
       if (s.ot_room_id !== roomId || s.status === 'cancelled') return false;
       const startMinutes = parseTime(s.scheduled_start_time);
       return slotMinutes <= startMinutes && startMinutes < slotMinutes + 60;
