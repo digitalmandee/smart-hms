@@ -410,10 +410,10 @@ export function DischargeSummaryForm({
           <Button
             type="button"
             disabled={isCreating || isUpdating}
-            onClick={form.handleSubmit((values) => onSubmit(values, "pending_approval"))}
+            onClick={form.handleSubmit((values) => onSubmit(values, "approved"))}
           >
             <Send className="h-4 w-4 mr-2" />
-            Submit for Approval
+            Approve & Send to Reception
           </Button>
         </div>
       </form>
