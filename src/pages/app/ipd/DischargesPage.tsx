@@ -17,16 +17,23 @@ import {
   Users,
   ClipboardCheck,
   Receipt,
-  CheckCircle2
+  CheckCircle2,
+  Stethoscope
 } from "lucide-react";
 import { useAdmittedPatientsForDischarge, useApprovedForBilling } from "@/hooks/useDischarge";
 import { useAdmissions } from "@/hooks/useAdmissions";
+import { useAuth } from "@/contexts/AuthContext";
 import { format, differenceInDays } from "date-fns";
 
 export default function DischargesPage() {
   const navigate = useNavigate();
+  const { hasRole, hasPermission } = useAuth();
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState("all-admitted");
+
+  // Role-based access
+  const isDoctor = hasRole("doctor");
+  const canProcessBilling = hasPermission("billing.create") || hasPermission("ipd.charges.manage");
 
   const { data: admittedPatients, isLoading: loadingAdmitted } = useAdmittedPatientsForDischarge();
   const { data: recentDischarges, isLoading: loadingRecent } = useAdmissions("discharged");
@@ -182,14 +189,17 @@ export default function DischargesPage() {
                         >
                           View
                         </Button>
-                        <Button
-                          size="sm"
-                          className="flex-1"
-                          onClick={() => navigate(`/app/ipd/doctor-discharge/${adm.id}`)}
-                        >
-                          <ClipboardCheck className="h-4 w-4 mr-1" />
-                          Discharge
-                        </Button>
+                        {/* Only doctors can create discharge summaries */}
+                        {isDoctor && (
+                          <Button
+                            size="sm"
+                            className="flex-1"
+                            onClick={() => navigate(`/app/ipd/doctor-discharge/${adm.id}`)}
+                          >
+                            <Stethoscope className="h-4 w-4 mr-1" />
+                            Create Summary
+                          </Button>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -278,14 +288,17 @@ export default function DischargesPage() {
                         >
                           View Details
                         </Button>
-                        <Button
-                          size="sm"
-                          className="flex-1 bg-success text-success-foreground hover:bg-success/90"
-                          onClick={() => navigate(`/app/ipd/discharge/${adm.id}`)}
-                        >
-                          <Receipt className="h-4 w-4 mr-1" />
-                          Process Billing
-                        </Button>
+                        {/* Only reception/billing staff can process billing */}
+                        {canProcessBilling && (
+                          <Button
+                            size="sm"
+                            className="flex-1 bg-success text-success-foreground hover:bg-success/90"
+                            onClick={() => navigate(`/app/ipd/discharge/${adm.id}`)}
+                          >
+                            <Receipt className="h-4 w-4 mr-1" />
+                            Process Billing
+                          </Button>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
