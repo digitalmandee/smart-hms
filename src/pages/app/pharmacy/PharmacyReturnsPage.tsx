@@ -14,6 +14,8 @@ import { format } from "date-fns";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { ReturnItemSelector, SelectedReturnItem } from "@/components/pharmacy/ReturnItemSelector";
+import { RefundMethodSelector, RefundMethod } from "@/components/pharmacy/RefundMethodSelector";
 
 export default function PharmacyReturnsPage() {
   const { profile } = useAuth();
@@ -21,6 +23,8 @@ export default function PharmacyReturnsPage() {
   const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
   const [returnReason, setReturnReason] = useState("");
   const [showReturnDialog, setShowReturnDialog] = useState(false);
+  const [selectedItems, setSelectedItems] = useState<SelectedReturnItem[]>([]);
+  const [refundMethod, setRefundMethod] = useState<RefundMethod>("cash_refund");
 
   const firstName = profile?.full_name?.split(" ")[0] || "User";
   
@@ -35,25 +39,37 @@ export default function PharmacyReturnsPage() {
 
   const handleSelectTransaction = (transaction: any) => {
     setSelectedTransaction(transaction);
+    setSelectedItems([]); // Reset selection
+    setRefundMethod("cash_refund"); // Reset method
+    setReturnReason("");
     setShowReturnDialog(true);
   };
 
   const handleProcessReturn = () => {
-    if (!selectedTransaction || !returnReason.trim()) return;
+    if (!selectedTransaction || !returnReason.trim() || selectedItems.length === 0) return;
+    
+    const totalRefund = selectedItems.reduce((sum, item) => sum + item.line_total, 0);
     
     processReturnMutation.mutate({
       transactionId: selectedTransaction.id,
       reason: returnReason,
+      selectedItems,
+      refundMethod,
+      totalRefundAmount: totalRefund,
       restockItems: true,
     }, {
       onSuccess: () => {
         setShowReturnDialog(false);
         setSelectedTransaction(null);
         setReturnReason("");
+        setSelectedItems([]);
+        setRefundMethod("cash_refund");
         setSearchQuery("");
       },
     });
   };
+  
+  const totalRefundAmount = selectedItems.reduce((sum, item) => sum + item.line_total, 0);
 
   return (
     <div className="space-y-6">
@@ -260,20 +276,26 @@ export default function PharmacyReturnsPage() {
               </div>
 
               {selectedTransaction.items && selectedTransaction.items.length > 0 && (
-                <div>
-                  <p className="text-sm font-medium mb-2">Items ({selectedTransaction.items.length})</p>
-                  <ScrollArea className="max-h-32">
-                    <div className="space-y-1">
-                      {selectedTransaction.items.map((item: any) => (
-                        <div key={item.id} className="flex justify-between text-sm p-2 bg-muted/50 rounded">
-                          <span>{item.medicine_name} x{item.quantity}</span>
-                          <span>{formatCurrency(item.total_price)}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </ScrollArea>
-                </div>
+                <ReturnItemSelector
+                  items={selectedTransaction.items.map((item: any) => ({
+                    id: item.id,
+                    medicine_name: item.medicine_name,
+                    quantity: item.quantity,
+                    unit_price: item.unit_price,
+                    total_price: item.total_price,
+                    batch_number: item.batch_number,
+                  }))}
+                  selectedItems={selectedItems}
+                  onSelectionChange={setSelectedItems}
+                />
               )}
+
+              <RefundMethodSelector
+                value={refundMethod}
+                onChange={setRefundMethod}
+                refundAmount={totalRefundAmount}
+                patientName={selectedTransaction.customer_name}
+              />
 
               <div>
                 <label className="text-sm font-medium">Return Reason *</label>
@@ -293,7 +315,7 @@ export default function PharmacyReturnsPage() {
             </Button>
             <Button 
               onClick={handleProcessReturn}
-              disabled={!returnReason.trim() || processReturnMutation.isPending}
+              disabled={!returnReason.trim() || selectedItems.length === 0 || processReturnMutation.isPending}
             >
               {processReturnMutation.isPending ? (
                 <>
@@ -301,7 +323,7 @@ export default function PharmacyReturnsPage() {
                   Processing...
                 </>
               ) : (
-                "Confirm Return"
+                `Return ${selectedItems.length} Item${selectedItems.length !== 1 ? 's' : ''} - ${formatCurrency(totalRefundAmount)}`
               )}
             </Button>
           </DialogFooter>
