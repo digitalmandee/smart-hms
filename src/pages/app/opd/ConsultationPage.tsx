@@ -7,7 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Loader2, Save, Check, ArrowLeft, CalendarIcon } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, Save, Check, ArrowLeft, CalendarIcon, Scissors } from "lucide-react";
 import { useAppointment, useUpdateAppointment } from "@/hooks/useAppointments";
 import { useConsultationByAppointment, useCreateConsultation, useUpdateConsultation, Vitals } from "@/hooks/useConsultations";
 import { useCreatePrescription, PrescriptionItemInput } from "@/hooks/usePrescriptions";
@@ -22,6 +24,8 @@ import { LabOrderBuilder } from "@/components/consultation/LabOrderBuilder";
 import { PatientQuickInfo } from "@/components/consultation/PatientQuickInfo";
 import { PreviousVisits } from "@/components/consultation/PreviousVisits";
 import { VisitSummaryDialog } from "@/components/consultation/VisitSummaryDialog";
+import { RecommendSurgeryDialog } from "@/components/ot/RecommendSurgeryDialog";
+import { usePatientSurgeryRequests } from "@/hooks/useSurgeryRequests";
 import { generateVisitId } from "@/lib/visit-id";
 import { cn } from "@/lib/utils";
 
@@ -68,6 +72,11 @@ export default function ConsultationPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
   const [showVisitSummary, setShowVisitSummary] = useState(false);
+  const [showRecommendSurgery, setShowRecommendSurgery] = useState(false);
+
+  // Fetch patient's surgery requests (use appointment's patient id)
+  const patientId = (appointment?.patient as any)?.id;
+  const { data: patientSurgeryRequests } = usePatientSurgeryRequests(patientId);
 
   // Generate Visit ID for display
   const visitId = appointment ? generateVisitId({
@@ -253,10 +262,14 @@ export default function ConsultationPage() {
           </div>
 
           {/* Actions */}
-          <div className="flex gap-3 pt-4">
+          <div className="flex gap-3 pt-4 flex-wrap">
             <Button variant="outline" onClick={handleSaveDraft} disabled={isSaving}>
               {isSaving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
               Save Draft
+            </Button>
+            <Button variant="secondary" onClick={() => setShowRecommendSurgery(true)}>
+              <Scissors className="h-4 w-4 mr-2" />
+              Recommend Surgery
             </Button>
             <Button onClick={handleComplete} disabled={isCompleting}>
               {isCompleting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Check className="h-4 w-4 mr-2" />}
@@ -268,6 +281,34 @@ export default function ConsultationPage() {
         {/* Sidebar */}
         <div className="space-y-6">
           {patient && <PatientQuickInfo patient={patient} vitals={nurseVitals} />}
+          
+          {/* Active Surgery Requests */}
+          {patientSurgeryRequests && patientSurgeryRequests.length > 0 && (
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Scissors className="h-4 w-4 text-warning" />
+                  Surgery Recommendations
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {patientSurgeryRequests.map(req => (
+                  <div key={req.id} className="p-2 rounded border bg-muted/50 text-sm">
+                    <p className="font-medium">{req.procedure_name}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Badge variant={req.priority === 'emergency' ? 'destructive' : req.priority === 'urgent' ? 'outline' : 'secondary'} className="text-xs">
+                        {req.priority}
+                      </Badge>
+                      <Badge variant="outline" className="text-xs">
+                        {req.request_status?.replace(/_/g, ' ')}
+                      </Badge>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+
           {patient && (
             <PreviousVisits
               patientId={patient.id}
@@ -312,6 +353,17 @@ export default function ConsultationPage() {
           labOrderItems={labOrderItems}
           onConfirm={handleConfirmComplete}
           isCompleting={isCompleting}
+        />
+      )}
+
+      {/* Recommend Surgery Dialog */}
+      {patient && (
+        <RecommendSurgeryDialog
+          open={showRecommendSurgery}
+          onOpenChange={setShowRecommendSurgery}
+          patientId={patient.id}
+          patientName={`${patient.first_name} ${patient.last_name || ''}`}
+          consultationId={existingConsultation?.id}
         />
       )}
     </div>

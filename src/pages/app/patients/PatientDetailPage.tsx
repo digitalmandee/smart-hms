@@ -161,6 +161,12 @@ export function PatientDetailPage() {
                 Book Visit
               </Button>
             </Link>
+            <Link to={`/app/ot/surgeries/new?patientId=${patient.id}`}>
+              <Button variant="outline" size="sm">
+                <Scissors className="h-4 w-4 mr-2" />
+                Schedule Surgery
+              </Button>
+            </Link>
             <Link to={`/app/billing/invoices/new?patientId=${patient.id}`}>
               <Button variant="outline" size="sm">
                 <Receipt className="h-4 w-4 mr-2" />
