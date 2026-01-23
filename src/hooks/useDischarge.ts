@@ -202,7 +202,7 @@ export const useApproveDischargeSummary = () => {
   });
 };
 
-// Pending Discharges
+// Pending Discharges (overdue - for reception)
 export const usePendingDischarges = () => {
   const { profile } = useAuth();
 
@@ -232,6 +232,46 @@ export const usePendingDischarges = () => {
         .lte("expected_discharge_date", new Date().toISOString().split("T")[0])
         .order("expected_discharge_date");
 
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!profile?.organization_id,
+  });
+};
+
+// All admitted patients (for doctors to initiate discharge)
+export const useAdmittedPatientsForDischarge = (doctorId?: string) => {
+  const { profile } = useAuth();
+
+  return useQuery({
+    queryKey: ["admitted-patients-for-discharge", profile?.organization_id, doctorId],
+    queryFn: async () => {
+      if (!profile?.organization_id) return [];
+
+      let query = supabase
+        .from("admissions")
+        .select(`
+          id,
+          admission_number,
+          admission_date,
+          expected_discharge_date,
+          patient:patients(id, first_name, last_name, patient_number),
+          ward:wards(id, name),
+          bed:beds(id, bed_number),
+          attending_doctor:doctors!admissions_attending_doctor_id_fkey(
+            id,
+            profile:profiles(full_name)
+          )
+        `)
+        .eq("organization_id", profile.organization_id)
+        .eq("status", "admitted")
+        .order("admission_date", { ascending: false });
+
+      if (doctorId) {
+        query = query.eq("attending_doctor_id", doctorId);
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
       return data || [];
     },
