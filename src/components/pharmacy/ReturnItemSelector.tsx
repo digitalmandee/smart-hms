@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 export interface ReturnableItem {
   id: string;
   medicine_name: string;
+  medicine_id?: string;
+  inventory_id?: string;
   quantity: number;
   unit_price: number;
   total_price: number;
@@ -18,6 +20,8 @@ export interface ReturnableItem {
 export interface SelectedReturnItem {
   id: string;
   medicine_name: string;
+  medicine_id?: string;
+  inventory_id?: string;
   original_quantity: number;
   return_quantity: number;
   unit_price: number;
@@ -44,6 +48,8 @@ export function ReturnItemSelector({ items, selectedItems, onSelectionChange }: 
         {
           id: item.id,
           medicine_name: item.medicine_name,
+          medicine_id: item.medicine_id,
+          inventory_id: item.inventory_id,
           original_quantity: item.quantity,
           return_quantity: item.quantity, // Default to full quantity
           unit_price: item.unit_price,
