@@ -575,8 +575,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         path: "", 
         icon: "ClipboardCheck",
         children: [
-          { name: "Assessments", path: "/app/ot/pre-op", icon: "FileText" },
-          { name: "Consent Forms", path: "/app/ot/consent", icon: "FileSpreadsheet" },
+          { name: "Assessments", path: "/app/ot/surgeries", icon: "FileText" },
         ]
       },
       { 
