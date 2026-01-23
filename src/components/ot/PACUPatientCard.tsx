@@ -54,8 +54,8 @@ export function PACUPatientCard({
             <User className="h-5 w-5 text-muted-foreground" />
             <div>
               <p className="font-medium">{patientName}</p>
-              {patient?.mr_number && (
-                <p className="text-xs text-muted-foreground">{patient.mr_number}</p>
+              {patient?.patient_number && (
+                <p className="text-xs text-muted-foreground">{patient.patient_number}</p>
               )}
             </div>
           </div>

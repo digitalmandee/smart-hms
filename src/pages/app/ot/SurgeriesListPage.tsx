@@ -84,7 +84,7 @@ export default function SurgeriesListPage() {
             <p className="font-medium">
               {patient?.first_name} {patient?.last_name}
             </p>
-            <p className="text-xs text-muted-foreground">{patient?.mr_number}</p>
+            <p className="text-xs text-muted-foreground">{patient?.patient_number}</p>
           </div>
         );
       },

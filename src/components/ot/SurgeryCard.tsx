@@ -99,8 +99,8 @@ export function SurgeryCard({
           <User className="h-4 w-4 text-muted-foreground flex-shrink-0" />
           <div className="min-w-0">
             <p className="font-medium truncate">{patientName}</p>
-            {surgery.patient?.mr_number && (
-              <p className="text-xs text-muted-foreground">{surgery.patient.mr_number}</p>
+            {surgery.patient?.patient_number && (
+              <p className="text-xs text-muted-foreground">{surgery.patient.patient_number}</p>
             )}
           </div>
         </div>

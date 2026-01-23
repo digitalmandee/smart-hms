@@ -133,8 +133,8 @@ export function UpcomingSurgeriesCard({
                           <span className="truncate">
                             {surgery.patient?.first_name} {surgery.patient?.last_name}
                           </span>
-                          {surgery.patient?.mr_number && (
-                            <span className="text-xs">({surgery.patient.mr_number})</span>
+                          {surgery.patient?.patient_number && (
+                            <span className="text-xs">({surgery.patient.patient_number})</span>
                           )}
                         </div>
                         {surgery.lead_surgeon?.profile?.full_name && (

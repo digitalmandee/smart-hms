@@ -177,8 +177,8 @@ export default function SurgeryDetailPage() {
                   <div>
                     <p className="text-sm text-muted-foreground">Patient</p>
                     <p className="font-medium">{patientName}</p>
-                    {surgery.patient?.mr_number && (
-                      <p className="text-sm text-muted-foreground">{surgery.patient.mr_number}</p>
+                    {surgery.patient?.patient_number && (
+                      <p className="text-sm text-muted-foreground">{surgery.patient.patient_number}</p>
                     )}
                     {surgery.patient?.blood_group && (
                       <Badge variant="outline" className="mt-1">

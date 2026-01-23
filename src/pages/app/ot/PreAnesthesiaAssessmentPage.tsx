@@ -160,7 +160,7 @@ export default function PreAnesthesiaAssessmentPage() {
             </div>
             <div>
               <p className="font-medium">{patientName}</p>
-              <p className="text-sm text-muted-foreground">{surgery.patient?.mr_number}</p>
+              <p className="text-sm text-muted-foreground">{surgery.patient?.patient_number}</p>
             </div>
           </CardContent>
         </Card>
