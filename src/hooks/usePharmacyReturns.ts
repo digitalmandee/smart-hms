@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { POSTransaction } from "@/hooks/usePOS";
+import { SelectedReturnItem } from "@/components/pharmacy/ReturnItemSelector";
+import { RefundMethod } from "@/components/pharmacy/RefundMethodSelector";
 
 // Helper for raw SQL queries to POS tables (bypasses type checking)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -49,13 +51,13 @@ export function useSearchTransactionForReturn(query: string) {
           total_amount,
           created_at,
           status,
-          items:pharmacy_pos_items(id, medicine_name, quantity, unit_price, total_price)
+          items:pharmacy_pos_items(id, medicine_name, quantity, unit_price, total_price, batch_number)
         `)
         .eq("branch_id", profile.branch_id)
-        .eq("status", "completed")
+        .in("status", ["completed", "credit"]) // Include credit sales too
         .or(`transaction_number.ilike.%${query}%,customer_name.ilike.%${query}%,customer_phone.ilike.%${query}%`)
         .order("created_at", { ascending: false })
-        .limit(20);
+        .limit(50);
 
       if (error) throw error;
       return data as ReturnTransaction[];
@@ -146,7 +148,7 @@ export function useReturnsStats() {
   });
 }
 
-// Process return/refund
+// Process return/refund with item-level selection
 export function useProcessReturn() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -156,39 +158,94 @@ export function useProcessReturn() {
     mutationFn: async ({
       transactionId,
       reason,
+      selectedItems,
+      refundMethod,
+      totalRefundAmount,
       restockItems = true,
     }: {
       transactionId: string;
       reason: string;
+      selectedItems: SelectedReturnItem[];
+      refundMethod: RefundMethod;
+      totalRefundAmount: number;
       restockItems?: boolean;
     }) => {
-      // Mark transaction as refunded
-      const { data, error } = await queryPOSTable("pharmacy_pos_transactions")
-        .update({
-          status: "refunded",
-          voided_at: new Date().toISOString(),
-          voided_by: profile?.id,
-          void_reason: reason,
+      if (!profile?.organization_id || !profile?.branch_id) {
+        throw new Error("User profile not found");
+      }
+
+      // 1. Create pharmacy_return record using raw query helper
+      const { data: returnRecord, error: returnError } = await queryPOSTable("pharmacy_returns")
+        .insert({
+          original_transaction_id: transactionId,
+          return_type: refundMethod,
+          total_refund_amount: totalRefundAmount,
+          reason,
+          processed_by: profile.id,
+          branch_id: profile.branch_id,
+          organization_id: profile.organization_id,
         })
-        .eq("id", transactionId)
         .select()
         .single();
 
-      if (error) throw error;
+      if (returnError) throw returnError;
 
-      // TODO: If restockItems is true, update inventory quantities
-      // This would require fetching items and adjusting stock
+      // 2. Create pharmacy_return_items for each returned item
+      const returnItems = selectedItems.map(item => ({
+        return_id: returnRecord.id,
+        original_item_id: item.id,
+        medicine_name: item.medicine_name,
+        quantity_returned: item.return_quantity,
+        unit_price: item.unit_price,
+        line_total: item.line_total,
+        restocked: restockItems,
+        batch_number: item.batch_number,
+      }));
 
-      return data as POSTransaction;
+      const { error: itemsError } = await queryPOSTable("pharmacy_return_items")
+        .insert(returnItems);
+
+      if (itemsError) throw itemsError;
+
+      // 3. Get original transaction to check if full or partial refund
+      const { data: originalTx } = await queryPOSTable("pharmacy_pos_transactions")
+        .select("items:pharmacy_pos_items(id, quantity)")
+        .eq("id", transactionId)
+        .single();
+
+      const originalItemCount = originalTx?.items?.length || 0;
+      const returnedItemCount = selectedItems.length;
+      const isFullRefund = returnedItemCount === originalItemCount && 
+        selectedItems.every(si => {
+          const orig = originalTx?.items?.find((oi: any) => oi.id === si.id);
+          return orig && si.return_quantity === orig.quantity;
+        });
+
+      // 4. If full refund, mark transaction as refunded
+      if (isFullRefund) {
+        await queryPOSTable("pharmacy_pos_transactions")
+          .update({
+            status: "refunded",
+            voided_at: new Date().toISOString(),
+            voided_by: profile.id,
+            void_reason: reason,
+          })
+          .eq("id", transactionId);
+      }
+
+      // 5. TODO: Handle credit adjustments if refundMethod is add_credit or deduct_outstanding
+      // This would update pharmacy_patient_credits table
+
+      return returnRecord;
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["pos-transactions"] });
       queryClient.invalidateQueries({ queryKey: ["recent-returns"] });
       queryClient.invalidateQueries({ queryKey: ["returns-stats"] });
       queryClient.invalidateQueries({ queryKey: ["search-transaction-return"] });
       toast({
         title: "Return Processed",
-        description: "The transaction has been marked as refunded.",
+        description: `${variables.selectedItems.length} item(s) returned successfully.`,
       });
     },
     onError: (error: Error) => {
