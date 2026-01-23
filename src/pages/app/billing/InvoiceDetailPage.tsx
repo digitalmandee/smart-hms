@@ -30,11 +30,14 @@ import {
   DollarSign,
   BookOpen,
   ExternalLink,
+  FlaskConical,
+  Loader2,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePrint } from "@/hooks/usePrint";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useCreateLabOrderFromInvoice } from "@/hooks/useCreateLabOrderFromInvoice";
 
 export default function InvoiceDetailPage() {
   const { id } = useParams();
@@ -45,6 +48,7 @@ export default function InvoiceDetailPage() {
   const { data: invoice, isLoading } = useInvoice(id);
   const { data: organizations } = useOrganizations();
   const cancelMutation = useCancelInvoice();
+  const createLabOrderMutation = useCreateLabOrderFromInvoice();
 
   // Query for linked journal entry
   const { data: journalEntry } = useQuery({
@@ -60,6 +64,50 @@ export default function InvoiceDetailPage() {
       return data;
     },
     enabled: !!id,
+  });
+
+  // Query for linked lab order
+  const { data: linkedLabOrder } = useQuery({
+    queryKey: ["lab-order-for-invoice", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("lab_orders")
+        .select("id, order_number, status")
+        .eq("invoice_id", id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id,
+  });
+
+  // Query to check if invoice has lab items
+  const { data: labItemsInfo } = useQuery({
+    queryKey: ["invoice-lab-items", id],
+    queryFn: async () => {
+      if (!invoice) return { hasLabItems: false, labItems: [] };
+      
+      const serviceTypeIds = invoice.items
+        .filter((i) => i.service_type_id)
+        .map((i) => i.service_type_id!);
+
+      if (serviceTypeIds.length === 0) return { hasLabItems: false, labItems: [] };
+
+      const { data: serviceTypes } = await supabase
+        .from("service_types")
+        .select("id, category, name")
+        .in("id", serviceTypeIds);
+
+      const labServiceIds =
+        serviceTypes?.filter((st) => st.category === "lab").map((st) => st.id) || [];
+
+      const labItems = invoice.items.filter(
+        (item) => item.service_type_id && labServiceIds.includes(item.service_type_id)
+      );
+
+      return { hasLabItems: labItems.length > 0, labItems };
+    },
+    enabled: !!invoice,
   });
 
   const organization = organizations?.find(
@@ -250,6 +298,80 @@ export default function InvoiceDetailPage() {
               />
             </CardContent>
           </Card>
+
+          {/* Lab Order Status */}
+          {labItemsInfo?.hasLabItems && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FlaskConical className="h-5 w-5" />
+                  Lab Order
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {linkedLabOrder ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Order #</span>
+                      <span className="font-medium">{linkedLabOrder.order_number}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Status</span>
+                      <Badge variant="secondary">{linkedLabOrder.status}</Badge>
+                    </div>
+                    <Separator />
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => navigate(`/app/lab/orders/${linkedLabOrder.id}`)}
+                    >
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      View Lab Order
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <p className="text-sm text-muted-foreground text-center">
+                      This invoice has {labItemsInfo.labItems.length} lab test(s) but no lab order created.
+                    </p>
+                    <Button
+                      className="w-full"
+                      onClick={() => {
+                        if (invoice && id) {
+                          createLabOrderMutation.mutate({
+                            invoiceId: id,
+                            invoiceNumber: invoice.invoice_number,
+                            patientId: invoice.patient.id,
+                            branchId: invoice.branch_id,
+                            items: invoice.items.map((item) => ({
+                              id: item.id,
+                              description: item.description,
+                              service_type_id: item.service_type_id || null,
+                              quantity: item.quantity,
+                              unit_price: Number(item.unit_price),
+                            })),
+                          });
+                        }
+                      }}
+                      disabled={createLabOrderMutation.isPending}
+                    >
+                      {createLabOrderMutation.isPending ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Creating...
+                        </>
+                      ) : (
+                        <>
+                          <FlaskConical className="mr-2 h-4 w-4" />
+                          Create Lab Order
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {/* Accounting Status */}
           <Card>
