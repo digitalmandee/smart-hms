@@ -76,7 +76,15 @@ export default function MyAttendancePage() {
 
   const formatTime = (time: string | null) => {
     if (!time) return "-";
-    return format(new Date(time), "hh:mm a");
+    try {
+      // Handle both full datetime strings and time-only strings (HH:mm:ss)
+      const isTimeOnly = /^\d{2}:\d{2}(:\d{2})?$/.test(time);
+      const dateToFormat = isTimeOnly ? new Date(`2000-01-01T${time}`) : new Date(time);
+      if (isNaN(dateToFormat.getTime())) return "-";
+      return format(dateToFormat, "hh:mm a");
+    } catch {
+      return "-";
+    }
   };
 
   const goToPreviousMonth = () => {
