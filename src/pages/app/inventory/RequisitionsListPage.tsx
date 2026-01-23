@@ -28,9 +28,9 @@ import type { Database } from "@/integrations/supabase/types";
 type RequisitionStatus = Database["public"]["Enums"]["requisition_status"];
 
 export default function RequisitionsListPage() {
-  const [statusFilter, setStatusFilter] = useState<RequisitionStatus | "">("");
+  const [statusFilter, setStatusFilter] = useState<RequisitionStatus | "all">("all");
   const { data: requisitions, isLoading } = useRequisitions(
-    statusFilter ? { status: statusFilter } : undefined
+    statusFilter !== "all" ? { status: statusFilter } : undefined
   );
 
   return (
@@ -51,12 +51,12 @@ export default function RequisitionsListPage() {
       <Card>
         <CardHeader>
           <div className="flex gap-4">
-            <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as RequisitionStatus | "")}>
+            <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as RequisitionStatus | "all")}>
               <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder="All Statuses" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Statuses</SelectItem>
+                <SelectItem value="all">All Statuses</SelectItem>
                 <SelectItem value="draft">Draft</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
                 <SelectItem value="approved">Approved</SelectItem>

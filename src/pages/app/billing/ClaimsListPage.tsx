@@ -36,10 +36,10 @@ const statusColors: Record<string, string> = {
 export default function ClaimsListPage() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   
   const { data: claims, isLoading } = useInsuranceClaims({ 
-    status: statusFilter || undefined 
+    status: statusFilter !== "all" ? statusFilter : undefined 
   });
   const { data: stats } = useInsuranceStats();
 
@@ -142,7 +142,7 @@ export default function ClaimsListPage() {
               <SelectValue placeholder="All Statuses" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Statuses</SelectItem>
+              <SelectItem value="all">All Statuses</SelectItem>
               <SelectItem value="draft">Draft</SelectItem>
               <SelectItem value="submitted">Submitted</SelectItem>
               <SelectItem value="in_review">In Review</SelectItem>

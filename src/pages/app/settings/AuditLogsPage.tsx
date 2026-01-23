@@ -36,14 +36,14 @@ import { format } from "date-fns";
 export default function AuditLogsPage() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
-  const [entityType, setEntityType] = useState<string>("");
-  const [action, setAction] = useState<string>("");
+  const [entityType, setEntityType] = useState<string>("all");
+  const [action, setAction] = useState<string>("all");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [selectedLog, setSelectedLog] = useState<unknown>(null);
 
   const { data, isLoading } = useAuditLogs(
-    { entityType: entityType || undefined, action: action || undefined, startDate, endDate, search },
+    { entityType: entityType !== "all" ? entityType : undefined, action: action !== "all" ? action : undefined, startDate, endDate, search },
     page
   );
   const { data: entityTypes } = useAuditEntityTypes();
@@ -143,7 +143,7 @@ export default function AuditLogsPage() {
                     <SelectValue placeholder="All Types" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Types</SelectItem>
+                    <SelectItem value="all">All Types</SelectItem>
                     {entityTypes?.map((type) => (
                       <SelectItem key={type} value={type}>{type}</SelectItem>
                     ))}
@@ -157,7 +157,7 @@ export default function AuditLogsPage() {
                     <SelectValue placeholder="All Actions" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Actions</SelectItem>
+                    <SelectItem value="all">All Actions</SelectItem>
                     {actions?.map((a) => (
                       <SelectItem key={a} value={a}>{a}</SelectItem>
                     ))}

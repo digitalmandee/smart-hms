@@ -91,7 +91,7 @@ export function NurseDetailsForm({ form, wards }: NurseDetailsFormProps) {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">No Ward Assigned</SelectItem>
+                    <SelectItem value="none">No Ward Assigned</SelectItem>
                     {wards?.map((ward) => (
                       <SelectItem key={ward.id} value={ward.id}>
                         {ward.name} {ward.ward_type && `(${ward.ward_type})`}
