@@ -781,6 +781,34 @@ export function useAdmissionSurgeries(admissionId?: string) {
   });
 }
 
+// Hook to link an invoice to a surgery
+export function useUpdateSurgeryInvoice() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ surgeryId, invoiceId }: { surgeryId: string; invoiceId: string }) => {
+      const { data, error } = await supabase
+        .from('surgeries')
+        .update({ invoice_id: invoiceId })
+        .eq('id', surgeryId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['surgery', variables.surgeryId] });
+      queryClient.invalidateQueries({ queryKey: ['surgeries'] });
+      toast.success('Invoice linked to surgery');
+    },
+    onError: (error: any) => {
+      console.error('Failed to link invoice to surgery:', error);
+      // Don't show error toast - invoice was still created
+    },
+  });
+}
+
 export function useCancelSurgery() {
   const updateSurgery = useUpdateSurgery();
 

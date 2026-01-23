@@ -4,13 +4,15 @@ import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import { PatientSearch } from "@/components/appointments/PatientSearch";
 import { InvoiceItemsBuilder } from "@/components/billing/InvoiceItemsBuilder";
 import { InvoiceTotals } from "@/components/billing/InvoiceTotals";
 import { PatientBalanceCard } from "@/components/billing/PatientBalanceCard";
 import { useCreateInvoice, useInvoice, useUpdateInvoice, InvoiceItemInput } from "@/hooks/useBilling";
+import { useSurgery, useUpdateSurgeryInvoice } from "@/hooks/useOT";
 import { useAuth } from "@/contexts/AuthContext";
-import { ArrowLeft, Save, FileText } from "lucide-react";
+import { ArrowLeft, Save, FileText, Scissors } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface Patient {
@@ -30,21 +32,22 @@ export default function InvoiceFormPage() {
   const { profile } = useAuth();
 
   const isEdit = !!id;
-  const preselectedPatientId = searchParams.get("patientId");
+  const surgeryId = searchParams.get("surgeryId");
 
   const { data: existingInvoice, isLoading } = useInvoice(id);
+  const { data: surgery, isLoading: surgeryLoading } = useSurgery(surgeryId || "");
   const createMutation = useCreateInvoice();
   const updateMutation = useUpdateInvoice();
+  const updateSurgeryInvoiceMutation = useUpdateSurgeryInvoice();
 
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [items, setItems] = useState<InvoiceItemInput[]>([]);
   const [notes, setNotes] = useState("");
   const [taxAmount, setTaxAmount] = useState(0);
   const [discountAmount, setDiscountAmount] = useState(0);
+  const [surgeryInitialized, setSurgeryInitialized] = useState(false);
 
-  // Note: preselectedPatientId would need a fetch to get patient object
-  // For now, we handle it in the PatientSearch component
-
+  // Initialize from existing invoice (edit mode)
   useEffect(() => {
     if (existingInvoice && isEdit) {
       setSelectedPatient({
@@ -71,6 +74,39 @@ export default function InvoiceFormPage() {
       );
     }
   }, [existingInvoice, isEdit]);
+
+  // Initialize from surgery context (new invoice for surgery)
+  useEffect(() => {
+    if (surgery && surgeryId && !isEdit && !surgeryInitialized) {
+      // Set patient from surgery
+      if (surgery.patient) {
+        setSelectedPatient({
+          id: surgery.patient.id,
+          first_name: surgery.patient.first_name,
+          last_name: surgery.patient.last_name || null,
+          patient_number: surgery.patient.patient_number,
+          phone: surgery.patient.phone || null,
+          date_of_birth: surgery.patient.date_of_birth || null,
+          gender: surgery.patient.gender || null,
+        });
+      }
+
+      // Add surgery procedure as initial item
+      const procedureItem: InvoiceItemInput = {
+        description: `Surgery: ${surgery.procedure_name}`,
+        quantity: 1,
+        unit_price: surgery.estimated_cost || 0,
+        discount_percent: 0,
+        category: "procedure",
+      };
+      setItems([procedureItem]);
+
+      // Set notes with surgery reference
+      setNotes(`Surgery: ${surgery.surgery_number} - ${surgery.procedure_name}`);
+
+      setSurgeryInitialized(true);
+    }
+  }, [surgery, surgeryId, isEdit, surgeryInitialized]);
 
   const subtotal = items.reduce((sum, item) => {
     return sum + item.quantity * item.unit_price * (1 - (item.discount_percent || 0) / 100);
@@ -102,6 +138,15 @@ export default function InvoiceFormPage() {
         discountAmount,
         status,
       });
+
+      // Link invoice to surgery if this was created from surgery context
+      if (surgeryId && invoice.id) {
+        await updateSurgeryInvoiceMutation.mutateAsync({
+          surgeryId,
+          invoiceId: invoice.id,
+        });
+      }
+
       navigate(`/app/billing/invoices/${invoice.id}`);
     }
   };
@@ -115,11 +160,26 @@ export default function InvoiceFormPage() {
     );
   }
 
+  if (surgeryId && surgeryLoading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-12 w-48" />
+        <Skeleton className="h-96" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
-        title={isEdit ? "Edit Invoice" : "Create Invoice"}
-        description={isEdit ? `Editing ${existingInvoice?.invoice_number}` : "Create a new patient invoice"}
+        title={isEdit ? "Edit Invoice" : surgeryId ? "Surgery Invoice" : "Create Invoice"}
+        description={
+          isEdit 
+            ? `Editing ${existingInvoice?.invoice_number}` 
+            : surgeryId && surgery 
+              ? `Creating invoice for surgery ${surgery.surgery_number}`
+              : "Create a new patient invoice"
+        }
         actions={
           <Button variant="outline" onClick={() => navigate(-1)}>
             <ArrowLeft className="mr-2 h-4 w-4" />
@@ -127,6 +187,26 @@ export default function InvoiceFormPage() {
           </Button>
         }
       />
+
+      {/* Surgery Context Banner */}
+      {surgeryId && surgery && (
+        <Card className="border-primary/20 bg-primary/5">
+          <CardContent className="py-4">
+            <div className="flex items-center gap-3">
+              <Scissors className="h-5 w-5 text-primary" />
+              <div className="flex-1">
+                <p className="font-medium">
+                  Surgery: {surgery.surgery_number}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {surgery.procedure_name} • {surgery.patient?.first_name} {surgery.patient?.last_name}
+                </p>
+              </div>
+              <Badge variant="secondary">{surgery.priority}</Badge>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
