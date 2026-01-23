@@ -223,7 +223,7 @@ export const usePendingDischarges = () => {
           bed:beds(id, bed_number),
           attending_doctor:doctors!admissions_attending_doctor_id_fkey(
             id,
-            profile:profiles(full_name)
+            profile:profiles!doctors_profile_id_fkey(full_name)
           )
         `)
         .eq("organization_id", profile.organization_id)
@@ -260,7 +260,7 @@ export const useAdmittedPatientsForDischarge = (doctorId?: string) => {
           bed:beds(id, bed_number),
           attending_doctor:doctors!admissions_attending_doctor_id_fkey(
             id,
-            profile:profiles(full_name)
+            profile:profiles!doctors_profile_id_fkey(full_name)
           )
         `)
         .eq("organization_id", profile.organization_id)
