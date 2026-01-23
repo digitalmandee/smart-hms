@@ -27,9 +27,12 @@ export interface ReturnTransaction {
 export interface ReturnItem {
   id: string;
   medicine_name: string;
+  medicine_id?: string;
+  inventory_id?: string;
   quantity: number;
   unit_price: number;
   total_price: number;
+  batch_number?: string;
   returned_quantity?: number;
 }
 
@@ -51,7 +54,7 @@ export function useSearchTransactionForReturn(query: string) {
           total_amount,
           created_at,
           status,
-          items:pharmacy_pos_items(id, medicine_name, quantity, unit_price, total_price, batch_number)
+          items:pharmacy_pos_items(id, medicine_name, medicine_id, inventory_id, quantity, unit_price, total_price, batch_number)
         `)
         .eq("branch_id", profile.branch_id)
         .in("status", ["completed", "credit"]) // Include credit sales too
@@ -233,7 +236,51 @@ export function useProcessReturn() {
           .eq("id", transactionId);
       }
 
-      // 5. TODO: Handle credit adjustments if refundMethod is add_credit or deduct_outstanding
+      // 5. Restock inventory if requested
+      if (restockItems) {
+        for (const item of selectedItems) {
+          if (item.inventory_id) {
+            // Get current inventory quantity
+            const { data: inventory, error: invError } = await supabase
+              .from("medicine_inventory")
+              .select("id, quantity, medicine_id, batch_number")
+              .eq("id", item.inventory_id)
+              .single();
+
+            if (!invError && inventory) {
+              const previousStock = inventory.quantity || 0;
+              const newStock = previousStock + item.return_quantity;
+
+              // Update inventory - ADD quantity back
+              await supabase
+                .from("medicine_inventory")
+                .update({ quantity: newStock })
+                .eq("id", item.inventory_id);
+
+              // Log stock movement
+              await queryPOSTable("pharmacy_stock_movements").insert({
+                organization_id: profile.organization_id,
+                branch_id: profile.branch_id,
+                medicine_id: item.medicine_id || inventory.medicine_id,
+                inventory_id: item.inventory_id,
+                movement_type: "return",
+                quantity: item.return_quantity,
+                previous_stock: previousStock,
+                new_stock: newStock,
+                reference_type: "pharmacy_return",
+                reference_id: returnRecord.id,
+                batch_number: item.batch_number || inventory.batch_number,
+                unit_cost: item.unit_price,
+                total_value: item.line_total,
+                notes: `Return: ${reason}`,
+                created_by: profile.id,
+              });
+            }
+          }
+        }
+      }
+
+      // 6. TODO: Handle credit adjustments if refundMethod is add_credit or deduct_outstanding
       // This would update pharmacy_patient_credits table
 
       return returnRecord;
