@@ -13515,6 +13515,159 @@ export type Database = {
           },
         ]
       }
+      pharmacy_return_items: {
+        Row: {
+          batch_number: string | null
+          created_at: string | null
+          id: string
+          line_total: number
+          medicine_id: string | null
+          medicine_name: string
+          original_item_id: string | null
+          quantity_returned: number
+          restocked: boolean | null
+          return_id: string
+          unit_price: number
+        }
+        Insert: {
+          batch_number?: string | null
+          created_at?: string | null
+          id?: string
+          line_total: number
+          medicine_id?: string | null
+          medicine_name: string
+          original_item_id?: string | null
+          quantity_returned: number
+          restocked?: boolean | null
+          return_id: string
+          unit_price: number
+        }
+        Update: {
+          batch_number?: string | null
+          created_at?: string | null
+          id?: string
+          line_total?: number
+          medicine_id?: string | null
+          medicine_name?: string
+          original_item_id?: string | null
+          quantity_returned?: number
+          restocked?: boolean | null
+          return_id?: string
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pharmacy_return_items_medicine_id_fkey"
+            columns: ["medicine_id"]
+            isOneToOne: false
+            referencedRelation: "medicines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_return_items_return_id_fkey"
+            columns: ["return_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_returns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pharmacy_returns: {
+        Row: {
+          branch_id: string
+          created_at: string | null
+          credit_adjustment: number | null
+          credit_id: string | null
+          id: string
+          notes: string | null
+          organization_id: string
+          original_invoice_id: string | null
+          original_transaction_id: string | null
+          patient_id: string | null
+          processed_by: string | null
+          reason: string | null
+          return_number: string
+          return_type: string
+          status: string
+          total_refund_amount: number
+          updated_at: string | null
+        }
+        Insert: {
+          branch_id: string
+          created_at?: string | null
+          credit_adjustment?: number | null
+          credit_id?: string | null
+          id?: string
+          notes?: string | null
+          organization_id: string
+          original_invoice_id?: string | null
+          original_transaction_id?: string | null
+          patient_id?: string | null
+          processed_by?: string | null
+          reason?: string | null
+          return_number: string
+          return_type: string
+          status?: string
+          total_refund_amount?: number
+          updated_at?: string | null
+        }
+        Update: {
+          branch_id?: string
+          created_at?: string | null
+          credit_adjustment?: number | null
+          credit_id?: string | null
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          original_invoice_id?: string | null
+          original_transaction_id?: string | null
+          patient_id?: string | null
+          processed_by?: string | null
+          reason?: string | null
+          return_number?: string
+          return_type?: string
+          status?: string
+          total_refund_amount?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pharmacy_returns_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_returns_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_returns_original_invoice_id_fkey"
+            columns: ["original_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_returns_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_returns_processed_by_fkey"
+            columns: ["processed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pharmacy_settings: {
         Row: {
           allow_held_transactions: boolean | null
