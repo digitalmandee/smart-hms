@@ -147,6 +147,7 @@ export const useCreateDischargeSummary = () => {
 
 export const useUpdateDischargeSummary = () => {
   const queryClient = useQueryClient();
+  const { profile } = useAuth();
 
   return useMutation({
     mutationFn: async ({ id, ...summaryData }: { id: string } & Partial<{
@@ -190,6 +191,12 @@ export const useUpdateDischargeSummary = () => {
         updateData.referrals = summaryData.referrals as unknown as Json;
       }
 
+      // When status is "approved", automatically set approved_by and approved_at
+      if (summaryData.status === "approved" && profile?.id) {
+        updateData.approved_by = profile.id;
+        updateData.approved_at = new Date().toISOString();
+      }
+
       const { data, error } = await supabase
         .from("discharge_summaries")
         .update(updateData)
@@ -200,9 +207,10 @@ export const useUpdateDischargeSummary = () => {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["discharge-summary"] });
-      toast({ title: "Discharge summary updated" });
+      queryClient.invalidateQueries({ queryKey: ["approved-for-billing"] });
+      toast({ title: variables.status === "approved" ? "Discharge summary approved" : "Discharge summary updated" });
     },
     onError: (error: Error) => {
       toast({ title: "Failed to update discharge summary", description: error.message, variant: "destructive" });
