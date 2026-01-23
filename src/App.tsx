@@ -260,6 +260,8 @@ import LabReportsPage from "./pages/app/lab/LabReportsPage";
 import AppointmentReportsPage from "./pages/app/appointments/AppointmentReportsPage";
 import PatientReportsPage from "./pages/app/patients/PatientReportsPage";
 import ReportsHubPage from "./pages/app/reports/ReportsHubPage";
+import ExecutiveDashboardReport from "./pages/app/reports/ExecutiveDashboardReport";
+import EmployeePerformanceReport from "./pages/app/hr/reports/EmployeePerformanceReport";
 
 // OT pages
 import OTDashboard from "./pages/app/ot/OTDashboard";
@@ -453,6 +455,7 @@ function App() {
               <Route path="reports" element={<ReportsHubPage />} />
               <Route path="reports/organization" element={<OrganizationReportsPage />} />
               <Route path="reports/branches" element={<BranchComparisonPage />} />
+              <Route path="reports/executive" element={<ExecutiveDashboardReport />} />
               
               {/* Organization Admin Dashboard */}
               <Route path="org-dashboard" element={<OrgAdminDashboardPage />} />
@@ -755,6 +758,7 @@ function App() {
               <Route path="hr/setup/leave-types" element={<LeaveTypesPage />} />
               <Route path="hr/setup/holidays" element={<HolidaysPage />} />
               <Route path="hr/reports" element={<HRReportsPage />} />
+              <Route path="hr/reports/performance" element={<EmployeePerformanceReport />} />
               <Route path="hr/attendance/reports" element={<AttendanceReportsPage />} />
               <Route path="hr/setup/salary-components" element={<SalaryComponentsPage />} />
               <Route path="hr/setup/tax-slabs" element={<TaxSlabsPage />} />

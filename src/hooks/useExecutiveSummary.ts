@@ -41,16 +41,19 @@ export function useExecutiveSummary(options: { startDate?: Date; endDate?: Date 
       const startStr = format(startDate, "yyyy-MM-dd");
       const endStr = format(endDate, "yyyy-MM-dd");
 
+      // Fetch all data in parallel with explicit typing to avoid deep instantiation
+      const invoicesPromise = supabase.from("invoices").select("total_amount, paid_amount").eq("organization_id", orgId).gte("created_at", startStr).lte("created_at", endStr + "T23:59:59");
+      const appointmentsPromise = supabase.from("appointments").select("id, doctor_id, status").eq("organization_id", orgId).gte("appointment_date", startStr).lte("appointment_date", endStr);
+      const admissionsPromise = supabase.from("admissions").select("id, actual_discharge_date").eq("organization_id", orgId).eq("status", "admitted");
+      const bedsPromise = supabase.from("beds").select("id, status");
+      const pharmacyPromise = supabase.from("pharmacy_pos_transactions").select("total_amount, created_at").eq("organization_id", orgId).gte("created_at", startStr).lte("created_at", endStr + "T23:59:59");
+      const labOrdersPromise = supabase.from("lab_orders").select("id, status").gte("created_at", startStr).lte("created_at", endStr + "T23:59:59");
+      const employeesPromise = supabase.from("employees").select("id", { count: "exact" }).eq("organization_id", orgId).eq("employment_status", "active");
+      const attendancePromise = supabase.from("attendance_records").select("id, status").eq("organization_id", orgId).eq("attendance_date", today);
+      const overdueInvPromise = supabase.from("invoices").select("id").eq("organization_id", orgId).eq("status", "pending").lt("due_date", today);
+
       const [invoices, appointments, admissions, beds, pharmacy, labOrders, employees, attendance, overdueInv] = await Promise.all([
-        supabase.from("invoices").select("total_amount, paid_amount").eq("organization_id", orgId).gte("created_at", startStr).lte("created_at", endStr + "T23:59:59"),
-        supabase.from("appointments").select("id, doctor_id, status").eq("organization_id", orgId).gte("appointment_date", startStr).lte("appointment_date", endStr),
-        supabase.from("admissions").select("id, actual_discharge_date").eq("organization_id", orgId).eq("status", "admitted"),
-        supabase.from("beds").select("id, status").eq("organization_id", orgId),
-        supabase.from("pharmacy_pos_transactions").select("total_amount, created_at").eq("organization_id", orgId).gte("created_at", startStr).lte("created_at", endStr + "T23:59:59"),
-        supabase.from("lab_orders").select("id, status").eq("organization_id", orgId).gte("created_at", startStr).lte("created_at", endStr + "T23:59:59"),
-        supabase.from("employees").select("id", { count: "exact" }).eq("organization_id", orgId).eq("employment_status", "active"),
-        supabase.from("attendance_records").select("id, status").eq("organization_id", orgId).eq("attendance_date", today),
-        supabase.from("invoices").select("id").eq("organization_id", orgId).eq("status", "pending").lt("due_date", today),
+        invoicesPromise, appointmentsPromise, admissionsPromise, bedsPromise, pharmacyPromise, labOrdersPromise, employeesPromise, attendancePromise, overdueInvPromise
       ]);
 
       const inv = invoices.data || [];

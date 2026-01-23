@@ -8,7 +8,7 @@ import { useExecutiveSummary } from "@/hooks/useExecutiveSummary";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
 import { DollarSign, Users, Bed, Pill, TestTube, TrendingUp, AlertTriangle, Calendar, Download, Building2 } from "lucide-react";
 import { format, startOfMonth, endOfMonth, subMonths } from "date-fns";
-import PageHeader from "@/components/common/PageHeader";
+import { PageHeader } from "@/components/PageHeader";
 
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))'];
 
@@ -41,7 +41,7 @@ export default function ExecutiveDashboardReport() {
     );
   }
 
-  const summary = data || { revenue: { total: 0, collected: 0, outstanding: 0, trend: 0 }, opd: { consultations: 0, avgPerDoctor: 0 }, ipd: { activeAdmissions: 0, occupancyRate: 0, totalBeds: 0 }, pharmacy: { todaySales: 0, monthSales: 0 }, lab: { ordersProcessed: 0, pendingOrders: 0 }, hr: { totalEmployees: 0, attendanceRate: 0 }, financial: { byDepartment: [] }, alerts: [], patientFootfall: 0 };
+  const summary = data || { revenue: { total: 0, collected: 0, outstanding: 0, trend: 0 }, opd: { consultations: 0, avgPerDoctor: 0 }, ipd: { activeAdmissions: 0, occupancyRate: 0, totalBeds: 0 }, pharmacy: { todaySales: 0, monthSales: 0 }, lab: { ordersProcessed: 0, pendingOrders: 0 }, hr: { totalEmployees: 0, presentToday: 0, attendanceRate: 0 }, financial: { byDepartment: [] }, alerts: [], patientFootfall: 0 };
 
   const pieData = summary.financial.byDepartment.filter(d => d.count > 0).map((d, i) => ({ name: d.name, value: d.count, fill: COLORS[i % COLORS.length] }));
 

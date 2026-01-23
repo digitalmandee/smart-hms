@@ -138,6 +138,14 @@ const hrReports: ReportCard[] = [
     color: "bg-violet-500",
   },
   {
+    title: "Employee Performance",
+    description: "Attendance rates, punctuality, and productivity metrics",
+    icon: UserCheck,
+    path: "/app/hr/reports/performance",
+    module: "HR",
+    color: "bg-green-500",
+  },
+  {
     title: "Attendance Reports",
     description: "Attendance trends, late arrivals, department-wise analysis",
     icon: Clock,
@@ -152,6 +160,17 @@ const hrReports: ReportCard[] = [
     path: "/app/hr/payroll/reports",
     module: "HR",
     color: "bg-lime-500",
+  },
+];
+
+const managementReports: ReportCard[] = [
+  {
+    title: "Executive Dashboard",
+    description: "Complete hospital overview - revenue, departments, P&L summary",
+    icon: TrendingUp,
+    path: "/app/reports/executive",
+    module: "Management",
+    color: "bg-gradient-to-r from-purple-500 to-indigo-500",
   },
 ];
 
@@ -203,7 +222,7 @@ const ReportSection = ({ title, reports }: { title: string; reports: ReportCard[
 );
 
 export default function ReportsHubPage() {
-  const totalReports = clinicalReports.length + operationalReports.length + financialReports.length + hrReports.length;
+  const totalReports = clinicalReports.length + operationalReports.length + financialReports.length + hrReports.length + managementReports.length;
 
   return (
     <div className="space-y-8 p-6">
@@ -258,6 +277,7 @@ export default function ReportsHubPage() {
       </div>
 
       {/* Report Sections */}
+      <ReportSection title="Management & Executive" reports={managementReports} />
       <ReportSection title="Clinical Reports" reports={clinicalReports} />
       <ReportSection title="Operational Reports" reports={operationalReports} />
       <ReportSection title="HR & Staff Reports" reports={hrReports} />
