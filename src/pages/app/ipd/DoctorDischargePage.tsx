@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { format, differenceInDays } from "date-fns";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAdmission } from "@/hooks/useAdmissions";
 import { useDischargeSummary } from "@/hooks/useDischarge";
 import { DischargeSummaryForm } from "@/components/ipd/DischargeSummaryForm";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   User,
   Calendar,
@@ -17,14 +18,20 @@ import {
   FileText,
   CheckCircle2,
   Stethoscope,
+  ShieldAlert,
 } from "lucide-react";
 
 export default function DoctorDischargePage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { hasRole, hasPermission } = useAuth();
 
   const { data: admission, isLoading: loadingAdmission } = useAdmission(id);
   const { data: dischargeSummary, isLoading: loadingSummary, refetch: refetchSummary } = useDischargeSummary(id);
+
+  // Only doctors can create/approve discharge summaries
+  const isDoctor = hasRole("doctor");
+  const canCreateSummary = isDoctor || hasPermission("ipd.discharge.create");
 
   const isLoading = loadingAdmission || loadingSummary;
   
@@ -54,6 +61,31 @@ export default function DoctorDischargePage() {
         <Button onClick={() => navigate("/app/ipd/rounds")} className="mt-4">
           Back to My Patients
         </Button>
+      </div>
+    );
+  }
+
+  // Block non-doctors from creating/editing discharge summaries
+  if (!canCreateSummary && !isSummaryApproved) {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          title="Discharge Summary"
+          breadcrumbs={[
+            { label: "IPD", href: "/app/ipd" },
+            { label: "Discharges", href: "/app/ipd/discharges" },
+          ]}
+        />
+        <Alert variant="destructive">
+          <ShieldAlert className="h-4 w-4" />
+          <AlertDescription>
+            Only doctors can create and approve discharge summaries. If you need to process billing for an approved discharge, please use the{" "}
+            <Link to="/app/ipd/discharges" className="font-medium underline">
+              Ready for Billing
+            </Link>{" "}
+            tab in Discharge Management.
+          </AlertDescription>
+        </Alert>
       </div>
     );
   }
