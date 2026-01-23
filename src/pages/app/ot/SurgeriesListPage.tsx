@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -15,7 +15,7 @@ import {
   CalendarDays
 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { format, addDays } from "date-fns";
+import { format } from "date-fns";
 import { useSurgeries, type SurgeryStatus } from "@/hooks/useOT";
 import { useAuth } from "@/contexts/AuthContext";
 import { otLogger } from "@/lib/logger";
