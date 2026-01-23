@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -22,18 +21,15 @@ import {
   ACTIVITY_OPTIONS,
   VITAL_FREQUENCY_OPTIONS,
   VTE_OPTIONS,
-  type PostOpOrder,
 } from '@/hooks/usePostOpOrders';
 import { format } from 'date-fns';
 import {
   ClipboardList,
   Save,
   RefreshCw,
-  User,
   Check,
   AlertCircle,
 } from 'lucide-react';
-import { toast } from 'sonner';
 
 interface PostOpOrdersFormProps {
   surgeryId: string;
@@ -41,64 +37,88 @@ interface PostOpOrdersFormProps {
 
 interface FormData {
   disposition: string;
-  diet: string;
-  diet_instructions: string;
-  activity: string;
-  activity_instructions: string;
+  diet_order: string;
+  diet_notes: string;
+  activity_level: string;
+  activity_restrictions: string;
+  weight_bearing: string;
   vital_signs_frequency: string;
-  pain_management: string;
-  iv_fluids: string;
-  iv_fluid_rate: string;
-  medications_to_continue: string;
-  medications_to_hold: string;
-  new_medications: string;
+  pain_management_text: string;
+  iv_fluids_text: string;
+  medications_text: string;
+  continue_home_meds: boolean;
+  held_medications: string;
   foley_catheter: boolean;
-  foley_instructions: string;
+  foley_removal_date: string;
   ng_tube: boolean;
-  ng_tube_instructions: string;
-  drains: string;
+  ng_tube_orders: string;
+  drains_text: string;
   vte_prophylaxis: string;
-  wound_care: string;
+  vte_medication_details: string;
+  wound_care_instructions: string;
   dressing_change_frequency: string;
-  stat_labs: string;
-  morning_labs: string;
+  incentive_spirometry: boolean;
+  oxygen_therapy: string;
+  respiratory_treatments: string;
+  stat_labs_text: string;
+  morning_labs_text: string;
   imaging_orders: string;
-  notify_doctor_if: string;
+  consults_text: string;
   special_instructions: string;
   follow_up_instructions: string;
-  follow_up_date: string;
-  estimated_discharge: string;
+  follow_up_appointment: string;
+  discharge_criteria: string;
+  code_status: string;
+  neuro_checks: boolean;
+  neuro_frequency: string;
+  intake_output: boolean;
+  fall_precautions: boolean;
+  bleeding_precautions: boolean;
+  pain_goal: number | null;
+  pca_ordered: boolean;
 }
 
 const INITIAL_FORM: FormData = {
   disposition: 'ward',
-  diet: 'npo',
-  diet_instructions: '',
-  activity: 'bed_rest',
-  activity_instructions: '',
+  diet_order: 'npo',
+  diet_notes: '',
+  activity_level: 'bed_rest',
+  activity_restrictions: '',
+  weight_bearing: '',
   vital_signs_frequency: 'q4h',
-  pain_management: '',
-  iv_fluids: '',
-  iv_fluid_rate: '',
-  medications_to_continue: '',
-  medications_to_hold: '',
-  new_medications: '',
+  pain_management_text: '',
+  iv_fluids_text: '',
+  medications_text: '',
+  continue_home_meds: false,
+  held_medications: '',
   foley_catheter: false,
-  foley_instructions: '',
+  foley_removal_date: '',
   ng_tube: false,
-  ng_tube_instructions: '',
-  drains: '',
+  ng_tube_orders: '',
+  drains_text: '',
   vte_prophylaxis: 'scds',
-  wound_care: '',
+  vte_medication_details: '',
+  wound_care_instructions: '',
   dressing_change_frequency: '',
-  stat_labs: '',
-  morning_labs: '',
+  incentive_spirometry: false,
+  oxygen_therapy: '',
+  respiratory_treatments: '',
+  stat_labs_text: '',
+  morning_labs_text: '',
   imaging_orders: '',
-  notify_doctor_if: '',
+  consults_text: '',
   special_instructions: '',
   follow_up_instructions: '',
-  follow_up_date: '',
-  estimated_discharge: '',
+  follow_up_appointment: '',
+  discharge_criteria: '',
+  code_status: 'full_code',
+  neuro_checks: false,
+  neuro_frequency: '',
+  intake_output: true,
+  fall_precautions: false,
+  bleeding_precautions: false,
+  pain_goal: null,
+  pca_ordered: false,
 };
 
 const DISPOSITION_OPTIONS = [
@@ -108,6 +128,39 @@ const DISPOSITION_OPTIONS = [
   { value: 'observation', label: 'Observation' },
   { value: 'home', label: 'Home (Same-day discharge)' },
 ];
+
+const CODE_STATUS_OPTIONS = [
+  { value: 'full_code', label: 'Full Code' },
+  { value: 'dnr', label: 'DNR' },
+  { value: 'dni', label: 'DNI' },
+  { value: 'dnr_dni', label: 'DNR/DNI' },
+  { value: 'comfort', label: 'Comfort Care Only' },
+];
+
+// Helper to safely convert Json arrays to string
+const jsonArrayToString = (val: unknown): string => {
+  if (!val) return '';
+  if (Array.isArray(val)) {
+    return val.join(', ');
+  }
+  if (typeof val === 'string') return val;
+  return '';
+};
+
+// Helper to safely stringify Json object arrays for display
+const jsonToText = (val: unknown): string => {
+  if (!val) return '';
+  if (Array.isArray(val)) {
+    return val.map((item) => {
+      if (typeof item === 'object' && item !== null) {
+        return Object.values(item).filter(Boolean).join(' ');
+      }
+      return String(item);
+    }).join('\n');
+  }
+  if (typeof val === 'string') return val;
+  return '';
+};
 
 export function PostOpOrdersForm({ surgeryId }: PostOpOrdersFormProps) {
   const [formData, setFormData] = useState<FormData>(INITIAL_FORM);
@@ -122,37 +175,49 @@ export function PostOpOrdersForm({ surgeryId }: PostOpOrdersFormProps) {
     if (existingOrder) {
       setFormData({
         disposition: existingOrder.disposition || 'ward',
-        diet: existingOrder.diet || 'npo',
-        diet_instructions: existingOrder.diet_instructions || '',
-        activity: existingOrder.activity || 'bed_rest',
-        activity_instructions: existingOrder.activity_instructions || '',
+        diet_order: existingOrder.diet_order || 'npo',
+        diet_notes: existingOrder.diet_notes || '',
+        activity_level: existingOrder.activity_level || 'bed_rest',
+        activity_restrictions: existingOrder.activity_restrictions || '',
+        weight_bearing: existingOrder.weight_bearing || '',
         vital_signs_frequency: existingOrder.vital_signs_frequency || 'q4h',
-        pain_management: existingOrder.pain_management || '',
-        iv_fluids: existingOrder.iv_fluids || '',
-        iv_fluid_rate: existingOrder.iv_fluid_rate || '',
-        medications_to_continue: existingOrder.medications_to_continue || '',
-        medications_to_hold: existingOrder.medications_to_hold || '',
-        new_medications: existingOrder.new_medications || '',
+        pain_management_text: jsonToText(existingOrder.pain_management),
+        iv_fluids_text: jsonToText(existingOrder.iv_fluids),
+        medications_text: jsonToText(existingOrder.medications),
+        continue_home_meds: existingOrder.continue_home_meds || false,
+        held_medications: existingOrder.held_medications || '',
         foley_catheter: existingOrder.foley_catheter || false,
-        foley_instructions: existingOrder.foley_instructions || '',
+        foley_removal_date: existingOrder.foley_removal_date
+          ? format(new Date(existingOrder.foley_removal_date), 'yyyy-MM-dd')
+          : '',
         ng_tube: existingOrder.ng_tube || false,
-        ng_tube_instructions: existingOrder.ng_tube_instructions || '',
-        drains: existingOrder.drains || '',
+        ng_tube_orders: existingOrder.ng_tube_orders || '',
+        drains_text: jsonToText(existingOrder.drains),
         vte_prophylaxis: existingOrder.vte_prophylaxis || 'scds',
-        wound_care: existingOrder.wound_care || '',
+        vte_medication_details: existingOrder.vte_medication_details || '',
+        wound_care_instructions: existingOrder.wound_care_instructions || '',
         dressing_change_frequency: existingOrder.dressing_change_frequency || '',
-        stat_labs: existingOrder.stat_labs || '',
-        morning_labs: existingOrder.morning_labs || '',
+        incentive_spirometry: existingOrder.incentive_spirometry || false,
+        oxygen_therapy: existingOrder.oxygen_therapy || '',
+        respiratory_treatments: existingOrder.respiratory_treatments || '',
+        stat_labs_text: jsonArrayToString(existingOrder.stat_labs),
+        morning_labs_text: jsonArrayToString(existingOrder.morning_labs),
         imaging_orders: existingOrder.imaging_orders || '',
-        notify_doctor_if: existingOrder.notify_doctor_if || '',
+        consults_text: jsonArrayToString(existingOrder.consults),
         special_instructions: existingOrder.special_instructions || '',
         follow_up_instructions: existingOrder.follow_up_instructions || '',
-        follow_up_date: existingOrder.follow_up_date
-          ? format(new Date(existingOrder.follow_up_date), 'yyyy-MM-dd')
+        follow_up_appointment: existingOrder.follow_up_appointment
+          ? format(new Date(existingOrder.follow_up_appointment), 'yyyy-MM-dd')
           : '',
-        estimated_discharge: existingOrder.estimated_discharge
-          ? format(new Date(existingOrder.estimated_discharge), 'yyyy-MM-dd')
-          : '',
+        discharge_criteria: existingOrder.discharge_criteria || '',
+        code_status: existingOrder.code_status || 'full_code',
+        neuro_checks: existingOrder.neuro_checks || false,
+        neuro_frequency: existingOrder.neuro_frequency || '',
+        intake_output: existingOrder.intake_output ?? true,
+        fall_precautions: existingOrder.fall_precautions || false,
+        bleeding_precautions: existingOrder.bleeding_precautions || false,
+        pain_goal: existingOrder.pain_goal ?? null,
+        pca_ordered: existingOrder.pca_ordered || false,
       });
       setHasChanges(false);
     }
@@ -165,20 +230,97 @@ export function PostOpOrdersForm({ surgeryId }: PostOpOrdersFormProps) {
 
   const handleSave = async () => {
     try {
+      // Parse text fields back to arrays where needed
+      const statLabs = formData.stat_labs_text
+        ? formData.stat_labs_text.split(',').map((s) => s.trim()).filter(Boolean)
+        : undefined;
+      const morningLabs = formData.morning_labs_text
+        ? formData.morning_labs_text.split(',').map((s) => s.trim()).filter(Boolean)
+        : undefined;
+      const consults = formData.consults_text
+        ? formData.consults_text.split(',').map((s) => s.trim()).filter(Boolean)
+        : undefined;
+
       if (existingOrder) {
         await updateOrder.mutateAsync({
           id: existingOrder.id,
           surgeryId,
-          ...formData,
-          follow_up_date: formData.follow_up_date || null,
-          estimated_discharge: formData.estimated_discharge || null,
+          disposition: formData.disposition,
+          diet_order: formData.diet_order,
+          diet_notes: formData.diet_notes || null,
+          activity_level: formData.activity_level,
+          activity_restrictions: formData.activity_restrictions || null,
+          weight_bearing: formData.weight_bearing || null,
+          vital_signs_frequency: formData.vital_signs_frequency,
+          held_medications: formData.held_medications || null,
+          continue_home_meds: formData.continue_home_meds,
+          foley_catheter: formData.foley_catheter,
+          foley_removal_date: formData.foley_removal_date || null,
+          ng_tube: formData.ng_tube,
+          ng_tube_orders: formData.ng_tube_orders || null,
+          vte_prophylaxis: formData.vte_prophylaxis || null,
+          vte_medication_details: formData.vte_medication_details || null,
+          wound_care_instructions: formData.wound_care_instructions || null,
+          dressing_change_frequency: formData.dressing_change_frequency || null,
+          incentive_spirometry: formData.incentive_spirometry,
+          oxygen_therapy: formData.oxygen_therapy || null,
+          respiratory_treatments: formData.respiratory_treatments || null,
+          stat_labs: statLabs || null,
+          morning_labs: morningLabs || null,
+          imaging_orders: formData.imaging_orders || null,
+          consults: consults || null,
+          special_instructions: formData.special_instructions || null,
+          follow_up_instructions: formData.follow_up_instructions || null,
+          follow_up_appointment: formData.follow_up_appointment || null,
+          discharge_criteria: formData.discharge_criteria || null,
+          code_status: formData.code_status,
+          neuro_checks: formData.neuro_checks,
+          neuro_frequency: formData.neuro_frequency || null,
+          intake_output: formData.intake_output,
+          fall_precautions: formData.fall_precautions,
+          bleeding_precautions: formData.bleeding_precautions,
+          pain_goal: formData.pain_goal,
+          pca_ordered: formData.pca_ordered,
         });
       } else {
         await createOrder.mutateAsync({
           surgery_id: surgeryId,
-          ...formData,
-          follow_up_date: formData.follow_up_date || undefined,
-          estimated_discharge: formData.estimated_discharge || undefined,
+          disposition: formData.disposition,
+          diet_order: formData.diet_order,
+          diet_notes: formData.diet_notes || undefined,
+          activity_level: formData.activity_level,
+          activity_restrictions: formData.activity_restrictions || undefined,
+          weight_bearing: formData.weight_bearing || undefined,
+          vital_signs_frequency: formData.vital_signs_frequency,
+          held_medications: formData.held_medications || undefined,
+          continue_home_meds: formData.continue_home_meds,
+          foley_catheter: formData.foley_catheter,
+          foley_removal_date: formData.foley_removal_date || undefined,
+          ng_tube: formData.ng_tube,
+          ng_tube_orders: formData.ng_tube_orders || undefined,
+          vte_prophylaxis: formData.vte_prophylaxis || undefined,
+          vte_medication_details: formData.vte_medication_details || undefined,
+          wound_care_instructions: formData.wound_care_instructions || undefined,
+          dressing_change_frequency: formData.dressing_change_frequency || undefined,
+          incentive_spirometry: formData.incentive_spirometry,
+          oxygen_therapy: formData.oxygen_therapy || undefined,
+          respiratory_treatments: formData.respiratory_treatments || undefined,
+          stat_labs: statLabs,
+          morning_labs: morningLabs,
+          imaging_orders: formData.imaging_orders || undefined,
+          consults: consults,
+          special_instructions: formData.special_instructions || undefined,
+          follow_up_instructions: formData.follow_up_instructions || undefined,
+          follow_up_appointment: formData.follow_up_appointment || undefined,
+          discharge_criteria: formData.discharge_criteria || undefined,
+          code_status: formData.code_status,
+          neuro_checks: formData.neuro_checks,
+          neuro_frequency: formData.neuro_frequency || undefined,
+          intake_output: formData.intake_output,
+          fall_precautions: formData.fall_precautions,
+          bleeding_precautions: formData.bleeding_precautions,
+          pain_goal: formData.pain_goal ?? undefined,
+          pca_ordered: formData.pca_ordered,
         });
       }
       setHasChanges(false);
@@ -191,37 +333,49 @@ export function PostOpOrdersForm({ surgeryId }: PostOpOrdersFormProps) {
     if (existingOrder) {
       setFormData({
         disposition: existingOrder.disposition || 'ward',
-        diet: existingOrder.diet || 'npo',
-        diet_instructions: existingOrder.diet_instructions || '',
-        activity: existingOrder.activity || 'bed_rest',
-        activity_instructions: existingOrder.activity_instructions || '',
+        diet_order: existingOrder.diet_order || 'npo',
+        diet_notes: existingOrder.diet_notes || '',
+        activity_level: existingOrder.activity_level || 'bed_rest',
+        activity_restrictions: existingOrder.activity_restrictions || '',
+        weight_bearing: existingOrder.weight_bearing || '',
         vital_signs_frequency: existingOrder.vital_signs_frequency || 'q4h',
-        pain_management: existingOrder.pain_management || '',
-        iv_fluids: existingOrder.iv_fluids || '',
-        iv_fluid_rate: existingOrder.iv_fluid_rate || '',
-        medications_to_continue: existingOrder.medications_to_continue || '',
-        medications_to_hold: existingOrder.medications_to_hold || '',
-        new_medications: existingOrder.new_medications || '',
+        pain_management_text: jsonToText(existingOrder.pain_management),
+        iv_fluids_text: jsonToText(existingOrder.iv_fluids),
+        medications_text: jsonToText(existingOrder.medications),
+        continue_home_meds: existingOrder.continue_home_meds || false,
+        held_medications: existingOrder.held_medications || '',
         foley_catheter: existingOrder.foley_catheter || false,
-        foley_instructions: existingOrder.foley_instructions || '',
+        foley_removal_date: existingOrder.foley_removal_date
+          ? format(new Date(existingOrder.foley_removal_date), 'yyyy-MM-dd')
+          : '',
         ng_tube: existingOrder.ng_tube || false,
-        ng_tube_instructions: existingOrder.ng_tube_instructions || '',
-        drains: existingOrder.drains || '',
+        ng_tube_orders: existingOrder.ng_tube_orders || '',
+        drains_text: jsonToText(existingOrder.drains),
         vte_prophylaxis: existingOrder.vte_prophylaxis || 'scds',
-        wound_care: existingOrder.wound_care || '',
+        vte_medication_details: existingOrder.vte_medication_details || '',
+        wound_care_instructions: existingOrder.wound_care_instructions || '',
         dressing_change_frequency: existingOrder.dressing_change_frequency || '',
-        stat_labs: existingOrder.stat_labs || '',
-        morning_labs: existingOrder.morning_labs || '',
+        incentive_spirometry: existingOrder.incentive_spirometry || false,
+        oxygen_therapy: existingOrder.oxygen_therapy || '',
+        respiratory_treatments: existingOrder.respiratory_treatments || '',
+        stat_labs_text: jsonArrayToString(existingOrder.stat_labs),
+        morning_labs_text: jsonArrayToString(existingOrder.morning_labs),
         imaging_orders: existingOrder.imaging_orders || '',
-        notify_doctor_if: existingOrder.notify_doctor_if || '',
+        consults_text: jsonArrayToString(existingOrder.consults),
         special_instructions: existingOrder.special_instructions || '',
         follow_up_instructions: existingOrder.follow_up_instructions || '',
-        follow_up_date: existingOrder.follow_up_date
-          ? format(new Date(existingOrder.follow_up_date), 'yyyy-MM-dd')
+        follow_up_appointment: existingOrder.follow_up_appointment
+          ? format(new Date(existingOrder.follow_up_appointment), 'yyyy-MM-dd')
           : '',
-        estimated_discharge: existingOrder.estimated_discharge
-          ? format(new Date(existingOrder.estimated_discharge), 'yyyy-MM-dd')
-          : '',
+        discharge_criteria: existingOrder.discharge_criteria || '',
+        code_status: existingOrder.code_status || 'full_code',
+        neuro_checks: existingOrder.neuro_checks || false,
+        neuro_frequency: existingOrder.neuro_frequency || '',
+        intake_output: existingOrder.intake_output ?? true,
+        fall_precautions: existingOrder.fall_precautions || false,
+        bleeding_precautions: existingOrder.bleeding_precautions || false,
+        pain_goal: existingOrder.pain_goal ?? null,
+        pca_ordered: existingOrder.pca_ordered || false,
       });
     } else {
       setFormData(INITIAL_FORM);
@@ -304,6 +458,25 @@ export function PostOpOrdersForm({ surgeryId }: PostOpOrdersFormProps) {
             </div>
 
             <div className="space-y-1.5">
+              <Label>Code Status</Label>
+              <Select
+                value={formData.code_status}
+                onValueChange={(v) => updateField('code_status', v)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {CODE_STATUS_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
               <Label>Vital Signs Frequency</Label>
               <Select
                 value={formData.vital_signs_frequency}
@@ -322,23 +495,13 @@ export function PostOpOrdersForm({ surgeryId }: PostOpOrdersFormProps) {
               </Select>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label>Estimated Discharge</Label>
-                <Input
-                  type="date"
-                  value={formData.estimated_discharge}
-                  onChange={(e) => updateField('estimated_discharge', e.target.value)}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label>Follow-up Date</Label>
-                <Input
-                  type="date"
-                  value={formData.follow_up_date}
-                  onChange={(e) => updateField('follow_up_date', e.target.value)}
-                />
-              </div>
+            <div className="space-y-1.5">
+              <Label>Follow-up Appointment</Label>
+              <Input
+                type="date"
+                value={formData.follow_up_appointment}
+                onChange={(e) => updateField('follow_up_appointment', e.target.value)}
+              />
             </div>
           </CardContent>
         </Card>
@@ -351,7 +514,7 @@ export function PostOpOrdersForm({ surgeryId }: PostOpOrdersFormProps) {
           <CardContent className="space-y-4">
             <div className="space-y-1.5">
               <Label>Diet</Label>
-              <Select value={formData.diet} onValueChange={(v) => updateField('diet', v)}>
+              <Select value={formData.diet_order} onValueChange={(v) => updateField('diet_order', v)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -365,10 +528,10 @@ export function PostOpOrdersForm({ surgeryId }: PostOpOrdersFormProps) {
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label>Diet Instructions</Label>
+              <Label>Diet Notes</Label>
               <Input
-                value={formData.diet_instructions}
-                onChange={(e) => updateField('diet_instructions', e.target.value)}
+                value={formData.diet_notes}
+                onChange={(e) => updateField('diet_notes', e.target.value)}
                 placeholder="Additional diet instructions..."
               />
             </div>
@@ -376,10 +539,10 @@ export function PostOpOrdersForm({ surgeryId }: PostOpOrdersFormProps) {
             <Separator />
 
             <div className="space-y-1.5">
-              <Label>Activity</Label>
+              <Label>Activity Level</Label>
               <Select
-                value={formData.activity}
-                onValueChange={(v) => updateField('activity', v)}
+                value={formData.activity_level}
+                onValueChange={(v) => updateField('activity_level', v)}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -394,27 +557,35 @@ export function PostOpOrdersForm({ surgeryId }: PostOpOrdersFormProps) {
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label>Activity Instructions</Label>
+              <Label>Activity Restrictions</Label>
               <Input
-                value={formData.activity_instructions}
-                onChange={(e) => updateField('activity_instructions', e.target.value)}
+                value={formData.activity_restrictions}
+                onChange={(e) => updateField('activity_restrictions', e.target.value)}
                 placeholder="Activity restrictions or requirements..."
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Weight Bearing</Label>
+              <Input
+                value={formData.weight_bearing}
+                onChange={(e) => updateField('weight_bearing', e.target.value)}
+                placeholder="e.g., Non-weight bearing right leg"
               />
             </div>
           </CardContent>
         </Card>
 
-        {/* Pain & IV */}
+        {/* Pain Management */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">Pain Management & IV</CardTitle>
+            <CardTitle className="text-base">Pain Management</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-1.5">
-              <Label>Pain Management</Label>
+              <Label>Pain Management Orders</Label>
               <Textarea
-                value={formData.pain_management}
-                onChange={(e) => updateField('pain_management', e.target.value)}
+                value={formData.pain_management_text}
+                onChange={(e) => updateField('pain_management_text', e.target.value)}
                 placeholder="Pain medications and dosing schedule..."
                 rows={3}
               />
@@ -422,21 +593,34 @@ export function PostOpOrdersForm({ surgeryId }: PostOpOrdersFormProps) {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label>IV Fluids</Label>
+                <Label>Pain Goal (0-10)</Label>
                 <Input
-                  value={formData.iv_fluids}
-                  onChange={(e) => updateField('iv_fluids', e.target.value)}
-                  placeholder="e.g., NS, D5NS, LR"
+                  type="number"
+                  min={0}
+                  max={10}
+                  value={formData.pain_goal ?? ''}
+                  onChange={(e) => updateField('pain_goal', e.target.value ? parseInt(e.target.value) : null)}
+                  placeholder="e.g., 4"
                 />
               </div>
-              <div className="space-y-1.5">
-                <Label>Rate</Label>
-                <Input
-                  value={formData.iv_fluid_rate}
-                  onChange={(e) => updateField('iv_fluid_rate', e.target.value)}
-                  placeholder="e.g., 100 ml/hr"
+              <div className="flex items-center space-x-2 pt-6">
+                <Checkbox
+                  id="pca"
+                  checked={formData.pca_ordered}
+                  onCheckedChange={(checked) => updateField('pca_ordered', checked as boolean)}
                 />
+                <Label htmlFor="pca" className="font-normal">PCA Ordered</Label>
               </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>IV Fluids</Label>
+              <Textarea
+                value={formData.iv_fluids_text}
+                onChange={(e) => updateField('iv_fluids_text', e.target.value)}
+                placeholder="e.g., NS 100ml/hr, D5 1/2NS 75ml/hr..."
+                rows={2}
+              />
             </div>
           </CardContent>
         </Card>
@@ -447,31 +631,32 @@ export function PostOpOrdersForm({ surgeryId }: PostOpOrdersFormProps) {
             <CardTitle className="text-base">Medications</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-1.5">
-              <Label>Continue Home Medications</Label>
-              <Textarea
-                value={formData.medications_to_continue}
-                onChange={(e) => updateField('medications_to_continue', e.target.value)}
-                placeholder="List medications to continue..."
-                rows={2}
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="continue_home"
+                checked={formData.continue_home_meds}
+                onCheckedChange={(checked) => updateField('continue_home_meds', checked as boolean)}
               />
+              <Label htmlFor="continue_home" className="font-normal">
+                Continue Home Medications
+              </Label>
             </div>
             <div className="space-y-1.5">
               <Label>Hold Medications</Label>
               <Textarea
-                value={formData.medications_to_hold}
-                onChange={(e) => updateField('medications_to_hold', e.target.value)}
-                placeholder="List medications to hold..."
+                value={formData.held_medications}
+                onChange={(e) => updateField('held_medications', e.target.value)}
+                placeholder="Medications to hold..."
                 rows={2}
               />
             </div>
             <div className="space-y-1.5">
-              <Label>New Medications</Label>
+              <Label>New/Additional Medications</Label>
               <Textarea
-                value={formData.new_medications}
-                onChange={(e) => updateField('new_medications', e.target.value)}
+                value={formData.medications_text}
+                onChange={(e) => updateField('medications_text', e.target.value)}
                 placeholder="New medications ordered..."
-                rows={2}
+                rows={3}
               />
             </div>
           </CardContent>
@@ -487,9 +672,7 @@ export function PostOpOrdersForm({ surgeryId }: PostOpOrdersFormProps) {
               <Checkbox
                 id="foley"
                 checked={formData.foley_catheter}
-                onCheckedChange={(checked) =>
-                  updateField('foley_catheter', checked as boolean)
-                }
+                onCheckedChange={(checked) => updateField('foley_catheter', checked as boolean)}
               />
               <Label htmlFor="foley" className="font-normal">
                 Foley Catheter
@@ -497,11 +680,11 @@ export function PostOpOrdersForm({ surgeryId }: PostOpOrdersFormProps) {
             </div>
             {formData.foley_catheter && (
               <div className="space-y-1.5 ml-6">
-                <Label>Foley Instructions</Label>
+                <Label>Foley Removal Date</Label>
                 <Input
-                  value={formData.foley_instructions}
-                  onChange={(e) => updateField('foley_instructions', e.target.value)}
-                  placeholder="e.g., Monitor I&O, remove POD#1"
+                  type="date"
+                  value={formData.foley_removal_date}
+                  onChange={(e) => updateField('foley_removal_date', e.target.value)}
                 />
               </div>
             )}
@@ -518,10 +701,10 @@ export function PostOpOrdersForm({ surgeryId }: PostOpOrdersFormProps) {
             </div>
             {formData.ng_tube && (
               <div className="space-y-1.5 ml-6">
-                <Label>NG Tube Instructions</Label>
+                <Label>NG Tube Orders</Label>
                 <Input
-                  value={formData.ng_tube_instructions}
-                  onChange={(e) => updateField('ng_tube_instructions', e.target.value)}
+                  value={formData.ng_tube_orders}
+                  onChange={(e) => updateField('ng_tube_orders', e.target.value)}
                   placeholder="e.g., Low intermittent suction"
                 />
               </div>
@@ -530,11 +713,22 @@ export function PostOpOrdersForm({ surgeryId }: PostOpOrdersFormProps) {
             <div className="space-y-1.5">
               <Label>Other Drains</Label>
               <Textarea
-                value={formData.drains}
-                onChange={(e) => updateField('drains', e.target.value)}
+                value={formData.drains_text}
+                onChange={(e) => updateField('drains_text', e.target.value)}
                 placeholder="JP drains, chest tubes, etc..."
                 rows={2}
               />
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="io"
+                checked={formData.intake_output}
+                onCheckedChange={(checked) => updateField('intake_output', checked as boolean)}
+              />
+              <Label htmlFor="io" className="font-normal">
+                Strict I&O Monitoring
+              </Label>
             </div>
           </CardContent>
         </Card>
@@ -563,12 +757,20 @@ export function PostOpOrdersForm({ surgeryId }: PostOpOrdersFormProps) {
                 </SelectContent>
               </Select>
             </div>
+            <div className="space-y-1.5">
+              <Label>VTE Medication Details</Label>
+              <Input
+                value={formData.vte_medication_details}
+                onChange={(e) => updateField('vte_medication_details', e.target.value)}
+                placeholder="Specific dosing if applicable..."
+              />
+            </div>
 
             <div className="space-y-1.5">
-              <Label>Wound Care</Label>
+              <Label>Wound Care Instructions</Label>
               <Textarea
-                value={formData.wound_care}
-                onChange={(e) => updateField('wound_care', e.target.value)}
+                value={formData.wound_care_instructions}
+                onChange={(e) => updateField('wound_care_instructions', e.target.value)}
                 placeholder="Wound care instructions..."
                 rows={2}
               />
@@ -584,6 +786,96 @@ export function PostOpOrdersForm({ surgeryId }: PostOpOrdersFormProps) {
           </CardContent>
         </Card>
 
+        {/* Respiratory & Neuro */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Respiratory & Neuro</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="incentive"
+                checked={formData.incentive_spirometry}
+                onCheckedChange={(checked) => updateField('incentive_spirometry', checked as boolean)}
+              />
+              <Label htmlFor="incentive" className="font-normal">
+                Incentive Spirometry
+              </Label>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>Oxygen Therapy</Label>
+              <Input
+                value={formData.oxygen_therapy}
+                onChange={(e) => updateField('oxygen_therapy', e.target.value)}
+                placeholder="e.g., 2L NC, Room air"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>Respiratory Treatments</Label>
+              <Input
+                value={formData.respiratory_treatments}
+                onChange={(e) => updateField('respiratory_treatments', e.target.value)}
+                placeholder="Nebulizers, etc."
+              />
+            </div>
+
+            <Separator />
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="neuro"
+                checked={formData.neuro_checks}
+                onCheckedChange={(checked) => updateField('neuro_checks', checked as boolean)}
+              />
+              <Label htmlFor="neuro" className="font-normal">
+                Neuro Checks Required
+              </Label>
+            </div>
+            {formData.neuro_checks && (
+              <div className="space-y-1.5 ml-6">
+                <Label>Neuro Check Frequency</Label>
+                <Input
+                  value={formData.neuro_frequency}
+                  onChange={(e) => updateField('neuro_frequency', e.target.value)}
+                  placeholder="e.g., q1h x 4, then q2h"
+                />
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Safety Precautions */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Safety Precautions</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="fall"
+                checked={formData.fall_precautions}
+                onCheckedChange={(checked) => updateField('fall_precautions', checked as boolean)}
+              />
+              <Label htmlFor="fall" className="font-normal">
+                Fall Precautions
+              </Label>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="bleeding"
+                checked={formData.bleeding_precautions}
+                onCheckedChange={(checked) => updateField('bleeding_precautions', checked as boolean)}
+              />
+              <Label htmlFor="bleeding" className="font-normal">
+                Bleeding Precautions
+              </Label>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Labs & Imaging */}
         <Card>
           <CardHeader className="pb-3">
@@ -591,18 +883,18 @@ export function PostOpOrdersForm({ surgeryId }: PostOpOrdersFormProps) {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-1.5">
-              <Label>Stat Labs</Label>
+              <Label>Stat Labs (comma-separated)</Label>
               <Input
-                value={formData.stat_labs}
-                onChange={(e) => updateField('stat_labs', e.target.value)}
+                value={formData.stat_labs_text}
+                onChange={(e) => updateField('stat_labs_text', e.target.value)}
                 placeholder="e.g., CBC, BMP, PT/INR"
               />
             </div>
             <div className="space-y-1.5">
-              <Label>Morning Labs</Label>
+              <Label>Morning Labs (comma-separated)</Label>
               <Input
-                value={formData.morning_labs}
-                onChange={(e) => updateField('morning_labs', e.target.value)}
+                value={formData.morning_labs_text}
+                onChange={(e) => updateField('morning_labs_text', e.target.value)}
                 placeholder="Labs to be drawn in AM"
               />
             </div>
@@ -614,24 +906,23 @@ export function PostOpOrdersForm({ surgeryId }: PostOpOrdersFormProps) {
                 placeholder="e.g., CXR portable in AM"
               />
             </div>
+            <div className="space-y-1.5">
+              <Label>Consults (comma-separated)</Label>
+              <Input
+                value={formData.consults_text}
+                onChange={(e) => updateField('consults_text', e.target.value)}
+                placeholder="e.g., PT, OT, Social Work"
+              />
+            </div>
           </CardContent>
         </Card>
 
         {/* Special Instructions */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">Special Instructions</CardTitle>
+            <CardTitle className="text-base">Instructions & Discharge</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-1.5">
-              <Label>Notify Doctor If</Label>
-              <Textarea
-                value={formData.notify_doctor_if}
-                onChange={(e) => updateField('notify_doctor_if', e.target.value)}
-                placeholder="Conditions that require physician notification..."
-                rows={3}
-              />
-            </div>
             <div className="space-y-1.5">
               <Label>Special Instructions</Label>
               <Textarea
@@ -639,6 +930,15 @@ export function PostOpOrdersForm({ surgeryId }: PostOpOrdersFormProps) {
                 onChange={(e) => updateField('special_instructions', e.target.value)}
                 placeholder="Any other special instructions..."
                 rows={3}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Discharge Criteria</Label>
+              <Textarea
+                value={formData.discharge_criteria}
+                onChange={(e) => updateField('discharge_criteria', e.target.value)}
+                placeholder="Criteria for discharge..."
+                rows={2}
               />
             </div>
             <div className="space-y-1.5">

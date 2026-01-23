@@ -6,10 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { OTStatusBadge } from "@/components/ot/OTStatusBadge";
 import { PriorityBadge } from "@/components/ot/PriorityBadge";
 import { SurgeryTeamList } from "@/components/ot/SurgeryTeamList";
 import { WHOChecklistModal } from "@/components/ot/WHOChecklistModal";
+import { ConsentFormModal } from "@/components/ot/ConsentFormModal";
+import { OTMedicationPanel } from "@/components/ot/OTMedicationPanel";
+import { ConsumablesPanel } from "@/components/ot/ConsumablesPanel";
+import { PostOpOrdersForm } from "@/components/ot/PostOpOrdersForm";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import {
   ArrowLeft,
@@ -25,7 +30,10 @@ import {
   HeartPulse,
   FileText,
   AlertTriangle,
-  Printer
+  Printer,
+  Pill,
+  Package,
+  ClipboardCheck,
 } from "lucide-react";
 import { format, differenceInMinutes } from "date-fns";
 import { 
@@ -35,6 +43,8 @@ import {
   useCancelSurgery,
   useAdmitToPACU
 } from "@/hooks/useOT";
+import { useSurgeryConsents } from "@/hooks/useConsentForms";
+import { useSurgeryMedications } from "@/hooks/useOTMedications";
 
 export default function SurgeryDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -279,20 +289,39 @@ export default function SurgeryDetailPage() {
 
           {/* Tabs for different sections */}
           <Tabs defaultValue="checklist">
-            <TabsList className="w-full">
-              <TabsTrigger value="checklist" className="flex-1">
-                <ClipboardList className="h-4 w-4 mr-2" />
-                Safety Checklist
-              </TabsTrigger>
-              <TabsTrigger value="anesthesia" className="flex-1">
-                <HeartPulse className="h-4 w-4 mr-2" />
-                Anesthesia
-              </TabsTrigger>
-              <TabsTrigger value="notes" className="flex-1">
-                <FileText className="h-4 w-4 mr-2" />
-                Op Notes
-              </TabsTrigger>
-            </TabsList>
+            <ScrollArea className="w-full whitespace-nowrap">
+              <TabsList className="w-full inline-flex">
+                <TabsTrigger value="checklist">
+                  <ClipboardList className="h-4 w-4 mr-2" />
+                  Checklist
+                </TabsTrigger>
+                <TabsTrigger value="consent">
+                  <ClipboardCheck className="h-4 w-4 mr-2" />
+                  Consent
+                </TabsTrigger>
+                <TabsTrigger value="medications">
+                  <Pill className="h-4 w-4 mr-2" />
+                  Meds
+                </TabsTrigger>
+                <TabsTrigger value="anesthesia">
+                  <HeartPulse className="h-4 w-4 mr-2" />
+                  Anesthesia
+                </TabsTrigger>
+                <TabsTrigger value="notes">
+                  <FileText className="h-4 w-4 mr-2" />
+                  Notes
+                </TabsTrigger>
+                <TabsTrigger value="consumables">
+                  <Package className="h-4 w-4 mr-2" />
+                  Supplies
+                </TabsTrigger>
+                <TabsTrigger value="postop">
+                  <ClipboardList className="h-4 w-4 mr-2" />
+                  Post-Op
+                </TabsTrigger>
+              </TabsList>
+              <ScrollBar orientation="horizontal" />
+            </ScrollArea>
 
             <TabsContent value="checklist" className="mt-4">
               <Card>
@@ -360,6 +389,39 @@ export default function SurgeryDetailPage() {
                       )}
                     </div>
                   </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Consent Tab */}
+            <TabsContent value="consent" className="mt-4">
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Consent Forms</CardTitle>
+                      <CardDescription>Digital consent capture with patient and witness signatures</CardDescription>
+                    </div>
+                    <ConsentFormModal
+                      surgeryId={surgery.id}
+                      patientName={patientName}
+                      procedureName={surgery.procedure_name}
+                    />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground text-sm">
+                    Use the "Consent Forms" button to view, add, or manage consent forms for this surgery.
+                  </p>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Medications Tab */}
+            <TabsContent value="medications" className="mt-4">
+              <Card>
+                <CardContent className="pt-6">
+                  <OTMedicationPanel surgeryId={surgery.id} />
                 </CardContent>
               </Card>
             </TabsContent>
@@ -438,6 +500,24 @@ export default function SurgeryDetailPage() {
                       No operative notes yet
                     </p>
                   )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Consumables Tab */}
+            <TabsContent value="consumables" className="mt-4">
+              <Card>
+                <CardContent className="pt-6">
+                  <ConsumablesPanel surgeryId={surgery.id} />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Post-Op Orders Tab */}
+            <TabsContent value="postop" className="mt-4">
+              <Card>
+                <CardContent className="pt-6">
+                  <PostOpOrdersForm surgeryId={surgery.id} />
                 </CardContent>
               </Card>
             </TabsContent>
