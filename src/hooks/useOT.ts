@@ -522,7 +522,7 @@ export function useSurgery(surgeryId: string) {
         .select(`
           *,
           patient:patients(id, first_name, last_name, date_of_birth, gender, phone, patient_number, blood_group),
-          lead_surgeon:doctors(id, profile:profiles(full_name), specialization, qualification),
+          lead_surgeon:doctors!surgeries_lead_surgeon_id_fkey(id, profile:profiles(full_name), specialization, qualification),
           ot_room:ot_rooms(id, room_number, name, floor)
         `)
         .eq('id', surgeryId)
