@@ -14,11 +14,15 @@ const OT_DEMO_USERS = [
     id: "00000000-0000-0000-0000-000000000030",
     email: "surgeon@healthos.demo",
     full_name: "Dr. Ahmed Raza",
+    first_name: "Ahmed",
+    last_name: "Raza",
     role: "surgeon",  // Dedicated surgeon role
     specialization: "General Surgery",
     specialization_code: "SURG",
     is_doctor: true,
     doctor_id: "d4444444-4444-4444-4444-444444444444",
+    employee_id: "e4444444-4444-4444-4444-444444444444",
+    employee_number: "EMP-SURG-001",
     license_number: "PMC-SURG-001",
     consultation_fee: 3000,
   },
@@ -26,11 +30,15 @@ const OT_DEMO_USERS = [
     id: "00000000-0000-0000-0000-000000000031",
     email: "anesthetist@healthos.demo",
     full_name: "Dr. Hina Bukhari",
+    first_name: "Hina",
+    last_name: "Bukhari",
     role: "anesthetist",  // Dedicated anesthetist role
     specialization: "Anesthesiology",
     specialization_code: "ANES",
     is_doctor: true,
     doctor_id: "d5555555-5555-5555-5555-555555555555",
+    employee_id: "e5555555-5555-5555-5555-555555555555",
+    employee_number: "EMP-ANES-001",
     license_number: "PMC-ANES-001",
     consultation_fee: 2500,
   },
@@ -38,8 +46,12 @@ const OT_DEMO_USERS = [
     id: "00000000-0000-0000-0000-000000000032",
     email: "otnurse@healthos.demo",
     full_name: "Rubina Khatoon",
+    first_name: "Rubina",
+    last_name: "Khatoon",
     role: "ot_nurse",
     is_doctor: false,
+    employee_id: "e6666666-6666-6666-6666-666666666666",
+    employee_number: "EMP-OTN-001",
   },
 ];
 
@@ -177,6 +189,72 @@ Deno.serve(async (req) => {
 
           if (doctorError) {
             logger.error(`Failed to create doctor: ${user.email}`, doctorError);
+          }
+        }
+
+        // Create employee record for all OT users (needed for attendance, schedules, etc.)
+        if (user.employee_id) {
+          // Check if employee already exists for this profile
+          const { data: existingEmployee, error: checkError } = await supabaseAdmin
+            .from("employees")
+            .select("id")
+            .eq("profile_id", user.id)
+            .maybeSingle();
+
+          if (existingEmployee) {
+            logger.info(`Employee record already exists for: ${user.email}`);
+          } else {
+            // Get first available department and designation
+            const { data: deptData } = await supabaseAdmin
+              .from("departments")
+              .select("id")
+              .eq("organization_id", ORGANIZATION_ID)
+              .limit(1)
+              .maybeSingle();
+
+            const { data: desigData } = await supabaseAdmin
+              .from("designations")
+              .select("id")
+              .eq("organization_id", ORGANIZATION_ID)
+              .limit(1)
+              .maybeSingle();
+
+            const { data: shiftData } = await supabaseAdmin
+              .from("shifts")
+              .select("id")
+              .eq("organization_id", ORGANIZATION_ID)
+              .limit(1)
+              .maybeSingle();
+
+            logger.info(`Creating employee: ${user.email} with dept=${deptData?.id}, desig=${desigData?.id}, shift=${shiftData?.id}`);
+
+            const { data: newEmployee, error: employeeError } = await supabaseAdmin.from("employees").insert({
+              id: user.employee_id,
+              organization_id: ORGANIZATION_ID,
+              branch_id: BRANCH_ID,
+              profile_id: user.id,
+              employee_number: user.employee_number,
+              first_name: user.first_name,
+              last_name: user.last_name,
+              work_email: user.email,
+              department_id: deptData?.id,
+              designation_id: desigData?.id,
+              shift_id: shiftData?.id,
+              employee_type: "permanent",
+              employment_status: "active",
+              join_date: new Date().toISOString().split('T')[0],
+            }).select();
+
+            if (employeeError) {
+              logger.error(`Failed to create employee: ${user.email}`, { 
+                message: employeeError.message, 
+                code: employeeError.code,
+                details: employeeError.details,
+                hint: employeeError.hint
+              });
+            } else {
+              logger.info(`Created employee record for: ${user.email}`, { id: newEmployee?.[0]?.id });
+            }
           }
         }
 
