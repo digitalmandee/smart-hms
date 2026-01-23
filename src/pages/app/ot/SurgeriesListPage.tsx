@@ -11,12 +11,15 @@ import {
   Plus, 
   Search,
   Filter,
-  Eye
+  Eye,
+  CalendarDays
 } from "lucide-react";
-import { useState } from "react";
-import { format } from "date-fns";
+import { useState, useEffect } from "react";
+import { format, addDays } from "date-fns";
 import { useSurgeries, type SurgeryStatus } from "@/hooks/useOT";
 import { useAuth } from "@/contexts/AuthContext";
+import { otLogger } from "@/lib/logger";
+import { Badge } from "@/components/ui/badge";
 
 export default function SurgeriesListPage() {
   const navigate = useNavigate();
@@ -25,10 +28,32 @@ export default function SurgeriesListPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
+  // Fetch all surgeries (no date filter to show upcoming)
   const { data: surgeries, isLoading } = useSurgeries({
     branchId: profile?.branch_id || undefined,
     status: statusFilter !== 'all' ? statusFilter as SurgeryStatus : undefined,
   });
+
+  // Debug logging
+  useEffect(() => {
+    otLogger.info('SurgeriesListPage: Surgeries loaded', {
+      count: surgeries?.length || 0,
+      statusFilter,
+      branchId: profile?.branch_id,
+    });
+    surgeries?.forEach(s => {
+      otLogger.debug('SurgeriesListPage: Surgery', {
+        id: s.id,
+        surgeryNumber: s.surgery_number,
+        scheduledDate: s.scheduled_date,
+        status: s.status,
+      });
+    });
+  }, [surgeries, statusFilter, profile?.branch_id]);
+
+  // Separate upcoming (future) surgeries
+  const today = format(new Date(), 'yyyy-MM-dd');
+  const upcomingSurgeries = surgeries?.filter(s => s.scheduled_date > today) || [];
 
   const filteredSurgeries = surgeries?.filter(s => {
     if (!searchQuery) return true;
@@ -124,13 +149,48 @@ export default function SurgeriesListPage() {
       <div className="flex items-center justify-between">
         <PageHeader
           title="Surgeries"
-          description="View all surgical procedures"
+          description="View all scheduled and completed surgical procedures"
         />
-        <Button onClick={() => navigate("/app/ot/surgeries/new")}>
-          <Plus className="h-4 w-4 mr-2" />
-          Schedule Surgery
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => navigate("/app/ot/schedule")}>
+            <CalendarDays className="h-4 w-4 mr-2" />
+            OT Schedule
+          </Button>
+          <Button onClick={() => navigate("/app/ot/surgeries/new")}>
+            <Plus className="h-4 w-4 mr-2" />
+            Schedule Surgery
+          </Button>
+        </div>
       </div>
+
+      {/* Upcoming Surgeries Alert */}
+      {upcomingSurgeries.length > 0 && (
+        <Card className="border-primary/30 bg-primary/5">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <CalendarDays className="h-4 w-4" />
+              Upcoming Surgeries ({upcomingSurgeries.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="flex flex-wrap gap-2">
+              {upcomingSurgeries.slice(0, 5).map(s => (
+                <Badge 
+                  key={s.id} 
+                  variant="secondary" 
+                  className="cursor-pointer hover:bg-secondary/80"
+                  onClick={() => navigate(`/app/ot/surgeries/${s.id}`)}
+                >
+                  {format(new Date(s.scheduled_date), 'MMM d')} - {s.patient?.first_name} {s.patient?.last_name}
+                </Badge>
+              ))}
+              {upcomingSurgeries.length > 5 && (
+                <Badge variant="outline">+{upcomingSurgeries.length - 5} more</Badge>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Filters */}
       <Card>

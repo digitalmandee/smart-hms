@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { otLogger } from "@/lib/logger";
 
 // =============================================================================
 // TYPES
@@ -404,6 +405,11 @@ export function useSurgeries(filters: SurgeryFilters = {}) {
   return useQuery({
     queryKey: ['surgeries', profile?.organization_id, filters],
     queryFn: async () => {
+      otLogger.debug('useSurgeries: Fetching surgeries', { 
+        filters, 
+        organizationId: profile?.organization_id 
+      });
+
       let query = supabase
         .from('surgeries')
         .select(`
@@ -449,7 +455,31 @@ export function useSurgeries(filters: SurgeryFilters = {}) {
       }
 
       const { data, error } = await query;
-      if (error) throw error;
+      
+      if (error) {
+        otLogger.error('useSurgeries: Failed to fetch surgeries', error, { filters });
+        throw error;
+      }
+
+      otLogger.info('useSurgeries: Fetched surgeries', { 
+        count: data?.length || 0,
+        filters,
+        surgeryIds: data?.map(s => s.id).slice(0, 5) 
+      });
+
+      // Debug log each surgery's details for visibility debugging
+      data?.forEach(s => {
+        otLogger.debug('useSurgeries: Surgery details', {
+          id: s.id,
+          surgeryNumber: s.surgery_number,
+          scheduledDate: s.scheduled_date,
+          scheduledStartTime: s.scheduled_start_time,
+          otRoomId: s.ot_room_id,
+          status: s.status,
+          branchId: s.branch_id,
+        });
+      });
+
       return (data || []) as unknown as Surgery[];
     },
     enabled: !!profile?.organization_id,
