@@ -12,7 +12,8 @@ import {
   XCircle,
   Building,
   Bed,
-  Eye
+  Eye,
+  CreditCard
 } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -349,13 +350,25 @@ export default function SurgeryRequestsPage() {
                             <OTStatusBadge status={surgery.status} />
                           </TableCell>
                           <TableCell className="text-right">
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => navigate(`/app/ot/surgeries/${surgery.id}`)}
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
+                            <div className="flex items-center justify-end gap-1">
+                              {surgery.is_billable && !surgery.invoice_id && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => navigate(`/app/billing/invoices/new?patientId=${surgery.patient_id}&surgeryId=${surgery.id}`)}
+                                  title="Create Invoice"
+                                >
+                                  <CreditCard className="h-4 w-4" />
+                                </Button>
+                              )}
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => navigate(`/app/ot/surgeries/${surgery.id}`)}
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
