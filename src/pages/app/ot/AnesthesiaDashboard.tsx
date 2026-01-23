@@ -26,9 +26,9 @@ export default function AnesthesiaDashboard() {
   const { profile } = useAuth();
   const { data: todaySurgeries, isLoading } = useTodaySurgeries(profile?.branch_id);
   
-  // Fetch upcoming surgeries (next 7 days)
+  // Fetch upcoming surgeries (next 30 days)
   const today = format(new Date(), 'yyyy-MM-dd');
-  const futureDate = format(addDays(new Date(), 7), 'yyyy-MM-dd');
+  const futureDate = format(addDays(new Date(), 30), 'yyyy-MM-dd');
   const { data: upcomingSurgeries } = useSurgeries({
     dateFrom: today,
     dateTo: futureDate,
@@ -240,7 +240,7 @@ export default function AnesthesiaDashboard() {
                   <Badge variant="secondary">{upcomingSurgeries.length}</Badge>
                 )}
               </CardTitle>
-              <CardDescription>Next 7 days - requiring anesthesia planning</CardDescription>
+              <CardDescription>Next 30 days - requiring anesthesia planning</CardDescription>
             </div>
             <Button variant="outline" size="sm" onClick={() => navigate("/app/ot/schedule")}>
               Full Schedule

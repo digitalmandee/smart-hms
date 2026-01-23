@@ -1,4 +1,4 @@
-import { Calendar, UserPlus, Clock, Users } from "lucide-react";
+import { Calendar, UserPlus, Clock, Users, Scissors } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ModernPageHeader } from "@/components/ModernPageHeader";
 import { ModernStatsCard } from "@/components/ModernStatsCard";
@@ -37,6 +37,10 @@ export default function ReceptionistDashboard() {
             <Button variant="outline" onClick={() => navigate("/app/appointments/calendar")}>
               <Calendar className="h-4 w-4 mr-2" />
               Schedule
+            </Button>
+            <Button variant="outline" onClick={() => navigate("/app/ot/surgeries")}>
+              <Scissors className="h-4 w-4 mr-2" />
+              All Surgeries
             </Button>
             <Button onClick={() => navigate("/app/patients/new")}>
               <UserPlus className="h-4 w-4 mr-2" />
