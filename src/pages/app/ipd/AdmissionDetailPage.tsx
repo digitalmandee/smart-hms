@@ -40,10 +40,13 @@ import {
   Droplets,
   Receipt,
 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function AdmissionDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { hasPermission } = useAuth();
+  const canViewBilling = hasPermission("billing.view") || hasPermission("ipd.billing");
   const { data: admissions, refetch: refetchAdmissions } = useAdmissions();
   const { data: rounds } = useDailyRounds(id);
   const { data: vitals, refetch: refetchVitals } = useIPDVitals(id);
@@ -245,10 +248,12 @@ export default function AdmissionDetailPage() {
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList className="flex-wrap">
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="billing">
-            <Receipt className="h-4 w-4 mr-1" />
-            Billing
-          </TabsTrigger>
+          {canViewBilling && (
+            <TabsTrigger value="billing">
+              <Receipt className="h-4 w-4 mr-1" />
+              Billing
+            </TabsTrigger>
+          )}
           <TabsTrigger value="rounds">Daily Rounds</TabsTrigger>
           <TabsTrigger value="vitals">Vitals</TabsTrigger>
           <TabsTrigger value="nursing">Nursing Notes</TabsTrigger>
@@ -375,16 +380,18 @@ export default function AdmissionDetailPage() {
           </div>
         </TabsContent>
 
-        <TabsContent value="billing" className="space-y-4">
-          <div className="grid gap-4 lg:grid-cols-3">
-            <div className="lg:col-span-2">
-              <AdmissionFinancialSummary admissionId={id!} />
+        {canViewBilling && (
+          <TabsContent value="billing" className="space-y-4">
+            <div className="grid gap-4 lg:grid-cols-3">
+              <div className="lg:col-span-2">
+                <AdmissionFinancialSummary admissionId={id!} />
+              </div>
+              <div>
+                <AdmissionOTChargesCard admissionId={id!} patientId={patient?.id || ""} />
+              </div>
             </div>
-            <div>
-              <AdmissionOTChargesCard admissionId={id!} patientId={patient?.id || ""} />
-            </div>
-          </div>
-        </TabsContent>
+          </TabsContent>
+        )}
 
         <TabsContent value="rounds" className="space-y-4">
           <Card>
