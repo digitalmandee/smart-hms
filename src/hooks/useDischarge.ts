@@ -4,6 +4,46 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import type { Json } from "@/integrations/supabase/types";
 
+// Hook to fetch admissions with approved discharge summaries ready for billing
+export const useApprovedForBilling = () => {
+  const { profile } = useAuth();
+
+  return useQuery({
+    queryKey: ["approved-for-billing", profile?.organization_id],
+    queryFn: async () => {
+      if (!profile?.organization_id) return [];
+
+      // Get admissions that have approved discharge summaries but are still admitted
+      const { data, error } = await supabase
+        .from("admissions")
+        .select(`
+          id,
+          admission_number,
+          admission_date,
+          expected_discharge_date,
+          patient:patients!admissions_patient_id_fkey(id, first_name, last_name, patient_number),
+          ward:wards!admissions_ward_id_fkey(id, name),
+          bed:beds!admissions_bed_id_fkey(id, bed_number),
+          attending_doctor:doctors!admissions_attending_doctor_id_fkey(
+            id,
+            profile:profiles!doctors_profile_id_fkey(full_name)
+          ),
+          discharge_summary:discharge_summaries!inner(
+            id, status, approved_at, approved_by,
+            approved_by_profile:profiles!discharge_summaries_approved_by_fkey(full_name)
+          )
+        `)
+        .eq("organization_id", profile.organization_id)
+        .eq("status", "admitted")
+        .eq("discharge_summary.status", "approved");
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!profile?.organization_id,
+  });
+};
+
 export const DISCHARGE_SUMMARY_STATUSES = [
   "draft",
   "pending_approval",
