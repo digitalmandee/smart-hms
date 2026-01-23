@@ -70,6 +70,7 @@ export interface Surgery {
   post_op_instructions?: string;
   estimated_cost?: number;
   is_billable?: boolean;
+  invoice_id?: string | null;
   created_by?: string;
   created_at?: string;
   updated_at?: string;
