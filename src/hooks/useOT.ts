@@ -415,7 +415,7 @@ export function useSurgeries(filters: SurgeryFilters = {}) {
         .from('surgeries')
         .select(`
           *,
-          patient:patients(id, first_name, last_name, date_of_birth, gender, phone, mr_number),
+          patient:patients(id, first_name, last_name, date_of_birth, gender, phone, patient_number),
           lead_surgeon:doctors!surgeries_lead_surgeon_id_fkey(id, profile:profiles(full_name), specialization),
           ot_room:ot_rooms(id, room_number, name)
         `)
@@ -521,7 +521,7 @@ export function useSurgery(surgeryId: string) {
         .from('surgeries')
         .select(`
           *,
-          patient:patients(id, first_name, last_name, date_of_birth, gender, phone, mr_number, blood_group),
+          patient:patients(id, first_name, last_name, date_of_birth, gender, phone, patient_number, blood_group),
           lead_surgeon:doctors(id, profile:profiles(full_name), specialization, qualification),
           ot_room:ot_rooms(id, room_number, name, floor)
         `)
@@ -1101,7 +1101,7 @@ export function usePACUPatients(branchId?: string) {
           *,
           surgery:surgeries(
             id, surgery_number, procedure_name, patient_id,
-            patient:patients(id, first_name, last_name, mr_number, date_of_birth),
+            patient:patients(id, first_name, last_name, patient_number, date_of_birth),
             lead_surgeon:doctors(profile:profiles(full_name))
           ),
           pacu_nurse:nurses(id, profile:profiles(full_name))

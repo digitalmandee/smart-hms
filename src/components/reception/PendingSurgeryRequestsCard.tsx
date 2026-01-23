@@ -164,7 +164,7 @@ export function PendingSurgeryRequestsCard({ maxItems = 5 }: PendingSurgeryReque
                                   {patient?.first_name} {patient?.last_name}
                                 </p>
                                 <p className="text-xs text-muted-foreground">
-                                  {patient?.mr_number || surgery.surgery_number}
+                                  {patient?.patient_number || surgery.surgery_number}
                                 </p>
                               </div>
                             </div>

@@ -323,7 +323,7 @@ export default function SurgeryRequestsPage() {
                                   {surgery.patient?.first_name} {surgery.patient?.last_name}
                                 </p>
                                 <p className="text-sm text-muted-foreground">
-                                  {surgery.patient?.mr_number}
+                                  {surgery.patient?.patient_number}
                                 </p>
                               </div>
                             </div>
@@ -565,7 +565,7 @@ export default function SurgeryRequestsPage() {
                                   {surgery.patient?.first_name} {surgery.patient?.last_name}
                                 </p>
                                 <p className="text-sm text-muted-foreground">
-                                  {surgery.patient?.mr_number}
+                                  {surgery.patient?.patient_number}
                                 </p>
                               </div>
                             </div>
