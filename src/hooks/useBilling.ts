@@ -382,8 +382,10 @@ export function useCreateInvoice() {
 
       return invoice;
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      queryClient.invalidateQueries({ queryKey: ["lab-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["imaging-orders"] });
       toast.success("Invoice created successfully");
     },
     onError: (error) => {
