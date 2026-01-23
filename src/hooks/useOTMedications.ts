@@ -21,6 +21,14 @@ export interface SurgeryMedication {
   organization_id: string;
   created_at: string;
   updated_at: string;
+  // Pharmacy integration fields
+  pharmacy_status: 'not_required' | 'requested' | 'dispensed' | 'cancelled' | null;
+  inventory_item_id: string | null;
+  batch_number: string | null;
+  unit_price: number | null;
+  is_billed: boolean | null;
+  dispensed_by: string | null;
+  dispensed_at: string | null;
   // Joined fields
   ordered_by_profile?: { full_name: string } | null;
   administered_by_profile?: { full_name: string } | null;
@@ -34,6 +42,7 @@ export interface CreateMedicationData {
   timing: 'pre_op' | 'intra_op' | 'post_op';
   scheduled_time?: string;
   notes?: string;
+  pharmacy_status?: 'not_required' | 'requested';
 }
 
 // Common pre-op medication protocols
@@ -91,6 +100,7 @@ export function useCreateMedication() {
           ordered_by: profile?.id,
           ordered_at: new Date().toISOString(),
           status: 'pending',
+          pharmacy_status: medication.pharmacy_status || 'not_required',
           organization_id: profile?.organization_id!,
         })
         .select()

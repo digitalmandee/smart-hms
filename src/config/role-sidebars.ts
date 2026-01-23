@@ -361,6 +361,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         icon: "ClipboardList",
         children: [
           { name: "Prescriptions", path: "/app/pharmacy/queue", icon: "FileText" },
+          { name: "OT Requests", path: "/app/pharmacy/ot-queue", icon: "Syringe" },
           { name: "POS Terminal", path: "/app/pharmacy/pos", icon: "Calculator" },
           { name: "Transactions", path: "/app/pharmacy/pos/transactions", icon: "Receipt" },
         ]

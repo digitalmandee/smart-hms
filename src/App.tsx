@@ -132,6 +132,7 @@ import PharmacyReportsPage from "./pages/app/pharmacy/PharmacyReportsPage";
 import StockMovementsPage from "./pages/app/pharmacy/StockMovementsPage";
 import PharmacyReturnsPage from "./pages/app/pharmacy/PharmacyReturnsPage";
 import PharmacySettingsPage from "./pages/app/pharmacy/PharmacySettingsPage";
+import OTMedicationQueuePage from "./pages/app/pharmacy/OTMedicationQueuePage";
 
 // Billing pages
 import BillingDashboard from "./pages/app/billing/BillingDashboard";
@@ -548,6 +549,7 @@ function App() {
               <Route path="pharmacy/reports" element={<PharmacyReportsPage />} />
               <Route path="pharmacy/stock-movements" element={<StockMovementsPage />} />
               <Route path="pharmacy/returns" element={<PharmacyReturnsPage />} />
+              <Route path="pharmacy/ot-queue" element={<OTMedicationQueuePage />} />
               <Route path="pharmacy/settings" element={<PharmacySettingsPage />} />
               
               {/* IPD routes */}
