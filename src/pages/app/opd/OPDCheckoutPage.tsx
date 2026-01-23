@@ -1,3 +1,4 @@
+// OPD Checkout Page - handles billing and payment processing for OPD visits
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
