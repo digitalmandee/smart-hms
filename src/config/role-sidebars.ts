@@ -316,6 +316,16 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         ]
       },
       { 
+        name: "Surgeries", 
+        path: "", 
+        icon: "Scissors",
+        children: [
+          { name: "Surgery Requests", path: "/app/ot/requests", icon: "FileText" },
+          { name: "All Surgeries", path: "/app/ot/surgeries", icon: "ListOrdered" },
+          { name: "OT Schedule", path: "/app/ot/schedule", icon: "Calendar" },
+        ]
+      },
+      { 
         name: "Billing", 
         path: "", 
         icon: "Receipt",
@@ -556,6 +566,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         children: [
           { name: "Today's Schedule", path: "/app/ot/schedule", icon: "Calendar" },
           { name: "All Surgeries", path: "/app/ot/surgeries", icon: "ListOrdered" },
+          { name: "Surgery Requests", path: "/app/ot/requests", icon: "FileText" },
           { name: "Schedule Surgery", path: "/app/ot/surgeries/new", icon: "CalendarPlus" },
         ]
       },

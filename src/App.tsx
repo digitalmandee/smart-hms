@@ -264,6 +264,7 @@ import OTSchedulePage from "./pages/app/ot/OTSchedulePage";
 import SurgeriesListPage from "./pages/app/ot/SurgeriesListPage";
 import SurgeryFormPage from "./pages/app/ot/SurgeryFormPage";
 import SurgeryDetailPage from "./pages/app/ot/SurgeryDetailPage";
+import SurgeryRequestsPage from "./pages/app/ot/SurgeryRequestsPage";
 import OTRoomsPage from "./pages/app/ot/OTRoomsPage";
 import OTRoomFormPage from "./pages/app/ot/OTRoomFormPage";
 import PACUPage from "./pages/app/ot/PACUPage";
@@ -586,6 +587,7 @@ function App() {
               {/* OT routes */}
               <Route path="ot" element={<OTDashboard />} />
               <Route path="ot/schedule" element={<OTSchedulePage />} />
+              <Route path="ot/requests" element={<SurgeryRequestsPage />} />
               <Route path="ot/surgeries" element={<SurgeriesListPage />} />
               <Route path="ot/surgeries/new" element={<SurgeryFormPage />} />
               <Route path="ot/surgeries/:id" element={<SurgeryDetailPage />} />
