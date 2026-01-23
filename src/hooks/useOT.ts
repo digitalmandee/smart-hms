@@ -415,7 +415,7 @@ export function useSurgeries(filters: SurgeryFilters = {}) {
         .select(`
           *,
           patient:patients(id, first_name, last_name, date_of_birth, gender, phone, mr_number),
-          lead_surgeon:doctors(id, profile:profiles(full_name), specialization),
+          lead_surgeon:doctors!surgeries_lead_surgeon_id_fkey(id, profile:profiles(full_name), specialization),
           ot_room:ot_rooms(id, room_number, name)
         `)
         .eq('organization_id', profile?.organization_id!)
