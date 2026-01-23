@@ -28,9 +28,9 @@ import type { Database } from "@/integrations/supabase/types";
 type GRNStatus = Database["public"]["Enums"]["grn_status"];
 
 export default function GRNListPage() {
-  const [statusFilter, setStatusFilter] = useState<GRNStatus | "">("");
+  const [statusFilter, setStatusFilter] = useState<GRNStatus | "all">("all");
   const { data: grns, isLoading } = useGRNs(
-    statusFilter ? { status: statusFilter } : undefined
+    statusFilter !== "all" ? { status: statusFilter } : undefined
   );
 
   return (
@@ -51,12 +51,12 @@ export default function GRNListPage() {
       <Card>
         <CardHeader>
           <div className="flex gap-4">
-            <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as GRNStatus | "")}>
+            <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as GRNStatus | "all")}>
               <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder="All Statuses" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Statuses</SelectItem>
+                <SelectItem value="all">All Statuses</SelectItem>
                 <SelectItem value="draft">Draft</SelectItem>
                 <SelectItem value="pending_verification">Pending Verification</SelectItem>
                 <SelectItem value="verified">Verified</SelectItem>
@@ -77,7 +77,7 @@ export default function GRNListPage() {
               <PackageCheck className="mx-auto h-12 w-12 text-muted-foreground" />
               <h3 className="mt-4 text-lg font-semibold">No GRNs found</h3>
               <p className="text-muted-foreground">
-                {statusFilter ? "Try a different filter" : "Create your first goods received note"}
+                {statusFilter !== "all" ? "Try a different filter" : "Create your first goods received note"}
               </p>
               <Button asChild className="mt-4">
                 <Link to="/app/inventory/grn/new">
