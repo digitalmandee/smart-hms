@@ -81,6 +81,7 @@ export default function AppointmentDetailPage() {
         case 'start':
           await startConsultation.mutateAsync(id);
           toast({ title: 'Consultation started' });
+          navigate(`/app/opd/consultation/${id}`);
           break;
         case 'complete':
           await complete.mutateAsync(id);
