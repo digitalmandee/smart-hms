@@ -219,8 +219,8 @@ export const usePendingDischarges = () => {
           admission_date,
           expected_discharge_date,
           patient:patients(id, first_name, last_name, patient_number),
-          ward:wards(id, name),
-          bed:beds(id, bed_number),
+          ward:wards!admissions_ward_id_fkey(id, name),
+          bed:beds!admissions_bed_id_fkey(id, bed_number),
           attending_doctor:doctors!admissions_attending_doctor_id_fkey(
             id,
             profile:profiles!doctors_profile_id_fkey(full_name)
@@ -256,8 +256,8 @@ export const useAdmittedPatientsForDischarge = (doctorId?: string) => {
           admission_date,
           expected_discharge_date,
           patient:patients(id, first_name, last_name, patient_number),
-          ward:wards(id, name),
-          bed:beds(id, bed_number),
+          ward:wards!admissions_ward_id_fkey(id, name),
+          bed:beds!admissions_bed_id_fkey(id, bed_number),
           attending_doctor:doctors!admissions_attending_doctor_id_fkey(
             id,
             profile:profiles!doctors_profile_id_fkey(full_name)
