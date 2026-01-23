@@ -71,8 +71,7 @@ export function LabResultsPreview({ patientId, patientName }: LabResultsPreviewP
             test_name,
             status,
             result_values,
-            result_notes,
-            normal_range
+            result_notes
           )
         `)
         .eq("patient_id", patientId)
