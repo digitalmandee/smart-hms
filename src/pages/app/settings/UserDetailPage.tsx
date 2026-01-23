@@ -236,7 +236,7 @@ export function UserDetailPage() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="">No specific branch</SelectItem>
+                              <SelectItem value="none">No specific branch</SelectItem>
                               {branches?.map((branch) => (
                                 <SelectItem key={branch.id} value={branch.id}>
                                   {branch.name}

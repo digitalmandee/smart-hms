@@ -116,7 +116,7 @@ export default function UserInvitePage() {
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl><SelectTrigger><SelectValue placeholder="Select a branch" /></SelectTrigger></FormControl>
                     <SelectContent>
-                      <SelectItem value="">No specific branch</SelectItem>
+                      <SelectItem value="none">No specific branch</SelectItem>
                       {branches.map((branch) => <SelectItem key={branch.id} value={branch.id}>{branch.name} ({branch.code})</SelectItem>)}
                     </SelectContent>
                   </Select>

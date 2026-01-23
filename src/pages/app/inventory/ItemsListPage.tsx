@@ -26,12 +26,12 @@ import { PageHeader } from "@/components/PageHeader";
 
 export default function ItemsListPage() {
   const [search, setSearch] = useState("");
-  const [categoryId, setCategoryId] = useState<string>("");
+  const [categoryId, setCategoryId] = useState<string>("all");
   const [showLowStock, setShowLowStock] = useState(false);
 
   const { data: items, isLoading } = useInventoryItems({
     search,
-    categoryId: categoryId || undefined,
+    categoryId: categoryId !== "all" ? categoryId : undefined,
     lowStock: showLowStock,
   });
   const { data: categories } = useAllCategories();
@@ -68,7 +68,7 @@ export default function ItemsListPage() {
                 <SelectValue placeholder="All Categories" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Categories</SelectItem>
+                <SelectItem value="all">All Categories</SelectItem>
                 {categories?.map((cat) => (
                   <SelectItem key={cat.id} value={cat.id}>
                     {cat.name}

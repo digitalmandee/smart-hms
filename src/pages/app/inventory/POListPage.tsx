@@ -28,9 +28,9 @@ import type { Database } from "@/integrations/supabase/types";
 type POStatus = Database["public"]["Enums"]["po_status"];
 
 export default function POListPage() {
-  const [statusFilter, setStatusFilter] = useState<POStatus | "">("");
+  const [statusFilter, setStatusFilter] = useState<POStatus | "all">("all");
   const { data: purchaseOrders, isLoading } = usePurchaseOrders(
-    statusFilter ? { status: statusFilter } : undefined
+    statusFilter !== "all" ? { status: statusFilter } : undefined
   );
 
   return (
@@ -51,12 +51,12 @@ export default function POListPage() {
       <Card>
         <CardHeader>
           <div className="flex gap-4">
-            <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as POStatus | "")}>
+            <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as POStatus | "all")}>
               <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder="All Statuses" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Statuses</SelectItem>
+                <SelectItem value="all">All Statuses</SelectItem>
                 <SelectItem value="draft">Draft</SelectItem>
                 <SelectItem value="pending_approval">Pending Approval</SelectItem>
                 <SelectItem value="approved">Approved</SelectItem>

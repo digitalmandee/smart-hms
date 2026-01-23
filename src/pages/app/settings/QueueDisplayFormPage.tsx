@@ -221,7 +221,7 @@ export default function QueueDisplayFormPage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="">All branches</SelectItem>
+                          <SelectItem value="all">All branches</SelectItem>
                           {branches?.map((branch) => (
                             <SelectItem key={branch.id} value={branch.id}>
                               {branch.name}

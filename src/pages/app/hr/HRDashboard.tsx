@@ -138,7 +138,7 @@ export default function HRDashboard() {
               </div>
               Pending Leave Requests
             </CardTitle>
-            <Button variant="ghost" size="sm" onClick={() => navigate("/app/hr/leaves/approvals")}>
+            <Button variant="ghost" size="sm" onClick={() => navigate("/app/hr/leaves/requests")}>
               View All
               <ChevronRight className="h-4 w-4 ml-1" />
             </Button>

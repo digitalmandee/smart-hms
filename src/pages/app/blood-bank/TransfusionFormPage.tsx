@@ -286,7 +286,7 @@ export default function TransfusionFormPage() {
                     <SelectValue placeholder="Select a cross-match (optional)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="none">None</SelectItem>
                     {compatibleCrossMatches.map((cm) => (
                       <SelectItem key={cm.id} value={cm.id}>
                         {cm.test_number || 'Cross-Match'} - Compatible 
