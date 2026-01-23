@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format, addDays, subDays } from 'date-fns';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, Users } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, Users, Scissors } from 'lucide-react';
 import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,6 +13,7 @@ import { useAppointments, type AppointmentWithRelations } from '@/hooks/useAppoi
 import { useDoctorByEmployeeId } from '@/hooks/useDoctors';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAppointmentNotifications } from '@/hooks/useAppointmentNotifications';
+import { useSurgeries } from '@/hooks/useOT';
 
 const statusColors: Record<string, string> = {
   scheduled: 'bg-blue-500',
@@ -53,6 +54,12 @@ export default function MyCalendarPage() {
     dateFrom: dateStr,
     dateTo: dateStr,
     doctorId: doctor?.id,
+  });
+
+  // Fetch surgeries for this doctor on selected date
+  const { data: surgeries, isLoading: surgeriesLoading } = useSurgeries({
+    date: dateStr,
+    surgeonId: doctor?.id,
   });
 
   // Sort appointments by time
@@ -259,75 +266,118 @@ export default function MyCalendarPage() {
           </CardContent>
         </Card>
 
-        {/* Upcoming Sidebar */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              Upcoming
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {upcomingAppointments.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">
-                No upcoming appointments
-              </p>
-            ) : (
-              upcomingAppointments.map((appointment) => (
-                <div
-                  key={appointment.id}
-                  className="p-3 rounded-lg border bg-card hover:bg-muted/50 cursor-pointer transition-colors"
-                  onClick={() => navigate(`/app/appointments/${appointment.id}`)}
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <p className="font-medium">
-                        {appointment.patient?.first_name} {appointment.patient?.last_name}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {appointment.appointment_time && formatTimeDisplay(appointment.appointment_time)}
-                      </p>
+        {/* Sidebar */}
+        <div className="space-y-6">
+          {/* My Surgeries Section */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2">
+                <Scissors className="h-5 w-5" />
+                My Surgeries
+                {surgeries && surgeries.length > 0 && (
+                  <Badge variant="secondary">{surgeries.length}</Badge>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {surgeriesLoading ? (
+                <p className="text-sm text-muted-foreground text-center py-4">Loading...</p>
+              ) : !surgeries || surgeries.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  No surgeries scheduled
+                </p>
+              ) : (
+                surgeries.map((surgery) => (
+                  <div
+                    key={surgery.id}
+                    className="p-3 rounded-lg border bg-card hover:bg-muted/50 cursor-pointer transition-colors"
+                    onClick={() => navigate(`/app/ot/surgeries/${surgery.id}`)}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <p className="font-medium">
+                          {surgery.patient?.first_name} {surgery.patient?.last_name}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {surgery.scheduled_start_time && formatTimeDisplay(surgery.scheduled_start_time)}
+                        </p>
+                      </div>
+                      <Badge 
+                        variant={surgery.status === 'completed' ? 'secondary' : surgery.status === 'in_progress' ? 'default' : 'outline'}
+                        className="text-xs capitalize"
+                      >
+                        {surgery.status?.replace('_', ' ')}
+                      </Badge>
                     </div>
-                    <Badge 
-                      variant="outline"
-                      className={cn('text-xs capitalize', statusTextColors[appointment.status || 'scheduled'])}
-                    >
-                      {appointment.status?.replace('_', ' ')}
-                    </Badge>
-                  </div>
-                  {appointment.chief_complaint && (
                     <p className="text-xs text-muted-foreground mt-2 truncate">
-                      {appointment.chief_complaint}
+                      {surgery.procedure_name}
                     </p>
-                  )}
-                </div>
-              ))
-            )}
+                    {surgery.ot_room && (
+                      <p className="text-xs text-primary mt-1">
+                        OT: {surgery.ot_room.name || surgery.ot_room.room_number}
+                      </p>
+                    )}
+                  </div>
+                ))
+              )}
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full mt-2"
+                onClick={() => navigate("/app/ot/surgeries")}
+              >
+                View All Surgeries
+              </Button>
+            </CardContent>
+          </Card>
 
-            {/* Legend */}
-            <div className="pt-4 border-t space-y-2">
-              <p className="text-xs font-medium text-muted-foreground">Status Legend</p>
-              <div className="grid grid-cols-2 gap-1 text-xs">
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-blue-500" />
-                  <span>Scheduled</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-yellow-500" />
-                  <span>Waiting</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-green-500" />
-                  <span>In Progress</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-muted-foreground" />
-                  <span>Completed</span>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+          {/* Upcoming Appointments */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Upcoming Appointments
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {upcomingAppointments.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  No upcoming appointments
+                </p>
+              ) : (
+                upcomingAppointments.map((appointment) => (
+                  <div
+                    key={appointment.id}
+                    className="p-3 rounded-lg border bg-card hover:bg-muted/50 cursor-pointer transition-colors"
+                    onClick={() => navigate(`/app/appointments/${appointment.id}`)}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <p className="font-medium">
+                          {appointment.patient?.first_name} {appointment.patient?.last_name}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {appointment.appointment_time && formatTimeDisplay(appointment.appointment_time)}
+                        </p>
+                      </div>
+                      <Badge 
+                        variant="outline"
+                        className={cn('text-xs capitalize', statusTextColors[appointment.status || 'scheduled'])}
+                      >
+                        {appointment.status?.replace('_', ' ')}
+                      </Badge>
+                    </div>
+                    {appointment.chief_complaint && (
+                      <p className="text-xs text-muted-foreground mt-2 truncate">
+                        {appointment.chief_complaint}
+                      </p>
+                    )}
+                  </div>
+                ))
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
