@@ -238,6 +238,7 @@ import RoundDetailPage from "./pages/app/ipd/RoundDetailPage";
 import NursingStationPage from "./pages/app/ipd/NursingStationPage";
 import DischargesPage from "./pages/app/ipd/DischargesPage";
 import DischargeFormPage from "./pages/app/ipd/DischargeFormPage";
+import DoctorDischargePage from "./pages/app/ipd/DoctorDischargePage";
 
 // Emergency pages
 import EmergencyDashboard from "./pages/app/emergency/EmergencyDashboard";
@@ -555,6 +556,7 @@ function App() {
               <Route path="ipd/nursing-notes" element={<NursingNotesPage />} />
               <Route path="ipd/discharges" element={<DischargesPage />} />
               <Route path="ipd/discharge/:id" element={<DischargeFormPage />} />
+              <Route path="ipd/doctor-discharge/:id" element={<DoctorDischargePage />} />
               <Route path="ipd/discharge-summaries" element={<DischargesPage />} />
               <Route path="ipd/discharge-billing" element={<DischargesPage />} />
               <Route path="ipd/transfers" element={<BedTransfersPage />} />
