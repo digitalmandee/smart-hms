@@ -91,26 +91,34 @@ export function RecommendSurgeryDialog({
   });
 
   const onSubmit = async (values: SurgeryRequestFormValues) => {
-    await createRequest.mutateAsync({
-      patient_id: patientId,
-      procedure_name: values.procedure_name,
-      diagnosis: values.diagnosis,
-      priority: values.priority as SurgeryRequestPriority,
-      recommended_by: values.recommended_by,
-      clinical_notes: values.clinical_notes,
-      preferred_date_from: values.preferred_date_from 
-        ? format(values.preferred_date_from, "yyyy-MM-dd") 
-        : undefined,
-      preferred_date_to: values.preferred_date_to 
-        ? format(values.preferred_date_to, "yyyy-MM-dd") 
-        : undefined,
-      estimated_duration_minutes: values.estimated_duration_minutes,
-      consultation_id: consultationId,
-    });
-
-    form.reset();
-    onOpenChange(false);
-    onSuccess?.();
+    try {
+      console.log("Creating surgery request:", values);
+      
+      await createRequest.mutateAsync({
+        patient_id: patientId,
+        procedure_name: values.procedure_name,
+        diagnosis: values.diagnosis,
+        priority: values.priority as SurgeryRequestPriority,
+        recommended_by: values.recommended_by,
+        clinical_notes: values.clinical_notes,
+        preferred_date_from: values.preferred_date_from 
+          ? format(values.preferred_date_from, "yyyy-MM-dd") 
+          : undefined,
+        preferred_date_to: values.preferred_date_to 
+          ? format(values.preferred_date_to, "yyyy-MM-dd") 
+          : undefined,
+        estimated_duration_minutes: values.estimated_duration_minutes,
+        consultation_id: consultationId,
+      });
+      
+      form.reset();
+      onOpenChange(false);
+      onSuccess?.();
+    } catch (error) {
+      // Error toast is already shown by the hook's onError
+      console.error("Surgery request creation failed:", error);
+      // Don't close dialog so user can retry
+    }
   };
 
   return (

@@ -196,30 +196,47 @@ export function useCreateSurgeryRequest() {
 
   return useMutation({
     mutationFn: async (data: CreateSurgeryRequestData) => {
-      if (!profile?.organization_id) throw new Error("Missing organization");
+      console.log("=== Creating Surgery Request ===");
+      console.log("Input data:", data);
+      console.log("Profile:", profile);
+
+      if (!profile?.organization_id) {
+        console.error("Missing organization_id in profile");
+        throw new Error("Missing organization - please log in again");
+      }
+
+      const insertData = {
+        ...data,
+        organization_id: profile.organization_id,
+        branch_id: data.branch_id || profile.branch_id,
+        created_by: profile.id,
+        request_status: "pending" as const,
+        recommended_date: new Date().toISOString().split('T')[0],
+      };
+
+      console.log("Insert payload:", insertData);
 
       const { data: request, error } = await supabase
         .from("surgery_requests")
-        .insert({
-          ...data,
-          organization_id: profile.organization_id,
-          branch_id: data.branch_id || profile.branch_id,
-          created_by: profile.id,
-          request_status: "pending",
-        })
+        .insert(insertData)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase insert error:", error);
+        throw error;
+      }
+
+      console.log("Created request:", request);
       return request;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["surgery-requests"] });
       toast.success("Surgery request created successfully");
     },
-    onError: (error) => {
-      toast.error("Failed to create surgery request");
-      console.error(error);
+    onError: (error: any) => {
+      console.error("Mutation error:", error);
+      toast.error(error?.message || "Failed to create surgery request");
     },
   });
 }
