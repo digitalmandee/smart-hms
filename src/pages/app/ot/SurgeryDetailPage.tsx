@@ -86,8 +86,8 @@ export default function SurgeryDetailPage() {
 
   const handleStart = async () => {
     await startSurgery.mutateAsync(surgery.id);
-    // Switch to anesthesia tab to guide user to record intra-op data
-    navigate(`/app/ot/surgeries/${surgery.id}/anesthesia`);
+    // Navigate to Intra-Op Notes for surgeon to document procedure
+    navigate(`/app/ot/surgeries/${surgery.id}/op-notes`);
   };
 
   const handleComplete = async () => {
