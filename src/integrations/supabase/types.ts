@@ -13863,6 +13863,187 @@ export type Database = {
           },
         ]
       }
+      post_op_orders: {
+        Row: {
+          activity_level: string | null
+          activity_restrictions: string | null
+          bleeding_precautions: boolean | null
+          code_status: string | null
+          consults: string[] | null
+          continue_home_meds: boolean | null
+          created_at: string | null
+          diet_notes: string | null
+          diet_order: string | null
+          diet_start_time: string | null
+          discharge_criteria: string | null
+          disposition: string
+          drains: Json | null
+          dressing_change_frequency: string | null
+          fall_precautions: boolean | null
+          foley_catheter: boolean | null
+          foley_removal_date: string | null
+          follow_up_appointment: string | null
+          follow_up_instructions: string | null
+          held_medications: string | null
+          id: string
+          imaging_orders: string | null
+          incentive_spirometry: boolean | null
+          intake_output: boolean | null
+          is_active: boolean | null
+          iv_fluids: Json | null
+          medications: Json | null
+          morning_labs: string[] | null
+          neuro_checks: boolean | null
+          neuro_frequency: string | null
+          ng_tube: boolean | null
+          ng_tube_orders: string | null
+          ordered_at: string | null
+          ordered_by: string
+          organization_id: string
+          oxygen_therapy: string | null
+          pain_goal: number | null
+          pain_management: Json | null
+          pca_ordered: boolean | null
+          pca_settings: Json | null
+          respiratory_treatments: string | null
+          special_instructions: string | null
+          stat_labs: string[] | null
+          surgery_id: string
+          updated_at: string | null
+          vital_signs_frequency: string | null
+          vte_medication_details: string | null
+          vte_prophylaxis: string | null
+          weight_bearing: string | null
+          wound_care_instructions: string | null
+        }
+        Insert: {
+          activity_level?: string | null
+          activity_restrictions?: string | null
+          bleeding_precautions?: boolean | null
+          code_status?: string | null
+          consults?: string[] | null
+          continue_home_meds?: boolean | null
+          created_at?: string | null
+          diet_notes?: string | null
+          diet_order?: string | null
+          diet_start_time?: string | null
+          discharge_criteria?: string | null
+          disposition?: string
+          drains?: Json | null
+          dressing_change_frequency?: string | null
+          fall_precautions?: boolean | null
+          foley_catheter?: boolean | null
+          foley_removal_date?: string | null
+          follow_up_appointment?: string | null
+          follow_up_instructions?: string | null
+          held_medications?: string | null
+          id?: string
+          imaging_orders?: string | null
+          incentive_spirometry?: boolean | null
+          intake_output?: boolean | null
+          is_active?: boolean | null
+          iv_fluids?: Json | null
+          medications?: Json | null
+          morning_labs?: string[] | null
+          neuro_checks?: boolean | null
+          neuro_frequency?: string | null
+          ng_tube?: boolean | null
+          ng_tube_orders?: string | null
+          ordered_at?: string | null
+          ordered_by: string
+          organization_id: string
+          oxygen_therapy?: string | null
+          pain_goal?: number | null
+          pain_management?: Json | null
+          pca_ordered?: boolean | null
+          pca_settings?: Json | null
+          respiratory_treatments?: string | null
+          special_instructions?: string | null
+          stat_labs?: string[] | null
+          surgery_id: string
+          updated_at?: string | null
+          vital_signs_frequency?: string | null
+          vte_medication_details?: string | null
+          vte_prophylaxis?: string | null
+          weight_bearing?: string | null
+          wound_care_instructions?: string | null
+        }
+        Update: {
+          activity_level?: string | null
+          activity_restrictions?: string | null
+          bleeding_precautions?: boolean | null
+          code_status?: string | null
+          consults?: string[] | null
+          continue_home_meds?: boolean | null
+          created_at?: string | null
+          diet_notes?: string | null
+          diet_order?: string | null
+          diet_start_time?: string | null
+          discharge_criteria?: string | null
+          disposition?: string
+          drains?: Json | null
+          dressing_change_frequency?: string | null
+          fall_precautions?: boolean | null
+          foley_catheter?: boolean | null
+          foley_removal_date?: string | null
+          follow_up_appointment?: string | null
+          follow_up_instructions?: string | null
+          held_medications?: string | null
+          id?: string
+          imaging_orders?: string | null
+          incentive_spirometry?: boolean | null
+          intake_output?: boolean | null
+          is_active?: boolean | null
+          iv_fluids?: Json | null
+          medications?: Json | null
+          morning_labs?: string[] | null
+          neuro_checks?: boolean | null
+          neuro_frequency?: string | null
+          ng_tube?: boolean | null
+          ng_tube_orders?: string | null
+          ordered_at?: string | null
+          ordered_by?: string
+          organization_id?: string
+          oxygen_therapy?: string | null
+          pain_goal?: number | null
+          pain_management?: Json | null
+          pca_ordered?: boolean | null
+          pca_settings?: Json | null
+          respiratory_treatments?: string | null
+          special_instructions?: string | null
+          stat_labs?: string[] | null
+          surgery_id?: string
+          updated_at?: string | null
+          vital_signs_frequency?: string | null
+          vte_medication_details?: string | null
+          vte_prophylaxis?: string | null
+          weight_bearing?: string | null
+          wound_care_instructions?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_op_orders_ordered_by_fkey"
+            columns: ["ordered_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_op_orders_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_op_orders_surgery_id_fkey"
+            columns: ["surgery_id"]
+            isOneToOne: false
+            referencedRelation: "surgeries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       post_op_recovery: {
         Row: {
           aldrete_scores: Json | null
@@ -15936,6 +16117,303 @@ export type Database = {
           {
             foreignKeyName: "surgeries_rescheduled_from_fkey"
             columns: ["rescheduled_from"]
+            isOneToOne: false
+            referencedRelation: "surgeries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      surgery_consents: {
+        Row: {
+          alternatives_explained: string | null
+          consent_template: string | null
+          consent_type: string
+          created_at: string | null
+          explained_by: string | null
+          id: string
+          is_valid: boolean | null
+          organization_id: string
+          patient_questions: string | null
+          patient_relationship: string | null
+          patient_signature: string | null
+          patient_signed_at: string | null
+          procedure_explained: string | null
+          revocation_reason: string | null
+          revoked_at: string | null
+          risks_explained: string | null
+          surgery_id: string
+          updated_at: string | null
+          witness_name: string | null
+          witness_signature: string | null
+          witness_signed_at: string | null
+        }
+        Insert: {
+          alternatives_explained?: string | null
+          consent_template?: string | null
+          consent_type: string
+          created_at?: string | null
+          explained_by?: string | null
+          id?: string
+          is_valid?: boolean | null
+          organization_id: string
+          patient_questions?: string | null
+          patient_relationship?: string | null
+          patient_signature?: string | null
+          patient_signed_at?: string | null
+          procedure_explained?: string | null
+          revocation_reason?: string | null
+          revoked_at?: string | null
+          risks_explained?: string | null
+          surgery_id: string
+          updated_at?: string | null
+          witness_name?: string | null
+          witness_signature?: string | null
+          witness_signed_at?: string | null
+        }
+        Update: {
+          alternatives_explained?: string | null
+          consent_template?: string | null
+          consent_type?: string
+          created_at?: string | null
+          explained_by?: string | null
+          id?: string
+          is_valid?: boolean | null
+          organization_id?: string
+          patient_questions?: string | null
+          patient_relationship?: string | null
+          patient_signature?: string | null
+          patient_signed_at?: string | null
+          procedure_explained?: string | null
+          revocation_reason?: string | null
+          revoked_at?: string | null
+          risks_explained?: string | null
+          surgery_id?: string
+          updated_at?: string | null
+          witness_name?: string | null
+          witness_signature?: string | null
+          witness_signed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "surgery_consents_explained_by_fkey"
+            columns: ["explained_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surgery_consents_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surgery_consents_surgery_id_fkey"
+            columns: ["surgery_id"]
+            isOneToOne: false
+            referencedRelation: "surgeries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      surgery_consumables: {
+        Row: {
+          added_by: string | null
+          batch_number: string | null
+          billed_to_invoice_id: string | null
+          created_at: string | null
+          expiry_date: string | null
+          id: string
+          implant_location: string | null
+          implant_size: string | null
+          inventory_item_id: string | null
+          is_billable: boolean | null
+          is_implant: boolean | null
+          item_category: string | null
+          item_name: string
+          lot_number: string | null
+          manufacturer: string | null
+          organization_id: string
+          quantity: number
+          serial_number: string | null
+          surgery_id: string
+          total_price: number | null
+          unit: string | null
+          unit_price: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          added_by?: string | null
+          batch_number?: string | null
+          billed_to_invoice_id?: string | null
+          created_at?: string | null
+          expiry_date?: string | null
+          id?: string
+          implant_location?: string | null
+          implant_size?: string | null
+          inventory_item_id?: string | null
+          is_billable?: boolean | null
+          is_implant?: boolean | null
+          item_category?: string | null
+          item_name: string
+          lot_number?: string | null
+          manufacturer?: string | null
+          organization_id: string
+          quantity?: number
+          serial_number?: string | null
+          surgery_id: string
+          total_price?: number | null
+          unit?: string | null
+          unit_price?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          added_by?: string | null
+          batch_number?: string | null
+          billed_to_invoice_id?: string | null
+          created_at?: string | null
+          expiry_date?: string | null
+          id?: string
+          implant_location?: string | null
+          implant_size?: string | null
+          inventory_item_id?: string | null
+          is_billable?: boolean | null
+          is_implant?: boolean | null
+          item_category?: string | null
+          item_name?: string
+          lot_number?: string | null
+          manufacturer?: string | null
+          organization_id?: string
+          quantity?: number
+          serial_number?: string | null
+          surgery_id?: string
+          total_price?: number | null
+          unit?: string | null
+          unit_price?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "surgery_consumables_added_by_fkey"
+            columns: ["added_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surgery_consumables_billed_to_invoice_id_fkey"
+            columns: ["billed_to_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surgery_consumables_inventory_item_id_fkey"
+            columns: ["inventory_item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surgery_consumables_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surgery_consumables_surgery_id_fkey"
+            columns: ["surgery_id"]
+            isOneToOne: false
+            referencedRelation: "surgeries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      surgery_medications: {
+        Row: {
+          administered_at: string | null
+          administered_by: string | null
+          created_at: string | null
+          dosage: string | null
+          hold_reason: string | null
+          id: string
+          medication_name: string
+          notes: string | null
+          ordered_at: string | null
+          ordered_by: string | null
+          organization_id: string
+          route: string | null
+          scheduled_time: string | null
+          status: string
+          surgery_id: string
+          timing: string
+          updated_at: string | null
+        }
+        Insert: {
+          administered_at?: string | null
+          administered_by?: string | null
+          created_at?: string | null
+          dosage?: string | null
+          hold_reason?: string | null
+          id?: string
+          medication_name: string
+          notes?: string | null
+          ordered_at?: string | null
+          ordered_by?: string | null
+          organization_id: string
+          route?: string | null
+          scheduled_time?: string | null
+          status?: string
+          surgery_id: string
+          timing?: string
+          updated_at?: string | null
+        }
+        Update: {
+          administered_at?: string | null
+          administered_by?: string | null
+          created_at?: string | null
+          dosage?: string | null
+          hold_reason?: string | null
+          id?: string
+          medication_name?: string
+          notes?: string | null
+          ordered_at?: string | null
+          ordered_by?: string | null
+          organization_id?: string
+          route?: string | null
+          scheduled_time?: string | null
+          status?: string
+          surgery_id?: string
+          timing?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "surgery_medications_administered_by_fkey"
+            columns: ["administered_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surgery_medications_ordered_by_fkey"
+            columns: ["ordered_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surgery_medications_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surgery_medications_surgery_id_fkey"
+            columns: ["surgery_id"]
             isOneToOne: false
             referencedRelation: "surgeries"
             referencedColumns: ["id"]
