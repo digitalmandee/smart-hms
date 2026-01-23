@@ -280,6 +280,8 @@ export default function PharmacyReturnsPage() {
                   items={selectedTransaction.items.map((item: any) => ({
                     id: item.id,
                     medicine_name: item.medicine_name,
+                    medicine_id: item.medicine_id,
+                    inventory_id: item.inventory_id,
                     quantity: item.quantity,
                     unit_price: item.unit_price,
                     total_price: item.total_price,
