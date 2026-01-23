@@ -143,7 +143,64 @@ export default function DoctorDischargePage() {
         </Alert>
       )}
 
-      {/* Diagnosis Info from Admission */}
+      {/* Discharge Summary Form - Show when not yet approved */}
+      {!isSummaryApproved && (
+        <DischargeSummaryForm
+          admissionId={id!}
+          existingSummary={dischargeSummary}
+          onSuccess={() => {
+            refetchSummary();
+          }}
+        />
+      )}
+
+      {/* Read-only view when already approved */}
+      {isSummaryApproved && dischargeSummary && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Approved Discharge Summary
+            </CardTitle>
+            <CardDescription>
+              This discharge summary has been approved and sent to reception.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Discharge Diagnosis</p>
+                <p className="mt-1">{dischargeSummary.discharge_diagnosis || "Not specified"}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Condition at Discharge</p>
+                <p className="mt-1 capitalize">{dischargeSummary.condition_at_discharge || "Not specified"}</p>
+              </div>
+            </div>
+            {dischargeSummary.hospital_course && (
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Hospital Course</p>
+                <p className="mt-1 whitespace-pre-wrap">{dischargeSummary.hospital_course}</p>
+              </div>
+            )}
+            {dischargeSummary.diet_instructions && (
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Diet & Activity Instructions</p>
+                <p className="mt-1 whitespace-pre-wrap">{dischargeSummary.diet_instructions}</p>
+                {dischargeSummary.activity_instructions && (
+                  <p className="mt-1 whitespace-pre-wrap">{dischargeSummary.activity_instructions}</p>
+                )}
+              </div>
+            )}
+            {dischargeSummary.follow_up_instructions && (
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Follow-up Instructions</p>
+                <p className="mt-1 whitespace-pre-wrap">{dischargeSummary.follow_up_instructions}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
