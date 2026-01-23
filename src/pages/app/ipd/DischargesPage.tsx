@@ -15,9 +15,11 @@ import {
   Bed,
   FileText,
   Users,
-  ClipboardCheck
+  ClipboardCheck,
+  Receipt,
+  CheckCircle2
 } from "lucide-react";
-import { useAdmittedPatientsForDischarge } from "@/hooks/useDischarge";
+import { useAdmittedPatientsForDischarge, useApprovedForBilling } from "@/hooks/useDischarge";
 import { useAdmissions } from "@/hooks/useAdmissions";
 import { format, differenceInDays } from "date-fns";
 
@@ -28,6 +30,7 @@ export default function DischargesPage() {
 
   const { data: admittedPatients, isLoading: loadingAdmitted } = useAdmittedPatientsForDischarge();
   const { data: recentDischarges, isLoading: loadingRecent } = useAdmissions("discharged");
+  const { data: approvedForBilling, isLoading: loadingApproved } = useApprovedForBilling();
 
   // Client-side search filtering
   const filteredAdmitted = useMemo(() => {
@@ -61,6 +64,23 @@ export default function DischargesPage() {
     });
   }, [recentDischarges, search]);
 
+  const filteredApproved = useMemo(() => {
+    if (!approvedForBilling) return [];
+    if (!search.trim()) return approvedForBilling;
+    
+    const searchLower = search.toLowerCase().trim();
+    return approvedForBilling.filter((adm: any) => {
+      const patientName = `${adm.patient?.first_name || ""} ${adm.patient?.last_name || ""}`.toLowerCase();
+      const patientNumber = adm.patient?.patient_number?.toLowerCase() || "";
+      const admissionNumber = adm.admission_number?.toLowerCase() || "";
+      return (
+        patientName.includes(searchLower) ||
+        patientNumber.includes(searchLower) ||
+        admissionNumber.includes(searchLower)
+      );
+    });
+  }, [approvedForBilling, search]);
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -85,6 +105,10 @@ export default function DischargesPage() {
           <TabsTrigger value="all-admitted" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
             Admitted Patients ({filteredAdmitted.length})
+          </TabsTrigger>
+          <TabsTrigger value="ready-for-billing" className="flex items-center gap-2">
+            <Receipt className="h-4 w-4" />
+            Ready for Billing ({filteredApproved.length})
           </TabsTrigger>
           <TabsTrigger value="recent" className="flex items-center gap-2">
             <LogOut className="h-4 w-4" />
@@ -177,6 +201,103 @@ export default function DischargesPage() {
               <CardContent className="py-12 text-center text-muted-foreground">
                 <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p>{search ? "No patients match your search" : "No admitted patients"}</p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        {/* Ready for Billing Tab */}
+        <TabsContent value="ready-for-billing" className="mt-4">
+          {loadingApproved ? (
+            <div className="text-center py-8 text-muted-foreground">Loading...</div>
+          ) : filteredApproved.length > 0 ? (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {filteredApproved.map((adm: any) => {
+                const dischargeSummary = adm.discharge_summary?.[0] || adm.discharge_summary;
+                const approvedByName = dischargeSummary?.approved_by_profile?.full_name || "Doctor";
+                const approvedAt = dischargeSummary?.approved_at;
+                const daysAdmitted = differenceInDays(new Date(), new Date(adm.admission_date));
+
+                return (
+                  <Card key={adm.id} className="border-success/50 bg-success/5 hover:shadow-md transition-shadow">
+                    <CardHeader className="pb-2">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="h-10 w-10 rounded-full bg-success/10 flex items-center justify-center">
+                            <CheckCircle2 className="h-5 w-5 text-success" />
+                          </div>
+                          <div>
+                            <CardTitle className="text-base">
+                              {adm.patient?.first_name} {adm.patient?.last_name}
+                            </CardTitle>
+                            <p className="text-sm text-muted-foreground">
+                              {adm.patient?.patient_number}
+                            </p>
+                          </div>
+                        </div>
+                        <Badge className="bg-success text-success-foreground hover:bg-success/90">
+                          Doctor Approved
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <p className="text-xs text-muted-foreground">
+                        {adm.admission_number}
+                      </p>
+                      <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                          <Building2 className="h-4 w-4" />
+                          {adm.ward?.name || "No ward"}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Bed className="h-4 w-4" />
+                          {adm.bed?.bed_number ? `Bed ${adm.bed.bed_number}` : "No bed"}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Calendar className="h-4 w-4" />
+                          {daysAdmitted} day{daysAdmitted !== 1 ? 's' : ''} admitted
+                        </div>
+                      </div>
+                      <div className="text-xs text-muted-foreground border-t pt-2 mt-2">
+                        <p className="flex items-center gap-1">
+                          <User className="h-3 w-3" />
+                          Approved by: <span className="font-medium">{approvedByName}</span>
+                        </p>
+                        {approvedAt && (
+                          <p className="mt-1">
+                            on {format(new Date(approvedAt), "dd MMM yyyy 'at' h:mm a")}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1"
+                          onClick={() => navigate(`/app/ipd/admissions/${adm.id}`)}
+                        >
+                          View Details
+                        </Button>
+                        <Button
+                          size="sm"
+                          className="flex-1 bg-success text-success-foreground hover:bg-success/90"
+                          onClick={() => navigate(`/app/ipd/discharge/${adm.id}`)}
+                        >
+                          <Receipt className="h-4 w-4 mr-1" />
+                          Process Billing
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="py-12 text-center text-muted-foreground">
+                <Receipt className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>{search ? "No patients match your search" : "No patients ready for billing"}</p>
+                <p className="text-sm mt-2">Patients will appear here after doctors approve their discharge summary</p>
               </CardContent>
             </Card>
           )}
