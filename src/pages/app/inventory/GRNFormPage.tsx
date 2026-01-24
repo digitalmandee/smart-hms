@@ -50,13 +50,16 @@ const formSchema = z.object({
 
 interface LocalGRNItem {
   po_item_id: string;
-  item_id: string;
+  item_type: 'inventory' | 'medicine';
+  item_id?: string;
+  medicine_id?: string;
   item_name: string;
   ordered_quantity: number;
   quantity_received: number;
   batch_number: string;
   expiry_date: string;
   unit_cost: number;
+  selling_price: number;
 }
 
 export default function GRNFormPage() {
@@ -90,14 +93,19 @@ export default function GRNFormPage() {
   useEffect(() => {
     if (selectedPO?.items) {
       const items: LocalGRNItem[] = selectedPO.items.map((item) => ({
-        po_item_id: item.id,
+        po_item_id: item.id!,
+        item_type: item.item_type || 'inventory',
         item_id: item.item_id,
-        item_name: item.item?.name || "Unknown Item",
+        medicine_id: item.medicine_id,
+        item_name: item.item_type === 'medicine' 
+          ? (item.medicine?.name || "Unknown Medicine")
+          : (item.item?.name || "Unknown Item"),
         ordered_quantity: item.quantity,
         quantity_received: item.quantity - (item.received_quantity || 0),
         batch_number: "",
         expiry_date: "",
         unit_cost: item.unit_price,
+        selling_price: item.unit_price, // Default selling price = cost
       }));
       setGrnItems(items.filter((i) => i.quantity_received > 0));
     }
@@ -131,13 +139,16 @@ export default function GRNFormPage() {
     try {
       const grnItemsToSubmit: GRNItem[] = itemsWithQty.map((item) => ({
         po_item_id: item.po_item_id,
-        item_id: item.item_id,
+        item_type: item.item_type,
+        item_id: item.item_type === 'inventory' ? item.item_id : undefined,
+        medicine_id: item.item_type === 'medicine' ? item.medicine_id : undefined,
         quantity_received: item.quantity_received,
         quantity_accepted: item.quantity_received,
         quantity_rejected: 0,
         batch_number: item.batch_number || null,
         expiry_date: item.expiry_date || null,
         unit_cost: item.unit_cost,
+        selling_price: item.item_type === 'medicine' ? item.selling_price : null,
       }));
 
       await createGRN.mutateAsync({
@@ -290,11 +301,13 @@ export default function GRNFormPage() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Item</TableHead>
+                      <TableHead>Type</TableHead>
                       <TableHead className="w-24">Ordered</TableHead>
                       <TableHead className="w-32">Received Qty *</TableHead>
                       <TableHead className="w-32">Batch No.</TableHead>
                       <TableHead className="w-36">Expiry Date</TableHead>
                       <TableHead className="w-24 text-right">Unit Cost</TableHead>
+                      <TableHead className="w-28 text-right">Sell Price</TableHead>
                       <TableHead className="w-28 text-right">Total</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -303,6 +316,15 @@ export default function GRNFormPage() {
                       <TableRow key={item.po_item_id}>
                         <TableCell className="font-medium">
                           {item.item_name}
+                        </TableCell>
+                        <TableCell>
+                          <span className={`text-xs px-2 py-0.5 rounded ${
+                            item.item_type === 'medicine' 
+                              ? 'bg-primary/10 text-primary' 
+                              : 'bg-muted text-muted-foreground'
+                          }`}>
+                            {item.item_type === 'medicine' ? 'Medicine' : 'Inventory'}
+                          </span>
                         </TableCell>
                         <TableCell>{item.ordered_quantity}</TableCell>
                         <TableCell>
@@ -338,6 +360,22 @@ export default function GRNFormPage() {
                         </TableCell>
                         <TableCell className="text-right">
                           Rs. {item.unit_cost.toLocaleString()}
+                        </TableCell>
+                        <TableCell>
+                          {item.item_type === 'medicine' ? (
+                            <Input
+                              type="number"
+                              min={0}
+                              step={0.01}
+                              value={item.selling_price}
+                              onChange={(e) =>
+                                updateItem(index, "selling_price", Number(e.target.value))
+                              }
+                              className="w-24"
+                            />
+                          ) : (
+                            <span className="text-muted-foreground">N/A</span>
+                          )}
                         </TableCell>
                         <TableCell className="text-right font-medium">
                           Rs. {(item.quantity_received * item.unit_cost).toLocaleString()}

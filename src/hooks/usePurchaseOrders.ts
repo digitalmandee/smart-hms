@@ -6,10 +6,14 @@ import type { Database } from "@/integrations/supabase/types";
 
 type POStatus = Database["public"]["Enums"]["po_status"];
 
+export type POItemType = 'inventory' | 'medicine';
+
 export interface PurchaseOrderItem {
   id?: string;
   purchase_order_id?: string;
-  item_id: string;
+  item_type: POItemType;
+  item_id?: string;      // For inventory items
+  medicine_id?: string;  // For medicines
   quantity: number;
   unit_price: number;
   tax_percent: number;
@@ -21,6 +25,12 @@ export interface PurchaseOrderItem {
     item_code: string;
     name: string;
     unit_of_measure: string;
+  };
+  medicine?: {
+    id: string;
+    name: string;
+    generic_name: string;
+    unit: string;
   };
 }
 
@@ -117,12 +127,13 @@ export function usePurchaseOrder(id: string) {
       
       if (error) throw error;
       
-      // Get items
+      // Get items with both inventory items and medicines
       const { data: items, error: itemsError } = await supabase
         .from("purchase_order_items")
         .select(`
           *,
-          item:inventory_items(id, item_code, name, unit_of_measure)
+          item:inventory_items(id, item_code, name, unit_of_measure),
+          medicine:medicines(id, name, generic_name, unit)
         `)
         .eq("purchase_order_id", id);
       
@@ -190,10 +201,12 @@ export function useCreatePurchaseOrder() {
       
       if (error) throw error;
       
-      // Create items
+      // Create items - support both inventory and medicine items
       const itemsToInsert = data.items.map(item => ({
         purchase_order_id: po.id,
-        item_id: item.item_id,
+        item_type: item.item_type || 'inventory',
+        item_id: item.item_type === 'medicine' ? null : item.item_id,
+        medicine_id: item.item_type === 'medicine' ? item.medicine_id : null,
         quantity: item.quantity,
         unit_price: item.unit_price,
         tax_percent: item.tax_percent,
@@ -275,7 +288,9 @@ export function useUpdatePurchaseOrder() {
         
         const itemsToInsert = items.map(item => ({
           purchase_order_id: id,
-          item_id: item.item_id,
+          item_type: item.item_type || 'inventory',
+          item_id: item.item_type === 'medicine' ? null : item.item_id,
+          medicine_id: item.item_type === 'medicine' ? item.medicine_id : null,
           quantity: item.quantity,
           unit_price: item.unit_price,
           tax_percent: item.tax_percent,

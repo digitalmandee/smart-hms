@@ -6,11 +6,15 @@ import type { Database } from "@/integrations/supabase/types";
 
 type GRNStatus = Database["public"]["Enums"]["grn_status"];
 
+export type GRNItemType = 'inventory' | 'medicine';
+
 export interface GRNItem {
   id?: string;
   grn_id?: string;
   po_item_id?: string | null;
-  item_id: string;
+  item_type: GRNItemType;
+  item_id?: string;       // For inventory items
+  medicine_id?: string;   // For medicines
   quantity_received: number;
   quantity_accepted: number;
   quantity_rejected: number;
@@ -18,11 +22,18 @@ export interface GRNItem {
   batch_number?: string | null;
   expiry_date?: string | null;
   unit_cost: number;
+  selling_price?: number | null;  // For medicine items (pharmacy markup)
   item?: {
     id: string;
     item_code: string;
     name: string;
     unit_of_measure: string;
+  };
+  medicine?: {
+    id: string;
+    name: string;
+    generic_name: string;
+    unit: string;
   };
 }
 
@@ -120,12 +131,13 @@ export function useGRN(id: string) {
       
       if (error) throw error;
       
-      // Get items
+      // Get items with both inventory items and medicines
       const { data: items, error: itemsError } = await supabase
         .from("grn_items")
         .select(`
           *,
-          item:inventory_items(id, item_code, name, unit_of_measure)
+          item:inventory_items(id, item_code, name, unit_of_measure),
+          medicine:medicines(id, name, generic_name, unit)
         `)
         .eq("grn_id", id);
       
@@ -172,11 +184,13 @@ export function useCreateGRN() {
       
       if (error) throw error;
       
-      // Create items
+      // Create items - support both inventory and medicine items
       const itemsToInsert = data.items.map(item => ({
         grn_id: grn.id,
         po_item_id: item.po_item_id || null,
-        item_id: item.item_id,
+        item_type: item.item_type || 'inventory',
+        item_id: item.item_type === 'medicine' ? null : item.item_id,
+        medicine_id: item.item_type === 'medicine' ? item.medicine_id : null,
         quantity_received: item.quantity_received,
         quantity_accepted: item.quantity_accepted,
         quantity_rejected: item.quantity_rejected,
@@ -184,6 +198,7 @@ export function useCreateGRN() {
         batch_number: item.batch_number || null,
         expiry_date: item.expiry_date || null,
         unit_cost: item.unit_cost,
+        selling_price: item.selling_price || null,
       }));
       
       const { error: itemsError } = await supabase
@@ -231,23 +246,45 @@ export function useVerifyGRN() {
       
       if (updateError) throw updateError;
       
-      // Add to inventory stock
+      // Add to appropriate stock table based on item type
       for (const item of grn.items) {
         if (item.quantity_accepted > 0) {
-          const { error: stockError } = await supabase
-            .from("inventory_stock")
-            .insert({
-              item_id: item.item_id,
-              branch_id: grn.branch_id,
-              batch_number: item.batch_number,
-              quantity: item.quantity_accepted,
-              unit_cost: item.unit_cost,
-              expiry_date: item.expiry_date,
-              vendor_id: grn.vendor_id,
-              grn_id: grn.id,
-            });
+          const itemType = item.item_type || 'inventory';
           
-          if (stockError) throw stockError;
+          if (itemType === 'medicine') {
+            // Add to medicine_inventory for pharmacy items
+            const { error: stockError } = await supabase
+              .from("medicine_inventory")
+              .insert({
+                medicine_id: item.medicine_id,
+                branch_id: grn.branch_id,
+                batch_number: item.batch_number,
+                quantity: item.quantity_accepted,
+                unit_price: item.unit_cost,
+                selling_price: item.selling_price || item.unit_cost,
+                expiry_date: item.expiry_date,
+                supplier_name: grn.vendor_id ? undefined : null,
+                organization_id: profile!.organization_id!,
+              });
+            
+            if (stockError) throw stockError;
+          } else {
+            // Add to inventory_stock for general items
+            const { error: stockError } = await supabase
+              .from("inventory_stock")
+              .insert({
+                item_id: item.item_id,
+                branch_id: grn.branch_id,
+                batch_number: item.batch_number,
+                quantity: item.quantity_accepted,
+                unit_cost: item.unit_cost,
+                expiry_date: item.expiry_date,
+                vendor_id: grn.vendor_id,
+                grn_id: grn.id,
+              });
+            
+            if (stockError) throw stockError;
+          }
         }
       }
       
