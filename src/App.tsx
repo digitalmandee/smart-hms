@@ -208,6 +208,8 @@ import ComplianceDashboardPage from "./pages/app/hr/compliance/ComplianceDashboa
 import MedicalFitnessPage from "./pages/app/hr/compliance/MedicalFitnessPage";
 import VaccinationsPage from "./pages/app/hr/compliance/VaccinationsPage";
 import DisciplinaryPage from "./pages/app/hr/compliance/DisciplinaryPage";
+import MedicalLicensesPage from "./pages/app/hr/compliance/MedicalLicensesPage";
+import EmployeeDocumentsPage from "./pages/app/hr/compliance/EmployeeDocumentsPage";
 import ClearancePage from "./pages/app/hr/exit/ClearancePage";
 import SettlementsPage from "./pages/app/hr/exit/SettlementsPage";
 import ExitInterviewsPage from "./pages/app/hr/exit/ExitInterviewsPage";
@@ -783,6 +785,8 @@ function App() {
               <Route path="hr/compliance/medical-fitness" element={<MedicalFitnessPage />} />
               <Route path="hr/compliance/vaccinations" element={<VaccinationsPage />} />
               <Route path="hr/compliance/disciplinary" element={<DisciplinaryPage />} />
+              <Route path="hr/compliance/licenses" element={<MedicalLicensesPage />} />
+              <Route path="hr/compliance/documents" element={<EmployeeDocumentsPage />} />
               <Route path="hr/paramedical" element={<ParamedicalStaffPage />} />
               <Route path="hr/support-staff" element={<SupportStaffPage />} />
               <Route path="hr/visiting-doctors" element={<VisitingDoctorsPage />} />

@@ -115,6 +115,9 @@ export default function ProcessPayrollPage() {
         const basicSalary = salary.basic_salary || 0;
         const netSalary = basicSalary - loanDeduction;
         
+        // Get bank details from employee record
+        const employee = salary.employee;
+        
         return {
           payroll_run_id: payrollRun.id,
           employee_id: salary.employee_id,
@@ -128,8 +131,8 @@ export default function ProcessPayrollPage() {
           leave_days: 2,
           earnings: [{ name: "Basic Salary", amount: basicSalary }],
           deductions: loanDeduction > 0 ? [{ name: "Loan EMI", amount: loanDeduction }] : [],
-          bank_name: null,
-          account_number: null,
+          bank_name: employee?.bank_name || null,
+          account_number: employee?.account_number || null,
         };
       });
 
