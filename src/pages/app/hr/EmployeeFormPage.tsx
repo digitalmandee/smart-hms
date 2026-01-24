@@ -40,6 +40,9 @@ import { useNurseByEmployeeId, useCreateNurseForEmployee, NURSE_SPECIALIZATIONS 
 import { useAuth } from "@/contexts/AuthContext";
 import { DoctorDetailsForm } from "@/components/hr/DoctorDetailsForm";
 import { NurseDetailsForm } from "@/components/hr/NurseDetailsForm";
+import { LoginAccountSection } from "@/components/hr/LoginAccountSection";
+import { useCreateStaffUser } from "@/hooks/useStaffManagement";
+import { type AppRole } from "@/constants/roles";
 import { Loader2, Save, ArrowLeft, Stethoscope, Heart } from "lucide-react";
 
 const employeeSchema = z.object({
@@ -93,6 +96,12 @@ export default function EmployeeFormPage() {
   // Get pre-selected category from URL params (e.g., ?category=nurse)
   const preselectedCategory = searchParams.get("category");
 
+  // Login account state
+  const [createLogin, setCreateLogin] = useState(false);
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [selectedRoles, setSelectedRoles] = useState<AppRole[]>([]);
+
   const { data: employee, isLoading: loadingEmployee } = useEmployee(id || "");
   const { data: doctorData, isLoading: loadingDoctor } = useDoctorByEmployeeId(id || "");
   const { data: nurseData, isLoading: loadingNurse } = useNurseByEmployeeId(id || "");
@@ -106,6 +115,7 @@ export default function EmployeeFormPage() {
   const updateEmployee = useUpdateEmployee();
   const createDoctorForEmployee = useCreateDoctorForEmployee();
   const createNurseForEmployee = useCreateNurseForEmployee();
+  const createStaffUser = useCreateStaffUser();
 
   const form = useForm<EmployeeFormData>({
     resolver: zodResolver(employeeSchema),
@@ -195,9 +205,15 @@ export default function EmployeeFormPage() {
 
   const onSubmit = async (data: EmployeeFormData) => {
     try {
+      if (!profile?.organization_id) {
+        toast({ title: "Organization not found", variant: "destructive" });
+        return;
+      }
+
       let employeeId = id;
       
       if (isEditing && id) {
+        // Editing existing employee - use standard update
         await updateEmployee.mutateAsync({ 
           id, 
           employee_number: data.employee_number,
@@ -226,11 +242,32 @@ export default function EmployeeFormPage() {
           emergency_contact_relation: data.emergency_contact_relation || null,
           notes: data.notes || null,
         });
+      } else if (createLogin && loginEmail && loginPassword) {
+        // Creating new employee WITH login account - use edge function
+        const result = await createStaffUser.mutateAsync({
+          email: loginEmail,
+          password: loginPassword,
+          first_name: data.first_name,
+          last_name: data.last_name || undefined,
+          phone: data.personal_phone || undefined,
+          gender: data.gender || undefined,
+          date_of_birth: data.date_of_birth || undefined,
+          organization_id: profile.organization_id,
+          branch_id: data.branch_id || undefined,
+          department_id: data.department_id || undefined,
+          designation_id: data.designation_id || undefined,
+          category_id: data.category_id || undefined,
+          roles: selectedRoles.length > 0 ? selectedRoles : undefined,
+          join_date: data.join_date || undefined,
+          shift_id: data.shift_id || undefined,
+          specialization_id: isDoctorCategory ? data.specialization : undefined,
+          qualification: isDoctorCategory ? data.qualification : undefined,
+          license_number: isDoctorCategory ? data.license_number : undefined,
+          consultation_fee: isDoctorCategory ? data.consultation_fee : undefined,
+        });
+        employeeId = result.employee_id;
       } else {
-        if (!profile?.organization_id) {
-          toast({ title: "Organization not found", variant: "destructive" });
-          return;
-        }
+        // Creating new employee WITHOUT login account - use standard insert
         const newEmployee = await createEmployee.mutateAsync({
           organization_id: profile.organization_id,
           employee_number: data.employee_number,
@@ -262,8 +299,8 @@ export default function EmployeeFormPage() {
         employeeId = newEmployee.id;
       }
 
-      // Save doctor details if this is a clinical category
-      if (isClinicalCategory && employeeId && (data.specialization || data.qualification || data.license_number)) {
+      // Save doctor details if this is a clinical category and we didn't use edge function
+      if (!createLogin && isClinicalCategory && employeeId && (data.specialization || data.qualification || data.license_number)) {
         await createDoctorForEmployee.mutateAsync({
           employeeId,
           branchId: data.branch_id || undefined,
@@ -314,6 +351,20 @@ export default function EmployeeFormPage() {
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          {/* Login Account Section - only for new employees */}
+          {!isEditing && (
+            <LoginAccountSection
+              enabled={createLogin}
+              onEnabledChange={setCreateLogin}
+              email={loginEmail}
+              onEmailChange={setLoginEmail}
+              password={loginPassword}
+              onPasswordChange={setLoginPassword}
+              selectedRoles={selectedRoles}
+              onRolesChange={setSelectedRoles}
+            />
+          )}
+
           <Tabs defaultValue="personal" className="space-y-4">
             <TabsList className={`grid w-full ${isClinicalCategory ? 'grid-cols-6' : 'grid-cols-5'}`}>
               <TabsTrigger value="personal">Personal</TabsTrigger>
@@ -825,9 +876,9 @@ export default function EmployeeFormPage() {
             </Button>
             <Button
               type="submit"
-              disabled={createEmployee.isPending || updateEmployee.isPending || createDoctorForEmployee.isPending}
+              disabled={createEmployee.isPending || updateEmployee.isPending || createDoctorForEmployee.isPending || createStaffUser.isPending}
             >
-              {(createEmployee.isPending || updateEmployee.isPending || createDoctorForEmployee.isPending) && (
+              {(createEmployee.isPending || updateEmployee.isPending || createDoctorForEmployee.isPending || createStaffUser.isPending) && (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               )}
               <Save className="h-4 w-4 mr-2" />
