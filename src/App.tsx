@@ -192,6 +192,7 @@ import LoansAdvancesPage from "./pages/app/hr/payroll/LoansAdvancesPage";
 import PayslipsPage from "./pages/app/hr/payroll/PayslipsPage";
 import PayrollReportsPage from "./pages/app/hr/payroll/PayrollReportsPage";
 import PayrollRunDetailPage from "./pages/app/hr/payroll/PayrollRunDetailPage";
+import BankSheetPage from "./pages/app/hr/payroll/BankSheetPage";
 import DoctorsListPage from "./pages/app/hr/DoctorsListPage";
 import NursesListPage from "./pages/app/hr/NursesListPage";
 import HRReportsPage from "./pages/app/hr/HRReportsPage";
@@ -758,6 +759,7 @@ function App() {
               <Route path="hr/payroll/salaries" element={<EmployeeSalariesPage />} />
               <Route path="hr/payroll/loans" element={<LoansAdvancesPage />} />
               <Route path="hr/payroll/slips" element={<PayslipsPage />} />
+              <Route path="hr/payroll/bank-sheet" element={<BankSheetPage />} />
               <Route path="hr/payroll/reports" element={<PayrollReportsPage />} />
               <Route path="hr/payroll/:id" element={<PayrollRunDetailPage />} />
               <Route path="hr/doctors" element={<DoctorsListPage />} />
