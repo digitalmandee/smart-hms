@@ -918,6 +918,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         icon: "Receipt",
         children: [
           { name: "Vendor Bills", path: "/app/accounts/payables", icon: "FileText" },
+          { name: "Vendor Payments", path: "/app/accounts/vendor-payments", icon: "CreditCard" },
         ]
       },
       { 
