@@ -590,3 +590,139 @@ export function useInventoryDashboardStats() {
     enabled: !!profile?.organization_id,
   });
 }
+
+// =====================================================
+// COMBINED INVENTORY STATS (General + Pharmacy)
+// =====================================================
+
+export interface CombinedInventoryStats {
+  general: {
+    totalValue: number;
+    totalItems: number;
+    lowStockCount: number;
+    expiringCount: number;
+  };
+  pharmacy: {
+    totalValue: number;
+    totalItems: number;
+    lowStockCount: number;
+    expiringCount: number;
+  };
+  combined: {
+    totalValue: number;
+    totalItems: number;
+    lowStockCount: number;
+    expiringCount: number;
+  };
+  isHospital: boolean;
+  hasPharmacyModule: boolean;
+}
+
+export function useCombinedInventoryStats(
+  organizationId?: string,
+  facilityType?: string | null,
+  enabledModules?: string[]
+) {
+  return useQuery({
+    queryKey: ["combined-inventory-stats", organizationId, facilityType, enabledModules],
+    queryFn: async (): Promise<CombinedInventoryStats> => {
+      const isHospital = facilityType !== 'pharmacy';
+      const hasPharmacyModule = enabledModules?.includes('pharmacy') ?? false;
+
+      // --- General Inventory Stats ---
+      const { count: generalTotalItems } = await supabase
+        .from("inventory_items")
+        .select("*", { count: "exact", head: true })
+        .eq("is_active", true);
+
+      const { data: generalItems } = await supabase
+        .from("inventory_items")
+        .select("id, reorder_level")
+        .eq("is_active", true);
+
+      const { data: generalStocks } = await supabase
+        .from("inventory_stock")
+        .select("item_id, quantity, unit_cost, expiry_date");
+
+      const generalStockMap = new Map<string, number>();
+      let generalTotalValue = 0;
+      let generalExpiringCount = 0;
+      const thirtyDaysFromNow = new Date();
+      thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+
+      generalStocks?.forEach(s => {
+        generalStockMap.set(s.item_id, (generalStockMap.get(s.item_id) || 0) + s.quantity);
+        generalTotalValue += s.quantity * s.unit_cost;
+        if (s.expiry_date && new Date(s.expiry_date) <= thirtyDaysFromNow) {
+          generalExpiringCount++;
+        }
+      });
+
+      const generalLowStockCount = generalItems?.filter(i =>
+        (generalStockMap.get(i.id) || 0) <= i.reorder_level
+      ).length || 0;
+
+      const generalStats = {
+        totalValue: generalTotalValue,
+        totalItems: generalTotalItems || 0,
+        lowStockCount: generalLowStockCount,
+        expiringCount: generalExpiringCount,
+      };
+
+      // --- Pharmacy Inventory Stats (only for hospitals with pharmacy module) ---
+      let pharmacyStats = {
+        totalValue: 0,
+        totalItems: 0,
+        lowStockCount: 0,
+        expiringCount: 0,
+      };
+
+      if (isHospital && hasPharmacyModule) {
+        const { count: pharmacyTotalItems } = await supabase
+          .from("medicines")
+          .select("*", { count: "exact", head: true })
+          .eq("is_active", true);
+
+        // medicine_inventory has reorder_level per batch
+        const { data: pharmacyStocks } = await supabase
+          .from("medicine_inventory")
+          .select("medicine_id, quantity, unit_price, expiry_date, reorder_level");
+
+        let pharmacyTotalValue = 0;
+        let pharmacyExpiringCount = 0;
+        let pharmacyLowStockCount = 0;
+
+        pharmacyStocks?.forEach(s => {
+          pharmacyTotalValue += s.quantity * s.unit_price;
+          if (s.expiry_date && new Date(s.expiry_date) <= thirtyDaysFromNow) {
+            pharmacyExpiringCount++;
+          }
+          if (s.quantity <= (s.reorder_level || 10)) {
+            pharmacyLowStockCount++;
+          }
+        });
+
+        pharmacyStats = {
+          totalValue: pharmacyTotalValue,
+          totalItems: pharmacyTotalItems || 0,
+          lowStockCount: pharmacyLowStockCount,
+          expiringCount: pharmacyExpiringCount,
+        };
+      }
+
+      return {
+        general: generalStats,
+        pharmacy: pharmacyStats,
+        combined: {
+          totalValue: generalStats.totalValue + pharmacyStats.totalValue,
+          totalItems: generalStats.totalItems + pharmacyStats.totalItems,
+          lowStockCount: generalStats.lowStockCount + pharmacyStats.lowStockCount,
+          expiringCount: generalStats.expiringCount + pharmacyStats.expiringCount,
+        },
+        isHospital,
+        hasPharmacyModule,
+      };
+    },
+    enabled: !!organizationId,
+  });
+}
