@@ -26,13 +26,13 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Folder, FolderOpen, Edit, Loader2 } from "lucide-react";
+import { Plus, Folder, FolderOpen, Edit, Loader2, Pill } from "lucide-react";
 import {
-  useInventoryCategories,
+  useUnifiedCategories,
   useAllCategories,
   useCreateCategory,
   useUpdateCategory,
-  InventoryCategory,
+  UnifiedCategory,
 } from "@/hooks/useInventory";
 import { toast } from "sonner";
 
@@ -40,38 +40,51 @@ interface CategoryFormData {
   name: string;
   description: string;
   parent_id: string | null;
+  source: "inventory" | "pharmacy";
 }
 
 export default function CategoriesPage() {
-  const { data: categoryTree, isLoading } = useInventoryCategories();
+  const { data: categoryTree, isLoading } = useUnifiedCategories();
   const { data: allCategories } = useAllCategories();
   const createCategory = useCreateCategory();
   const updateCategory = useUpdateCategory();
 
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<InventoryCategory | null>(null);
+  const [editingCategory, setEditingCategory] = useState<UnifiedCategory | null>(null);
   const [formData, setFormData] = useState<CategoryFormData>({
     name: "",
     description: "",
     parent_id: null,
+    source: "inventory",
   });
 
-  const openCreateDialog = (parentId?: string) => {
+  const openCreateDialog = (parentId?: string, source: "inventory" | "pharmacy" = "inventory") => {
     setEditingCategory(null);
     setFormData({
       name: "",
       description: "",
       parent_id: parentId || null,
+      source,
     });
     setDialogOpen(true);
   };
 
-  const openEditDialog = (category: InventoryCategory) => {
+  const openEditDialog = (category: UnifiedCategory) => {
+    // Don't allow editing virtual categories or pharmacy categories from here
+    if (category.id === "medicines-virtual") {
+      toast.info("This is a virtual grouping for pharmacy categories");
+      return;
+    }
+    if (category.source === "pharmacy") {
+      toast.info("Edit pharmacy categories from the Pharmacy module");
+      return;
+    }
     setEditingCategory(category);
     setFormData({
       name: category.name,
       description: category.description || "",
       parent_id: category.parent_id,
+      source: category.source,
     });
     setDialogOpen(true);
   };
@@ -105,9 +118,14 @@ export default function CategoriesPage() {
     }
   };
 
-  const renderCategoryTree = (categories: InventoryCategory[], level = 0) => {
+  const renderCategoryTree = (categories: UnifiedCategory[], level = 0) => {
     return categories.map((category) => {
       const hasChildren = category.children && category.children.length > 0;
+      const isPharmacy = category.source === "pharmacy";
+      const isVirtual = category.id === "medicines-virtual";
+
+      const CategoryIcon = isPharmacy ? Pill : (hasChildren ? FolderOpen : Folder);
+      const iconColor = isPharmacy ? "text-emerald-600 dark:text-emerald-400" : (hasChildren ? "text-primary" : "text-muted-foreground");
 
       if (hasChildren) {
         return (
@@ -115,41 +133,50 @@ export default function CategoriesPage() {
             <div className="flex items-center">
               <AccordionTrigger className="flex-1 hover:no-underline">
                 <div className="flex items-center gap-2">
-                  <FolderOpen className="h-4 w-4 text-primary" />
+                  <CategoryIcon className={`h-4 w-4 ${iconColor}`} />
                   <span className="font-medium">{category.name}</span>
+                  {isPharmacy && (
+                    <Badge variant="outline" className="ml-1 text-emerald-600 border-emerald-600 dark:text-emerald-400 dark:border-emerald-400">
+                      Pharmacy
+                    </Badge>
+                  )}
                   <Badge variant="secondary" className="ml-1">
-                    {category.children?.length} subcategories
+                    {category.children?.length} {isVirtual ? "categories" : "subcategories"}
                   </Badge>
                 </div>
               </AccordionTrigger>
-              <div className="flex gap-1 mr-4">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    openCreateDialog(category.id);
-                  }}
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    openEditDialog(category);
-                  }}
-                >
-                  <Edit className="h-4 w-4" />
-                </Button>
-              </div>
+              {!isVirtual && (
+                <div className="flex gap-1 mr-4">
+                  {!isPharmacy && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openCreateDialog(category.id, category.source);
+                      }}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openEditDialog(category);
+                    }}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
             </div>
             <AccordionContent>
               <div className="ml-6 border-l pl-4">
-                {category.children && renderCategoryTree(category.children, level + 1)}
+                {category.children && renderCategoryTree(category.children as UnifiedCategory[], level + 1)}
               </div>
             </AccordionContent>
           </AccordionItem>
@@ -162,18 +189,25 @@ export default function CategoriesPage() {
           className="flex items-center justify-between py-3 px-4 border-b last:border-b-0"
         >
           <div className="flex items-center gap-2">
-            <Folder className="h-4 w-4 text-muted-foreground" />
+            <CategoryIcon className={`h-4 w-4 ${iconColor}`} />
             <span>{category.name}</span>
+            {isPharmacy && (
+              <Badge variant="outline" className="text-xs text-emerald-600 border-emerald-600 dark:text-emerald-400 dark:border-emerald-400">
+                Pharmacy
+              </Badge>
+            )}
           </div>
           <div className="flex gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => openCreateDialog(category.id)}
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
+            {!isPharmacy && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => openCreateDialog(category.id, category.source)}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="icon"

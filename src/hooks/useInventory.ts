@@ -78,6 +78,31 @@ export interface StockAdjustment {
 // CATEGORY HOOKS
 // =====================================================
 
+export interface UnifiedCategory extends InventoryCategory {
+  source: "inventory" | "pharmacy";
+}
+
+function buildCategoryTree(categories: InventoryCategory[], source: "inventory" | "pharmacy"): UnifiedCategory[] {
+  const categoryMap = new Map<string, UnifiedCategory>();
+  const roots: UnifiedCategory[] = [];
+  
+  categories.forEach(cat => {
+    const unified: UnifiedCategory = { ...cat, source, children: [] };
+    categoryMap.set(cat.id, unified);
+  });
+  
+  categories.forEach(cat => {
+    const unified = categoryMap.get(cat.id)!;
+    if (cat.parent_id && categoryMap.has(cat.parent_id)) {
+      categoryMap.get(cat.parent_id)!.children!.push(unified);
+    } else {
+      roots.push(unified);
+    }
+  });
+  
+  return roots;
+}
+
 export function useInventoryCategories() {
   const { profile } = useAuth();
   
@@ -91,26 +116,69 @@ export function useInventoryCategories() {
         .order("name");
       
       if (error) throw error;
+      return buildCategoryTree(data as InventoryCategory[], "inventory");
+    },
+    enabled: !!profile?.organization_id,
+  });
+}
+
+export function useUnifiedCategories() {
+  const { profile } = useAuth();
+  
+  return useQuery({
+    queryKey: ["unified-categories", profile?.organization_id],
+    queryFn: async () => {
+      // Fetch inventory categories
+      const { data: invCats, error: invError } = await supabase
+        .from("inventory_categories")
+        .select("*")
+        .eq("is_active", true)
+        .order("name");
       
-      // Build tree structure
-      const categories = data as InventoryCategory[];
-      const categoryMap = new Map<string, InventoryCategory>();
-      const roots: InventoryCategory[] = [];
+      if (invError) throw invError;
       
-      categories.forEach(cat => {
-        cat.children = [];
-        categoryMap.set(cat.id, cat);
-      });
+      // Fetch medicine categories
+      const { data: medCats, error: medError } = await supabase
+        .from("medicine_categories")
+        .select("*")
+        .eq("is_active", true)
+        .order("name");
       
-      categories.forEach(cat => {
-        if (cat.parent_id && categoryMap.has(cat.parent_id)) {
-          categoryMap.get(cat.parent_id)!.children!.push(cat);
-        } else {
-          roots.push(cat);
-        }
-      });
+      if (medError) throw medError;
       
-      return roots;
+      // Build inventory tree
+      const invTree = buildCategoryTree(invCats as InventoryCategory[], "inventory");
+      
+      // Add "Medicines" as a virtual parent containing pharmacy categories
+      if (medCats && medCats.length > 0) {
+        const medicineChildren: UnifiedCategory[] = medCats.map(cat => ({
+          id: cat.id,
+          organization_id: cat.organization_id,
+          name: cat.name,
+          description: cat.description || null,
+          parent_id: "medicines-virtual",
+          is_active: cat.is_active,
+          created_at: cat.created_at,
+          updated_at: cat.created_at,
+          source: "pharmacy" as const,
+          children: [],
+        }));
+        
+        invTree.push({
+          id: "medicines-virtual",
+          organization_id: profile?.organization_id || "",
+          name: "Medicines",
+          description: "Pharmacy medicine categories",
+          parent_id: null,
+          is_active: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          source: "pharmacy",
+          children: medicineChildren,
+        });
+      }
+      
+      return invTree;
     },
     enabled: !!profile?.organization_id,
   });
