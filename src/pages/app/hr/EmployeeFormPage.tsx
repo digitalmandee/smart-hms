@@ -41,9 +41,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { DoctorDetailsForm } from "@/components/hr/DoctorDetailsForm";
 import { NurseDetailsForm } from "@/components/hr/NurseDetailsForm";
 import { LoginAccountSection } from "@/components/hr/LoginAccountSection";
+import { DocumentUploadSection, type PendingDocument } from "@/components/hr/DocumentUploadSection";
 import { useCreateStaffUser } from "@/hooks/useStaffManagement";
+import { useCreateEmployeeDocument } from "@/hooks/useEmployeeDocuments";
+import { supabase } from "@/integrations/supabase/client";
 import { type AppRole } from "@/constants/roles";
-import { Loader2, Save, ArrowLeft, Stethoscope, Heart } from "lucide-react";
+import { Loader2, Save, ArrowLeft, Stethoscope, Heart, FileText } from "lucide-react";
 
 const employeeSchema = z.object({
   employee_number: z.string().min(1, "Employee number is required"),
@@ -101,6 +104,9 @@ export default function EmployeeFormPage() {
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [selectedRoles, setSelectedRoles] = useState<AppRole[]>([]);
+  
+  // Documents state
+  const [pendingDocuments, setPendingDocuments] = useState<PendingDocument[]>([]);
 
   const { data: employee, isLoading: loadingEmployee } = useEmployee(id || "");
   const { data: doctorData, isLoading: loadingDoctor } = useDoctorByEmployeeId(id || "");
@@ -116,6 +122,7 @@ export default function EmployeeFormPage() {
   const createDoctorForEmployee = useCreateDoctorForEmployee();
   const createNurseForEmployee = useCreateNurseForEmployee();
   const createStaffUser = useCreateStaffUser();
+  const createEmployeeDocument = useCreateEmployeeDocument();
 
   const form = useForm<EmployeeFormData>({
     resolver: zodResolver(employeeSchema),
@@ -312,6 +319,45 @@ export default function EmployeeFormPage() {
         });
       }
 
+      // Upload and save pending documents
+      if (employeeId && pendingDocuments.length > 0) {
+        for (const doc of pendingDocuments) {
+          let fileUrl = "";
+          
+          // Upload file if attached
+          if (doc.file) {
+            const fileExt = doc.file.name.split(".").pop();
+            const fileName = `${employeeId}/${Date.now()}-${doc.document_type}.${fileExt}`;
+            
+            const { error: uploadError } = await supabase.storage
+              .from("employee-documents")
+              .upload(fileName, doc.file);
+            
+            if (uploadError) {
+              console.error("Failed to upload document:", uploadError);
+              continue;
+            }
+            
+            const { data: urlData } = supabase.storage
+              .from("employee-documents")
+              .getPublicUrl(fileName);
+            
+            fileUrl = urlData.publicUrl;
+          }
+          
+          // Save document record
+          await createEmployeeDocument.mutateAsync({
+            employee_id: employeeId,
+            document_name: doc.document_name,
+            document_type: doc.document_type,
+            document_category: doc.document_category as "education" | "employment" | "identity" | "legal" | "medical" | "other" | undefined,
+            document_number: doc.document_number,
+            expiry_date: doc.expiry_date,
+            file_url: fileUrl || `placeholder-${doc.document_type}`,
+          });
+        }
+      }
+
       toast({ title: isEditing ? "Employee updated successfully" : "Employee created successfully" });
       navigate("/app/hr/employees");
     } catch (error: any) {
@@ -366,11 +412,15 @@ export default function EmployeeFormPage() {
           )}
 
           <Tabs defaultValue="personal" className="space-y-4">
-            <TabsList className={`grid w-full ${isClinicalCategory ? 'grid-cols-6' : 'grid-cols-5'}`}>
+            <TabsList className={`grid w-full ${isClinicalCategory ? 'grid-cols-7' : 'grid-cols-6'}`}>
               <TabsTrigger value="personal">Personal</TabsTrigger>
               <TabsTrigger value="employment">Employment</TabsTrigger>
               <TabsTrigger value="contact">Contact</TabsTrigger>
-              <TabsTrigger value="bank">Bank Details</TabsTrigger>
+              <TabsTrigger value="bank">Bank</TabsTrigger>
+              <TabsTrigger value="documents" className="flex items-center gap-1.5">
+                <FileText className="h-4 w-4" />
+                Documents
+              </TabsTrigger>
               <TabsTrigger value="emergency">Emergency</TabsTrigger>
               {isDoctorCategory && (
                 <TabsTrigger value="clinical" className="flex items-center gap-1.5">
@@ -851,6 +901,14 @@ export default function EmployeeFormPage() {
                   />
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            <TabsContent value="documents">
+              <DocumentUploadSection
+                pendingDocuments={pendingDocuments}
+                onDocumentsChange={setPendingDocuments}
+                disabled={isEditing}
+              />
             </TabsContent>
 
             {isDoctorCategory && (
