@@ -116,6 +116,9 @@ import {
   CalendarX,
   CalendarOff,
   Edit,
+  ShieldCheck,
+  Wallet,
+  Syringe,
   ChevronDown,
   ChevronRight,
   Menu,
@@ -235,6 +238,9 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   CalendarX,
   CalendarOff,
   Edit,
+  ShieldCheck,
+  Wallet,
+  Syringe,
 };
 
 interface DynamicSidebarProps {
