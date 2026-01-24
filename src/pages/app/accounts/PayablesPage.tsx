@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Download, RefreshCw, Package, Building2, Clock, CreditCard } from "lucide-react";
+import { Search, Download, RefreshCw, Building2, Clock, CreditCard, Receipt } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,21 +34,55 @@ export default function PayablesPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [agingFilter, setAgingFilter] = useState<string>("all");
 
-  // Fetch outstanding purchase orders (payables)
+  // Fetch posted GRNs with vendor and payment info
   const { data: payables, isLoading, refetch } = useQuery({
-    queryKey: ["payables", profile?.organization_id],
+    queryKey: ["payables-grn", profile?.organization_id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("purchase_orders")
+      // Fetch posted GRNs
+      const { data: grns, error: grnError } = await supabase
+        .from("goods_received_notes")
         .select(`
-          *,
-          vendor:vendors(id, name, contact_person, phone)
+          id,
+          grn_number,
+          vendor_id,
+          received_date,
+          invoice_amount,
+          status,
+          vendor:vendors(id, name, contact_person, phone),
+          purchase_order:purchase_orders(po_number)
         `)
-        .in("status", ["approved", "ordered", "partially_received", "received"])
-        .order("created_at", { ascending: false });
+        .eq("status", "posted")
+        .order("received_date", { ascending: false });
       
-      if (error) throw error;
-      return data;
+      if (grnError) throw grnError;
+
+      // Fetch all vendor payments to calculate outstanding
+      const { data: payments, error: payError } = await supabase
+        .from("vendor_payments")
+        .select("grn_id, amount")
+        .eq("status", "paid");
+      
+      if (payError) throw payError;
+
+      // Calculate payments per GRN
+      const paymentsByGrn = (payments || []).reduce((acc, p) => {
+        if (p.grn_id) {
+          acc[p.grn_id] = (acc[p.grn_id] || 0) + (p.amount || 0);
+        }
+        return acc;
+      }, {} as Record<string, number>);
+
+      // Add outstanding calculation to each GRN
+      return (grns || []).map(grn => ({
+        ...grn,
+        paid_amount: paymentsByGrn[grn.id] || 0,
+        outstanding_amount: (grn.invoice_amount || 0) - (paymentsByGrn[grn.id] || 0),
+        payment_status: paymentsByGrn[grn.id] >= (grn.invoice_amount || 0) 
+          ? "paid" 
+          : paymentsByGrn[grn.id] > 0 
+            ? "partial" 
+            : "unpaid"
+      }));
     },
     enabled: !!profile?.organization_id,
   });
@@ -71,39 +105,42 @@ export default function PayablesPage() {
     return { label: "90+ Days", color: "bg-red-100 text-red-800" };
   };
 
-  const getStatusBadge = (status: string) => {
+  const getPaymentStatusBadge = (status: string) => {
     const statusColors: Record<string, string> = {
-      approved: "bg-blue-100 text-blue-800",
+      unpaid: "bg-red-100 text-red-800",
       partial: "bg-yellow-100 text-yellow-800",
-      received: "bg-green-100 text-green-800",
+      paid: "bg-green-100 text-green-800",
     };
     return statusColors[status] || "bg-gray-100 text-gray-800";
   };
 
-  const filteredPayables = payables?.filter((po) => {
-    const vendorName = po.vendor?.name?.toLowerCase() || "";
+  const filteredPayables = payables?.filter((grn) => {
+    const vendorName = grn.vendor?.name?.toLowerCase() || "";
+    const grnNumber = grn.grn_number?.toLowerCase() || "";
+    const poNumber = grn.purchase_order?.po_number?.toLowerCase() || "";
     const matchesSearch =
       !search ||
       vendorName.includes(search.toLowerCase()) ||
-      po.po_number.toLowerCase().includes(search.toLowerCase());
+      grnNumber.includes(search.toLowerCase()) ||
+      poNumber.includes(search.toLowerCase());
     
-    const matchesStatus = statusFilter === "all" || po.status === statusFilter;
+    const matchesStatus = statusFilter === "all" || grn.payment_status === statusFilter;
     
     if (agingFilter === "all") return matchesSearch && matchesStatus;
     
-    const aging = calculateAging(po.created_at || new Date().toISOString());
+    const aging = calculateAging(grn.received_date || new Date().toISOString());
     return matchesSearch && matchesStatus && aging.label.toLowerCase().includes(agingFilter.toLowerCase());
   }) || [];
 
-  // Summary calculations
-  const totalPayable = filteredPayables.reduce((sum, po) => sum + (po.total_amount || 0), 0);
-  const pendingPayment = filteredPayables
-    .filter((po) => po.status === "received")
-    .reduce((sum, po) => sum + (po.total_amount || 0), 0);
-  const partialPayment = filteredPayables
-    .filter((po) => po.status === "partially_received")
-    .reduce((sum, po) => sum + (po.total_amount || 0), 0);
-  const vendorCount = new Set(filteredPayables.map((po) => po.vendor_id)).size;
+  // Summary calculations - based on outstanding amounts
+  const totalOutstanding = filteredPayables.reduce((sum, grn) => sum + (grn.outstanding_amount || 0), 0);
+  const unpaidAmount = filteredPayables
+    .filter((grn) => grn.payment_status === "unpaid")
+    .reduce((sum, grn) => sum + (grn.outstanding_amount || 0), 0);
+  const partialAmount = filteredPayables
+    .filter((grn) => grn.payment_status === "partial")
+    .reduce((sum, grn) => sum + (grn.outstanding_amount || 0), 0);
+  const vendorCount = new Set(filteredPayables.map((grn) => grn.vendor_id)).size;
 
   return (
     <div className="space-y-6">
@@ -132,24 +169,24 @@ export default function PayablesPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="pt-4">
-            <div className="text-2xl font-bold">{formatCurrency(totalPayable)}</div>
-            <div className="text-sm text-muted-foreground">Total Payable</div>
+            <div className="text-2xl font-bold">{formatCurrency(totalOutstanding)}</div>
+            <div className="text-sm text-muted-foreground">Total Outstanding</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4">
             <div className="flex items-center gap-2">
-              <CreditCard className="h-5 w-5 text-green-600" />
-              <div className="text-2xl font-bold text-green-600">{formatCurrency(pendingPayment)}</div>
+              <Receipt className="h-5 w-5 text-red-600" />
+              <div className="text-2xl font-bold text-red-600">{formatCurrency(unpaidAmount)}</div>
             </div>
-            <div className="text-sm text-muted-foreground">Ready for Payment</div>
+            <div className="text-sm text-muted-foreground">Unpaid Invoices</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4">
             <div className="flex items-center gap-2">
               <Clock className="h-5 w-5 text-yellow-600" />
-              <div className="text-2xl font-bold text-yellow-600">{formatCurrency(partialPayment)}</div>
+              <div className="text-2xl font-bold text-yellow-600">{formatCurrency(partialAmount)}</div>
             </div>
             <div className="text-sm text-muted-foreground">Partial Payments</div>
           </CardContent>
@@ -172,7 +209,7 @@ export default function PayablesPage() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search by vendor or PO number..."
+                placeholder="Search by vendor, GRN or PO number..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-9"
@@ -180,13 +217,13 @@ export default function PayablesPage() {
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="All Status" />
+                <SelectValue placeholder="Payment Status" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="approved">Approved</SelectItem>
+                <SelectItem value="unpaid">Unpaid</SelectItem>
                 <SelectItem value="partial">Partial</SelectItem>
-                <SelectItem value="received">Received</SelectItem>
+                <SelectItem value="paid">Paid</SelectItem>
               </SelectContent>
             </Select>
             <Select value={agingFilter} onValueChange={setAgingFilter}>
@@ -208,7 +245,7 @@ export default function PayablesPage() {
       {/* Payables Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Outstanding Purchase Orders ({filteredPayables.length})</CardTitle>
+          <CardTitle>Outstanding Invoices ({filteredPayables.filter(g => g.outstanding_amount > 0).length})</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -221,45 +258,65 @@ export default function PayablesPage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>GRN #</TableHead>
                   <TableHead>PO #</TableHead>
                   <TableHead>Vendor</TableHead>
-                  <TableHead>Contact</TableHead>
                   <TableHead>Date</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>Payment Status</TableHead>
                   <TableHead>Aging</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
+                  <TableHead className="text-right">Invoice</TableHead>
+                  <TableHead className="text-right">Paid</TableHead>
+                  <TableHead className="text-right">Outstanding</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredPayables.map((po) => {
-                  const aging = calculateAging(po.created_at);
+                {filteredPayables.map((grn) => {
+                  const aging = calculateAging(grn.received_date);
                   
                   return (
-                    <TableRow key={po.id}>
-                      <TableCell className="font-mono">{po.po_number}</TableCell>
-                      <TableCell className="font-medium">{po.vendor?.name || "-"}</TableCell>
-                      <TableCell>{po.vendor?.contact_person || "-"}</TableCell>
-                      <TableCell>{format(new Date(po.created_at), "dd MMM yyyy")}</TableCell>
+                    <TableRow key={grn.id}>
+                      <TableCell className="font-mono">{grn.grn_number}</TableCell>
+                      <TableCell className="font-mono text-muted-foreground">
+                        {grn.purchase_order?.po_number || "-"}
+                      </TableCell>
+                      <TableCell className="font-medium">{grn.vendor?.name || "-"}</TableCell>
+                      <TableCell>{format(new Date(grn.received_date), "dd MMM yyyy")}</TableCell>
                       <TableCell>
-                        <Badge className={getStatusBadge(po.status)}>
-                          {po.status.charAt(0).toUpperCase() + po.status.slice(1)}
+                        <Badge className={getPaymentStatusBadge(grn.payment_status)}>
+                          {grn.payment_status.charAt(0).toUpperCase() + grn.payment_status.slice(1)}
                         </Badge>
                       </TableCell>
                       <TableCell>
                         <Badge className={aging.color}>{aging.label}</Badge>
                       </TableCell>
-                      <TableCell className="text-right font-medium">
-                        {formatCurrency(po.total_amount || 0)}
-                      </TableCell>
                       <TableCell className="text-right">
+                        {formatCurrency(grn.invoice_amount || 0)}
+                      </TableCell>
+                      <TableCell className="text-right text-green-600">
+                        {formatCurrency(grn.paid_amount || 0)}
+                      </TableCell>
+                      <TableCell className="text-right font-medium">
+                        {formatCurrency(grn.outstanding_amount || 0)}
+                      </TableCell>
+                      <TableCell className="text-right space-x-1">
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => navigate(`/app/inventory/purchase-orders/${po.id}`)}
+                          onClick={() => navigate(`/app/inventory/grn/${grn.id}`)}
                         >
                           View
                         </Button>
+                        {grn.outstanding_amount > 0 && (
+                          <Button
+                            variant="default"
+                            size="sm"
+                            onClick={() => navigate(`/app/accounts/vendor-payments/new?vendorId=${grn.vendor_id}&grnId=${grn.id}`)}
+                          >
+                            <CreditCard className="h-3 w-3 mr-1" />
+                            Pay
+                          </Button>
+                        )}
                       </TableCell>
                     </TableRow>
                   );
