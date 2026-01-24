@@ -1,5 +1,5 @@
-import { useRef } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useRef, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useParams, Link } from "react-router-dom";
@@ -66,12 +66,61 @@ import { Baby, Award, Thermometer, Ticket } from "lucide-react";
 export function PatientDetailPage() {
   const { id } = useParams();
   const { profile } = useAuth();
+  const queryClient = useQueryClient();
   const { data: patient, isLoading } = usePatient(id);
   const { data: medicalHistory } = useMedicalHistory(id);
   const { data: profileStats } = usePatientProfileStats(id);
   const { data: currentVisit } = usePatientCurrentVisit(id);
   const { data: organization } = useOrganization(profile?.organization_id);
   const { printRef, handlePrint } = usePrint();
+
+  // Real-time subscriptions for patient-related data
+  useEffect(() => {
+    if (!id) return;
+    
+    const channel = supabase
+      .channel(`patient-${id}-updates`)
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'invoices',
+        filter: `patient_id=eq.${id}`
+      }, () => {
+        queryClient.invalidateQueries({ queryKey: ["patient-billing-history", id] });
+        queryClient.invalidateQueries({ queryKey: ["patient-recent-activity", id] });
+      })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'lab_orders',
+        filter: `patient_id=eq.${id}`
+      }, () => {
+        queryClient.invalidateQueries({ queryKey: ["patient-recent-activity", id] });
+        queryClient.invalidateQueries({ queryKey: ["lab-orders"] });
+      })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'imaging_orders',
+        filter: `patient_id=eq.${id}`
+      }, () => {
+        queryClient.invalidateQueries({ queryKey: ["patient-recent-activity", id] });
+        queryClient.invalidateQueries({ queryKey: ["patient-imaging-history", id] });
+      })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'consultations',
+        filter: `patient_id=eq.${id}`
+      }, () => {
+        queryClient.invalidateQueries({ queryKey: ["patient-recent-activity", id] });
+      })
+      .subscribe();
+
+    return () => { 
+      supabase.removeChannel(channel); 
+    };
+  }, [id, queryClient]);
 
   // Check for active admission
   const { data: activeAdmission } = useQuery({
