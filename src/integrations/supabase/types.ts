@@ -17572,6 +17572,8 @@ export type Database = {
         | "ot_nurse"
         | "surgeon"
         | "anesthetist"
+        | "ot_pharmacist"
+        | "opd_nurse"
       appointment_status:
         | "scheduled"
         | "checked_in"
@@ -18052,6 +18054,8 @@ export const Constants = {
         "ot_nurse",
         "surgeon",
         "anesthetist",
+        "ot_pharmacist",
+        "opd_nurse",
       ],
       appointment_status: [
         "scheduled",
