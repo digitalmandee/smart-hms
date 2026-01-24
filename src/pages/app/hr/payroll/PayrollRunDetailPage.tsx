@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, CheckCircle, XCircle, Clock, Users, DollarSign, Calendar, FileText } from "lucide-react";
-import { usePayrollRun, useUpdatePayrollRun, useEmployeeSalaries } from "@/hooks/usePayroll";
+import { usePayrollRun, useUpdatePayrollRun, usePayrollDetails } from "@/hooks/usePayroll";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
@@ -20,7 +20,7 @@ export default function PayrollRunDetailPage() {
   const navigate = useNavigate();
 
   const { data: payrollRun, isLoading } = usePayrollRun(id || "");
-  const { data: salaries } = useEmployeeSalaries({ isCurrent: true });
+  const { data: payrollEntries, isLoading: entriesLoading } = usePayrollDetails(id || "");
   const updatePayrollRun = useUpdatePayrollRun();
 
   const formatCurrency = (amount: number) =>
@@ -225,27 +225,31 @@ export default function PayrollRunDetailPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {salaries && salaries.length > 0 ? (
+          {entriesLoading ? (
+            <p className="text-center py-8 text-muted-foreground">Loading employee details...</p>
+          ) : payrollEntries && payrollEntries.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Employee</TableHead>
                   <TableHead>Employee ID</TableHead>
                   <TableHead>Basic Salary</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>Gross Salary</TableHead>
+                  <TableHead>Deductions</TableHead>
+                  <TableHead>Net Salary</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {salaries.slice(0, payrollRun.total_employees || 10).map((salary: any) => (
-                  <TableRow key={salary.id}>
+                {payrollEntries.map((entry: any) => (
+                  <TableRow key={entry.id}>
                     <TableCell className="font-medium">
-                      {salary.employee?.first_name} {salary.employee?.last_name}
+                      {entry.employee?.first_name} {entry.employee?.last_name}
                     </TableCell>
-                    <TableCell>{salary.employee?.employee_number || "-"}</TableCell>
-                    <TableCell>{formatCurrency(salary.basic_salary)}</TableCell>
-                    <TableCell>
-                      <Badge variant="secondary">Included</Badge>
-                    </TableCell>
+                    <TableCell>{entry.employee?.employee_number || "-"}</TableCell>
+                    <TableCell>{formatCurrency(entry.basic_salary || 0)}</TableCell>
+                    <TableCell>{formatCurrency(entry.gross_salary || 0)}</TableCell>
+                    <TableCell className="text-red-600">-{formatCurrency(entry.total_deductions || 0)}</TableCell>
+                    <TableCell className="font-medium text-green-600">{formatCurrency(entry.net_salary || 0)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
