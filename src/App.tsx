@@ -348,6 +348,9 @@ import JournalEntryDetailPage from "./pages/app/accounts/JournalEntryDetailPage"
 import GeneralLedgerPage from "./pages/app/accounts/GeneralLedgerPage";
 import ReceivablesPage from "./pages/app/accounts/ReceivablesPage";
 import PayablesPage from "./pages/app/accounts/PayablesPage";
+import VendorPaymentsListPage from "./pages/app/accounts/VendorPaymentsListPage";
+import VendorPaymentFormPage from "./pages/app/accounts/VendorPaymentFormPage";
+import VendorPaymentDetailPage from "./pages/app/accounts/VendorPaymentDetailPage";
 import BankAccountsPage from "./pages/app/accounts/BankAccountsPage";
 import BudgetsPage from "./pages/app/accounts/BudgetsPage";
 import AccountSettingsPage from "./pages/app/accounts/AccountSettingsPage";
@@ -700,6 +703,9 @@ function App() {
               <Route path="accounts/ledger" element={<GeneralLedgerPage />} />
               <Route path="accounts/receivables" element={<ReceivablesPage />} />
               <Route path="accounts/payables" element={<PayablesPage />} />
+              <Route path="accounts/vendor-payments" element={<VendorPaymentsListPage />} />
+              <Route path="accounts/vendor-payments/new" element={<VendorPaymentFormPage />} />
+              <Route path="accounts/vendor-payments/:id" element={<VendorPaymentDetailPage />} />
               <Route path="accounts/bank-accounts" element={<BankAccountsPage />} />
               <Route path="accounts/budgets" element={<BudgetsPage />} />
               <Route path="accounts/types" element={<AccountTypesPage />} />
