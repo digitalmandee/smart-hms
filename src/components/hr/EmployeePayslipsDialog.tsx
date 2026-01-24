@@ -195,10 +195,17 @@ export function EmployeePayslipsDialog({
             </div>
 
             {isLoading ? (
-              <div className="text-center py-8 text-muted-foreground">Loading employee payslips...</div>
+              <div className="text-center py-8 text-muted-foreground">
+                <p>Loading employee payslips...</p>
+              </div>
+            ) : !entries || entries.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <p>No employee payslips found for this payroll run</p>
+                <p className="text-xs mt-2">Run ID: {payrollRun?.id}</p>
+              </div>
             ) : filteredEntries.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                No employee payslips found for this payroll run
+                No employees match your search
               </div>
             ) : (
               <Table>

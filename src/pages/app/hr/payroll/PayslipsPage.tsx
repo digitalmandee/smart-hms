@@ -1,14 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Eye, FileText, Calendar, Users } from "lucide-react";
+import { Eye, FileText, Calendar, Users, FileSpreadsheet } from "lucide-react";
 import { usePayrollRuns, usePayrollDetails, useEmployeeSalaries } from "@/hooks/usePayroll";
 import { EmployeePayslipsDialog } from "@/components/hr/EmployeePayslipsDialog";
 import { format } from "date-fns";
+import { exportToCSV } from "@/lib/exportUtils";
+import { useBankSheetTemplate } from "@/components/hr/BankSheetTemplateDialog";
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
@@ -16,17 +18,40 @@ const MONTHS = [
 ];
 
 export default function PayslipsPage() {
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
+  const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
   const [selectedRun, setSelectedRun] = useState<any>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [bankSheetRunId, setBankSheetRunId] = useState<string>("");
 
   const { data: payrollRuns, isLoading } = usePayrollRuns();
   const { data: salaries } = useEmployeeSalaries({ isCurrent: true });
   const { data: payrollEntries, isLoading: isLoadingEntries } = usePayrollDetails(selectedRun?.id || "");
+  const { data: bankSheetEntries } = usePayrollDetails(bankSheetRunId);
+  const { fields: templateFields } = useBankSheetTemplate();
 
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 5 }, (_, i) => (currentYear - 2 + i).toString());
+
+  // Find the most recent year with completed payroll runs
+  const mostRecentYear = useMemo(() => {
+    const completedRuns = payrollRuns?.filter((r: any) => r.status === "completed");
+    if (completedRuns?.length > 0) {
+      const sorted = [...completedRuns].sort((a: any, b: any) => {
+        if (b.year !== a.year) return b.year - a.year;
+        return b.month - a.month;
+      });
+      return sorted[0].year.toString();
+    }
+    return currentYear.toString();
+  }, [payrollRuns, currentYear]);
+
+  // Set initial year to most recent with data
+  useEffect(() => {
+    if (mostRecentYear && !selectedYear) {
+      setSelectedYear(mostRecentYear);
+    }
+  }, [mostRecentYear, selectedYear]);
 
   const filteredRuns = payrollRuns?.filter((run: any) => {
     if (run.year?.toString() !== selectedYear) return false;
@@ -45,6 +70,54 @@ export default function PayslipsPage() {
     setSelectedRun(run);
     setIsDialogOpen(true);
   };
+
+  const getFieldValue = (e: any, key: string) => {
+    switch (key) {
+      case "employeeName": return `${e.employee?.first_name || ""} ${e.employee?.last_name || ""}`.trim();
+      case "employeeNumber": return e.employee?.employee_number || "N/A";
+      case "department": return e.employee?.department?.name || "N/A";
+      case "designation": return e.employee?.designation?.name || "N/A";
+      case "bankName": return e.bank_name || "N/A";
+      case "branchCode": return "N/A";
+      case "accountNumber": return e.account_number || "N/A";
+      case "iban": return "N/A";
+      case "basicSalary": return e.basic_salary || 0;
+      case "grossSalary": return e.gross_salary || 0;
+      case "deductions": return e.total_deductions || 0;
+      case "netSalary": return e.net_salary || 0;
+      default: return "N/A";
+    }
+  };
+
+  const handleDownloadBankSheet = async (run: any) => {
+    setBankSheetRunId(run.id);
+  };
+
+  // Download bank sheet when entries are loaded
+  useEffect(() => {
+    if (bankSheetRunId && bankSheetEntries?.length) {
+      const run = payrollRuns?.find((r: any) => r.id === bankSheetRunId);
+      if (!run) return;
+
+      const enabledFields = templateFields.filter(f => f.enabled);
+      const columns = enabledFields.map(f => ({
+        key: f.key,
+        header: f.header,
+      }));
+
+      const data = bankSheetEntries.map((e: any) => {
+        const row: Record<string, any> = {};
+        enabledFields.forEach(f => {
+          row[f.key] = getFieldValue(e, f.key);
+        });
+        return row;
+      });
+
+      const month = MONTHS[(run.month || 1) - 1];
+      exportToCSV(data, `bank-sheet-${month}-${run.year}`, columns);
+      setBankSheetRunId(""); // Reset after download
+    }
+  }, [bankSheetRunId, bankSheetEntries, payrollRuns, templateFields]);
 
   return (
     <div className="space-y-6">
@@ -172,14 +245,24 @@ export default function PayslipsPage() {
                       {run.pay_date ? format(new Date(run.pay_date), "dd MMM yyyy") : "-"}
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleViewPayslips(run)}
-                      >
-                        <Eye className="h-4 w-4 mr-2" />
-                        View Payslips
-                      </Button>
+                      <div className="flex justify-end gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleViewPayslips(run)}
+                        >
+                          <Eye className="h-4 w-4 mr-2" />
+                          Payslips
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDownloadBankSheet(run)}
+                        >
+                          <FileSpreadsheet className="h-4 w-4 mr-2" />
+                          Bank Sheet
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
