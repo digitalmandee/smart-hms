@@ -783,6 +783,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
           { name: "Doctor Earnings", path: "/app/hr/payroll/doctor-earnings", icon: "Receipt" },
           { name: "Loans & Advances", path: "/app/hr/payroll/loans", icon: "Landmark" },
           { name: "Payslips", path: "/app/hr/payroll/slips", icon: "FileText" },
+          { name: "Bank Sheets", path: "/app/hr/payroll/bank-sheet", icon: "FileSpreadsheet" },
           { name: "Reports", path: "/app/hr/payroll/reports", icon: "PieChart" },
         ]
       },
