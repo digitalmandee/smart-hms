@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLabOrders } from "@/hooks/useLabOrders";
+import { supabase } from "@/integrations/supabase/client";
 import { useLabSettings } from "@/hooks/useClinicConfig";
 import { PageHeader } from "@/components/PageHeader";
 import { LabOrderCard } from "@/components/lab/LabOrderCard";
@@ -61,6 +62,24 @@ export default function LabQueuePage() {
       if (aPriority !== bPriority) return aPriority - bPriority;
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     });
+
+  // Real-time subscription for instant updates
+  useEffect(() => {
+    const channel = supabase
+      .channel('lab_orders_realtime')
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'lab_orders' 
+      }, () => {
+        refetch();
+      })
+      .subscribe();
+
+    return () => { 
+      supabase.removeChannel(channel); 
+    };
+  }, [refetch]);
 
   const statCount = labOrders?.filter((o) => o.priority === "stat" && o.status !== "completed" && o.status !== "cancelled").length || 0;
   const urgentCount = labOrders?.filter((o) => o.priority === "urgent" && o.status !== "completed" && o.status !== "cancelled").length || 0;

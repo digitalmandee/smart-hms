@@ -12,13 +12,15 @@ import {
   Siren,
   Clock,
   FileCheck,
-  Scissors
+  Scissors,
+  Receipt,
+  Scan
 } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 
 interface ActivityItem {
   id: string;
-  type: "visit" | "prescription" | "lab_order" | "admission" | "discharge" | "emergency" | "surgery";
+  type: "visit" | "prescription" | "lab_order" | "admission" | "discharge" | "emergency" | "surgery" | "invoice" | "imaging";
   title: string;
   subtitle: string | null;
   timestamp: string;
@@ -36,7 +38,7 @@ export function PatientRecentActivity({ patientId }: PatientRecentActivityProps)
       const allActivities: ActivityItem[] = [];
 
       // Fetch data from multiple tables in parallel
-      const [consultations, prescriptions, labOrders, admissions, erVisits, surgeries] = await Promise.all([
+      const [consultations, prescriptions, labOrders, admissions, erVisits, surgeries, invoices, imagingOrders] = await Promise.all([
         // Recent consultations
         supabase
           .from("consultations")
@@ -62,7 +64,7 @@ export function PatientRecentActivity({ patientId }: PatientRecentActivityProps)
         // Recent lab orders
         supabase
           .from("lab_orders")
-          .select("id, order_number, created_at, status")
+          .select("id, order_number, created_at, status, payment_status")
           .eq("patient_id", patientId)
           .order("created_at", { ascending: false })
           .limit(5),
@@ -95,6 +97,22 @@ export function PatientRecentActivity({ patientId }: PatientRecentActivityProps)
           `)
           .eq("patient_id", patientId)
           .order("scheduled_date", { ascending: false })
+          .limit(5),
+        
+        // Recent invoices
+        supabase
+          .from("invoices")
+          .select("id, invoice_number, created_at, status, total_amount")
+          .eq("patient_id", patientId)
+          .order("created_at", { ascending: false })
+          .limit(5),
+        
+        // Recent imaging orders
+        supabase
+          .from("imaging_orders")
+          .select("id, order_number, created_at, status, procedure_name, modality")
+          .eq("patient_id", patientId)
+          .order("created_at", { ascending: false })
           .limit(5),
       ]);
 
@@ -184,6 +202,30 @@ export function PatientRecentActivity({ patientId }: PatientRecentActivityProps)
         });
       });
 
+      // Process invoices
+      invoices.data?.forEach((item: any) => {
+        allActivities.push({
+          id: item.id,
+          type: "invoice",
+          title: `Invoice ${item.invoice_number}`,
+          subtitle: `Rs. ${(item.total_amount || 0).toLocaleString()}`,
+          timestamp: item.created_at,
+          status: item.status,
+        });
+      });
+
+      // Process imaging orders
+      imagingOrders.data?.forEach((item: any) => {
+        allActivities.push({
+          id: item.id,
+          type: "imaging",
+          title: `Imaging: ${item.procedure_name || item.modality?.toUpperCase() || 'Scan'}`,
+          subtitle: item.order_number,
+          timestamp: item.created_at,
+          status: item.status,
+        });
+      });
+
       // Sort by timestamp descending
       return allActivities.sort(
         (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
@@ -209,6 +251,10 @@ export function PatientRecentActivity({ patientId }: PatientRecentActivityProps)
         return <Siren className="h-4 w-4 text-red-500" />;
       case "surgery":
         return <Scissors className="h-4 w-4 text-purple-500" />;
+      case "invoice":
+        return <Receipt className="h-4 w-4 text-emerald-500" />;
+      case "imaging":
+        return <Scan className="h-4 w-4 text-cyan-500" />;
       default:
         return <Clock className="h-4 w-4 text-muted-foreground" />;
     }
