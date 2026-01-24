@@ -56,6 +56,7 @@ import { BranchesListPage } from "./pages/app/settings/BranchesListPage";
 import { BranchFormPage } from "./pages/app/settings/BranchFormPage";
 import { UsersListPage } from "./pages/app/settings/UsersListPage";
 import { UserDetailPage } from "./pages/app/settings/UserDetailPage";
+import StaffCreatePage from "./pages/app/settings/StaffCreatePage";
 import { OrganizationSettingsPage } from "./pages/app/settings/OrganizationSettingsPage";
 import { RolesPermissionsPage } from "./pages/app/settings/RolesPermissionsPage";
 import ServicesListPage from "./pages/app/services/ServicesListPage";
@@ -798,6 +799,8 @@ function App() {
               <Route path="settings/branches/new" element={<BranchFormPage />} />
               <Route path="settings/branches/:id" element={<BranchFormPage />} />
               <Route path="settings/users" element={<UsersListPage />} />
+              <Route path="settings/users/new" element={<StaffCreatePage />} />
+              <Route path="settings/staff/new" element={<StaffCreatePage />} />
               <Route path="settings/users/:id" element={<UserDetailPage />} />
               <Route path="settings/organization" element={<OrganizationSettingsPage />} />
               <Route path="settings/roles" element={<RolesPermissionsPage />} />

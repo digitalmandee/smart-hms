@@ -120,7 +120,7 @@ export function UsersListPage() {
         actions={
           <Button onClick={() => navigate("/app/settings/users/new")}>
             <Plus className="h-4 w-4 mr-2" />
-            Add User
+            Add Staff
           </Button>
         }
       />
