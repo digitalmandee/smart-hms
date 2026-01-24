@@ -52,8 +52,12 @@ const ROLE_LABELS: Record<AppRole, string> = {
   anesthetist: "Anesthetist",
   doctor: "Doctor",
   nurse: "Nurse",
+  opd_nurse: "OPD Nurse",
+  ipd_nurse: "IPD Nurse",
+  ot_nurse: "OT Nurse",
   receptionist: "Receptionist",
   pharmacist: "Pharmacist",
+  ot_pharmacist: "OT Pharmacist",
   lab_technician: "Lab Tech",
   accountant: "Accountant",
   hr_manager: "HR Manager",
@@ -63,9 +67,7 @@ const ROLE_LABELS: Record<AppRole, string> = {
   blood_bank_technician: "Blood Bank Tech",
   radiologist: "Radiologist",
   radiology_technician: "Radiology Tech",
-  ipd_nurse: "IPD Nurse",
   ot_technician: "OT Technician",
-  ot_nurse: "OT Nurse",
 };
 
 export function RolesPermissionsPage() {
