@@ -118,7 +118,7 @@ export function UsersListPage() {
           { label: "Users" },
         ]}
         actions={
-          <Button onClick={() => navigate("/app/settings/users/new")}>
+          <Button onClick={() => navigate("/app/hr/employees/new")}>
             <Plus className="h-4 w-4 mr-2" />
             Add Staff
           </Button>

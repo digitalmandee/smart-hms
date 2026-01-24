@@ -22,11 +22,17 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   useEmployees,
   useDepartments,
   useEmployeeCategories,
 } from "@/hooks/useHR";
-import { Plus, Search, Eye, Pencil, LayoutGrid, List } from "lucide-react";
+import { Plus, Search, Eye, Pencil, LayoutGrid, List, UserCheck, UserX } from "lucide-react";
 import { EmployeeCard } from "@/components/hr/EmployeeCard";
 
 const statusColors: Record<string, string> = {
@@ -153,6 +159,7 @@ export default function EmployeesListPage() {
                 <TableHead>Department</TableHead>
                 <TableHead>Designation</TableHead>
                 <TableHead>Category</TableHead>
+                <TableHead>Login</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="w-[100px]">Actions</TableHead>
               </TableRow>
@@ -175,11 +182,12 @@ export default function EmployeesListPage() {
                     <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                   </TableRow>
                 ))
               ) : employees?.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                     No employees found
                   </TableCell>
                 </TableRow>
@@ -221,6 +229,30 @@ export default function EmployeesListPage() {
                       ) : (
                         "-"
                       )}
+                    </TableCell>
+                    <TableCell>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="flex items-center">
+                              {employee.profile_id ? (
+                                <Badge variant="secondary" className="gap-1 bg-green-500/10 text-green-700 border-green-200">
+                                  <UserCheck className="h-3 w-3" />
+                                  Active
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="gap-1 text-muted-foreground">
+                                  <UserX className="h-3 w-3" />
+                                  No Login
+                                </Badge>
+                              )}
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            {employee.profile_id ? "Has system login account" : "No system login - HR record only"}
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </TableCell>
                     <TableCell>
                       <Badge
