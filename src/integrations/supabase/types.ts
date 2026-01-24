@@ -7335,11 +7335,14 @@ export type Database = {
           grn_id: string
           id: string
           item_id: string
+          item_type: string | null
+          medicine_id: string | null
           po_item_id: string | null
           quantity_accepted: number
           quantity_received: number
           quantity_rejected: number
           rejection_reason: string | null
+          selling_price: number | null
           unit_cost: number
         }
         Insert: {
@@ -7349,11 +7352,14 @@ export type Database = {
           grn_id: string
           id?: string
           item_id: string
+          item_type?: string | null
+          medicine_id?: string | null
           po_item_id?: string | null
           quantity_accepted?: number
           quantity_received?: number
           quantity_rejected?: number
           rejection_reason?: string | null
+          selling_price?: number | null
           unit_cost?: number
         }
         Update: {
@@ -7363,11 +7369,14 @@ export type Database = {
           grn_id?: string
           id?: string
           item_id?: string
+          item_type?: string | null
+          medicine_id?: string | null
           po_item_id?: string | null
           quantity_accepted?: number
           quantity_received?: number
           quantity_rejected?: number
           rejection_reason?: string | null
+          selling_price?: number | null
           unit_cost?: number
         }
         Relationships: [
@@ -7383,6 +7392,13 @@ export type Database = {
             columns: ["item_id"]
             isOneToOne: false
             referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "grn_items_medicine_id_fkey"
+            columns: ["medicine_id"]
+            isOneToOne: false
+            referencedRelation: "medicines"
             referencedColumns: ["id"]
           },
           {
@@ -14702,6 +14718,8 @@ export type Database = {
           discount_percent: number
           id: string
           item_id: string
+          item_type: string | null
+          medicine_id: string | null
           purchase_order_id: string
           quantity: number
           received_quantity: number
@@ -14714,6 +14732,8 @@ export type Database = {
           discount_percent?: number
           id?: string
           item_id: string
+          item_type?: string | null
+          medicine_id?: string | null
           purchase_order_id: string
           quantity?: number
           received_quantity?: number
@@ -14726,6 +14746,8 @@ export type Database = {
           discount_percent?: number
           id?: string
           item_id?: string
+          item_type?: string | null
+          medicine_id?: string | null
           purchase_order_id?: string
           quantity?: number
           received_quantity?: number
@@ -14739,6 +14761,13 @@ export type Database = {
             columns: ["item_id"]
             isOneToOne: false
             referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_order_items_medicine_id_fkey"
+            columns: ["medicine_id"]
+            isOneToOne: false
+            referencedRelation: "medicines"
             referencedColumns: ["id"]
           },
           {

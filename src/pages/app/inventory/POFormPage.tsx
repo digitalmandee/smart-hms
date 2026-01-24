@@ -26,7 +26,7 @@ import { ArrowLeft, Loader2 } from "lucide-react";
 import { useVendors } from "@/hooks/useVendors";
 import { useBranches } from "@/hooks/useBranches";
 import { useCreatePurchaseOrder, type PurchaseOrderItem } from "@/hooks/usePurchaseOrders";
-import { POItemsBuilder } from "@/components/inventory/POItemsBuilder";
+import { UnifiedPOItemsBuilder } from "@/components/inventory/UnifiedPOItemsBuilder";
 import { PageHeader } from "@/components/PageHeader";
 
 const poSchema = z.object({
@@ -174,7 +174,7 @@ export default function POFormPage() {
               <CardTitle>Order Items</CardTitle>
             </CardHeader>
             <CardContent>
-              <POItemsBuilder items={items} onChange={setItems} />
+              <UnifiedPOItemsBuilder items={items} onChange={setItems} />
               {items.length === 0 && (
                 <p className="text-sm text-destructive mt-2">
                   Add at least one item to the purchase order

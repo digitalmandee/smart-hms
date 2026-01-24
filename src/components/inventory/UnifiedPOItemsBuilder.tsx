@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -17,20 +16,27 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Trash2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Trash2, Pill, Package } from "lucide-react";
 import { useInventoryItems } from "@/hooks/useInventory";
-import type { PurchaseOrderItem } from "@/hooks/usePurchaseOrders";
+import { useMedicines } from "@/hooks/useMedicines";
+import type { PurchaseOrderItem, POItemType } from "@/hooks/usePurchaseOrders";
 
-interface POItemsBuilderProps {
+interface UnifiedPOItemsBuilderProps {
   items: PurchaseOrderItem[];
   onChange: (items: PurchaseOrderItem[]) => void;
   disabled?: boolean;
 }
 
-export function POItemsBuilder({ items, onChange, disabled }: POItemsBuilderProps) {
+export function UnifiedPOItemsBuilder({ items, onChange, disabled }: UnifiedPOItemsBuilderProps) {
   const { data: inventoryItems } = useInventoryItems();
+  const { data: medicines } = useMedicines();
+  
+  const [itemType, setItemType] = useState<POItemType>('inventory');
   const [newItem, setNewItem] = useState<Partial<PurchaseOrderItem>>({
+    item_type: 'inventory',
     item_id: "",
+    medicine_id: "",
     quantity: 1,
     unit_price: 0,
     tax_percent: 0,
@@ -46,23 +52,36 @@ export function POItemsBuilder({ items, onChange, disabled }: POItemsBuilderProp
   };
 
   const handleAddItem = () => {
-    if (!newItem.item_id || !newItem.quantity || !newItem.unit_price) return;
+    const isValid = itemType === 'medicine' 
+      ? newItem.medicine_id && newItem.quantity && newItem.unit_price
+      : newItem.item_id && newItem.quantity && newItem.unit_price;
+    
+    if (!isValid) return;
     
     const total = calculateItemTotal(newItem);
+    
     const fullItem: PurchaseOrderItem = {
-      item_type: 'inventory',
-      item_id: newItem.item_id!,
+      item_type: itemType,
+      item_id: itemType === 'inventory' ? newItem.item_id : undefined,
+      medicine_id: itemType === 'medicine' ? newItem.medicine_id : undefined,
       quantity: newItem.quantity!,
       unit_price: newItem.unit_price!,
       tax_percent: newItem.tax_percent || 0,
       discount_percent: newItem.discount_percent || 0,
       total_price: total,
-      item: inventoryItems?.find(i => i.id === newItem.item_id),
+      item: itemType === 'inventory' 
+        ? inventoryItems?.find(i => i.id === newItem.item_id)
+        : undefined,
+      medicine: itemType === 'medicine'
+        ? medicines?.find(m => m.id === newItem.medicine_id)
+        : undefined,
     };
     
     onChange([...items, fullItem]);
     setNewItem({
+      item_type: itemType,
       item_id: "",
+      medicine_id: "",
       quantity: 1,
       unit_price: 0,
       tax_percent: 0,
@@ -74,12 +93,36 @@ export function POItemsBuilder({ items, onChange, disabled }: POItemsBuilderProp
     onChange(items.filter((_, i) => i !== index));
   };
 
-  const handleItemSelect = (itemId: string) => {
-    const item = inventoryItems?.find(i => i.id === itemId);
+  const handleItemSelect = (id: string) => {
+    if (itemType === 'medicine') {
+      const medicine = medicines?.find(m => m.id === id);
+      setNewItem({
+        ...newItem,
+        medicine_id: id,
+        item_id: "",
+        unit_price: 0, // Will be entered manually
+      });
+    } else {
+      const item = inventoryItems?.find(i => i.id === id);
+      setNewItem({
+        ...newItem,
+        item_id: id,
+        medicine_id: "",
+        unit_price: item?.standard_cost || 0,
+      });
+    }
+  };
+
+  const handleItemTypeChange = (type: POItemType) => {
+    setItemType(type);
     setNewItem({
-      ...newItem,
-      item_id: itemId,
-      unit_price: item?.standard_cost || 0,
+      item_type: type,
+      item_id: "",
+      medicine_id: "",
+      quantity: 1,
+      unit_price: 0,
+      tax_percent: 0,
+      discount_percent: 0,
     });
   };
 
@@ -98,11 +141,33 @@ export function POItemsBuilder({ items, onChange, disabled }: POItemsBuilderProp
 
   const grandTotal = subtotal + totalTax;
 
+  const getItemName = (item: PurchaseOrderItem) => {
+    if (item.item_type === 'medicine') {
+      return item.medicine?.name || "Unknown Medicine";
+    }
+    return item.item?.name || "Unknown Item";
+  };
+
+  const getItemCode = (item: PurchaseOrderItem) => {
+    if (item.item_type === 'medicine') {
+      return item.medicine?.generic_name || "";
+    }
+    return item.item?.item_code || "";
+  };
+
+  const getItemUnit = (item: PurchaseOrderItem) => {
+    if (item.item_type === 'medicine') {
+      return item.medicine?.unit || "";
+    }
+    return item.item?.unit_of_measure || "";
+  };
+
   return (
     <div className="space-y-4">
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead>Type</TableHead>
             <TableHead>Item</TableHead>
             <TableHead className="w-24">Qty</TableHead>
             <TableHead className="w-28">Unit Price</TableHead>
@@ -116,10 +181,19 @@ export function POItemsBuilder({ items, onChange, disabled }: POItemsBuilderProp
           {items.map((item, index) => (
             <TableRow key={index}>
               <TableCell>
+                <Badge variant={item.item_type === 'medicine' ? 'default' : 'secondary'}>
+                  {item.item_type === 'medicine' ? (
+                    <><Pill className="h-3 w-3 mr-1" /> Medicine</>
+                  ) : (
+                    <><Package className="h-3 w-3 mr-1" /> Inventory</>
+                  )}
+                </Badge>
+              </TableCell>
+              <TableCell>
                 <div>
-                  <p className="font-medium">{item.item?.name || "Unknown"}</p>
+                  <p className="font-medium">{getItemName(item)}</p>
                   <p className="text-xs text-muted-foreground">
-                    {item.item?.item_code} • {item.item?.unit_of_measure}
+                    {getItemCode(item)} • {getItemUnit(item)}
                   </p>
                 </div>
               </TableCell>
@@ -148,18 +222,48 @@ export function POItemsBuilder({ items, onChange, disabled }: POItemsBuilderProp
             <TableRow>
               <TableCell>
                 <Select
-                  value={newItem.item_id}
+                  value={itemType}
+                  onValueChange={(v) => handleItemTypeChange(v as POItemType)}
+                >
+                  <SelectTrigger className="w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="inventory">
+                      <div className="flex items-center gap-1">
+                        <Package className="h-3 w-3" /> Inventory
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="medicine">
+                      <div className="flex items-center gap-1">
+                        <Pill className="h-3 w-3" /> Medicine
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </TableCell>
+              <TableCell>
+                <Select
+                  value={itemType === 'medicine' ? newItem.medicine_id : newItem.item_id}
                   onValueChange={handleItemSelect}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select item" />
+                    <SelectValue placeholder={`Select ${itemType === 'medicine' ? 'medicine' : 'item'}`} />
                   </SelectTrigger>
                   <SelectContent>
-                    {inventoryItems?.map((item) => (
-                      <SelectItem key={item.id} value={item.id}>
-                        {item.name} ({item.item_code})
-                      </SelectItem>
-                    ))}
+                    {itemType === 'medicine' ? (
+                      medicines?.map((medicine) => (
+                        <SelectItem key={medicine.id} value={medicine.id}>
+                          {medicine.name} ({medicine.generic_name || 'N/A'})
+                        </SelectItem>
+                      ))
+                    ) : (
+                      inventoryItems?.map((item) => (
+                        <SelectItem key={item.id} value={item.id}>
+                          {item.name} ({item.item_code})
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               </TableCell>
@@ -206,7 +310,11 @@ export function POItemsBuilder({ items, onChange, disabled }: POItemsBuilderProp
                   variant="ghost"
                   size="icon"
                   onClick={handleAddItem}
-                  disabled={!newItem.item_id}
+                  disabled={
+                    itemType === 'medicine' 
+                      ? !newItem.medicine_id 
+                      : !newItem.item_id
+                  }
                 >
                   <Plus className="h-4 w-4" />
                 </Button>
