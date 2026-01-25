@@ -16106,6 +16106,10 @@ export type Database = {
           npo_from: string | null
           organization_id: string
           ot_room_id: string | null
+          outcome: string | null
+          outcome_notes: string | null
+          outcome_recorded_at: string | null
+          outcome_recorded_by: string | null
           patient_id: string
           post_op_destination: string | null
           post_op_instructions: string | null
@@ -16160,6 +16164,10 @@ export type Database = {
           npo_from?: string | null
           organization_id: string
           ot_room_id?: string | null
+          outcome?: string | null
+          outcome_notes?: string | null
+          outcome_recorded_at?: string | null
+          outcome_recorded_by?: string | null
           patient_id: string
           post_op_destination?: string | null
           post_op_instructions?: string | null
@@ -16214,6 +16222,10 @@ export type Database = {
           npo_from?: string | null
           organization_id?: string
           ot_room_id?: string | null
+          outcome?: string | null
+          outcome_notes?: string | null
+          outcome_recorded_at?: string | null
+          outcome_recorded_by?: string | null
           patient_id?: string
           post_op_destination?: string | null
           post_op_instructions?: string | null
