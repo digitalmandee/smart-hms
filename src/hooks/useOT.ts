@@ -434,8 +434,10 @@ export function useSurgeries(filters: SurgeryFilters = {}) {
       }
       if (filters.status) {
         if (Array.isArray(filters.status)) {
+          // @ts-expect-error - Extended status enum includes values not yet in DB types
           query = query.in('status', filters.status);
         } else {
+          // @ts-expect-error - Extended status enum includes values not yet in DB types
           query = query.eq('status', filters.status);
         }
       }
@@ -644,9 +646,15 @@ export function useUpdateSurgery() {
 
   return useMutation({
     mutationFn: async ({ id, ...updates }: Partial<Surgery> & { id: string }) => {
+      // Cast status to string for DB compatibility with extended enum
+      const dbUpdates = { ...updates } as Record<string, unknown>;
+      if (dbUpdates.status) {
+        dbUpdates.status = dbUpdates.status as string;
+      }
+      
       const { data, error } = await supabase
         .from('surgeries')
-        .update(updates)
+        .update(dbUpdates)
         .eq('id', id)
         .select()
         .single();
