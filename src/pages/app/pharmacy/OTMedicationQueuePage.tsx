@@ -145,7 +145,9 @@ export default function OTMedicationQueuePage() {
                   <div className="text-right">
                     <div className="flex items-center gap-2 text-sm">
                       <User className="h-4 w-4" />
-                      <span className="font-medium">{surgery?.patient?.full_name}</span>
+                      <span className="font-medium">
+                        {`${surgery?.patient?.first_name || ''} ${surgery?.patient?.last_name || ''}`.trim() || 'Unknown'}
+                      </span>
                     </div>
                     <p className="text-sm text-muted-foreground">
                       {surgery?.patient?.patient_number}
