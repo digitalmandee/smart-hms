@@ -26,7 +26,7 @@ interface PreOpReadinessCardProps {
   suppliesReady?: boolean;
   consentSigned?: boolean;
   preOpAssessmentCompleted?: boolean;
-  readyAt?: string;
+  readyAt?: string | null;
   onMarkReady?: () => void;
 }
 
@@ -53,7 +53,7 @@ export function PreOpReadinessCard({
   // Mutation to update readiness items
   const updateReadiness = useMutation({
     mutationFn: async (updates: { pre_op_medications_ordered?: boolean; pre_op_supplies_ready?: boolean }) => {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('surgeries')
         .update(updates)
         .eq('id', surgeryId);
@@ -67,13 +67,13 @@ export function PreOpReadinessCard({
   // Mutation to mark ready
   const markReady = useMutation({
     mutationFn: async () => {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('surgeries')
         .update({
-          status: 'ready',
+          status: 'ready' as any,
           ready_at: new Date().toISOString(),
           ready_by: profile?.id,
-        })
+        } as any)
         .eq('id', surgeryId);
       if (error) throw error;
     },

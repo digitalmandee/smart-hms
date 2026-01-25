@@ -14202,6 +14202,7 @@ export type Database = {
           ecg_findings: string | null
           family_anesthesia_complications: boolean | null
           family_complications_details: string | null
+          fitness_decision: string | null
           heart_rate: number | null
           height_cm: number | null
           hemoglobin: number | null
@@ -14215,6 +14216,8 @@ export type Database = {
           mallampati_score: string | null
           mouth_opening: string | null
           neck_mobility: string | null
+          not_fit_reason: string | null
+          not_fit_reason_category: string | null
           npo_notes: string | null
           npo_verified: boolean | null
           organization_id: string
@@ -14229,6 +14232,8 @@ export type Database = {
           previous_complications: boolean | null
           previous_complications_details: string | null
           pulmonary_risk_score: string | null
+          recommended_postpone_days: number | null
+          requires_reschedule: boolean | null
           special_considerations: string | null
           spo2: number | null
           status: string | null
@@ -14259,6 +14264,7 @@ export type Database = {
           ecg_findings?: string | null
           family_anesthesia_complications?: boolean | null
           family_complications_details?: string | null
+          fitness_decision?: string | null
           heart_rate?: number | null
           height_cm?: number | null
           hemoglobin?: number | null
@@ -14272,6 +14278,8 @@ export type Database = {
           mallampati_score?: string | null
           mouth_opening?: string | null
           neck_mobility?: string | null
+          not_fit_reason?: string | null
+          not_fit_reason_category?: string | null
           npo_notes?: string | null
           npo_verified?: boolean | null
           organization_id: string
@@ -14286,6 +14294,8 @@ export type Database = {
           previous_complications?: boolean | null
           previous_complications_details?: string | null
           pulmonary_risk_score?: string | null
+          recommended_postpone_days?: number | null
+          requires_reschedule?: boolean | null
           special_considerations?: string | null
           spo2?: number | null
           status?: string | null
@@ -14316,6 +14326,7 @@ export type Database = {
           ecg_findings?: string | null
           family_anesthesia_complications?: boolean | null
           family_complications_details?: string | null
+          fitness_decision?: string | null
           heart_rate?: number | null
           height_cm?: number | null
           hemoglobin?: number | null
@@ -14329,6 +14340,8 @@ export type Database = {
           mallampati_score?: string | null
           mouth_opening?: string | null
           neck_mobility?: string | null
+          not_fit_reason?: string | null
+          not_fit_reason_category?: string | null
           npo_notes?: string | null
           npo_verified?: boolean | null
           organization_id?: string
@@ -14343,6 +14356,8 @@ export type Database = {
           previous_complications?: boolean | null
           previous_complications_details?: string | null
           pulmonary_risk_score?: string | null
+          recommended_postpone_days?: number | null
+          requires_reschedule?: boolean | null
           special_considerations?: string | null
           spo2?: number | null
           status?: string | null
@@ -16009,6 +16024,7 @@ export type Database = {
           actual_end_time: string | null
           actual_start_time: string | null
           admission_id: string | null
+          anesthesia_confirmed_at: string | null
           anesthetist_id: string | null
           assistant_surgeon_id: string | null
           blood_reservation: Json | null
@@ -16037,18 +16053,23 @@ export type Database = {
           post_op_destination: string | null
           post_op_instructions: string | null
           postponement_reason: string | null
+          pre_op_medications_ordered: boolean | null
+          pre_op_supplies_ready: boolean | null
           priority: Database["public"]["Enums"]["surgery_priority"]
           priority_id: string | null
           procedure_code: string | null
           procedure_id: string | null
           procedure_name: string
           procedure_type: string | null
+          ready_at: string | null
+          ready_by: string | null
           rescheduled_from: string | null
           scheduled_date: string
           scheduled_end_time: string | null
           scheduled_start_time: string
           special_requirements: string | null
           status: Database["public"]["Enums"]["surgery_status"]
+          surgeon_confirmed_at: string | null
           surgery_charges: Json | null
           surgery_number: string
           updated_at: string | null
@@ -16057,6 +16078,7 @@ export type Database = {
           actual_end_time?: string | null
           actual_start_time?: string | null
           admission_id?: string | null
+          anesthesia_confirmed_at?: string | null
           anesthetist_id?: string | null
           assistant_surgeon_id?: string | null
           blood_reservation?: Json | null
@@ -16085,18 +16107,23 @@ export type Database = {
           post_op_destination?: string | null
           post_op_instructions?: string | null
           postponement_reason?: string | null
+          pre_op_medications_ordered?: boolean | null
+          pre_op_supplies_ready?: boolean | null
           priority?: Database["public"]["Enums"]["surgery_priority"]
           priority_id?: string | null
           procedure_code?: string | null
           procedure_id?: string | null
           procedure_name: string
           procedure_type?: string | null
+          ready_at?: string | null
+          ready_by?: string | null
           rescheduled_from?: string | null
           scheduled_date: string
           scheduled_end_time?: string | null
           scheduled_start_time: string
           special_requirements?: string | null
           status?: Database["public"]["Enums"]["surgery_status"]
+          surgeon_confirmed_at?: string | null
           surgery_charges?: Json | null
           surgery_number: string
           updated_at?: string | null
@@ -16105,6 +16132,7 @@ export type Database = {
           actual_end_time?: string | null
           actual_start_time?: string | null
           admission_id?: string | null
+          anesthesia_confirmed_at?: string | null
           anesthetist_id?: string | null
           assistant_surgeon_id?: string | null
           blood_reservation?: Json | null
@@ -16133,18 +16161,23 @@ export type Database = {
           post_op_destination?: string | null
           post_op_instructions?: string | null
           postponement_reason?: string | null
+          pre_op_medications_ordered?: boolean | null
+          pre_op_supplies_ready?: boolean | null
           priority?: Database["public"]["Enums"]["surgery_priority"]
           priority_id?: string | null
           procedure_code?: string | null
           procedure_id?: string | null
           procedure_name?: string
           procedure_type?: string | null
+          ready_at?: string | null
+          ready_by?: string | null
           rescheduled_from?: string | null
           scheduled_date?: string
           scheduled_end_time?: string | null
           scheduled_start_time?: string
           special_requirements?: string | null
           status?: Database["public"]["Enums"]["surgery_status"]
+          surgeon_confirmed_at?: string | null
           surgery_charges?: Json | null
           surgery_number?: string
           updated_at?: string | null
@@ -16239,6 +16272,13 @@ export type Database = {
             columns: ["procedure_id"]
             isOneToOne: false
             referencedRelation: "config_surgical_procedures"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surgeries_ready_by_fkey"
+            columns: ["ready_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {

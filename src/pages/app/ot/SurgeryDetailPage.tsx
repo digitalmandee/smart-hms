@@ -19,6 +19,7 @@ import { OTMedicationPanel } from "@/components/ot/OTMedicationPanel";
 import { ConsumablesPanel } from "@/components/ot/ConsumablesPanel";
 import { PostOpOrdersForm } from "@/components/ot/PostOpOrdersForm";
 import { PreOpReadinessCard } from "@/components/ot/PreOpReadinessCard";
+import { UserConfirmationCard } from "@/components/ot/UserConfirmationCard";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import {
   ArrowLeft,
@@ -206,14 +207,18 @@ export default function SurgeryDetailPage() {
         </div>
       </div>
 
-      {/* Surgery Timeline */}
+      {/* Surgery Timeline - with detailed confirmations */}
       <SurgeryTimeline
         status={surgery.status}
         outcome={(surgery as any).outcome}
+        showDetailedConfirmation={true}
         timestamps={{
           created_at: surgery.created_at,
           booked_at: (surgery as any).booked_at,
+          surgeon_confirmed_at: (surgery as any).surgeon_confirmed_at,
+          anesthesia_confirmed_at: (surgery as any).anesthesia_confirmed_at,
           confirmed_at: (surgery as any).confirmed_at,
+          ready_at: (surgery as any).ready_at,
           actual_start_time: surgery.actual_start_time,
           actual_end_time: surgery.actual_end_time,
           outcome_recorded_at: (surgery as any).outcome_recorded_at,
@@ -615,6 +620,9 @@ export default function SurgeryDetailPage() {
 
         {/* Sidebar */}
         <div className="space-y-6">
+          {/* User's own confirmation status - inline accept/decline */}
+          <UserConfirmationCard surgeryId={surgery.id} />
+          
           {/* Team Confirmation Status */}
           <TeamConfirmationStatus surgeryId={surgery.id} />
           
@@ -677,12 +685,13 @@ export default function SurgeryDetailPage() {
         </div>
       </div>
 
-      {/* WHO Checklist Modal */}
+      {/* WHO Checklist Modal - readOnly for non-surgeons/nurses */}
       <WHOChecklistModal
         open={showChecklist}
         onOpenChange={setShowChecklist}
         surgeryId={surgery.id}
         checklist={surgery.safety_checklist}
+        readOnly={!canCompleteChecklist}
       />
 
       {/* Cancel Dialog */}
