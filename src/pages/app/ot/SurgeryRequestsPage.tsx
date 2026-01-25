@@ -13,7 +13,8 @@ import {
   Building,
   Bed,
   Eye,
-  CreditCard
+  CreditCard,
+  CalendarClock
 } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { RescheduleRequestsQueue } from "@/components/ot/RescheduleRequestsQueue";
 import { useAuth } from "@/contexts/AuthContext";
 import { 
   usePendingSurgeryRequests, 
@@ -46,6 +48,7 @@ import {
   type SurgeryRequestPriority
 } from "@/hooks/useSurgeryRequests";
 import { useSurgeries, type Surgery } from "@/hooks/useOT";
+import { useRescheduleRequests } from "@/hooks/useSurgeryConfirmation";
 import { OTStatusBadge } from "@/components/ot/OTStatusBadge";
 import { PriorityBadge } from "@/components/ot/PriorityBadge";
 
@@ -79,8 +82,11 @@ export default function SurgeryRequestsPage() {
   // Fetch all scheduled surgeries (from surgeries table) - no date filter to show all
   const { data: surgeries, isLoading: surgeriesLoading } = useSurgeries({
     branchId: profile?.branch_id || undefined,
-    status: ['scheduled', 'pre_op', 'in_progress', 'completed'] 
+    status: ['scheduled', 'booked', 'confirmed', 'pre_op', 'in_progress', 'completed'] 
   });
+
+  // Fetch pending reschedule requests
+  const { data: rescheduleRequests } = useRescheduleRequests('pending');
 
   // Filter requests based on search and filters
   const filteredRequests = (requests || []).filter((request) => {
@@ -267,6 +273,13 @@ export default function SurgeryRequestsPage() {
           <TabsTrigger value="requests" className="gap-2">
             Doctor Requests
             <Badge variant="secondary" className="ml-1">{requests?.length || 0}</Badge>
+          </TabsTrigger>
+          <TabsTrigger value="reschedule" className="gap-2">
+            <CalendarClock className="h-4 w-4" />
+            Reschedule Requests
+            {(rescheduleRequests?.length || 0) > 0 && (
+              <Badge variant="destructive" className="ml-1">{rescheduleRequests?.length || 0}</Badge>
+            )}
           </TabsTrigger>
         </TabsList>
 
@@ -769,6 +782,11 @@ export default function SurgeryRequestsPage() {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Reschedule Requests Tab */}
+        <TabsContent value="reschedule" className="space-y-6">
+          <RescheduleRequestsQueue />
         </TabsContent>
       </Tabs>
     </div>

@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { OTRoomBoard } from "@/components/ot/OTRoomBoard";
 import { SurgeryQueueList } from "@/components/ot/SurgeryQueueList";
+import { PendingConfirmationsCard } from "@/components/ot/PendingConfirmationsCard";
 import { 
   Scissors, 
   Building2, 
@@ -187,6 +188,9 @@ export default function OTDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Pending Surgery Confirmations for Surgeons */}
+      <PendingConfirmationsCard userRole="surgeon" />
 
       {/* Main Content */}
       <div className="grid gap-6 lg:grid-cols-2">

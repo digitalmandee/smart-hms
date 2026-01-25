@@ -12,14 +12,15 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { PatientSearch } from "@/components/appointments/PatientSearch";
 import { OTRoomPicker } from "@/components/ot/OTRoomPicker";
 import { OTServicesBuilder } from "@/components/ot/OTServicesBuilder";
-import { ArrowLeft, CalendarIcon, Clock, Save, Loader2, BedDouble, AlertCircle } from "lucide-react";
+import { ArrowLeft, CalendarIcon, Clock, Save, Loader2, BedDouble, AlertCircle, CheckCircle, XCircle } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { useCreateSurgery, useOTRooms, type SurgeryPriority } from "@/hooks/useOT";
-import { useDoctors } from "@/hooks/useDoctors";
+import { useDoctors, useAnesthesiologists } from "@/hooks/useDoctors";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBranches } from "@/hooks/useBranches";
 import { usePatientActiveAdmission } from "@/hooks/useIPDBilling";
 import { OTServiceItem, calculateOTServicesTotal } from "@/hooks/useOTServices";
+import { useCheckRoomAvailability, useCheckDoctorAvailability } from "@/hooks/useCheckAvailability";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -45,6 +46,7 @@ export default function SurgeryFormPage() {
     diagnosis: "",
     priority: "elective" as SurgeryPriority,
     leadSurgeonId: "",
+    anesthetistId: "",
     otRoomId: prefillRoom || "",
     scheduledStartTime: prefillTime || "09:00",
     estimatedDuration: "60",
@@ -57,7 +59,44 @@ export default function SurgeryFormPage() {
   // Update room when rooms load (if prefillRoom is set)
   const { data: branches } = useBranches();
   const { data: doctors } = useDoctors();
+  const { data: anesthesiologists } = useAnesthesiologists(formData.branchId || undefined);
   const { data: rooms } = useOTRooms(formData.branchId || undefined);
+  
+  // Availability checks
+  const dateStr = scheduledDate ? format(scheduledDate, 'yyyy-MM-dd') : undefined;
+  const endTime = formData.scheduledStartTime && formData.estimatedDuration 
+    ? calculateEndTime(formData.scheduledStartTime, parseInt(formData.estimatedDuration) || 60)
+    : undefined;
+  
+  const { data: roomAvailability } = useCheckRoomAvailability(
+    formData.otRoomId || undefined,
+    dateStr,
+    formData.scheduledStartTime,
+    endTime
+  );
+  
+  const { data: surgeonAvailability } = useCheckDoctorAvailability(
+    formData.leadSurgeonId || undefined,
+    dateStr,
+    formData.scheduledStartTime,
+    endTime
+  );
+  
+  const { data: anesthetistAvailability } = useCheckDoctorAvailability(
+    formData.anesthetistId || undefined,
+    dateStr,
+    formData.scheduledStartTime,
+    endTime
+  );
+  
+  // Helper to calculate end time
+  function calculateEndTime(startTime: string, durationMinutes: number): string {
+    const [hours, minutes] = startTime.split(':').map(Number);
+    const totalMinutes = hours * 60 + minutes + durationMinutes;
+    const endHours = Math.floor(totalMinutes / 60) % 24;
+    const endMins = totalMinutes % 60;
+    return `${endHours.toString().padStart(2, '0')}:${endMins.toString().padStart(2, '0')}`;
+  }
   
   useEffect(() => {
     if (prefillRoom && rooms?.length) {
@@ -112,6 +151,8 @@ export default function SurgeryFormPage() {
         diagnosis: formData.diagnosis || undefined,
         priority: formData.priority,
         lead_surgeon_id: formData.leadSurgeonId || undefined,
+        // @ts-expect-error - anesthetist_id may not be in partial type yet
+        anesthetist_id: formData.anesthetistId || undefined,
         ot_room_id: formData.otRoomId || undefined,
         scheduled_date: format(scheduledDate, 'yyyy-MM-dd'),
         scheduled_start_time: formData.scheduledStartTime,
@@ -120,6 +161,7 @@ export default function SurgeryFormPage() {
         admission_id: activeAdmission?.id, // Auto-link to admission if exists
         is_billable: !!activeAdmission, // Billable if IPD patient
         estimated_cost: totalOTCharges, // Total from services
+        status: 'booked' as any, // New surgeries start as 'booked' awaiting team confirmation
       });
 
       // If surgery was created from a surgery request, update the request status
@@ -286,22 +328,70 @@ export default function SurgeryFormPage() {
 
                   <div className="space-y-2">
                     <Label>Lead Surgeon</Label>
+                    <div className="flex items-center gap-2">
+                      <Select
+                        value={formData.leadSurgeonId}
+                        onValueChange={(value) => setFormData(prev => ({ ...prev, leadSurgeonId: value }))}
+                      >
+                        <SelectTrigger className="flex-1">
+                          <SelectValue placeholder="Select surgeon" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {surgeons?.map(doc => (
+                            <SelectItem key={doc.id} value={doc.id}>
+                              {doc.profile?.full_name} - {doc.specialization}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {formData.leadSurgeonId && scheduledDate && (
+                        surgeonAvailability?.available ? (
+                          <CheckCircle className="h-5 w-5 text-green-500" />
+                        ) : (
+                          <XCircle className="h-5 w-5 text-destructive" />
+                        )
+                      )}
+                    </div>
+                    {formData.leadSurgeonId && surgeonAvailability && !surgeonAvailability.available && (
+                      <p className="text-xs text-red-500">
+                        Surgeon has conflict: {surgeonAvailability.conflicts?.[0]?.procedureName}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Anesthetist Selection */}
+                <div className="space-y-2">
+                  <Label>Anesthetist</Label>
+                  <div className="flex items-center gap-2">
                     <Select
-                      value={formData.leadSurgeonId}
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, leadSurgeonId: value }))}
+                      value={formData.anesthetistId}
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, anesthetistId: value }))}
                     >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select surgeon" />
+                      <SelectTrigger className="flex-1">
+                        <SelectValue placeholder="Select anesthetist" />
                       </SelectTrigger>
                       <SelectContent>
-                        {surgeons?.map(doc => (
+                        {anesthesiologists?.map(doc => (
                           <SelectItem key={doc.id} value={doc.id}>
                             {doc.profile?.full_name} - {doc.specialization}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
+                    {formData.anesthetistId && scheduledDate && (
+                      anesthetistAvailability?.available ? (
+                        <CheckCircle className="h-5 w-5 text-green-500" />
+                      ) : (
+                        <XCircle className="h-5 w-5 text-red-500" />
+                      )
+                    )}
                   </div>
+                  {formData.anesthetistId && anesthetistAvailability && !anesthetistAvailability.available && (
+                    <p className="text-xs text-red-500">
+                      Anesthetist has conflict: {anesthetistAvailability.conflicts?.[0]?.procedureName}
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -365,12 +455,30 @@ export default function SurgeryFormPage() {
                 </div>
 
                 {formData.branchId && (
-                  <OTRoomPicker
-                    value={formData.otRoomId}
-                    onChange={(roomId) => setFormData(prev => ({ ...prev, otRoomId: roomId }))}
-                    branchId={formData.branchId}
-                    showOnlyAvailable={true}
-                  />
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1">
+                        <OTRoomPicker
+                          value={formData.otRoomId}
+                          onChange={(roomId) => setFormData(prev => ({ ...prev, otRoomId: roomId }))}
+                          branchId={formData.branchId}
+                          showOnlyAvailable={true}
+                        />
+                      </div>
+                      {formData.otRoomId && scheduledDate && (
+                        roomAvailability?.available ? (
+                          <CheckCircle className="h-5 w-5 text-green-500" />
+                        ) : (
+                          <XCircle className="h-5 w-5 text-red-500" />
+                        )
+                      )}
+                    </div>
+                    {formData.otRoomId && roomAvailability && !roomAvailability.available && (
+                      <p className="text-xs text-red-500">
+                        Room has conflict: {roomAvailability.conflicts?.[0]?.procedureName}
+                      </p>
+                    )}
+                  </div>
                 )}
               </CardContent>
             </Card>

@@ -10,6 +10,9 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { OTStatusBadge } from "@/components/ot/OTStatusBadge";
 import { PriorityBadge } from "@/components/ot/PriorityBadge";
 import { SurgeryTeamList } from "@/components/ot/SurgeryTeamList";
+import { SurgeryTimeline } from "@/components/ot/SurgeryTimeline";
+import { TeamConfirmationStatus } from "@/components/ot/TeamConfirmationStatus";
+import { SurgeryOutcomeForm } from "@/components/ot/SurgeryOutcomeForm";
 import { WHOChecklistModal } from "@/components/ot/WHOChecklistModal";
 import { ConsentFormModal } from "@/components/ot/ConsentFormModal";
 import { OTMedicationPanel } from "@/components/ot/OTMedicationPanel";
@@ -34,6 +37,7 @@ import {
   Pill,
   Package,
   ClipboardCheck,
+  Trophy,
 } from "lucide-react";
 import { format, differenceInMinutes } from "date-fns";
 import { 
@@ -45,20 +49,26 @@ import {
 } from "@/hooks/useOT";
 import { useSurgeryConsents } from "@/hooks/useConsentForms";
 import { useSurgeryMedications } from "@/hooks/useOTMedications";
+import { useAcceptSurgeryAssignment, useDeclineSurgeryAssignment } from "@/hooks/useSurgeryConfirmation";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function SurgeryDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { profile } = useAuth();
   
   const { data: surgery, isLoading, isError } = useSurgery(id!);
   const startSurgery = useStartSurgery();
   const completeSurgery = useCompleteSurgery();
   const cancelSurgery = useCancelSurgery();
   const admitToPACU = useAdmitToPACU();
+  const acceptAssignment = useAcceptSurgeryAssignment();
+  const declineAssignment = useDeclineSurgeryAssignment();
 
   const [showChecklist, setShowChecklist] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
+  const [showOutcomeForm, setShowOutcomeForm] = useState(false);
 
   if (isLoading) {
     return (
@@ -147,7 +157,15 @@ export default function SurgeryDetailPage() {
             <Printer className="h-4 w-4 mr-2" />
             Print
           </Button>
-          {surgery.status === 'scheduled' && (
+          {/* Booked status - awaiting confirmation */}
+          {surgery.status === 'booked' && (
+            <Button variant="outline" onClick={() => setShowCancelDialog(true)}>
+              <XCircle className="h-4 w-4 mr-2" />
+              Cancel
+            </Button>
+          )}
+          {/* Confirmed or scheduled - can start surgery */}
+          {(surgery.status === 'scheduled' || surgery.status === 'confirmed' || surgery.status === 'pre_op') && (
             <>
               <Button variant="outline" onClick={() => setShowCancelDialog(true)}>
                 <XCircle className="h-4 w-4 mr-2" />
@@ -165,6 +183,12 @@ export default function SurgeryDetailPage() {
               Complete Surgery
             </Button>
           )}
+          {surgery.status === 'completed' && !(surgery as any).outcome && (
+            <Button onClick={() => setShowOutcomeForm(true)}>
+              <Trophy className="h-4 w-4 mr-2" />
+              Record Outcome
+            </Button>
+          )}
           {surgery.status === 'completed' && !surgery.post_op_recovery && (
             <Button onClick={handleAdmitToPACU} disabled={admitToPACU.isPending}>
               <HeartPulse className="h-4 w-4 mr-2" />
@@ -173,6 +197,20 @@ export default function SurgeryDetailPage() {
           )}
         </div>
       </div>
+
+      {/* Surgery Timeline */}
+      <SurgeryTimeline
+        status={surgery.status}
+        outcome={(surgery as any).outcome}
+        timestamps={{
+          created_at: surgery.created_at,
+          booked_at: (surgery as any).booked_at,
+          confirmed_at: (surgery as any).confirmed_at,
+          actual_start_time: surgery.actual_start_time,
+          actual_end_time: surgery.actual_end_time,
+          outcome_recorded_at: (surgery as any).outcome_recorded_at,
+        }}
+      />
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Main Content */}
@@ -515,17 +553,57 @@ export default function SurgeryDetailPage() {
 
             {/* Post-Op Orders Tab */}
             <TabsContent value="postop" className="mt-4">
-              <Card>
-                <CardContent className="pt-6">
-                  <PostOpOrdersForm surgeryId={surgery.id} />
-                </CardContent>
-              </Card>
+              <div className="space-y-6">
+                {/* Outcome Form - show when completed but no outcome recorded */}
+                {surgery.status === 'completed' && !(surgery as any).outcome && (
+                  <SurgeryOutcomeForm
+                    surgeryId={surgery.id}
+                    surgeryNumber={surgery.surgery_number}
+                    onSuccess={() => setShowOutcomeForm(false)}
+                  />
+                )}
+                
+                {/* Show existing outcome if recorded */}
+                {(surgery as any).outcome && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Trophy className="h-5 w-5" />
+                        Surgery Outcome
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center gap-4">
+                        <Badge 
+                          variant={(surgery as any).outcome === 'successfull' ? 'default' : 'destructive'}
+                          className="text-sm"
+                        >
+                          {(surgery as any).outcome === 'successfull' ? '✓ Successful' : 
+                           (surgery as any).outcome === 'failed' ? '✗ Failed' : 'Unknown'}
+                        </Badge>
+                        {(surgery as any).outcome_notes && (
+                          <p className="text-sm text-muted-foreground">{(surgery as any).outcome_notes}</p>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+                
+                <Card>
+                  <CardContent className="pt-6">
+                    <PostOpOrdersForm surgeryId={surgery.id} />
+                  </CardContent>
+                </Card>
+              </div>
             </TabsContent>
           </Tabs>
         </div>
 
         {/* Sidebar */}
         <div className="space-y-6">
+          {/* Team Confirmation Status */}
+          <TeamConfirmationStatus surgeryId={surgery.id} />
+          
           {/* Surgical Team */}
           <Card>
             <CardHeader>
@@ -534,7 +612,7 @@ export default function SurgeryDetailPage() {
             <CardContent>
               <SurgeryTeamList 
                 members={surgery.team_members || []} 
-                editable={surgery.status === 'scheduled'}
+                editable={surgery.status === 'scheduled' || surgery.status === 'booked'}
               />
             </CardContent>
           </Card>

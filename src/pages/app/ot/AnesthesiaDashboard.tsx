@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { PendingConfirmationsCard } from "@/components/ot/PendingConfirmationsCard";
 import { 
   Clock, 
   CheckCircle2, 
@@ -125,6 +126,9 @@ export default function AnesthesiaDashboard() {
           />
         ))}
       </div>
+
+      {/* Pending Surgery Confirmations */}
+      <PendingConfirmationsCard userRole="anesthetist" />
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Pending Pre-Anesthesia Assessments */}
