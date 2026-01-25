@@ -20,9 +20,10 @@ import {
 import { format } from "date-fns";
 import { useState } from "react";
 import { useSurgery, useCreatePreOpAssessment, useUpdatePreOpAssessment } from "@/hooks/useOT";
-import { useLabOrders } from "@/hooks/useLabOrders";
+import { useLabOrders, useCreateLabOrder, LabOrderItemInput } from "@/hooks/useLabOrders";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { otLogger } from "@/lib/logger";
 
 export default function PreOpAssessmentPage() {
   const { id } = useParams<{ id: string }>();
@@ -33,6 +34,7 @@ export default function PreOpAssessmentPage() {
   const { data: labOrders } = useLabOrders({ patientId: surgery?.patient_id });
   const createAssessment = useCreatePreOpAssessment();
   const updateAssessment = useUpdatePreOpAssessment();
+  const createLabOrder = useCreateLabOrder();
 
   const [showLabModal, setShowLabModal] = useState(false);
 
@@ -97,8 +99,43 @@ export default function PreOpAssessmentPage() {
   };
 
   const handleOrderLabs = async (tests: any[], priority: string, notes: string) => {
-    // This would integrate with lab order creation
-    toast.success(`Ordered ${tests.length} lab tests`);
+    if (!surgery?.patient_id || !surgery?.branch_id) {
+      toast.error('Missing patient or branch information');
+      return;
+    }
+
+    const items: LabOrderItemInput[] = tests.map(test => ({
+      test_name: test.name || test.test_name,
+      test_category: test.category || 'lab',
+    }));
+
+    try {
+      otLogger.info('PreOpAssessmentPage: Ordering lab tests', {
+        surgeryId: surgery.id,
+        patientId: surgery.patient_id,
+        testsCount: items.length,
+        tests: items.map(i => i.test_name),
+      });
+
+      await createLabOrder.mutateAsync({
+        labOrder: {
+          patient_id: surgery.patient_id,
+          branch_id: surgery.branch_id,
+          priority: priority as 'routine' | 'urgent' | 'stat',
+          clinical_notes: `Pre-operative workup for ${surgery.surgery_number}. ${notes}`.trim(),
+          ordered_by: profile?.id,
+        },
+        items,
+        createInvoice: false,
+      });
+
+      toast.success(`Ordered ${tests.length} lab tests`, {
+        description: 'Tests will appear in the Lab module'
+      });
+    } catch (error: any) {
+      otLogger.error('PreOpAssessmentPage: Failed to order lab tests', error);
+      toast.error(error.message || 'Failed to order lab tests');
+    }
   };
 
   // Filter lab orders for this surgery/patient

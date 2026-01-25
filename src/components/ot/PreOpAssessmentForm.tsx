@@ -47,7 +47,7 @@ export function PreOpAssessmentForm({
   patientBloodGroup 
 }: PreOpAssessmentFormProps) {
   const [formData, setFormData] = useState({
-    asa_class: assessment?.asa_class || '' as ASAClass,
+    asa_class: assessment?.asa_class || (null as unknown as ASAClass),
     asa_notes: assessment?.asa_notes || '',
     medical_history_reviewed: assessment?.medical_history_reviewed || false,
     allergies: assessment?.allergies || '',
@@ -95,9 +95,11 @@ export function PreOpAssessmentForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // Send null instead of empty string for asa_class to avoid enum error
     onSave({
       surgery_id: surgeryId,
       ...formData,
+      asa_class: formData.asa_class || null,
     });
   };
 

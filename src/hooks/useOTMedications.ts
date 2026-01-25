@@ -109,9 +109,18 @@ export function useCreateMedication() {
       if (error) throw error;
       return data;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['surgery-medications', variables.surgery_id] });
-      toast.success('Medication order added');
+      queryClient.invalidateQueries({ queryKey: ['ot-medication-queue'] });
+      
+      // Provide clear feedback based on pharmacy request status
+      if (variables.pharmacy_status === 'requested') {
+        toast.success('Medication requested from pharmacy', {
+          description: 'Pharmacists can view this in the OT Medication Queue'
+        });
+      } else {
+        toast.success('Medication order added');
+      }
     },
     onError: (error: any) => {
       toast.error(error.message || 'Failed to add medication');
