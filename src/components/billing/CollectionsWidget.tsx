@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Receipt, AlertTriangle, Clock, ArrowRight, TrendingUp } from "lucide-react";
 import { useDashboardBilling } from "@/hooks/useBilling";
 import { format } from "date-fns";
+import { formatCurrency } from "@/lib/currency";
 
 export function CollectionsWidget() {
   const navigate = useNavigate();
@@ -68,14 +69,14 @@ export function CollectionsWidget() {
               <TrendingUp className="h-4 w-4" />
               <span className="text-xs font-medium">Collected Today</span>
             </div>
-            <p className="text-lg font-bold">PKR {todayCollected.toLocaleString()}</p>
+            <p className="text-lg font-bold">{formatCurrency(todayCollected)}</p>
           </div>
           <div className="p-3 rounded-lg bg-warning/10 border border-warning/20">
             <div className="flex items-center gap-2 text-warning mb-1">
               <Clock className="h-4 w-4" />
               <span className="text-xs font-medium">Pending Today</span>
             </div>
-            <p className="text-lg font-bold">PKR {totalPendingAmount.toLocaleString()}</p>
+            <p className="text-lg font-bold">{formatCurrency(totalPendingAmount)}</p>
           </div>
         </div>
 
@@ -100,7 +101,7 @@ export function CollectionsWidget() {
                     </span>
                   </div>
                   <Badge variant="outline" className="text-warning border-warning">
-                    PKR {((invoice.total_amount || 0) - (invoice.paid_amount || 0)).toLocaleString()}
+                    {formatCurrency((invoice.total_amount || 0) - (invoice.paid_amount || 0))}
                   </Badge>
                 </div>
               ))}
@@ -125,7 +126,7 @@ export function CollectionsWidget() {
               <AlertTriangle className="h-4 w-4 text-destructive" />
               Overdue ({overdueInvoices.length})
               <Badge variant="destructive" className="ml-auto">
-                PKR {totalOverdueAmount.toLocaleString()}
+                {formatCurrency(totalOverdueAmount)}
               </Badge>
             </h4>
             <div className="space-y-2 max-h-32 overflow-y-auto">
@@ -145,7 +146,7 @@ export function CollectionsWidget() {
                       <span className="text-xs text-destructive">{daysOverdue}d overdue</span>
                     </div>
                     <span className="text-sm font-medium text-destructive">
-                      PKR {((invoice.total_amount || 0) - (invoice.paid_amount || 0)).toLocaleString()}
+                      {formatCurrency((invoice.total_amount || 0) - (invoice.paid_amount || 0))}
                     </span>
                   </div>
                 );

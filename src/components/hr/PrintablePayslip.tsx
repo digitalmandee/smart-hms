@@ -1,5 +1,6 @@
 import { forwardRef } from "react";
 import { format } from "date-fns";
+import { formatCurrency as formatCurrencyUtil } from "@/lib/currency";
 
 interface PayslipData {
   employee: {
@@ -318,12 +319,7 @@ export const PrintablePayslip = forwardRef<HTMLDivElement, PrintablePayslipProps
     const netSalary = data.netSalary ?? (totalEarnings - totalDeductions);
     const grossSalary = data.grossSalary ?? totalEarnings;
 
-    const formatCurrency = (amount: number) =>
-      new Intl.NumberFormat("en-PK", {
-        style: "currency",
-        currency: "PKR",
-        minimumFractionDigits: 0,
-      }).format(amount || 0);
+    const formatCurrency = (amount: number) => formatCurrencyUtil(amount);
 
     const formatPaymentDate = (dateStr?: string) => {
       if (!dateStr) return "N/A";

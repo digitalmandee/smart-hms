@@ -22,6 +22,7 @@ import {
 import { usePayrollRuns } from "@/hooks/usePayroll";
 import { Loader2, Plus, DollarSign, Users, FileText, TrendingUp } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { formatCurrency } from "@/lib/currency";
 
 const months = [
   "January", "February", "March", "April", "May", "June",
@@ -57,13 +58,6 @@ export default function PayrollPage() {
 
   // Calculate stats from filtered runs
   const completedRuns = filteredRuns?.filter((r) => r.status === "completed").length || 0;
-
-  const formatCurrency = (amount: number) =>
-    new Intl.NumberFormat("en-PK", {
-      style: "currency",
-      currency: "PKR",
-      minimumFractionDigits: 0,
-    }).format(amount);
 
   return (
     <div className="space-y-6">
