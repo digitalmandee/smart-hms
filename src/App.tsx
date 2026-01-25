@@ -627,6 +627,7 @@ function App() {
               <Route path="ot/surgeries/:id/anesthesia" element={<AnesthesiaRecordPage />} />
               <Route path="ot/surgeries/:id/pre-anesthesia" element={<PreAnesthesiaAssessmentPage />} />
               <Route path="ot/surgeries/:id/op-notes" element={<IntraOpNotesPage />} />
+              <Route path="ot/surgeries/:id/live" element={<LiveSurgeryPage />} />
               <Route path="ot/anesthesia" element={<AnesthesiaDashboard />} />
               <Route path="ot/rooms" element={<OTRoomsPage />} />
               <Route path="ot/rooms/new" element={<OTRoomFormPage />} />
