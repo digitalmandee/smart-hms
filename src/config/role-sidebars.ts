@@ -690,6 +690,44 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
     ]
   },
 
+  // OT PHARMACIST - Dedicated OT medication workflow
+  ot_pharmacist: {
+    items: [
+      { name: "Dashboard", path: "/app/pharmacy", icon: "LayoutDashboard" },
+      { 
+        name: "OT Queue", 
+        path: "", 
+        icon: "Syringe",
+        children: [
+          { name: "Medication Queue", path: "/app/pharmacy/ot-queue", icon: "ClipboardList" },
+          { name: "Pending Requests", path: "/app/pharmacy/ot-pending", icon: "Clock" },
+        ]
+      },
+      { 
+        name: "Inventory", 
+        path: "", 
+        icon: "Package",
+        children: [
+          { name: "Medicines", path: "/app/pharmacy/medicines", icon: "Pill" },
+          { name: "Stock", path: "/app/pharmacy/inventory", icon: "ListTree" },
+          { name: "Add Stock", path: "/app/pharmacy/inventory/add", icon: "PackageCheck" },
+        ]
+      },
+      { name: "POS Terminal", path: "/app/pharmacy/pos", icon: "Calculator" },
+      { 
+        name: "My Work", 
+        path: "", 
+        icon: "Briefcase",
+        children: [
+          { name: "My Schedule", path: "/app/my-schedule", icon: "Calendar" },
+          { name: "My Attendance", path: "/app/my-attendance", icon: "Clock" },
+          { name: "My Leaves", path: "/app/my-leaves", icon: "CalendarOff" },
+          { name: "My Payslips", path: "/app/my-payslips", icon: "FileText" },
+        ]
+      },
+    ]
+  },
+
   // OT TECHNICIAN - General OT support
   ot_technician: {
     items: [
