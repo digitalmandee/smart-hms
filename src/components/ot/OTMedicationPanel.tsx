@@ -39,6 +39,7 @@ import {
   useHoldMedication,
   useCancelMedication,
   useDeleteMedication,
+  useRequestPharmacyDispense,
   COMMON_PREOP_MEDICATIONS,
   type SurgeryMedication,
 } from '@/hooks/useOTMedications';
@@ -98,6 +99,7 @@ export function OTMedicationPanel({ surgeryId }: OTMedicationPanelProps) {
   const { data: medications, isLoading } = useSurgeryMedications(surgeryId);
   const createMedication = useCreateMedication();
   const administerMedication = useAdministerMedication();
+  const requestPharmacy = useRequestPharmacyDispense();
   const holdMedication = useHoldMedication();
   const cancelMedication = useCancelMedication();
   const deleteMedication = useDeleteMedication();
@@ -421,6 +423,7 @@ export function OTMedicationPanel({ surgeryId }: OTMedicationPanelProps) {
                   <MedicationCard
                     key={med.id}
                     medication={med}
+                    surgeryId={surgeryId}
                     onAdminister={() => handleAdminister(med)}
                     onHold={(reason) => {
                       setHoldReason(reason);
@@ -428,13 +431,18 @@ export function OTMedicationPanel({ surgeryId }: OTMedicationPanelProps) {
                     }}
                     onCancel={() => handleCancel(med)}
                     onDelete={() => handleDelete(med)}
+                    onRequestPharmacy={() => requestPharmacy.mutate({ 
+                      medicationId: med.id, 
+                      surgeryId 
+                    })}
                     holdReason={holdReason}
                     setHoldReason={setHoldReason}
                     isLoading={
                       administerMedication.isPending ||
                       holdMedication.isPending ||
                       cancelMedication.isPending ||
-                      deleteMedication.isPending
+                      deleteMedication.isPending ||
+                      requestPharmacy.isPending
                     }
                   />
                 ))}
@@ -449,10 +457,12 @@ export function OTMedicationPanel({ surgeryId }: OTMedicationPanelProps) {
 
 interface MedicationCardProps {
   medication: SurgeryMedication;
+  surgeryId: string;
   onAdminister: () => void;
   onHold: (reason: string) => void;
   onCancel: () => void;
   onDelete: () => void;
+  onRequestPharmacy: () => void;
   holdReason: string;
   setHoldReason: (reason: string) => void;
   isLoading: boolean;
@@ -460,10 +470,12 @@ interface MedicationCardProps {
 
 function MedicationCard({
   medication,
+  surgeryId,
   onAdminister,
   onHold,
   onCancel,
   onDelete,
+  onRequestPharmacy,
   holdReason,
   setHoldReason,
   isLoading,
@@ -533,6 +545,20 @@ function MedicationCard({
           {/* Action Buttons */}
           {medication.status === 'pending' && (
             <div className="flex items-center gap-1 flex-shrink-0">
+              {/* Request from Pharmacy button - shown when not yet requested */}
+              {medication.pharmacy_status === 'not_required' && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-1"
+                  onClick={onRequestPharmacy}
+                  disabled={isLoading}
+                >
+                  <Package className="h-3 w-3" />
+                  Request
+                </Button>
+              )}
+              
               <Button
                 size="sm"
                 variant="default"
