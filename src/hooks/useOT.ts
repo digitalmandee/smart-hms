@@ -969,7 +969,8 @@ export function useCreatePreOpAssessment() {
         .insert({
           surgery_id: assessment.surgery_id!,
           assessed_by: profile?.id!,
-          asa_class: assessment.asa_class,
+          // Send null for empty asa_class to avoid enum error
+          asa_class: assessment.asa_class || null,
           asa_notes: assessment.asa_notes,
           allergies: assessment.allergies,
           vitals: assessment.vitals as any,
@@ -977,6 +978,16 @@ export function useCreatePreOpAssessment() {
           consent_verified: assessment.consent_verified,
           site_marked: assessment.site_marked,
           is_cleared_for_surgery: assessment.is_cleared_for_surgery,
+          // Add missing fields
+          medical_history_reviewed: assessment.medical_history_reviewed,
+          blood_arranged: assessment.blood_arranged,
+          jewelry_removed: assessment.jewelry_removed,
+          dentures_removed: assessment.dentures_removed,
+          investigations_cleared: assessment.investigations_cleared,
+          medical_clearance: assessment.medical_clearance as any,
+          cardiac_clearance: assessment.cardiac_clearance as any,
+          anesthesia_clearance: assessment.anesthesia_clearance as any,
+          clearance_notes: assessment.clearance_notes,
         })
         .select()
         .single();
