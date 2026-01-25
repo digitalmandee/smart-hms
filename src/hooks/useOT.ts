@@ -1252,16 +1252,19 @@ export function usePACUPatients(branchId?: string) {
   return useQuery({
     queryKey: ['pacu-patients', profile?.organization_id, branchId],
     queryFn: async () => {
+      // Use explicit FK hints to avoid PostgREST relationship ambiguity
       let query = supabase
         .from('post_op_recovery')
         .select(`
           *,
-          surgery:surgeries(
+          surgery:surgeries!post_op_recovery_surgery_id_fkey(
             id, surgery_number, procedure_name, patient_id,
-            patient:patients(id, first_name, last_name, patient_number, date_of_birth),
-            lead_surgeon:doctors(profile:profiles(full_name))
-          ),
-          pacu_nurse:nurses(id, profile:profiles(full_name))
+            patient:patients!surgeries_patient_id_fkey(id, first_name, last_name, patient_number, date_of_birth),
+            lead_surgeon:doctors!surgeries_lead_surgeon_id_fkey(
+              id,
+              profile:profiles!doctors_profile_id_fkey(full_name)
+            )
+          )
         `)
         .is('discharge_time', null)
         .order('pacu_arrival_time', { ascending: true });
