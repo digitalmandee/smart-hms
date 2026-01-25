@@ -46,8 +46,25 @@ export function PreOpAssessmentForm({
   isLoading,
   patientBloodGroup 
 }: PreOpAssessmentFormProps) {
-  const [formData, setFormData] = useState({
-    asa_class: assessment?.asa_class || (null as unknown as ASAClass),
+  const [formData, setFormData] = useState<{
+    asa_class: ASAClass | undefined;
+    asa_notes: string;
+    medical_history_reviewed: boolean;
+    allergies: string;
+    vitals: typeof assessment extends { vitals: infer V } ? V : Record<string, string>;
+    medical_clearance: { cleared: boolean; doctor: string; date: string; notes: string };
+    cardiac_clearance: { cleared: boolean; doctor: string; date: string; notes: string };
+    anesthesia_clearance: { cleared: boolean; doctor: string; date: string; notes: string };
+    fasting_confirmed: boolean;
+    consent_verified: boolean;
+    site_marked: boolean;
+    blood_arranged: boolean;
+    jewelry_removed: boolean;
+    dentures_removed: boolean;
+    investigations_cleared: boolean;
+    clearance_notes: string;
+  }>({
+    asa_class: assessment?.asa_class || undefined,
     asa_notes: assessment?.asa_notes || '',
     medical_history_reviewed: assessment?.medical_history_reviewed || false,
     allergies: assessment?.allergies || '',
@@ -135,8 +152,8 @@ export function PreOpAssessmentForm({
           <div className="space-y-2">
             <Label>ASA Class *</Label>
             <Select
-              value={formData.asa_class}
-              onValueChange={(value) => updateFormData('asa_class', value)}
+              value={formData.asa_class ?? ""}
+              onValueChange={(value: string) => updateFormData('asa_class', value as ASAClass)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select ASA class" />
