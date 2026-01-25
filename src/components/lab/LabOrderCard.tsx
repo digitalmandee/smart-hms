@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { TestTube, Clock, User, Stethoscope, FileInput, CreditCard, CheckCircle, AlertCircle } from "lucide-react";
 import { LabOrderWithItems } from "@/hooks/useLabOrders";
 import { LabPaymentDialog } from "./LabPaymentDialog";
+import { useLabSettings } from "@/hooks/useLabSettings";
 import { cn } from "@/lib/utils";
 
 interface LabOrderCardProps {
@@ -39,6 +40,7 @@ const paymentStatusConfig = {
 export function LabOrderCard({ order, canCollectPayment, onPaymentComplete }: LabOrderCardProps) {
   const navigate = useNavigate();
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const { data: labSettings } = useLabSettings();
   
   const patient = order.patient;
   const doctor = order.doctor as { profile?: { full_name: string } } | undefined;
@@ -53,7 +55,8 @@ export function LabOrderCard({ order, canCollectPayment, onPaymentComplete }: La
   const totalCount = order.items?.length || 0;
 
   const isPaid = order.payment_status === "paid" || order.payment_status === "waived";
-  const canProceed = isPaid || order.status !== "ordered";
+  const allowUnpaid = labSettings?.allow_unpaid_processing ?? false;
+  const canProceed = isPaid || allowUnpaid || order.status !== "ordered";
 
   return (
     <>

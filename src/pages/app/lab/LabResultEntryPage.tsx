@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useLabOrder, useUpdateLabOrderItem, useMarkSampleCollected, useCompleteLabOrder } from "@/hooks/useLabOrders";
 import { usePublishLabReport } from "@/hooks/usePublicLabReport";
+import { useLabSettings } from "@/hooks/useLabSettings";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePrint } from "@/hooks/usePrint";
 import { useOrganizationBranding } from "@/hooks/useOrganizationBranding";
@@ -17,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { ArrowLeft, Printer, CheckCircle, Loader2, User, Calendar, Stethoscope, FlaskConical, AlertTriangle, Globe, Copy, Mail, Barcode } from "lucide-react";
+import { ArrowLeft, Printer, CheckCircle, Loader2, User, Calendar, Stethoscope, FlaskConical, AlertTriangle, Globe, Copy, Mail, Barcode, CreditCard } from "lucide-react";
 import { format, differenceInYears } from "date-fns";
 
 const priorityConfig = {
@@ -39,6 +40,7 @@ export default function LabResultEntryPage() {
   const navigate = useNavigate();
   const { profile } = useAuth();
   const { data: labOrder, isLoading } = useLabOrder(orderId);
+  const { data: labSettings } = useLabSettings();
   const { data: branding } = useOrganizationBranding();
   const updateItem = useUpdateLabOrderItem();
   const markCollected = useMarkSampleCollected();
@@ -83,6 +85,11 @@ export default function LabResultEntryPage() {
   const totalItemsCount = labOrder.items?.length || 0;
   const allItemsCompleted = completedItemsCount === totalItemsCount && totalItemsCount > 0;
   const isOrderCompleted = labOrder.status === "completed";
+  
+  // Check payment and settings for allowing unpaid processing
+  const isPaid = labOrder.payment_status === "paid" || labOrder.payment_status === "waived";
+  const allowUnpaid = labSettings?.allow_unpaid_processing ?? false;
+  const canProcessUnpaid = isPaid || allowUnpaid;
 
   const handleSaveTestResult = async (
     itemId: string,
@@ -249,8 +256,25 @@ export default function LabResultEntryPage() {
         </CardContent>
       </Card>
 
-      {/* Sample Collection Status */}
-      {labOrder.status === "ordered" && (
+      {/* Sample Collection Status - Payment Required Warning */}
+      {labOrder.status === "ordered" && !canProcessUnpaid && (
+        <Card className="border-yellow-300 bg-yellow-50/50">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <CreditCard className="h-5 w-5 text-yellow-600" />
+              <div>
+                <p className="font-medium text-yellow-800">Payment Required</p>
+                <p className="text-sm text-yellow-600">
+                  This order requires payment before sample collection. Please collect payment first or enable "Allow Processing Unpaid Orders" in Lab Settings.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Sample Collection Form - Show when order is pending collection and payment is cleared or unpaid processing allowed */}
+      {labOrder.status === "ordered" && canProcessUnpaid && (
         <Card className="border-orange-200 bg-orange-50/50">
           <CardContent className="pt-6">
             <div className="space-y-4">
@@ -259,6 +283,12 @@ export default function LabResultEntryPage() {
                 <div>
                   <p className="font-medium text-orange-800">Sample Not Collected</p>
                   <p className="text-sm text-orange-600">Enter sample number and mark as collected to enable result entry</p>
+                  {!isPaid && (
+                    <Badge variant="outline" className="mt-1 text-yellow-700 border-yellow-400 bg-yellow-50">
+                      <CreditCard className="h-3 w-3 mr-1" />
+                      Payment Pending - Processing allowed
+                    </Badge>
+                  )}
                 </div>
               </div>
               
@@ -334,7 +364,7 @@ export default function LabResultEntryPage() {
             item={item}
             onSave={isOrderCompleted ? handleUpdateTestResult : handleSaveTestResult}
             isSaving={savingItemId === item.id}
-            isEditable={labOrder.status !== "ordered"}
+            isEditable={labOrder.status !== "ordered" || (labOrder.status === "ordered" && canProcessUnpaid)}
             showUpdateLabel={isOrderCompleted && item.status === "completed"}
             patientInfo={{
               name: `${patient?.first_name || ""} ${patient?.last_name || ""}`.trim(),

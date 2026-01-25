@@ -10246,6 +10246,60 @@ export type Database = {
           },
         ]
       }
+      lab_settings: {
+        Row: {
+          allow_direct_lab_payment: boolean | null
+          allow_unpaid_processing: boolean | null
+          auto_generate_invoice: boolean | null
+          branch_id: string | null
+          created_at: string | null
+          id: string
+          lab_payment_location: string | null
+          organization_id: string
+          require_consultation_for_lab: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          allow_direct_lab_payment?: boolean | null
+          allow_unpaid_processing?: boolean | null
+          auto_generate_invoice?: boolean | null
+          branch_id?: string | null
+          created_at?: string | null
+          id?: string
+          lab_payment_location?: string | null
+          organization_id: string
+          require_consultation_for_lab?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          allow_direct_lab_payment?: boolean | null
+          allow_unpaid_processing?: boolean | null
+          auto_generate_invoice?: boolean | null
+          branch_id?: string | null
+          created_at?: string | null
+          id?: string
+          lab_payment_location?: string | null
+          organization_id?: string
+          require_consultation_for_lab?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_settings_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_settings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lab_test_categories: {
         Row: {
           code: string | null
