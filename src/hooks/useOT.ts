@@ -1126,6 +1126,16 @@ export function useSaveAnesthesiaRecord() {
 
   return useMutation({
     mutationFn: async ({ surgeryId, ...record }: Partial<AnesthesiaRecord> & { surgeryId: string }) => {
+      // Sanitize empty strings to null for timestamp fields
+      const sanitizedRecord = {
+        ...record,
+        anesthesia_start_time: record.anesthesia_start_time || null,
+        anesthesia_end_time: record.anesthesia_end_time || null,
+        induction_time: record.induction_time || null,
+        intubation_time: record.intubation_time || null,
+        extubation_time: record.extubation_time || null,
+      };
+
       // Check if record exists
       const { data: existing } = await supabase
         .from('anesthesia_records')
@@ -1136,7 +1146,7 @@ export function useSaveAnesthesiaRecord() {
       if (existing) {
         const { data, error } = await supabase
           .from('anesthesia_records')
-          .update(record)
+          .update(sanitizedRecord)
           .eq('surgery_id', surgeryId)
           .select()
           .single();
@@ -1180,6 +1190,13 @@ export function useSaveIntraOpNotes() {
 
   return useMutation({
     mutationFn: async ({ surgeryId, ...notes }: Partial<IntraOpNotes> & { surgeryId: string }) => {
+      // Sanitize empty strings to null for timestamp fields
+      const sanitizedNotes = {
+        ...notes,
+        incision_time: notes.incision_time || null,
+        closure_time: notes.closure_time || null,
+      };
+
       // Check if notes exist
       const { data: existing } = await supabase
         .from('intra_op_notes')
@@ -1190,7 +1207,7 @@ export function useSaveIntraOpNotes() {
       if (existing) {
         const { data, error } = await supabase
           .from('intra_op_notes')
-          .update(notes)
+          .update(sanitizedNotes)
           .eq('surgery_id', surgeryId)
           .select()
           .single();
