@@ -62,6 +62,7 @@ export default function SurgeryDetailPage() {
   const { profile, hasRole } = useAuth();
   
   const { data: surgery, isLoading, isError } = useSurgery(id!);
+  const { data: consents } = useSurgeryConsents(id);
   const startSurgery = useStartSurgery();
   const completeSurgery = useCompleteSurgery();
   const cancelSurgery = useCancelSurgery();
@@ -74,6 +75,9 @@ export default function SurgeryDetailPage() {
   const [cancelReason, setCancelReason] = useState("");
   const [showOutcomeForm, setShowOutcomeForm] = useState(false);
   const [isBeginningPreOp, setIsBeginningPreOp] = useState(false);
+
+  // Check if any valid consent exists (fallback if surgery.consent_signed not updated)
+  const hasValidConsent = consents?.some(c => c.is_valid) ?? false;
 
   // Role-based visibility checks
   const canCompleteChecklist = hasRole('surgeon') || hasRole('ot_nurse') || hasRole('branch_admin') || hasRole('super_admin');
@@ -718,7 +722,7 @@ export default function SurgeryDetailPage() {
             surgeryStatus={surgery.status}
             medicationsOrdered={(surgery as any).pre_op_medications_ordered ?? false}
             suppliesReady={(surgery as any).pre_op_supplies_ready ?? false}
-            consentSigned={surgery.consent_signed ?? false}
+            consentSigned={surgery.consent_signed || hasValidConsent}
             preOpAssessmentCompleted={surgery.pre_op_assessment?.is_cleared_for_surgery ?? false}
             readyAt={(surgery as any).ready_at}
           />
