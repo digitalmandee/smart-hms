@@ -168,6 +168,7 @@ import ClinicalConfigPage from "./pages/app/settings/ClinicalConfigPage";
 import LabSettingsPage from "./pages/app/settings/LabSettingsPage";
 import PatientConfigPage from "./pages/app/settings/PatientConfigPage";
 import HRConfigPage from "./pages/app/settings/HRConfigPage";
+import SurgeonFeesPage from "./pages/app/settings/SurgeonFeesPage";
 import IPDConfigPage from "./pages/app/settings/IPDConfigPage";
 
 // HR pages
@@ -868,6 +869,7 @@ function App() {
               <Route path="settings/hr-config" element={<HRConfigPage />} />
               <Route path="settings/ipd-config" element={<IPDConfigPage />} />
               <Route path="settings/ot-config" element={<OTConfigPage />} />
+              <Route path="settings/surgeon-fees" element={<SurgeonFeesPage />} />
             </Route>
 
             {/* Super Admin routes */}
