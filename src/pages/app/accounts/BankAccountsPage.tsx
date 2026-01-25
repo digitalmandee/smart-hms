@@ -25,6 +25,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
+import { formatCurrencyFull } from "@/lib/currency";
 
 export default function BankAccountsPage() {
   const navigate = useNavigate();
@@ -69,13 +70,6 @@ export default function BankAccountsPage() {
     enabled: !!profile?.organization_id,
   });
 
-  const formatCurrency = (amount: number) => {
-    return `Rs. ${amount.toLocaleString('en-PK', { 
-      minimumFractionDigits: 2, 
-      maximumFractionDigits: 2 
-    })}`;
-  };
-
   const filteredAccounts = bankAccounts?.filter((acc) => {
     return (
       !search ||
@@ -115,7 +109,7 @@ export default function BankAccountsPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardContent className="pt-4">
-            <div className="text-2xl font-bold">{formatCurrency(totalBalance)}</div>
+            <div className="text-2xl font-bold">{formatCurrencyFull(totalBalance)}</div>
             <div className="text-sm text-muted-foreground">Total Cash Position</div>
           </CardContent>
         </Card>
@@ -194,7 +188,7 @@ export default function BankAccountsPage() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="font-bold">{formatCurrency(acc.current_balance || 0)}</div>
+                      <div className="font-bold">{formatCurrencyFull(acc.current_balance || 0)}</div>
                       <div className="text-xs text-muted-foreground">
                         {acc.is_active ? "Active" : "Inactive"}
                       </div>
@@ -249,7 +243,7 @@ export default function BankAccountsPage() {
                     </div>
                     <div className={`font-bold ${txn.credit_amount > 0 ? "text-green-600" : "text-red-600"}`}>
                       {txn.credit_amount > 0 ? "+" : "-"}
-                      {formatCurrency(txn.credit_amount || txn.debit_amount || 0)}
+                      {formatCurrencyFull(txn.credit_amount || txn.debit_amount || 0)}
                     </div>
                   </div>
                 ))}

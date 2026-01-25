@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import type { Account } from "@/hooks/useAccounts";
+import { formatCurrencyFull as formatBalance } from "@/lib/currency";
 
 interface AccountTreeProps {
   accounts: Account[];
@@ -54,13 +55,6 @@ function AccountNode({
   const handleToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsExpanded(!isExpanded);
-  };
-
-  const formatBalance = (balance: number) => {
-    return `Rs. ${balance.toLocaleString('en-PK', { 
-      minimumFractionDigits: 2, 
-      maximumFractionDigits: 2 
-    })}`;
   };
 
   return (

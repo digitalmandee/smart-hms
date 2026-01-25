@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/table";
 import { useAccount, useAccountLedger } from "@/hooks/useAccounts";
 import { Skeleton } from "@/components/ui/skeleton";
+import { formatCurrencyFull as formatCurrency } from "@/lib/currency";
 
 export default function AccountDetailPage() {
   const navigate = useNavigate();
@@ -37,13 +38,6 @@ export default function AccountDetailPage() {
     id,
     dateFrom && dateTo ? { from: dateFrom, to: dateTo } : undefined
   );
-
-  const formatCurrency = (amount: number) => {
-    return `Rs. ${amount.toLocaleString('en-PK', { 
-      minimumFractionDigits: 2, 
-      maximumFractionDigits: 2 
-    })}`;
-  };
 
   // Calculate running balance
   let runningBalance = account?.opening_balance || 0;

@@ -21,6 +21,7 @@ import { useCreateVendorPayment, useVendorOutstandingBalance } from "@/hooks/use
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { formatCurrencyFull as formatCurrency } from "@/lib/currency";
 
 export default function VendorPaymentFormPage() {
   const navigate = useNavigate();
@@ -73,13 +74,6 @@ export default function VendorPaymentFormPage() {
     },
     enabled: !!profile?.organization_id,
   });
-  
-  const formatCurrency = (amount: number) => {
-    return `Rs. ${amount.toLocaleString('en-PK', { 
-      minimumFractionDigits: 2, 
-      maximumFractionDigits: 2 
-    })}`;
-  };
 
   // Set amount when GRN is selected
   useEffect(() => {

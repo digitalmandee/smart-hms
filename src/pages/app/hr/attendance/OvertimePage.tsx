@@ -12,6 +12,7 @@ import { useEmployees, useDepartments } from "@/hooks/useHR";
 import { useAttendanceRecords } from "@/hooks/useAttendance";
 import { Clock, Search, Users, TrendingUp, DollarSign, AlertTriangle, Check, X } from "lucide-react";
 import { format, startOfMonth, endOfMonth } from "date-fns";
+import { formatCurrency } from "@/lib/currency";
 
 export default function OvertimePage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -127,7 +128,7 @@ export default function OvertimePage() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Est. OT Cost</p>
-                <p className="text-2xl font-bold">₹{totalAmount.toLocaleString()}</p>
+                <p className="text-2xl font-bold">{formatCurrency(totalAmount)}</p>
               </div>
             </div>
           </CardContent>
@@ -235,7 +236,7 @@ export default function OvertimePage() {
                         )}
                       </TableCell>
                       <TableCell className="text-right font-medium">
-                        ₹{emp.estimatedAmount.toLocaleString()}
+                        {formatCurrency(emp.estimatedAmount)}
                       </TableCell>
                       <TableCell className="text-center">
                         {emp.pendingApproval > 0 && (

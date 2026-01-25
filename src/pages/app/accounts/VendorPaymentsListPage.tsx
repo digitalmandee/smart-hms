@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useVendorPayments, useApproveVendorPayment, useCancelVendorPayment } from "@/hooks/useVendorPayments";
 import { useVendors } from "@/hooks/useVendors";
+import { formatCurrencyFull as formatCurrency } from "@/lib/currency";
 
 export default function VendorPaymentsListPage() {
   const navigate = useNavigate();
@@ -50,13 +51,6 @@ export default function VendorPaymentsListPage() {
   const { data: vendors } = useVendors();
   const approvePayment = useApproveVendorPayment();
   const cancelPayment = useCancelVendorPayment();
-  
-  const formatCurrency = (amount: number) => {
-    return `Rs. ${amount.toLocaleString('en-PK', { 
-      minimumFractionDigits: 2, 
-      maximumFractionDigits: 2 
-    })}`;
-  };
 
   const getStatusBadge = (status: string) => {
     const statusConfig: Record<string, { label: string; className: string }> = {
