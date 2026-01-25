@@ -41,6 +41,7 @@ import {
   ClipboardCheck,
   Trophy,
 } from "lucide-react";
+import { AddTeamMemberDialog } from "@/components/ot/AddTeamMemberDialog";
 import { format, differenceInMinutes } from "date-fns";
 import { 
   useSurgery, 
@@ -155,7 +156,11 @@ export default function SurgeryDetailPage() {
           <div>
             <div className="flex items-center gap-3 mb-1">
               <h1 className="text-2xl font-bold">{surgery.surgery_number}</h1>
-              <OTStatusBadge status={surgery.status} />
+              <OTStatusBadge 
+                status={surgery.status} 
+                scheduledDate={surgery.scheduled_date}
+                scheduledTime={surgery.scheduled_start_time}
+              />
               <PriorityBadge priority={surgery.priority} />
             </div>
             <p className="text-muted-foreground">{surgery.procedure_name}</p>
@@ -628,8 +633,11 @@ export default function SurgeryDetailPage() {
           
           {/* Surgical Team */}
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Surgical Team</CardTitle>
+              {['scheduled', 'booked', 'confirmed', 'pre_op'].includes(surgery.status) && (
+                <AddTeamMemberDialog surgeryId={surgery.id} />
+              )}
             </CardHeader>
             <CardContent>
               <SurgeryTeamList 
