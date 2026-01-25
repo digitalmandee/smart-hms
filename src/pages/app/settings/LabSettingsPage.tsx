@@ -25,6 +25,7 @@ interface LabSettings {
   require_consultation_for_lab: boolean;
   lab_payment_location: "reception" | "lab" | "both";
   auto_generate_invoice: boolean;
+  allow_unpaid_processing: boolean;
 }
 
 const DEFAULT_SETTINGS: Omit<LabSettings, "organization_id"> = {
@@ -33,6 +34,7 @@ const DEFAULT_SETTINGS: Omit<LabSettings, "organization_id"> = {
   require_consultation_for_lab: true,
   lab_payment_location: "reception",
   auto_generate_invoice: true,
+  allow_unpaid_processing: false,
 };
 
 export default function LabSettingsPage() {
@@ -84,6 +86,7 @@ export default function LabSettingsPage() {
             require_consultation_for_lab: data.require_consultation_for_lab,
             lab_payment_location: data.lab_payment_location,
             auto_generate_invoice: data.auto_generate_invoice,
+            allow_unpaid_processing: data.allow_unpaid_processing,
           })
           .eq("id", data.id);
         if (error) throw error;
@@ -98,6 +101,7 @@ export default function LabSettingsPage() {
             require_consultation_for_lab: data.require_consultation_for_lab,
             lab_payment_location: data.lab_payment_location,
             auto_generate_invoice: data.auto_generate_invoice,
+            allow_unpaid_processing: data.allow_unpaid_processing,
           });
         if (error) throw error;
       }
@@ -214,6 +218,21 @@ export default function LabSettingsPage() {
                 checked={settings?.allow_direct_lab_payment ?? false}
                 onCheckedChange={(checked) =>
                   updateSetting("allow_direct_lab_payment", checked)
+                }
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label className="text-base">Allow Processing Unpaid Orders</Label>
+                <p className="text-sm text-muted-foreground">
+                  Lab staff can collect samples and enter results before payment is received ("Pay Later" workflow)
+                </p>
+              </div>
+              <Switch
+                checked={settings?.allow_unpaid_processing ?? false}
+                onCheckedChange={(checked) =>
+                  updateSetting("allow_unpaid_processing", checked)
                 }
               />
             </div>
