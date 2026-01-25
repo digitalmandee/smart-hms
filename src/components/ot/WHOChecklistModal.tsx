@@ -21,6 +21,7 @@ interface WHOChecklistModalProps {
   onOpenChange: (open: boolean) => void;
   surgeryId: string;
   checklist?: SurgicalSafetyChecklist | null;
+  readOnly?: boolean;
 }
 
 const signInItems = [
@@ -51,7 +52,7 @@ const signOutItems = [
   { key: "recovery_concerns", label: "Key recovery concerns communicated" },
 ];
 
-export function WHOChecklistModal({ open, onOpenChange, surgeryId, checklist }: WHOChecklistModalProps) {
+export function WHOChecklistModal({ open, onOpenChange, surgeryId, checklist, readOnly = false }: WHOChecklistModalProps) {
   const saveChecklist = useSaveChecklist();
   
   const [signInData, setSignInData] = useState<Record<string, boolean>>(
@@ -88,14 +89,14 @@ export function WHOChecklistModal({ open, onOpenChange, surgeryId, checklist }: 
           <Checkbox
             id={item.key}
             checked={data[item.key] || false}
-            disabled={isCompleted}
+            disabled={isCompleted || readOnly}
             onCheckedChange={(checked) => 
               setData({ ...data, [item.key]: checked as boolean })
             }
           />
           <Label 
             htmlFor={item.key} 
-            className={isCompleted ? "text-muted-foreground" : ""}
+            className={(isCompleted || readOnly) ? "text-muted-foreground" : ""}
           >
             {item.label}
           </Label>
@@ -164,7 +165,7 @@ export function WHOChecklistModal({ open, onOpenChange, surgeryId, checklist }: 
                   setSignInData, 
                   !!checklist?.sign_in_completed
                 )}
-                {!checklist?.sign_in_completed && (
+                {!checklist?.sign_in_completed && !readOnly && (
                   <Button 
                     className="mt-4 w-full"
                     onClick={() => handleSavePhase('sign_in')}
@@ -196,7 +197,7 @@ export function WHOChecklistModal({ open, onOpenChange, surgeryId, checklist }: 
                   setTimeOutData, 
                   !!checklist?.time_out_completed
                 )}
-                {!checklist?.time_out_completed && (
+                {!checklist?.time_out_completed && !readOnly && (
                   <Button 
                     className="mt-4 w-full"
                     onClick={() => handleSavePhase('time_out')}
@@ -233,7 +234,7 @@ export function WHOChecklistModal({ open, onOpenChange, surgeryId, checklist }: 
                   setSignOutData, 
                   !!checklist?.sign_out_completed
                 )}
-                {!checklist?.sign_out_completed && (
+                {!checklist?.sign_out_completed && !readOnly && (
                   <Button 
                     className="mt-4 w-full"
                     onClick={() => handleSavePhase('sign_out')}
