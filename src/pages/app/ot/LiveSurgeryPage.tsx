@@ -19,7 +19,7 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useSurgery, useCompleteSurgery, useSaveIntraOpNotes } from "@/hooks/useOT";
+import { useSurgery, useCompleteSurgery, useSaveIntraOpNotes, useAdmitToPACU } from "@/hooks/useOT";
 import { usePostOpOrders } from "@/hooks/usePostOpOrders";
 import { SurgeryTimer } from "@/components/ot/SurgeryTimer";
 import { VitalsChart } from "@/components/ot/VitalsChart";
@@ -56,6 +56,7 @@ export default function LiveSurgeryPage() {
   const { data: surgery, isLoading, refetch } = useSurgery(id!);
   const completeSurgery = useCompleteSurgery();
   const saveIntraOpNotes = useSaveIntraOpNotes();
+  const admitToPACU = useAdmitToPACU();
   const { data: postOpOrders } = usePostOpOrders(id);
   
   const [activeTab, setActiveTab] = useState("surgeon");
@@ -212,8 +213,24 @@ export default function LiveSurgeryPage() {
     }
   };
 
+  // Helper function to admit patient to PACU
+  const admitPatientToPACU = async () => {
+    try {
+      await admitToPACU.mutateAsync({
+        surgeryId: id!,
+        handoverNotes: `Surgery completed. Procedure: ${surgery?.procedure_name}. Outcome: ${surgery?.outcome || 'Pending review'}`,
+      });
+      toast.success("Patient admitted to PACU. Redirecting...");
+      setTimeout(() => {
+        navigate("/app/ot/pacu");
+      }, 1500);
+    } catch (error) {
+      toast.error("Failed to admit to PACU. Please try again.");
+    }
+  };
+
   // FIXED: After outcome is recorded, check for post-op orders before PACU redirect
-  const handleOutcomeRecorded = () => {
+  const handleOutcomeRecorded = async () => {
     setShowOutcomeForm(false);
     
     // Check if post-op orders exist
@@ -221,20 +238,15 @@ export default function LiveSurgeryPage() {
       setShowPostOpOrders(true);
       toast.info("Please create Post-Op Orders before transferring to PACU");
     } else {
-      toast.success("Outcome recorded. Redirecting to PACU...");
-      setTimeout(() => {
-        navigate("/app/ot/pacu");
-      }, 1500);
+      // Post-op orders exist, admit directly to PACU
+      await admitPatientToPACU();
     }
   };
 
-  // Handle post-op orders completion
-  const handlePostOpOrdersComplete = () => {
+  // Handle post-op orders completion - now creates PACU admission
+  const handlePostOpOrdersComplete = async () => {
     setShowPostOpOrders(false);
-    toast.success("Post-Op Orders saved. Redirecting to PACU...");
-    setTimeout(() => {
-      navigate("/app/ot/pacu");
-    }, 1500);
+    await admitPatientToPACU();
   };
 
   // Computed values
