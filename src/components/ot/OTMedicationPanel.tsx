@@ -42,6 +42,7 @@ import {
   COMMON_PREOP_MEDICATIONS,
   type SurgeryMedication,
 } from '@/hooks/useOTMedications';
+import { MedicineSearchCombobox } from './MedicineSearchCombobox';
 import { format } from 'date-fns';
 import {
   Plus,
@@ -56,6 +57,7 @@ import {
   Package,
   Loader2,
 } from 'lucide-react';
+import { otLogger } from '@/lib/logger';
 
 interface OTMedicationPanelProps {
   surgeryId: string;
@@ -267,12 +269,26 @@ export function OTMedicationPanel({ surgeryId }: OTMedicationPanelProps) {
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <Label>Medication Name *</Label>
-                    <Input
+                    <MedicineSearchCombobox
                       value={customMed.medication_name}
-                      onChange={(e) =>
-                        setCustomMed({ ...customMed, medication_name: e.target.value })
+                      onValueChange={(value) => 
+                        setCustomMed({ ...customMed, medication_name: value })
                       }
-                      placeholder="e.g., Ceftriaxone"
+                      onMedicineSelect={(item) => {
+                        otLogger.debug('OTMedicationPanel: Medicine selected from inventory', { 
+                          medicineId: item.medicine?.id,
+                          medicineName: item.medicine?.name,
+                          batchNumber: item.batch_number,
+                          quantity: item.quantity 
+                        });
+                        setCustomMed({ 
+                          ...customMed, 
+                          medication_name: item.medicine?.name || '',
+                          // Auto-enable pharmacy request if low stock
+                          requestFromPharmacy: item.quantity < 5
+                        });
+                      }}
+                      placeholder="Search pharmacy inventory..."
                     />
                   </div>
                   <div className="space-y-1.5">
