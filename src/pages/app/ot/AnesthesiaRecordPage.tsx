@@ -17,6 +17,8 @@ import { format } from "date-fns";
 import { useSurgery, useSaveAnesthesiaRecord } from "@/hooks/useOT";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function AnesthesiaRecordPage() {
   const { id } = useParams<{ id: string }>();
@@ -25,6 +27,22 @@ export default function AnesthesiaRecordPage() {
   
   const { data: surgery, isLoading } = useSurgery(id!);
   const saveRecord = useSaveAnesthesiaRecord();
+
+  // Get the doctor record for the current user (anesthetist)
+  const { data: doctorRecord } = useQuery({
+    queryKey: ['doctor-by-profile', profile?.id],
+    queryFn: async () => {
+      if (!profile?.id) return null;
+      const { data, error } = await supabase
+        .from('doctors')
+        .select('id')
+        .eq('profile_id', profile.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!profile?.id,
+  });
 
   if (isLoading) {
     return (
@@ -52,11 +70,19 @@ export default function AnesthesiaRecordPage() {
     : 'Unknown Patient';
 
   const handleSaveRecord = async (data: any) => {
+    // Use the doctor record ID (from current user's doctor record, or fallback to surgery's assigned anesthetist)
+    const anesthetistId = doctorRecord?.id || (surgery as any).anesthetist_id;
+    
+    if (!anesthetistId) {
+      toast.error('No anesthetist record found. Please ensure you are registered as a doctor.');
+      return;
+    }
+
     try {
       await saveRecord.mutateAsync({
         surgeryId: surgery.id,
         ...data,
-        anesthetist_id: profile?.id || '',
+        anesthetist_id: anesthetistId,
       });
     } catch (error) {
       toast.error('Failed to save record');
