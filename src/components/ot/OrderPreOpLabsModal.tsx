@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -6,7 +7,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import { FlaskConical, AlertCircle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { formatCurrency } from "@/lib/currency";
 
 interface OrderPreOpLabsModalProps {
   open: boolean;
@@ -16,47 +21,63 @@ interface OrderPreOpLabsModalProps {
   patientName?: string;
 }
 
-interface PreOpLabTest {
+export interface PreOpLabTest {
   id: string;
   name: string;
   category: string;
   required: boolean;
+  price: number;
+  service_type_id: string;
 }
 
-const PRE_OP_PANELS: { name: string; tests: PreOpLabTest[] }[] = [
-  {
-    name: 'Basic Pre-Op Panel',
-    tests: [
-      { id: 'cbc', name: 'Complete Blood Count (CBC)', category: 'Hematology', required: true },
-      { id: 'blood_group', name: 'Blood Group & Rh Typing', category: 'Blood Bank', required: true },
-      { id: 'pt_inr', name: 'PT/INR', category: 'Coagulation', required: true },
-      { id: 'aptt', name: 'aPTT', category: 'Coagulation', required: false },
-      { id: 'rbs', name: 'Random Blood Sugar', category: 'Biochemistry', required: true },
-      { id: 'serum_creatinine', name: 'Serum Creatinine', category: 'Biochemistry', required: true },
-      { id: 'urea', name: 'Blood Urea', category: 'Biochemistry', required: false },
-    ]
-  },
-  {
-    name: 'Extended Pre-Op Panel',
-    tests: [
-      { id: 'lft', name: 'Liver Function Tests (LFT)', category: 'Biochemistry', required: false },
-      { id: 'rft', name: 'Renal Function Tests (RFT)', category: 'Biochemistry', required: false },
-      { id: 'electrolytes', name: 'Serum Electrolytes (Na, K, Cl)', category: 'Biochemistry', required: false },
-      { id: 'ecg', name: 'ECG', category: 'Cardiology', required: false },
-      { id: 'chest_xray', name: 'Chest X-Ray PA View', category: 'Radiology', required: false },
-      { id: 'covid', name: 'COVID-19 RT-PCR', category: 'Microbiology', required: false },
-    ]
-  },
-  {
-    name: 'Cardiac Surgery Panel',
-    tests: [
-      { id: 'echo', name: 'Echocardiography', category: 'Cardiology', required: false },
-      { id: 'tmt', name: 'TMT / Stress Test', category: 'Cardiology', required: false },
-      { id: 'bnp', name: 'BNP / NT-proBNP', category: 'Biochemistry', required: false },
-      { id: 'lipid', name: 'Lipid Profile', category: 'Biochemistry', required: false },
-    ]
-  }
+// Common pre-op test names for marking as "required" in the UI
+const REQUIRED_TEST_PATTERNS = [
+  'cbc', 'complete blood count', 'blood group', 'rh typing',
+  'pt', 'inr', 'blood sugar', 'creatinine', 'random blood sugar'
 ];
+
+function usePreOpLabTests() {
+  const { profile } = useAuth();
+  
+  return useQuery({
+    queryKey: ['preop-lab-tests', profile?.organization_id],
+    queryFn: async () => {
+      if (!profile?.organization_id) return [];
+      
+      // Fetch lab tests from service_types with lab category
+      const { data: categoryData } = await supabase
+        .from('service_categories')
+        .select('id')
+        .eq('organization_id', profile.organization_id)
+        .eq('code', 'lab')
+        .maybeSingle();
+      
+      if (!categoryData) return [];
+      
+      const { data, error } = await supabase
+        .from('service_types')
+        .select('id, name, default_price, category_id')
+        .eq('organization_id', profile.organization_id)
+        .eq('category_id', categoryData.id)
+        .eq('is_active', true)
+        .order('name');
+      
+      if (error) throw error;
+      
+      return (data || []).map(test => ({
+        id: test.id,
+        name: test.name,
+        category: 'lab',
+        price: test.default_price || 0,
+        service_type_id: test.id,
+        required: REQUIRED_TEST_PATTERNS.some(pattern => 
+          test.name.toLowerCase().includes(pattern)
+        ),
+      })) as PreOpLabTest[];
+    },
+    enabled: !!profile?.organization_id,
+  });
+}
 
 export function OrderPreOpLabsModal({ 
   open, 
@@ -65,23 +86,29 @@ export function OrderPreOpLabsModal({
   isLoading,
   patientName 
 }: OrderPreOpLabsModalProps) {
+  const { data: labTests, isLoading: testsLoading } = usePreOpLabTests();
   const [selectedTests, setSelectedTests] = useState<Set<string>>(new Set());
   const [priority, setPriority] = useState('routine');
   const [clinicalNotes, setClinicalNotes] = useState('Pre-operative workup');
 
-  const allTests = PRE_OP_PANELS.flatMap(panel => panel.tests);
-  const requiredTests = allTests.filter(t => t.required);
+  const allTests = labTests || [];
+  const requiredTests = useMemo(() => allTests.filter(t => t.required), [allTests]);
 
-  const handleSelectAll = (panelTests: PreOpLabTest[]) => {
+  // Calculate total price of selected tests
+  const selectedTotal = useMemo(() => {
+    return allTests
+      .filter(test => selectedTests.has(test.id))
+      .reduce((sum, test) => sum + (test.price || 0), 0);
+  }, [allTests, selectedTests]);
+
+  const handleSelectAll = () => {
     const newSelected = new Set(selectedTests);
-    panelTests.forEach(test => newSelected.add(test.id));
+    allTests.forEach(test => newSelected.add(test.id));
     setSelectedTests(newSelected);
   };
 
-  const handleDeselectAll = (panelTests: PreOpLabTest[]) => {
-    const newSelected = new Set(selectedTests);
-    panelTests.forEach(test => newSelected.delete(test.id));
-    setSelectedTests(newSelected);
+  const handleDeselectAll = () => {
+    setSelectedTests(new Set());
   };
 
   const toggleTest = (testId: string) => {
@@ -121,84 +148,90 @@ export function OrderPreOpLabsModal({
         </DialogHeader>
 
         <div className="space-y-6 py-4">
-          {/* Quick Actions */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Button type="button" variant="outline" size="sm" onClick={selectRequiredTests}>
-                Select Required Tests
-              </Button>
-              <Badge variant="outline">
-                {selectedTests.size} tests selected
-              </Badge>
+          {testsLoading ? (
+            <div className="space-y-3">
+              {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-12 w-full" />)}
             </div>
-            <div className="flex items-center gap-2">
-              <Label>Priority:</Label>
-              <Select value={priority} onValueChange={setPriority}>
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="routine">Routine</SelectItem>
-                  <SelectItem value="urgent">Urgent</SelectItem>
-                  <SelectItem value="stat">STAT</SelectItem>
-                </SelectContent>
-              </Select>
+          ) : allTests.length === 0 ? (
+            <div className="text-center py-8">
+              <AlertCircle className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
+              <p className="text-muted-foreground">No lab tests configured. Please add lab services in Settings.</p>
             </div>
-          </div>
-
-          {/* Test Panels */}
-          {PRE_OP_PANELS.map(panel => (
-            <div key={panel.name} className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h4 className="font-medium">{panel.name}</h4>
-                <div className="flex gap-2">
-                  <Button 
-                    type="button" 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => handleSelectAll(panel.tests)}
-                  >
+          ) : (
+            <>
+              {/* Quick Actions */}
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Button type="button" variant="outline" size="sm" onClick={selectRequiredTests}>
+                    Select Common Tests
+                  </Button>
+                  <Button type="button" variant="ghost" size="sm" onClick={handleSelectAll}>
                     Select All
                   </Button>
-                  <Button 
-                    type="button" 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => handleDeselectAll(panel.tests)}
-                  >
+                  <Button type="button" variant="ghost" size="sm" onClick={handleDeselectAll}>
                     Clear
                   </Button>
                 </div>
+                <div className="flex items-center gap-2">
+                  <Label>Priority:</Label>
+                  <Select value={priority} onValueChange={setPriority}>
+                    <SelectTrigger className="w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="routine">Routine</SelectItem>
+                      <SelectItem value="urgent">Urgent</SelectItem>
+                      <SelectItem value="stat">STAT</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <div className="grid gap-2 md:grid-cols-2">
-                {panel.tests.map(test => (
+
+              {/* Summary Bar */}
+              <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary">
+                    {selectedTests.size} test{selectedTests.size !== 1 ? 's' : ''} selected
+                  </Badge>
+                </div>
+                <div className="font-medium">
+                  Total: {formatCurrency(selectedTotal)}
+                </div>
+              </div>
+
+              {/* Test List */}
+              <div className="space-y-2 max-h-[40vh] overflow-y-auto pr-2">
+                {allTests.map(test => (
                   <div 
                     key={test.id}
-                    className={`flex items-center space-x-3 p-2 rounded-lg border ${
-                      selectedTests.has(test.id) ? 'border-primary bg-primary/5' : 'border-border'
+                    className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ${
+                      selectedTests.has(test.id) ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/50'
                     }`}
+                    onClick={() => toggleTest(test.id)}
                   >
-                    <Checkbox
-                      id={test.id}
-                      checked={selectedTests.has(test.id)}
-                      onCheckedChange={() => toggleTest(test.id)}
-                    />
-                    <div className="flex-1">
-                      <Label htmlFor={test.id} className="cursor-pointer font-normal">
-                        {test.name}
-                      </Label>
-                      <p className="text-xs text-muted-foreground">{test.category}</p>
+                    <div className="flex items-center space-x-3">
+                      <Checkbox
+                        id={test.id}
+                        checked={selectedTests.has(test.id)}
+                        onCheckedChange={() => toggleTest(test.id)}
+                      />
+                      <div>
+                        <Label htmlFor={test.id} className="cursor-pointer font-normal">
+                          {test.name}
+                        </Label>
+                        {test.required && (
+                          <Badge variant="outline" className="ml-2 text-xs">Common</Badge>
+                        )}
+                      </div>
                     </div>
-                    {test.required && (
-                      <Badge variant="secondary" className="text-xs">
-                        Required
-                      </Badge>
-                    )}
+                    <span className="text-sm text-muted-foreground">
+                      {formatCurrency(test.price)}
+                    </span>
                   </div>
                 ))}
               </div>
-            </div>
-          ))}
+            </>
+          )}
 
           {/* Clinical Notes */}
           <div className="space-y-2">
@@ -210,31 +243,25 @@ export function OrderPreOpLabsModal({
               rows={2}
             />
           </div>
-
-          {/* Warning if required tests not selected */}
-          {requiredTests.some(t => !selectedTests.has(t.id)) && (
-            <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800">
-              <AlertCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
-              <div className="text-sm">
-                <p className="font-medium">Some required tests are not selected</p>
-                <p className="text-amber-700">
-                  Consider adding: {requiredTests.filter(t => !selectedTests.has(t.id)).map(t => t.name).join(', ')}
-                </p>
-              </div>
-            </div>
-          )}
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button 
-            onClick={handleOrder} 
-            disabled={selectedTests.size === 0 || isLoading}
-          >
-            Order {selectedTests.size} Test{selectedTests.size !== 1 ? 's' : ''}
-          </Button>
+        <DialogFooter className="flex-col sm:flex-row gap-2">
+          <div className="text-sm text-muted-foreground flex-1">
+            {selectedTests.size > 0 && (
+              <>Invoice will be created: <strong>{formatCurrency(selectedTotal)}</strong></>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleOrder} 
+              disabled={selectedTests.size === 0 || isLoading || testsLoading}
+            >
+              Order {selectedTests.size} Test{selectedTests.size !== 1 ? 's' : ''}
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
