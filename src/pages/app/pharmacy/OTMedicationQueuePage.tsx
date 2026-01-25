@@ -8,15 +8,14 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useOTMedicationQueue, useDispenseOTMedication, useCancelOTMedicationRequest, useSearchMedicineInventory, OTMedicationRequest } from "@/hooks/useOTPharmacy";
+import { useOTMedicationQueue, useCancelOTMedicationRequest, useSearchMedicineInventory, OTMedicationRequest } from "@/hooks/useOTPharmacy";
+import { CartItem } from "@/hooks/usePOS";
 
 export default function OTMedicationQueuePage() {
   const navigate = useNavigate();
   const { data: queue = [], isLoading } = useOTMedicationQueue();
-  const dispenseOTMedication = useDispenseOTMedication();
   const cancelRequest = useCancelOTMedicationRequest();
 
   const [selectedMedication, setSelectedMedication] = useState<OTMedicationRequest | null>(null);
@@ -56,17 +55,42 @@ export default function OTMedicationQueuePage() {
     const selectedItem = inventoryOptions.find(i => i.id === selectedInventoryId);
     if (!selectedItem) return;
 
-    dispenseOTMedication.mutate({
-      medicationId: selectedMedication.id,
-      surgeryId: selectedMedication.surgery_id,
-      inventoryItemId: selectedInventoryId,
-      batchNumber: selectedItem.batch_number || '',
-      unitPrice: selectedItem.selling_price || selectedItem.unit_price || 0,
-    }, {
-      onSuccess: () => {
-        setDispenseDialogOpen(false);
-        setSelectedMedication(null);
-      }
+    // Build cart item matching POS CartItem interface
+    const cartItem: CartItem = {
+      id: `ot-${selectedMedication.id}`,
+      inventory_id: selectedInventoryId,
+      medicine_id: selectedItem.medicine?.id || null,
+      medicine_name: selectedItem.medicine?.name || selectedMedication.medication_name,
+      batch_number: selectedItem.batch_number || null,
+      quantity: 1,
+      unit_price: selectedItem.selling_price || selectedItem.unit_price || 0,
+      selling_price: selectedItem.selling_price || selectedItem.unit_price || 0,
+      available_quantity: selectedItem.quantity,
+      discount_percent: 0,
+      tax_percent: 0,
+    };
+
+    // Get patient info from surgery
+    const patient = selectedMedication.surgery?.patient;
+
+    // Close dialog before navigating
+    setDispenseDialogOpen(false);
+    setSelectedMedication(null);
+
+    // Navigate to POS with cart pre-loaded
+    navigate("/app/pharmacy/pos", {
+      state: {
+        prescriptionCart: [cartItem],
+        patient: patient ? {
+          id: patient.id,
+          patient_number: patient.patient_number,
+          first_name: patient.first_name,
+          last_name: patient.last_name,
+        } : null,
+        otMedicationId: selectedMedication.id,
+        surgeryId: selectedMedication.surgery_id,
+        otMedicationName: selectedMedication.medication_name,
+      },
     });
   };
 
@@ -304,9 +328,9 @@ export default function OTMedicationQueuePage() {
             </Button>
             <Button 
               onClick={handleDispense}
-              disabled={!selectedInventoryId || dispenseOTMedication.isPending}
+              disabled={!selectedInventoryId}
             >
-              {dispenseOTMedication.isPending ? 'Dispensing...' : 'Confirm Dispense'}
+              Proceed to POS
             </Button>
           </DialogFooter>
         </DialogContent>
