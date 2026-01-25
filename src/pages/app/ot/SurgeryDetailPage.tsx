@@ -647,43 +647,46 @@ export default function SurgeryDetailPage() {
             </CardContent>
           </Card>
 
-          {/* Pre-op Status */}
+          {/* Pre-Op Readiness - Interactive checklist for nurses */}
+          <PreOpReadinessCard
+            surgeryId={surgery.id}
+            surgeryStatus={surgery.status}
+            medicationsOrdered={(surgery as any).pre_op_medications_ordered ?? false}
+            suppliesReady={(surgery as any).pre_op_supplies_ready ?? false}
+            consentSigned={surgery.consent_signed ?? false}
+            preOpAssessmentCompleted={surgery.pre_op_assessment?.is_cleared_for_surgery ?? false}
+            readyAt={(surgery as any).ready_at}
+          />
+
+          {/* Pre-Op Assessment Navigation */}
           <Card>
             <CardHeader>
-              <CardTitle>Pre-Op Status</CardTitle>
+              <CardTitle>Pre-Op Assessment</CardTitle>
             </CardHeader>
             <CardContent>
               {surgery.pre_op_assessment ? (
-                <div className="space-y-3">
+                <div className="space-y-2 mb-4">
                   <div className="flex items-center justify-between">
                     <span className="text-sm">ASA Class</span>
                     <Badge variant="outline">{surgery.pre_op_assessment.asa_class || 'Not set'}</Badge>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">Cleared for Surgery</span>
+                    <span className="text-sm">Cleared</span>
                     {surgery.pre_op_assessment.is_cleared_for_surgery ? (
-                      <CheckCircle2 className="h-5 w-5 text-green-500" />
+                      <CheckCircle2 className="h-4 w-4 text-green-500" />
                     ) : (
-                      <Clock className="h-5 w-5 text-yellow-500" />
-                    )}
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm">Consent Signed</span>
-                    {surgery.consent_signed ? (
-                      <CheckCircle2 className="h-5 w-5 text-green-500" />
-                    ) : (
-                      <XCircle className="h-5 w-5 text-red-500" />
+                      <Clock className="h-4 w-4 text-yellow-500" />
                     )}
                   </div>
                 </div>
               ) : (
-                <p className="text-muted-foreground text-sm text-center py-4">
+                <p className="text-muted-foreground text-sm text-center py-2">
                   No pre-op assessment yet
                 </p>
               )}
               <Button 
                 variant="outline" 
-                className="w-full mt-4"
+                className="w-full"
                 onClick={() => navigate(`/app/ot/surgeries/${surgery.id}/pre-op`)}
               >
                 {surgery.pre_op_assessment ? 'View/Edit Pre-Op' : 'Complete Pre-Op Assessment'}
