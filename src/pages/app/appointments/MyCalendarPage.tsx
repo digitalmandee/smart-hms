@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format, addDays, subDays } from 'date-fns';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, Users, Scissors } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, Users, Scissors, Check, X, AlertTriangle } from 'lucide-react';
 import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,8 +13,61 @@ import { useAppointments, type AppointmentWithRelations } from '@/hooks/useAppoi
 import { useDoctorByEmployeeId } from '@/hooks/useDoctors';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAppointmentNotifications } from '@/hooks/useAppointmentNotifications';
-import { useSurgeries } from '@/hooks/useOT';
+import { useSurgeries, type Surgery } from '@/hooks/useOT';
+import { useSurgeryNotifications } from '@/hooks/useSurgeryNotifications';
+import { useAcceptSurgeryAssignment } from '@/hooks/useSurgeryConfirmation';
 
+// Confirmation status types
+type ConfirmationStatusType = 'pending_your' | 'pending_others' | 'all_confirmed' | 'has_declined';
+
+// Color-coded confirmation status borders
+const confirmationBorderColors: Record<ConfirmationStatusType, string> = {
+  pending_your: 'border-l-4 border-l-yellow-500',
+  pending_others: 'border-l-4 border-l-orange-400',
+  all_confirmed: 'border-l-4 border-l-green-500',
+  has_declined: 'border-l-4 border-l-red-500',
+};
+
+// Helper to determine confirmation status for a surgery
+function getConfirmationStatus(surgery: Surgery, currentDoctorId?: string): ConfirmationStatusType {
+  const teamMembers = surgery.team_members || [];
+  
+  // Check if current user has pending confirmation
+  const myAssignment = teamMembers.find(
+    m => m.doctor_id === currentDoctorId || (m as any).staff_id === currentDoctorId
+  );
+  
+  if (myAssignment && (myAssignment as any).confirmation_status === 'pending') {
+    return 'pending_your';
+  }
+  
+  // Check if anyone declined
+  if (teamMembers.some(m => (m as any).confirmation_status === 'declined')) {
+    return 'has_declined';
+  }
+  
+  // Check if all key roles confirmed (lead_surgeon, anesthetist)
+  const requiredRoles = teamMembers.filter(m => 
+    ['lead_surgeon', 'anesthetist'].includes(m.role)
+  );
+  
+  const allConfirmed = requiredRoles.length > 0 && requiredRoles.every(m => 
+    (m as any).confirmation_status === 'accepted'
+  );
+  
+  if (allConfirmed) {
+    return 'all_confirmed';
+  }
+  
+  return 'pending_others';
+}
+
+// Get my assignment from team members
+function getMyAssignment(surgery: Surgery, currentDoctorId?: string) {
+  return surgery.team_members?.find(
+    m => m.doctor_id === currentDoctorId || (m as any).staff_id === currentDoctorId
+  );
+}
 const statusColors: Record<string, string> = {
   scheduled: 'bg-blue-500',
   checked_in: 'bg-yellow-500',
@@ -46,6 +99,15 @@ export default function MyCalendarPage() {
     doctorId: doctor?.id,
     enabled: !!doctor?.id,
   });
+
+  // Enable realtime surgery notifications
+  useSurgeryNotifications({
+    doctorId: doctor?.id,
+    enabled: !!doctor?.id,
+  });
+
+  // Accept surgery assignment mutation
+  const acceptAssignment = useAcceptSurgeryAssignment();
 
   const dateStr = format(selectedDate, 'yyyy-MM-dd');
 
@@ -287,38 +349,107 @@ export default function MyCalendarPage() {
                   No surgeries scheduled
                 </p>
               ) : (
-                surgeries.map((surgery) => (
-                  <div
-                    key={surgery.id}
-                    className="p-3 rounded-lg border bg-card hover:bg-muted/50 cursor-pointer transition-colors"
-                    onClick={() => navigate(`/app/ot/surgeries/${surgery.id}`)}
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <p className="font-medium">
-                          {surgery.patient?.first_name} {surgery.patient?.last_name}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {surgery.scheduled_start_time && formatTimeDisplay(surgery.scheduled_start_time)}
-                        </p>
+                surgeries.map((surgery) => {
+                  const confirmStatus = getConfirmationStatus(surgery, doctor?.id);
+                  const myAssignment = getMyAssignment(surgery, doctor?.id);
+                  const showAcceptButton = confirmStatus === 'pending_your' && myAssignment;
+                  
+                  return (
+                    <div
+                      key={surgery.id}
+                      className={cn(
+                        "p-3 rounded-lg border bg-card hover:bg-muted/50 cursor-pointer transition-colors",
+                        confirmationBorderColors[confirmStatus]
+                      )}
+                      onClick={() => navigate(`/app/ot/surgeries/${surgery.id}`)}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="font-medium">
+                            {surgery.patient?.first_name} {surgery.patient?.last_name}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {surgery.scheduled_start_time && formatTimeDisplay(surgery.scheduled_start_time)}
+                          </p>
+                        </div>
+                        <Badge 
+                          variant={surgery.status === 'completed' ? 'secondary' : surgery.status === 'in_progress' ? 'default' : 'outline'}
+                          className="text-xs capitalize"
+                        >
+                          {surgery.status?.replace('_', ' ')}
+                        </Badge>
                       </div>
-                      <Badge 
-                        variant={surgery.status === 'completed' ? 'secondary' : surgery.status === 'in_progress' ? 'default' : 'outline'}
-                        className="text-xs capitalize"
-                      >
-                        {surgery.status?.replace('_', ' ')}
-                      </Badge>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-2 truncate">
-                      {surgery.procedure_name}
-                    </p>
-                    {surgery.ot_room && (
-                      <p className="text-xs text-primary mt-1">
-                        OT: {surgery.ot_room.name || surgery.ot_room.room_number}
+                      <p className="text-xs text-muted-foreground mt-2 truncate">
+                        {surgery.procedure_name}
                       </p>
-                    )}
-                  </div>
-                ))
+                      {surgery.ot_room && (
+                        <p className="text-xs text-primary mt-1">
+                          OT: {surgery.ot_room.name || surgery.ot_room.room_number}
+                        </p>
+                      )}
+                      
+                      {/* Confirmation Status Indicator */}
+                      {confirmStatus === 'pending_your' && (
+                        <div className="mt-2 flex items-center gap-2">
+                          <Badge variant="destructive" className="text-xs flex items-center gap-1">
+                            <AlertTriangle className="h-3 w-3" />
+                            Awaiting Your Confirmation
+                          </Badge>
+                        </div>
+                      )}
+                      {confirmStatus === 'all_confirmed' && (
+                        <Badge variant="secondary" className="mt-2 text-xs bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex items-center gap-1 w-fit">
+                          <Check className="h-3 w-3" />
+                          Team Confirmed
+                        </Badge>
+                      )}
+                      {confirmStatus === 'has_declined' && (
+                        <Badge variant="destructive" className="mt-2 text-xs flex items-center gap-1 w-fit">
+                          <X className="h-3 w-3" />
+                          Member Declined
+                        </Badge>
+                      )}
+                      {confirmStatus === 'pending_others' && surgery.status === 'booked' && (
+                        <Badge variant="outline" className="mt-2 text-xs text-orange-600 border-orange-300 flex items-center gap-1 w-fit">
+                          <Clock className="h-3 w-3" />
+                          Awaiting Team
+                        </Badge>
+                      )}
+                      
+                      {/* Quick Accept Button */}
+                      {showAcceptButton && (
+                        <div className="flex gap-2 mt-3">
+                          <Button 
+                            size="sm" 
+                            variant="default"
+                            className="flex-1"
+                            disabled={acceptAssignment.isPending}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              acceptAssignment.mutate({ 
+                                memberId: myAssignment.id, 
+                                surgeryId: surgery.id 
+                              });
+                            }}
+                          >
+                            <Check className="h-4 w-4 mr-1" />
+                            Accept
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/app/ot/surgeries/${surgery.id}`);
+                            }}
+                          >
+                            Details
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
               )}
               <Button 
                 variant="outline" 
