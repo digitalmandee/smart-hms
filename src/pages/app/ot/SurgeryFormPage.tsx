@@ -175,6 +175,8 @@ export default function SurgeryFormPage() {
         admission_id: activeAdmission?.id,
         is_billable: !!activeAdmission,
         estimated_cost: totalOTCharges,
+        surgery_charges: surgeryCharges,
+        fee_template_id: selectedTemplateId,
         status: 'booked' as any,
       } as any);
 
