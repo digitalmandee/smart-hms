@@ -34,6 +34,9 @@ interface CompleteSurgeryModalProps {
   hasVitals?: boolean;
   hasAnesthesiaRecord?: boolean;
   isLoading?: boolean;
+  // Billing validation props
+  isBillable?: boolean;
+  surgeryCharges?: Record<string, number> | null;
 }
 
 interface ValidationItem {
@@ -52,9 +55,17 @@ export function CompleteSurgeryModal({
   hasVitals = false,
   hasAnesthesiaRecord = false,
   isLoading,
+  isBillable = false,
+  surgeryCharges,
 }: CompleteSurgeryModalProps) {
   const [forceComplete, setForceComplete] = useState(false);
   const [forceReason, setForceReason] = useState("");
+
+  // Check if billable surgery has zero charges
+  const totalCharges = surgeryCharges
+    ? Object.values(surgeryCharges).reduce((sum, val) => sum + (val || 0), 0)
+    : 0;
+  const hasBillingIssue = isBillable && totalCharges === 0;
   const [submitting, setSubmitting] = useState(false);
 
   const validationItems = useMemo<ValidationItem[]>(() => {
@@ -180,6 +191,20 @@ export function CompleteSurgeryModal({
               ))}
             </CardContent>
           </Card>
+
+          {/* Billing Warning */}
+          {hasBillingIssue && (
+            <div className="flex items-start gap-2 p-3 bg-yellow-100 border border-yellow-300 rounded-md">
+              <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5" />
+              <div className="text-yellow-800">
+                <p className="font-medium">Billing Warning</p>
+                <p className="text-sm mt-1">
+                  This surgery is marked as billable but has no charges configured.
+                  An invoice may need to be created manually after completion.
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Status Summary */}
           {allComplete ? (

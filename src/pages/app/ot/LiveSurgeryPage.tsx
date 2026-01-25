@@ -641,6 +641,8 @@ export default function LiveSurgeryPage() {
         hasVitals={hasVitals}
         hasAnesthesiaRecord={!!surgery.anesthesia_record}
         isLoading={completeSurgery.isPending}
+        isBillable={surgery.is_billable}
+        surgeryCharges={(surgery as any).surgery_charges as Record<string, number> | null}
       />
 
       {/* Outcome Recording Modal (shown immediately after completion) */}
