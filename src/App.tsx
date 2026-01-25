@@ -104,6 +104,7 @@ import ConsultationHistoryPage from "./pages/app/opd/ConsultationHistoryPage";
 import ConsultationDetailPage from "./pages/app/opd/ConsultationDetailPage";
 import OPDOrdersPage from "./pages/app/opd/OPDOrdersPage";
 import NurseDashboard from "./pages/app/opd/NurseDashboard";
+import MyWalletPage from "./pages/app/MyWalletPage";
 import ReceptionistDashboard from "./pages/app/reception/ReceptionistDashboard";
 
 // Lab pages
@@ -477,6 +478,7 @@ function App() {
               
               {/* Employee Self-Service routes */}
               <Route path="my-schedule" element={<MySchedulePage />} />
+              <Route path="my-wallet" element={<MyWalletPage />} />
               <Route path="my-attendance" element={<MyAttendancePage />} />
               <Route path="my-payslips" element={<MyPayslipsPage />} />
               <Route path="my-leaves" element={<MyLeavesPage />} />
