@@ -233,3 +233,29 @@ export function useDeleteMedication() {
     },
   });
 }
+
+export function useRequestPharmacyDispense() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ medicationId, surgeryId }: { medicationId: string; surgeryId: string }) => {
+      const { data, error } = await supabase
+        .from('surgery_medications')
+        .update({ pharmacy_status: 'requested' })
+        .eq('id', medicationId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return { data, surgeryId };
+    },
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ['surgery-medications', result.surgeryId] });
+      queryClient.invalidateQueries({ queryKey: ['ot-medication-queue'] });
+      toast.success('Pharmacy request sent');
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to request pharmacy');
+    },
+  });
+}
