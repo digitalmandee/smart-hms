@@ -417,7 +417,8 @@ export function useSurgeries(filters: SurgeryFilters = {}) {
           *,
           patient:patients(id, first_name, last_name, date_of_birth, gender, phone, patient_number),
           lead_surgeon:doctors!surgeries_lead_surgeon_id_fkey(id, profile:profiles(full_name), specialization),
-          ot_room:ot_rooms(id, room_number, name)
+          ot_room:ot_rooms(id, room_number, name),
+          team_members:surgery_team_members(id, role, confirmation_status, doctor_id, staff_id)
         `)
         .eq('organization_id', profile?.organization_id!)
         .order('scheduled_date', { ascending: true })
