@@ -49,7 +49,9 @@ import {
   VolumeX,
   BedDouble,
   FileText,
+  Syringe,
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { formatCurrency } from "@/lib/currency";
 import { toast } from "sonner";
@@ -59,6 +61,10 @@ interface PrescriptionCartState {
   prescriptionCart?: CartItem[];
   patient?: PatientForPOS | null;
   prescriptionNumber?: string;
+  // OT Medication tracking
+  otMedicationId?: string;
+  surgeryId?: string;
+  otMedicationName?: string;
 }
 
 export default function POSTerminalPage() {
@@ -82,6 +88,11 @@ export default function POSTerminalPage() {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [prescriptionNumber, setPrescriptionNumber] = useState<string | null>(null);
   
+  // OT Medication tracking
+  const [otMedicationId, setOtMedicationId] = useState<string | null>(null);
+  const [otSurgeryId, setOtSurgeryId] = useState<string | null>(null);
+  const [otMedicationName, setOtMedicationName] = useState<string | null>(null);
+  
   const barcodeInputRef = useRef<HTMLInputElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const { printRef, handlePrint } = usePrint();
@@ -99,7 +110,7 @@ export default function POSTerminalPage() {
   const isPatientsModuleEnabled = enabledModules?.includes("patients");
   const isStandaloneMode = !isPatientsModuleEnabled;
 
-  // Handle incoming prescription cart from Dispensing page
+  // Handle incoming prescription cart from Dispensing page or OT Queue
   useEffect(() => {
     const state = location.state as PrescriptionCartState | null;
     if (state?.prescriptionCart && state.prescriptionCart.length > 0) {
@@ -112,9 +123,15 @@ export default function POSTerminalPage() {
       if (state.prescriptionNumber) {
         setPrescriptionNumber(state.prescriptionNumber);
       }
+      // Capture OT medication info
+      if (state.otMedicationId) {
+        setOtMedicationId(state.otMedicationId);
+        setOtSurgeryId(state.surgeryId || null);
+        setOtMedicationName(state.otMedicationName || null);
+      }
       // Clear navigation state to prevent re-loading on refresh
       window.history.replaceState({}, document.title);
-      toast.success("Prescription items loaded", {
+      toast.success(state.otMedicationId ? "OT Medication loaded" : "Prescription items loaded", {
         description: `${state.prescriptionCart.length} item(s) added to cart`,
       });
     }
@@ -223,6 +240,10 @@ export default function POSTerminalPage() {
     setSelectedPatient(null);
     setPatientAdmission(null);
     setPrescriptionNumber(null);
+    // Clear OT medication tracking
+    setOtMedicationId(null);
+    setOtSurgeryId(null);
+    setOtMedicationName(null);
   };
 
   const handleHoldTransaction = () => {
@@ -257,15 +278,40 @@ export default function POSTerminalPage() {
     setShowPostToProfileConfirm(true);
   };
 
-  const confirmPostToProfile = () => {
+  const confirmPostToProfile = async () => {
     if (!patientAdmission || cart.length === 0) return;
+    
+    // Capture OT medication info before clearing cart
+    const currentOtMedicationId = otMedicationId;
+    const currentCart = [...cart];
     
     postToProfileMutation.mutate({
       admissionId: patientAdmission.id,
       items: cart,
-      notes: `Dispensed by ${profile?.full_name || "POS"} at ${new Date().toLocaleString()}`,
+      notes: otMedicationId 
+        ? `OT Medication: ${otMedicationName || 'Unknown'} - Dispensed by ${profile?.full_name || "POS"}`
+        : `Dispensed by ${profile?.full_name || "POS"} at ${new Date().toLocaleString()}`,
     }, {
-      onSuccess: () => {
+      onSuccess: async () => {
+        // Update OT medication status if applicable
+        if (currentOtMedicationId) {
+          try {
+            await supabase
+              .from('surgery_medications')
+              .update({
+                pharmacy_status: 'dispensed',
+                dispensed_at: new Date().toISOString(),
+                dispensed_by: profile?.id,
+                inventory_item_id: currentCart[0]?.inventory_id,
+                batch_number: currentCart[0]?.batch_number,
+                unit_price: currentCart[0]?.selling_price,
+                billing_status: 'posted',
+              })
+              .eq('id', currentOtMedicationId);
+          } catch (err) {
+            console.error('Failed to update OT medication status:', err);
+          }
+        }
         handleClearCart();
         setShowPostToProfileConfirm(false);
       },
@@ -282,8 +328,12 @@ export default function POSTerminalPage() {
     setShowPaymentModal(true);
   };
 
-  const handlePaymentComplete = (payments: Omit<POSPayment, "id" | "transaction_id">[], isCredit?: boolean, dueDate?: string) => {
+  const handlePaymentComplete = async (payments: Omit<POSPayment, "id" | "transaction_id">[], isCredit?: boolean, dueDate?: string) => {
     if (cart.length === 0) return;
+
+    // Capture OT medication info before clearing cart
+    const currentOtMedicationId = otMedicationId;
+    const currentCart = [...cart];
 
     createTransactionMutation.mutate({
       items: cart,
@@ -300,7 +350,27 @@ export default function POSTerminalPage() {
       isCredit,
       dueDate,
     }, {
-      onSuccess: (transaction) => {
+      onSuccess: async (transaction) => {
+        // Update OT medication status if applicable
+        if (currentOtMedicationId) {
+          try {
+            await supabase
+              .from('surgery_medications')
+              .update({
+                pharmacy_status: 'dispensed',
+                dispensed_at: new Date().toISOString(),
+                dispensed_by: profile?.id,
+                inventory_item_id: currentCart[0]?.inventory_id,
+                batch_number: currentCart[0]?.batch_number,
+                unit_price: currentCart[0]?.selling_price,
+                billing_status: isCredit ? 'pending' : 'paid',
+              })
+              .eq('id', currentOtMedicationId);
+          } catch (err) {
+            console.error('Failed to update OT medication status:', err);
+          }
+        }
+        
         setShowPaymentModal(false);
         setCompletedTransaction(transaction);
         setShowReceipt(true);
@@ -453,8 +523,19 @@ export default function POSTerminalPage() {
 
         {/* Right Panel - Cart */}
         <div className="w-full lg:w-[400px] xl:w-[450px] flex flex-col overflow-hidden bg-muted/20">
+          {/* OT Medication Info Banner */}
+          {otMedicationId && (
+            <div className="p-2 bg-orange-100 dark:bg-orange-900/30 border-b border-orange-300 dark:border-orange-700 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Syringe className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                <span className="text-sm font-medium text-orange-700 dark:text-orange-300">OT Medication: {otMedicationName}</span>
+              </div>
+              <Badge variant="outline" className="text-xs border-orange-400 text-orange-700 dark:text-orange-300">From Surgery</Badge>
+            </div>
+          )}
+          
           {/* Prescription Info Banner */}
-          {prescriptionNumber && (
+          {prescriptionNumber && !otMedicationId && (
             <div className="p-2 bg-primary/10 border-b flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <FileText className="h-4 w-4 text-primary" />
