@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import { formatCurrency } from "@/lib/currency";
 
 interface SalaryComponent {
   name: string;
@@ -29,13 +30,6 @@ export function SalaryBreakdown({
   const totalEarnings = basicSalary + earnings.reduce((sum, c) => sum + c.amount, 0);
   const totalDeductions = deductions.reduce((sum, c) => sum + c.amount, 0);
   const netSalary = totalEarnings - totalDeductions;
-
-  const formatCurrency = (amount: number) =>
-    new Intl.NumberFormat("en-PK", {
-      style: "currency",
-      currency: "PKR",
-      minimumFractionDigits: 0,
-    }).format(amount);
 
   const content = (
     <div className={cn("space-y-4", compact && "space-y-2")}>

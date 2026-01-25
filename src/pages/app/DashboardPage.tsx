@@ -12,6 +12,9 @@ import { ModernStatsCard } from "@/components/ModernStatsCard";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { formatCurrency } from "@/lib/currency";
+import { canViewFinancials } from "@/lib/permissions";
+import { Database } from "@/integrations/supabase/types";
 
 // Role-based dashboard redirect mapping
 const ROLE_DASHBOARD_MAP: Record<string, string> = {
@@ -53,6 +56,10 @@ export const DashboardPage = () => {
 
   const greeting = getGreeting();
   const GreetingIcon = greeting.icon;
+  
+  // Check if user can view financial data
+  type AppRole = Database["public"]["Enums"]["app_role"];
+  const showFinancials = canViewFinancials(roles as AppRole[]);
 
   // Wait for BOTH roles AND permissions to be loaded before making redirect decisions
   useEffect(() => {
@@ -103,13 +110,8 @@ export const DashboardPage = () => {
     }
   };
   
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-PK", {
-      style: "currency",
-      currency: "PKR",
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
+  // Use centralized currency formatting
+  const formatAmount = (amount: number) => formatCurrency(amount);
 
   const firstName = (() => {
     if (!profile?.full_name) return "User";
@@ -202,15 +204,17 @@ export const DashboardPage = () => {
           loading={isLoading}
           onClick={() => navigate("/app/appointments/queue")}
         />
-        <ModernStatsCard
-          title="Today's Revenue"
-          value={formatCurrency(stats?.todayRevenue || 0)}
-          change="Live updates"
-          icon={TrendingUp}
-          variant="accent"
-          loading={isLoading}
-          onClick={() => navigate("/app/billing")}
-        />
+        {showFinancials && (
+          <ModernStatsCard
+            title="Today's Revenue"
+            value={formatAmount(stats?.todayRevenue || 0)}
+            change="Live updates"
+            icon={TrendingUp}
+            variant="accent"
+            loading={isLoading}
+            onClick={() => navigate("/app/billing")}
+          />
+        )}
       </div>
 
       {/* Quick Actions & Collections */}
@@ -240,8 +244,30 @@ export const DashboardPage = () => {
           </CardContent>
         </Card>
 
-        {/* Collections Widget */}
-        <CollectionsWidget />
+        {/* Collections Widget - Only visible to finance roles */}
+        {showFinancials ? (
+          <CollectionsWidget />
+        ) : (
+          <Card className="shadow-soft">
+            <CardHeader className="bg-gradient-to-r from-muted/50 to-transparent">
+              <CardTitle className="text-lg">Clinical Summary</CardTitle>
+              <CardDescription>Your clinical activity overview</CardDescription>
+            </CardHeader>
+            <CardContent className="pt-4">
+              <div className="flex items-center gap-3 p-4 rounded-xl bg-muted/50 border border-border">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <Stethoscope className="h-4 w-4 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium">Focus on patient care</p>
+                  <p className="text-xs text-muted-foreground">
+                    View your appointments and consultations
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Pharmacy Alerts */}
