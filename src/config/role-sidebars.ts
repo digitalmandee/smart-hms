@@ -663,8 +663,8 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         path: "", 
         icon: "HeartPulse",
         children: [
-          { name: "Intra-Op Notes", path: "/app/ot/nursing-notes", icon: "FileText" },
-          { name: "Instrument Count", path: "/app/ot/instruments", icon: "ClipboardCheck" },
+          { name: "Intra-Op Notes", path: "/app/ot/surgeries", icon: "FileText" },
+          { name: "Instrument Count", path: "/app/ot/surgeries", icon: "ClipboardCheck" },
         ]
       },
       { 
@@ -700,7 +700,6 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         icon: "Syringe",
         children: [
           { name: "Medication Queue", path: "/app/pharmacy/ot-queue", icon: "ClipboardList" },
-          { name: "Pending Requests", path: "/app/pharmacy/ot-pending", icon: "Clock" },
         ]
       },
       { 
