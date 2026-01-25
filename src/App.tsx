@@ -286,6 +286,7 @@ import AnesthesiaDashboard from "./pages/app/ot/AnesthesiaDashboard";
 import PreAnesthesiaAssessmentPage from "./pages/app/ot/PreAnesthesiaAssessmentPage";
 import OTNursingNotesPage from "./pages/app/ot/OTNursingNotesPage";
 import OTInstrumentCountPage from "./pages/app/ot/OTInstrumentCountPage";
+import LiveSurgeryPage from "./pages/app/ot/LiveSurgeryPage";
 import OTConfigPage from "./pages/app/settings/OTConfigPage";
 
 // Reception pages
