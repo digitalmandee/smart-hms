@@ -352,7 +352,12 @@ export default function OTSchedulePage() {
                         onClick={() => navigate(`/app/ot/surgeries/${surgery.id}`)}
                       >
                         <div className="flex items-center gap-1 mb-1">
-                          <OTStatusBadge status={surgery.status} className="text-[10px] px-1 py-0" />
+                          <OTStatusBadge 
+                            status={surgery.status} 
+                            scheduledDate={surgery.scheduled_date}
+                            scheduledTime={surgery.scheduled_start_time}
+                            className="text-[10px] px-1 py-0" 
+                          />
                         </div>
                         <p className="font-medium truncate">
                           {surgery.patient?.first_name} {surgery.patient?.last_name}
