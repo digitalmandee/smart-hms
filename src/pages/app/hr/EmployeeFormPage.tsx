@@ -40,13 +40,14 @@ import { useNurseByEmployeeId, useCreateNurseForEmployee, NURSE_SPECIALIZATIONS 
 import { useAuth } from "@/contexts/AuthContext";
 import { DoctorDetailsForm } from "@/components/hr/DoctorDetailsForm";
 import { NurseDetailsForm } from "@/components/hr/NurseDetailsForm";
+import { DoctorCompensationForm } from "@/components/hr/DoctorCompensationForm";
 import { LoginAccountSection } from "@/components/hr/LoginAccountSection";
 import { DocumentUploadSection, type PendingDocument } from "@/components/hr/DocumentUploadSection";
 import { useCreateStaffUser } from "@/hooks/useStaffManagement";
 import { useCreateEmployeeDocument } from "@/hooks/useEmployeeDocuments";
 import { supabase } from "@/integrations/supabase/client";
 import { type AppRole } from "@/constants/roles";
-import { Loader2, Save, ArrowLeft, Stethoscope, Heart, FileText } from "lucide-react";
+import { Loader2, Save, ArrowLeft, Stethoscope, Heart, FileText, Wallet } from "lucide-react";
 
 const employeeSchema = z.object({
   employee_number: z.string().min(1, "Employee number is required"),
@@ -80,6 +81,14 @@ const employeeSchema = z.object({
   license_number: z.string().optional(),
   consultation_fee: z.number().optional(),
   is_available: z.boolean().optional(),
+  // Compensation fields
+  compensation_plan_type: z.enum(["fixed_salary", "per_consultation", "per_procedure", "revenue_share", "hybrid"]).optional(),
+  consultation_share_percent: z.number().min(0).max(100).optional().nullable(),
+  procedure_share_percent: z.number().min(0).max(100).optional().nullable(),
+  surgery_share_percent: z.number().min(0).max(100).optional().nullable(),
+  anesthesia_share_percent: z.number().min(0).max(100).optional().nullable(),
+  lab_referral_percent: z.number().min(0).max(100).optional().nullable(),
+  minimum_guarantee: z.number().optional().nullable(),
 });
 
 type EmployeeFormData = z.infer<typeof employeeSchema>;
@@ -307,8 +316,9 @@ export default function EmployeeFormPage() {
       }
 
       // Save doctor details if this is a clinical category and we didn't use edge function
+      let doctorRecordId = doctorData?.id;
       if (!createLogin && isClinicalCategory && employeeId && (data.specialization || data.qualification || data.license_number)) {
-        await createDoctorForEmployee.mutateAsync({
+        const createdDoctor = await createDoctorForEmployee.mutateAsync({
           employeeId,
           branchId: data.branch_id || undefined,
           specialization: data.specialization || undefined,
@@ -317,6 +327,47 @@ export default function EmployeeFormPage() {
           consultationFee: data.consultation_fee,
           isAvailable: data.is_available ?? true,
         });
+        doctorRecordId = createdDoctor?.id;
+      }
+
+      // Save compensation plan if this is a doctor category and we have compensation data
+      if (isDoctorCategory && doctorRecordId && data.compensation_plan_type) {
+        // Check if plan exists
+        const { data: existingPlan } = await supabase
+          .from("doctor_compensation_plans")
+          .select("id")
+          .eq("doctor_id", doctorRecordId)
+          .eq("is_active", true)
+          .maybeSingle();
+
+        const planData = {
+          doctor_id: doctorRecordId,
+          plan_type: data.compensation_plan_type,
+          consultation_share_percent: data.consultation_share_percent ?? 50,
+          procedure_share_percent: data.procedure_share_percent ?? 50,
+          surgery_share_percent: data.surgery_share_percent ?? 50,
+          anesthesia_share_percent: data.anesthesia_share_percent ?? 50,
+          lab_referral_percent: data.lab_referral_percent ?? 10,
+          minimum_guarantee: data.minimum_guarantee ?? 0,
+          base_salary: 0,
+          effective_from: new Date().toISOString().split("T")[0],
+          is_active: true,
+          organization_id: profile.organization_id,
+        };
+
+        if (existingPlan) {
+          await supabase
+            .from("doctor_compensation_plans")
+            .update({
+              ...planData,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", existingPlan.id);
+        } else {
+          await supabase
+            .from("doctor_compensation_plans")
+            .insert(planData);
+        }
       }
 
       // Upload and save pending documents
@@ -412,7 +463,7 @@ export default function EmployeeFormPage() {
           )}
 
           <Tabs defaultValue="personal" className="space-y-4">
-            <TabsList className={`grid w-full ${isClinicalCategory ? 'grid-cols-7' : 'grid-cols-6'}`}>
+            <TabsList className={`grid w-full ${isDoctorCategory ? 'grid-cols-8' : isClinicalCategory ? 'grid-cols-7' : 'grid-cols-6'}`}>
               <TabsTrigger value="personal">Personal</TabsTrigger>
               <TabsTrigger value="employment">Employment</TabsTrigger>
               <TabsTrigger value="contact">Contact</TabsTrigger>
@@ -432,6 +483,12 @@ export default function EmployeeFormPage() {
                 <TabsTrigger value="clinical" className="flex items-center gap-1.5">
                   <Heart className="h-4 w-4" />
                   Nursing
+                </TabsTrigger>
+              )}
+              {isDoctorCategory && (
+                <TabsTrigger value="compensation" className="flex items-center gap-1.5">
+                  <Wallet className="h-4 w-4" />
+                  Compensation
                 </TabsTrigger>
               )}
             </TabsList>
@@ -920,6 +977,17 @@ export default function EmployeeFormPage() {
             {isNurseCategory && (
               <TabsContent value="clinical">
                 <NurseDetailsForm form={form} />
+              </TabsContent>
+            )}
+
+            {isDoctorCategory && (
+              <TabsContent value="compensation">
+                <DoctorCompensationForm 
+                  form={form} 
+                  doctorId={doctorData?.id}
+                  isSurgeon={selectedCategory?.name?.toLowerCase().includes('surgeon')}
+                  isAnesthetist={selectedCategory?.name?.toLowerCase().includes('anesthes')}
+                />
               </TabsContent>
             )}
           </Tabs>

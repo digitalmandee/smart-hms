@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -7,10 +7,16 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Calculator, Users, Check, ArrowRight, ArrowLeft, AlertCircle } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Calculator, Users, Check, ArrowRight, ArrowLeft, AlertCircle, Wallet, Info } from "lucide-react";
 import { useEmployeeSalaries, useCreatePayrollRun, useEmployeeLoans, useCreatePayrollEntries } from "@/hooks/usePayroll";
+import { useUnpaidEarningsForEmployee, useSettleWalletEarnings } from "@/hooks/useDoctorCompensation";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
@@ -23,6 +29,65 @@ const STEPS = [
   { id: 3, title: "Confirm & Process", icon: Check },
 ];
 
+// Hook to get all unpaid earnings for employees
+function useAllUnpaidEarnings(employeeIds: string[], organizationId: string | undefined) {
+  return useQuery({
+    queryKey: ["all-unpaid-earnings", employeeIds, organizationId],
+    queryFn: async () => {
+      if (!employeeIds.length || !organizationId) return {};
+
+      // Get doctor records for these employees
+      const { data: doctors } = await supabase
+        .from("doctors")
+        .select("id, employee_id")
+        .in("employee_id", employeeIds);
+
+      if (!doctors?.length) return {};
+
+      const doctorMap: Record<string, string> = {};
+      doctors.forEach(d => {
+        doctorMap[d.employee_id] = d.id;
+      });
+
+      // Get unpaid earnings for these doctors
+      const { data: earnings } = await supabase
+        .from("doctor_earnings")
+        .select("id, doctor_id, source_type, doctor_share_amount")
+        .in("doctor_id", Object.values(doctorMap))
+        .eq("is_paid", false);
+
+      // Group by employee
+      const result: Record<string, { 
+        doctorId: string; 
+        total: number; 
+        bySource: Record<string, number>; 
+        earningIds: string[] 
+      }> = {};
+
+      Object.entries(doctorMap).forEach(([empId, docId]) => {
+        const docEarnings = earnings?.filter(e => e.doctor_id === docId) || [];
+        const total = docEarnings.reduce((sum, e) => sum + Number(e.doctor_share_amount), 0);
+        const bySource: Record<string, number> = {};
+        docEarnings.forEach(e => {
+          bySource[e.source_type] = (bySource[e.source_type] || 0) + Number(e.doctor_share_amount);
+        });
+
+        if (total > 0) {
+          result[empId] = {
+            doctorId: docId,
+            total,
+            bySource,
+            earningIds: docEarnings.map(e => e.id),
+          };
+        }
+      });
+
+      return result;
+    },
+    enabled: employeeIds.length > 0 && !!organizationId,
+  });
+}
+
 export default function ProcessPayrollPage() {
   const navigate = useNavigate();
   const { profile } = useAuth();
@@ -31,12 +96,18 @@ export default function ProcessPayrollPage() {
   const [selectedMonth, setSelectedMonth] = useState((currentDate.getMonth() + 1).toString());
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear().toString());
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
+  const [includeCommissions, setIncludeCommissions] = useState<Record<string, boolean>>({});
   const [isProcessing, setIsProcessing] = useState(false);
 
   const { data: salaries, isLoading: salariesLoading } = useEmployeeSalaries({ isCurrent: true });
   const { data: loans } = useEmployeeLoans({ status: "active" });
   const createPayrollRun = useCreatePayrollRun();
   const createPayrollEntries = useCreatePayrollEntries();
+  const settleWalletEarnings = useSettleWalletEarnings();
+
+  // Get all employee IDs for fetching wallet balances
+  const allEmployeeIds = useMemo(() => salaries?.map((s: any) => s.employee_id) || [], [salaries]);
+  const { data: allUnpaidEarnings } = useAllUnpaidEarnings(allEmployeeIds, profile?.organization_id);
 
   const years = Array.from({ length: 5 }, (_, i) => (currentDate.getFullYear() - 2 + i).toString());
 
@@ -49,18 +120,40 @@ export default function ProcessPayrollPage() {
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedEmployees(salaries?.map((s: any) => s.employee_id) || []);
+      const allIds = salaries?.map((s: any) => s.employee_id) || [];
+      setSelectedEmployees(allIds);
+      // Default include commissions for all
+      const commissions: Record<string, boolean> = {};
+      allIds.forEach(id => {
+        if (allUnpaidEarnings?.[id]) {
+          commissions[id] = true;
+        }
+      });
+      setIncludeCommissions(commissions);
     } else {
       setSelectedEmployees([]);
+      setIncludeCommissions({});
     }
   };
 
   const handleSelectEmployee = (employeeId: string, checked: boolean) => {
     if (checked) {
       setSelectedEmployees([...selectedEmployees, employeeId]);
+      if (allUnpaidEarnings?.[employeeId]) {
+        setIncludeCommissions(prev => ({ ...prev, [employeeId]: true }));
+      }
     } else {
       setSelectedEmployees(selectedEmployees.filter((id) => id !== employeeId));
+      setIncludeCommissions(prev => {
+        const updated = { ...prev };
+        delete updated[employeeId];
+        return updated;
+      });
     }
+  };
+
+  const toggleCommission = (employeeId: string, include: boolean) => {
+    setIncludeCommissions(prev => ({ ...prev, [employeeId]: include }));
   };
 
   const getEmployeeLoanDeductions = (employeeId: string) => {
@@ -68,15 +161,21 @@ export default function ProcessPayrollPage() {
       .reduce((sum: number, l: any) => sum + (l.emi_amount || 0), 0) || 0;
   };
 
+  const getEmployeeCommission = (employeeId: string) => {
+    return includeCommissions[employeeId] ? (allUnpaidEarnings?.[employeeId]?.total || 0) : 0;
+  };
+
   const calculateTotals = () => {
     const selectedSalaries = salaries?.filter((s: any) => selectedEmployees.includes(s.employee_id)) || [];
     const totalGross = selectedSalaries.reduce((sum: number, s: any) => sum + (s.basic_salary || 0), 0);
     const totalDeductions = selectedEmployees.reduce((sum: number, empId: string) => sum + getEmployeeLoanDeductions(empId), 0);
+    const totalCommissions = selectedEmployees.reduce((sum: number, empId: string) => sum + getEmployeeCommission(empId), 0);
     return {
       employees: selectedEmployees.length,
       gross: totalGross,
       deductions: totalDeductions,
-      net: totalGross - totalDeductions,
+      commissions: totalCommissions,
+      net: totalGross + totalCommissions - totalDeductions,
     };
   };
 
@@ -103,7 +202,7 @@ export default function ProcessPayrollPage() {
         run_date: new Date().toISOString(),
         status: "draft",
         total_employees: totals.employees,
-        total_gross: totals.gross,
+        total_gross: totals.gross + totals.commissions,
         total_deductions: totals.deductions,
         total_net: totals.net,
       });
@@ -112,24 +211,39 @@ export default function ProcessPayrollPage() {
       const selectedSalaries = salaries?.filter((s: any) => selectedEmployees.includes(s.employee_id)) || [];
       const entries = selectedSalaries.map((salary: any) => {
         const loanDeduction = getEmployeeLoanDeductions(salary.employee_id);
+        const commission = getEmployeeCommission(salary.employee_id);
         const basicSalary = salary.basic_salary || 0;
-        const netSalary = basicSalary - loanDeduction;
+        const grossSalary = basicSalary + commission;
+        const netSalary = grossSalary - loanDeduction;
         
-        // Get bank details from employee record
         const employee = salary.employee;
+        
+        const earnings: { name: string; amount: number }[] = [
+          { name: "Basic Salary", amount: basicSalary }
+        ];
+        
+        if (commission > 0) {
+          const bySource = allUnpaidEarnings?.[salary.employee_id]?.bySource || {};
+          Object.entries(bySource).forEach(([source, amount]) => {
+            earnings.push({ 
+              name: `Commission (${source.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())})`, 
+              amount: amount as number 
+            });
+          });
+        }
         
         return {
           payroll_run_id: payrollRun.id,
           employee_id: salary.employee_id,
           basic_salary: basicSalary,
-          gross_salary: basicSalary,
+          gross_salary: grossSalary,
           net_salary: netSalary,
           total_deductions: loanDeduction,
           total_working_days: 26,
           present_days: 24,
           absent_days: 0,
           leave_days: 2,
-          earnings: [{ name: "Basic Salary", amount: basicSalary }],
+          earnings,
           deductions: loanDeduction > 0 ? [{ name: "Loan EMI", amount: loanDeduction }] : [],
           bank_name: employee?.bank_name || null,
           account_number: employee?.account_number || null,
@@ -137,6 +251,16 @@ export default function ProcessPayrollPage() {
       });
 
       await createPayrollEntries.mutateAsync(entries);
+      
+      // Step 3: Settle wallet earnings for employees who had commissions included
+      for (const empId of selectedEmployees) {
+        if (includeCommissions[empId] && allUnpaidEarnings?.[empId]) {
+          await settleWalletEarnings.mutateAsync({
+            doctorId: allUnpaidEarnings[empId].doctorId,
+            payrollRunId: payrollRun.id,
+          });
+        }
+      }
       
       toast.success(`Payroll run created with ${entries.length} employee entries!`);
       navigate("/app/hr/payroll");
@@ -251,13 +375,19 @@ export default function ProcessPayrollPage() {
               <div className="text-center py-8">Loading employees...</div>
             ) : (
               <>
-                <div className="mb-4 flex items-center gap-2">
-                  <Checkbox
-                    id="selectAll"
-                    checked={selectedEmployees.length === salaries?.length}
-                    onCheckedChange={handleSelectAll}
-                  />
-                  <Label htmlFor="selectAll">Select All ({salaries?.length || 0} employees)</Label>
+                <div className="mb-4 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="selectAll"
+                      checked={selectedEmployees.length === salaries?.length}
+                      onCheckedChange={handleSelectAll}
+                    />
+                    <Label htmlFor="selectAll">Select All ({salaries?.length || 0} employees)</Label>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Wallet className="h-4 w-4" />
+                    <span>Toggle to include wallet commissions in payroll</span>
+                  </div>
                 </div>
                 <Table>
                   <TableHeader>
@@ -265,6 +395,21 @@ export default function ProcessPayrollPage() {
                       <TableHead className="w-12"></TableHead>
                       <TableHead>Employee</TableHead>
                       <TableHead>Basic Salary</TableHead>
+                      <TableHead>
+                        <div className="flex items-center gap-1">
+                          Wallet Commissions
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <Info className="h-3.5 w-3.5 text-muted-foreground" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Pending earnings from consultations, surgeries, etc.</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                      </TableHead>
                       <TableHead>Loan Deductions</TableHead>
                       <TableHead>Net Payable</TableHead>
                     </TableRow>
@@ -272,12 +417,16 @@ export default function ProcessPayrollPage() {
                   <TableBody>
                     {salaries?.map((salary: any) => {
                       const loanDeduction = getEmployeeLoanDeductions(salary.employee_id);
-                      const netPayable = (salary.basic_salary || 0) - loanDeduction;
+                      const walletBalance = allUnpaidEarnings?.[salary.employee_id];
+                      const commission = getEmployeeCommission(salary.employee_id);
+                      const netPayable = (salary.basic_salary || 0) + commission - loanDeduction;
+                      const isSelected = selectedEmployees.includes(salary.employee_id);
+                      
                       return (
                         <TableRow key={salary.id}>
                           <TableCell>
                             <Checkbox
-                              checked={selectedEmployees.includes(salary.employee_id)}
+                              checked={isSelected}
                               onCheckedChange={(checked) => handleSelectEmployee(salary.employee_id, !!checked)}
                             />
                           </TableCell>
@@ -290,8 +439,43 @@ export default function ProcessPayrollPage() {
                             </div>
                           </TableCell>
                           <TableCell>{formatCurrency(salary.basic_salary)}</TableCell>
-                          <TableCell className={loanDeduction > 0 ? "text-red-600" : ""}>
-                            {loanDeduction > 0 ? `-${formatCurrency(loanDeduction)}` : "-"}
+                          <TableCell>
+                            {walletBalance ? (
+                              <div className="flex items-center gap-2">
+                                <Switch
+                                  checked={includeCommissions[salary.employee_id] || false}
+                                  onCheckedChange={(checked) => toggleCommission(salary.employee_id, checked)}
+                                  disabled={!isSelected}
+                                />
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Badge 
+                                        variant={includeCommissions[salary.employee_id] ? "default" : "outline"}
+                                        className="cursor-help"
+                                      >
+                                        {formatCurrency(walletBalance.total)}
+                                      </Badge>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <div className="text-xs space-y-1">
+                                        {Object.entries(walletBalance.bySource).map(([source, amt]) => (
+                                          <div key={source} className="flex justify-between gap-4">
+                                            <span className="capitalize">{source.replace(/_/g, ' ')}</span>
+                                            <span>{formatCurrency(amt as number)}</span>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
+                            )}
+                          </TableCell>
+                          <TableCell className={loanDeduction > 0 ? "text-destructive" : ""}>
+                            {loanDeduction > 0 ? `-${formatCurrency(loanDeduction)}` : "—"}
                           </TableCell>
                           <TableCell className="font-medium">{formatCurrency(netPayable)}</TableCell>
                         </TableRow>
@@ -321,7 +505,7 @@ export default function ProcessPayrollPage() {
             <CardDescription>Review summary and process payroll</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="grid gap-4 md:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-5">
               <Card>
                 <CardContent className="pt-6">
                   <div className="text-2xl font-bold">{totals.employees}</div>
@@ -331,12 +515,18 @@ export default function ProcessPayrollPage() {
               <Card>
                 <CardContent className="pt-6">
                   <div className="text-2xl font-bold text-green-600">{formatCurrency(totals.gross)}</div>
-                  <p className="text-sm text-muted-foreground">Gross Salary</p>
+                  <p className="text-sm text-muted-foreground">Base Salary</p>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="pt-6">
-                  <div className="text-2xl font-bold text-red-600">{formatCurrency(totals.deductions)}</div>
+                  <div className="text-2xl font-bold text-blue-600">{formatCurrency(totals.commissions)}</div>
+                  <p className="text-sm text-muted-foreground">Commissions</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-2xl font-bold text-destructive">{formatCurrency(totals.deductions)}</div>
                   <p className="text-sm text-muted-foreground">Deductions</p>
                 </CardContent>
               </Card>
@@ -356,6 +546,11 @@ export default function ProcessPayrollPage() {
                   <p className="text-sm text-muted-foreground">
                     Processing payroll for {MONTHS[parseInt(selectedMonth) - 1]} {selectedYear} for {totals.employees} employees.
                     Total net amount to be disbursed: {formatCurrency(totals.net)}.
+                    {totals.commissions > 0 && (
+                      <span className="block mt-1 text-blue-600">
+                        Includes {formatCurrency(totals.commissions)} in wallet commissions that will be marked as paid.
+                      </span>
+                    )}
                   </p>
                 </div>
               </div>

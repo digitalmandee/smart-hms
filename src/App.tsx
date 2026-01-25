@@ -195,6 +195,7 @@ import PayslipsPage from "./pages/app/hr/payroll/PayslipsPage";
 import PayrollReportsPage from "./pages/app/hr/payroll/PayrollReportsPage";
 import PayrollRunDetailPage from "./pages/app/hr/payroll/PayrollRunDetailPage";
 import BankSheetPage from "./pages/app/hr/payroll/BankSheetPage";
+import DoctorWalletBalancesPage from "./pages/app/hr/payroll/DoctorWalletBalancesPage";
 import DoctorsListPage from "./pages/app/hr/DoctorsListPage";
 import NursesListPage from "./pages/app/hr/NursesListPage";
 import HRReportsPage from "./pages/app/hr/HRReportsPage";
@@ -792,6 +793,7 @@ function App() {
               <Route path="hr/setup/tax-slabs" element={<TaxSlabsPage />} />
               <Route path="hr/payroll/doctor-compensation" element={<DoctorCompensationPage />} />
               <Route path="hr/payroll/doctor-earnings" element={<DoctorEarningsPage />} />
+              <Route path="hr/payroll/wallet-balances" element={<DoctorWalletBalancesPage />} />
               <Route path="hr/recruitment/jobs" element={<JobOpeningsPage />} />
               <Route path="hr/recruitment/applications" element={<ApplicationsPage />} />
               <Route path="hr/exit/resignations" element={<ResignationsPage />} />
