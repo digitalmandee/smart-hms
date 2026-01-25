@@ -163,7 +163,7 @@ export function DoctorCompensationForm({
                 )}
               />
 
-              {/* Surgery Share - Show for surgeons */}
+              {/* Surgery Share - Show for surgeons or general doctors */}
               {(isSurgeon || !isAnesthetist) && (
                 <FormField
                   control={form.control}
