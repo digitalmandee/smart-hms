@@ -21,6 +21,7 @@ import {
   Package,
   Scissors,
   FileText,
+  Stethoscope,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { IntraOpNotes } from "@/hooks/useOT";
@@ -31,6 +32,7 @@ interface CompleteSurgeryModalProps {
   onComplete: (forceComplete?: boolean, notes?: string) => Promise<void>;
   intraOpNotes?: IntraOpNotes | null;
   hasVitals?: boolean;
+  hasAnesthesiaRecord?: boolean;
   isLoading?: boolean;
 }
 
@@ -48,6 +50,7 @@ export function CompleteSurgeryModal({
   onComplete,
   intraOpNotes,
   hasVitals = false,
+  hasAnesthesiaRecord = false,
   isLoading,
 }: CompleteSurgeryModalProps) {
   const [forceComplete, setForceComplete] = useState(false);
@@ -58,6 +61,13 @@ export function CompleteSurgeryModal({
     const notes = (intraOpNotes as unknown) as Record<string, unknown> | null;
     
     return [
+      {
+        id: "anesthesia",
+        label: "Anesthesia record documented",
+        icon: Stethoscope,
+        isComplete: hasAnesthesiaRecord,
+        isCritical: true,
+      },
       {
         id: "sponge",
         label: "Sponge count verified",
@@ -94,7 +104,7 @@ export function CompleteSurgeryModal({
         isCritical: false,
       },
     ];
-  }, [intraOpNotes, hasVitals]);
+  }, [intraOpNotes, hasVitals, hasAnesthesiaRecord]);
 
   const criticalIncomplete = validationItems.filter(
     (item) => item.isCritical && !item.isComplete

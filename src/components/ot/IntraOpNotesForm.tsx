@@ -166,8 +166,32 @@ export function IntraOpNotesForm({
     formData.instrument_count_correct && 
     formData.needle_count_correct;
 
+  // Check for missing required completion fields
+  const missingRequiredFields = [];
+  if (!formData.closure_details) missingRequiredFields.push("Closure details");
+  if (!formData.sponge_count_correct) missingRequiredFields.push("Sponge count verification");
+  if (!formData.instrument_count_correct) missingRequiredFields.push("Instrument count verification");
+  if (!formData.needle_count_correct) missingRequiredFields.push("Needle count verification");
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Completion Requirements Warning */}
+      {missingRequiredFields.length > 0 && (
+        <Card className="border-orange-200 bg-orange-50">
+          <CardContent className="pt-4">
+            <div className="flex items-center gap-2 text-orange-700">
+              <AlertTriangle className="h-4 w-4" />
+              <span className="font-medium">Required for surgery completion:</span>
+            </div>
+            <ul className="list-disc list-inside text-sm text-orange-600 mt-2">
+              {missingRequiredFields.map((field) => (
+                <li key={field}>{field}</li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Procedure Details */}
       <Card>
         <CardHeader>
@@ -522,12 +546,20 @@ export function IntraOpNotesForm({
             </div>
           </div>
           <div className="space-y-2">
-            <Label>Closure Details</Label>
+            <Label className="flex items-center gap-2">
+              Closure Details
+              {!formData.closure_details && (
+                <Badge variant="outline" className="text-orange-600 border-orange-300 text-xs">
+                  Required for completion
+                </Badge>
+              )}
+            </Label>
             <Textarea
               placeholder="Describe closure technique and suture materials used..."
               value={formData.closure_details}
               onChange={(e) => updateFormData('closure_details', e.target.value)}
               rows={2}
+              className={!formData.closure_details ? "border-orange-300" : ""}
             />
           </div>
           <div className="space-y-2">
