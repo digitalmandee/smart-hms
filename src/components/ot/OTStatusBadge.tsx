@@ -1,9 +1,14 @@
+import { useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { AlertTriangle } from "lucide-react";
 import type { SurgeryStatus } from "@/hooks/useOT";
+import { otLogger } from "@/lib/logger";
 
 interface OTStatusBadgeProps {
   status: SurgeryStatus;
+  scheduledDate?: string;
+  scheduledTime?: string;
   className?: string;
 }
 
@@ -24,8 +29,49 @@ const statusConfig: Record<SurgeryStatus, { label: string; variant: string }> = 
   expired: { label: "Expired", variant: "bg-slate-100 text-slate-600 border-slate-200" },
 };
 
-export function OTStatusBadge({ status, className }: OTStatusBadgeProps) {
+export function OTStatusBadge({ status, scheduledDate, scheduledTime, className }: OTStatusBadgeProps) {
   const config = statusConfig[status] || statusConfig.scheduled;
+
+  // Detect if surgery is delayed (past scheduled time but not started/completed)
+  const isDelayed = useMemo(() => {
+    if (!scheduledDate || !scheduledTime) return false;
+    // Don't show delayed for these terminal/active statuses
+    if (['completed', 'cancelled', 'in_progress', 'postponed', 'failed', 'expired'].includes(status)) {
+      return false;
+    }
+    
+    try {
+      const scheduledDateTime = new Date(`${scheduledDate}T${scheduledTime}`);
+      const now = new Date();
+      const delayed = now > scheduledDateTime;
+      
+      if (delayed) {
+        otLogger.warn('OTStatusBadge: Surgery is delayed', { 
+          status, 
+          scheduledDate, 
+          scheduledTime,
+          now: now.toISOString()
+        });
+      }
+      
+      return delayed;
+    } catch (e) {
+      return false;
+    }
+  }, [scheduledDate, scheduledTime, status]);
+
+  // Show delayed badge if surgery is past its scheduled time
+  if (isDelayed) {
+    return (
+      <Badge 
+        variant="destructive" 
+        className={cn("font-medium gap-1", className)}
+      >
+        <AlertTriangle className="h-3 w-3" />
+        Delayed
+      </Badge>
+    );
+  }
 
   return (
     <Badge 

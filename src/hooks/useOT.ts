@@ -74,6 +74,23 @@ export interface Surgery {
   created_by?: string;
   created_at?: string;
   updated_at?: string;
+  
+  // Confirmation tracking (new fields from database)
+  booked_at?: string;
+  surgeon_confirmed_at?: string;
+  anesthesia_confirmed_at?: string;
+  confirmed_at?: string;
+  ready_at?: string;
+  ready_by?: string;
+  pre_op_medications_ordered?: boolean;
+  pre_op_supplies_ready?: boolean;
+  
+  // Outcome tracking (new fields from database)
+  outcome?: 'successful' | 'failed' | 'expired' | 'unknown' | null;
+  outcome_notes?: string;
+  outcome_recorded_at?: string;
+  outcome_recorded_by?: string;
+  
   // Joined data
   patient?: any;
   lead_surgeon?: any;
