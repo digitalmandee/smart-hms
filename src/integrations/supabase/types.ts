@@ -8420,6 +8420,7 @@ export type Database = {
           catheters: Json | null
           closure_details: string | null
           closure_time: string | null
+          completion_override_reason: string | null
           complications: string | null
           count_notes: string | null
           created_at: string | null
@@ -8451,6 +8452,7 @@ export type Database = {
           catheters?: Json | null
           closure_details?: string | null
           closure_time?: string | null
+          completion_override_reason?: string | null
           complications?: string | null
           count_notes?: string | null
           created_at?: string | null
@@ -8482,6 +8484,7 @@ export type Database = {
           catheters?: Json | null
           closure_details?: string | null
           closure_time?: string | null
+          completion_override_reason?: string | null
           complications?: string | null
           count_notes?: string | null
           created_at?: string | null
