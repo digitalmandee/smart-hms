@@ -18,6 +18,7 @@ import { ConsentFormModal } from "@/components/ot/ConsentFormModal";
 import { OTMedicationPanel } from "@/components/ot/OTMedicationPanel";
 import { ConsumablesPanel } from "@/components/ot/ConsumablesPanel";
 import { PostOpOrdersForm } from "@/components/ot/PostOpOrdersForm";
+import { PreOpReadinessCard } from "@/components/ot/PreOpReadinessCard";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import {
   ArrowLeft,
@@ -55,7 +56,7 @@ import { useAuth } from "@/contexts/AuthContext";
 export default function SurgeryDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { profile } = useAuth();
+  const { profile, hasRole } = useAuth();
   
   const { data: surgery, isLoading, isError } = useSurgery(id!);
   const startSurgery = useStartSurgery();
@@ -69,6 +70,13 @@ export default function SurgeryDetailPage() {
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
   const [showOutcomeForm, setShowOutcomeForm] = useState(false);
+
+  // Role-based visibility checks
+  const canCompleteChecklist = hasRole('surgeon') || hasRole('ot_nurse') || hasRole('branch_admin') || hasRole('super_admin');
+  const canViewBilling = hasRole('receptionist') || hasRole('branch_admin') || hasRole('super_admin') || hasRole('accountant');
+  const isAnesthetist = hasRole('anesthetist');
+  const isSurgeon = hasRole('surgeon');
+  const isNurse = hasRole('ot_nurse') || hasRole('nurse');
 
   if (isLoading) {
     return (
@@ -369,9 +377,15 @@ export default function SurgeryDetailPage() {
                       <CardTitle>WHO Surgical Safety Checklist</CardTitle>
                       <CardDescription>Mandatory safety verification before, during, and after surgery</CardDescription>
                     </div>
-                    <Button onClick={() => setShowChecklist(true)}>
-                      {surgery.safety_checklist?.sign_out_completed ? 'View Checklist' : 'Complete Checklist'}
-                    </Button>
+                    {canCompleteChecklist ? (
+                      <Button onClick={() => setShowChecklist(true)}>
+                        {surgery.safety_checklist?.sign_out_completed ? 'View Checklist' : 'Complete Checklist'}
+                      </Button>
+                    ) : (
+                      <Button variant="outline" onClick={() => setShowChecklist(true)}>
+                        View Checklist
+                      </Button>
+                    )}
                   </div>
                 </CardHeader>
                 <CardContent>

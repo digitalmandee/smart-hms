@@ -16743,6 +16743,92 @@ export type Database = {
           },
         ]
       }
+      surgery_reschedule_requests: {
+        Row: {
+          created_at: string | null
+          id: string
+          organization_id: string
+          original_date: string
+          original_time: string
+          proposed_date: string | null
+          proposed_time: string | null
+          reason: string
+          reason_category: string | null
+          requested_by: string
+          requested_by_role: string
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string | null
+          surgery_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          organization_id: string
+          original_date: string
+          original_time: string
+          proposed_date?: string | null
+          proposed_time?: string | null
+          reason: string
+          reason_category?: string | null
+          requested_by: string
+          requested_by_role: string
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          surgery_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          organization_id?: string
+          original_date?: string
+          original_time?: string
+          proposed_date?: string | null
+          proposed_time?: string | null
+          reason?: string
+          reason_category?: string | null
+          requested_by?: string
+          requested_by_role?: string
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          surgery_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "surgery_reschedule_requests_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surgery_reschedule_requests_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surgery_reschedule_requests_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surgery_reschedule_requests_surgery_id_fkey"
+            columns: ["surgery_id"]
+            isOneToOne: false
+            referencedRelation: "surgeries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       surgery_team_members: {
         Row: {
           confirmation_status: string | null
