@@ -33,6 +33,7 @@ import {
 
 interface PostOpOrdersFormProps {
   surgeryId: string;
+  onSuccess?: () => void;
 }
 
 interface FormData {
@@ -162,7 +163,7 @@ const jsonToText = (val: unknown): string => {
   return '';
 };
 
-export function PostOpOrdersForm({ surgeryId }: PostOpOrdersFormProps) {
+export function PostOpOrdersForm({ surgeryId, onSuccess }: PostOpOrdersFormProps) {
   const [formData, setFormData] = useState<FormData>(INITIAL_FORM);
   const [hasChanges, setHasChanges] = useState(false);
 
@@ -324,6 +325,11 @@ export function PostOpOrdersForm({ surgeryId }: PostOpOrdersFormProps) {
         });
       }
       setHasChanges(false);
+      
+      // Call onSuccess callback if provided
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (error) {
       // Error handled by mutation
     }

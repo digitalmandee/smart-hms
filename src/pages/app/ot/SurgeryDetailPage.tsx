@@ -40,6 +40,7 @@ import {
   Package,
   ClipboardCheck,
   Trophy,
+  Activity,
 } from "lucide-react";
 import { AddTeamMemberDialog } from "@/components/ot/AddTeamMemberDialog";
 import { format, differenceInMinutes } from "date-fns";
@@ -238,9 +239,9 @@ export default function SurgeryDetailPage() {
             </>
           )}
           {surgery.status === 'in_progress' && (
-            <Button onClick={handleComplete} disabled={completeSurgery.isPending}>
-              <CheckCircle2 className="h-4 w-4 mr-2" />
-              Complete Surgery
+            <Button onClick={() => navigate(`/app/ot/surgeries/${surgery.id}/live`)}>
+              <Activity className="h-4 w-4 mr-2" />
+              Open Live Dashboard
             </Button>
           )}
           {surgery.status === 'completed' && !(surgery as any).outcome && (

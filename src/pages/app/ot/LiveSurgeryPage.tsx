@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -14,17 +14,20 @@ import {
   CheckCircle2,
   Loader2,
   User,
+  ClipboardList,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useSurgery, useCompleteSurgery } from "@/hooks/useOT";
+import { useSurgery, useCompleteSurgery, useSaveIntraOpNotes } from "@/hooks/useOT";
+import { usePostOpOrders } from "@/hooks/usePostOpOrders";
 import { SurgeryTimer } from "@/components/ot/SurgeryTimer";
 import { VitalsChart } from "@/components/ot/VitalsChart";
 import { QuickActionPanel } from "@/components/ot/QuickActionPanel";
 import { CompleteSurgeryModal } from "@/components/ot/CompleteSurgeryModal";
 import { IntraOpNotesForm } from "@/components/ot/IntraOpNotesForm";
 import { SurgeryOutcomeForm } from "@/components/ot/SurgeryOutcomeForm";
+import { PostOpOrdersForm } from "@/components/ot/PostOpOrdersForm";
 
 interface VitalEntry {
   time: string;
@@ -52,10 +55,13 @@ export default function LiveSurgeryPage() {
   
   const { data: surgery, isLoading, refetch } = useSurgery(id!);
   const completeSurgery = useCompleteSurgery();
+  const saveIntraOpNotes = useSaveIntraOpNotes();
+  const { data: postOpOrders } = usePostOpOrders(id);
   
   const [activeTab, setActiveTab] = useState("surgeon");
   const [completeModalOpen, setCompleteModalOpen] = useState(false);
   const [showOutcomeForm, setShowOutcomeForm] = useState(false);
+  const [showPostOpOrders, setShowPostOpOrders] = useState(false);
   const [intraOpNotes, setIntraOpNotes] = useState<Record<string, unknown> | null>(null);
   const [vitals, setVitals] = useState<VitalEntry[]>([]);
   const [drugs, setDrugs] = useState<DrugEntry[]>([]);
@@ -158,18 +164,41 @@ export default function LiveSurgeryPage() {
     toast.success("Specimen added - save notes to persist");
   };
 
+  // FIXED: Actually persist notes to database using the hook
   const handleSaveNotes = async (data: Record<string, unknown>) => {
-    const updatedNotes = { ...intraOpNotes, ...data };
-    setIntraOpNotes(updatedNotes);
-    toast.success("Notes saved");
-    refetch();
+    try {
+      await saveIntraOpNotes.mutateAsync({
+        surgeryId: id!,
+        ...data,
+        documented_by: profile?.id || '',
+      } as any);
+      
+      // Update local state
+      const updatedNotes = { ...intraOpNotes, ...data };
+      setIntraOpNotes(updatedNotes);
+      
+      // Refetch to get latest data
+      await refetch();
+    } catch (error) {
+      // Error already handled by the hook
+    }
   };
 
-  const handleCompleteSurgery = async (forceComplete?: boolean, notes?: string) => {
+  // FIXED: Refresh data before opening complete modal to ensure validation uses latest data
+  const handleOpenCompleteModal = async () => {
+    await refetch();
+    setCompleteModalOpen(true);
+  };
+
+  // FIXED: Persist override reason to database
+  const handleCompleteSurgery = async (forceComplete?: boolean, overrideReason?: string) => {
     try {
-      if (forceComplete && notes) {
-        // Store override reason in local notes
-        setIntraOpNotes(prev => ({ ...prev, completion_override_reason: notes }));
+      // If forcing complete, save the override reason to the database first
+      if (forceComplete && overrideReason) {
+        await saveIntraOpNotes.mutateAsync({
+          surgeryId: id!,
+          completion_override_reason: overrideReason,
+        } as any);
       }
       
       await completeSurgery.mutateAsync(id!);
@@ -183,9 +212,26 @@ export default function LiveSurgeryPage() {
     }
   };
 
+  // FIXED: After outcome is recorded, check for post-op orders before PACU redirect
   const handleOutcomeRecorded = () => {
     setShowOutcomeForm(false);
-    toast.success("Outcome recorded. Redirecting to PACU...");
+    
+    // Check if post-op orders exist
+    if (!postOpOrders) {
+      setShowPostOpOrders(true);
+      toast.info("Please create Post-Op Orders before transferring to PACU");
+    } else {
+      toast.success("Outcome recorded. Redirecting to PACU...");
+      setTimeout(() => {
+        navigate("/app/ot/pacu");
+      }, 1500);
+    }
+  };
+
+  // Handle post-op orders completion
+  const handlePostOpOrdersComplete = () => {
+    setShowPostOpOrders(false);
+    toast.success("Post-Op Orders saved. Redirecting to PACU...");
     setTimeout(() => {
       navigate("/app/ot/pacu");
     }, 1500);
@@ -271,7 +317,7 @@ export default function LiveSurgeryPage() {
                 {isCompleted ? "Completed" : "In Progress"}
               </Badge>
               {!isCompleted && (
-                <Button onClick={() => setCompleteModalOpen(true)}>
+                <Button onClick={handleOpenCompleteModal}>
                   <CheckCircle2 className="h-4 w-4 mr-2" />
                   Complete Surgery
                 </Button>
@@ -343,7 +389,7 @@ export default function LiveSurgeryPage() {
               notes={surgery.intra_op_notes}
               procedureName={surgery.procedure_name}
               onSave={handleSaveNotes}
-              isLoading={false}
+              isLoading={saveIntraOpNotes.isPending}
               documentedBy={profile?.full_name}
             />
           </TabsContent>
@@ -562,6 +608,27 @@ export default function LiveSurgeryPage() {
             onSuccess={handleOutcomeRecorded}
             className="max-w-2xl mx-auto"
           />
+        )}
+
+        {/* Post-Op Orders Form (shown after outcome is recorded if no orders exist) */}
+        {showPostOpOrders && (
+          <Card className="max-w-4xl mx-auto mt-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ClipboardList className="h-5 w-5" />
+                Post-Op Orders Required
+              </CardTitle>
+              <CardDescription>
+                Complete post-operative orders before transferring patient to PACU
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <PostOpOrdersForm 
+                surgeryId={id!} 
+                onSuccess={handlePostOpOrdersComplete} 
+              />
+            </CardContent>
+          </Card>
         )}
       </div>
 
