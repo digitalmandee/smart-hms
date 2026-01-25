@@ -21,14 +21,18 @@ interface SurgeryTimelineProps {
   timestamps?: {
     created_at?: string;
     booked_at?: string;
+    surgeon_confirmed_at?: string;
+    anesthesia_confirmed_at?: string;
     confirmed_at?: string;
     pre_op_started_at?: string;
+    ready_at?: string;
     actual_start_time?: string;
     actual_end_time?: string;
     outcome_recorded_at?: string;
   };
   className?: string;
   compact?: boolean;
+  showDetailedConfirmation?: boolean;
 }
 
 interface TimelineStep {
@@ -38,27 +42,32 @@ interface TimelineStep {
   statuses: SurgeryStatus[];
 }
 
+// Enhanced timeline with Ready state
 const timelineSteps: TimelineStep[] = [
   { key: 'requested', label: 'Requested', icon: FileText, statuses: ['requested'] },
   { key: 'booked', label: 'Booked', icon: Calendar, statuses: ['booked', 'rescheduled'] },
-  { key: 'confirmed', label: 'Confirmed', icon: CheckCircle2, statuses: ['confirmed'] },
+  { key: 'confirmed', label: 'Confirmed', icon: CheckCircle2, statuses: ['confirmed', 'on_hold' as SurgeryStatus] },
   { key: 'pre_op', label: 'Pre-Op', icon: Clipboard, statuses: ['pre_op'] },
+  { key: 'ready', label: 'Ready', icon: CheckCircle2, statuses: ['ready' as SurgeryStatus] },
   { key: 'in_progress', label: 'In Progress', icon: Play, statuses: ['in_progress'] },
   { key: 'completed', label: 'Completed', icon: Square, statuses: ['completed'] },
 ];
 
-const statusOrder: Record<SurgeryStatus, number> = {
+// Status order mapping - use string keys for new statuses until types are regenerated
+const statusOrder: Record<string, number> = {
   requested: 0,
   booked: 1,
   rescheduled: 1,
+  on_hold: 2,
   confirmed: 2,
   scheduled: 2, // Legacy - treat as confirmed
   pre_op: 3,
-  in_progress: 4,
-  completed: 5,
+  ready: 4,
+  in_progress: 5,
+  completed: 6,
   cancelled: -1,
   postponed: -1,
-  failed: 5,
+  failed: 6,
   expired: -1,
 };
 
@@ -67,10 +76,12 @@ export function SurgeryTimeline({
   outcome,
   timestamps,
   className,
-  compact = false
+  compact = false,
+  showDetailedConfirmation = false,
 }: SurgeryTimelineProps) {
-  const currentOrder = statusOrder[status] ?? -1;
+  const currentOrder = statusOrder[status as string] ?? -1;
   const isCancelled = status === 'cancelled' || status === 'postponed' || status === 'expired';
+  const isOnHold = (status as string) === 'on_hold';
   const isFailed = status === 'failed' || outcome === 'failed';
 
   // Get timestamp for a step
@@ -79,8 +90,9 @@ export function SurgeryTimeline({
     switch (stepKey) {
       case 'requested': return timestamps.created_at;
       case 'booked': return timestamps.booked_at;
-      case 'confirmed': return timestamps.confirmed_at;
+      case 'confirmed': return timestamps.confirmed_at || timestamps.anesthesia_confirmed_at;
       case 'pre_op': return timestamps.pre_op_started_at;
+      case 'ready': return timestamps.ready_at;
       case 'in_progress': return timestamps.actual_start_time;
       case 'completed': return timestamps.actual_end_time;
       default: return undefined;
