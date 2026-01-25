@@ -20,10 +20,10 @@ const OT_DEMO_USERS = [
     specialization: "General Surgery",
     specialization_code: "SURG",
     is_doctor: true,
-    doctor_id: "d4444444-4444-4444-4444-444444444444",
+    doctor_id: "d0300000-0000-0000-0000-000000000030",  // Unique ID for Shifa org
     employee_id: "e4444444-4444-4444-4444-444444444444",
     employee_number: "EMP-SURG-001",
-    license_number: "PMC-SURG-001",
+    license_number: "PMC-SURG-002",
     consultation_fee: 3000,
   },
   {
@@ -36,10 +36,10 @@ const OT_DEMO_USERS = [
     specialization: "Anesthesiology",
     specialization_code: "ANES",
     is_doctor: true,
-    doctor_id: "d5555555-5555-5555-5555-555555555555",
+    doctor_id: "d0310000-0000-0000-0000-000000000031",  // Unique ID for Shifa org
     employee_id: "e5555555-5555-5555-5555-555555555555",
     employee_number: "EMP-ANES-001",
-    license_number: "PMC-ANES-001",
+    license_number: "PMC-ANES-002",
     consultation_fee: 2500,
   },
   {
@@ -167,21 +167,13 @@ Deno.serve(async (req) => {
 
         // Create doctor entry if applicable
         if (user.is_doctor && user.doctor_id) {
-          // Get specialization ID
-          const { data: specData } = await supabaseAdmin
-            .from("specializations")
-            .select("id")
-            .eq("organization_id", ORGANIZATION_ID)
-            .eq("code", user.specialization_code)
-            .single();
-
           const { error: doctorError } = await supabaseAdmin.from("doctors").upsert({
             id: user.doctor_id,
             organization_id: ORGANIZATION_ID,
             branch_id: BRANCH_ID,
             profile_id: user.id,
             specialization: user.specialization,
-            specialization_id: specData?.id,
+            qualification: user.role === 'surgeon' ? 'FCPS Surgery' : 'FCPS Anesthesiology',
             consultation_fee: user.consultation_fee,
             is_available: true,
             license_number: user.license_number,
