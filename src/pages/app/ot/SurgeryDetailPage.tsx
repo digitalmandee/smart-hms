@@ -526,17 +526,20 @@ export default function SurgeryDetailPage() {
                       <CardTitle>Consent Forms</CardTitle>
                       <CardDescription>Digital consent capture with patient and witness signatures</CardDescription>
                     </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex flex-col items-center justify-center py-6 text-center border-2 border-dashed rounded-lg">
+                    <ClipboardCheck className="h-12 w-12 text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground mb-4">
+                      Manage all consent forms for this surgery
+                    </p>
                     <ConsentFormModal
                       surgeryId={surgery.id}
                       patientName={patientName}
                       procedureName={surgery.procedure_name}
                     />
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground text-sm">
-                    Use the "Consent Forms" button to view, add, or manage consent forms for this surgery.
-                  </p>
                 </CardContent>
               </Card>
             </TabsContent>

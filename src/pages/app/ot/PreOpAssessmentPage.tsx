@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,10 @@ import {
   FlaskConical,
   CheckCircle2,
   Clock,
-  AlertCircle
+  AlertCircle,
+  Eye,
+  Printer,
+  ExternalLink
 } from "lucide-react";
 import { format } from "date-fns";
 import { useState } from "react";
@@ -285,17 +288,44 @@ export default function PreOpAssessmentPage() {
                   </Button>
                 </div>
               ) : (
-                <div className="space-y-4">
+              <div className="space-y-4">
                   {preOpLabOrders.map(order => (
                     <div key={order.id} className="p-4 border rounded-lg">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="font-medium">{order.order_number}</span>
-                        <Badge variant={
-                          order.status === 'completed' ? 'default' :
-                          order.status === 'processing' ? 'secondary' : 'outline'
-                        }>
-                          {order.status}
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">{order.order_number}</span>
+                          <Badge variant={
+                            order.status === 'completed' ? 'default' :
+                            order.status === 'processing' ? 'secondary' : 'outline'
+                          }>
+                            {order.status}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {order.status === 'completed' && (
+                            <>
+                              <Link to={`/app/lab/orders/${order.id}`} target="_blank">
+                                <Button variant="outline" size="sm" title="View Results">
+                                  <Eye className="h-4 w-4 mr-1" />
+                                  View
+                                </Button>
+                              </Link>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                title="Print Report"
+                                onClick={() => window.open(`/app/lab/orders/${order.id}`, '_blank')}
+                              >
+                                <Printer className="h-4 w-4" />
+                              </Button>
+                            </>
+                          )}
+                          <Link to={`/app/lab/orders/${order.id}`} target="_blank">
+                            <Button variant="ghost" size="sm" title="Open in new tab">
+                              <ExternalLink className="h-4 w-4" />
+                            </Button>
+                          </Link>
+                        </div>
                       </div>
                       <div className="text-sm text-muted-foreground">
                         {order.items?.map(item => item.test_name).join(', ')}
