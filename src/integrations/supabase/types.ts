@@ -15919,6 +15919,91 @@ export type Database = {
           },
         ]
       }
+      surgeon_fee_templates: {
+        Row: {
+          consumables_fee: number
+          created_at: string
+          created_by: string | null
+          default_anesthesia_fee: number
+          default_anesthesia_type: string | null
+          id: string
+          is_active: boolean
+          notes: string | null
+          nursing_fee: number
+          organization_id: string
+          ot_room_fee: number
+          procedure_code: string | null
+          procedure_name: string
+          recovery_fee: number
+          surgeon_fee: number
+          surgeon_id: string
+          total_package: number | null
+          updated_at: string
+        }
+        Insert: {
+          consumables_fee?: number
+          created_at?: string
+          created_by?: string | null
+          default_anesthesia_fee?: number
+          default_anesthesia_type?: string | null
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          nursing_fee?: number
+          organization_id: string
+          ot_room_fee?: number
+          procedure_code?: string | null
+          procedure_name: string
+          recovery_fee?: number
+          surgeon_fee?: number
+          surgeon_id: string
+          total_package?: number | null
+          updated_at?: string
+        }
+        Update: {
+          consumables_fee?: number
+          created_at?: string
+          created_by?: string | null
+          default_anesthesia_fee?: number
+          default_anesthesia_type?: string | null
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          nursing_fee?: number
+          organization_id?: string
+          ot_room_fee?: number
+          procedure_code?: string | null
+          procedure_name?: string
+          recovery_fee?: number
+          surgeon_fee?: number
+          surgeon_id?: string
+          total_package?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "surgeon_fee_templates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surgeon_fee_templates_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surgeon_fee_templates_surgeon_id_fkey"
+            columns: ["surgeon_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       surgeries: {
         Row: {
           actual_end_time: string | null
@@ -15939,6 +16024,7 @@ export type Database = {
           equipment_needed: Json | null
           estimated_cost: number | null
           estimated_duration_minutes: number | null
+          fee_template_id: string | null
           id: string
           invoice_id: string | null
           is_billable: boolean | null
@@ -15963,6 +16049,7 @@ export type Database = {
           scheduled_start_time: string
           special_requirements: string | null
           status: Database["public"]["Enums"]["surgery_status"]
+          surgery_charges: Json | null
           surgery_number: string
           updated_at: string | null
         }
@@ -15985,6 +16072,7 @@ export type Database = {
           equipment_needed?: Json | null
           estimated_cost?: number | null
           estimated_duration_minutes?: number | null
+          fee_template_id?: string | null
           id?: string
           invoice_id?: string | null
           is_billable?: boolean | null
@@ -16009,6 +16097,7 @@ export type Database = {
           scheduled_start_time: string
           special_requirements?: string | null
           status?: Database["public"]["Enums"]["surgery_status"]
+          surgery_charges?: Json | null
           surgery_number: string
           updated_at?: string | null
         }
@@ -16031,6 +16120,7 @@ export type Database = {
           equipment_needed?: Json | null
           estimated_cost?: number | null
           estimated_duration_minutes?: number | null
+          fee_template_id?: string | null
           id?: string
           invoice_id?: string | null
           is_billable?: boolean | null
@@ -16055,6 +16145,7 @@ export type Database = {
           scheduled_start_time?: string
           special_requirements?: string | null
           status?: Database["public"]["Enums"]["surgery_status"]
+          surgery_charges?: Json | null
           surgery_number?: string
           updated_at?: string | null
         }
@@ -16099,6 +16190,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surgeries_fee_template_id_fkey"
+            columns: ["fee_template_id"]
+            isOneToOne: false
+            referencedRelation: "surgeon_fee_templates"
             referencedColumns: ["id"]
           },
           {
