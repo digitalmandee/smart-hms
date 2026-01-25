@@ -283,7 +283,12 @@ import AnesthesiaRecordPage from "./pages/app/ot/AnesthesiaRecordPage";
 import IntraOpNotesPage from "./pages/app/ot/IntraOpNotesPage";
 import AnesthesiaDashboard from "./pages/app/ot/AnesthesiaDashboard";
 import PreAnesthesiaAssessmentPage from "./pages/app/ot/PreAnesthesiaAssessmentPage";
+import OTNursingNotesPage from "./pages/app/ot/OTNursingNotesPage";
+import OTInstrumentCountPage from "./pages/app/ot/OTInstrumentCountPage";
 import OTConfigPage from "./pages/app/settings/OTConfigPage";
+
+// Reception pages
+import OTMedicationChargesPage from "./pages/app/reception/OTMedicationChargesPage";
 
 // Blood Bank pages
 import BloodBankDashboard from "./pages/app/blood-bank/BloodBankDashboard";
@@ -626,6 +631,11 @@ function App() {
               <Route path="ot/rooms/new" element={<OTRoomFormPage />} />
               <Route path="ot/rooms/:id/edit" element={<OTRoomFormPage />} />
               <Route path="ot/pacu" element={<PACUPage />} />
+              <Route path="ot/nursing-notes" element={<OTNursingNotesPage />} />
+              <Route path="ot/instruments" element={<OTInstrumentCountPage />} />
+              
+              {/* Reception OT Charges */}
+              <Route path="reception/ot-charges" element={<OTMedicationChargesPage />} />
               
               {/* Radiology routes */}
               <Route path="radiology" element={<RadiologyDashboard />} />

@@ -16364,7 +16364,10 @@ export type Database = {
         Row: {
           administered_at: string | null
           administered_by: string | null
+          approved_at: string | null
+          approved_by: string | null
           batch_number: string | null
+          billing_status: string | null
           created_at: string | null
           dispensed_at: string | null
           dispensed_by: string | null
@@ -16379,6 +16382,7 @@ export type Database = {
           ordered_by: string | null
           organization_id: string
           pharmacy_status: string | null
+          rejection_reason: string | null
           route: string | null
           scheduled_time: string | null
           status: string
@@ -16390,7 +16394,10 @@ export type Database = {
         Insert: {
           administered_at?: string | null
           administered_by?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
           batch_number?: string | null
+          billing_status?: string | null
           created_at?: string | null
           dispensed_at?: string | null
           dispensed_by?: string | null
@@ -16405,6 +16412,7 @@ export type Database = {
           ordered_by?: string | null
           organization_id: string
           pharmacy_status?: string | null
+          rejection_reason?: string | null
           route?: string | null
           scheduled_time?: string | null
           status?: string
@@ -16416,7 +16424,10 @@ export type Database = {
         Update: {
           administered_at?: string | null
           administered_by?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
           batch_number?: string | null
+          billing_status?: string | null
           created_at?: string | null
           dispensed_at?: string | null
           dispensed_by?: string | null
@@ -16431,6 +16442,7 @@ export type Database = {
           ordered_by?: string | null
           organization_id?: string
           pharmacy_status?: string | null
+          rejection_reason?: string | null
           route?: string | null
           scheduled_time?: string | null
           status?: string
@@ -16443,6 +16455,13 @@ export type Database = {
           {
             foreignKeyName: "surgery_medications_administered_by_fkey"
             columns: ["administered_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surgery_medications_approved_by_fkey"
+            columns: ["approved_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
