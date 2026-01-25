@@ -217,11 +217,10 @@ export function useCreateLabOrder() {
             patient_id: labOrder.patient_id,
             branch_id: labOrder.branch_id,
             organization_id: organizationId,
-            subtotal_amount: subtotal,
             discount_amount: 0,
             tax_amount: 0,
             total_amount: subtotal,
-            balance_amount: subtotal,  // Required for pay-later tracking
+            balance_amount: subtotal,
             paid_amount: 0,
             status: "pending",
             notes: `Invoice for Lab Order ${order.order_number}`,
