@@ -27,6 +27,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
+import { formatCurrencyFull as formatCurrency } from "@/lib/currency";
 
 export default function ReceivablesPage() {
   const navigate = useNavigate();
@@ -53,13 +54,6 @@ export default function ReceivablesPage() {
     },
     enabled: !!profile?.organization_id,
   });
-
-  const formatCurrency = (amount: number) => {
-    return `Rs. ${amount.toLocaleString('en-PK', { 
-      minimumFractionDigits: 2, 
-      maximumFractionDigits: 2 
-    })}`;
-  };
 
   const calculateAging = (invoiceDate: string) => {
     const created = new Date(invoiceDate);

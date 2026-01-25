@@ -48,6 +48,7 @@ import {
   CONSUMABLE_CATEGORIES,
   type SurgeryConsumable,
 } from '@/hooks/useSurgeryConsumables';
+import { formatCurrency } from '@/lib/currency';
 import { format } from 'date-fns';
 import {
   Plus,
@@ -203,13 +204,7 @@ export function ConsumablesPanel({ surgeryId }: ConsumablesPanelProps) {
   const implants = consumables?.filter((c) => c.is_implant) || [];
   const supplies = consumables?.filter((c) => !c.is_implant) || [];
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
+  // Using centralized formatCurrency from @/lib/currency
 
   return (
     <div className="space-y-6">
@@ -553,7 +548,7 @@ export function ConsumablesPanel({ surgeryId }: ConsumablesPanelProps) {
                 </Select>
               </div>
               <div className="col-span-2 space-y-1.5">
-                <Label>Unit Price (₹)</Label>
+                <Label>Unit Price (Rs.)</Label>
                 <Input
                   type="number"
                   min={0}

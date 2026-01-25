@@ -20,18 +20,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useAccounts, useFiscalYears, useCurrentFiscalYear } from "@/hooks/useAccounts";
 import { format } from "date-fns";
+import { formatCurrency } from "@/lib/currency";
 
 export default function AccountsDashboard() {
   const navigate = useNavigate();
   const { data: accounts } = useAccounts({ isActive: true });
   const { data: currentFiscalYear } = useCurrentFiscalYear();
-
-  const formatCurrency = (amount: number) => {
-    return `Rs. ${amount.toLocaleString('en-PK', { 
-      minimumFractionDigits: 0, 
-      maximumFractionDigits: 0 
-    })}`;
-  };
 
   // Calculate summary figures from accounts
   const summary = accounts?.reduce(
