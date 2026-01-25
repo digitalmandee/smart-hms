@@ -75,12 +75,14 @@ export function AddTeamMemberDialog({ surgeryId, disabled }: AddTeamMemberDialog
 
       // For assistant surgeon, fetch doctors
       if (selectedRole === 'assistant_surgeon') {
-        const { data: doctors } = await supabase
+        // Use explicit any to avoid TS2589 deep type instantiation
+        const sb = supabase as any;
+        const { data: doctors } = await sb
           .from('doctors')
           .select('id, specialization, profile_id')
           .eq('organization_id', profile.organization_id)
           .eq('is_active', true)
-          .limit(50) as { data: any[] | null };
+          .limit(50);
 
         // Fetch profiles separately to avoid deep type instantiation
         for (const d of (doctors || []) as any[]) {
@@ -104,7 +106,9 @@ export function AddTeamMemberDialog({ surgeryId, disabled }: AddTeamMemberDialog
 
       // For nursing roles, fetch nurses
       if (['scrub_nurse', 'circulating_nurse'].includes(selectedRole)) {
-        const { data: nurses } = await supabase
+        // Use explicit any to avoid TS2589 deep type instantiation
+        const sb = supabase as any;
+        const { data: nurses } = await sb
           .from('nurses')
           .select('id, specialization, profile_id')
           .eq('organization_id', profile.organization_id)
@@ -132,7 +136,9 @@ export function AddTeamMemberDialog({ surgeryId, disabled }: AddTeamMemberDialog
 
       // For technician, fetch employees
       if (selectedRole === 'technician') {
-        const { data: employees } = await supabase
+        // Use explicit any to avoid TS2589 deep type instantiation
+        const sb = supabase as any;
+        const { data: employees } = await sb
           .from('employees')
           .select('id, first_name, last_name, designation_id')
           .eq('organization_id', profile.organization_id)
