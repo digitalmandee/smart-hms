@@ -54,8 +54,11 @@ export function TestResultForm({
   const [results, setResults] = useState<Record<string, string | number>>({});
   const [notes, setNotes] = useState("");
 
-  // Find matching template
+  // Find matching template - prioritize service_type_id match for reliability
   const template = templates?.find((t) =>
+    // First try exact match by service_type_id (most reliable)
+    (item.service_type_id && t.service_type_id === item.service_type_id) ||
+    // Fallback to name matching
     item.test_name.toLowerCase().includes(t.test_name.toLowerCase()) ||
     t.test_name.toLowerCase().includes(item.test_name.toLowerCase())
   );

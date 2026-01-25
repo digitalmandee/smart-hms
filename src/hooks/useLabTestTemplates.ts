@@ -17,6 +17,7 @@ export interface LabTestTemplate {
   fields: TemplateField[];
   is_active: boolean;
   created_at: string;
+  service_type_id?: string | null;
 }
 
 // Fetch all lab test templates
