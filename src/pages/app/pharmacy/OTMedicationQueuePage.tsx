@@ -138,7 +138,7 @@ export default function OTMedicationQueuePage() {
                         {surgery?.surgery_number || 'Surgery'}
                       </CardTitle>
                       <p className="text-sm text-muted-foreground">
-                        {surgery?.procedure?.name || 'Procedure'}
+                        {surgery?.procedure_name || 'Procedure'}
                       </p>
                     </div>
                   </div>
