@@ -12,14 +12,17 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { PatientSearch } from "@/components/appointments/PatientSearch";
 import { OTRoomPicker } from "@/components/ot/OTRoomPicker";
 import { OTServicesBuilder } from "@/components/ot/OTServicesBuilder";
+import { SurgeryPricingBreakdown } from "@/components/ot/SurgeryPricingBreakdown";
+import { SurgeonTemplateSelector } from "@/components/ot/SurgeonTemplateSelector";
 import { ArrowLeft, CalendarIcon, Clock, Save, Loader2, BedDouble, AlertCircle, CheckCircle, XCircle } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { useCreateSurgery, useOTRooms, type SurgeryPriority } from "@/hooks/useOT";
-import { useDoctors, useAnesthesiologists } from "@/hooks/useDoctors";
+import { useDoctors, useAnesthesiologists, useSurgeons } from "@/hooks/useDoctors";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBranches } from "@/hooks/useBranches";
 import { usePatientActiveAdmission } from "@/hooks/useIPDBilling";
 import { OTServiceItem, calculateOTServicesTotal } from "@/hooks/useOTServices";
+import { SurgeryCharges, SurgeonFeeTemplate, templateToSurgeryCharges, calculateSurgeryChargesTotal } from "@/hooks/useSurgeonFeeTemplates";
 import { useCheckRoomAvailability, useCheckDoctorAvailability } from "@/hooks/useCheckAvailability";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -40,6 +43,16 @@ export default function SurgeryFormPage() {
     prefillDate ? parseISO(prefillDate) : undefined
   );
   const [otServices, setOTServices] = useState<OTServiceItem[]>([]);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | undefined>();
+  const [surgeryCharges, setSurgeryCharges] = useState<SurgeryCharges>({
+    surgeon_fee: 0,
+    anesthesia_fee: 0,
+    nursing_fee: 0,
+    ot_room_fee: 0,
+    consumables_fee: 0,
+    recovery_fee: 0,
+    total: 0,
+  });
   const [formData, setFormData] = useState({
     branchId: profile?.branch_id || "",
     procedureName: "",
@@ -59,6 +72,7 @@ export default function SurgeryFormPage() {
   // Update room when rooms load (if prefillRoom is set)
   const { data: branches } = useBranches();
   const { data: doctors } = useDoctors();
+  const { data: surgeons } = useSurgeons(formData.branchId || undefined);
   const { data: anesthesiologists } = useAnesthesiologists(formData.branchId || undefined);
   const { data: rooms } = useOTRooms(formData.branchId || undefined);
   
@@ -109,18 +123,19 @@ export default function SurgeryFormPage() {
   
   const createSurgery = useCreateSurgery();
 
-  const surgeons = doctors?.filter(d => 
-    d.specialization?.toLowerCase().includes('surg') || 
-    d.specialization?.toLowerCase().includes('ortho') ||
-    d.specialization?.toLowerCase().includes('neuro') ||
-    d.specialization?.toLowerCase().includes('cardio') ||
-    d.specialization?.toLowerCase().includes('gynae') ||
-    d.specialization?.toLowerCase().includes('ent') ||
-    d.specialization?.toLowerCase().includes('uro') ||
-    d.specialization?.toLowerCase().includes('plastic')
-  ) || doctors;
+  // Handle template selection
+  const handleTemplateSelect = (template: SurgeonFeeTemplate | null) => {
+    if (template) {
+      setSelectedTemplateId(template.id);
+      setSurgeryCharges(templateToSurgeryCharges(template));
+      setFormData(prev => ({ ...prev, procedureName: template.procedure_name }));
+    } else {
+      setSelectedTemplateId(undefined);
+    }
+  };
 
-  const totalOTCharges = calculateOTServicesTotal(otServices);
+  const totalCharges = calculateSurgeryChargesTotal(surgeryCharges);
+  const totalOTCharges = calculateOTServicesTotal(otServices) + totalCharges;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -143,7 +158,7 @@ export default function SurgeryFormPage() {
     }
 
     try {
-      // Create the surgery
+      // Create the surgery with charges
       const surgery = await createSurgery.mutateAsync({
         patient_id: selectedPatient.id,
         branch_id: formData.branchId,
@@ -157,11 +172,11 @@ export default function SurgeryFormPage() {
         scheduled_start_time: formData.scheduledStartTime,
         estimated_duration_minutes: parseInt(formData.estimatedDuration) || 60,
         special_requirements: formData.specialRequirements || undefined,
-        admission_id: activeAdmission?.id, // Auto-link to admission if exists
-        is_billable: !!activeAdmission, // Billable if IPD patient
-        estimated_cost: totalOTCharges, // Total from services
-        status: 'booked' as any, // New surgeries start as 'booked' awaiting team confirmation
-      });
+        admission_id: activeAdmission?.id,
+        is_billable: !!activeAdmission,
+        estimated_cost: totalOTCharges,
+        status: 'booked' as any,
+      } as any);
 
       // If surgery was created from a surgery request, update the request status
       if (surgeryRequestId && surgery) {
