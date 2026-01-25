@@ -238,7 +238,7 @@ export default function LiveSurgeryPage() {
   };
 
   // Computed values
-  const surgeonName = surgery?.lead_surgeon?.profiles?.full_name || "Unknown";
+  const surgeonName = surgery?.lead_surgeon?.profile?.full_name || "Unknown";
   const roomName = surgery?.ot_room?.name || surgery?.ot_room?.room_number || "Not assigned";
   const hasVitals = vitals.length > 0;
   const isCompleted = surgery?.status === "completed";
@@ -639,6 +639,7 @@ export default function LiveSurgeryPage() {
         onComplete={handleCompleteSurgery}
         intraOpNotes={surgery.intra_op_notes}
         hasVitals={hasVitals}
+        hasAnesthesiaRecord={!!surgery.anesthesia_record}
         isLoading={completeSurgery.isPending}
       />
     </div>
