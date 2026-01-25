@@ -113,11 +113,22 @@ export function useCreateConsent() {
         .single();
 
       if (error) throw error;
+
+      // Update surgery.consent_signed to true when any consent is signed
+      await supabase
+        .from('surgeries')
+        .update({ 
+          consent_signed: true,
+          consent_signed_at: new Date().toISOString()
+        })
+        .eq('id', consent.surgery_id);
+
       return data;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['surgery-consents', variables.surgery_id] });
       queryClient.invalidateQueries({ queryKey: ['surgery', variables.surgery_id] });
+      queryClient.invalidateQueries({ queryKey: ['surgeries'] });
       toast.success('Consent form signed');
     },
     onError: (error: any) => {
@@ -143,10 +154,28 @@ export function useRevokeConsent() {
         .single();
 
       if (error) throw error;
+
+      // Check if any valid consents remain
+      const { count } = await supabase
+        .from('surgery_consents')
+        .select('*', { count: 'exact', head: true })
+        .eq('surgery_id', surgeryId)
+        .eq('is_valid', true);
+
+      // If no valid consents remain, update surgery.consent_signed to false
+      if (count === 0) {
+        await supabase
+          .from('surgeries')
+          .update({ consent_signed: false, consent_signed_at: null })
+          .eq('id', surgeryId);
+      }
+
       return { data, surgeryId };
     },
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['surgery-consents', result.surgeryId] });
+      queryClient.invalidateQueries({ queryKey: ['surgery', result.surgeryId] });
+      queryClient.invalidateQueries({ queryKey: ['surgeries'] });
       toast.success('Consent revoked');
     },
     onError: (error: any) => {
