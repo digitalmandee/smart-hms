@@ -8,7 +8,7 @@ import { otLogger } from "@/lib/logger";
 // TYPES
 // =============================================================================
 
-export type SurgeryStatus = 'requested' | 'booked' | 'confirmed' | 'rescheduled' | 'scheduled' | 'pre_op' | 'in_progress' | 'completed' | 'cancelled' | 'postponed' | 'failed' | 'expired';
+export type SurgeryStatus = 'requested' | 'booked' | 'on_hold' | 'confirmed' | 'rescheduled' | 'scheduled' | 'pre_op' | 'ready' | 'in_progress' | 'completed' | 'cancelled' | 'postponed' | 'failed' | 'expired';
 export type OTRoomStatus = 'available' | 'occupied' | 'cleaning' | 'maintenance' | 'reserved';
 export type SurgeryPriority = 'emergency' | 'urgent' | 'elective';
 export type AnesthesiaType = 'general' | 'spinal' | 'epidural' | 'local' | 'regional' | 'sedation' | 'combined';
