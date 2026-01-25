@@ -136,8 +136,8 @@ export default function SurgeryDetailPage() {
 
   const handleStart = async () => {
     await startSurgery.mutateAsync(surgery.id);
-    // Navigate to Intra-Op Notes for surgeon to document procedure
-    navigate(`/app/ot/surgeries/${surgery.id}/op-notes`);
+    // Navigate to Live Surgery Dashboard
+    navigate(`/app/ot/surgeries/${surgery.id}/live`);
   };
 
   const handleComplete = async () => {
