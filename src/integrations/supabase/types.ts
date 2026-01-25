@@ -18110,9 +18110,12 @@ export type Database = {
       surgery_priority: "emergency" | "urgent" | "elective"
       surgery_status:
         | "scheduled"
+        | "requested"
         | "booked"
         | "confirmed"
+        | "on_hold"
         | "pre_op"
+        | "ready"
         | "in_progress"
         | "completed"
         | "cancelled"
@@ -18626,9 +18629,12 @@ export const Constants = {
       surgery_priority: ["emergency", "urgent", "elective"],
       surgery_status: [
         "scheduled",
+        "requested",
         "booked",
         "confirmed",
+        "on_hold",
         "pre_op",
+        "ready",
         "in_progress",
         "completed",
         "cancelled",

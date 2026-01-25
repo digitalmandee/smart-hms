@@ -21,13 +21,18 @@ import {
   Stethoscope,
   Wind,
   Save,
-  Loader2
+  Loader2,
+  XCircle,
+  FileText
 } from "lucide-react";
 import { format } from "date-fns";
 import { useSurgery } from "@/hooks/useOT";
 import { useConfigASAClasses, useConfigAnesthesiaTypes } from "@/hooks/useOTConfig";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { AnesthesiaFitnessDialog } from "@/components/ot/AnesthesiaFitnessDialog";
 
 const MALLAMPATI_SCORES = [
   { value: 'I', label: 'Class I', description: 'Soft palate, uvula, fauces, pillars visible' },
@@ -87,7 +92,8 @@ export default function PreAnesthesiaAssessmentPage() {
   });
 
   const [isSaving, setIsSaving] = useState(false);
-
+  const [showFitnessDialog, setShowFitnessDialog] = useState(false);
+  const queryClient = useQueryClient();
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -117,19 +123,170 @@ export default function PreAnesthesiaAssessmentPage() {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  // Save assessment mutation
+  const saveAssessment = useMutation({
+    mutationFn: async (fitnessDecision: 'fit' | 'not_fit' | 'draft') => {
+      const assessmentData: any = {
+        surgery_id: surgery.id,
+        assessed_by: profile?.id,
+        assessment_date: new Date().toISOString().split('T')[0],
+        asa_class: formData.asa_class || null,
+        asa_notes: formData.asa_notes || null,
+        airway_assessment: {
+          mallampati_score: formData.mallampati_score,
+          mouth_opening: formData.mouth_opening,
+          thyromental_distance: formData.thyromental_distance,
+          neck_mobility: formData.neck_mobility,
+          dental_status: formData.dental_status,
+          notes: formData.airway_notes,
+        },
+        npo_verified: formData.npo_verified,
+        last_solid_food: formData.last_solid_food || null,
+        last_clear_liquid: formData.last_clear_liquid || null,
+        previous_anesthesia_history: formData.previous_anesthesia ? {
+          had_previous: true,
+          complications: formData.previous_complications,
+          family_history: formData.family_anesthesia_history,
+        } : null,
+        planned_anesthesia_type: formData.planned_anesthesia_type || null,
+        anesthesia_plan: formData.backup_plan || null,
+        special_considerations: formData.special_considerations || null,
+        consent_obtained: formData.consent_obtained,
+        consent_notes: formData.consent_notes || null,
+        risk_assessment: {
+          difficult_airway_risk: formData.difficult_airway_risk,
+          aspiration_risk: formData.aspiration_risk,
+          cardiac_risk: formData.cardiac_risk,
+        },
+        notes: formData.notes || null,
+        fitness_decision: fitnessDecision === 'draft' ? null : fitnessDecision,
+      };
+
+      // Check if assessment exists
+      const { data: existing } = await supabase
+        .from('pre_anesthesia_assessments')
+        .select('id')
+        .eq('surgery_id', surgery.id)
+        .maybeSingle();
+
+      if (existing) {
+        const { error } = await supabase
+          .from('pre_anesthesia_assessments')
+          .update(assessmentData)
+          .eq('id', existing.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('pre_anesthesia_assessments')
+          .insert(assessmentData);
+        if (error) throw error;
+      }
+
+      // If cleared for surgery, update surgery anesthesia_confirmed_at
+      if (fitnessDecision === 'fit') {
+        await supabase
+          .from('surgeries')
+          .update({ anesthesia_confirmed_at: new Date().toISOString() })
+          .eq('id', surgery.id);
+      }
+    },
+    onSuccess: (_, fitnessDecision) => {
+      queryClient.invalidateQueries({ queryKey: ['surgery', surgery.id] });
+      if (fitnessDecision === 'fit') {
+        toast.success('Patient cleared for surgery');
+      } else if (fitnessDecision === 'draft') {
+        toast.success('Assessment draft saved');
+      }
+      navigate(`/app/ot/surgeries/${id}`);
+    },
+    onError: (error: Error) => {
+      toast.error('Failed to save assessment: ' + error.message);
+    },
+  });
+
+  // Handle clear for surgery
+  const handleClearForSurgery = () => {
+    if (!formData.asa_class || !formData.mallampati_score || !formData.planned_anesthesia_type) {
+      toast.error('Please complete ASA class, Mallampati score, and anesthesia plan');
+      return;
+    }
+    saveAssessment.mutate('fit');
+  };
+
+  const handleNotFitSubmit = async (data: {
+    reasonCategory: string;
+    reason: string;
+    proposedDate?: Date;
+    postponeDays?: number;
+  }) => {
+    // Save assessment with not_fit
+    const assessmentData: any = {
+      surgery_id: surgery.id,
+      assessed_by: profile?.id,
+      assessment_date: new Date().toISOString().split('T')[0],
+      asa_class: formData.asa_class || null,
+      fitness_decision: 'not_fit',
+      not_fit_reason: data.reason,
+      not_fit_reason_category: data.reasonCategory,
+      requires_reschedule: true,
+      recommended_postpone_days: data.postponeDays || null,
+    };
+
+    // Check if assessment exists
+    const { data: existing } = await supabase
+      .from('pre_anesthesia_assessments')
+      .select('id')
+      .eq('surgery_id', surgery.id)
+      .maybeSingle();
+
+    if (existing) {
+      await supabase
+        .from('pre_anesthesia_assessments')
+        .update(assessmentData)
+        .eq('id', existing.id);
+    } else {
+      await supabase
+        .from('pre_anesthesia_assessments')
+        .insert(assessmentData);
+    }
+
+    // Create reschedule request
+    await supabase
+      .from('surgery_reschedule_requests')
+      .insert({
+        surgery_id: surgery.id,
+        requested_by: profile?.id,
+        requested_by_role: 'anesthetist',
+        reason: data.reason,
+        reason_category: data.reasonCategory,
+        original_date: surgery.scheduled_date,
+        original_time: surgery.scheduled_start_time,
+        proposed_date: data.proposedDate?.toISOString().split('T')[0] || null,
+        postpone_days: data.postponeDays || null,
+        organization_id: profile?.organization_id,
+        branch_id: surgery.branch_id,
+      });
+
+    // Set surgery status to on_hold
+    await supabase
+      .from('surgeries')
+      .update({ status: 'on_hold' as any })
+      .eq('id', surgery.id);
+
+    queryClient.invalidateQueries({ queryKey: ['surgery', surgery.id] });
+    queryClient.invalidateQueries({ queryKey: ['surgeries'] });
+    setShowFitnessDialog(false);
+    toast.info('Reschedule request submitted - surgery on hold');
+    navigate(`/app/ot/surgeries/${id}`);
+  };
+
+  const handleSaveDraft = () => {
+    saveAssessment.mutate('draft');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSaving(true);
-    
-    try {
-      // TODO: Implement save to pre_anesthesia_assessments table
-      toast.success('Pre-anesthesia assessment saved');
-      navigate(`/app/ot/surgeries/${id}`);
-    } catch (error) {
-      toast.error('Failed to save assessment');
-    } finally {
-      setIsSaving(false);
-    }
+    handleClearForSurgery();
   };
 
   return (
@@ -504,26 +661,59 @@ export default function PreAnesthesiaAssessmentPage() {
           </CardContent>
         </Card>
 
-        {/* Submit Button */}
+        {/* Submit Buttons - Decision Based */}
         <div className="flex justify-end gap-3">
           <Button type="button" variant="outline" onClick={() => navigate(-1)}>
             Cancel
           </Button>
-          <Button type="submit" disabled={isSaving}>
-            {isSaving ? (
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={handleSaveDraft}
+            disabled={saveAssessment.isPending}
+          >
+            <FileText className="mr-2 h-4 w-4" />
+            Save Draft
+          </Button>
+          <Button 
+            type="button" 
+            variant="outline"
+            className="text-orange-600 border-orange-300 hover:bg-orange-50"
+            onClick={() => setShowFitnessDialog(true)}
+          >
+            <XCircle className="mr-2 h-4 w-4" />
+            Not Fit - Reschedule
+          </Button>
+          <Button 
+            type="submit" 
+            disabled={saveAssessment.isPending}
+            className="bg-green-600 hover:bg-green-700"
+          >
+            {saveAssessment.isPending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Saving...
               </>
             ) : (
               <>
-                <Save className="mr-2 h-4 w-4" />
-                Save Assessment
+                <CheckCircle2 className="mr-2 h-4 w-4" />
+                Clear for Surgery
               </>
             )}
           </Button>
         </div>
       </form>
+
+      {/* Anesthesia Not Fit Dialog */}
+      <AnesthesiaFitnessDialog
+        open={showFitnessDialog}
+        onOpenChange={setShowFitnessDialog}
+        surgeryId={surgery.id}
+        originalDate={surgery.scheduled_date}
+        originalTime={surgery.scheduled_start_time}
+        onSubmit={handleNotFitSubmit}
+        isPending={saveAssessment.isPending}
+      />
     </div>
   );
 }
