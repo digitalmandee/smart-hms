@@ -626,6 +626,8 @@ export function useCreateSurgery() {
         special_requirements: surgery.special_requirements,
         estimated_cost: surgery.estimated_cost,
         is_billable: surgery.is_billable,
+        surgery_charges: (surgery as any).surgery_charges || null,
+        fee_template_id: (surgery as any).fee_template_id || null,
         created_by: profile?.id,
       };
 
