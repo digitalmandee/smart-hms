@@ -8,6 +8,7 @@ export interface DoctorCompensationPlan {
   organization_id: string;
   doctor_id: string;
   plan_type: 'fixed_salary' | 'per_consultation' | 'per_procedure' | 'revenue_share' | 'hybrid';
+  anesthesia_share_percent?: number;
   base_salary: number;
   consultation_share_percent: number;
   procedure_share_percent: number;
@@ -317,5 +318,178 @@ export function useMarkEarningsAsPaid() {
     onError: (error: Error) => {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     },
+  });
+}
+
+// ========================
+// SELF-SERVICE WALLET HOOKS
+// ========================
+
+export function useMyWalletSummary(month?: string, year?: number) {
+  const { profile } = useAuth();
+  const currentDate = new Date();
+  const targetMonth = month || String(currentDate.getMonth() + 1).padStart(2, '0');
+  const targetYear = year || currentDate.getFullYear();
+
+  return useQuery({
+    queryKey: ["my-wallet-summary", profile?.id, targetMonth, targetYear],
+    queryFn: async () => {
+      // First find the doctor record for this profile
+      const { data: doctorRecord, error: docError } = await supabase
+        .from("doctors")
+        .select("id")
+        .eq("profile_id", profile!.id)
+        .maybeSingle();
+
+      if (docError) throw docError;
+      if (!doctorRecord) return { total: 0, paid: 0, unpaid: 0, bySource: {} };
+
+      const startDate = `${targetYear}-${targetMonth}-01`;
+      const endDate = new Date(targetYear, parseInt(targetMonth), 0).toISOString().split('T')[0];
+
+      const { data, error } = await supabase
+        .from("doctor_earnings")
+        .select("source_type, doctor_share_amount, is_paid")
+        .eq("doctor_id", doctorRecord.id)
+        .gte("earning_date", startDate)
+        .lte("earning_date", endDate);
+
+      if (error) throw error;
+
+      const summary = {
+        total: 0,
+        paid: 0,
+        unpaid: 0,
+        bySource: {} as Record<string, number>,
+      };
+
+      data.forEach((earning) => {
+        const amount = Number(earning.doctor_share_amount);
+        summary.total += amount;
+        if (earning.is_paid) {
+          summary.paid += amount;
+        } else {
+          summary.unpaid += amount;
+        }
+        summary.bySource[earning.source_type] = 
+          (summary.bySource[earning.source_type] || 0) + amount;
+      });
+
+      return summary;
+    },
+    enabled: !!profile?.id,
+  });
+}
+
+export function useMyEarnings(filters?: {
+  month?: string;
+  year?: number;
+  isPaid?: boolean;
+}) {
+  const { profile } = useAuth();
+  const currentDate = new Date();
+  const targetMonth = filters?.month || String(currentDate.getMonth() + 1).padStart(2, '0');
+  const targetYear = filters?.year || currentDate.getFullYear();
+
+  return useQuery({
+    queryKey: ["my-earnings", profile?.id, targetMonth, targetYear, filters?.isPaid],
+    queryFn: async () => {
+      // First find the doctor record for this profile
+      const { data: doctorRecord, error: docError } = await supabase
+        .from("doctors")
+        .select("id")
+        .eq("profile_id", profile!.id)
+        .maybeSingle();
+
+      if (docError) throw docError;
+      if (!doctorRecord) return [];
+
+      const startDate = `${targetYear}-${targetMonth}-01`;
+      const endDate = new Date(targetYear, parseInt(targetMonth), 0).toISOString().split('T')[0];
+
+      let query = supabase
+        .from("doctor_earnings")
+        .select("*")
+        .eq("doctor_id", doctorRecord.id)
+        .gte("earning_date", startDate)
+        .lte("earning_date", endDate)
+        .order("earning_date", { ascending: false });
+
+      if (filters?.isPaid !== undefined) {
+        query = query.eq("is_paid", filters.isPaid);
+      }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!profile?.id,
+  });
+}
+
+export function useSettleWalletEarnings() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ doctorId, payrollRunId }: { doctorId: string; payrollRunId: string }) => {
+      const { error } = await supabase
+        .from("doctor_earnings")
+        .update({ 
+          is_paid: true, 
+          paid_in_payroll_id: payrollRunId,
+          paid_at: new Date().toISOString() 
+        })
+        .eq("doctor_id", doctorId)
+        .eq("is_paid", false);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["doctor-earnings"] });
+      queryClient.invalidateQueries({ queryKey: ["my-earnings"] });
+      queryClient.invalidateQueries({ queryKey: ["my-wallet-summary"] });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    },
+  });
+}
+
+export function useUnpaidEarningsForEmployee(employeeId: string | undefined) {
+  return useQuery({
+    queryKey: ["unpaid-earnings-employee", employeeId],
+    queryFn: async () => {
+      if (!employeeId) return null;
+
+      // Get doctor record for this employee
+      const { data: doctor, error: docError } = await supabase
+        .from("doctors")
+        .select("id")
+        .eq("employee_id", employeeId)
+        .maybeSingle();
+
+      if (docError) throw docError;
+      if (!doctor) return null;
+
+      // Get unpaid earnings
+      const { data, error } = await supabase
+        .from("doctor_earnings")
+        .select("id, source_type, doctor_share_amount")
+        .eq("doctor_id", doctor.id)
+        .eq("is_paid", false);
+
+      if (error) throw error;
+
+      const total = data.reduce((sum, e) => sum + Number(e.doctor_share_amount), 0);
+      const bySource: Record<string, number> = {};
+      data.forEach(e => {
+        bySource[e.source_type] = (bySource[e.source_type] || 0) + Number(e.doctor_share_amount);
+      });
+
+      return { doctorId: doctor.id, total, bySource, earningIds: data.map(e => e.id) };
+    },
+    enabled: !!employeeId,
   });
 }
