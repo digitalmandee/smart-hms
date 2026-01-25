@@ -326,6 +326,14 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         ]
       },
       { 
+        name: "OT Charges", 
+        path: "", 
+        icon: "Pill",
+        children: [
+          { name: "Medication Charges", path: "/app/reception/ot-charges", icon: "Receipt" },
+        ]
+      },
+      {
         name: "Billing", 
         path: "", 
         icon: "Receipt",
@@ -663,8 +671,8 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         path: "", 
         icon: "HeartPulse",
         children: [
-          { name: "Intra-Op Notes", path: "/app/ot/surgeries", icon: "FileText" },
-          { name: "Instrument Count", path: "/app/ot/surgeries", icon: "ClipboardCheck" },
+          { name: "Intra-Op Notes", path: "/app/ot/nursing-notes", icon: "FileText" },
+          { name: "Instrument Count", path: "/app/ot/instruments", icon: "ClipboardCheck" },
         ]
       },
       { 
