@@ -741,15 +741,43 @@ export function useUpdateSurgery() {
 }
 
 export function useStartSurgery() {
-  const updateSurgery = useUpdateSurgery();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (surgeryId: string) => {
-      return updateSurgery.mutateAsync({
-        id: surgeryId,
-        status: 'in_progress',
-        actual_start_time: new Date().toISOString(),
-      });
+      // First verify surgery is in ready status
+      const { data: surgery, error: fetchError } = await supabase
+        .from('surgeries')
+        .select('status')
+        .eq('id', surgeryId)
+        .single();
+      
+      if (fetchError) throw fetchError;
+      
+      if (surgery.status !== 'ready') {
+        throw new Error('Surgery must be in Ready status before starting. Please complete all pre-op requirements first.');
+      }
+
+      const { data, error } = await supabase
+        .from('surgeries')
+        .update({
+          status: 'in_progress' as any,
+          actual_start_time: new Date().toISOString(),
+        })
+        .eq('id', surgeryId)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['surgeries'] });
+      queryClient.invalidateQueries({ queryKey: ['surgery'] });
+      toast.success('Surgery started');
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
     },
   });
 }

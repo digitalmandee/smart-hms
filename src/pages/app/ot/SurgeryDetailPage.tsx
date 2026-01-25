@@ -72,6 +72,7 @@ export default function SurgeryDetailPage() {
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
   const [showOutcomeForm, setShowOutcomeForm] = useState(false);
+  const [isBeginningPreOp, setIsBeginningPreOp] = useState(false);
 
   // Role-based visibility checks
   const canCompleteChecklist = hasRole('surgeon') || hasRole('ot_nurse') || hasRole('branch_admin') || hasRole('super_admin');
@@ -113,6 +114,25 @@ export default function SurgeryDetailPage() {
     : 'Unknown Patient';
 
   const surgeonName = surgery.lead_surgeon?.profile?.full_name || 'Not Assigned';
+
+  const handleBeginPreOp = async () => {
+    setIsBeginningPreOp(true);
+    try {
+      const { error } = await (await import("@/integrations/supabase/client")).supabase
+        .from('surgeries')
+        .update({ status: 'pre_op' as any })
+        .eq('id', surgery.id);
+      
+      if (error) throw error;
+      
+      // Refresh the surgery data
+      window.location.reload();
+    } catch (error: any) {
+      console.error('Failed to begin pre-op:', error);
+    } finally {
+      setIsBeginningPreOp(false);
+    }
+  };
 
   const handleStart = async () => {
     await startSurgery.mutateAsync(surgery.id);
@@ -171,15 +191,41 @@ export default function SurgeryDetailPage() {
             <Printer className="h-4 w-4 mr-2" />
             Print
           </Button>
-          {/* Booked status - awaiting confirmation */}
+          {/* Booked status - awaiting team confirmation */}
           {surgery.status === 'booked' && (
             <Button variant="outline" onClick={() => setShowCancelDialog(true)}>
               <XCircle className="h-4 w-4 mr-2" />
               Cancel
             </Button>
           )}
-          {/* Confirmed or scheduled - can start surgery */}
-          {(surgery.status === 'scheduled' || surgery.status === 'confirmed' || surgery.status === 'pre_op') && (
+          {/* Scheduled/Confirmed - can begin pre-op process */}
+          {(surgery.status === 'scheduled' || surgery.status === 'confirmed') && (
+            <>
+              <Button variant="outline" onClick={() => setShowCancelDialog(true)}>
+                <XCircle className="h-4 w-4 mr-2" />
+                Cancel
+              </Button>
+              <Button onClick={handleBeginPreOp} disabled={isBeginningPreOp}>
+                <ClipboardCheck className="h-4 w-4 mr-2" />
+                Begin Pre-Op
+              </Button>
+            </>
+          )}
+          {/* Pre-Op status - awaiting readiness completion */}
+          {surgery.status === 'pre_op' && (
+            <>
+              <Button variant="outline" onClick={() => setShowCancelDialog(true)}>
+                <XCircle className="h-4 w-4 mr-2" />
+                Cancel
+              </Button>
+              <Button variant="secondary" disabled>
+                <Clock className="h-4 w-4 mr-2" />
+                Awaiting Pre-Op Completion
+              </Button>
+            </>
+          )}
+          {/* Ready status - NOW can start surgery */}
+          {surgery.status === 'ready' && (
             <>
               <Button variant="outline" onClick={() => setShowCancelDialog(true)}>
                 <XCircle className="h-4 w-4 mr-2" />
@@ -229,6 +275,21 @@ export default function SurgeryDetailPage() {
           outcome_recorded_at: (surgery as any).outcome_recorded_at,
         }}
       />
+
+      {/* Pre-Op Status Alert */}
+      {surgery.status === 'pre_op' && (
+        <Card className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950">
+          <CardContent className="flex items-center gap-3 py-4">
+            <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+            <div>
+              <p className="font-medium text-amber-800 dark:text-amber-200">Pre-Op In Progress</p>
+              <p className="text-sm text-amber-700 dark:text-amber-300">
+                Complete all readiness items (medications, supplies, consent, assessment) before the surgery can start.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Main Content */}
