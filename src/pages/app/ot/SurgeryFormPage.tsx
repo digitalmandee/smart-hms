@@ -151,7 +151,6 @@ export default function SurgeryFormPage() {
         diagnosis: formData.diagnosis || undefined,
         priority: formData.priority,
         lead_surgeon_id: formData.leadSurgeonId || undefined,
-        // @ts-expect-error - anesthetist_id may not be in partial type yet
         anesthetist_id: formData.anesthetistId || undefined,
         ot_room_id: formData.otRoomId || undefined,
         scheduled_date: format(scheduledDate, 'yyyy-MM-dd'),

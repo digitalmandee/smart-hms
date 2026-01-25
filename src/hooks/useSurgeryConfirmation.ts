@@ -69,7 +69,22 @@ export function usePendingConfirmations() {
   return useQuery({
     queryKey: ['pending-confirmations', profile?.id],
     queryFn: async () => {
-      // Get all team member entries where current user is assigned and pending
+      if (!profile?.id) return [];
+
+      // First, find doctor records linked to the current user's profile
+      const { data: doctorRecords } = await supabase
+        .from('doctors')
+        .select('id')
+        .eq('profile_id', profile.id);
+
+      const doctorIds = doctorRecords?.map(d => d.id) || [];
+
+      // If user has no doctor record, they won't have surgery assignments
+      if (doctorIds.length === 0) {
+        return [];
+      }
+
+      // Get all team member entries where current user's doctor is assigned and pending
       const { data, error } = await (supabase
         .from('surgery_team_members') as any)
         .select(`
@@ -87,13 +102,13 @@ export function usePendingConfirmations() {
             ot_room:ot_rooms(name)
           )
         `)
-        .or(`doctor_id.eq.${profile?.id},staff_id.eq.${profile?.id}`)
+        .in('doctor_id', doctorIds)
         .eq('confirmation_status', 'pending')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       
-      // Filter to only surgeries that are 'booked' status
+      // Filter to only surgeries that are 'booked' status (awaiting confirmation)
       return (data || []).filter((item: any) => 
         item.surgery?.status === 'booked'
       );

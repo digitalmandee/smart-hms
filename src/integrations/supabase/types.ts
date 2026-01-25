@@ -16647,39 +16647,54 @@ export type Database = {
       }
       surgery_team_members: {
         Row: {
+          confirmation_status: string | null
           confirmed_at: string | null
           created_at: string | null
+          declined_reason: string | null
           doctor_id: string | null
           employee_id: string | null
           id: string
           is_confirmed: boolean | null
           notes: string | null
           nurse_id: string | null
+          proposed_reschedule_time: string | null
+          reschedule_notes: string | null
           role: Database["public"]["Enums"]["surgery_team_role"]
+          staff_id: string | null
           surgery_id: string
         }
         Insert: {
+          confirmation_status?: string | null
           confirmed_at?: string | null
           created_at?: string | null
+          declined_reason?: string | null
           doctor_id?: string | null
           employee_id?: string | null
           id?: string
           is_confirmed?: boolean | null
           notes?: string | null
           nurse_id?: string | null
+          proposed_reschedule_time?: string | null
+          reschedule_notes?: string | null
           role: Database["public"]["Enums"]["surgery_team_role"]
+          staff_id?: string | null
           surgery_id: string
         }
         Update: {
+          confirmation_status?: string | null
           confirmed_at?: string | null
           created_at?: string | null
+          declined_reason?: string | null
           doctor_id?: string | null
           employee_id?: string | null
           id?: string
           is_confirmed?: boolean | null
           notes?: string | null
           nurse_id?: string | null
+          proposed_reschedule_time?: string | null
+          reschedule_notes?: string | null
           role?: Database["public"]["Enums"]["surgery_team_role"]
+          staff_id?: string | null
           surgery_id?: string
         }
         Relationships: [
@@ -16702,6 +16717,13 @@ export type Database = {
             columns: ["nurse_id"]
             isOneToOne: false
             referencedRelation: "nurses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surgery_team_members_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {

@@ -596,44 +596,89 @@ export function useCreateSurgery() {
   const { profile } = useAuth();
 
   return useMutation({
-    mutationFn: async (surgery: Partial<Surgery>) => {
-      // Generate surgery number
+    mutationFn: async (surgery: Partial<Surgery> & { anesthetist_id?: string }) => {
+      // Generate surgery number using RPC
       const { data: surgeryNumber } = await supabase
         .rpc('generate_surgery_number', { 
           org_id: profile?.organization_id,
           branch_id: surgery.branch_id 
         });
 
+      // Build insert object - cast to any to handle auto-generated columns
+      const insertData: any = {
+        surgery_number: surgeryNumber || `SURG-${Date.now()}`,
+        organization_id: profile?.organization_id!,
+        branch_id: surgery.branch_id!,
+        patient_id: surgery.patient_id!,
+        procedure_name: surgery.procedure_name!,
+        scheduled_date: surgery.scheduled_date!,
+        scheduled_start_time: surgery.scheduled_start_time!,
+        scheduled_end_time: surgery.scheduled_end_time,
+        estimated_duration_minutes: surgery.estimated_duration_minutes,
+        ot_room_id: surgery.ot_room_id,
+        lead_surgeon_id: surgery.lead_surgeon_id,
+        anesthetist_id: surgery.anesthetist_id,
+        admission_id: surgery.admission_id,
+        consultation_id: surgery.consultation_id,
+        diagnosis: surgery.diagnosis,
+        priority: surgery.priority || 'elective',
+        status: 'booked', // New surgeries start as 'booked' awaiting team confirmation
+        special_requirements: surgery.special_requirements,
+        estimated_cost: surgery.estimated_cost,
+        is_billable: surgery.is_billable,
+        created_by: profile?.id,
+      };
+
       const { data, error } = await supabase
         .from('surgeries')
-        .insert({
-          surgery_number: surgeryNumber || `SURG-${Date.now()}`,
-          organization_id: profile?.organization_id!,
-          branch_id: surgery.branch_id!,
-          patient_id: surgery.patient_id!,
-          procedure_name: surgery.procedure_name!,
-          scheduled_date: surgery.scheduled_date!,
-          scheduled_start_time: surgery.scheduled_start_time!,
-          scheduled_end_time: surgery.scheduled_end_time,
-          estimated_duration_minutes: surgery.estimated_duration_minutes,
-          ot_room_id: surgery.ot_room_id,
-          lead_surgeon_id: surgery.lead_surgeon_id,
-          admission_id: surgery.admission_id,
-          consultation_id: surgery.consultation_id,
-          diagnosis: surgery.diagnosis,
-          priority: surgery.priority || 'elective',
-          status: 'scheduled',
-          created_by: profile?.id,
-        })
+        .insert(insertData)
         .select()
         .single();
 
       if (error) throw error;
+
+      // Create surgery team members for lead surgeon and anesthetist
+      const teamMembers: any[] = [];
+
+      if (surgery.lead_surgeon_id) {
+        teamMembers.push({
+          surgery_id: data.id,
+          doctor_id: surgery.lead_surgeon_id,
+          role: 'lead_surgeon',
+          confirmation_status: 'pending',
+          is_confirmed: false,
+        });
+      }
+
+      if (surgery.anesthetist_id) {
+        teamMembers.push({
+          surgery_id: data.id,
+          doctor_id: surgery.anesthetist_id,
+          role: 'anesthetist',
+          confirmation_status: 'pending',
+          is_confirmed: false,
+        });
+      }
+
+      // Insert team members if any
+      if (teamMembers.length > 0) {
+        const { error: teamError } = await supabase
+          .from('surgery_team_members')
+          .insert(teamMembers);
+
+        if (teamError) {
+          otLogger.error('Failed to create surgery team members', teamError);
+          // Don't fail the whole operation, just log the error
+        }
+      }
+
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['surgeries'] });
       queryClient.invalidateQueries({ queryKey: ['ot-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['pending-confirmations'] });
+      queryClient.invalidateQueries({ queryKey: ['surgery-team-confirmations'] });
       toast.success('Surgery scheduled successfully');
     },
     onError: (error: any) => {
