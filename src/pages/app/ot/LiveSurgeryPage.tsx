@@ -26,7 +26,7 @@ import { VitalsChart } from "@/components/ot/VitalsChart";
 import { QuickActionPanel } from "@/components/ot/QuickActionPanel";
 import { CompleteSurgeryModal } from "@/components/ot/CompleteSurgeryModal";
 import { IntraOpNotesForm } from "@/components/ot/IntraOpNotesForm";
-import { SurgeryOutcomeForm } from "@/components/ot/SurgeryOutcomeForm";
+import { SurgeryOutcomeModal } from "@/components/ot/SurgeryOutcomeModal";
 import { PostOpOrdersForm } from "@/components/ot/PostOpOrdersForm";
 
 interface VitalEntry {
@@ -598,18 +598,6 @@ export default function LiveSurgeryPage() {
           </TabsContent>
         </Tabs>
 
-        {/* Outcome Form (shown after completion) */}
-        {showOutcomeForm && (
-          <SurgeryOutcomeForm
-            surgeryId={id!}
-            surgeryNumber={surgery.surgery_number}
-            currentOutcome={surgery.outcome}
-            currentNotes={surgery.outcome_notes}
-            onSuccess={handleOutcomeRecorded}
-            className="max-w-2xl mx-auto"
-          />
-        )}
-
         {/* Post-Op Orders Form (shown after outcome is recorded if no orders exist) */}
         {showPostOpOrders && (
           <Card className="max-w-4xl mx-auto mt-6">
@@ -641,6 +629,17 @@ export default function LiveSurgeryPage() {
         hasVitals={hasVitals}
         hasAnesthesiaRecord={!!surgery.anesthesia_record}
         isLoading={completeSurgery.isPending}
+      />
+
+      {/* Outcome Recording Modal (shown immediately after completion) */}
+      <SurgeryOutcomeModal
+        open={showOutcomeForm}
+        onOpenChange={setShowOutcomeForm}
+        surgeryId={id!}
+        surgeryNumber={surgery.surgery_number}
+        currentOutcome={surgery.outcome}
+        currentNotes={surgery.outcome_notes}
+        onSuccess={handleOutcomeRecorded}
       />
     </div>
   );
