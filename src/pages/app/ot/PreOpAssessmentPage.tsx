@@ -104,9 +104,18 @@ export default function PreOpAssessmentPage() {
       return;
     }
 
+    const organizationId = surgery.organization_id || profile?.organization_id;
+    if (!organizationId) {
+      toast.error('Missing organization information');
+      return;
+    }
+
+    // Map tests with service_type_id and price for invoice creation
     const items: LabOrderItemInput[] = tests.map(test => ({
       test_name: test.name || test.test_name,
       test_category: test.category || 'lab',
+      service_type_id: test.service_type_id || test.id,
+      price: test.price || 0,
     }));
 
     try {
@@ -115,6 +124,7 @@ export default function PreOpAssessmentPage() {
         patientId: surgery.patient_id,
         testsCount: items.length,
         tests: items.map(i => i.test_name),
+        createInvoice: true,
       });
 
       await createLabOrder.mutateAsync({
@@ -126,11 +136,12 @@ export default function PreOpAssessmentPage() {
           ordered_by: profile?.id,
         },
         items,
-        createInvoice: false,
+        createInvoice: true,
+        organizationId,
       });
 
       toast.success(`Ordered ${tests.length} lab tests`, {
-        description: 'Tests will appear in the Lab module'
+        description: 'Invoice created and sent to billing'
       });
     } catch (error: any) {
       otLogger.error('PreOpAssessmentPage: Failed to order lab tests', error);

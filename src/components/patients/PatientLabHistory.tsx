@@ -8,9 +8,10 @@ import { useLabOrders, useLabOrder } from "@/hooks/useLabOrders";
 import { useOrganizationBranding } from "@/hooks/useOrganizationBranding";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
-import { TestTubes, Calendar, ExternalLink, Globe, Printer, Download } from "lucide-react";
+import { TestTubes, Calendar, ExternalLink, Globe, Printer, Download, Receipt, AlertCircle } from "lucide-react";
 import { usePrint } from "@/hooks/usePrint";
 import { PrintableLabReport } from "@/components/lab/PrintableLabReport";
+import { formatCurrency } from "@/lib/currency";
 
 interface PatientLabHistoryProps {
   patientId: string;
@@ -22,6 +23,13 @@ const statusColors: Record<string, string> = {
   processing: 'bg-purple-100 text-purple-800',
   completed: 'bg-green-100 text-green-800',
   cancelled: 'bg-red-100 text-red-800',
+};
+
+const paymentStatusColors: Record<string, string> = {
+  pending: 'bg-amber-100 text-amber-800',
+  paid: 'bg-green-100 text-green-800',
+  partial: 'bg-blue-100 text-blue-800',
+  waived: 'bg-gray-100 text-gray-800',
 };
 
 export function PatientLabHistory({ patientId }: PatientLabHistoryProps) {
@@ -118,6 +126,29 @@ export function PatientLabHistory({ patientId }: PatientLabHistoryProps) {
                       {order.priority.toUpperCase()}
                     </Badge>
                   ) : null}
+                  {/* Invoice/Payment Status */}
+                  {(order as any).invoice && (
+                    <div className="flex items-center gap-2 mt-2">
+                      <Receipt className="h-3 w-3 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">
+                        {(order as any).invoice.invoice_number}
+                      </span>
+                      <Badge className={paymentStatusColors[(order as any).invoice.status] || 'bg-muted'}>
+                        {(order as any).invoice.status === 'paid' ? 'Paid' : 
+                         (order as any).invoice.status === 'pending' ? 'Unpaid' : 
+                         (order as any).invoice.status}
+                      </Badge>
+                      <span className="text-sm font-medium">
+                        {formatCurrency((order as any).invoice.total_amount || 0)}
+                      </span>
+                    </div>
+                  )}
+                  {(order as any).payment_status === 'pending' && !(order as any).invoice && (
+                    <div className="flex items-center gap-1 mt-2 text-warning">
+                      <AlertCircle className="h-3 w-3" />
+                      <span className="text-xs">Payment pending</span>
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -126,6 +157,14 @@ export function PatientLabHistory({ patientId }: PatientLabHistoryProps) {
                     <Globe className="h-3 w-3 mr-1" />
                     Published
                   </Badge>
+                )}
+                {/* View Invoice button for orders with invoices */}
+                {(order as any).invoice && (
+                  <Link to={`/app/billing/invoices/${(order as any).invoice.id}`}>
+                    <Button variant="outline" size="sm" title="View Invoice">
+                      <Receipt className="h-4 w-4" />
+                    </Button>
+                  </Link>
                 )}
                 {order.status === 'completed' && (
                   <>
