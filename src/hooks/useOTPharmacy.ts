@@ -22,13 +22,11 @@ export interface OTMedicationRequest {
     surgery_number: string;
     scheduled_date: string;
     status: string;
+    procedure_name: string;
     patient?: {
       id: string;
       full_name: string;
       patient_number: string;
-    };
-    procedure?: {
-      name: string;
     };
   };
   ordered_by_profile?: { full_name: string } | null;
@@ -59,8 +57,8 @@ export function useOTMedicationQueue() {
             surgery_number,
             scheduled_date,
             status,
-            patient:patients!surgeries_patient_id_fkey(id, full_name, patient_number),
-            procedure:surgery_types!surgeries_surgery_type_id_fkey(name)
+            procedure_name,
+            patient:patients!surgeries_patient_id_fkey(id, full_name, patient_number)
           ),
           ordered_by_profile:profiles!surgery_medications_ordered_by_fkey(full_name)
         `)
