@@ -5,12 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Eye, FileText, Calendar, Users, FileSpreadsheet } from "lucide-react";
+import { Eye, FileText, Calendar, Users, FileSpreadsheet, Loader2 } from "lucide-react";
 import { usePayrollRuns, usePayrollDetails, useEmployeeSalaries } from "@/hooks/usePayroll";
 import { EmployeePayslipsDialog } from "@/components/hr/EmployeePayslipsDialog";
 import { format } from "date-fns";
 import { exportToCSV } from "@/lib/exportUtils";
 import { useBankSheetTemplate } from "@/components/hr/BankSheetTemplateDialog";
+import { toast } from "sonner";
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
@@ -23,6 +24,7 @@ export default function PayslipsPage() {
   const [selectedRun, setSelectedRun] = useState<any>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [bankSheetRunId, setBankSheetRunId] = useState<string>("");
+  const [isBankSheetLoading, setIsBankSheetLoading] = useState(false);
 
   const { data: payrollRuns, isLoading } = usePayrollRuns();
   const { data: salaries } = useEmployeeSalaries({ isCurrent: true });
@@ -90,32 +92,45 @@ export default function PayslipsPage() {
   };
 
   const handleDownloadBankSheet = async (run: any) => {
+    setIsBankSheetLoading(true);
     setBankSheetRunId(run.id);
   };
 
   // Download bank sheet when entries are loaded
   useEffect(() => {
-    if (bankSheetRunId && bankSheetEntries?.length) {
-      const run = payrollRuns?.find((r: any) => r.id === bankSheetRunId);
-      if (!run) return;
+    if (bankSheetRunId && bankSheetEntries !== undefined) {
+      if (bankSheetEntries.length > 0) {
+        const run = payrollRuns?.find((r: any) => r.id === bankSheetRunId);
+        if (!run) {
+          setIsBankSheetLoading(false);
+          setBankSheetRunId("");
+          return;
+        }
 
-      const enabledFields = templateFields.filter(f => f.enabled);
-      const columns = enabledFields.map(f => ({
-        key: f.key,
-        header: f.header,
-      }));
+        const enabledFields = templateFields.filter(f => f.enabled);
+        const columns = enabledFields.map(f => ({
+          key: f.key,
+          header: f.header,
+        }));
 
-      const data = bankSheetEntries.map((e: any) => {
-        const row: Record<string, any> = {};
-        enabledFields.forEach(f => {
-          row[f.key] = getFieldValue(e, f.key);
+        const data = bankSheetEntries.map((e: any) => {
+          const row: Record<string, any> = {};
+          enabledFields.forEach(f => {
+            row[f.key] = getFieldValue(e, f.key);
+          });
+          return row;
         });
-        return row;
-      });
 
-      const month = MONTHS[(run.month || 1) - 1];
-      exportToCSV(data, `bank-sheet-${month}-${run.year}`, columns);
-      setBankSheetRunId(""); // Reset after download
+        const month = MONTHS[(run.month || 1) - 1];
+        exportToCSV(data, `bank-sheet-${month}-${run.year}`, columns);
+        toast.success(`Bank sheet downloaded with ${bankSheetEntries.length} entries`);
+        setIsBankSheetLoading(false);
+        setBankSheetRunId(""); // Reset after download
+      } else if (bankSheetEntries.length === 0) {
+        toast.error("No payroll entries found for this run");
+        setIsBankSheetLoading(false);
+        setBankSheetRunId("");
+      }
     }
   }, [bankSheetRunId, bankSheetEntries, payrollRuns, templateFields]);
 
@@ -258,8 +273,13 @@ export default function PayslipsPage() {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleDownloadBankSheet(run)}
+                          disabled={isBankSheetLoading && bankSheetRunId === run.id}
                         >
-                          <FileSpreadsheet className="h-4 w-4 mr-2" />
+                          {isBankSheetLoading && bankSheetRunId === run.id ? (
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          ) : (
+                            <FileSpreadsheet className="h-4 w-4 mr-2" />
+                          )}
                           Bank Sheet
                         </Button>
                       </div>

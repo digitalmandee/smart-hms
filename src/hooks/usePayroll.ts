@@ -308,9 +308,12 @@ export function usePayrollDetails(payrollRunId: string) {
         console.error("Payroll details error:", error);
         throw error;
       }
+      console.log(`Loaded ${data?.length || 0} payroll entries for run ${payrollRunId}`);
       return data || [];
     },
     enabled: !!payrollRunId && payrollRunId.length > 0,
+    staleTime: 0,
+    refetchOnMount: true,
   });
 }
 
