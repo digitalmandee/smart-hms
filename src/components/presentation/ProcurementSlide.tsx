@@ -122,7 +122,7 @@ export const ProcurementSlide = () => {
       {/* Footer */}
       <div className="mt-6 pt-4 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
         <span>HealthOS - Hospital Management System</span>
-        <span>smart-hms.lovable.app</span>
+        <span>smarthms.devmine.co</span>
       </div>
     </div>
   );
