@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,21 +9,52 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, CheckCircle, XCircle, Landmark, Clock, AlertCircle, DollarSign } from "lucide-react";
-import { useEmployeeLoans, useApproveLoan } from "@/hooks/usePayroll";
+import { Search, CheckCircle, XCircle, Landmark, Clock, AlertCircle, DollarSign, Plus } from "lucide-react";
+import { useEmployeeLoans, useApproveLoan, useCreateEmployeeLoan } from "@/hooks/usePayroll";
+import { useEmployees } from "@/hooks/useHR";
 import { format } from "date-fns";
+import { toast } from "sonner";
+
+const LOAN_TYPES = [
+  { value: "salary_advance", label: "Salary Advance" },
+  { value: "personal_loan", label: "Personal Loan" },
+  { value: "emergency_loan", label: "Emergency Loan" },
+  { value: "housing_loan", label: "Housing Loan" },
+];
 
 export default function LoansAdvancesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedLoan, setSelectedLoan] = useState<any>(null);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
   const { data: loans, isLoading } = useEmployeeLoans(
     statusFilter !== "all" ? { status: statusFilter } : undefined
   );
+  const { data: employees } = useEmployees({ status: "active" });
   const approveLoan = useApproveLoan();
+  const createLoan = useCreateEmployeeLoan();
+
+  const [addForm, setAddForm] = useState({
+    employee_id: "",
+    loan_type: "salary_advance",
+    loan_amount: "",
+    total_installments: "12",
+    emi_amount: "",
+    start_date: format(new Date(), "yyyy-MM-dd"),
+    reason: "",
+  });
+
+  // Auto-calculate EMI when amount or installments change
+  useEffect(() => {
+    const amount = parseFloat(addForm.loan_amount) || 0;
+    const installments = parseInt(addForm.total_installments) || 1;
+    if (amount > 0 && installments > 0) {
+      const emi = Math.ceil(amount / installments);
+      setAddForm((f) => ({ ...f, emi_amount: emi.toString() }));
+    }
+  }, [addForm.loan_amount, addForm.total_installments]);
 
   const filteredLoans = loans?.filter((loan: any) => {
     const name = `${loan.employee?.first_name} ${loan.employee?.last_name}`.toLowerCase();
@@ -56,6 +87,36 @@ export default function LoansAdvancesPage() {
   const handleApprove = async (id: string, approved: boolean) => {
     await approveLoan.mutateAsync({ id, approved });
     setIsDetailDialogOpen(false);
+  };
+
+  const handleAddLoan = async () => {
+    if (!addForm.employee_id || !addForm.loan_amount || !addForm.total_installments) {
+      toast.error("Please fill all required fields");
+      return;
+    }
+
+    try {
+      await createLoan.mutateAsync({
+        employee_id: addForm.employee_id,
+        loan_type: addForm.loan_type,
+        loan_amount: parseFloat(addForm.loan_amount),
+        total_installments: parseInt(addForm.total_installments),
+        installment_amount: parseFloat(addForm.emi_amount),
+        notes: addForm.reason || null,
+      } as any);
+      setIsAddDialogOpen(false);
+      setAddForm({
+        employee_id: "",
+        loan_type: "salary_advance",
+        loan_amount: "",
+        total_installments: "12",
+        emi_amount: "",
+        start_date: format(new Date(), "yyyy-MM-dd"),
+        reason: "",
+      });
+    } catch (error) {
+      // Error handled in hook
+    }
   };
 
   const stats = {
@@ -150,6 +211,10 @@ export default function LoansAdvancesPage() {
                   <SelectItem value="cancelled">Cancelled</SelectItem>
                 </SelectContent>
               </Select>
+              <Button onClick={() => setIsAddDialogOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Loan
+              </Button>
             </div>
           </div>
         </CardHeader>
@@ -158,7 +223,7 @@ export default function LoansAdvancesPage() {
             <div className="text-center py-8 text-muted-foreground">Loading loans...</div>
           ) : filteredLoans?.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              No loan records found
+              No loan records found. Click "Add Loan" to create a new loan application.
             </div>
           ) : (
             <Table>
@@ -214,6 +279,113 @@ export default function LoansAdvancesPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Add Loan Dialog */}
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add New Loan</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Employee *</Label>
+              <Select
+                value={addForm.employee_id}
+                onValueChange={(value) => setAddForm({ ...addForm, employee_id: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select employee" />
+                </SelectTrigger>
+                <SelectContent>
+                  {employees?.map((emp: any) => (
+                    <SelectItem key={emp.id} value={emp.id}>
+                      {emp.first_name} {emp.last_name} ({emp.employee_number})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Loan Type *</Label>
+              <Select
+                value={addForm.loan_type}
+                onValueChange={(value) => setAddForm({ ...addForm, loan_type: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {LOAN_TYPES.map((type) => (
+                    <SelectItem key={type.value} value={type.value}>
+                      {type.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Loan Amount (PKR) *</Label>
+                <Input
+                  type="number"
+                  value={addForm.loan_amount}
+                  onChange={(e) => setAddForm({ ...addForm, loan_amount: e.target.value })}
+                  placeholder="50000"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Installments *</Label>
+                <Input
+                  type="number"
+                  value={addForm.total_installments}
+                  onChange={(e) => setAddForm({ ...addForm, total_installments: e.target.value })}
+                  placeholder="12"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>EMI Amount (Auto)</Label>
+                <Input
+                  type="number"
+                  value={addForm.emi_amount}
+                  readOnly
+                  className="bg-muted"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Start Date</Label>
+                <Input
+                  type="date"
+                  value={addForm.start_date}
+                  onChange={(e) => setAddForm({ ...addForm, start_date: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Reason</Label>
+              <Textarea
+                value={addForm.reason}
+                onChange={(e) => setAddForm({ ...addForm, reason: e.target.value })}
+                placeholder="Purpose of loan..."
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleAddLoan} disabled={createLoan.isPending}>
+              {createLoan.isPending ? "Submitting..." : "Submit Loan"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Loan Detail Dialog */}
       <Dialog open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen}>

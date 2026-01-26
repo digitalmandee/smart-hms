@@ -8,14 +8,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Plus, Edit, Eye, DollarSign, Users, FileText, Stethoscope, AlertCircle } from "lucide-react";
+import { Search, Plus, Edit, Eye, DollarSign, Users, FileText, Stethoscope } from "lucide-react";
 import { useEmployeeSalaries, useSalaryStructures, useCreateEmployeeSalary } from "@/hooks/usePayroll";
+import { useEmployees } from "@/hooks/useHR";
 import { SalaryBreakdown } from "@/components/hr/SalaryBreakdown";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 // Hook to get employee IDs that are doctors with compensation plans
@@ -55,10 +55,12 @@ export default function EmployeeSalariesPage() {
   const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [isNewAssignment, setIsNewAssignment] = useState(false);
 
   const { data: salaries, isLoading } = useEmployeeSalaries({ isCurrent: true });
   const { data: structures } = useSalaryStructures();
   const { data: doctorPlans } = useDoctorsWithCompensationPlans();
+  const { data: allEmployees } = useEmployees({ status: "active" });
   const createSalary = useCreateEmployeeSalary();
 
   const [assignForm, setAssignForm] = useState({
@@ -67,6 +69,12 @@ export default function EmployeeSalariesPage() {
     basic_salary: "",
     effective_from: format(new Date(), "yyyy-MM-dd"),
   });
+
+  // Get employees without assigned salary for "Assign Salary" dropdown
+  const employeesWithSalary = new Set(salaries?.map((s: any) => s.employee_id) || []);
+  const employeesWithoutSalary = allEmployees?.filter(
+    (emp: any) => !employeesWithSalary.has(emp.id)
+  ) || [];
 
   const filteredSalaries = salaries?.filter((s: any) => {
     const name = `${s.employee?.first_name} ${s.employee?.last_name}`.toLowerCase();
@@ -84,9 +92,25 @@ export default function EmployeeSalariesPage() {
   // Check if an employee has a doctor compensation plan
   const getDoctorPlanInfo = (employeeId: string) => doctorPlans?.[employeeId];
 
+  const handleOpenNewAssignment = () => {
+    setIsNewAssignment(true);
+    setAssignForm({
+      employee_id: "",
+      salary_structure_id: "",
+      basic_salary: "",
+      effective_from: format(new Date(), "yyyy-MM-dd"),
+    });
+    setIsAssignDialogOpen(true);
+  };
+
   const handleAssignSalary = async () => {
     if (!assignForm.salary_structure_id || !assignForm.basic_salary) {
       toast.error("Please fill all required fields");
+      return;
+    }
+
+    if (isNewAssignment && !assignForm.employee_id) {
+      toast.error("Please select an employee");
       return;
     }
 
@@ -114,6 +138,7 @@ export default function EmployeeSalariesPage() {
     totalEmployees: salaries?.length || 0,
     totalPayroll: salaries?.reduce((sum: number, s: any) => sum + (s.basic_salary || 0), 0) || 0,
     avgSalary: salaries?.length ? (salaries.reduce((sum: number, s: any) => sum + (s.basic_salary || 0), 0) / salaries.length) : 0,
+    unassigned: employeesWithoutSalary.length,
   };
 
   return (
@@ -129,7 +154,7 @@ export default function EmployeeSalariesPage() {
       />
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Employees</CardTitle>
@@ -138,6 +163,16 @@ export default function EmployeeSalariesPage() {
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalEmployees}</div>
             <p className="text-xs text-muted-foreground">With assigned salaries</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Unassigned</CardTitle>
+            <Users className="h-4 w-4 text-yellow-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.unassigned}</div>
+            <p className="text-xs text-muted-foreground">Need salary assignment</p>
           </CardContent>
         </Card>
         <Card>
@@ -176,6 +211,10 @@ export default function EmployeeSalariesPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
+            <Button onClick={handleOpenNewAssignment} disabled={employeesWithoutSalary.length === 0}>
+              <Plus className="h-4 w-4 mr-2" />
+              Assign Salary
+            </Button>
           </div>
         </CardHeader>
         <CardContent>
@@ -183,7 +222,7 @@ export default function EmployeeSalariesPage() {
             <div className="text-center py-8 text-muted-foreground">Loading salaries...</div>
           ) : filteredSalaries?.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              No salary records found
+              No salary records found. Click "Assign Salary" to assign salaries to employees.
             </div>
           ) : (
             <Table>
@@ -262,6 +301,7 @@ export default function EmployeeSalariesPage() {
                           variant="ghost"
                           size="icon"
                           onClick={() => {
+                            setIsNewAssignment(false);
                             setAssignForm({
                               employee_id: salary.employee_id,
                               salary_structure_id: salary.salary_structure_id || "",
@@ -306,11 +346,31 @@ export default function EmployeeSalariesPage() {
       <Dialog open={isAssignDialogOpen} onOpenChange={setIsAssignDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Update Salary</DialogTitle>
+            <DialogTitle>{isNewAssignment ? "Assign Salary" : "Update Salary"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
+            {isNewAssignment && (
+              <div className="space-y-2">
+                <Label>Employee *</Label>
+                <Select
+                  value={assignForm.employee_id}
+                  onValueChange={(value) => setAssignForm({ ...assignForm, employee_id: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select employee" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {employeesWithoutSalary.map((emp: any) => (
+                      <SelectItem key={emp.id} value={emp.id}>
+                        {emp.first_name} {emp.last_name} ({emp.employee_number})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div className="space-y-2">
-              <Label>Salary Structure</Label>
+              <Label>Salary Structure *</Label>
               <Select
                 value={assignForm.salary_structure_id}
                 onValueChange={(value) => setAssignForm({ ...assignForm, salary_structure_id: value })}
@@ -328,7 +388,7 @@ export default function EmployeeSalariesPage() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Basic Salary (PKR)</Label>
+              <Label>Basic Salary (PKR) *</Label>
               <Input
                 type="number"
                 value={assignForm.basic_salary}
