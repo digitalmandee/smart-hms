@@ -1,120 +1,147 @@
-# Fix POS Terminal, Kiosk Issues & Branch Admin Access
 
-## Issues Summary
+# Plan: Fix Inventory Menu, Org Admin Options, and Menu Flickering
 
-### Issue 1: POS Session Error - Schema Mismatch
-**Root Cause**: The `usePOS.ts` hook references a `terminal_name` column that doesn't exist in the database. The actual table has `session_number` instead.
+## Overview
 
-**Error**: `Could not find the 'terminal_name' column of 'pharmacy_pos_sessions' in the schema cache`
+Three issues have been identified:
 
-### Issue 2: User Request - Remove Session Requirement from POS
-The user wants to simplify POS by removing the session-based workflow entirely. Sales can be made directly without opening/closing sessions.
-
-### Issue 3: Kiosk Authentication Not Working
-The kiosk terminal uses RPC functions for authentication. The "appointment not found" error may be due to missing `kiosk_id` column or failed appointment creation.
-
-### Issue 4: Missing Pages for Branch Admin
-Branch admin role lacks permissions for kiosk management and queue displays.
+1. **Inventory not showing for Org Admin** - The `org_admin` static sidebar config is missing the Inventory module
+2. **Organization Admin options missing** - The org_admin sidebar is incomplete, missing HR, Billing, Accounts & Finance
+3. **Menu flickering on 2nd/3rd level expand** - The collapsible animations are not defined in Tailwind config
 
 ---
 
-## Implementation Plan
+## Phase 1: Fix Collapsible Animation (Root Cause of Flickering)
 
-### Phase 1: Simplify POS - Remove Session Requirement
+**File:** `tailwind.config.ts`
 
-**File**: `src/pages/app/pharmacy/POSTerminalPage.tsx`
+The `CollapsibleContent` component uses `animate-collapsible-up` and `animate-collapsible-down` classes, but these animations are NOT defined in the Tailwind config.
 
-Remove the session-based workflow entirely:
-1. Remove `POSSessionWidget` component
-2. Remove session dialogs (open/close)
-3. Allow direct sales without session
-4. Modify transaction creation to work without session
+### Add Missing Keyframes and Animations:
 
-**Changes**:
-- Remove session state and dialogs
-- Update cart/checkout to work directly
-- Transactions will still be logged to `pharmacy_pos_transactions` but without `session_id` requirement
-
-### Phase 2: Update usePOS Hook for Session-Free Operation
-
-**File**: `src/hooks/usePOS.ts`
-
-Modify the hook to:
-1. Make `session_id` optional in transactions
-2. Remove `terminal_name` references
-3. Align with actual database schema (`session_number`)
-4. Keep session functionality optional for those who want it later
-
-### Phase 3: Fix Kiosk Appointment Creation
-
-**File**: `src/pages/kiosk/KioskTerminalPage.tsx`
-
-Verify and fix:
-1. Ensure `kiosk_id` column exists on `appointments` table
-2. Add better error handling for appointment creation
-3. Add fallback if kiosk session validation fails
-
-### Phase 4: Add Kiosk Column to Appointments (if missing)
-
-**Database Migration**:
-```sql
--- Add kiosk_id column if not exists
-ALTER TABLE appointments 
-ADD COLUMN IF NOT EXISTS kiosk_id UUID REFERENCES kiosk_configs(id);
+```typescript
+keyframes: {
+  // ... existing keyframes ...
+  "collapsible-down": {
+    from: { height: "0" },
+    to: { height: "var(--radix-collapsible-content-height)" },
+  },
+  "collapsible-up": {
+    from: { height: "var(--radix-collapsible-content-height)" },
+    to: { height: "0" },
+  },
+},
+animation: {
+  // ... existing animations ...
+  "collapsible-down": "collapsible-down 0.2s ease-out",
+  "collapsible-up": "collapsible-up 0.2s ease-out",
+},
 ```
 
-### Phase 5: Grant Branch Admin Permissions
+---
 
-**Database Migration**:
-Add missing permissions for `branch_admin`:
-- `settings.kiosks` - Kiosk Management
-- `settings.queue-displays` - Queue Display Management
+## Phase 2: Add Inventory & Procurement to Org Admin Sidebar
 
-```sql
--- Add kiosk and queue display permissions
-INSERT INTO permissions (code, name, description, category)
-VALUES 
-  ('settings.kiosks', 'Manage Kiosks', 'Create and configure kiosks', 'settings'),
-  ('settings.queue-displays', 'Manage Queue Displays', 'Configure queue displays', 'settings')
-ON CONFLICT (code) DO NOTHING;
+**File:** `src/config/role-sidebars.ts`
 
--- Grant to branch_admin
-INSERT INTO role_permissions (role, permission_id, is_granted)
-SELECT 'branch_admin', p.id, true
-FROM permissions p
-WHERE p.code IN ('settings.kiosks', 'settings.queue-displays')
-ON CONFLICT DO NOTHING;
+Add a complete Inventory section to the `org_admin` config:
+
+```typescript
+org_admin: {
+  items: [
+    // ... existing items ...
+    { 
+      name: "Inventory", 
+      path: "", 
+      icon: "Package",
+      children: [
+        { name: "Dashboard", path: "/app/inventory", icon: "LayoutDashboard" },
+        { name: "Items", path: "/app/inventory/items", icon: "Box" },
+        { name: "Stock Levels", path: "/app/inventory/stock", icon: "ListTree" },
+        { name: "Categories", path: "/app/inventory/categories", icon: "FolderTree" },
+        { name: "Vendors", path: "/app/inventory/vendors", icon: "Store" },
+        { name: "Purchase Orders", path: "/app/inventory/purchase-orders", icon: "FileEdit" },
+        { name: "GRN", path: "/app/inventory/grn", icon: "PackageCheck" },
+        { name: "Requisitions", path: "/app/inventory/requisitions", icon: "FileText" },
+        { name: "Reports", path: "/app/inventory/reports", icon: "BarChart3" },
+      ]
+    },
+    // ... rest of config ...
+  ]
+}
 ```
 
-### Phase 6: Add Missing Menu Items
+---
 
-Ensure menu items exist for:
-- Kiosk Management (`/app/settings/kiosks`)
-- Queue Displays (`/app/settings/queue-displays`)
-- Kiosk Sessions (`/app/settings/kiosks/sessions`)
-- Kiosk Activity Log (`/app/settings/kiosks/activity`)
+## Phase 3: Add Missing Admin Sections to Org Admin
+
+**File:** `src/config/role-sidebars.ts`
+
+Add complete admin oversight sections:
+
+### Add HR Section:
+```typescript
+{ 
+  name: "HR & Staff", 
+  path: "", 
+  icon: "Users",
+  children: [
+    { name: "Dashboard", path: "/app/hr", icon: "LayoutDashboard" },
+    { name: "Employees", path: "/app/hr/employees", icon: "Users" },
+    { name: "Attendance", path: "/app/hr/attendance", icon: "Clock" },
+    { name: "Leaves", path: "/app/hr/leaves", icon: "CalendarDays" },
+    { name: "Payroll", path: "/app/hr/payroll", icon: "DollarSign" },
+    { name: "Reports", path: "/app/hr/reports", icon: "BarChart3" },
+  ]
+},
+```
+
+### Add Billing Section:
+```typescript
+{ 
+  name: "Billing", 
+  path: "", 
+  icon: "Receipt",
+  children: [
+    { name: "Invoices", path: "/app/billing/invoices", icon: "FileText" },
+    { name: "Payments", path: "/app/billing/payments", icon: "CreditCard" },
+    { name: "Reports", path: "/app/billing/reports", icon: "PieChart" },
+  ]
+},
+```
+
+### Add Accounts & Finance Section:
+```typescript
+{ 
+  name: "Accounts", 
+  path: "", 
+  icon: "Landmark",
+  children: [
+    { name: "Dashboard", path: "/app/accounts", icon: "LayoutDashboard" },
+    { name: "Chart of Accounts", path: "/app/accounts/chart", icon: "ListTree" },
+    { name: "Journal Entries", path: "/app/accounts/journal", icon: "BookOpen" },
+    { name: "Accounts Payable", path: "/app/accounts/payable", icon: "Wallet" },
+    { name: "Reports", path: "/app/accounts/reports", icon: "PieChart" },
+  ]
+},
+```
 
 ---
 
 ## Files to Modify
 
-| File | Changes |
-|------|---------|
-| `src/pages/app/pharmacy/POSTerminalPage.tsx` | Remove session requirement, simplify to direct sales |
-| `src/hooks/usePOS.ts` | Make session optional, fix schema alignment |
-| `src/pages/kiosk/KioskTerminalPage.tsx` | Add better error handling |
-| Database Migration | Add `kiosk_id` to appointments, add permissions for branch_admin |
+| File | Action |
+|------|--------|
+| `tailwind.config.ts` | Add collapsible-down/up animations |
+| `src/config/role-sidebars.ts` | Add Inventory, HR, Billing, Accounts to org_admin |
 
 ---
 
 ## Expected Outcome
 
-1. **POS Terminal**: Works immediately without requiring session open/close - simpler workflow for pharmacists
-2. **Kiosk Terminal**: Proper error handling and token generation working
-3. **Branch Admin**: Can now access Kiosk Management and Queue Display settings
-
----
-
-## Optional: Keep Session Feature (Future)
-
-If you want to bring back session management later (for cash drawer reconciliation), we can add it as an optional feature that can be enabled in settings. For now, removing it simplifies the workflow significantly.
+After implementation:
+- Menu expand/collapse will be smooth with no flickering
+- Org Admin will see complete Inventory & Procurement section
+- Org Admin will have HR oversight access
+- Org Admin will have Billing and Accounts visibility
+- All menu levels will animate properly without z-index or timing issues
