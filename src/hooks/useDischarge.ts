@@ -359,6 +359,8 @@ export const useCreateIPDCharge = () => {
     mutationFn: async (chargeData: {
       admission_id: string;
       service_type_id?: string;
+      charge_type?: string;
+      doctor_id?: string;
       description: string;
       quantity: number;
       unit_price: number;
@@ -374,12 +376,13 @@ export const useCreateIPDCharge = () => {
         .insert({
           admission_id: chargeData.admission_id,
           service_type_id: chargeData.service_type_id,
+          charge_type: chargeData.charge_type || "service",
+          doctor_id: chargeData.doctor_id || null,
           description: chargeData.description,
           quantity: chargeData.quantity,
           unit_price: chargeData.unit_price,
           total_amount,
           charge_date: chargeData.charge_date,
-          charge_type: "service",
           added_by: profile.id,
         })
         .select()

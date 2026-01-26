@@ -1,10 +1,12 @@
+import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Phone, Mail, MessageCircle } from "lucide-react";
 
-export const CTASection = () => {
-  return (
-    <section id="contact" className="py-24 bg-gradient-to-br from-primary/10 via-background to-accent/10 relative overflow-hidden">
+export const CTASection = React.forwardRef<HTMLElement, React.HTMLAttributes<HTMLElement>>(
+  (props, ref) => {
+    return (
+      <section ref={ref} id="contact" className="py-24 bg-gradient-to-br from-primary/10 via-background to-accent/10 relative overflow-hidden" {...props}>
       {/* Background decorations */}
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
       <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-accent/10 rounded-full blur-3xl" />
@@ -54,6 +56,9 @@ export const CTASection = () => {
           </div>
         </div>
       </div>
-    </section>
-  );
-};
+      </section>
+    );
+  }
+);
+
+CTASection.displayName = "CTASection";
