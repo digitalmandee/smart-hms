@@ -1,322 +1,311 @@
 
+# Plan: Enhance Presentation Slides with Richer UI, Surgery Dashboard Timer, and More Content
 
-# Plan: Enhance Presentation with UAE Case Studies & Improved Content
+## Current Issues Identified
 
-## Overview
-
-Enhance the HealthOS presentation PDF with comprehensive UAE case studies, lab network expansion details, compliance information, and a professional ending slide with improved UI/UX.
-
----
-
-## What's Missing Currently
-
-1. **No Case Studies Slide** - UAE clinics in Sharjah, Ajman, Dubai not highlighted
-2. **No Lab Network Slide** - 50+ labs expansion not mentioned
-3. **No Compliance Slide** - Healthcare standards and certifications not shown
-4. **CTA Slide Too Basic** - Needs better visual design and more compelling content
-5. **No Statistics/Trust Slide** - No facility counts or achievement metrics
+1. **Module Slides Too Simple** - Basic layout with just screenshot, title, description, and tags
+2. **Missing Surgery/OT Dashboard Timer** - The OT slide doesn't show the live surgery timer feature prominently
+3. **Basic Visual Design** - Minimal use of gradients, visual hierarchy, and engaging elements
+4. **Content Slides Need More Depth** - Case studies, compliance, and lab network slides could have more impactful content
+5. **No Technical/Feature Depth Slides** - Missing slides that showcase specific powerful features
 
 ---
 
-## New Slides to Add
+## Enhancement Strategy
 
-### Slide: UAE Success Stories (Case Studies)
+### 1. Create Enhanced OT Slide with Live Surgery Dashboard Timer
 
-```text
-+--------------------------------------------------+
-| UAE Case Studies                          22/27  |
-|--------------------------------------------------|
-|                                                  |
-|  ┌────────────┐  ┌────────────┐  ┌────────────┐  |
-|  │  SHARJAH   │  │   AJMAN    │  │   DUBAI    │  |
-|  │            │  │            │  │            │  |
-|  │ Emirates   │  │ Gulf       │  │ Al Noor    │  |
-|  │ Care       │  │ Medical    │  │ Medical    │  |
-|  │ Hospital   │  │ Centre     │  │ Center     │  |
-|  │            │  │            │  │            │  |
-|  │ 200 beds   │  │ 50+ staff  │  │ Multi-     │  |
-|  │ 60% faster │  │ 4hr saved  │  │ specialty  │  |
-|  │ wait times │  │ daily      │  │ 95% less   │  |
-|  │            │  │            │  │ errors     │  |
-|  └────────────┘  └────────────┘  └────────────┘  |
-|                                                  |
-|  "Trusted by leading healthcare facilities       |
-|   across the UAE Emirates"                       |
-+--------------------------------------------------+
-```
-
-### Slide: Lab Network Expansion
+Create a new `OTDashboardSlide.tsx` that showcases the surgery timer prominently:
 
 ```text
 +--------------------------------------------------+
-| Laboratory Network                        23/27  |
-|--------------------------------------------------|
-|                                                  |
-|        50+ Diagnostic Labs Connected             |
-|        ─────────────────────────────             |
-|                                                  |
-|  ┌─────────────────────────────────────────────┐ |
-|  │  UAE Coverage Map with Lab Markers          │ |
-|  │                                             │ |
-|  │  Dubai: 18 Labs    Abu Dhabi: 12 Labs       │ |
-|  │  Sharjah: 10 Labs  Ajman: 5 Labs            │ |
-|  │  RAK: 3 Labs       Fujairah: 2 Labs         │ |
-|  └─────────────────────────────────────────────┘ |
-|                                                  |
-|  Key Capabilities:                               |
-|  ✓ Real-time result integration                 |
-|  ✓ Barcode sample tracking                      |
-|  ✓ Auto-flagging abnormal values                |
-|  ✓ Multi-branch inventory sync                  |
-+--------------------------------------------------+
-```
-
-### Slide: Compliance & Standards
-
-```text
-+--------------------------------------------------+
-| Healthcare Compliance                     24/27  |
-|--------------------------------------------------|
-|                                                  |
-|  ┌──────────┐  ┌──────────┐  ┌──────────┐        |
-|  │   DHA    │  │   MOH    │  │   HAAD   │        |
-|  │  Dubai   │  │   UAE    │  │ Abu Dhabi│        |
-|  │ Approved │  │ Licensed │  │ Certified│        |
-|  └──────────┘  └──────────┘  └──────────┘        |
-|                                                  |
-|  Security & Data Protection:                     |
-|  • HIPAA-compliant data handling                 |
-|  • 256-bit SSL encryption                        |
-|  • Daily automated backups                       |
-|  • Role-based access controls                    |
-|  • Complete audit trails                         |
-|                                                  |
-|  99.9% Uptime Guaranteed                         |
-+--------------------------------------------------+
-```
-
-### Enhanced CTA Slide (Redesign)
-
-```text
-+--------------------------------------------------+
-| Let's Transform Healthcare Together       27/27  |
+| Live Surgery Dashboard                    XX/XX  |
 |--------------------------------------------------|
 |                                                  |
 |  ┌─────────────────────────────────────────────┐ |
-|  │         BOOK A FREE DEMO TODAY              │ |
-|  │         ─────────────────────               │ |
+|  │  SURGERY IN PROGRESS                        │ |
+|  │  ┌─────────────────────────────────────────┐│ |
+|  │  │         02:34:18                        ││ |
+|  │  │    ████████████████░░░░ 78%             ││ |
+|  │  │  Estimated: 3hrs | +15 min warning      ││ |
+|  │  └─────────────────────────────────────────┘│ |
 |  │                                             │ |
-|  │  ✓ Personalized walkthrough                 │ |
-|  │  ✓ See your workflows in action             │ |
-|  │  ✓ Get custom pricing                       │ |
-|  │  ✓ No obligation consultation               │ |
+|  │  Patient: Ahmed Khan | Appendectomy         │ |
+|  │  Surgeon: Dr. Ali Ahmed | OT-1              │ |
 |  └─────────────────────────────────────────────┘ |
 |                                                  |
-|  Contact Us:                                     |
-|  📞 +971 506802430                               |
-|  🌐 smarthms.devmine.co                          |
-|                                                  |
-|  ┌──────────────────────────────────────────┐   |
-|  │ 500+ Clinics | 50+ Labs | 50,000+ Patients│   |
-|  └──────────────────────────────────────────┘   |
-|                                                  |
-|  © 2024 HealthOS - Hospital Management System    |
+|  Role-Specific Tabs:                             |
+|  [Surgeon Notes] [Anesthesia] [Instrument Count] |
 +--------------------------------------------------+
 ```
 
 ---
 
-## Implementation Details
+### 2. Enhanced Module Slide Template
 
-### File 1: `src/components/presentation/CaseStudiesSlide.tsx` (NEW)
+Redesign `ModuleSlide.tsx` with:
+- Gradient header bar with module color coding
+- Larger, more impactful title typography
+- Statistics/metrics section with key numbers
+- Better visual separation between content areas
+- Mini workflow diagram for complex modules
+- Feature badges with icons
 
-Create a new slide showcasing UAE healthcare facilities:
-
-```tsx
-// UAE Case Studies with 3 featured facilities:
-// - Emirates Care Hospital, Sharjah (200-bed facility)
-// - Gulf Medical Centre, Ajman (Multi-specialty)
-// - Al Noor Medical Center, Dubai (Diagnostic hub)
-
-// Each card includes:
-// - City badge with UAE flag colors
-// - Facility name and type
-// - Key metrics (beds, staff, time saved)
-// - Quote from facility head
-// - Visual icon for facility type
-```
-
-### File 2: `src/components/presentation/LabNetworkSlide.tsx` (NEW)
-
-Create a slide highlighting lab expansion:
-
-```tsx
-// Lab Network slide featuring:
-// - Large "50+ Labs" headline
-// - UAE region breakdown (Dubai, Abu Dhabi, Sharjah, etc.)
-// - Lab integration capabilities list
-// - Coverage statistics by emirate
-// - Lab workflow benefits
-```
-
-### File 3: `src/components/presentation/ComplianceSlide.tsx` (NEW)
-
-Create a compliance and security standards slide:
-
-```tsx
-// Compliance slide with:
-// - DHA, MOH, HAAD certification badges
-// - HIPAA compliance badge
-// - Security features list
-// - Uptime guarantee
-// - Data protection highlights
-```
-
-### File 4: Update `src/components/presentation/CTASlide.tsx`
-
-Redesign with enhanced content:
-
-```tsx
-// Enhanced CTA with:
-// - Stronger headline: "Let's Transform Healthcare Together"
-// - Demo booking section with benefits
-// - Trust statistics bar (500+ clinics, 50+ labs, 50,000+ patients)
-// - Professional contact section
-// - Social proof elements
-// - Better visual hierarchy
-```
-
-### File 5: Update `src/pages/Presentation.tsx`
-
-Add new slides to the presentation flow:
-
-```tsx
-// Updated slide order (27 total):
-// 1. Title Slide
-// 2-21. Module Slides (20 modules)
-// 22. Patient Workflow
-// 23. Procurement Cycle
-// 24. UAE Case Studies (NEW)
-// 25. Lab Network (NEW)
-// 26. Compliance & Security (NEW)
-// 27. Enhanced CTA (UPDATED)
+```text
++--------------------------------------------------+
+| ┌──────────────────────────────────────────────┐ |
+| │ ████ LABORATORY                        05/27 │ |
+| └──────────────────────────────────────────────┘ |
+|                                                  |
+|  ┌─────────────────────┐  ┌──────────────────┐  |
+|  │                     │  │ End-to-End Lab   │  |
+|  │    [Screenshot]     │  │ Workflow         │  |
+|  │     with better     │  │                  │  |
+|  │      scaling        │  │ "Track samples   │  |
+|  │                     │  │ from collection  │  |
+|  │                     │  │ to results..."   │  |
+|  └─────────────────────┘  │                  │  |
+|                           │ ┌──────────────┐ │  |
+|  📊 Key Metrics:          │ │ ✓ Barcode    │ │  |
+|  • 15min avg result time  │ │ ✓ Auto-flags │ │  |
+|  • 500+ test parameters   │ │ ✓ LIMS ready │ │  |
+|  • 99.5% accuracy rate    │ └──────────────┘ │  |
++--------------------------------------------------+
 ```
 
 ---
 
-## Visual Design Specifications
+### 3. New Content Slides to Add
 
-### Case Studies Slide Design
+#### A. Product Features Overview Slide (`FeaturesOverviewSlide.tsx`)
+High-level view of all 20 modules in a visual grid
 
-- **Layout**: 3-column grid for UAE cities
-- **Colors**: Use UAE flag colors (red, green, white, black) as accents
-- **Cards**: Rounded corners, subtle shadow, hover states
-- **Metrics**: Large bold numbers with descriptive labels
-- **Quote**: Italicized testimonial snippet
+#### B. OT Live Dashboard Slide (`OTDashboardSlide.tsx`)
+Showcasing the surgery timer and live monitoring features
 
-### Lab Network Slide Design
+#### C. Integration Ecosystem Slide (`IntegrationSlide.tsx`)
+- LIS/LIMS integration
+- PACS connectivity
+- Biometric devices
+- SMS/WhatsApp notifications
+- Payment gateways
 
-- **Hero Number**: "50+" in large primary color
-- **Region Grid**: 6 emirates with lab counts
-- **Icons**: Flask/test tube icons for lab theme
-- **Checklist**: Green checkmarks for capabilities
+#### D. Implementation Timeline Slide (`TimelineSlide.tsx`)
+- Week 1-2: Setup & Data Migration
+- Week 3-4: Training & Go-Live
+- Ongoing: 24/7 Support
 
-### Compliance Slide Design
+---
 
-- **Badge Layout**: 3 circular certification badges
-- **Colors**: Official certification colors
-- **Security Section**: Shield icons with feature list
-- **Uptime Badge**: Highlighted 99.9% guarantee
+### 4. Enhanced Visual Components
 
-### Enhanced CTA Design
+**Add to each module slide:**
+- Color-coded gradient header matching module theme
+- Key metric callouts (3 numbers with labels)
+- Feature checklist with icons
+- "Pro Tip" or "Highlight" callout box
+- Better typography hierarchy
 
-- **Demo CTA Box**: Primary color background, prominent
-- **Stats Bar**: Dark background strip with white text
-- **Contact Cards**: Icon + text pairs, centered
-- **Footer**: Professional copyright with year
+**Color coding by module category:**
+- Clinical (OPD, IPD, Emergency, OT, Nursing): Teal gradient
+- Diagnostics (Lab, Radiology, Blood Bank): Blue gradient
+- Pharmacy (Pharmacy, POS): Green gradient
+- Finance (Billing, Accounts, Doctor Wallet): Purple gradient
+- Operations (HR, Inventory, Procurement): Orange gradient
 
 ---
 
 ## Files to Create/Modify
 
-| File | Action |
-|------|--------|
-| `src/components/presentation/CaseStudiesSlide.tsx` | **CREATE** - UAE facility case studies |
-| `src/components/presentation/LabNetworkSlide.tsx` | **CREATE** - 50+ labs expansion |
-| `src/components/presentation/ComplianceSlide.tsx` | **CREATE** - Certifications & security |
-| `src/components/presentation/CTASlide.tsx` | **MODIFY** - Enhanced ending slide |
-| `src/pages/Presentation.tsx` | **MODIFY** - Add new slides, update count |
+| File | Action | Description |
+|------|--------|-------------|
+| `src/components/presentation/ModuleSlide.tsx` | **MODIFY** | Enhanced layout with metrics, gradients, better typography |
+| `src/components/presentation/OTDashboardSlide.tsx` | **CREATE** | New slide showcasing live surgery timer |
+| `src/components/presentation/FeaturesOverviewSlide.tsx` | **CREATE** | Visual grid of all 20 modules |
+| `src/components/presentation/IntegrationSlide.tsx` | **CREATE** | Integration ecosystem partners |
+| `src/components/presentation/TimelineSlide.tsx` | **CREATE** | Implementation timeline |
+| `src/components/presentation/TitleSlide.tsx` | **MODIFY** | Enhanced visual design |
+| `src/components/presentation/CaseStudiesSlide.tsx` | **MODIFY** | More detailed metrics and visuals |
+| `src/components/presentation/CTASlide.tsx` | **MODIFY** | More impactful ending |
+| `src/pages/Presentation.tsx` | **MODIFY** | Add new slides, update total count |
+
+---
+
+## Enhanced Slide Structure (30 slides total)
+
+| Slide | Content |
+|-------|---------|
+| 1 | **Enhanced Title Slide** - Logo, tagline, key stats |
+| 2 | **Features Overview Grid** - All 20 modules at a glance |
+| 3-22 | **Enhanced Module Slides** - Better design, metrics, visuals |
+| 23 | **OT Live Dashboard** - Surgery timer showcase |
+| 24 | **Patient Workflow Diagram** |
+| 25 | **Procurement Cycle Diagram** |
+| 26 | **UAE Case Studies** - Enhanced with more detail |
+| 27 | **Lab Network Expansion** |
+| 28 | **Integration Ecosystem** - Partners & connectivity |
+| 29 | **Compliance & Security** |
+| 30 | **Enhanced CTA** - Demo booking with urgency |
+
+---
+
+## Enhanced ModuleSlide Layout Specification
+
+```tsx
+// New structure for ModuleSlide:
+<div className="slide">
+  {/* Gradient Header Bar */}
+  <div className="h-2 bg-gradient-to-r from-{moduleColor} to-{moduleColor}/50" />
+  
+  {/* Header with Icon, Title, Slide Number */}
+  <header>...</header>
+  
+  {/* Two-Column Layout */}
+  <div className="grid grid-cols-5 gap-6">
+    {/* Left: Screenshot (3 cols) */}
+    <div className="col-span-3">
+      <Screenshot />
+      {/* Key Metrics Row */}
+      <div className="grid grid-cols-3 gap-2 mt-4">
+        <MetricCard number="15min" label="Avg Time" />
+        <MetricCard number="99.5%" label="Accuracy" />
+        <MetricCard number="500+" label="Tests" />
+      </div>
+    </div>
+    
+    {/* Right: Content (2 cols) */}
+    <div className="col-span-2">
+      <h2>Title</h2>
+      <p>Description</p>
+      
+      {/* Feature Checklist */}
+      <div className="feature-list">
+        {features.map(f => (
+          <div><CheckIcon /> {f}</div>
+        ))}
+      </div>
+      
+      {/* Highlight Box */}
+      <div className="highlight-box">
+        <LightbulbIcon />
+        "Key benefit or pro tip"
+      </div>
+    </div>
+  </div>
+  
+  {/* Footer */}
+  <footer>...</footer>
+</div>
+```
+
+---
+
+## OT Dashboard Timer Slide Design
+
+```tsx
+// OTDashboardSlide.tsx
+<div className="slide bg-gradient-to-br from-primary/10 to-background">
+  {/* Header */}
+  <h2>Live Surgery Dashboard</h2>
+  
+  {/* Main Timer Display */}
+  <div className="surgery-timer-display">
+    <div className="timer-status">SURGERY IN PROGRESS</div>
+    <div className="timer-value text-6xl font-mono">02:34:18</div>
+    <ProgressBar value={78} className="h-4" />
+    <div className="timer-meta">
+      Estimated: 3:00:00 | +34min over
+    </div>
+  </div>
+  
+  {/* Surgery Info */}
+  <div className="surgery-info-grid">
+    <InfoCard label="Patient" value="Ahmed Khan" />
+    <InfoCard label="Procedure" value="Appendectomy" />
+    <InfoCard label="Lead Surgeon" value="Dr. Ali Ahmed" />
+    <InfoCard label="OT Room" value="OT-1" />
+  </div>
+  
+  {/* Role Tabs Preview */}
+  <div className="role-tabs">
+    <Tab active>Surgeon Notes</Tab>
+    <Tab>Anesthesia Vitals</Tab>
+    <Tab>Instrument Count</Tab>
+  </div>
+  
+  {/* Features List */}
+  <div className="features">
+    ✓ Real-time synchronized timers
+    ✓ Overtime warnings & alerts
+    ✓ Role-specific documentation
+    ✓ Completion validation gates
+  </div>
+</div>
+```
+
+---
+
+## Visual Enhancement Details
+
+### Typography Improvements
+- Title: `text-3xl font-bold` (up from text-2xl)
+- Description: `text-base leading-relaxed` (up from text-sm)
+- Feature tags: Add icons alongside text
+
+### Color Gradients by Category
+```css
+/* Clinical Modules */
+.clinical-gradient { background: linear-gradient(135deg, #0d9488, #14b8a6); }
+
+/* Diagnostics */
+.diagnostics-gradient { background: linear-gradient(135deg, #2563eb, #3b82f6); }
+
+/* Finance */
+.finance-gradient { background: linear-gradient(135deg, #7c3aed, #8b5cf6); }
+
+/* Operations */
+.operations-gradient { background: linear-gradient(135deg, #ea580c, #f97316); }
+```
+
+### Metric Cards Design
+```tsx
+<div className="bg-primary/10 rounded-xl p-4 text-center">
+  <div className="text-3xl font-bold text-primary">99.5%</div>
+  <div className="text-xs text-muted-foreground uppercase tracking-wider">Accuracy</div>
+</div>
+```
+
+---
+
+## Content Enhancements
+
+### Add module-specific metrics:
+- **Laboratory**: 15min avg result time, 500+ test parameters, 99.5% accuracy
+- **OT**: 50+ surgeries/month capacity, 100% WHO checklist compliance, <30min turnaround
+- **IPD**: 200+ beds managed, 95% occupancy tracking, Real-time billing
+- **Pharmacy**: 10,000+ SKUs, 30-day expiry alerts, Zero stockouts
+
+### Enhanced feature descriptions:
+Each module gets 3 key metrics + 5 feature checkmarks with icons
+
+---
+
+## Technical Implementation Notes
+
+1. **Module color mapping**: Create a `moduleColors` object mapping module IDs to gradient classes
+2. **Metrics data**: Add `metrics` array to each feature in `features` data
+3. **Responsive scaling**: Ensure screenshots scale properly for PDF export
+4. **Print optimization**: Test new gradients and colors for print fidelity
 
 ---
 
 ## Expected Outcome
 
-A 27-slide professional presentation PDF with:
-
-| Slide | Content |
-|-------|---------|
-| 1 | Title: HealthOS - Complete Hospital Management System |
-| 2-21 | Individual module slides (20 modules) |
-| 22 | Patient Flow Workflow Diagram |
-| 23 | Procurement Cycle Diagram |
-| 24 | **UAE Case Studies** (Sharjah, Ajman, Dubai) |
-| 25 | **Lab Network Expansion** (50+ Labs) |
-| 26 | **Compliance & Certifications** (DHA, MOH, HAAD) |
-| 27 | **Enhanced Contact CTA** (Demo booking, stats) |
-
----
-
-## Content Details for New Slides
-
-### UAE Case Studies Content
-
-**Emirates Care Hospital, Sharjah**
-- 200-bed multi-specialty facility
-- 60% reduction in patient wait times
-- Seamless billing reconciliation
-- Quote: "HealthOS transformed our operations"
-
-**Gulf Medical Centre, Ajman**
-- 50+ staff across departments
-- 4 hours daily time savings
-- Integrated lab and pharmacy
-- Quote: "Staff loves the intuitive interface"
-
-**Al Noor Medical Center, Dubai**
-- Premier diagnostic center
-- 95% fewer billing errors
-- Real-time lab integration
-- Quote: "Complete visibility into operations"
-
-### Lab Network Content
-
-**Coverage by Emirate:**
-- Dubai: 18 Labs
-- Abu Dhabi: 12 Labs
-- Sharjah: 10 Labs
-- Ajman: 5 Labs
-- Ras Al Khaimah: 3 Labs
-- Fujairah: 2 Labs
-
-**Integration Features:**
-- Real-time result syncing
-- Barcode sample tracking
-- Auto-flagging abnormal values
-- Multi-branch inventory sync
-- Quality control dashboards
-
-### Compliance Content
-
-**Certifications:**
-- DHA (Dubai Health Authority) Approved
-- MOH (Ministry of Health) Licensed
-- HAAD (Abu Dhabi) Certified
-- HIPAA Compliant
-
-**Security Features:**
-- 256-bit SSL encryption
-- Daily automated backups
-- Role-based access controls
-- Complete audit trails
-- 99.9% uptime SLA
-
+A 30-slide professional presentation PDF with:
+- Visually rich module slides with gradients and metrics
+- Dedicated OT Live Dashboard slide with surgery timer showcase
+- Features overview grid for quick scanning
+- Integration ecosystem partners slide
+- Implementation timeline for buyer confidence
+- Enhanced case studies with more UAE detail
+- Professional, print-ready design
