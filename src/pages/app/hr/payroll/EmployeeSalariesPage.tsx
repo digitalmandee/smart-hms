@@ -8,11 +8,48 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Plus, Edit, Eye, DollarSign, Users, FileText } from "lucide-react";
+import { Search, Plus, Edit, Eye, DollarSign, Users, FileText, Stethoscope, AlertCircle } from "lucide-react";
 import { useEmployeeSalaries, useSalaryStructures, useCreateEmployeeSalary } from "@/hooks/usePayroll";
 import { SalaryBreakdown } from "@/components/hr/SalaryBreakdown";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useQuery } from "@tanstack/react-query";
+
+// Hook to get employee IDs that are doctors with compensation plans
+function useDoctorsWithCompensationPlans() {
+  return useQuery({
+    queryKey: ["doctors-with-plans"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("doctor_compensation_plans")
+        .select(`
+          doctor_id,
+          plan_type,
+          base_salary,
+          doctor:doctor_id(employee_id)
+        `)
+        .eq("is_active", true);
+      
+      if (error) throw error;
+      
+      // Create a map of employee_id -> plan info
+      const planMap: Record<string, { planType: string; baseSalary: number }> = {};
+      data?.forEach((plan: any) => {
+        if (plan.doctor?.employee_id) {
+          planMap[plan.doctor.employee_id] = {
+            planType: plan.plan_type,
+            baseSalary: plan.base_salary || 0,
+          };
+        }
+      });
+      return planMap;
+    },
+  });
+}
 
 export default function EmployeeSalariesPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -22,6 +59,7 @@ export default function EmployeeSalariesPage() {
 
   const { data: salaries, isLoading } = useEmployeeSalaries({ isCurrent: true });
   const { data: structures } = useSalaryStructures();
+  const { data: doctorPlans } = useDoctorsWithCompensationPlans();
   const createSalary = useCreateEmployeeSalary();
 
   const [assignForm, setAssignForm] = useState({
@@ -43,6 +81,9 @@ export default function EmployeeSalariesPage() {
       currency: "PKR",
       minimumFractionDigits: 0,
     }).format(amount);
+  
+  // Check if an employee has a doctor compensation plan
+  const getDoctorPlanInfo = (employeeId: string) => doctorPlans?.[employeeId];
 
   const handleAssignSalary = async () => {
     if (!assignForm.salary_structure_id || !assignForm.basic_salary) {
@@ -159,22 +200,53 @@ export default function EmployeeSalariesPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredSalaries?.map((salary: any) => (
-                  <TableRow key={salary.id}>
-                    <TableCell className="font-medium">
-                      {salary.employee?.first_name} {salary.employee?.last_name}
-                    </TableCell>
-                    <TableCell>{salary.employee?.employee_number || "-"}</TableCell>
-                    <TableCell>{salary.salary_structure?.name || "-"}</TableCell>
-                    <TableCell>{formatCurrency(salary.basic_salary)}</TableCell>
-                    <TableCell>
-                      {salary.effective_from ? format(new Date(salary.effective_from), "dd MMM yyyy") : "-"}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={salary.is_current ? "default" : "secondary"}>
-                        {salary.is_current ? "Current" : "Previous"}
-                      </Badge>
-                    </TableCell>
+                {filteredSalaries?.map((salary: any) => {
+                  const doctorPlan = getDoctorPlanInfo(salary.employee_id);
+                  const isDoctor = !!doctorPlan;
+                  
+                  return (
+                    <TableRow key={salary.id}>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          {salary.employee?.first_name} {salary.employee?.last_name}
+                          {isDoctor && (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <Stethoscope className="h-4 w-4 text-primary" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p className="font-medium">Doctor with Compensation Plan</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    Plan: {doctorPlan.planType.replace(/_/g, ' ')}<br/>
+                                    Salary auto-synced from compensation settings
+                                  </p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>{salary.employee?.employee_number || "-"}</TableCell>
+                      <TableCell>{salary.salary_structure?.name || "-"}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          {formatCurrency(salary.basic_salary)}
+                          {isDoctor && (
+                            <Badge variant="outline" className="text-xs ml-1">
+                              Synced
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {salary.effective_from ? format(new Date(salary.effective_from), "dd MMM yyyy") : "-"}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={salary.is_current ? "default" : "secondary"}>
+                          {salary.is_current ? "Current" : "Previous"}
+                        </Badge>
+                      </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <Button
