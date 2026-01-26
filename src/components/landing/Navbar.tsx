@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Activity, Menu, X } from "lucide-react";
+import { Activity, Menu, X, FileDown } from "lucide-react";
 
 const navLinks = [
   { label: "Features", href: "#features" },
@@ -52,6 +52,12 @@ export const Navbar = () => {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-3">
+            <Link to="/presentation" target="_blank">
+              <Button variant="outline" size="sm">
+                <FileDown className="h-4 w-4 mr-2" />
+                Presentation
+              </Button>
+            </Link>
             <Link to="/auth/login">
               <Button variant="ghost" size="sm">
                 Sign In
