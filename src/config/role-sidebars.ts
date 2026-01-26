@@ -144,6 +144,57 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         ]
       },
       { 
+        name: "Inventory", 
+        path: "", 
+        icon: "Package",
+        children: [
+          { name: "Dashboard", path: "/app/inventory", icon: "LayoutDashboard" },
+          { name: "Items", path: "/app/inventory/items", icon: "Box" },
+          { name: "Stock Levels", path: "/app/inventory/stock", icon: "ListTree" },
+          { name: "Categories", path: "/app/inventory/categories", icon: "FolderTree" },
+          { name: "Vendors", path: "/app/inventory/vendors", icon: "Store" },
+          { name: "Purchase Orders", path: "/app/inventory/purchase-orders", icon: "FileEdit" },
+          { name: "GRN", path: "/app/inventory/grn", icon: "PackageCheck" },
+          { name: "Requisitions", path: "/app/inventory/requisitions", icon: "FileText" },
+          { name: "Reports", path: "/app/inventory/reports", icon: "BarChart3" },
+        ]
+      },
+      { 
+        name: "HR & Staff", 
+        path: "", 
+        icon: "Users2",
+        children: [
+          { name: "Dashboard", path: "/app/hr", icon: "LayoutDashboard" },
+          { name: "Employees", path: "/app/hr/employees", icon: "Users" },
+          { name: "Attendance", path: "/app/hr/attendance", icon: "Clock" },
+          { name: "Leaves", path: "/app/hr/leaves", icon: "CalendarDays" },
+          { name: "Payroll", path: "/app/hr/payroll", icon: "DollarSign" },
+          { name: "Reports", path: "/app/hr/reports", icon: "BarChart3" },
+        ]
+      },
+      { 
+        name: "Billing", 
+        path: "", 
+        icon: "Receipt",
+        children: [
+          { name: "Invoices", path: "/app/billing/invoices", icon: "FileText" },
+          { name: "Payments", path: "/app/billing/payments", icon: "CreditCard" },
+          { name: "Reports", path: "/app/billing/reports", icon: "PieChart" },
+        ]
+      },
+      { 
+        name: "Accounts", 
+        path: "", 
+        icon: "Landmark",
+        children: [
+          { name: "Dashboard", path: "/app/accounts", icon: "LayoutDashboard" },
+          { name: "Chart of Accounts", path: "/app/accounts/chart", icon: "ListTree" },
+          { name: "Journal Entries", path: "/app/accounts/journal", icon: "BookOpen" },
+          { name: "Accounts Payable", path: "/app/accounts/payable", icon: "Wallet" },
+          { name: "Reports", path: "/app/accounts/reports", icon: "PieChart" },
+        ]
+      },
+      { 
         name: "Reports", 
         path: "", 
         icon: "BarChart3",
