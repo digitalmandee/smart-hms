@@ -64,7 +64,7 @@ export const ProcurementSlide = () => {
           </span>
           <h2 className="text-3xl font-bold">Procurement Cycle</h2>
         </div>
-        <span className="text-sm text-muted-foreground font-medium">22 / 24</span>
+        <span className="text-sm text-muted-foreground font-medium">25 / 31</span>
       </div>
 
       {/* Subtitle */}

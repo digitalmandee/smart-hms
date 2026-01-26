@@ -72,7 +72,7 @@ export const TimelineSlide = () => {
           </div>
         </div>
         <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">
-          29 / 30
+          30 / 31
         </span>
       </div>
 

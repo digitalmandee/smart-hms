@@ -60,7 +60,7 @@ export const IntegrationSlide = () => {
           </div>
         </div>
         <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">
-          28 / 30
+          28 / 31
         </span>
       </div>
 

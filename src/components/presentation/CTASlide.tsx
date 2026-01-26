@@ -40,7 +40,7 @@ export const CTASlide = () => {
           <span className="text-xl font-bold">HealthOS</span>
         </div>
         <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">
-          30 / 30
+          31 / 31
         </span>
       </div>
 

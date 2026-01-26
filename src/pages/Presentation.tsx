@@ -222,7 +222,7 @@ const features = [
   },
 ];
 
-const TOTAL_SLIDES = 30; // Title + Overview + 20 modules + OT Dashboard + Workflow + Procurement + Case Studies + Lab Network + Integration + Compliance + Timeline + CTA
+const TOTAL_SLIDES = 31; // Title + Overview + 20 modules + OT Dashboard + Workflow + Procurement + Case Studies + Lab Network + Integration + Compliance + Timeline + CTA
 
 const Presentation = () => {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -316,10 +316,15 @@ const Presentation = () => {
       </div>
 
       {/* Instructions (hidden in print) */}
-      <div className="no-print bg-muted/50 border-b border-border px-4 py-2">
-        <p className="container mx-auto text-sm text-muted-foreground text-center">
-          💡 Click "Download PDF" and select "Save as PDF" in the print dialog. Use landscape orientation for best results.
-        </p>
+      <div className="no-print bg-muted/50 border-b border-border px-4 py-3">
+        <div className="container mx-auto text-center">
+          <p className="text-sm text-muted-foreground">
+            💡 <strong>To save as PDF:</strong> Click "Download PDF" → In print dialog, select <strong>"Save as PDF"</strong> as destination
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            ⚠️ <strong>For colors:</strong> Enable <strong>"Background graphics"</strong> in print settings (More settings → Background graphics)
+          </p>
+        </div>
       </div>
 
       {/* Slides Container */}

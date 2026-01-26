@@ -42,7 +42,7 @@ export const ComplianceSlide = () => {
             <p className="text-sm text-muted-foreground">Meeting the highest standards in healthcare IT</p>
           </div>
         </div>
-        <div className="text-sm text-muted-foreground font-medium">26 / 27</div>
+        <div className="text-sm text-muted-foreground font-medium">29 / 31</div>
       </div>
 
       <div className="grid grid-cols-2 gap-8 flex-1">

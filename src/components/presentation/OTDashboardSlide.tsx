@@ -22,7 +22,7 @@ export const OTDashboardSlide = () => {
           </div>
         </div>
         <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">
-          23 / 30
+          23 / 31
         </span>
       </div>
 
