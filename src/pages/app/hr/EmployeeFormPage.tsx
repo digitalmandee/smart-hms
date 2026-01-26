@@ -79,7 +79,9 @@ const employeeSchema = z.object({
   specialization: z.string().optional(),
   qualification: z.string().optional(),
   license_number: z.string().optional(),
-  consultation_fee: z.number().optional(),
+  consultation_fee: z.number().optional().nullable(),
+  default_surgery_fee: z.number().optional().nullable(),
+  ipd_visit_fee: z.number().optional().nullable(),
   is_available: z.boolean().optional(),
   // Compensation fields
   compensation_plan_type: z.enum(["fixed_salary", "per_consultation", "per_procedure", "revenue_share", "hybrid"]).optional(),
@@ -87,6 +89,7 @@ const employeeSchema = z.object({
   procedure_share_percent: z.number().min(0).max(100).optional().nullable(),
   surgery_share_percent: z.number().min(0).max(100).optional().nullable(),
   anesthesia_share_percent: z.number().min(0).max(100).optional().nullable(),
+  ipd_visit_share_percent: z.number().min(0).max(100).optional().nullable(),
   lab_referral_percent: z.number().min(0).max(100).optional().nullable(),
   minimum_guarantee: z.number().optional().nullable(),
 });
@@ -214,6 +217,8 @@ export default function EmployeeFormPage() {
         qualification: doctorData?.qualification || "",
         license_number: doctorData?.license_number || "",
         consultation_fee: doctorData?.consultation_fee || undefined,
+        default_surgery_fee: (doctorData as any)?.default_surgery_fee || undefined,
+        ipd_visit_fee: (doctorData as any)?.ipd_visit_fee || undefined,
         is_available: doctorData?.is_available ?? true,
       });
     }
@@ -332,6 +337,16 @@ export default function EmployeeFormPage() {
 
       // Save compensation plan if this is a doctor category and we have compensation data
       if (isDoctorCategory && doctorRecordId && data.compensation_plan_type) {
+        // First, update the doctor record with fee fields
+        await supabase
+          .from("doctors")
+          .update({
+            consultation_fee: data.consultation_fee ?? null,
+            default_surgery_fee: data.default_surgery_fee ?? null,
+            ipd_visit_fee: data.ipd_visit_fee ?? null,
+          })
+          .eq("id", doctorRecordId);
+
         // Check if plan exists
         const { data: existingPlan } = await supabase
           .from("doctor_compensation_plans")
@@ -347,6 +362,7 @@ export default function EmployeeFormPage() {
           procedure_share_percent: data.procedure_share_percent ?? 50,
           surgery_share_percent: data.surgery_share_percent ?? 50,
           anesthesia_share_percent: data.anesthesia_share_percent ?? 50,
+          ipd_visit_share_percent: data.ipd_visit_share_percent ?? 50,
           lab_referral_percent: data.lab_referral_percent ?? 10,
           minimum_guarantee: data.minimum_guarantee ?? 0,
           base_salary: 0,

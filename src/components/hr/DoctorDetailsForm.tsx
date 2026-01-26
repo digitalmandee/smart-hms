@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Stethoscope, Award, CreditCard, Calendar, Loader2 } from "lucide-react";
+import { Stethoscope, Award, Calendar, Loader2 } from "lucide-react";
 import { useSpecializations, useQualifications } from "@/hooks/useConfiguration";
 
 interface DoctorDetailsFormProps {
@@ -118,28 +118,6 @@ export function DoctorDetailsForm({ form }: DoctorDetailsFormProps) {
               </FormLabel>
               <FormControl>
                 <Input placeholder="PMC-12345" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="consultation_fee"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="flex items-center gap-1.5">
-                <CreditCard className="h-4 w-4 text-muted-foreground" />
-                Consultation Fee
-              </FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  placeholder="1000"
-                  {...field}
-                  onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
-                />
               </FormControl>
               <FormMessage />
             </FormItem>

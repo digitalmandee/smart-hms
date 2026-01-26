@@ -5575,6 +5575,7 @@ export type Database = {
           effective_from: string
           effective_to: string | null
           id: string
+          ipd_visit_share_percent: number | null
           is_active: boolean | null
           lab_referral_percent: number | null
           minimum_guarantee: number | null
@@ -5594,6 +5595,7 @@ export type Database = {
           effective_from?: string
           effective_to?: string | null
           id?: string
+          ipd_visit_share_percent?: number | null
           is_active?: boolean | null
           lab_referral_percent?: number | null
           minimum_guarantee?: number | null
@@ -5613,6 +5615,7 @@ export type Database = {
           effective_from?: string
           effective_to?: string | null
           id?: string
+          ipd_visit_share_percent?: number | null
           is_active?: boolean | null
           lab_referral_percent?: number | null
           minimum_guarantee?: number | null
@@ -5833,10 +5836,12 @@ export type Database = {
           branch_id: string | null
           consultation_fee: number | null
           created_at: string
+          default_surgery_fee: number | null
           emergency_fee: number | null
           employee_id: string | null
           followup_fee: number | null
           id: string
+          ipd_visit_fee: number | null
           is_available: boolean | null
           license_number: string | null
           organization_id: string
@@ -5849,10 +5854,12 @@ export type Database = {
           branch_id?: string | null
           consultation_fee?: number | null
           created_at?: string
+          default_surgery_fee?: number | null
           emergency_fee?: number | null
           employee_id?: string | null
           followup_fee?: number | null
           id?: string
+          ipd_visit_fee?: number | null
           is_available?: boolean | null
           license_number?: string | null
           organization_id: string
@@ -5865,10 +5872,12 @@ export type Database = {
           branch_id?: string | null
           consultation_fee?: number | null
           created_at?: string
+          default_surgery_fee?: number | null
           emergency_fee?: number | null
           employee_id?: string | null
           followup_fee?: number | null
           id?: string
+          ipd_visit_fee?: number | null
           is_available?: boolean | null
           license_number?: string | null
           organization_id?: string
@@ -9007,6 +9016,7 @@ export type Database = {
           created_at: string | null
           description: string
           discount_percent: number | null
+          doctor_id: string | null
           id: string
           invoice_id: string | null
           is_billed: boolean | null
@@ -9024,6 +9034,7 @@ export type Database = {
           created_at?: string | null
           description: string
           discount_percent?: number | null
+          doctor_id?: string | null
           id?: string
           invoice_id?: string | null
           is_billed?: boolean | null
@@ -9041,6 +9052,7 @@ export type Database = {
           created_at?: string | null
           description?: string
           discount_percent?: number | null
+          doctor_id?: string | null
           id?: string
           invoice_id?: string | null
           is_billed?: boolean | null
@@ -9063,6 +9075,13 @@ export type Database = {
             columns: ["admission_id"]
             isOneToOne: false
             referencedRelation: "admissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ipd_charges_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
             referencedColumns: ["id"]
           },
           {
