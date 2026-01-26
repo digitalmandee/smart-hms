@@ -6,6 +6,9 @@ import { TitleSlide } from "@/components/presentation/TitleSlide";
 import { ModuleSlide } from "@/components/presentation/ModuleSlide";
 import { WorkflowSlide } from "@/components/presentation/WorkflowSlide";
 import { ProcurementSlide } from "@/components/presentation/ProcurementSlide";
+import { CaseStudiesSlide } from "@/components/presentation/CaseStudiesSlide";
+import { LabNetworkSlide } from "@/components/presentation/LabNetworkSlide";
+import { ComplianceSlide } from "@/components/presentation/ComplianceSlide";
 import { CTASlide } from "@/components/presentation/CTASlide";
 import {
   PatientRegistrationScreen,
@@ -215,7 +218,7 @@ const features = [
   },
 ];
 
-const TOTAL_SLIDES = 24; // Title + 20 modules + Workflow + Procurement + CTA
+const TOTAL_SLIDES = 27; // Title + 20 modules + Workflow + Procurement + Case Studies + Lab Network + Compliance + CTA
 
 const Presentation = () => {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -337,7 +340,16 @@ const Presentation = () => {
           {/* Slide 23: Procurement Cycle */}
           <ProcurementSlide />
 
-          {/* Slide 24: Contact CTA */}
+          {/* Slide 24: UAE Case Studies */}
+          <CaseStudiesSlide />
+
+          {/* Slide 25: Lab Network */}
+          <LabNetworkSlide />
+
+          {/* Slide 26: Compliance & Security */}
+          <ComplianceSlide />
+
+          {/* Slide 27: Contact CTA */}
           <CTASlide />
         </div>
       </div>
