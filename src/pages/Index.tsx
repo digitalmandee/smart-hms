@@ -4,6 +4,7 @@ import { TrustBadges } from "@/components/landing/TrustBadges";
 import { ProblemSolutionSection } from "@/components/landing/ProblemSolutionSection";
 import { FeaturesTabs } from "@/components/landing/FeaturesTabs";
 import { WorkflowDiagram } from "@/components/landing/WorkflowDiagram";
+import { ProcurementCycleDiagram } from "@/components/landing/ProcurementCycleDiagram";
 import { RoleSelector } from "@/components/landing/RoleSelector";
 import { ComparisonTable } from "@/components/landing/ComparisonTable";
 import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
@@ -25,6 +26,7 @@ const Index = () => {
         </AnimatedSection>
         <FeaturesTabs />
         <WorkflowDiagram />
+        <ProcurementCycleDiagram />
         <RoleSelector />
         <ComparisonTable />
         <TestimonialsSection />
