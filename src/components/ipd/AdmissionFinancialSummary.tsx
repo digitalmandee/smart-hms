@@ -131,8 +131,15 @@ export function AdmissionFinancialSummary({
                 <BedDouble className="h-4 w-4 text-blue-500" />
                 <span>Room Charges</span>
                 <Badge variant="secondary" className="text-xs">
-                  {financials.daysAdmitted} days × {formatCurrency(financials.dailyRate)}
+                  {financials.roomChargesDaysPosted > 0 
+                    ? `${financials.roomChargesDaysPosted} days posted` 
+                    : `${financials.daysAdmitted} days × ${formatCurrency(financials.dailyRate)}`}
                 </Badge>
+                {financials.roomChargesDaysPosted > 0 && financials.roomChargesDaysPosted < financials.daysAdmitted && (
+                  <Badge variant="outline" className="text-xs text-amber-600 border-amber-300">
+                    {financials.daysAdmitted - financials.roomChargesDaysPosted} days pending
+                  </Badge>
+                )}
               </div>
               <span className="font-medium">{formatCurrency(financials.roomCharges)}</span>
             </div>
