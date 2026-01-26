@@ -13,6 +13,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { systemLogger } from "@/lib/logger";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import Presentation from "./pages/Presentation";
 import TestCasesPage from "./pages/TestCasesPage";
 import { LoginPage } from "./pages/auth/LoginPage";
 import { SignupPage } from "./pages/auth/SignupPage";
@@ -429,6 +430,7 @@ function App() {
             <Routes>
               {/* Public routes */}
               <Route path="/" element={<Index />} />
+              <Route path="/presentation" element={<Presentation />} />
             
             {/* Public display routes - NO AUTH REQUIRED for TV displays and kiosks */}
             <Route path="/display/queue/:organizationId" element={<PublicQueueDisplay />} />
