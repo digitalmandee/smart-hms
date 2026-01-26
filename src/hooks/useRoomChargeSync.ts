@@ -68,11 +68,9 @@ export function useBackfillRoomCharges() {
         (existingCharges || []).map((c) => c.charge_date)
       );
 
-      // Calculate all dates from admission to today
-      const startDate = new Date(admissionDate);
-      startDate.setHours(0, 0, 0, 0);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+      // Calculate all dates from admission to today using consistent date strings
+      const startDateStr = admissionDate.split('T')[0]; // Extract YYYY-MM-DD
+      const todayStr = new Date().toISOString().split("T")[0]; // Today as YYYY-MM-DD
 
       const chargesToInsert: {
         admission_id: string;
@@ -87,9 +85,12 @@ export function useBackfillRoomCharges() {
       }[] = [];
 
       let skipped = 0;
-      const currentDate = new Date(startDate);
+      
+      // Parse dates for iteration but use string comparison
+      const currentDate = new Date(startDateStr + 'T00:00:00Z');
+      const endDate = new Date(todayStr + 'T00:00:00Z');
 
-      while (currentDate <= today) {
+      while (currentDate <= endDate) {
         const dateStr = currentDate.toISOString().split("T")[0];
 
         if (existingDates.has(dateStr)) {

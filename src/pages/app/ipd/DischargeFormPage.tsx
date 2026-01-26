@@ -149,10 +149,18 @@ export default function DischargeFormPage() {
     ? differenceInDays(new Date(), new Date(admission.admission_date)) + 1
     : 0;
 
+  // Ref to prevent duplicate backfill calls (race condition fix)
+  const backfillTriggeredRef = useRef(false);
+
   // Auto-sync room charges on page load to ensure all days are covered
   useEffect(() => {
-    if (admission?.id && admission?.admission_date && !isLoading) {
-      // Trigger backfill to ensure room charges exist for all days
+    if (
+      admission?.id && 
+      admission?.admission_date && 
+      !isLoading &&
+      !backfillTriggeredRef.current  // Only trigger once
+    ) {
+      backfillTriggeredRef.current = true;
       backfillRoomCharges({
         admissionId: admission.id,
         admissionDate: admission.admission_date,
