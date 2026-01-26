@@ -1,4 +1,4 @@
-import { Activity, Mail, Globe, Phone, CheckCircle2 } from "lucide-react";
+import { Activity, Globe, Phone, CheckCircle2 } from "lucide-react";
 
 export const CTASlide = () => {
   return (
@@ -38,16 +38,12 @@ export const CTASlide = () => {
 
         <div className="space-y-4">
           <div className="flex items-center gap-4 justify-center">
-            <Mail className="h-5 w-5 text-muted-foreground" />
-            <span className="text-lg">info@smarthms.pk</span>
-          </div>
-          <div className="flex items-center gap-4 justify-center">
             <Globe className="h-5 w-5 text-muted-foreground" />
-            <span className="text-lg">smart-hms.lovable.app</span>
+            <span className="text-lg">smarthms.devmine.co</span>
           </div>
           <div className="flex items-center gap-4 justify-center">
             <Phone className="h-5 w-5 text-muted-foreground" />
-            <span className="text-lg">+92 300 1234567</span>
+            <span className="text-lg">+971 506802430</span>
           </div>
         </div>
       </div>

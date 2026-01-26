@@ -46,7 +46,7 @@ export const TitleSlide = () => {
         <span className="w-1 h-1 rounded-full bg-muted-foreground" />
         <span>Version 2.0</span>
         <span className="w-1 h-1 rounded-full bg-muted-foreground" />
-        <span>smart-hms.lovable.app</span>
+        <span>smarthms.devmine.co</span>
       </div>
     </div>
   );
