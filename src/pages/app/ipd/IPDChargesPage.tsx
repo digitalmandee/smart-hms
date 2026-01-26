@@ -21,21 +21,36 @@ import { useIPDCharges, useCreateIPDCharge } from "@/hooks/useDischarge";
 import { usePostRoomCharges } from "@/hooks/useAdmissionFinancials";
 import { useBedTypes } from "@/hooks/useIPDConfig";
 import { useLatestDailyChargeLog } from "@/hooks/useDailyChargeLogs";
-import { Receipt, Plus, DollarSign, Loader2, AlertCircle, BedDouble, Calendar, Clock, CheckCircle2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useQuery } from "@tanstack/react-query";
+import { Receipt, Plus, DollarSign, Loader2, AlertCircle, BedDouble, Calendar, Clock, CheckCircle2, Stethoscope } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { formatCurrency } from "@/lib/currency";
+
+const CHARGE_TYPES = [
+  { value: "consultation", label: "Doctor Consultation/Visit" },
+  { value: "procedure", label: "Procedure" },
+  { value: "nursing", label: "Nursing Care" },
+  { value: "supplies", label: "Medical Supplies" },
+  { value: "service", label: "Other Service" },
+];
 
 const IPDChargesPage = () => {
   const [selectedAdmission, setSelectedAdmission] = useState<string>("");
   const [addChargeOpen, setAddChargeOpen] = useState(false);
   const [postingRoomCharges, setPostingRoomCharges] = useState(false);
   const [chargeForm, setChargeForm] = useState({
+    charge_type: "service",
+    doctor_id: "",
     description: "",
     quantity: "1",
     unit_price: "",
     notes: "",
   });
+
+  const { profile } = useAuth();
 
   const { data: admissions = [], isLoading: loadingAdmissions } = useAdmissions("admitted");
   const { data: charges = [], isLoading: loadingCharges, refetch: refetchCharges } = useIPDCharges(selectedAdmission || undefined);
@@ -44,6 +59,21 @@ const IPDChargesPage = () => {
   const { data: latestAutoCharge } = useLatestDailyChargeLog();
   const postRoomCharges = usePostRoomCharges();
 
+  // Fetch doctors for IPD consultation charges
+  const { data: doctors = [] } = useQuery({
+    queryKey: ["ipd-doctors", profile?.organization_id],
+    queryFn: async () => {
+      if (!profile?.organization_id) return [];
+      const { data, error } = await (supabase as any)
+        .from("doctors")
+        .select("id, consultation_fee, profile:profiles!doctors_profile_id_fkey(full_name), specialization:specializations(name)")
+        .eq("organization_id", profile.organization_id)
+        .eq("is_active", true);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!profile?.organization_id,
+  });
   const selectedAdmissionData = admissions.find((a: any) => a.id === selectedAdmission);
   const totalCharges = charges.reduce((sum: number, c: any) => sum + (c.total_amount || 0), 0);
 
@@ -59,9 +89,16 @@ const IPDChargesPage = () => {
       return;
     }
 
+    if (chargeForm.charge_type === "consultation" && !chargeForm.doctor_id) {
+      toast.error("Please select a doctor for consultation charges");
+      return;
+    }
+
     try {
       await createCharge({
         admission_id: selectedAdmission,
+        charge_type: chargeForm.charge_type,
+        doctor_id: chargeForm.charge_type === "consultation" ? chargeForm.doctor_id : undefined,
         description: chargeForm.description,
         quantity: parseInt(chargeForm.quantity) || 1,
         unit_price: parseFloat(chargeForm.unit_price) || 0,
@@ -70,11 +107,22 @@ const IPDChargesPage = () => {
       });
       
       setAddChargeOpen(false);
-      setChargeForm({ description: "", quantity: "1", unit_price: "", notes: "" });
+      setChargeForm({ charge_type: "service", doctor_id: "", description: "", quantity: "1", unit_price: "", notes: "" });
       toast.success("Charge added successfully");
     } catch (error) {
       toast.error("Failed to add charge");
     }
+  };
+
+  // Auto-fill consultation fee when doctor is selected
+  const handleDoctorChange = (doctorId: string) => {
+    const selectedDoctor = doctors.find((d: any) => d.id === doctorId);
+    setChargeForm({
+      ...chargeForm,
+      doctor_id: doctorId,
+      description: `IPD Visit - ${selectedDoctor?.profile?.full_name || "Doctor"}`,
+      unit_price: selectedDoctor?.consultation_fee?.toString() || chargeForm.unit_price,
+    });
   };
 
   const handlePostRoomCharges = async () => {
@@ -352,10 +400,61 @@ const IPDChargesPage = () => {
       {/* Add Charge Dialog */}
       <Dialog open={addChargeOpen} onOpenChange={setAddChargeOpen}>
         <DialogContent>
-          <DialogHeader>
+        <DialogHeader>
             <DialogTitle>Add New Charge</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Charge Type *</Label>
+              <Select 
+                value={chargeForm.charge_type} 
+                onValueChange={(value) => setChargeForm({ ...chargeForm, charge_type: value, doctor_id: "" })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select charge type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CHARGE_TYPES.map((type) => (
+                    <SelectItem key={type.value} value={type.value}>
+                      {type.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {chargeForm.charge_type === "consultation" && (
+              <div className="space-y-2">
+                <Label>Attending Doctor *</Label>
+                <Select value={chargeForm.doctor_id} onValueChange={handleDoctorChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select doctor" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {doctors.map((doctor: any) => (
+                      <SelectItem key={doctor.id} value={doctor.id}>
+                        <div className="flex items-center gap-2">
+                          <Stethoscope className="h-4 w-4 text-muted-foreground" />
+                          <span>{doctor.profile?.full_name}</span>
+                          {doctor.specialization?.name && (
+                            <span className="text-muted-foreground text-xs">
+                              ({doctor.specialization.name})
+                            </span>
+                          )}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {chargeForm.doctor_id && (
+                  <p className="text-xs text-muted-foreground">
+                    <Stethoscope className="h-3 w-3 inline mr-1" />
+                    Doctor's wallet will be credited when this charge is added.
+                  </p>
+                )}
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label htmlFor="description">Description *</Label>
               <Input

@@ -1,3 +1,4 @@
+import React from "react";
 import { Link } from "react-router-dom";
 import { Activity, Mail, Phone, MapPin } from "lucide-react";
 
@@ -27,9 +28,10 @@ const footerLinks = {
   ],
 };
 
-export const Footer = () => {
-  return (
-    <footer className="bg-card border-t border-border">
+export const Footer = React.forwardRef<HTMLElement, React.HTMLAttributes<HTMLElement>>(
+  (props, ref) => {
+    return (
+      <footer ref={ref} className="bg-card border-t border-border" {...props}>
       <div className="container mx-auto px-4 py-16">
         <div className="grid md:grid-cols-2 lg:grid-cols-6 gap-8">
           {/* Brand section */}
@@ -101,6 +103,9 @@ export const Footer = () => {
           </div>
         </div>
       </div>
-    </footer>
-  );
-};
+      </footer>
+    );
+  }
+);
+
+Footer.displayName = "Footer";
