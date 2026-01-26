@@ -17,6 +17,15 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/PageHeader";
 
+const VENDOR_TYPE_LABELS: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "destructive" }> = {
+  pharmaceutical: { label: "Pharmaceutical", variant: "default" },
+  equipment: { label: "Equipment", variant: "secondary" },
+  consumables: { label: "Consumables", variant: "outline" },
+  surgical: { label: "Surgical", variant: "default" },
+  services: { label: "Services", variant: "secondary" },
+  general: { label: "General", variant: "outline" },
+};
+
 export default function VendorsListPage() {
   const [search, setSearch] = useState("");
   const { data: vendors, isLoading } = useVendors(search);
@@ -90,6 +99,7 @@ export default function VendorsListPage() {
                 <TableRow>
                   <TableHead>Code</TableHead>
                   <TableHead>Name</TableHead>
+                  <TableHead>Type</TableHead>
                   <TableHead>Contact</TableHead>
                   <TableHead>City</TableHead>
                   <TableHead>Payment Terms</TableHead>
@@ -108,14 +118,29 @@ export default function VendorsListPage() {
                       </Link>
                     </TableCell>
                     <TableCell>
-                      <div>
-                        <p className="font-medium">{vendor.name}</p>
-                        {vendor.contact_person && (
-                          <p className="text-xs text-muted-foreground">
-                            {vendor.contact_person}
-                          </p>
+                      <div className="flex items-center gap-2">
+                        <div>
+                          <p className="font-medium">{vendor.name}</p>
+                          {vendor.contact_person && (
+                            <p className="text-xs text-muted-foreground">
+                              {vendor.contact_person}
+                            </p>
+                          )}
+                        </div>
+                        {(vendor as any).is_preferred && (
+                          <Star className="h-4 w-4 text-warning fill-warning" />
                         )}
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      {(() => {
+                        const typeInfo = VENDOR_TYPE_LABELS[(vendor as any).vendor_type || 'general'];
+                        return (
+                          <Badge variant={typeInfo?.variant || "outline"}>
+                            {typeInfo?.label || "General"}
+                          </Badge>
+                        );
+                      })()}
                     </TableCell>
                     <TableCell>
                       <div className="text-sm">

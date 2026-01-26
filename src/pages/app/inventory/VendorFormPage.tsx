@@ -6,9 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -21,12 +23,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, Star } from "lucide-react";
 import { useVendor, useCreateVendor, useUpdateVendor } from "@/hooks/useVendors";
 import { PageHeader } from "@/components/PageHeader";
 
 const vendorSchema = z.object({
   name: z.string().min(1, "Name is required"),
+  vendor_type: z.enum(['pharmaceutical', 'equipment', 'consumables', 'surgical', 'services', 'general']).default('general'),
+  is_preferred: z.boolean().default(false),
   contact_person: z.string().optional(),
   email: z.string().email().optional().or(z.literal("")),
   phone: z.string().optional(),
@@ -54,6 +58,8 @@ export default function VendorFormPage() {
     resolver: zodResolver(vendorSchema),
     defaultValues: {
       name: "",
+      vendor_type: "general" as const,
+      is_preferred: false,
       contact_person: "",
       email: "",
       phone: "",
@@ -67,6 +73,8 @@ export default function VendorFormPage() {
     },
     values: vendor ? {
       name: vendor.name,
+      vendor_type: (vendor as any).vendor_type || "general",
+      is_preferred: (vendor as any).is_preferred || false,
       contact_person: vendor.contact_person || "",
       email: vendor.email || "",
       phone: vendor.phone || "",
@@ -134,6 +142,32 @@ export default function VendorFormPage() {
                       <FormControl>
                         <Input {...field} placeholder="e.g., ABC Pharmaceuticals" />
                       </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="vendor_type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Vendor Type</FormLabel>
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="pharmaceutical">Pharmaceutical</SelectItem>
+                          <SelectItem value="equipment">Medical Equipment</SelectItem>
+                          <SelectItem value="consumables">Consumables</SelectItem>
+                          <SelectItem value="surgical">Surgical Supplies</SelectItem>
+                          <SelectItem value="services">Services</SelectItem>
+                          <SelectItem value="general">General</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -284,6 +318,30 @@ export default function VendorFormPage() {
                         </SelectContent>
                       </Select>
                       <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="is_preferred"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel className="flex items-center gap-2">
+                          <Star className="h-4 w-4 text-warning" />
+                          Preferred Vendor
+                        </FormLabel>
+                        <FormDescription>
+                          Mark this vendor as preferred for quick selection in purchase orders
+                        </FormDescription>
+                      </div>
                     </FormItem>
                   )}
                 />

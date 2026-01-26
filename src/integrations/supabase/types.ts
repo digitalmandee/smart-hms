@@ -7343,7 +7343,7 @@ export type Database = {
           expiry_date: string | null
           grn_id: string
           id: string
-          item_id: string
+          item_id: string | null
           item_type: string | null
           medicine_id: string | null
           po_item_id: string | null
@@ -7360,7 +7360,7 @@ export type Database = {
           expiry_date?: string | null
           grn_id: string
           id?: string
-          item_id: string
+          item_id?: string | null
           item_type?: string | null
           medicine_id?: string | null
           po_item_id?: string | null
@@ -7377,7 +7377,7 @@ export type Database = {
           expiry_date?: string | null
           grn_id?: string
           id?: string
-          item_id?: string
+          item_id?: string | null
           item_type?: string | null
           medicine_id?: string | null
           po_item_id?: string | null
@@ -9450,6 +9450,77 @@ export type Database = {
           },
         ]
       }
+      item_vendor_mapping: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_preferred: boolean | null
+          item_id: string | null
+          last_purchase_date: string | null
+          last_purchase_price: number | null
+          medicine_id: string | null
+          notes: string | null
+          organization_id: string
+          updated_at: string | null
+          vendor_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_preferred?: boolean | null
+          item_id?: string | null
+          last_purchase_date?: string | null
+          last_purchase_price?: number | null
+          medicine_id?: string | null
+          notes?: string | null
+          organization_id: string
+          updated_at?: string | null
+          vendor_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_preferred?: boolean | null
+          item_id?: string | null
+          last_purchase_date?: string | null
+          last_purchase_price?: number | null
+          medicine_id?: string | null
+          notes?: string | null
+          organization_id?: string
+          updated_at?: string | null
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "item_vendor_mapping_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "item_vendor_mapping_medicine_id_fkey"
+            columns: ["medicine_id"]
+            isOneToOne: false
+            referencedRelation: "medicines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "item_vendor_mapping_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "item_vendor_mapping_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_applications: {
         Row: {
           applicant_name: string
@@ -11166,6 +11237,7 @@ export type Database = {
           supplier_name: string | null
           unit_price: number | null
           updated_at: string
+          vendor_id: string | null
         }
         Insert: {
           batch_number?: string | null
@@ -11180,6 +11252,7 @@ export type Database = {
           supplier_name?: string | null
           unit_price?: number | null
           updated_at?: string
+          vendor_id?: string | null
         }
         Update: {
           batch_number?: string | null
@@ -11194,6 +11267,7 @@ export type Database = {
           supplier_name?: string | null
           unit_price?: number | null
           updated_at?: string
+          vendor_id?: string | null
         }
         Relationships: [
           {
@@ -11208,6 +11282,13 @@ export type Database = {
             columns: ["medicine_id"]
             isOneToOne: false
             referencedRelation: "medicines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medicine_inventory_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
             referencedColumns: ["id"]
           },
         ]
@@ -17606,6 +17687,7 @@ export type Database = {
           email: string | null
           id: string
           is_active: boolean
+          is_preferred: boolean | null
           ledger_account_id: string | null
           name: string
           notes: string | null
@@ -17616,6 +17698,7 @@ export type Database = {
           tax_number: string | null
           updated_at: string
           vendor_code: string
+          vendor_type: string | null
         }
         Insert: {
           address?: string | null
@@ -17627,6 +17710,7 @@ export type Database = {
           email?: string | null
           id?: string
           is_active?: boolean
+          is_preferred?: boolean | null
           ledger_account_id?: string | null
           name: string
           notes?: string | null
@@ -17637,6 +17721,7 @@ export type Database = {
           tax_number?: string | null
           updated_at?: string
           vendor_code: string
+          vendor_type?: string | null
         }
         Update: {
           address?: string | null
@@ -17648,6 +17733,7 @@ export type Database = {
           email?: string | null
           id?: string
           is_active?: boolean
+          is_preferred?: boolean | null
           ledger_account_id?: string | null
           name?: string
           notes?: string | null
@@ -17658,6 +17744,7 @@ export type Database = {
           tax_number?: string | null
           updated_at?: string
           vendor_code?: string
+          vendor_type?: string | null
         }
         Relationships: [
           {

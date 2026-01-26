@@ -263,7 +263,8 @@ export function useVerifyGRN() {
                 unit_price: item.unit_cost,
                 selling_price: item.selling_price || item.unit_cost,
                 expiry_date: item.expiry_date,
-                supplier_name: grn.vendor_id ? undefined : null,
+                vendor_id: grn.vendor_id, // Proper FK link to vendor
+                supplier_name: null, // Deprecated, use vendor_id
                 organization_id: profile!.organization_id!,
               });
             
@@ -325,7 +326,7 @@ export function useVerifyGRN() {
           .eq("id", grn.purchase_order_id);
       }
       
-      // Create stock adjustment records
+      // Create stock adjustment records and update item-vendor mappings
       for (const item of grn.items) {
         if (item.quantity_accepted > 0) {
           await supabase
@@ -343,6 +344,45 @@ export function useVerifyGRN() {
               reference_id: grn.id,
               adjusted_by: user?.id,
             });
+          
+          // Update item-vendor mapping with last purchase price
+          if (grn.vendor_id && item.unit_cost) {
+            const itemKey = item.item_type === 'medicine' ? 'medicine_id' : 'item_id';
+            const itemValue = item.item_type === 'medicine' ? item.medicine_id : item.item_id;
+            
+            if (itemValue) {
+              // Check if mapping exists
+              const { data: existingMapping } = await supabase
+                .from("item_vendor_mapping")
+                .select("id")
+                .eq("vendor_id", grn.vendor_id)
+                .eq(itemKey, itemValue)
+                .maybeSingle();
+              
+              if (existingMapping) {
+                // Update existing mapping
+                await supabase
+                  .from("item_vendor_mapping")
+                  .update({
+                    last_purchase_price: item.unit_cost,
+                    last_purchase_date: new Date().toISOString().split('T')[0],
+                  })
+                  .eq("id", existingMapping.id);
+              } else {
+                // Create new mapping
+                await supabase
+                  .from("item_vendor_mapping")
+                  .insert({
+                    organization_id: profile!.organization_id!,
+                    [itemKey]: itemValue,
+                    vendor_id: grn.vendor_id,
+                    last_purchase_price: item.unit_cost,
+                    last_purchase_date: new Date().toISOString().split('T')[0],
+                    is_preferred: false,
+                  });
+              }
+            }
+          }
         }
       }
     },
