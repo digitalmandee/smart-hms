@@ -3,12 +3,16 @@ import { FileDown, Printer, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { TitleSlide } from "@/components/presentation/TitleSlide";
+import { FeaturesOverviewSlide } from "@/components/presentation/FeaturesOverviewSlide";
 import { ModuleSlide } from "@/components/presentation/ModuleSlide";
+import { OTDashboardSlide } from "@/components/presentation/OTDashboardSlide";
 import { WorkflowSlide } from "@/components/presentation/WorkflowSlide";
 import { ProcurementSlide } from "@/components/presentation/ProcurementSlide";
 import { CaseStudiesSlide } from "@/components/presentation/CaseStudiesSlide";
 import { LabNetworkSlide } from "@/components/presentation/LabNetworkSlide";
+import { IntegrationSlide } from "@/components/presentation/IntegrationSlide";
 import { ComplianceSlide } from "@/components/presentation/ComplianceSlide";
+import { TimelineSlide } from "@/components/presentation/TimelineSlide";
 import { CTASlide } from "@/components/presentation/CTASlide";
 import {
   PatientRegistrationScreen,
@@ -218,7 +222,7 @@ const features = [
   },
 ];
 
-const TOTAL_SLIDES = 27; // Title + 20 modules + Workflow + Procurement + Case Studies + Lab Network + Compliance + CTA
+const TOTAL_SLIDES = 30; // Title + Overview + 20 modules + OT Dashboard + Workflow + Procurement + Case Studies + Lab Network + Integration + Compliance + Timeline + CTA
 
 const Presentation = () => {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -292,7 +296,7 @@ const Presentation = () => {
             </Link>
             <div>
               <h1 className="font-semibold">HealthOS Presentation</h1>
-              <p className="text-xs text-muted-foreground">{TOTAL_SLIDES} slides</p>
+              <p className="text-xs text-muted-foreground">{TOTAL_SLIDES} slides • Enhanced Edition</p>
             </div>
           </div>
           <Button onClick={handleDownload} disabled={isGenerating}>
@@ -324,32 +328,44 @@ const Presentation = () => {
           {/* Slide 1: Title */}
           <TitleSlide />
 
-          {/* Slides 2-21: Module Details */}
+          {/* Slide 2: Features Overview */}
+          <FeaturesOverviewSlide />
+
+          {/* Slides 3-22: Module Details */}
           {features.map((feature, index) => (
             <ModuleSlide
               key={feature.id}
               feature={feature}
-              slideNumber={index + 2}
+              slideNumber={index + 3}
               totalSlides={TOTAL_SLIDES}
             />
           ))}
 
-          {/* Slide 22: Patient Workflow */}
+          {/* Slide 23: OT Live Dashboard */}
+          <OTDashboardSlide />
+
+          {/* Slide 24: Patient Workflow */}
           <WorkflowSlide />
 
-          {/* Slide 23: Procurement Cycle */}
+          {/* Slide 25: Procurement Cycle */}
           <ProcurementSlide />
 
-          {/* Slide 24: UAE Case Studies */}
+          {/* Slide 26: UAE Case Studies */}
           <CaseStudiesSlide />
 
-          {/* Slide 25: Lab Network */}
+          {/* Slide 27: Lab Network */}
           <LabNetworkSlide />
 
-          {/* Slide 26: Compliance & Security */}
+          {/* Slide 28: Integration Ecosystem */}
+          <IntegrationSlide />
+
+          {/* Slide 29: Compliance & Security */}
           <ComplianceSlide />
 
-          {/* Slide 27: Contact CTA */}
+          {/* Slide 30: Implementation Timeline */}
+          <TimelineSlide />
+
+          {/* Slide 30: Contact CTA */}
           <CTASlide />
         </div>
       </div>
