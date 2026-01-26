@@ -34,7 +34,7 @@ export const LabNetworkSlide = () => {
             <p className="text-sm text-muted-foreground">Comprehensive diagnostic coverage across UAE</p>
           </div>
         </div>
-        <div className="text-sm text-muted-foreground font-medium">25 / 27</div>
+        <div className="text-sm text-muted-foreground font-medium">27 / 31</div>
       </div>
 
       {/* Hero Stat */}

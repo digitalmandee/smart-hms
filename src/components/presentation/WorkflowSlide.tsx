@@ -58,7 +58,7 @@ export const WorkflowSlide = () => {
           </span>
           <h2 className="text-3xl font-bold">OPD Workflow</h2>
         </div>
-        <span className="text-sm text-muted-foreground font-medium">21 / 24</span>
+        <span className="text-sm text-muted-foreground font-medium">24 / 31</span>
       </div>
 
       {/* Subtitle */}
