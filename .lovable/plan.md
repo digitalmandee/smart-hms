@@ -1,129 +1,154 @@
 
-# Plan: Fix Inventory Menu, Org Admin Options, and Menu Flickering
+# Plan: Fix Room Charges Display and Lab Order Creation from Invoice
 
-## Overview
+## Issues Identified
 
-Three issues have been identified:
+### Issue 1: Room Charges Calculation Bug
+The `useAdmissionFinancials` hook has a critical bug:
 
-1. **Inventory not showing for Org Admin** - The `org_admin` static sidebar config is missing the Inventory module
-2. **Organization Admin options missing** - The org_admin sidebar is incomplete, missing HR, Billing, Accounts & Finance
-3. **Menu flickering on 2nd/3rd level expand** - The collapsible animations are not defined in Tailwind config
+**Line 141**: Calculates room charges dynamically:
+```typescript
+const roomCharges = daysAdmitted * dailyRate;
+```
+
+**Lines 163-167**: ALSO adds posted room charges to `serviceCharges`:
+```typescript
+case "service":
+case "room":  // Room charges incorrectly going to serviceCharges!
+  serviceCharges += amount;
+```
+
+This causes:
+- **Double counting**: Room charges calculated dynamically AND from posted charges
+- **Confusion**: Deposit (Rs. 10,000) showing separately while room charges are miscategorized
+- **Inaccurate balance**: Total charges includes both calculated room charges and posted ones
+
+### Issue 2: Lab Order Not Created from Invoice
+The `create_lab_order_from_invoice` trigger fails because:
+
+**Current RLS Policy** on `lab_orders` (INSERT):
+```sql
+has_permission('ot:view') OR has_permission('laboratory.orders') OR has_permission('consultations.create')
+```
+
+Billing staff creating invoices don't have these permissions, causing silent trigger failure.
 
 ---
 
-## Phase 1: Fix Collapsible Animation (Root Cause of Flickering)
+## Solution
 
-**File:** `tailwind.config.ts`
+### Phase 1: Fix Room Charges Logic in useAdmissionFinancials.ts
 
-The `CollapsibleContent` component uses `animate-collapsible-up` and `animate-collapsible-down` classes, but these animations are NOT defined in the Tailwind config.
+**File:** `src/hooks/useAdmissionFinancials.ts`
 
-### Add Missing Keyframes and Animations:
+Change the logic to:
+1. **Use posted room charges from ipd_charges table** instead of dynamic calculation
+2. **Fall back to dynamic calculation** only if no room charges are posted
+3. **Display daily rate info** for transparency
 
 ```typescript
-keyframes: {
-  // ... existing keyframes ...
-  "collapsible-down": {
-    from: { height: "0" },
-    to: { height: "var(--radix-collapsible-content-height)" },
-  },
-  "collapsible-up": {
-    from: { height: "var(--radix-collapsible-content-height)" },
-    to: { height: "0" },
-  },
-},
-animation: {
-  // ... existing animations ...
-  "collapsible-down": "collapsible-down 0.2s ease-out",
-  "collapsible-up": "collapsible-up 0.2s ease-out",
-},
+// Categorize charges - separate room charges from service charges
+let postedRoomCharges = 0;
+let serviceCharges = 0;
+let medicationCharges = 0;
+let labCharges = 0;
+let otherCharges = 0;
+let hasUnbilledCharges = false;
+
+(charges || []).forEach((charge) => {
+  const amount = charge.total_amount || 0;
+  
+  if (!charge.is_billed) {
+    hasUnbilledCharges = true;
+  }
+
+  switch (charge.charge_type) {
+    case "room":
+      postedRoomCharges += amount;  // Correctly sum room charges
+      break;
+    case "medication":
+      medicationCharges += amount;
+      break;
+    case "lab":
+      labCharges += amount;
+      break;
+    case "service":
+      serviceCharges += amount;
+      break;
+    default:
+      otherCharges += amount;
+  }
+});
+
+// Use posted room charges if available, otherwise calculate dynamically
+const roomCharges = postedRoomCharges > 0 
+  ? postedRoomCharges 
+  : daysAdmitted * dailyRate;
 ```
 
----
+### Phase 2: Update AdmissionFinancialSummary Display
 
-## Phase 2: Add Inventory & Procurement to Org Admin Sidebar
+**File:** `src/components/ipd/AdmissionFinancialSummary.tsx`
 
-**File:** `src/config/role-sidebars.ts`
+Update the room charges display to show:
+- Posted room charges amount
+- Number of days charged vs total days admitted
+- "Sync" button if room charges need backfilling
 
-Add a complete Inventory section to the `org_admin` config:
-
-```typescript
-org_admin: {
-  items: [
-    // ... existing items ...
-    { 
-      name: "Inventory", 
-      path: "", 
-      icon: "Package",
-      children: [
-        { name: "Dashboard", path: "/app/inventory", icon: "LayoutDashboard" },
-        { name: "Items", path: "/app/inventory/items", icon: "Box" },
-        { name: "Stock Levels", path: "/app/inventory/stock", icon: "ListTree" },
-        { name: "Categories", path: "/app/inventory/categories", icon: "FolderTree" },
-        { name: "Vendors", path: "/app/inventory/vendors", icon: "Store" },
-        { name: "Purchase Orders", path: "/app/inventory/purchase-orders", icon: "FileEdit" },
-        { name: "GRN", path: "/app/inventory/grn", icon: "PackageCheck" },
-        { name: "Requisitions", path: "/app/inventory/requisitions", icon: "FileText" },
-        { name: "Reports", path: "/app/inventory/reports", icon: "BarChart3" },
-      ]
-    },
-    // ... rest of config ...
-  ]
-}
+```tsx
+<div className="flex items-center justify-between py-2 border-b">
+  <div className="flex items-center gap-2">
+    <BedDouble className="h-4 w-4 text-blue-500" />
+    <span>Room Charges</span>
+    <Badge variant="secondary" className="text-xs">
+      {financials.roomChargesDaysPosted || financials.daysAdmitted} days × {formatCurrency(financials.dailyRate)}
+    </Badge>
+  </div>
+  <span className="font-medium">{formatCurrency(financials.roomCharges)}</span>
+</div>
 ```
 
----
+### Phase 3: Fix Lab Order RLS Policy
 
-## Phase 3: Add Missing Admin Sections to Org Admin
+**SQL Migration**
 
-**File:** `src/config/role-sidebars.ts`
+Update the INSERT policy on `lab_orders` to include billing permissions:
 
-Add complete admin oversight sections:
+```sql
+-- Drop existing restrictive policy
+DROP POLICY IF EXISTS "OT and Lab staff can create lab orders" ON public.lab_orders;
 
-### Add HR Section:
-```typescript
-{ 
-  name: "HR & Staff", 
-  path: "", 
-  icon: "Users",
-  children: [
-    { name: "Dashboard", path: "/app/hr", icon: "LayoutDashboard" },
-    { name: "Employees", path: "/app/hr/employees", icon: "Users" },
-    { name: "Attendance", path: "/app/hr/attendance", icon: "Clock" },
-    { name: "Leaves", path: "/app/hr/leaves", icon: "CalendarDays" },
-    { name: "Payroll", path: "/app/hr/payroll", icon: "DollarSign" },
-    { name: "Reports", path: "/app/hr/reports", icon: "BarChart3" },
-  ]
-},
-```
+-- Create new policy that includes billing staff
+CREATE POLICY "Clinical and billing users can create lab orders" 
+ON public.lab_orders FOR INSERT 
+WITH CHECK (
+  has_permission('ot:view'::text) OR 
+  has_permission('laboratory.orders'::text) OR 
+  has_permission('consultations.create'::text) OR
+  has_permission('billing.invoices'::text) OR
+  has_permission('billing.create'::text) OR
+  has_permission('patients.create'::text)
+);
 
-### Add Billing Section:
-```typescript
-{ 
-  name: "Billing", 
-  path: "", 
-  icon: "Receipt",
-  children: [
-    { name: "Invoices", path: "/app/billing/invoices", icon: "FileText" },
-    { name: "Payments", path: "/app/billing/payments", icon: "CreditCard" },
-    { name: "Reports", path: "/app/billing/reports", icon: "PieChart" },
-  ]
-},
-```
+-- Also update lab_order_items to allow creation via trigger
+DROP POLICY IF EXISTS "Users with appropriate permissions can create lab order items" 
+ON public.lab_order_items;
 
-### Add Accounts & Finance Section:
-```typescript
-{ 
-  name: "Accounts", 
-  path: "", 
-  icon: "Landmark",
-  children: [
-    { name: "Dashboard", path: "/app/accounts", icon: "LayoutDashboard" },
-    { name: "Chart of Accounts", path: "/app/accounts/chart", icon: "ListTree" },
-    { name: "Journal Entries", path: "/app/accounts/journal", icon: "BookOpen" },
-    { name: "Accounts Payable", path: "/app/accounts/payable", icon: "Wallet" },
-    { name: "Reports", path: "/app/accounts/reports", icon: "PieChart" },
-  ]
-},
+CREATE POLICY "Users can create lab order items for org lab orders"
+ON public.lab_order_items FOR INSERT
+WITH CHECK (
+  (lab_order_id IN (
+    SELECT lo.id FROM public.lab_orders lo
+    JOIN public.branches b ON b.id = lo.branch_id
+    WHERE b.organization_id = get_user_organization_id()
+  )) AND (
+    has_permission('consultations.create'::text) OR 
+    has_permission('ot:view'::text) OR 
+    has_permission('laboratory.orders'::text) OR
+    has_permission('billing.invoices'::text) OR
+    has_permission('billing.create'::text)
+  )
+);
 ```
 
 ---
@@ -132,16 +157,67 @@ Add complete admin oversight sections:
 
 | File | Action |
 |------|--------|
-| `tailwind.config.ts` | Add collapsible-down/up animations |
-| `src/config/role-sidebars.ts` | Add Inventory, HR, Billing, Accounts to org_admin |
+| `src/hooks/useAdmissionFinancials.ts` | Fix room charge categorization - use posted charges |
+| `src/components/ipd/AdmissionFinancialSummary.tsx` | Update display to show accurate room charges |
+| Database Migration | Update lab_orders and lab_order_items INSERT policies |
 
 ---
 
 ## Expected Outcome
 
 After implementation:
-- Menu expand/collapse will be smooth with no flickering
-- Org Admin will see complete Inventory & Procurement section
-- Org Admin will have HR oversight access
-- Org Admin will have Billing and Accounts visibility
-- All menu levels will animate properly without z-index or timing issues
+1. **Room Charges**: Correctly display posted room charges from `ipd_charges` table, not double-counted
+2. **Deposit vs Room**: Clear separation - deposit shows as credit, room charges show as line items
+3. **Lab Orders**: Invoices with lab items will automatically create lab orders via trigger
+4. **Accurate Balance**: Total = Room + Services + Meds + Lab - Deposit
+
+---
+
+## Technical Details
+
+### Room Charges Flow (Fixed)
+
+```text
+┌─────────────────────────────────────────────────────────┐
+│ ipd_charges table (charge_type = 'room')                │
+│ - Populated by daily edge function or manual sync       │
+│ - Each day = 1 record with daily rate                   │
+└────────────────────────┬────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────┐
+│ useAdmissionFinancials hook                             │
+│ - Sum all ipd_charges where charge_type = 'room'        │
+│ - Fall back to (days × rate) if no charges posted       │
+└────────────────────────┬────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────┐
+│ AdmissionFinancialSummary                               │
+│ - Display: Room Charges: Rs. X (Y days × Rs. Z/day)     │
+│ - Separate from Deposit Collected                       │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Lab Order Creation Flow (Fixed)
+
+```text
+┌──────────────────┐     ┌────────────────────────────┐
+│ Create Invoice   │────▶│ trg_create_lab_order       │
+│ (with lab items) │     │ (AFTER INSERT trigger)     │
+└──────────────────┘     └─────────────┬──────────────┘
+                                       │
+                                       ▼
+                         ┌────────────────────────────┐
+                         │ RLS Policy Check           │
+                         │ ✓ billing.invoices OR      │
+                         │ ✓ billing.create OR        │
+                         │ ✓ laboratory.orders        │
+                         └─────────────┬──────────────┘
+                                       │
+                                       ▼
+                         ┌────────────────────────────┐
+                         │ lab_orders + lab_order_items│
+                         │ created successfully       │
+                         └────────────────────────────┘
+```
