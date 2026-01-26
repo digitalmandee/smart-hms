@@ -28,10 +28,9 @@ const footerLinks = {
   ],
 };
 
-export const Footer = React.forwardRef<HTMLElement, React.HTMLAttributes<HTMLElement>>(
-  (props, ref) => {
-    return (
-      <footer ref={ref} className="bg-card border-t border-border" {...props}>
+export const Footer = () => {
+  return (
+    <footer className="bg-card border-t border-border">
       <div className="container mx-auto px-4 py-16">
         <div className="grid md:grid-cols-2 lg:grid-cols-6 gap-8">
           {/* Brand section */}
@@ -103,9 +102,6 @@ export const Footer = React.forwardRef<HTMLElement, React.HTMLAttributes<HTMLEle
           </div>
         </div>
       </div>
-      </footer>
-    );
-  }
-);
-
-Footer.displayName = "Footer";
+    </footer>
+  );
+};
