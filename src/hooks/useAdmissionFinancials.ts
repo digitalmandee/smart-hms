@@ -22,6 +22,7 @@ export interface AdmissionFinancials {
   // Financial Breakdown
   depositAmount: number;
   roomCharges: number;
+  roomChargesDaysPosted: number;
   serviceCharges: number;
   medicationCharges: number;
   labCharges: number;
@@ -137,10 +138,9 @@ export function useAdmissionFinancials(admissionId?: string) {
       const admissionDate = new Date(admission.admission_date);
       const daysAdmitted = Math.max(1, differenceInDays(today, admissionDate) + 1);
 
-      // Calculate room charges (days × rate)
-      const roomCharges = daysAdmitted * dailyRate;
-
-      // Categorize charges
+      // Categorize charges - separate room charges from service charges
+      let postedRoomCharges = 0;
+      let roomChargesDaysPosted = 0;
       let serviceCharges = 0;
       let medicationCharges = 0;
       let labCharges = 0;
@@ -155,6 +155,10 @@ export function useAdmissionFinancials(admissionId?: string) {
         }
 
         switch (charge.charge_type) {
+          case "room":
+            postedRoomCharges += amount;
+            roomChargesDaysPosted += 1;
+            break;
           case "medication":
             medicationCharges += amount;
             break;
@@ -162,13 +166,17 @@ export function useAdmissionFinancials(admissionId?: string) {
             labCharges += amount;
             break;
           case "service":
-          case "room":
             serviceCharges += amount;
             break;
           default:
             otherCharges += amount;
         }
       });
+
+      // Use posted room charges if available, otherwise calculate dynamically
+      const roomCharges = postedRoomCharges > 0 
+        ? postedRoomCharges 
+        : daysAdmitted * dailyRate;
 
       // Include outstanding invoices and pharmacy credits in total
       const totalCharges = roomCharges + serviceCharges + medicationCharges + labCharges + otherCharges + outstandingAmount + pharmacyCreditsAmount;
@@ -197,6 +205,7 @@ export function useAdmissionFinancials(admissionId?: string) {
         balance,
         chargeItemCount: charges?.length || 0,
         pharmacyCreditsCount: pharmacyCredits?.length || 0,
+        roomChargesDaysPosted,
         hasUnbilledCharges,
       };
     },
