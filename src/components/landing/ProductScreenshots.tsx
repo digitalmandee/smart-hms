@@ -1,4 +1,4 @@
-import { Users, Calendar, Stethoscope, Pill, Receipt, BarChart3, FlaskConical, UserCog, Store, Calculator, TrendingUp, FileSpreadsheet, Package, AlertTriangle, HeartPulse, Activity, Syringe, BedDouble, ScanLine, Bone, Waves, FileSearch, Warehouse, ClipboardPen, PackageCheck, Shield, Globe, Barcode, ShieldCheck, MessageSquare, Hotel, Bed, DoorOpen, ClipboardCheck, Timer, Siren, Gauge, Ambulance, Zap, Scissors, Clipboard, MonitorDot, Thermometer, CircleCheck, AlarmClock, Clock, Droplet, Droplets, Heart, UserCheck, RefreshCw } from 'lucide-react';
+import { Users, Calendar, Stethoscope, Pill, Receipt, BarChart3, FlaskConical, UserCog, Store, Calculator, TrendingUp, FileSpreadsheet, Package, AlertTriangle, HeartPulse, Activity, Syringe, BedDouble, ScanLine, Bone, Waves, FileSearch, Warehouse, ClipboardPen, PackageCheck, Shield, Globe, Barcode, ShieldCheck, MessageSquare, Hotel, Bed, DoorOpen, ClipboardCheck, Timer, Siren, Gauge, Ambulance, Zap, Scissors, Clipboard, MonitorDot, Thermometer, CircleCheck, AlarmClock, Clock, Droplet, Droplets, Heart, UserCheck, RefreshCw, Wallet, BadgePercent, Truck, FileText, CreditCard } from 'lucide-react';
 
 // Mock screenshot components for landing page
 export const PatientRegistrationScreen = () => (
@@ -895,6 +895,144 @@ export const BloodBankScreen = () => (
           </div>
         </div>
       </div>
+    </div>
+  </div>
+);
+
+export const DoctorWalletScreen = () => (
+  <div className="bg-card rounded-lg border shadow-soft overflow-hidden">
+    <div className="bg-primary/10 px-4 py-2 border-b flex items-center gap-2">
+      <Wallet className="h-4 w-4 text-primary" />
+      <span className="text-sm font-medium">My Wallet - Dr. Ali Ahmed</span>
+    </div>
+    <div className="p-4 space-y-3">
+      <div className="flex gap-2">
+        <div className="flex-1 bg-success/10 rounded-lg p-3 text-center">
+          <div className="text-xl font-bold text-success">Rs. 125,000</div>
+          <div className="text-xs text-muted-foreground">Available Balance</div>
+        </div>
+        <div className="flex-1 bg-primary/10 rounded-lg p-3 text-center">
+          <div className="text-xl font-bold text-primary">Rs. 45,000</div>
+          <div className="text-xs text-muted-foreground">This Month</div>
+        </div>
+      </div>
+      <div className="space-y-2">
+        <div className="text-xs font-medium">Recent Earnings</div>
+        {[
+          { type: 'OPD Consultation', patient: 'Ahmed Khan', amount: '1,500', share: '60%' },
+          { type: 'Surgery - Appendectomy', patient: 'Fatima Malik', amount: '25,000', share: '40%' },
+          { type: 'IPD Visit', patient: 'Usman Ali', amount: '800', share: '50%' },
+        ].map((earning, i) => (
+          <div key={i} className="bg-muted/50 rounded p-2 flex items-center justify-between">
+            <div>
+              <div className="text-sm font-medium">{earning.type}</div>
+              <div className="text-xs text-muted-foreground">{earning.patient}</div>
+            </div>
+            <div className="text-right">
+              <div className="text-sm font-bold text-success">+Rs. {earning.amount}</div>
+              <div className="text-xs text-muted-foreground">{earning.share}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <div className="h-8 bg-primary text-primary-foreground rounded flex items-center justify-center text-sm">Request Payout</div>
+        <div className="h-8 border rounded flex items-center justify-center text-sm">View History</div>
+      </div>
+    </div>
+  </div>
+);
+
+export const DoctorCompensationScreen = () => (
+  <div className="bg-card rounded-lg border shadow-soft overflow-hidden">
+    <div className="bg-primary/10 px-4 py-2 border-b flex items-center gap-2">
+      <BadgePercent className="h-4 w-4 text-primary" />
+      <span className="text-sm font-medium">Compensation Plan - Dr. Ali Ahmed</span>
+    </div>
+    <div className="p-4 space-y-3">
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1">
+          <div className="text-xs text-muted-foreground">Plan Type</div>
+          <div className="h-8 bg-primary/10 rounded px-2 flex items-center text-sm font-medium text-primary">Hybrid</div>
+        </div>
+        <div className="space-y-1">
+          <div className="text-xs text-muted-foreground">Base Salary</div>
+          <div className="h-8 bg-muted rounded px-2 flex items-center text-sm">Rs. 150,000</div>
+        </div>
+      </div>
+      <div className="space-y-2">
+        <div className="text-xs font-medium">Fee & Share Configuration</div>
+        {[
+          { service: 'OPD Consultation', fee: '2,500', share: '60%', earning: '1,500' },
+          { service: 'IPD Visit', fee: '1,500', share: '50%', earning: '750' },
+          { service: 'Surgery', fee: '50,000', share: '40%', earning: '20,000' },
+        ].map((item, i) => (
+          <div key={i} className="bg-muted/50 rounded p-2">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-sm font-medium">{item.service}</span>
+              <span className="text-xs bg-success/10 text-success px-2 py-0.5 rounded">
+                Earns Rs. {item.earning}
+              </span>
+            </div>
+            <div className="flex gap-4 text-xs text-muted-foreground">
+              <span>Patient Fee: Rs. {item.fee}</span>
+              <span>Doctor Share: {item.share}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="bg-success/10 rounded-lg p-3 flex items-center gap-2">
+        <TrendingUp className="h-4 w-4 text-success" />
+        <div>
+          <div className="text-xs font-medium">Last Month Total</div>
+          <div className="text-sm font-bold text-success">Rs. 285,000</div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+export const ProcurementScreen = () => (
+  <div className="bg-card rounded-lg border shadow-soft overflow-hidden">
+    <div className="bg-primary/10 px-4 py-2 border-b flex items-center gap-2">
+      <Truck className="h-4 w-4 text-primary" />
+      <span className="text-sm font-medium">Procurement Workflow</span>
+    </div>
+    <div className="p-4 space-y-3">
+      <div className="flex gap-2">
+        <div className="flex-1 bg-warning/10 rounded-lg p-2 text-center">
+          <div className="text-lg font-bold text-warning">5</div>
+          <div className="text-xs text-muted-foreground">Pending POs</div>
+        </div>
+        <div className="flex-1 bg-primary/10 rounded-lg p-2 text-center">
+          <div className="text-lg font-bold text-primary">3</div>
+          <div className="text-xs text-muted-foreground">Awaiting GRN</div>
+        </div>
+        <div className="flex-1 bg-destructive/10 rounded-lg p-2 text-center">
+          <div className="text-lg font-bold text-destructive">Rs. 450K</div>
+          <div className="text-xs text-muted-foreground">Unpaid AP</div>
+        </div>
+      </div>
+      <div className="space-y-2">
+        <div className="text-xs font-medium">Procurement Pipeline</div>
+        {[
+          { po: 'PO-2024-0156', vendor: 'Medical Supplies Ltd', items: 'Syringes, Gloves, Masks', amount: '85,000', stage: 'GRN Pending' },
+          { po: 'PO-2024-0155', vendor: 'Pharma Distributors', items: 'Paracetamol, Amoxicillin', amount: '125,000', stage: 'Payment Due' },
+        ].map((order, i) => (
+          <div key={i} className="bg-muted/50 rounded-lg p-2 space-y-1">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-mono text-muted-foreground">{order.po}</span>
+              <span className={`text-xs px-2 py-0.5 rounded ${i === 0 ? 'bg-warning/10 text-warning' : 'bg-destructive/10 text-destructive'}`}>
+                {order.stage}
+              </span>
+            </div>
+            <div className="text-sm font-medium">{order.vendor}</div>
+            <div className="text-xs text-muted-foreground">{order.items}</div>
+            <div className="text-sm font-bold text-right">Rs. {order.amount}</div>
+          </div>
+        ))}
+      </div>
+      <div className="h-8 bg-primary text-primary-foreground rounded flex items-center justify-center text-sm">Create Purchase Order</div>
     </div>
   </div>
 );
