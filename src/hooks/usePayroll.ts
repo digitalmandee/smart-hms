@@ -292,15 +292,15 @@ export function usePayrollDetails(payrollRunId: string) {
     queryFn: async () => {
       if (!payrollRunId) return [];
       
-      const { data, error } = await supabase
-        .from("payroll_entries")
-        .select(`
-          *,
-          employee:employees!payroll_entries_employee_id_fkey(
-            id, first_name, last_name, employee_number,
-            department:departments(name),
-            designation:designations(name)
-          )
+    const { data, error } = await supabase
+      .from("payroll_entries")
+      .select(`
+        *,
+        employee:employees!payroll_entries_employee_id_fkey(
+          id, first_name, last_name, employee_number,
+          department:departments!employees_department_id_fkey(name),
+          designation:designations!employees_designation_id_fkey(name)
+        )
         `)
         .eq("payroll_run_id", payrollRunId);
       
