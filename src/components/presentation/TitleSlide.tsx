@@ -87,31 +87,31 @@ export const TitleSlide = () => {
         ))}
       </div>
 
-      {/* Key Value Props */}
-      <div className="flex items-center gap-6 mt-8 relative z-10">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Zap className="h-4 w-4 text-primary" />
-          <span>Cloud-Based</span>
+      {/* Footer with Value Props */}
+      <div className="absolute bottom-8 left-0 right-0 px-8 z-10">
+        <div className="flex items-center justify-center gap-8 mb-3">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Zap className="h-4 w-4 text-primary" />
+            <span>Cloud-Based</span>
+          </div>
+          <div className="w-1 h-1 rounded-full bg-muted-foreground" />
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Shield className="h-4 w-4 text-primary" />
+            <span>HIPAA Compliant</span>
+          </div>
+          <div className="w-1 h-1 rounded-full bg-muted-foreground" />
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Users className="h-4 w-4 text-primary" />
+            <span>Multi-Branch</span>
+          </div>
         </div>
-        <div className="w-1 h-1 rounded-full bg-muted-foreground" />
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Shield className="h-4 w-4 text-primary" />
-          <span>HIPAA Compliant</span>
+        <div className="flex items-center justify-center gap-6 text-muted-foreground text-sm">
+          <span>{currentDate}</span>
+          <span className="w-1 h-1 rounded-full bg-muted-foreground" />
+          <span>Version 2.0</span>
+          <span className="w-1 h-1 rounded-full bg-muted-foreground" />
+          <span>smarthms.devmine.co</span>
         </div>
-        <div className="w-1 h-1 rounded-full bg-muted-foreground" />
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Users className="h-4 w-4 text-primary" />
-          <span>Multi-Branch</span>
-        </div>
-      </div>
-
-      {/* Footer */}
-      <div className="absolute bottom-8 flex items-center gap-6 text-muted-foreground text-sm">
-        <span>{currentDate}</span>
-        <span className="w-1 h-1 rounded-full bg-muted-foreground" />
-        <span>Version 2.0</span>
-        <span className="w-1 h-1 rounded-full bg-muted-foreground" />
-        <span>smarthms.devmine.co</span>
       </div>
     </div>
   );
