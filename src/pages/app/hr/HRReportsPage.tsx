@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useEmployeeStats, useDepartments } from "@/hooks/useHR";
 import { useAttendanceStats } from "@/hooks/useAttendance";
 import { usePayrollStats } from "@/hooks/usePayroll";
+import { useDepartmentDistribution, useAttendanceTrends, useLeaveDistribution, useLeaveStats } from "@/hooks/useHRReports";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from "recharts";
 import { Users, UserCheck, Clock, Calendar, DollarSign, TrendingUp, Download, FileText, Briefcase, Building } from "lucide-react";
 import { format } from "date-fns";
@@ -22,33 +23,36 @@ export default function HRReportsPage() {
   const { data: attendanceStats, isLoading: attendanceLoading } = useAttendanceStats(today);
   const { data: payrollStats, isLoading: payrollLoading } = usePayrollStats();
   const { data: departments } = useDepartments();
+  
+  // Real data hooks
+  const { data: deptDistribution } = useDepartmentDistribution();
+  const { data: attendanceTrends } = useAttendanceTrends(parseInt(year));
+  const { data: leaveDistribution } = useLeaveDistribution(parseInt(year));
+  const { data: leaveStats } = useLeaveStats(parseInt(year));
 
   const isLoading = statsLoading || attendanceLoading || payrollLoading;
 
-  // Department distribution data
-  const departmentData = departments?.slice(0, 6).map((dept, idx) => ({
+  // Use real department data or fallback
+  const departmentData = (deptDistribution?.slice(0, 6) || []).map((dept: any, idx: number) => ({
     name: dept.name.length > 12 ? dept.name.slice(0, 12) + "..." : dept.name,
-    employees: Math.floor(Math.random() * 50) + 10, // Placeholder - would come from actual data
+    employees: dept.count,
     fill: COLORS[idx % COLORS.length],
-  })) || [];
+  }));
 
-  // Attendance trend data (mock - would come from actual aggregated data)
-  const attendanceTrendData = [
-    { month: "Jan", present: 92, absent: 5, late: 3 },
-    { month: "Feb", present: 89, absent: 7, late: 4 },
-    { month: "Mar", present: 94, absent: 4, late: 2 },
-    { month: "Apr", present: 91, absent: 6, late: 3 },
-    { month: "May", present: 93, absent: 5, late: 2 },
-    { month: "Jun", present: 90, absent: 7, late: 3 },
+  // Use real attendance data or fallback
+  const attendanceTrendData = attendanceTrends?.length ? attendanceTrends : [
+    { month: "Jan", present: 0, absent: 0, late: 0 },
+    { month: "Feb", present: 0, absent: 0, late: 0 },
+    { month: "Mar", present: 0, absent: 0, late: 0 },
   ];
 
-  // Leave distribution data
-  const leaveDistributionData = [
-    { name: "Annual Leave", value: 45, fill: COLORS[0] },
-    { name: "Sick Leave", value: 25, fill: COLORS[1] },
-    { name: "Casual Leave", value: 20, fill: COLORS[2] },
-    { name: "Other", value: 10, fill: COLORS[3] },
-  ];
+  // Use real leave data or fallback
+  const leaveDistributionData = (leaveDistribution?.length ? leaveDistribution : [
+    { name: "No data", value: 1 },
+  ]).map((item: any, idx: number) => ({
+    ...item,
+    fill: COLORS[idx % COLORS.length],
+  }));
 
   const formatCurrency = (value: number) => `Rs. ${value?.toLocaleString() || 0}`;
 
@@ -267,19 +271,19 @@ export default function HRReportsPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card>
               <CardContent className="pt-6 text-center">
-                <p className="text-4xl font-bold text-primary">--</p>
+                <p className="text-4xl font-bold text-primary">{leaveStats?.totalApproved || 0}</p>
                 <p className="text-sm text-muted-foreground mt-2">Total Leaves Taken</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-6 text-center">
-                <p className="text-4xl font-bold text-amber-600">--</p>
+                <p className="text-4xl font-bold text-amber-600">{leaveStats?.pendingApprovals || 0}</p>
                 <p className="text-sm text-muted-foreground mt-2">Pending Approvals</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-6 text-center">
-                <p className="text-4xl font-bold text-green-600">--</p>
+                <p className="text-4xl font-bold text-green-600">{leaveStats?.approvedThisMonth || 0}</p>
                 <p className="text-sm text-muted-foreground mt-2">Approved This Month</p>
               </CardContent>
             </Card>
