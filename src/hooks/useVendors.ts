@@ -3,11 +3,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
+export type VendorType = 'pharmaceutical' | 'equipment' | 'consumables' | 'surgical' | 'services' | 'general';
+
 export interface Vendor {
   id: string;
   organization_id: string;
   vendor_code: string;
   name: string;
+  vendor_type: VendorType;
+  is_preferred: boolean;
   contact_person: string | null;
   email: string | null;
   phone: string | null;
@@ -24,6 +28,7 @@ export interface Vendor {
   rating: number;
   is_active: boolean;
   notes: string | null;
+  ledger_account_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -102,6 +107,8 @@ export function useCreateVendor() {
           organization_id: profile!.organization_id!,
           vendor_code: "", // Auto-generated
           name: data.name!,
+          vendor_type: data.vendor_type || "general",
+          is_preferred: data.is_preferred || false,
           contact_person: data.contact_person || null,
           email: data.email || null,
           phone: data.phone || null,
