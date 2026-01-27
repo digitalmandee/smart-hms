@@ -15,6 +15,7 @@ import { systemLogger } from "@/lib/logger";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Presentation from "./pages/Presentation";
+import PricingProposal from "./pages/PricingProposal";
 import TestCasesPage from "./pages/TestCasesPage";
 import { LoginPage } from "./pages/auth/LoginPage";
 import { SignupPage } from "./pages/auth/SignupPage";
@@ -432,7 +433,7 @@ function App() {
               {/* Public routes */}
               <Route path="/" element={<Index />} />
               <Route path="/presentation" element={<Presentation />} />
-            
+              <Route path="/pricing-proposal" element={<PricingProposal />} />
             {/* Public display routes - NO AUTH REQUIRED for TV displays and kiosks */}
             <Route path="/display/queue/:organizationId" element={<PublicQueueDisplay />} />
             <Route path="/display/er/:organizationId" element={<PublicERDisplay />} />
