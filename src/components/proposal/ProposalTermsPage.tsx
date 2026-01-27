@@ -58,7 +58,7 @@ export const ProposalTermsPage = () => {
           <span className="text-lg font-semibold text-foreground">HealthOS</span>
         </div>
         <span className="text-sm text-muted-foreground bg-muted px-3 py-1 rounded-full">
-          05 / 05
+          04 / 04
         </span>
       </div>
 
@@ -111,7 +111,7 @@ export const ProposalTermsPage = () => {
 
       {/* Footer */}
       <div className="mt-6 pt-4 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
-        <span>HealthOS - Pricing & Commercials</span>
+        <span>HealthOS Proposal</span>
         <span>smarthms.devmine.co</span>
       </div>
     </div>

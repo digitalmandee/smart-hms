@@ -5,14 +5,12 @@ import { ArrowLeft, Download, Printer, ChevronLeft, ChevronRight } from "lucide-
 import { ProposalCoverPage } from "@/components/proposal/ProposalCoverPage";
 import { ProposalExecutiveSummary } from "@/components/proposal/ProposalExecutiveSummary";
 import { ProposalPricingPage } from "@/components/proposal/ProposalPricingPage";
-import { ProposalInvestmentSummary } from "@/components/proposal/ProposalInvestmentSummary";
 import { ProposalTermsPage } from "@/components/proposal/ProposalTermsPage";
 
 const pages = [
   { id: "cover", label: "Cover", component: ProposalCoverPage },
   { id: "summary", label: "Executive Summary", component: ProposalExecutiveSummary },
   { id: "pricing", label: "Pricing Details", component: ProposalPricingPage },
-  { id: "investment", label: "Investment Summary", component: ProposalInvestmentSummary },
   { id: "terms", label: "Terms & Conditions", component: ProposalTermsPage },
 ];
 
@@ -80,6 +78,37 @@ const PricingProposal = () => {
           
           .proposal-page:last-child {
             page-break-after: auto;
+          }
+          
+          /* Prevent table rows from splitting */
+          table {
+            page-break-inside: auto;
+          }
+          
+          tr {
+            page-break-inside: avoid;
+            page-break-after: auto;
+          }
+          
+          thead {
+            display: table-header-group;
+          }
+          
+          tfoot {
+            display: table-footer-group;
+          }
+          
+          /* Keep table sections together */
+          .table-container,
+          [class*="rounded-xl"] {
+            page-break-inside: avoid;
+          }
+          
+          /* Keep pricing cards together */
+          .bg-primary,
+          .bg-blue-600 {
+            page-break-inside: avoid;
+            page-break-after: avoid;
           }
         }
         
