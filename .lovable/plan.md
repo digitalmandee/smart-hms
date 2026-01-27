@@ -1,311 +1,299 @@
 
-# Plan: Enhance Presentation Slides with Richer UI, Surgery Dashboard Timer, and More Content
+# OPD Workflow Evaluation & Enhancement Plan
 
-## Current Issues Identified
-
-1. **Module Slides Too Simple** - Basic layout with just screenshot, title, description, and tags
-2. **Missing Surgery/OT Dashboard Timer** - The OT slide doesn't show the live surgery timer feature prominently
-3. **Basic Visual Design** - Minimal use of gradients, visual hierarchy, and engaging elements
-4. **Content Slides Need More Depth** - Case studies, compliance, and lab network slides could have more impactful content
-5. **No Technical/Feature Depth Slides** - Missing slides that showcase specific powerful features
+## Executive Summary
+The current OPD implementation is **well-structured** with a 7-step clinical workflow in place. However, there are some gaps in end-to-end data flow, Visit ID standardization, and checkout completion tracking that need attention.
 
 ---
 
-## Enhancement Strategy
+## Current OPD Workflow Analysis
 
-### 1. Create Enhanced OT Slide with Live Surgery Dashboard Timer
-
-Create a new `OTDashboardSlide.tsx` that showcases the surgery timer prominently:
+### Implemented 7-Step Process
 
 ```text
-+--------------------------------------------------+
-| Live Surgery Dashboard                    XX/XX  |
-|--------------------------------------------------|
-|                                                  |
-|  ┌─────────────────────────────────────────────┐ |
-|  │  SURGERY IN PROGRESS                        │ |
-|  │  ┌─────────────────────────────────────────┐│ |
-|  │  │         02:34:18                        ││ |
-|  │  │    ████████████████░░░░ 78%             ││ |
-|  │  │  Estimated: 3hrs | +15 min warning      ││ |
-|  │  └─────────────────────────────────────────┘│ |
-|  │                                             │ |
-|  │  Patient: Ahmed Khan | Appendectomy         │ |
-|  │  Surgeon: Dr. Ali Ahmed | OT-1              │ |
-|  └─────────────────────────────────────────────┘ |
-|                                                  |
-|  Role-Specific Tabs:                             |
-|  [Surgeon Notes] [Anesthesia] [Instrument Count] |
-+--------------------------------------------------+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         CURRENT OPD WORKFLOW                                │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  1. REGISTRATION          2. CHECK-IN              3. NURSE VITALS          │
+│  ┌──────────────┐        ┌──────────────┐        ┌──────────────┐          │
+│  │ Patient Reg  │───────▶│ Token Gen    │───────▶│ Record BP,   │          │
+│  │ Walk-in/Apt  │        │ Queue Entry  │        │ Temp, Pulse  │          │
+│  │ Fee Payment  │        │ Priority Set │        │ Chief Cmplnt │          │
+│  └──────────────┘        └──────────────┘        └──────────────┘          │
+│         │                       │                       │                   │
+│         ▼                       ▼                       ▼                   │
+│  ┌──────────────┐        ┌──────────────┐        ┌──────────────┐          │
+│  │ OPDWalkIn    │        │ CheckInPage  │        │ NurseDashbd  │          │
+│  │ AppointForm  │        │ TokenSlip    │        │ OPDVitals    │          │
+│  └──────────────┘        └──────────────┘        └──────────────┘          │
+│                                                                             │
+│  4. QUEUE DISPLAY         5. CONSULTATION          6. ORDERS               │
+│  ┌──────────────┐        ┌──────────────┐        ┌──────────────┐          │
+│  │ Token Kiosk  │───────▶│ Doctor Exam  │───────▶│ Prescription │          │
+│  │ Queue Screen │        │ Diagnosis    │        │ Lab Orders   │          │
+│  │ Now Serving  │        │ Clinical Nte │        │ Imaging Req  │          │
+│  └──────────────┘        └──────────────┘        └──────────────┘          │
+│                                                                             │
+│  7. BILLING/CHECKOUT                                                        │
+│  ┌──────────────┐                                                           │
+│  │ Pending Fees │                                                           │
+│  │ Invoice Gen  │                                                           │
+│  │ Payment      │                                                           │
+│  └──────────────┘                                                           │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-### 2. Enhanced Module Slide Template
+## What's Working Well
 
-Redesign `ModuleSlide.tsx` with:
-- Gradient header bar with module color coding
-- Larger, more impactful title typography
-- Statistics/metrics section with key numbers
-- Better visual separation between content areas
-- Mini workflow diagram for complex modules
-- Feature badges with icons
+| Component | Status | Details |
+|-----------|--------|---------|
+| **Patient Registration** | Complete | Quick walk-in + scheduled appointment booking |
+| **Token Generation** | Complete | Auto-increments per doctor/date, format: `OPD-YYYYMMDD-###` |
+| **Check-In with Vitals** | Complete | Nurse can record BP, pulse, temp, SpO2, weight, height, BMI |
+| **Priority/Triage** | Complete | 3-level (Normal, Urgent, Emergency) with visual badges |
+| **Queue Management** | Complete | Priority-sorted, real-time refresh (30s interval) |
+| **Doctor Dashboard** | Complete | Current patient, queue view, consultation entry |
+| **Consultation** | Complete | Vitals pre-fill, symptoms, diagnosis, prescription, lab orders |
+| **Patient Profile Integration** | Complete | OPD tab, Vitals tab, Billing tab all populated |
+| **Payment Tracking** | Partial | `payment_status` and `invoice_id` columns exist |
+
+---
+
+## Gaps & Issues Identified
+
+### 1. Visit ID Not Consistently Displayed
+**Issue**: The `generateVisitId()` utility exists but not shown in all touchpoints.
+
+| Page | Visit ID Shown? |
+|------|-----------------|
+| Check-In Page | No |
+| Token Slip | No |
+| Nurse Dashboard | No |
+| Doctor Dashboard | No |
+| Consultation Page | Yes |
+| OPD Checkout | Yes |
+| Patient Profile OPD Tab | Yes |
+
+### 2. Walk-In Skips Nurse Vitals Step
+**Issue**: `OPDWalkInPage.tsx` creates appointment with `status: 'checked_in'` but no vitals recorded.
+- Patient goes directly to doctor queue without nurse triage
+- Chief complaint defaulted to "OPD Consultation" (generic)
+
+### 3. Consultation Completion Doesn't Navigate to Checkout
+**Issue**: After completing consultation, doctor is sent to `/app/opd` but:
+- No prompt to proceed to OPD Checkout
+- Patient may leave without paying for lab/pharmacy orders
+
+### 4. OPD Checkout Not Linked from Queue
+**Issue**: Reception has no visibility on which completed patients need checkout.
+- No "Pending Checkout" queue or filter
+- Must manually track which patients finished consultation
+
+### 5. Nurse Station Vitals Not Saved to Patient History
+**Issue**: While `check_in_vitals` is stored in `appointments` table, the `usePatientVitalsHistory` hook already correctly fetches it. But:
+- If doctor records different vitals in consultation, both should be visible
+- Currently working correctly, but UI doesn't clarify "Nurse recorded" vs "Doctor recorded"
+
+### 6. Follow-Up Appointment Not Auto-Created
+**Issue**: Doctor can set `follow_up_date` in consultation, but:
+- No automatic appointment created
+- No reminder system
+
+---
+
+## Ideal OPD Process Flow
 
 ```text
-+--------------------------------------------------+
-| ┌──────────────────────────────────────────────┐ |
-| │ ████ LABORATORY                        05/27 │ |
-| └──────────────────────────────────────────────┘ |
-|                                                  |
-|  ┌─────────────────────┐  ┌──────────────────┐  |
-|  │                     │  │ End-to-End Lab   │  |
-|  │    [Screenshot]     │  │ Workflow         │  |
-|  │     with better     │  │                  │  |
-|  │      scaling        │  │ "Track samples   │  |
-|  │                     │  │ from collection  │  |
-|  │                     │  │ to results..."   │  |
-|  └─────────────────────┘  │                  │  |
-|                           │ ┌──────────────┐ │  |
-|  📊 Key Metrics:          │ │ ✓ Barcode    │ │  |
-|  • 15min avg result time  │ │ ✓ Auto-flags │ │  |
-|  • 500+ test parameters   │ │ ✓ LIMS ready │ │  |
-|  • 99.5% accuracy rate    │ └──────────────┘ │  |
-+--------------------------------------------------+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         IDEAL OPD WORKFLOW                                  │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │ STEP 1: PATIENT ARRIVAL                                             │   │
+│  │ - Search existing patient OR register new                           │   │
+│  │ - Select doctor (with queue count display)                          │   │
+│  │ - Collect consultation fee (or mark as "pay later")                 │   │
+│  │ - Generate Token with Visit ID: OPD-YYYYMMDD-###                    │   │
+│  │ - Print Token Slip + Receipt                                        │   │
+│  │ - Status: SCHEDULED (payment pending) or CHECKED_IN (fee paid)      │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                              │                                              │
+│                              ▼                                              │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │ STEP 2: NURSE TRIAGE (Optional but Recommended)                     │   │
+│  │ - Patient appears in Nurse Station queue                            │   │
+│  │ - Record vitals: BP, Pulse, Temp, SpO2, Weight, Height              │   │
+│  │ - Set priority: Normal / Urgent / Emergency                         │   │
+│  │ - Update chief complaint from patient interview                     │   │
+│  │ - Status: CHECKED_IN + check_in_vitals populated                    │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                              │                                              │
+│                              ▼                                              │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │ STEP 3: QUEUE DISPLAY                                               │   │
+│  │ - Token Kiosk shows "Now Serving" per doctor                        │   │
+│  │ - Priority-sorted queue (Emergency > Urgent > Normal)               │   │
+│  │ - Estimated wait time based on avg consultation duration            │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                              │                                              │
+│                              ▼                                              │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │ STEP 4: DOCTOR CONSULTATION                                         │   │
+│  │ - Doctor sees patient queue with vitals preview                     │   │
+│  │ - Click to start: Status changes to IN_PROGRESS                     │   │
+│  │ - Review/update vitals (pre-filled from nurse)                      │   │
+│  │ - Record symptoms, examination, diagnosis                           │   │
+│  │ - Create prescription (Rx) if needed                                │   │
+│  │ - Order lab tests if needed                                         │   │
+│  │ - Set follow-up date if needed                                      │   │
+│  │ - Complete consultation: Status changes to COMPLETED                │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                              │                                              │
+│                              ▼                                              │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │ STEP 5: OPD CHECKOUT                                                │   │
+│  │ - Patient proceeds to reception/billing                             │   │
+│  │ - View pending charges: Lab, Pharmacy, Follow-up                    │   │
+│  │ - Generate consolidated invoice                                     │   │
+│  │ - Collect payment (or schedule for later)                           │   │
+│  │ - Print visit summary + receipts                                    │   │
+│  │ - Mark visit as CLOSED                                              │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                              │                                              │
+│                              ▼                                              │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │ STEP 6: FOLLOW-UP SERVICES                                          │   │
+│  │ - Lab: Sample collection → Results → Notify patient                 │   │
+│  │ - Pharmacy: Dispense prescription → Record in profile               │   │
+│  │ - Follow-up: Auto-create next appointment if date set               │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-### 3. New Content Slides to Add
+## Patient Profile Integration Audit
 
-#### A. Product Features Overview Slide (`FeaturesOverviewSlide.tsx`)
-High-level view of all 20 modules in a visual grid
+### Data Flowing to Patient Profile
 
-#### B. OT Live Dashboard Slide (`OTDashboardSlide.tsx`)
-Showcasing the surgery timer and live monitoring features
+| Tab | Data Source | Status |
+|-----|-------------|--------|
+| **OPD Visits** | `appointments` table | Working - shows all visits with Visit ID |
+| **Vitals** | `appointments.check_in_vitals` + `consultations.vitals` + `ipd_vitals` | Working - aggregated by `usePatientVitalsHistory` |
+| **Consults** | `consultations` table | Working - shows diagnosis, symptoms |
+| **Prescriptions** | `prescriptions` + `prescription_items` | Working - linked to consultation |
+| **Lab** | `lab_orders` + `lab_order_items` | Working - linked to consultation |
+| **Billing** | `invoices` + `payments` | Working - shows all financial records |
 
-#### C. Integration Ecosystem Slide (`IntegrationSlide.tsx`)
-- LIS/LIMS integration
-- PACS connectivity
-- Biometric devices
-- SMS/WhatsApp notifications
-- Payment gateways
-
-#### D. Implementation Timeline Slide (`TimelineSlide.tsx`)
-- Week 1-2: Setup & Data Migration
-- Week 3-4: Training & Go-Live
-- Ongoing: 24/7 Support
-
----
-
-### 4. Enhanced Visual Components
-
-**Add to each module slide:**
-- Color-coded gradient header matching module theme
-- Key metric callouts (3 numbers with labels)
-- Feature checklist with icons
-- "Pro Tip" or "Highlight" callout box
-- Better typography hierarchy
-
-**Color coding by module category:**
-- Clinical (OPD, IPD, Emergency, OT, Nursing): Teal gradient
-- Diagnostics (Lab, Radiology, Blood Bank): Blue gradient
-- Pharmacy (Pharmacy, POS): Green gradient
-- Finance (Billing, Accounts, Doctor Wallet): Purple gradient
-- Operations (HR, Inventory, Procurement): Orange gradient
+### Verified Working
+- All OPD visits appear in patient profile OPD tab
+- Vitals from nurse check-in are saved and visible in Vitals tab
+- Vitals from doctor consultation are saved and visible
+- Prescriptions appear in Rx tab
+- Lab orders appear in Lab tab
+- Invoices and payments appear in Billing tab
 
 ---
 
-## Files to Create/Modify
+## Recommended Enhancements
 
-| File | Action | Description |
-|------|--------|-------------|
-| `src/components/presentation/ModuleSlide.tsx` | **MODIFY** | Enhanced layout with metrics, gradients, better typography |
-| `src/components/presentation/OTDashboardSlide.tsx` | **CREATE** | New slide showcasing live surgery timer |
-| `src/components/presentation/FeaturesOverviewSlide.tsx` | **CREATE** | Visual grid of all 20 modules |
-| `src/components/presentation/IntegrationSlide.tsx` | **CREATE** | Integration ecosystem partners |
-| `src/components/presentation/TimelineSlide.tsx` | **CREATE** | Implementation timeline |
-| `src/components/presentation/TitleSlide.tsx` | **MODIFY** | Enhanced visual design |
-| `src/components/presentation/CaseStudiesSlide.tsx` | **MODIFY** | More detailed metrics and visuals |
-| `src/components/presentation/CTASlide.tsx` | **MODIFY** | More impactful ending |
-| `src/pages/Presentation.tsx` | **MODIFY** | Add new slides, update total count |
+### Priority 1: Critical Fixes
 
----
+1. **Add Visit ID to Token Slip & Check-In Page**
+   - Display `OPD-YYYYMMDD-TOKEN` prominently
+   - Files: `PrintableTokenSlip.tsx`, `CheckInPage.tsx`
 
-## Enhanced Slide Structure (30 slides total)
+2. **Walk-In Should Not Skip Vitals**
+   - Change `OPDWalkInPage` to set status as `scheduled` (not `checked_in`)
+   - Or add a "Record Vitals Now" step before payment
+   - File: `OPDWalkInPage.tsx`
 
-| Slide | Content |
-|-------|---------|
-| 1 | **Enhanced Title Slide** - Logo, tagline, key stats |
-| 2 | **Features Overview Grid** - All 20 modules at a glance |
-| 3-22 | **Enhanced Module Slides** - Better design, metrics, visuals |
-| 23 | **OT Live Dashboard** - Surgery timer showcase |
-| 24 | **Patient Workflow Diagram** |
-| 25 | **Procurement Cycle Diagram** |
-| 26 | **UAE Case Studies** - Enhanced with more detail |
-| 27 | **Lab Network Expansion** |
-| 28 | **Integration Ecosystem** - Partners & connectivity |
-| 29 | **Compliance & Security** |
-| 30 | **Enhanced CTA** - Demo booking with urgency |
+3. **Consultation Completion Should Prompt Checkout**
+   - After "Complete Consultation", show dialog with options:
+     - "Send to Checkout" (if pending lab/Rx charges)
+     - "Mark Complete" (if no pending charges)
+   - File: `ConsultationPage.tsx`
 
----
+### Priority 2: Workflow Improvements
 
-## Enhanced ModuleSlide Layout Specification
+4. **Add "Pending Checkout" Queue for Reception**
+   - New page: `/app/opd/pending-checkout`
+   - Filter appointments where `status = 'completed'` AND `has_pending_charges = true`
+   - File: Create `PendingCheckoutPage.tsx`
 
-```tsx
-// New structure for ModuleSlide:
-<div className="slide">
-  {/* Gradient Header Bar */}
-  <div className="h-2 bg-gradient-to-r from-{moduleColor} to-{moduleColor}/50" />
-  
-  {/* Header with Icon, Title, Slide Number */}
-  <header>...</header>
-  
-  {/* Two-Column Layout */}
-  <div className="grid grid-cols-5 gap-6">
-    {/* Left: Screenshot (3 cols) */}
-    <div className="col-span-3">
-      <Screenshot />
-      {/* Key Metrics Row */}
-      <div className="grid grid-cols-3 gap-2 mt-4">
-        <MetricCard number="15min" label="Avg Time" />
-        <MetricCard number="99.5%" label="Accuracy" />
-        <MetricCard number="500+" label="Tests" />
-      </div>
-    </div>
-    
-    {/* Right: Content (2 cols) */}
-    <div className="col-span-2">
-      <h2>Title</h2>
-      <p>Description</p>
-      
-      {/* Feature Checklist */}
-      <div className="feature-list">
-        {features.map(f => (
-          <div><CheckIcon /> {f}</div>
-        ))}
-      </div>
-      
-      {/* Highlight Box */}
-      <div className="highlight-box">
-        <LightbulbIcon />
-        "Key benefit or pro tip"
-      </div>
-    </div>
-  </div>
-  
-  {/* Footer */}
-  <footer>...</footer>
-</div>
-```
+5. **Auto-Create Follow-Up Appointment**
+   - When doctor sets `follow_up_date`, create a tentative appointment
+   - File: `ConsultationPage.tsx`, add to `saveConsultation()` function
+
+6. **Nurse Station: Show Visit ID**
+   - Add Visit ID column to nursing queue
+   - File: `NurseDashboard.tsx`
+
+### Priority 3: UX Enhancements
+
+7. **Doctor Dashboard: Show Vitals Preview**
+   - Before starting consultation, show key vitals inline
+   - File: `DoctorDashboard.tsx`
+
+8. **Token Kiosk: Estimated Wait Time**
+   - Calculate based on average consultation duration
+   - File: `TokenKioskPage.tsx`
+
+9. **SMS Notification on Token Call**
+   - Send SMS when patient's token is next
+   - Requires: Supabase Edge Function + SMS provider
 
 ---
 
-## OT Dashboard Timer Slide Design
+## Technical Implementation Details
 
-```tsx
-// OTDashboardSlide.tsx
-<div className="slide bg-gradient-to-br from-primary/10 to-background">
-  {/* Header */}
-  <h2>Live Surgery Dashboard</h2>
-  
-  {/* Main Timer Display */}
-  <div className="surgery-timer-display">
-    <div className="timer-status">SURGERY IN PROGRESS</div>
-    <div className="timer-value text-6xl font-mono">02:34:18</div>
-    <ProgressBar value={78} className="h-4" />
-    <div className="timer-meta">
-      Estimated: 3:00:00 | +34min over
-    </div>
-  </div>
-  
-  {/* Surgery Info */}
-  <div className="surgery-info-grid">
-    <InfoCard label="Patient" value="Ahmed Khan" />
-    <InfoCard label="Procedure" value="Appendectomy" />
-    <InfoCard label="Lead Surgeon" value="Dr. Ali Ahmed" />
-    <InfoCard label="OT Room" value="OT-1" />
-  </div>
-  
-  {/* Role Tabs Preview */}
-  <div className="role-tabs">
-    <Tab active>Surgeon Notes</Tab>
-    <Tab>Anesthesia Vitals</Tab>
-    <Tab>Instrument Count</Tab>
-  </div>
-  
-  {/* Features List */}
-  <div className="features">
-    ✓ Real-time synchronized timers
-    ✓ Overtime warnings & alerts
-    ✓ Role-specific documentation
-    ✓ Completion validation gates
-  </div>
-</div>
-```
+### Files to Modify
+
+| File | Change |
+|------|--------|
+| `src/components/clinic/PrintableTokenSlip.tsx` | Add Visit ID display |
+| `src/pages/app/appointments/CheckInPage.tsx` | Add Visit ID in header |
+| `src/pages/app/opd/OPDWalkInPage.tsx` | Status should be `scheduled` not `checked_in`, add vitals step option |
+| `src/pages/app/opd/ConsultationPage.tsx` | Add checkout prompt after completion |
+| `src/pages/app/opd/DoctorDashboard.tsx` | Show vitals inline for queue items |
+| `src/pages/app/opd/NurseDashboard.tsx` | Add Visit ID column |
+
+### New Files to Create
+
+| File | Purpose |
+|------|---------|
+| `src/pages/app/opd/PendingCheckoutPage.tsx` | List patients needing checkout after consultation |
+
+### Database Changes Required
+
+None - existing schema is sufficient. The `appointments` table already has:
+- `token_number` for Visit ID generation
+- `payment_status` for tracking (pending/paid)
+- `check_in_vitals` for nurse-recorded data
+- `status` enum covering full workflow
 
 ---
 
-## Visual Enhancement Details
+## Summary of Findings
 
-### Typography Improvements
-- Title: `text-3xl font-bold` (up from text-2xl)
-- Description: `text-base leading-relaxed` (up from text-sm)
-- Feature tags: Add icons alongside text
+### What's Complete
+- Full 7-step OPD workflow is implemented
+- Token generation and queue management working
+- Nurse vitals recording working
+- Doctor consultation with Rx and Lab orders working
+- Patient profile correctly aggregates all OPD data
+- Billing integration with invoices and payments
 
-### Color Gradients by Category
-```css
-/* Clinical Modules */
-.clinical-gradient { background: linear-gradient(135deg, #0d9488, #14b8a6); }
+### What Needs Attention
+1. Visit ID not shown consistently across all touchpoints
+2. Walk-in flow skips nurse triage (goes directly to queue)
+3. No "Pending Checkout" visibility after consultation completion
+4. Follow-up appointment not auto-created when doctor sets date
 
-/* Diagnostics */
-.diagnostics-gradient { background: linear-gradient(135deg, #2563eb, #3b82f6); }
-
-/* Finance */
-.finance-gradient { background: linear-gradient(135deg, #7c3aed, #8b5cf6); }
-
-/* Operations */
-.operations-gradient { background: linear-gradient(135deg, #ea580c, #f97316); }
-```
-
-### Metric Cards Design
-```tsx
-<div className="bg-primary/10 rounded-xl p-4 text-center">
-  <div className="text-3xl font-bold text-primary">99.5%</div>
-  <div className="text-xs text-muted-foreground uppercase tracking-wider">Accuracy</div>
-</div>
-```
-
----
-
-## Content Enhancements
-
-### Add module-specific metrics:
-- **Laboratory**: 15min avg result time, 500+ test parameters, 99.5% accuracy
-- **OT**: 50+ surgeries/month capacity, 100% WHO checklist compliance, <30min turnaround
-- **IPD**: 200+ beds managed, 95% occupancy tracking, Real-time billing
-- **Pharmacy**: 10,000+ SKUs, 30-day expiry alerts, Zero stockouts
-
-### Enhanced feature descriptions:
-Each module gets 3 key metrics + 5 feature checkmarks with icons
-
----
-
-## Technical Implementation Notes
-
-1. **Module color mapping**: Create a `moduleColors` object mapping module IDs to gradient classes
-2. **Metrics data**: Add `metrics` array to each feature in `features` data
-3. **Responsive scaling**: Ensure screenshots scale properly for PDF export
-4. **Print optimization**: Test new gradients and colors for print fidelity
-
----
-
-## Expected Outcome
-
-A 30-slide professional presentation PDF with:
-- Visually rich module slides with gradients and metrics
-- Dedicated OT Live Dashboard slide with surgery timer showcase
-- Features overview grid for quick scanning
-- Integration ecosystem partners slide
-- Implementation timeline for buyer confidence
-- Enhanced case studies with more UAE detail
-- Professional, print-ready design
+### Recommended Action
+Implement Priority 1 fixes first to ensure complete data traceability, then add Priority 2/3 enhancements for smoother workflow.
