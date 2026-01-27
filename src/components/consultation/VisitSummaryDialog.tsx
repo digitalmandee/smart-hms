@@ -242,6 +242,14 @@ export function VisitSummaryDialog({
         </ScrollArea>
 
         <Separator />
+        
+        {/* Pending Checkout Notice */}
+        {(prescriptionItems.length > 0 || labOrderItems.length > 0) && (
+          <div className="flex items-center gap-2 p-3 rounded-lg bg-warning/10 border border-warning/30 text-warning-foreground text-sm">
+            <Receipt className="h-4 w-4" />
+            <span>Patient has pending orders and will be directed to checkout after completion.</span>
+          </div>
+        )}
 
         <DialogFooter className="flex-col sm:flex-row gap-2">
           <div className="flex gap-2 mr-auto">
@@ -267,7 +275,9 @@ export function VisitSummaryDialog({
             ) : (
               <Check className="h-4 w-4 mr-2" />
             )}
-            Complete Visit
+            {prescriptionItems.length > 0 || labOrderItems.length > 0 
+              ? "Complete & Send to Checkout" 
+              : "Complete Visit"}
           </Button>
         </DialogFooter>
       </DialogContent>

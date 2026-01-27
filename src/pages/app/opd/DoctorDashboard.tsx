@@ -6,12 +6,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAppointments } from "@/hooks/useAppointments";
 import { useDoctors } from "@/hooks/useDoctors";
 import { useTodayConsultationStats } from "@/hooks/useConsultations";
 import { useAuth } from "@/contexts/AuthContext";
-import { Users, CheckCircle, Clock, Play, Stethoscope, History, AlertTriangle, Search } from "lucide-react";
+import { Users, CheckCircle, Clock, Play, Stethoscope, History, AlertTriangle, Search, Activity } from "lucide-react";
 import { PatientGlobalSearch } from "@/components/patients/PatientGlobalSearch";
+import { generateVisitId } from "@/lib/visit-id";
 
 export default function DoctorDashboard() {
   const { profile } = useAuth();
@@ -45,6 +47,20 @@ export default function DoctorDashboard() {
     if (priority >= 3) return <Badge variant="destructive" className="text-xs">Emergency</Badge>;
     if (priority === 2) return <Badge variant="default" className="text-xs bg-warning text-warning-foreground">Urgent</Badge>;
     return null;
+  };
+
+  // Parse vitals from check_in_vitals
+  const getVitalsSummary = (checkInVitals: any) => {
+    if (!checkInVitals) return null;
+    const vitals = typeof checkInVitals === 'string' ? JSON.parse(checkInVitals) : checkInVitals;
+    const parts: string[] = [];
+    if (vitals.blood_pressure?.systolic && vitals.blood_pressure?.diastolic) {
+      parts.push(`BP: ${vitals.blood_pressure.systolic}/${vitals.blood_pressure.diastolic}`);
+    }
+    if (vitals.pulse) parts.push(`P: ${vitals.pulse}`);
+    if (vitals.temperature) parts.push(`T: ${vitals.temperature}°F`);
+    if (vitals.spo2) parts.push(`SpO2: ${vitals.spo2}%`);
+    return parts.length > 0 ? parts : null;
   };
 
   const handleQueueItemClick = (appointmentId: string) => {
@@ -191,6 +207,11 @@ export default function DoctorDashboard() {
                   const patient = apt.patient as any;
                   const age = getAge(patient?.date_of_birth);
                   const priorityBadge = getPriorityBadge(apt.priority);
+                  const vitalsSummary = getVitalsSummary(apt.check_in_vitals);
+                  const visitId = generateVisitId({
+                    appointment_date: apt.appointment_date,
+                    token_number: apt.token_number,
+                  });
                   
                   return (
                     <div
@@ -229,6 +250,25 @@ export default function DoctorDashboard() {
                               <AlertTriangle className="h-3 w-3 inline mr-1" />
                               {apt.chief_complaint}
                             </p>
+                          )}
+                          {/* Vitals Preview */}
+                          {vitalsSummary && (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <div className="flex items-center gap-1 mt-1.5">
+                                    <Activity className="h-3 w-3 text-success" />
+                                    <span className="text-xs text-success font-medium">
+                                      {vitalsSummary.slice(0, 2).join(' • ')}
+                                      {vitalsSummary.length > 2 && ' ...'}
+                                    </span>
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p className="text-xs">{vitalsSummary.join(' • ')}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
                           )}
                         </div>
                       </div>

@@ -250,7 +250,7 @@ export default function OPDWalkInPage() {
         notes: `OPD Walk-in payment via ${paymentMethod}`,
       });
 
-      // 3. Create Appointment with checked_in status
+      // 3. Create Appointment with scheduled status (so patient goes through nurse triage)
       const appointment = await createAppointment.mutateAsync({
         patient_id: selectedPatientId,
         doctor_id: selectedDoctor.id,
@@ -258,8 +258,9 @@ export default function OPDWalkInPage() {
         appointment_date: format(new Date(), "yyyy-MM-dd"),
         appointment_time: format(new Date(), "HH:mm"),
         appointment_type: "walk_in",
-        status: "checked_in",
+        status: "scheduled",
         chief_complaint: "OPD Consultation",
+        payment_status: "paid",
       });
 
       setTokenNumber(appointment.token_number || 0);
@@ -805,6 +806,7 @@ export default function OPDWalkInPage() {
         <PrintableTokenSlip
           ref={tokenSlipRef}
           tokenNumber={tokenNumber || 0}
+          appointmentDate={format(new Date(), "yyyy-MM-dd")}
           patient={{
             name: selectedPatientName,
             mrNumber: selectedPatientMR,

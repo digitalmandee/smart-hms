@@ -1,6 +1,7 @@
 import { Toaster } from "@/components/ui/toaster";
 // OPD Checkout Page import
 import OPDCheckoutPage from "@/pages/app/opd/OPDCheckoutPage";
+import PendingCheckoutPage from "@/pages/app/opd/PendingCheckoutPage";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -543,7 +544,9 @@ function App() {
               <Route path="opd/consultation/:appointmentId" element={<ConsultationPage />} />
               <Route path="opd/vitals" element={<OPDVitalsPage />} />
               <Route path="opd/orders" element={<OPDOrdersPage />} />
+              <Route path="opd/checkout" element={<OPDCheckoutPage />} />
               <Route path="opd/checkout/:appointmentId" element={<OPDCheckoutPage />} />
+              <Route path="opd/pending-checkout" element={<PendingCheckoutPage />} />
               <Route path="opd/history" element={<ConsultationHistoryPage />} />
               <Route path="opd/consultations/:id" element={<ConsultationDetailPage />} />
               <Route path="opd/gynecology" element={<GynecologyDashboard />} />

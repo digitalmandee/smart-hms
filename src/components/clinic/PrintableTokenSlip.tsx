@@ -1,10 +1,12 @@
 import { forwardRef } from "react";
 import { format } from "date-fns";
 import { generateQRCodeUrl, getAppointmentVerificationUrl } from "@/lib/qrcode";
+import { generateVisitId } from "@/lib/visit-id";
 import React from "react";
 
 interface PrintableTokenSlipProps {
   tokenNumber: number;
+  appointmentDate?: string;
   patient: {
     name: string;
     mrNumber?: string;
@@ -159,6 +161,7 @@ export const PrintableTokenSlip = forwardRef<HTMLDivElement, PrintableTokenSlipP
   (
     {
       tokenNumber,
+      appointmentDate,
       patient,
       doctor,
       invoiceNumber,
@@ -176,6 +179,12 @@ export const PrintableTokenSlip = forwardRef<HTMLDivElement, PrintableTokenSlipP
     const qrData = getAppointmentVerificationUrl(tokenNumber, organization.slug);
     const currentDate = format(new Date(), "dd MMM yyyy");
     const currentTime = format(new Date(), "hh:mm a");
+    
+    // Generate Visit ID for display
+    const visitId = generateVisitId({
+      appointment_date: appointmentDate || format(new Date(), "yyyy-MM-dd"),
+      token_number: tokenNumber,
+    });
 
     const accentStyle: React.CSSProperties = primaryColor
       ? { borderColor: primaryColor }
@@ -205,6 +214,12 @@ export const PrintableTokenSlip = forwardRef<HTMLDivElement, PrintableTokenSlipP
 
         {/* Large Token Number */}
         <div style={styles.tokenNumber}>#{tokenNumber}</div>
+        
+        {/* Visit ID */}
+        <div style={{ textAlign: "center", marginBottom: "12px" }}>
+          <p style={{ fontSize: "10px", color: "#6b7280", margin: 0 }}>Visit ID</p>
+          <p style={{ fontSize: "12px", fontWeight: 600, fontFamily: "monospace", margin: "2px 0 0" }}>{visitId}</p>
+        </div>
 
         {/* Patient & Doctor Info */}
         <div style={styles.infoSection}>

@@ -1,5 +1,6 @@
 import { forwardRef } from "react";
 import { format } from "date-fns";
+import { generateVisitId } from "@/lib/visit-id";
 import React from "react";
 
 interface Patient {
@@ -196,6 +197,12 @@ export const PrintableTokenSlip = forwardRef<HTMLDivElement, PrintableTokenSlipP
     const priority = appointment.priority ?? 0;
     const fullName = `${patient.first_name} ${patient.last_name || ""}`.trim();
     const tokenNumber = appointment.token_number || "-";
+    
+    // Generate Visit ID
+    const visitId = generateVisitId({
+      appointment_date: appointment.appointment_date,
+      token_number: appointment.token_number,
+    });
 
     const accentStyle: React.CSSProperties = primaryColor
       ? { borderColor: primaryColor }
@@ -228,6 +235,12 @@ export const PrintableTokenSlip = forwardRef<HTMLDivElement, PrintableTokenSlipP
 
           {/* Large Token Number */}
           <div style={styles.tokenNumber}>{tokenNumber}</div>
+          
+          {/* Visit ID */}
+          <div style={{ textAlign: "center", marginBottom: "12px" }}>
+            <p style={{ fontSize: "10px", color: "#6b7280", margin: 0 }}>Visit ID</p>
+            <p style={{ fontSize: "12px", fontWeight: 600, fontFamily: "monospace", margin: "2px 0 0" }}>{visitId}</p>
+          </div>
 
           {/* Priority Badge */}
           <div style={styles.priorityContainer}>
