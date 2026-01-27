@@ -891,6 +891,9 @@ export type Database = {
           status: Database["public"]["Enums"]["appointment_status"] | null
           token_number: number | null
           updated_at: string
+          waived_at: string | null
+          waived_by: string | null
+          waiver_reason: string | null
         }
         Insert: {
           appointment_date: string
@@ -917,6 +920,9 @@ export type Database = {
           status?: Database["public"]["Enums"]["appointment_status"] | null
           token_number?: number | null
           updated_at?: string
+          waived_at?: string | null
+          waived_by?: string | null
+          waiver_reason?: string | null
         }
         Update: {
           appointment_date?: string
@@ -943,6 +949,9 @@ export type Database = {
           status?: Database["public"]["Enums"]["appointment_status"] | null
           token_number?: number | null
           updated_at?: string
+          waived_at?: string | null
+          waived_by?: string | null
+          waiver_reason?: string | null
         }
         Relationships: [
           {
@@ -999,6 +1008,13 @@ export type Database = {
             columns: ["patient_id"]
             isOneToOne: false
             referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_waived_by_fkey"
+            columns: ["waived_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]

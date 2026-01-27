@@ -11,9 +11,10 @@ import { useAppointments } from "@/hooks/useAppointments";
 import { useDoctors } from "@/hooks/useDoctors";
 import { useTodayConsultationStats } from "@/hooks/useConsultations";
 import { useAuth } from "@/contexts/AuthContext";
-import { Users, CheckCircle, Clock, Play, Stethoscope, History, AlertTriangle, Search, Activity } from "lucide-react";
+import { Users, CheckCircle, Clock, Play, Stethoscope, History, AlertTriangle, Search, Activity, DollarSign } from "lucide-react";
 import { PatientGlobalSearch } from "@/components/patients/PatientGlobalSearch";
 import { generateVisitId } from "@/lib/visit-id";
+import { PaymentStatusBadge } from "@/components/radiology/PaymentStatusBadge";
 
 export default function DoctorDashboard() {
   const { profile } = useAuth();
@@ -271,13 +272,17 @@ export default function DoctorDashboard() {
                             </TooltipProvider>
                           )}
                         </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant={apt.status === "in_progress" ? "default" : "secondary"}>
-                          {apt.status === "in_progress" ? "In Progress" : "Waiting"}
-                        </Badge>
-                        <Play className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {/* Payment Status */}
+                          {apt.payment_status && apt.payment_status !== 'paid' && (
+                            <PaymentStatusBadge status={apt.payment_status} compact showIcon={false} />
+                          )}
+                          <Badge variant={apt.status === "in_progress" ? "default" : "secondary"}>
+                            {apt.status === "in_progress" ? "In Progress" : "Waiting"}
+                          </Badge>
+                          <Play className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
                     </div>
                   );
                 })}
