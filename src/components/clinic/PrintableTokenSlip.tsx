@@ -18,6 +18,7 @@ interface PrintableTokenSlipProps {
   invoiceNumber?: string;
   amountPaid?: number;
   paymentMethod?: string;
+  paymentStatus?: "paid" | "pending" | "waived";
   organization: {
     name: string;
     address?: string | null;
@@ -167,6 +168,7 @@ export const PrintableTokenSlip = forwardRef<HTMLDivElement, PrintableTokenSlipP
       invoiceNumber,
       amountPaid,
       paymentMethod,
+      paymentStatus = "paid",
       organization,
       showQR = true,
       showPayment = true,
@@ -244,26 +246,60 @@ export const PrintableTokenSlip = forwardRef<HTMLDivElement, PrintableTokenSlipP
         </div>
 
         {/* Payment Info */}
-        {showPayment && invoiceNumber && (
+        {showPayment && (
           <div style={styles.paymentSection}>
-            <div style={styles.paymentRow}>
-              <span style={styles.infoLabel}>Invoice:</span>
-              <span style={styles.infoValueMono}>{invoiceNumber}</span>
-            </div>
-            {amountPaid !== undefined && (
-              <div style={styles.paymentRow}>
-                <span style={styles.infoLabel}>Paid:</span>
-                <span style={styles.paymentAmount}>Rs. {amountPaid.toLocaleString()}</span>
+            {paymentStatus === "paid" && invoiceNumber ? (
+              <>
+                <div style={styles.paymentRow}>
+                  <span style={styles.infoLabel}>Invoice:</span>
+                  <span style={styles.infoValueMono}>{invoiceNumber}</span>
+                </div>
+                {amountPaid !== undefined && (
+                  <div style={styles.paymentRow}>
+                    <span style={styles.infoLabel}>Paid:</span>
+                    <span style={styles.paymentAmount}>Rs. {amountPaid.toLocaleString()}</span>
+                  </div>
+                )}
+                {paymentMethod && (
+                  <div style={styles.paymentRow}>
+                    <span style={styles.infoLabel}>Method:</span>
+                    <span style={{ ...styles.infoValue, textTransform: "capitalize" }}>
+                      {paymentMethod.replace("_", " ")}
+                    </span>
+                  </div>
+                )}
+              </>
+            ) : paymentStatus === "pending" ? (
+              <div style={{ 
+                backgroundColor: "#fef3c7", 
+                border: "1px solid #f59e0b", 
+                padding: "8px", 
+                borderRadius: "4px",
+                textAlign: "center" 
+              }}>
+                <p style={{ margin: 0, fontWeight: "bold", color: "#b45309", fontSize: "11px" }}>
+                  ⚠️ PAYMENT PENDING
+                </p>
+                <p style={{ margin: "4px 0 0", fontSize: "10px", color: "#92400e" }}>
+                  Please pay at billing counter after consultation
+                </p>
               </div>
-            )}
-            {paymentMethod && (
-              <div style={styles.paymentRow}>
-                <span style={styles.infoLabel}>Method:</span>
-                <span style={{ ...styles.infoValue, textTransform: "capitalize" }}>
-                  {paymentMethod.replace("_", " ")}
-                </span>
+            ) : paymentStatus === "waived" ? (
+              <div style={{ 
+                backgroundColor: "#f3f4f6", 
+                border: "1px solid #9ca3af", 
+                padding: "8px", 
+                borderRadius: "4px",
+                textAlign: "center" 
+              }}>
+                <p style={{ margin: 0, fontWeight: "bold", color: "#4b5563", fontSize: "11px" }}>
+                  ✓ FEE WAIVED
+                </p>
+                <p style={{ margin: "4px 0 0", fontSize: "10px", color: "#6b7280" }}>
+                  Consultation fee has been waived
+                </p>
               </div>
-            )}
+            ) : null}
           </div>
         )}
 

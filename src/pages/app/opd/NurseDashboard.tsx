@@ -11,7 +11,8 @@ import {
   Search,
   Calendar,
   Clock,
-  Hash
+  Hash,
+  DollarSign
 } from 'lucide-react';
 import { PageHeader } from '@/components/PageHeader';
 import { StatsCard } from '@/components/StatsCard';
@@ -26,6 +27,7 @@ import { usePatients } from '@/hooks/usePatients';
 import { PatientVitalsCard } from '@/components/nursing/PatientVitalsCard';
 import { VitalsSummaryBadge } from '@/components/nursing/VitalsSummaryBadge';
 import { QuickActionsPanel } from '@/components/nursing/QuickActionsPanel';
+import { PaymentStatusBadge } from '@/components/radiology/PaymentStatusBadge';
 import { generateVisitId } from '@/lib/visit-id';
 
 const priorityLabels: Record<number, { label: string; variant: 'destructive' | 'default' | 'secondary' | 'outline' }> = {
@@ -249,10 +251,14 @@ export default function NurseDashboard() {
                               {appointment.patient?.patient_number}
                             </p>
                             {/* Visit ID */}
-                            <div className="flex items-center gap-1 mt-1">
-                              <Hash className="h-3 w-3 text-muted-foreground" />
-                              <span className="text-xs font-mono text-muted-foreground">{visitId}</span>
-                            </div>
+                          <div className="flex items-center gap-1 mt-1">
+                            <Hash className="h-3 w-3 text-muted-foreground" />
+                            <span className="text-xs font-mono text-muted-foreground">{visitId}</span>
+                            {/* Payment Status for non-paid */}
+                            {appointment.payment_status && appointment.payment_status !== 'paid' && (
+                              <PaymentStatusBadge status={appointment.payment_status} compact showIcon={false} />
+                            )}
+                          </div>
                           </div>
                           <VitalsSummaryBadge vitals={appointment.check_in_vitals} />
                         </div>

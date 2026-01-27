@@ -36,9 +36,10 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { PrintableTokenSlip } from "@/components/clinic/PrintableTokenSlip";
 import { PrintablePaymentReceipt } from "@/components/billing/PrintablePaymentReceipt";
+import { FeeWaiverDialog } from "@/components/appointments/FeeWaiverDialog";
 import { 
   UserPlus, Search, Stethoscope, CreditCard, Ticket, 
-  Printer, Check, Users, Phone, ArrowLeft, ArrowRight
+  Printer, Check, Users, Phone, ArrowLeft, ArrowRight, Clock, ShieldOff
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -88,6 +89,8 @@ export default function OPDWalkInPage() {
   const [tokenNumber, setTokenNumber] = useState<number | null>(null);
   const [invoiceNumber, setInvoiceNumber] = useState<string | null>(null);
   const [showPrintDialog, setShowPrintDialog] = useState(false);
+  const [showWaiverDialog, setShowWaiverDialog] = useState(false);
+  const [paymentStatusResult, setPaymentStatusResult] = useState<"paid" | "pending" | "waived">("paid");
   const [isProcessing, setIsProcessing] = useState(false);
   
   // Print refs
@@ -197,6 +200,111 @@ export default function OPDWalkInPage() {
     setStep("payment");
   };
 
+  // Generate token without payment (Pay Later)
+  const handlePayLater = async () => {
+    if (!selectedPatientId || !selectedDoctor || !profile?.branch_id) {
+      toast({
+        title: "Error",
+        description: "Missing required information",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      // Create Appointment with pending payment status
+      const appointment = await createAppointment.mutateAsync({
+        patient_id: selectedPatientId,
+        doctor_id: selectedDoctor.id,
+        branch_id: profile.branch_id,
+        appointment_date: format(new Date(), "yyyy-MM-dd"),
+        appointment_time: format(new Date(), "HH:mm"),
+        appointment_type: "walk_in",
+        status: "scheduled",
+        chief_complaint: "OPD Consultation",
+        payment_status: "pending",
+      });
+
+      setTokenNumber(appointment.token_number || 0);
+      setInvoiceNumber(null);
+      setPaymentStatusResult("pending");
+      setStep("complete");
+      setShowPrintDialog(true);
+      
+      toast({
+        title: "Token Generated",
+        description: `Token #${appointment.token_number} created. Fee will be collected at checkout.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to generate token. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Handle fee waiver confirmation
+  const handleWaiverConfirm = async (reason: string, notes: string) => {
+    if (!selectedPatientId || !selectedDoctor || !profile?.branch_id || !profile?.id) {
+      toast({
+        title: "Error",
+        description: "Missing required information",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      // Create Appointment with waived payment status
+      const appointment = await createAppointment.mutateAsync({
+        patient_id: selectedPatientId,
+        doctor_id: selectedDoctor.id,
+        branch_id: profile.branch_id,
+        appointment_date: format(new Date(), "yyyy-MM-dd"),
+        appointment_time: format(new Date(), "HH:mm"),
+        appointment_type: "walk_in",
+        status: "scheduled",
+        chief_complaint: "OPD Consultation",
+        payment_status: "waived",
+      });
+
+      // Update appointment with waiver details
+      await supabase
+        .from('appointments')
+        .update({
+          waived_by: profile.id,
+          waiver_reason: reason,
+          waived_at: new Date().toISOString(),
+        })
+        .eq('id', appointment.id);
+
+      setTokenNumber(appointment.token_number || 0);
+      setInvoiceNumber(null);
+      setPaymentStatusResult("waived");
+      setStep("complete");
+      setShowPrintDialog(true);
+      setShowWaiverDialog(false);
+      
+      toast({
+        title: "Token Generated",
+        description: `Token #${appointment.token_number} created. Fee has been waived.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to generate token. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const handlePaymentComplete = async () => {
     if (!selectedPatientId || !selectedDoctor || !profile?.branch_id) {
       toast({
@@ -265,6 +373,7 @@ export default function OPDWalkInPage() {
 
       setTokenNumber(appointment.token_number || 0);
       setInvoiceNumber(invoice.invoice_number);
+      setPaymentStatusResult("paid");
       setStep("complete");
       setShowPrintDialog(true);
       
@@ -709,29 +818,79 @@ export default function OPDWalkInPage() {
 
             <Separator />
 
-            <div className="flex justify-between">
-              <Button variant="outline" onClick={() => setStep("doctor")}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Doctor
-              </Button>
-              <Button 
-                size="lg" 
-                onClick={handlePaymentComplete}
-                disabled={isProcessing}
-                className="px-8"
-              >
-                {isProcessing ? (
-                  "Processing..."
-                ) : (
-                  <>
-                    <Ticket className="h-5 w-5 mr-2" />
-                    Generate Token & Receipt
-                  </>
-                )}
-              </Button>
+            {/* Payment Actions */}
+            <div className="space-y-4">
+              {/* Alternative payment options */}
+              <div className="p-4 rounded-lg border border-dashed bg-muted/30 space-y-3">
+                <p className="text-sm font-medium text-muted-foreground">Alternative Options</p>
+                <div className="flex gap-3">
+                  <Button 
+                    variant="outline" 
+                    onClick={handlePayLater}
+                    disabled={isProcessing}
+                    className="flex-1"
+                  >
+                    <Clock className="h-4 w-4 mr-2" />
+                    Pay Later
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowWaiverDialog(true)}
+                    disabled={isProcessing}
+                    className="flex-1"
+                  >
+                    <ShieldOff className="h-4 w-4 mr-2" />
+                    Waive Fee
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Pay Later: Fee of Rs. {selectedDoctor.fee.toLocaleString()} will be collected at checkout.
+                </p>
+              </div>
+
+              {/* Main action buttons */}
+              <div className="flex justify-between">
+                <Button variant="outline" onClick={() => setStep("doctor")}>
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Doctor
+                </Button>
+                <Button 
+                  size="lg" 
+                  onClick={handlePaymentComplete}
+                  disabled={isProcessing}
+                  className="px-8"
+                >
+                  {isProcessing ? (
+                    "Processing..."
+                  ) : (
+                    <>
+                      <Ticket className="h-5 w-5 mr-2" />
+                      Generate Token & Receipt
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Fee Waiver Dialog */}
+      {selectedDoctor && (
+        <FeeWaiverDialog
+          open={showWaiverDialog}
+          onOpenChange={setShowWaiverDialog}
+          patient={{
+            name: selectedPatientName,
+            mrNumber: selectedPatientMR,
+          }}
+          doctor={{
+            name: selectedDoctor.name,
+          }}
+          fee={selectedDoctor.fee}
+          onConfirm={handleWaiverConfirm}
+          isProcessing={isProcessing}
+        />
       )}
 
       {/* Step 4: Complete */}
@@ -750,8 +909,17 @@ export default function OPDWalkInPage() {
                 <p className="text-5xl font-bold text-primary">{tokenNumber}</p>
               </div>
               <div className="bg-muted p-6 rounded-lg text-center border">
-                <p className="text-muted-foreground mb-2">Invoice Number</p>
-                <p className="text-xl font-bold">{invoiceNumber}</p>
+                <p className="text-muted-foreground mb-2">Payment Status</p>
+                {paymentStatusResult === "paid" ? (
+                  <div>
+                    <p className="text-xl font-bold text-green-600">PAID</p>
+                    <p className="text-sm text-muted-foreground">{invoiceNumber}</p>
+                  </div>
+                ) : paymentStatusResult === "pending" ? (
+                  <p className="text-xl font-bold text-amber-600">PAY LATER</p>
+                ) : (
+                  <p className="text-xl font-bold text-gray-600">WAIVED</p>
+                )}
               </div>
             </div>
 
@@ -764,14 +932,30 @@ export default function OPDWalkInPage() {
                 <span className="text-muted-foreground">Doctor</span>
                 <span className="font-medium">{selectedDoctor.name}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Amount Paid</span>
-                <span className="font-medium text-primary">Rs. {selectedDoctor.fee.toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Payment Method</span>
-                <span className="font-medium capitalize">{paymentMethod.replace('_', ' ')}</span>
-              </div>
+              {paymentStatusResult === "paid" && (
+                <>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Amount Paid</span>
+                    <span className="font-medium text-primary">Rs. {selectedDoctor.fee.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Payment Method</span>
+                    <span className="font-medium capitalize">{paymentMethod.replace('_', ' ')}</span>
+                  </div>
+                </>
+              )}
+              {paymentStatusResult === "pending" && (
+                <div className="flex justify-between pt-2 border-t">
+                  <span className="text-amber-600 font-medium">Fee Pending</span>
+                  <span className="font-bold text-amber-600">Rs. {selectedDoctor.fee.toLocaleString()}</span>
+                </div>
+              )}
+              {paymentStatusResult === "waived" && (
+                <div className="flex justify-between pt-2 border-t">
+                  <span className="text-gray-600 font-medium">Fee Waived</span>
+                  <span className="line-through text-gray-500">Rs. {selectedDoctor.fee.toLocaleString()}</span>
+                </div>
+              )}
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -816,8 +1000,9 @@ export default function OPDWalkInPage() {
             specialty: selectedDoctor?.specialty || '',
           }}
           invoiceNumber={invoiceNumber || ''}
-          amountPaid={selectedDoctor?.fee || 0}
-          paymentMethod={paymentMethod}
+          amountPaid={paymentStatusResult === "paid" ? selectedDoctor?.fee : 0}
+          paymentMethod={paymentStatusResult === "paid" ? paymentMethod : undefined}
+          paymentStatus={paymentStatusResult}
           organization={orgData}
         />
         <PrintablePaymentReceipt
