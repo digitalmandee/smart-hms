@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Loader2, ArrowLeft, UserCheck, AlertTriangle, Printer, Clock, Stethoscope } from 'lucide-react';
+import { Loader2, ArrowLeft, UserCheck, AlertTriangle, Printer, Clock, Stethoscope, Hash } from 'lucide-react';
 import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,6 +17,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Vitals } from '@/hooks/useConsultations';
 import { useToast } from '@/hooks/use-toast';
 import { usePrint } from '@/hooks/usePrint';
+import { generateVisitId } from '@/lib/visit-id';
 import { cn } from '@/lib/utils';
 
 const priorityOptions = [
@@ -90,6 +91,12 @@ export default function CheckInPage() {
 
   const patient = appointment.patient as any;
   const doctor = appointment.doctor as any;
+  
+  // Generate Visit ID
+  const visitId = generateVisitId({
+    appointment_date: appointment.appointment_date,
+    token_number: appointment.token_number,
+  });
 
   const handleCheckIn = async () => {
     if (!id) return;
@@ -168,6 +175,11 @@ export default function CheckInPage() {
                       {patient?.first_name} {patient?.last_name}
                     </h2>
                     <p className="text-muted-foreground">MR# {patient?.patient_number}</p>
+                    {/* Visit ID Display */}
+                    <div className="flex items-center gap-1.5 mt-1">
+                      <Hash className="h-3.5 w-3.5 text-primary" />
+                      <span className="text-sm font-mono font-medium text-primary">{visitId}</span>
+                    </div>
                   </div>
                 </div>
                 <div className="text-right">

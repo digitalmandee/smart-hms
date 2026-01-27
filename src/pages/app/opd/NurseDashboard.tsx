@@ -10,7 +10,8 @@ import {
   AlertTriangle,
   Search,
   Calendar,
-  Clock
+  Clock,
+  Hash
 } from 'lucide-react';
 import { PageHeader } from '@/components/PageHeader';
 import { StatsCard } from '@/components/StatsCard';
@@ -25,6 +26,7 @@ import { usePatients } from '@/hooks/usePatients';
 import { PatientVitalsCard } from '@/components/nursing/PatientVitalsCard';
 import { VitalsSummaryBadge } from '@/components/nursing/VitalsSummaryBadge';
 import { QuickActionsPanel } from '@/components/nursing/QuickActionsPanel';
+import { generateVisitId } from '@/lib/visit-id';
 
 const priorityLabels: Record<number, { label: string; variant: 'destructive' | 'default' | 'secondary' | 'outline' }> = {
   2: { label: 'Emergency', variant: 'destructive' },
@@ -224,32 +226,44 @@ export default function NurseDashboard() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {vitalsComplete.map((appointment) => (
-                    <Card key={appointment.id} className="p-3 border-l-4 border-l-green-500">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="font-bold text-lg">#{appointment.token_number}</span>
-                            <Badge variant={priorityLabels[appointment.priority || 0]?.variant || 'secondary'}>
-                              {priorityLabels[appointment.priority || 0]?.label || 'Normal'}
-                            </Badge>
+                  {vitalsComplete.map((appointment) => {
+                    const visitId = generateVisitId({
+                      appointment_date: appointment.appointment_date,
+                      token_number: appointment.token_number,
+                    });
+                    
+                    return (
+                      <Card key={appointment.id} className="p-3 border-l-4 border-l-green-500">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-lg">#{appointment.token_number}</span>
+                              <Badge variant={priorityLabels[appointment.priority || 0]?.variant || 'secondary'}>
+                                {priorityLabels[appointment.priority || 0]?.label || 'Normal'}
+                              </Badge>
+                            </div>
+                            <p className="font-medium">
+                              {appointment.patient?.first_name} {appointment.patient?.last_name}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {appointment.patient?.patient_number}
+                            </p>
+                            {/* Visit ID */}
+                            <div className="flex items-center gap-1 mt-1">
+                              <Hash className="h-3 w-3 text-muted-foreground" />
+                              <span className="text-xs font-mono text-muted-foreground">{visitId}</span>
+                            </div>
                           </div>
-                          <p className="font-medium">
-                            {appointment.patient?.first_name} {appointment.patient?.last_name}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {appointment.patient?.patient_number}
-                          </p>
+                          <VitalsSummaryBadge vitals={appointment.check_in_vitals} />
                         </div>
-                        <VitalsSummaryBadge vitals={appointment.check_in_vitals} />
-                      </div>
-                      {appointment.chief_complaint && (
-                        <p className="text-sm text-muted-foreground mt-2 italic">
-                          "{appointment.chief_complaint}"
-                        </p>
-                      )}
-                    </Card>
-                  ))}
+                        {appointment.chief_complaint && (
+                          <p className="text-sm text-muted-foreground mt-2 italic">
+                            "{appointment.chief_complaint}"
+                          </p>
+                        )}
+                      </Card>
+                    );
+                  })}
                 </div>
               )}
             </ScrollArea>
