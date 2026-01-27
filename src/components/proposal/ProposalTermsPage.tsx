@@ -58,7 +58,7 @@ export const ProposalTermsPage = () => {
           <span className="text-lg font-semibold text-foreground">HealthOS</span>
         </div>
         <span className="text-sm text-muted-foreground bg-muted px-3 py-1 rounded-full">
-          04 / 04
+          10 / 10
         </span>
       </div>
 
