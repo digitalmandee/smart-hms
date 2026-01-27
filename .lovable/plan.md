@@ -1,299 +1,273 @@
 
-# OPD Workflow Evaluation & Enhancement Plan
+# OPD Consultation Fee Payment Enhancement Plan
 
-## Executive Summary
-The current OPD implementation is **well-structured** with a 7-step clinical workflow in place. However, there are some gaps in end-to-end data flow, Visit ID standardization, and checkout completion tracking that need attention.
+## Overview
+This plan addresses the Pakistan-specific OPD workflow where consultation fees are typically collected upfront but need flexibility for "Pay Later" and "Waive Off" scenarios. The implementation ensures tokens can move through the queue regardless of payment status while maintaining proper tracking and accountability.
 
----
+## Current State Analysis
 
-## Current OPD Workflow Analysis
+### What Exists
+1. **`payment_status` column** on appointments: Supports `pending`, `paid`, `partial`, `waived`
+2. **`AppointmentPaymentDialog`**: Has "Pay Now" and "Pay Later" buttons (IPD-style)
+3. **`PaymentStatusBadge`** component: Displays payment status visually
+4. **OPD Checkout**: Already detects unpaid consultation fees
 
-### Implemented 7-Step Process
+### What's Missing
+1. **OPDWalkInPage**: Only allows "Generate Token" after full payment - no "Pay Later" or "Waive" options
+2. **Waiver Tracking**: No columns for `waived_by`, `waiver_reason`, `waived_at`
+3. **Clinical Visibility**: Doctor/Nurse dashboards don't show payment status
+4. **Doctor Waive Authority**: No UI for doctor to waive fees during consultation
 
-```text
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                         CURRENT OPD WORKFLOW                                │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  1. REGISTRATION          2. CHECK-IN              3. NURSE VITALS          │
-│  ┌──────────────┐        ┌──────────────┐        ┌──────────────┐          │
-│  │ Patient Reg  │───────▶│ Token Gen    │───────▶│ Record BP,   │          │
-│  │ Walk-in/Apt  │        │ Queue Entry  │        │ Temp, Pulse  │          │
-│  │ Fee Payment  │        │ Priority Set │        │ Chief Cmplnt │          │
-│  └──────────────┘        └──────────────┘        └──────────────┘          │
-│         │                       │                       │                   │
-│         ▼                       ▼                       ▼                   │
-│  ┌──────────────┐        ┌──────────────┐        ┌──────────────┐          │
-│  │ OPDWalkIn    │        │ CheckInPage  │        │ NurseDashbd  │          │
-│  │ AppointForm  │        │ TokenSlip    │        │ OPDVitals    │          │
-│  └──────────────┘        └──────────────┘        └──────────────┘          │
-│                                                                             │
-│  4. QUEUE DISPLAY         5. CONSULTATION          6. ORDERS               │
-│  ┌──────────────┐        ┌──────────────┐        ┌──────────────┐          │
-│  │ Token Kiosk  │───────▶│ Doctor Exam  │───────▶│ Prescription │          │
-│  │ Queue Screen │        │ Diagnosis    │        │ Lab Orders   │          │
-│  │ Now Serving  │        │ Clinical Nte │        │ Imaging Req  │          │
-│  └──────────────┘        └──────────────┘        └──────────────┘          │
-│                                                                             │
-│  7. BILLING/CHECKOUT                                                        │
-│  ┌──────────────┐                                                           │
-│  │ Pending Fees │                                                           │
-│  │ Invoice Gen  │                                                           │
-│  │ Payment      │                                                           │
-│  └──────────────┘                                                           │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
----
-
-## What's Working Well
-
-| Component | Status | Details |
-|-----------|--------|---------|
-| **Patient Registration** | Complete | Quick walk-in + scheduled appointment booking |
-| **Token Generation** | Complete | Auto-increments per doctor/date, format: `OPD-YYYYMMDD-###` |
-| **Check-In with Vitals** | Complete | Nurse can record BP, pulse, temp, SpO2, weight, height, BMI |
-| **Priority/Triage** | Complete | 3-level (Normal, Urgent, Emergency) with visual badges |
-| **Queue Management** | Complete | Priority-sorted, real-time refresh (30s interval) |
-| **Doctor Dashboard** | Complete | Current patient, queue view, consultation entry |
-| **Consultation** | Complete | Vitals pre-fill, symptoms, diagnosis, prescription, lab orders |
-| **Patient Profile Integration** | Complete | OPD tab, Vitals tab, Billing tab all populated |
-| **Payment Tracking** | Partial | `payment_status` and `invoice_id` columns exist |
-
----
-
-## Gaps & Issues Identified
-
-### 1. Visit ID Not Consistently Displayed
-**Issue**: The `generateVisitId()` utility exists but not shown in all touchpoints.
-
-| Page | Visit ID Shown? |
-|------|-----------------|
-| Check-In Page | No |
-| Token Slip | No |
-| Nurse Dashboard | No |
-| Doctor Dashboard | No |
-| Consultation Page | Yes |
-| OPD Checkout | Yes |
-| Patient Profile OPD Tab | Yes |
-
-### 2. Walk-In Skips Nurse Vitals Step
-**Issue**: `OPDWalkInPage.tsx` creates appointment with `status: 'checked_in'` but no vitals recorded.
-- Patient goes directly to doctor queue without nurse triage
-- Chief complaint defaulted to "OPD Consultation" (generic)
-
-### 3. Consultation Completion Doesn't Navigate to Checkout
-**Issue**: After completing consultation, doctor is sent to `/app/opd` but:
-- No prompt to proceed to OPD Checkout
-- Patient may leave without paying for lab/pharmacy orders
-
-### 4. OPD Checkout Not Linked from Queue
-**Issue**: Reception has no visibility on which completed patients need checkout.
-- No "Pending Checkout" queue or filter
-- Must manually track which patients finished consultation
-
-### 5. Nurse Station Vitals Not Saved to Patient History
-**Issue**: While `check_in_vitals` is stored in `appointments` table, the `usePatientVitalsHistory` hook already correctly fetches it. But:
-- If doctor records different vitals in consultation, both should be visible
-- Currently working correctly, but UI doesn't clarify "Nurse recorded" vs "Doctor recorded"
-
-### 6. Follow-Up Appointment Not Auto-Created
-**Issue**: Doctor can set `follow_up_date` in consultation, but:
-- No automatic appointment created
-- No reminder system
-
----
-
-## Ideal OPD Process Flow
+## Proposed Workflow
 
 ```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                         IDEAL OPD WORKFLOW                                  │
+│                   OPD CONSULTATION FEE PAYMENT FLOW                         │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
+│  SCENARIO 1: PAY NOW (Default - Most Common)                               │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │ STEP 1: PATIENT ARRIVAL                                             │   │
-│  │ - Search existing patient OR register new                           │   │
-│  │ - Select doctor (with queue count display)                          │   │
-│  │ - Collect consultation fee (or mark as "pay later")                 │   │
-│  │ - Generate Token with Visit ID: OPD-YYYYMMDD-###                    │   │
-│  │ - Print Token Slip + Receipt                                        │   │
-│  │ - Status: SCHEDULED (payment pending) or CHECKED_IN (fee paid)      │   │
+│  │ Reception collects fee → Invoice created → Token generated          │   │
+│  │ Status: payment_status = 'paid' | Token Color: Green                │   │
 │  └─────────────────────────────────────────────────────────────────────┘   │
-│                              │                                              │
-│                              ▼                                              │
+│                                                                             │
+│  SCENARIO 2: PAY LATER (Patient Promises to Pay)                           │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │ STEP 2: NURSE TRIAGE (Optional but Recommended)                     │   │
-│  │ - Patient appears in Nurse Station queue                            │   │
-│  │ - Record vitals: BP, Pulse, Temp, SpO2, Weight, Height              │   │
-│  │ - Set priority: Normal / Urgent / Emergency                         │   │
-│  │ - Update chief complaint from patient interview                     │   │
-│  │ - Status: CHECKED_IN + check_in_vitals populated                    │   │
+│  │ Reception clicks "Pay Later" → Token generated (no invoice)         │   │
+│  │ Status: payment_status = 'pending' | Token Color: Yellow/Amber      │   │
+│  │ Fee collected at OPD Checkout after consultation                    │   │
 │  └─────────────────────────────────────────────────────────────────────┘   │
-│                              │                                              │
-│                              ▼                                              │
+│                                                                             │
+│  SCENARIO 3: WAIVE OFF (Authority Required)                                │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │ STEP 3: QUEUE DISPLAY                                               │   │
-│  │ - Token Kiosk shows "Now Serving" per doctor                        │   │
-│  │ - Priority-sorted queue (Emergency > Urgent > Normal)               │   │
-│  │ - Estimated wait time based on avg consultation duration            │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-│                              │                                              │
-│                              ▼                                              │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │ STEP 4: DOCTOR CONSULTATION                                         │   │
-│  │ - Doctor sees patient queue with vitals preview                     │   │
-│  │ - Click to start: Status changes to IN_PROGRESS                     │   │
-│  │ - Review/update vitals (pre-filled from nurse)                      │   │
-│  │ - Record symptoms, examination, diagnosis                           │   │
-│  │ - Create prescription (Rx) if needed                                │   │
-│  │ - Order lab tests if needed                                         │   │
-│  │ - Set follow-up date if needed                                      │   │
-│  │ - Complete consultation: Status changes to COMPLETED                │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-│                              │                                              │
-│                              ▼                                              │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │ STEP 5: OPD CHECKOUT                                                │   │
-│  │ - Patient proceeds to reception/billing                             │   │
-│  │ - View pending charges: Lab, Pharmacy, Follow-up                    │   │
-│  │ - Generate consolidated invoice                                     │   │
-│  │ - Collect payment (or schedule for later)                           │   │
-│  │ - Print visit summary + receipts                                    │   │
-│  │ - Mark visit as CLOSED                                              │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-│                              │                                              │
-│                              ▼                                              │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │ STEP 6: FOLLOW-UP SERVICES                                          │   │
-│  │ - Lab: Sample collection → Results → Notify patient                 │   │
-│  │ - Pharmacy: Dispense prescription → Record in profile               │   │
-│  │ - Follow-up: Auto-create next appointment if date set               │   │
+│  │ Doctor/Admin authorizes waiver → Token generated (no invoice)       │   │
+│  │ Status: payment_status = 'waived' | Token Color: Gray               │   │
+│  │ Tracked: waived_by (profile_id), waiver_reason, waived_at           │   │
+│  │ No fee appears at checkout                                          │   │
 │  └─────────────────────────────────────────────────────────────────────┘   │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
----
+## Implementation Plan
 
-## Patient Profile Integration Audit
+### Phase 1: Database Schema Enhancement
 
-### Data Flowing to Patient Profile
+**Migration: Add waiver tracking columns to appointments**
 
-| Tab | Data Source | Status |
-|-----|-------------|--------|
-| **OPD Visits** | `appointments` table | Working - shows all visits with Visit ID |
-| **Vitals** | `appointments.check_in_vitals` + `consultations.vitals` + `ipd_vitals` | Working - aggregated by `usePatientVitalsHistory` |
-| **Consults** | `consultations` table | Working - shows diagnosis, symptoms |
-| **Prescriptions** | `prescriptions` + `prescription_items` | Working - linked to consultation |
-| **Lab** | `lab_orders` + `lab_order_items` | Working - linked to consultation |
-| **Billing** | `invoices` + `payments` | Working - shows all financial records |
+```sql
+-- Add waiver tracking columns
+ALTER TABLE appointments 
+ADD COLUMN IF NOT EXISTS waived_by UUID REFERENCES profiles(id),
+ADD COLUMN IF NOT EXISTS waiver_reason TEXT,
+ADD COLUMN IF NOT EXISTS waived_at TIMESTAMPTZ;
 
-### Verified Working
-- All OPD visits appear in patient profile OPD tab
-- Vitals from nurse check-in are saved and visible in Vitals tab
-- Vitals from doctor consultation are saved and visible
-- Prescriptions appear in Rx tab
-- Lab orders appear in Lab tab
-- Invoices and payments appear in Billing tab
+-- Update payment_status check constraint to include 'pay_later'
+ALTER TABLE appointments 
+DROP CONSTRAINT IF EXISTS appointments_payment_status_check;
 
----
+ALTER TABLE appointments 
+ADD CONSTRAINT appointments_payment_status_check 
+CHECK (payment_status IN ('pending', 'paid', 'partial', 'waived', 'pay_later'));
 
-## Recommended Enhancements
+-- Add index for waiver queries
+CREATE INDEX IF NOT EXISTS idx_appointments_waived_by ON appointments(waived_by) WHERE waived_by IS NOT NULL;
 
-### Priority 1: Critical Fixes
+-- Add comment
+COMMENT ON COLUMN appointments.waived_by IS 'Profile ID of person who authorized fee waiver';
+COMMENT ON COLUMN appointments.waiver_reason IS 'Reason for waiving consultation fee';
+COMMENT ON COLUMN appointments.waived_at IS 'Timestamp when fee was waived';
+```
 
-1. **Add Visit ID to Token Slip & Check-In Page**
-   - Display `OPD-YYYYMMDD-TOKEN` prominently
-   - Files: `PrintableTokenSlip.tsx`, `CheckInPage.tsx`
+### Phase 2: Update OPDWalkInPage Payment Step
 
-2. **Walk-In Should Not Skip Vitals**
-   - Change `OPDWalkInPage` to set status as `scheduled` (not `checked_in`)
-   - Or add a "Record Vitals Now" step before payment
-   - File: `OPDWalkInPage.tsx`
+**Modify Step 3 (Payment) to include three options:**
 
-3. **Consultation Completion Should Prompt Checkout**
-   - After "Complete Consultation", show dialog with options:
-     - "Send to Checkout" (if pending lab/Rx charges)
-     - "Mark Complete" (if no pending charges)
-   - File: `ConsultationPage.tsx`
+1. **Pay Now (Primary)**: Current flow - collect payment, create invoice
+2. **Pay Later (Secondary)**: Generate token with `payment_status: 'pending'`
+3. **Waive Fee (Tertiary)**: Opens dialog requiring reason and authorization
 
-### Priority 2: Workflow Improvements
+**UI Changes:**
+```text
+┌─────────────────────────────────────────────────────────────────┐
+│ Step 3: Payment                                                 │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  Consultation Fee: Rs. 1,500                                    │
+│                                                                 │
+│  [Payment Method Selection - if paying now]                     │
+│  [Amount Received - if cash]                                    │
+│                                                                 │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │ ⚠️ Are you sure you want to skip payment?               │   │
+│  │ Fee of Rs. 1,500 will be collected at checkout.         │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                 │
+│  ┌────────────┐  ┌─────────────┐  ┌───────────────────────┐   │
+│  │ Pay Later  │  │ Waive Fee   │  │  Generate Token ➤     │   │
+│  │ (pending)  │  │ (requires   │  │  & Collect Payment    │   │
+│  │            │  │  reason)    │  │                       │   │
+│  └────────────┘  └─────────────┘  └───────────────────────┘   │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
 
-4. **Add "Pending Checkout" Queue for Reception**
-   - New page: `/app/opd/pending-checkout`
-   - Filter appointments where `status = 'completed'` AND `has_pending_charges = true`
-   - File: Create `PendingCheckoutPage.tsx`
+**Files to Modify:**
+- `src/pages/app/opd/OPDWalkInPage.tsx`
+  - Add "Pay Later" button handler
+  - Add "Waive Fee" button with dialog
+  - Track `waiver_reason` and `waived_by`
 
-5. **Auto-Create Follow-Up Appointment**
-   - When doctor sets `follow_up_date`, create a tentative appointment
-   - File: `ConsultationPage.tsx`, add to `saveConsultation()` function
+### Phase 3: Create Waiver Dialog Component
 
-6. **Nurse Station: Show Visit ID**
-   - Add Visit ID column to nursing queue
-   - File: `NurseDashboard.tsx`
+**New Component: `src/components/appointments/FeeWaiverDialog.tsx`**
 
-### Priority 3: UX Enhancements
+```text
+┌─────────────────────────────────────────────────────────────────┐
+│ Waive Consultation Fee                                          │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  Patient: Ahmed Khan (MR-2025-00123)                           │
+│  Doctor: Dr. Fatima Noor                                        │
+│  Fee: Rs. 1,500                                                 │
+│                                                                 │
+│  Reason for Waiver *                                            │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │ ▾ Select reason                                         │   │
+│  │   ○ Staff/Employee Benefit                              │   │
+│  │   ○ Hospital Charity Case                               │   │
+│  │   ○ Doctor's Request                                    │   │
+│  │   ○ Management Approval                                 │   │
+│  │   ○ Follow-up Visit (No Charge)                         │   │
+│  │   ○ Other (specify below)                               │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                 │
+│  Additional Notes (if Other)                                    │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │                                                         │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                 │
+│  Authorized By: Dr. Admin Name (auto-filled from session)       │
+│                                                                 │
+│  ⚠️ This action will be logged for audit purposes.              │
+│                                                                 │
+│         ┌──────────┐  ┌───────────────────────┐                │
+│         │  Cancel  │  │  Confirm Waiver       │                │
+│         └──────────┘  └───────────────────────┘                │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
 
-7. **Doctor Dashboard: Show Vitals Preview**
-   - Before starting consultation, show key vitals inline
-   - File: `DoctorDashboard.tsx`
+### Phase 4: Update Clinical Dashboards with Payment Status
 
-8. **Token Kiosk: Estimated Wait Time**
-   - Calculate based on average consultation duration
-   - File: `TokenKioskPage.tsx`
+**Show payment status badges in queues so clinical staff are aware:**
 
-9. **SMS Notification on Token Call**
-   - Send SMS when patient's token is next
-   - Requires: Supabase Edge Function + SMS provider
+1. **Doctor Dashboard** (`DoctorDashboard.tsx`):
+   - Add `PaymentStatusBadge` next to token number
+   - Color coding: Green (paid), Amber (pending), Gray (waived)
 
----
+2. **Nurse Dashboard** (`NurseDashboard.tsx`):
+   - Add payment status indicator to queue items
+   - Enable nurse to see if patient still needs to pay
 
-## Technical Implementation Details
+3. **Patient Queue** (`PatientVitalsCard.tsx`):
+   - Include payment status in the card display
 
-### Files to Modify
+**Example Queue Item Display:**
+```text
+┌─────────────────────────────────────────────────────────────────┐
+│  #15  │ Ahmed Khan          │ Urgent │ BP: 140/90 │ ⚠️ Unpaid │
+│       │ MR-2025-00123       │        │ P: 88      │           │
+│       │ Chief: Chest pain   │        │ T: 99.2°F  │           │
+└─────────────────────────────────────────────────────────────────┘
+```
 
-| File | Change |
-|------|--------|
-| `src/components/clinic/PrintableTokenSlip.tsx` | Add Visit ID display |
-| `src/pages/app/appointments/CheckInPage.tsx` | Add Visit ID in header |
-| `src/pages/app/opd/OPDWalkInPage.tsx` | Status should be `scheduled` not `checked_in`, add vitals step option |
-| `src/pages/app/opd/ConsultationPage.tsx` | Add checkout prompt after completion |
-| `src/pages/app/opd/DoctorDashboard.tsx` | Show vitals inline for queue items |
-| `src/pages/app/opd/NurseDashboard.tsx` | Add Visit ID column |
+### Phase 5: Update Consultation Page for Doctor Waiver
 
-### New Files to Create
+**Allow doctor to waive fees during/after consultation:**
 
+Add a "Waive Fee" option in the consultation page for cases where:
+- Payment is still pending
+- Doctor determines patient qualifies for charity/waiver
+
+**Location:** Sidebar or action menu in `ConsultationPage.tsx`
+
+### Phase 6: Enhanced Checkout Flow
+
+**Update `OPDCheckoutPage.tsx` to handle different payment scenarios:**
+
+1. If `payment_status = 'pending'` or `'pay_later'`:
+   - Show consultation fee in pending charges
+   - Allow collection at this point
+
+2. If `payment_status = 'waived'`:
+   - Show "Fee Waived" badge with reason
+   - Do not include in charges
+
+3. Display waiver audit info:
+   - "Waived by: Dr. Admin"
+   - "Reason: Staff Benefit"
+   - "At: Jan 27, 2026 10:30 AM"
+
+### Phase 7: Token Slip Enhancement
+
+**Update `PrintableTokenSlip.tsx` to show payment status:**
+
+```text
+┌─────────────────────────────────────────────────────────────────┐
+│                    SMART HMS HOSPITAL                           │
+│                     OPD Token Slip                              │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│           TOKEN: 015                                            │
+│           Visit: OPD-20260127-015                               │
+│                                                                 │
+│  Patient: Ahmed Khan                                            │
+│  MR#: MR-2025-00123                                             │
+│  Doctor: Dr. Fatima Noor (General Medicine)                     │
+│                                                                 │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │ Payment Status: ⚠️ PENDING - Rs. 1,500                  │   │
+│  │ Please pay at billing counter after consultation        │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                 │
+│  Date: Jan 27, 2026 | Time: 10:30 AM                           │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+## Files to Create/Modify
+
+### New Files
 | File | Purpose |
 |------|---------|
-| `src/pages/app/opd/PendingCheckoutPage.tsx` | List patients needing checkout after consultation |
+| `src/components/appointments/FeeWaiverDialog.tsx` | Waiver authorization dialog |
 
-### Database Changes Required
+### Modified Files
+| File | Changes |
+|------|---------|
+| `src/pages/app/opd/OPDWalkInPage.tsx` | Add Pay Later, Waive Fee buttons and handlers |
+| `src/pages/app/opd/DoctorDashboard.tsx` | Show payment status badge in queue |
+| `src/pages/app/opd/NurseDashboard.tsx` | Show payment status in patient cards |
+| `src/pages/app/opd/ConsultationPage.tsx` | Add waiver option for doctors |
+| `src/pages/app/opd/OPDCheckoutPage.tsx` | Handle waived status in checkout |
+| `src/components/clinic/PrintableTokenSlip.tsx` | Display payment status |
+| `src/components/appointments/PrintableTokenSlip.tsx` | Display payment status |
+| `src/components/nursing/PatientVitalsCard.tsx` | Add payment badge |
+| `src/components/radiology/PaymentStatusBadge.tsx` | Add 'pay_later' status |
 
-None - existing schema is sufficient. The `appointments` table already has:
-- `token_number` for Visit ID generation
-- `payment_status` for tracking (pending/paid)
-- `check_in_vitals` for nurse-recorded data
-- `status` enum covering full workflow
+## Technical Considerations
 
----
+1. **Permission Check**: Waiver authorization should verify user has appropriate role (doctor, admin)
+2. **Audit Trail**: All waivers are tracked with who, when, and why
+3. **Queue Movement**: Token moves through queue regardless of payment status
+4. **Checkout Enforcement**: Unpaid fees surface at checkout (unless waived)
+5. **Reusable Component**: `FeeWaiverDialog` can be used in AppointmentFormPage too
 
-## Summary of Findings
+## Summary
 
-### What's Complete
-- Full 7-step OPD workflow is implemented
-- Token generation and queue management working
-- Nurse vitals recording working
-- Doctor consultation with Rx and Lab orders working
-- Patient profile correctly aggregates all OPD data
-- Billing integration with invoices and payments
-
-### What Needs Attention
-1. Visit ID not shown consistently across all touchpoints
-2. Walk-in flow skips nurse triage (goes directly to queue)
-3. No "Pending Checkout" visibility after consultation completion
-4. Follow-up appointment not auto-created when doctor sets date
-
-### Recommended Action
-Implement Priority 1 fixes first to ensure complete data traceability, then add Priority 2/3 enhancements for smoother workflow.
+This implementation provides:
+- **Flexibility**: Three payment options (Pay Now, Pay Later, Waive)
+- **Accountability**: Full audit trail for waivers
+- **Visibility**: Payment status shown across all clinical touchpoints
+- **Enforcement**: Unpaid fees collected at checkout
+- **Pakistan Context**: Matches local hospital workflow expectations
