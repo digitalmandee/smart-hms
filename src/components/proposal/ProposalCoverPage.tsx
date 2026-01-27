@@ -36,16 +36,16 @@ export const ProposalCoverPage = ({ clientName = "[Hospital Name]" }: ProposalCo
         
         {/* Document Title */}
         <h2 className="text-5xl font-bold text-foreground mb-4 tracking-tight">
-          PRICING & COMMERCIALS
+          HealthOS Proposal
         </h2>
         <p className="text-xl text-muted-foreground mb-12">
-          Smart Hospital Management System Proposal
+          Smart Hospital Management System
         </p>
 
         {/* Client Name Box */}
         <div className="bg-card border-2 border-primary/20 rounded-2xl px-12 py-8 shadow-lg">
           <p className="text-sm text-muted-foreground mb-2">Prepared For</p>
-          <h3 className="text-3xl font-bold text-primary">{clientName}</h3>
+          <h3 className="text-3xl font-bold text-primary">Capital Care International Hospital</h3>
         </div>
 
         {/* Version & Date */}
@@ -65,7 +65,7 @@ export const ProposalCoverPage = ({ clientName = "[Hospital Name]" }: ProposalCo
       <div className="border-t border-border pt-6">
         <div className="flex items-center justify-between text-sm">
           <div className="text-muted-foreground">
-            <p className="font-medium text-foreground">DevMine Solutions</p>
+            <p className="font-medium text-foreground">Devmine</p>
             <p>Enterprise Healthcare Technology</p>
           </div>
           <div className="text-right text-muted-foreground">

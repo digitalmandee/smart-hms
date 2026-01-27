@@ -43,7 +43,7 @@ export const ProposalPricingPage = () => {
           <span className="text-lg font-semibold text-foreground">HealthOS</span>
         </div>
         <span className="text-sm text-muted-foreground bg-muted px-3 py-1 rounded-full">
-          03 / 04
+          09 / 10
         </span>
       </div>
 

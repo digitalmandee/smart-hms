@@ -4,12 +4,24 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Download, Printer, ChevronLeft, ChevronRight } from "lucide-react";
 import { ProposalCoverPage } from "@/components/proposal/ProposalCoverPage";
 import { ProposalExecutiveSummary } from "@/components/proposal/ProposalExecutiveSummary";
+import { ProposalClinicalFeatures } from "@/components/proposal/ProposalClinicalFeatures";
+import { ProposalDiagnosticsFeatures } from "@/components/proposal/ProposalDiagnosticsFeatures";
+import { ProposalPharmacyFeatures } from "@/components/proposal/ProposalPharmacyFeatures";
+import { ProposalFinanceFeatures } from "@/components/proposal/ProposalFinanceFeatures";
+import { ProposalOperationsFeatures } from "@/components/proposal/ProposalOperationsFeatures";
+import { ProposalTechnicalSpecs } from "@/components/proposal/ProposalTechnicalSpecs";
 import { ProposalPricingPage } from "@/components/proposal/ProposalPricingPage";
 import { ProposalTermsPage } from "@/components/proposal/ProposalTermsPage";
 
 const pages = [
   { id: "cover", label: "Cover", component: ProposalCoverPage },
   { id: "summary", label: "Executive Summary", component: ProposalExecutiveSummary },
+  { id: "clinical", label: "Clinical Operations", component: ProposalClinicalFeatures },
+  { id: "diagnostics", label: "Diagnostics & Lab", component: ProposalDiagnosticsFeatures },
+  { id: "pharmacy", label: "Pharmacy & Inventory", component: ProposalPharmacyFeatures },
+  { id: "finance", label: "Finance & Billing", component: ProposalFinanceFeatures },
+  { id: "operations", label: "Operations & Admin", component: ProposalOperationsFeatures },
+  { id: "technical", label: "Technical Specs", component: ProposalTechnicalSpecs },
   { id: "pricing", label: "Pricing Details", component: ProposalPricingPage },
   { id: "terms", label: "Terms & Conditions", component: ProposalTermsPage },
 ];
