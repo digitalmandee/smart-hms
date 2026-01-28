@@ -8,6 +8,7 @@ import { useTodayQueue } from '@/hooks/useAppointments';
 import { useOrganization } from '@/hooks/useOrganizations';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
 
 const priorityConfig: Record<number, { bg: string; text: string; label: string; borderColor: string }> = {
   0: { bg: 'bg-success/10', text: 'text-success', label: 'Normal', borderColor: 'border-success/30' },
@@ -30,12 +31,32 @@ export default function QueueDisplayPage() {
     return () => clearInterval(timer);
   }, []);
 
-  // Auto-refresh queue every 10 seconds
+  // Real-time subscription for instant queue updates
   useEffect(() => {
-    const timer = setInterval(() => {
-      refetch();
-    }, 10000);
-    return () => clearInterval(timer);
+    const today = format(new Date(), 'yyyy-MM-dd');
+    const channel = supabase
+      .channel('queue-display-updates')
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'appointments',
+        filter: `appointment_date=eq.${today}`,
+      }, () => {
+        refetch();
+      })
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'appointments',
+        filter: `appointment_date=eq.${today}`,
+      }, () => {
+        refetch();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [refetch]);
 
   // Listen for fullscreen changes
