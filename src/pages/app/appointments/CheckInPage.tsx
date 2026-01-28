@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Loader2, ArrowLeft, UserCheck, AlertTriangle, Printer, Clock, Stethoscope, Hash } from 'lucide-react';
+import { Loader2, ArrowLeft, UserCheck, AlertTriangle, Printer, Clock, Stethoscope, Hash, CreditCard } from 'lucide-react';
 import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,6 +11,9 @@ import { Badge } from '@/components/ui/badge';
 import { VitalsForm } from '@/components/consultation/VitalsForm';
 import { PatientQuickInfo } from '@/components/consultation/PatientQuickInfo';
 import { PrintableTokenSlip } from '@/components/appointments/PrintableTokenSlip';
+import { AppointmentPaymentDialog } from '@/components/appointments/AppointmentPaymentDialog';
+import { PaymentRequiredDialog } from '@/components/appointments/PaymentRequiredDialog';
+import { FeeWaiverDialog } from '@/components/appointments/FeeWaiverDialog';
 import { useAppointment, useCheckInWithVitals } from '@/hooks/useAppointments';
 import { useOrganization } from '@/hooks/useOrganizations';
 import { useAuth } from '@/contexts/AuthContext';
@@ -19,6 +22,7 @@ import { useToast } from '@/hooks/use-toast';
 import { usePrint } from '@/hooks/usePrint';
 import { generateVisitId } from '@/lib/visit-id';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
 
 const priorityOptions = [
   { 
@@ -56,7 +60,7 @@ export default function CheckInPage() {
   const { toast } = useToast();
   const { profile } = useAuth();
 
-  const { data: appointment, isLoading } = useAppointment(id || '');
+  const { data: appointment, isLoading, refetch } = useAppointment(id || '');
   const { data: organization } = useOrganization(profile?.organization_id ?? undefined);
   const checkInWithVitals = useCheckInWithVitals();
   const { printRef, handlePrint } = usePrint();
@@ -69,6 +73,11 @@ export default function CheckInPage() {
   const [printTokenSlip, setPrintTokenSlip] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [checkedInAppointment, setCheckedInAppointment] = useState<any>(null);
+  
+  // Payment dialog states
+  const [showPaymentRequiredDialog, setShowPaymentRequiredDialog] = useState(false);
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [showWaiverDialog, setShowWaiverDialog] = useState(false);
 
   if (isLoading) {
     return (
@@ -91,6 +100,8 @@ export default function CheckInPage() {
 
   const patient = appointment.patient as any;
   const doctor = appointment.doctor as any;
+  const paymentStatus = (appointment as any).payment_status || 'pending';
+  const consultationFee = doctor?.consultation_fee || 500;
   
   // Generate Visit ID
   const visitId = generateVisitId({
@@ -99,6 +110,18 @@ export default function CheckInPage() {
   });
 
   const handleCheckIn = async () => {
+    if (!id) return;
+    
+    // Check payment status before proceeding
+    if (paymentStatus === 'pending') {
+      setShowPaymentRequiredDialog(true);
+      return;
+    }
+    
+    await performCheckIn();
+  };
+  
+  const performCheckIn = async () => {
     if (!id) return;
     
     setIsSubmitting(true);
@@ -138,6 +161,75 @@ export default function CheckInPage() {
       });
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  // Handle payment completion
+  const handlePaymentComplete = async () => {
+    setShowPaymentDialog(false);
+    await refetch(); // Refresh appointment data
+    toast({
+      title: 'Payment recorded',
+      description: 'Proceeding with check-in...',
+    });
+    await performCheckIn();
+  };
+
+  // Handle pay later option
+  const handlePayLater = async () => {
+    setShowPaymentRequiredDialog(false);
+    toast({
+      title: 'Payment deferred',
+      description: 'Fee will be collected at checkout',
+    });
+    await performCheckIn();
+  };
+
+  // Handle waiver confirmation
+  const handleWaiverConfirm = async (reason: string, notes: string) => {
+    if (!id || !profile?.id) return;
+    
+    try {
+      // Update appointment with waiver details
+      await supabase
+        .from('appointments')
+        .update({
+          payment_status: 'waived',
+          waived_by: profile.id,
+          waiver_reason: reason,
+          waived_at: new Date().toISOString(),
+        } as any)
+        .eq('id', id);
+      
+      setShowWaiverDialog(false);
+      setShowPaymentRequiredDialog(false);
+      
+      toast({
+        title: 'Fee waived',
+        description: `Reason: ${reason}`,
+      });
+      
+      await refetch();
+      await performCheckIn();
+    } catch (error: any) {
+      toast({
+        title: 'Failed to waive fee',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const getPaymentStatusBadge = () => {
+    switch (paymentStatus) {
+      case 'paid':
+        return <Badge className="bg-success text-success-foreground">Paid</Badge>;
+      case 'partial':
+        return <Badge variant="secondary">Partial</Badge>;
+      case 'waived':
+        return <Badge variant="outline">Waived</Badge>;
+      default:
+        return <Badge variant="destructive">Pending</Badge>;
     }
   };
 
@@ -197,6 +289,33 @@ export default function CheckInPage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Payment Status Alert */}
+          {paymentStatus === 'pending' && (
+            <Card className="border-warning bg-warning/10">
+              <CardContent className="py-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <CreditCard className="h-5 w-5 text-warning" />
+                    <div>
+                      <p className="font-medium">Payment Pending</p>
+                      <p className="text-sm text-muted-foreground">
+                        Consultation fee has not been collected yet
+                      </p>
+                    </div>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setShowPaymentDialog(true)}
+                  >
+                    <CreditCard className="h-4 w-4 mr-2" />
+                    Collect Now
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Priority Selection - Visual Cards */}
           <Card>
@@ -358,10 +477,63 @@ export default function CheckInPage() {
                   <span>Dr. {doctor.profile?.full_name}</span>
                 </div>
               )}
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Payment</span>
+                {getPaymentStatusBadge()}
+              </div>
             </CardContent>
           </Card>
         </div>
       </div>
+
+      {/* Payment Required Dialog */}
+      <PaymentRequiredDialog
+        open={showPaymentRequiredDialog}
+        onOpenChange={setShowPaymentRequiredDialog}
+        patientName={`${patient?.first_name} ${patient?.last_name}`}
+        doctorName={doctor?.profile?.full_name || 'Doctor'}
+        consultationFee={consultationFee}
+        paymentStatus={paymentStatus}
+        onPayNow={() => {
+          setShowPaymentRequiredDialog(false);
+          setShowPaymentDialog(true);
+        }}
+        onPayLater={handlePayLater}
+        onWaive={() => {
+          setShowPaymentRequiredDialog(false);
+          setShowWaiverDialog(true);
+        }}
+      />
+
+      {/* Payment Collection Dialog */}
+      {appointment && (
+        <AppointmentPaymentDialog
+          open={showPaymentDialog}
+          onOpenChange={setShowPaymentDialog}
+          appointmentId={appointment.id}
+          patientName={`${patient?.first_name} ${patient?.last_name}`}
+          patientNumber={patient?.patient_number || ''}
+          doctorName={doctor?.profile?.full_name || 'Doctor'}
+          consultationFee={consultationFee}
+          appointmentDate={appointment.appointment_date}
+          appointmentTime={appointment.appointment_time}
+          onPaymentComplete={handlePaymentComplete}
+          onPayLater={handlePayLater}
+        />
+      )}
+
+      {/* Fee Waiver Dialog */}
+      <FeeWaiverDialog
+        open={showWaiverDialog}
+        onOpenChange={setShowWaiverDialog}
+        patient={{ 
+          name: `${patient?.first_name} ${patient?.last_name}`,
+          mrNumber: patient?.patient_number 
+        }}
+        doctor={{ name: doctor?.profile?.full_name || 'Doctor' }}
+        fee={consultationFee}
+        onConfirm={handleWaiverConfirm}
+      />
 
       {/* Printable Token Slip */}
       <div className="hidden">

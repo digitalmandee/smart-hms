@@ -62,6 +62,8 @@ export interface InvoiceItemInput {
   booking_end_date?: string | null;
   // Category tracking for special handling
   category?: string | null;
+  // Doctor attribution for consultation fees (wallet earnings)
+  doctor_id?: string | null;
 }
 
 // ========== INVOICES ==========
@@ -230,6 +232,7 @@ export function useCreateInvoice() {
         total_price: item.quantity * item.unit_price * (1 - (item.discount_percent || 0) / 100),
         service_type_id: item.service_type_id,
         medicine_inventory_id: item.medicine_inventory_id,
+        doctor_id: item.doctor_id || null,
       }));
 
       const { error: itemsError } = await supabase
