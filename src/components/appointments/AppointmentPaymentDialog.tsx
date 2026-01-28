@@ -99,7 +99,7 @@ export function AppointmentPaymentDialog({
         throw new Error("Appointment not found");
       }
 
-      // 1. Create Invoice
+      // 1. Create Invoice (include doctor_id for wallet earnings)
       const invoice = await createInvoice.mutateAsync({
         patientId: appointment.patient_id,
         branchId: appointment.branch_id,
@@ -107,6 +107,7 @@ export function AppointmentPaymentDialog({
           description: `Consultation Fee - Dr. ${doctorName}`,
           quantity: 1,
           unit_price: paymentAmount,
+          doctor_id: appointment.doctor_id, // Link to doctor for wallet earnings
         }],
         status: "pending",
       });

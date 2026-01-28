@@ -337,7 +337,7 @@ export default function OPDWalkInPage() {
 
     setIsProcessing(true);
     try {
-      // 1. Create Invoice with consultation fee
+      // 1. Create Invoice with consultation fee (include doctor_id for wallet earnings)
       const invoice = await createInvoice.mutateAsync({
         patientId: selectedPatientId,
         branchId: profile.branch_id,
@@ -345,6 +345,7 @@ export default function OPDWalkInPage() {
           description: `${selectedDoctor.specialty} Consultation - ${selectedDoctor.name}`,
           quantity: 1,
           unit_price: selectedDoctor.fee,
+          doctor_id: selectedDoctor.id, // Link to doctor for wallet earnings
         }],
         status: "pending",
       });

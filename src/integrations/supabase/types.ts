@@ -8751,6 +8751,7 @@ export type Database = {
           created_at: string
           description: string
           discount_percent: number | null
+          doctor_id: string | null
           id: string
           invoice_id: string
           lab_order_id: string | null
@@ -8767,6 +8768,7 @@ export type Database = {
           created_at?: string
           description: string
           discount_percent?: number | null
+          doctor_id?: string | null
           id?: string
           invoice_id: string
           lab_order_id?: string | null
@@ -8783,6 +8785,7 @@ export type Database = {
           created_at?: string
           description?: string
           discount_percent?: number | null
+          doctor_id?: string | null
           id?: string
           invoice_id?: string
           lab_order_id?: string | null
@@ -8798,6 +8801,13 @@ export type Database = {
             columns: ["bed_id"]
             isOneToOne: false
             referencedRelation: "beds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_items_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
             referencedColumns: ["id"]
           },
           {
