@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
+import { supabase } from '@/integrations/supabase/client';
 import { Users, RefreshCw, Monitor, AlertTriangle } from 'lucide-react';
 import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
@@ -52,6 +53,34 @@ export default function AppointmentQueuePage() {
   const complete = useCompleteAppointment();
   const cancel = useCancelAppointment();
   const noShow = useMarkNoShow();
+
+  // Real-time subscription for instant queue updates
+  useEffect(() => {
+    const today = format(new Date(), 'yyyy-MM-dd');
+    const channel = supabase
+      .channel('queue-management-updates')
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'appointments',
+        filter: `appointment_date=eq.${today}`,
+      }, () => {
+        refetch();
+      })
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'appointments',
+        filter: `appointment_date=eq.${today}`,
+      }, () => {
+        refetch();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [refetch]);
 
   const handleAction = async (
     appointmentId: string,

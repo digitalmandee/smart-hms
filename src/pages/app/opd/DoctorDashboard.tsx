@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { useAppointments } from "@/hooks/useAppointments";
+import { useAppointments, useUpdateAppointment } from "@/hooks/useAppointments";
 import { useDoctors } from "@/hooks/useDoctors";
 import { useTodayConsultationStats } from "@/hooks/useConsultations";
 import { useAuth } from "@/contexts/AuthContext";
@@ -30,6 +30,7 @@ export default function DoctorDashboard() {
   });
 
   const { data: stats } = useTodayConsultationStats(currentDoctor?.id);
+  const updateAppointment = useUpdateAppointment();
 
   const queuedPatients = todayAppointments.filter(
     a => a.status === "checked_in" || a.status === "in_progress"
@@ -64,7 +65,14 @@ export default function DoctorDashboard() {
     return parts.length > 0 ? parts : null;
   };
 
-  const handleQueueItemClick = (appointmentId: string) => {
+  const handleQueueItemClick = async (appointmentId: string, status: string) => {
+    // Update status to in_progress if checked_in
+    if (status === 'checked_in') {
+      await updateAppointment.mutateAsync({
+        id: appointmentId,
+        status: 'in_progress',
+      });
+    }
     navigate(`/app/opd/consultation/${appointmentId}`);
   };
 
@@ -217,7 +225,7 @@ export default function DoctorDashboard() {
                   return (
                     <div
                       key={apt.id}
-                      onClick={() => handleQueueItemClick(apt.id)}
+                      onClick={() => handleQueueItemClick(apt.id, apt.status || '')}
                       className="flex items-center justify-between p-3 border rounded-lg cursor-pointer hover:bg-accent/50 hover:border-primary/30 transition-colors group"
                     >
                       <div className="flex items-center gap-3">

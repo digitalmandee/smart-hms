@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { format } from "date-fns";
 import { PageHeader } from "@/components/PageHeader";
@@ -83,6 +83,16 @@ export default function ConsultationPage() {
     appointment_date: appointment.appointment_date,
     token_number: appointment.token_number,
   }) : "";
+
+  // Auto-update status to 'in_progress' when doctor opens consultation
+  useEffect(() => {
+    if (appointment?.status === 'checked_in' && currentDoctor) {
+      updateAppointment.mutate({
+        id: appointmentId!,
+        status: 'in_progress',
+      });
+    }
+  }, [appointment?.status, appointmentId, currentDoctor]);
 
   if (loadingAppointment) {
     return (
