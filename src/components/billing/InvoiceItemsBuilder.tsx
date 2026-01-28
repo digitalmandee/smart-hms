@@ -27,7 +27,8 @@ import { useServiceTypes, ServiceTypeWithCategory } from "@/hooks/useBilling";
 import { useServiceCategories } from "@/hooks/useServiceCategories";
 import { useBeds, useWards } from "@/hooks/useIPD";
 import { BedPickerDialog, BedBookingData } from "@/components/billing/BedPickerDialog";
-import { Plus, Trash2, Bed, Calendar, ChevronsUpDown, Check } from "lucide-react";
+import { ConsultationDoctorSelector } from "@/components/billing/ConsultationDoctorSelector";
+import { Plus, Trash2, Bed, Calendar, ChevronsUpDown, Check, Stethoscope } from "lucide-react";
 import { InvoiceItemInput } from "@/hooks/useBilling";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -62,6 +63,10 @@ export function InvoiceItemsBuilder({
   // State for bed picker dialog
   const [showBedPicker, setShowBedPicker] = useState(false);
   const [pendingRoomService, setPendingRoomService] = useState<ServiceTypeWithCategory | null>(null);
+
+  // State for consultation doctor picker
+  const [showDoctorPicker, setShowDoctorPicker] = useState(false);
+  const [pendingConsultationService, setPendingConsultationService] = useState<ServiceTypeWithCategory | null>(null);
 
   // Group services by category_info.code (from joined data)
   const groupedServices = useMemo(() => {
@@ -99,16 +104,25 @@ export function InvoiceItemsBuilder({
   const handleServiceSelect = (serviceId: string) => {
     const service = serviceTypes?.find((s) => s.id === serviceId);
     if (service) {
-      // Check if it's a room category service - open bed picker
       const categoryCode = service.category_info?.code || service.category;
+      
+      // Check if it's a room category service - open bed picker
       if (categoryCode === "room") {
         setPendingRoomService(service);
         setShowBedPicker(true);
         setServicePickerOpen(false);
-        return; // Don't add immediately, wait for bed selection
+        return;
       }
 
-      // For non-room services, add to the form as before
+      // Check if it's a consultation service - open doctor picker
+      if (categoryCode === "consultation") {
+        setPendingConsultationService(service);
+        setShowDoctorPicker(true);
+        setServicePickerOpen(false);
+        return;
+      }
+
+      // For other services, add to the form as before
       setNewItem({
         ...newItem,
         description: service.name,
@@ -117,6 +131,25 @@ export function InvoiceItemsBuilder({
       });
       setServicePickerOpen(false);
     }
+  };
+
+  // Handle doctor selection for consultation
+  const handleDoctorConfirm = (doctorId: string, doctorName: string, consultationFee: number) => {
+    if (!pendingConsultationService) return;
+
+    const newConsultationItem: InvoiceItemInput = {
+      description: `${pendingConsultationService.name} - Dr. ${doctorName}`,
+      quantity: 1,
+      unit_price: consultationFee,
+      discount_percent: 0,
+      service_type_id: pendingConsultationService.id,
+      doctor_id: doctorId,
+      category: "consultation",
+    };
+
+    onChange([...items, newConsultationItem]);
+    setShowDoctorPicker(false);
+    setPendingConsultationService(null);
   };
 
   // Handle bed selection confirmation
@@ -172,6 +205,7 @@ export function InvoiceItemsBuilder({
             const service = serviceTypes?.find(s => s.id === item.service_type_id);
             const categoryCode = item.category || service?.category_info?.code || service?.category;
             const isRoomItem = categoryCode === "room" && item.bed_id;
+            const isConsultationItem = categoryCode === "consultation" && item.doctor_id;
             
             return (
               <TableRow key={index}>
@@ -181,7 +215,7 @@ export function InvoiceItemsBuilder({
                       {categoryCode && (
                         <ServiceCategoryBadge category={categoryCode as any} />
                       )}
-                      <span className={isRoomItem ? "font-medium" : ""}>{item.description}</span>
+                      <span className={isRoomItem || isConsultationItem ? "font-medium" : ""}>{item.description}</span>
                     </div>
                     {/* Show booking dates for room items */}
                     {isRoomItem && item.booking_start_date && item.booking_end_date && (
@@ -190,6 +224,13 @@ export function InvoiceItemsBuilder({
                         <span>
                           {format(new Date(item.booking_start_date), "MMM dd")} → {format(new Date(item.booking_end_date), "MMM dd")}
                         </span>
+                      </div>
+                    )}
+                    {/* Show doctor indicator for consultation items */}
+                    {isConsultationItem && (
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground ml-6">
+                        <Stethoscope className="h-3 w-3" />
+                        <span>Doctor earnings will be credited</span>
                       </div>
                     )}
                   </div>
@@ -358,6 +399,18 @@ export function InvoiceItemsBuilder({
         }}
         onConfirm={handleBedConfirm}
         title={`Select Bed for ${pendingRoomService?.name || "Room Booking"}`}
+      />
+
+      {/* Doctor Picker Dialog for Consultation Services */}
+      <ConsultationDoctorSelector
+        open={showDoctorPicker}
+        onOpenChange={(open) => {
+          setShowDoctorPicker(open);
+          if (!open) setPendingConsultationService(null);
+        }}
+        serviceName={pendingConsultationService?.name || "Consultation"}
+        serviceDefaultPrice={pendingConsultationService?.default_price || 0}
+        onConfirm={handleDoctorConfirm}
       />
     </div>
   );
