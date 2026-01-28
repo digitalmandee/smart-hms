@@ -446,6 +446,7 @@ export function useUpdateInvoice() {
           total_price: item.quantity * item.unit_price * (1 - (item.discount_percent || 0) / 100),
           service_type_id: item.service_type_id,
           medicine_inventory_id: item.medicine_inventory_id,
+          doctor_id: item.doctor_id || null,
         }));
 
         await supabase.from("invoice_items").insert(invoiceItems);
