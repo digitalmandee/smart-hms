@@ -22,15 +22,16 @@ import {
 } from "@/components/ui/table";
 import { usePOSTransactions } from "@/hooks/usePOS";
 import { useInventory } from "@/hooks/usePharmacy";
+import { usePaymentMethodBreakdown, useTopSellingMedicines, usePharmacySalesStats } from "@/hooks/usePharmacyReports";
 import { format, subDays, startOfMonth, endOfMonth } from "date-fns";
+import { formatCurrency } from "@/lib/currency";
 import { 
   BarChart3, 
   TrendingUp, 
   Package, 
   DollarSign,
   Calendar,
-  Download,
-  Printer
+  Loader2
 } from "lucide-react";
 import {
   BarChart,
@@ -44,6 +45,7 @@ import {
   Pie,
   Cell,
 } from "recharts";
+import { ReportExportButton } from "@/components/reports/ReportExportButton";
 
 export default function PharmacyReportsPage() {
   const [dateRange, setDateRange] = useState({
@@ -54,14 +56,29 @@ export default function PharmacyReportsPage() {
 
   const { data: transactions = [] } = usePOSTransactions();
   const { data: inventory = [] } = useInventory();
+  
+  // Real data hooks
+  const { data: paymentBreakdown = [], isLoading: paymentLoading } = usePaymentMethodBreakdown(
+    dateRange.start,
+    dateRange.end
+  );
+  const { data: topMedicines = [], isLoading: medicinesLoading } = useTopSellingMedicines(
+    dateRange.start,
+    dateRange.end,
+    10
+  );
+  const { data: salesStats, isLoading: statsLoading } = usePharmacySalesStats(
+    dateRange.start,
+    dateRange.end
+  );
 
-  // Calculate sales summary
+  // Calculate sales summary from stats hook
+  const totalSales = salesStats?.totalSales || 0;
+  const totalTransactions = salesStats?.transactionCount || 0;
+  const avgTransaction = salesStats?.avgTransaction || 0;
+
+  // Sales by day (from transactions)
   const paidTx = transactions.filter(tx => tx.status === 'completed');
-  const totalSales = paidTx.reduce((sum, tx) => sum + (tx.total_amount || 0), 0);
-  const totalTransactions = paidTx.length;
-  const avgTransaction = totalTransactions > 0 ? totalSales / totalTransactions : 0;
-
-  // Sales by day (mock data for chart)
   const salesByDay = Array.from({ length: 7 }, (_, i) => {
     const date = subDays(new Date(), 6 - i);
     const dayTx = paidTx.filter(tx => 
@@ -74,27 +91,25 @@ export default function PharmacyReportsPage() {
     };
   });
 
-  // Payment method breakdown
-  const paymentBreakdown = [
-    { name: "Cash", value: 65, color: "#22c55e" },
-    { name: "Card", value: 20, color: "#3b82f6" },
-    { name: "JazzCash", value: 10, color: "#ef4444" },
-    { name: "EasyPaisa", value: 5, color: "#8b5cf6" },
-  ];
-
-  // Top selling medicines (mock)
-  const topMedicines = [
-    { name: "Panadol 500mg", quantity: 245, revenue: 4900 },
-    { name: "Augmentin 625mg", quantity: 120, revenue: 18000 },
-    { name: "Disprin", quantity: 180, revenue: 1800 },
-    { name: "Brufen 400mg", quantity: 95, revenue: 2375 },
-    { name: "Flagyl 400mg", quantity: 78, revenue: 3120 },
-  ];
-
   // Inventory value
   const inventoryValue = inventory.reduce((sum: number, item: any) => 
     sum + ((item.selling_price || 0) * (item.quantity || 0)), 0
   );
+
+  // Export columns for top medicines
+  const medicineExportColumns = [
+    { key: "rank", header: "Rank" },
+    { key: "name", header: "Product" },
+    { key: "quantity", header: "Qty Sold" },
+    { key: "revenue", header: "Revenue", format: (v: number) => formatCurrency(v) },
+  ];
+
+  const medicineExportData = topMedicines.map((m, i) => ({
+    rank: `#${i + 1}`,
+    name: m.name,
+    quantity: m.quantity,
+    revenue: m.revenue,
+  }));
 
   return (
     <div className="space-y-6">
@@ -102,16 +117,17 @@ export default function PharmacyReportsPage() {
         title="Pharmacy Reports"
         description="Sales analytics and inventory reports"
         actions={
-          <div className="flex gap-2">
-            <Button variant="outline">
-              <Printer className="mr-2 h-4 w-4" />
-              Print
-            </Button>
-            <Button variant="outline">
-              <Download className="mr-2 h-4 w-4" />
-              Export
-            </Button>
-          </div>
+          <ReportExportButton
+            data={medicineExportData}
+            filename={`pharmacy-report-${dateRange.start}-to-${dateRange.end}`}
+            columns={medicineExportColumns}
+            title="Pharmacy Sales Report"
+            pdfOptions={{
+              title: "Pharmacy Sales Report",
+              subtitle: "Top Selling Medicines & Revenue Analysis",
+              dateRange: { from: new Date(dateRange.start), to: new Date(dateRange.end) },
+            }}
+          />
         }
       />
 
@@ -164,7 +180,9 @@ export default function PharmacyReportsPage() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">Rs. {totalSales.toFixed(2)}</div>
+            <div className="text-2xl font-bold">
+              {statsLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : formatCurrency(totalSales)}
+            </div>
             <p className="text-xs text-muted-foreground">
               {totalTransactions} transactions
             </p>
@@ -177,7 +195,9 @@ export default function PharmacyReportsPage() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">Rs. {avgTransaction.toFixed(2)}</div>
+            <div className="text-2xl font-bold">
+              {statsLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : formatCurrency(avgTransaction)}
+            </div>
             <p className="text-xs text-muted-foreground">Per sale</p>
           </CardContent>
         </Card>
@@ -188,7 +208,7 @@ export default function PharmacyReportsPage() {
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">Rs. {inventoryValue.toFixed(2)}</div>
+            <div className="text-2xl font-bold">{formatCurrency(inventoryValue)}</div>
             <p className="text-xs text-muted-foreground">{inventory.length} items</p>
           </CardContent>
         </Card>
@@ -228,7 +248,7 @@ export default function PharmacyReportsPage() {
                     <XAxis dataKey="day" />
                     <YAxis />
                     <Tooltip 
-                      formatter={(value: number) => [`Rs. ${value.toFixed(2)}`, "Sales"]}
+                      formatter={(value: number) => [formatCurrency(value), "Sales"]}
                     />
                     <Bar dataKey="sales" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                   </BarChart>
@@ -244,27 +264,40 @@ export default function PharmacyReportsPage() {
               <CardTitle>Payment Method Distribution</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-[300px] flex items-center justify-center">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={paymentBreakdown}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={100}
-                      paddingAngle={5}
-                      dataKey="value"
-                      label={({ name, value }) => `${name}: ${value}%`}
-                    >
-                      {paymentBreakdown.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
+              {paymentLoading ? (
+                <div className="flex items-center justify-center h-[300px]">
+                  <Loader2 className="h-8 w-8 animate-spin" />
+                </div>
+              ) : paymentBreakdown.length === 0 ? (
+                <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+                  No payment data available for the selected period
+                </div>
+              ) : (
+                <div className="h-[300px] flex items-center justify-center">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={paymentBreakdown}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={100}
+                        paddingAngle={5}
+                        dataKey="value"
+                        label={({ name, value }) => `${name}: ${value}%`}
+                      >
+                        {paymentBreakdown.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value: number, name: string, props: any) => [
+                        `${value}% (${formatCurrency(props.payload.amount)})`,
+                        name
+                      ]} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -275,28 +308,38 @@ export default function PharmacyReportsPage() {
               <CardTitle>Top Selling Products</CardTitle>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Rank</TableHead>
-                    <TableHead>Product</TableHead>
-                    <TableHead className="text-right">Qty Sold</TableHead>
-                    <TableHead className="text-right">Revenue</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {topMedicines.map((medicine, index) => (
-                    <TableRow key={index}>
-                      <TableCell className="font-medium">#{index + 1}</TableCell>
-                      <TableCell>{medicine.name}</TableCell>
-                      <TableCell className="text-right">{medicine.quantity}</TableCell>
-                      <TableCell className="text-right font-medium">
-                        Rs. {medicine.revenue.toFixed(2)}
-                      </TableCell>
+              {medicinesLoading ? (
+                <div className="flex items-center justify-center h-[200px]">
+                  <Loader2 className="h-8 w-8 animate-spin" />
+                </div>
+              ) : topMedicines.length === 0 ? (
+                <div className="flex items-center justify-center h-[200px] text-muted-foreground">
+                  No sales data available for the selected period
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Rank</TableHead>
+                      <TableHead>Product</TableHead>
+                      <TableHead className="text-right">Qty Sold</TableHead>
+                      <TableHead className="text-right">Revenue</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {topMedicines.map((medicine, index) => (
+                      <TableRow key={medicine.medicine_id}>
+                        <TableCell className="font-medium">#{index + 1}</TableCell>
+                        <TableCell>{medicine.name}</TableCell>
+                        <TableCell className="text-right">{medicine.quantity}</TableCell>
+                        <TableCell className="text-right font-medium">
+                          {formatCurrency(medicine.revenue)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
