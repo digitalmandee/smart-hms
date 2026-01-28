@@ -119,6 +119,22 @@ const financialReports: ReportCard[] = [
     color: "bg-emerald-500",
   },
   {
+    title: "Department Revenue",
+    description: "Revenue breakdown by OPD, IPD, Lab, Pharmacy, Surgery",
+    icon: BarChart3,
+    path: "/app/reports/department-revenue",
+    module: "Finance",
+    color: "bg-blue-600",
+  },
+  {
+    title: "Shift-wise Collection",
+    description: "Morning, Evening, Night shift revenue and cashier analysis",
+    icon: Clock,
+    path: "/app/reports/shift-collection",
+    module: "Finance",
+    color: "bg-amber-500",
+  },
+  {
     title: "Financial Reports",
     description: "Trial balance, P&L statement, balance sheet",
     icon: DollarSign,

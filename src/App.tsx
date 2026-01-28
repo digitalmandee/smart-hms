@@ -272,6 +272,8 @@ import AppointmentReportsPage from "./pages/app/appointments/AppointmentReportsP
 import PatientReportsPage from "./pages/app/patients/PatientReportsPage";
 import ReportsHubPage from "./pages/app/reports/ReportsHubPage";
 import ExecutiveDashboardReport from "./pages/app/reports/ExecutiveDashboardReport";
+import DepartmentRevenueReport from "./pages/app/reports/DepartmentRevenueReport";
+import ShiftWiseCollectionReport from "./pages/app/reports/ShiftWiseCollectionReport";
 import EmployeePerformanceReport from "./pages/app/hr/reports/EmployeePerformanceReport";
 
 // OT pages
@@ -477,6 +479,8 @@ function App() {
               <Route path="reports/organization" element={<OrganizationReportsPage />} />
               <Route path="reports/branches" element={<BranchComparisonPage />} />
               <Route path="reports/executive" element={<ExecutiveDashboardReport />} />
+              <Route path="reports/department-revenue" element={<DepartmentRevenueReport />} />
+              <Route path="reports/shift-collection" element={<ShiftWiseCollectionReport />} />
               
               {/* Organization Admin Dashboard */}
               <Route path="org-dashboard" element={<OrgAdminDashboardPage />} />
