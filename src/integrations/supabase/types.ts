@@ -5847,6 +5847,73 @@ export type Database = {
           },
         ]
       }
+      doctor_settlements: {
+        Row: {
+          created_at: string | null
+          doctor_id: string
+          earning_ids: string[]
+          id: string
+          notes: string | null
+          organization_id: string
+          payment_method: string | null
+          reference_number: string | null
+          settled_by: string | null
+          settlement_date: string
+          settlement_number: string | null
+          total_amount: number
+        }
+        Insert: {
+          created_at?: string | null
+          doctor_id: string
+          earning_ids?: string[]
+          id?: string
+          notes?: string | null
+          organization_id: string
+          payment_method?: string | null
+          reference_number?: string | null
+          settled_by?: string | null
+          settlement_date?: string
+          settlement_number?: string | null
+          total_amount?: number
+        }
+        Update: {
+          created_at?: string | null
+          doctor_id?: string
+          earning_ids?: string[]
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          payment_method?: string | null
+          reference_number?: string | null
+          settled_by?: string | null
+          settlement_date?: string
+          settlement_number?: string | null
+          total_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "doctor_settlements_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "doctor_settlements_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "doctor_settlements_settled_by_fkey"
+            columns: ["settled_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       doctors: {
         Row: {
           branch_id: string | null
@@ -12865,6 +12932,7 @@ export type Database = {
           icon: string | null
           id: string
           is_active: boolean | null
+          ledger_account_id: string | null
           name: string
           organization_id: string
           requires_reference: boolean | null
@@ -12877,6 +12945,7 @@ export type Database = {
           icon?: string | null
           id?: string
           is_active?: boolean | null
+          ledger_account_id?: string | null
           name: string
           organization_id: string
           requires_reference?: boolean | null
@@ -12889,12 +12958,20 @@ export type Database = {
           icon?: string | null
           id?: string
           is_active?: boolean | null
+          ledger_account_id?: string | null
           name?: string
           organization_id?: string
           requires_reference?: boolean | null
           sort_order?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "payment_methods_ledger_account_id_fkey"
+            columns: ["ledger_account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "payment_methods_organization_id_fkey"
             columns: ["organization_id"]
