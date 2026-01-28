@@ -1,155 +1,338 @@
 
-# Token Status Update Analysis & Issues
 
-## Current Flow Analysis
+# Reports System Analysis and Enhancement Plan
 
-### 1. Token Generation (Reception Side)
-**Works Correctly:**
-- `OPDWalkInPage.tsx` creates appointment with `status: "scheduled"` + `token_number`
-- `useCreateAppointment` (line 211-232) generates sequential token per doctor/date
-- Token slip is printed via `PrintableTokenSlip` with token #, Visit ID, payment status
+## Executive Summary
 
-### 2. Check-In (Nurse/Reception Side)
-**Works Correctly:**
-- `CheckInPage.tsx` updates status from `scheduled` to `checked_in`
-- Records vitals in `check_in_vitals` field
-- Updates `check_in_at` timestamp and `check_in_by`
-
-### 3. Consultation Start (Doctor Side)
-**ISSUE IDENTIFIED:**
-- Doctor Dashboard (`DoctorDashboard.tsx`) shows queue but clicking navigates directly to consultation WITHOUT updating status
-- The "Start Consultation" link (line 175) goes to `/app/opd/consultation/{id}` but does NOT call `useStartConsultation`
-- `ConsultationPage.tsx` does NOT update appointment status to `in_progress` on load
-
-**Current behavior:**
-- Doctor clicks patient -> Goes to consultation page
-- Status remains `checked_in` until manually changed
-- Queue display shows wrong status
-
-### 4. Queue Display Sync
-**Works but depends on status being correct:**
-- `QueueDisplayPage.tsx` reads from `useTodayQueue()` hook
-- Auto-refreshes every 10 seconds
-- Filters `in_progress` for "Now Serving", `checked_in` for "Next Up"
-- Database trigger `sync_token_log_status` syncs to kiosk_token_logs table
+After analyzing the HMS codebase, I found **15+ existing report pages** but with significant gaps in depth, filters, pagination, and coverage. The reports lack proper **department-wise revenue breakdown**, **shift-wise analysis**, and advanced filtering/pagination capabilities.
 
 ---
 
-## Problems Found
+## Current Reports Inventory
 
-| Issue | Location | Impact |
-|-------|----------|--------|
-| Doctor dashboard doesn't update status when starting consultation | `DoctorDashboard.tsx` lines 162-179 | Status stays `checked_in`, queue display wrong |
-| ConsultationPage doesn't auto-start consultation | `ConsultationPage.tsx` | Doctor must manually start elsewhere |
-| No real-time subscriptions on queue pages | `QueueDisplayPage.tsx`, `AppointmentQueuePage.tsx` | 10-30 second delay in updates |
-| AppointmentQueuePage `onStart` callback missing | `AppointmentQueuePage.tsx` line 181-194 | Checked-in cards don't have Start action for non-doctors |
+### Clinical Reports (6)
+| Report | Location | Filters | Pagination | Charts | Export | Status |
+|--------|----------|---------|------------|--------|--------|--------|
+| Clinic Reports | `/app/clinic/reports` | Date | No | Basic | No | Basic |
+| Patient Reports | `/app/patients/reports` | Date | No | No | No | Placeholder |
+| Appointment Reports | `/app/appointments/reports` | Date | No | No | No | Placeholder |
+| Doctor Reports | `/app/opd/reports` | Date, Branch, Doctor | No | Yes | CSV | Good |
+| Lab Reports | `/app/lab/reports` | Date, Branch, Status | No | Yes | CSV | Good |
+| ER Reports | `/app/emergency/reports` | Date, Branch, Status | No | Yes | CSV | Good |
 
----
+### Operational Reports (3)
+| Report | Location | Filters | Pagination | Charts | Export | Status |
+|--------|----------|---------|------------|--------|--------|--------|
+| IPD Reports | `/app/ipd/reports` | None | No | No | No | Placeholder |
+| Pharmacy Reports | `/app/pharmacy/reports` | Date, Type | No | Yes | Yes | Good |
+| Inventory Reports | `/app/inventory/reports` | None | No | No | No | Index Only |
 
-## Required Fixes
+### Financial Reports (5)
+| Report | Location | Filters | Pagination | Charts | Export | Status |
+|--------|----------|---------|------------|--------|--------|--------|
+| Billing Reports | `/app/billing/reports` | Date Range | No | Yes | No | Good |
+| Trial Balance | `/app/accounts/reports/trial-balance` | Date | No | No | No | Basic |
+| P&L Statement | `/app/accounts/reports/profit-loss` | Date | No | No | No | Basic |
+| Balance Sheet | `/app/accounts/reports/balance-sheet` | Date | No | No | No | Basic |
+| Cash Flow | `/app/accounts/reports/cash-flow` | Date | No | No | No | Basic |
 
-### Fix 1: Auto-update status when doctor opens consultation
-**File: `src/pages/app/opd/ConsultationPage.tsx`**
+### HR Reports (5)
+| Report | Location | Filters | Pagination | Charts | Export | Status |
+|--------|----------|---------|------------|--------|--------|--------|
+| HR Analytics | `/app/hr/reports` | Year | No | Yes | Basic | Good |
+| Attendance Reports | `/app/hr/attendance/reports` | Date | No | Basic | No | Basic |
+| Payroll Reports | `/app/hr/payroll/reports` | Year | No | Yes | Basic | Good |
+| Performance Reports | `/app/hr/reports/performance` | None | No | No | No | Placeholder |
+| Roster Reports | `/app/hr/attendance/roster-reports` | Month, Dept | No | No | No | Basic |
 
-Add effect to automatically update status to `in_progress` when doctor opens consultation:
-```typescript
-useEffect(() => {
-  // Auto-start consultation if status is checked_in
-  if (appointment?.status === 'checked_in' && currentDoctor) {
-    updateAppointment.mutate({
-      id: appointmentId!,
-      status: 'in_progress',
-    });
-  }
-}, [appointment?.status, appointmentId, currentDoctor]);
-```
-
-### Fix 2: Update DoctorDashboard to use proper navigation
-**File: `src/pages/app/opd/DoctorDashboard.tsx`**
-
-When doctor clicks "Start Consultation", explicitly update status first:
-```typescript
-const handleStartConsultation = async (appointmentId: string, status: string) => {
-  // Update status to in_progress if not already
-  if (status === 'checked_in') {
-    await updateAppointment.mutateAsync({
-      id: appointmentId,
-      status: 'in_progress',
-    });
-  }
-  navigate(`/app/opd/consultation/${appointmentId}`);
-};
-```
-
-### Fix 3: Add real-time subscriptions for queue updates
-**File: `src/pages/app/appointments/QueueDisplayPage.tsx`**
-
-Add Supabase real-time subscription:
-```typescript
-useEffect(() => {
-  const channel = supabase
-    .channel('queue-status-updates')
-    .on('postgres_changes', {
-      event: 'UPDATE',
-      schema: 'public',
-      table: 'appointments',
-      filter: `appointment_date=eq.${today}`,
-    }, () => {
-      refetch();
-    })
-    .subscribe();
-
-  return () => { supabase.removeChannel(channel); };
-}, [today, refetch]);
-```
-
-### Fix 4: Add similar subscription to AppointmentQueuePage
-**File: `src/pages/app/appointments/AppointmentQueuePage.tsx`**
-
-Same real-time subscription pattern for the internal queue management.
+### Management Reports (2)
+| Report | Location | Filters | Pagination | Charts | Export | Status |
+|--------|----------|---------|------------|--------|--------|--------|
+| Executive Dashboard | `/app/reports/executive` | Period (This/Last Month) | No | Yes | Yes | Good |
+| Branch Comparison | `/app/reports/branch-comparison` | None | No | No | No | Placeholder |
 
 ---
 
-## Files to Modify
+## Identified Gaps
 
-| File | Changes |
-|------|---------|
-| `src/pages/app/opd/ConsultationPage.tsx` | Auto-update status to `in_progress` on load |
-| `src/pages/app/opd/DoctorDashboard.tsx` | Import `useUpdateAppointment`, update status before navigation |
-| `src/pages/app/appointments/QueueDisplayPage.tsx` | Add Supabase real-time subscription |
-| `src/pages/app/appointments/AppointmentQueuePage.tsx` | Add Supabase real-time subscription |
+### 1. Missing Reports (Critical)
+
+**Department-wise Revenue Report**
+- No breakdown of revenue by OPD, IPD, Lab, Radiology, Pharmacy, Surgery
+- Cannot identify which departments are profit centers
+- Essential for hospital administration
+
+**Shift-wise Reports**
+- No report showing collections/activity by Morning/Evening/Night shift
+- Cannot analyze peak hours properly
+- No cashier-wise collection summary
+
+**Doctor Earnings Report (Detailed)**
+- Basic doctor performance exists but lacks:
+  - Procedure-wise earnings
+  - Consultation vs Surgery split
+  - Monthly trend comparison
+
+**Patient Flow Report**
+- No report on patient journey time (registration to checkout)
+- Missing bottleneck analysis
+- No average wait time by department
+
+**Insurance Claims Report**
+- No aging analysis for claims
+- Missing rejection rate tracking
+- No payer-wise collection summary
+
+### 2. Missing Filters
+
+| Report | Missing Filters |
+|--------|-----------------|
+| All Reports | Shift filter (Morning/Evening/Night) |
+| Billing Reports | Department, Payment Method, Cashier |
+| Doctor Reports | Specialty, Procedure Type |
+| IPD Reports | Ward, Bed Type, Consultant |
+| Lab Reports | Test Category, Urgency |
+| Pharmacy Reports | Category, Vendor, Expiry Range |
+| HR Reports | Department, Designation, Employment Type |
+
+### 3. Missing Features
+
+- **Pagination**: No report has proper server-side pagination
+- **Drill-down**: Cannot click on chart segments to see details
+- **Comparison**: No period-over-period comparison (vs last month/year)
+- **Custom Date Presets**: Limited to basic presets
+- **Scheduled Reports**: No automated email delivery
+- **Save Filters**: Cannot save favorite filter combinations
 
 ---
 
-## Summary of Flow After Fix
+## Proposed New Reports
+
+### Finance & Revenue (5 new)
+
+1. **Department-wise Revenue Report**
+   - Revenue breakdown by OPD, IPD, Lab, Radiology, Pharmacy, Surgery, Emergency
+   - Bar chart and table view
+   - Filters: Date, Branch, Department
+   - Drill-down to see transactions
+
+2. **Shift-wise Collection Report**
+   - Collections by Morning (6AM-2PM), Evening (2PM-10PM), Night (10PM-6AM)
+   - Cashier-wise breakdown
+   - Filters: Date, Branch, Shift, Cashier/User
+   - Payment method split per shift
+
+3. **Daily/Monthly Revenue Comparison**
+   - Compare current period vs previous period
+   - Percentage change indicators
+   - Year-over-year trends
+
+4. **Outstanding Dues Aging Report**
+   - Enhanced aging buckets (0-30, 31-60, 61-90, 90+ days)
+   - Patient-wise outstanding list with contact info
+   - Follow-up action tracking
+
+5. **Payment Method Analysis**
+   - Cash vs Card vs Online vs Credit breakdown
+   - Trend over time
+   - Filters: Date, Branch, Department
+
+### HR & Payroll (4 new)
+
+6. **Shift-wise Attendance Report**
+   - Attendance by shift timing
+   - Late arrivals per shift
+   - Overtime by shift
+
+7. **Department Headcount & Cost Report**
+   - Employee count per department
+   - Total salary cost per department
+   - Cost per employee trends
+
+8. **Leave Utilization Report**
+   - Leave balance vs used
+   - Department-wise leave patterns
+   - Peak leave periods
+
+9. **Employee Turnover Report**
+   - Monthly/yearly turnover rate
+   - Exit reasons analysis
+   - Department-wise attrition
+
+### Accounts (3 new)
+
+10. **Vendor Payment Report**
+    - Vendor-wise payment history
+    - Outstanding AP aging
+    - Payment schedule calendar
+
+11. **Expense Analysis Report**
+    - Expense by category
+    - Department-wise expense
+    - Budget vs Actual comparison
+
+12. **Daily Transaction Report**
+    - All financial transactions for a day
+    - Journal entries summary
+    - Bank reconciliation support
+
+### Clinical (3 new)
+
+13. **Patient Wait Time Report**
+    - Average wait time by department
+    - Peak hours identification
+    - Bottleneck analysis
+
+14. **Consultation Summary Report**
+    - Doctor-wise consultation count
+    - Follow-up vs New patient ratio
+    - Diagnosis distribution
+
+15. **Procedure Volume Report**
+    - Surgery count by type
+    - Lab test volume by category
+    - Radiology procedure distribution
+
+---
+
+## Technical Implementation
+
+### Enhanced ReportFilters Component
+Add support for:
+- Shift filter (morning/evening/night)
+- Department filter
+- Cashier/User filter
+- Category filter
+- Custom date range presets
+- Save filter preferences
+
+### Create Reusable Report Components
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                        RECEPTION                                     │
-│  Walk-in/Appointment → Payment → Token Generated                     │
-│  Status: scheduled | Token: Assigned | Printed: Yes                  │
-└──────────────────────────────┬──────────────────────────────────────┘
-                               │
-                               ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                        NURSE STATION                                 │
-│  Patient arrives → Vitals recorded → Check-in complete               │
-│  Status: checked_in | Visible in: Doctor Queue, TV Display           │
-└──────────────────────────────┬──────────────────────────────────────┘
-                               │
-                               ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                        DOCTOR                                        │
-│  Opens consultation page → Status AUTO-UPDATES to in_progress        │
-│  TV Display: "Now Serving Token #X" (real-time)                      │
-└──────────────────────────────┬──────────────────────────────────────┘
-                               │
-                               ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                        COMPLETION                                    │
-│  Doctor clicks Complete → Status: completed                          │
-│  Redirect to checkout if pending orders                              │
-└─────────────────────────────────────────────────────────────────────┘
+src/components/reports/
+  ReportFilters.tsx (existing - enhance)
+  ReportTable.tsx (new - with pagination)
+  ReportChart.tsx (new - reusable charts)
+  ReportExport.tsx (new - PDF/Excel/CSV)
+  ReportDrillDown.tsx (new - click to expand)
+  ReportComparison.tsx (new - period comparison)
 ```
 
-The key change is ensuring the status automatically updates to `in_progress` when the doctor opens the consultation, which then triggers real-time updates to all queue displays.
+### New Hooks for Reports
+
+```
+src/hooks/
+  useDepartmentRevenue.ts
+  useShiftWiseCollection.ts
+  usePatientFlowAnalytics.ts
+  useEmployeeCostAnalytics.ts
+  useReportPagination.ts
+```
+
+### Database Considerations
+
+Some reports may require:
+- Adding `shift` column to transactions/attendance
+- Creating materialized views for performance
+- Adding indexes on report query columns
+
+---
+
+## File Changes Summary
+
+### New Pages (15 files)
+```
+src/pages/app/reports/
+  DepartmentRevenueReport.tsx
+  ShiftWiseCollectionReport.tsx
+  RevenueComparisonReport.tsx
+  OutstandingAgingReport.tsx
+  PaymentMethodAnalysisReport.tsx
+  PatientWaitTimeReport.tsx
+  ConsultationSummaryReport.tsx
+  ProcedureVolumeReport.tsx
+
+src/pages/app/hr/reports/
+  ShiftAttendanceReport.tsx
+  DepartmentCostReport.tsx
+  LeaveUtilizationReport.tsx
+  TurnoverReport.tsx
+
+src/pages/app/accounts/
+  VendorPaymentReport.tsx
+  ExpenseAnalysisReport.tsx
+  DailyTransactionReport.tsx
+```
+
+### Enhanced Pages (10 files)
+```
+src/pages/app/billing/BillingReportsPage.tsx - Add department, shift filters
+src/pages/app/pharmacy/PharmacyReportsPage.tsx - Add pagination, category filter
+src/pages/app/lab/LabReportsPage.tsx - Add pagination
+src/pages/app/hr/HRReportsPage.tsx - Add department filter
+src/pages/app/hr/payroll/PayrollReportsPage.tsx - Add department filter
+src/pages/app/ipd/IPDReportsPage.tsx - Implement actual reports
+src/pages/app/inventory/InventoryReportsPage.tsx - Add detail pages
+src/pages/app/reports/ReportsHubPage.tsx - Add new report links
+src/pages/app/reports/ExecutiveDashboardReport.tsx - Add department revenue chart
+```
+
+### New Components (6 files)
+```
+src/components/reports/
+  ReportTable.tsx
+  ReportPagination.tsx
+  ReportExportButton.tsx
+  ShiftFilter.tsx
+  DepartmentFilter.tsx
+  ReportComparisonChart.tsx
+```
+
+### New Hooks (5 files)
+```
+src/hooks/
+  useDepartmentRevenue.ts
+  useShiftWiseData.ts
+  useReportPagination.ts
+  usePatientFlowAnalytics.ts
+  useTurnoverAnalytics.ts
+```
+
+---
+
+## Implementation Priority
+
+### Phase 1 - High Priority (Core Revenue Reports)
+1. Department-wise Revenue Report
+2. Shift-wise Collection Report
+3. Enhanced Billing Reports with filters and pagination
+4. ReportTable component with pagination
+
+### Phase 2 - Medium Priority (HR & Analytics)
+5. Shift-wise Attendance Report
+6. Department Headcount & Cost Report
+7. Enhanced HR Reports page
+8. Patient Wait Time Report
+
+### Phase 3 - Lower Priority (Accounts & Advanced)
+9. Vendor Payment Report
+10. Expense Analysis Report
+11. Turnover Report
+12. All remaining reports
+
+---
+
+## Summary
+
+| Category | Current | After Enhancement |
+|----------|---------|-------------------|
+| Total Reports | 15 | 30+ |
+| Reports with Pagination | 0 | All new reports |
+| Reports with Shift Filter | 0 | 8+ |
+| Reports with Department Filter | 0 | 12+ |
+| Reports with Export (CSV/PDF) | 5 | All reports |
+| Reports with Charts | 8 | All reports |
+| Reports with Drill-down | 0 | Priority reports |
+
+This plan transforms the HMS from basic reporting to a comprehensive analytics platform with proper filters, pagination, and actionable insights for hospital administration.
+
