@@ -1,116 +1,184 @@
 
-# Complete the HealthOS Proposal Document
+# OPD Flow Analysis & Fix Plan
 
-## What Was Missing
-The previous changes only removed the Investment Summary and fixed table printing. The following major items were not implemented:
+## Problems Identified
 
-1. **Cover Page Branding** - Still shows old text
-2. **All 50 Module Pages** - 6 new feature pages were never created
+### 1. Walk-in Flow Actually EXISTS But Has Issues
+The `OPDWalkInPage.tsx` DOES have a walk-in workflow (Patient → Doctor → Payment → Token), but:
+- **Critical**: Invoice items are created WITHOUT a `doctor_id` column
+- This breaks doctor wallet/earnings tracking since there's no way to know which doctor earned the consultation fee
 
-## Changes Required
+### 2. Missing `doctor_id` in Invoice Items Table
+The `invoice_items` table schema shows NO `doctor_id` column:
+```
+invoice_items: {
+  bed_id, booking_dates, description, discount_percent, id, invoice_id,
+  lab_order_id, medicine_inventory_id, quantity, service_type_id, total_price, unit_price
+}
+```
+**Impact**: Consultation charges cannot be attributed to specific doctors for wallet credit.
 
-### 1. Update Cover Page (`ProposalCoverPage.tsx`)
+### 3. Appointment Check-in Flow Issues
+Current check-in flow (`CheckInPage.tsx`):
+- Records vitals and priority ✓
+- Prints token slip ✓
+- **Does NOT create invoice at check-in**
+- **Does NOT enforce payment collection**
 
-| Current | New |
-|---------|-----|
-| "PRICING & COMMERCIALS" | "HealthOS Proposal" |
-| "[Hospital Name]" (default) | "Capital Care International Hospital" |
-| "DevMine Solutions" | "Devmine" |
-| "Enterprise Healthcare Technology" | "Enterprise Healthcare Technology" (keep) |
+The `AppointmentPaymentDialog.tsx` exists but is not integrated into the standard check-in flow.
 
-### 2. Create 6 New Feature Pages
+### 4. Doctor Earnings Trigger is Fragile
+The `post_consultation_earning` trigger attempts to find the doctor by:
+```sql
+SELECT c.id, c.doctor_id FROM consultations c
+WHERE c.patient_id = NEW.patient_id
+  AND c.created_at::date = NEW.invoice_date
+```
+This fails because:
+- Walk-in patients don't have a consultation record at payment time
+- Date matching is imprecise
+- No direct link between invoice and doctor
 
-**Page 3: `ProposalClinicalFeatures.tsx`** - Clinical Operations (14 modules)
-- Patient Registration, Appointments, Queue/Token, OPD, Emergency, IPD
-- Nursing Station, Medication Charts, Discharge, OT/Surgeries
-- Anesthesia, PACU, ICU, Maternity/Pediatrics
+---
 
-**Page 4: `ProposalDiagnosticsFeatures.tsx`** - Diagnostics & Lab (8 modules)
-- LIS (500+ tests), Sample Tracking, Result Entry, Lab Reporting
-- RIS, PACS Integration, Blood Bank, Cross-Match/Transfusion
+## Required Changes
 
-**Page 5: `ProposalPharmacyFeatures.tsx`** - Pharmacy & Inventory (6 modules)
-- Inventory Management, Prescription Queue, Dispensing/POS
-- Stock Alerts, Ward/OT Requisition, Supplier/Purchase Orders
+### Database Changes
 
-**Page 6: `ProposalFinanceFeatures.tsx`** - Finance & Billing (10 modules)
-- Billing/Invoicing, Payment Collection, Insurance/TPA Claims
-- Doctor Wallet, AR/AP, General Ledger, Cost Centers, Tax, Reports
-
-**Page 7: `ProposalOperationsFeatures.tsx`** - Operations & Admin (12 modules)
-- Procurement, Vendor Management, General Inventory
-- Attendance/Biometric, Duty Roster, Leave Management
-- Payroll, HR, Asset Management, Housekeeping, Kitchen, Analytics
-
-**Page 8: `ProposalTechnicalSpecs.tsx`** - Technical Specifications
-- Architecture (AWS, auto-scaling, 99.9% SLA)
-- Security (HIPAA-ready, 25+ roles, audit trails, 2FA)
-- Data (PostgreSQL, HL7/FHIR, REST APIs)
-- Access (Web-based, mobile-responsive, multi-branch)
-
-### 3. Update Page Navigation (`PricingProposal.tsx`)
-
-Update the pages array to include all 10 pages:
-```typescript
-const pages = [
-  { id: "cover", label: "Cover", component: ProposalCoverPage },
-  { id: "summary", label: "Executive Summary", component: ProposalExecutiveSummary },
-  { id: "clinical", label: "Clinical Operations", component: ProposalClinicalFeatures },
-  { id: "diagnostics", label: "Diagnostics & Lab", component: ProposalDiagnosticsFeatures },
-  { id: "pharmacy", label: "Pharmacy & Inventory", component: ProposalPharmacyFeatures },
-  { id: "finance", label: "Finance & Billing", component: ProposalFinanceFeatures },
-  { id: "operations", label: "Operations & Admin", component: ProposalOperationsFeatures },
-  { id: "technical", label: "Technical Specs", component: ProposalTechnicalSpecs },
-  { id: "pricing", label: "Pricing Details", component: ProposalPricingPage },
-  { id: "terms", label: "Terms & Conditions", component: ProposalTermsPage },
-];
+1. **Add `doctor_id` column to `invoice_items`**
+```sql
+ALTER TABLE invoice_items 
+ADD COLUMN doctor_id UUID REFERENCES doctors(id);
 ```
 
-### 4. Update All Page Numbers
+2. **Update `post_consultation_earning` trigger** to use direct doctor_id:
+```sql
+-- Look for doctor_id in invoice_items for consultation category
+FOR v_item IN 
+  SELECT ii.total_price, ii.doctor_id
+  FROM invoice_items ii
+  JOIN service_types st ON st.id = ii.service_type_id
+  WHERE ii.invoice_id = NEW.id 
+    AND st.category = 'consultation'
+    AND ii.doctor_id IS NOT NULL
+LOOP
+  -- Credit doctor wallet using direct doctor_id
+END LOOP;
+```
 
-| Page | Number |
-|------|--------|
-| Cover Page | 01 / 10 |
-| Executive Summary | 02 / 10 |
-| Clinical Operations | 03 / 10 |
-| Diagnostics & Lab | 04 / 10 |
-| Pharmacy & Inventory | 05 / 10 |
-| Finance & Billing | 06 / 10 |
-| Operations & Admin | 07 / 10 |
-| Technical Specs | 08 / 10 |
-| Pricing Details | 09 / 10 |
-| Terms & Conditions | 10 / 10 |
+### Frontend Changes
 
-## Design Pattern for Feature Pages
+#### File: `src/hooks/useBilling.ts`
+Update `useCreateInvoice` to accept and store `doctor_id` in invoice items:
+```typescript
+interface InvoiceItemInput {
+  // ... existing fields
+  doctor_id?: string | null; // Add this
+}
+```
 
-Each feature page will follow this consistent structure:
-- Header: HealthOS logo + page number badge
-- Title: Category name with gradient accent bar
-- Module cards in 2-column grid layout
-- Each module shows: icon, name, 2-3 key features as bullets
-- Footer: "HealthOS Proposal" + website
+#### File: `src/pages/app/opd/OPDWalkInPage.tsx`
+Update invoice creation to include doctor_id:
+```typescript
+const invoice = await createInvoice.mutateAsync({
+  patientId: selectedPatientId,
+  branchId: profile.branch_id,
+  items: [{
+    description: `${selectedDoctor.specialty} Consultation - ${selectedDoctor.name}`,
+    quantity: 1,
+    unit_price: selectedDoctor.fee,
+    doctor_id: selectedDoctor.id, // Add this
+  }],
+});
+```
 
-## Files Summary
+#### File: `src/components/appointments/AppointmentPaymentDialog.tsx`
+Update to include doctor_id when creating invoice:
+```typescript
+const invoice = await createInvoice.mutateAsync({
+  patientId: appointment.patient_id,
+  branchId: appointment.branch_id,
+  items: [{
+    description: `Consultation Fee - Dr. ${doctorName}`,
+    quantity: 1,
+    unit_price: paymentAmount,
+    doctor_id: appointment.doctor_id, // Add this
+  }],
+});
+```
 
-| File | Action |
-|------|--------|
-| `ProposalCoverPage.tsx` | Modify - Update title, client, company name |
-| `ProposalExecutiveSummary.tsx` | Modify - Update page number to 02/10 |
-| `ProposalClinicalFeatures.tsx` | Create - 14 clinical modules |
-| `ProposalDiagnosticsFeatures.tsx` | Create - 8 diagnostics modules |
-| `ProposalPharmacyFeatures.tsx` | Create - 6 pharmacy modules |
-| `ProposalFinanceFeatures.tsx` | Create - 10 finance modules |
-| `ProposalOperationsFeatures.tsx` | Create - 12 operations modules |
-| `ProposalTechnicalSpecs.tsx` | Create - Technical architecture |
-| `ProposalPricingPage.tsx` | Modify - Update page number to 09/10 |
-| `ProposalTermsPage.tsx` | Modify - Update page number to 10/10 |
-| `PricingProposal.tsx` | Modify - Add all 10 pages to navigation |
+#### File: `src/pages/app/appointments/CheckInPage.tsx`
+Add payment status check and prompt before completing check-in:
+```typescript
+// Before check-in, verify payment status
+if (appointment.payment_status === 'pending') {
+  // Show payment dialog or warning
+  setShowPaymentDialog(true);
+  return;
+}
+```
 
-## Result
-A complete 10-page professional proposal document:
-- Proper branding for **Devmine** and **Capital Care International Hospital**
-- All **50 modules** across 5 categories fully documented
-- **255+ features** with descriptions
-- Technical specifications
-- Pricing and terms
-- Optimized for A4 PDF download
+### New Components Needed
+
+#### `PaymentRequiredDialog.tsx`
+A dialog that appears at check-in if payment is pending, offering:
+- Pay Now (opens payment collection)
+- Pay Later (proceeds with warning)
+- Waive Off (requires authorization)
+
+---
+
+## Updated OPD Flow
+
+### Walk-in Patient Flow
+```
+1. Reception: Search/Register Patient
+2. Reception: Select Doctor (shows fee, queue count)
+3. Reception: Collect Payment (Pay Now / Pay Later / Waive)
+   → Creates Invoice with doctor_id in items
+   → Creates Appointment with scheduled status
+4. Reception: Print Token Slip
+5. Nurse: Record Vitals (Check-in with vitals)
+6. Doctor: Start Consultation
+7. Doctor: Complete Consultation
+8. Checkout: Collect any pending fees (lab, pharmacy)
+```
+
+### Scheduled Appointment Flow
+```
+1. Patient arrives for scheduled appointment
+2. Reception: Open appointment → Payment Dialog
+   → If payment_status = pending: Show payment dialog
+   → Collect payment OR Pay Later
+   → Creates Invoice with doctor_id in items
+3. Nurse: Check-in with vitals → Print Token
+4. Doctor: Start Consultation
+5. Doctor: Complete Consultation
+6. Checkout: Collect any pending fees
+```
+
+---
+
+## Files to Modify
+
+| File | Changes |
+|------|---------|
+| Database Migration | Add `doctor_id` to `invoice_items`, update trigger |
+| `src/hooks/useBilling.ts` | Add `doctor_id` to `InvoiceItemInput` interface |
+| `src/pages/app/opd/OPDWalkInPage.tsx` | Pass `doctor_id` when creating invoice |
+| `src/components/appointments/AppointmentPaymentDialog.tsx` | Include `doctor_id` in invoice items |
+| `src/pages/app/appointments/CheckInPage.tsx` | Add payment status check before check-in |
+| `src/pages/app/appointments/AppointmentDetailPage.tsx` | Show payment status, integrate payment dialog |
+| NEW: `src/components/appointments/PaymentRequiredDialog.tsx` | Payment prompt component |
+
+---
+
+## Summary of Issues & Fixes
+
+| Issue | Current State | Fix |
+|-------|---------------|-----|
+| Doctor not linked to invoice | `invoice_items` has no `doctor_id` | Add column, update creation logic |
+| Doctor wallet not credited | Trigger uses fragile date-based lookup | Use direct `doctor_id` from invoice items |
+| No payment at check-in | Check-in doesn't verify payment | Add payment status check before check-in |
+| Token not printed at check-in | Actually works | No change needed |
+| Walk-in flow missing | Actually exists at `/app/opd/walk-in` | Needs awareness + doctor_id fix |
