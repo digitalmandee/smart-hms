@@ -1,338 +1,232 @@
 
-
-# Reports System Analysis and Enhancement Plan
+# Reports System Audit & Enhancement Plan
 
 ## Executive Summary
 
-After analyzing the HMS codebase, I found **15+ existing report pages** but with significant gaps in depth, filters, pagination, and coverage. The reports lack proper **department-wise revenue breakdown**, **shift-wise analysis**, and advanced filtering/pagination capabilities.
+After thoroughly analyzing the HMS reports system, I've identified the following status:
+
+### Reports Using Real Data (Good)
+| Report | Data Source | Filters | Export |
+|--------|-------------|---------|--------|
+| Department Revenue | `invoice_items` + `service_types` | Date, Branch | CSV only |
+| Shift-wise Collection | `payments` table | Date, Branch, Shift | CSV only |
+| Billing Reports | `useDailyCollections`, `useAgingReport` hooks | Date range | None |
+| Lab Reports | `lab_orders` + `lab_order_items` | Date, Branch, Status | CSV |
+| HR Reports | `useHRReports.ts` hooks (real employee/attendance data) | Year | None |
+| Payroll Reports | `usePayrollRuns`, `useEmployeeSalaries` hooks | Year | None |
+| Executive Dashboard | `useExecutiveSummary` (real multi-table aggregation) | Period | None |
+
+### Reports with Hardcoded/Mock Data (Issues)
+| Report | Issue | Location |
+|--------|-------|----------|
+| Pharmacy Reports | Payment breakdown is hardcoded mock data | `PharmacyReportsPage.tsx` lines 78-83 |
+| Pharmacy Reports | Top selling medicines is hardcoded | `PharmacyReportsPage.tsx` lines 86-92 |
+| IPD Reports | Reports are placeholder cards only - no actual data | `IPDReportsPage.tsx` |
+
+### PDF Export Gaps (Critical)
+| Issue | Current State |
+|-------|---------------|
+| No PDF Export | Only CSV + Print available via `ReportExportButton` |
+| Print = window.print() | Basic browser print, no professional formatting |
+| No branded PDF header | Missing organization logo/details |
+| No report metadata | Missing date range, filters applied, generated timestamp |
 
 ---
 
-## Current Reports Inventory
+## Phase 1: Fix Hardcoded Data Issues
 
-### Clinical Reports (6)
-| Report | Location | Filters | Pagination | Charts | Export | Status |
-|--------|----------|---------|------------|--------|--------|--------|
-| Clinic Reports | `/app/clinic/reports` | Date | No | Basic | No | Basic |
-| Patient Reports | `/app/patients/reports` | Date | No | No | No | Placeholder |
-| Appointment Reports | `/app/appointments/reports` | Date | No | No | No | Placeholder |
-| Doctor Reports | `/app/opd/reports` | Date, Branch, Doctor | No | Yes | CSV | Good |
-| Lab Reports | `/app/lab/reports` | Date, Branch, Status | No | Yes | CSV | Good |
-| ER Reports | `/app/emergency/reports` | Date, Branch, Status | No | Yes | CSV | Good |
+### 1.1 Fix Pharmacy Reports (PharmacyReportsPage.tsx)
 
-### Operational Reports (3)
-| Report | Location | Filters | Pagination | Charts | Export | Status |
-|--------|----------|---------|------------|--------|--------|--------|
-| IPD Reports | `/app/ipd/reports` | None | No | No | No | Placeholder |
-| Pharmacy Reports | `/app/pharmacy/reports` | Date, Type | No | Yes | Yes | Good |
-| Inventory Reports | `/app/inventory/reports` | None | No | No | No | Index Only |
+**Current Problem:**
+```typescript
+// Lines 78-83 - HARDCODED
+const paymentBreakdown = [
+  { name: "Cash", value: 65, color: "#22c55e" },
+  { name: "Card", value: 20, color: "#3b82f6" },
+  // ...
+];
 
-### Financial Reports (5)
-| Report | Location | Filters | Pagination | Charts | Export | Status |
-|--------|----------|---------|------------|--------|--------|--------|
-| Billing Reports | `/app/billing/reports` | Date Range | No | Yes | No | Good |
-| Trial Balance | `/app/accounts/reports/trial-balance` | Date | No | No | No | Basic |
-| P&L Statement | `/app/accounts/reports/profit-loss` | Date | No | No | No | Basic |
-| Balance Sheet | `/app/accounts/reports/balance-sheet` | Date | No | No | No | Basic |
-| Cash Flow | `/app/accounts/reports/cash-flow` | Date | No | No | No | Basic |
+// Lines 86-92 - HARDCODED
+const topMedicines = [
+  { name: "Panadol 500mg", quantity: 245, revenue: 4900 },
+  // ...
+];
+```
 
-### HR Reports (5)
-| Report | Location | Filters | Pagination | Charts | Export | Status |
-|--------|----------|---------|------------|--------|--------|--------|
-| HR Analytics | `/app/hr/reports` | Year | No | Yes | Basic | Good |
-| Attendance Reports | `/app/hr/attendance/reports` | Date | No | Basic | No | Basic |
-| Payroll Reports | `/app/hr/payroll/reports` | Year | No | Yes | Basic | Good |
-| Performance Reports | `/app/hr/reports/performance` | None | No | No | No | Placeholder |
-| Roster Reports | `/app/hr/attendance/roster-reports` | Month, Dept | No | No | No | Basic |
+**Fix Required:**
+- Create `usePharmacyReports.ts` hook with:
+  - `usePaymentMethodBreakdown(dateFrom, dateTo)` - aggregate from `pharmacy_pos_transactions` joined with `payment_methods`
+  - `useTopSellingMedicines(dateFrom, dateTo, limit)` - aggregate from `pharmacy_pos_transaction_items` grouped by medicine
 
-### Management Reports (2)
-| Report | Location | Filters | Pagination | Charts | Export | Status |
-|--------|----------|---------|------------|--------|--------|--------|
-| Executive Dashboard | `/app/reports/executive` | Period (This/Last Month) | No | Yes | Yes | Good |
-| Branch Comparison | `/app/reports/branch-comparison` | None | No | No | No | Placeholder |
+### 1.2 Fix IPD Reports (IPDReportsPage.tsx)
+
+**Current Problem:**
+- Only shows placeholder cards with "Generate Report" buttons that do nothing
+- No actual data queries for any of the 6 listed reports
+
+**Fix Required:**
+- Create `useIPDReports.ts` hook with:
+  - `useBedOccupancyReport(dateFrom, dateTo)` - from `admissions` + `beds` tables
+  - `useAdmissionStatistics(dateFrom, dateTo)` - admission trends
+  - `useDischargeReport(dateFrom, dateTo)` - discharge stats
+  - `useWardCensus()` - current census by ward
+  - `useAverageLOS(dateFrom, dateTo)` - length of stay analytics
+  - `useDailyMovement(date)` - daily admissions/discharges/transfers
 
 ---
 
-## Identified Gaps
+## Phase 2: Implement Professional PDF Export
 
-### 1. Missing Reports (Critical)
+### 2.1 Create PDF Generation Utility
 
-**Department-wise Revenue Report**
-- No breakdown of revenue by OPD, IPD, Lab, Radiology, Pharmacy, Surgery
-- Cannot identify which departments are profit centers
-- Essential for hospital administration
+**New File: `src/lib/pdfExport.ts`**
 
-**Shift-wise Reports**
-- No report showing collections/activity by Morning/Evening/Night shift
-- Cannot analyze peak hours properly
-- No cashier-wise collection summary
+Features:
+- Generate formatted PDF using browser print with custom styling
+- Include organization branding (logo, name, address)
+- Report title with date range and filters applied
+- Professional table formatting with borders
+- Page numbers and generation timestamp
+- Proper page breaks for tables
 
-**Doctor Earnings Report (Detailed)**
-- Basic doctor performance exists but lacks:
-  - Procedure-wise earnings
-  - Consultation vs Surgery split
-  - Monthly trend comparison
+```typescript
+interface PDFExportOptions {
+  title: string;
+  subtitle?: string;
+  dateRange?: { from: Date; to: Date };
+  filters?: { label: string; value: string }[];
+  data: any[];
+  columns: { key: string; header: string; width?: string; align?: 'left' | 'center' | 'right' }[];
+  summaryRow?: Record<string, any>;
+  orientation?: 'portrait' | 'landscape';
+}
 
-**Patient Flow Report**
-- No report on patient journey time (registration to checkout)
-- Missing bottleneck analysis
-- No average wait time by department
+export function generatePDFReport(options: PDFExportOptions): void {
+  // Opens print window with professionally formatted report
+}
+```
 
-**Insurance Claims Report**
-- No aging analysis for claims
-- Missing rejection rate tracking
-- No payer-wise collection summary
+### 2.2 Update ReportExportButton Component
 
-### 2. Missing Filters
+**Enhanced `src/components/reports/ReportExportButton.tsx`:**
 
-| Report | Missing Filters |
-|--------|-----------------|
-| All Reports | Shift filter (Morning/Evening/Night) |
-| Billing Reports | Department, Payment Method, Cashier |
-| Doctor Reports | Specialty, Procedure Type |
-| IPD Reports | Ward, Bed Type, Consultant |
-| Lab Reports | Test Category, Urgency |
-| Pharmacy Reports | Category, Vendor, Expiry Range |
-| HR Reports | Department, Designation, Employment Type |
+Add:
+- "Export PDF" option in dropdown
+- Accept `pdfOptions` prop for customization
+- Include organization branding fetch via `useOrganizationBranding`
 
-### 3. Missing Features
+```typescript
+<DropdownMenuItem onClick={handleExportPDF}>
+  <FileText className="h-4 w-4 mr-2" />
+  Export PDF
+</DropdownMenuItem>
+```
 
-- **Pagination**: No report has proper server-side pagination
-- **Drill-down**: Cannot click on chart segments to see details
-- **Comparison**: No period-over-period comparison (vs last month/year)
-- **Custom Date Presets**: Limited to basic presets
-- **Scheduled Reports**: No automated email delivery
-- **Save Filters**: Cannot save favorite filter combinations
+### 2.3 Create Printable Report Template Component
+
+**New File: `src/components/reports/PrintableReport.tsx`**
+
+Reusable component for generating print-ready reports:
+- Organization header with logo
+- Report title and metadata
+- Filter summary section
+- Data table with proper styling
+- Summary/totals row
+- Footer with page numbers
 
 ---
 
-## Proposed New Reports
+## Phase 3: Enhance Existing Reports
 
-### Finance & Revenue (5 new)
+### 3.1 Add Export to All Report Pages
 
-1. **Department-wise Revenue Report**
-   - Revenue breakdown by OPD, IPD, Lab, Radiology, Pharmacy, Surgery, Emergency
-   - Bar chart and table view
-   - Filters: Date, Branch, Department
-   - Drill-down to see transactions
+| Page | Current Export | Add PDF |
+|------|----------------|---------|
+| `DepartmentRevenueReport.tsx` | CSV | Yes |
+| `ShiftWiseCollectionReport.tsx` | CSV | Yes |
+| `BillingReportsPage.tsx` | None | CSV + PDF |
+| `LabReportsPage.tsx` | CSV | Yes |
+| `HRReportsPage.tsx` | Basic | CSV + PDF |
+| `PayrollReportsPage.tsx` | None | CSV + PDF |
+| `ExecutiveDashboardReport.tsx` | None | PDF |
 
-2. **Shift-wise Collection Report**
-   - Collections by Morning (6AM-2PM), Evening (2PM-10PM), Night (10PM-6AM)
-   - Cashier-wise breakdown
-   - Filters: Date, Branch, Shift, Cashier/User
-   - Payment method split per shift
+### 3.2 Add Missing Filters
 
-3. **Daily/Monthly Revenue Comparison**
-   - Compare current period vs previous period
-   - Percentage change indicators
-   - Year-over-year trends
-
-4. **Outstanding Dues Aging Report**
-   - Enhanced aging buckets (0-30, 31-60, 61-90, 90+ days)
-   - Patient-wise outstanding list with contact info
-   - Follow-up action tracking
-
-5. **Payment Method Analysis**
-   - Cash vs Card vs Online vs Credit breakdown
-   - Trend over time
-   - Filters: Date, Branch, Department
-
-### HR & Payroll (4 new)
-
-6. **Shift-wise Attendance Report**
-   - Attendance by shift timing
-   - Late arrivals per shift
-   - Overtime by shift
-
-7. **Department Headcount & Cost Report**
-   - Employee count per department
-   - Total salary cost per department
-   - Cost per employee trends
-
-8. **Leave Utilization Report**
-   - Leave balance vs used
-   - Department-wise leave patterns
-   - Peak leave periods
-
-9. **Employee Turnover Report**
-   - Monthly/yearly turnover rate
-   - Exit reasons analysis
-   - Department-wise attrition
-
-### Accounts (3 new)
-
-10. **Vendor Payment Report**
-    - Vendor-wise payment history
-    - Outstanding AP aging
-    - Payment schedule calendar
-
-11. **Expense Analysis Report**
-    - Expense by category
-    - Department-wise expense
-    - Budget vs Actual comparison
-
-12. **Daily Transaction Report**
-    - All financial transactions for a day
-    - Journal entries summary
-    - Bank reconciliation support
-
-### Clinical (3 new)
-
-13. **Patient Wait Time Report**
-    - Average wait time by department
-    - Peak hours identification
-    - Bottleneck analysis
-
-14. **Consultation Summary Report**
-    - Doctor-wise consultation count
-    - Follow-up vs New patient ratio
-    - Diagnosis distribution
-
-15. **Procedure Volume Report**
-    - Surgery count by type
-    - Lab test volume by category
-    - Radiology procedure distribution
+| Page | Missing Filters to Add |
+|------|------------------------|
+| `BillingReportsPage.tsx` | Branch, Department |
+| `PayrollReportsPage.tsx` | Department, Employee Type |
+| `HRReportsPage.tsx` | Department |
+| `PharmacyReportsPage.tsx` | Branch, Category |
 
 ---
 
-## Technical Implementation
+## Implementation Details
 
-### Enhanced ReportFilters Component
-Add support for:
-- Shift filter (morning/evening/night)
-- Department filter
-- Cashier/User filter
-- Category filter
-- Custom date range presets
-- Save filter preferences
+### New Files to Create
 
-### Create Reusable Report Components
+1. **`src/lib/pdfExport.ts`** - PDF generation utility with professional formatting
+2. **`src/hooks/usePharmacyReports.ts`** - Real data hooks for pharmacy analytics
+3. **`src/hooks/useIPDReports.ts`** - Real data hooks for IPD analytics
+4. **`src/components/reports/PrintableReport.tsx`** - Reusable print template
 
-```
-src/components/reports/
-  ReportFilters.tsx (existing - enhance)
-  ReportTable.tsx (new - with pagination)
-  ReportChart.tsx (new - reusable charts)
-  ReportExport.tsx (new - PDF/Excel/CSV)
-  ReportDrillDown.tsx (new - click to expand)
-  ReportComparison.tsx (new - period comparison)
-```
+### Files to Modify
 
-### New Hooks for Reports
-
-```
-src/hooks/
-  useDepartmentRevenue.ts
-  useShiftWiseCollection.ts
-  usePatientFlowAnalytics.ts
-  useEmployeeCostAnalytics.ts
-  useReportPagination.ts
-```
-
-### Database Considerations
-
-Some reports may require:
-- Adding `shift` column to transactions/attendance
-- Creating materialized views for performance
-- Adding indexes on report query columns
+1. **`src/components/reports/ReportExportButton.tsx`** - Add PDF export option
+2. **`src/pages/app/pharmacy/PharmacyReportsPage.tsx`** - Replace hardcoded data
+3. **`src/pages/app/ipd/IPDReportsPage.tsx`** - Implement actual reports
+4. **`src/pages/app/billing/BillingReportsPage.tsx`** - Add export buttons
+5. **`src/pages/app/hr/HRReportsPage.tsx`** - Add export functionality
+6. **`src/pages/app/hr/payroll/PayrollReportsPage.tsx`** - Add export functionality
+7. **`src/pages/app/reports/ExecutiveDashboardReport.tsx`** - Add PDF export
 
 ---
 
-## File Changes Summary
+## PDF Report Format Specification
 
-### New Pages (15 files)
+### Header Section
 ```
-src/pages/app/reports/
-  DepartmentRevenueReport.tsx
-  ShiftWiseCollectionReport.tsx
-  RevenueComparisonReport.tsx
-  OutstandingAgingReport.tsx
-  PaymentMethodAnalysisReport.tsx
-  PatientWaitTimeReport.tsx
-  ConsultationSummaryReport.tsx
-  ProcedureVolumeReport.tsx
-
-src/pages/app/hr/reports/
-  ShiftAttendanceReport.tsx
-  DepartmentCostReport.tsx
-  LeaveUtilizationReport.tsx
-  TurnoverReport.tsx
-
-src/pages/app/accounts/
-  VendorPaymentReport.tsx
-  ExpenseAnalysisReport.tsx
-  DailyTransactionReport.tsx
+┌─────────────────────────────────────────────────────────────────┐
+│  [Organization Logo]    ORGANIZATION NAME                       │
+│                         Address Line 1, City                     │
+│                         Phone: +92-xxx | Email: xxx@xxx.com     │
+├─────────────────────────────────────────────────────────────────┤
+│  REPORT TITLE                                                    │
+│  Period: Jan 01, 2026 - Jan 28, 2026                            │
+│  Generated: Jan 28, 2026 at 3:45 PM                             │
+│  Filters: Branch: Main Hospital | Department: All               │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-### Enhanced Pages (10 files)
+### Data Table
 ```
-src/pages/app/billing/BillingReportsPage.tsx - Add department, shift filters
-src/pages/app/pharmacy/PharmacyReportsPage.tsx - Add pagination, category filter
-src/pages/app/lab/LabReportsPage.tsx - Add pagination
-src/pages/app/hr/HRReportsPage.tsx - Add department filter
-src/pages/app/hr/payroll/PayrollReportsPage.tsx - Add department filter
-src/pages/app/ipd/IPDReportsPage.tsx - Implement actual reports
-src/pages/app/inventory/InventoryReportsPage.tsx - Add detail pages
-src/pages/app/reports/ReportsHubPage.tsx - Add new report links
-src/pages/app/reports/ExecutiveDashboardReport.tsx - Add department revenue chart
-```
-
-### New Components (6 files)
-```
-src/components/reports/
-  ReportTable.tsx
-  ReportPagination.tsx
-  ReportExportButton.tsx
-  ShiftFilter.tsx
-  DepartmentFilter.tsx
-  ReportComparisonChart.tsx
+┌──────────┬───────────────┬────────────┬────────────────┬──────────┐
+│ Date     │ Invoice #     │ Patient    │ Department     │ Amount   │
+├──────────┼───────────────┼────────────┼────────────────┼──────────┤
+│ Jan 28   │ INV-2026-001  │ John Doe   │ OPD            │ Rs. 500  │
+│ Jan 28   │ INV-2026-002  │ Jane Smith │ Laboratory     │ Rs. 1500 │
+│ ...      │ ...           │ ...        │ ...            │ ...      │
+├──────────┼───────────────┼────────────┼────────────────┼──────────┤
+│ TOTAL    │ 45 Records    │            │                │ Rs. 45K  │
+└──────────┴───────────────┴────────────┴────────────────┴──────────┘
 ```
 
-### New Hooks (5 files)
+### Footer
 ```
-src/hooks/
-  useDepartmentRevenue.ts
-  useShiftWiseData.ts
-  useReportPagination.ts
-  usePatientFlowAnalytics.ts
-  useTurnoverAnalytics.ts
+┌─────────────────────────────────────────────────────────────────┐
+│  Page 1 of 3                          SmartHMS Report System    │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Implementation Priority
+## Summary of Changes
 
-### Phase 1 - High Priority (Core Revenue Reports)
-1. Department-wise Revenue Report
-2. Shift-wise Collection Report
-3. Enhanced Billing Reports with filters and pagination
-4. ReportTable component with pagination
+| Category | Files | Key Changes |
+|----------|-------|-------------|
+| Fix Hardcoded Data | 2 pages, 2 new hooks | Replace mock with Supabase queries |
+| PDF Export | 1 utility, 1 component | Professional print-to-PDF with branding |
+| Add Export Buttons | 6 report pages | Add ReportExportButton with PDF option |
+| Add Filters | 4 report pages | Branch, Department, Category filters |
 
-### Phase 2 - Medium Priority (HR & Analytics)
-5. Shift-wise Attendance Report
-6. Department Headcount & Cost Report
-7. Enhanced HR Reports page
-8. Patient Wait Time Report
-
-### Phase 3 - Lower Priority (Accounts & Advanced)
-9. Vendor Payment Report
-10. Expense Analysis Report
-11. Turnover Report
-12. All remaining reports
-
----
-
-## Summary
-
-| Category | Current | After Enhancement |
-|----------|---------|-------------------|
-| Total Reports | 15 | 30+ |
-| Reports with Pagination | 0 | All new reports |
-| Reports with Shift Filter | 0 | 8+ |
-| Reports with Department Filter | 0 | 12+ |
-| Reports with Export (CSV/PDF) | 5 | All reports |
-| Reports with Charts | 8 | All reports |
-| Reports with Drill-down | 0 | Priority reports |
-
-This plan transforms the HMS from basic reporting to a comprehensive analytics platform with proper filters, pagination, and actionable insights for hospital administration.
-
+This comprehensive fix ensures all reports use real database data and provide professional PDF export functionality with organization branding and proper formatting.
