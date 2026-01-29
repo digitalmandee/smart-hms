@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StatusBadge } from "@/components/StatusBadge";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { usePatient } from "@/hooks/usePatients";
 import { useMedicalHistory } from "@/hooks/useMedicalHistory";
 import { usePatientProfileStats } from "@/hooks/usePatientProfileStats";
@@ -19,6 +20,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { PrintablePatientCard } from "@/components/patients/PrintablePatientCard";
 import { PatientRecentActivity } from "@/components/patients/PatientRecentActivity";
 import { PatientCurrentVisit } from "@/components/patients/PatientCurrentVisit";
+import { PatientPhotoCapture } from "@/components/patients/PatientPhotoCapture";
 import { usePrint } from "@/hooks/usePrint";
 import {
   User,
@@ -42,6 +44,7 @@ import {
   Siren,
   Scan,
   Printer,
+  Camera,
 } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { MedicalHistorySection } from "@/components/patients/MedicalHistorySection";
@@ -73,6 +76,15 @@ export function PatientDetailPage() {
   const { data: currentVisit } = usePatientCurrentVisit(id);
   const { data: organization } = useOrganization(profile?.organization_id);
   const { printRef, handlePrint } = usePrint();
+  const [photoCaptureOpen, setPhotoCaptureOpen] = useState(false);
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+
+  // Update local photo URL when patient data changes
+  useEffect(() => {
+    if (patient?.profile_photo_url) {
+      setPhotoUrl(patient.profile_photo_url);
+    }
+  }, [patient?.profile_photo_url]);
 
   // Real-time subscriptions for patient-related data
   useEffect(() => {
@@ -266,11 +278,36 @@ export function PatientDetailPage() {
         <Card className="lg:col-span-1">
           <CardContent className="p-6">
             <div className="flex flex-col items-center text-center mb-6">
-              <div className="h-24 w-24 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                <User className="h-12 w-12 text-primary" />
+              <div className="relative group mb-4">
+                <Avatar className="h-24 w-24">
+                  {photoUrl ? (
+                    <AvatarImage src={photoUrl} alt={fullName} />
+                  ) : null}
+                  <AvatarFallback className="bg-primary/10">
+                    <User className="h-12 w-12 text-primary" />
+                  </AvatarFallback>
+                </Avatar>
+                <Button
+                  size="icon"
+                  variant="secondary"
+                  className="absolute bottom-0 right-0 h-8 w-8 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={() => setPhotoCaptureOpen(true)}
+                  title="Take Picture"
+                >
+                  <Camera className="h-4 w-4" />
+                </Button>
               </div>
               <h2 className="text-xl font-bold">{fullName}</h2>
               <p className="text-sm text-muted-foreground">{patient.patient_number}</p>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="mt-1 text-xs"
+                onClick={() => setPhotoCaptureOpen(true)}
+              >
+                <Camera className="h-3 w-3 mr-1" />
+                {photoUrl ? "Change Photo" : "Take Picture"}
+              </Button>
               {patient.blood_group && (
                 <Badge variant="outline" className="mt-2 gap-1">
                   <Droplets className="h-3 w-3" />
@@ -596,6 +633,16 @@ export function PatientDetailPage() {
           } : undefined}
         />
       </div>
+
+      {/* Photo Capture Dialog */}
+      <PatientPhotoCapture
+        patientId={patient.id}
+        patientName={fullName}
+        currentPhotoUrl={photoUrl}
+        open={photoCaptureOpen}
+        onOpenChange={setPhotoCaptureOpen}
+        onPhotoUpdated={(url) => setPhotoUrl(url)}
+      />
     </div>
   );
 }
