@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useExecutiveSummary } from "@/hooks/useExecutiveSummary";
 import { useBranches } from "@/hooks/useBranches";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
-import { DollarSign, Users, Bed, Pill, TestTube, TrendingUp, TrendingDown, AlertTriangle, Calendar, Download, Building2, ArrowRight, Minus } from "lucide-react";
+import { DollarSign, Users, Bed, Pill, TestTube, TrendingUp, TrendingDown, AlertTriangle, Calendar, Download, Building2, ArrowRight, Minus, Scan, Scissors } from "lucide-react";
 import { format, startOfMonth, endOfMonth, subMonths } from "date-fns";
 import { PageHeader } from "@/components/PageHeader";
 import { ReportExportButton } from "@/components/reports/ReportExportButton";
@@ -57,6 +57,8 @@ export default function ExecutiveDashboardReport() {
     alerts: [], 
     patientFootfall: 0,
     beds: { total: 0, occupied: 0, free: 0, maintenance: 0, occupancyRate: 0 },
+    radiology: { ordersProcessed: 0, pendingInterpretations: 0, revenue: 0 },
+    surgery: { completed: 0, scheduled: 0, revenue: 0 },
   };
 
   const pieData = summary.financial.byDepartment.filter(d => d.count > 0).map((d, i) => ({ 
@@ -266,8 +268,8 @@ export default function ExecutiveDashboardReport() {
         <Card className="lg:col-span-2">
           <CardHeader><CardTitle>Department Performance</CardTitle></CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="p-4 rounded-lg border cursor-pointer hover:border-primary/50 transition-colors" onClick={() => navigate("/app/opd")}>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <div className="p-4 rounded-lg border cursor-pointer hover:border-primary/50 transition-colors" onClick={() => navigate("/app/clinic/reports")}>
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2"><Calendar className="h-4 w-4 text-blue-600" /><span className="font-medium">OPD</span></div>
                   <ArrowRight className="h-4 w-4 text-muted-foreground" />
@@ -277,7 +279,7 @@ export default function ExecutiveDashboardReport() {
                 <p className="text-xs mt-1">Avg {summary.opd.avgPerDoctor}/doctor</p>
               </div>
 
-              <div className="p-4 rounded-lg border cursor-pointer hover:border-primary/50 transition-colors" onClick={() => navigate("/app/ipd")}>
+              <div className="p-4 rounded-lg border cursor-pointer hover:border-primary/50 transition-colors" onClick={() => navigate("/app/ipd/reports")}>
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2"><Bed className="h-4 w-4 text-purple-600" /><span className="font-medium">IPD</span></div>
                   <ArrowRight className="h-4 w-4 text-muted-foreground" />
@@ -287,7 +289,7 @@ export default function ExecutiveDashboardReport() {
                 <p className="text-xs mt-1">{summary.ipd.todayDischarges} discharges today</p>
               </div>
 
-              <div className="p-4 rounded-lg border cursor-pointer hover:border-primary/50 transition-colors" onClick={() => navigate("/app/pharmacy")}>
+              <div className="p-4 rounded-lg border cursor-pointer hover:border-primary/50 transition-colors" onClick={() => navigate("/app/pharmacy/reports")}>
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2"><Pill className="h-4 w-4 text-pink-600" /><span className="font-medium">Pharmacy</span></div>
                   <ArrowRight className="h-4 w-4 text-muted-foreground" />
@@ -297,7 +299,7 @@ export default function ExecutiveDashboardReport() {
                 <p className="text-xs mt-1">Today: {formatCurrency(summary.pharmacy.todaySales)}</p>
               </div>
 
-              <div className="p-4 rounded-lg border cursor-pointer hover:border-primary/50 transition-colors" onClick={() => navigate("/app/lab")}>
+              <div className="p-4 rounded-lg border cursor-pointer hover:border-primary/50 transition-colors" onClick={() => navigate("/app/lab/reports")}>
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2"><TestTube className="h-4 w-4 text-cyan-600" /><span className="font-medium">Laboratory</span></div>
                   <ArrowRight className="h-4 w-4 text-muted-foreground" />
@@ -306,6 +308,26 @@ export default function ExecutiveDashboardReport() {
                 <p className="text-xs text-muted-foreground">Lab Revenue</p>
                 <p className="text-xs mt-1">{summary.lab.pendingOrders} pending ({summary.lab.urgentPending} urgent)</p>
               </div>
+
+              <div className="p-4 rounded-lg border cursor-pointer hover:border-primary/50 transition-colors" onClick={() => navigate("/app/radiology/reports")}>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2"><Scan className="h-4 w-4 text-indigo-600" /><span className="font-medium">Radiology</span></div>
+                  <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                </div>
+                <p className="text-2xl font-bold">{summary.radiology.ordersProcessed}</p>
+                <p className="text-xs text-muted-foreground">Orders Processed</p>
+                <p className="text-xs mt-1">{summary.radiology.pendingInterpretations} pending</p>
+              </div>
+
+              <div className="p-4 rounded-lg border cursor-pointer hover:border-primary/50 transition-colors" onClick={() => navigate("/app/ot/reports")}>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2"><Scissors className="h-4 w-4 text-rose-600" /><span className="font-medium">Surgery/OT</span></div>
+                  <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                </div>
+                <p className="text-2xl font-bold">{summary.surgery.completed}</p>
+                <p className="text-xs text-muted-foreground">Surgeries Completed</p>
+                <p className="text-xs mt-1">{summary.surgery.scheduled} scheduled</p>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -313,7 +335,7 @@ export default function ExecutiveDashboardReport() {
 
       {/* HR & Alerts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate("/app/hr")}>
+        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate("/app/hr/reports")}>
           <CardHeader><CardTitle>HR Summary</CardTitle></CardHeader>
           <CardContent>
             <div className="grid grid-cols-3 gap-4 text-center">

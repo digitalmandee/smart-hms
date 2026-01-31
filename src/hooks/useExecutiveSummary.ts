@@ -26,6 +26,8 @@ export interface ExecutiveSummary {
   alerts: AlertItem[];
   patientFootfall: number;
   beds: { total: number; occupied: number; free: number; maintenance: number; occupancyRate: number };
+  radiology: { ordersProcessed: number; pendingInterpretations: number; revenue: number };
+  surgery: { completed: number; scheduled: number; revenue: number };
 }
 
 export function useExecutiveSummary(options: { startDate?: Date; endDate?: Date } = {}) {
@@ -54,9 +56,11 @@ export function useExecutiveSummary(options: { startDate?: Date; endDate?: Date 
       const overdueInvPromise = supabase.from("invoices").select("id").eq("organization_id", orgId).eq("status", "pending").lt("due_date", today);
       const labRevenuePromise = supabase.from("invoice_items").select("total_price, service_type:service_types!inner(category)").eq("service_types.category", "lab").gte("created_at", startStr).lte("created_at", endStr + "T23:59:59");
       const expensesPromise = supabase.from("journal_entry_lines").select("debit_amount, account:accounts!inner(account_type:account_types!inner(category))").eq("accounts.account_types.category", "expense").gte("created_at", startStr).lte("created_at", endStr + "T23:59:59");
+      const imagingOrdersPromise = supabase.from("imaging_orders").select("id, status").gte("created_at", startStr).lte("created_at", endStr + "T23:59:59");
+      const surgeriesPromise = supabase.from("surgeries").select("id, status").gte("scheduled_date", startStr).lte("scheduled_date", endStr);
 
-      const [invoices, appointments, admissions, beds, pharmacy, labOrders, employees, attendance, overdueInv, labRevenue, expenses] = await Promise.all([
-        invoicesPromise, appointmentsPromise, admissionsPromise, bedsPromise, pharmacyPromise, labOrdersPromise, employeesPromise, attendancePromise, overdueInvPromise, labRevenuePromise, expensesPromise
+      const [invoices, appointments, admissions, beds, pharmacy, labOrders, employees, attendance, overdueInv, labRevenue, expenses, imagingOrders, surgeries] = await Promise.all([
+        invoicesPromise, appointmentsPromise, admissionsPromise, bedsPromise, pharmacyPromise, labOrdersPromise, employeesPromise, attendancePromise, overdueInvPromise, labRevenuePromise, expensesPromise, imagingOrdersPromise, surgeriesPromise
       ]);
 
       const inv = invoices.data || [];
@@ -93,6 +97,16 @@ export function useExecutiveSummary(options: { startDate?: Date; endDate?: Date 
       const attRecords = attendance.data || [];
       const present = attRecords.filter(a => a.status === "present" || a.status === "late").length;
 
+      // Radiology stats
+      const imagingData = imagingOrders.data || [];
+      const completedImaging = imagingData.filter((o: any) => o.status === "completed" || o.status === "reported").length;
+      const pendingImaging = imagingData.filter((o: any) => o.status === "ordered" || o.status === "in_progress" || o.status === "pending_interpretation").length;
+
+      // Surgery stats
+      const surgeryData = surgeries.data || [];
+      const completedSurgeries = surgeryData.filter((s: any) => s.status === "completed").length;
+      const scheduledSurgeries = surgeryData.filter((s: any) => s.status === "scheduled" || s.status === "confirmed").length;
+
       const alerts: AlertItem[] = [];
       if ((overdueInv.data?.length || 0) > 0) alerts.push({ type: "error", title: "Overdue Invoices", count: overdueInv.data?.length || 0 });
       if (pendingLab.length > 0) alerts.push({ type: "info", title: "Pending Lab Orders", count: pendingLab.length });
@@ -109,6 +123,8 @@ export function useExecutiveSummary(options: { startDate?: Date; endDate?: Date 
         hr: { totalEmployees: totalEmps, presentToday: present, attendanceRate: totalEmps > 0 ? Math.round((present / totalEmps) * 100) : 0 },
         financial: { totalRevenue, totalExpenses, netProfit, byDepartment: [{ name: "OPD", revenue: 0, count: completedAppts.length }, { name: "Pharmacy", revenue: monthSales, count: pharmTx.length }, { name: "Lab", revenue: labRevenueTotal, count: completedLab.length }, { name: "IPD", revenue: 0, count: adm.length }] },
         alerts,
+        radiology: { ordersProcessed: completedImaging, pendingInterpretations: pendingImaging, revenue: 0 },
+        surgery: { completed: completedSurgeries, scheduled: scheduledSurgeries, revenue: 0 },
         patientFootfall: completedAppts.length + adm.length,
         beds: { total: bedsData.length, occupied: occupiedBeds, free: freeBeds, maintenance: maintenanceBeds, occupancyRate: bedsData.length > 0 ? Math.round((occupiedBeds / bedsData.length) * 100) : 0 },
       };
@@ -119,5 +135,5 @@ export function useExecutiveSummary(options: { startDate?: Date; endDate?: Date 
 }
 
 function getEmptySummary(): ExecutiveSummary {
-  return { revenue: { total: 0, collected: 0, outstanding: 0, trend: 0 }, opd: { consultations: 0, revenue: 0, avgPerDoctor: 0 }, ipd: { activeAdmissions: 0, todayDischarges: 0, occupancyRate: 0, totalBeds: 0, revenue: 0 }, pharmacy: { todaySales: 0, monthSales: 0, inventoryValue: 0, lowStockCount: 0, expiringCount: 0 }, lab: { ordersProcessed: 0, pendingOrders: 0, revenue: 0, urgentPending: 0 }, hr: { totalEmployees: 0, presentToday: 0, attendanceRate: 0 }, financial: { totalRevenue: 0, totalExpenses: 0, netProfit: 0, byDepartment: [] }, alerts: [], patientFootfall: 0, beds: { total: 0, occupied: 0, free: 0, maintenance: 0, occupancyRate: 0 } };
+  return { revenue: { total: 0, collected: 0, outstanding: 0, trend: 0 }, opd: { consultations: 0, revenue: 0, avgPerDoctor: 0 }, ipd: { activeAdmissions: 0, todayDischarges: 0, occupancyRate: 0, totalBeds: 0, revenue: 0 }, pharmacy: { todaySales: 0, monthSales: 0, inventoryValue: 0, lowStockCount: 0, expiringCount: 0 }, lab: { ordersProcessed: 0, pendingOrders: 0, revenue: 0, urgentPending: 0 }, hr: { totalEmployees: 0, presentToday: 0, attendanceRate: 0 }, financial: { totalRevenue: 0, totalExpenses: 0, netProfit: 0, byDepartment: [] }, alerts: [], patientFootfall: 0, beds: { total: 0, occupied: 0, free: 0, maintenance: 0, occupancyRate: 0 }, radiology: { ordersProcessed: 0, pendingInterpretations: 0, revenue: 0 }, surgery: { completed: 0, scheduled: 0, revenue: 0 } };
 }
