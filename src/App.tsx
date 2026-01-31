@@ -276,6 +276,9 @@ import ExecutiveDashboardReport from "./pages/app/reports/ExecutiveDashboardRepo
 import DepartmentRevenueReport from "./pages/app/reports/DepartmentRevenueReport";
 import ShiftWiseCollectionReport from "./pages/app/reports/ShiftWiseCollectionReport";
 import EmployeePerformanceReport from "./pages/app/hr/reports/EmployeePerformanceReport";
+import OTReportsPage from "./pages/app/ot/OTReportsPage";
+import RadiologyReportsPage from "./pages/app/radiology/RadiologyReportsPage";
+import ClaimsReportPage from "./pages/app/billing/ClaimsReportPage";
 
 // OT pages
 import OTDashboard from "./pages/app/ot/OTDashboard";
@@ -650,6 +653,7 @@ function App() {
               <Route path="ot/pacu" element={<PACUPage />} />
               <Route path="ot/nursing-notes" element={<OTNursingNotesPage />} />
               <Route path="ot/instruments" element={<OTInstrumentCountPage />} />
+              <Route path="ot/reports" element={<OTReportsPage />} />
               
               {/* Reception OT Charges */}
               <Route path="reception/ot-charges" element={<OTMedicationChargesPage />} />
@@ -672,6 +676,7 @@ function App() {
               <Route path="radiology/pacs/settings" element={<PACSSettingsPage />} />
               <Route path="radiology/pacs/guide" element={<PACSSetupGuidePage />} />
               <Route path="radiology/templates" element={<ImagingReportTemplatesPage />} />
+              <Route path="radiology/reports" element={<RadiologyReportsPage />} />
               
               {/* Lab routes */}
               <Route path="lab" element={<LabDashboard />} />
@@ -717,6 +722,7 @@ function App() {
               <Route path="billing/invoices/:id/pay" element={<PaymentCollectionPage />} />
               <Route path="billing/payments" element={<PaymentHistoryPage />} />
               <Route path="billing/reports" element={<BillingReportsPage />} />
+              <Route path="billing/claims-report" element={<ClaimsReportPage />} />
               <Route path="billing/insurance/companies" element={<InsuranceCompaniesPage />} />
               <Route path="billing/insurance/plans" element={<InsurancePlansPage />} />
               <Route path="billing/claims" element={<ClaimsListPage />} />
