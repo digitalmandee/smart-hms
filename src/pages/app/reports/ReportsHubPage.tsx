@@ -20,6 +20,7 @@ import {
   Ticket,
   Clock,
   UserCheck,
+  Shield,
 } from "lucide-react";
 
 interface ReportCard {
@@ -73,6 +74,14 @@ const clinicalReports: ReportCard[] = [
     color: "bg-cyan-500",
   },
   {
+    title: "Radiology Reports",
+    description: "Imaging volume by modality, TAT analysis, technician performance",
+    icon: Stethoscope,
+    path: "/app/radiology/reports",
+    module: "Radiology",
+    color: "bg-teal-500",
+  },
+  {
     title: "ER Reports",
     description: "Triage levels, arrival modes, disposition summary",
     icon: Siren,
@@ -90,6 +99,14 @@ const operationalReports: ReportCard[] = [
     path: "/app/ipd/reports",
     module: "IPD",
     color: "bg-amber-500",
+  },
+  {
+    title: "OT/Surgery Reports",
+    description: "Surgery volume, surgeon performance, OT room utilization",
+    icon: Stethoscope,
+    path: "/app/ot/reports",
+    module: "OT",
+    color: "bg-violet-500",
   },
   {
     title: "Pharmacy Reports",
@@ -117,6 +134,14 @@ const financialReports: ReportCard[] = [
     path: "/app/billing/reports",
     module: "Billing",
     color: "bg-emerald-500",
+  },
+  {
+    title: "Insurance Claims Report",
+    description: "Claims status, rejection analysis, insurance company performance",
+    icon: Shield,
+    path: "/app/billing/claims-report",
+    module: "Insurance",
+    color: "bg-sky-500",
   },
   {
     title: "Department Revenue",
