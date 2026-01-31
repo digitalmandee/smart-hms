@@ -1,167 +1,283 @@
 
-# Patient Photo Capture & OPD/Compensation Flow Verification
+# HMS Reports Enhancement Plan
 
-## Analysis Summary
+## Current Reports Inventory
 
-After thorough exploration of the codebase, here's what I found:
+After thorough analysis, the HMS has a comprehensive reporting system with **20+ report pages** covering all major modules:
 
----
+### Management Reports
+| Report | Location | Features | Status |
+|--------|----------|----------|--------|
+| Executive Dashboard | `/app/reports/executive` | KPIs, Gross vs Net, Beds, Clickable Drill-downs | Complete |
+| Department Revenue | `/app/reports/department-revenue` | By OPD/IPD/Lab/Pharmacy/Surgery | Complete |
+| Shift-wise Collection | `/app/reports/shift-collection` | Morning/Evening/Night analysis, Cashier breakdown | Complete |
+| Branch Comparison | `/app/reports/branches` | Multi-branch analytics | Complete |
 
-## 1. Patient Photo Capture - NEEDS IMPLEMENTATION
+### Clinical Reports
+| Report | Location | Features | Status |
+|--------|----------|----------|--------|
+| Clinic/OPD Reports | `/app/clinic/reports` | Token summary, Doctor earnings, Peak hours | Complete |
+| Patient Reports | `/app/patients/reports` | Demographics, Registration trends | Complete |
+| Appointment Reports | `/app/appointments/reports` | Booking trends, No-show analysis | Complete |
+| Doctor Reports | `/app/opd/reports` | Consultation volume, Performance | Complete |
+| Lab Reports | `/app/lab/reports` | TAT, Test categories, Pending orders | Complete |
+| ER Reports | `/app/emergency/reports` | Triage levels, Arrival modes | Complete |
+| IPD Reports | `/app/ipd/reports` | Bed occupancy, LOS, Ward census | Complete |
 
-### Current State
-- **Database Ready**: `patients.profile_photo_url` column exists in the schema
-- **UI Missing**: The patient profile page (`PatientDetailPage.tsx`) shows a static User icon placeholder (lines 269-271), with no "Take Picture" button
-- **No Camera Component**: No existing camera capture functionality for patients (though radiology has `ImageCapturePage.tsx` for PACS images)
+### Operational Reports
+| Report | Location | Features | Status |
+|--------|----------|----------|--------|
+| Pharmacy Reports | `/app/pharmacy/reports` | Sales, Top products, Payment methods | Complete |
+| Inventory Reports | `/app/inventory/reports` | Stock valuation, Movement, Expiry | Complete |
 
-### Implementation Required
+### Financial Reports
+| Report | Location | Features | Status |
+|--------|----------|----------|--------|
+| Billing Reports | `/app/billing/reports` | Daily collections, Aging, Payment methods | Complete |
+| Financial Statements | `/app/accounts/reports` | Trial Balance, P&L, Balance Sheet, Cash Flow | Complete |
 
-**New Component: `PatientPhotoCapture.tsx`**
-- Uses browser's `navigator.mediaDevices.getUserMedia()` API for camera access
-- Provides live camera preview with capture button
-- Option to upload from file as fallback
-- Uploads captured image to Supabase Storage bucket
-- Updates `patients.profile_photo_url` with the stored URL
-
-**Files to Create:**
-| File | Purpose |
-|------|---------|
-| `src/components/patients/PatientPhotoCapture.tsx` | Camera capture dialog component |
-
-**Files to Modify:**
-| File | Changes |
-|------|---------|
-| `src/pages/app/patients/PatientDetailPage.tsx` | Add camera button to avatar, show actual photo if exists |
-| `src/pages/app/patients/PatientFormPage.tsx` | Add photo capture section to registration form |
-
-**Storage Setup:**
-- Create `patient-photos` storage bucket with public access
-- RLS policy for organization-scoped access
-
----
-
-## 2. OPD Flow Verification - COMPLETE
-
-The OPD clinical workflow is fully implemented:
-
-| Step | Component | Status |
-|------|-----------|--------|
-| 1. Registration | `PatientFormPage.tsx` | Complete |
-| 2. Appointment Booking | `NewAppointmentPage.tsx` | Complete |
-| 3. Walk-in Registration | `OPDWalkInPage.tsx` | Complete |
-| 4. Nurse Vitals | `OPDVitalsPage.tsx` | Complete |
-| 5. Doctor Queue | `DoctorDashboard.tsx` | Complete |
-| 6. Consultation | `ConsultationPage.tsx` | Complete (auto-status to `in_progress`) |
-| 7. Prescription | `PrescriptionBuilder.tsx` | Complete |
-| 8. Lab Orders | `LabOrderBuilder.tsx` | Complete |
-| 9. Complete Visit | `VisitSummaryDialog.tsx` | Complete |
-| 10. Checkout | `OPDCheckoutPage.tsx` | Complete (redirects if pending orders) |
-| 11. Pending Checkout | `PendingCheckoutPage.tsx` | Complete |
-
-**Consultation Completion Flow:**
-- Doctor clicks "Complete Consultation" → Summary Dialog appears
-- Prescription and Lab Orders are created
-- Appointment status updated to `completed`
-- Redirects to Checkout if pending orders exist
+### HR Reports
+| Report | Location | Features | Status |
+|--------|----------|----------|--------|
+| HR Dashboard | `/app/hr/reports` | Department distribution, Leave analysis | Complete |
+| Attendance Reports | `/app/hr/attendance/reports` | Monthly trends, Department analysis | Complete |
+| Payroll Reports | `/app/hr/payroll/reports` | YTD summary, Salary distribution | Complete |
+| Daily Commission | `/app/hr/payroll/daily-commissions` | Doctor earnings by date | Complete |
+| Roster Reports | `/app/hr/attendance/roster-reports` | Shift distribution, Coverage gaps | Complete |
 
 ---
 
-## 3. Doctor Compensation System - COMPLETE
+## Identified Gaps
 
-The doctor compensation system is fully implemented:
+### Missing Reports
 
-### Fee Configuration
-| Component | Location | Status |
-|-----------|----------|--------|
-| Compensation Plan Type | `DoctorCompensationForm.tsx` | Complete (Fixed/Commission/Hybrid) |
-| Consultation Fee + Share % | Employee Form > Compensation Tab | Complete |
-| IPD Visit Fee + Share % | Same | Complete |
-| Surgery Fee + Share % | Same (for surgeons) | Complete |
-| Anesthesia Share % | Same (for anesthetists) | Complete |
-| Lab Referral % | Same | Complete |
-| Minimum Guarantee | Same | Complete |
+1. **Surgery/OT Reports** - No dedicated report page exists
+   - Surgery volume by surgeon
+   - OT utilization (room usage hours)
+   - Anesthesia usage breakdown
+   - Cancelled/postponed surgeries
 
-### Earnings Triggers
-| Event | Trigger | Status |
-|-------|---------|--------|
-| Invoice Paid (with consultation) | `post_consultation_earning()` | Complete |
-| IPD Daily Charge | `post_ipd_visit_earning()` | Complete |
-| Surgery Completed | `post_surgery_completion_earning()` | Complete |
+2. **Radiology Reports** - No dedicated report page exists
+   - Imaging volume by modality (X-Ray, CT, MRI, Ultrasound)
+   - TAT (Turnaround Time) for reports
+   - Pending interpretations
 
-### Settlement Workflow
-| Feature | Component | Status |
-|---------|-----------|--------|
-| Wallet Balances | `DoctorWalletBalancesPage.tsx` | Complete |
-| Daily Commission Report | `DailyCommissionReport.tsx` | Complete |
-| Settlement Dialog | `SettlementDialog.tsx` | Complete (payment method, reference #) |
-| Settlement Receipt | `SettlementReceiptDialog.tsx` | Complete (printable) |
-| Settlement History | Wallet Balances > History Tab | Complete |
+3. **Referral Reports** - Track patient referrals
+   - External referral sources
+   - Internal inter-department referrals
+   - Referral conversion rates
 
-**Settlement Flow:**
-1. Admin views pending balances per doctor
-2. Clicks "Settle" button
-3. Selects payment method (Cash/Bank/JazzCash/EasyPaisa)
-4. Enters reference number (for non-cash)
-5. Confirms settlement
-6. Receipt generated with settlement number (SET-YYYYMMDD-XXXX)
-7. Earnings marked as `is_paid = true`
+4. **Insurance/Claims Reports** - Missing from billing
+   - Claims submitted vs approved
+   - Rejection reasons analysis
+   - Insurance company performance
+
+5. **Patient Feedback/Satisfaction** - No report exists
+   - NPS scores if collected
+   - Complaint resolution metrics
+
+---
+
+## Enhancement Recommendations
+
+### Priority 1: Add Missing Report Pages
+
+#### 1. OT/Surgery Reports Page
+**File: `src/pages/app/ot/OTReportsPage.tsx`**
+
+Features:
+- Surgery volume by date range
+- Surgeon-wise performance (procedures count, average duration)
+- OT room utilization percentage
+- Anesthesia type distribution
+- Emergency vs elective breakdown
+- Cancelled surgery analysis
+- Charts: Surgery trends line chart, Room utilization bar chart
+
+#### 2. Radiology Reports Page
+**File: `src/pages/app/radiology/RadiologyReportsPage.tsx`**
+
+Features:
+- Imaging orders by modality
+- TAT analysis (order to report time)
+- Pending interpretations count
+- Revenue by modality
+- Technician productivity
+- Charts: Modality pie chart, Daily volume bar chart
+
+#### 3. Insurance Claims Report
+**File: `src/pages/app/billing/ClaimsReportPage.tsx`**
+
+Features:
+- Claims status breakdown (Submitted/Approved/Rejected/Pending)
+- Rejection reasons categorization
+- Insurance company performance comparison
+- Average processing time
+- Outstanding claims aging
+- Export for reconciliation
+
+### Priority 2: Enhance Existing Reports
+
+#### Executive Dashboard Enhancements
+- Add Surgery stats card (procedures today/month)
+- Add Radiology stats (images processed)
+- Add Insurance claims pending widget
+- Real-time auto-refresh option
+
+#### Billing Reports Enhancements
+- Add discount analysis (total discounts given)
+- Add credit limit utilization for corporate patients
+- Add cashier-wise variance report
+
+#### Lab Reports Enhancements
+- Add sample rejection rate
+- Add critical value reporting count
+- Add test-wise revenue breakdown
+
+#### HR Reports Enhancements
+- Add overtime hours tracking
+- Add cost-per-employee analysis
+- Add training hours completion
+
+### Priority 3: PDF Export Improvements
+
+Currently only 7 report pages use `ReportExportButton`. Add to remaining:
+- ER Reports
+- Clinic Reports
+- Patient Reports
+- Appointment Reports
+- Doctor Reports
+- Attendance Reports
+- HR Reports main page
+
+### Priority 4: New Specialized Reports
+
+1. **Daily MIS Report** - Single-page summary for management
+   - All key metrics on one printable page
+   - Designed for daily review meetings
+
+2. **Comparative Analysis Report**
+   - Month-over-month comparison
+   - Year-over-year trends
+   - Variance highlighting
+
+3. **Cost Analysis Report** (if expense tracking exists)
+   - Revenue vs Expenses by department
+   - Profit margins by service category
 
 ---
 
 ## Implementation Plan
 
-### Phase 1: Patient Photo Capture Component
+### Phase 1: Create Missing Report Pages (High Priority)
 
-**Create `PatientPhotoCapture.tsx`:**
+**New Files to Create:**
+| File | Purpose |
+|------|---------|
+| `src/pages/app/ot/OTReportsPage.tsx` | Surgery/OT analytics |
+| `src/hooks/useOTReports.ts` | Hook for surgery data aggregation |
+| `src/pages/app/radiology/RadiologyReportsPage.tsx` | Imaging analytics |
+| `src/hooks/useRadiologyReports.ts` | Hook for radiology data |
+| `src/pages/app/billing/ClaimsReportPage.tsx` | Insurance claims analysis |
+
+**Routes to Add:**
 ```typescript
-// Key functionality:
-- Uses getUserMedia({ video: true, facingMode: "user" })
-- Canvas capture for snapshot
-- File upload fallback
-- Uploads to Supabase Storage
-- Returns URL for profile_photo_url update
+<Route path="ot/reports" element={<OTReportsPage />} />
+<Route path="radiology/reports" element={<RadiologyReportsPage />} />
+<Route path="billing/claims-report" element={<ClaimsReportPage />} />
 ```
 
-**Storage Bucket Setup (SQL Migration):**
-```sql
-INSERT INTO storage.buckets (id, name, public)
-VALUES ('patient-photos', 'patient-photos', true);
+**Update ReportsHubPage.tsx:**
+Add cards for new reports in appropriate sections.
 
-CREATE POLICY "Users can upload patient photos"
-ON storage.objects FOR INSERT
-WITH CHECK (bucket_id = 'patient-photos');
+### Phase 2: Enhance Existing Reports
 
-CREATE POLICY "Anyone can view patient photos"
-ON storage.objects FOR SELECT
-USING (bucket_id = 'patient-photos');
+**Files to Modify:**
+| File | Changes |
+|------|---------|
+| `src/pages/app/reports/ExecutiveDashboardReport.tsx` | Add surgery and radiology widgets |
+| `src/pages/app/billing/BillingReportsPage.tsx` | Add discount analysis section |
+| `src/pages/app/lab/LabReportsPage.tsx` | Add sample rejection rate |
+| `src/pages/app/hr/HRReportsPage.tsx` | Add overtime tracking |
+
+### Phase 3: Add Export to Remaining Reports
+
+**Files to Modify:**
+- `src/pages/app/emergency/ERReportsPage.tsx`
+- `src/pages/app/clinic/ClinicReportsPage.tsx`
+- `src/pages/app/patients/PatientReportsPage.tsx`
+- `src/pages/app/appointments/AppointmentReportsPage.tsx`
+- `src/pages/app/opd/DoctorReportsPage.tsx`
+- `src/pages/app/hr/attendance/AttendanceReportsPage.tsx`
+
+---
+
+## Technical Implementation Details
+
+### OT Reports Hook
+```typescript
+// src/hooks/useOTReports.ts
+export function useSurgeryStats(dateFrom: string, dateTo: string) {
+  return useQuery({
+    queryKey: ["surgery-stats", dateFrom, dateTo],
+    queryFn: async () => {
+      const { data: surgeries } = await supabase
+        .from("surgeries")
+        .select("id, surgery_type, lead_surgeon_id, ot_room_id, start_time, end_time, status")
+        .gte("surgery_date", dateFrom)
+        .lte("surgery_date", dateTo);
+      
+      // Aggregate by surgeon, room, type
+      return {
+        totalSurgeries: surgeries.length,
+        bySurgeon: aggregateBySurgeon(surgeries),
+        byRoom: aggregateByRoom(surgeries),
+        byType: aggregateByType(surgeries),
+        avgDuration: calculateAvgDuration(surgeries),
+      };
+    },
+  });
+}
 ```
 
-### Phase 2: Integrate into Patient Pages
-
-**PatientDetailPage.tsx Changes:**
-- Replace static User icon with Avatar component showing `profile_photo_url`
-- Add camera button overlay on hover
-- Open `PatientPhotoCapture` dialog on click
-
-**PatientFormPage.tsx Changes:**
-- Add photo capture section in the essential fields area
-- Preview captured photo before saving
+### Radiology Reports Hook
+```typescript
+// src/hooks/useRadiologyReports.ts
+export function useImagingStats(dateFrom: string, dateTo: string) {
+  return useQuery({
+    queryKey: ["imaging-stats", dateFrom, dateTo],
+    queryFn: async () => {
+      const { data: orders } = await supabase
+        .from("imaging_orders")
+        .select("id, modality_id, status, created_at, reported_at, modalities(name)")
+        .gte("created_at", dateFrom)
+        .lte("created_at", dateTo);
+      
+      return {
+        totalOrders: orders.length,
+        byModality: aggregateByModality(orders),
+        pendingInterpretations: orders.filter(o => o.status === 'pending').length,
+        avgTAT: calculateAvgTAT(orders),
+      };
+    },
+  });
+}
+```
 
 ---
 
 ## Summary
 
-| Feature | Current State | Action Required |
-|---------|---------------|-----------------|
-| Patient Photo Capture | Missing | Create camera component + storage bucket |
-| OPD Flow | Complete | No action needed |
-| Doctor Compensation Config | Complete | No action needed |
-| Doctor Earnings Triggers | Complete | No action needed |
-| Settlement Workflow | Complete | No action needed |
-| Settlement Receipts | Complete | No action needed |
+| Category | Current | After Enhancement |
+|----------|---------|-------------------|
+| Total Report Pages | 20 | 24 |
+| Reports with PDF Export | 7 | 15+ |
+| Missing Critical Reports | 3 (OT, Radiology, Claims) | 0 |
+| Charts Coverage | Good | Enhanced with new metrics |
 
-The only missing piece is the **patient photo capture** functionality. The OPD flow and doctor compensation system are fully operational with:
-- Real-time earnings calculation displayed in compensation form
-- Automatic wallet credits on invoice payment
-- Professional settlement workflow with receipts
-- Complete settlement history tracking
+The HMS already has a strong reporting foundation. The main gaps are:
+1. **OT/Surgery Reports** - Critical for hospitals with operating theaters
+2. **Radiology Reports** - Essential for diagnostic imaging departments
+3. **Insurance Claims Reports** - Important for revenue cycle management
+
+Adding these three reports plus enhancing PDF export coverage will make the reporting system comprehensive and professional-grade.
