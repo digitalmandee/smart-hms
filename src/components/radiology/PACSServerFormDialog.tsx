@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -28,8 +28,11 @@ import {
   useTestPACSServerConnection,
   PACSServer 
 } from '@/hooks/usePACSServers';
-import { Loader2, CheckCircle, XCircle } from 'lucide-react';
-import { useState } from 'react';
+import { useRadiologyDeviceCatalogByType, RadiologyDeviceCatalogItem } from '@/hooks/useRadiologyDeviceCatalog';
+import { Loader2, CheckCircle, XCircle, Sparkles, Search } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 
 const formSchema = z.object({
@@ -55,6 +58,11 @@ export function PACSServerFormDialog({ open, onOpenChange, server }: PACSServerF
   const updateServer = useUpdatePACSServer();
   const testConnection = useTestPACSServerConnection();
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [catalogSearch, setCatalogSearch] = useState('');
+  const [selectedCatalogItem, setSelectedCatalogItem] = useState<RadiologyDeviceCatalogItem | null>(null);
+  
+  // Get PACS servers from catalog (device_type = 'pacs')
+  const { data: pacsCatalog, isLoading: catalogLoading } = useRadiologyDeviceCatalogByType();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -92,7 +100,39 @@ export function PACSServerFormDialog({ open, onOpenChange, server }: PACSServerF
       });
     }
     setTestResult(null);
+    setSelectedCatalogItem(null);
+    setCatalogSearch('');
   }, [server, open, form]);
+
+  // Handle catalog item selection
+  const handleCatalogSelect = (item: RadiologyDeviceCatalogItem) => {
+    setSelectedCatalogItem(item);
+    form.setValue('name', `${item.manufacturer} ${item.model}`);
+    if (item.dicom_ae_title) {
+      form.setValue('ae_title', item.dicom_ae_title);
+    }
+    // Set a placeholder URL based on device type
+    if (item.device_type === 'pacs' && item.default_port) {
+      form.setValue('server_url', `http://localhost:${item.default_port}`);
+    }
+  };
+
+  // Filter catalog items for PACS-relevant devices
+  const pacsRelevantItems = pacsCatalog?.filter(item => 
+    item.device_type === 'pacs' || 
+    item.device_type === 'workstation' ||
+    item.supports_dicomweb
+  );
+
+  const filteredCatalogItems = pacsRelevantItems?.filter(item => {
+    if (!catalogSearch) return true;
+    const search = catalogSearch.toLowerCase();
+    return (
+      item.manufacturer.toLowerCase().includes(search) ||
+      item.model.toLowerCase().includes(search) ||
+      item.device_type.toLowerCase().includes(search)
+    );
+  });
 
   const handleTest = async () => {
     const values = form.getValues();
@@ -145,7 +185,7 @@ export function PACSServerFormDialog({ open, onOpenChange, server }: PACSServerF
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{server ? 'Edit PACS Server' : 'Add PACS Server'}</DialogTitle>
           <DialogDescription>
@@ -153,6 +193,72 @@ export function PACSServerFormDialog({ open, onOpenChange, server }: PACSServerF
           </DialogDescription>
         </DialogHeader>
 
+        {/* Catalog Selection - Only show for new servers */}
+        {!server && (
+          <div className="border rounded-lg p-4 bg-muted/30">
+            <div className="flex items-center gap-2 mb-3">
+              <Sparkles className="h-4 w-4 text-primary" />
+              <span className="font-medium text-sm">Quick Setup: Select from Catalog</span>
+            </div>
+            
+            <div className="relative mb-3">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search PACS/DICOM devices..."
+                value={catalogSearch}
+                onChange={(e) => setCatalogSearch(e.target.value)}
+                className="pl-10 h-9"
+              />
+            </div>
+            
+            <ScrollArea className="h-[120px] border rounded-md bg-background">
+              <div className="p-2 space-y-1">
+                {catalogLoading ? (
+                  <div className="text-center py-4 text-sm text-muted-foreground">Loading catalog...</div>
+                ) : filteredCatalogItems && filteredCatalogItems.length > 0 ? (
+                  filteredCatalogItems.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => handleCatalogSelect(item)}
+                      className={`w-full p-2 text-left rounded-md transition-colors hover:bg-accent flex items-center justify-between ${
+                        selectedCatalogItem?.id === item.id 
+                          ? 'bg-primary/10 border border-primary' 
+                          : ''
+                      }`}
+                    >
+                      <div>
+                        <span className="font-medium text-sm">{item.manufacturer} {item.model}</span>
+                        <div className="flex gap-1 mt-0.5">
+                          <Badge variant="secondary" className="text-xs">{item.device_type}</Badge>
+                          {item.supports_dicomweb && (
+                            <Badge variant="outline" className="text-xs">DICOMweb</Badge>
+                          )}
+                        </div>
+                      </div>
+                      {item.default_port && (
+                        <span className="text-xs text-muted-foreground">Port: {item.default_port}</span>
+                      )}
+                    </button>
+                  ))
+                ) : (
+                  <div className="text-center py-4 text-sm text-muted-foreground">
+                    {catalogSearch ? `No devices matching "${catalogSearch}"` : 'No PACS devices in catalog'}
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+            
+            {selectedCatalogItem && (
+              <div className="mt-2 p-2 bg-primary/5 border border-primary/20 rounded text-sm">
+                <span className="font-medium">Selected:</span> {selectedCatalogItem.manufacturer} {selectedCatalogItem.model}
+                {selectedCatalogItem.notes && (
+                  <p className="text-xs text-muted-foreground mt-1">{selectedCatalogItem.notes}</p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
