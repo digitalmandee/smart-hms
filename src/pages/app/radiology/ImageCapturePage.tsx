@@ -92,16 +92,12 @@ export default function ImageCapturePage() {
   };
 
   const handlePACSFetch = () => {
-    // Simulated PACS fetch - in production would call PACS gateway
-    toast.info('Fetching images from PACS...');
-    setTimeout(() => {
-      const mockImages = [
-        `https://placehold.co/600x400/1a1a2e/eee?text=PACS+Image+1`,
-        `https://placehold.co/600x400/1a1a2e/eee?text=PACS+Image+2`,
-      ];
-      setUploadedImages(prev => [...prev, ...mockImages]);
-      toast.success('Images fetched from PACS');
-    }, 1500);
+    // PACS integration requires configuration
+    // Real implementation would call the pacs-gateway edge function
+    toast.info('PACS Integration Coming Soon', {
+      description: 'Configure PACS server settings in Radiology > Settings > PACS to enable this feature.',
+      duration: 5000,
+    });
   };
 
   const handleRemoveImage = (index: number) => {

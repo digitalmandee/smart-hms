@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, forwardRef } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -400,7 +400,7 @@ const RecursiveMenuItem = ({
   );
 };
 
-export const DynamicSidebar = ({ isCollapsed = false, onToggle, showDesktopToggle = false }: DynamicSidebarProps) => {
+export const DynamicSidebar = forwardRef<HTMLDivElement, DynamicSidebarProps>(({ isCollapsed = false, onToggle, showDesktopToggle = false }, ref) => {
   // Use database menu items for admin roles, static config for operational roles
   const { menuItems: dbMenuItems, isLoading: menuLoading } = useMenuItems();
   const { profile, roles, signOut, isSuperAdmin, isLoading: authLoading } = useAuth();
@@ -540,6 +540,7 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle, showDesktopToggl
 
   return (
     <aside
+      ref={ref}
       className={cn(
         "flex flex-col h-screen bg-sidebar text-sidebar-foreground transition-all duration-300",
         isCollapsed ? "w-16" : "w-64"
@@ -667,4 +668,6 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle, showDesktopToggl
       </div>
     </aside>
   );
-};
+});
+
+DynamicSidebar.displayName = "DynamicSidebar";

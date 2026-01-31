@@ -119,38 +119,35 @@ export function useSyncDevice() {
       // Create sync log entry
       const syncLog = await createLog.mutateAsync({ device_id: deviceId });
       
-      // Simulate sync process (in real implementation, this would connect to device)
-      // For now, we'll simulate with random results
+      // DEMO MODE: This is a simulation
+      // In production, this would connect to actual biometric device SDK (e.g., ZKTeco)
+      // Real implementation would use device IP/port from biometric_devices table
+      // and communicate via manufacturer's SDK/API
+      
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      const isSuccess = Math.random() > 0.2; // 80% success rate simulation
-      const recordsSynced = isSuccess ? Math.floor(Math.random() * 50) + 1 : 0;
-      
+      // Demo mode always succeeds with a message
       await completeLog.mutateAsync({
         id: syncLog.id,
-        status: isSuccess ? 'success' : 'failed',
-        records_synced: recordsSynced,
-        records_failed: isSuccess ? 0 : 1,
-        error_message: isSuccess ? null : 'Connection timeout - device not reachable',
+        status: 'success',
+        records_synced: 0,
+        records_failed: 0,
+        error_message: 'Demo mode - no actual device connection',
       });
 
-      // Update device last_sync_at
-      if (isSuccess) {
-        await supabase
-          .from("biometric_devices")
-          .update({ last_sync_at: new Date().toISOString() })
-          .eq("id", deviceId);
-      }
+      // Update device last_sync_at for demo
+      await supabase
+        .from("biometric_devices")
+        .update({ last_sync_at: new Date().toISOString() })
+        .eq("id", deviceId);
 
-      return { success: isSuccess, recordsSynced };
+      return { success: true, recordsSynced: 0, isDemo: true };
     },
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ["biometric-devices"] });
-      if (result.success) {
-        toast.success(`Sync completed: ${result.recordsSynced} records synced`);
-      } else {
-        toast.error("Sync failed: Device not reachable");
-      }
+      toast.info("Demo Mode: Biometric device integration requires SDK setup", {
+        description: "Contact support to configure real device connectivity",
+      });
     },
     onError: () => {
       toast.error("Failed to sync device");
