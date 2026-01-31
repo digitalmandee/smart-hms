@@ -1,13 +1,12 @@
-
 # Lab Analyzer Mapping Page & System Completion Plan
 
 ## Summary of Tasks
 
 This plan addresses four items:
-1. Create the missing Lab Analyzer Mapping Page (`/app/lab/analyzers/:id/mapping`)
+1. ✅ Create the missing Lab Analyzer Mapping Page (`/app/lab/analyzers/:id/mapping`)
 2. Test PACS Servers page functionality
 3. Test Lab Analyzers page functionality  
-4. Add menu items to sidebar for PACS Servers and Lab Analyzers
+4. ✅ Add menu items to sidebar for PACS Servers and Lab Analyzers
 
 ---
 
