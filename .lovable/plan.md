@@ -1,160 +1,299 @@
-# Lab Analyzer Mapping Page & System Completion Plan
 
-## Summary of Tasks
+# Comprehensive Lab & Radiology Device Integration System
 
-This plan addresses four items:
-1. ✅ Create the missing Lab Analyzer Mapping Page (`/app/lab/analyzers/:id/mapping`)
-2. Test PACS Servers page functionality
-3. Test Lab Analyzers page functionality  
-4. ✅ Add menu items to sidebar for PACS Servers and Lab Analyzers
+## Overview
+
+This plan implements:
+1. **HL7/ASTM Lab Results Edge Function** - Receive and auto-import lab results from analyzers
+2. **Device Catalog System** - Pre-populated list of common machines with their default configurations
+3. **Enhanced Registration** - When adding a device, show available configurations to auto-fill settings
+4. **Separate Lists** - Dedicated views for Radiology machines vs Lab machines
 
 ---
 
-## Current State
+## Database Schema Changes
 
-| Item | Status |
-|------|--------|
-| PACS Servers Page | Created at `/app/radiology/pacs/servers` |
-| Lab Analyzers Page | Created at `/app/lab/analyzers` |
-| Lab Analyzer Form | Created at `/app/lab/analyzers/new` and `/:id/edit` |
-| Lab Analyzer Mapping Page | **MISSING** - route `/app/lab/analyzers/:id/mapping` not defined |
-| PACS Servers Menu Item | Not in database |
-| Lab Analyzers Menu Item | Not in database |
+### 1. Device Catalog Tables (Pre-populated Reference Data)
+
+```text
+┌─────────────────────────────────────────────────────────────┐
+│                 lab_analyzer_catalog                        │
+├─────────────────────────────────────────────────────────────┤
+│ id (uuid, PK)                                               │
+│ manufacturer (text) - e.g., "Sysmex", "Roche", "Beckman"    │
+│ model (text) - e.g., "XN-1000", "Cobas 6000"                │
+│ analyzer_type (text) - hematology, chemistry, etc.          │
+│ connection_protocol (text) - HL7, ASTM, API                 │
+│ default_port (int) - Default communication port             │
+│ hl7_version (text) - e.g., "2.3", "2.5.1"                   │
+│ message_format (text) - Frame structure details             │
+│ result_segment (text) - OBX, OBR patterns                   │
+│ notes (text) - Configuration notes                          │
+│ is_active (boolean)                                         │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│               radiology_device_catalog                      │
+├─────────────────────────────────────────────────────────────┤
+│ id (uuid, PK)                                               │
+│ manufacturer (text) - e.g., "Siemens", "GE", "Philips"      │
+│ model (text) - e.g., "MAGNETOM Vida", "Optima CT660"        │
+│ device_type (text) - ct, mri, xray, ultrasound, etc.        │
+│ modality_code (text) - CT, MR, CR, US, etc. (DICOM codes)   │
+│ dicom_ae_title (text) - Default AE Title                    │
+│ default_port (int) - Default DICOM port                     │
+│ supports_dicomweb (boolean)                                 │
+│ supports_worklist (boolean)                                 │
+│ notes (text)                                                │
+│ is_active (boolean)                                         │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│                   lab_result_imports                        │
+├─────────────────────────────────────────────────────────────┤
+│ id (uuid, PK)                                               │
+│ organization_id (uuid, FK)                                  │
+│ analyzer_id (uuid, FK → lab_analyzers)                      │
+│ message_type (text) - HL7, ASTM                             │
+│ raw_message (text) - Original message content               │
+│ parsed_data (jsonb) - Parsed result data                    │
+│ patient_id_from_message (text)                              │
+│ matched_patient_id (uuid, nullable)                         │
+│ matched_order_id (uuid, nullable)                           │
+│ status (text) - pending, matched, imported, error           │
+│ error_message (text, nullable)                              │
+│ processed_at (timestamptz, nullable)                        │
+│ created_at (timestamptz)                                    │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Pre-Populated Device Catalogs
+
+### Lab Analyzer Catalog (Common Models)
+
+| Manufacturer | Model | Type | Protocol | Port |
+|-------------|-------|------|----------|------|
+| **Sysmex** | XN-1000 | Hematology | HL7 2.3.1 | 2575 |
+| **Sysmex** | XN-2000 | Hematology | HL7 2.3.1 | 2575 |
+| **Sysmex** | XN-3000 | Hematology | HL7 2.3.1 | 2575 |
+| **Sysmex** | CS-5100 | Coagulation | HL7 2.3.1 | 2575 |
+| **Roche** | Cobas 6000 | Chemistry | ASTM | 4000 |
+| **Roche** | Cobas c311 | Chemistry | ASTM | 4000 |
+| **Roche** | Cobas e411 | Immunology | ASTM | 4000 |
+| **Roche** | Cobas c501 | Chemistry | ASTM | 4000 |
+| **Beckman Coulter** | DxH 800 | Hematology | HL7 2.5.1 | 2575 |
+| **Beckman Coulter** | AU5800 | Chemistry | HL7 2.5 | 2575 |
+| **Beckman Coulter** | DxI 800 | Immunoassay | HL7 2.5 | 2575 |
+| **Abbott** | Alinity ci | Chemistry/Immuno | HL7 2.5.1 | 2575 |
+| **Abbott** | Architect c8000 | Chemistry | HL7 2.3.1 | 2575 |
+| **Abbott** | Cell-Dyn Ruby | Hematology | HL7 2.3 | 2575 |
+| **Siemens** | Atellica CH | Chemistry | HL7 2.5.1 | 2575 |
+| **Siemens** | ADVIA 2120i | Hematology | HL7 2.5.1 | 2575 |
+| **Mindray** | BC-6800 | Hematology | HL7 2.3.1 | 5555 |
+| **Mindray** | BS-800M | Chemistry | HL7 2.3.1 | 5555 |
+| **Horiba** | Yumizen H500 | Hematology | ASTM | 4000 |
+| **Urit** | UA-600 | Urinalysis | ASTM | 4000 |
+| **Dirui** | CS-T300 | Urinalysis | HL7 2.3 | 2575 |
+
+### Radiology Device Catalog (Common Models)
+
+| Manufacturer | Model | Type | Modality | Port |
+|-------------|-------|------|----------|------|
+| **Siemens** | MAGNETOM Vida | MRI | MR | 104 |
+| **Siemens** | SOMATOM go.Top | CT | CT | 104 |
+| **Siemens** | Ysio Max | X-Ray | DX | 104 |
+| **GE Healthcare** | SIGNA Artist | MRI | MR | 104 |
+| **GE Healthcare** | Optima CT660 | CT | CT | 104 |
+| **GE Healthcare** | Discovery XR656 | X-Ray | DX | 104 |
+| **GE Healthcare** | LOGIQ E10 | Ultrasound | US | 104 |
+| **Philips** | Ingenia Ambition | MRI | MR | 104 |
+| **Philips** | Incisive CT | CT | CT | 104 |
+| **Philips** | EPIQ Elite | Ultrasound | US | 104 |
+| **Canon** | Aquilion ONE | CT | CT | 104 |
+| **Canon** | Vantage Titan | MRI | MR | 104 |
+| **Fujifilm** | FDR D-EVO II | X-Ray | CR | 104 |
+| **Carestream** | DRX-Evolution | X-Ray | CR | 104 |
+| **Samsung** | RS85 Prestige | Ultrasound | US | 104 |
+| **Mindray** | Resona 7 | Ultrasound | US | 104 |
+| **Orthanc** | Open Source PACS | PACS Server | - | 8042 |
+| **DCM4CHEE** | Open Source PACS | PACS Server | - | 8080 |
+| **Horos** | Open Source Viewer | Workstation | - | 11112 |
+
+---
+
+## Edge Function: HL7/ASTM Lab Result Receiver
+
+**File:** `supabase/functions/lab-result-receiver/index.ts`
+
+### Functionality
+
+1. **Receive HL7/ASTM Messages** via HTTP POST
+2. **Parse Message** - Extract patient ID, test codes, results
+3. **Match to Patient** - Find patient by MRN/ID
+4. **Match to Order** - Find pending lab order
+5. **Auto-Import Results** - Update lab_order_items with result values
+6. **Log Import** - Store in lab_result_imports for audit
+
+### HL7 Message Structure (OBR/OBX segments)
+
+```text
+MSH|^~\&|ANALYZER|LAB|HMS|HOSPITAL|20260131120000||ORU^R01|MSG001|P|2.3.1
+PID|1||PAT001^^^HMS^MR||DOE^JOHN||19800101|M
+OBR|1|ORD001||CBC^Complete Blood Count
+OBX|1|NM|WBC^WBC||7.5|10*9/L|4.0-10.0|N|||F
+OBX|2|NM|RBC^RBC||4.8|10*12/L|4.0-5.5|N|||F
+OBX|3|NM|HGB^Hemoglobin||14.2|g/dL|12.0-16.0|N|||F
+```
+
+### ASTM Message Structure
+
+```text
+H|\^&|||Analyzer^1.0|||||||P|1|20260131
+P|1||PAT001
+O|1|ORD001||CBC
+R|1|^^^WBC|7.5|10*9/L||N||F||||20260131
+R|2|^^^RBC|4.8|10*12/L||N||F||||20260131
+L|1|N
+```
 
 ---
 
 ## Implementation Plan
 
-### Phase 1: Create Lab Analyzer Mapping Page
+### Phase 1: Database Migration
 
-**New File**: `src/pages/app/lab/LabAnalyzerMappingPage.tsx`
+Create tables:
+- `lab_analyzer_catalog` - Pre-populated lab device catalog
+- `radiology_device_catalog` - Pre-populated radiology device catalog  
+- `lab_result_imports` - Import log/queue table
 
-This page will allow users to:
-- View all tests currently mapped to a specific analyzer
-- Add new test mappings with analyzer-specific codes
-- Edit existing mappings (change analyzer code/name)
-- Remove test mappings
-- Filter available tests by category
+Insert seed data for 20+ lab analyzers and 15+ radiology devices.
 
-**Key Features**:
-- Two-panel layout: Available tests (left) and Mapped tests (right)
-- Search/filter for available tests
-- Inline editing for analyzer test codes
-- Bulk add capability for multiple tests
+### Phase 2: Edge Function - Lab Result Receiver
 
-**Component Structure**:
-```
-LabAnalyzerMappingPage
-├── ModernPageHeader (with analyzer name)
-├── Card: Available Tests
-│   ├── Search/Filter controls
-│   └── Checkbox list of unmapped tests
-├── Card: Mapped Tests
-│   └── Table with test name, analyzer code, actions
-└── AddMappingDialog
-    ├── Test selector
-    ├── Analyzer code input
-    └── Analyzer name input (optional)
-```
+**File:** `supabase/functions/lab-result-receiver/index.ts`
 
-**Data Flow**:
-- Uses `useLabAnalyzer(id)` to get analyzer details
-- Uses `useLabTestTemplates()` to get all available tests
-- Uses `useLabAnalyzerMappings(id)` to get current mappings
-- Uses `useCreateTestMapping()` and `useDeleteTestMapping()` for CRUD
+Features:
+- Accept HL7 or ASTM messages via POST
+- Parse messages using segment-based logic
+- Match patient by MRN
+- Match order by order number or patient + pending tests
+- Update lab_order_items with results
+- Return confirmation/error response
 
-### Phase 2: Add Route to App.tsx
+### Phase 3: Enhanced Lab Analyzer Form
 
-**File**: `src/App.tsx`
+**Modify:** `src/pages/app/lab/LabAnalyzerFormPage.tsx`
 
-Add the following route after line 695:
-```typescript
-<Route path="lab/analyzers/:id/mapping" element={<LabAnalyzerMappingPage />} />
-```
+Add:
+- "Select from Catalog" dropdown at top
+- When catalog item selected, auto-fill: manufacturer, model, type, protocol, port
+- Show configuration notes from catalog
 
-Add import at the top:
-```typescript
-import LabAnalyzerMappingPage from "./pages/app/lab/LabAnalyzerMappingPage";
-```
+### Phase 4: Enhanced PACS Server Form
 
-### Phase 3: Add Menu Items to Database
+**Modify:** `src/components/radiology/PACSServerFormDialog.tsx`
 
-Add two new menu items for sidebar navigation:
+Add:
+- "Select from Catalog" dropdown
+- Auto-fill device settings when selected
+- Show DICOM modality codes
 
-**1. Lab Analyzers** (under Laboratory parent)
-| Field | Value |
-|-------|-------|
-| name | Lab Analyzers |
-| icon | FlaskConical |
-| path | /app/lab/analyzers |
-| parent_id | 3417b2f5-93dd-4408-9f1c-8dfac19ce161 (Laboratory) |
-| required_module | lab |
-| sort_order | 60 |
-| is_active | true |
+### Phase 5: Device Catalog Pages
 
-**2. PACS Servers** (under Radiology parent)
-| Field | Value |
-|-------|-------|
-| name | PACS Servers |
-| icon | Server |
-| path | /app/radiology/pacs/servers |
-| parent_id | 9ff1827f-4689-40dd-96e4-4378dfefa3bc (Radiology) |
-| required_module | radiology |
-| sort_order | 80 |
-| is_active | true |
+**New Files:**
+- `src/pages/app/settings/LabDeviceCatalogPage.tsx` - View/manage lab device catalog
+- `src/pages/app/settings/RadiologyDeviceCatalogPage.tsx` - View/manage radiology device catalog
+
+### Phase 6: Hooks for Catalogs
+
+**New Files:**
+- `src/hooks/useLabAnalyzerCatalog.ts` - Fetch lab device catalog
+- `src/hooks/useRadiologyDeviceCatalog.ts` - Fetch radiology device catalog
 
 ---
 
 ## Technical Details
 
-### LabAnalyzerMappingPage Component
+### Edge Function Structure
 
 ```typescript
-// Key state and hooks
-const { id } = useParams();
-const { data: analyzer } = useLabAnalyzer(id);
-const { data: mappings } = useLabAnalyzerMappings(id);
-const { data: allTests } = useLabTestTemplates();
-const createMapping = useCreateTestMapping();
-const deleteMapping = useDeleteTestMapping();
+// supabase/functions/lab-result-receiver/index.ts
 
-// Filter to get unmapped tests
-const mappedTestIds = mappings?.map(m => m.lab_test_template_id) || [];
-const availableTests = allTests?.filter(t => !mappedTestIds.includes(t.id));
-
-// Add mapping handler
-const handleAddMapping = async (testId: string, code: string) => {
-  await createMapping.mutateAsync({
-    analyzer_id: id,
-    lab_test_template_id: testId,
-    analyzer_test_code: code,
-  });
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+interface LabResult {
+  testCode: string;
+  testName: string;
+  value: string;
+  unit: string;
+  referenceRange: string;
+  flag: string;
+}
+
+interface ParsedMessage {
+  messageType: 'HL7' | 'ASTM';
+  patientId: string;
+  orderNumber: string;
+  results: LabResult[];
+  timestamp: string;
+}
+
+function parseHL7Message(message: string): ParsedMessage { ... }
+function parseASTMMessage(message: string): ParsedMessage { ... }
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
+  }
+
+  // 1. Receive message
+  // 2. Detect format (HL7 vs ASTM)
+  // 3. Parse message
+  // 4. Match patient and order
+  // 5. Import results
+  // 6. Log import
+  // 7. Return response
+});
 ```
 
-### UI Layout
+### Catalog Selection UI
 
-```
-┌──────────────────────────────────────────────────────────────┐
-│  Test Mapping: Sysmex XN-1000                    [← Back]    │
-├──────────────────────────────────────────────────────────────┤
-│                                                              │
-│  ┌─────────────────────────┐  ┌─────────────────────────────┐│
-│  │ Available Tests         │  │ Mapped Tests                ││
-│  │ ┌─────────────────────┐ │  │                             ││
-│  │ │ 🔍 Search tests...  │ │  │ Test Name    │ Code │ ✕    ││
-│  │ └─────────────────────┘ │  │ ────────────────────────────││
-│  │ Category: [All ▼]       │  │ CBC          │ HEM01 │ ✕    ││
-│  │ ────────────────────────│  │ Hemoglobin   │ HEM02 │ ✕    ││
-│  │ [ ] Platelet Count      │  │ WBC Count    │ HEM03 │ ✕    ││
-│  │ [ ] ESR                 │  │                             ││
-│  │ [ ] Reticulocyte Count  │  │                             ││
-│  │ [ ] Blood Group         │  │                             ││
-│  │                         │  │                             ││
-│  │    [Add Selected →]     │  │                             ││
-│  └─────────────────────────┘  └─────────────────────────────┘│
-│                                                              │
-└──────────────────────────────────────────────────────────────┘
+```text
+┌────────────────────────────────────────────────────────────────┐
+│  Add Lab Analyzer                                              │
+├────────────────────────────────────────────────────────────────┤
+│                                                                │
+│  Quick Setup: Select from Catalog                              │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │ [Search devices...]                              ▼       │  │
+│  ├──────────────────────────────────────────────────────────┤  │
+│  │ ● Sysmex XN-1000 (Hematology) - HL7 2.3.1               │  │
+│  │ ● Sysmex XN-2000 (Hematology) - HL7 2.3.1               │  │
+│  │ ● Roche Cobas 6000 (Chemistry) - ASTM                   │  │
+│  │ ● Roche Cobas c311 (Chemistry) - ASTM                   │  │
+│  │ ● Beckman DxH 800 (Hematology) - HL7 2.5.1              │  │
+│  │ ...                                                      │  │
+│  └──────────────────────────────────────────────────────────┘  │
+│                                                                │
+│  ─────────────── or enter manually ───────────────            │
+│                                                                │
+│  Analyzer Name *        [Sysmex XN-1000 (auto-filled)    ]    │
+│  Analyzer Type *        [Hematology ▼] (auto-selected)        │
+│  Manufacturer           [Sysmex (auto-filled)            ]    │
+│  Model                  [XN-1000 (auto-filled)           ]    │
+│  Connection Type        [HL7 ▼] (auto-selected)               │
+│  Port                   [2575 (auto-filled)              ]    │
+│                                                                │
+│  💡 This analyzer uses HL7 v2.3.1 protocol. Results will be   │
+│     sent as ORU^R01 messages with OBX segments.               │
+│                                                                │
+└────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -163,36 +302,43 @@ const handleAddMapping = async (testId: string, code: string) => {
 
 | Action | File | Description |
 |--------|------|-------------|
-| **Create** | `src/pages/app/lab/LabAnalyzerMappingPage.tsx` | Test-to-analyzer mapping UI |
-| **Modify** | `src/App.tsx` | Add route for mapping page |
-| **Insert** | Database `menu_items` | Add Lab Analyzers and PACS Servers menu entries |
+| **Create** | `supabase/migrations/XXXX_device_catalogs.sql` | Device catalog tables + seed data |
+| **Create** | `supabase/functions/lab-result-receiver/index.ts` | HL7/ASTM message receiver |
+| **Create** | `src/hooks/useLabAnalyzerCatalog.ts` | Fetch lab device catalog |
+| **Create** | `src/hooks/useRadiologyDeviceCatalog.ts` | Fetch radiology device catalog |
+| **Modify** | `src/pages/app/lab/LabAnalyzerFormPage.tsx` | Add catalog selection |
+| **Modify** | `src/components/radiology/PACSServerFormDialog.tsx` | Add catalog selection |
+| **Modify** | `supabase/config.toml` | Add lab-result-receiver function |
 
 ---
 
-## Testing Notes
+## Security Considerations
 
-After implementation, the following should be verified:
+1. **Edge Function Authentication**
+   - Support API key auth for analyzer communication
+   - Log all incoming messages
+   - Rate limiting on message endpoint
 
-1. **Lab Analyzer Mapping Page**:
-   - Navigate to `/app/lab/analyzers/:id/mapping`
-   - Add a test mapping with code
-   - Verify mapping appears in list
-   - Delete a mapping and verify removal
-   - Check that duplicate mappings are prevented
+2. **Result Validation**
+   - Validate result values are numeric where expected
+   - Flag out-of-range values
+   - Prevent duplicate imports
 
-2. **PACS Servers Page** (`/app/radiology/pacs/servers`):
-   - Add a new PACS server
-   - Edit server details
-   - Test connection (will fail without real PACS, but button should work)
-   - Set default server
-   - Delete a server
+3. **Audit Trail**
+   - All imports logged in `lab_result_imports`
+   - Track matched vs unmatched results
+   - Store raw message for troubleshooting
 
-3. **Lab Analyzers Page** (`/app/lab/analyzers`):
-   - Add a new analyzer
-   - Edit analyzer details
-   - Navigate to mapping page via Settings icon
-   - Delete an analyzer
+---
 
-4. **Menu Navigation**:
-   - Lab Analyzers appears under Laboratory menu
-   - PACS Servers appears under Radiology menu
+## Summary
+
+| Component | Deliverable |
+|-----------|-------------|
+| **Device Catalogs** | 20+ lab analyzers, 15+ radiology devices |
+| **HL7/ASTM Receiver** | Edge function for auto-importing results |
+| **Enhanced Forms** | Catalog selection with auto-fill |
+| **Import Logging** | Full audit trail of received results |
+| **Separate Views** | Lab and Radiology device lists |
+
+This system provides the foundation for automated lab integration while maintaining manual entry as a fallback.
