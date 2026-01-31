@@ -10273,6 +10273,51 @@ export type Database = {
           },
         ]
       }
+      lab_analyzer_catalog: {
+        Row: {
+          analyzer_type: string
+          connection_protocol: string
+          created_at: string | null
+          default_port: number | null
+          hl7_version: string | null
+          id: string
+          is_active: boolean | null
+          manufacturer: string
+          message_format: string | null
+          model: string
+          notes: string | null
+          result_segment: string | null
+        }
+        Insert: {
+          analyzer_type: string
+          connection_protocol?: string
+          created_at?: string | null
+          default_port?: number | null
+          hl7_version?: string | null
+          id?: string
+          is_active?: boolean | null
+          manufacturer: string
+          message_format?: string | null
+          model: string
+          notes?: string | null
+          result_segment?: string | null
+        }
+        Update: {
+          analyzer_type?: string
+          connection_protocol?: string
+          created_at?: string | null
+          default_port?: number | null
+          hl7_version?: string | null
+          id?: string
+          is_active?: boolean | null
+          manufacturer?: string
+          message_format?: string | null
+          model?: string
+          notes?: string | null
+          result_segment?: string | null
+        }
+        Relationships: []
+      }
       lab_analyzer_test_mappings: {
         Row: {
           analyzer_id: string
@@ -10322,15 +10367,18 @@ export type Database = {
         Row: {
           analyzer_type: string
           branch_id: string | null
+          catalog_id: string | null
           connection_status: string | null
           connection_type: string | null
           created_at: string | null
+          hl7_version: string | null
           id: string
           ip_address: string | null
           is_active: boolean | null
           last_sync_at: string | null
           location: string | null
           manufacturer: string | null
+          message_format: string | null
           model: string | null
           name: string
           organization_id: string
@@ -10341,15 +10389,18 @@ export type Database = {
         Insert: {
           analyzer_type: string
           branch_id?: string | null
+          catalog_id?: string | null
           connection_status?: string | null
           connection_type?: string | null
           created_at?: string | null
+          hl7_version?: string | null
           id?: string
           ip_address?: string | null
           is_active?: boolean | null
           last_sync_at?: string | null
           location?: string | null
           manufacturer?: string | null
+          message_format?: string | null
           model?: string | null
           name: string
           organization_id: string
@@ -10360,15 +10411,18 @@ export type Database = {
         Update: {
           analyzer_type?: string
           branch_id?: string | null
+          catalog_id?: string | null
           connection_status?: string | null
           connection_type?: string | null
           created_at?: string | null
+          hl7_version?: string | null
           id?: string
           ip_address?: string | null
           is_active?: boolean | null
           last_sync_at?: string | null
           location?: string | null
           manufacturer?: string | null
+          message_format?: string | null
           model?: string | null
           name?: string
           organization_id?: string
@@ -10382,6 +10436,13 @@ export type Database = {
             columns: ["branch_id"]
             isOneToOne: false
             referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_analyzers_catalog_id_fkey"
+            columns: ["catalog_id"]
+            isOneToOne: false
+            referencedRelation: "lab_analyzer_catalog"
             referencedColumns: ["id"]
           },
           {
@@ -10587,6 +10648,83 @@ export type Database = {
             columns: ["surgery_id"]
             isOneToOne: false
             referencedRelation: "surgeries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lab_result_imports: {
+        Row: {
+          analyzer_id: string | null
+          created_at: string | null
+          error_message: string | null
+          id: string
+          matched_order_id: string | null
+          matched_patient_id: string | null
+          message_type: string
+          organization_id: string
+          parsed_data: Json | null
+          patient_id_from_message: string | null
+          processed_at: string | null
+          raw_message: string
+          status: string
+        }
+        Insert: {
+          analyzer_id?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          matched_order_id?: string | null
+          matched_patient_id?: string | null
+          message_type: string
+          organization_id: string
+          parsed_data?: Json | null
+          patient_id_from_message?: string | null
+          processed_at?: string | null
+          raw_message: string
+          status?: string
+        }
+        Update: {
+          analyzer_id?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          matched_order_id?: string | null
+          matched_patient_id?: string | null
+          message_type?: string
+          organization_id?: string
+          parsed_data?: Json | null
+          patient_id_from_message?: string | null
+          processed_at?: string | null
+          raw_message?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_result_imports_analyzer_id_fkey"
+            columns: ["analyzer_id"]
+            isOneToOne: false
+            referencedRelation: "lab_analyzers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_result_imports_matched_order_id_fkey"
+            columns: ["matched_order_id"]
+            isOneToOne: false
+            referencedRelation: "lab_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_result_imports_matched_patient_id_fkey"
+            columns: ["matched_patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_result_imports_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -15490,6 +15628,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      radiology_device_catalog: {
+        Row: {
+          created_at: string | null
+          default_port: number | null
+          device_type: string
+          dicom_ae_title: string | null
+          id: string
+          is_active: boolean | null
+          manufacturer: string
+          modality_code: string | null
+          model: string
+          notes: string | null
+          supports_dicomweb: boolean | null
+          supports_worklist: boolean | null
+        }
+        Insert: {
+          created_at?: string | null
+          default_port?: number | null
+          device_type: string
+          dicom_ae_title?: string | null
+          id?: string
+          is_active?: boolean | null
+          manufacturer: string
+          modality_code?: string | null
+          model: string
+          notes?: string | null
+          supports_dicomweb?: boolean | null
+          supports_worklist?: boolean | null
+        }
+        Update: {
+          created_at?: string | null
+          default_port?: number | null
+          device_type?: string
+          dicom_ae_title?: string | null
+          id?: string
+          is_active?: boolean | null
+          manufacturer?: string
+          modality_code?: string | null
+          model?: string
+          notes?: string | null
+          supports_dicomweb?: boolean | null
+          supports_worklist?: boolean | null
+        }
+        Relationships: []
       }
       report_templates: {
         Row: {
