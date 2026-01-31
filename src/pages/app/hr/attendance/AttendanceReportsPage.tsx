@@ -7,11 +7,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useAttendanceStats } from "@/hooks/useAttendance";
+import { useAttendanceReportData } from "@/hooks/useAttendanceReports";
 import { useDepartments } from "@/hooks/useHR";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from "recharts";
 import { Users, Clock, UserCheck, UserX, AlertTriangle, Download, Calendar } from "lucide-react";
-import { format, subDays, startOfMonth, endOfMonth } from "date-fns";
-import { exportToCSV } from "@/lib/exportUtils";
+import { format } from "date-fns";
 
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--destructive))'];
 
@@ -20,21 +20,19 @@ export default function AttendanceReportsPage() {
   const [department, setDepartment] = useState("all");
   const today = format(new Date(), "yyyy-MM-dd");
 
-  const { data: attendanceStats, isLoading } = useAttendanceStats(today);
+  const { data: attendanceStats, isLoading: statsLoading } = useAttendanceStats(today);
   const { data: departments } = useDepartments();
+  
+  // Real data from database
+  const { 
+    dailyTrend, 
+    departmentData, 
+    topLateArrivals, 
+    dayOfWeekPattern,
+    isLoading: reportLoading 
+  } = useAttendanceReportData(dateRange, department);
 
-  // Daily trend data (mock - would come from aggregated queries)
-  const dailyTrendData = Array.from({ length: 7 }, (_, i) => {
-    const date = subDays(new Date(), 6 - i);
-    return {
-      date: format(date, "EEE"),
-      present: Math.floor(Math.random() * 20) + 75,
-      absent: Math.floor(Math.random() * 10) + 2,
-      late: Math.floor(Math.random() * 5) + 1,
-    };
-  });
-
-  // Status distribution
+  // Status distribution (from real today's stats)
   const statusDistribution = [
     { name: "Present", value: attendanceStats?.present || 0, fill: COLORS[0] },
     { name: "Absent", value: attendanceStats?.absent || 0, fill: COLORS[4] },
@@ -43,36 +41,19 @@ export default function AttendanceReportsPage() {
     { name: "Half Day", value: attendanceStats?.halfDay || 0, fill: COLORS[1] },
   ].filter(item => item.value > 0);
 
-  // Department-wise data (mock)
-  const departmentData = departments?.slice(0, 5).map(dept => ({
-    name: dept.name.length > 10 ? dept.name.slice(0, 10) + "..." : dept.name,
-    present: Math.floor(Math.random() * 30) + 70,
-    absent: Math.floor(Math.random() * 10) + 5,
-  })) || [];
-
-  // Top late arrivals (mock)
-  const topLateArrivals = [
-    { name: "Ahmad Khan", department: "Nursing", lateCount: 8, avgLateMinutes: 25 },
-    { name: "Sara Ali", department: "Admin", lateCount: 6, avgLateMinutes: 15 },
-    { name: "Imran Shah", department: "Lab", lateCount: 5, avgLateMinutes: 20 },
-    { name: "Fatima Bibi", department: "Pharmacy", lateCount: 4, avgLateMinutes: 10 },
-    { name: "Ali Hassan", department: "Reception", lateCount: 3, avgLateMinutes: 12 },
-  ];
-
-  // Day of week pattern (mock)
-  const dayOfWeekData = [
-    { day: "Mon", attendance: 95 },
-    { day: "Tue", attendance: 92 },
-    { day: "Wed", attendance: 94 },
-    { day: "Thu", attendance: 91 },
-    { day: "Fri", attendance: 88 },
-    { day: "Sat", attendance: 85 },
-  ];
+  // Format department data for chart
+  const deptChartData = departmentData.map(dept => ({
+    name: dept.departmentName.length > 10 ? dept.departmentName.slice(0, 10) + "..." : dept.departmentName,
+    present: dept.attendanceRate,
+    absent: 100 - dept.attendanceRate,
+  }));
 
   const total = (attendanceStats?.present || 0) + (attendanceStats?.absent || 0) + 
                 (attendanceStats?.late || 0) + (attendanceStats?.onLeave || 0);
   const presentRate = total > 0 ? Math.round(((attendanceStats?.present || 0) / total) * 100) : 0;
   const absentRate = total > 0 ? Math.round(((attendanceStats?.absent || 0) / total) * 100) : 0;
+
+  const isLoading = statsLoading || reportLoading;
 
   if (isLoading) {
     return (
@@ -204,18 +185,24 @@ export default function AttendanceReportsPage() {
             </CardHeader>
             <CardContent>
               <div className="h-[400px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={dailyTrendData}>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                    <XAxis dataKey="date" className="text-xs" />
-                    <YAxis className="text-xs" />
-                    <Tooltip />
-                    <Legend />
-                    <Line type="monotone" dataKey="present" stroke="hsl(var(--primary))" strokeWidth={2} name="Present" />
-                    <Line type="monotone" dataKey="absent" stroke="hsl(var(--destructive))" strokeWidth={2} name="Absent" />
-                    <Line type="monotone" dataKey="late" stroke="hsl(var(--chart-4))" strokeWidth={2} name="Late" />
-                  </LineChart>
-                </ResponsiveContainer>
+                {dailyTrend.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={dailyTrend}>
+                      <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                      <XAxis dataKey="date" className="text-xs" />
+                      <YAxis className="text-xs" />
+                      <Tooltip />
+                      <Legend />
+                      <Line type="monotone" dataKey="present" stroke="hsl(var(--primary))" strokeWidth={2} name="Present" />
+                      <Line type="monotone" dataKey="absent" stroke="hsl(var(--destructive))" strokeWidth={2} name="Absent" />
+                      <Line type="monotone" dataKey="late" stroke="hsl(var(--chart-4))" strokeWidth={2} name="Late" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-full text-muted-foreground">
+                    No attendance data available for the selected period
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -230,25 +217,31 @@ export default function AttendanceReportsPage() {
               </CardHeader>
               <CardContent>
                 <div className="h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={statusDistribution}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={100}
-                        paddingAngle={5}
-                        dataKey="value"
-                        label={({ name, value }) => `${name}: ${value}`}
-                      >
-                        {statusDistribution.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.fill} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
+                  {statusDistribution.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={statusDistribution}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={60}
+                          outerRadius={100}
+                          paddingAngle={5}
+                          dataKey="value"
+                          label={({ name, value }) => `${name}: ${value}`}
+                        >
+                          {statusDistribution.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.fill} />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex items-center justify-center h-full text-muted-foreground">
+                      No attendance recorded for today
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -290,17 +283,23 @@ export default function AttendanceReportsPage() {
             </CardHeader>
             <CardContent>
               <div className="h-[400px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={departmentData}>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                    <XAxis dataKey="name" className="text-xs" />
-                    <YAxis className="text-xs" />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="present" fill="hsl(var(--primary))" name="Present %" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="absent" fill="hsl(var(--destructive))" name="Absent %" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
+                {deptChartData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={deptChartData}>
+                      <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                      <XAxis dataKey="name" className="text-xs" />
+                      <YAxis className="text-xs" />
+                      <Tooltip />
+                      <Legend />
+                      <Bar dataKey="present" fill="hsl(var(--primary))" name="Present %" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="absent" fill="hsl(var(--destructive))" name="Absent %" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-full text-muted-foreground">
+                    No department-wise data available
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -315,15 +314,21 @@ export default function AttendanceReportsPage() {
               </CardHeader>
               <CardContent>
                 <div className="h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={dayOfWeekData}>
-                      <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                      <XAxis dataKey="day" className="text-xs" />
-                      <YAxis className="text-xs" domain={[80, 100]} />
-                      <Tooltip />
-                      <Bar dataKey="attendance" fill="hsl(var(--primary))" name="Attendance %" radius={[4, 4, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
+                  {dayOfWeekPattern.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={dayOfWeekPattern}>
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                        <XAxis dataKey="day" className="text-xs" />
+                        <YAxis className="text-xs" domain={[0, 100]} />
+                        <Tooltip />
+                        <Bar dataKey="attendance" fill="hsl(var(--primary))" name="Attendance %" radius={[4, 4, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex items-center justify-center h-full text-muted-foreground">
+                      No pattern data available
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -347,18 +352,26 @@ export default function AttendanceReportsPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {topLateArrivals.map((emp, idx) => (
-                      <TableRow key={idx}>
-                        <TableCell className="font-medium">{emp.name}</TableCell>
-                        <TableCell>{emp.department}</TableCell>
-                        <TableCell className="text-right">
-                          <Badge variant={emp.lateCount > 5 ? "destructive" : "secondary"}>
-                            {emp.lateCount}
-                          </Badge>
+                    {topLateArrivals.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-center text-muted-foreground py-4">
+                          No late arrivals recorded
                         </TableCell>
-                        <TableCell className="text-right">{emp.avgLateMinutes} min</TableCell>
                       </TableRow>
-                    ))}
+                    ) : (
+                      topLateArrivals.map((emp, idx) => (
+                        <TableRow key={emp.employeeId || idx}>
+                          <TableCell className="font-medium">{emp.name}</TableCell>
+                          <TableCell>{emp.department}</TableCell>
+                          <TableCell className="text-right">
+                            <Badge variant={emp.lateCount > 5 ? "destructive" : "secondary"}>
+                              {emp.lateCount}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">{emp.avgLateMinutes} min</TableCell>
+                        </TableRow>
+                      ))
+                    )}
                   </TableBody>
                 </Table>
               </CardContent>
