@@ -1,301 +1,373 @@
 
-# HMS System QA Audit Report
+# Multi-Device PACS & Lab Analyzer Integration Plan
 
 ## Executive Summary
 
-After comprehensive analysis of the entire HMS codebase, I have identified **28 issues** across multiple severity levels. The system is largely functional, and the following issues have been **RESOLVED**:
+The user requests multi-device support for both **PACS servers** (radiology) and **Lab Analyzers** with proper device-to-test linking. Currently:
+
+- **PACS**: Single server per organization (stored in `organization_settings`)
+- **Lab**: No device/analyzer support - manual result entry only
+- **Sidebar Icons**: 17 icons used in database are missing from the `iconMap`
+
+This plan implements a comprehensive device management system for both radiology and laboratory modules.
 
 ---
 
-## ✅ RESOLVED Issues
+## Current State Analysis
 
-### 1. ✅ Mock/Fake Data in HR Reports - FIXED
-- **AttendanceReportsPage.tsx**: Created `useAttendanceReports.ts` hook with real database queries
-- All `Math.random()` calls replaced with actual aggregated queries from `attendance_records` table
-- Daily trends, department stats, and top late arrivals now use real data
+### PACS (Radiology)
+| Aspect | Current | Required |
+|--------|---------|----------|
+| Server Count | 1 per org | Multiple per org/branch |
+| Modality Linking | None | Link modalities to specific PACS |
+| Storage | `organization_settings` | Dedicated `pacs_servers` table |
 
-### 2. ✅ DisciplinaryPage Mock Data - FIXED
-- Removed fake mock data generation
-- Added "Coming Soon" notice explaining module is under development
-- UI placeholder shows zero counts until proper database table is created
+### Lab Analyzers
+| Aspect | Current | Required |
+|--------|---------|----------|
+| Device Support | None | Multiple analyzers per branch |
+| Test Linking | None | Link tests to specific analyzers |
+| Storage | N/A | New `lab_analyzers` table |
 
-### 3. ✅ PACS Integration Placeholder - FIXED
-- Removed mock placeholder images
-- Added informative toast message directing users to configure PACS settings
-- Clear "Coming Soon" messaging for PACS fetch functionality
-
-### 4. ✅ Biometric Sync Simulation - FIXED
-- Removed random success/failure simulation
-- Added "Demo Mode" indicator with clear messaging
-- Toast explains that real device SDK integration is required
-
-### 5. ✅ React Ref Warning in DynamicSidebar - FIXED
-- Wrapped `DynamicSidebar` component with `React.forwardRef()`
-- Added `displayName` for better debugging
-- Ref properly passed to `<aside>` element
-
----
-
-## Remaining Issues (Lower Priority)
-
-### 4. React Ref Warning in DynamicSidebar
-
-**Console Error**: 
+### Sidebar Icons Missing (17 total)
 ```
-Warning: Function components cannot be given refs. Check the render method of `DashboardLayout`.
+ArrowRightLeft, Banknote, BarChart, Bell, FileCode, FolderOpen, 
+Footprints, HeartHandshake, Layers, LayoutGrid, Megaphone, 
+MessageSquare, Network, PackagePlus, Radio, Server, Tv
 ```
 
-**Location**: `src/layouts/DashboardLayout.tsx` line 35
-
-**Cause**: `DynamicSidebar` is a function component passed to `SheetContent` which expects a ref-forwardable component.
-
-**Fix Required**: Wrap `DynamicSidebar` with `React.forwardRef()`.
-
 ---
 
-### 5. Dialog Accessibility Warning
+## Solution Architecture
 
-**Console Error**:
+### Database Schema
+
+**New Tables:**
+
+```text
+┌─────────────────────────────────────────────────────────────┐
+│                      pacs_servers                           │
+├─────────────────────────────────────────────────────────────┤
+│ id (uuid, PK)                                               │
+│ organization_id (uuid, FK → organizations)                  │
+│ branch_id (uuid, FK → branches, nullable)                   │
+│ name (text) - e.g., "Main PACS", "CT Scanner PACS"          │
+│ server_url (text) - DICOMweb endpoint                       │
+│ ae_title (text) - Application Entity Title                  │
+│ username (text, nullable)                                   │
+│ password (text, encrypted, nullable)                        │
+│ modality_types (text[]) - ['ct_scan', 'mri']                │
+│ is_default (boolean) - Default server for unmapped tests   │
+│ is_active (boolean)                                         │
+│ last_connection_check (timestamptz)                         │
+│ connection_status (text) - 'connected'/'error'/'unknown'    │
+│ created_at, updated_at                                      │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│                      lab_analyzers                          │
+├─────────────────────────────────────────────────────────────┤
+│ id (uuid, PK)                                               │
+│ organization_id (uuid, FK → organizations)                  │
+│ branch_id (uuid, FK → branches, nullable)                   │
+│ name (text) - e.g., "Sysmex XN-1000", "Roche Cobas"         │
+│ manufacturer (text) - e.g., "Sysmex", "Roche", "Beckman"    │
+│ model (text) - e.g., "XN-1000", "Cobas 6000"                │
+│ serial_number (text, nullable)                              │
+│ analyzer_type (text) - 'hematology', 'chemistry', 'urine'   │
+│ connection_type (text) - 'hl7', 'astm', 'api', 'manual'     │
+│ ip_address (text, nullable)                                 │
+│ port (integer, nullable)                                    │
+│ location (text) - Physical location in lab                  │
+│ is_active (boolean)                                         │
+│ last_sync_at (timestamptz, nullable)                        │
+│ connection_status (text) - 'online'/'offline'/'unknown'     │
+│ created_at, updated_at                                      │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│                  lab_analyzer_test_mappings                 │
+├─────────────────────────────────────────────────────────────┤
+│ id (uuid, PK)                                               │
+│ analyzer_id (uuid, FK → lab_analyzers)                      │
+│ lab_test_template_id (uuid, FK → lab_test_templates)        │
+│ analyzer_test_code (text) - Code used by analyzer           │
+│ analyzer_test_name (text, nullable) - Name on analyzer      │
+│ is_active (boolean)                                         │
+│ created_at                                                  │
+│ UNIQUE(analyzer_id, lab_test_template_id)                   │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│                imaging_modality_pacs_mappings               │
+├─────────────────────────────────────────────────────────────┤
+│ id (uuid, PK)                                               │
+│ modality_id (uuid, FK → imaging_modalities)                 │
+│ pacs_server_id (uuid, FK → pacs_servers)                    │
+│ is_primary (boolean) - Primary PACS for this modality       │
+│ created_at                                                  │
+│ UNIQUE(modality_id, pacs_server_id)                         │
+└─────────────────────────────────────────────────────────────┘
 ```
-`DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.
+
+---
+
+## Implementation Plan
+
+### Phase 1: Fix Missing Sidebar Icons (Quick Win)
+
+**File:** `src/components/DynamicSidebar.tsx`
+
+Add 17 missing icons to imports and iconMap:
+- `ArrowRightLeft`, `Banknote`, `BarChart`, `Bell`, `FileCode`
+- `FolderOpen`, `Footprints`, `HeartHandshake`, `Layers`, `LayoutGrid`
+- `Megaphone`, `MessageSquare`, `Network`, `PackagePlus`, `Radio`
+- `Server`, `Tv`
+
+---
+
+### Phase 2: Database Schema (Migration)
+
+Create new tables for multi-device support:
+
+1. **`pacs_servers`** - Multiple PACS server configurations
+2. **`lab_analyzers`** - Lab analyzer device registry
+3. **`lab_analyzer_test_mappings`** - Link tests to analyzers
+4. **`imaging_modality_pacs_mappings`** - Link modalities to PACS servers
+
+Add RLS policies for organization-level access control.
+
+---
+
+### Phase 3: PACS Multi-Server UI
+
+**New/Modified Files:**
+
+| File | Purpose |
+|------|---------|
+| `src/pages/app/radiology/PACSServersPage.tsx` | List/manage PACS servers |
+| `src/hooks/usePACSServers.ts` | CRUD for pacs_servers table |
+| `src/components/radiology/PACSServerForm.tsx` | Add/edit PACS server |
+| `src/components/radiology/ModalityPACSMapping.tsx` | Map modalities to PACS |
+
+**Features:**
+- Add multiple PACS servers per organization/branch
+- Configure server credentials (URL, AE Title, auth)
+- Link specific modalities (CT, MRI, X-Ray) to specific PACS
+- Test connection for each server
+- Set default PACS for unmapped modalities
+- Show connection status indicators
+
+---
+
+### Phase 4: Lab Analyzer Management UI
+
+**New Files:**
+
+| File | Purpose |
+|------|---------|
+| `src/pages/app/lab/LabAnalyzersPage.tsx` | List/manage lab analyzers |
+| `src/pages/app/lab/LabAnalyzerFormPage.tsx` | Add/edit analyzer details |
+| `src/pages/app/lab/LabAnalyzerMappingPage.tsx` | Map tests to analyzer |
+| `src/hooks/useLabAnalyzers.ts` | CRUD for lab_analyzers table |
+| `src/hooks/useLabAnalyzerMappings.ts` | CRUD for test mappings |
+
+**Features:**
+- Register lab analyzers (name, manufacturer, model, serial)
+- Configure connection details (IP, port, protocol)
+- Map multiple tests to each analyzer
+- Specify analyzer-specific test codes for each mapping
+- Show connection status (online/offline/unknown)
+- Filter tests by category when mapping
+
+---
+
+### Phase 5: Update pacs-gateway Edge Function
+
+**File:** `supabase/functions/pacs-gateway/index.ts`
+
+Modify to:
+1. Accept `pacs_server_id` parameter in requests
+2. Look up server credentials from `pacs_servers` table
+3. Route requests to appropriate PACS based on modality mapping
+4. Fall back to default PACS if no specific mapping exists
+
+---
+
+### Phase 6: Menu & Navigation Updates
+
+Add new menu items to database:
+- "PACS Servers" under Radiology → Settings
+- "Lab Analyzers" under Laboratory → Setup
+- "Analyzer Mapping" under Laboratory → Setup
+
+---
+
+## UI Mockups
+
+### PACS Servers List
+```text
+┌────────────────────────────────────────────────────────────┐
+│  PACS Servers                           [+ Add Server]     │
+├────────────────────────────────────────────────────────────┤
+│ ┌────────────────────────────────────────────────────────┐ │
+│ │ ● Main PACS (Default)                    ✓ Connected   │ │
+│ │   https://pacs.hospital.com:8042                       │ │
+│ │   Modalities: All                                      │ │
+│ │   [Edit] [Test Connection]                             │ │
+│ └────────────────────────────────────────────────────────┘ │
+│ ┌────────────────────────────────────────────────────────┐ │
+│ │ ● CT/MRI PACS                            ✓ Connected   │ │
+│ │   https://imaging.hospital.com:8042                    │ │
+│ │   Modalities: CT Scan, MRI, PET-CT                     │ │
+│ │   [Edit] [Test Connection]                             │ │
+│ └────────────────────────────────────────────────────────┘ │
+└────────────────────────────────────────────────────────────┘
 ```
 
-**Impact**: Accessibility compliance issue for screen readers.
-
-**Fix Required**: Add `DialogTitle` (can use `VisuallyHidden` if title shouldn't be visible).
-
----
-
-### 6. Pharmacy Returns - Incomplete Credit Handling
-
-**Location**: `src/hooks/usePharmacyReturns.ts` (lines 376-377)
-
-```typescript
-// 6. TODO: Handle credit adjustments if refundMethod is add_credit or deduct_outstanding
-// This would update pharmacy_patient_credits table
+### Lab Analyzers List
+```text
+┌────────────────────────────────────────────────────────────┐
+│  Lab Analyzers                          [+ Add Analyzer]   │
+├────────────────────────────────────────────────────────────┤
+│ Name            │ Type       │ Model        │ Status       │
+│─────────────────┼────────────┼──────────────┼──────────────│
+│ Sysmex XN-1000  │ Hematology │ XN-1000      │ ● Online     │
+│ Roche Cobas 6000│ Chemistry  │ Cobas 6000   │ ● Online     │
+│ Urisys 1100     │ Urinalysis │ Urisys 1100  │ ○ Offline    │
+└────────────────────────────────────────────────────────────┘
 ```
 
-**Impact**: "Add to Credit" and "Deduct from Outstanding" refund methods don't actually work.
-
-**Fix Required**: Implement pharmacy_patient_credits table updates.
-
----
-
-### 7. Print Card Feature Not Implemented
-
-**Location**: `src/components/appointments/QuickPatientModal.tsx` (line 112)
-
-```typescript
-// TODO: Print card if selected
-if (printCard) {
-  toast({ ... "Patient card printing coming soon" ... });
-}
+### Test-to-Analyzer Mapping
+```text
+┌────────────────────────────────────────────────────────────┐
+│  Test Mapping: Sysmex XN-1000                              │
+├────────────────────────────────────────────────────────────┤
+│ Available Tests (Hematology)      Mapped Tests             │
+│ ┌─────────────────────────────┐   ┌─────────────────────┐  │
+│ │ [  ] Platelet Count         │   │ Complete Blood Count│  │
+│ │ [  ] ESR                    │   │   Code: CBC_01      │  │
+│ │ [  ] Reticulocyte Count     │   │ Hemoglobin          │  │
+│ │                             │   │   Code: HGB_01      │  │
+│ │       [Add Selected →]      │   │ WBC Count           │  │
+│ └─────────────────────────────┘   │   Code: WBC_01      │  │
+│                                   └─────────────────────┘  │
+└────────────────────────────────────────────────────────────┘
 ```
 
-**Impact**: Print patient card checkbox is non-functional.
+---
+
+## Files to Create/Modify
+
+| Action | File | Description |
+|--------|------|-------------|
+| **Modify** | `src/components/DynamicSidebar.tsx` | Add 17 missing icons |
+| **Create** | `src/pages/app/radiology/PACSServersPage.tsx` | PACS server list |
+| **Create** | `src/components/radiology/PACSServerForm.tsx` | Add/edit PACS server |
+| **Create** | `src/hooks/usePACSServers.ts` | PACS servers CRUD hook |
+| **Create** | `src/pages/app/lab/LabAnalyzersPage.tsx` | Analyzer list page |
+| **Create** | `src/pages/app/lab/LabAnalyzerFormPage.tsx` | Add/edit analyzer |
+| **Create** | `src/pages/app/lab/LabAnalyzerMappingPage.tsx` | Map tests to analyzer |
+| **Create** | `src/hooks/useLabAnalyzers.ts` | Analyzer CRUD hook |
+| **Create** | `src/hooks/useLabAnalyzerMappings.ts` | Test mapping CRUD |
+| **Modify** | `supabase/functions/pacs-gateway/index.ts` | Multi-PACS routing |
+| **Modify** | `src/App.tsx` | Add new routes |
 
 ---
 
-## Low Priority Issues (Cleanup)
+## Database Migration Summary
 
-### 8. Invoice Number Generation Uses Random Suffix
+```sql
+-- 1. PACS Servers table
+CREATE TABLE pacs_servers (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id UUID NOT NULL REFERENCES organizations(id),
+  branch_id UUID REFERENCES branches(id),
+  name TEXT NOT NULL,
+  server_url TEXT NOT NULL,
+  ae_title TEXT DEFAULT 'LOVABLE_HMS',
+  username TEXT,
+  password TEXT,
+  modality_types TEXT[] DEFAULT '{}',
+  is_default BOOLEAN DEFAULT false,
+  is_active BOOLEAN DEFAULT true,
+  last_connection_check TIMESTAMPTZ,
+  connection_status TEXT DEFAULT 'unknown',
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
 
-**Locations**:
-- `src/hooks/useDischarge.ts` (line 478): `Math.floor(Math.random() * 1000)`
-- `src/hooks/useBilling.ts` (lines 200, 268): `Math.floor(Math.random() * 1000)`
-- `src/hooks/useLabOrders.ts` (line 208): `Math.floor(Math.random() * 1000)`
-- `src/hooks/useCreateLabOrderFromInvoice.ts` (line 61): `Math.floor(Math.random() * 10000)`
+-- 2. Lab Analyzers table
+CREATE TABLE lab_analyzers (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id UUID NOT NULL REFERENCES organizations(id),
+  branch_id UUID REFERENCES branches(id),
+  name TEXT NOT NULL,
+  manufacturer TEXT,
+  model TEXT,
+  serial_number TEXT,
+  analyzer_type TEXT NOT NULL,
+  connection_type TEXT DEFAULT 'manual',
+  ip_address TEXT,
+  port INTEGER,
+  location TEXT,
+  is_active BOOLEAN DEFAULT true,
+  last_sync_at TIMESTAMPTZ,
+  connection_status TEXT DEFAULT 'unknown',
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
 
-**Risk**: Potential for duplicate invoice numbers under high load (though unlikely).
+-- 3. Lab Analyzer Test Mappings
+CREATE TABLE lab_analyzer_test_mappings (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  analyzer_id UUID NOT NULL REFERENCES lab_analyzers(id) ON DELETE CASCADE,
+  lab_test_template_id UUID NOT NULL REFERENCES lab_test_templates(id) ON DELETE CASCADE,
+  analyzer_test_code TEXT NOT NULL,
+  analyzer_test_name TEXT,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(analyzer_id, lab_test_template_id)
+);
 
-**Recommendation**: Use database sequences for guaranteed uniqueness.
-
----
-
-### 9. Missing Daily Closing / End-of-Day Feature
-
-**Current State**: No dedicated "Daily Closing" or "End of Day" workflow exists.
-
-**Expected**: Cashiers typically need to:
-- Close POS sessions with cash counts
-- Generate daily summary reports
-- Reconcile cash drawer
-
-**Note**: POS sessions exist (`pharmacy_pos_sessions`) but UI for formal daily closing procedure is limited.
-
----
-
-### 10. Hardcoded Phone Placeholders (Pakistan Specific)
-
-**Locations** (cosmetic, correct for Pakistan context):
-- `src/components/pharmacy/POSOrderReview.tsx`: `03XX-XXXXXXX`
-- `src/pages/kiosk/KioskTerminalPage.tsx`: `03XX-XXXXXXX`
-- `src/pages/app/opd/OPDWalkInPage.tsx`: `03XX-XXXXXXX`
-- `src/pages/app/clinic/ClinicTokenPage.tsx`: `03XX-XXXXXXX`
-
-**Status**: Acceptable for Pakistan HMS deployment.
-
----
-
-## Module-by-Module Verification
-
-### OPD Module - WORKING
-| Feature | Status | Notes |
-|---------|--------|-------|
-| Patient Registration | ✅ Complete | Form submission works |
-| Walk-in Registration | ✅ Complete | Creates appointment + patient |
-| Token Generation | ✅ Complete | Auto-generated Visit IDs |
-| Nurse Vitals | ✅ Complete | Saves to `check_in_vitals` |
-| Doctor Queue | ✅ Complete | Real-time updates |
-| Consultation | ✅ Complete | Auto-status transitions |
-| Prescription | ✅ Complete | Creates Rx records |
-| Lab Orders | ✅ Complete | Creates lab orders |
-| Checkout | ✅ Complete | Redirects for pending charges |
-
-### IPD Module - WORKING
-| Feature | Status | Notes |
-|---------|--------|-------|
-| Admission | ✅ Complete | Generates ADM numbers |
-| Bed Assignment | ✅ Complete | Updates bed status |
-| Daily Room Charges | ✅ Complete | Auto-posted via hook |
-| IPD Charges | ✅ Complete | Multiple charge types |
-| Nursing Care | ✅ Complete | Daily rounds, vitals |
-| Discharge | ✅ Complete | Calculates balance |
-| Discharge Invoice | ✅ Complete | Consolidates all charges |
-
-### Surgery/OT Module - WORKING
-| Feature | Status | Notes |
-|---------|--------|-------|
-| Surgery Scheduling | ✅ Complete | Calendar + list views |
-| Team Assignment | ✅ Complete | Role-based assignments |
-| Pre-Op Assessment | ✅ Complete | ASA classification |
-| Safety Checklist | ✅ Complete | Sign-in/Time-out/Sign-out |
-| Live Surgery Dashboard | ✅ Complete | Real-time vitals |
-| Op Notes | ✅ Complete | Closure details required |
-| Post-Op Recovery (PACU) | ✅ Complete | Aldrete scoring |
-| Surgery Earnings | ✅ Complete | Auto-credits on completion |
-
-### HR Module - PARTIALLY WORKING
-| Feature | Status | Notes |
-|---------|--------|-------|
-| Employee Management | ✅ Complete | CRUD operations |
-| Attendance Recording | ✅ Complete | Daily records |
-| Leave Management | ✅ Complete | Approval workflow |
-| Payroll Processing | ✅ Complete | Run payroll |
-| Payslips | ✅ Complete | PDF generation |
-| Daily Commission | ✅ Complete | Real-time earnings |
-| Doctor Wallets | ✅ Complete | Settlement workflow |
-| Attendance Reports | ⚠️ Mock Data | Uses random numbers |
-| Disciplinary Actions | ❌ Mock Only | Entire module is fake |
-| Biometric Sync | ⚠️ Simulated | No real device integration |
-
-### Accounts Module - WORKING
-| Feature | Status | Notes |
-|---------|--------|-------|
-| Chart of Accounts | ✅ Complete | Full CRUD |
-| Journal Entries | ✅ Complete | Auto-posting triggers |
-| Trial Balance | ✅ Complete | Real-time calculation |
-| Profit & Loss | ✅ Complete | Date range filtering |
-| Balance Sheet | ✅ Complete | Asset/Liability view |
-| Cash Flow | ✅ Complete | Operating/Investing/Financing |
-| Accounts Receivable | ✅ Complete | Patient balances |
-| Accounts Payable | ✅ Complete | Vendor balances |
-| Vendor Payments | ✅ Complete | GL integration |
-
-### Doctor Compensation - WORKING
-| Feature | Status | Notes |
-|---------|--------|-------|
-| Compensation Plans | ✅ Complete | Fixed/Commission/Hybrid |
-| Fee Configuration | ✅ Complete | Per consultation/surgery |
-| Auto Earnings | ✅ Complete | Database triggers |
-| Daily Commission Report | ✅ Complete | Date-based filtering |
-| Wallet Balances | ✅ Complete | Pending amounts |
-| Settlement | ✅ Complete | Payment methods |
-| Settlement Receipts | ✅ Complete | Printable receipts |
+-- 4. Modality to PACS Mappings
+CREATE TABLE imaging_modality_pacs_mappings (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  modality_id UUID NOT NULL REFERENCES imaging_modalities(id) ON DELETE CASCADE,
+  pacs_server_id UUID NOT NULL REFERENCES pacs_servers(id) ON DELETE CASCADE,
+  is_primary BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(modality_id, pacs_server_id)
+);
+```
 
 ---
 
-## Implementation Plan (Priority Order)
+## Note on Integration
 
-### Phase 1: Fix Critical Mock Data (Week 1)
+This plan creates the **infrastructure and UI** for multi-device management. Actual HL7/ASTM/FHIR integration for real-time analyzer communication is a separate, larger project requiring:
 
-1. **AttendanceReportsPage.tsx**
-   - Create `useAttendanceReports` hook with real database aggregation
-   - Replace all `Math.random()` calls with actual queries
-   - Query `attendance_records` grouped by date/department
+- HL7 message parsing service
+- Bi-directional interface (orders out, results in)
+- Device-specific protocol handling
+- Queue management for result imports
 
-2. **DisciplinaryPage.tsx**
-   - Create `disciplinary_actions` database table
-   - Implement proper CRUD operations
-   - Remove mock data generation
-
-3. **ImageCapturePage.tsx (PACS)**
-   - Add "PACS Integration Coming Soon" notice
-   - Or implement edge function for PACS gateway
-
-4. **useBiometricSync.ts**
-   - Add clear UI indicator that this is demo mode
-   - Or implement ZKTeco/other device SDK integration
-
-### Phase 2: Fix React Warnings (Week 1)
-
-5. **DynamicSidebar.tsx**
-   - Wrap component with `React.forwardRef`
-   ```typescript
-   export const DynamicSidebar = React.forwardRef<HTMLDivElement, Props>(
-     (props, ref) => { ... }
-   );
-   DynamicSidebar.displayName = "DynamicSidebar";
-   ```
-
-6. **Fix Dialog accessibility**
-   - Add `DialogTitle` to all dialogs missing it
-   - Use `VisuallyHidden` wrapper for hidden titles
-
-### Phase 3: Complete Incomplete Features (Week 2)
-
-7. **Pharmacy Returns Credit Handling**
-   - Implement `pharmacy_patient_credits` updates
-   - Handle add_credit and deduct_outstanding methods
-
-8. **Print Patient Card**
-   - Implement patient card PDF generation
-   - Or remove checkbox until implemented
-
-### Phase 4: Improve Data Integrity (Week 2)
-
-9. **Invoice Number Generation**
-   - Replace `Math.random()` with database sequences
-   - Use triggers similar to `generate_admission_number()`
+The current implementation provides:
+- Device registration and management
+- Test-to-device mapping configuration  
+- Manual result entry with device selection
+- Foundation for future automated integration
 
 ---
 
-## Summary Statistics
+## Summary
 
-| Category | Count |
-|----------|-------|
-| Critical (Mock Data in Production) | 4 |
-| High (Non-functional Features) | 3 |
-| Medium (Warnings/Incomplete) | 4 |
-| Low (Cleanup/Enhancement) | 5 |
-| **Total Issues** | **16** |
+| Component | Deliverable |
+|-----------|-------------|
+| **Sidebar Icons** | Add 17 missing icons to iconMap |
+| **PACS Multi-Server** | Full CRUD + modality mapping UI |
+| **Lab Analyzers** | Device registry + test mapping UI |
+| **Database** | 4 new tables with RLS |
+| **Edge Function** | Multi-PACS routing support |
 
-| Module | Status |
-|--------|--------|
-| OPD | ✅ Fully Functional |
-| IPD | ✅ Fully Functional |
-| Surgery/OT | ✅ Fully Functional |
-| Emergency | ✅ Fully Functional |
-| Laboratory | ✅ Fully Functional |
-| Pharmacy | ⚠️ Returns credit incomplete |
-| Billing | ✅ Fully Functional |
-| Accounts | ✅ Fully Functional |
-| HR - Core | ✅ Fully Functional |
-| HR - Reports | ⚠️ Mock data issues |
-| HR - Biometrics | ⚠️ Simulated only |
-| Doctor Compensation | ✅ Fully Functional |
-| Daily Commissions | ✅ Fully Functional |
-| Radiology - Core | ✅ Fully Functional |
-| Radiology - PACS | ⚠️ Mock implementation |
-
-The HMS is **production-ready** for core clinical and financial workflows. The identified issues are primarily in ancillary features (HR analytics, biometrics, PACS) that can be fixed iteratively without blocking deployment.
+This architecture supports multiple devices per organization with proper test-to-device linking, preparing the system for future automated integration.
