@@ -120,6 +120,7 @@ import LabTestCategoriesPage from "./pages/app/lab/LabTestCategoriesPage";
 import CreateLabOrderPage from "./pages/app/lab/CreateLabOrderPage";
 import LabAnalyzersPage from "./pages/app/lab/LabAnalyzersPage";
 import LabAnalyzerFormPage from "./pages/app/lab/LabAnalyzerFormPage";
+import LabAnalyzerMappingPage from "./pages/app/lab/LabAnalyzerMappingPage";
 // Pharmacy pages
 import PharmacyDashboard from "./pages/app/pharmacy/PharmacyDashboard";
 import PrescriptionQueuePage from "./pages/app/pharmacy/PrescriptionQueuePage";
@@ -693,6 +694,7 @@ function App() {
               <Route path="lab/analyzers" element={<LabAnalyzersPage />} />
               <Route path="lab/analyzers/new" element={<LabAnalyzerFormPage />} />
               <Route path="lab/analyzers/:id/edit" element={<LabAnalyzerFormPage />} />
+              <Route path="lab/analyzers/:id/mapping" element={<LabAnalyzerMappingPage />} />
               <Route path="lab/reports" element={<LabReportsPage />} />
               
               {/* Radiology routes */}
