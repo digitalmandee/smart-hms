@@ -126,6 +126,24 @@ import {
   LogOut,
   PanelLeft,
   PanelLeftClose,
+  // Added missing icons
+  ArrowRightLeft,
+  Banknote,
+  BarChart,
+  Bell,
+  FileCode,
+  FolderOpen,
+  Footprints,
+  HeartHandshake,
+  Layers,
+  LayoutGrid,
+  Megaphone,
+  MessageSquare,
+  Network,
+  PackagePlus,
+  Radio,
+  Server,
+  Tv,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -241,6 +259,24 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   ShieldCheck,
   Wallet,
   Syringe,
+  // Added missing icons
+  ArrowRightLeft,
+  Banknote,
+  BarChart,
+  Bell,
+  FileCode,
+  FolderOpen,
+  Footprints,
+  HeartHandshake,
+  Layers,
+  LayoutGrid,
+  Megaphone,
+  MessageSquare,
+  Network,
+  PackagePlus,
+  Radio,
+  Server,
+  Tv,
 };
 
 interface DynamicSidebarProps {

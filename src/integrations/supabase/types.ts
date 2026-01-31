@@ -7603,6 +7603,45 @@ export type Database = {
           },
         ]
       }
+      imaging_modality_pacs_mappings: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_primary: boolean | null
+          modality_id: string
+          pacs_server_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_primary?: boolean | null
+          modality_id: string
+          pacs_server_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_primary?: boolean | null
+          modality_id?: string
+          pacs_server_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "imaging_modality_pacs_mappings_modality_id_fkey"
+            columns: ["modality_id"]
+            isOneToOne: false
+            referencedRelation: "imaging_modalities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "imaging_modality_pacs_mappings_pacs_server_id_fkey"
+            columns: ["pacs_server_id"]
+            isOneToOne: false
+            referencedRelation: "pacs_servers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       imaging_orders: {
         Row: {
           admission_id: string | null
@@ -10234,6 +10273,126 @@ export type Database = {
           },
         ]
       }
+      lab_analyzer_test_mappings: {
+        Row: {
+          analyzer_id: string
+          analyzer_test_code: string
+          analyzer_test_name: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          lab_test_template_id: string
+        }
+        Insert: {
+          analyzer_id: string
+          analyzer_test_code: string
+          analyzer_test_name?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          lab_test_template_id: string
+        }
+        Update: {
+          analyzer_id?: string
+          analyzer_test_code?: string
+          analyzer_test_name?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          lab_test_template_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_analyzer_test_mappings_analyzer_id_fkey"
+            columns: ["analyzer_id"]
+            isOneToOne: false
+            referencedRelation: "lab_analyzers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_analyzer_test_mappings_lab_test_template_id_fkey"
+            columns: ["lab_test_template_id"]
+            isOneToOne: false
+            referencedRelation: "lab_test_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lab_analyzers: {
+        Row: {
+          analyzer_type: string
+          branch_id: string | null
+          connection_status: string | null
+          connection_type: string | null
+          created_at: string | null
+          id: string
+          ip_address: string | null
+          is_active: boolean | null
+          last_sync_at: string | null
+          location: string | null
+          manufacturer: string | null
+          model: string | null
+          name: string
+          organization_id: string
+          port: number | null
+          serial_number: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          analyzer_type: string
+          branch_id?: string | null
+          connection_status?: string | null
+          connection_type?: string | null
+          created_at?: string | null
+          id?: string
+          ip_address?: string | null
+          is_active?: boolean | null
+          last_sync_at?: string | null
+          location?: string | null
+          manufacturer?: string | null
+          model?: string | null
+          name: string
+          organization_id: string
+          port?: number | null
+          serial_number?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          analyzer_type?: string
+          branch_id?: string | null
+          connection_status?: string | null
+          connection_type?: string | null
+          created_at?: string | null
+          id?: string
+          ip_address?: string | null
+          is_active?: boolean | null
+          last_sync_at?: string | null
+          location?: string | null
+          manufacturer?: string | null
+          model?: string | null
+          name?: string
+          organization_id?: string
+          port?: number | null
+          serial_number?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_analyzers_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_analyzers_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lab_order_items: {
         Row: {
           created_at: string
@@ -12586,6 +12745,75 @@ export type Database = {
           },
           {
             foreignKeyName: "overtime_records_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pacs_servers: {
+        Row: {
+          ae_title: string | null
+          branch_id: string | null
+          connection_status: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          is_default: boolean | null
+          last_connection_check: string | null
+          modality_types: string[] | null
+          name: string
+          organization_id: string
+          password: string | null
+          server_url: string
+          updated_at: string | null
+          username: string | null
+        }
+        Insert: {
+          ae_title?: string | null
+          branch_id?: string | null
+          connection_status?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          last_connection_check?: string | null
+          modality_types?: string[] | null
+          name: string
+          organization_id: string
+          password?: string | null
+          server_url: string
+          updated_at?: string | null
+          username?: string | null
+        }
+        Update: {
+          ae_title?: string | null
+          branch_id?: string | null
+          connection_status?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          last_connection_check?: string | null
+          modality_types?: string[] | null
+          name?: string
+          organization_id?: string
+          password?: string | null
+          server_url?: string
+          updated_at?: string | null
+          username?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pacs_servers_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pacs_servers_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"

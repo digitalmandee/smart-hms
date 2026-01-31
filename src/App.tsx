@@ -118,6 +118,8 @@ import LabTestTemplatesListPage from "./pages/app/lab/LabTestTemplatesListPage";
 import LabTestTemplateFormPage from "./pages/app/lab/LabTestTemplateFormPage";
 import LabTestCategoriesPage from "./pages/app/lab/LabTestCategoriesPage";
 import CreateLabOrderPage from "./pages/app/lab/CreateLabOrderPage";
+import LabAnalyzersPage from "./pages/app/lab/LabAnalyzersPage";
+import LabAnalyzerFormPage from "./pages/app/lab/LabAnalyzerFormPage";
 // Pharmacy pages
 import PharmacyDashboard from "./pages/app/pharmacy/PharmacyDashboard";
 import PrescriptionQueuePage from "./pages/app/pharmacy/PrescriptionQueuePage";
@@ -335,6 +337,7 @@ import ModalitiesListPage from "./pages/app/radiology/ModalitiesListPage";
 import ProceduresListPage from "./pages/app/radiology/ProceduresListPage";
 import PACSStudiesPage from "./pages/app/radiology/PACSStudiesPage";
 import PACSSettingsPage from "./pages/app/radiology/PACSSettingsPage";
+import PACSServersPage from "./pages/app/radiology/PACSServersPage";
 import PACSSetupGuidePage from "./pages/app/radiology/PACSSetupGuidePage";
 import RadiologyArchivePage from "./pages/app/radiology/RadiologyArchivePage";
 import ImagingReportTemplatesPage from "./pages/app/radiology/ImagingReportTemplatesPage";
@@ -687,7 +690,28 @@ function App() {
               <Route path="lab/templates/new" element={<LabTestTemplateFormPage />} />
               <Route path="lab/templates/:id/edit" element={<LabTestTemplateFormPage />} />
               <Route path="lab/categories" element={<LabTestCategoriesPage />} />
+              <Route path="lab/analyzers" element={<LabAnalyzersPage />} />
+              <Route path="lab/analyzers/new" element={<LabAnalyzerFormPage />} />
+              <Route path="lab/analyzers/:id/edit" element={<LabAnalyzerFormPage />} />
               <Route path="lab/reports" element={<LabReportsPage />} />
+              
+              {/* Radiology routes */}
+              <Route path="radiology" element={<RadiologyDashboard />} />
+              <Route path="radiology/orders" element={<ImagingOrdersListPage />} />
+              <Route path="radiology/orders/new" element={<ImagingOrderFormPage />} />
+              <Route path="radiology/orders/:id" element={<ImagingOrderDetailPage />} />
+              <Route path="radiology/worklist" element={<TechnicianWorklistPage />} />
+              <Route path="radiology/capture/:orderId" element={<ImageCapturePage />} />
+              <Route path="radiology/schedule" element={<ImagingSchedulePage />} />
+              <Route path="radiology/reporting" element={<ReportingWorklistPage />} />
+              <Route path="radiology/reporting/:orderId" element={<ReportEntryPage />} />
+              <Route path="radiology/verification" element={<ReportVerificationPage />} />
+              <Route path="radiology/modalities" element={<ModalitiesListPage />} />
+              <Route path="radiology/procedures" element={<ProceduresListPage />} />
+              <Route path="radiology/pacs" element={<PACSStudiesPage />} />
+              <Route path="radiology/pacs/settings" element={<PACSSettingsPage />} />
+              <Route path="radiology/pacs/servers" element={<PACSServersPage />} />
+              <Route path="radiology/pacs/guide" element={<PACSSetupGuidePage />} />
               
               {/* Inventory routes */}
               <Route path="inventory" element={<InventoryDashboard />} />
