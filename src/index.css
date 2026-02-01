@@ -553,19 +553,35 @@ body.keyboard-open {
    Native Mobile App Enhancements
    ======================================== */
 
-/* iOS-style page transitions */
+/* iOS-style page transitions - smoother native feel */
 .mobile-page-content {
-  animation: slideInFromRight 0.25s ease-out;
+  animation: pageSlideIn 0.35s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
-@keyframes slideInFromRight {
+@keyframes pageSlideIn {
   from {
-    opacity: 0.8;
-    transform: translateX(20px);
+    opacity: 0;
+    transform: translateX(30%);
   }
   to {
     opacity: 1;
     transform: translateX(0);
+  }
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .mobile-page-content {
+    animation: pageFadeIn 0.2s ease-out;
+  }
+}
+
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
 

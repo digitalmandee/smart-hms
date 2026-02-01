@@ -84,7 +84,7 @@ export default function ProfilePage() {
     }
   ];
 
-  // Mobile Layout
+  // Mobile Layout - Simplified, personal info only
   if (showMobileUI) {
     return (
       <div className="px-4 py-6 space-y-6 pb-24">
@@ -105,10 +105,10 @@ export default function ProfilePage() {
 
         <Separator />
 
-        {/* Settings */}
+        {/* Personal Preferences */}
         <div className="space-y-4">
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-            Settings
+            Preferences
           </h2>
           
           {/* Dark Mode Toggle */}
@@ -138,39 +138,17 @@ export default function ProfilePage() {
 
         <Separator />
 
-        {/* Menu Items */}
-        <div className="space-y-1">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <button
-                key={item.path}
-                onClick={() => {
-                  haptics.light();
-                  navigate(item.path);
-                }}
-                className="flex items-center justify-between w-full py-3 px-1 hover:bg-muted/50 rounded-lg transition-colors touch-manipulation active:scale-[0.98]"
-              >
-                <div className="flex items-center gap-3">
-                  <Icon className="h-5 w-5 text-muted-foreground" />
-                  <span>{item.label}</span>
-                </div>
-                <ChevronRight className="h-5 w-5 text-muted-foreground" />
-              </button>
-            );
-          })}
-        </div>
-
-        <Separator />
-
-        {/* Sign Out */}
+        {/* Edit Profile Button */}
         <Button
-          variant="destructive"
+          variant="outline"
           className="w-full touch-target"
-          onClick={handleSignOut}
+          onClick={() => {
+            haptics.light();
+            navigate('/app/settings/users');
+          }}
         >
-          <LogOut className="h-5 w-5 mr-2" />
-          Sign Out
+          <User className="h-5 w-5 mr-2" />
+          Edit Profile
         </Button>
 
         {/* Version Info */}
