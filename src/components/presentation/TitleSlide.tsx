@@ -1,4 +1,5 @@
-import { Activity, Users, FlaskConical, Building2, Shield, Zap } from "lucide-react";
+import { Users, FlaskConical, Building2, Shield, Zap } from "lucide-react";
+import { HealthOS24Logo } from "@/components/brand/HealthOS24Logo";
 
 const stats = [
   { icon: Building2, value: "500+", label: "Clinics" },
@@ -35,17 +36,8 @@ export const TitleSlide = () => {
       {/* Main Content - Centered */}
       <div className="flex-1 flex flex-col items-center justify-center relative z-10">
         {/* Logo */}
-        <div className="mb-6 flex items-center gap-4">
-          <div className="p-5 rounded-2xl bg-gradient-to-br from-primary to-primary/80 shadow-2xl">
-            <Activity className="h-16 w-16 text-primary-foreground" />
-          </div>
-          <div>
-            <span className="text-5xl font-bold tracking-tight">HealthOS</span>
-            <div className="flex items-center gap-2 mt-1">
-              <Shield className="h-4 w-4 text-primary" />
-              <span className="text-sm text-muted-foreground">Enterprise Healthcare Platform</span>
-            </div>
-          </div>
+        <div className="mb-6">
+          <HealthOS24Logo variant="full" size="xl" showTagline />
         </div>
 
         {/* Main Title */}
@@ -56,7 +48,7 @@ export const TitleSlide = () => {
 
         {/* Subtitle */}
         <p className="text-2xl text-muted-foreground text-center mb-6 max-w-2xl">
-          20 Integrated Modules for Modern Healthcare Operations
+          20 Integrated Modules for 24/7 Healthcare Operations
         </p>
 
         {/* Feature highlights */}
@@ -113,7 +105,7 @@ export const TitleSlide = () => {
           <span className="w-1 h-1 rounded-full bg-muted-foreground" />
           <span>Version 2.0</span>
           <span className="w-1 h-1 rounded-full bg-muted-foreground" />
-          <span>smarthms.devmine.co</span>
+          <span>healthos24.com</span>
         </div>
       </div>
     </div>

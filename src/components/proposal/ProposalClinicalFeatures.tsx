@@ -1,4 +1,5 @@
-import { Activity, UserPlus, Calendar, ListOrdered, Stethoscope, Ambulance, Bed, Heart, Pill, ClipboardCheck, Scissors, Syringe, ThermometerSun, Baby, Activity as ICUIcon } from "lucide-react";
+import { UserPlus, Calendar, ListOrdered, Stethoscope, Ambulance, Bed, Heart, Pill, ClipboardCheck, Scissors, Syringe, ThermometerSun, Baby, Activity as ICUIcon } from "lucide-react";
+import { HealthOS24Logo } from "@/components/brand/HealthOS24Logo";
 
 const modules = [
   { icon: UserPlus, name: "Patient Registration", features: ["CNIC/Passport lookup", "Photo capture", "Family linking", "Insurance mapping"] },
@@ -22,12 +23,7 @@ export const ProposalClinicalFeatures = () => {
     <div className="proposal-page flex flex-col bg-background p-12">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-lg">
-            <Activity className="h-6 w-6 text-primary-foreground" />
-          </div>
-          <span className="text-lg font-semibold text-foreground">HealthOS</span>
-        </div>
+        <HealthOS24Logo variant="full" size="md" />
         <span className="text-sm text-muted-foreground bg-muted px-3 py-1 rounded-full">
           03 / 10
         </span>
@@ -67,8 +63,8 @@ export const ProposalClinicalFeatures = () => {
 
       {/* Footer */}
       <div className="mt-6 pt-4 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
-        <span>HealthOS Proposal</span>
-        <span>smarthms.devmine.co</span>
+        <span>HealthOS 24 Proposal</span>
+        <span>healthos24.com</span>
       </div>
     </div>
   );

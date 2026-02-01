@@ -5,7 +5,7 @@ const badges = [
   { icon: Building2, value: '500+', label: 'Clinics Trust Us' },
   { icon: Users, value: '50,000+', label: 'Patients Managed' },
   { icon: Clock, value: '99.9%', label: 'Uptime Guaranteed' },
-  { icon: Shield, value: 'HIPAA', label: 'Compliant Security' },
+  { icon: Shield, value: '24/7', label: 'Available Always' },
 ];
 
 export const TrustBadges = () => {

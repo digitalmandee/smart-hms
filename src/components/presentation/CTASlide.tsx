@@ -1,7 +1,8 @@
 import { 
-  Activity, Globe, Phone, CheckCircle2, Calendar, Users, FlaskConical, 
-  UserCheck, Sparkles, Mail, MessageCircle, ArrowRight, Shield, Zap 
+  Globe, Phone, CheckCircle2, Calendar, Users, FlaskConical, 
+  UserCheck, Sparkles, Mail, ArrowRight, Shield, Zap 
 } from "lucide-react";
+import { HealthOS24Logo } from "@/components/brand/HealthOS24Logo";
 
 const demoFeatures = [
   "Personalized walkthrough of your workflows",
@@ -19,7 +20,7 @@ const stats = [
 const valueProps = [
   { icon: Shield, label: "HIPAA Compliant" },
   { icon: Zap, label: "4-Week Implementation" },
-  { icon: Activity, label: "99.9% Uptime" },
+  { icon: Sparkles, label: "24/7 Available" },
 ];
 
 export const CTASlide = () => {
@@ -33,12 +34,7 @@ export const CTASlide = () => {
 
       {/* Header */}
       <div className="flex items-center justify-between mb-4 relative z-10">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-lg">
-            <Activity className="h-6 w-6 text-primary-foreground" />
-          </div>
-          <span className="text-xl font-bold">HealthOS</span>
-        </div>
+        <HealthOS24Logo variant="full" size="md" />
         <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">
           31 / 31
         </span>
@@ -58,7 +54,7 @@ export const CTASlide = () => {
         </h1>
 
         <p className="text-lg text-muted-foreground text-center mb-6 max-w-2xl">
-          Join 500+ healthcare facilities across UAE that trust HealthOS to streamline their operations
+          Join 500+ healthcare facilities across UAE that trust HealthOS 24 to streamline their operations
         </p>
 
         {/* Value Props */}
@@ -115,7 +111,7 @@ export const CTASlide = () => {
                 </div>
                 <div>
                   <div className="text-xs text-muted-foreground">Website</div>
-                  <div className="font-semibold">smarthms.devmine.co</div>
+                  <div className="font-semibold">healthos24.com</div>
                 </div>
               </div>
 
@@ -125,7 +121,7 @@ export const CTASlide = () => {
                 </div>
                 <div>
                   <div className="text-xs text-muted-foreground">Email</div>
-                  <div className="font-semibold">sales@devmine.co</div>
+                  <div className="font-semibold">sales@healthos24.com</div>
                 </div>
               </div>
             </div>
@@ -156,7 +152,7 @@ export const CTASlide = () => {
       {/* Footer */}
       <div className="pt-4 border-t border-border text-center relative z-10">
         <p className="text-sm text-muted-foreground">
-          © 2024 HealthOS - Complete Hospital Management System
+          © 2024 HealthOS 24 - Complete 24/7 Hospital Management System
         </p>
         <p className="text-xs text-muted-foreground mt-1">
           Empowering Healthcare Facilities Across the UAE & Beyond

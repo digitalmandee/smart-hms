@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Activity, Mail, Phone, MapPin } from "lucide-react";
+import { Mail, Phone, MapPin } from "lucide-react";
+import { HealthOS24Logo } from "@/components/brand/HealthOS24Logo";
 
 const footerLinks = {
   Product: [
@@ -35,19 +36,16 @@ export const Footer = () => {
         <div className="grid md:grid-cols-2 lg:grid-cols-6 gap-8">
           {/* Brand section */}
           <div className="lg:col-span-2">
-            <Link to="/" className="flex items-center gap-2 mb-4">
-              <div className="p-2 rounded-lg bg-primary">
-                <Activity className="h-6 w-6 text-primary-foreground" />
-              </div>
-              <span className="text-xl font-bold">HealthOS</span>
+            <Link to="/" className="inline-block mb-4">
+              <HealthOS24Logo variant="full" size="md" showTagline />
             </Link>
             <p className="text-muted-foreground mb-6 max-w-sm">
-              The complete hospital management solution trusted by healthcare facilities worldwide.
+              The complete 24/7 hospital management solution trusted by healthcare facilities worldwide.
             </p>
             <div className="space-y-3">
               <div className="flex items-center gap-3 text-sm text-muted-foreground">
                 <Mail className="h-4 w-4" />
-                <span>support@healthos.ae</span>
+                <span>support@healthos24.com</span>
               </div>
               <div className="flex items-center gap-3 text-sm text-muted-foreground">
                 <Phone className="h-4 w-4" />
@@ -55,7 +53,7 @@ export const Footer = () => {
               </div>
               <div className="flex items-center gap-3 text-sm text-muted-foreground">
                 <MapPin className="h-4 w-4" />
-                <span>Block B1, university city, Sharjah, UAE</span>
+                <span>Block B1, University City, Sharjah, UAE</span>
               </div>
             </div>
           </div>
@@ -82,7 +80,7 @@ export const Footer = () => {
 
         {/* Bottom bar */}
         <div className="mt-12 pt-8 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} HealthOS. All rights reserved.</p>
+          <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} HealthOS 24. All rights reserved.</p>
           <div className="flex items-center gap-6">
             <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">
               <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
