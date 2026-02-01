@@ -1,236 +1,158 @@
 
-# Side Menu + Smooth Page Transitions Plan
+# Mobile Side Menu Feature Parity Plan
 
-## Issues Identified
+## Problem Summary
 
-### Issue 1: Profile and More Pages Have Duplicate Content
-- **Profile page** (lines 141-162) has menu items: Edit Profile, Notifications, Privacy & Security, Help & Support
-- **More page** (lines 167-191) has similar sections: Account (Settings, Notifications, Privacy), Support (Help, Terms, About)
-- Both pages essentially duplicate "Account" and "Support" menu items
-- User wants: **Profile** = personal info only, **More** = slide-out side menu
+The mobile side menu is **completely different** from the desktop sidebar:
+- **Desktop Sidebar**: Uses `ROLE_SIDEBAR_CONFIG` to dynamically render all menu items based on user role (Doctor gets 6 main sections, Nurse gets different sections, etc.)
+- **Mobile Side Menu**: Has hardcoded "Quick Actions" grid with only 4-5 basic shortcuts (Schedule, Consult, Tasks, etc.)
 
-### Issue 2: No Slide-Out Side Menu
-- Currently, the hamburger menu (Menu icon) in `MobileHeader.tsx` (line 37-40) navigates to `/app/more` page
-- User expects: Hamburger should open a **slide-out side menu** (Sheet component) instead of navigating to a page
-- The Sheet component already exists (`src/components/ui/sheet.tsx`) with left/right slide animations
-
-### Issue 3: Glitchy Page Transitions
-- Current animation in `index.css` (lines 556-570) is `slideInFromRight` - basic fade + slight slide
-- This creates a "glitch" feeling because it's not a full iOS/Android-style transition
-- Need smoother, more native-like page transitions or a loading splash between screens
+This means doctors, nurses, pharmacists, and other staff are **missing most of their navigation options** on mobile.
 
 ---
 
-## Implementation Plan
+## Solution Overview
 
-### Phase 1: Create Mobile Side Menu Component
+Rebuild the mobile side menu to render the **same menu items** from `ROLE_SIDEBAR_CONFIG` that the desktop sidebar uses, with proper mobile-friendly touch interactions.
 
-**New File: `src/components/mobile/MobileSideMenu.tsx`**
+---
 
-Create a slide-out side menu using the Sheet component:
+## Technical Implementation
 
-```typescript
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Link } from "react-router-dom";
-import { 
-  Settings, Bell, Shield, HelpCircle, FileText, Info, 
-  Calendar, Stethoscope, ClipboardList, Pill, TestTube, Wallet,
-  LogOut, Moon, X
-} from "lucide-react";
-import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useAuth } from "@/contexts/AuthContext";
-import { useTheme } from "next-themes";
-import { useHaptics } from "@/hooks/useHaptics";
+### File: `src/components/mobile/MobileSideMenu.tsx`
 
-interface MobileSideMenuProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
-
-export function MobileSideMenu({ open, onOpenChange }: MobileSideMenuProps) {
-  // Profile header with avatar
-  // Quick Actions grid
-  // Account menu (Settings, Notifications, Privacy)
-  // Support menu (Help, Terms, About)
-  // Dark Mode toggle
-  // Sign Out button
-  // App version
-}
+**Current Structure (Hardcoded):**
+```
+Profile Header
+Quick Actions Grid (4-5 icons) ← Only shows a few hardcoded shortcuts
+Account Section (Settings, Notifications, Privacy)
+Support Section (Help, Terms, About)
+Dark Mode Toggle
+Sign Out
 ```
 
-Features:
-- Opens from left side (matching iOS/Android pattern)
-- Contains user profile summary at top
-- Quick action shortcuts
-- All settings/menu items currently in More page
-- Dark mode toggle
-- Sign out button
-- Closes when user taps a menu item or overlay
-
-### Phase 2: Update MobileHeader to Use Sheet
-
-**File: `src/components/mobile/MobileHeader.tsx`**
-
-Change hamburger button to open side menu sheet instead of navigating:
-
-```typescript
-// Add state and import Sheet
-const [sideMenuOpen, setSideMenuOpen] = useState(false);
-
-// Change menu button onClick
-<Button onClick={() => setSideMenuOpen(true)}>
-  <Menu />
-</Button>
-
-// Add Sheet component
-<MobileSideMenu open={sideMenuOpen} onOpenChange={setSideMenuOpen} />
+**New Structure (Dynamic, Feature Parity):**
+```
+Profile Header (keep)
+─────────────────────────
+Role-Based Menu Items ← NEW: Dynamic from ROLE_SIDEBAR_CONFIG
+  - Dashboard
+  - Appointments (expandable)
+    - My Calendar
+    - Today's Queue
+    - All Appointments
+  - Consultations (expandable)
+    - History
+    - OPD Orders
+    - Reports
+  - Patients
+  - IPD
+  - My Work
+    - My Schedule
+    - My Wallet
+    - My Attendance
+    - My Leaves
+    - My Payslips
+─────────────────────────
+Dark Mode Toggle (keep)
+Sign Out (keep)
 ```
 
-### Phase 3: Simplify Profile Page (Mobile View)
+### Key Changes:
 
-**File: `src/pages/app/ProfilePage.tsx`**
+1. **Import Role Config**
+   - Import `ROLE_SIDEBAR_CONFIG`, `getPrimaryRole` from `@/config/role-sidebars`
+   - Import `iconMap` or create local icon mapping from `DynamicSidebar`
 
-Remove duplicate menu items, keep only personal profile content:
+2. **Get Menu Items Dynamically**
+   - Determine user's primary role using `getPrimaryRole(roles)`
+   - Get menu config: `ROLE_SIDEBAR_CONFIG[primaryRole]?.items`
 
-Current mobile view has:
-- Avatar, name, email, role badge (KEEP)
-- Dark Mode toggle (KEEP - personal preference)
-- Push Notifications toggle (KEEP - personal preference)
-- Edit Profile, Notifications, Privacy, Help menu items (REMOVE - these move to side menu)
-- Sign Out button (REMOVE - moves to side menu)
+3. **Render Expandable Menu Tree**
+   - Create `MobileMenuItem` component that handles:
+     - Parent items with children (use Collapsible for expand/collapse)
+     - Leaf items that navigate directly
+     - Touch-optimized (44px minimum height, haptic feedback)
 
-New mobile profile page content:
-- Profile header (avatar, name, email, role)
-- Personal settings toggles (Dark Mode, Push Notifications)
-- Edit Profile button (single action)
-- Version info
+4. **Remove Hardcoded Quick Actions Grid**
+   - Delete the current 4-column grid that shows limited shortcuts
+   - Replace with the full dynamic menu
 
-### Phase 4: Remove or Simplify More Page
+5. **Keep Account/Support at Bottom (Optional)**
+   - Move Settings, Help, etc. to a secondary section
+   - Or: Remove entirely since Settings is already in role menus
 
-**File: `src/pages/app/MorePage.tsx`**
-
-Since the side menu now handles all the "More" functionality:
-- Mobile view: Redirect to dashboard or show minimal content
-- Or: Remove from bottom navigation entirely, replace with another useful tab
-
-**File: `src/components/mobile/BottomNavigation.tsx`**
-
-Option A: Remove "More" tab, keep only 4-5 tabs
-Option B: Replace "More" with another useful action (e.g., "Wallet", "Settings direct link")
-
-Recommended: Remove "More" from bottom nav since hamburger menu now handles it
-
-### Phase 5: Improve Page Transitions
-
-**File: `src/index.css`**
-
-Enhance the mobile page transitions for smoother experience:
-
-```css
-/* Improved iOS-style page transition */
-.mobile-page-content {
-  animation: pageSlideIn 0.3s cubic-bezier(0.32, 0.72, 0, 1);
-}
-
-@keyframes pageSlideIn {
-  from {
-    opacity: 0;
-    transform: translateX(30%);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-/* Alternative: Fade transition for less motion */
-@media (prefers-reduced-motion: reduce) {
-  .mobile-page-content {
-    animation: pageFadeIn 0.2s ease-out;
-  }
-}
-
-@keyframes pageFadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-```
-
-### Phase 6: Add Page Loading State (Optional Enhancement)
-
-**New File: `src/components/mobile/PageTransition.tsx`**
-
-For longer loading operations, show a brief loading state:
+### Component Structure:
 
 ```typescript
-export function PageTransition({ children, isLoading }: { children: React.ReactNode; isLoading?: boolean }) {
-  if (isLoading) {
+// Mobile-specific menu item with collapsible children
+function MobileMenuItem({ item, level = 0, onClose }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const hasChildren = item.children?.length > 0;
+  const Icon = iconMap[item.icon];
+  
+  if (hasChildren) {
     return (
-      <div className="flex items-center justify-center min-h-[200px]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
+      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+        <CollapsibleTrigger className="w-full flex items-center justify-between py-3 px-4">
+          <div className="flex items-center gap-3">
+            <Icon className="h-5 w-5" />
+            <span>{item.name}</span>
+          </div>
+          <ChevronDown className={cn("h-4 w-4 transition-transform", isOpen && "rotate-180")} />
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          {item.children.map(child => (
+            <MobileMenuItem key={child.path} item={child} level={level + 1} onClose={onClose} />
+          ))}
+        </CollapsibleContent>
+      </Collapsible>
     );
   }
   
   return (
-    <div className="animate-in fade-in slide-in-from-right-4 duration-300">
-      {children}
-    </div>
+    <Link to={item.path} onClick={onClose} className="flex items-center gap-3 py-3 px-4 pl-{indent}">
+      <Icon className="h-5 w-5" />
+      <span>{item.name}</span>
+    </Link>
   );
 }
 ```
 
----
+### Visual Layout After Changes:
 
-## Files to Modify
-
-| File | Changes |
-|------|---------|
-| `src/components/mobile/MobileSideMenu.tsx` | **NEW** - Slide-out side menu component |
-| `src/components/mobile/MobileHeader.tsx` | Add Sheet state, open side menu on hamburger click |
-| `src/pages/app/ProfilePage.tsx` | Simplify mobile view - remove duplicate menu items |
-| `src/components/mobile/BottomNavigation.tsx` | Remove "More" tab from navigation |
-| `src/index.css` | Improve page transition animation |
-
----
-
-## Visual Layout After Changes
-
-**Header:**
-```
-[☰] [🔍]     [LOGO]     [🔔] [👤]
-```
-- ☰ opens slide-out side menu
-- 👤 goes to simplified Profile page
-
-**Side Menu (slides from left):**
 ```
 ┌─────────────────────────────┐
-│ [X]                         │
-│                             │
 │ ┌─────┐                     │
 │ │ 👤  │ Dr. Ahmed Khan      │
 │ └─────┘ Doctor              │
+├─────────────────────────────┤
+│ 🏠 Dashboard                │
 │                             │
-│ ─────────────────────────── │
-│ Quick Actions               │
-│ [📅] [🩺] [💊] [🔬] [💰]   │
+│ 📅 Appointments        ▼    │
+│    ├─ My Calendar           │
+│    ├─ Today's Queue         │
+│    └─ All Appointments      │
 │                             │
-│ ─────────────────────────── │
-│ Account                     │
-│ ⚙️ Settings            >    │
-│ 🔔 Notifications       >    │
-│ 🛡️ Privacy & Security  >    │
+│ 🩺 Consultations       ▼    │
+│    ├─ History               │
+│    ├─ OPD Orders            │
+│    └─ Reports               │
 │                             │
-│ ─────────────────────────── │
-│ Support                     │
-│ ❓ Help & FAQ          >    │
-│ 📄 Terms of Service    >    │
-│ ℹ️ About               >    │
+│ 👥 Patients            ▼    │
+│    └─ Search                │
 │                             │
-│ ─────────────────────────── │
+│ 🛏️ IPD                 ▼    │
+│    ├─ My Patients           │
+│    └─ Request Discharge     │
+│                             │
+│ 💼 My Work             ▼    │
+│    ├─ My Schedule           │
+│    ├─ My Wallet             │
+│    ├─ My Attendance         │
+│    ├─ My Leaves             │
+│    └─ My Payslips           │
+├─────────────────────────────┤
 │ 🌙 Dark Mode      [toggle]  │
 │                             │
 │ [🚪 Sign Out]               │
@@ -239,39 +161,30 @@ export function PageTransition({ children, isLoading }: { children: React.ReactN
 └─────────────────────────────┘
 ```
 
-**Profile Page (simplified):**
-```
-      ┌─────┐
-      │ 👤  │
-      └─────┘
-   Dr. Ahmed Khan
-   ahmed@hospital.com
-      [Doctor]
+---
 
-   ─────────────────
-   
-   🌙 Dark Mode     [toggle]
-   📱 Push Notif.   [toggle]
-   
-   [Edit Profile]
-   
-   v2.0.0
-```
+## Files to Modify
 
-**Bottom Navigation (updated):**
-```
-[🏠]  [📅]  [📋]  [👤]
-Home  Schedule Tasks Profile
-```
-(Removed "More" - now accessed via hamburger)
+| File | Changes |
+|------|---------|
+| `src/components/mobile/MobileSideMenu.tsx` | Complete rewrite to use dynamic role-based menus |
 
 ---
 
-## Expected Results
+## Benefits
 
-1. **Hamburger menu opens slide-out side menu** instead of navigating to a page
-2. **No duplicate content** between Profile and More
-3. **Profile page focuses on personal info** (avatar, preferences, edit)
-4. **Side menu has all app navigation** (quick actions, settings, support)
-5. **Smoother page transitions** with improved cubic-bezier animation
-6. **Cleaner bottom navigation** with 4 focused tabs
+1. **Complete Feature Parity**: Mobile users see exact same options as desktop
+2. **Role-Based**: Each role (doctor, nurse, pharmacist, etc.) gets their specific menu automatically
+3. **Consistent**: Changes to `ROLE_SIDEBAR_CONFIG` automatically apply to both desktop and mobile
+4. **Native Feel**: Touch-optimized with proper spacing, haptic feedback, and smooth expand/collapse
+5. **No Horizontal Scroll**: No grid layout, just clean vertical menu list
+
+---
+
+## Edge Cases Handled
+
+- Deeply nested menus (up to 3 levels) with proper indentation
+- Icons render correctly using shared `iconMap`
+- Menu closes when user taps any navigation link
+- Haptic feedback on interactions
+- Safe area handling for devices with notches
