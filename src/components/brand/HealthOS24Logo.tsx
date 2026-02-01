@@ -29,7 +29,7 @@ export const HealthOS24Logo = ({
   
   const config = sizeConfig[size];
   
-  // Icon SVG - "24" with heartbeat line
+  // Icon SVG - Premium "24" with heartbeat line
   const IconSVG = ({ iconClass }: { iconClass?: string }) => (
     <svg 
       viewBox="0 0 40 40" 
@@ -38,47 +38,65 @@ export const HealthOS24Logo = ({
       xmlns="http://www.w3.org/2000/svg"
     >
       <defs>
+        {/* Premium gradient */}
         <linearGradient id="healthos24-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="hsl(var(--primary))" />
-          <stop offset="100%" stopColor="hsl(var(--primary) / 0.8)" />
+          <stop offset="100%" stopColor="hsl(var(--primary) / 0.85)" />
         </linearGradient>
+        {/* Subtle shadow filter for depth */}
+        <filter id="premium-shadow" x="-10%" y="-10%" width="120%" height="120%">
+          <feDropShadow dx="0" dy="1" stdDeviation="1.5" floodOpacity="0.15"/>
+        </filter>
       </defs>
       
-      {/* Background rounded square */}
+      {/* Background with premium shadow */}
       <rect 
         x="0" 
         y="0" 
         width="40" 
         height="40" 
-        rx="8" 
+        rx="10" 
         fill="url(#healthos24-gradient)"
-        className="drop-shadow-lg"
+        filter="url(#premium-shadow)"
       />
       
-      {/* "24" text - bold and prominent */}
+      {/* Subtle inner highlight for glass effect */}
+      <rect 
+        x="1" 
+        y="1" 
+        width="38" 
+        height="38" 
+        rx="9" 
+        stroke="white"
+        strokeOpacity="0.15"
+        strokeWidth="1"
+        fill="none"
+      />
+      
+      {/* "24" - premium typography */}
       <text 
         x="20" 
-        y="22" 
+        y="21" 
         textAnchor="middle" 
         dominantBaseline="middle"
         fill="white"
         fontFamily="system-ui, -apple-system, sans-serif"
-        fontWeight="800"
-        fontSize="16"
-        letterSpacing="-0.5"
+        fontWeight="700"
+        fontSize="17"
+        letterSpacing="-1"
       >
         24
       </text>
       
-      {/* Heartbeat/pulse line below the text */}
+      {/* Refined heartbeat line - thinner, more elegant */}
       <path 
-        d="M6 30 L12 30 L15 27 L18 33 L21 28 L24 30 L34 30" 
+        d="M8 29 L13 29 L16 26 L19 32 L22 27 L25 29 L32 29" 
         stroke="white" 
-        strokeWidth="1.8" 
+        strokeWidth="1.5" 
         strokeLinecap="round"
         strokeLinejoin="round"
         fill="none"
-        opacity="0.9"
+        opacity="0.85"
       />
     </svg>
   );
@@ -97,7 +115,7 @@ export const HealthOS24Logo = ({
     return (
       <div className={cn("inline-flex items-center gap-2", className)}>
         <IconSVG iconClass="w-6 h-6" />
-        <span className="text-sm font-bold text-foreground">HealthOS 24</span>
+        <span className="text-sm font-bold text-foreground">HealthOS</span>
       </div>
     );
   }
@@ -108,7 +126,7 @@ export const HealthOS24Logo = ({
       <IconSVG iconClass={config.icon} />
       <div className="flex flex-col">
         <span className={cn(config.text, "font-bold text-foreground leading-tight")}>
-          HealthOS 24
+          HealthOS
         </span>
         {showTagline && (
           <span className={cn(config.tagline, "text-muted-foreground")}>
