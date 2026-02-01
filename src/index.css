@@ -1084,3 +1084,92 @@ body.keyboard-open .keyboard-avoiding {
   background: hsl(var(--background));
   padding: 0.5rem 0;
 }
+
+/* ========================================
+   Mobile PWA Touch Optimizations
+   ======================================== */
+
+/* Touch-friendly form elements on mobile */
+@media (max-width: 768px) {
+  /* Increase touch targets for form inputs */
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    min-height: 48px;
+    font-size: 16px; /* Prevents iOS zoom on focus */
+  }
+  
+  /* Ensure buttons meet accessibility touch targets */
+  button,
+  [role="button"] {
+    min-height: 44px;
+  }
+  
+  /* Prevent horizontal scroll on mobile pages */
+  .mobile-page-content {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+  
+  /* Hide desktop breadcrumbs on mobile */
+  .breadcrumb-nav,
+  nav[aria-label="breadcrumb"] {
+    display: none;
+  }
+  
+  /* Smooth scrolling containers */
+  .scroll-container {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+  }
+  
+  /* Better text readability */
+  body {
+    -webkit-text-size-adjust: 100%;
+  }
+  
+  /* Prevent double-tap zoom on interactive elements */
+  a, button, input, select, textarea {
+    touch-action: manipulation;
+  }
+}
+
+/* Hide horizontal scrollbar while maintaining scroll functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Mobile card press states */
+.mobile-card-press {
+  transition: transform 0.1s ease-out;
+}
+
+.mobile-card-press:active {
+  transform: scale(0.98);
+}
+
+/* Floating action button positioning */
+.mobile-fab {
+  position: fixed;
+  bottom: calc(80px + env(safe-area-inset-bottom));
+  right: 16px;
+  z-index: 40;
+}
+
+/* Bottom safe area for fixed footers */
+.safe-area-bottom-fixed {
+  padding-bottom: calc(16px + env(safe-area-inset-bottom));
+}
+
+/* Mobile sheet/modal adjustments */
+@media (max-width: 768px) {
+  [data-radix-popper-content-wrapper] {
+    max-width: calc(100vw - 32px) !important;
+  }
+}

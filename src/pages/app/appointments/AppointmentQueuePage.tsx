@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
+import { Capacitor } from '@capacitor/core';
 import { Users, RefreshCw, Monitor, AlertTriangle } from 'lucide-react';
 import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
@@ -29,6 +30,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { MobileQueueView } from '@/components/mobile/MobileQueueView';
 
 export default function AppointmentQueuePage() {
   const navigate = useNavigate();
@@ -36,6 +39,11 @@ export default function AppointmentQueuePage() {
   const queryClient = useQueryClient();
   const { roles } = useAuth();
   const [selectedDoctor, setSelectedDoctor] = useState<string>('all');
+  
+  // Mobile detection
+  const isMobileScreen = useIsMobile();
+  const isNative = Capacitor.isNativePlatform();
+  const showMobileUI = isMobileScreen || isNative;
   
   // Check if user is a doctor (not admin)
   const isDoctor = roles.includes('doctor') && !roles.some(r => 
@@ -118,6 +126,11 @@ export default function AppointmentQueuePage() {
     }
   };
 
+  // Handle refresh for mobile
+  const handleRefresh = useCallback(async () => {
+    await refetch();
+  }, [refetch]);
+
   // Sort queue by priority (high first) then token
   const sortedQueue = [...(queue || [])].sort((a, b) => {
     const priorityA = (a as any).priority || 0;
@@ -143,6 +156,24 @@ export default function AppointmentQueuePage() {
     }
     return acc;
   }, {} as Record<string, typeof inProgress[0]>);
+
+  // Mobile UI
+  if (showMobileUI) {
+    return (
+      <MobileQueueView
+        queue={(queue || []).map(a => ({
+          ...a,
+          priority: (a as any).priority,
+        }))}
+        doctors={doctors}
+        selectedDoctor={selectedDoctor}
+        onDoctorChange={setSelectedDoctor}
+        onRefresh={handleRefresh}
+        onAction={handleAction}
+        isDoctor={isDoctor}
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">
