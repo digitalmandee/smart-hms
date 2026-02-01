@@ -37,6 +37,9 @@ import { VitalsForm } from "@/components/consultation/VitalsForm";
 import { Vitals } from "@/hooks/useConsultations";
 import { toast } from "sonner";
 import { AppointmentWithRelations } from "@/hooks/useAppointments";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Capacitor } from "@capacitor/core";
+import { MobileVitalsView } from "@/components/mobile/MobileVitalsView";
 
 const priorityLabels: Record<
   number,
@@ -55,6 +58,10 @@ export default function OPDVitalsPage() {
   const [chiefComplaint, setChiefComplaint] = useState("");
   const [priority, setPriority] = useState<string>("0");
   const [isSaving, setIsSaving] = useState(false);
+
+  const isMobileScreen = useIsMobile();
+  const isNative = Capacitor.isNativePlatform();
+  const showMobileUI = isMobileScreen || isNative;
 
   const { data: queue, isLoading, refetch } = useNursingQueue();
   const checkInWithVitals = useCheckInWithVitals();
@@ -146,9 +153,57 @@ export default function OPDVitalsPage() {
       toast.error("Failed to update patient");
       console.error(error);
     } finally {
-      setIsSaving(false);
+    setIsSaving(false);
     }
   };
+
+  const handleRefresh = async () => {
+    await refetch();
+  };
+
+  // Mobile-optimized handlers for the mobile view
+  const handleMobileSaveVitals = async (data: {
+    appointmentId: string;
+    vitals: Vitals;
+    priority: number;
+    chiefComplaint: string;
+  }) => {
+    await checkInWithVitals.mutateAsync({
+      id: data.appointmentId,
+      vitals: data.vitals,
+      priority: data.priority,
+      chiefComplaint: data.chiefComplaint,
+    });
+    toast.success("Vitals recorded successfully");
+    refetch();
+  };
+
+  const handleMobileSkipVitals = async (appointmentId: string, priority: number, chiefComplaint: string) => {
+    await checkInWithVitals.mutateAsync({
+      id: appointmentId,
+      vitals: { skipped: true, skipped_reason: "Not applicable" } as any,
+      priority,
+      chiefComplaint,
+    });
+    toast.success("Patient marked as ready (vitals skipped)");
+    refetch();
+  };
+
+  // Mobile view
+  if (showMobileUI) {
+    return (
+      <MobileVitalsView
+        awaitingVitals={filteredAwaiting}
+        vitalsComplete={filteredComplete}
+        inProgress={inProgress}
+        isLoading={isLoading}
+        onSelectPatient={openVitalsDialog}
+        onSaveVitals={handleMobileSaveVitals}
+        onSkipVitals={handleMobileSkipVitals}
+        onRefresh={handleRefresh}
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">

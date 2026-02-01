@@ -65,12 +65,15 @@ import { PatientCertificatesHistory } from "@/components/patients/PatientCertifi
 import { LabResultsPreview } from "@/components/lab/LabResultsPreview";
 import { PatientVitalsHistory } from "@/components/patients/PatientVitalsHistory";
 import { Baby, Award, Thermometer, Ticket } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Capacitor } from "@capacitor/core";
+import { MobilePatientProfile } from "@/components/mobile/MobilePatientProfile";
 
 export function PatientDetailPage() {
   const { id } = useParams();
   const { profile } = useAuth();
   const queryClient = useQueryClient();
-  const { data: patient, isLoading } = usePatient(id);
+  const { data: patient, isLoading, refetch: refetchPatient } = usePatient(id);
   const { data: medicalHistory } = useMedicalHistory(id);
   const { data: profileStats } = usePatientProfileStats(id);
   const { data: currentVisit } = usePatientCurrentVisit(id);
@@ -78,6 +81,10 @@ export function PatientDetailPage() {
   const { printRef, handlePrint } = usePrint();
   const [photoCaptureOpen, setPhotoCaptureOpen] = useState(false);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+
+  const isMobileScreen = useIsMobile();
+  const isNative = Capacitor.isNativePlatform();
+  const showMobileUI = isMobileScreen || isNative;
 
   // Update local photo URL when patient data changes
   useEffect(() => {
@@ -203,6 +210,95 @@ export function PatientDetailPage() {
 
   const fullName = `${patient.first_name}${patient.last_name ? ` ${patient.last_name}` : ""}`;
   const age = getAge(patient.date_of_birth);
+
+  const handleRefresh = async () => {
+    await refetchPatient();
+    queryClient.invalidateQueries({ queryKey: ["patient-recent-activity", id] });
+    queryClient.invalidateQueries({ queryKey: ["patient-profile-stats", id] });
+  };
+
+  // Mobile view
+  if (showMobileUI) {
+    const tabContent: Record<string, React.ReactNode> = {
+      overview: (
+        <div className="space-y-4">
+          <PatientRecentActivity patientId={patient.id} />
+          <LabResultsPreview patientId={patient.id} patientName={fullName} />
+        </div>
+      ),
+      vitals: <PatientVitalsHistory patientId={patient.id} />,
+      history: <MedicalHistorySection patientId={patient.id} />,
+      "opd-visits": <PatientOPDVisits patientId={patient.id} />,
+      visits: (
+        <div className="space-y-4">
+          <PatientUpcomingAppointments patientId={patient.id} />
+          <PatientVisitsHistory patientId={patient.id} />
+        </div>
+      ),
+      prescriptions: <PatientPrescriptionsHistory patientId={patient.id} />,
+      lab: <PatientLabHistory patientId={patient.id} />,
+      ipd: (
+        <div className="space-y-4">
+          <PatientIPDChargesPreview patientId={patient.id} />
+          <PatientAdmissionHistory patientId={patient.id} />
+        </div>
+      ),
+    };
+
+    return (
+      <>
+        <MobilePatientProfile
+          patient={patient as any}
+          profileStats={profileStats ? {
+            totalVisits: profileStats.totalVisits || 0,
+            totalPrescriptions: profileStats.totalPrescriptions || 0,
+            totalLabOrders: profileStats.totalLabOrders || 0,
+            totalAdmissions: profileStats.totalAdmissions || 0,
+          } : undefined}
+          currentVisit={currentVisit ? {
+            id: currentVisit.id,
+            token_number: currentVisit.token_number || 0,
+            status: currentVisit.status || 'scheduled',
+            doctor_name: currentVisit.doctor?.profile?.full_name || 'Unknown',
+          } : null}
+          activeAdmission={activeAdmission ? {
+            id: activeAdmission.id,
+            admission_number: activeAdmission.admission_number,
+            ward: activeAdmission.ward as any,
+            bed: activeAdmission.bed as any,
+            status: activeAdmission.status || 'admitted',
+          } : null}
+          onRefresh={handleRefresh}
+          onTakePhoto={() => setPhotoCaptureOpen(true)}
+          onPrintCard={() => handlePrint({ title: "Patient ID Card" })}
+          tabContent={tabContent}
+        />
+        
+        {/* Print Patient ID Card */}
+        <div ref={printRef} className="hidden">
+          <PrintablePatientCard 
+            patient={patient} 
+            organization={organization ? {
+              name: organization.name,
+              phone: organization.phone,
+              address: organization.address,
+              city: organization.city
+            } : undefined}
+          />
+        </div>
+
+        {/* Photo Capture Dialog */}
+        <PatientPhotoCapture
+          patientId={patient.id}
+          patientName={fullName}
+          currentPhotoUrl={photoUrl}
+          open={photoCaptureOpen}
+          onOpenChange={setPhotoCaptureOpen}
+          onPhotoUpdated={(url) => setPhotoUrl(url)}
+        />
+      </>
+    );
+  }
 
   return (
     <div>

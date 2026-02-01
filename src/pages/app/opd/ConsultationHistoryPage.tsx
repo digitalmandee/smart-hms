@@ -29,10 +29,16 @@ import { useDoctors } from "@/hooks/useDoctors";
 import { useAuth } from "@/contexts/AuthContext";
 import { Search, CalendarIcon, Eye, History } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Capacitor } from "@capacitor/core";
+import { MobileConsultationHistory } from "@/components/mobile/MobileConsultationHistory";
 
 export default function ConsultationHistoryPage() {
   const { profile } = useAuth();
   const { data: doctors = [] } = useDoctors();
+  const isMobileScreen = useIsMobile();
+  const isNative = Capacitor.isNativePlatform();
+  const showMobileUI = isMobileScreen || isNative;
 
   const [search, setSearch] = useState("");
   const [doctorFilter, setDoctorFilter] = useState<string>("all");
@@ -45,7 +51,7 @@ export default function ConsultationHistoryPage() {
     dateTo: dateTo ? format(dateTo, "yyyy-MM-dd") : undefined,
   };
 
-  const { data: consultations = [], isLoading } = useConsultations(filters);
+  const { data: consultations = [], isLoading, refetch } = useConsultations(filters);
 
   // Filter by search term (patient name or MR#)
   const filteredConsultations = consultations.filter((c) => {
@@ -65,6 +71,31 @@ export default function ConsultationHistoryPage() {
     setDateFrom(undefined);
     setDateTo(undefined);
   };
+
+  const handleRefresh = async () => {
+    await refetch();
+  };
+
+  // Mobile view
+  if (showMobileUI) {
+    return (
+      <MobileConsultationHistory
+        consultations={filteredConsultations}
+        doctors={doctors}
+        isLoading={isLoading}
+        search={search}
+        onSearchChange={setSearch}
+        doctorFilter={doctorFilter}
+        onDoctorFilterChange={setDoctorFilter}
+        dateFrom={dateFrom}
+        onDateFromChange={setDateFrom}
+        dateTo={dateTo}
+        onDateToChange={setDateTo}
+        onClearFilters={clearFilters}
+        onRefresh={handleRefresh}
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">
