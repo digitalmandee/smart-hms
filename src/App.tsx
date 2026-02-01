@@ -413,6 +413,19 @@ import DeathRecordsPage from "./pages/app/ipd/DeathRecordsPage";
 import CertificatesPage from "./pages/app/certificates/CertificatesPage";
 import MLCRecordsPage from "./pages/app/emergency/MLCRecordsPage";
 
+// Mobile pages
+import { MobileLayout } from "./layouts/MobileLayout";
+import { MobileProvider } from "./contexts/MobileContext";
+import MobileDashboard from "./pages/mobile/MobileDashboard";
+import MobileLoginPage from "./pages/mobile/MobileLoginPage";
+import MobileProfilePage from "./pages/mobile/MobileProfilePage";
+import MobileAppointmentsPage from "./pages/mobile/MobileAppointmentsPage";
+import MobileNotificationsPage from "./pages/mobile/MobileNotificationsPage";
+import MobileMorePage from "./pages/mobile/MobileMorePage";
+import MobileTasksPage from "./pages/mobile/MobileTasksPage";
+import MobilePharmacyPage from "./pages/mobile/MobilePharmacyPage";
+import MobileLabPage from "./pages/mobile/MobileLabPage";
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -464,6 +477,29 @@ function App() {
             <Route path="/auth" element={<AuthLayout />}>
               <Route path="login" element={<LoginPage />} />
               <Route path="signup" element={<SignupPage />} />
+            </Route>
+
+            {/* Mobile routes - Native app experience */}
+            <Route path="/mobile/login" element={<MobileLoginPage />} />
+            <Route
+              path="/mobile"
+              element={
+                <ProtectedRoute>
+                  <MobileProvider>
+                    <MobileLayout />
+                  </MobileProvider>
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<Navigate to="dashboard" replace />} />
+              <Route path="dashboard" element={<MobileDashboard />} />
+              <Route path="profile" element={<MobileProfilePage />} />
+              <Route path="appointments" element={<MobileAppointmentsPage />} />
+              <Route path="notifications" element={<MobileNotificationsPage />} />
+              <Route path="tasks" element={<MobileTasksPage />} />
+              <Route path="pharmacy" element={<MobilePharmacyPage />} />
+              <Route path="lab" element={<MobileLabPage />} />
+              <Route path="more" element={<MobileMorePage />} />
             </Route>
 
             {/* Protected app routes */}
