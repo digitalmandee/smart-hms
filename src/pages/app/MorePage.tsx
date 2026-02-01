@@ -104,24 +104,15 @@ export default function MorePage() {
   // Mobile Layout - Native app style
   if (showMobileUI) {
     return (
-      <div className="pb-24">
-        {/* Profile Summary */}
-        <div className="px-4 py-6 bg-gradient-to-br from-primary to-primary/80 text-primary-foreground">
-          <div className="flex items-center gap-4">
-            <div className="h-16 w-16 rounded-full bg-white/20 flex items-center justify-center text-2xl font-bold">
-              {profile?.full_name?.charAt(0) || "U"}
-            </div>
-            <div>
-              <h2 className="text-lg font-semibold">{profile?.full_name || "User"}</h2>
-              <p className="text-sm text-primary-foreground/80">
-                {roles[0]?.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) || "Staff"}
-              </p>
-            </div>
-          </div>
+      <div className="px-4 py-4 pb-24 space-y-4">
+        {/* Page Title */}
+        <div>
+          <h1 className="text-xl font-bold">Menu</h1>
+          <p className="text-sm text-muted-foreground">Quick access & settings</p>
         </div>
 
-        {/* Quick Actions - Fixed /app/* paths */}
-        <div className="px-4 py-4">
+        {/* Quick Actions */}
+        <div>
           <h3 className="text-sm font-medium text-muted-foreground mb-2">Quick Actions</h3>
           <div className="grid grid-cols-4 gap-2">
             <Link to="/app/appointments" className="touch-manipulation active:scale-95 transition-transform">
@@ -174,9 +165,9 @@ export default function MorePage() {
         <Separator />
 
         {/* Menu Sections */}
-        <div className="mt-4">
-          <h3 className="text-sm font-medium text-muted-foreground px-4 mb-2">Account</h3>
-          <Card className="mx-4 overflow-hidden">
+        <div>
+          <h3 className="text-sm font-medium text-muted-foreground mb-2">Account</h3>
+          <Card className="overflow-hidden">
             <CardContent className="p-0">
               <MenuItem icon={Settings} label="Settings" to="/app/settings" />
               <Separator className="mx-4" />
@@ -187,9 +178,9 @@ export default function MorePage() {
           </Card>
         </div>
 
-        <div className="mt-4">
-          <h3 className="text-sm font-medium text-muted-foreground px-4 mb-2">Support</h3>
-          <Card className="mx-4 overflow-hidden">
+        <div>
+          <h3 className="text-sm font-medium text-muted-foreground mb-2">Support</h3>
+          <Card className="overflow-hidden">
             <CardContent className="p-0">
               <MenuItem icon={HelpCircle} label="Help & FAQ" />
               <Separator className="mx-4" />
@@ -201,37 +192,33 @@ export default function MorePage() {
         </div>
 
         {/* Appearance Toggle */}
-        <div className="mt-4 mx-4">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Moon className="h-5 w-5" />
-                  <span className="font-medium">Dark Mode</span>
-                </div>
-                <Switch 
-                  checked={theme === 'dark'}
-                  onCheckedChange={(checked) => {
-                    haptics.light();
-                    setTheme(checked ? 'dark' : 'light');
-                  }}
-                />
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Moon className="h-5 w-5" />
+                <span className="font-medium">Dark Mode</span>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+              <Switch 
+                checked={theme === 'dark'}
+                onCheckedChange={(checked) => {
+                  haptics.light();
+                  setTheme(checked ? 'dark' : 'light');
+                }}
+              />
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Sign Out */}
-        <div className="mt-6 mx-4">
-          <Button
-            variant="outline"
-            className="w-full text-destructive border-destructive/30 hover:bg-destructive/10"
-            onClick={handleSignOut}
-          >
-            <LogOut className="h-4 w-4 mr-2" />
-            Sign Out
-          </Button>
-        </div>
+        <Button
+          variant="outline"
+          className="w-full text-destructive border-destructive/30 hover:bg-destructive/10"
+          onClick={handleSignOut}
+        >
+          <LogOut className="h-4 w-4 mr-2" />
+          Sign Out
+        </Button>
 
         {/* App Version */}
         <div className="mt-4 text-center">

@@ -33,7 +33,7 @@ export const DashboardLayout = () => {
             "flex-1 overflow-y-auto overscroll-contain scroll-container",
             "pb-20" // Space for bottom navigation
           )}>
-            <div className="min-h-full mobile-page-content px-4 py-4">
+            <div className="min-h-full mobile-page-content">
               <Outlet />
             </div>
           </main>

@@ -19,6 +19,12 @@ import { useAppointments, useAppointmentStats } from '@/hooks/useAppointments';
 import { useDoctors } from '@/hooks/useDoctors';
 import { ColumnDef } from '@tanstack/react-table';
 import { Database } from '@/integrations/supabase/types';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { Capacitor } from '@capacitor/core';
+import { MobileStatsCard } from '@/components/mobile/MobileStatsCard';
+import { MobileAppointmentCard } from '@/components/mobile/MobileAppointmentCard';
+import { PullToRefresh } from '@/components/mobile/PullToRefresh';
+import { useQueryClient } from '@tanstack/react-query';
 
 type AppointmentStatus = Database['public']['Enums']['appointment_status'];
 
@@ -42,9 +48,14 @@ const statusLabels: Record<string, string> = {
 
 export default function AppointmentsListPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [dateFilter, setDateFilter] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [statusFilter, setStatusFilter] = useState<AppointmentStatus | 'all'>('all');
   const [doctorFilter, setDoctorFilter] = useState<string>('all');
+
+  const isMobileScreen = useIsMobile();
+  const isNative = Capacitor.isNativePlatform();
+  const showMobileUI = isMobileScreen || isNative;
 
   const { data: appointments, isLoading } = useAppointments({
     date: dateFilter || undefined,
@@ -149,6 +160,121 @@ export default function AppointmentsListPage() {
     },
   ];
 
+  const handleRefresh = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['appointments'] });
+    await queryClient.invalidateQueries({ queryKey: ['appointment-stats'] });
+  };
+
+  // Mobile View
+  if (showMobileUI) {
+    return (
+      <PullToRefresh onRefresh={handleRefresh} className="min-h-full bg-background">
+        <div className="px-4 py-4 space-y-4 pb-24">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-xl font-bold">Appointments</h1>
+              <p className="text-sm text-muted-foreground">{format(new Date(dateFilter), 'EEEE, MMM d')}</p>
+            </div>
+            <Button size="sm" onClick={() => navigate('/app/appointments/new')}>
+              <Plus className="h-4 w-4 mr-1" />
+              New
+            </Button>
+          </div>
+
+          {/* Stats Grid - 2 columns */}
+          <div className="grid grid-cols-2 gap-3">
+            <MobileStatsCard
+              title="Today"
+              value={stats?.todayCount || 0}
+              icon={<Calendar className="h-4 w-4" />}
+            />
+            <MobileStatsCard
+              title="Waiting"
+              value={stats?.scheduled || 0}
+              icon={<Clock className="h-4 w-4" />}
+            />
+            <MobileStatsCard
+              title="Completed"
+              value={stats?.completed || 0}
+              icon={<CheckCircle className="h-4 w-4" />}
+            />
+            <MobileStatsCard
+              title="Cancelled"
+              value={stats?.cancelled || 0}
+              icon={<XCircle className="h-4 w-4" />}
+            />
+          </div>
+
+          {/* Quick Filter Chips */}
+          <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4">
+            {[
+              { value: 'all', label: 'All' },
+              { value: 'scheduled', label: 'Scheduled' },
+              { value: 'checked_in', label: 'Checked In' },
+              { value: 'in_progress', label: 'In Progress' },
+              { value: 'completed', label: 'Completed' },
+            ].map((filter) => (
+              <Badge
+                key={filter.value}
+                variant={statusFilter === filter.value ? 'default' : 'outline'}
+                className="whitespace-nowrap cursor-pointer touch-manipulation active:scale-95 transition-transform px-3 py-1.5"
+                onClick={() => setStatusFilter(filter.value as any)}
+              >
+                {filter.label}
+              </Badge>
+            ))}
+          </div>
+
+          {/* Appointment List */}
+          {isLoading ? (
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-24 bg-muted animate-pulse rounded-xl" />
+              ))}
+            </div>
+          ) : appointments?.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground bg-card border rounded-xl">
+              <Calendar className="h-10 w-10 mx-auto mb-2 opacity-30" />
+              <p className="text-sm">No appointments found</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {appointments?.map((apt: any) => (
+                <MobileAppointmentCard
+                  key={apt.id}
+                  id={apt.id}
+                  patientName={`${apt.patient?.first_name || ''} ${apt.patient?.last_name || ''}`}
+                  patientNumber={apt.patient?.patient_number}
+                  time={apt.appointment_time || ''}
+                  status={apt.status || 'scheduled'}
+                  appointmentType={apt.appointment_type}
+                  tokenNumber={apt.token_number}
+                  chiefComplaint={apt.chief_complaint}
+                  doctorName={apt.doctor?.profile?.full_name}
+                  onClick={() => navigate(`/app/appointments/${apt.id}`)}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Quick Actions */}
+          <div className="flex gap-3">
+            <Button 
+              variant="outline" 
+              className="flex-1" 
+              onClick={() => navigate('/app/appointments/queue')}
+            >
+              <Users className="h-4 w-4 mr-2" />
+              View Queue
+            </Button>
+          </div>
+        </div>
+      </PullToRefresh>
+    );
+  }
+
+  // Desktop View
   return (
     <div className="space-y-6">
       <PageHeader
