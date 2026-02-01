@@ -28,18 +28,29 @@ export function MobileHeader() {
   return (
     <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-lg supports-[backdrop-filter]:bg-background/80 border-b border-border mobile-header">
       <div className="flex items-center justify-between h-14 px-4">
-        {/* Left - Menu button */}
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="h-10 w-10 rounded-xl touch-manipulation active:scale-95 transition-transform"
-          onClick={() => {
-            handleAction();
-            navigate('/app/more');
-          }}
-        >
-          <Menu className="h-5 w-5" />
-        </Button>
+        {/* Left - Menu & Search */}
+        <div className="flex items-center gap-1">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-10 w-10 rounded-xl touch-manipulation active:scale-95 transition-transform"
+            onClick={() => {
+              handleAction();
+              navigate('/app/more');
+            }}
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+          <Link to="/app/patients" onClick={handleAction}>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-10 w-10 rounded-xl touch-manipulation active:scale-95 transition-transform"
+            >
+              <Search className="h-5 w-5" />
+            </Button>
+          </Link>
+        </div>
 
         {/* Centered Logo */}
         <Link 
@@ -52,16 +63,6 @@ export function MobileHeader() {
 
         {/* Right side actions */}
         <div className="flex items-center gap-1">
-          {/* Search */}
-          <Link to="/app/patients" onClick={handleAction}>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="h-10 w-10 rounded-xl touch-manipulation active:scale-95 transition-transform"
-            >
-              <Search className="h-5 w-5" />
-            </Button>
-          </Link>
 
           {/* Notifications */}
           <Link to="/app/notifications" onClick={handleAction}>
