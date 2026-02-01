@@ -426,6 +426,11 @@ import MobileTasksPage from "./pages/mobile/MobileTasksPage";
 import MobilePharmacyPage from "./pages/mobile/MobilePharmacyPage";
 import MobileLabPage from "./pages/mobile/MobileLabPage";
 
+// PWA Adaptive pages (same route, mobile/desktop detection)
+import ProfilePage from "./pages/app/ProfilePage";
+import NotificationsPage from "./pages/app/NotificationsPage";
+import MorePage from "./pages/app/MorePage";
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -514,9 +519,14 @@ function App() {
               <Route index element={<Navigate to="dashboard" replace />} />
               <Route path="dashboard" element={<DashboardPage />} />
               
+              {/* PWA Mobile-specific adaptive routes */}
+              <Route path="profile" element={<ProfilePage />} />
+              <Route path="settings/profile" element={<ProfilePage />} />
+              <Route path="notifications" element={<NotificationsPage />} />
+              <Route path="more" element={<MorePage />} />
+              
               {/* Employee Self-Service */}
               <Route path="my-schedule" element={<MySchedulePage />} />
-              <Route path="my-attendance" element={<MyAttendancePage />} />
               
               {/* Reports Hub */}
               <Route path="reports" element={<ReportsHubPage />} />

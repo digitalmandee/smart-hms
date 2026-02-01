@@ -18,8 +18,8 @@ const navItems: NavItem[] = [
   { path: "/app/opd/nursing", label: "Tasks", icon: ClipboardList, roles: ["doctor", "nurse", "opd_nurse", "ipd_nurse", "ot_nurse"] },
   { path: "/app/pharmacy", label: "Pharmacy", icon: Pill, roles: ["pharmacist", "ot_pharmacist"] },
   { path: "/app/lab", label: "Lab", icon: TestTube, roles: ["lab_technician"] },
-  { path: "/app/settings/profile", label: "Profile", icon: User },
-  { path: "/app/settings", label: "More", icon: Menu },
+  { path: "/app/profile", label: "Profile", icon: User },
+  { path: "/app/more", label: "More", icon: Menu },
 ];
 
 export function BottomNavigation() {

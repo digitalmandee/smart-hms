@@ -70,7 +70,7 @@ export function MobileHeader() {
 
           {/* Profile */}
           <Link 
-            to="/app/settings/profile" 
+            to="/app/profile" 
             onClick={handleAction}
             className="touch-manipulation active:scale-95 transition-transform"
           >

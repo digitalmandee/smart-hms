@@ -1,0 +1,258 @@
+import { useNavigate } from "react-router-dom";
+import { 
+  User, 
+  Bell, 
+  Shield, 
+  HelpCircle, 
+  LogOut, 
+  ChevronRight,
+  Moon,
+  Smartphone,
+  ArrowLeft
+} from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ROLE_LABELS } from "@/constants/roles";
+import { useTheme } from "next-themes";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { useHaptics } from "@/hooks/useHaptics";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Capacitor } from "@capacitor/core";
+
+export default function ProfilePage() {
+  const navigate = useNavigate();
+  const { profile, roles, signOut } = useAuth();
+  const { theme, setTheme } = useTheme();
+  const { hasPermission: hasPushPermission, requestPermissions } = usePushNotifications();
+  const haptics = useHaptics();
+  const isMobileScreen = useIsMobile();
+  const isNative = Capacitor.isNativePlatform();
+  const showMobileUI = isMobileScreen || isNative;
+
+  const initials = profile?.full_name
+    ?.split(' ')
+    .map(n => n[0])
+    .join('')
+    .toUpperCase()
+    .substring(0, 2) || 'U';
+
+  const primaryRole = roles[0];
+  const roleLabel = primaryRole ? ROLE_LABELS[primaryRole] : 'User';
+
+  const handleSignOut = async () => {
+    haptics.medium();
+    await signOut();
+    navigate('/auth/login', { replace: true });
+  };
+
+  const handleToggleDarkMode = (checked: boolean) => {
+    haptics.light();
+    setTheme(checked ? 'dark' : 'light');
+  };
+
+  const handleToggleNotifications = async (checked: boolean) => {
+    if (checked) {
+      await requestPermissions();
+    }
+    haptics.light();
+  };
+
+  const menuItems = [
+    {
+      icon: User,
+      label: 'Edit Profile',
+      path: '/app/settings/users'
+    },
+    {
+      icon: Bell,
+      label: 'Notifications',
+      path: '/app/notifications'
+    },
+    {
+      icon: Shield,
+      label: 'Privacy & Security',
+      path: '/app/settings'
+    },
+    {
+      icon: HelpCircle,
+      label: 'Help & Support',
+      path: '/app/settings'
+    }
+  ];
+
+  // Mobile Layout
+  if (showMobileUI) {
+    return (
+      <div className="px-4 py-6 space-y-6 pb-24">
+        {/* Profile Header */}
+        <div className="flex flex-col items-center text-center">
+          <Avatar className="h-24 w-24 mb-4">
+            <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.full_name || 'User'} />
+            <AvatarFallback className="text-2xl bg-primary text-primary-foreground">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
+          <h1 className="text-xl font-bold">{profile?.full_name || 'User'}</h1>
+          <p className="text-sm text-muted-foreground">{profile?.email}</p>
+          <span className="mt-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium">
+            {roleLabel}
+          </span>
+        </div>
+
+        <Separator />
+
+        {/* Settings */}
+        <div className="space-y-4">
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+            Settings
+          </h2>
+          
+          {/* Dark Mode Toggle */}
+          <div className="flex items-center justify-between py-3">
+            <div className="flex items-center gap-3">
+              <Moon className="h-5 w-5 text-muted-foreground" />
+              <span>Dark Mode</span>
+            </div>
+            <Switch
+              checked={theme === 'dark'}
+              onCheckedChange={handleToggleDarkMode}
+            />
+          </div>
+
+          {/* Push Notifications Toggle */}
+          <div className="flex items-center justify-between py-3">
+            <div className="flex items-center gap-3">
+              <Smartphone className="h-5 w-5 text-muted-foreground" />
+              <span>Push Notifications</span>
+            </div>
+            <Switch
+              checked={hasPushPermission}
+              onCheckedChange={handleToggleNotifications}
+            />
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* Menu Items */}
+        <div className="space-y-1">
+          {menuItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <button
+                key={item.path}
+                onClick={() => {
+                  haptics.light();
+                  navigate(item.path);
+                }}
+                className="flex items-center justify-between w-full py-3 px-1 hover:bg-muted/50 rounded-lg transition-colors touch-manipulation active:scale-[0.98]"
+              >
+                <div className="flex items-center gap-3">
+                  <Icon className="h-5 w-5 text-muted-foreground" />
+                  <span>{item.label}</span>
+                </div>
+                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+              </button>
+            );
+          })}
+        </div>
+
+        <Separator />
+
+        {/* Sign Out */}
+        <Button
+          variant="destructive"
+          className="w-full touch-target"
+          onClick={handleSignOut}
+        >
+          <LogOut className="h-5 w-5 mr-2" />
+          Sign Out
+        </Button>
+
+        {/* Version Info */}
+        <p className="text-center text-xs text-muted-foreground pt-4">
+          HealthOS v2.0.0 • Build 2026.02.01
+        </p>
+      </div>
+    );
+  }
+
+  // Desktop Layout
+  return (
+    <div className="container max-w-2xl py-8 space-y-6">
+      <div className="flex items-center gap-4 mb-6">
+        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <h1 className="text-2xl font-bold">My Profile</h1>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Profile Information</CardTitle>
+        </CardHeader>
+        <CardContent className="flex items-center gap-6">
+          <Avatar className="h-20 w-20">
+            <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.full_name || 'User'} />
+            <AvatarFallback className="text-xl bg-primary text-primary-foreground">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <h2 className="text-xl font-semibold">{profile?.full_name || 'User'}</h2>
+            <p className="text-muted-foreground">{profile?.email}</p>
+            <span className="inline-block mt-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium">
+              {roleLabel}
+            </span>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Preferences</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Moon className="h-5 w-5 text-muted-foreground" />
+              <span>Dark Mode</span>
+            </div>
+            <Switch
+              checked={theme === 'dark'}
+              onCheckedChange={handleToggleDarkMode}
+            />
+          </div>
+          <Separator />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Bell className="h-5 w-5 text-muted-foreground" />
+              <span>Push Notifications</span>
+            </div>
+            <Switch
+              checked={hasPushPermission}
+              onCheckedChange={handleToggleNotifications}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="pt-6">
+          <Button
+            variant="destructive"
+            className="w-full"
+            onClick={handleSignOut}
+          >
+            <LogOut className="h-5 w-5 mr-2" />
+            Sign Out
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

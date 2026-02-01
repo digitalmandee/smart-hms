@@ -909,3 +909,162 @@ body.keyboard-open .keyboard-avoiding {
   box-shadow: 0 -4px 20px hsl(var(--foreground) / 0.1);
   padding-bottom: env(safe-area-inset-bottom);
 }
+
+/* ========================================
+   Additional PWA Responsive Utilities
+   ======================================== */
+
+/* Auto-responsive 2-column grid on mobile */
+.mobile-auto-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(2, 1fr);
+}
+
+@media (min-width: 768px) {
+  .mobile-auto-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Responsive tables - become cards on mobile */
+@media (max-width: 767px) {
+  .responsive-table-container table {
+    display: block;
+  }
+  
+  .responsive-table-container thead {
+    display: none;
+  }
+  
+  .responsive-table-container tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .responsive-table-container tr {
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: 0.75rem;
+  }
+  
+  .responsive-table-container td {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.25rem 0;
+    border: none;
+  }
+  
+  .responsive-table-container td::before {
+    content: attr(data-label);
+    font-weight: 500;
+    color: hsl(var(--muted-foreground));
+    margin-right: 1rem;
+  }
+}
+
+/* Mobile page header - compact sticky version */
+.mobile-page-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  padding: 0.75rem 1rem;
+  background: hsl(var(--background) / 0.95);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+/* Mobile card list - touch optimized */
+.mobile-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.mobile-card-list > * {
+  min-height: 64px;
+}
+
+/* Swipeable action indicator */
+.swipe-indicator {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0;
+  transition: opacity 0.2s ease-out;
+}
+
+.swipe-left .swipe-indicator-left,
+.swipe-right .swipe-indicator-right {
+  opacity: 1;
+}
+
+/* Bottom sheet grab handle */
+.sheet-handle {
+  width: 36px;
+  height: 4px;
+  background: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 9999px;
+  margin: 0.5rem auto;
+}
+
+/* Native badge styling */
+.native-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.625rem;
+  font-weight: 600;
+  line-height: 1;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+/* Priority badges */
+.priority-urgent {
+  background: hsl(0 72% 51% / 0.15);
+  color: hsl(0 72% 51%);
+  animation: pulse 2s infinite;
+}
+
+.priority-high {
+  background: hsl(38 92% 50% / 0.15);
+  color: hsl(38 92% 50%);
+}
+
+.priority-normal {
+  background: hsl(var(--primary) / 0.1);
+  color: hsl(var(--primary));
+}
+
+/* Centered logo variant for mobile header */
+.mobile-header-centered {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* iOS-style section headers */
+.ios-section-header {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: hsl(var(--muted-foreground));
+  padding: 1rem 1rem 0.5rem;
+}
+
+/* Sticky mobile section */
+.mobile-sticky-section {
+  position: sticky;
+  top: 3.5rem; /* Below header */
+  z-index: 20;
+  background: hsl(var(--background));
+  padding: 0.5rem 0;
+}

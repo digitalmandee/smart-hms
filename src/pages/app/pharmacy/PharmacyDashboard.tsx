@@ -1,3 +1,4 @@
+import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Package, ClipboardList, AlertTriangle, Clock, Pill, TrendingUp, Plus } from "lucide-react";
 import { ModernPageHeader } from "@/components/ModernPageHeader";
@@ -11,17 +12,45 @@ import { ExpiryAlert } from "@/components/pharmacy/ExpiryAlert";
 import { DailySalesSummary } from "@/components/pharmacy/DailySalesSummary";
 import { PrescriptionQueueCard } from "@/components/pharmacy/PrescriptionQueueCard";
 import { useAuth } from "@/contexts/AuthContext";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Capacitor } from "@capacitor/core";
+import { MobilePharmacyView } from "@/components/mobile/MobilePharmacyView";
 
 export default function PharmacyDashboard() {
   const navigate = useNavigate();
   const { profile } = useAuth();
-  const { data: stats, isLoading: statsLoading } = usePharmacyStats();
-  const { data: queue, isLoading: queueLoading } = usePrescriptionQueue();
-  const { data: lowStockItems } = useLowStockItems();
-  const { data: expiringItems } = useExpiringItems();
+  const { data: stats, isLoading: statsLoading, refetch: refetchStats } = usePharmacyStats();
+  const { data: queue, isLoading: queueLoading, refetch: refetchQueue } = usePrescriptionQueue();
+  const { data: lowStockItems, refetch: refetchLowStock } = useLowStockItems();
+  const { data: expiringItems, refetch: refetchExpiring } = useExpiringItems();
+  
+  const isMobileScreen = useIsMobile();
+  const isNative = Capacitor.isNativePlatform();
+  const showMobileUI = isMobileScreen || isNative;
 
   const recentQueue = queue?.slice(0, 4) || [];
   const firstName = profile?.full_name?.split(" ")[0] || "Pharmacist";
+  
+  const handleRefresh = useCallback(async () => {
+    await Promise.all([refetchStats(), refetchQueue(), refetchLowStock(), refetchExpiring()]);
+  }, [refetchStats, refetchQueue, refetchLowStock, refetchExpiring]);
+
+  // Mobile View
+  if (showMobileUI) {
+    return (
+      <MobilePharmacyView
+        profile={profile}
+        stats={stats}
+        queue={queue || []}
+        lowStockCount={lowStockItems?.length || 0}
+        expiringCount={expiringItems?.length || 0}
+        isLoading={queueLoading}
+        onRefresh={handleRefresh}
+      />
+    );
+  }
+  
+  // Desktop View
 
   return (
     <div className="space-y-6">
