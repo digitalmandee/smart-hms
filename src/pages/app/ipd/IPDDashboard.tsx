@@ -24,10 +24,19 @@ import { usePostTodayRoomCharges } from "@/hooks/useRoomChargeSync";
 import { AdmissionCard } from "@/components/ipd/AdmissionCard";
 import { format } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Capacitor } from "@capacitor/core";
+import { MobileIPDDashboard } from "@/components/mobile/MobileIPDDashboard";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function IPDDashboard() {
   const navigate = useNavigate();
   const { profile } = useAuth();
+  const isMobileScreen = useIsMobile();
+  const isNative = Capacitor.isNativePlatform();
+  const showMobileUI = isMobileScreen || isNative;
+  const queryClient = useQueryClient();
+
   const { data: stats, isLoading: loadingStats } = useIPDStats();
   const { data: recentAdmissions, isLoading: loadingAdmissions } = useAdmissions("admitted");
   const { data: pendingRounds, isLoading: loadingRounds } = usePendingRounds();
@@ -35,6 +44,29 @@ export default function IPDDashboard() {
   const { postCharges, isPosting } = usePostTodayRoomCharges();
 
   const firstName = profile?.full_name?.split(" ")[0] || "Doctor";
+
+  const handleRefresh = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['ipd-stats'] }),
+      queryClient.invalidateQueries({ queryKey: ['admissions'] }),
+      queryClient.invalidateQueries({ queryKey: ['pending-rounds'] }),
+      queryClient.invalidateQueries({ queryKey: ['pending-discharges'] }),
+    ]);
+  };
+
+  // Mobile UI
+  if (showMobileUI) {
+    return (
+      <MobileIPDDashboard
+        stats={stats}
+        pendingRounds={pendingRounds || []}
+        pendingDischarges={pendingDischarges || []}
+        recentAdmissions={recentAdmissions || []}
+        isLoading={loadingStats || loadingAdmissions}
+        onRefresh={handleRefresh}
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">
