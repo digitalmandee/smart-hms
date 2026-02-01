@@ -1,15 +1,16 @@
-import { Bell, Search } from "lucide-react";
+import { Bell, Search, Menu } from "lucide-react";
 import { HealthOS24Logo } from "@/components/brand/HealthOS24Logo";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import { useHaptics } from "@/hooks/useHaptics";
 
 export function MobileHeader() {
   const { profile, roles } = useAuth();
+  const navigate = useNavigate();
   const [notificationCount] = useState(3); // TODO: Connect to real notifications
   const haptics = useHaptics();
   
@@ -27,17 +28,29 @@ export function MobileHeader() {
   return (
     <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-lg supports-[backdrop-filter]:bg-background/80 border-b border-border mobile-header">
       <div className="flex items-center justify-between h-14 px-4">
-        {/* Logo on left */}
+        {/* Left - Menu button */}
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="h-10 w-10 rounded-xl touch-manipulation active:scale-95 transition-transform"
+          onClick={() => {
+            handleAction();
+            navigate('/app/more');
+          }}
+        >
+          <Menu className="h-5 w-5" />
+        </Button>
+
+        {/* Centered Logo */}
         <Link 
           to="/app/dashboard" 
-          className="flex items-center touch-manipulation active:scale-95 transition-transform"
+          className="absolute left-1/2 -translate-x-1/2 touch-manipulation active:scale-95 transition-transform"
           onClick={handleAction}
         >
           <HealthOS24Logo variant="icon" size="sm" />
         </Link>
 
-        {/* Spacer */}
-        <div className="flex-1" />
+        {/* Right side actions */}
         <div className="flex items-center gap-1">
           {/* Search */}
           <Link to="/app/patients" onClick={handleAction}>
