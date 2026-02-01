@@ -14,8 +14,8 @@
     --primary: 174 84% 32%;
     --primary-foreground: 0 0% 100%;
 
-    /* Background & Surface */
-    --background: 210 20% 98%;
+    /* Background & Surface - Slightly more contrast with cards */
+    --background: 210 25% 96%;
     --foreground: 220 25% 15%;
 
     /* Cards & Elevated Surfaces */
