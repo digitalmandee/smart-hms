@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { Capacitor } from "@capacitor/core";
 import { PageHeader } from "@/components/PageHeader";
 import { DataTable } from "@/components/DataTable";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,8 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Database } from "@/integrations/supabase/types";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { MobileInvoiceList } from "@/components/mobile/MobileInvoiceList";
 
 type InvoiceStatus = Database["public"]["Enums"]["invoice_status"];
 
@@ -172,6 +175,11 @@ export default function InvoicesListPage() {
   );
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all");
 
+  // Mobile detection
+  const isMobileScreen = useIsMobile();
+  const isNative = Capacitor.isNativePlatform();
+  const showMobileUI = isMobileScreen || isNative;
+
   const { data: invoicesWithCategories, isLoading } = useInvoicesWithCategories(
     profile?.branch_id || undefined,
     statusFilter
@@ -196,6 +204,11 @@ export default function InvoicesListPage() {
       }
     });
   }, [invoicesWithCategories, categoryFilter]);
+
+  // Render mobile UI
+  if (showMobileUI) {
+    return <MobileInvoiceList />;
+  }
 
   return (
     <div className="space-y-6">
