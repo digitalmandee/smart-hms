@@ -3,11 +3,22 @@ import { Outlet } from "react-router-dom";
 import { DynamicSidebar } from "@/components/DynamicSidebar";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, PanelLeftClose, PanelLeft } from "lucide-react";
+import { Menu, Loader2 } from "lucide-react";
+import { useMobileRedirect } from "@/hooks/useMobileRedirect";
 
 export const DashboardLayout = () => {
+  const { checked } = useMobileRedirect();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isDesktopCollapsed, setIsDesktopCollapsed] = useState(false);
+
+  // Show loading while checking if should redirect to mobile
+  if (!checked) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">

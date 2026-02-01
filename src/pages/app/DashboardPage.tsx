@@ -15,7 +15,6 @@ import { format } from "date-fns";
 import { formatCurrency } from "@/lib/currency";
 import { canViewFinancials } from "@/lib/permissions";
 import { Database } from "@/integrations/supabase/types";
-import { useIsMobileView } from "@/hooks/useMobileRedirect";
 
 // Role-based dashboard redirect mapping
 const ROLE_DASHBOARD_MAP: Record<string, string> = {
@@ -54,18 +53,9 @@ export const DashboardPage = () => {
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [waitingForRoles, setWaitingForRoles] = useState(true);
   const { data: stats, isLoading, isError, refetch, isFetching } = useDashboardStats();
-  const isMobile = useIsMobileView();
 
   const greeting = getGreeting();
   const GreetingIcon = greeting.icon;
-
-  // Redirect mobile users to mobile dashboard
-  useEffect(() => {
-    if (isMobile && !isRedirecting) {
-      setIsRedirecting(true);
-      navigate("/mobile/dashboard", { replace: true });
-    }
-  }, [isMobile, isRedirecting, navigate]);
   
   // Check if user can view financial data
   type AppRole = Database["public"]["Enums"]["app_role"];
