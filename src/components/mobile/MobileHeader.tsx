@@ -20,9 +20,6 @@ export function MobileHeader() {
     .toUpperCase()
     .substring(0, 2) || 'U';
 
-  const primaryRole = roles[0] || 'user';
-  const roleLabel = primaryRole.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-
   const handleAction = () => {
     haptics.light();
   };
@@ -32,7 +29,7 @@ export function MobileHeader() {
       <div className="flex items-center justify-between h-14 px-4">
         {/* Logo */}
         <Link 
-          to="/mobile/dashboard" 
+          to="/app/dashboard" 
           className="flex items-center touch-manipulation active:scale-95 transition-transform"
           onClick={handleAction}
         >
@@ -42,7 +39,7 @@ export function MobileHeader() {
         {/* Right side actions */}
         <div className="flex items-center gap-1">
           {/* Search */}
-          <Link to="/mobile/search" onClick={handleAction}>
+          <Link to="/app/patients" onClick={handleAction}>
             <Button 
               variant="ghost" 
               size="icon" 
@@ -53,7 +50,7 @@ export function MobileHeader() {
           </Link>
 
           {/* Notifications */}
-          <Link to="/mobile/notifications" onClick={handleAction}>
+          <Link to="/app/notifications" onClick={handleAction}>
             <Button 
               variant="ghost" 
               size="icon" 
@@ -73,7 +70,7 @@ export function MobileHeader() {
 
           {/* Profile */}
           <Link 
-            to="/mobile/profile" 
+            to="/app/settings/profile" 
             onClick={handleAction}
             className="touch-manipulation active:scale-95 transition-transform"
           >

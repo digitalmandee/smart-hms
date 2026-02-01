@@ -3,23 +3,49 @@ import { Outlet } from "react-router-dom";
 import { DynamicSidebar } from "@/components/DynamicSidebar";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, Loader2 } from "lucide-react";
-import { useMobileRedirect } from "@/hooks/useMobileRedirect";
+import { Menu } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Capacitor } from "@capacitor/core";
+import { MobileProvider } from "@/contexts/MobileContext";
+import { MobileHeader } from "@/components/mobile/MobileHeader";
+import { BottomNavigation } from "@/components/mobile/BottomNavigation";
+import { cn } from "@/lib/utils";
 
 export const DashboardLayout = () => {
-  const { checked } = useMobileRedirect();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isDesktopCollapsed, setIsDesktopCollapsed] = useState(false);
+  
+  // Detect if we should show mobile UI
+  const isMobileScreen = useIsMobile();
+  const isNative = Capacitor.isNativePlatform();
+  const showMobileUI = isMobileScreen || isNative;
 
-  // Show loading while checking if should redirect to mobile
-  if (!checked) {
+  // Mobile/Native Layout - Same routes, native feel
+  if (showMobileUI) {
     return (
-      <div className="flex items-center justify-center h-screen bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
+      <MobileProvider>
+        <div className="flex flex-col h-screen bg-background overflow-hidden">
+          {/* Mobile Header with safe area */}
+          <MobileHeader />
+          
+          {/* Main Content - scrollable area */}
+          <main className={cn(
+            "flex-1 overflow-y-auto overscroll-contain scroll-container",
+            "pb-20" // Space for bottom navigation
+          )}>
+            <div className="min-h-full mobile-page-content px-4 py-4">
+              <Outlet />
+            </div>
+          </main>
+          
+          {/* Bottom Navigation - fixed at bottom */}
+          <BottomNavigation />
+        </div>
+      </MobileProvider>
     );
   }
 
+  // Desktop Layout - Existing sidebar layout
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       {/* Desktop Sidebar */}
@@ -31,7 +57,7 @@ export const DashboardLayout = () => {
         />
       </div>
 
-      {/* Mobile Sidebar */}
+      {/* Mobile Sidebar (for tablet/small desktop) */}
       <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
         <SheetTrigger asChild>
           <Button

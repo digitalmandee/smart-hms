@@ -11,14 +11,15 @@ interface NavItem {
   roles?: string[];
 }
 
+// Updated to use /app/* routes for PWA-style navigation
 const navItems: NavItem[] = [
-  { path: "/mobile/dashboard", label: "Home", icon: Home },
-  { path: "/mobile/appointments", label: "Schedule", icon: Calendar },
-  { path: "/mobile/tasks", label: "Tasks", icon: ClipboardList, roles: ["doctor", "nurse", "opd_nurse", "ipd_nurse", "ot_nurse"] },
-  { path: "/mobile/pharmacy", label: "Pharmacy", icon: Pill, roles: ["pharmacist", "ot_pharmacist"] },
-  { path: "/mobile/lab", label: "Lab", icon: TestTube, roles: ["lab_technician"] },
-  { path: "/mobile/profile", label: "Profile", icon: User },
-  { path: "/mobile/more", label: "More", icon: Menu },
+  { path: "/app/dashboard", label: "Home", icon: Home },
+  { path: "/app/appointments", label: "Schedule", icon: Calendar },
+  { path: "/app/opd/nursing", label: "Tasks", icon: ClipboardList, roles: ["doctor", "nurse", "opd_nurse", "ipd_nurse", "ot_nurse"] },
+  { path: "/app/pharmacy", label: "Pharmacy", icon: Pill, roles: ["pharmacist", "ot_pharmacist"] },
+  { path: "/app/lab", label: "Lab", icon: TestTube, roles: ["lab_technician"] },
+  { path: "/app/settings/profile", label: "Profile", icon: User },
+  { path: "/app/settings", label: "More", icon: Menu },
 ];
 
 export function BottomNavigation() {
@@ -39,12 +40,19 @@ export function BottomNavigation() {
     haptics.light();
   };
 
+  // Check if a path is active (handles nested routes)
+  const isPathActive = (itemPath: string) => {
+    if (itemPath === "/app/dashboard") {
+      return location.pathname === "/app/dashboard" || location.pathname === "/app";
+    }
+    return location.pathname === itemPath || location.pathname.startsWith(itemPath + "/");
+  };
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-lg border-t border-border mobile-bottom-nav">
       <div className="flex items-center justify-around h-16 px-1 max-w-lg mx-auto">
         {displayItems.map((item) => {
-          const isActive = location.pathname === item.path || 
-            (item.path !== "/mobile/dashboard" && location.pathname.startsWith(item.path));
+          const isActive = isPathActive(item.path);
           const Icon = item.icon;
 
           return (
