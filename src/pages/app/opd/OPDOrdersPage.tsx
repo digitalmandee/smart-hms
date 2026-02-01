@@ -39,6 +39,9 @@ import {
   FileText,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Capacitor } from "@capacitor/core";
+import { MobileOrdersList } from "@/components/mobile/MobileOrdersList";
 
 const labStatusConfig: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "destructive" }> = {
   ordered: { label: "Pending", variant: "outline" },
@@ -60,6 +63,10 @@ export default function OPDOrdersPage() {
   const [dateRange, setDateRange] = useState("7");
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+
+  const isMobileScreen = useIsMobile();
+  const isNative = Capacitor.isNativePlatform();
+  const showMobileUI = isMobileScreen || isNative;
 
   const dateFrom = startOfDay(subDays(new Date(), parseInt(dateRange)));
   const dateTo = endOfDay(new Date());
@@ -144,6 +151,29 @@ export default function OPDOrdersPage() {
 
   const pendingLabCount = labOrders?.filter((o) => o.status === "ordered").length || 0;
   const pendingRxCount = prescriptions?.filter((p) => p.status === "created").length || 0;
+
+  const handleRefresh = async () => {
+    // Queries will auto-refresh via react-query
+  };
+
+  // Mobile view
+  if (showMobileUI) {
+    return (
+      <MobileOrdersList
+        labOrders={filteredLabOrders as any}
+        prescriptions={filteredPrescriptions as any}
+        isLoadingLab={loadingLab}
+        isLoadingRx={loadingRx}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        dateRange={dateRange}
+        onDateRangeChange={setDateRange}
+        statusFilter={statusFilter}
+        onStatusFilterChange={setStatusFilter}
+        onRefresh={handleRefresh}
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">
