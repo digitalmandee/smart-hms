@@ -12051,6 +12051,39 @@ export type Database = {
           },
         ]
       }
+      notification_preferences: {
+        Row: {
+          category: string
+          created_at: string | null
+          enabled: boolean | null
+          id: string
+          sound_enabled: boolean | null
+          updated_at: string | null
+          user_id: string
+          vibration_enabled: boolean | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          enabled?: boolean | null
+          id?: string
+          sound_enabled?: boolean | null
+          updated_at?: string | null
+          user_id: string
+          vibration_enabled?: boolean | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          enabled?: boolean | null
+          id?: string
+          sound_enabled?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+          vibration_enabled?: boolean | null
+        }
+        Relationships: []
+      }
       notification_templates: {
         Row: {
           channel: Database["public"]["Enums"]["notification_channel"]
@@ -15518,6 +15551,50 @@ export type Database = {
             columns: ["vendor_id"]
             isOneToOne: false
             referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      push_device_tokens: {
+        Row: {
+          created_at: string | null
+          device_name: string | null
+          id: string
+          is_active: boolean | null
+          last_used_at: string | null
+          organization_id: string | null
+          platform: string
+          token: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          device_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_used_at?: string | null
+          organization_id?: string | null
+          platform: string
+          token: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          device_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_used_at?: string | null
+          organization_id?: string | null
+          platform?: string
+          token?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_device_tokens_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
