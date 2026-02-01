@@ -39,7 +39,7 @@ export default function MobileProfilePage() {
   const handleSignOut = async () => {
     haptics.medium();
     await signOut();
-    navigate('/mobile/login', { replace: true });
+    navigate('/auth/login', { replace: true });
   };
 
   const handleToggleDarkMode = (checked: boolean) => {
@@ -58,22 +58,22 @@ export default function MobileProfilePage() {
     {
       icon: User,
       label: 'Edit Profile',
-      path: '/mobile/profile/edit'
+      path: '/app/profile'
     },
     {
       icon: Bell,
       label: 'Notifications',
-      path: '/mobile/notifications'
+      path: '/app/notifications'
     },
     {
       icon: Shield,
       label: 'Privacy & Security',
-      path: '/mobile/privacy'
+      path: '/app/settings'
     },
     {
       icon: HelpCircle,
       label: 'Help & Support',
-      path: '/mobile/help'
+      path: '/app/settings'
     }
   ];
 

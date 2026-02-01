@@ -110,7 +110,7 @@ export default function DoctorMobileDashboard() {
             title="Today's Patients"
             value={stats?.todayPatients || 0}
             icon={<Users className="h-5 w-5" />}
-            onClick={() => navigate('/mobile/appointments')}
+            onClick={() => navigate('/app/appointments')}
           />
           <MobileStatsCard
             title="Pending Surgeries"
@@ -127,27 +127,26 @@ export default function DoctorMobileDashboard() {
               icon={<Stethoscope className="h-6 w-6" />}
               label="Start Consult"
               variant="primary"
-              onClick={() => navigate('/mobile/consultation/new')}
+              onClick={() => navigate('/app/opd')}
             />
             <QuickActionCard
               icon={<Calendar className="h-6 w-6" />}
               label="Schedule"
-              onClick={() => navigate('/mobile/appointments')}
+              onClick={() => navigate('/app/appointments')}
             />
             <QuickActionCard
               icon={<FileText className="h-6 w-6" />}
               label="Lab Results"
-              onClick={() => navigate('/mobile/lab-results')}
+              onClick={() => navigate('/app/lab')}
             />
           </div>
         </div>
 
-        {/* Next Up - Appointment Queue */}
         <div>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-lg font-semibold">Next Up</h2>
             <button 
-              onClick={() => navigate('/mobile/appointments')}
+              onClick={() => navigate('/app/appointments')}
               className="text-sm text-primary"
             >
               View All
@@ -173,7 +172,7 @@ export default function DoctorMobileDashboard() {
                   priority={apt.priority || 0}
                   tokenNumber={apt.token_number || undefined}
                   chiefComplaint={apt.chief_complaint || undefined}
-                  onClick={() => navigate(`/mobile/consultation/${apt.id}`)}
+                  onClick={() => navigate(`/app/opd/consultation/${apt.id}`)}
                 />
               ))
             ) : (

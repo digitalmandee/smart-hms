@@ -83,7 +83,11 @@ export function MobileDoctorView({
         <div className="space-y-1">
           <p className="text-muted-foreground text-sm">{format(new Date(), "EEEE, MMMM d")}</p>
           <h1 className="text-2xl font-bold">
-            {getGreeting()}, Dr. {profile?.full_name?.split(" ")[0] || "Doctor"}
+            {getGreeting()}, {
+              profile?.full_name?.toLowerCase().startsWith("dr") 
+                ? profile.full_name.split(" ").slice(0, 2).join(" ")
+                : `Dr. ${profile?.full_name?.split(" ")[0] || "Doctor"}`
+            }
           </h1>
         </div>
 

@@ -1,3 +1,4 @@
+import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   TestTube, 
@@ -17,14 +18,40 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLabDashboardStats, useRecentLabOrders } from "@/hooks/useLabDashboardStats";
 import { useAuth } from "@/contexts/AuthContext";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Capacitor } from "@capacitor/core";
+import { MobileLabView } from "@/components/mobile/MobileLabView";
 
 export default function LabDashboard() {
   const navigate = useNavigate();
   const { profile } = useAuth();
-  const { data: stats, isLoading: statsLoading } = useLabDashboardStats();
-  const { data: recentOrders, isLoading: ordersLoading } = useRecentLabOrders(5);
+  const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useLabDashboardStats();
+  const { data: recentOrders, isLoading: ordersLoading, refetch: refetchOrders } = useRecentLabOrders(5);
+  
+  const isMobileScreen = useIsMobile();
+  const isNative = Capacitor.isNativePlatform();
+  const showMobileUI = isMobileScreen || isNative;
 
   const firstName = profile?.full_name?.split(" ")[0] || "Lab Tech";
+  
+  const handleRefresh = useCallback(async () => {
+    await Promise.all([refetchStats(), refetchOrders()]);
+  }, [refetchStats, refetchOrders]);
+
+  // Mobile View
+  if (showMobileUI) {
+    return (
+      <MobileLabView
+        profile={profile}
+        stats={stats}
+        recentOrders={recentOrders || []}
+        isLoading={ordersLoading}
+        onRefresh={handleRefresh}
+      />
+    );
+  }
+  
+  // Desktop View
 
   const getPriorityBadge = (priority: string) => {
     switch (priority) {
