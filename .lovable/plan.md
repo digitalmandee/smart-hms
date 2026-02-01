@@ -1,86 +1,108 @@
-# Native Mobile App Experience - IMPLEMENTED ✅
+
+# Fix Mobile Auto-Redirect for All Routes
+
+## Problem Identified
+
+The mobile redirect hook (`useMobileRedirect`) is only being called in `DashboardPage.tsx`, but you're accessing `/app/opd` which uses `DoctorDashboard` directly - it never goes through DashboardPage and never triggers the mobile redirect.
+
+**Current Flow:**
+```
+User on mobile visits /app/opd
+    ↓
+DashboardLayout.tsx (no mobile check!)
+    ↓
+DoctorDashboard.tsx (desktop layout shown)
+```
+
+**Expected Flow:**
+```
+User on mobile visits /app/opd
+    ↓
+DashboardLayout.tsx → useMobileRedirect() → detects mobile
+    ↓
+Redirect to /mobile/dashboard
+    ↓
+MobileLayout with native bottom navigation
+```
+
+---
+
+## Solution
+
+Add the `useMobileRedirect` hook to `DashboardLayout.tsx` so that **every** `/app/*` route automatically redirects mobile users to the mobile experience.
+
+---
+
+## Files to Modify
+
+### 1. `src/layouts/DashboardLayout.tsx`
+
+**Changes:**
+- Import and call `useMobileRedirect()` hook at the top of the component
+- Show a loading state while the redirect check is in progress
+- This ensures ALL routes under `/app/*` trigger the mobile detection
+
+```typescript
+// Add import
+import { useMobileRedirect } from "@/hooks/useMobileRedirect";
+
+export const DashboardLayout = () => {
+  const { checked } = useMobileRedirect();  // ADD THIS
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [isDesktopCollapsed, setIsDesktopCollapsed] = useState(false);
+
+  // Show loading while checking redirect
+  if (!checked) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  return (
+    // ... existing desktop layout
+  );
+};
+```
+
+### 2. `src/pages/app/DashboardPage.tsx`
+
+**Changes:**
+- Remove the duplicate mobile redirect logic from this file since it will now be handled at the layout level
+
+---
+
+## Why This Works
+
+| Route | Before | After |
+|-------|--------|-------|
+| `/app/dashboard` | Redirects (via DashboardPage) | Redirects (via DashboardLayout) |
+| `/app/opd` | **NO redirect** (shows desktop) | Redirects (via DashboardLayout) |
+| `/app/pharmacy` | **NO redirect** (shows desktop) | Redirects (via DashboardLayout) |
+| `/app/lab` | **NO redirect** (shows desktop) | Redirects (via DashboardLayout) |
+| All `/app/*` routes | Some redirect, most don't | **All redirect on mobile** |
+
+---
+
+## Technical Details
+
+The `useMobileRedirect` hook:
+1. Checks if user is on a Capacitor native platform
+2. Checks if screen width is less than 768px
+3. Maps current route to its mobile equivalent (e.g., `/app/opd` → `/mobile/dashboard`)
+4. Performs the redirect with `navigate(mobileRoute, { replace: true })`
+
+By placing this in `DashboardLayout`, which wraps ALL `/app/*` routes, every authenticated desktop route will trigger the mobile check before rendering.
+
+---
 
 ## Summary
 
-The mobile app infrastructure is now fully connected to the routing system. Mobile and native users are automatically redirected to the mobile experience.
+| Change | Impact |
+|--------|--------|
+| Add `useMobileRedirect` to DashboardLayout | All /app/* routes check for mobile |
+| Add loading state during check | Prevents flash of desktop UI |
+| Remove duplicate from DashboardPage | Cleaner code, single source of truth |
 
-## What Was Implemented
-
-### 1. Mobile Routes Added to App.tsx ✅
-- `/mobile/login` - Mobile login page
-- `/mobile/dashboard` - Role-based mobile dashboard
-- `/mobile/profile` - User profile
-- `/mobile/appointments` - Appointments list
-- `/mobile/notifications` - Notification center
-- `/mobile/tasks` - Task list for clinical staff
-- `/mobile/pharmacy` - Pharmacy queue for pharmacists
-- `/mobile/lab` - Lab queue for technicians
-- `/mobile/more` - Additional menu/settings
-
-### 2. Auto-Detection & Redirect ✅
-- `useMobileRedirect.ts` hook detects:
-  - Capacitor native platform (`Capacitor.isNativePlatform()`)
-  - Mobile screen width (`< 768px`)
-- `DashboardPage.tsx` redirects mobile users automatically
-- Users can opt for desktop view (localStorage preference)
-
-### 3. Mobile Pages Created ✅
-- `MobileAppointmentsPage.tsx` - Appointments with pull-to-refresh
-- `MobileNotificationsPage.tsx` - Notifications with swipe actions
-- `MobileMorePage.tsx` - Settings menu with quick actions
-- `MobileTasksPage.tsx` - Task list for nurses/doctors
-- `MobilePharmacyPage.tsx` - Prescription queue
-- `MobileLabPage.tsx` - Lab order queue
-
-### 4. Native Mobile CSS ✅
-Added to `index.css`:
-- Safe area spacing (`.safe-area-top`, `.safe-area-bottom`)
-- Native scrolling (`.native-scroll`)
-- Touch optimizations (`.touch-manipulation`, `.touch-element`)
-- Capacitor-specific body classes
-- Pull-to-refresh styles
-- Scrollbar hiding utilities
-
-## Architecture
-
-```
-User Access → Platform Detection → Route Decision
-                    │
-        ┌───────────┴───────────┐
-        ▼                       ▼
-   Desktop                 Mobile/Native
-   /app/*                  /mobile/*
-        │                       │
-        ▼                       ▼
-DashboardLayout           MobileLayout
-  - Sidebar                 - Bottom Nav
-  - Desktop UI              - Touch-first UI
-```
-
-## How to Test
-
-1. **Web Mobile**: Resize browser to < 768px width, access `/app/dashboard`
-2. **Native App**: Build with Capacitor and run on device
-3. **Direct Access**: Navigate to `/mobile/dashboard` directly
-
-## Files Modified/Created
-
-| File | Status |
-|------|--------|
-| `src/App.tsx` | ✅ Added mobile routes |
-| `src/pages/app/DashboardPage.tsx` | ✅ Added mobile redirect |
-| `src/hooks/useMobileRedirect.ts` | ✅ Created |
-| `src/pages/mobile/MobileAppointmentsPage.tsx` | ✅ Created |
-| `src/pages/mobile/MobileNotificationsPage.tsx` | ✅ Created |
-| `src/pages/mobile/MobileMorePage.tsx` | ✅ Created |
-| `src/pages/mobile/MobileTasksPage.tsx` | ✅ Created |
-| `src/pages/mobile/MobilePharmacyPage.tsx` | ✅ Created |
-| `src/pages/mobile/MobileLabPage.tsx` | ✅ Created |
-| `src/index.css` | ✅ Added native mobile styles |
-
-## Next Steps (Optional Enhancements)
-
-1. **Biometric Auth**: Add Face ID/Fingerprint login
-2. **Offline Support**: Cache data for offline access
-3. **Deep Linking**: Handle app deep links
-4. **App Updates**: In-app update prompts
+This single change fixes the issue - mobile users will now automatically see the native mobile experience regardless of which `/app/*` route they try to access.
