@@ -7,8 +7,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/PageHeader";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Capacitor } from "@capacitor/core";
+import { MobileMySchedule } from "@/components/mobile/MobileMySchedule";
 
 export default function MySchedulePage() {
+  const isMobileScreen = useIsMobile();
+  const isNative = Capacitor.isNativePlatform();
+  const showMobileUI = isMobileScreen || isNative;
   const { profile } = useAuth();
 
   // Fetch current user's employee record with shift
@@ -126,13 +132,23 @@ export default function MySchedulePage() {
     );
   }
 
+  // Mobile UI rendering
+  if (showMobileUI) {
+    return (
+      <MobileMySchedule 
+        employee={employee} 
+        assignments={assignments || []} 
+      />
+    );
+  }
+
   const currentShift = employee.shift;
 
   return (
     <div className="space-y-6">
       <PageHeader 
         title="My Schedule" 
-        description="View your work schedule and shifts" 
+        description="View your work schedule and shifts"
       />
 
       {/* Current Shift Info */}

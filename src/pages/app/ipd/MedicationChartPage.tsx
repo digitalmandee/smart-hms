@@ -12,6 +12,10 @@ import { Pill, Clock, CheckCircle2, User, Info } from "lucide-react";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "react-router-dom";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Capacitor } from "@capacitor/core";
+import { MobileMedicationChart } from "@/components/mobile/MobileMedicationChart";
+import { useQueryClient } from "@tanstack/react-query";
 
 // Helper to parse frequency into time slots
 const getTimeSlots = (frequency: string): string[] => {
@@ -33,6 +37,11 @@ const getTimeSlots = (frequency: string): string[] => {
 };
 
 const MedicationChartPage = () => {
+  const isMobileScreen = useIsMobile();
+  const isNative = Capacitor.isNativePlatform();
+  const showMobileUI = isMobileScreen || isNative;
+  const queryClient = useQueryClient();
+
   const [selectedAdmission, setSelectedAdmission] = useState<string>("");
   const today = format(new Date(), "yyyy-MM-dd");
 
@@ -95,6 +104,26 @@ const MedicationChartPage = () => {
     if (given > 0) return <Badge className="bg-warning text-warning-foreground">Partial ({given}/{total})</Badge>;
     return <Badge variant="outline">Pending</Badge>;
   };
+
+  const handleRefresh = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['ipd-medications'] });
+    await queryClient.invalidateQueries({ queryKey: ['medication-administration'] });
+  };
+
+  // Mobile UI
+  if (showMobileUI) {
+    return (
+      <MobileMedicationChart
+        admissions={activeAdmissions}
+        selectedAdmission={selectedAdmission}
+        onSelectAdmission={setSelectedAdmission}
+        medications={medications}
+        isLoading={medsLoading}
+        selectedAdmissionData={selectedAdmissionData}
+        onRefresh={handleRefresh}
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">

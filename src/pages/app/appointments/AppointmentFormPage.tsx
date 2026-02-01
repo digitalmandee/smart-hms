@@ -840,18 +840,20 @@ export default function AppointmentFormPage() {
             </div>
           </div>
 
-          {/* Form Actions */}
-          <div className="flex gap-4">
+          {/* Form Actions - Sticky on mobile */}
+          <div className="flex gap-4 sticky bottom-0 bg-background py-4 -mx-4 px-4 md:mx-0 md:px-0 md:relative md:py-0 border-t md:border-t-0">
             <Button
               type="button"
               variant="outline"
               onClick={() => navigate('/app/appointments')}
+              className="flex-1 md:flex-none h-12 md:h-10"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={createAppointment.isPending || updateAppointment.isPending}
+              className="flex-1 md:flex-none h-12 md:h-10"
             >
               {createAppointment.isPending || updateAppointment.isPending
                 ? 'Saving...'

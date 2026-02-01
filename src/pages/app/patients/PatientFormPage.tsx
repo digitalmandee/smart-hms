@@ -919,9 +919,9 @@ export function PatientFormPage() {
             </Accordion>
           )}
 
-          {/* Actions */}
-          <div className="flex flex-col sm:flex-row justify-between gap-4 pt-4 border-t">
-            <div className="flex items-center gap-2">
+          {/* Actions - Sticky on mobile */}
+          <div className="flex flex-col sm:flex-row justify-between gap-4 pt-4 border-t sticky bottom-0 bg-background py-4 -mx-4 px-4 md:mx-0 md:px-0 md:relative md:py-4 md:bottom-auto">
+            <div className="flex items-center gap-2 order-2 md:order-1">
               <Checkbox
                 id="printCard"
                 checked={printCardAfterSave}
@@ -932,15 +932,16 @@ export function PatientFormPage() {
               </label>
             </div>
             
-            <div className="flex gap-3">
+            <div className="flex gap-3 order-1 md:order-2">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => navigate("/app/patients")}
+                className="flex-1 md:flex-none h-12 md:h-10"
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isPending} className="min-w-[140px]">
+              <Button type="submit" disabled={isPending} className="flex-1 md:flex-none min-w-[140px] h-12 md:h-10">
                 {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {isEditing ? "Save Changes" : "Register Patient"}
               </Button>

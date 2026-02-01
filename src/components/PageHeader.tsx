@@ -1,5 +1,6 @@
 import { ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface BreadcrumbItem {
   label: string;
@@ -11,6 +12,7 @@ interface PageHeaderProps {
   description?: string;
   actions?: React.ReactNode;
   breadcrumbs?: BreadcrumbItem[];
+  hideBreadcrumbsOnMobile?: boolean;
 }
 
 export function PageHeader({
@@ -18,10 +20,14 @@ export function PageHeader({
   description,
   actions,
   breadcrumbs,
+  hideBreadcrumbsOnMobile = true,
 }: PageHeaderProps) {
+  const isMobile = useIsMobile();
+  const showBreadcrumbs = breadcrumbs && breadcrumbs.length > 0 && !(hideBreadcrumbsOnMobile && isMobile);
+
   return (
     <div className="mb-6 space-y-2">
-      {breadcrumbs && breadcrumbs.length > 0 && (
+      {showBreadcrumbs && (
         <nav className="flex items-center gap-1 text-sm text-muted-foreground">
           {breadcrumbs.map((item, index) => (
             <div key={index} className="flex items-center gap-1">
