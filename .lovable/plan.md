@@ -1,81 +1,41 @@
 
-# PWA Mobile Optimization Plan for All Screens
+# Comprehensive PWA Mobile Optimization Plan
 
-## Current State Analysis
+## Problem Analysis
 
-### Already Mobile-Optimized Pages (9 pages with `showMobileUI` pattern):
-1. `DashboardLayout.tsx` - Core layout wrapper ✅
-2. `AppointmentsListPage.tsx` - Appointments list ✅
-3. `DoctorDashboard.tsx` (OPD) - Doctor dashboard ✅
-4. `NurseDashboard.tsx` (OPD) - Nurse station ✅
-5. `PharmacyDashboard.tsx` - Pharmacy dashboard ✅
-6. `LabDashboard.tsx` - Lab dashboard ✅
-7. `ProfilePage.tsx` - User profile ✅
-8. `MorePage.tsx` - More options ✅
-9. `NotificationsPage.tsx` - Notifications ✅
+After detailed examination of the codebase, I identified the following issues causing "glitch screenshift" on mobile:
 
-### Pages Requiring Mobile Optimization (100+ pages):
+### Root Causes
+1. **No mobile-specific views** - Most pages only have desktop layouts with `lg:grid-cols-X` that stack poorly on mobile
+2. **DataTable components** - Used on multiple pages (OPDOrdersPage, ConsultationHistoryPage, LabQueuePage) that are unusable on mobile
+3. **Fixed height ScrollAreas** - `h-[500px]` style that doesn't adapt to mobile viewports  
+4. **Dialog modals** - Desktop dialogs that don't work well on mobile (should be bottom Sheets)
+5. **PageHeader with breadcrumbs** - Takes valuable mobile screen real estate
+6. **No touch optimization** - Missing haptic feedback, proper touch targets, pull-to-refresh
+7. **Horizontal overflow** - Multi-column forms and wide tables causing horizontal scroll
 
-**Priority 1 - Critical Clinical Workflows (Doctor/Nurse/Patient):**
-| Page | Role | Usage Frequency |
-|------|------|-----------------|
-| `OPDVitalsPage.tsx` | Nurse | Very High |
-| `TriagePage.tsx` (ER) | Nurse | High |
-| `ConsultationPage.tsx` | Doctor | Very High |
-| `ConsultationHistoryPage.tsx` | Doctor | High |
-| `PatientsListPage.tsx` | All | Very High |
-| `PatientDetailPage.tsx` | All | Very High |
-| `PatientFormPage.tsx` | Receptionist | High |
-| `AppointmentQueuePage.tsx` | Nurse/Doctor | Very High |
-| `CheckInPage.tsx` | Receptionist | High |
-| `MyCalendarPage.tsx` | Doctor/Nurse | High |
-| `PrescriptionQueuePage.tsx` | Pharmacist | Very High |
-| `LabQueuePage.tsx` | Lab Tech | Very High |
+### Pages Identified as Un-optimized
 
-**Priority 2 - IPD/OT Workflows:**
-| Page | Role |
-|------|------|
-| `IPDDashboard.tsx` | IPD Nurse |
-| `NursingNotesPage.tsx` | IPD Nurse |
-| `MedicationChartPage.tsx` | IPD Nurse |
-| `IPDVitalsPage.tsx` | IPD Nurse |
-| `DailyRoundsPage.tsx` | Doctor |
-| `OTDashboard.tsx` | OT Staff |
-| `OTSchedulePage.tsx` | OT Staff |
-| `SurgeriesListPage.tsx` | Surgeon |
-| `PACUPage.tsx` | Anesthetist |
-
-**Priority 3 - Administrative/Settings:**
-| Page | Role |
-|------|------|
-| `ReceptionistDashboard.tsx` | Receptionist |
-| `BillingDashboard.tsx` | Cashier |
-| `InvoicesListPage.tsx` | Cashier |
-| `HRDashboard.tsx` | HR |
-| `InventoryDashboard.tsx` | Store Manager |
-| Settings pages | Admin |
+| Priority | Page | Key Issues |
+|----------|------|------------|
+| Critical | `AppointmentQueuePage.tsx` | Multi-column grid, no mobile cards |
+| Critical | `MyCalendarPage.tsx` | 3-column layout, fixed ScrollArea, desktop calendar |
+| Critical | `AppointmentFormPage.tsx` | Complex form, no mobile optimization |
+| Critical | `CheckInPage.tsx` | 3-column grid, desktop-centric |
+| Critical | `ConsultationPage.tsx` | 3-column layout, multiple forms |
+| Critical | `OPDVitalsPage.tsx` | 2-column grid, Dialog modals |
+| Critical | `OPDOrdersPage.tsx` | DataTable, horizontal tabs |
+| High | `PatientDetailPage.tsx` | 3-column layout, many tabs |
+| High | `ConsultationHistoryPage.tsx` | DataTable layout |
+| High | `LabQueuePage.tsx` | Card grid, filter row |
+| High | `PatientFormPage.tsx` | Multi-section accordion form |
 
 ---
 
 ## Implementation Strategy
 
-### Approach A: Mobile View Components (Recommended for Complex Pages)
-Create dedicated mobile view components like `MobileNurseView.tsx` pattern for:
-- Pages with complex workflows
-- Pages with data tables that need card-based layouts
-- Pages with multi-column desktop layouts
-
-### Approach B: Responsive Adaptation (For Simpler Pages)
-Add conditional mobile styling within existing components for:
-- Form pages
-- Detail view pages
-- Simple list pages
-
----
-
-## Technical Implementation Pattern
-
-Each page will follow this structure:
+### Pattern to Follow
+Using the existing `showMobileUI` pattern from `DoctorDashboard.tsx`:
 
 ```typescript
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -87,134 +47,176 @@ export default function ExamplePage() {
   const isNative = Capacitor.isNativePlatform();
   const showMobileUI = isMobileScreen || isNative;
 
-  // Mobile Layout
   if (showMobileUI) {
     return (
       <PullToRefresh onRefresh={handleRefresh}>
         <div className="px-4 py-4 space-y-4 pb-24">
-          {/* Mobile-optimized content */}
+          {/* Mobile-optimized layout */}
         </div>
       </PullToRefresh>
     );
   }
 
-  // Desktop Layout (existing)
-  return (/* existing desktop layout */);
+  // Existing desktop layout
+  return (/* ... */);
 }
 ```
 
 ---
 
-## Phase 1: Critical Clinical Pages (Immediate Priority)
+## Phase 1: Critical Appointment & Queue Pages
 
-### 1. OPD Vitals Page (`src/pages/app/opd/OPDVitalsPage.tsx`)
+### 1. AppointmentQueuePage.tsx (Today's Queue)
 **Current Issues:**
-- Two-column grid layout doesn't work on mobile
-- Dialog modals may be too wide
-- Fixed height ScrollArea problematic on mobile
+- `lg:grid-cols-2` for Checked-In/Scheduled cards
+- Doctor filter dropdown takes full row
+- PageHeader with breadcrumbs
+- No pull-to-refresh
 
 **Mobile Optimization:**
-- Stack columns vertically on mobile
-- Use full-screen sheet instead of dialog
+- Create compact header with date and patient count
+- Horizontal scrollable status tabs (In Progress | Checked In | Scheduled)
+- Card-based patient queue with swipe actions
+- Floating action button for refresh
+- Bottom sheet for doctor filter
+
+### 2. MyCalendarPage.tsx (Doctor's Calendar)
+**Current Issues:**
+- `lg:grid-cols-3` layout
+- Desktop calendar popover
+- Fixed `h-[500px]` time slot list
+- Surgery sidebar
+
+**Mobile Optimization:**
+- Horizontal date picker (swipe to change dates)
+- Full-height scrollable time slots
+- Collapsible surgery section
+- Sticky stats bar at top
+
+### 3. AppointmentFormPage.tsx (New Appointment)
+**Current Issues:**
+- Complex multi-step form
+- PatientSearch component
+- TimeSlotPicker grid
+- Payment step with multiple fields
+
+**Mobile Optimization:**
+- Step-by-step wizard layout
+- Full-screen patient search
+- Simplified time slot selection (list instead of grid)
+- Bottom sheet for payment step
+- Larger touch targets for form inputs
+
+### 4. CheckInPage.tsx
+**Current Issues:**
+- `lg:grid-cols-3` layout
+- Priority cards in 3-column grid
+- VitalsForm component
+- Sidebar patient info
+
+**Mobile Optimization:**
+- Stack all sections vertically
+- Priority selection as horizontal scroll
+- Collapsible vitals section
+- Sticky check-in button at bottom
+
+---
+
+## Phase 2: OPD & Consultation Pages
+
+### 5. ConsultationPage.tsx
+**Current Issues:**
+- `lg:grid-cols-3` layout (form + sidebar)
+- Multiple form sections (Vitals, Symptoms, Diagnosis, Prescription, Lab)
+- Desktop dialogs
+
+**Mobile Optimization:**
+- Create `MobileConsultationView.tsx` component
+- Tab-based sections (Vitals | Rx | Lab | Notes)
+- Full-screen prescription builder
+- Collapsible patient info
+- Bottom sheet for order builders
+
+### 6. OPDVitalsPage.tsx
+**Current Issues:**
+- `lg:grid-cols-2` for Awaiting/Complete lists
+- `h-[500px]` fixed ScrollArea
+- Dialog modal for vitals entry
+- Stats cards in 4-column grid
+
+**Mobile Optimization:**
+- Horizontal status tabs
+- Full-screen vitals entry sheet
+- 2x2 stats grid
 - Touch-optimized patient cards
-- Swipe to record vitals action
 
-### 2. ER Triage Page (`src/pages/app/emergency/TriagePage.tsx`)
+### 7. OPDOrdersPage.tsx
 **Current Issues:**
-- Three-column layout
-- Dialog for triage assessment
-- Triage guidelines panel
+- DataTable with 8 columns
+- Horizontal tabs (Lab Orders | Prescriptions)
+- Filter row with 3 inputs
 
 **Mobile Optimization:**
-- Single column with tabs (Queue / Guidelines)
-- Bottom sheet for triage form
-- Large touch targets for critical actions
+- Card-based order list
+- Collapsible filter section
+- Status filter as chips
+- Tap to view details sheet
 
-### 3. Patients List Page (`src/pages/app/patients/PatientsListPage.tsx`)
+### 8. ConsultationHistoryPage.tsx
 **Current Issues:**
-- DataTable with 7+ columns
-- Stats cards grid
-- Search bar
+- DataTable layout
+- Multiple filter dropdowns
+- Calendar date pickers
 
 **Mobile Optimization:**
-- Card-based patient list
-- Compact stats (2x2 grid)
-- Floating action button for new patient
-- Pull-to-refresh
-
-### 4. Patient Detail Page (`src/pages/app/patients/PatientDetailPage.tsx`)
-**Mobile Optimization:**
-- Collapsible sections
-- Tab navigation (Info / Visits / Documents)
-- Quick action buttons
-
-### 5. Appointment Queue Page (`src/pages/app/appointments/AppointmentQueuePage.tsx`)
-**Mobile Optimization:**
-- Horizontal tabs for queue status
-- Touch-friendly action buttons
-- Real-time updates indicator
-
-### 6. Prescription Queue (`src/pages/app/pharmacy/PrescriptionQueuePage.tsx`)
-**Mobile Optimization:**
-- Card-based prescription list
-- Swipe actions (Dispense / Reject)
-- Medicine quantity input optimized for touch
-
-### 7. Lab Queue (`src/pages/app/lab/LabQueuePage.tsx`)
-**Mobile Optimization:**
-- Sample collection queue cards
-- Barcode scanner integration
-- Quick status updates
+- Card-based consultation list
+- Filter sheet with all options
+- Search bar with voice input option
 
 ---
 
-## Phase 2: IPD/OT Workflows
+## Phase 3: Patient Profile Pages
 
-### 8. IPD Dashboard (`src/pages/app/ipd/IPDDashboard.tsx`)
-**Create:** `src/components/mobile/MobileIPDView.tsx`
-- Ward-wise patient cards
-- Bed status indicators
-- Quick vitals entry
+### 9. PatientDetailPage.tsx
+**Current Issues:**
+- `lg:grid-cols-3` layout
+- 15+ tabs (Overview, Vitals, Medical, OPD, Consults, Rx, Lab, etc.)
+- Many action buttons in header
 
-### 9. Nursing Notes Page (`src/pages/app/ipd/NursingNotesPage.tsx`)
 **Mobile Optimization:**
-- Timeline view of notes
-- Voice-to-text input
-- Photo attachment
+- Create `MobilePatientProfile.tsx`
+- Profile card at top
+- Horizontal scrollable quick actions
+- Segmented tabs (max 4 visible, scroll for more)
+- Pull-to-refresh for data
 
-### 10. Medication Chart (`src/pages/app/ipd/MedicationChartPage.tsx`)
+### 10. PatientFormPage.tsx
+**Current Issues:**
+- Accordion sections with many fields
+- Desktop-style form layout
+- Print button in header
+
 **Mobile Optimization:**
-- Time-based medication schedule
-- One-tap administration logging
-- Due medication alerts
-
-### 11. OT Dashboard (`src/pages/app/ot/OTDashboard.tsx`)
-**Create:** `src/components/mobile/MobileOTView.tsx`
-- Surgery schedule cards
-- OT room status
-- Team assignment
+- Step-by-step form wizard
+- Each accordion section becomes a step
+- Bottom action bar with Save/Next
+- Field validation per step
 
 ---
 
-## Phase 3: Reception/Billing
+## Phase 4: Lab & Pharmacy Queues
 
-### 12. Receptionist Dashboard (`src/pages/app/reception/ReceptionistDashboard.tsx`)
-**Create:** `src/components/mobile/MobileReceptionView.tsx`
-- Quick patient registration
-- Token display
-- Bed availability
+### 11. LabQueuePage.tsx
+**Current Issues:**
+- Card grid layout
+- Multiple filter dropdowns
+- Stats badges inline
 
-### 13. Check-In Page (`src/pages/app/appointments/CheckInPage.tsx`)
 **Mobile Optimization:**
-- Simplified vitals form
-- Touch-friendly inputs
-- Quick check-in flow
-
-### 14. Invoices List (`src/pages/app/billing/InvoicesListPage.tsx`)
-**Mobile Optimization:**
-- Invoice cards with amount
-- Quick payment status filter
-- Print/share actions
+- Vertical card list
+- Filter chips (scrollable horizontal)
+- Stats as compact header
+- Swipe actions (Collect | Process)
 
 ---
 
@@ -222,155 +224,114 @@ export default function ExamplePage() {
 
 | Component | Purpose |
 |-----------|---------|
-| `MobilePatientList.tsx` | Card-based patient list |
-| `MobilePatientDetail.tsx` | Patient profile mobile view |
-| `MobileVitalsEntry.tsx` | Touch-optimized vitals form |
-| `MobileTriageView.tsx` | ER triage mobile interface |
-| `MobileIPDView.tsx` | IPD dashboard mobile |
-| `MobileOTView.tsx` | OT dashboard mobile |
-| `MobileReceptionView.tsx` | Reception dashboard mobile |
-| `MobilePrescriptionQueue.tsx` | Pharmacy queue mobile |
-| `MobileLabQueue.tsx` | Lab queue mobile |
-| `MobileInvoiceList.tsx` | Billing list mobile |
+| `MobileQueueView.tsx` | Appointment queue mobile view |
+| `MobileCalendarView.tsx` | Doctor calendar mobile view |
+| `MobileConsultationView.tsx` | Consultation page mobile view |
+| `MobileVitalsView.tsx` | Vitals entry mobile view |
+| `MobilePatientProfile.tsx` | Patient detail mobile view |
+| `MobileFormWizard.tsx` | Step-by-step form wrapper |
+| `MobileOrdersList.tsx` | OPD orders mobile view |
+| `MobileHistoryView.tsx` | Consultation history mobile |
 
 ---
 
-## Common Mobile UI Patterns to Apply
-
-### 1. Pull-to-Refresh
-All list pages wrapped with `PullToRefresh` component
-
-### 2. Bottom Sheet Actions
-Replace desktop dialogs with `Sheet` from bottom for:
-- Forms
-- Detail views
-- Quick actions
-
-### 3. Swipe Actions
-Implement swipeable cards for:
-- Delete/Archive actions
-- Quick status updates
-- Mark as done
-
-### 4. Touch Targets
-Minimum 44px height for all interactive elements
-
-### 5. Haptic Feedback
-Use `useHaptics` hook for:
-- Button taps
-- Success/error feedback
-- Navigation
-
-### 6. Safe Area Padding
-Apply `pb-24` to all pages for bottom navigation clearance
-
-### 7. Card-Based Lists
-Replace DataTable with stacked cards showing:
-- Primary info prominently
-- Secondary info smaller
-- Actions accessible
-
----
-
-## CSS Enhancements Needed
+## CSS Enhancements
 
 Add to `src/index.css`:
 
 ```css
 /* Touch-friendly form elements */
 @media (max-width: 768px) {
-  input, select, textarea, button {
-    min-height: 44px;
+  input, select, textarea {
+    min-height: 48px;
     font-size: 16px; /* Prevents iOS zoom */
+  }
+  
+  button {
+    min-height: 44px;
   }
   
   /* Prevent horizontal scroll */
   .mobile-page-content {
     overflow-x: hidden;
+    max-width: 100vw;
   }
   
-  /* Better scrolling */
-  .scroll-container {
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior-y: contain;
+  /* Hide desktop breadcrumbs */
+  .breadcrumb-nav {
+    display: none;
   }
+}
+
+/* Smoother scroll container */
+.scroll-container {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
 }
 ```
 
 ---
 
+## Implementation Order
+
+**Batch 1 (Immediate - Core Workflow):**
+1. `AppointmentQueuePage.tsx` + `MobileQueueView.tsx`
+2. `MyCalendarPage.tsx` + `MobileCalendarView.tsx`  
+3. `CheckInPage.tsx` (inline mobile optimization)
+
+**Batch 2 (OPD Clinical):**
+4. `ConsultationPage.tsx` + `MobileConsultationView.tsx`
+5. `OPDVitalsPage.tsx` + `MobileVitalsView.tsx`
+6. `OPDOrdersPage.tsx` + `MobileOrdersList.tsx`
+
+**Batch 3 (Patient & History):**
+7. `PatientDetailPage.tsx` + `MobilePatientProfile.tsx`
+8. `ConsultationHistoryPage.tsx` + `MobileHistoryView.tsx`
+9. `PatientFormPage.tsx` (inline optimization)
+
+**Batch 4 (Forms & Support):**
+10. `AppointmentFormPage.tsx` + `MobileFormWizard.tsx`
+11. `LabQueuePage.tsx` (inline optimization)
+12. CSS global enhancements
+
+---
+
 ## Files to Create/Modify
 
-### New Files (10):
-1. `src/components/mobile/MobilePatientList.tsx`
-2. `src/components/mobile/MobilePatientDetail.tsx`
-3. `src/components/mobile/MobileVitalsEntry.tsx`
-4. `src/components/mobile/MobileTriageView.tsx`
-5. `src/components/mobile/MobileIPDView.tsx`
-6. `src/components/mobile/MobileOTView.tsx`
-7. `src/components/mobile/MobileReceptionView.tsx`
-8. `src/components/mobile/MobilePrescriptionQueue.tsx`
-9. `src/components/mobile/MobileLabQueue.tsx`
-10. `src/components/mobile/MobileInvoiceList.tsx`
+### New Files (8):
+1. `src/components/mobile/MobileQueueView.tsx`
+2. `src/components/mobile/MobileCalendarView.tsx`
+3. `src/components/mobile/MobileConsultationView.tsx`
+4. `src/components/mobile/MobileVitalsView.tsx`
+5. `src/components/mobile/MobilePatientProfile.tsx`
+6. `src/components/mobile/MobileOrdersList.tsx`
+7. `src/components/mobile/MobileHistoryView.tsx`
+8. `src/components/mobile/MobileFormWizard.tsx`
 
-### Modified Files (25+):
-1. `src/pages/app/opd/OPDVitalsPage.tsx`
-2. `src/pages/app/emergency/TriagePage.tsx`
-3. `src/pages/app/patients/PatientsListPage.tsx`
-4. `src/pages/app/patients/PatientDetailPage.tsx`
-5. `src/pages/app/patients/PatientFormPage.tsx`
-6. `src/pages/app/appointments/AppointmentQueuePage.tsx`
-7. `src/pages/app/appointments/CheckInPage.tsx`
-8. `src/pages/app/appointments/MyCalendarPage.tsx`
-9. `src/pages/app/pharmacy/PrescriptionQueuePage.tsx`
-10. `src/pages/app/lab/LabQueuePage.tsx`
-11. `src/pages/app/ipd/IPDDashboard.tsx`
-12. `src/pages/app/ipd/NursingNotesPage.tsx`
-13. `src/pages/app/ipd/MedicationChartPage.tsx`
-14. `src/pages/app/ipd/IPDVitalsPage.tsx`
-15. `src/pages/app/ipd/DailyRoundsPage.tsx`
-16. `src/pages/app/ot/OTDashboard.tsx`
-17. `src/pages/app/ot/OTSchedulePage.tsx`
-18. `src/pages/app/ot/SurgeriesListPage.tsx`
-19. `src/pages/app/reception/ReceptionistDashboard.tsx`
-20. `src/pages/app/billing/BillingDashboard.tsx`
-21. `src/pages/app/billing/InvoicesListPage.tsx`
-22. `src/pages/app/DashboardPage.tsx`
-23. `src/index.css`
-24. Additional pages as needed
+### Modified Files (12):
+1. `src/pages/app/appointments/AppointmentQueuePage.tsx`
+2. `src/pages/app/appointments/MyCalendarPage.tsx`
+3. `src/pages/app/appointments/AppointmentFormPage.tsx`
+4. `src/pages/app/appointments/CheckInPage.tsx`
+5. `src/pages/app/opd/ConsultationPage.tsx`
+6. `src/pages/app/opd/OPDVitalsPage.tsx`
+7. `src/pages/app/opd/OPDOrdersPage.tsx`
+8. `src/pages/app/opd/ConsultationHistoryPage.tsx`
+9. `src/pages/app/patients/PatientDetailPage.tsx`
+10. `src/pages/app/patients/PatientFormPage.tsx`
+11. `src/pages/app/lab/LabQueuePage.tsx`
+12. `src/index.css`
 
 ---
 
-## Recommended Implementation Order
+## Expected Results
 
-**Week 1: Core Clinical (Doctor/Nurse)**
-1. OPDVitalsPage
-2. TriagePage
-3. PatientsListPage
-4. PatientDetailPage
-5. AppointmentQueuePage
-
-**Week 2: Pharmacy/Lab**
-6. PrescriptionQueuePage
-7. LabQueuePage
-8. LabResultEntryPage
-
-**Week 3: IPD**
-9. IPDDashboard
-10. NursingNotesPage
-11. MedicationChartPage
-
-**Week 4: OT/Reception/Billing**
-12. OTDashboard
-13. ReceptionistDashboard
-14. BillingDashboard/Invoices
-
----
-
-## Summary
-
-- **Total pages requiring optimization:** ~100+
-- **Critical priority pages:** 12-15
-- **New mobile components:** 10
-- **Estimated effort:** 4 weeks for complete coverage
-- **Pattern:** Use existing `showMobileUI` + dedicated mobile view components
+After implementation:
+- All pages detect mobile/native and render optimized layouts
+- No horizontal scroll on any page
+- Smooth transitions without "glitch screenshift"
+- Touch-optimized interactions with haptic feedback
+- Pull-to-refresh on all list pages
+- Consistent 44-48px touch targets
+- Bottom sheet modals instead of desktop dialogs
+- Native-app feel across all user roles
