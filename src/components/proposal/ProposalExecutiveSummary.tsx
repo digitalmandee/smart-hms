@@ -1,4 +1,5 @@
-import { Activity, CheckCircle2, Target, TrendingUp, Shield } from "lucide-react";
+import { CheckCircle2, Target, TrendingUp, Shield } from "lucide-react";
+import { HealthOS24Logo } from "@/components/brand/HealthOS24Logo";
 
 export const ProposalExecutiveSummary = () => {
   const highlights = [
@@ -21,12 +22,7 @@ export const ProposalExecutiveSummary = () => {
     <div className="proposal-page flex flex-col bg-background p-12">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-lg">
-            <Activity className="h-6 w-6 text-primary-foreground" />
-          </div>
-          <span className="text-lg font-semibold text-foreground">HealthOS</span>
-        </div>
+        <HealthOS24Logo variant="full" size="md" />
         <span className="text-sm text-muted-foreground bg-muted px-3 py-1 rounded-full">
           02 / 10
         </span>
@@ -37,7 +33,7 @@ export const ProposalExecutiveSummary = () => {
         <div className="w-16 h-1 bg-gradient-to-r from-primary to-blue-500 rounded-full mb-4" />
         <h2 className="text-3xl font-bold text-foreground mb-2">Executive Summary</h2>
         <p className="text-muted-foreground">
-          A comprehensive overview of the HealthOS Hospital Management System
+          A comprehensive overview of the HealthOS 24 Hospital Management System
         </p>
       </div>
 
@@ -61,12 +57,12 @@ export const ProposalExecutiveSummary = () => {
       <div className="bg-card border border-border rounded-xl p-6 mb-6">
         <h3 className="text-lg font-semibold text-foreground mb-4">System Overview</h3>
         <p className="text-muted-foreground leading-relaxed">
-          <span className="font-semibold text-foreground">HealthOS</span> is a next-generation, 
+          <span className="font-semibold text-foreground">HealthOS 24</span> is a next-generation, 
           cloud-native Hospital Management System designed specifically for healthcare facilities 
           in the Middle East and South Asia. Built on enterprise-grade AWS infrastructure, 
-          HealthOS delivers a unified platform that seamlessly integrates clinical operations, 
+          HealthOS 24 delivers a unified platform that seamlessly integrates clinical operations, 
           diagnostics, pharmacy, billing, and administrative functions into a single, 
-          intelligent ecosystem.
+          intelligent ecosystem with 24/7 availability.
         </p>
       </div>
 
@@ -87,8 +83,8 @@ export const ProposalExecutiveSummary = () => {
 
       {/* Footer */}
       <div className="mt-6 pt-4 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
-        <span>HealthOS Proposal</span>
-        <span>smarthms.devmine.co</span>
+        <span>HealthOS 24 Proposal</span>
+        <span>healthos24.com</span>
       </div>
     </div>
   );

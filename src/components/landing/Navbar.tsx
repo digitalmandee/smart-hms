@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Activity, Menu, X, FileDown } from "lucide-react";
+import { Menu, X, FileDown } from "lucide-react";
+import { HealthOS24Logo, HealthOS24Badge } from "@/components/brand/HealthOS24Logo";
 
 const navLinks = [
   { label: "Features", href: "#features" },
@@ -29,11 +30,8 @@ export const Navbar = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-primary">
-              <Activity className="h-5 w-5 text-primary-foreground" />
-            </div>
-            <span className="text-lg font-bold">HealthOS</span>
+          <Link to="/" className="flex items-center">
+            <HealthOS24Logo variant="full" size="sm" />
           </Link>
 
           {/* Desktop Navigation */}

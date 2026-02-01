@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 
 const faqs = [
   {
-    question: "How long does it take to set up SmartHMS?",
+    question: "How long does it take to set up HealthOS 24?",
     answer: "Most clinics are up and running within 2 hours. We provide a dedicated onboarding specialist who migrates your existing patient data and trains your staff.",
   },
   {
@@ -13,11 +13,11 @@ const faqs = [
   },
   {
     question: "Does it work on mobile phones?",
-    answer: "Absolutely. SmartHMS is fully responsive. Doctors can view patient history on their phones, and patients can check their queue status on any device.",
+    answer: "Absolutely. HealthOS 24 is fully responsive. Doctors can view patient history on their phones, and patients can check their queue status on any device.",
   },
   {
     question: "What if the internet goes down?",
-    answer: "SmartHMS has offline mode for critical functions. Patient check-in, token generation, and prescription printing work without internet. Data syncs automatically when connection returns.",
+    answer: "HealthOS 24 has offline mode for critical functions. Patient check-in, token generation, and prescription printing work without internet. Data syncs automatically when connection returns.",
   },
   {
     question: "How is patient data protected?",
@@ -40,7 +40,7 @@ export const FAQSection = () => {
             Questions? We&apos;ve got answers.
           </h2>
           <p className="text-lg text-muted-foreground">
-            Everything you need to know about SmartHMS
+            Everything you need to know about HealthOS 24
           </p>
         </div>
 

@@ -583,11 +583,11 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle, showDesktopToggl
     >
       {/* Logo */}
       <div className="flex items-center gap-3 px-4 py-4 border-b border-sidebar-border">
-        <div className="h-9 w-9 rounded-lg bg-sidebar-primary flex items-center justify-center flex-shrink-0">
-          <Heart className="h-5 w-5 text-sidebar-primary-foreground" />
+        <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-sidebar-primary to-sidebar-primary/80 flex items-center justify-center flex-shrink-0 shadow-lg">
+          <span className="text-sm font-bold text-sidebar-primary-foreground">24</span>
         </div>
         {!isCollapsed && (
-          <span className="text-lg font-semibold text-sidebar-foreground">HealthOS</span>
+          <span className="text-lg font-semibold text-sidebar-foreground">HealthOS 24</span>
         )}
         
         {/* Mobile close button */}

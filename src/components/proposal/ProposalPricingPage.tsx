@@ -1,4 +1,5 @@
-import { Activity, Server, Users, Database, Shield, Headphones, Settings, Check } from "lucide-react";
+import { Server, Users, Database, Shield, Headphones, Settings, Check } from "lucide-react";
+import { HealthOS24Logo } from "@/components/brand/HealthOS24Logo";
 import {
   Table,
   TableBody,
@@ -10,7 +11,7 @@ import {
 
 export const ProposalPricingPage = () => {
   const monthlyIncludes = [
-    { icon: Activity, item: "Complete HealthOS System", detail: "All 50 modules" },
+    { icon: HealthOS24Logo, item: "Complete HealthOS 24 System", detail: "All 50 modules" },
     { icon: Server, item: "AWS Cloud Hosting", detail: "Tier-1 Infrastructure" },
     { icon: Database, item: "System Requests", detail: "Up to 2,000,000/month" },
     { icon: Users, item: "Active Users", detail: "Up to 50 users" },
@@ -32,12 +33,7 @@ export const ProposalPricingPage = () => {
     <div className="proposal-page flex flex-col bg-background p-10">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-lg">
-            <Activity className="h-5 w-5 text-primary-foreground" />
-          </div>
-          <span className="text-lg font-semibold text-foreground">HealthOS</span>
-        </div>
+        <HealthOS24Logo variant="full" size="sm" />
         <span className="text-sm text-muted-foreground bg-muted px-3 py-1 rounded-full">
           09 / 10
         </span>
@@ -75,7 +71,11 @@ export const ProposalPricingPage = () => {
                     <TableCell className="py-2">
                       <div className="flex items-center gap-2">
                         <div className="p-1 rounded-lg bg-primary/10">
-                          <Icon className="h-3.5 w-3.5 text-primary" />
+                          {index === 0 ? (
+                            <span className="text-xs font-bold text-primary">24</span>
+                          ) : (
+                            <Icon className="h-3.5 w-3.5 text-primary" />
+                          )}
                         </div>
                         <span className="font-medium text-sm">{row.item}</span>
                       </div>
@@ -138,8 +138,8 @@ export const ProposalPricingPage = () => {
 
       {/* Footer */}
       <div className="mt-4 pt-3 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
-        <span>HealthOS Proposal</span>
-        <span>smarthms.devmine.co</span>
+        <span>HealthOS 24 Proposal</span>
+        <span>healthos24.com</span>
       </div>
     </div>
   );

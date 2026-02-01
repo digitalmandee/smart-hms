@@ -1,8 +1,9 @@
 import { 
   Users, Calendar, Stethoscope, FlaskConical, Pill, Receipt, BarChart3, Store, 
   UserCog, Calculator, HeartPulse, ScanLine, Warehouse, Hotel, Siren, Scissors, 
-  Droplet, Wallet, BadgePercent, Truck, Activity 
+  Droplet, Wallet, BadgePercent, Truck
 } from "lucide-react";
+import { HealthOS24Logo } from "@/components/brand/HealthOS24Logo";
 
 const modules = [
   { icon: Users, label: "Patients", color: "bg-teal-500" },
@@ -44,9 +45,7 @@ export const FeaturesOverviewSlide = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-lg">
-            <Activity className="h-6 w-6 text-primary-foreground" />
-          </div>
+          <HealthOS24Logo variant="icon" size="md" />
           <div>
             <h2 className="text-2xl font-bold">20 Integrated Modules</h2>
             <p className="text-sm text-muted-foreground">Complete Hospital Management at Your Fingertips</p>
@@ -102,16 +101,16 @@ export const FeaturesOverviewSlide = () => {
             <div className="text-xs text-muted-foreground">Access Control</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-primary">Cloud</div>
-            <div className="text-xs text-muted-foreground">Multi-Branch</div>
+            <div className="text-2xl font-bold text-primary">24/7</div>
+            <div className="text-xs text-muted-foreground">Available</div>
           </div>
         </div>
       </div>
 
       {/* Footer */}
       <div className="mt-4 pt-4 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
-        <span>HealthOS - Hospital Management System</span>
-        <span>smarthms.devmine.co</span>
+        <span>HealthOS 24 - Hospital Management System</span>
+        <span>healthos24.com</span>
       </div>
     </div>
   );

@@ -10,11 +10,11 @@ export const generateQRCodeUrl = (data: string, size = 150): string => {
 // Generate verification URL for invoice
 export const getInvoiceVerificationUrl = (invoiceNumber: string, orgSlug?: string): string => {
   const slug = orgSlug || 'verify';
-  return `https://smart-hms.lovable.app/verify/${slug}/${invoiceNumber}`;
+  return `https://healthos24.com/verify/${slug}/${invoiceNumber}`;
 };
 
 // Generate appointment verification URL
 export const getAppointmentVerificationUrl = (tokenNumber: number, orgSlug?: string): string => {
   const slug = orgSlug || 'verify';
-  return `https://smart-hms.lovable.app/token/${slug}/${tokenNumber}`;
+  return `https://healthos24.com/token/${slug}/${tokenNumber}`;
 };

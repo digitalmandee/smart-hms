@@ -1,4 +1,4 @@
-import { Activity } from "lucide-react";
+import { HealthOS24Logo } from "@/components/brand/HealthOS24Logo";
 
 interface ProposalCoverPageProps {
   clientName?: string;
@@ -15,15 +15,7 @@ export const ProposalCoverPage = ({ clientName = "[Hospital Name]" }: ProposalCo
     <div className="proposal-page flex flex-col justify-between bg-gradient-to-br from-background via-background to-primary/5 p-12">
       {/* Header with Logo */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="p-3 rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-lg">
-            <Activity className="h-8 w-8 text-primary-foreground" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">HealthOS</h1>
-            <p className="text-sm text-muted-foreground">Smart Hospital Management</p>
-          </div>
-        </div>
+        <HealthOS24Logo variant="full" size="lg" showTagline />
         <span className="text-xs text-muted-foreground bg-muted px-3 py-1 rounded-full">
           Confidential Proposal
         </span>
@@ -36,10 +28,10 @@ export const ProposalCoverPage = ({ clientName = "[Hospital Name]" }: ProposalCo
         
         {/* Document Title */}
         <h2 className="text-5xl font-bold text-foreground mb-4 tracking-tight">
-          HealthOS Proposal
+          HealthOS 24 Proposal
         </h2>
         <p className="text-xl text-muted-foreground mb-12">
-          Smart Hospital Management System
+          24/7 Smart Hospital Management System
         </p>
 
         {/* Client Name Box */}
@@ -65,11 +57,11 @@ export const ProposalCoverPage = ({ clientName = "[Hospital Name]" }: ProposalCo
       <div className="border-t border-border pt-6">
         <div className="flex items-center justify-between text-sm">
           <div className="text-muted-foreground">
-            <p className="font-medium text-foreground">Devmine</p>
+            <p className="font-medium text-foreground">HealthOS 24</p>
             <p>Enterprise Healthcare Technology</p>
           </div>
           <div className="text-right text-muted-foreground">
-            <p className="font-medium text-foreground">smarthms.devmine.co</p>
+            <p className="font-medium text-foreground">healthos24.com</p>
             <p>+971 506802430</p>
           </div>
         </div>

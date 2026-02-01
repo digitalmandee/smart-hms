@@ -1,4 +1,5 @@
-import { Activity, FlaskConical, TestTube, FileText, BarChart3, Scan, Image, Droplets, GitMerge } from "lucide-react";
+import { FlaskConical, TestTube, FileText, BarChart3, Scan, Image, Droplets, GitMerge } from "lucide-react";
+import { HealthOS24Logo } from "@/components/brand/HealthOS24Logo";
 
 const modules = [
   { icon: FlaskConical, name: "Laboratory Information System (LIS)", features: ["500+ test catalog", "Auto-calculated panels", "Reference ranges by age/gender", "Critical value alerts"] },
@@ -16,12 +17,7 @@ export const ProposalDiagnosticsFeatures = () => {
     <div className="proposal-page flex flex-col bg-background p-12">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-lg">
-            <Activity className="h-6 w-6 text-primary-foreground" />
-          </div>
-          <span className="text-lg font-semibold text-foreground">HealthOS</span>
-        </div>
+        <HealthOS24Logo variant="full" size="md" />
         <span className="text-sm text-muted-foreground bg-muted px-3 py-1 rounded-full">
           04 / 10
         </span>
@@ -61,8 +57,8 @@ export const ProposalDiagnosticsFeatures = () => {
 
       {/* Footer */}
       <div className="mt-6 pt-4 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
-        <span>HealthOS Proposal</span>
-        <span>smarthms.devmine.co</span>
+        <span>HealthOS 24 Proposal</span>
+        <span>healthos24.com</span>
       </div>
     </div>
   );

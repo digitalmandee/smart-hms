@@ -260,8 +260,8 @@ export const ModuleSlide = ({ feature, slideNumber, totalSlides }: ModuleSlidePr
 
       {/* Footer */}
       <div className="mt-4 pt-3 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
-        <span>HealthOS - Hospital Management System</span>
-        <span>smarthms.devmine.co</span>
+        <span>HealthOS 24 - Hospital Management System</span>
+        <span>healthos24.com</span>
       </div>
     </div>
   );
