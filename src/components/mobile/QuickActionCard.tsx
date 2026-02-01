@@ -42,18 +42,18 @@ export function QuickActionCard({
       onClick={handleClick}
       disabled={disabled}
       className={cn(
-        "flex flex-col items-center justify-center p-4 rounded-xl border transition-all",
+        "flex flex-col items-center justify-center p-3 rounded-xl border transition-all",
         "active:scale-95 touch-manipulation",
-        "min-h-[100px] w-full",
+        "min-h-[80px] w-full",
         variantStyles[variant],
         disabled && "opacity-50 cursor-not-allowed",
         className
       )}
     >
-      <div className="mb-2 text-2xl">{icon}</div>
-      <span className="text-sm font-medium text-center leading-tight">{label}</span>
+      <div className="mb-1.5">{icon}</div>
+      <span className="text-xs font-medium text-center leading-tight">{label}</span>
       {description && (
-        <span className="text-xs text-muted-foreground mt-1 text-center">{description}</span>
+        <span className="text-[10px] text-muted-foreground mt-0.5 text-center">{description}</span>
       )}
     </button>
   );

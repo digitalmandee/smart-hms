@@ -42,31 +42,31 @@ export function MobileStatsCard({
     <div
       onClick={onClick}
       className={cn(
-        "relative overflow-hidden rounded-xl bg-card border border-border p-4",
-        onClick && "cursor-pointer active:scale-98 transition-transform touch-manipulation",
+        "relative overflow-hidden rounded-xl bg-card border border-border p-3",
+        onClick && "cursor-pointer active:scale-[0.98] transition-transform touch-manipulation",
         className
       )}
     >
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <p className="text-sm text-muted-foreground font-medium">{title}</p>
-          <p className="text-2xl font-bold mt-1">{value}</p>
+          <p className="text-xs text-muted-foreground font-medium">{title}</p>
+          <p className="text-xl font-bold mt-0.5">{value}</p>
           
           {trend && (
-            <div className={cn("flex items-center gap-1 mt-2", trendColor)}>
+            <div className={cn("flex items-center gap-1 mt-1", trendColor)}>
               {TrendIcon && <TrendIcon className="h-3 w-3" />}
-              <span className="text-xs font-medium">
+              <span className="text-[10px] font-medium">
                 {trend.value > 0 ? '+' : ''}{trend.value}%
               </span>
               {trend.label && (
-                <span className="text-xs text-muted-foreground ml-1">{trend.label}</span>
+                <span className="text-[10px] text-muted-foreground ml-1">{trend.label}</span>
               )}
             </div>
           )}
         </div>
         
         {icon && (
-          <div className="p-2 rounded-lg bg-primary/10 text-primary">
+          <div className="p-1.5 rounded-lg bg-primary/10 text-primary">
             {icon}
           </div>
         )}

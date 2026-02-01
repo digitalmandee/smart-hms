@@ -27,10 +27,13 @@ export function MobileHeader() {
   return (
     <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-lg supports-[backdrop-filter]:bg-background/80 border-b border-border mobile-header">
       <div className="flex items-center justify-between h-14 px-4">
-        {/* Logo */}
+        {/* Left spacer for balance */}
+        <div className="w-20" />
+
+        {/* Centered Logo */}
         <Link 
           to="/app/dashboard" 
-          className="flex items-center touch-manipulation active:scale-95 transition-transform"
+          className="flex-1 flex justify-center touch-manipulation active:scale-95 transition-transform"
           onClick={handleAction}
         >
           <HealthOS24Logo variant="icon" size="sm" />
