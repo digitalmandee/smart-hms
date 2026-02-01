@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal, Plus, UserPlus, Users, UserCheck, Calendar, ArrowUpDown } from "lucide-react";
+import { MoreHorizontal, Plus, UserPlus, Users, UserCheck, Calendar, ArrowUpDown, Search } from "lucide-react";
+import { Capacitor } from "@capacitor/core";
 import { PageHeader } from "@/components/PageHeader";
 import { DataTable } from "@/components/DataTable";
 import { StatsCard } from "@/components/StatsCard";
@@ -18,8 +19,9 @@ import { usePatients, usePatientStats, useUpdatePatient } from "@/hooks/usePatie
 import { Database } from "@/integrations/supabase/types";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
-import { Search } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { MobilePatientList } from "@/components/mobile/MobilePatientList";
 
 type Patient = Database["public"]["Tables"]["patients"]["Row"];
 
@@ -30,6 +32,16 @@ export function PatientsListPage() {
   const { data: patients, isLoading } = usePatients(searchQuery);
   const { data: stats } = usePatientStats();
   const updatePatient = useUpdatePatient();
+
+  // Mobile detection
+  const isMobileScreen = useIsMobile();
+  const isNative = Capacitor.isNativePlatform();
+  const showMobileUI = isMobileScreen || isNative;
+
+  // Render mobile UI
+  if (showMobileUI) {
+    return <MobilePatientList />;
+  }
 
   // Only receptionist, nurse, and admin roles can register patients
   const canRegisterPatient = roles.some(r => 
