@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { format, differenceInYears } from "date-fns";
+import { Capacitor } from "@capacitor/core";
 import { PageHeader } from "@/components/PageHeader";
 import { StatsCard } from "@/components/StatsCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,14 +12,19 @@ import { useAppointments, useUpdateAppointment } from "@/hooks/useAppointments";
 import { useDoctors } from "@/hooks/useDoctors";
 import { useTodayConsultationStats } from "@/hooks/useConsultations";
 import { useAuth } from "@/contexts/AuthContext";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Users, CheckCircle, Clock, Play, Stethoscope, History, AlertTriangle, Search, Activity, DollarSign } from "lucide-react";
 import { PatientGlobalSearch } from "@/components/patients/PatientGlobalSearch";
 import { generateVisitId } from "@/lib/visit-id";
 import { PaymentStatusBadge } from "@/components/radiology/PaymentStatusBadge";
+import { MobileDoctorView } from "@/components/mobile/MobileDoctorView";
 
 export default function DoctorDashboard() {
   const { profile } = useAuth();
   const navigate = useNavigate();
+  const isMobileScreen = useIsMobile();
+  const isNative = Capacitor.isNativePlatform();
+  const showMobileUI = isMobileScreen || isNative;
   const today = format(new Date(), "yyyy-MM-dd");
 
   const { data: doctors = [] } = useDoctors();
@@ -76,6 +82,29 @@ export default function DoctorDashboard() {
     navigate(`/app/opd/consultation/${appointmentId}`);
   };
 
+  // Handle refresh for pull-to-refresh
+  const handleRefresh = async () => {
+    // Refetch is handled by react-query's refetch
+    await Promise.resolve();
+  };
+
+  // Mobile Layout
+  if (showMobileUI) {
+    return (
+      <MobileDoctorView
+        profile={profile}
+        stats={stats}
+        todayAppointments={todayAppointments}
+        queuedPatients={queuedPatients}
+        currentPatient={currentPatient}
+        isLoading={isLoading}
+        onStartConsult={handleQueueItemClick}
+        onRefresh={handleRefresh}
+      />
+    );
+  }
+
+  // Desktop Layout
   return (
     <div className="space-y-6">
       <PageHeader

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format, formatDistanceToNow } from 'date-fns';
+import { Capacitor } from '@capacitor/core';
 import { 
   Activity, 
   UserCheck, 
@@ -29,6 +30,8 @@ import { VitalsSummaryBadge } from '@/components/nursing/VitalsSummaryBadge';
 import { QuickActionsPanel } from '@/components/nursing/QuickActionsPanel';
 import { PaymentStatusBadge } from '@/components/radiology/PaymentStatusBadge';
 import { generateVisitId } from '@/lib/visit-id';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { MobileNurseView } from '@/components/mobile/MobileNurseView';
 
 const priorityLabels: Record<number, { label: string; variant: 'destructive' | 'default' | 'secondary' | 'outline' }> = {
   2: { label: 'Emergency', variant: 'destructive' },
@@ -42,12 +45,34 @@ export default function NurseDashboard() {
   const { data: queue, isLoading, refetch } = useNursingQueue();
   const { data: patients, isLoading: patientsLoading } = usePatients(patientSearch);
   
+  const isMobileScreen = useIsMobile();
+  const isNative = Capacitor.isNativePlatform();
+  const showMobileUI = isMobileScreen || isNative;
+  
   const showPatientResults = patientSearch.length >= 3;
 
   const awaitingVitals = queue?.awaitingVitals || [];
   const vitalsComplete = queue?.vitalsComplete || [];
   const inProgress = queue?.inProgress || [];
   const totalToday = awaitingVitals.length + vitalsComplete.length + inProgress.length;
+
+  // Handle refresh for pull-to-refresh
+  const handleRefresh = async () => {
+    await refetch();
+  };
+
+  // Mobile Layout
+  if (showMobileUI) {
+    return (
+      <MobileNurseView
+        queue={queue}
+        isLoading={isLoading}
+        onRefresh={handleRefresh}
+      />
+    );
+  }
+
+  // Desktop Layout
 
   return (
     <div className="space-y-6">
