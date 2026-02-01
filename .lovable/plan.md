@@ -1,258 +1,277 @@
 
-# Complete PWA Native Experience Fix - Final Polish
+# Side Menu + Smooth Page Transitions Plan
 
-## Issues Identified from Screenshots
+## Issues Identified
 
-### Screenshot 1 (Appointments Page)
-- **Padding around page content** - There's visible padding on left/right creating non-native feel
-- **Desktop-style PageHeader** showing "Dashboard > Appointments" breadcrumb on mobile
-- **Stats cards are single-column** instead of 2-column grid like doctor dashboard
-- **Logo not centered** in header
+### Issue 1: Profile and More Pages Have Duplicate Content
+- **Profile page** (lines 141-162) has menu items: Edit Profile, Notifications, Privacy & Security, Help & Support
+- **More page** (lines 167-191) has similar sections: Account (Settings, Notifications, Privacy), Support (Help, Terms, About)
+- Both pages essentially duplicate "Account" and "Support" menu items
+- User wants: **Profile** = personal info only, **More** = slide-out side menu
 
-### Screenshot 2 (More Page)
-- **Duplicate profile** - User info shown in More menu but also has separate Profile tab
-- More page showing profile header (correct for "More" - this is the settings hub)
+### Issue 2: No Slide-Out Side Menu
+- Currently, the hamburger menu (Menu icon) in `MobileHeader.tsx` (line 37-40) navigates to `/app/more` page
+- User expects: Hamburger should open a **slide-out side menu** (Sheet component) instead of navigating to a page
+- The Sheet component already exists (`src/components/ui/sheet.tsx`) with left/right slide animations
 
-### Screenshot 3 (Profile Page)
-- Profile showing user info (this is correct - personal profile page)
-- **But duplicates More page's content** - should be distinct
+### Issue 3: Glitchy Page Transitions
+- Current animation in `index.css` (lines 556-570) is `slideInFromRight` - basic fade + slight slide
+- This creates a "glitch" feeling because it's not a full iOS/Android-style transition
+- Need smoother, more native-like page transitions or a loading splash between screens
 
-### Screenshot 4 (Doctor Dashboard)
-- **Padding around content** - visible gaps on sides (px-4 in DashboardLayout + px-4 in MobileDoctorView = double padding)
-- Quick action buttons working but styling could be more native
-
-## Root Causes
-
-1. **Double padding issue**: `DashboardLayout.tsx` line 36 adds `px-4 py-4` wrapper, AND mobile components (like `MobileDoctorView.tsx` line 81) also add `px-4 py-4` = total 32px padding each side
-
-2. **Logo not centered**: `MobileHeader.tsx` has logo on left, needs center option
-
-3. **Profile/More duplication**: 
-   - Profile page = personal profile with avatar, settings toggles, sign out
-   - More page = also shows profile header + quick actions + menu items
-   - Solution: Profile = personal info only, More = app menu/settings hub (no profile header)
-
-4. **Appointments page not PWA optimized**: `AppointmentsListPage.tsx` uses desktop `PageHeader` and `StatsCard` components - no mobile detection
-
-5. **Quick actions not working**: Links appear correct but may have navigation issues
+---
 
 ## Implementation Plan
 
-### Phase 1: Fix Double Padding Issue (CRITICAL)
+### Phase 1: Create Mobile Side Menu Component
 
-**File: `src/layouts/DashboardLayout.tsx`**
+**New File: `src/components/mobile/MobileSideMenu.tsx`**
 
-Remove padding from the layout wrapper - let individual pages control their own padding:
-
-```typescript
-// Line 36: Change from
-<div className="min-h-full mobile-page-content px-4 py-4">
-
-// To
-<div className="min-h-full mobile-page-content">
-```
-
-This way, mobile-optimized pages can go edge-to-edge when needed, and pages that need padding can add their own.
-
-### Phase 2: Center Logo in Header
-
-**File: `src/components/mobile/MobileHeader.tsx`**
-
-Update header layout to center the logo:
+Create a slide-out side menu using the Sheet component:
 
 ```typescript
-<header className="...">
-  <div className="flex items-center justify-between h-14 px-4">
-    {/* Left spacer for balance */}
-    <div className="w-20" />
-    
-    {/* Centered Logo */}
-    <Link to="/app/dashboard" className="flex-1 flex justify-center">
-      <HealthOS24Logo variant="icon" size="sm" />
-    </Link>
-    
-    {/* Right actions */}
-    <div className="flex items-center gap-1">
-      {/* Search, Notifications, Profile */}
-    </div>
-  </div>
-</header>
-```
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Link } from "react-router-dom";
+import { 
+  Settings, Bell, Shield, HelpCircle, FileText, Info, 
+  Calendar, Stethoscope, ClipboardList, Pill, TestTube, Wallet,
+  LogOut, Moon, X
+} from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Separator } from "@/components/ui/separator";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "next-themes";
+import { useHaptics } from "@/hooks/useHaptics";
 
-### Phase 3: Differentiate Profile vs More Pages
+interface MobileSideMenuProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
 
-**Profile Page** (`src/pages/app/ProfilePage.tsx`) should focus on:
-- User avatar & name
-- Role badge
-- Dark mode toggle
-- Push notifications toggle
-- Edit profile link
-- Sign out button
-
-**More Page** (`src/pages/app/MorePage.tsx`) should focus on:
-- Quick Actions grid (Schedule, Consult, Tasks, etc.)
-- Account menu (Settings, Notifications, Privacy)
-- Support menu (Help, Terms, About)
-- Dark mode toggle
-- Sign out button
-- NO profile header - remove the gradient profile summary section
-
-Changes to `MorePage.tsx`:
-- Remove the profile summary header (lines 109-121)
-- Keep quick actions and menu items
-
-### Phase 4: Make Appointments Page PWA Optimized
-
-**File: `src/pages/app/appointments/AppointmentsListPage.tsx`**
-
-Add mobile detection and render mobile-optimized view:
-
-```typescript
-import { useIsMobile } from "@/hooks/use-mobile";
-import { Capacitor } from "@capacitor/core";
-import { MobileStatsCard } from "@/components/mobile/MobileStatsCard";
-
-export default function AppointmentsListPage() {
-  const isMobileScreen = useIsMobile();
-  const isNative = Capacitor.isNativePlatform();
-  const showMobileUI = isMobileScreen || isNative;
-
-  // Mobile view
-  if (showMobileUI) {
-    return (
-      <div className="space-y-4 px-4 py-4 pb-24">
-        {/* Mobile greeting header */}
-        <div>
-          <h1 className="text-xl font-bold">Appointments</h1>
-          <p className="text-sm text-muted-foreground">Today's schedule</p>
-        </div>
-        
-        {/* 2-column stats grid */}
-        <div className="grid grid-cols-2 gap-3">
-          <MobileStatsCard title="Today's Appointments" value={stats?.todayCount || 0} icon={<Calendar />} />
-          <MobileStatsCard title="Waiting" value={stats?.scheduled || 0} icon={<Clock />} />
-          <MobileStatsCard title="Completed" value={stats?.completed || 0} icon={<CheckCircle />} />
-          <MobileStatsCard title="Cancelled" value={stats?.cancelled || 0} icon={<XCircle />} />
-        </div>
-        
-        {/* Quick filter chips */}
-        <div className="flex gap-2 overflow-x-auto pb-2">
-          <Badge variant={statusFilter === 'all' ? 'default' : 'outline'} onClick={() => setStatusFilter('all')}>All</Badge>
-          <Badge variant={statusFilter === 'scheduled' ? 'default' : 'outline'}>Scheduled</Badge>
-          <Badge variant={statusFilter === 'checked_in' ? 'default' : 'outline'}>Checked In</Badge>
-          {/* etc */}
-        </div>
-        
-        {/* Appointment cards instead of table */}
-        <div className="space-y-3">
-          {appointments?.map(apt => (
-            <AppointmentCard key={apt.id} ... />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  // Existing desktop view
-  return (...);
+export function MobileSideMenu({ open, onOpenChange }: MobileSideMenuProps) {
+  // Profile header with avatar
+  // Quick Actions grid
+  // Account menu (Settings, Notifications, Privacy)
+  // Support menu (Help, Terms, About)
+  // Dark Mode toggle
+  // Sign Out button
+  // App version
 }
 ```
 
-### Phase 5: Fix MobileDoctorView Padding
+Features:
+- Opens from left side (matching iOS/Android pattern)
+- Contains user profile summary at top
+- Quick action shortcuts
+- All settings/menu items currently in More page
+- Dark mode toggle
+- Sign out button
+- Closes when user taps a menu item or overlay
 
-Since we removed padding from layout, ensure `MobileDoctorView` adds its own:
+### Phase 2: Update MobileHeader to Use Sheet
 
-**File: `src/components/mobile/MobileDoctorView.tsx`**
+**File: `src/components/mobile/MobileHeader.tsx`**
 
-Line 81 already has `px-4 py-4` which is correct - keep this
-
-### Phase 6: Fix MobileNurseView Padding  
-
-Same pattern - ensure it has proper padding:
-
-**File: `src/components/mobile/MobileNurseView.tsx`**
-
-Line 80 already has `px-4 py-4` which is correct - keep this
-
-### Phase 7: Fix Quick Action Card Font/Styling
-
-**File: `src/components/mobile/QuickActionCard.tsx`**
-
-Update for better native feel:
-- Reduce min-height from 100px to 80px for better proportions
-- Adjust font size and icon size
-- Add better touch feedback
+Change hamburger button to open side menu sheet instead of navigating:
 
 ```typescript
-<button className={cn(
-  "flex flex-col items-center justify-center p-3 rounded-xl border transition-all",
-  "active:scale-95 touch-manipulation",
-  "min-h-[80px] w-full",  // Changed from 100px
-  variantStyles[variant],
-  disabled && "opacity-50 cursor-not-allowed",
-  className
-)}>
-  <div className="mb-1.5">{icon}</div>  {/* Reduced margin */}
-  <span className="text-xs font-medium text-center leading-tight">{label}</span>
-</button>
+// Add state and import Sheet
+const [sideMenuOpen, setSideMenuOpen] = useState(false);
+
+// Change menu button onClick
+<Button onClick={() => setSideMenuOpen(true)}>
+  <Menu />
+</Button>
+
+// Add Sheet component
+<MobileSideMenu open={sideMenuOpen} onOpenChange={setSideMenuOpen} />
 ```
 
-### Phase 8: Fix MobileStatsCard Styling
+### Phase 3: Simplify Profile Page (Mobile View)
 
-**File: `src/components/mobile/MobileStatsCard.tsx`**
+**File: `src/pages/app/ProfilePage.tsx`**
 
-Ensure consistent styling with native feel:
-- Reduce padding slightly for tighter layout
-- Adjust font sizes
+Remove duplicate menu items, keep only personal profile content:
+
+Current mobile view has:
+- Avatar, name, email, role badge (KEEP)
+- Dark Mode toggle (KEEP - personal preference)
+- Push Notifications toggle (KEEP - personal preference)
+- Edit Profile, Notifications, Privacy, Help menu items (REMOVE - these move to side menu)
+- Sign Out button (REMOVE - moves to side menu)
+
+New mobile profile page content:
+- Profile header (avatar, name, email, role)
+- Personal settings toggles (Dark Mode, Push Notifications)
+- Edit Profile button (single action)
+- Version info
+
+### Phase 4: Remove or Simplify More Page
+
+**File: `src/pages/app/MorePage.tsx`**
+
+Since the side menu now handles all the "More" functionality:
+- Mobile view: Redirect to dashboard or show minimal content
+- Or: Remove from bottom navigation entirely, replace with another useful tab
+
+**File: `src/components/mobile/BottomNavigation.tsx`**
+
+Option A: Remove "More" tab, keep only 4-5 tabs
+Option B: Replace "More" with another useful action (e.g., "Wallet", "Settings direct link")
+
+Recommended: Remove "More" from bottom nav since hamburger menu now handles it
+
+### Phase 5: Improve Page Transitions
+
+**File: `src/index.css`**
+
+Enhance the mobile page transitions for smoother experience:
+
+```css
+/* Improved iOS-style page transition */
+.mobile-page-content {
+  animation: pageSlideIn 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@keyframes pageSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(30%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Alternative: Fade transition for less motion */
+@media (prefers-reduced-motion: reduce) {
+  .mobile-page-content {
+    animation: pageFadeIn 0.2s ease-out;
+  }
+}
+
+@keyframes pageFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+```
+
+### Phase 6: Add Page Loading State (Optional Enhancement)
+
+**New File: `src/components/mobile/PageTransition.tsx`**
+
+For longer loading operations, show a brief loading state:
 
 ```typescript
-<div className={cn(
-  "relative overflow-hidden rounded-xl bg-card border border-border p-3",  // p-3 instead of p-4
-  onClick && "cursor-pointer active:scale-[0.98] transition-transform touch-manipulation",
-  className
-)}>
-  <div className="flex items-start justify-between">
-    <div className="flex-1">
-      <p className="text-xs text-muted-foreground font-medium">{title}</p>  {/* text-xs instead of text-sm */}
-      <p className="text-xl font-bold mt-0.5">{value}</p>  {/* text-xl instead of text-2xl, mt-0.5 instead of mt-1 */}
-      ...
+export function PageTransition({ children, isLoading }: { children: React.ReactNode; isLoading?: boolean }) {
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[200px]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+  
+  return (
+    <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+      {children}
     </div>
-    ...
-  </div>
-</div>
+  );
+}
 ```
+
+---
 
 ## Files to Modify
 
 | File | Changes |
 |------|---------|
-| `src/layouts/DashboardLayout.tsx` | Remove px-4 py-4 from mobile wrapper |
-| `src/components/mobile/MobileHeader.tsx` | Center the logo |
-| `src/pages/app/MorePage.tsx` | Remove profile header section |
-| `src/pages/app/appointments/AppointmentsListPage.tsx` | Add mobile view with MobileStatsCard and card list |
-| `src/components/mobile/QuickActionCard.tsx` | Adjust sizing for better proportions |
-| `src/components/mobile/MobileStatsCard.tsx` | Adjust padding/fonts for tighter layout |
+| `src/components/mobile/MobileSideMenu.tsx` | **NEW** - Slide-out side menu component |
+| `src/components/mobile/MobileHeader.tsx` | Add Sheet state, open side menu on hamburger click |
+| `src/pages/app/ProfilePage.tsx` | Simplify mobile view - remove duplicate menu items |
+| `src/components/mobile/BottomNavigation.tsx` | Remove "More" tab from navigation |
+| `src/index.css` | Improve page transition animation |
 
-## New Files to Create
+---
 
-| File | Purpose |
-|------|---------|
-| `src/components/mobile/MobileAppointmentCard.tsx` | Mobile-optimized appointment card for list views |
+## Visual Layout After Changes
+
+**Header:**
+```
+[☰] [🔍]     [LOGO]     [🔔] [👤]
+```
+- ☰ opens slide-out side menu
+- 👤 goes to simplified Profile page
+
+**Side Menu (slides from left):**
+```
+┌─────────────────────────────┐
+│ [X]                         │
+│                             │
+│ ┌─────┐                     │
+│ │ 👤  │ Dr. Ahmed Khan      │
+│ └─────┘ Doctor              │
+│                             │
+│ ─────────────────────────── │
+│ Quick Actions               │
+│ [📅] [🩺] [💊] [🔬] [💰]   │
+│                             │
+│ ─────────────────────────── │
+│ Account                     │
+│ ⚙️ Settings            >    │
+│ 🔔 Notifications       >    │
+│ 🛡️ Privacy & Security  >    │
+│                             │
+│ ─────────────────────────── │
+│ Support                     │
+│ ❓ Help & FAQ          >    │
+│ 📄 Terms of Service    >    │
+│ ℹ️ About               >    │
+│                             │
+│ ─────────────────────────── │
+│ 🌙 Dark Mode      [toggle]  │
+│                             │
+│ [🚪 Sign Out]               │
+│                             │
+│ v2.0.0                      │
+└─────────────────────────────┘
+```
+
+**Profile Page (simplified):**
+```
+      ┌─────┐
+      │ 👤  │
+      └─────┘
+   Dr. Ahmed Khan
+   ahmed@hospital.com
+      [Doctor]
+
+   ─────────────────
+   
+   🌙 Dark Mode     [toggle]
+   📱 Push Notif.   [toggle]
+   
+   [Edit Profile]
+   
+   v2.0.0
+```
+
+**Bottom Navigation (updated):**
+```
+[🏠]  [📅]  [📋]  [👤]
+Home  Schedule Tasks Profile
+```
+(Removed "More" - now accessed via hamburger)
+
+---
 
 ## Expected Results
 
-After these changes:
-1. No double padding - content goes closer to edges for native feel
-2. Logo centered in header
-3. Profile and More pages serve different purposes (no duplication)
-4. Appointments page shows native mobile UI with 2-column stats
-5. Quick actions have better proportions and sizing
-6. Stats cards are more compact and native-looking
-7. All pages follow consistent mobile design patterns
-
-## Technical Notes
-
-- Safe areas are already handled by existing CSS (`.mobile-header`, `.mobile-bottom-nav`)
-- Pull-to-refresh and haptics already integrated
-- Bottom navigation padding for scrollable content (pb-24) is preserved
-- All changes maintain desktop functionality - only mobile layout is affected
+1. **Hamburger menu opens slide-out side menu** instead of navigating to a page
+2. **No duplicate content** between Profile and More
+3. **Profile page focuses on personal info** (avatar, preferences, edit)
+4. **Side menu has all app navigation** (quick actions, settings, support)
+5. **Smoother page transitions** with improved cubic-bezier animation
+6. **Cleaner bottom navigation** with 4 focused tabs
