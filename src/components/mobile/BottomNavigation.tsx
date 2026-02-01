@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, ClipboardList, User, Menu, Calendar, Pill, TestTube } from "lucide-react";
+import { Home, ClipboardList, User, Calendar, Pill, TestTube } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { useHaptics } from "@/hooks/useHaptics";
@@ -12,6 +12,7 @@ interface NavItem {
 }
 
 // Updated to use /app/* routes for PWA-style navigation
+// Removed "More" tab - now accessed via hamburger menu side drawer
 const navItems: NavItem[] = [
   { path: "/app/dashboard", label: "Home", icon: Home },
   { path: "/app/appointments", label: "Schedule", icon: Calendar },
@@ -19,7 +20,6 @@ const navItems: NavItem[] = [
   { path: "/app/pharmacy", label: "Pharmacy", icon: Pill, roles: ["pharmacist", "ot_pharmacist"] },
   { path: "/app/lab", label: "Lab", icon: TestTube, roles: ["lab_technician"] },
   { path: "/app/profile", label: "Profile", icon: User },
-  { path: "/app/more", label: "More", icon: Menu },
 ];
 
 export function BottomNavigation() {
