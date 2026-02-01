@@ -1,6 +1,7 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format, addDays, subDays } from 'date-fns';
+import { Capacitor } from '@capacitor/core';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, Users, Scissors, Check, X, AlertTriangle } from 'lucide-react';
 import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
@@ -16,6 +17,8 @@ import { useAppointmentNotifications } from '@/hooks/useAppointmentNotifications
 import { useSurgeries, type Surgery } from '@/hooks/useOT';
 import { useSurgeryNotifications } from '@/hooks/useSurgeryNotifications';
 import { useAcceptSurgeryAssignment } from '@/hooks/useSurgeryConfirmation';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { MobileCalendarView } from '@/components/mobile/MobileCalendarView';
 
 // Confirmation status types
 type ConfirmationStatusType = 'pending_your' | 'pending_others' | 'all_confirmed' | 'has_declined';
@@ -90,6 +93,11 @@ export default function MyCalendarPage() {
   const navigate = useNavigate();
   const { profile, hasRole } = useAuth();
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  
+  // Mobile detection
+  const isMobileScreen = useIsMobile();
+  const isNative = Capacitor.isNativePlatform();
+  const showMobileUI = isMobileScreen || isNative;
 
   // Get doctor linked to current user's employee
   const { data: doctor } = useDoctorByEmployeeId(profile?.id || '');
@@ -181,6 +189,28 @@ export default function MyCalendarPage() {
     if (hasRole('nurse')) return 'Nurse';
     return 'Doctor';
   };
+
+  // Handle refresh for mobile
+  const handleRefresh = useCallback(async () => {
+    // Trigger refetch via query invalidation
+  }, []);
+
+  // Mobile UI
+  if (showMobileUI) {
+    return (
+      <MobileCalendarView
+        selectedDate={selectedDate}
+        onDateChange={setSelectedDate}
+        appointments={sortedAppointments}
+        surgeries={surgeries}
+        stats={stats}
+        isLoading={isLoading}
+        onRefresh={handleRefresh}
+        doctorName={doctor?.profile?.full_name}
+        currentDoctorId={doctor?.id}
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">

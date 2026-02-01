@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Loader2, ArrowLeft, UserCheck, AlertTriangle, Printer, Clock, Stethoscope, Hash, CreditCard } from 'lucide-react';
+import { Capacitor } from '@capacitor/core';
+import { Loader2, ArrowLeft, UserCheck, AlertTriangle, Printer, Clock, Stethoscope, Hash, CreditCard, ChevronDown } from 'lucide-react';
 import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { VitalsForm } from '@/components/consultation/VitalsForm';
 import { PatientQuickInfo } from '@/components/consultation/PatientQuickInfo';
 import { PrintableTokenSlip } from '@/components/appointments/PrintableTokenSlip';
@@ -23,6 +25,8 @@ import { usePrint } from '@/hooks/usePrint';
 import { generateVisitId } from '@/lib/visit-id';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { useHaptics } from '@/hooks/useHaptics';
 
 const priorityOptions = [
   { 
@@ -59,6 +63,12 @@ export default function CheckInPage() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { profile } = useAuth();
+  const haptics = useHaptics();
+
+  // Mobile detection
+  const isMobileScreen = useIsMobile();
+  const isNative = Capacitor.isNativePlatform();
+  const showMobileUI = isMobileScreen || isNative;
 
   const { data: appointment, isLoading, refetch } = useAppointment(id || '');
   const { data: organization } = useOrganization(profile?.organization_id ?? undefined);
@@ -73,6 +83,7 @@ export default function CheckInPage() {
   const [printTokenSlip, setPrintTokenSlip] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [checkedInAppointment, setCheckedInAppointment] = useState<any>(null);
+  const [vitalsOpen, setVitalsOpen] = useState(!showMobileUI);
   
   // Payment dialog states
   const [showPaymentRequiredDialog, setShowPaymentRequiredDialog] = useState(false);
@@ -233,6 +244,260 @@ export default function CheckInPage() {
     }
   };
 
+  // Mobile Layout
+  if (showMobileUI) {
+    return (
+      <div className="pb-32">
+        {/* Mobile Header */}
+        <div className="sticky top-0 z-10 bg-background border-b px-4 py-3 flex items-center gap-3">
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div className="flex-1">
+            <h1 className="font-semibold">Check-In</h1>
+            <p className="text-xs text-muted-foreground">Token #{appointment.token_number || 'N/A'}</p>
+          </div>
+          {getPaymentStatusBadge()}
+        </div>
+
+        <div className="px-4 py-4 space-y-4">
+          {/* Patient Card */}
+          <Card className="border-2 border-primary/20 bg-primary/5">
+            <CardContent className="py-4">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-2xl font-bold shadow-md">
+                  {appointment.token_number || '-'}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-lg font-bold truncate">
+                    {patient?.first_name} {patient?.last_name}
+                  </h2>
+                  <p className="text-sm text-muted-foreground">MR# {patient?.patient_number}</p>
+                  <div className="flex items-center gap-1.5 mt-1">
+                    <Hash className="h-3.5 w-3.5 text-primary" />
+                    <span className="text-xs font-mono font-medium text-primary">{visitId}</span>
+                  </div>
+                </div>
+              </div>
+              {doctor && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground mt-3 pt-3 border-t">
+                  <Stethoscope className="h-4 w-4" />
+                  <span>Dr. {doctor.profile?.full_name}</span>
+                  <span className="ml-auto flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    {appointment.appointment_time || 'Walk-in'}
+                  </span>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Payment Alert */}
+          {paymentStatus === 'pending' && (
+            <Card className="border-warning bg-warning/10">
+              <CardContent className="py-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <CreditCard className="h-5 w-5 text-warning" />
+                    <span className="text-sm font-medium">Payment Pending</span>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="h-9"
+                    onClick={() => {
+                      haptics.light();
+                      setShowPaymentDialog(true);
+                    }}
+                  >
+                    Collect
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Priority Selection - Horizontal Scroll */}
+          <div>
+            <Label className="text-sm font-medium mb-2 block">Triage Priority</Label>
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              {priorityOptions.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => {
+                    haptics.light();
+                    setPriority(option.value);
+                  }}
+                  className={cn(
+                    'flex items-center gap-2 min-w-[120px] p-3 rounded-xl border-2 transition-all shrink-0',
+                    priority === option.value 
+                      ? cn(option.borderColor, option.bgColor)
+                      : 'border-border'
+                  )}
+                >
+                  <div className={cn('w-3 h-3 rounded-full shrink-0', option.color)} />
+                  <span className={cn(
+                    'text-sm font-medium',
+                    priority === option.value && option.textColor
+                  )}>
+                    {option.label}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Chief Complaint */}
+          <div>
+            <Label className="text-sm font-medium mb-2 block">Chief Complaint</Label>
+            <Textarea
+              placeholder="Patient's main complaint..."
+              value={chiefComplaint}
+              onChange={(e) => setChiefComplaint(e.target.value)}
+              rows={2}
+              className="resize-none min-h-[80px]"
+            />
+          </div>
+
+          {/* Collapsible Vitals Section */}
+          <Collapsible open={vitalsOpen} onOpenChange={setVitalsOpen}>
+            <CollapsibleTrigger asChild>
+              <button className="flex items-center justify-between w-full p-3 rounded-lg bg-muted/50 border">
+                <span className="font-medium text-sm">Record Vitals (Optional)</span>
+                <ChevronDown className={cn(
+                  'h-4 w-4 transition-transform',
+                  vitalsOpen && 'rotate-180'
+                )} />
+              </button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="pt-3">
+              <VitalsForm vitals={vitals} onChange={setVitals} />
+            </CollapsibleContent>
+          </Collapsible>
+
+          {/* Quick Options */}
+          <div className="space-y-3">
+            <div className="flex items-center space-x-3 p-3 rounded-lg border bg-muted/30">
+              <Checkbox
+                id="insurance-mobile"
+                checked={insuranceVerified}
+                onCheckedChange={(checked) => setInsuranceVerified(checked === true)}
+              />
+              <Label htmlFor="insurance-mobile" className="cursor-pointer flex-1 text-sm">
+                Insurance Verified
+              </Label>
+            </div>
+            <div className="flex items-center space-x-3 p-3 rounded-lg border bg-muted/30">
+              <Checkbox
+                id="consent-mobile"
+                checked={consentSigned}
+                onCheckedChange={(checked) => setConsentSigned(checked === true)}
+              />
+              <Label htmlFor="consent-mobile" className="cursor-pointer flex-1 text-sm">
+                Consent Signed
+              </Label>
+            </div>
+            <div className="flex items-center space-x-3 p-3 rounded-lg border bg-muted/30">
+              <Checkbox
+                id="printToken-mobile"
+                checked={printTokenSlip}
+                onCheckedChange={(checked) => setPrintTokenSlip(checked === true)}
+              />
+              <Label htmlFor="printToken-mobile" className="cursor-pointer flex-1 text-sm flex items-center gap-2">
+                <Printer className="h-4 w-4" />
+                Print token slip
+              </Label>
+            </div>
+          </div>
+        </div>
+
+        {/* Fixed Bottom Button */}
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-background border-t safe-area-bottom">
+          <Button
+            size="lg"
+            className="w-full h-14 text-lg"
+            onClick={() => {
+              haptics.medium();
+              handleCheckIn();
+            }}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+            ) : (
+              <UserCheck className="h-5 w-5 mr-2" />
+            )}
+            Complete Check-In
+          </Button>
+        </div>
+
+        {/* Hidden print element */}
+        <div className="hidden">
+          <PrintableTokenSlip
+            ref={printRef}
+            appointment={checkedInAppointment || appointment}
+            patient={patient}
+            doctor={doctor}
+            organization={organization ? {
+              name: organization.name,
+              address: organization.address || undefined,
+              phone: organization.phone || undefined
+            } : undefined}
+          />
+        </div>
+
+        {/* Payment Dialogs */}
+        <PaymentRequiredDialog
+          open={showPaymentRequiredDialog}
+          onOpenChange={setShowPaymentRequiredDialog}
+          patientName={`${patient?.first_name} ${patient?.last_name}`}
+          doctorName={doctor?.profile?.full_name || 'Doctor'}
+          consultationFee={consultationFee}
+          paymentStatus={paymentStatus as "pending" | "partial" | "waived"}
+          onPayNow={() => {
+            setShowPaymentRequiredDialog(false);
+            setShowPaymentDialog(true);
+          }}
+          onPayLater={handlePayLater}
+          onWaive={() => {
+            setShowPaymentRequiredDialog(false);
+            setShowWaiverDialog(true);
+          }}
+        />
+        
+        {appointment && (
+          <AppointmentPaymentDialog
+            open={showPaymentDialog}
+            onOpenChange={setShowPaymentDialog}
+            appointmentId={appointment.id}
+            patientName={`${patient?.first_name} ${patient?.last_name}`}
+            patientNumber={patient?.patient_number || ''}
+            doctorName={doctor?.profile?.full_name || 'Doctor'}
+            consultationFee={consultationFee}
+            appointmentDate={appointment.appointment_date}
+            appointmentTime={appointment.appointment_time}
+            onPaymentComplete={handlePaymentComplete}
+            onPayLater={handlePayLater}
+          />
+        )}
+        
+        <FeeWaiverDialog
+          open={showWaiverDialog}
+          onOpenChange={setShowWaiverDialog}
+          patient={{ 
+            name: `${patient?.first_name} ${patient?.last_name}`,
+            mrNumber: patient?.patient_number 
+          }}
+          doctor={{ name: doctor?.profile?.full_name || 'Doctor' }}
+          fee={consultationFee}
+          onConfirm={handleWaiverConfirm}
+        />
+      </div>
+    );
+  }
+
+  // Desktop Layout
   return (
     <div className="space-y-6">
       <PageHeader
