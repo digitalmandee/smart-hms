@@ -1,4 +1,5 @@
-import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   Sheet,
   SheetContent,
@@ -6,21 +7,134 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import {
-  Settings,
-  Bell,
-  Shield,
-  HelpCircle,
-  FileText,
-  Info,
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
+  LayoutDashboard,
+  Users,
   Calendar,
   Stethoscope,
-  ClipboardList,
   Pill,
+  Receipt,
+  BarChart3,
+  Settings,
+  Shield,
+  UserPlus,
+  CalendarDays,
+  ClipboardList,
+  ListOrdered,
+  Package,
+  AlertTriangle,
+  FileText,
+  FilePlus,
+  CreditCard,
+  DollarSign,
+  Activity,
+  UserCog,
+  Building2,
+  Palette,
+  Building,
+  Cog,
+  TrendingUp,
+  ConciergeBell,
+  CalendarClock,
+  CalendarPlus,
+  HeartPulse,
   TestTube,
+  FlaskConical,
+  ListChecks,
+  FileInput,
+  FileSpreadsheet,
+  Siren,
+  Ambulance,
+  Gauge,
+  Monitor,
+  Bed,
+  Droplet,
+  Scissors,
+  TestTubes,
+  Heart,
+  Box,
+  FolderTree,
+  PackageCheck,
+  Boxes,
+  FileEdit,
+  Warehouse,
+  Store,
+  Clock,
+  Tags,
+  Calculator,
+  ListTree,
+  BookOpen,
+  Ticket,
+  PiggyBank,
+  Folders,
+  BedDouble,
+  Scan,
+  Landmark,
+  PieChart,
+  Search,
+  UserCheck,
+  Camera,
+  Scale,
+  ArrowLeftRight,
+  ClipboardCheck,
+  Briefcase,
+  Gift,
+  CalendarCheck,
+  Apple,
+  Sparkles,
+  History,
+  GitBranch,
+  Puzzle,
+  ScrollText,
+  Headphones,
+  List,
+  Percent,
+  Award,
+  GraduationCap,
+  DoorOpen,
+  UtensilsCrossed,
+  Plus,
+  Settings2,
+  UserCircle,
+  Table2,
+  Inbox,
+  PlayCircle,
+  BadgeCheck,
+  Tag,
+  CheckSquare,
+  Fingerprint,
+  Book,
+  CalendarX,
+  CalendarOff,
+  Edit,
+  ShieldCheck,
   Wallet,
+  Syringe,
+  ArrowRightLeft,
+  Banknote,
+  BarChart,
+  Bell,
+  FileCode,
+  FolderOpen,
+  Footprints,
+  HeartHandshake,
+  Layers,
+  LayoutGrid,
+  Megaphone,
+  MessageSquare,
+  Network,
+  PackagePlus,
+  Radio,
+  Server,
+  Tv,
+  Send,
   LogOut,
   Moon,
-  ChevronRight,
+  ChevronDown,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
@@ -30,58 +144,232 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "next-themes";
 import { useHaptics } from "@/hooks/useHaptics";
-import { ROLE_LABELS, CLINICAL_ROLES, NURSING_ROLES } from "@/constants/roles";
+import { ROLE_LABELS } from "@/constants/roles";
+import { ROLE_SIDEBAR_CONFIG, getPrimaryRole, type SidebarMenuItem } from "@/config/role-sidebars";
 import { cn } from "@/lib/utils";
+
+// Icon map matching DynamicSidebar
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+  LayoutDashboard,
+  Users,
+  Calendar,
+  Stethoscope,
+  Pill,
+  Receipt,
+  BarChart3,
+  Settings,
+  Shield,
+  UserPlus,
+  CalendarDays,
+  ClipboardList,
+  ListOrdered,
+  Package,
+  AlertTriangle,
+  FileText,
+  FilePlus,
+  CreditCard,
+  DollarSign,
+  Activity,
+  UserCog,
+  Building2,
+  Palette,
+  Building,
+  Cog,
+  TrendingUp,
+  ConciergeBell,
+  CalendarClock,
+  CalendarPlus,
+  HeartPulse,
+  TestTube,
+  FlaskConical,
+  ListChecks,
+  FileInput,
+  FileSpreadsheet,
+  Siren,
+  Ambulance,
+  Gauge,
+  Monitor,
+  Bed,
+  Droplet,
+  Scissors,
+  TestTubes,
+  Heart,
+  Box,
+  FolderTree,
+  PackageCheck,
+  Boxes,
+  FileEdit,
+  Warehouse,
+  Store,
+  Clock,
+  Tags,
+  Calculator,
+  ListTree,
+  BookOpen,
+  Ticket,
+  PiggyBank,
+  Folders,
+  BedDouble,
+  Scan,
+  Landmark,
+  PieChart,
+  Search,
+  UserCheck,
+  Camera,
+  Scale,
+  ArrowLeftRight,
+  ClipboardCheck,
+  Briefcase,
+  Gift,
+  CalendarCheck,
+  Apple,
+  Sparkles,
+  History,
+  GitBranch,
+  Puzzle,
+  ScrollText,
+  Headphones,
+  List,
+  Percent,
+  Award,
+  GraduationCap,
+  DoorOpen,
+  UtensilsCrossed,
+  Plus,
+  Settings2,
+  UserCircle,
+  Table2,
+  Inbox,
+  PlayCircle,
+  BadgeCheck,
+  Tag,
+  CheckSquare,
+  Fingerprint,
+  Book,
+  CalendarX,
+  CalendarOff,
+  Edit,
+  ShieldCheck,
+  Wallet,
+  Syringe,
+  ArrowRightLeft,
+  Banknote,
+  BarChart,
+  Bell,
+  FileCode,
+  FolderOpen,
+  Footprints,
+  HeartHandshake,
+  Layers,
+  LayoutGrid,
+  Megaphone,
+  MessageSquare,
+  Network,
+  PackagePlus,
+  Radio,
+  Server,
+  Tv,
+  Send,
+};
 
 interface MobileSideMenuProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-interface MenuItemProps {
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  to?: string;
-  onClick?: () => void;
+interface MobileMenuItemProps {
+  item: SidebarMenuItem;
+  level?: number;
   onClose: () => void;
+  isActive: (path: string) => boolean;
 }
 
-function MenuItem({ icon: Icon, label, to, onClick, onClose }: MenuItemProps) {
+function MobileMenuItem({ item, level = 0, onClose, isActive }: MobileMenuItemProps) {
+  const [isOpen, setIsOpen] = useState(false);
   const haptics = useHaptics();
-
+  
+  const hasChildren = item.children && item.children.length > 0;
+  const Icon = iconMap[item.icon] || LayoutDashboard;
+  const paddingLeft = level === 0 ? "pl-3" : level === 1 ? "pl-8" : "pl-12";
+  
   const handleClick = () => {
     haptics.light();
-    onClick?.();
-    onClose();
+    if (!hasChildren) {
+      onClose();
+    }
   };
 
-  const content = (
-    <div className="flex items-center justify-between py-3 px-2 touch-manipulation active:bg-muted/50 rounded-lg transition-colors">
-      <div className="flex items-center gap-3">
-        <Icon className="h-5 w-5 text-muted-foreground" />
-        <span className="font-medium">{label}</span>
-      </div>
-      <ChevronRight className="h-4 w-4 text-muted-foreground" />
-    </div>
-  );
+  const handleToggle = (open: boolean) => {
+    haptics.light();
+    setIsOpen(open);
+  };
 
-  if (to) {
+  // Parent item with children - collapsible
+  if (hasChildren) {
     return (
-      <Link to={to} onClick={handleClick}>
-        {content}
-      </Link>
+      <Collapsible open={isOpen} onOpenChange={handleToggle}>
+        <CollapsibleTrigger className="w-full">
+          <div className={cn(
+            "flex items-center justify-between py-3 pr-3 touch-manipulation active:bg-muted/50 rounded-lg transition-colors",
+            paddingLeft
+          )}>
+            <div className="flex items-center gap-3">
+              <Icon className="h-5 w-5 text-muted-foreground shrink-0" />
+              <span className="font-medium text-sm">{item.name}</span>
+            </div>
+            <ChevronDown className={cn(
+              "h-4 w-4 text-muted-foreground transition-transform duration-200",
+              isOpen && "rotate-180"
+            )} />
+          </div>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="space-y-0.5">
+          {item.children!.map((child) => (
+            <MobileMenuItem
+              key={child.path || child.name}
+              item={child}
+              level={level + 1}
+              onClose={onClose}
+              isActive={isActive}
+            />
+          ))}
+        </CollapsibleContent>
+      </Collapsible>
     );
   }
 
+  // Leaf item - navigates directly
+  const active = item.path ? isActive(item.path) : false;
+
   return (
-    <button className="w-full text-left" onClick={handleClick}>
-      {content}
-    </button>
+    <Link 
+      to={item.path || "#"} 
+      onClick={handleClick}
+      className={cn(
+        "flex items-center gap-3 py-3 pr-3 touch-manipulation rounded-lg transition-colors",
+        paddingLeft,
+        active 
+          ? "bg-primary/10 text-primary" 
+          : "active:bg-muted/50 text-foreground"
+      )}
+    >
+      <Icon className={cn(
+        "h-5 w-5 shrink-0",
+        active ? "text-primary" : "text-muted-foreground"
+      )} />
+      <span className={cn(
+        "text-sm",
+        active ? "font-semibold" : "font-medium"
+      )}>
+        {item.name}
+      </span>
+    </Link>
   );
 }
 
 export function MobileSideMenu({ open, onOpenChange }: MobileSideMenuProps) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { profile, roles, signOut } = useAuth();
   const { theme, setTheme } = useTheme();
   const haptics = useHaptics();
@@ -93,15 +381,17 @@ export function MobileSideMenu({ open, onOpenChange }: MobileSideMenuProps) {
     .toUpperCase()
     .substring(0, 2) || "U";
 
-  const primaryRole = roles[0];
-  const roleLabel = primaryRole ? ROLE_LABELS[primaryRole] : "User";
+  // Get role-based menu items
+  const primaryRole = getPrimaryRole(roles);
+  const roleConfig = ROLE_SIDEBAR_CONFIG[primaryRole] || ROLE_SIDEBAR_CONFIG.default;
+  const menuItems = roleConfig?.items || [];
+  
+  const roleLabel = primaryRole ? ROLE_LABELS[primaryRole as keyof typeof ROLE_LABELS] : "User";
 
-  const hasClinicialRole = roles.some((role) => CLINICAL_ROLES.includes(role));
-  const hasNursingRole = roles.some((role) => NURSING_ROLES.includes(role));
-  const isPharmacist = roles.some((role) =>
-    ["pharmacist", "ot_pharmacist"].includes(role)
-  );
-  const isLabTech = roles.includes("lab_technician" as any);
+  const isActive = (path: string) => {
+    if (!path) return false;
+    return location.pathname === path || location.pathname.startsWith(path + "/");
+  };
 
   const handleSignOut = async () => {
     haptics.medium();
@@ -127,7 +417,7 @@ export function MobileSideMenu({ open, onOpenChange }: MobileSideMenuProps) {
         hideCloseButton
       >
         {/* Profile Header */}
-        <SheetHeader className="p-4 pb-2 border-b">
+        <SheetHeader className="p-4 pb-3 border-b">
           <div className="flex items-center gap-3">
             <Avatar className="h-12 w-12 ring-2 ring-primary/20">
               <AvatarImage
@@ -149,158 +439,36 @@ export function MobileSideMenu({ open, onOpenChange }: MobileSideMenuProps) {
           </div>
         </SheetHeader>
 
-        <ScrollArea className="flex-1 px-3 py-4">
-          {/* Quick Actions */}
-          <div className="mb-4">
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2 px-2">
-              Quick Actions
-            </h3>
-            <div className="grid grid-cols-4 gap-2">
-              <Link
-                to="/app/appointments"
-                onClick={handleClose}
-                className="touch-manipulation active:scale-95 transition-transform"
-              >
-                <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-muted/50 hover:bg-muted">
-                  <Calendar className="h-5 w-5 text-primary" />
-                  <span className="text-[10px] text-center">Schedule</span>
-                </div>
-              </Link>
-              {hasClinicialRole && (
-                <Link
-                  to="/app/opd"
-                  onClick={handleClose}
-                  className="touch-manipulation active:scale-95 transition-transform"
-                >
-                  <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-muted/50 hover:bg-muted">
-                    <Stethoscope className="h-5 w-5 text-primary" />
-                    <span className="text-[10px] text-center">Consult</span>
-                  </div>
-                </Link>
-              )}
-              {hasNursingRole && (
-                <Link
-                  to="/app/opd/nursing"
-                  onClick={handleClose}
-                  className="touch-manipulation active:scale-95 transition-transform"
-                >
-                  <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-muted/50 hover:bg-muted">
-                    <ClipboardList className="h-5 w-5 text-primary" />
-                    <span className="text-[10px] text-center">Tasks</span>
-                  </div>
-                </Link>
-              )}
-              {isPharmacist && (
-                <Link
-                  to="/app/pharmacy"
-                  onClick={handleClose}
-                  className="touch-manipulation active:scale-95 transition-transform"
-                >
-                  <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-muted/50 hover:bg-muted">
-                    <Pill className="h-5 w-5 text-primary" />
-                    <span className="text-[10px] text-center">Dispense</span>
-                  </div>
-                </Link>
-              )}
-              {isLabTech && (
-                <Link
-                  to="/app/lab"
-                  onClick={handleClose}
-                  className="touch-manipulation active:scale-95 transition-transform"
-                >
-                  <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-muted/50 hover:bg-muted">
-                    <TestTube className="h-5 w-5 text-primary" />
-                    <span className="text-[10px] text-center">Lab</span>
-                  </div>
-                </Link>
-              )}
-              <Link
-                to="/app/my-wallet"
-                onClick={handleClose}
-                className="touch-manipulation active:scale-95 transition-transform"
-              >
-                <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-muted/50 hover:bg-muted">
-                  <Wallet className="h-5 w-5 text-primary" />
-                  <span className="text-[10px] text-center">Wallet</span>
-                </div>
-              </Link>
-            </div>
-          </div>
-
-          <Separator className="my-3" />
-
-          {/* Account Section */}
-          <div className="mb-3">
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 px-2">
-              Account
-            </h3>
-            <div className="space-y-0.5">
-              <MenuItem
-                icon={Settings}
-                label="Settings"
-                to="/app/settings"
+        {/* Dynamic Role-Based Menu */}
+        <ScrollArea className="flex-1 px-2 py-3">
+          <div className="space-y-0.5">
+            {menuItems.map((item) => (
+              <MobileMenuItem
+                key={item.path || item.name}
+                item={item}
                 onClose={handleClose}
+                isActive={isActive}
               />
-              <MenuItem
-                icon={Bell}
-                label="Notifications"
-                to="/app/notifications"
-                onClose={handleClose}
-              />
-              <MenuItem
-                icon={Shield}
-                label="Privacy & Security"
-                to="/app/settings"
-                onClose={handleClose}
-              />
-            </div>
-          </div>
-
-          <Separator className="my-3" />
-
-          {/* Support Section */}
-          <div className="mb-3">
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 px-2">
-              Support
-            </h3>
-            <div className="space-y-0.5">
-              <MenuItem
-                icon={HelpCircle}
-                label="Help & FAQ"
-                onClose={handleClose}
-              />
-              <MenuItem
-                icon={FileText}
-                label="Terms of Service"
-                onClose={handleClose}
-              />
-              <MenuItem
-                icon={Info}
-                label="About HealthOS 24"
-                onClose={handleClose}
-              />
-            </div>
-          </div>
-
-          <Separator className="my-3" />
-
-          {/* Appearance Toggle */}
-          <div className="px-2 py-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Moon className="h-5 w-5 text-muted-foreground" />
-                <span className="font-medium">Dark Mode</span>
-              </div>
-              <Switch
-                checked={theme === "dark"}
-                onCheckedChange={handleToggleDarkMode}
-              />
-            </div>
+            ))}
           </div>
         </ScrollArea>
 
-        {/* Footer - Sign Out & Version */}
-        <div className="p-4 border-t space-y-3">
+        {/* Footer - Dark Mode, Sign Out & Version */}
+        <div className="border-t p-3 space-y-3">
+          {/* Dark Mode Toggle */}
+          <div className="flex items-center justify-between px-3 py-2">
+            <div className="flex items-center gap-3">
+              <Moon className="h-5 w-5 text-muted-foreground" />
+              <span className="font-medium text-sm">Dark Mode</span>
+            </div>
+            <Switch
+              checked={theme === "dark"}
+              onCheckedChange={handleToggleDarkMode}
+            />
+          </div>
+
+          <Separator />
+
           <Button
             variant="outline"
             className="w-full text-destructive border-destructive/30 hover:bg-destructive/10"
@@ -309,6 +477,7 @@ export function MobileSideMenu({ open, onOpenChange }: MobileSideMenuProps) {
             <LogOut className="h-4 w-4 mr-2" />
             Sign Out
           </Button>
+          
           <p className="text-xs text-center text-muted-foreground">
             HealthOS 24 v2.0.0
           </p>
