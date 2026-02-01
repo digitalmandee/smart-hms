@@ -1,344 +1,222 @@
 
-# Comprehensive Lab & Radiology Device Integration System
+# HealthOS 24 Complete Rebranding Plan
 
 ## Overview
 
-This plan implements:
-1. **HL7/ASTM Lab Results Edge Function** - Receive and auto-import lab results from analyzers
-2. **Device Catalog System** - Pre-populated list of common machines with their default configurations
-3. **Enhanced Registration** - When adding a device, show available configurations to auto-fill settings
-4. **Separate Lists** - Dedicated views for Radiology machines vs Lab machines
+This plan updates **all branding** across the entire codebase from "HealthOS" to "HealthOS 24" with the new domain **healthos24.com**. The logo will feature "24" prominently in the icon area, representing 24/7 availability for this multi-tenant SaaS hospital management platform.
 
 ---
 
-## Database Schema Changes
+## Brand Identity Changes
 
-### 1. Device Catalog Tables (Pre-populated Reference Data)
+| Element | Old | New |
+|---------|-----|-----|
+| **Product Name** | HealthOS | HealthOS 24 |
+| **Domain** | smarthms.devmine.co | healthos24.com |
+| **Support Email** | support@healthos.ae | support@healthos24.com |
+| **Contact Email** | hello@healthos.ae | hello@healthos24.com |
+| **Sales Email** | sales@devmine.co | sales@healthos24.com |
+| **Company Name** | Devmine | HealthOS 24 |
+| **Verification URLs** | smart-hms.lovable.app | healthos24.com |
+| **Logo Icon** | Activity icon | Custom "24" badge |
+
+---
+
+## Logo Design Concept
+
+The new logo features "24" prominently within the icon, with "HealthOS" as the text label:
 
 ```text
-┌─────────────────────────────────────────────────────────────┐
-│                 lab_analyzer_catalog                        │
-├─────────────────────────────────────────────────────────────┤
-│ id (uuid, PK)                                               │
-│ manufacturer (text) - e.g., "Sysmex", "Roche", "Beckman"    │
-│ model (text) - e.g., "XN-1000", "Cobas 6000"                │
-│ analyzer_type (text) - hematology, chemistry, etc.          │
-│ connection_protocol (text) - HL7, ASTM, API                 │
-│ default_port (int) - Default communication port             │
-│ hl7_version (text) - e.g., "2.3", "2.5.1"                   │
-│ message_format (text) - Frame structure details             │
-│ result_segment (text) - OBX, OBR patterns                   │
-│ notes (text) - Configuration notes                          │
-│ is_active (boolean)                                         │
-└─────────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────────┐
-│               radiology_device_catalog                      │
-├─────────────────────────────────────────────────────────────┤
-│ id (uuid, PK)                                               │
-│ manufacturer (text) - e.g., "Siemens", "GE", "Philips"      │
-│ model (text) - e.g., "MAGNETOM Vida", "Optima CT660"        │
-│ device_type (text) - ct, mri, xray, ultrasound, etc.        │
-│ modality_code (text) - CT, MR, CR, US, etc. (DICOM codes)   │
-│ dicom_ae_title (text) - Default AE Title                    │
-│ default_port (int) - Default DICOM port                     │
-│ supports_dicomweb (boolean)                                 │
-│ supports_worklist (boolean)                                 │
-│ notes (text)                                                │
-│ is_active (boolean)                                         │
-└─────────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────────┐
-│                   lab_result_imports                        │
-├─────────────────────────────────────────────────────────────┤
-│ id (uuid, PK)                                               │
-│ organization_id (uuid, FK)                                  │
-│ analyzer_id (uuid, FK → lab_analyzers)                      │
-│ message_type (text) - HL7, ASTM                             │
-│ raw_message (text) - Original message content               │
-│ parsed_data (jsonb) - Parsed result data                    │
-│ patient_id_from_message (text)                              │
-│ matched_patient_id (uuid, nullable)                         │
-│ matched_order_id (uuid, nullable)                           │
-│ status (text) - pending, matched, imported, error           │
-│ error_message (text, nullable)                              │
-│ processed_at (timestamptz, nullable)                        │
-│ created_at (timestamptz)                                    │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────┐
+│                                         │
+│   ┌─────────────┐                       │
+│   │     24      │  HealthOS             │
+│   │   ──────    │  Smart Hospital       │
+│   │   ♥  ─ ─    │  Management           │
+│   └─────────────┘                       │
+│                                         │
+│   Icon shows "24" with heartbeat line   │
+│   below, symbolizing 24/7 healthcare    │
+│                                         │
+└─────────────────────────────────────────┘
 ```
 
----
-
-## Pre-Populated Device Catalogs
-
-### Lab Analyzer Catalog (Common Models)
-
-| Manufacturer | Model | Type | Protocol | Port |
-|-------------|-------|------|----------|------|
-| **Sysmex** | XN-1000 | Hematology | HL7 2.3.1 | 2575 |
-| **Sysmex** | XN-2000 | Hematology | HL7 2.3.1 | 2575 |
-| **Sysmex** | XN-3000 | Hematology | HL7 2.3.1 | 2575 |
-| **Sysmex** | CS-5100 | Coagulation | HL7 2.3.1 | 2575 |
-| **Roche** | Cobas 6000 | Chemistry | ASTM | 4000 |
-| **Roche** | Cobas c311 | Chemistry | ASTM | 4000 |
-| **Roche** | Cobas e411 | Immunology | ASTM | 4000 |
-| **Roche** | Cobas c501 | Chemistry | ASTM | 4000 |
-| **Beckman Coulter** | DxH 800 | Hematology | HL7 2.5.1 | 2575 |
-| **Beckman Coulter** | AU5800 | Chemistry | HL7 2.5 | 2575 |
-| **Beckman Coulter** | DxI 800 | Immunoassay | HL7 2.5 | 2575 |
-| **Abbott** | Alinity ci | Chemistry/Immuno | HL7 2.5.1 | 2575 |
-| **Abbott** | Architect c8000 | Chemistry | HL7 2.3.1 | 2575 |
-| **Abbott** | Cell-Dyn Ruby | Hematology | HL7 2.3 | 2575 |
-| **Siemens** | Atellica CH | Chemistry | HL7 2.5.1 | 2575 |
-| **Siemens** | ADVIA 2120i | Hematology | HL7 2.5.1 | 2575 |
-| **Mindray** | BC-6800 | Hematology | HL7 2.3.1 | 5555 |
-| **Mindray** | BS-800M | Chemistry | HL7 2.3.1 | 5555 |
-| **Horiba** | Yumizen H500 | Hematology | ASTM | 4000 |
-| **Urit** | UA-600 | Urinalysis | ASTM | 4000 |
-| **Dirui** | CS-T300 | Urinalysis | HL7 2.3 | 2575 |
-
-### Radiology Device Catalog (Common Models)
-
-| Manufacturer | Model | Type | Modality | Port |
-|-------------|-------|------|----------|------|
-| **Siemens** | MAGNETOM Vida | MRI | MR | 104 |
-| **Siemens** | SOMATOM go.Top | CT | CT | 104 |
-| **Siemens** | Ysio Max | X-Ray | DX | 104 |
-| **GE Healthcare** | SIGNA Artist | MRI | MR | 104 |
-| **GE Healthcare** | Optima CT660 | CT | CT | 104 |
-| **GE Healthcare** | Discovery XR656 | X-Ray | DX | 104 |
-| **GE Healthcare** | LOGIQ E10 | Ultrasound | US | 104 |
-| **Philips** | Ingenia Ambition | MRI | MR | 104 |
-| **Philips** | Incisive CT | CT | CT | 104 |
-| **Philips** | EPIQ Elite | Ultrasound | US | 104 |
-| **Canon** | Aquilion ONE | CT | CT | 104 |
-| **Canon** | Vantage Titan | MRI | MR | 104 |
-| **Fujifilm** | FDR D-EVO II | X-Ray | CR | 104 |
-| **Carestream** | DRX-Evolution | X-Ray | CR | 104 |
-| **Samsung** | RS85 Prestige | Ultrasound | US | 104 |
-| **Mindray** | Resona 7 | Ultrasound | US | 104 |
-| **Orthanc** | Open Source PACS | PACS Server | - | 8042 |
-| **DCM4CHEE** | Open Source PACS | PACS Server | - | 8080 |
-| **Horos** | Open Source Viewer | Workstation | - | 11112 |
+**Icon Variations:**
+- **Large**: "24" with heartbeat line and gradient background
+- **Collapsed Sidebar**: Just "24" badge
+- **Favicon**: "24" in primary color
 
 ---
 
-## Edge Function: HL7/ASTM Lab Result Receiver
+## Files to Update
 
-**File:** `supabase/functions/lab-result-receiver/index.ts`
+### 1. Core HTML & SEO (1 file)
 
-### Functionality
+**`index.html`**
+- Update `<title>` to "HealthOS 24 - 24/7 Smart Hospital Management"
+- Update meta descriptions to include "24/7 availability"
+- Update Open Graph and Twitter card metadata
+- Reference new favicon
 
-1. **Receive HL7/ASTM Messages** via HTTP POST
-2. **Parse Message** - Extract patient ID, test codes, results
-3. **Match to Patient** - Find patient by MRN/ID
-4. **Match to Order** - Find pending lab order
-5. **Auto-Import Results** - Update lab_order_items with result values
-6. **Log Import** - Store in lab_result_imports for audit
+### 2. Create Unified Logo Component (1 new file)
 
-### HL7 Message Structure (OBR/OBX segments)
+**`src/components/brand/HealthOS24Logo.tsx`**
 
-```text
-MSH|^~\&|ANALYZER|LAB|HMS|HOSPITAL|20260131120000||ORU^R01|MSG001|P|2.3.1
-PID|1||PAT001^^^HMS^MR||DOE^JOHN||19800101|M
-OBR|1|ORD001||CBC^Complete Blood Count
-OBX|1|NM|WBC^WBC||7.5|10*9/L|4.0-10.0|N|||F
-OBX|2|NM|RBC^RBC||4.8|10*12/L|4.0-5.5|N|||F
-OBX|3|NM|HGB^Hemoglobin||14.2|g/dL|12.0-16.0|N|||F
-```
+A reusable logo component with variants:
+- `full` - Icon + "HealthOS" text
+- `icon` - Just the 24 badge icon
+- `minimal` - Small icon for tight spaces
 
-### ASTM Message Structure
+The icon will be a custom SVG showing "24" with a subtle heartbeat line.
 
-```text
-H|\^&|||Analyzer^1.0|||||||P|1|20260131
-P|1||PAT001
-O|1|ORD001||CBC
-R|1|^^^WBC|7.5|10*9/L||N||F||||20260131
-R|2|^^^RBC|4.8|10*12/L||N||F||||20260131
-L|1|N
-```
+### 3. Landing Page Components (8 files)
 
----
+| File | Changes |
+|------|---------|
+| `src/components/landing/Navbar.tsx` | Replace Activity icon with HealthOS24Logo, update text |
+| `src/components/landing/Footer.tsx` | Update logo, emails, copyright to "HealthOS 24" |
+| `src/components/landing/CTASection.tsx` | Update email addresses |
+| `src/components/landing/HeroSection.tsx` | Update any brand references |
+| `src/components/landing/ComparisonTable.tsx` | Replace "HealthOS" with "HealthOS 24" |
+| `src/components/landing/TrustBadges.tsx` | Update if brand mentioned |
+| `src/components/landing/TestimonialsSection.tsx` | Update brand references |
+| `src/components/landing/FAQSection.tsx` | Update brand mentions |
 
-## Implementation Plan
+### 4. Sidebar/App Chrome (1 file)
 
-### Phase 1: Database Migration
+**`src/components/DynamicSidebar.tsx`**
+- Replace Heart icon with HealthOS24Logo component
+- Update text from "HealthOS" to "HealthOS 24"
 
-Create tables:
-- `lab_analyzer_catalog` - Pre-populated lab device catalog
-- `radiology_device_catalog` - Pre-populated radiology device catalog  
-- `lab_result_imports` - Import log/queue table
+### 5. Presentation Slides (10 files)
 
-Insert seed data for 20+ lab analyzers and 15+ radiology devices.
+| File | Changes |
+|------|---------|
+| `TitleSlide.tsx` | Logo, brand name, domain to healthos24.com |
+| `FeaturesOverviewSlide.tsx` | Header logo, footer domain |
+| `ModuleSlide.tsx` | Footer branding |
+| `IntegrationSlide.tsx` | Footer branding |
+| `WorkflowSlide.tsx` | Footer branding |
+| `TimelineSlide.tsx` | Footer branding |
+| `OTDashboardSlide.tsx` | Footer branding |
+| `ProcurementSlide.tsx` | Footer branding |
+| `CTASlide.tsx` | Contact info, website, email |
+| `ScreenshotSlide.tsx` | Any brand references |
 
-### Phase 2: Edge Function - Lab Result Receiver
+### 6. Proposal Documents (9 files)
 
-**File:** `supabase/functions/lab-result-receiver/index.ts`
+| File | Changes |
+|------|---------|
+| `ProposalCoverPage.tsx` | Full rebrand: logo, name, domain, company |
+| `ProposalExecutiveSummary.tsx` | Header logo, footer |
+| `ProposalClinicalFeatures.tsx` | Header and footer |
+| `ProposalDiagnosticsFeatures.tsx` | Header and footer |
+| `ProposalPharmacyFeatures.tsx` | Header and footer |
+| `ProposalFinanceFeatures.tsx` | Header and footer |
+| `ProposalOperationsFeatures.tsx` | Header and footer |
+| `ProposalTechnicalSpecs.tsx` | Header and footer |
+| `ProposalTermsPage.tsx` | Header and footer |
+| `ProposalPricingPage.tsx` | Header and footer |
 
-Features:
-- Accept HL7 or ASTM messages via POST
-- Parse messages using segment-based logic
-- Match patient by MRN
-- Match order by order number or patient + pending tests
-- Update lab_order_items with results
-- Return confirmation/error response
+### 7. Verification URLs & QR Codes (2 files)
 
-### Phase 3: Enhanced Lab Analyzer Form
+**`src/lib/qrcode.ts`**
+- Update base URL from `smart-hms.lovable.app` to `healthos24.com`
 
-**Modify:** `src/pages/app/lab/LabAnalyzerFormPage.tsx`
+**`src/components/lab/PrintableLabReport.tsx`**
+- Update verification URL to use healthos24.com
 
-Add:
-- "Select from Catalog" dropdown at top
-- When catalog item selected, auto-fill: manufacturer, model, type, protocol, port
-- Show configuration notes from catalog
+### 8. Public Assets (3 files)
 
-### Phase 4: Enhanced PACS Server Form
-
-**Modify:** `src/components/radiology/PACSServerFormDialog.tsx`
-
-Add:
-- "Select from Catalog" dropdown
-- Auto-fill device settings when selected
-- Show DICOM modality codes
-
-### Phase 5: Device Catalog Pages
-
-**New Files:**
-- `src/pages/app/settings/LabDeviceCatalogPage.tsx` - View/manage lab device catalog
-- `src/pages/app/settings/RadiologyDeviceCatalogPage.tsx` - View/manage radiology device catalog
-
-### Phase 6: Hooks for Catalogs
-
-**New Files:**
-- `src/hooks/useLabAnalyzerCatalog.ts` - Fetch lab device catalog
-- `src/hooks/useRadiologyDeviceCatalog.ts` - Fetch radiology device catalog
+| File | Action |
+|------|--------|
+| `public/favicon.png` | Generate new "24" favicon |
+| `public/favicon.ico` | Generate new "24" favicon |
+| `public/og-image.png` | Create new OG image with HealthOS 24 branding |
 
 ---
 
-## Technical Details
+## Technical Implementation
 
-### Edge Function Structure
+### HealthOS24Logo Component Structure
 
 ```typescript
-// supabase/functions/lab-result-receiver/index.ts
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-interface LabResult {
-  testCode: string;
-  testName: string;
-  value: string;
-  unit: string;
-  referenceRange: string;
-  flag: string;
+interface HealthOS24LogoProps {
+  variant?: 'full' | 'icon' | 'minimal';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
+  showTagline?: boolean;
+  className?: string;
 }
 
-interface ParsedMessage {
-  messageType: 'HL7' | 'ASTM';
-  patientId: string;
-  orderNumber: string;
-  results: LabResult[];
-  timestamp: string;
-}
-
-function parseHL7Message(message: string): ParsedMessage { ... }
-function parseASTMMessage(message: string): ParsedMessage { ... }
-
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
-  }
-
-  // 1. Receive message
-  // 2. Detect format (HL7 vs ASTM)
-  // 3. Parse message
-  // 4. Match patient and order
-  // 5. Import results
-  // 6. Log import
-  // 7. Return response
-});
+// The icon SVG features:
+// - "24" text prominently displayed
+// - Subtle heartbeat/pulse line below
+// - Gradient background (primary color)
+// - Rounded corners
 ```
 
-### Catalog Selection UI
+### Icon SVG Concept
 
-```text
-┌────────────────────────────────────────────────────────────────┐
-│  Add Lab Analyzer                                              │
-├────────────────────────────────────────────────────────────────┤
-│                                                                │
-│  Quick Setup: Select from Catalog                              │
-│  ┌──────────────────────────────────────────────────────────┐  │
-│  │ [Search devices...]                              ▼       │  │
-│  ├──────────────────────────────────────────────────────────┤  │
-│  │ ● Sysmex XN-1000 (Hematology) - HL7 2.3.1               │  │
-│  │ ● Sysmex XN-2000 (Hematology) - HL7 2.3.1               │  │
-│  │ ● Roche Cobas 6000 (Chemistry) - ASTM                   │  │
-│  │ ● Roche Cobas c311 (Chemistry) - ASTM                   │  │
-│  │ ● Beckman DxH 800 (Hematology) - HL7 2.5.1              │  │
-│  │ ...                                                      │  │
-│  └──────────────────────────────────────────────────────────┘  │
-│                                                                │
-│  ─────────────── or enter manually ───────────────            │
-│                                                                │
-│  Analyzer Name *        [Sysmex XN-1000 (auto-filled)    ]    │
-│  Analyzer Type *        [Hematology ▼] (auto-selected)        │
-│  Manufacturer           [Sysmex (auto-filled)            ]    │
-│  Model                  [XN-1000 (auto-filled)           ]    │
-│  Connection Type        [HL7 ▼] (auto-selected)               │
-│  Port                   [2575 (auto-filled)              ]    │
-│                                                                │
-│  💡 This analyzer uses HL7 v2.3.1 protocol. Results will be   │
-│     sent as ORU^R01 messages with OBX segments.               │
-│                                                                │
-└────────────────────────────────────────────────────────────────┘
+```svg
+<!-- 24 Badge with heartbeat -->
+<svg viewBox="0 0 40 40">
+  <rect rx="8" fill="url(#gradient)" />
+  <text x="20" y="22" text-anchor="middle" 
+        font-weight="bold" fill="white">24</text>
+  <path d="M8 28 L14 28 L17 24 L20 32 L23 26 L26 28 L32 28" 
+        stroke="white" stroke-width="1.5" fill="none"/>
+</svg>
 ```
 
 ---
 
-## Files to Create/Modify
+## Search & Replace Summary
 
-| Action | File | Description |
-|--------|------|-------------|
-| **Create** | `supabase/migrations/XXXX_device_catalogs.sql` | Device catalog tables + seed data |
-| **Create** | `supabase/functions/lab-result-receiver/index.ts` | HL7/ASTM message receiver |
-| **Create** | `src/hooks/useLabAnalyzerCatalog.ts` | Fetch lab device catalog |
-| **Create** | `src/hooks/useRadiologyDeviceCatalog.ts` | Fetch radiology device catalog |
-| **Modify** | `src/pages/app/lab/LabAnalyzerFormPage.tsx` | Add catalog selection |
-| **Modify** | `src/components/radiology/PACSServerFormDialog.tsx` | Add catalog selection |
-| **Modify** | `supabase/config.toml` | Add lab-result-receiver function |
-
----
-
-## Security Considerations
-
-1. **Edge Function Authentication**
-   - Support API key auth for analyzer communication
-   - Log all incoming messages
-   - Rate limiting on message endpoint
-
-2. **Result Validation**
-   - Validate result values are numeric where expected
-   - Flag out-of-range values
-   - Prevent duplicate imports
-
-3. **Audit Trail**
-   - All imports logged in `lab_result_imports`
-   - Track matched vs unmatched results
-   - Store raw message for troubleshooting
+| Find | Replace With |
+|------|--------------|
+| `HealthOS` (standalone) | `HealthOS 24` |
+| `smarthms.devmine.co` | `healthos24.com` |
+| `smart-hms.lovable.app` | `healthos24.com` |
+| `support@healthos.ae` | `support@healthos24.com` |
+| `hello@healthos.ae` | `hello@healthos24.com` |
+| `sales@devmine.co` | `sales@healthos24.com` |
+| `Devmine` (company) | `HealthOS 24` |
+| Activity icon imports | HealthOS24Logo component |
 
 ---
 
-## Summary
+## Files Summary
 
-| Component | Deliverable |
-|-----------|-------------|
-| **Device Catalogs** | 20+ lab analyzers, 15+ radiology devices |
-| **HL7/ASTM Receiver** | Edge function for auto-importing results |
-| **Enhanced Forms** | Catalog selection with auto-fill |
-| **Import Logging** | Full audit trail of received results |
-| **Separate Views** | Lab and Radiology device lists |
+| Category | File Count |
+|----------|------------|
+| New Components | 1 |
+| HTML/SEO | 1 |
+| Landing Pages | 8 |
+| App Chrome | 1 |
+| Presentation | 10 |
+| Proposal | 10 |
+| Utilities | 2 |
+| Assets | 3 |
+| **Total** | **~36 files** |
 
-This system provides the foundation for automated lab integration while maintaining manual entry as a fallback.
+---
+
+## Multi-Tenant SaaS Considerations
+
+Since this is a SaaS product onboarding multiple hospitals:
+
+1. **Unified Branding**: All files use the centralized `HealthOS24Logo` component
+2. **Easy Updates**: Future brand changes only require updating one component
+3. **White-Label Ready**: The existing `useOrganizationBranding` hook remains for per-hospital customization
+4. **Verification URLs**: Updated to use the production domain for QR codes on printed documents
+
+---
+
+## Post-Implementation
+
+After code changes, you'll need to:
+1. **Set up DNS** for healthos24.com pointing to Lovable
+2. **Configure custom domain** in Lovable project settings
+3. **Create email addresses** (support@, hello@, sales@healthos24.com)
+4. **Upload final favicon/OG images** if you have designed assets
+
