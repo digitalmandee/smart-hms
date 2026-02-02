@@ -8,11 +8,18 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, Search, TestTube, CreditCard, Clock } from "lucide-react";
+import { MobileLabQueue } from "@/components/mobile/MobileLabQueue";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Capacitor } from "@capacitor/core";
 
 type StatusFilter = "all" | "ordered" | "collected" | "processing";
 type PaymentFilter = "all" | "paid" | "pending";
 
 export default function LabQueuePage() {
+  const isMobileScreen = useIsMobile();
+  const isNative = Capacitor.isNativePlatform();
+  const showMobileUI = isMobileScreen || isNative;
+
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
   const [paymentFilter, setPaymentFilter] = useState<PaymentFilter>("all");
@@ -87,6 +94,10 @@ export default function LabQueuePage() {
   const paidReadyCount = labOrders?.filter((o) => o.payment_status === "paid" && o.status === "ordered").length || 0;
 
   const canCollectPayment = labSettings?.allow_direct_lab_payment;
+  // Show mobile UI on mobile devices
+  if (showMobileUI) {
+    return <MobileLabQueue />;
+  }
 
   return (
     <div className="space-y-6">

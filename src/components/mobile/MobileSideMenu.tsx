@@ -145,7 +145,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "next-themes";
 import { useHaptics } from "@/hooks/useHaptics";
 import { ROLE_LABELS } from "@/constants/roles";
-import { ROLE_SIDEBAR_CONFIG, getPrimaryRole, type SidebarMenuItem } from "@/config/role-sidebars";
+import { ROLE_SIDEBAR_CONFIG, ADMIN_ROLES, getPrimaryRole, type SidebarMenuItem } from "@/config/role-sidebars";
+import { useMenuItems } from "@/hooks/useMenuItems";
 import { cn } from "@/lib/utils";
 
 // Icon map matching DynamicSidebar
@@ -370,9 +371,12 @@ function MobileMenuItem({ item, level = 0, onClose, isActive }: MobileMenuItemPr
 export function MobileSideMenu({ open, onOpenChange }: MobileSideMenuProps) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { profile, roles, signOut } = useAuth();
+  const { profile, roles, signOut, isSuperAdmin } = useAuth();
   const { theme, setTheme } = useTheme();
   const haptics = useHaptics();
+
+  // Database-driven menus for admin roles
+  const { menuItems: dbMenuItems, isLoading: menuLoading } = useMenuItems();
 
   const initials = profile?.full_name
     ?.split(" ")
@@ -381,10 +385,31 @@ export function MobileSideMenu({ open, onOpenChange }: MobileSideMenuProps) {
     .toUpperCase()
     .substring(0, 2) || "U";
 
-  // Get role-based menu items
+  // Determine role and sidebar type (mirrors DynamicSidebar logic)
   const primaryRole = getPrimaryRole(roles);
-  const roleConfig = ROLE_SIDEBAR_CONFIG[primaryRole] || ROLE_SIDEBAR_CONFIG.default;
-  const menuItems = roleConfig?.items || [];
+  
+  // Super admin and org_admin use static configs; only branch_admin uses database menus
+  const usesStaticSidebar = isSuperAdmin || primaryRole === 'super_admin' || primaryRole === 'org_admin';
+  const usesDatabaseMenus = ADMIN_ROLES.includes(primaryRole) && !usesStaticSidebar;
+
+  // Get menu items from appropriate source
+  const menuItems = usesDatabaseMenus 
+    ? dbMenuItems.map(item => ({
+        name: item.name,
+        path: item.path || '',
+        icon: item.icon || 'LayoutDashboard',
+        children: item.children?.map(child => ({
+          name: child.name,
+          path: child.path || '',
+          icon: child.icon || 'List',
+          children: child.children?.map(subChild => ({
+            name: subChild.name,
+            path: subChild.path || '',
+            icon: subChild.icon || 'List',
+          })),
+        })),
+      }))
+    : (ROLE_SIDEBAR_CONFIG[primaryRole]?.items || ROLE_SIDEBAR_CONFIG.default?.items || []);
   
   const roleLabel = primaryRole ? ROLE_LABELS[primaryRole as keyof typeof ROLE_LABELS] : "User";
 
