@@ -9,6 +9,9 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { OTRoomBoard } from "@/components/ot/OTRoomBoard";
 import { SurgeryQueueList } from "@/components/ot/SurgeryQueueList";
 import { PendingConfirmationsCard } from "@/components/ot/PendingConfirmationsCard";
+import { MobileOTDashboard } from "@/components/mobile/MobileOTDashboard";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Capacitor } from "@capacitor/core";
 import { 
   Scissors, 
   Building2, 
@@ -30,6 +33,9 @@ import { toast } from "sonner";
 export default function OTDashboard() {
   const navigate = useNavigate();
   const { profile } = useAuth();
+  const isMobileScreen = useIsMobile();
+  const isNative = Capacitor.isNativePlatform();
+  const showMobileUI = isMobileScreen || isNative;
   
   const { data: stats, isLoading: statsLoading, refetch } = useOTStats();
   const { data: rooms, isLoading: roomsLoading } = useOTRooms(profile?.branch_id || undefined);
@@ -69,6 +75,10 @@ export default function OTDashboard() {
     refetch();
     toast.success("Dashboard refreshed");
   };
+  // Show mobile UI on mobile devices
+  if (showMobileUI) {
+    return <MobileOTDashboard />;
+  }
 
   return (
     <div className="space-y-6">

@@ -46,6 +46,9 @@ import { IPDVitalsForm } from "@/components/ipd/IPDVitalsForm";
 import { NursingNotesForm } from "@/components/ipd/NursingNotesForm";
 import { AdmissionConfirmationDialog } from "@/components/ipd/AdmissionConfirmationDialog";
 import { QuickPaymentDialog } from "@/components/ipd/QuickPaymentDialog";
+import { MobileNursingStation } from "@/components/mobile/MobileNursingStation";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Capacitor } from "@capacitor/core";
 import { formatCurrency } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -56,6 +59,10 @@ export default function NursingStationPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { profile, isLoading: authLoading } = useAuth();
+  const isMobileScreen = useIsMobile();
+  const isNative = Capacitor.isNativePlatform();
+  const showMobileUI = isMobileScreen || isNative;
+
   const [selectedWardId, setSelectedWardId] = useState<string>("");
   const [activeTab, setActiveTab] = useState("pending");
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
@@ -118,6 +125,11 @@ export default function NursingStationPage() {
 
   // Get all admission IDs for bulk fetching
   const admissionIds = wardPatients.map((adm: any) => adm.id);
+
+  // Show mobile UI on mobile devices
+  if (showMobileUI) {
+    return <MobileNursingStation />;
+  }
 
   // Show loading state while auth is loading
   if (authLoading) {
