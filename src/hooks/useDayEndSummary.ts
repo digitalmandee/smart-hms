@@ -36,18 +36,22 @@ export function useDayEndSummary(date: Date, branchId?: string) {
       const endDate = endOfDay(date).toISOString();
       const orgId = profile!.organization_id!;
 
-      // Separate queries to avoid deep type instantiation
+      // @ts-ignore - Supabase types cause deep instantiation error
       const paymentsRes = await supabase.from("payments").select("*").eq("organization_id", orgId).gte("created_at", startDate).lte("created_at", endDate);
+      // @ts-ignore - Supabase types cause deep instantiation error
       const dsRes = await supabase.from("doctor_settlements").select("*").eq("organization_id", orgId).eq("settlement_date", dateStr);
+      // @ts-ignore - Supabase types cause deep instantiation error
       const vpRes = await supabase.from("vendor_payments").select("*").eq("organization_id", orgId);
+      // @ts-ignore - Supabase types cause deep instantiation error
       const invRes = await supabase.from("invoices").select("*").eq("organization_id", orgId).in("status", ["pending", "partially_paid"]);
+      // @ts-ignore - Supabase types cause deep instantiation error
       const pmRes = await supabase.from("payment_methods").select("*").eq("organization_id", orgId);
 
-      const payments = paymentsRes.data as any[] || [];
-      const doctorSettlements = dsRes.data as any[] || [];
-      const vendorPayments = vpRes.data as any[] || [];
-      const pendingInvoices = invRes.data as any[] || [];
-      const paymentMethods = pmRes.data as any[] || [];
+      const payments = (paymentsRes.data || []) as any[];
+      const doctorSettlements = (dsRes.data || []) as any[];
+      const vendorPayments = (vpRes.data || []) as any[];
+      const pendingInvoices = (invRes.data || []) as any[];
+      const paymentMethods = (pmRes.data || []) as any[];
 
       const methodLookup = new Map<string, { name: string; isCash: boolean }>();
       paymentMethods.forEach((pm) => methodLookup.set(pm.id, { name: pm.name, isCash: pm.code?.toLowerCase() === "cash" || pm.name?.toLowerCase() === "cash" }));
