@@ -1,274 +1,341 @@
 
-# Complete PWA Mobile Optimization - Phase 3
+# Complete Daily Closing & Cash Reconciliation System
 
-## Problem Analysis
-
-Based on my detailed investigation of the codebase and user feedback, I've identified two main issues:
-
----
-
-## Issue 1: Mobile Menu Missing Options for Certain Roles
-
-### Root Cause
-The `MobileSideMenu` component (line 385-387) uses `getPrimaryRole()` to get ONE role and renders sidebar items from `ROLE_SIDEBAR_CONFIG`:
-
-```typescript
-const primaryRole = getPrimaryRole(roles);
-const roleConfig = ROLE_SIDEBAR_CONFIG[primaryRole] || ROLE_SIDEBAR_CONFIG.default;
-const menuItems = roleConfig?.items || [];
-```
-
-**The problem**: `branch_admin` is listed in `ADMIN_ROLES` and is intended to use **database-driven menus** via `useMenuItems()`, but `MobileSideMenu` only reads from `ROLE_SIDEBAR_CONFIG` which has no entry for `branch_admin`.
-
-### Current Behavior
-| Role | Desktop Sidebar | Mobile Side Menu |
-|------|-----------------|------------------|
-| `super_admin` | Static config (works) | Static config (works) |
-| `org_admin` | Static config (works) | Static config (works) |
-| `branch_admin` | Database menus (works) | **EMPTY** (falls back to `default`) |
-| `doctor`, `nurse`, etc. | Static config (works) | Static config (works) |
-
-### Solution
-Update `MobileSideMenu` to mirror the logic from `DynamicSidebar`:
-1. Import and use `useMenuItems()` hook for database-driven menus
-2. Add logic to detect when to use database menus vs static config
-3. Render the appropriate menu items based on role type
+## Executive Summary
+This plan implements a comprehensive Daily Closing system that covers all billing counters (Reception, IPD, Pharmacy) with cash drawer reconciliation, session management, and consolidated day-end reporting.
 
 ---
 
-## Issue 2: Many Pages Still Not PWA Optimized
+## Current State Analysis
 
-### Pages WITH Mobile Optimization (20 files):
-- `ProfilePage.tsx`
-- `NotificationsPage.tsx`
-- `MorePage.tsx`
-- `MySchedulePage.tsx`
-- `DoctorDashboard.tsx`
-- `NurseDashboard.tsx`
-- `OPDVitalsPage.tsx`
-- `ConsultationHistoryPage.tsx`
-- `OPDOrdersPage.tsx`
-- `AppointmentQueuePage.tsx`
-- `AppointmentsListPage.tsx`
-- `CheckInPage.tsx`
-- `MyCalendarPage.tsx`
-- `PharmacyDashboard.tsx`
-- `LabDashboard.tsx`
-- `IPDDashboard.tsx`
-- `MedicationChartPage.tsx`
-- `PatientDetailPage.tsx`
-- `PatientsListPage.tsx`
-- `InvoicesListPage.tsx`
+### What Exists
+| Component | Status | Details |
+|-----------|--------|---------|
+| Pharmacy POS Sessions | Partial | Table exists (`pharmacy_pos_sessions`), but transactions bypass sessions |
+| Automated Accounting | Complete | All payments auto-post to `journal_entries` via triggers |
+| Shift-wise Reports | Complete | `ShiftWiseCollectionReport.tsx` analyzes revenue by shift/cashier |
+| Payment Methods | Complete | Mapped to ledger accounts for accurate posting |
 
-### Pages WITHOUT Mobile Optimization (Need Work):
-
-#### Critical Priority (Clinical Workflows)
-| Page | File | Key Issues |
-|------|------|------------|
-| OT Dashboard | `OTDashboard.tsx` | Uses `ModernPageHeader`, `lg:grid-cols-4`, no mobile detection |
-| Surgery Detail | `SurgeryDetailPage.tsx` | `lg:grid-cols-3`, action buttons in header, tabs overflow |
-| Surgery Form | `SurgeryFormPage.tsx` | Complex multi-step form |
-| Lab Queue | `LabQueuePage.tsx` | No pull-to-refresh, filter tabs not scrollable |
-| OT Schedule | `OTSchedulePage.tsx` | Calendar view not mobile-friendly |
-| PACU | `PACUPage.tsx` | Multi-column layout |
-
-#### High Priority (Staff Functions)
-| Page | File | Key Issues |
-|------|------|------------|
-| Admission Form | `AdmissionFormPage.tsx` | Complex form layout |
-| Admission Detail | `AdmissionDetailPage.tsx` | Tabs, multi-column |
-| Nursing Notes | `NursingNotesPage.tsx` | Form-heavy |
-| Nursing Station | `NursingStationPage.tsx` | Tab-based dashboard |
-| Daily Rounds | `DailyRoundsPage.tsx` | Form wizard |
-| Discharge Form | `DischargeFormPage.tsx` | Multi-step form |
-| Discharges | `DischargesPage.tsx` | List/table view |
-| Wards List | `WardsListPage.tsx` | Grid layout |
-| Beds Page | `BedsPage.tsx` | Visual bed map |
-
-#### Medium Priority (Departmental)
-| Page | File | Key Issues |
-|------|------|------------|
-| Receptionist Dashboard | `ReceptionistDashboard.tsx` | Multi-column grid |
-| HR Dashboard | `HRDashboard.tsx` | Stats grid, tables |
-| Accounts Dashboard | `AccountsDashboard.tsx` | Financial widgets |
-| Billing Dashboard | `BillingDashboard.tsx` | Charts, tables |
-| Inventory Dashboard | `InventoryDashboardPage.tsx` | Multi-column |
-| Prescription Queue | `PrescriptionQueuePage.tsx` | Queue cards |
-| POS Terminal | `POSTerminalPage.tsx` | Complex layout |
+### What's Missing
+| Feature | Impact |
+|---------|--------|
+| Billing Sessions Table | No session management for reception/IPD counters |
+| Cash Drawer Reconciliation UI | Cashiers cannot enter physical counts |
+| Daily Closing Wizard | No unified EOD workflow |
+| Session-based Transaction Enforcement | Payments can be made without open sessions |
+| Consolidated Day-End Summary | No single report combining all counters |
 
 ---
 
 ## Implementation Plan
 
-### Part A: Fix Mobile Menu for Admin Roles
+### Phase 1: Database Schema
 
-**File to Modify**: `src/components/mobile/MobileSideMenu.tsx`
+#### New Table: `billing_sessions`
+Universal session management for all billing counters (not just pharmacy).
 
-Changes:
-1. Import `useMenuItems` hook
-2. Import `ADMIN_ROLES` constant
-3. Add logic to determine if role uses database menus
-4. Render database menu items for `branch_admin`
-
-```typescript
-// Add imports
-import { useMenuItems } from "@/hooks/useMenuItems";
-import { ADMIN_ROLES } from "@/config/role-sidebars";
-
-// Inside component
-const { menuItems: dbMenuItems, isLoading: menuLoading } = useMenuItems();
-const primaryRole = getPrimaryRole(roles);
-
-// Determine menu source (mirrors DynamicSidebar logic)
-const usesStaticSidebar = primaryRole === 'super_admin' || primaryRole === 'org_admin';
-const usesDatabaseMenus = ADMIN_ROLES.includes(primaryRole) && !usesStaticSidebar;
-
-// Get menu items
-const menuItems = usesDatabaseMenus 
-  ? dbMenuItems.map(item => ({
-      name: item.name,
-      path: item.path,
-      icon: item.icon,
-      children: item.children,
-    }))
-  : (ROLE_SIDEBAR_CONFIG[primaryRole]?.items || ROLE_SIDEBAR_CONFIG.default.items);
+```sql
+CREATE TABLE public.billing_sessions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id UUID NOT NULL REFERENCES organizations(id),
+  branch_id UUID NOT NULL REFERENCES branches(id),
+  session_number VARCHAR(50) NOT NULL,
+  counter_type VARCHAR(30) NOT NULL CHECK (counter_type IN ('reception', 'ipd', 'pharmacy', 'opd')),
+  opened_by UUID NOT NULL REFERENCES profiles(id),
+  opened_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  closed_by UUID REFERENCES profiles(id),
+  closed_at TIMESTAMPTZ,
+  opening_cash DECIMAL(12,2) NOT NULL DEFAULT 0,
+  expected_cash DECIMAL(12,2),
+  actual_cash DECIMAL(12,2),
+  cash_difference DECIMAL(12,2),
+  card_total DECIMAL(12,2) DEFAULT 0,
+  other_total DECIMAL(12,2) DEFAULT 0,
+  total_collections DECIMAL(12,2) DEFAULT 0,
+  transaction_count INTEGER DEFAULT 0,
+  status VARCHAR(20) NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'closed', 'reconciled')),
+  notes TEXT,
+  shift VARCHAR(20) CHECK (shift IN ('morning', 'evening', 'night')),
+  reconciled_by UUID REFERENCES profiles(id),
+  reconciled_at TIMESTAMPTZ,
+  discrepancy_approved_by UUID REFERENCES profiles(id),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
 ```
 
-### Part B: Add Mobile Views to Remaining Pages
+#### New Table: `daily_closings`
+Master record for end-of-day reconciliation.
 
-#### Batch 1: OT Module (Critical for Surgeons)
-| New Component | Purpose |
-|---------------|---------|
-| `MobileOTDashboard.tsx` | OT dashboard with 2x2 stats, surgery queue cards |
-| `MobileSurgeryDetail.tsx` | Collapsible sections, bottom action bar |
-| `MobileLabQueue.tsx` | Pull-to-refresh, filter chips |
+```sql
+CREATE TABLE public.daily_closings (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id UUID NOT NULL REFERENCES organizations(id),
+  branch_id UUID NOT NULL REFERENCES branches(id),
+  closing_date DATE NOT NULL,
+  closing_number VARCHAR(50) NOT NULL,
+  total_cash_collected DECIMAL(12,2) DEFAULT 0,
+  total_card_collected DECIMAL(12,2) DEFAULT 0,
+  total_other_collected DECIMAL(12,2) DEFAULT 0,
+  grand_total DECIMAL(12,2) DEFAULT 0,
+  total_invoices INTEGER DEFAULT 0,
+  total_sessions INTEGER DEFAULT 0,
+  outstanding_receivables DECIMAL(12,2) DEFAULT 0,
+  pharmacy_sales DECIMAL(12,2) DEFAULT 0,
+  opd_collections DECIMAL(12,2) DEFAULT 0,
+  ipd_collections DECIMAL(12,2) DEFAULT 0,
+  status VARCHAR(20) DEFAULT 'draft' CHECK (status IN ('draft', 'submitted', 'approved')),
+  closed_by UUID REFERENCES profiles(id),
+  closed_at TIMESTAMPTZ,
+  approved_by UUID REFERENCES profiles(id),
+  approved_at TIMESTAMPTZ,
+  notes TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE(organization_id, branch_id, closing_date)
+);
+```
 
-**Pattern for each page**:
+---
+
+### Phase 2: React Hooks
+
+#### `useBillingSessions.ts`
 ```typescript
-// Add at top
-import { useIsMobile } from "@/hooks/use-mobile";
-import { Capacitor } from "@capacitor/core";
+// Core functions:
+- useOpenSession(counterType) - Opens new billing session
+- useCloseSession() - Closes session with cash count
+- useActiveSession(counterType) - Gets current open session
+- useSessionTransactions(sessionId) - Lists transactions in session
+- useReconcileSession() - Finalizes with manager approval
+```
 
-// Inside component
-const isMobileScreen = useIsMobile();
-const isNative = Capacitor.isNativePlatform();
-const showMobileUI = isMobileScreen || isNative;
+#### `useDailyClosing.ts`
+```typescript
+// Core functions:
+- useDailyClosingSummary(date) - Aggregates all sessions for a day
+- useCreateDailyClosing() - Creates EOD record
+- useApproveDailyClosing() - Manager approval
+- useDailyClosingHistory(days) - Historical closings list
+```
 
-// Before existing return
-if (showMobileUI) {
-  return <MobileComponentView {...props} />;
+---
+
+### Phase 3: UI Components
+
+#### A. Session Management Components
+
+| Component | Purpose |
+|-----------|---------|
+| `OpenSessionDialog.tsx` | Open shift with opening cash balance |
+| `CloseSessionDialog.tsx` | Close shift with cash count and reconciliation |
+| `SessionStatusBadge.tsx` | Shows current session status |
+| `ActiveSessionBanner.tsx` | Persistent banner showing active session |
+
+#### B. Daily Closing Pages
+
+| Page | Route | Purpose |
+|------|-------|---------|
+| `DailyClosingPage.tsx` | `/app/billing/daily-closing` | Main wizard for EOD |
+| `SessionsListPage.tsx` | `/app/billing/sessions` | View all sessions |
+| `ClosingHistoryPage.tsx` | `/app/billing/closing-history` | Past daily closings |
+
+---
+
+### Phase 4: Daily Closing Wizard Flow
+
+```text
+Step 1: Session Review
++--------------------------------+
+| Today's Sessions               |
++--------------------------------+
+| [x] Reception - Morning        |
+|     Opened: 8:00 AM            |
+|     Collections: Rs. 45,000    |
+|     Status: Closed             |
++--------------------------------+
+| [x] IPD Counter - Morning      |
+|     Opened: 8:00 AM            |
+|     Collections: Rs. 125,000   |
+|     Status: Closed             |
++--------------------------------+
+| [ ] Pharmacy - Evening         |
+|     Opened: 2:00 PM            |
+|     Collections: Rs. 32,000    |
+|     Status: OPEN (Must Close!) |
++--------------------------------+
+     [Close All Open Sessions →]
+
+Step 2: Cash Reconciliation
++--------------------------------+
+| Cash Drawer Reconciliation     |
++--------------------------------+
+| Expected Cash: Rs. 85,000      |
+|                                |
+| Enter Physical Count:          |
+| 5000 notes: [__] x 5000        |
+| 1000 notes: [__] x 1000        |
+| 500 notes:  [__] x 500         |
+| 100 notes:  [__] x 100         |
+| 50 notes:   [__] x 50          |
+| 20 notes:   [__] x 20          |
+| 10 notes:   [__] x 10          |
+| Coins:      [_______]          |
++--------------------------------+
+| Total Counted: Rs. 84,800      |
+| Difference: -Rs. 200 (SHORT)   |
++--------------------------------+
+     [Explain Discrepancy...]
+     [Continue →]
+
+Step 3: Summary & Approval
++--------------------------------+
+| Daily Closing Summary          |
+| Date: Feb 4, 2026              |
++--------------------------------+
+| Total Collections:             |
+|   Cash:       Rs. 85,000       |
+|   Card:       Rs. 42,000       |
+|   Other:      Rs. 15,000       |
+|   -----------------------      |
+|   TOTAL:      Rs. 142,000      |
++--------------------------------+
+| By Department:                 |
+|   OPD:        Rs. 45,000       |
+|   IPD:        Rs. 65,000       |
+|   Pharmacy:   Rs. 32,000       |
++--------------------------------+
+| Outstanding: Rs. 28,500        |
++--------------------------------+
+| Notes: [_________________]     |
++--------------------------------+
+     [Save Draft] [Submit for Approval]
+```
+
+---
+
+### Phase 5: Integration Points
+
+#### 1. Payment Collection Page
+Add session validation before accepting payments:
+```typescript
+// In PaymentCollectionPage.tsx
+const { data: activeSession } = useActiveSession('reception');
+if (!activeSession) {
+  return <OpenSessionPrompt />;
 }
 ```
 
-#### Batch 2: IPD Module (Critical for Nurses)
-| New Component | Purpose |
-|---------------|---------|
-| `MobileNursingStation.tsx` | Tab-based ward overview |
-| `MobileAdmissionForm.tsx` | Step-by-step wizard |
-| `MobileDischargeForm.tsx` | Step-by-step wizard |
-| `MobileWardView.tsx` | Vertical bed cards |
+#### 2. Billing Dashboard
+Add session status card and quick actions:
+- "Open Session" button if no active session
+- "Close Session" button if session is open
+- Daily closing summary widget
 
-#### Batch 3: Support Modules
-| New Component | Purpose |
-|---------------|---------|
-| `MobilePOSTerminal.tsx` | Touch-optimized POS |
-| `MobileHRDashboard.tsx` | Staff-focused quick actions |
-| `MobileBillingDashboard.tsx` | Invoice/payment cards |
+#### 3. Navigation Updates
+Add new menu items:
+- Billing > Sessions
+- Billing > Daily Closing
+- Reports > Daily Closing History
 
 ---
 
 ## Files to Create
 
-### New Mobile Components (9 files)
-1. `src/components/mobile/MobileOTDashboard.tsx`
-2. `src/components/mobile/MobileSurgeryDetail.tsx`
-3. `src/components/mobile/MobileLabQueue.tsx`
-4. `src/components/mobile/MobileNursingStation.tsx`
-5. `src/components/mobile/MobileAdmissionForm.tsx`
-6. `src/components/mobile/MobileDischargeForm.tsx`
-7. `src/components/mobile/MobileWardView.tsx`
-8. `src/components/mobile/MobilePOSTerminal.tsx`
-9. `src/components/mobile/MobileHRDashboard.tsx`
+### Database
+| File | Purpose |
+|------|---------|
+| `supabase/migrations/[timestamp]_billing_sessions.sql` | New tables + RLS |
+
+### Hooks
+| File | Purpose |
+|------|---------|
+| `src/hooks/useBillingSessions.ts` | Session CRUD operations |
+| `src/hooks/useDailyClosing.ts` | EOD operations |
+
+### Components
+| File | Purpose |
+|------|---------|
+| `src/components/billing/OpenSessionDialog.tsx` | Open session modal |
+| `src/components/billing/CloseSessionDialog.tsx` | Close session with cash count |
+| `src/components/billing/SessionStatusBadge.tsx` | Status indicator |
+| `src/components/billing/ActiveSessionBanner.tsx` | Header banner |
+| `src/components/billing/CashDenominationInput.tsx` | Cash counting UI |
+| `src/components/billing/DailyClosingSummary.tsx` | Summary card |
+
+### Pages
+| File | Purpose |
+|------|---------|
+| `src/pages/app/billing/DailyClosingPage.tsx` | Main wizard |
+| `src/pages/app/billing/SessionsListPage.tsx` | Sessions history |
+| `src/pages/app/billing/ClosingHistoryPage.tsx` | Past closings |
 
 ---
 
 ## Files to Modify
 
-### Menu Fix
-- `src/components/mobile/MobileSideMenu.tsx` - Add database menu support
+| File | Changes |
+|------|---------|
+| `src/pages/app/billing/BillingDashboard.tsx` | Add session status, quick actions |
+| `src/pages/app/billing/PaymentCollectionPage.tsx` | Session validation |
+| `src/App.tsx` | New routes |
+| `src/config/role-sidebars.ts` | Add menu items for billing roles |
 
-### Page Optimizations (15+ files)
-- `src/pages/app/ot/OTDashboard.tsx`
-- `src/pages/app/ot/SurgeryDetailPage.tsx`
-- `src/pages/app/ot/SurgeryFormPage.tsx`
-- `src/pages/app/ot/OTSchedulePage.tsx`
-- `src/pages/app/ot/PACUPage.tsx`
-- `src/pages/app/lab/LabQueuePage.tsx`
-- `src/pages/app/ipd/NursingStationPage.tsx`
-- `src/pages/app/ipd/AdmissionFormPage.tsx`
-- `src/pages/app/ipd/DischargeFormPage.tsx`
-- `src/pages/app/ipd/WardsListPage.tsx`
-- `src/pages/app/ipd/BedsPage.tsx`
-- `src/pages/app/pharmacy/POSTerminalPage.tsx`
-- `src/pages/app/reception/ReceptionistDashboard.tsx`
-- `src/pages/app/hr/HRDashboard.tsx`
-- `src/pages/app/billing/BillingDashboard.tsx`
+---
+
+## Technical Specifications
+
+### Cash Denomination Calculator
+Pakistani currency denominations:
+- Notes: 5000, 1000, 500, 100, 50, 20, 10
+- Coins: 5, 2, 1
+
+### Session Number Format
+`SES-YYMMDD-XXXX` (e.g., `SES-260204-0001`)
+
+### Daily Closing Number Format  
+`EOD-YYMMDD-XX` (e.g., `EOD-260204-01`)
+
+### Shift Detection
+Uses existing `getShiftFromTime()` from `ShiftFilter.tsx`:
+- Morning: 6:00 AM - 1:59 PM
+- Evening: 2:00 PM - 9:59 PM  
+- Night: 10:00 PM - 5:59 AM
+
+---
+
+## Security & Permissions
+
+### RLS Policies
+- Sessions visible only within same organization/branch
+- Only session opener can close their session
+- Discrepancy approval requires manager role
+- Daily closing approval requires `billing_manager` or `org_admin`
+
+### Audit Trail
+All session and closing records include:
+- `created_at`, `opened_by`, `closed_by`
+- `reconciled_by`, `approved_by`
+- Timestamps for each action
 
 ---
 
 ## Implementation Order
 
-**Priority 1 (Immediate):**
-1. Fix `MobileSideMenu.tsx` - Add database menu support for `branch_admin`
-2. Verify menu appears correctly for all roles
-
-**Priority 2 (Clinical):**
-3. Create `MobileOTDashboard.tsx` + update `OTDashboard.tsx`
-4. Create `MobileSurgeryDetail.tsx` + update `SurgeryDetailPage.tsx`
-5. Update `LabQueuePage.tsx` with inline mobile optimization
-
-**Priority 3 (IPD):**
-6. Create `MobileNursingStation.tsx` + update `NursingStationPage.tsx`
-7. Update remaining IPD pages with mobile optimization
-
-**Priority 4 (Support):**
-8. Update departmental dashboards as needed
+1. **Database Migration** - Create tables with RLS
+2. **Hooks** - `useBillingSessions` and `useDailyClosing`
+3. **Session Components** - Open/Close dialogs
+4. **Daily Closing Page** - Step-by-step wizard
+5. **Integration** - Update existing billing pages
+6. **Navigation** - Add menu items
+7. **Testing** - End-to-end flow validation
 
 ---
 
-## Technical Notes
-
-### Mobile Detection Pattern
-```typescript
-const isMobileScreen = useIsMobile();
-const isNative = Capacitor.isNativePlatform();
-const showMobileUI = isMobileScreen || isNative;
-```
-
-### Mobile Component Structure
-```
-┌─────────────────────────────┐
-│ Compact Header              │  (no breadcrumbs)
-├─────────────────────────────┤
-│ Stats (2x2 grid)            │
-├─────────────────────────────┤
-│ Quick Actions (horizontal)  │
-├─────────────────────────────┤
-│ Main Content (cards/list)   │
-│ - Pull-to-refresh           │
-│ - Touch targets 48px        │
-├─────────────────────────────┤
-│ [Bottom Action Bar]         │  (sticky, safe-area)
-└─────────────────────────────┘
-```
-
----
-
-## Expected Results
+## Expected Outcomes
 
 After implementation:
-1. **branch_admin** sees full menu on mobile (same as desktop)
-2. All operational roles see their complete sidebar menus
-3. OT/Surgery pages fully optimized for mobile
-4. No horizontal scrolling on any page
-5. Consistent native-app feel across all roles
+- Cashiers must open a session before collecting payments
+- Physical cash counts are recorded at shift end
+- Discrepancies are tracked and require explanation
+- Daily closing provides consolidated EOD summary
+- Managers can approve closings with full audit trail
+- Reports show historical closing data for reconciliation
