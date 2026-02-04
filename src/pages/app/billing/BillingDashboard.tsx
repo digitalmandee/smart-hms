@@ -1,10 +1,14 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { StatsCard } from "@/components/StatsCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useBillingStats, useInvoices } from "@/hooks/useBilling";
+import { useActiveSession } from "@/hooks/useBillingSessions";
 import { useAuth } from "@/contexts/AuthContext";
+import { ActiveSessionBanner } from "@/components/billing/ActiveSessionBanner";
+import { OpenSessionDialog } from "@/components/billing/OpenSessionDialog";
 import {
   DollarSign,
   FileText,
@@ -12,6 +16,8 @@ import {
   TrendingUp,
   Plus,
   ArrowRight,
+  CalendarCheck,
+  Monitor,
 } from "lucide-react";
 import { format } from "date-fns";
 import { InvoiceStatusBadge } from "@/components/billing/InvoiceStatusBadge";
@@ -22,6 +28,8 @@ export default function BillingDashboard() {
   const { profile } = useAuth();
   const { data: stats, isLoading: statsLoading } = useBillingStats(profile?.branch_id || undefined);
   const { data: invoices, isLoading: invoicesLoading } = useInvoices(profile?.branch_id || undefined);
+  const { data: activeSession } = useActiveSession();
+  const [showOpenSession, setShowOpenSession] = useState(false);
 
   const recentInvoices = invoices?.slice(0, 5) || [];
 
@@ -73,6 +81,9 @@ export default function BillingDashboard() {
         )}
       </div>
 
+      {/* Session Banner */}
+      {activeSession && <ActiveSessionBanner />}
+
       {/* Quick Actions & Recent Invoices */}
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Quick Actions */}
@@ -81,6 +92,16 @@ export default function BillingDashboard() {
             <CardTitle>Quick Actions</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
+            {!activeSession ? (
+              <Button
+                variant="default"
+                className="w-full justify-start"
+                onClick={() => setShowOpenSession(true)}
+              >
+                <Monitor className="mr-2 h-4 w-4" />
+                Open Billing Session
+              </Button>
+            ) : null}
             <Button
               variant="outline"
               className="w-full justify-start"
@@ -100,10 +121,10 @@ export default function BillingDashboard() {
             <Button
               variant="outline"
               className="w-full justify-start"
-              onClick={() => navigate("/app/billing/payments")}
+              onClick={() => navigate("/app/billing/daily-closing")}
             >
-              <DollarSign className="mr-2 h-4 w-4" />
-              Payment History
+              <CalendarCheck className="mr-2 h-4 w-4" />
+              Daily Closing
             </Button>
           </CardContent>
         </Card>
@@ -166,6 +187,13 @@ export default function BillingDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Open Session Dialog */}
+      <OpenSessionDialog
+        open={showOpenSession}
+        onOpenChange={setShowOpenSession}
+        defaultCounterType="reception"
+      />
     </div>
   );
 }

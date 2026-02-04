@@ -1725,6 +1725,145 @@ export type Database = {
           },
         ]
       }
+      billing_sessions: {
+        Row: {
+          actual_cash: number | null
+          branch_id: string
+          card_total: number | null
+          cash_denominations: Json | null
+          cash_difference: number | null
+          closed_at: string | null
+          closed_by: string | null
+          counter_type: string
+          created_at: string
+          discrepancy_approved_at: string | null
+          discrepancy_approved_by: string | null
+          discrepancy_reason: string | null
+          expected_cash: number | null
+          id: string
+          notes: string | null
+          opened_at: string
+          opened_by: string
+          opening_cash: number
+          organization_id: string
+          other_total: number | null
+          reconciled_at: string | null
+          reconciled_by: string | null
+          session_number: string
+          shift: string | null
+          status: string
+          total_collections: number | null
+          transaction_count: number | null
+          updated_at: string
+          upi_total: number | null
+        }
+        Insert: {
+          actual_cash?: number | null
+          branch_id: string
+          card_total?: number | null
+          cash_denominations?: Json | null
+          cash_difference?: number | null
+          closed_at?: string | null
+          closed_by?: string | null
+          counter_type: string
+          created_at?: string
+          discrepancy_approved_at?: string | null
+          discrepancy_approved_by?: string | null
+          discrepancy_reason?: string | null
+          expected_cash?: number | null
+          id?: string
+          notes?: string | null
+          opened_at?: string
+          opened_by: string
+          opening_cash?: number
+          organization_id: string
+          other_total?: number | null
+          reconciled_at?: string | null
+          reconciled_by?: string | null
+          session_number: string
+          shift?: string | null
+          status?: string
+          total_collections?: number | null
+          transaction_count?: number | null
+          updated_at?: string
+          upi_total?: number | null
+        }
+        Update: {
+          actual_cash?: number | null
+          branch_id?: string
+          card_total?: number | null
+          cash_denominations?: Json | null
+          cash_difference?: number | null
+          closed_at?: string | null
+          closed_by?: string | null
+          counter_type?: string
+          created_at?: string
+          discrepancy_approved_at?: string | null
+          discrepancy_approved_by?: string | null
+          discrepancy_reason?: string | null
+          expected_cash?: number | null
+          id?: string
+          notes?: string | null
+          opened_at?: string
+          opened_by?: string
+          opening_cash?: number
+          organization_id?: string
+          other_total?: number | null
+          reconciled_at?: string | null
+          reconciled_by?: string | null
+          session_number?: string
+          shift?: string | null
+          status?: string
+          total_collections?: number | null
+          transaction_count?: number | null
+          updated_at?: string
+          upi_total?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_sessions_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_sessions_closed_by_fkey"
+            columns: ["closed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_sessions_discrepancy_approved_by_fkey"
+            columns: ["discrepancy_approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_sessions_opened_by_fkey"
+            columns: ["opened_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_sessions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_sessions_reconciled_by_fkey"
+            columns: ["reconciled_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       biometric_devices: {
         Row: {
           branch_id: string
@@ -4898,6 +5037,152 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "custom_fields_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      daily_closings: {
+        Row: {
+          actual_cash: number | null
+          approved_at: string | null
+          approved_by: string | null
+          branch_id: string
+          cash_denominations: Json | null
+          cash_difference: number | null
+          closed_at: string | null
+          closed_by: string | null
+          closing_date: string
+          closing_number: string
+          created_at: string
+          credit_recovered: number | null
+          er_collections: number | null
+          expected_cash: number | null
+          grand_total: number | null
+          id: string
+          ipd_collections: number | null
+          lab_collections: number | null
+          new_credit_given: number | null
+          notes: string | null
+          opd_collections: number | null
+          organization_id: string
+          other_collections: number | null
+          outstanding_receivables: number | null
+          pharmacy_sales: number | null
+          radiology_collections: number | null
+          rejection_reason: string | null
+          status: string | null
+          total_card_collected: number | null
+          total_cash_collected: number | null
+          total_invoices: number | null
+          total_other_collected: number | null
+          total_payments: number | null
+          total_sessions: number | null
+          total_upi_collected: number | null
+          updated_at: string
+        }
+        Insert: {
+          actual_cash?: number | null
+          approved_at?: string | null
+          approved_by?: string | null
+          branch_id: string
+          cash_denominations?: Json | null
+          cash_difference?: number | null
+          closed_at?: string | null
+          closed_by?: string | null
+          closing_date: string
+          closing_number: string
+          created_at?: string
+          credit_recovered?: number | null
+          er_collections?: number | null
+          expected_cash?: number | null
+          grand_total?: number | null
+          id?: string
+          ipd_collections?: number | null
+          lab_collections?: number | null
+          new_credit_given?: number | null
+          notes?: string | null
+          opd_collections?: number | null
+          organization_id: string
+          other_collections?: number | null
+          outstanding_receivables?: number | null
+          pharmacy_sales?: number | null
+          radiology_collections?: number | null
+          rejection_reason?: string | null
+          status?: string | null
+          total_card_collected?: number | null
+          total_cash_collected?: number | null
+          total_invoices?: number | null
+          total_other_collected?: number | null
+          total_payments?: number | null
+          total_sessions?: number | null
+          total_upi_collected?: number | null
+          updated_at?: string
+        }
+        Update: {
+          actual_cash?: number | null
+          approved_at?: string | null
+          approved_by?: string | null
+          branch_id?: string
+          cash_denominations?: Json | null
+          cash_difference?: number | null
+          closed_at?: string | null
+          closed_by?: string | null
+          closing_date?: string
+          closing_number?: string
+          created_at?: string
+          credit_recovered?: number | null
+          er_collections?: number | null
+          expected_cash?: number | null
+          grand_total?: number | null
+          id?: string
+          ipd_collections?: number | null
+          lab_collections?: number | null
+          new_credit_given?: number | null
+          notes?: string | null
+          opd_collections?: number | null
+          organization_id?: string
+          other_collections?: number | null
+          outstanding_receivables?: number | null
+          pharmacy_sales?: number | null
+          radiology_collections?: number | null
+          rejection_reason?: string | null
+          status?: string | null
+          total_card_collected?: number | null
+          total_cash_collected?: number | null
+          total_invoices?: number | null
+          total_other_collected?: number | null
+          total_payments?: number | null
+          total_sessions?: number | null
+          total_upi_collected?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_closings_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_closings_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_closings_closed_by_fkey"
+            columns: ["closed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_closings_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -13383,6 +13668,7 @@ export type Database = {
       payments: {
         Row: {
           amount: number
+          billing_session_id: string | null
           created_at: string
           id: string
           invoice_id: string
@@ -13394,6 +13680,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          billing_session_id?: string | null
           created_at?: string
           id?: string
           invoice_id: string
@@ -13405,6 +13692,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          billing_session_id?: string | null
           created_at?: string
           id?: string
           invoice_id?: string
@@ -13415,6 +13703,13 @@ export type Database = {
           reference_number?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "payments_billing_session_id_fkey"
+            columns: ["billing_session_id"]
+            isOneToOne: false
+            referencedRelation: "billing_sessions"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "payments_invoice_id_fkey"
             columns: ["invoice_id"]
@@ -18495,10 +18790,15 @@ export type Database = {
         }[]
       }
       generate_claim_number: { Args: { org_id: string }; Returns: string }
+      generate_closing_number: {
+        Args: { p_branch_id: string; p_date: string; p_org_id: string }
+        Returns: string
+      }
       generate_kiosk_username: {
         Args: { kiosk_name: string; org_id: string }
         Returns: string
       }
+      generate_session_number: { Args: { p_org_id: string }; Returns: string }
       generate_surgery_number: {
         Args: { branch_id: string; org_id: string }
         Returns: string
