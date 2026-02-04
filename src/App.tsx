@@ -155,6 +155,7 @@ import InsurancePlansPage from "./pages/app/billing/InsurancePlansPage";
 import ClaimsListPage from "./pages/app/billing/ClaimsListPage";
 import ClaimFormPage from "./pages/app/billing/ClaimFormPage";
 import ClaimDetailPage from "./pages/app/billing/ClaimDetailPage";
+import DailyClosingPage from "./pages/app/billing/DailyClosingPage";
 
 // Settings management pages
 import ServiceTypesListPage from "./pages/app/settings/ServiceTypesListPage";
@@ -793,6 +794,7 @@ function App() {
               <Route path="billing/invoices/:id/edit" element={<InvoiceFormPage />} />
               <Route path="billing/invoices/:id/pay" element={<PaymentCollectionPage />} />
               <Route path="billing/payments" element={<PaymentHistoryPage />} />
+              <Route path="billing/daily-closing" element={<DailyClosingPage />} />
               <Route path="billing/reports" element={<BillingReportsPage />} />
               <Route path="billing/claims-report" element={<ClaimsReportPage />} />
               <Route path="billing/insurance/companies" element={<InsuranceCompaniesPage />} />
