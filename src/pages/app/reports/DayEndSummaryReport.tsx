@@ -1,6 +1,6 @@
 /**
  * Day-End Summary Report
- * Comprehensive financial summary with collections, payouts, and net cash calculation
+ * Comprehensive financial summary with collections, payouts, invoices, and net cash calculation
  */
 
 import { useState } from "react";
@@ -28,6 +28,7 @@ import {
   ChevronRight,
   AlertCircle,
   CheckCircle2,
+  FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/currency";
@@ -105,6 +106,19 @@ export default function DayEndSummaryReport() {
       ? "positive"
       : "negative";
 
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "paid":
+        return <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Paid</Badge>;
+      case "pending":
+        return <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">Pending</Badge>;
+      case "partially_paid":
+        return <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">Partial</Badge>;
+      default:
+        return <Badge variant="secondary">{status}</Badge>;
+    }
+  };
+
   return (
     <div className="space-y-6 p-6">
       {/* Header */}
@@ -149,6 +163,24 @@ export default function DayEndSummaryReport() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Invoices Created */}
+        <Card className="bg-gradient-to-br from-indigo-500/10 to-indigo-500/5 border-indigo-500/20">
+          <CardHeader className="pb-2">
+            <CardDescription className="flex items-center gap-2">
+              <FileText className="h-4 w-4 text-indigo-600" />
+              Invoices Created
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold text-indigo-700">
+              {summary?.invoices.totalCount || 0}
+            </p>
+            <div className="flex gap-4 mt-2 text-xs text-muted-foreground">
+              <span>Amount: {formatCurrency(summary?.invoices.totalAmount || 0)}</span>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Total Collections */}
         <Card className="bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20">
           <CardHeader className="pb-2">
@@ -164,25 +196,6 @@ export default function DayEndSummaryReport() {
             <div className="flex gap-4 mt-2 text-xs text-muted-foreground">
               <span>Cash: {formatCurrency(summary?.collections.totalCash || 0)}</span>
               <span>Other: {formatCurrency(summary?.collections.totalNonCash || 0)}</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Total Payouts */}
-        <Card className="bg-gradient-to-br from-red-500/10 to-red-500/5 border-red-500/20">
-          <CardHeader className="pb-2">
-            <CardDescription className="flex items-center gap-2">
-              <TrendingDown className="h-4 w-4 text-red-600" />
-              Total Payouts
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold text-red-700">
-              {formatCurrency(summary?.payouts.totalPayouts || 0)}
-            </p>
-            <div className="flex gap-4 mt-2 text-xs text-muted-foreground">
-              <span>Doctors: {formatCurrency(summary?.payouts.doctorSettlements.total || 0)}</span>
-              <span>Vendors: {formatCurrency(summary?.payouts.vendorPayments.total || 0)}</span>
             </div>
           </CardContent>
         </Card>
@@ -244,12 +257,144 @@ export default function DayEndSummaryReport() {
       </div>
 
       {/* Detailed Tabs */}
-      <Tabs defaultValue="collections" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
+      <Tabs defaultValue="invoices" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-4 lg:w-[500px]">
+          <TabsTrigger value="invoices">Invoices</TabsTrigger>
           <TabsTrigger value="collections">Collections</TabsTrigger>
           <TabsTrigger value="payouts">Payouts</TabsTrigger>
           <TabsTrigger value="reconciliation">Reconciliation</TabsTrigger>
         </TabsList>
+
+        {/* Invoices Tab */}
+        <TabsContent value="invoices" className="space-y-4">
+          {/* Invoice Summary Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardDescription>Created</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-xl font-bold">{summary?.invoices.totalCount || 0}</p>
+                <p className="text-sm text-muted-foreground">{formatCurrency(summary?.invoices.totalAmount || 0)}</p>
+              </CardContent>
+            </Card>
+            <Card className="border-green-200 bg-green-50/50">
+              <CardHeader className="pb-2">
+                <CardDescription className="text-green-700">Paid</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-xl font-bold text-green-700">{summary?.invoices.paidCount || 0}</p>
+                <p className="text-sm text-green-600">{formatCurrency(summary?.invoices.paidAmount || 0)}</p>
+              </CardContent>
+            </Card>
+            <Card className="border-yellow-200 bg-yellow-50/50">
+              <CardHeader className="pb-2">
+                <CardDescription className="text-yellow-700">Pending</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-xl font-bold text-yellow-700">{summary?.invoices.pendingCount || 0}</p>
+                <p className="text-sm text-yellow-600">{formatCurrency(summary?.invoices.pendingAmount || 0)}</p>
+              </CardContent>
+            </Card>
+            <Card className="border-blue-200 bg-blue-50/50">
+              <CardHeader className="pb-2">
+                <CardDescription className="text-blue-700">Partial</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-xl font-bold text-blue-700">{summary?.invoices.partialCount || 0}</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* By Department */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">By Department</CardTitle>
+              <CardDescription>Invoice amounts grouped by service category</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Department</TableHead>
+                    <TableHead className="text-right">Items</TableHead>
+                    <TableHead className="text-right">Amount</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {summary?.invoices.byDepartment.map((item) => (
+                    <TableRow key={item.department}>
+                      <TableCell className="font-medium">{item.department}</TableCell>
+                      <TableCell className="text-right">{item.count}</TableCell>
+                      <TableCell className="text-right font-mono">
+                        {formatCurrency(item.amount)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {(!summary?.invoices.byDepartment || summary.invoices.byDepartment.length === 0) && (
+                    <TableRow>
+                      <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
+                        No invoices for this date
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+
+          {/* Invoices Table */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Invoices Created Today</CardTitle>
+              <CardDescription>All invoices generated by billing/reception</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Invoice #</TableHead>
+                    <TableHead>Patient</TableHead>
+                    <TableHead>Departments</TableHead>
+                    <TableHead className="text-right">Amount</TableHead>
+                    <TableHead className="text-right">Paid</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Created By</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {summary?.invoices.created.map((inv) => (
+                    <TableRow key={inv.id}>
+                      <TableCell className="font-mono text-sm">{inv.invoiceNumber}</TableCell>
+                      <TableCell className="font-medium">{inv.patientName}</TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1">
+                          {inv.departments.slice(0, 2).map((dept) => (
+                            <Badge key={dept} variant="outline" className="text-xs">{dept}</Badge>
+                          ))}
+                          {inv.departments.length > 2 && (
+                            <Badge variant="outline" className="text-xs">+{inv.departments.length - 2}</Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right font-mono">{formatCurrency(inv.totalAmount)}</TableCell>
+                      <TableCell className="text-right font-mono">{formatCurrency(inv.paidAmount)}</TableCell>
+                      <TableCell>{getStatusBadge(inv.status)}</TableCell>
+                      <TableCell className="text-muted-foreground">{inv.createdByName || "-"}</TableCell>
+                    </TableRow>
+                  ))}
+                  {(!summary?.invoices.created || summary.invoices.created.length === 0) && (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                        No invoices created on this date
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         {/* Collections Tab */}
         <TabsContent value="collections" className="space-y-4">
@@ -523,7 +668,7 @@ export default function DayEndSummaryReport() {
 
                 {/* Outstanding Summary */}
                 <div className="mt-6 p-4 border rounded-lg bg-muted/30">
-                  <h4 className="font-semibold mb-3">Outstanding Receivables</h4>
+                  <h4 className="font-semibold mb-3">Outstanding & Credit Tracking</h4>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                     <div>
                       <p className="text-muted-foreground">Pending Invoices</p>

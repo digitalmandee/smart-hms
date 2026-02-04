@@ -360,6 +360,17 @@ export interface DayEndSummaryPDFOptions {
   summary: {
     date: string;
     branchName?: string | null;
+    invoices: {
+      created: { invoiceNumber: string; patientName: string; totalAmount: number; paidAmount: number; status: string; createdByName: string | null; departments: string[] }[];
+      totalCount: number;
+      totalAmount: number;
+      paidCount: number;
+      paidAmount: number;
+      pendingCount: number;
+      pendingAmount: number;
+      partialCount: number;
+      byDepartment: { department: string; amount: number; count: number }[];
+    };
     collections: {
       byMethod: { method: string; amount: number; count: number }[];
       byDepartment: { department: string; amount: number; count: number }[];
@@ -393,6 +404,8 @@ export interface DayEndSummaryPDFOptions {
     outstanding: {
       pendingInvoices: number;
       pendingAmount: number;
+      creditGivenToday: number;
+      creditRecoveredToday: number;
     };
   };
   organization?: {
@@ -666,13 +679,14 @@ export function generateDayEndSummaryPDF(options: DayEndSummaryPDFOptions): void
     
     <!-- Summary Cards -->
     <div class="summary-grid">
+      <div class="summary-card" style="background: #eef2ff; border-color: #6366f1;">
+        <div class="summary-label">Invoices Created</div>
+        <div class="summary-value" style="color: #4f46e5;">${summary.invoices.totalCount}</div>
+        <div style="font-size: 9px; color: #6b7280;">${formatCurrency(summary.invoices.totalAmount)}</div>
+      </div>
       <div class="summary-card collections">
         <div class="summary-label">Total Collections</div>
         <div class="summary-value">${formatCurrency(summary.collections.grandTotal)}</div>
-      </div>
-      <div class="summary-card payouts">
-        <div class="summary-label">Total Payouts</div>
-        <div class="summary-value">${formatCurrency(summary.payouts.totalPayouts)}</div>
       </div>
       <div class="summary-card net">
         <div class="summary-label">Net Cash to Submit</div>
@@ -682,6 +696,57 @@ export function generateDayEndSummaryPDF(options: DayEndSummaryPDFOptions): void
         <div class="summary-label">Outstanding</div>
         <div class="summary-value">${formatCurrency(summary.outstanding.pendingAmount)}</div>
       </div>
+    </div>
+    
+    <!-- Invoice Summary -->
+    <div class="section">
+      <h3 class="section-title">Invoice Summary</h3>
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 15px;">
+        <div style="padding: 8px; background: #f9fafb; border-radius: 6px; text-align: center;">
+          <div style="font-size: 9px; color: #6b7280;">Created</div>
+          <div style="font-size: 14px; font-weight: 600;">${summary.invoices.totalCount}</div>
+          <div style="font-size: 9px; color: #6b7280;">${formatCurrency(summary.invoices.totalAmount)}</div>
+        </div>
+        <div style="padding: 8px; background: #ecfdf5; border-radius: 6px; text-align: center;">
+          <div style="font-size: 9px; color: #059669;">Paid</div>
+          <div style="font-size: 14px; font-weight: 600; color: #059669;">${summary.invoices.paidCount}</div>
+          <div style="font-size: 9px; color: #059669;">${formatCurrency(summary.invoices.paidAmount)}</div>
+        </div>
+        <div style="padding: 8px; background: #fef3c7; border-radius: 6px; text-align: center;">
+          <div style="font-size: 9px; color: #d97706;">Pending</div>
+          <div style="font-size: 14px; font-weight: 600; color: #d97706;">${summary.invoices.pendingCount}</div>
+          <div style="font-size: 9px; color: #d97706;">${formatCurrency(summary.invoices.pendingAmount)}</div>
+        </div>
+        <div style="padding: 8px; background: #dbeafe; border-radius: 6px; text-align: center;">
+          <div style="font-size: 9px; color: #2563eb;">Partial</div>
+          <div style="font-size: 14px; font-weight: 600; color: #2563eb;">${summary.invoices.partialCount}</div>
+        </div>
+      </div>
+      
+      <!-- By Department -->
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Department</th>
+            <th class="text-right">Items</th>
+            <th class="text-right">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${summary.invoices.byDepartment.map(item => `
+            <tr>
+              <td>${item.department}</td>
+              <td class="text-right">${item.count}</td>
+              <td class="text-right">${formatCurrency(item.amount)}</td>
+            </tr>
+          `).join("")}
+          <tr class="total-row">
+            <td>Total Invoiced</td>
+            <td class="text-right">${summary.invoices.byDepartment.reduce((sum, i) => sum + i.count, 0)}</td>
+            <td class="text-right">${formatCurrency(summary.invoices.totalAmount)}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
     
     <!-- Collections by Method -->
@@ -708,29 +773,6 @@ export function generateDayEndSummaryPDF(options: DayEndSummaryPDFOptions): void
             <td class="text-right">${summary.collections.byMethod.reduce((sum, i) => sum + i.count, 0)}</td>
             <td class="text-right">${formatCurrency(summary.collections.grandTotal)}</td>
           </tr>
-        </tbody>
-      </table>
-    </div>
-    
-    <!-- Collections by Department -->
-    <div class="section">
-      <h3 class="section-title">Collections by Department</h3>
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Department</th>
-            <th class="text-right">Count</th>
-            <th class="text-right">Amount</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${summary.collections.byDepartment.map(item => `
-            <tr>
-              <td>${item.department}</td>
-              <td class="text-right">${item.count}</td>
-              <td class="text-right">${formatCurrency(item.amount)}</td>
-            </tr>
-          `).join("")}
         </tbody>
       </table>
     </div>
@@ -815,6 +857,18 @@ export function generateDayEndSummaryPDF(options: DayEndSummaryPDFOptions): void
       <div class="reconciliation-row">
         <span>Net Cash to Submit</span>
         <span style="color: #2563eb;">= ${formatCurrency(summary.reconciliation.netCashToSubmit)}</span>
+      </div>
+    </div>
+    
+    <!-- Credit Tracking -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0; padding: 12px; background: #f9fafb; border-radius: 8px;">
+      <div>
+        <div style="font-size: 9px; color: #6b7280; text-transform: uppercase;">Credit Given Today</div>
+        <div style="font-size: 14px; font-weight: 600; color: #dc2626;">${formatCurrency(summary.outstanding.creditGivenToday)}</div>
+      </div>
+      <div>
+        <div style="font-size: 9px; color: #6b7280; text-transform: uppercase;">Credit Recovered Today</div>
+        <div style="font-size: 14px; font-weight: 600; color: #059669;">${formatCurrency(summary.outstanding.creditRecoveredToday)}</div>
       </div>
     </div>
     
