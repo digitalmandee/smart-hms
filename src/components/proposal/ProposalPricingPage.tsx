@@ -1,13 +1,6 @@
 import { Server, Users, Database, Shield, Headphones, Settings, Check } from "lucide-react";
 import { HealthOS24Logo } from "@/components/brand/HealthOS24Logo";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export const ProposalPricingPage = () => {
   const monthlyIncludes = [
@@ -34,9 +27,7 @@ export const ProposalPricingPage = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <HealthOS24Logo variant="full" size="sm" />
-        <span className="text-sm text-muted-foreground bg-muted px-3 py-1 rounded-full">
-          09 / 10
-        </span>
+        <span className="text-sm text-muted-foreground bg-muted px-3 py-1 rounded-full">09 / 10</span>
       </div>
 
       {/* Title */}
@@ -51,7 +42,7 @@ export const ProposalPricingPage = () => {
         <div className="bg-primary text-primary-foreground rounded-t-xl px-5 py-3 flex items-center justify-between">
           <h3 className="font-semibold">Monthly Subscription Fee</h3>
           <div className="text-right">
-            <span className="text-xl font-bold">PKR 850,000</span>
+            <span className="text-xl font-bold">PKR 3800,000</span>
             <span className="text-primary-foreground/80 ml-2 text-sm">/ Month</span>
           </div>
         </div>
@@ -80,9 +71,7 @@ export const ProposalPricingPage = () => {
                         <span className="font-medium text-sm">{row.item}</span>
                       </div>
                     </TableCell>
-                    <TableCell className="text-right text-muted-foreground py-2 text-sm">
-                      {row.detail}
-                    </TableCell>
+                    <TableCell className="text-right text-muted-foreground py-2 text-sm">{row.detail}</TableCell>
                   </TableRow>
                 );
               })}
@@ -96,7 +85,7 @@ export const ProposalPricingPage = () => {
         <div className="bg-blue-600 text-white rounded-t-xl px-5 py-3 flex items-center justify-between">
           <h3 className="font-semibold">One-Time Setup & Onboarding Fee</h3>
           <div className="text-right">
-            <span className="text-xl font-bold">PKR 250,000</span>
+            <span className="text-xl font-bold">PKR 180,000</span>
             <span className="text-white/80 ml-2 text-sm">(One-Time)</span>
           </div>
         </div>
@@ -119,9 +108,7 @@ export const ProposalPricingPage = () => {
                       <span className="font-medium text-sm">{row.item}</span>
                     </div>
                   </TableCell>
-                  <TableCell className="text-right text-muted-foreground py-2 text-sm">
-                    {row.detail}
-                  </TableCell>
+                  <TableCell className="text-right text-muted-foreground py-2 text-sm">{row.detail}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -132,7 +119,8 @@ export const ProposalPricingPage = () => {
       {/* Summary Note */}
       <div className="mt-4 bg-muted/30 rounded-xl p-3 text-center">
         <p className="text-sm text-muted-foreground">
-          <span className="font-semibold text-foreground">Total First Month:</span> PKR 1,100,000 (Setup + First Month Subscription)
+          <span className="font-semibold text-foreground">Total First Month:</span> PKR 1,100,000 (Setup + First Month
+          Subscription)
         </p>
       </div>
 
