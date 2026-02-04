@@ -355,3 +355,494 @@ export function generateSimplePDF(title: string, content: string): void {
   printWindow.document.write(html);
   printWindow.document.close();
 }
+
+export interface DayEndSummaryPDFOptions {
+  summary: {
+    date: string;
+    branchName?: string | null;
+    collections: {
+      byMethod: { method: string; amount: number; count: number }[];
+      byDepartment: { department: string; amount: number; count: number }[];
+      totalCash: number;
+      totalNonCash: number;
+      grandTotal: number;
+    };
+    payouts: {
+      doctorSettlements: {
+        total: number;
+        cashTotal: number;
+        items: { doctorName: string; amount: number; settlementNumber: string; paymentMethod: string | null }[];
+      };
+      vendorPayments: {
+        total: number;
+        cashTotal: number;
+        items: { vendorName: string; amount: number; paymentNumber: string; paymentMethod: string | null }[];
+      };
+      expenses: {
+        total: number;
+        items: { description: string; amount: number }[];
+      };
+      totalPayouts: number;
+      totalCashPayouts: number;
+    };
+    reconciliation: {
+      totalCashCollected: number;
+      cashPayouts: number;
+      netCashToSubmit: number;
+    };
+    outstanding: {
+      pendingInvoices: number;
+      pendingAmount: number;
+    };
+  };
+  organization?: {
+    name: string;
+    address?: string;
+    phone?: string;
+    email?: string;
+    logo_url?: string;
+  };
+}
+
+export function generateDayEndSummaryPDF(options: DayEndSummaryPDFOptions): void {
+  const { summary, organization } = options;
+
+  const printWindow = window.open("", "_blank");
+  if (!printWindow) {
+    alert("Please allow popups to generate PDF reports");
+    return;
+  }
+
+  const currentDateTime = format(new Date(), "MMM dd, yyyy 'at' h:mm a");
+  const reportDate = format(new Date(summary.date), "MMMM dd, yyyy");
+
+  const logoHtml = organization?.logo_url
+    ? `<img src="${organization.logo_url}" alt="Logo" style="height: 50px; margin-right: 15px;" />`
+    : "";
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Day-End Summary - ${reportDate}</title>
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 15mm;
+    }
+    
+    * {
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-size: 11px;
+      color: #1a1a1a;
+      line-height: 1.4;
+      margin: 0;
+      padding: 0;
+    }
+    
+    .report-container {
+      max-width: 100%;
+    }
+    
+    .report-header {
+      border-bottom: 2px solid #1e40af;
+      padding-bottom: 15px;
+      margin-bottom: 20px;
+    }
+    
+    .org-info {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    
+    .org-name {
+      font-size: 20px;
+      font-weight: 700;
+      color: #1e40af;
+      margin: 0;
+    }
+    
+    .org-address {
+      font-size: 10px;
+      color: #6b7280;
+      margin: 3px 0 0 0;
+    }
+    
+    .report-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #111827;
+      margin: 0 0 5px 0;
+    }
+    
+    .report-subtitle {
+      font-size: 12px;
+      color: #6b7280;
+      margin: 0;
+    }
+    
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin: 20px 0;
+    }
+    
+    .summary-card {
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 12px;
+    }
+    
+    .summary-card.collections { background: #ecfdf5; border-color: #10b981; }
+    .summary-card.payouts { background: #fef2f2; border-color: #ef4444; }
+    .summary-card.net { background: #eff6ff; border-color: #3b82f6; }
+    .summary-card.outstanding { background: #faf5ff; border-color: #8b5cf6; }
+    
+    .summary-label {
+      font-size: 9px;
+      text-transform: uppercase;
+      color: #6b7280;
+      margin-bottom: 4px;
+    }
+    
+    .summary-value {
+      font-size: 16px;
+      font-weight: 700;
+    }
+    
+    .collections .summary-value { color: #059669; }
+    .payouts .summary-value { color: #dc2626; }
+    .net .summary-value { color: #2563eb; }
+    .outstanding .summary-value { color: #7c3aed; }
+    
+    .section {
+      margin: 20px 0;
+    }
+    
+    .section-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1e40af;
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 8px;
+      margin-bottom: 12px;
+    }
+    
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 10px;
+    }
+    
+    .data-table th {
+      background: #f3f4f6;
+      padding: 8px;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .data-table td {
+      padding: 8px;
+      border-bottom: 1px solid #f3f4f6;
+    }
+    
+    .data-table .text-right {
+      text-align: right;
+    }
+    
+    .data-table .total-row {
+      background: #f9fafb;
+      font-weight: 600;
+    }
+    
+    .reconciliation-box {
+      background: #eff6ff;
+      border: 2px solid #3b82f6;
+      border-radius: 8px;
+      padding: 16px;
+      margin: 20px 0;
+    }
+    
+    .reconciliation-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      border-bottom: 1px solid #dbeafe;
+    }
+    
+    .reconciliation-row:last-child {
+      border-bottom: none;
+      font-weight: 700;
+      font-size: 14px;
+      padding-top: 10px;
+      border-top: 2px solid #3b82f6;
+      margin-top: 8px;
+    }
+    
+    .signatures {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 40px;
+      margin-top: 60px;
+      padding-top: 20px;
+    }
+    
+    .signature-box {
+      text-align: center;
+    }
+    
+    .signature-line {
+      border-bottom: 1px solid #1a1a1a;
+      height: 40px;
+      margin-bottom: 8px;
+    }
+    
+    .signature-label {
+      font-size: 10px;
+      color: #6b7280;
+    }
+    
+    .report-footer {
+      margin-top: 30px;
+      padding-top: 15px;
+      border-top: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: space-between;
+      font-size: 9px;
+      color: #9ca3af;
+    }
+    
+    .print-button {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 10px 20px;
+      background: #1e40af;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    
+    .print-button:hover {
+      background: #1e3a8a;
+    }
+    
+    @media print {
+      .print-button { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <button class="print-button" onclick="window.print()">Print / Save as PDF</button>
+  
+  <div class="report-container">
+    <div class="report-header">
+      <div class="org-info">
+        ${logoHtml}
+        <div>
+          <h1 class="org-name">${organization?.name || "SmartHMS"}</h1>
+          ${organization?.address ? `<p class="org-address">${organization.address}</p>` : ""}
+          ${organization?.phone || organization?.email ? 
+            `<p class="org-address">${[organization.phone, organization.email].filter(Boolean).join(" | ")}</p>` 
+            : ""}
+        </div>
+      </div>
+      
+      <h2 class="report-title">Day-End Financial Summary</h2>
+      <p class="report-subtitle">${reportDate}${summary.branchName ? ` • ${summary.branchName}` : ""} • Generated: ${currentDateTime}</p>
+    </div>
+    
+    <!-- Summary Cards -->
+    <div class="summary-grid">
+      <div class="summary-card collections">
+        <div class="summary-label">Total Collections</div>
+        <div class="summary-value">${formatCurrency(summary.collections.grandTotal)}</div>
+      </div>
+      <div class="summary-card payouts">
+        <div class="summary-label">Total Payouts</div>
+        <div class="summary-value">${formatCurrency(summary.payouts.totalPayouts)}</div>
+      </div>
+      <div class="summary-card net">
+        <div class="summary-label">Net Cash to Submit</div>
+        <div class="summary-value">${formatCurrency(summary.reconciliation.netCashToSubmit)}</div>
+      </div>
+      <div class="summary-card outstanding">
+        <div class="summary-label">Outstanding</div>
+        <div class="summary-value">${formatCurrency(summary.outstanding.pendingAmount)}</div>
+      </div>
+    </div>
+    
+    <!-- Collections by Method -->
+    <div class="section">
+      <h3 class="section-title">Collections by Payment Method</h3>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th class="text-right">Count</th>
+            <th class="text-right">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${summary.collections.byMethod.map(item => `
+            <tr>
+              <td>${item.method}</td>
+              <td class="text-right">${item.count}</td>
+              <td class="text-right">${formatCurrency(item.amount)}</td>
+            </tr>
+          `).join("")}
+          <tr class="total-row">
+            <td>Total</td>
+            <td class="text-right">${summary.collections.byMethod.reduce((sum, i) => sum + i.count, 0)}</td>
+            <td class="text-right">${formatCurrency(summary.collections.grandTotal)}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    
+    <!-- Collections by Department -->
+    <div class="section">
+      <h3 class="section-title">Collections by Department</h3>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Department</th>
+            <th class="text-right">Count</th>
+            <th class="text-right">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${summary.collections.byDepartment.map(item => `
+            <tr>
+              <td>${item.department}</td>
+              <td class="text-right">${item.count}</td>
+              <td class="text-right">${formatCurrency(item.amount)}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    </div>
+    
+    <!-- Doctor Settlements -->
+    ${summary.payouts.doctorSettlements.items.length > 0 ? `
+    <div class="section">
+      <h3 class="section-title">Doctor Settlements (${summary.payouts.doctorSettlements.items.length})</h3>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Settlement #</th>
+            <th>Doctor</th>
+            <th>Method</th>
+            <th class="text-right">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${summary.payouts.doctorSettlements.items.map(item => `
+            <tr>
+              <td>${item.settlementNumber}</td>
+              <td>${item.doctorName}</td>
+              <td>${item.paymentMethod || "Cash"}</td>
+              <td class="text-right">${formatCurrency(item.amount)}</td>
+            </tr>
+          `).join("")}
+          <tr class="total-row">
+            <td colspan="3">Total Doctor Settlements</td>
+            <td class="text-right">${formatCurrency(summary.payouts.doctorSettlements.total)}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    ` : ""}
+    
+    <!-- Vendor Payments -->
+    ${summary.payouts.vendorPayments.items.length > 0 ? `
+    <div class="section">
+      <h3 class="section-title">Vendor Payments (${summary.payouts.vendorPayments.items.length})</h3>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Payment #</th>
+            <th>Vendor</th>
+            <th>Method</th>
+            <th class="text-right">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${summary.payouts.vendorPayments.items.map(item => `
+            <tr>
+              <td>${item.paymentNumber}</td>
+              <td>${item.vendorName}</td>
+              <td>${item.paymentMethod || "-"}</td>
+              <td class="text-right">${formatCurrency(item.amount)}</td>
+            </tr>
+          `).join("")}
+          <tr class="total-row">
+            <td colspan="3">Total Vendor Payments</td>
+            <td class="text-right">${formatCurrency(summary.payouts.vendorPayments.total)}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    ` : ""}
+    
+    <!-- Cash Reconciliation -->
+    <div class="reconciliation-box">
+      <h3 style="margin: 0 0 12px 0; font-size: 14px; color: #1e40af;">Cash Reconciliation</h3>
+      <div class="reconciliation-row">
+        <span>Total Cash Collected</span>
+        <span style="color: #059669;">+ ${formatCurrency(summary.reconciliation.totalCashCollected)}</span>
+      </div>
+      <div class="reconciliation-row">
+        <span>Less: Doctor Settlements (Cash)</span>
+        <span style="color: #dc2626;">- ${formatCurrency(summary.payouts.doctorSettlements.cashTotal)}</span>
+      </div>
+      <div class="reconciliation-row">
+        <span>Less: Vendor Payments (Cash)</span>
+        <span style="color: #dc2626;">- ${formatCurrency(summary.payouts.vendorPayments.cashTotal)}</span>
+      </div>
+      <div class="reconciliation-row">
+        <span>Net Cash to Submit</span>
+        <span style="color: #2563eb;">= ${formatCurrency(summary.reconciliation.netCashToSubmit)}</span>
+      </div>
+    </div>
+    
+    <!-- Signatures -->
+    <div class="signatures">
+      <div class="signature-box">
+        <div class="signature-line"></div>
+        <div class="signature-label">Prepared By (Cashier)</div>
+      </div>
+      <div class="signature-box">
+        <div class="signature-line"></div>
+        <div class="signature-label">Verified By (Manager)</div>
+      </div>
+      <div class="signature-box">
+        <div class="signature-line"></div>
+        <div class="signature-label">Received By (Accountant)</div>
+      </div>
+    </div>
+    
+    <div class="report-footer">
+      <div>Outstanding: ${summary.outstanding.pendingInvoices} invoices (${formatCurrency(summary.outstanding.pendingAmount)})</div>
+      <div>SmartHMS Day-End Report</div>
+    </div>
+  </div>
+</body>
+</html>
+  `;
+
+  printWindow.document.write(html);
+  printWindow.document.close();
+}

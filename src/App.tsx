@@ -53,6 +53,7 @@ import ReceiptTemplatesPage from "./pages/app/settings/ReceiptTemplatesPage";
 import OrgAdminDashboardPage from "./pages/app/OrgAdminDashboardPage";
 import OrganizationReportsPage from "./pages/app/reports/OrganizationReportsPage";
 import BranchComparisonPage from "./pages/app/reports/BranchComparisonPage";
+import DayEndSummaryReport from "./pages/app/reports/DayEndSummaryReport";
 
 // Settings pages
 import { BranchesListPage } from "./pages/app/settings/BranchesListPage";
@@ -795,6 +796,7 @@ function App() {
               <Route path="billing/invoices/:id/pay" element={<PaymentCollectionPage />} />
               <Route path="billing/payments" element={<PaymentHistoryPage />} />
               <Route path="billing/daily-closing" element={<DailyClosingPage />} />
+              <Route path="reports/day-end-summary" element={<DayEndSummaryReport />} />
               <Route path="billing/reports" element={<BillingReportsPage />} />
               <Route path="billing/claims-report" element={<ClaimsReportPage />} />
               <Route path="billing/insurance/companies" element={<InsuranceCompaniesPage />} />
