@@ -1,228 +1,170 @@
 
-# Consolidated Day-End Summary Report with Doctor Compensation
 
-## Overview
+# Fix Day-End Summary Report - Complete Invoice & Department Tracking
 
-This report page provides a **complete financial picture** for end-of-day processing, including all collections, doctor settlements paid out during the day, and the **net amount to submit** to management. This fills a critical gap where doctor payouts were not being accounted for in daily cash submissions.
+## The Problem
 
----
+You correctly identified that the current implementation is flawed:
 
-## Problem Statement
+| Issue | Current State | Correct State |
+|-------|---------------|---------------|
+| Payments source | Fetched directly from `payments` table | Must trace through `invoices` to get context |
+| Department breakdown | Hardcoded as "General" | From `invoice_items` → `service_types.category` |
+| Invoice tracking | Not tracked at all | All invoices created today |
+| Credit logic | Placeholder values (0) | Compare invoice vs payment dates |
 
-Currently, the Daily Closing page tracks:
-- Total collections by payment method (Cash, Card, UPI, Other)
-- Session reconciliation
-- Outstanding receivables
-
-**What's Missing:**
-- Doctor settlements/compensation paid during the day
-- Vendor payments made
-- Expenses/petty cash used
-- **Net cash to submit** (Collections - Payouts)
-
----
-
-## Solution: Day-End Summary Report
-
-A comprehensive report that shows:
+### Data Flow in HMS
 
 ```text
-+================================================+
-|          DAY-END FINANCIAL SUMMARY             |
-|          February 4, 2026                      |
-+================================================+
+Payment Collection Flow:
+Reception/Billing → Creates Invoice → Records Payment against Invoice
 
-COLLECTIONS
-+--------------------------------------------+
-| Payment Method      | Amount               |
-+--------------------------------------------+
-| Cash                | Rs. 185,000          |
-| Card/Credit         | Rs. 65,000           |
-| UPI/Online          | Rs. 28,000           |
-| JazzCash/EasyPaisa  | Rs. 12,000           |
-+--------------------------------------------+
-| TOTAL COLLECTIONS   | Rs. 290,000          |
-+--------------------------------------------+
-
-COLLECTIONS BY DEPARTMENT
-+--------------------------------------------+
-| OPD                 | Rs. 85,000           |
-| IPD                 | Rs. 125,000          |
-| Pharmacy            | Rs. 45,000           |
-| Laboratory          | Rs. 25,000           |
-| Radiology           | Rs. 10,000           |
-+--------------------------------------------+
-
-PAYOUTS & DEDUCTIONS
-+--------------------------------------------+
-| Doctor Settlements  | Rs. 42,000           |
-|   - Dr. Ahmed (OPD) |   Rs. 15,000         |
-|   - Dr. Sara (Surg) |   Rs. 22,000         |
-|   - Dr. Ali (IPD)   |   Rs. 5,000          |
-+--------------------------------------------+
-| Vendor Payments     | Rs. 8,500            |
-| Petty Cash/Expense  | Rs. 2,500            |
-+--------------------------------------------+
-| TOTAL PAYOUTS       | Rs. 53,000           |
-+--------------------------------------------+
-
-RECONCILIATION
-+--------------------------------------------+
-| Total Cash Collected| Rs. 185,000          |
-| Less: Doctor Payouts| Rs. 42,000           |
-| Less: Other Payouts | Rs. 11,000           |
-+--------------------------------------------+
-| NET CASH TO SUBMIT  | Rs. 132,000          |
-+--------------------------------------------+
-
-| Expected Cash in Hand| Rs. 132,000         |
-| Actual Cash Count    | Rs. 131,800         |
-| Difference           | -Rs. 200 (Short)    |
-+--------------------------------------------+
-
-OUTSTANDING RECEIVABLES
-+--------------------------------------------+
-| Pending Invoices    | Rs. 28,500 (12)      |
-| Credit Given Today  | Rs. 15,000           |
-| Credit Recovered    | Rs. 8,000            |
-+--------------------------------------------+
-
-        [ Print Report ]  [ Export PDF ]
+payments.invoice_id → invoices.id → invoice_items → service_types.category
+                                                          ↓
+                                              (consultation, lab, radiology, etc.)
 ```
 
 ---
 
-## Implementation Plan
+## Solution: Correct Data Aggregation
 
-### New Hook: `useDayEndSummary.ts`
+### Step 1: Fetch Invoices Created Today (Not Just Payments)
 
-Creates a comprehensive summary by fetching:
+```typescript
+// Invoices created today - the REAL source of billing activity
+const invoicesCreatedToday = await supabase
+  .from("invoices")
+  .select(`
+    id, invoice_number, total_amount, paid_amount, status, created_at,
+    patient:patients!invoices_patient_id_fkey(first_name, last_name),
+    created_by_profile:profiles!invoices_created_by_fkey(full_name)
+  `)
+  .eq("organization_id", orgId)
+  .gte("created_at", startDate)
+  .lte("created_at", endDate)
+  .neq("status", "cancelled");
+```
 
-1. **Collections** - From `payments` table filtered by date
-2. **Doctor Settlements** - From `doctor_settlements` where `settlement_date = today`
-3. **Vendor Payments** - From `vendor_payments` where `payment_date = today`
-4. **Expenses** - From `expenses` or petty cash transactions
-5. **Outstanding** - Pending invoices from `invoices` table
+### Step 2: Get Department Breakdown from Invoice Items
+
+Instead of showing "General", properly categorize by department:
+
+```typescript
+// Get invoice items with service categories for department breakdown
+const invoiceItemsRes = await supabase
+  .from("invoice_items")
+  .select(`
+    id, total_price, service_type_id,
+    invoice:invoices!invoice_items_invoice_id_fkey(
+      id, created_at, status, branch_id
+    ),
+    service_type:service_types(id, category, name)
+  `)
+  .gte("invoice.created_at", startDate)
+  .lte("invoice.created_at", endDate)
+  .neq("invoice.status", "cancelled");
+
+// Group by service_types.category
+const byDepartment = groupByCategory(invoiceItemsRes.data);
+// Result: { consultation: 85000, lab: 45000, radiology: 32000, ... }
+```
+
+### Step 3: Payments Linked to Invoice Categories
+
+For collections (actual cash received), trace payment → invoice → invoice_items:
+
+```typescript
+// Payments made today with invoice details
+const paymentsRes = await supabase
+  .from("payments")
+  .select(`
+    id, amount, payment_method_id, created_at,
+    invoice:invoices!payments_invoice_id_fkey(
+      id, created_at
+    )
+  `)
+  .eq("organization_id", orgId)
+  .gte("created_at", startDate)
+  .lte("created_at", endDate);
+```
+
+### Step 4: Credit Given vs Recovered
+
+```typescript
+// Credit Given Today = Invoices created today that are still unpaid
+const creditGivenToday = invoicesCreatedToday
+  .filter(inv => inv.status !== 'paid')
+  .reduce((sum, inv) => sum + (inv.total_amount - inv.paid_amount), 0);
+
+// Credit Recovered Today = Payments today for invoices created BEFORE today
+const creditRecoveredToday = payments
+  .filter(p => new Date(p.invoice.created_at) < startOfDay(date))
+  .reduce((sum, p) => sum + p.amount, 0);
+```
+
+---
+
+## Updated Interface
 
 ```typescript
 interface DayEndSummary {
-  date: string;
+  // ... existing fields ...
   
-  // Collections
+  // NEW: Invoices section
+  invoices: {
+    created: InvoiceCreatedToday[];
+    totalCount: number;
+    totalAmount: number;
+    paidCount: number;
+    paidAmount: number;
+    pendingCount: number;
+    pendingAmount: number;
+    byDepartment: { department: string; amount: number; count: number }[];
+  };
+  
+  // FIXED: Collections now properly categorized
   collections: {
-    byMethod: { method: string; amount: number }[];
-    byDepartment: { department: string; amount: number }[];
+    byMethod: PaymentByMethod[];      // Cash, Card, UPI, etc.
+    byDepartment: PaymentByDepartment[]; // Consultation, Lab, Radiology, etc.
     totalCash: number;
     totalNonCash: number;
     grandTotal: number;
   };
   
-  // Payouts
-  payouts: {
-    doctorSettlements: {
-      total: number;
-      items: { doctorName: string; amount: number; settlementNumber: string }[];
-    };
-    vendorPayments: {
-      total: number;
-      items: { vendorName: string; amount: number; paymentNumber: string }[];
-    };
-    expenses: {
-      total: number;
-      items: { description: string; amount: number }[];
-    };
-    totalPayouts: number;
-  };
-  
-  // Reconciliation
-  reconciliation: {
-    totalCashCollected: number;
-    cashPayouts: number;
-    netCashToSubmit: number;
-    actualCashCount?: number;
-    difference?: number;
-  };
-  
-  // Outstanding
+  // FIXED: Credit tracking
   outstanding: {
     pendingInvoices: number;
     pendingAmount: number;
-    creditGivenToday: number;
-    creditRecoveredToday: number;
+    creditGivenToday: number;    // Pay-later invoices created today
+    creditRecoveredToday: number; // Payments for old invoices
   };
-  
-  // Transaction counts
-  transactionCount: number;
-  invoiceCount: number;
-  paymentCount: number;
 }
 ```
 
-### New Page: `DayEndSummaryReport.tsx`
-
-Location: `src/pages/app/reports/DayEndSummaryReport.tsx`
-
-**Features:**
-- Date picker to view any day's summary
-- Branch filter for multi-branch organizations
-- Collapsible sections for each category
-- Detailed breakdown tables
-- Professional PDF export with organization branding
-- Print-optimized layout
-
-**UI Structure:**
-```text
-┌─────────────────────────────────────────────────┐
-│ PageHeader: Day-End Summary Report              │
-│ [Date Picker] [Branch Filter] [Export ▼]        │
-├─────────────────────────────────────────────────┤
-│ Summary Cards (4-grid):                         │
-│ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐
-│ │Collections│ │ Payouts  │ │Net Submit│ │Outstanding│
-│ │ Rs.290K  │ │ Rs.53K   │ │ Rs.132K  │ │ Rs.28.5K │
-│ └──────────┘ └──────────┘ └──────────┘ └──────────┘
-├─────────────────────────────────────────────────┤
-│ Tabs: [Collections] [Payouts] [Reconciliation]  │
-├─────────────────────────────────────────────────┤
-│ Collections Tab:                                │
-│   - By Payment Method (table)                   │
-│   - By Department (table)                       │
-│   - Individual Payments (expandable)            │
-├─────────────────────────────────────────────────┤
-│ Payouts Tab:                                    │
-│   - Doctor Settlements (table with details)     │
-│   - Vendor Payments (table)                     │
-│   - Expenses/Petty Cash (table)                 │
-├─────────────────────────────────────────────────┤
-│ Reconciliation Tab:                             │
-│   - Cash flow summary                           │
-│   - Net calculation                             │
-│   - Discrepancy notes                           │
-└─────────────────────────────────────────────────┘
-```
-
-### PDF Export Enhancement
-
-Extends existing `pdfExport.ts` with a specialized `generateDayEndSummaryPDF()` function:
-
-- Multi-section layout
-- Collections breakdown
-- Payouts with doctor details
-- Net calculation prominently displayed
-- Signature lines for:
-  - Prepared By (Cashier)
-  - Verified By (Manager)
-  - Received By (Accountant)
-
 ---
 
-## Files to Create
+## UI Updates
 
-| File | Purpose |
-|------|---------|
-| `src/hooks/useDayEndSummary.ts` | Comprehensive data aggregation hook |
-| `src/pages/app/reports/DayEndSummaryReport.tsx` | Main report page |
-| `src/components/reports/DayEndSummaryPDF.tsx` | PDF generation component |
+### New Invoices Tab
+
+| Invoice # | Patient | Department | Amount | Paid | Status | Created By |
+|-----------|---------|------------|--------|------|--------|------------|
+| INV-0001 | Ahmed Khan | Consultation | 5,000 | 5,000 | Paid | Reception |
+| INV-0002 | Sara Ali | Lab | 8,500 | 0 | Pending | Reception |
+| INV-0003 | Bilal | Surgery | 125,000 | 50,000 | Partial | IPD |
+
+### Fixed Collections Tab
+
+**By Department (from service_types.category):**
+
+| Department | Invoice Amount | Collections | Count |
+|------------|----------------|-------------|-------|
+| Consultation | Rs. 85,000 | Rs. 82,000 | 28 |
+| Laboratory | Rs. 48,000 | Rs. 45,000 | 15 |
+| Radiology | Rs. 35,000 | Rs. 32,000 | 8 |
+| Surgery/OT | Rs. 150,000 | Rs. 125,000 | 3 |
+| Room Charges | Rs. 45,000 | Rs. 45,000 | 5 |
+| Pharmacy | Rs. 28,000 | Rs. 28,000 | 12 |
 
 ---
 
@@ -230,74 +172,60 @@ Extends existing `pdfExport.ts` with a specialized `generateDayEndSummaryPDF()` 
 
 | File | Changes |
 |------|---------|
-| `src/App.tsx` | Add route `/app/reports/day-end-summary` |
-| `src/pages/app/reports/ReportsHubPage.tsx` | Add card/link to Day-End Summary |
-| `src/config/role-sidebars.ts` | Add menu item for finance roles |
-| `src/lib/pdfExport.ts` | Add `generateDayEndSummaryPDF()` function |
+| `src/hooks/useDayEndSummary.ts` | Complete rewrite of data fetching logic |
+| `src/pages/app/reports/DayEndSummaryReport.tsx` | Add Invoices tab, fix department display |
+| `src/lib/pdfExport.ts` | Include invoice summary in PDF |
 
 ---
 
-## Technical Details
+## Technical Implementation
 
-### Database Queries
-
-**Doctor Settlements for Date:**
+### Query 1: Invoices Created Today
 ```sql
-SELECT ds.*, 
-  d.employee_id,
-  e.first_name, e.last_name
-FROM doctor_settlements ds
-JOIN doctors d ON ds.doctor_id = d.id
-JOIN employees e ON d.employee_id = e.id
-WHERE ds.settlement_date = :date
-  AND ds.organization_id = :org_id
+SELECT i.*, p.first_name, p.last_name, pr.full_name as created_by_name
+FROM invoices i
+JOIN patients p ON i.patient_id = p.id
+LEFT JOIN profiles pr ON i.created_by = pr.id
+WHERE DATE(i.created_at) = :date
+  AND i.organization_id = :org_id
+  AND i.status != 'cancelled'
 ```
 
-**Vendor Payments for Date:**
+### Query 2: Invoice Items with Categories
 ```sql
-SELECT vp.*, v.name as vendor_name
-FROM vendor_payments vp
-JOIN vendors v ON vp.vendor_id = v.id
-WHERE DATE(vp.payment_date) = :date
-  AND vp.organization_id = :org_id
+SELECT 
+  COALESCE(st.category, 'other') as department,
+  SUM(ii.total_price) as invoiced_amount,
+  COUNT(DISTINCT i.id) as invoice_count
+FROM invoice_items ii
+JOIN invoices i ON ii.invoice_id = i.id
+LEFT JOIN service_types st ON ii.service_type_id = st.id
+WHERE DATE(i.created_at) = :date
+  AND i.organization_id = :org_id
+  AND i.status != 'cancelled'
+GROUP BY st.category
 ```
 
-**Payments by Method:**
+### Query 3: Payments with Invoice Dates (for credit recovery)
 ```sql
-SELECT pm.name as method, SUM(p.amount) as total
-FROM payments p
-JOIN payment_methods pm ON p.payment_method_id = pm.id
-WHERE DATE(p.created_at) = :date
-  AND p.branch_id = :branch_id
-GROUP BY pm.name
+SELECT 
+  pay.amount, pay.payment_method_id,
+  DATE(inv.created_at) as invoice_created_date
+FROM payments pay
+JOIN invoices inv ON pay.invoice_id = inv.id
+WHERE DATE(pay.created_at) = :date
+  AND pay.organization_id = :org_id
 ```
-
-### Integration with Daily Closing
-
-The new report complements the Daily Closing wizard:
-- Daily Closing = Operational (close sessions, count cash)
-- Day-End Summary = Financial (full picture with payouts)
-
-Users can:
-1. Complete Daily Closing wizard
-2. View/Print Day-End Summary Report for records
-3. Submit net amount based on the report
-
----
-
-## Security & Permissions
-
-- Viewable by: `accountant`, `billing_manager`, `branch_admin`, `org_admin`, `super_admin`
-- PDF export includes audit metadata (generated by, timestamp)
-- Read-only report - no mutations
 
 ---
 
 ## Expected Outcome
 
 After implementation:
-1. Complete visibility of all cash inflows and outflows for the day
-2. Doctor settlements clearly shown as deductions
-3. Net cash to submit calculated automatically
-4. Professional PDF for audit trail
-5. Integration with existing Daily Closing workflow
+1. All invoices created by reception/billing staff are tracked
+2. Department breakdown uses actual service categories (not hardcoded "General")
+3. Credit given today (pay-later) is calculated correctly
+4. Credit recovered (old invoice payments) is calculated correctly
+5. PDF report includes complete invoice summary
+6. Reconciliation shows accurate net cash based on actual transaction data
+
