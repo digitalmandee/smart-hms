@@ -18,7 +18,7 @@ export const ProposalPricingPage = () => {
     { item: "System Deployment", detail: "Cloud infrastructure setup" },
     { item: "Configuration", detail: "Hospital workflow customization" },
     { item: "User & Role Setup", detail: "25+ role configurations" },
-    { item: "Employee Training", detail: "Doctors, Nurses, Admin, Billing staff" },
+    { item: "Employee Training", detail: "Included first time, after that onsite" },
     { item: "Go-Live Support", detail: "On-site and remote assistance" },
   ];
 
@@ -42,7 +42,7 @@ export const ProposalPricingPage = () => {
         <div className="bg-primary text-primary-foreground rounded-t-xl px-5 py-3 flex items-center justify-between">
           <h3 className="font-semibold">Monthly Subscription Fee</h3>
           <div className="text-right">
-            <span className="text-xl font-bold">PKR 3800,000</span>
+            <span className="text-xl font-bold">PKR 380,000</span>
             <span className="text-primary-foreground/80 ml-2 text-sm">/ Month</span>
           </div>
         </div>
@@ -119,7 +119,7 @@ export const ProposalPricingPage = () => {
       {/* Summary Note */}
       <div className="mt-4 bg-muted/30 rounded-xl p-3 text-center">
         <p className="text-sm text-muted-foreground">
-          <span className="font-semibold text-foreground">Total First Month:</span> PKR 1,100,000 (Setup + First Month
+          <span className="font-semibold text-foreground">Total First Month:</span> PKR 560,000 (Setup + First Month
           Subscription)
         </p>
       </div>
