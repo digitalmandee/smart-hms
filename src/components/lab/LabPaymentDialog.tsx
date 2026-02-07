@@ -20,10 +20,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useRecordPayment, usePaymentMethods } from "@/hooks/useBilling";
+import { useRequireSession } from "@/hooks/useRequireSession";
 import { useUpdateLabOrderPayment } from "@/hooks/useLabOrders";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { Loader2, CreditCard, Banknote, Smartphone } from "lucide-react";
+import { Loader2, CreditCard, Banknote, Smartphone, AlertCircle } from "lucide-react";
 
 interface LabPaymentDialogProps {
   open: boolean;
@@ -58,11 +59,20 @@ export function LabPaymentDialog({
   const [referenceNumber, setReferenceNumber] = useState("");
   const [notes, setNotes] = useState("");
   
+  // Session requirement for payment
+  const { hasActiveSession, session } = useRequireSession("reception");
+  
   const { data: paymentMethods = [] } = usePaymentMethods();
   const recordPayment = useRecordPayment();
   const updateLabOrderPayment = useUpdateLabOrderPayment();
 
   const handleSubmit = async () => {
+    // Check for active session
+    if (!hasActiveSession) {
+      toast.error("Please open a billing session first to collect payments");
+      return;
+    }
+
     const paymentAmount = parseFloat(amount);
     
     if (isNaN(paymentAmount) || paymentAmount <= 0) {
@@ -81,11 +91,12 @@ export function LabPaymentDialog({
     }
 
     try {
-      // Record the payment
+      // Record the payment with session link
       await recordPayment.mutateAsync({
         invoiceId,
         amount: paymentAmount,
         paymentMethodId,
+        billingSessionId: session?.id,
         referenceNumber: referenceNumber || undefined,
         notes: notes || undefined,
       });
@@ -128,113 +139,125 @@ export function LabPaymentDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
-          {/* Order Summary */}
-          <div className="bg-muted/50 rounded-lg p-4 space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Patient</span>
-              <span className="font-medium">{patientName}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Tests</span>
-              <span className="font-medium">{testNames.length} test(s)</span>
-            </div>
-            {testNames.length <= 3 && (
-              <div className="flex flex-wrap gap-1 pt-1">
-                {testNames.map((name, idx) => (
-                  <Badge key={idx} variant="outline" className="text-xs">
-                    {name}
-                  </Badge>
-                ))}
-              </div>
-            )}
+        {!hasActiveSession ? (
+          <div className="py-6 text-center">
+            <AlertCircle className="h-12 w-12 text-warning mx-auto mb-4" />
+            <p className="font-medium mb-2">Session Required</p>
+            <p className="text-sm text-muted-foreground">
+              Please open a billing session from the Billing Dashboard before collecting payments.
+            </p>
           </div>
-
-          {/* Amount Details */}
-          <div className="bg-primary/5 rounded-lg p-4 space-y-2">
-            <div className="flex justify-between text-sm">
-              <span>Total Amount</span>
-              <span className="font-medium">Rs. {totalAmount.toLocaleString()}</span>
-            </div>
-            {paidAmount > 0 && (
-              <div className="flex justify-between text-sm text-green-600">
-                <span>Paid</span>
-                <span>Rs. {paidAmount.toLocaleString()}</span>
+        ) : (
+          <div className="space-y-4 py-4">
+            {/* Order Summary */}
+            <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Patient</span>
+                <span className="font-medium">{patientName}</span>
               </div>
-            )}
-            <div className="flex justify-between text-base font-semibold border-t pt-2">
-              <span>Balance Due</span>
-              <span className="text-primary">Rs. {balance.toLocaleString()}</span>
-            </div>
-          </div>
-
-          {/* Payment Form */}
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Amount</Label>
-              <Input
-                type="number"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                placeholder="Enter amount"
-                max={balance}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Payment Method</Label>
-              <Select value={paymentMethodId} onValueChange={setPaymentMethodId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select payment method" />
-                </SelectTrigger>
-                <SelectContent>
-                  {paymentMethods.map((method) => (
-                    <SelectItem key={method.id} value={method.id}>
-                      <div className="flex items-center gap-2">
-                        {getPaymentMethodIcon(method.code)}
-                        {method.name}
-                      </div>
-                    </SelectItem>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Tests</span>
+                <span className="font-medium">{testNames.length} test(s)</span>
+              </div>
+              {testNames.length <= 3 && (
+                <div className="flex flex-wrap gap-1 pt-1">
+                  {testNames.map((name, idx) => (
+                    <Badge key={idx} variant="outline" className="text-xs">
+                      {name}
+                    </Badge>
                   ))}
-                </SelectContent>
-              </Select>
+                </div>
+              )}
             </div>
 
-            <div className="space-y-2">
-              <Label>Reference Number (Optional)</Label>
-              <Input
-                value={referenceNumber}
-                onChange={(e) => setReferenceNumber(e.target.value)}
-                placeholder="Transaction ID, Receipt #, etc."
-              />
+            {/* Amount Details */}
+            <div className="bg-primary/5 rounded-lg p-4 space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>Total Amount</span>
+                <span className="font-medium">Rs. {totalAmount.toLocaleString()}</span>
+              </div>
+              {paidAmount > 0 && (
+                <div className="flex justify-between text-sm text-green-600">
+                  <span>Paid</span>
+                  <span>Rs. {paidAmount.toLocaleString()}</span>
+                </div>
+              )}
+              <div className="flex justify-between text-base font-semibold border-t pt-2">
+                <span>Balance Due</span>
+                <span className="text-primary">Rs. {balance.toLocaleString()}</span>
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label>Notes (Optional)</Label>
-              <Textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Any additional notes..."
-                rows={2}
-              />
+            {/* Payment Form */}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Amount</Label>
+                <Input
+                  type="number"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  placeholder="Enter amount"
+                  max={balance}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Payment Method</Label>
+                <Select value={paymentMethodId} onValueChange={setPaymentMethodId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select payment method" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {paymentMethods.map((method) => (
+                      <SelectItem key={method.id} value={method.id}>
+                        <div className="flex items-center gap-2">
+                          {getPaymentMethodIcon(method.code)}
+                          {method.name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Reference Number (Optional)</Label>
+                <Input
+                  value={referenceNumber}
+                  onChange={(e) => setReferenceNumber(e.target.value)}
+                  placeholder="Transaction ID, Receipt #, etc."
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Notes (Optional)</Label>
+                <Textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Any additional notes..."
+                  rows={2}
+                />
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit} disabled={isPending}>
-            {isPending ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Processing...
-              </>
-            ) : (
-              `Pay Rs. ${parseFloat(amount || "0").toLocaleString()}`
-            )}
-          </Button>
+          {hasActiveSession && (
+            <Button onClick={handleSubmit} disabled={isPending}>
+              {isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                `Pay Rs. ${parseFloat(amount || "0").toLocaleString()}`
+              )}
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

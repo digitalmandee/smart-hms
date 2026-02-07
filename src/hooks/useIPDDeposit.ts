@@ -16,6 +16,7 @@ interface RecordDepositPaymentParams {
   invoiceId: string;
   amount: number;
   paymentMethodId: string;
+  billingSessionId?: string;  // Links to billing session for audit trail
   referenceNumber?: string;
   notes?: string;
 }
@@ -85,13 +86,14 @@ export function useRecordDepositPayment() {
 
   return useMutation({
     mutationFn: async (params: RecordDepositPaymentParams) => {
-      // Record the payment
+      // Record the payment with session link
       const { data: payment, error: paymentError } = await supabase
         .from("payments")
         .insert({
           invoice_id: params.invoiceId,
           amount: params.amount,
           payment_method_id: params.paymentMethodId,
+          billing_session_id: params.billingSessionId || null,
           payment_date: new Date().toISOString(),
           reference_number: params.referenceNumber,
           notes: params.notes,
