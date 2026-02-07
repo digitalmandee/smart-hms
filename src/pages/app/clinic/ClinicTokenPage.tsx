@@ -31,11 +31,13 @@ import { useDoctors } from "@/hooks/useDoctors";
 import { usePatients, useCreatePatient } from "@/hooks/usePatients";
 import { useCreateAppointment } from "@/hooks/useAppointments";
 import { useCreateInvoice, useRecordPayment, usePaymentMethods } from "@/hooks/useBilling";
+import { useRequireSession } from "@/hooks/useRequireSession";
 import { useOrganization } from "@/hooks/useOrganizations";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { PrintableTokenSlip } from "@/components/clinic/PrintableTokenSlip";
 import { PrintablePaymentReceipt } from "@/components/billing/PrintablePaymentReceipt";
+import { SessionStatusBanner } from "@/components/billing/SessionStatusBanner";
 import { 
   UserPlus, Search, Stethoscope, CreditCard, Ticket, 
   Printer, Check, Users, Phone, Receipt
@@ -56,6 +58,9 @@ export default function ClinicTokenPage() {
   const { profile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  
+  // Session requirement for payment collection
+  const { hasActiveSession, session } = useRequireSession("reception");
   
   // Step state
   const [step, setStep] = useState<"patient" | "doctor" | "payment" | "complete">("patient");
@@ -237,11 +242,12 @@ export default function ClinicTokenPage() {
         status: "pending",
       });
 
-      // 2. Record Payment (marks invoice as paid)
+      // 2. Record Payment with session link (marks invoice as paid)
       await recordPayment.mutateAsync({
         invoiceId: invoice.id,
         amount: selectedDoctor.fee,
         paymentMethodId,
+        billingSessionId: session?.id,
         referenceNumber: referenceNumber || undefined,
         notes: `Token payment via ${paymentMethod}`,
       });
@@ -334,6 +340,9 @@ export default function ClinicTokenPage() {
         title="Token Counter"
         description="Issue tokens for patient consultations"
       />
+
+      {/* Session Status Banner - Payment requires active session */}
+      <SessionStatusBanner counterType="reception" />
 
       {/* Progress Steps */}
       <div className="flex items-center justify-center gap-2 p-4">

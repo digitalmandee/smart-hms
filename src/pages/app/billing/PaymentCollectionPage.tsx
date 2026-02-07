@@ -10,8 +10,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { useInvoice, useRecordPayment, PaymentWithMethod } from "@/hooks/useBilling";
 import { useOrganizations } from "@/hooks/useOrganizations";
 import { useAuth } from "@/contexts/AuthContext";
+import { useRequireSession } from "@/hooks/useRequireSession";
 import { PaymentMethodSelector } from "@/components/billing/PaymentMethodSelector";
 import { PrintableReceipt } from "@/components/billing/PrintableReceipt";
+import { SessionRequiredGuard } from "@/components/billing/SessionRequiredGuard";
+import { SessionStatusBanner } from "@/components/billing/SessionStatusBanner";
 import { ArrowLeft, CreditCard, Printer, CheckCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePrint } from "@/hooks/usePrint";
@@ -21,6 +24,9 @@ export default function PaymentCollectionPage() {
   const navigate = useNavigate();
   const { profile } = useAuth();
   const { printRef, handlePrint } = usePrint();
+
+  // Session requirement for payment collection
+  const { hasActiveSession, session, isLoading: sessionLoading } = useRequireSession("reception");
 
   const { data: invoice, isLoading } = useInvoice(id);
   const { data: organizations } = useOrganizations();
@@ -49,10 +55,12 @@ export default function PaymentCollectionPage() {
   const handleSubmit = async () => {
     if (!id || !paymentMethodId || amount <= 0) return;
 
+    // Pass billing session ID for audit trail
     const result = await recordPaymentMutation.mutateAsync({
       invoiceId: id,
       amount,
       paymentMethodId,
+      billingSessionId: session?.id,
       referenceNumber: referenceNumber || undefined,
       notes: notes || undefined,
     });
@@ -66,11 +74,33 @@ export default function PaymentCollectionPage() {
     setShowSuccess(true);
   };
 
-  if (isLoading) {
+  if (isLoading || sessionLoading) {
     return (
       <div className="space-y-6">
         <Skeleton className="h-12 w-48" />
         <Skeleton className="h-96" />
+      </div>
+    );
+  }
+
+  // Block payment collection if no active session
+  if (!hasActiveSession) {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          title="Record Payment"
+          description="Payment collection requires an active billing session"
+          actions={
+            <Button variant="outline" onClick={() => navigate(-1)}>
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back
+            </Button>
+          }
+        />
+        <SessionRequiredGuard
+          counterType="reception"
+          message="Open a billing session to collect payments. This ensures all transactions are tracked for your shift."
+        />
       </div>
     );
   }
@@ -157,6 +187,9 @@ export default function PaymentCollectionPage() {
           </Button>
         }
       />
+
+      {/* Session Status Banner */}
+      <SessionStatusBanner counterType="reception" />
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Invoice Summary */}

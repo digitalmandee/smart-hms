@@ -23,7 +23,10 @@ import {
 import { generateVisitId } from "@/lib/visit-id";
 import { useCreateInvoice, useRecordPayment } from "@/hooks/useBilling";
 import { useAuth } from "@/contexts/AuthContext";
+import { useRequireSession } from "@/hooks/useRequireSession";
 import { PaymentMethodSelector } from "@/components/billing/PaymentMethodSelector";
+import { SessionRequiredGuard } from "@/components/billing/SessionRequiredGuard";
+import { SessionStatusBanner } from "@/components/billing/SessionStatusBanner";
 import { toast } from "sonner";
 
 interface ChargeItem {
@@ -42,6 +45,9 @@ export default function OPDCheckoutPage() {
   const [selectedCharges, setSelectedCharges] = useState<string[]>([]);
   const [paymentMethodId, setPaymentMethodId] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState(false);
+  
+  // Session requirement for payment collection
+  const { hasActiveSession, session, isLoading: sessionLoading } = useRequireSession("reception");
   
   const createInvoice = useCreateInvoice();
   const recordPayment = useRecordPayment();
@@ -243,11 +249,12 @@ export default function OPDCheckoutPage() {
         notes: `OPD Visit: ${generateVisitId(appointment)}`,
       });
 
-      // Record payment
+      // Record payment with session link
       await recordPayment.mutateAsync({
         invoiceId: invoiceData.id,
         amount: selectedTotal,
         paymentMethodId,
+        billingSessionId: session?.id,
         notes: "OPD Checkout - Full Payment",
       });
 
@@ -269,7 +276,7 @@ export default function OPDCheckoutPage() {
     }
   };
 
-  if (appointmentLoading) {
+  if (appointmentLoading || sessionLoading) {
     return (
       <div className="container py-6 space-y-6">
         <Skeleton className="h-10 w-64" />
@@ -280,6 +287,28 @@ export default function OPDCheckoutPage() {
           </div>
           <Skeleton className="h-64" />
         </div>
+      </div>
+    );
+  }
+
+  // Block payment collection if no active session
+  if (!hasActiveSession) {
+    return (
+      <div className="container py-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">OPD Checkout</h1>
+            <p className="text-muted-foreground">Session required for payment collection</p>
+          </div>
+          <Button variant="outline" onClick={() => navigate(-1)}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
+          </Button>
+        </div>
+        <SessionRequiredGuard
+          counterType="reception"
+          message="Open a billing session to collect OPD payments. This ensures all transactions are tracked for your shift."
+        />
       </div>
     );
   }
@@ -311,6 +340,9 @@ export default function OPDCheckoutPage() {
           Back
         </Button>
       </div>
+
+      {/* Session Status Banner */}
+      <SessionStatusBanner counterType="reception" />
 
       <div className="grid gap-6 md:grid-cols-3">
         {/* Charges List */}

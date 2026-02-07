@@ -543,22 +543,30 @@ export function useRecordPayment() {
       invoiceId,
       amount,
       paymentMethodId,
+      billingSessionId,
       referenceNumber,
       notes,
     }: {
       invoiceId: string;
       amount: number;
       paymentMethodId: string;
+      billingSessionId?: string;  // Links payment to billing session for audit trail
       referenceNumber?: string;
       notes?: string;
     }) => {
-      // Create payment
+      // Validate session is provided (enforced at page level, but double-check here)
+      if (!billingSessionId) {
+        billingLogger.warn("Payment recorded without billing session", { invoiceId });
+      }
+
+      // Create payment with session link
       const { data: payment, error: paymentError } = await supabase
         .from("payments")
         .insert({
           invoice_id: invoiceId,
           amount,
           payment_method_id: paymentMethodId,
+          billing_session_id: billingSessionId || null,
           reference_number: referenceNumber,
           notes,
           received_by: profile?.id,

@@ -31,12 +31,14 @@ import { useDoctors } from "@/hooks/useDoctors";
 import { usePatients, useCreatePatient } from "@/hooks/usePatients";
 import { useCreateAppointment } from "@/hooks/useAppointments";
 import { useCreateInvoice, useRecordPayment, usePaymentMethods } from "@/hooks/useBilling";
+import { useRequireSession } from "@/hooks/useRequireSession";
 import { useOrganization } from "@/hooks/useOrganizations";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { PrintableTokenSlip } from "@/components/clinic/PrintableTokenSlip";
 import { PrintablePaymentReceipt } from "@/components/billing/PrintablePaymentReceipt";
 import { FeeWaiverDialog } from "@/components/appointments/FeeWaiverDialog";
+import { SessionStatusBanner } from "@/components/billing/SessionStatusBanner";
 import { 
   UserPlus, Search, Stethoscope, CreditCard, Ticket, 
   Printer, Check, Users, Phone, ArrowLeft, ArrowRight, Clock, ShieldOff
@@ -57,6 +59,9 @@ export default function OPDWalkInPage() {
   const { profile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  
+  // Session requirement for payment collection
+  const { hasActiveSession, session } = useRequireSession("reception");
   
   // Step state
   const [step, setStep] = useState<"patient" | "doctor" | "payment" | "complete">("patient");
@@ -350,11 +355,12 @@ export default function OPDWalkInPage() {
         status: "pending",
       });
 
-      // 2. Record Payment (marks invoice as paid)
+      // 2. Record Payment with session link (marks invoice as paid)
       await recordPayment.mutateAsync({
         invoiceId: invoice.id,
         amount: selectedDoctor.fee,
         paymentMethodId,
+        billingSessionId: session?.id,
         referenceNumber: referenceNumber || undefined,
         notes: `OPD Walk-in payment via ${paymentMethod}`,
       });
@@ -456,7 +462,8 @@ export default function OPDWalkInPage() {
         ]}
       />
 
-      {/* Progress Steps */}
+      {/* Session Status Banner - Payment requires active session */}
+      <SessionStatusBanner counterType="reception" />
       <div className="flex items-center justify-center gap-2 p-4 bg-card rounded-lg border">
         {stepLabels.map((label, i) => (
           <div key={label} className="flex items-center">
