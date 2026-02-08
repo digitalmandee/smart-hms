@@ -12,7 +12,7 @@ export interface PaymentByMethod { method: string; amount: number; count: number
 export interface PaymentByDepartment { department: string; amount: number; count: number; }
 export interface DoctorSettlementItem { id: string; doctorName: string; amount: number; settlementNumber: string; paymentMethod: string | null; referenceNumber: string | null; }
 export interface VendorPaymentItem { id: string; vendorName: string; amount: number; paymentNumber: string; paymentMethod: string | null; referenceNumber: string | null; }
-export interface ExpenseItem { id: string; description: string; amount: number; category: string | null; paidTo: string | null; }
+export interface ExpenseItem { id: string; description: string; amount: number; category: string | null; paidTo: string | null; expenseNumber?: string; }
 
 export interface InvoiceCreatedToday {
   id: string;
@@ -100,11 +100,18 @@ export function useDayEndSummary(date: Date, branchId?: string) {
       // @ts-ignore - Supabase types cause deep instantiation error
       const profilesRes = await supabase.from("profiles").select("id, full_name");
 
-      // 5. Other queries (doctor settlements, vendor payments, pending invoices, payment methods)
+      // 5. Other queries (doctor settlements, vendor payments, expenses, pending invoices, payment methods)
       // @ts-ignore - Supabase types cause deep instantiation error
       const dsRes = await supabase.from("doctor_settlements").select("*").eq("organization_id", orgId).eq("settlement_date", dateStr);
-      // @ts-ignore - Supabase types cause deep instantiation error
-      const vpRes = await supabase.from("vendor_payments").select("*").eq("organization_id", orgId);
+      // @ts-ignore - Supabase types cause deep instantiation error - FIX: Filter by payment_date
+      const vpRes = await supabase.from("vendor_payments").select("*").eq("organization_id", orgId).eq("payment_date", dateStr);
+      // @ts-ignore - Supabase types cause deep instantiation error - NEW: Fetch expenses for the date
+      const expensesRes = await supabase
+        .from("expenses")
+        .select("*, created_by_profile:profiles!expenses_created_by_fkey(full_name)")
+        .eq("organization_id", orgId)
+        .gte("created_at", startDate)
+        .lte("created_at", endDate);
       // @ts-ignore - Supabase types cause deep instantiation error
       const pendingInvRes = await supabase.from("invoices").select("id, total_amount, paid_amount").eq("organization_id", orgId).in("status", ["pending", "partially_paid"]);
       // @ts-ignore - Supabase types cause deep instantiation error
@@ -116,6 +123,7 @@ export function useDayEndSummary(date: Date, branchId?: string) {
       const profiles = (profilesRes.data || []) as any[];
       const doctorSettlements = (dsRes.data || []) as any[];
       const vendorPayments = (vpRes.data || []) as any[];
+      const expenses = (expensesRes.data || []) as any[];
       const pendingInvoices = (pendingInvRes.data || []) as any[];
       const paymentMethods = (pmRes.data || []) as any[];
 
@@ -220,6 +228,21 @@ export function useDayEndSummary(date: Date, branchId?: string) {
         return { id: vp.id, vendorName: "Vendor", amount, paymentNumber: vp.payment_number || "-", paymentMethod: pm?.name || null, referenceNumber: vp.reference_number };
       });
 
+      // Expenses processing
+      let expenseTotal = 0;
+      const expenseItems: ExpenseItem[] = expenses.map((exp) => {
+        const amount = Number(exp.amount) || 0;
+        expenseTotal += amount;
+        return {
+          id: exp.id,
+          description: exp.description,
+          amount,
+          category: exp.category,
+          paidTo: exp.paid_to,
+          expenseNumber: exp.expense_number,
+        };
+      });
+
       // Outstanding amount
       const pendingAmount = pendingInvoices.reduce((sum, inv) => sum + (Number(inv.total_amount) - Number(inv.paid_amount || 0)), 0);
 
@@ -244,11 +267,11 @@ export function useDayEndSummary(date: Date, branchId?: string) {
         payouts: {
           doctorSettlements: { total: doctorTotal, cashTotal: doctorCashTotal, items: doctorItems },
           vendorPayments: { total: vendorTotal, cashTotal: vendorCashTotal, items: vendorItems },
-          expenses: { total: 0, items: [] },
-          totalPayouts: doctorTotal + vendorTotal,
-          totalCashPayouts: doctorCashTotal + vendorCashTotal
+          expenses: { total: expenseTotal, items: expenseItems },
+          totalPayouts: doctorTotal + vendorTotal + expenseTotal,
+          totalCashPayouts: doctorCashTotal + vendorCashTotal + expenseTotal
         },
-        reconciliation: { totalCashCollected: totalCash, cashPayouts: doctorCashTotal + vendorCashTotal, netCashToSubmit: totalCash - (doctorCashTotal + vendorCashTotal) },
+        reconciliation: { totalCashCollected: totalCash, cashPayouts: doctorCashTotal + vendorCashTotal + expenseTotal, netCashToSubmit: totalCash - (doctorCashTotal + vendorCashTotal + expenseTotal) },
         outstanding: { pendingInvoices: pendingInvoices.length, pendingAmount, creditGivenToday, creditRecoveredToday },
         transactionCount: payments.length + doctorSettlements.length + vendorPayments.length,
         invoiceCount: invoicesCreated.length,
