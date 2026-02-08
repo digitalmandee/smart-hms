@@ -1,95 +1,164 @@
 
-
-# Add Expense/Petty Cash Tracking, Fix Vendor Payments Filter, and Session-Based Reconciliation
+# Multi-OPD Department Management System
 
 ## Current State Analysis
 
-| Component | Current Status | Issue |
-|-----------|---------------|-------|
-| **Expenses Table** | Does NOT exist | No way to track petty cash/expenses |
-| **Vendor Payments Filter** | Missing date filter | Shows ALL vendor payments instead of today's |
-| **Daily Closing** | Fetches raw payments | Should aggregate from closed sessions |
-| **Session Linking** | Payments have `billing_session_id` | Not utilized in reconciliation |
-| **Day-End Summary** | Expenses section placeholder | Always shows Rs. 0 |
+| Component | Current Implementation | Gap for Multi-OPD |
+|-----------|----------------------|-------------------|
+| **Appointments** | Single shared queue | No OPD department filtering |
+| **Token Generation** | Per-doctor per day | Not department-aware |
+| **Queue Display** | Shows all patients | Cannot show department-specific TV displays |
+| **Nurse Station** | Single dashboard | No department assignment for nurses |
+| **Billing Sessions** | Counter types: reception, ipd, pharmacy, opd, er | Single "opd" counter type |
+| **Reports** | Service category-based | No OPD department breakdown |
+| **TV Display** | Organization-wide | Cannot run multiple displays per department |
+
+### How Hospitals Use Multi-OPD
+
+A typical hospital may have **multiple OPD clinics** under one roof:
+
+```text
+Hospital OPD Wing
+├── Medicine OPD (Room 1-5)
+│   ├── General Medicine
+│   ├── Cardiology
+│   └── Gastro
+├── Surgical OPD (Room 6-10)
+│   ├── General Surgery
+│   ├── Orthopedics
+│   └── ENT
+├── Pediatric OPD (Room 11-15)
+│   └── All pediatric specialties
+└── Eye & Dental OPD (Room 16-20)
+    ├── Ophthalmology
+    └── Dental
+```
+
+**Each OPD department needs:**
+- Its own token sequence (MED-001, SURG-001, etc.)
+- Dedicated TV queue display
+- Separate nurse station view
+- Individual billing counter tracking
+- Department-wise collection reports
 
 ---
 
 ## Solution Overview
 
-### Part 1: Create Expenses/Petty Cash System
+Create an **OPD Departments** system that groups specializations and enables:
 
-Create a new `expenses` table to track cash outflows during a billing session.
+1. **Department-based token generation** - Tokens start from 001 per department per day
+2. **Separate queue displays** - TV screens for each OPD department
+3. **Department-filtered nurse stations** - Nurses see only their assigned department
+4. **Department billing sessions** - Track collections by OPD department
+5. **Comprehensive reporting** - Revenue and patient count by OPD department
 
-**Database Schema:**
+---
+
+## Database Schema
+
+### New Table: `opd_departments`
+
 ```sql
-CREATE TABLE expenses (
+CREATE TABLE opd_departments (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   organization_id UUID NOT NULL REFERENCES organizations(id),
   branch_id UUID NOT NULL REFERENCES branches(id),
-  billing_session_id UUID REFERENCES billing_sessions(id),
-  expense_number VARCHAR(50) NOT NULL,
-  amount NUMERIC(15,2) NOT NULL,
-  category VARCHAR(50), -- 'petty_cash', 'refund', 'staff_advance', 'misc'
-  description TEXT NOT NULL,
-  paid_to VARCHAR(255),
-  payment_method_id UUID REFERENCES payment_methods(id),
-  reference_number VARCHAR(100),
-  approved_by UUID REFERENCES profiles(id),
-  approved_at TIMESTAMPTZ,
-  notes TEXT,
-  created_by UUID REFERENCES profiles(id),
-  created_at TIMESTAMPTZ DEFAULT now()
+  name VARCHAR(100) NOT NULL,           -- "Medicine OPD"
+  code VARCHAR(10) NOT NULL,            -- "MED"
+  description TEXT,
+  location VARCHAR(255),                -- "Ground Floor, East Wing"
+  rooms VARCHAR(100),                   -- "Rooms 1-5"
+  color VARCHAR(10),                    -- For UI display
+  is_active BOOLEAN DEFAULT true,
+  display_order INTEGER DEFAULT 0,
+  head_doctor_id UUID REFERENCES doctors(id),
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  
+  UNIQUE(organization_id, branch_id, code)
 );
 ```
 
-**New Hook: `useExpenses.ts`**
-- `useSessionExpenses(sessionId)` - Expenses for a specific session
-- `useBranchExpenses(branchId, date)` - All expenses for a date
-- `useCreateExpense()` - Record a new expense
-- `useApproveExpense()` - Manager approval for expenses
+### New Junction Table: `opd_department_specializations`
 
-### Part 2: Fix Vendor Payments Date Filter
+Links specializations to OPD departments:
 
-Current code in `useDayEndSummary.ts`:
-```typescript
-// WRONG - No date filter
-const vpRes = await supabase
-  .from("vendor_payments")
-  .select("*")
-  .eq("organization_id", orgId);
+```sql
+CREATE TABLE opd_department_specializations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  opd_department_id UUID NOT NULL REFERENCES opd_departments(id) ON DELETE CASCADE,
+  specialization_id UUID NOT NULL REFERENCES specializations(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  
+  UNIQUE(opd_department_id, specialization_id)
+);
 ```
 
-Fixed code:
-```typescript
-// CORRECT - Filter by payment_date
-const vpRes = await supabase
-  .from("vendor_payments")
-  .select("*")
-  .eq("organization_id", orgId)
-  .gte("payment_date", dateStr)
-  .lte("payment_date", dateStr);
+### Modify `appointments` Table
+
+```sql
+ALTER TABLE appointments ADD COLUMN opd_department_id UUID REFERENCES opd_departments(id);
 ```
 
-### Part 3: Session-Based Reconciliation
+### Modify `billing_sessions` Counter Types
 
-Instead of aggregating from raw `payments` table, use closed `billing_sessions`:
+Update the `counter_type` enum or add department-specific tracking:
+
+```sql
+ALTER TABLE billing_sessions 
+  ADD COLUMN opd_department_id UUID REFERENCES opd_departments(id);
+```
+
+---
+
+## Token Generation Logic
+
+### Current Flow
+```text
+Token = Next sequential number for (doctor_id + date)
+Format: 001, 002, 003...
+```
+
+### New Flow
+```text
+Token = Next sequential number for (opd_department_id + date)
+Format: MED-001, SURG-001, PEDI-001...
+```
+
+**Implementation:**
 
 ```typescript
-// Current (WRONG): Aggregate from payments
-const payments = await fetchPaymentsForDate(...);
-let cashTotal = 0;
-payments.forEach(p => cashTotal += p.amount);
-
-// Fixed (CORRECT): Use session totals
-const sessions = await fetchClosedSessionsForDate(...);
-const reconciledData = {
-  totalExpectedCash: sessions.reduce((sum, s) => sum + s.expected_cash, 0),
-  totalActualCash: sessions.reduce((sum, s) => sum + s.actual_cash, 0),
-  totalCardCollections: sessions.reduce((sum, s) => sum + s.card_total, 0),
-  totalUPICollections: sessions.reduce((sum, s) => sum + s.upi_total, 0),
-  totalExpenses: sessionExpenses.reduce((sum, e) => sum + e.amount, 0),
-  netCash: totalActualCash - totalExpenses,
-};
+// src/lib/opd-token.ts
+async function generateOPDToken(appointmentData: {
+  opd_department_id: string;
+  appointment_date: string;
+  branch_id: string;
+}): Promise<{ token_number: number; token_display: string }> {
+  // Get department code
+  const { data: dept } = await supabase
+    .from('opd_departments')
+    .select('code')
+    .eq('id', appointmentData.opd_department_id)
+    .single();
+  
+  // Get next token for this department + date
+  const { data: lastToken } = await supabase
+    .from('appointments')
+    .select('token_number')
+    .eq('opd_department_id', appointmentData.opd_department_id)
+    .eq('appointment_date', appointmentData.appointment_date)
+    .order('token_number', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  
+  const nextToken = (lastToken?.token_number || 0) + 1;
+  
+  return {
+    token_number: nextToken,
+    token_display: `${dept.code}-${String(nextToken).padStart(3, '0')}`
+  };
+}
 ```
 
 ---
@@ -98,303 +167,232 @@ const reconciledData = {
 
 ### Phase 1: Database & Backend
 
-**1.1 Create `expenses` table (SQL migration)**
-```sql
--- Create expenses table for petty cash/expense tracking
-CREATE TABLE IF NOT EXISTS expenses (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  organization_id UUID NOT NULL REFERENCES organizations(id),
-  branch_id UUID NOT NULL REFERENCES branches(id),
-  billing_session_id UUID REFERENCES billing_sessions(id),
-  expense_number VARCHAR(50) NOT NULL,
-  amount NUMERIC(15,2) NOT NULL CHECK (amount > 0),
-  category VARCHAR(50) DEFAULT 'petty_cash',
-  description TEXT NOT NULL,
-  paid_to VARCHAR(255),
-  payment_method_id UUID REFERENCES payment_methods(id),
-  reference_number VARCHAR(100),
-  approved_by UUID REFERENCES profiles(id),
-  approved_at TIMESTAMPTZ,
-  notes TEXT,
-  created_by UUID NOT NULL REFERENCES profiles(id),
-  created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now(),
-  
-  CONSTRAINT valid_category CHECK (
-    category IN ('petty_cash', 'refund', 'staff_advance', 'misc', 'other')
-  )
-);
+**Files to Create:**
+| File | Purpose |
+|------|---------|
+| `supabase/migrations/xxx_opd_departments.sql` | Create tables and functions |
+| `src/hooks/useOPDDepartments.ts` | CRUD operations for OPD departments |
+| `src/lib/opd-token.ts` | Token generation with department prefix |
 
--- RLS policies
-ALTER TABLE expenses ENABLE ROW LEVEL SECURITY;
+**Migration SQL:**
+- Create `opd_departments` table with RLS
+- Create `opd_department_specializations` junction table
+- Add `opd_department_id` to `appointments`
+- Add `opd_department_id` to `billing_sessions`
+- Create function `generate_opd_token(dept_id, date)` for consistent token generation
+- Add indexes for performance
 
-CREATE POLICY "expenses_org_access" ON expenses
-  FOR ALL USING (organization_id = auth.organization_id());
+### Phase 2: OPD Department Management UI
 
--- Generate expense number function
-CREATE OR REPLACE FUNCTION generate_expense_number(p_org_id UUID)
-RETURNS TEXT AS $$
-DECLARE
-  v_count INT;
-  v_prefix TEXT := 'EXP';
-  v_date TEXT := to_char(CURRENT_DATE, 'YYMMDD');
-BEGIN
-  SELECT COUNT(*) + 1 INTO v_count
-  FROM expenses
-  WHERE organization_id = p_org_id
-    AND created_at::date = CURRENT_DATE;
-  
-  RETURN v_prefix || '-' || v_date || '-' || LPAD(v_count::TEXT, 3, '0');
-END;
-$$ LANGUAGE plpgsql;
-```
+**Files to Create:**
+| File | Purpose |
+|------|---------|
+| `src/pages/app/settings/OPDDepartmentsPage.tsx` | List/manage OPD departments |
+| `src/components/opd/OPDDepartmentForm.tsx` | Create/edit department form |
+| `src/components/opd/OPDDepartmentSpecializations.tsx` | Assign specializations to department |
 
-### Phase 2: Create Expense Hook
+**Features:**
+- CRUD for OPD departments
+- Drag-and-drop to assign specializations
+- Set department head doctor
+- Configure display order and color
 
-**File: `src/hooks/useExpenses.ts`**
+### Phase 3: Appointment Flow Updates
 
-```typescript
-// Types
-export type ExpenseCategory = 'petty_cash' | 'refund' | 'staff_advance' | 'misc' | 'other';
+**Files to Modify:**
+| File | Changes |
+|------|---------|
+| `src/hooks/useAppointments.ts` | Auto-assign `opd_department_id` based on doctor's specialization |
+| `src/pages/app/appointments/AppointmentFormPage.tsx` | Show OPD department selection (optional override) |
+| `src/lib/visit-id.ts` | Update to use department code in visit ID |
 
-export interface Expense {
-  id: string;
-  organization_id: string;
-  branch_id: string;
-  billing_session_id: string | null;
-  expense_number: string;
-  amount: number;
-  category: ExpenseCategory;
-  description: string;
-  paid_to: string | null;
-  created_by: string;
-  created_at: string;
-  // Joined
-  created_by_profile?: { full_name: string };
-}
+**Logic:**
+1. When doctor is selected, auto-detect their specialization
+2. Look up which OPD department contains that specialization
+3. Auto-assign `opd_department_id` to appointment
+4. Generate department-prefixed token
 
-// Hooks
-export function useSessionExpenses(sessionId?: string);
-export function useBranchExpenses(branchId?: string, date?: string);
-export function useCreateExpense();
-export function useApproveExpense();
-```
+### Phase 4: Queue Display Updates
 
-### Phase 3: Fix useDayEndSummary
+**Files to Modify:**
+| File | Changes |
+|------|---------|
+| `src/pages/app/appointments/QueueDisplayPage.tsx` | Add department filter, show department name |
+| `src/pages/app/appointments/QueueControlPage.tsx` | Filter by department |
+| `src/hooks/useAppointments.ts` | Add `opdDepartmentId` filter to queue hooks |
 
-**File: `src/hooks/useDayEndSummary.ts`**
+**New Features:**
+- Department selector on TV display page
+- Different TV screens can show different OPD departments
+- Token format shows department code (MED-015)
+- Department name/color in queue cards
 
-Changes:
-1. Add date filter to vendor payments query
-2. Add expenses query
-3. Calculate expense totals in reconciliation
+### Phase 5: Nurse Station Updates
 
-```typescript
-// 1. Fix vendor payments query
-const vpRes = await supabase
-  .from("vendor_payments")
-  .select("*")
-  .eq("organization_id", orgId)
-  .eq("payment_date", dateStr);  // ADD THIS
+**Files to Modify:**
+| File | Changes |
+|------|---------|
+| `src/pages/app/opd/NurseDashboard.tsx` | Add department filter/assignment |
+| `src/hooks/useAppointments.ts` | Filter nursing queue by department |
+| `src/components/nursing/*` | Show department badge on patient cards |
 
-// 2. Add expenses query
-const expensesRes = await supabase
-  .from("expenses")
-  .select("*, created_by_profile:profiles(full_name)")
-  .eq("organization_id", orgId)
-  .gte("created_at", startDate)
-  .lte("created_at", endDate);
+**Logic:**
+- Nurses can be assigned to specific OPD departments
+- Dashboard shows only their department's patients
+- Cross-department view for supervisors
 
-// 3. Update reconciliation to include expenses
-const expenseTotal = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
-reconciliation: {
-  totalCashCollected: totalCash,
-  cashPayouts: doctorCashTotal + vendorCashTotal + expenseTotal,
-  netCashToSubmit: totalCash - (doctorCashTotal + vendorCashTotal + expenseTotal)
-}
-```
+### Phase 6: Billing Session Updates
 
-### Phase 4: Update Daily Closing Hook
+**Files to Modify:**
+| File | Changes |
+|------|---------|
+| `src/hooks/useBillingSessions.ts` | Add `opd_department_id` to session creation |
+| `src/components/billing/OpenSessionDialog.tsx` | Allow selecting OPD department for session |
+| `src/hooks/useDayEndSummary.ts` | Group collections by OPD department |
 
-**File: `src/hooks/useDailyClosing.ts`**
+**Features:**
+- When opening a session with counter_type = "opd", optionally specify department
+- Day-end summary shows breakdown by OPD department
+- Reconciliation per department
 
-Use session-based aggregation instead of raw payments:
+### Phase 7: Reporting Updates
 
-```typescript
-// Replace fetchPaymentsForDate with session-based calculation
-async function fetchClosedSessionsForDate(branchId: string, date: string) {
-  const result = await supabase
-    .from('billing_sessions')
-    .select('*')
-    .eq('branch_id', branchId)
-    .eq('status', 'closed')
-    .gte('closed_at', `${date}T00:00:00`)
-    .lte('closed_at', `${date}T23:59:59`);
-  
-  return result.data || [];
-}
+**Files to Create:**
+| File | Purpose |
+|------|---------|
+| `src/pages/app/reports/OPDDepartmentReport.tsx` | Dedicated OPD department analytics |
+| `src/hooks/useOPDDepartmentStats.ts` | Query patient counts, revenue by OPD department |
 
-// Update summary calculation
-const closedSessions = await fetchClosedSessionsForDate(branchId, date);
-const sessionTotals = closedSessions.reduce((acc, s) => ({
-  totalCollections: acc.totalCollections + (s.total_collections || 0),
-  expectedCash: acc.expectedCash + (s.expected_cash || 0),
-  actualCash: acc.actualCash + (s.actual_cash || 0),
-  cardTotal: acc.cardTotal + (s.card_total || 0),
-  upiTotal: acc.upiTotal + (s.upi_total || 0),
-  discrepancy: acc.discrepancy + (s.cash_difference || 0),
-}), { totalCollections: 0, expectedCash: 0, actualCash: 0, cardTotal: 0, upiTotal: 0, discrepancy: 0 });
-```
+**Files to Modify:**
+| File | Changes |
+|------|---------|
+| `src/pages/app/reports/DepartmentRevenueReport.tsx` | Add OPD department filter |
+| `src/pages/app/reports/ShiftWiseCollectionReport.tsx` | Add OPD department breakdown |
+| `src/pages/app/reports/DayEndSummaryReport.tsx` | Show OPD department sections |
+| `src/lib/pdfExport.ts` | Include OPD department in exports |
 
-### Phase 5: Add Expense UI to Daily Closing
-
-**File: `src/pages/app/billing/DailyClosingPage.tsx`**
-
-Add a step for recording expenses (optional but recommended):
-
-```
-Step Flow:
-1. Sessions Review (existing)
-2. Expenses Entry (NEW - optional)
-3. Cash Count (existing)
-4. Summary & Submit (existing)
-```
-
-**File: `src/components/billing/ExpenseEntryCard.tsx`**
-
-Quick expense entry component for the daily closing flow.
-
-### Phase 6: Update Day-End Summary Report UI
-
-**File: `src/pages/app/reports/DayEndSummaryReport.tsx`**
-
-Update Payouts tab to show expense details:
-
-```tsx
-{/* Expenses Section */}
-<Collapsible open={expandedSections.expenses}>
-  <Card>
-    <CollapsibleTrigger asChild>
-      <CardHeader className="cursor-pointer">
-        <div className="flex justify-between items-center">
-          <CardTitle className="text-lg">Expenses/Petty Cash</CardTitle>
-          <div className="flex items-center gap-4">
-            <span className="font-bold text-red-600">
-              {formatCurrency(summary?.payouts.expenses.total || 0)}
-            </span>
-            <ChevronDown className={expanded ? 'rotate-180' : ''} />
-          </div>
-        </div>
-      </CardHeader>
-    </CollapsibleTrigger>
-    <CollapsibleContent>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Expense #</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Paid To</TableHead>
-              <TableHead className="text-right">Amount</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {summary?.payouts.expenses.items.map((expense) => (
-              <TableRow key={expense.id}>
-                <TableCell className="font-mono">{expense.expenseNumber}</TableCell>
-                <TableCell>{expense.description}</TableCell>
-                <TableCell><Badge variant="outline">{expense.category}</Badge></TableCell>
-                <TableCell>{expense.paidTo || '-'}</TableCell>
-                <TableCell className="text-right font-mono text-red-600">
-                  {formatCurrency(expense.amount)}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </CollapsibleContent>
-  </Card>
-</Collapsible>
-```
-
-### Phase 7: Update PDF Export
-
-**File: `src/lib/pdfExport.ts`**
-
-Add expense details to the Day-End Summary PDF.
+**New Reports:**
+- Patient count by OPD department (daily, weekly, monthly)
+- Revenue by OPD department
+- Wait time analysis by department
+- Doctor performance within department
 
 ---
 
-## Files to Create
+## Data Flow
+
+```text
+Appointment Creation Flow:
+┌─────────────────┐
+│ Select Doctor   │
+└───────┬─────────┘
+        ↓
+┌─────────────────────────────────┐
+│ Get Doctor's Specialization     │
+└───────┬─────────────────────────┘
+        ↓
+┌─────────────────────────────────┐
+│ Find OPD Department containing  │
+│ this specialization             │
+└───────┬─────────────────────────┘
+        ↓
+┌─────────────────────────────────┐
+│ Auto-assign opd_department_id   │
+└───────┬─────────────────────────┘
+        ↓
+┌─────────────────────────────────┐
+│ Generate Token:                 │
+│ MED-001 (dept_code + sequence)  │
+└───────┬─────────────────────────┘
+        ↓
+┌─────────────────────────────────┐
+│ Appointment Created with:       │
+│ - opd_department_id             │
+│ - token_number (sequential)     │
+│ - token_display (MED-001)       │
+└─────────────────────────────────┘
+```
+
+```text
+Queue Display Flow:
+┌─────────────────────────────────┐
+│ TV Screen: Medicine OPD         │
+│ Filter: opd_department_id = X   │
+└───────┬─────────────────────────┘
+        ↓
+┌─────────────────────────────────┐
+│ Shows only Medicine OPD tokens  │
+│ MED-012, MED-013, MED-014...    │
+└─────────────────────────────────┘
+
+┌─────────────────────────────────┐
+│ TV Screen: Surgery OPD          │
+│ Filter: opd_department_id = Y   │
+└───────┬─────────────────────────┘
+        ↓
+┌─────────────────────────────────┐
+│ Shows only Surgery OPD tokens   │
+│ SURG-008, SURG-009, SURG-010... │
+└─────────────────────────────────┘
+```
+
+---
+
+## Files Summary
+
+### Files to Create (12 files)
 
 | File | Purpose |
 |------|---------|
-| `src/hooks/useExpenses.ts` | Expense CRUD operations |
-| `src/components/billing/ExpenseEntryCard.tsx` | Quick expense entry form |
-| `src/components/billing/RecordExpenseDialog.tsx` | Full expense entry dialog |
+| `supabase/migrations/xxx_opd_departments.sql` | Database schema |
+| `src/hooks/useOPDDepartments.ts` | OPD department CRUD |
+| `src/lib/opd-token.ts` | Token generation logic |
+| `src/pages/app/settings/OPDDepartmentsPage.tsx` | Management page |
+| `src/components/opd/OPDDepartmentForm.tsx` | Create/edit form |
+| `src/components/opd/OPDDepartmentSpecializations.tsx` | Assign specializations |
+| `src/components/opd/OPDDepartmentSelector.tsx` | Dropdown selector |
+| `src/components/opd/OPDDepartmentBadge.tsx` | Display badge with color |
+| `src/pages/app/reports/OPDDepartmentReport.tsx` | Department analytics |
+| `src/hooks/useOPDDepartmentStats.ts` | Stats queries |
 
-## Files to Modify
+### Files to Modify (15+ files)
 
 | File | Changes |
 |------|---------|
-| `src/hooks/useDayEndSummary.ts` | Add date filter to vendor payments, add expenses query |
-| `src/hooks/useDailyClosing.ts` | Use session-based aggregation |
-| `src/pages/app/billing/DailyClosingPage.tsx` | Optional expenses step, session-based totals |
-| `src/pages/app/reports/DayEndSummaryReport.tsx` | Expense details in Payouts tab |
-| `src/lib/pdfExport.ts` | Include expenses in PDF |
-| `src/components/billing/DailyClosingSummary.tsx` | Show expense deductions |
-
----
-
-## Updated Data Flow
-
-```text
-Daily Workflow:
-
-1. Open Session (Reception/Pharmacy/IPD)
-   ↓
-2. Collect Payments → linked to billing_session_id
-   ↓
-3. Record Expenses (NEW) → linked to billing_session_id
-   ↓
-4. Close Session
-   - Count cash denominations
-   - Actual vs Expected reconciliation
-   ↓
-5. Daily Closing (Manager)
-   - Review all closed sessions (aggregated)
-   - Review expenses
-   - Vendor payments (filtered by date)
-   - Net cash calculation
-   ↓
-6. Day-End Report
-   - Session-based totals
-   - Expense breakdown
-   - True net cash to deposit
-```
-
----
-
-## Reconciliation Formula (Updated)
-
-```text
-Net Cash to Submit = 
-    Sum of (Actual Cash from all closed sessions)
-  - Sum of (Cash Expenses from sessions)
-  - Sum of (Cash Doctor Settlements)
-  - Sum of (Cash Vendor Payments for today)
-```
+| `src/hooks/useAppointments.ts` | Add department filter, auto-assignment |
+| `src/pages/app/appointments/AppointmentFormPage.tsx` | Show department |
+| `src/pages/app/appointments/QueueDisplayPage.tsx` | Department filter |
+| `src/pages/app/appointments/QueueControlPage.tsx` | Department filter |
+| `src/pages/app/opd/NurseDashboard.tsx` | Department filter |
+| `src/pages/app/opd/DoctorDashboard.tsx` | Show department context |
+| `src/lib/visit-id.ts` | Use department code |
+| `src/hooks/useBillingSessions.ts` | Add department to sessions |
+| `src/hooks/useDayEndSummary.ts` | Group by department |
+| `src/pages/app/reports/DepartmentRevenueReport.tsx` | OPD department filter |
+| `src/pages/app/reports/ShiftWiseCollectionReport.tsx` | Department breakdown |
+| `src/pages/app/reports/DayEndSummaryReport.tsx` | Department sections |
+| `src/lib/pdfExport.ts` | Include department in exports |
+| `src/config/role-sidebars.ts` | Add OPD Departments menu item |
 
 ---
 
 ## Expected Outcome
 
 After implementation:
-1. **Expenses tracked per session** - Complete audit trail of cash outflows
-2. **Vendor payments filtered correctly** - Only today's payments in day-end summary
-3. **Session-based reconciliation** - Totals from closed sessions, not raw payments
-4. **Accurate net cash** - Includes all deductions (expenses, settlements, vendor payments)
-5. **PDF report complete** - Includes expense breakdown
 
+1. **Organized OPD Management** - Each specialty clinic operates independently
+2. **Department-specific Tokens** - Clear identification (MED-001, SURG-001)
+3. **Multiple TV Displays** - Each OPD department has its own queue screen
+4. **Nurse Assignment** - Nurses see only their department's patients
+5. **Accurate Billing** - Collections tracked per OPD department
+6. **Comprehensive Reports** - Revenue, patient count, wait times by department
+7. **No Data Gaps** - All existing reports continue to work, with additional department filtering
+
+---
+
+## Migration Strategy
+
+1. **Backward Compatible** - `opd_department_id` is nullable initially
+2. **Gradual Rollout** - Admins create OPD departments and assign specializations
+3. **Auto-Assignment** - New appointments auto-detect department from doctor
+4. **Historical Data** - Backfill script can assign department to past appointments based on doctor specialization
