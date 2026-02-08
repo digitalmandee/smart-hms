@@ -884,6 +884,7 @@ export type Database = {
           invoice_id: string | null
           kiosk_id: string | null
           notes: string | null
+          opd_department_id: string | null
           organization_id: string
           patient_id: string
           payment_status: string | null
@@ -913,6 +914,7 @@ export type Database = {
           invoice_id?: string | null
           kiosk_id?: string | null
           notes?: string | null
+          opd_department_id?: string | null
           organization_id: string
           patient_id: string
           payment_status?: string | null
@@ -942,6 +944,7 @@ export type Database = {
           invoice_id?: string | null
           kiosk_id?: string | null
           notes?: string | null
+          opd_department_id?: string | null
           organization_id?: string
           patient_id?: string
           payment_status?: string | null
@@ -994,6 +997,13 @@ export type Database = {
             columns: ["kiosk_id"]
             isOneToOne: false
             referencedRelation: "kiosk_configs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_opd_department_id_fkey"
+            columns: ["opd_department_id"]
+            isOneToOne: false
+            referencedRelation: "opd_departments"
             referencedColumns: ["id"]
           },
           {
@@ -1742,6 +1752,7 @@ export type Database = {
           expected_cash: number | null
           id: string
           notes: string | null
+          opd_department_id: string | null
           opened_at: string
           opened_by: string
           opening_cash: number
@@ -1773,6 +1784,7 @@ export type Database = {
           expected_cash?: number | null
           id?: string
           notes?: string | null
+          opd_department_id?: string | null
           opened_at?: string
           opened_by: string
           opening_cash?: number
@@ -1804,6 +1816,7 @@ export type Database = {
           expected_cash?: number | null
           id?: string
           notes?: string | null
+          opd_department_id?: string | null
           opened_at?: string
           opened_by?: string
           opening_cash?: number
@@ -1839,6 +1852,13 @@ export type Database = {
             columns: ["discrepancy_approved_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_sessions_opd_department_id_fkey"
+            columns: ["opd_department_id"]
+            isOneToOne: false
+            referencedRelation: "opd_departments"
             referencedColumns: ["id"]
           },
           {
@@ -12996,6 +13016,115 @@ export type Database = {
           },
         ]
       }
+      opd_department_specializations: {
+        Row: {
+          created_at: string | null
+          id: string
+          opd_department_id: string
+          specialization_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          opd_department_id: string
+          specialization_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          opd_department_id?: string
+          specialization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opd_department_specializations_opd_department_id_fkey"
+            columns: ["opd_department_id"]
+            isOneToOne: false
+            referencedRelation: "opd_departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opd_department_specializations_specialization_id_fkey"
+            columns: ["specialization_id"]
+            isOneToOne: false
+            referencedRelation: "specializations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      opd_departments: {
+        Row: {
+          branch_id: string
+          code: string
+          color: string | null
+          created_at: string | null
+          description: string | null
+          display_order: number | null
+          head_doctor_id: string | null
+          id: string
+          is_active: boolean | null
+          location: string | null
+          name: string
+          organization_id: string
+          rooms: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          branch_id: string
+          code: string
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          head_doctor_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          location?: string | null
+          name: string
+          organization_id: string
+          rooms?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          branch_id?: string
+          code?: string
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          head_doctor_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          location?: string | null
+          name?: string
+          organization_id?: string
+          rooms?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opd_departments_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opd_departments_head_doctor_id_fkey"
+            columns: ["head_doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opd_departments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organization_modules: {
         Row: {
           enabled_at: string | null
@@ -18892,6 +19021,10 @@ export type Database = {
           session_token: string
         }[]
       }
+      find_opd_department_by_specialization: {
+        Args: { p_branch_id: string; p_specialization_id: string }
+        Returns: string
+      }
       generate_claim_number: { Args: { org_id: string }; Returns: string }
       generate_closing_number: {
         Args: { p_branch_id: string; p_date: string; p_org_id: string }
@@ -18901,6 +19034,17 @@ export type Database = {
       generate_kiosk_username: {
         Args: { kiosk_name: string; org_id: string }
         Returns: string
+      }
+      generate_opd_token: {
+        Args: {
+          p_appointment_date: string
+          p_branch_id: string
+          p_opd_department_id: string
+        }
+        Returns: {
+          token_display: string
+          token_number: number
+        }[]
       }
       generate_session_number: { Args: { p_org_id: string }; Returns: string }
       generate_surgery_number: {

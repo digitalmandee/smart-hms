@@ -137,6 +137,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         icon: "Settings",
         children: [
           { name: "Payment Methods", path: "/app/settings/payment-methods", icon: "CreditCard" },
+          { name: "OPD Departments", path: "/app/settings/opd-departments", icon: "Building2" },
           { name: "Specializations", path: "/app/settings/specializations", icon: "Award" },
           { name: "Qualifications", path: "/app/settings/qualifications", icon: "GraduationCap" },
           { name: "Tax Settings", path: "/app/settings/tax", icon: "Percent" },

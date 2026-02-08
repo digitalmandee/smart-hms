@@ -6,6 +6,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useTodayQueue } from '@/hooks/useAppointments';
 import { useOrganization } from '@/hooks/useOrganizations';
+import { useOPDDepartments } from '@/hooks/useOPDDepartments';
+import { OPDDepartmentSelector } from '@/components/opd/OPDDepartmentSelector';
+import { OPDTokenBadge } from '@/components/opd/OPDDepartmentBadge';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
@@ -18,10 +21,15 @@ const priorityConfig: Record<number, { bg: string; text: string; label: string; 
 
 export default function QueueDisplayPage() {
   const { profile } = useAuth();
-  const { data: queue, refetch } = useTodayQueue();
+  const [selectedDepartmentId, setSelectedDepartmentId] = useState<string | undefined>();
+  const { data: queue, refetch } = useTodayQueue(undefined, undefined, selectedDepartmentId);
   const { data: organization } = useOrganization(profile?.organization_id ?? undefined);
+  const { data: departments } = useOPDDepartments();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Get selected department info
+  const selectedDepartment = departments?.find(d => d.id === selectedDepartmentId);
 
   // Update time every second
   useEffect(() => {
@@ -103,19 +111,39 @@ export default function QueueDisplayPage() {
     }
   };
 
+  // Get token display with department code
+  const getTokenDisplay = (appointment: any) => {
+    const dept = appointment.opd_department;
+    if (dept?.code) {
+      return `${dept.code}-${String(appointment.token_number || 0).padStart(3, '0')}`;
+    }
+    return String(appointment.token_number || '-');
+  };
+
   return (
     <div className="min-h-screen bg-background p-4 lg:p-8">
       {/* Header */}
       <div className="flex items-center justify-between mb-6 lg:mb-8">
         <div>
           <h1 className="text-2xl lg:text-4xl font-bold text-foreground">
-            {organization?.name || 'Patient Queue'}
+            {selectedDepartment ? selectedDepartment.name : organization?.name || 'Patient Queue'}
           </h1>
           <p className="text-lg text-muted-foreground mt-1">
             {format(currentTime, 'EEEE, MMMM d, yyyy')}
           </p>
         </div>
         <div className="flex items-center gap-2 lg:gap-4">
+          {/* Department Filter */}
+          {departments && departments.length > 0 && (
+            <OPDDepartmentSelector
+              value={selectedDepartmentId}
+              onChange={setSelectedDepartmentId}
+              showAllOption
+              allOptionLabel="All OPD"
+              showLabel={false}
+              className="w-[180px]"
+            />
+          )}
           <Button variant="outline" size="icon" onClick={() => refetch()} title="Refresh">
             <RefreshCw className="h-5 w-5" />
           </Button>
@@ -149,8 +177,8 @@ export default function QueueDisplayPage() {
                 <Card key={appointment.id} className="border-2 border-destructive bg-destructive/5">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-4">
-                      <div className="w-16 h-16 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center text-2xl font-bold animate-pulse">
-                        {appointment.token_number || '-'}
+                      <div className="w-16 h-16 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center text-xl font-bold font-mono animate-pulse">
+                        {getTokenDisplay(appointment)}
                       </div>
                       <div>
                         <p className="text-xl font-bold">
@@ -195,20 +223,28 @@ export default function QueueDisplayPage() {
                 const priorityStyle = priorityConfig[priority];
                 const patient = appointment.patient;
                 const doctor = appointment.doctor;
+                const dept = appointment.opd_department;
                 
                 return (
                   <Card 
                     key={appointment.id} 
                     className={cn(
-                      "border-4 border-primary shadow-lg transition-all",
+                      "border-4 shadow-lg transition-all",
                       priorityStyle.bg
                     )}
+                    style={{ borderColor: dept?.color || 'hsl(var(--primary))' }}
                   >
                     <CardContent className="py-6 lg:py-8 px-6">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4 lg:gap-6">
-                          <div className="w-20 h-20 lg:w-24 lg:h-24 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-3xl lg:text-4xl font-bold shadow-md">
-                            {appointment.token_number || '-'}
+                          <div 
+                            className="w-20 h-20 lg:w-24 lg:h-24 rounded-full flex items-center justify-center text-2xl lg:text-3xl font-bold font-mono shadow-md"
+                            style={{ 
+                              backgroundColor: dept?.color || 'hsl(var(--primary))',
+                              color: 'white'
+                            }}
+                          >
+                            {getTokenDisplay(appointment)}
                           </div>
                           <div>
                             <p className="text-2xl lg:text-3xl font-bold">
@@ -221,6 +257,15 @@ export default function QueueDisplayPage() {
                               <p className="text-lg text-muted-foreground mt-1">
                                 Dr. {(doctor as any).profile?.full_name}
                               </p>
+                            )}
+                            {dept && (
+                              <Badge 
+                                variant="outline" 
+                                className="mt-2 font-mono"
+                                style={{ borderColor: dept.color || undefined, color: dept.color || undefined }}
+                              >
+                                {dept.name}
+                              </Badge>
                             )}
                           </div>
                         </div>
@@ -272,33 +317,52 @@ export default function QueueDisplayPage() {
                 const priority = (appointment as any).priority || 0;
                 const priorityStyle = priorityConfig[priority];
                 const patient = appointment.patient;
+                const dept = appointment.opd_department;
                 
                 return (
                   <Card
                     key={appointment.id}
                     className={cn(
                       'transition-all hover:shadow-md',
-                      index === 0 && 'border-2 border-primary/50 shadow-sm',
+                      index === 0 && 'border-2 shadow-sm',
                       priority > 0 && priorityStyle.borderColor
                     )}
+                    style={index === 0 ? { borderColor: dept?.color || 'hsl(var(--primary) / 0.5)' } : undefined}
                   >
                     <CardContent className="py-4 px-5">
                       <div className="flex items-center gap-4">
-                        <div className={cn(
-                          'w-14 h-14 lg:w-16 lg:h-16 rounded-full flex items-center justify-center text-xl lg:text-2xl font-bold transition-all',
-                          index === 0 
-                            ? 'bg-primary text-primary-foreground scale-105' 
-                            : 'bg-muted text-muted-foreground'
-                        )}>
-                          {appointment.token_number || '-'}
+                        <div 
+                          className={cn(
+                            'w-14 h-14 lg:w-16 lg:h-16 rounded-full flex items-center justify-center text-lg lg:text-xl font-bold font-mono transition-all',
+                            index === 0 ? 'scale-105' : ''
+                          )}
+                          style={{
+                            backgroundColor: index === 0 
+                              ? (dept?.color || 'hsl(var(--primary))') 
+                              : 'hsl(var(--muted))',
+                            color: index === 0 ? 'white' : 'hsl(var(--muted-foreground))'
+                          }}
+                        >
+                          {getTokenDisplay(appointment)}
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-lg lg:text-xl font-semibold truncate">
                             {patient?.first_name} {patient?.last_name}
                           </p>
-                          <p className="text-sm text-muted-foreground">
-                            {patient?.patient_number}
-                          </p>
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm text-muted-foreground">
+                              {patient?.patient_number}
+                            </p>
+                            {dept && !selectedDepartmentId && (
+                              <Badge 
+                                variant="outline" 
+                                className="text-xs font-mono"
+                                style={{ borderColor: dept.color || undefined, color: dept.color || undefined }}
+                              >
+                                {dept.code}
+                              </Badge>
+                            )}
+                          </div>
                         </div>
                         {priority > 0 && (
                           <Badge 
