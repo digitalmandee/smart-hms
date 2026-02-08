@@ -202,6 +202,8 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         children: [
           { name: "Organization Reports", path: "/app/reports/organization", icon: "PieChart" },
           { name: "Branch Comparison", path: "/app/reports/branches", icon: "BarChart3" },
+          { name: "Day-End Summary", path: "/app/reports/day-end-summary", icon: "Receipt" },
+          { name: "OPD Departments", path: "/app/reports/opd-departments", icon: "Building2" },
         ]
       },
     ]

@@ -54,6 +54,7 @@ import OrgAdminDashboardPage from "./pages/app/OrgAdminDashboardPage";
 import OrganizationReportsPage from "./pages/app/reports/OrganizationReportsPage";
 import BranchComparisonPage from "./pages/app/reports/BranchComparisonPage";
 import DayEndSummaryReport from "./pages/app/reports/DayEndSummaryReport";
+import OPDDepartmentReport from "./pages/app/reports/OPDDepartmentReport";
 
 // Settings pages
 import { BranchesListPage } from "./pages/app/settings/BranchesListPage";
@@ -798,6 +799,7 @@ function App() {
               <Route path="billing/payments" element={<PaymentHistoryPage />} />
               <Route path="billing/daily-closing" element={<DailyClosingPage />} />
               <Route path="reports/day-end-summary" element={<DayEndSummaryReport />} />
+              <Route path="reports/opd-departments" element={<OPDDepartmentReport />} />
               <Route path="billing/reports" element={<BillingReportsPage />} />
               <Route path="billing/claims-report" element={<ClaimsReportPage />} />
               <Route path="billing/insurance/companies" element={<InsuranceCompaniesPage />} />

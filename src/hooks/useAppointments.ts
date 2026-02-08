@@ -223,18 +223,76 @@ export function useCreateAppointment() {
         time: appointment.appointment_time
       });
 
-      // Get next token number for this doctor on this date
-      const { data: existingAppointments } = await supabase
-        .from('appointments')
-        .select('token_number')
-        .eq('doctor_id', appointment.doctor_id!)
-        .eq('appointment_date', appointment.appointment_date)
-        .order('token_number', { ascending: false })
-        .limit(1);
+      // Auto-detect OPD department based on doctor's specialization
+      let opdDepartmentId = appointment.opd_department_id || null;
+      let tokenNumber = 1;
+      let tokenDisplay: string | null = null;
 
-      const nextToken = existingAppointments && existingAppointments.length > 0
-        ? (existingAppointments[0].token_number || 0) + 1
-        : 1;
+      if (appointment.doctor_id && profile.branch_id && !opdDepartmentId) {
+        // Get doctor's specialization
+        const { data: doctor } = await supabase
+          .from('doctors')
+          .select('specialization')
+          .eq('id', appointment.doctor_id)
+          .single();
+
+        if (doctor?.specialization) {
+          // Find specialization by name
+          const { data: spec } = await supabase
+            .from('specializations')
+            .select('id')
+            .ilike('name', doctor.specialization)
+            .limit(1)
+            .maybeSingle();
+
+          if (spec) {
+            // Find OPD department containing this specialization
+            const { data: deptSpec } = await supabase
+              .from('opd_department_specializations')
+              .select(`
+                opd_department:opd_departments!inner(id, code, branch_id, is_active)
+              `)
+              .eq('specialization_id', spec.id)
+              .eq('opd_department.branch_id', profile.branch_id)
+              .eq('opd_department.is_active', true)
+              .limit(1)
+              .maybeSingle();
+
+            if (deptSpec) {
+              opdDepartmentId = (deptSpec as any).opd_department?.id;
+            }
+          }
+        }
+      }
+
+      // Generate token based on OPD department or doctor
+      if (opdDepartmentId) {
+        // Use department-based token generation
+        const { data: tokenResult, error: tokenError } = await supabase.rpc('generate_opd_token', {
+          p_opd_department_id: opdDepartmentId,
+          p_appointment_date: appointment.appointment_date,
+          p_branch_id: profile.branch_id,
+        });
+
+        if (!tokenError && tokenResult) {
+          const result = Array.isArray(tokenResult) ? tokenResult[0] : tokenResult;
+          tokenNumber = result.token_number;
+          tokenDisplay = result.token_display;
+        }
+      } else {
+        // Legacy: Get next token number for this doctor on this date
+        const { data: existingAppointments } = await supabase
+          .from('appointments')
+          .select('token_number')
+          .eq('doctor_id', appointment.doctor_id!)
+          .eq('appointment_date', appointment.appointment_date)
+          .order('token_number', { ascending: false })
+          .limit(1);
+
+        tokenNumber = existingAppointments && existingAppointments.length > 0
+          ? (existingAppointments[0].token_number || 0) + 1
+          : 1;
+      }
 
       const { data, error } = await supabase
         .from('appointments')
@@ -242,7 +300,8 @@ export function useCreateAppointment() {
           ...appointment,
           organization_id: profile.organization_id,
           created_by: user?.id,
-          token_number: nextToken,
+          token_number: tokenNumber,
+          opd_department_id: opdDepartmentId,
         })
         .select()
         .single();
@@ -254,11 +313,13 @@ export function useCreateAppointment() {
 
       appointmentLogger.info("Appointment created", { 
         appointmentId: data.id,
-        tokenNumber: nextToken,
+        tokenNumber,
+        tokenDisplay,
+        opdDepartmentId,
         date: appointment.appointment_date
       });
 
-      return data;
+      return { ...data, token_display: tokenDisplay };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['appointments'] });
@@ -357,29 +418,36 @@ export function useMarkNoShow() {
 }
 
 // Nursing queue - patients categorized by vitals status
-export function useNursingQueue() {
+export function useNursingQueue(opdDepartmentId?: string) {
   const { profile } = useAuth();
   const today = new Date().toISOString().split('T')[0];
 
   return useQuery({
-    queryKey: ['nursing-queue', today, profile?.organization_id],
+    queryKey: ['nursing-queue', today, profile?.organization_id, opdDepartmentId],
     queryFn: async () => {
       if (!profile?.organization_id) {
         return { awaitingVitals: [], vitalsComplete: [], inProgress: [] };
       }
 
-      const { data, error } = await supabase
+      let query = supabase
         .from('appointments')
         .select(`
           *,
           patient:patients(id, first_name, last_name, patient_number, phone, date_of_birth, gender),
-          doctor:doctors(id, specialization, profile:profiles(full_name))
+          doctor:doctors(id, specialization, profile:profiles(full_name)),
+          opd_department:opd_departments(id, name, code, color)
         `)
         .eq('organization_id', profile.organization_id)
         .eq('appointment_date', today)
         .in('status', ['checked_in', 'in_progress'])
         .order('priority', { ascending: false })
         .order('check_in_at', { ascending: true });
+
+      if (opdDepartmentId) {
+        query = query.eq('opd_department_id', opdDepartmentId);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
 
