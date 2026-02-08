@@ -13,7 +13,8 @@ import {
   Calendar,
   Clock,
   Hash,
-  DollarSign
+  DollarSign,
+  Building2
 } from 'lucide-react';
 import { PageHeader } from '@/components/PageHeader';
 import { StatsCard } from '@/components/StatsCard';
@@ -29,9 +30,12 @@ import { PatientVitalsCard } from '@/components/nursing/PatientVitalsCard';
 import { VitalsSummaryBadge } from '@/components/nursing/VitalsSummaryBadge';
 import { QuickActionsPanel } from '@/components/nursing/QuickActionsPanel';
 import { PaymentStatusBadge } from '@/components/radiology/PaymentStatusBadge';
+import { OPDDepartmentSelector } from '@/components/opd/OPDDepartmentSelector';
+import { OPDTokenBadge } from '@/components/opd/OPDDepartmentBadge';
 import { generateVisitId } from '@/lib/visit-id';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { MobileNurseView } from '@/components/mobile/MobileNurseView';
+import { useAuth } from '@/contexts/AuthContext';
 
 const priorityLabels: Record<number, { label: string; variant: 'destructive' | 'default' | 'secondary' | 'outline' }> = {
   2: { label: 'Emergency', variant: 'destructive' },
@@ -41,8 +45,11 @@ const priorityLabels: Record<number, { label: string; variant: 'destructive' | '
 
 export default function NurseDashboard() {
   const navigate = useNavigate();
+  const { profile } = useAuth();
   const [patientSearch, setPatientSearch] = useState('');
-  const { data: queue, isLoading, refetch } = useNursingQueue();
+  const [selectedDepartment, setSelectedDepartment] = useState<string | undefined>();
+  
+  const { data: queue, isLoading, refetch } = useNursingQueue(selectedDepartment);
   const { data: patients, isLoading: patientsLoading } = usePatients(patientSearch);
   
   const isMobileScreen = useIsMobile();
@@ -80,7 +87,15 @@ export default function NurseDashboard() {
         title="Nurse Station"
         description={`Today, ${format(new Date(), 'EEEE, MMMM d, yyyy')}`}
         actions={
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
+            <OPDDepartmentSelector
+              value={selectedDepartment}
+              onChange={setSelectedDepartment}
+              branchId={profile?.branch_id}
+              showAllOption
+              allOptionLabel="All Departments"
+              placeholder="Filter by OPD"
+            />
             <Button variant="outline" size="sm" onClick={() => refetch()}>
               <RefreshCw className="h-4 w-4 mr-2" />
               Refresh
@@ -258,22 +273,29 @@ export default function NurseDashboard() {
                       appointment_date: appointment.appointment_date,
                       token_number: appointment.token_number,
                     });
+                    const opdDept = (appointment as any).opd_department;
                     
                     return (
                       <Card key={appointment.id} className="p-3 border-l-4 border-l-green-500">
                         <div className="flex items-start justify-between">
                           <div>
                             <div className="flex items-center gap-2">
-                              <span className="font-bold text-lg">#{appointment.token_number}</span>
+                              <OPDTokenBadge
+                                tokenNumber={appointment.token_number}
+                                departmentCode={opdDept?.code}
+                                departmentColor={opdDept?.color}
+                                size="md"
+                              />
                               <Badge variant={priorityLabels[appointment.priority || 0]?.variant || 'secondary'}>
                                 {priorityLabels[appointment.priority || 0]?.label || 'Normal'}
                               </Badge>
                             </div>
-                            <p className="font-medium">
+                            <p className="font-medium mt-1">
                               {appointment.patient?.first_name} {appointment.patient?.last_name}
                             </p>
                             <p className="text-xs text-muted-foreground">
                               {appointment.patient?.patient_number}
+                              {opdDept && <span className="ml-2">• {opdDept.name}</span>}
                             </p>
                             {/* Visit ID */}
                           <div className="flex items-center gap-1 mt-1">
