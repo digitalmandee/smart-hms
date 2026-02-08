@@ -19,6 +19,7 @@ interface AppointmentFilters {
   type?: AppointmentType;
   patientId?: string;
   branchId?: string;
+  opdDepartmentId?: string;
 }
 
 export interface AppointmentWithRelations extends Appointment {
@@ -40,6 +41,12 @@ export interface AppointmentWithRelations extends Appointment {
     id: string;
     name: string;
   };
+  opd_department?: {
+    id: string;
+    name: string;
+    code: string;
+    color: string | null;
+  } | null;
 }
 
 export function useAppointments(filters: AppointmentFilters = {}) {
@@ -56,7 +63,8 @@ export function useAppointments(filters: AppointmentFilters = {}) {
           *,
           patient:patients(id, first_name, last_name, patient_number, phone),
           doctor:doctors(id, specialization, profile:profiles(full_name)),
-          branch:branches(id, name)
+          branch:branches(id, name),
+          opd_department:opd_departments(id, name, code, color)
         `)
         .eq('organization_id', profile.organization_id)
         .order('appointment_date', { ascending: true })
@@ -85,6 +93,9 @@ export function useAppointments(filters: AppointmentFilters = {}) {
       }
       if (filters.branchId) {
         query = query.eq('branch_id', filters.branchId);
+      }
+      if (filters.opdDepartmentId) {
+        query = query.eq('opd_department_id', filters.opdDepartmentId);
       }
 
       const { data, error } = await query;
@@ -118,12 +129,12 @@ export function useAppointment(id: string) {
   });
 }
 
-export function useTodayQueue(branchId?: string, doctorId?: string) {
+export function useTodayQueue(branchId?: string, doctorId?: string, opdDepartmentId?: string) {
   const { profile } = useAuth();
   const today = new Date().toISOString().split('T')[0];
 
   return useQuery({
-    queryKey: ['today-queue', branchId, doctorId, today, profile?.organization_id],
+    queryKey: ['today-queue', branchId, doctorId, opdDepartmentId, today, profile?.organization_id],
     queryFn: async () => {
       if (!profile?.organization_id) return [];
 
@@ -132,7 +143,8 @@ export function useTodayQueue(branchId?: string, doctorId?: string) {
         .select(`
           *,
           patient:patients(id, first_name, last_name, patient_number, phone),
-          doctor:doctors(id, specialization, profile:profiles(full_name))
+          doctor:doctors(id, specialization, profile:profiles(full_name)),
+          opd_department:opd_departments(id, name, code, color)
         `)
         .eq('organization_id', profile.organization_id)
         .eq('appointment_date', today)
@@ -144,6 +156,9 @@ export function useTodayQueue(branchId?: string, doctorId?: string) {
       }
       if (doctorId) {
         query = query.eq('doctor_id', doctorId);
+      }
+      if (opdDepartmentId) {
+        query = query.eq('opd_department_id', opdDepartmentId);
       }
 
       const { data, error } = await query;

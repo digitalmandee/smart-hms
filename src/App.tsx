@@ -179,6 +179,7 @@ import PatientConfigPage from "./pages/app/settings/PatientConfigPage";
 import HRConfigPage from "./pages/app/settings/HRConfigPage";
 import SurgeonFeesPage from "./pages/app/settings/SurgeonFeesPage";
 import IPDConfigPage from "./pages/app/settings/IPDConfigPage";
+import OPDDepartmentsPage from "./pages/app/settings/OPDDepartmentsPage";
 
 // HR pages
 import HRDashboard from "./pages/app/hr/HRDashboard";
@@ -970,6 +971,7 @@ function App() {
               <Route path="settings/ipd-config" element={<IPDConfigPage />} />
               <Route path="settings/ot-config" element={<OTConfigPage />} />
               <Route path="settings/surgeon-fees" element={<SurgeonFeesPage />} />
+              <Route path="settings/opd-departments" element={<OPDDepartmentsPage />} />
             </Route>
 
             {/* Super Admin routes */}
