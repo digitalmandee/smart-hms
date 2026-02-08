@@ -222,7 +222,7 @@ export function OPDDepartmentForm({ department, onSuccess, onCancel }: OPDDepart
                       </SelectValue>
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent>
+                  <SelectContent position="popper" sideOffset={5}>
                     {COLOR_OPTIONS.map((color) => (
                       <SelectItem key={color.value} value={color.value}>
                         <div className="flex items-center gap-2">
@@ -261,13 +261,17 @@ export function OPDDepartmentForm({ department, onSuccess, onCancel }: OPDDepart
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Head Doctor</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select 
+                  onValueChange={(value) => field.onChange(value === "__none__" ? undefined : value)} 
+                  defaultValue={field.value || "__none__"}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select head doctor" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent>
+                  <SelectContent position="popper" sideOffset={5}>
+                    <SelectItem value="__none__">None</SelectItem>
                     {loadingDoctors ? (
                       <div className="p-2 text-center">
                         <Loader2 className="h-4 w-4 animate-spin mx-auto" />
