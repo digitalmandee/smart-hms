@@ -7409,6 +7409,109 @@ export type Database = {
           },
         ]
       }
+      expenses: {
+        Row: {
+          amount: number
+          approved_at: string | null
+          approved_by: string | null
+          billing_session_id: string | null
+          branch_id: string
+          category: string | null
+          created_at: string | null
+          created_by: string
+          description: string
+          expense_number: string
+          id: string
+          notes: string | null
+          organization_id: string
+          paid_to: string | null
+          payment_method_id: string | null
+          reference_number: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          approved_at?: string | null
+          approved_by?: string | null
+          billing_session_id?: string | null
+          branch_id: string
+          category?: string | null
+          created_at?: string | null
+          created_by: string
+          description: string
+          expense_number: string
+          id?: string
+          notes?: string | null
+          organization_id: string
+          paid_to?: string | null
+          payment_method_id?: string | null
+          reference_number?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          approved_at?: string | null
+          approved_by?: string | null
+          billing_session_id?: string | null
+          branch_id?: string
+          category?: string | null
+          created_at?: string | null
+          created_by?: string
+          description?: string
+          expense_number?: string
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          paid_to?: string | null
+          payment_method_id?: string | null
+          reference_number?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expenses_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_billing_session_id_fkey"
+            columns: ["billing_session_id"]
+            isOneToOne: false
+            referencedRelation: "billing_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_payment_method_id_fkey"
+            columns: ["payment_method_id"]
+            isOneToOne: false
+            referencedRelation: "payment_methods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       final_settlements: {
         Row: {
           advance_recovery: number | null
@@ -18794,6 +18897,7 @@ export type Database = {
         Args: { p_branch_id: string; p_date: string; p_org_id: string }
         Returns: string
       }
+      generate_expense_number: { Args: { p_org_id: string }; Returns: string }
       generate_kiosk_username: {
         Args: { kiosk_name: string; org_id: string }
         Returns: string

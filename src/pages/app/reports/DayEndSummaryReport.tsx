@@ -613,6 +613,78 @@ export default function DayEndSummaryReport() {
               </CollapsibleContent>
             </Collapsible>
           </Card>
+
+          {/* Expenses */}
+          <Card>
+            <Collapsible
+              open={expandedSections.expenses}
+              onOpenChange={() => toggleSection("expenses")}
+            >
+              <CollapsibleTrigger asChild>
+                <CardHeader className="cursor-pointer hover:bg-muted/50">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Receipt className="h-5 w-5 text-red-600" />
+                      <CardTitle className="text-lg">Expenses/Petty Cash</CardTitle>
+                      <Badge variant="secondary">
+                        {summary?.payouts.expenses.items.length || 0}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <span className="text-lg font-bold text-red-600">
+                        {formatCurrency(summary?.payouts.expenses.total || 0)}
+                      </span>
+                      {expandedSections.expenses ? (
+                        <ChevronDown className="h-5 w-5" />
+                      ) : (
+                        <ChevronRight className="h-5 w-5" />
+                      )}
+                    </div>
+                  </div>
+                </CardHeader>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Expense #</TableHead>
+                        <TableHead>Description</TableHead>
+                        <TableHead>Category</TableHead>
+                        <TableHead>Paid To</TableHead>
+                        <TableHead className="text-right">Amount</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {summary?.payouts.expenses.items.map((item) => (
+                        <TableRow key={item.id}>
+                          <TableCell className="font-mono text-sm">
+                            {item.expenseNumber || '-'}
+                          </TableCell>
+                          <TableCell className="font-medium">{item.description}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline">{item.category || 'Other'}</Badge>
+                          </TableCell>
+                          <TableCell>{item.paidTo || "-"}</TableCell>
+                          <TableCell className="text-right font-mono text-red-600">
+                            {formatCurrency(item.amount)}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      {(!summary?.payouts.expenses.items ||
+                        summary.payouts.expenses.items.length === 0) && (
+                        <TableRow>
+                          <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                            No expenses for this date
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </CollapsibleContent>
+            </Collapsible>
+          </Card>
         </TabsContent>
 
         {/* Reconciliation Tab */}

@@ -391,7 +391,7 @@ export interface DayEndSummaryPDFOptions {
       };
       expenses: {
         total: number;
-        items: { description: string; amount: number }[];
+        items: { description: string; amount: number; category?: string | null; paidTo?: string | null; expenseNumber?: string }[];
       };
       totalPayouts: number;
       totalCashPayouts: number;
@@ -839,6 +839,39 @@ export function generateDayEndSummaryPDF(options: DayEndSummaryPDFOptions): void
     </div>
     ` : ""}
     
+    <!-- Expenses -->
+    ${summary.payouts.expenses.items.length > 0 ? `
+    <div class="section">
+      <h3 class="section-title">Expenses/Petty Cash (${summary.payouts.expenses.items.length})</h3>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Expense #</th>
+            <th>Description</th>
+            <th>Category</th>
+            <th>Paid To</th>
+            <th class="text-right">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${summary.payouts.expenses.items.map(item => `
+            <tr>
+              <td>${item.expenseNumber || '-'}</td>
+              <td>${item.description}</td>
+              <td>${item.category || 'Other'}</td>
+              <td>${item.paidTo || '-'}</td>
+              <td class="text-right">${formatCurrency(item.amount)}</td>
+            </tr>
+          `).join("")}
+          <tr class="total-row">
+            <td colspan="4">Total Expenses</td>
+            <td class="text-right">${formatCurrency(summary.payouts.expenses.total)}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    ` : ""}
+    
     <!-- Cash Reconciliation -->
     <div class="reconciliation-box">
       <h3 style="margin: 0 0 12px 0; font-size: 14px; color: #1e40af;">Cash Reconciliation</h3>
@@ -853,6 +886,10 @@ export function generateDayEndSummaryPDF(options: DayEndSummaryPDFOptions): void
       <div class="reconciliation-row">
         <span>Less: Vendor Payments (Cash)</span>
         <span style="color: #dc2626;">- ${formatCurrency(summary.payouts.vendorPayments.cashTotal)}</span>
+      </div>
+      <div class="reconciliation-row">
+        <span>Less: Expenses/Petty Cash</span>
+        <span style="color: #dc2626;">- ${formatCurrency(summary.payouts.expenses.total)}</span>
       </div>
       <div class="reconciliation-row">
         <span>Net Cash to Submit</span>

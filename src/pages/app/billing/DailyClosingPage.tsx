@@ -8,9 +8,11 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDailyClosingSummary, useDailyClosing, useCreateDailyClosing } from "@/hooks/useDailyClosing";
 import { useBranchSessions, useOpenSessionsCount, CashDenominations } from "@/hooks/useBillingSessions";
+import { useBranchExpenses } from "@/hooks/useExpenses";
 import { DailyClosingSummaryCard } from "@/components/billing/DailyClosingSummary";
 import { CashDenominationInput } from "@/components/billing/CashDenominationInput";
 import { SessionStatusBadge } from "@/components/billing/SessionStatusBadge";
+import { ExpenseEntryCard } from "@/components/billing/ExpenseEntryCard";
 import { formatCurrency } from "@/lib/currency";
 import { format } from "date-fns";
 import {
@@ -21,9 +23,10 @@ import {
   ArrowRight,
   Save,
   Send,
+  Receipt,
 } from "lucide-react";
 
-type Step = 'sessions' | 'reconciliation' | 'summary';
+type Step = 'sessions' | 'expenses' | 'reconciliation' | 'summary';
 
 export default function DailyClosingPage() {
   const navigate = useNavigate();
@@ -38,7 +41,10 @@ export default function DailyClosingPage() {
   const { data: sessions, isLoading: sessionsLoading } = useBranchSessions(undefined, today);
   const { data: existingClosing } = useDailyClosing(today);
   const { data: openCount } = useOpenSessionsCount();
+  const { data: expenses } = useBranchExpenses(undefined, today);
   const createClosingMutation = useCreateDailyClosing();
+
+  const totalExpenses = expenses?.reduce((sum, e) => sum + Number(e.amount), 0) || 0;
 
   const hasOpenSessions = (openCount || 0) > 0;
 
@@ -107,22 +113,27 @@ export default function DailyClosingPage() {
       )}
 
       {/* Step Indicator */}
-      <div className="flex items-center justify-center gap-4">
-        {['sessions', 'reconciliation', 'summary'].map((step, idx) => (
-          <div key={step} className="flex items-center gap-2">
+      <div className="flex items-center justify-center gap-4 flex-wrap">
+        {[
+          { key: 'sessions', label: 'Sessions' },
+          { key: 'expenses', label: 'Expenses' },
+          { key: 'reconciliation', label: 'Cash Count' },
+          { key: 'summary', label: 'Summary' },
+        ].map((step, idx, arr) => (
+          <div key={step.key} className="flex items-center gap-2">
             <div
               className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                currentStep === step
+                currentStep === step.key
                   ? 'bg-primary text-primary-foreground'
                   : 'bg-muted text-muted-foreground'
               }`}
             >
               {idx + 1}
             </div>
-            <span className={currentStep === step ? 'font-medium' : 'text-muted-foreground'}>
-              {step === 'sessions' ? 'Sessions' : step === 'reconciliation' ? 'Cash Count' : 'Summary'}
+            <span className={currentStep === step.key ? 'font-medium' : 'text-muted-foreground'}>
+              {step.label}
             </span>
-            {idx < 2 && <ArrowRight className="h-4 w-4 text-muted-foreground mx-2" />}
+            {idx < arr.length - 1 && <ArrowRight className="h-4 w-4 text-muted-foreground mx-2" />}
           </div>
         ))}
       </div>
@@ -181,7 +192,7 @@ export default function DailyClosingPage() {
 
           <div className="flex justify-end">
             <Button
-              onClick={() => setCurrentStep('reconciliation')}
+              onClick={() => setCurrentStep('expenses')}
               disabled={hasOpenSessions}
             >
               Continue
@@ -191,7 +202,42 @@ export default function DailyClosingPage() {
         </div>
       )}
 
-      {/* Step 2: Cash Reconciliation */}
+      {/* Step 2: Expenses Review */}
+      {currentStep === 'expenses' && (
+        <div className="space-y-4">
+          <ExpenseEntryCard date={today} showAddButton={true} />
+
+          <Card>
+            <CardContent className="pt-4">
+              <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
+                <div className="flex items-center gap-2">
+                  <Receipt className="h-5 w-5 text-destructive" />
+                  <span className="font-medium">Total Expenses Today</span>
+                </div>
+                <span className="text-lg font-bold text-destructive">
+                  {formatCurrency(totalExpenses)}
+                </span>
+              </div>
+              <p className="text-sm text-muted-foreground mt-2">
+                These expenses will be deducted from the net cash calculation.
+              </p>
+            </CardContent>
+          </Card>
+
+          <div className="flex justify-between">
+            <Button variant="outline" onClick={() => setCurrentStep('sessions')}>
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back
+            </Button>
+            <Button onClick={() => setCurrentStep('reconciliation')}>
+              Continue
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Step 3: Cash Reconciliation */}
       {currentStep === 'reconciliation' && summary && (
         <div className="space-y-4">
           <CashDenominationInput
@@ -201,7 +247,7 @@ export default function DailyClosingPage() {
           />
 
           <div className="flex justify-between">
-            <Button variant="outline" onClick={() => setCurrentStep('sessions')}>
+            <Button variant="outline" onClick={() => setCurrentStep('expenses')}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back
             </Button>
@@ -213,7 +259,7 @@ export default function DailyClosingPage() {
         </div>
       )}
 
-      {/* Step 3: Summary & Submit */}
+      {/* Step 4: Summary & Submit */}
       {currentStep === 'summary' && summary && (
         <div className="space-y-4">
           <DailyClosingSummaryCard summary={summary} />
