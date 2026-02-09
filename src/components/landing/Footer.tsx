@@ -32,43 +32,42 @@ const footerLinks = {
 export const Footer = () => {
   return (
     <footer className="bg-card border-t border-border">
-      <div className="container mx-auto px-4 py-10 md:py-16">
-        {/* Mobile: single column, Tablet: 2 cols, Desktop: 6 cols */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-8">
-          {/* Brand section - full width on mobile */}
-          <div className="sm:col-span-2 lg:col-span-2">
-            <Link to="/" className="inline-block mb-4">
-              <HealthOS24Logo variant="full" size="md" showTagline />
-            </Link>
-            <p className="text-muted-foreground mb-6 max-w-sm text-sm md:text-base">
-              The complete 24/7 hospital management solution trusted by healthcare facilities worldwide.
-            </p>
-            <div className="space-y-2 md:space-y-3">
-              <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                <Mail className="h-4 w-4 flex-shrink-0" />
-                <span>support@healthos24.com</span>
-              </div>
-              <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                <Phone className="h-4 w-4 flex-shrink-0" />
-                <span>+971 506802430</span>
-              </div>
-              <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                <MapPin className="h-4 w-4 flex-shrink-0" />
-                <span className="text-xs md:text-sm">Block B1, University City, Sharjah, UAE</span>
-              </div>
+      <div className="container mx-auto px-5 sm:px-6 lg:px-4 py-10 md:py-16">
+        {/* Brand section - always full width on top */}
+        <div className="mb-8 pb-8 border-b border-border lg:border-0 lg:pb-0 lg:mb-0 lg:float-left lg:w-1/3 lg:pr-8">
+          <Link to="/" className="inline-block mb-4">
+            <HealthOS24Logo variant="full" size="md" showTagline />
+          </Link>
+          <p className="text-muted-foreground mb-5 max-w-sm text-sm">
+            The complete 24/7 hospital management solution trusted by healthcare facilities worldwide.
+          </p>
+          <div className="space-y-2">
+            <div className="flex items-center gap-3 text-sm text-muted-foreground">
+              <Mail className="h-4 w-4 flex-shrink-0" />
+              <span>support@healthos24.com</span>
+            </div>
+            <div className="flex items-center gap-3 text-sm text-muted-foreground">
+              <Phone className="h-4 w-4 flex-shrink-0" />
+              <span>+971 506802430</span>
+            </div>
+            <div className="flex items-center gap-3 text-sm text-muted-foreground">
+              <MapPin className="h-4 w-4 flex-shrink-0" />
+              <span className="text-xs sm:text-sm">Block B1, University City, Sharjah, UAE</span>
             </div>
           </div>
+        </div>
 
-          {/* Links sections - 2x2 grid on mobile */}
+        {/* Links sections - 2x2 grid on mobile, 4 cols on tablet+ */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-6 lg:gap-8 lg:ml-[33.333%]">
           {Object.entries(footerLinks).map(([title, links]) => (
             <div key={title}>
-              <h4 className="font-semibold mb-3 md:mb-4 text-sm md:text-base">{title}</h4>
-              <ul className="space-y-2 md:space-y-3">
+              <h4 className="font-semibold mb-3 text-sm">{title}</h4>
+              <ul className="space-y-2">
                 {links.map((link) => (
                   <li key={link.label}>
                     <a
                       href={link.href}
-                      className="text-xs md:text-sm text-muted-foreground hover:text-foreground transition-colors"
+                      className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors"
                     >
                       {link.label}
                     </a>
@@ -79,8 +78,11 @@ export const Footer = () => {
           ))}
         </div>
 
+        {/* Clear float */}
+        <div className="clear-both" />
+
         {/* Bottom bar */}
-        <div className="mt-12 pt-8 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="mt-10 pt-8 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} HealthOS 24. All rights reserved.</p>
           <div className="flex items-center gap-6">
             <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">

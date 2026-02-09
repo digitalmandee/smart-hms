@@ -30,29 +30,29 @@ const problems = [
 
 export const ProblemSolutionSection = () => {
   return (
-    <section className="py-24 bg-muted/30">
-      <div className="container mx-auto px-4">
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">
+    <section className="py-16 md:py-24 bg-muted/30">
+      <div className="container mx-auto px-5 sm:px-6 lg:px-4">
+        <div className="text-center max-w-3xl mx-auto mb-8 md:mb-16">
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-3 md:mb-4 text-foreground">
             Sound familiar?
           </h2>
-          <p className="text-lg text-muted-foreground">
+          <p className="text-base md:text-lg text-muted-foreground">
             These problems cost clinics thousands every month. We've solved them.
           </p>
         </div>
 
-        <div className="max-w-4xl mx-auto space-y-6">
+        <div className="max-w-4xl mx-auto space-y-3 md:space-y-6">
           {problems.map((item, index) => (
             <div
               key={index}
-              className="group flex flex-col md:flex-row items-stretch bg-card border border-border rounded-2xl overflow-hidden hover:border-primary/30 hover:shadow-lg transition-all duration-300"
+              className="group flex flex-col md:flex-row items-stretch bg-card border border-border rounded-xl md:rounded-2xl overflow-hidden hover:border-primary/30 hover:shadow-lg transition-all duration-300"
             >
               {/* Problem side */}
-              <div className="flex-1 p-6 md:p-8 flex items-center gap-4 bg-destructive/5 border-b md:border-b-0 md:border-r border-border">
-                <div className="p-3 rounded-xl bg-destructive/10">
-                  <item.icon className="h-6 w-6 text-destructive" />
+              <div className="flex-1 p-4 md:p-6 lg:p-8 flex items-center gap-3 md:gap-4 bg-destructive/5 border-b md:border-b-0 md:border-r border-border">
+                <div className="p-2 md:p-3 rounded-lg md:rounded-xl bg-destructive/10 flex-shrink-0">
+                  <item.icon className="h-4 w-4 md:h-6 md:w-6 text-destructive" />
                 </div>
-                <p className="text-lg font-medium text-foreground">{item.problem}</p>
+                <p className="text-sm md:text-lg font-medium text-foreground">{item.problem}</p>
               </div>
               
               {/* Arrow */}
@@ -61,11 +61,11 @@ export const ProblemSolutionSection = () => {
               </div>
               
               {/* Solution side */}
-              <div className="flex-1 p-6 md:p-8 flex items-center gap-4 bg-primary/5">
-                <div className="p-3 rounded-xl bg-primary/10">
-                  <CheckCircle2 className="h-6 w-6 text-primary" />
+              <div className="flex-1 p-4 md:p-6 lg:p-8 flex items-center gap-3 md:gap-4 bg-primary/5">
+                <div className="p-2 md:p-3 rounded-lg md:rounded-xl bg-primary/10 flex-shrink-0">
+                  <CheckCircle2 className="h-4 w-4 md:h-6 md:w-6 text-primary" />
                 </div>
-                <p className="text-lg font-medium text-primary">{item.solution}</p>
+                <p className="text-sm md:text-lg font-medium text-primary">{item.solution}</p>
               </div>
             </div>
           ))}
