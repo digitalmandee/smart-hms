@@ -5,6 +5,7 @@ import { ProblemSolutionSection } from "@/components/landing/ProblemSolutionSect
 import { FeaturesTabs } from "@/components/landing/FeaturesTabs";
 import { WorkflowDiagram } from "@/components/landing/WorkflowDiagram";
 import { ProcurementCycleDiagram } from "@/components/landing/ProcurementCycleDiagram";
+import { WarehouseSection } from "@/components/landing/WarehouseSection";
 import { RoleSelector } from "@/components/landing/RoleSelector";
 import { ComparisonTable } from "@/components/landing/ComparisonTable";
 import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
@@ -27,6 +28,7 @@ const Index = () => {
         <FeaturesTabs />
         <WorkflowDiagram />
         <ProcurementCycleDiagram />
+        <WarehouseSection />
         <RoleSelector />
         <ComparisonTable />
         <TestimonialsSection />
