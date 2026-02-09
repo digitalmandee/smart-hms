@@ -1,166 +1,133 @@
 
 
-# Fix Landing Page Mobile Responsiveness - Phase 2
+# Add Warehouse Management & Patient Entitlement to Landing Page, Presentation & Proposal
 
-## Issues Identified from Browser Testing
+## Overview
 
-Based on my visual inspection and code review, here are the remaining mobile issues:
-
-| Issue | Component | Specific Problem |
-|-------|-----------|------------------|
-| **Edge-to-edge content** | Multiple sections | Content touches screen edges with no breathing room, feels cramped |
-| **Footer layout** | `Footer.tsx` | On mobile, the 4 link columns still display in a way that feels cramped |
-| **Testimonials overflow** | `TestimonialsSection.tsx` | Cards still display in 3-column grid on mobile, causing overflow |
-| **Sound Familiar section** | `ProblemSolutionSection.tsx` | Problem/Solution cards have large padding and text that doesn't scale down for mobile |
-| **Navbar cramped** | `Navbar.tsx` | Mobile padding too tight at px-4 |
+Add new content sections showcasing **Warehouse Management** (multi-warehouse sub-stores, bin/rack tracking, inter-store transfers) and **Patient Entitlement Engine** (entitled vs. non-entitled dispensing) as platform capabilities. These are presented as generic enterprise features, not tied to any specific hospital name.
 
 ---
 
-## Solution Overview
+## What Gets Added
 
-### 1. Add Breathing Room (Global Padding Increase)
+### 1. New Landing Page Section: "Enterprise Warehouse & Supply Chain"
 
-**Problem**: The `px-4` padding (16px) on mobile feels too edge-to-edge
+A new section placed after the Procurement Cycle Diagram on the homepage, containing:
 
-**Solution**: 
-- Increase section padding to `px-5` or `px-6` on mobile for better visual breathing room
-- Add consistent spacing between hero and content sections
+- **Section badge**: "Enterprise Supply Chain"
+- **Left column**: Warehouse hierarchy visual -- Central Store branching into Medical Store, Surgical Store, Dental Store, Equipment Store with icons
+- **Right column**: Patient Entitlement flow -- ID scan leads to category lookup (Entitled: Serving/Retired/Dependents vs. Non-Entitled) which auto-routes to free dispensing or billing
+- **Comparison grid** (6 rows): Traditional approach vs. HealthOS 24
 
-### 2. Footer - Proper 2x2 Grid on Mobile
+| Workflow | Traditional | HealthOS 24 |
+|----------|-------------|-------------|
+| Patient entitlement check | Manual card verification | Auto ID-based entitlement lookup |
+| Medicine indent from sub-store | Paper-based demand forms | Digital indent with approval workflow |
+| Stock visibility across stores | Physical stock count | Real-time dashboard across all sub-stores |
+| Non-entitled billing | Manual ledger entries | Auto-route to billing vs free dispensing |
+| Expiry management | Monthly physical checks | Auto alerts 30/60/90 days before expiry |
+| Inter-store transfers | Manual register entries | Digital transfer with auto stock update |
 
-**Current**: `grid-cols-1 sm:grid-cols-2` but brand section takes full width
-**Problem**: 4 link sections stack vertically on very small screens, but on 390px+ they show awkwardly
+- **Bottom stats**: "6+ Sub-store Types" / "4+ Entitlement Categories" / "Real-time Stock Visibility"
 
-**Solution**:
-- Use `grid-cols-2` for the 4 link sections on mobile
-- Keep brand section full-width above them
-- Reduce link spacing for compact display
+### 2. New Presentation Slide: "Warehouse & Supply Chain Management" (Slide 26)
 
-### 3. Testimonials - Horizontal Scroll on Mobile
+Follows existing slide patterns with:
 
-**Current**: `grid md:grid-cols-3` means all 3 cards stack vertically on mobile
-**Problem**: Cards overflow horizontally when stacked, or take up too much vertical space
+- Warehouse sub-store hierarchy diagram (Central Store to 4 sub-stores with colored icons)
+- Entitled vs. Non-Entitled patient dispensing flow
+- Key metrics row at bottom
+- Existing slides after Procurement (Case Studies, Lab Network, etc.) shift by +1
 
-**Solution**:
-- Convert to horizontal scroll carousel on mobile (like FeaturesTabs)
-- Show 1 card at a time with snap scrolling
-- Stack vertically only on tablet and above
+### 3. New Proposal Page: "Warehouse & Supply Chain" (Page 08/11)
 
-### 4. Sound Familiar (ProblemSolutionSection) - Mobile Optimization
+6 modules in a 2x3 grid with indigo color theme:
 
-**Current**: Large padding (`p-6 md:p-8`), full-width text
-**Problem**: Text is too large and cards feel bloated on mobile
+| Module | Features |
+|--------|----------|
+| Multi-Warehouse Management | Sub-store creation, central dashboard, stock allocation, zone configuration |
+| Bin/Rack Location Tracking | Physical location mapping, pick lists, location-based audits, label printing |
+| Patient Entitlement Engine | Category configuration, auto-dispensing rules, entitlement verification, override logs |
+| Inter-Store Transfers | Transfer requests, approval workflow, auto stock adjustment, transfer history |
+| Indent/Demand System | Department-wise indents, scale-of-issue limits, approval matrix, fulfillment tracking |
+| Controlled Substance Tracking | Chain of custody, register compliance, usage reconciliation, regulatory reports |
 
-**Solution**:
-- Reduce padding to `p-4` on mobile
-- Shrink icon size and font size on mobile
-- Reduce overall section spacing
-- Make the problem/solution split more compact
+### 4. Update Existing ComparisonTable
 
-### 5. Navbar - Better Mobile Spacing
+Add 4 new rows under a new "Warehouse & Supply Chain" category:
 
-**Solution**:
-- Increase horizontal padding slightly for better alignment with content sections
+- Multi-warehouse tracking: Paper "Impossible" / Excel "Separate sheets" / HealthOS "Unified dashboard"
+- Inter-store transfers: Paper "Register entries" / Excel "Manual update" / HealthOS "Digital with auto stock"
+- Patient entitlement: Paper "Card check" / Excel "Lookup sheet" / HealthOS "Auto ID-based"
+- Controlled substance tracking: Paper "Manual ledger" / Excel "Basic log" / HealthOS "Full chain of custody"
 
----
+Update stats: "24 Features Compared" becomes "28 Features Compared". Update mobile category list to include "Warehouse & Supply Chain".
 
-## Technical Implementation
+### 5. Update FeaturesTabs (Inventory Module)
 
-### File: `src/components/landing/TestimonialsSection.tsx`
+Expand the existing Inventory tab:
 
-**Changes:**
-- Wrap testimonials in horizontal scroll container on mobile
-- Add `scrollbar-hide` and `snap-x` classes
-- Change grid to flex for mobile scroll
-- Add mobile indicator dots
-
-```tsx
-// Mobile: horizontal scroll, Tablet+: 3-column grid
-<div className="md:grid md:grid-cols-3 md:gap-8 max-w-6xl mx-auto">
-  {/* Mobile: scrollable container */}
-  <div className="flex md:contents gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-4 -mx-4 px-4 md:mx-0 md:px-0 md:overflow-visible">
-    {testimonials.map((testimonial, index) => (
-      <div className="flex-shrink-0 w-[85vw] md:w-auto snap-center md:snap-align-none ...">
-        {/* Card content */}
-      </div>
-    ))}
-  </div>
-</div>
-```
-
-### File: `src/components/landing/ProblemSolutionSection.tsx`
-
-**Changes:**
-- Reduce mobile padding: `p-4 md:p-6 lg:p-8`
-- Smaller icons on mobile: `p-2 md:p-3`
-- Smaller text on mobile: `text-base md:text-lg`
-- Tighter spacing: `space-y-4 md:space-y-6`
-
-### File: `src/components/landing/Footer.tsx`
-
-**Changes:**
-- Separate brand section from links
-- Use 2-column grid for links on mobile: `grid-cols-2`
-- Reduce vertical spacing between link groups
-- Tighter font sizes
-
-```tsx
-<div className="container mx-auto px-5 md:px-4">
-  {/* Brand section - always full width */}
-  <div className="mb-8 pb-8 border-b border-border lg:border-0 lg:mb-0 lg:pb-0">
-    {/* Logo and contact info */}
-  </div>
-  
-  {/* Links - 2x2 on mobile, 4 cols on tablet, inline with brand on desktop */}
-  <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-6 lg:gap-8">
-    {Object.entries(footerLinks).map(...)}
-  </div>
-</div>
-```
-
-### File: `src/components/landing/Navbar.tsx`
-
-**Changes:**
-- Increase container padding to `px-5` on mobile
-
-### Global: All Landing Sections
-
-**Changes to multiple files:**
-- `HeroSection.tsx`: Change `px-4` to `px-5 md:px-4`
-- `TrustBadges.tsx`: Change `px-4` to `px-5 md:px-4`
-- `ProblemSolutionSection.tsx`: Change `px-4` to `px-5 md:px-4`
-- `FeaturesTabs.tsx`: Change `px-4` to `px-5 md:px-4`
-- `TestimonialsSection.tsx`: Change `px-4` to `px-5 md:px-4`
-- `FAQSection.tsx`: Change `px-4` to `px-5 md:px-4`
-- `CTASection.tsx`: Change `px-4` to `px-5 md:px-4`
-- `Footer.tsx`: Change `px-4` to `px-5 md:px-4`
+- **Description**: Append text about multi-warehouse sub-store management (Medical, Surgical, Dental, Equipment stores) and patient entitlement-based dispensing (Entitled vs Non-Entitled categories)
+- **Highlights**: Add "Multi-Warehouse" and "Patient Entitlement" to the highlights array
 
 ---
+
+## Files to Create
+
+| File | Purpose |
+|------|---------|
+| `src/components/landing/WarehouseSection.tsx` | New landing page section |
+| `src/components/presentation/WarehouseSlide.tsx` | New presentation slide |
+| `src/components/proposal/ProposalWarehouseFeatures.tsx` | New proposal page |
 
 ## Files to Modify
 
 | File | Changes |
 |------|---------|
-| `src/components/landing/TestimonialsSection.tsx` | Horizontal scroll carousel on mobile |
-| `src/components/landing/ProblemSolutionSection.tsx` | Compact mobile layout, reduced padding |
-| `src/components/landing/Footer.tsx` | 2x2 grid for links, better structure |
-| `src/components/landing/Navbar.tsx` | Slightly wider mobile padding |
-| `src/components/landing/HeroSection.tsx` | Increased mobile padding |
-| `src/components/landing/TrustBadges.tsx` | Increased mobile padding |
-| `src/components/landing/FeaturesTabs.tsx` | Increased mobile padding |
-| `src/components/landing/FAQSection.tsx` | Increased mobile padding |
-| `src/components/landing/CTASection.tsx` | Increased mobile padding |
+| `src/pages/Index.tsx` | Import and add WarehouseSection after ProcurementCycleDiagram |
+| `src/components/landing/ComparisonTable.tsx` | Add 4 "Warehouse & Supply Chain" rows, update stats from 24 to 28, add category to mobile list |
+| `src/components/landing/FeaturesTabs.tsx` | Expand Inventory module description and highlights |
+| `src/pages/Presentation.tsx` | Import WarehouseSlide, add after ProcurementSlide, update TOTAL_SLIDES from 31 to 32 |
+| `src/pages/PricingProposal.tsx` | Import ProposalWarehouseFeatures, insert after pharmacy page (page 06), shift subsequent page numbers |
 
 ---
 
-## Expected Outcome
+## Technical Details
 
-After implementation:
+### WarehouseSection.tsx
 
-1. **Better Visual Breathing Room** - Content has comfortable margins from screen edges (20px instead of 16px)
-2. **Testimonials Carousel** - Swipeable cards on mobile, one at a time
-3. **Compact Sound Familiar** - Problem/solution cards fit better on small screens
-4. **Clean Footer** - 2x2 link grid that's easy to tap and read
-5. **Consistent Spacing** - All sections have uniform edge padding
-6. **No Horizontal Overflow** - Everything contained within viewport width
+- Uses AnimatedSection wrapper for scroll animations
+- Color theme: indigo/slate for professional enterprise feel
+- Icons from lucide-react: Building2, Package, Warehouse, ArrowRight, Shield, Users, Pill, Wrench
+- Responsive: single column on mobile, 2-column on desktop
+- Comparison grid renders as scrollable cards on mobile
+
+### WarehouseSlide.tsx
+
+- Uses `.slide` CSS class matching existing presentation pattern
+- Header badge: "Supply Chain"
+- Slide number: 26 / 32
+- Visual: Connected cards for Central Store and 4 sub-stores with colored backgrounds (blue, green, orange, purple)
+- Side panel: Entitled vs Non-Entitled flow with arrow connectors
+- Bottom metrics row with 3 stats
+
+### ProposalWarehouseFeatures.tsx
+
+- Uses `.proposal-page` CSS class matching existing proposal pattern
+- Header: HealthOS24Logo + page number "06 / 11"
+- Gradient accent: indigo (from-indigo-500 to-indigo-400)
+- 6 module cards in 2-column grid, each with icon, name, and 4 bullet features
+- Footer: "HealthOS 24 Proposal" / "healthos24.com"
+
+### Presentation.tsx Changes
+
+- TOTAL_SLIDES: 31 changes to 32
+- WarehouseSlide inserted after ProcurementSlide (after line 356)
+- Comment: "Slide 26: Warehouse & Supply Chain"
+- All subsequent slide comments shift by +1
+
+### PricingProposal.tsx Changes
+
+- Insert `{ id: "warehouse", label: "Warehouse & Supply Chain", component: ProposalWarehouseFeatures }` after the pharmacy entry in the pages array
+- Subsequent pages auto-adjust since page numbers are component-internal
 
