@@ -229,57 +229,66 @@ export const FeaturesTabs = () => {
           </p>
         </AnimatedSection>
 
-        {/* Tab buttons */}
+        {/* Tab buttons - horizontal scroll on mobile */}
         <AnimatedSection animation="fade-up" delay={100}>
-          <div className="flex flex-wrap justify-center gap-2 mb-10">
-            {features.map((feature) => {
-              const Icon = feature.icon;
-              const isActive = activeTab === feature.id;
-              return (
-                <button
-                  key={feature.id}
-                  onClick={() => setActiveTab(feature.id)}
-                  className={cn(
-                    'flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-300',
-                    isActive
-                      ? 'bg-primary text-primary-foreground shadow-lg scale-105'
-                      : 'bg-card border hover:bg-accent hover:scale-105'
-                  )}
-                >
-                  <Icon className="h-4 w-4" />
-                  {feature.label}
-                </button>
-              );
-            })}
+          <div className="relative">
+            {/* Fade indicators for mobile */}
+            <div className="absolute left-0 top-0 bottom-4 w-8 bg-gradient-to-r from-muted/50 to-transparent z-10 pointer-events-none md:hidden" />
+            <div className="absolute right-0 top-0 bottom-4 w-8 bg-gradient-to-l from-muted/50 to-transparent z-10 pointer-events-none md:hidden" />
+            
+            <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory md:flex-wrap md:justify-center md:overflow-visible px-2 md:px-0">
+              {features.map((feature) => {
+                const Icon = feature.icon;
+                const isActive = activeTab === feature.id;
+                return (
+                  <button
+                    key={feature.id}
+                    onClick={() => setActiveTab(feature.id)}
+                    className={cn(
+                      'snap-start flex-shrink-0 flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 md:py-2.5 rounded-full text-sm font-medium transition-all duration-300',
+                      isActive
+                        ? 'bg-primary text-primary-foreground shadow-lg scale-105'
+                        : 'bg-card border hover:bg-accent hover:scale-105'
+                    )}
+                  >
+                    <Icon className="h-4 w-4" />
+                    <span className="hidden sm:inline">{feature.label}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </AnimatedSection>
 
         {/* Content area */}
-        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-          {/* Left: Description */}
-          <AnimatedSection animation="fade-right" delay={200} key={activeTab + '-text'}>
-            <div className="space-y-6">
-              <h3 className="text-2xl md:text-3xl font-bold">{activeFeature.title}</h3>
-              <p className="text-lg text-muted-foreground">{activeFeature.description}</p>
-              <div className="flex flex-wrap gap-2">
-                {activeFeature.highlights.map((highlight) => (
-                  <span
-                    key={highlight}
-                    className="px-3 py-1.5 bg-primary/10 text-primary rounded-full text-sm font-medium"
-                  >
-                    {highlight}
-                  </span>
-                ))}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-12 items-center">
+          {/* Screenshot - show first on mobile */}
+          <AnimatedSection animation="fade-left" delay={300} key={activeTab + '-screen'} className="order-1 lg:order-2">
+            <div className="relative">
+              <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 to-accent/20 rounded-2xl blur-2xl opacity-50" />
+              <div className="relative max-w-md mx-auto lg:max-w-none">
+                <ScreenshotComponent />
               </div>
             </div>
           </AnimatedSection>
 
-          {/* Right: Screenshot */}
-          <AnimatedSection animation="fade-left" delay={300} key={activeTab + '-screen'}>
-            <div className="relative">
-              <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 to-accent/20 rounded-2xl blur-2xl opacity-50" />
-              <div className="relative">
-                <ScreenshotComponent />
+          {/* Description */}
+          <AnimatedSection animation="fade-right" delay={200} key={activeTab + '-text'} className="order-2 lg:order-1">
+            <div className="space-y-4 md:space-y-6">
+              <h3 className="text-xl md:text-2xl lg:text-3xl font-bold">{activeFeature.title}</h3>
+              {/* Shorter description on mobile */}
+              <p className="text-sm md:text-lg text-muted-foreground line-clamp-4 md:line-clamp-none">
+                {activeFeature.description}
+              </p>
+              <div className="flex flex-wrap gap-1.5 md:gap-2">
+                {activeFeature.highlights.map((highlight) => (
+                  <span
+                    key={highlight}
+                    className="px-2 md:px-3 py-1 md:py-1.5 bg-primary/10 text-primary rounded-full text-xs md:text-sm font-medium"
+                  >
+                    {highlight}
+                  </span>
+                ))}
               </div>
             </div>
           </AnimatedSection>

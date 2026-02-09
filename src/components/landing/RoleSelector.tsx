@@ -177,28 +177,34 @@ export const RoleSelector = () => {
           </p>
         </AnimatedSection>
 
-        {/* Role buttons */}
+        {/* Role buttons - horizontal scroll on mobile */}
         <AnimatedSection animation="fade-up" delay={100}>
-          <div className="flex flex-wrap justify-center gap-3 mb-10">
-            {roles.map((role) => {
-              const RoleIcon = role.icon;
-              const isActive = activeRole === role.id;
-              return (
-                <button
-                  key={role.id}
-                  onClick={() => setActiveRole(role.id)}
-                  className={cn(
-                    'flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-medium transition-all duration-300',
-                    isActive
-                      ? `bg-gradient-to-r ${role.color} text-white shadow-lg scale-105`
-                      : 'bg-card border hover:bg-accent'
-                  )}
-                >
-                  <RoleIcon className="h-5 w-5" />
-                  {role.title}
-                </button>
-              );
-            })}
+          <div className="relative">
+            {/* Fade indicators for mobile */}
+            <div className="absolute left-0 top-0 bottom-4 w-6 bg-gradient-to-r from-muted/50 to-transparent z-10 pointer-events-none md:hidden" />
+            <div className="absolute right-0 top-0 bottom-4 w-6 bg-gradient-to-l from-muted/50 to-transparent z-10 pointer-events-none md:hidden" />
+            
+            <div className="flex gap-2 md:gap-3 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory md:flex-wrap md:justify-center md:overflow-visible px-2 md:px-0 mb-6 md:mb-10">
+              {roles.map((role) => {
+                const RoleIcon = role.icon;
+                const isActive = activeRole === role.id;
+                return (
+                  <button
+                    key={role.id}
+                    onClick={() => setActiveRole(role.id)}
+                    className={cn(
+                      'snap-start flex-shrink-0 flex items-center gap-1.5 md:gap-2 px-3 md:px-5 py-2 md:py-3 rounded-lg md:rounded-xl text-xs md:text-sm font-medium transition-all duration-300',
+                      isActive
+                        ? `bg-gradient-to-r ${role.color} text-white shadow-lg scale-105`
+                        : 'bg-card border hover:bg-accent'
+                    )}
+                  >
+                    <RoleIcon className="h-4 w-4 md:h-5 md:w-5" />
+                    <span className="whitespace-nowrap">{role.title}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </AnimatedSection>
 

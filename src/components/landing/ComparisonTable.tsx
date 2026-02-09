@@ -308,24 +308,24 @@ export const ComparisonTable = () => {
                     <div className="bg-muted/70 p-3 font-bold text-sm">{category}</div>
                     <div className="divide-y">
                       {categoryItems.map((row, i) => (
-                        <div key={i} className={`p-4 ${row.highlight ? 'bg-primary/5' : ''}`}>
-                          <h4 className="font-medium text-sm mb-3">{row.feature}</h4>
-                          <div className="grid grid-cols-3 gap-2 text-center">
+                        <div key={i} className={`p-3 sm:p-4 ${row.highlight ? 'bg-primary/5' : ''}`}>
+                          <h4 className="font-medium text-xs sm:text-sm mb-2 sm:mb-3">{row.feature}</h4>
+                          <div className="grid grid-cols-3 gap-1 sm:gap-2 text-center">
                             <div>
-                              <div className="text-xs text-muted-foreground mb-1">Paper</div>
-                              <span className={`inline-block px-2 py-0.5 rounded text-xs ${getBadgeStyle(row.paper)}`}>
+                              <div className="text-[10px] sm:text-xs text-muted-foreground mb-1">Paper</div>
+                              <span className={`inline-block px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs leading-tight ${getBadgeStyle(row.paper)}`}>
                                 {row.paper}
                               </span>
                             </div>
                             <div>
-                              <div className="text-xs text-muted-foreground mb-1">Excel</div>
-                              <span className={`inline-block px-2 py-0.5 rounded text-xs ${getBadgeStyle(row.spreadsheet)}`}>
+                              <div className="text-[10px] sm:text-xs text-muted-foreground mb-1">Excel</div>
+                              <span className={`inline-block px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs leading-tight ${getBadgeStyle(row.spreadsheet)}`}>
                                 {row.spreadsheet}
                               </span>
                             </div>
                             <div>
-                              <div className="text-xs text-muted-foreground mb-1">HealthOS 24</div>
-                              <span className="inline-block px-2 py-0.5 rounded text-xs text-primary bg-primary/10 font-medium">
+                              <div className="text-[10px] sm:text-xs text-muted-foreground mb-1">HealthOS</div>
+                              <span className="inline-block px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs leading-tight text-primary bg-primary/10 font-medium">
                                 {row.smartHMS}
                               </span>
                             </div>

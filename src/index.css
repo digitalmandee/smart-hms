@@ -497,6 +497,16 @@
   overscroll-behavior: contain;
 }
 
+/* Hide scrollbar utility - for horizontal scroll containers */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /* Prevent text selection on interactive elements */
 .touch-element {
   -webkit-tap-highlight-color: transparent;

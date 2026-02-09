@@ -114,21 +114,22 @@ export const HeroSection = () => {
             </div>
           </AnimatedSection>
           
-          {/* Right: Screenshot Carousel */}
-          <AnimatedSection animation="fade-left" delay={200} className="relative hidden lg:block">
+          {/* Right: Screenshot Carousel - visible on all screens */}
+          <AnimatedSection animation="fade-left" delay={200} className="relative mt-8 lg:mt-0">
             <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 via-transparent to-accent/20 rounded-3xl blur-2xl" />
             
             {/* Screenshot container */}
-            <div className="relative">
+            <div className="relative max-w-sm mx-auto lg:max-w-none">
               <div className="transform hover:scale-[1.02] transition-transform duration-500">
                 <ActiveScreenComponent />
               </div>
               
-              {/* Navigation dots */}
+              {/* Navigation dots - simplified on mobile */}
               <div className="flex items-center justify-center gap-2 mt-4">
+                {/* Arrows hidden on mobile, only dots */}
                 <button
                   onClick={prevScreen}
-                  className="p-2 rounded-full bg-card border hover:bg-muted transition-colors"
+                  className="hidden sm:flex p-2 rounded-full bg-card border hover:bg-muted transition-colors"
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </button>
@@ -145,7 +146,7 @@ export const HeroSection = () => {
                 ))}
                 <button
                   onClick={nextScreen}
-                  className="p-2 rounded-full bg-card border hover:bg-muted transition-colors"
+                  className="hidden sm:flex p-2 rounded-full bg-card border hover:bg-muted transition-colors"
                 >
                   <ChevronRight className="h-4 w-4" />
                 </button>
