@@ -1,10 +1,18 @@
-import { Building2, Package, Pill, Wrench, ScanLine, Shield, ArrowRight, Users } from "lucide-react";
+import { Building2, Package, Pill, Wrench, ScanLine, Shield, ArrowRight, Users, ClipboardList, FileText, Calculator } from "lucide-react";
 
 const subStores = [
   { name: "Medical Store", icon: Pill, color: "bg-blue-500" },
   { name: "Surgical Store", icon: Wrench, color: "bg-green-500" },
   { name: "Dental Store", icon: ScanLine, color: "bg-orange-500" },
   { name: "Equipment Store", icon: Package, color: "bg-purple-500" },
+];
+
+const integrationFlow = [
+  { icon: ClipboardList, label: "Indent", module: "Warehouse" },
+  { icon: FileText, label: "PO/GRN", module: "Procurement" },
+  { icon: Package, label: "Stock", module: "Inventory" },
+  { icon: Pill, label: "Dispense", module: "Entitlement" },
+  { icon: Calculator, label: "Accounts", module: "Finance" },
 ];
 
 export const WarehouseSlide = () => {
@@ -21,8 +29,8 @@ export const WarehouseSlide = () => {
         <span className="text-sm text-muted-foreground font-medium">26 / 32</span>
       </div>
 
-      <p className="text-lg text-muted-foreground mb-8 max-w-3xl">
-        Multi-warehouse sub-store management with patient entitlement-based dispensing
+      <p className="text-lg text-muted-foreground mb-6 max-w-3xl">
+        Multi-warehouse sub-store management with patient entitlement-based dispensing, fully integrated with Procurement, Inventory & Accounts
       </p>
 
       <div className="flex-1 grid grid-cols-2 gap-8">
@@ -64,7 +72,6 @@ export const WarehouseSlide = () => {
             <Users className="h-4 w-4 text-indigo-600" />
             Patient Entitlement Engine
           </h3>
-          {/* Flow */}
           <div className="flex items-center justify-center gap-2 mb-6">
             <div className="bg-indigo-500/10 rounded-lg px-3 py-2 text-center">
               <ScanLine className="h-4 w-4 text-indigo-600 mx-auto mb-1" />
@@ -81,7 +88,6 @@ export const WarehouseSlide = () => {
               <span className="text-[10px] font-medium">Auto-Route</span>
             </div>
           </div>
-          {/* Categories */}
           <div className="space-y-3">
             <div className="border border-green-500/30 bg-green-500/5 rounded-xl p-4">
               <div className="flex items-center justify-between mb-2">
@@ -109,24 +115,48 @@ export const WarehouseSlide = () => {
         </div>
       </div>
 
+      {/* Integration Flow */}
+      <div className="mt-6 pt-4 border-t border-border">
+        <p className="text-xs font-semibold text-muted-foreground mb-3 text-center">Connected Supply Chain Flow</p>
+        <div className="flex items-center justify-center gap-1">
+          {integrationFlow.map((step, i) => {
+            const Icon = step.icon;
+            return (
+              <div key={step.label} className="flex items-center gap-1">
+                <div className="flex flex-col items-center">
+                  <div className="w-9 h-9 rounded-lg bg-indigo-500/10 flex items-center justify-center">
+                    <Icon className="h-4 w-4 text-indigo-600" />
+                  </div>
+                  <span className="text-[8px] font-medium mt-1">{step.label}</span>
+                  <span className="text-[7px] text-muted-foreground">{step.module}</span>
+                </div>
+                {i < integrationFlow.length - 1 && (
+                  <ArrowRight className="h-3 w-3 text-muted-foreground/50 mx-0.5" />
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Bottom Stats */}
-      <div className="grid grid-cols-3 gap-6 mt-8 pt-6 border-t border-border">
+      <div className="grid grid-cols-3 gap-6 mt-4 pt-4 border-t border-border">
         <div className="text-center">
-          <p className="text-3xl font-bold text-indigo-600">6+</p>
-          <p className="text-sm text-muted-foreground">Sub-store Types</p>
+          <p className="text-2xl font-bold text-indigo-600">5</p>
+          <p className="text-xs text-muted-foreground">Modules Connected</p>
         </div>
         <div className="text-center">
-          <p className="text-3xl font-bold text-indigo-600">4+</p>
-          <p className="text-sm text-muted-foreground">Entitlement Categories</p>
+          <p className="text-2xl font-bold text-indigo-600">4+</p>
+          <p className="text-xs text-muted-foreground">Entitlement Categories</p>
         </div>
         <div className="text-center">
-          <p className="text-3xl font-bold text-indigo-600">100%</p>
-          <p className="text-sm text-muted-foreground">Real-time Stock Visibility</p>
+          <p className="text-2xl font-bold text-indigo-600">100%</p>
+          <p className="text-xs text-muted-foreground">Real-time Stock Visibility</p>
         </div>
       </div>
 
       {/* Footer */}
-      <div className="mt-6 pt-4 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
+      <div className="mt-4 pt-4 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
         <span>HealthOS - Hospital Management System</span>
         <span>healthos24.com</span>
       </div>

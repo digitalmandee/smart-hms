@@ -166,8 +166,8 @@ const features = [
     icon: Calculator,
     label: 'Accounts',
     title: 'Full-Fledged Financial Management',
-    description: 'Double-entry accounting designed for healthcare with automated real-time posting. Billing module auto-posts patient invoices and payment receipts. Pharmacy POS auto-posts daily sales and COGS. Inventory GRN verification auto-creates Accounts Payable entries. Manage comprehensive Chart of Accounts with Assets, Liabilities, Equity, Revenue, and Expenses categories. Track Accounts Receivable from patients and insurers, and Accounts Payable to vendors. Reconcile bank accounts, generate financial statements (P&L, Balance Sheet, Cash Flow), and ensure GST/tax compliance with automated calculations.',
-    highlights: ['Auto Journal Posting', 'Chart of Accounts', 'AR/AP Management', 'Financial Statements', 'Bank Reconciliation'],
+    description: 'Double-entry accounting designed for healthcare with automated real-time posting. Billing module auto-posts patient invoices and payment receipts. Pharmacy POS auto-posts daily sales and COGS. Inventory GRN verification auto-creates Accounts Payable entries. Warehouse GRN verification auto-creates AP entries per sub-store for precise cost tracking. Manage comprehensive Chart of Accounts with Assets, Liabilities, Equity, Revenue, and Expenses categories. Track Accounts Receivable from patients and insurers, and Accounts Payable to vendors. Reconcile bank accounts, generate financial statements (P&L, Balance Sheet, Cash Flow), and ensure GST/tax compliance with automated calculations.',
+    highlights: ['Auto Journal Posting', 'Chart of Accounts', 'AR/AP Management', 'Financial Statements', 'Bank Reconciliation', 'Sub-Store AP'],
     screenshot: AccountsScreen,
   },
   {
@@ -175,8 +175,8 @@ const features = [
     icon: Truck,
     label: 'Procurement',
     title: 'End-to-End Procurement & Vendor Management',
-    description: 'Complete supply chain from requisition to payment in one unified workflow. Create Purchase Orders for medicines and general supplies from a single interface with item-vendor mapping for best pricing. Track vendor performance with quality ratings and delivery timelines. Receive goods with GRN verification matching quantities against PO and checking batch/expiry details. Verified GRNs automatically route items to appropriate stock tables (pharmacy or general inventory) and create Accounts Payable entries. Close the loop through Vendor Payments with full ledger reconciliation.',
-    highlights: ['Unified PO', 'GRN Verification', 'Stock Routing', 'Vendor Payments', 'AP Integration'],
+    description: 'Complete supply chain from requisition to payment in one unified workflow. Create Purchase Orders for medicines and general supplies from a single interface with item-vendor mapping for best pricing. Receive automated purchase requests from warehouse sub-store indents with pre-approved item lists. Track vendor performance with quality ratings and delivery timelines. Receive goods with GRN verification matching quantities against PO and checking batch/expiry details. Verified GRNs automatically route items to appropriate stock tables (pharmacy or general inventory) and create Accounts Payable entries. Close the loop through Vendor Payments with full ledger reconciliation.',
+    highlights: ['Unified PO', 'GRN Verification', 'Stock Routing', 'Vendor Payments', 'AP Integration', 'Sub-Store Indents'],
     screenshot: ProcurementScreen,
   },
   {
@@ -184,8 +184,8 @@ const features = [
     icon: Warehouse,
     label: 'Inventory',
     title: 'Centralized Stock Control & Requisitions',
-    description: 'Take control of your hospital supply chain with centralized inventory management. Maintain item master with categories, units, and reorder levels. Track stock movements across departments with full audit trail. Handle department stock requisitions with multi-level approval workflows. Monitor consumption patterns and identify slow-moving items. Receive goods with verification against purchase orders. Maintain optimal inventory levels with automated reorder alerts when stock falls below minimum threshold. Track expiry dates for perishable supplies. Manage multiple warehouse locations with dedicated sub-stores for Medical, Surgical, Dental, and Equipment supplies. Configure patient entitlement categories (Entitled, Non-Entitled) for automatic free vs. paid dispensing routing.',
-    highlights: ['Item Master', 'Stock Requisitions', 'Approval Workflows', 'Reorder Alerts', 'Expiry Tracking', 'Multi-Warehouse', 'Patient Entitlement'],
+    description: 'Take control of your hospital supply chain with centralized inventory management. Maintain item master with categories, units, and reorder levels. Track stock movements across departments with full audit trail. Handle department stock requisitions with multi-level approval workflows. Monitor consumption patterns and identify slow-moving items. Sub-store indents automatically generate procurement requests. GRN-verified goods are routed to specific sub-store bins with location tracking. Maintain optimal inventory levels with automated reorder alerts when stock falls below minimum threshold. Track expiry dates for perishable supplies. Manage multiple warehouse locations with dedicated sub-stores for Medical, Surgical, Dental, and Equipment supplies. Configure patient entitlement categories (Entitled, Non-Entitled) for automatic free vs. paid dispensing routing.',
+    highlights: ['Item Master', 'Stock Requisitions', 'Approval Workflows', 'Reorder Alerts', 'Expiry Tracking', 'Multi-Warehouse', 'Patient Entitlement', 'Indent-to-PO'],
     screenshot: InventoryScreen,
   },
   {

@@ -1,4 +1,4 @@
-import { Building2, Package, Pill, Wrench, ArrowRight, Shield, Users, ScanLine, Warehouse } from 'lucide-react';
+import { Building2, Package, Pill, Wrench, ArrowRight, Shield, Users, ScanLine, Warehouse, ClipboardList, FileText, Calculator } from 'lucide-react';
 import { AnimatedSection, StaggerChildren } from './AnimatedSection';
 import { Badge } from '@/components/ui/badge';
 
@@ -20,6 +20,14 @@ const entitlementCategories = [
   { type: 'Non-Entitled', items: ['Civilian Patients', 'Walk-in Customers'], color: 'text-primary bg-primary/10', result: 'Auto-Billing' },
 ];
 
+const integrationSteps = [
+  { icon: ClipboardList, title: 'Sub-Store Indent', desc: 'Department raises demand', module: 'Warehouse' },
+  { icon: FileText, title: 'Auto PO', desc: 'PO from approved indent', module: 'Procurement' },
+  { icon: Package, title: 'GRN & Stock', desc: 'Verify & route to bin/rack', module: 'Inventory' },
+  { icon: Pill, title: 'Dispensing', desc: 'Entitlement-based routing', module: 'Warehouse' },
+  { icon: Calculator, title: 'Accounts', desc: 'AP entry & billing revenue', module: 'Accounts' },
+];
+
 const comparisons = [
   { workflow: 'Patient entitlement check', traditional: 'Manual card verification', healthos: 'Auto ID-based entitlement lookup' },
   { workflow: 'Medicine indent from sub-store', traditional: 'Paper-based demand forms', healthos: 'Digital indent with approval workflow' },
@@ -27,10 +35,12 @@ const comparisons = [
   { workflow: 'Non-entitled billing', traditional: 'Manual ledger entries', healthos: 'Auto-route to billing vs free dispensing' },
   { workflow: 'Expiry management', traditional: 'Monthly physical checks', healthos: 'Auto alerts 30/60/90 days before expiry' },
   { workflow: 'Inter-store transfers', traditional: 'Manual register entries', healthos: 'Digital transfer with auto stock update' },
+  { workflow: 'Indent to PO conversion', traditional: 'Separate departments, no link', healthos: 'Auto-PO from approved indent' },
+  { workflow: 'GRN to sub-store routing', traditional: 'Manual allocation', healthos: 'Auto-route to correct sub-store with bin assignment' },
 ];
 
 const stats = [
-  { value: '6+', label: 'Sub-store Types' },
+  { value: '5', label: 'Modules Connected' },
   { value: '4+', label: 'Entitlement Categories' },
   { value: '100%', label: 'Real-time Visibility' },
 ];
@@ -47,7 +57,7 @@ export const WarehouseSection = () => {
             Warehouse Management & Patient Entitlement
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Multi-warehouse sub-store management with intelligent patient entitlement-based dispensing for large-scale hospital operations.
+            Multi-warehouse sub-store management with intelligent patient entitlement-based dispensing, fully integrated with Procurement, Inventory & Accounts.
           </p>
         </AnimatedSection>
 
@@ -60,7 +70,6 @@ export const WarehouseSection = () => {
                 <Warehouse className="h-5 w-5 text-indigo-600" />
                 Warehouse Sub-Store Hierarchy
               </h3>
-              {/* Central Store */}
               <div className="flex flex-col items-center">
                 <div className="bg-indigo-500/10 border border-indigo-500/20 rounded-xl px-6 py-3 mb-4">
                   <div className="flex items-center gap-2">
@@ -69,10 +78,8 @@ export const WarehouseSection = () => {
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">Master inventory & allocation</p>
                 </div>
-                {/* Connector */}
                 <div className="w-px h-6 bg-border" />
                 <div className="w-3/4 h-px bg-border" />
-                {/* Sub-stores */}
                 <div className="grid grid-cols-2 gap-3 w-full mt-2">
                   {subStores.map((store) => {
                     const Icon = store.icon;
@@ -100,7 +107,6 @@ export const WarehouseSection = () => {
                 <Users className="h-5 w-5 text-indigo-600" />
                 Patient Entitlement Engine
               </h3>
-              {/* Flow Steps */}
               <div className="flex items-center justify-center gap-3 mb-6">
                 {entitlementFlow.map((step, i) => {
                   const Icon = step.icon;
@@ -119,7 +125,6 @@ export const WarehouseSection = () => {
                   );
                 })}
               </div>
-              {/* Categories */}
               <div className="space-y-3">
                 {entitlementCategories.map((cat) => (
                   <div key={cat.type} className="border rounded-xl p-4">
@@ -139,11 +144,71 @@ export const WarehouseSection = () => {
           </AnimatedSection>
         </div>
 
+        {/* Connected Supply Chain Flow */}
+        <AnimatedSection animation="fade-up" delay={250} className="max-w-5xl mx-auto mb-16">
+          <div className="bg-card border rounded-2xl p-6 md:p-8">
+            <h3 className="text-xl font-bold text-center mb-2">Connected Supply Chain</h3>
+            <p className="text-sm text-muted-foreground text-center mb-8">End-to-end flow linking 5 modules seamlessly</p>
+
+            {/* Desktop: Horizontal */}
+            <div className="hidden lg:flex items-start justify-between relative">
+              {integrationSteps.map((step, i) => {
+                const Icon = step.icon;
+                return (
+                  <div key={step.title} className="flex items-center">
+                    <div className="flex flex-col items-center text-center w-32">
+                      <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 flex items-center justify-center mb-3">
+                        <Icon className="h-7 w-7 text-indigo-600" />
+                      </div>
+                      <h4 className="font-semibold text-sm mb-1">{step.title}</h4>
+                      <p className="text-[11px] text-muted-foreground mb-2">{step.desc}</p>
+                      <span className="text-[9px] bg-indigo-500/10 text-indigo-600 px-2 py-0.5 rounded-full font-medium">{step.module}</span>
+                    </div>
+                    {i < integrationSteps.length - 1 && (
+                      <div className="flex items-center px-1 mt-[-40px]">
+                        <div className="w-8 h-0.5 bg-gradient-to-r from-muted-foreground/30 to-muted-foreground/10" />
+                        <ArrowRight className="h-4 w-4 text-muted-foreground/50" />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Mobile: Vertical */}
+            <div className="lg:hidden space-y-4">
+              {integrationSteps.map((step, i) => {
+                const Icon = step.icon;
+                return (
+                  <div key={step.title}>
+                    <div className="flex items-start gap-4">
+                      <div className="flex flex-col items-center">
+                        <div className="w-11 h-11 rounded-xl bg-indigo-500/10 flex items-center justify-center">
+                          <Icon className="h-5 w-5 text-indigo-600" />
+                        </div>
+                        {i < integrationSteps.length - 1 && (
+                          <div className="w-0.5 h-8 bg-gradient-to-b from-muted-foreground/30 to-transparent mt-2" />
+                        )}
+                      </div>
+                      <div className="flex-1 pt-1">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-semibold text-sm">{step.title}</h4>
+                          <span className="text-[9px] bg-indigo-500/10 text-indigo-600 px-2 py-0.5 rounded-full font-medium">{step.module}</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">{step.desc}</p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </AnimatedSection>
+
         {/* Comparison Grid */}
         <AnimatedSection animation="fade-up" delay={300}>
           <div className="max-w-5xl mx-auto mb-12">
             <h3 className="text-xl font-bold text-center mb-6">Traditional vs. HealthOS 24</h3>
-            {/* Desktop */}
             <div className="hidden md:block bg-card border rounded-2xl overflow-hidden">
               <table className="w-full">
                 <thead>
@@ -172,7 +237,6 @@ export const WarehouseSection = () => {
                 </tbody>
               </table>
             </div>
-            {/* Mobile */}
             <div className="md:hidden space-y-3">
               {comparisons.map((row, i) => (
                 <div key={i} className="bg-card border rounded-xl p-4">
