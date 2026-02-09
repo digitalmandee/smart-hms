@@ -14,18 +14,18 @@ export const TrustBadges = () => {
       <div className="container mx-auto px-4">
         <StaggerChildren
           staggerDelay={100}
-          className="flex flex-wrap justify-center items-center gap-8 md:gap-16"
+          className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8"
         >
           {badges.map((badge) => {
             const Icon = badge.icon;
             return (
-              <div key={badge.label} className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <Icon className="h-5 w-5 text-primary" />
+              <div key={badge.label} className="flex items-center gap-2 md:gap-3 justify-center">
+                <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <Icon className="h-4 w-4 md:h-5 md:w-5 text-primary" />
                 </div>
-                <div>
-                  <div className="font-bold text-lg">{badge.value}</div>
-                  <div className="text-sm text-muted-foreground">{badge.label}</div>
+                <div className="min-w-0">
+                  <div className="font-bold text-base md:text-lg">{badge.value}</div>
+                  <div className="text-xs md:text-sm text-muted-foreground truncate">{badge.label}</div>
                 </div>
               </div>
             );

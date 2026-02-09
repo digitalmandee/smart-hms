@@ -78,12 +78,13 @@ export const FAQSection = () => {
                 "overflow-hidden transition-all duration-300",
                 openIndex === index ? "max-h-96" : "max-h-0"
               )}>
-                <div className="px-6 pb-6 pt-0">
-                  <div className="flex items-start gap-4 ml-14">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-accent/50 flex items-center justify-center">
-                      <Bot className="h-5 w-5 text-foreground" />
+                <div className="px-4 sm:px-6 pb-6 pt-0">
+                  {/* Remove left margin on mobile for full-width answer */}
+                  <div className="flex items-start gap-3 sm:gap-4 sm:ml-14">
+                    <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-accent/50 flex items-center justify-center">
+                      <Bot className="h-4 w-4 sm:h-5 sm:w-5 text-foreground" />
                     </div>
-                    <p className="text-muted-foreground leading-relaxed bg-muted/50 p-4 rounded-2xl rounded-tl-none">
+                    <p className="text-sm sm:text-base text-muted-foreground leading-relaxed bg-muted/50 p-3 sm:p-4 rounded-2xl rounded-tl-none">
                       {faq.answer}
                     </p>
                   </div>
