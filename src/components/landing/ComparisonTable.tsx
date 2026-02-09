@@ -205,6 +205,36 @@ const comparisons = [
     smartHMS: 'Instant sync',
     highlight: false,
   },
+  // Warehouse & Supply Chain
+  {
+    category: 'Warehouse & Supply Chain',
+    feature: 'Multi-warehouse tracking',
+    paper: 'Impossible',
+    spreadsheet: 'Separate sheets',
+    smartHMS: 'Unified dashboard',
+    highlight: true,
+  },
+  {
+    feature: 'Inter-store transfers',
+    paper: 'Register entries',
+    spreadsheet: 'Manual update',
+    smartHMS: 'Digital with auto stock',
+    highlight: false,
+  },
+  {
+    feature: 'Patient entitlement',
+    paper: 'Card check',
+    spreadsheet: 'Lookup sheet',
+    smartHMS: 'Auto ID-based',
+    highlight: true,
+  },
+  {
+    feature: 'Controlled substance tracking',
+    paper: 'Manual ledger',
+    spreadsheet: 'Basic log',
+    smartHMS: 'Full chain of custody',
+    highlight: false,
+  },
 ];
 
 const getBadgeStyle = (value: string) => {
@@ -239,7 +269,7 @@ export const ComparisonTable = () => {
             HealthOS 24 vs. Traditional Methods
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            A detailed comparison across 24 real-world scenarios. See exactly where you're losing time and money.
+            A detailed comparison across 28 real-world scenarios. See exactly where you're losing time and money.
           </p>
         </AnimatedSection>
 
@@ -294,7 +324,7 @@ export const ComparisonTable = () => {
 
             {/* Tablet/Mobile view with categories */}
             <div className="lg:hidden space-y-6">
-              {['Patient Management', 'Clinical Operations', 'Queue & Appointments', 'Pharmacy & Inventory', 'Billing & Finance', 'Reporting & Analytics', 'Security & Compliance'].map(category => {
+              {['Patient Management', 'Clinical Operations', 'Queue & Appointments', 'Pharmacy & Inventory', 'Billing & Finance', 'Reporting & Analytics', 'Security & Compliance', 'Warehouse & Supply Chain'].map(category => {
                 const categoryItems = (comparisons as ComparisonRow[]).filter(
                   (item, idx) => {
                     const catIdx = (comparisons as ComparisonRow[]).findIndex(c => c.category === category);
@@ -344,7 +374,7 @@ export const ComparisonTable = () => {
         <AnimatedSection animation="fade-up" delay={300} className="mt-12">
           <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-card border rounded-xl p-4 text-center">
-              <div className="text-2xl md:text-3xl font-bold text-primary">24</div>
+              <div className="text-2xl md:text-3xl font-bold text-primary">28</div>
               <div className="text-sm text-muted-foreground">Features Compared</div>
             </div>
             <div className="bg-card border rounded-xl p-4 text-center">

@@ -8,6 +8,7 @@ import { ModuleSlide } from "@/components/presentation/ModuleSlide";
 import { OTDashboardSlide } from "@/components/presentation/OTDashboardSlide";
 import { WorkflowSlide } from "@/components/presentation/WorkflowSlide";
 import { ProcurementSlide } from "@/components/presentation/ProcurementSlide";
+import { WarehouseSlide } from "@/components/presentation/WarehouseSlide";
 import { CaseStudiesSlide } from "@/components/presentation/CaseStudiesSlide";
 import { LabNetworkSlide } from "@/components/presentation/LabNetworkSlide";
 import { IntegrationSlide } from "@/components/presentation/IntegrationSlide";
@@ -198,8 +199,8 @@ const features = [
     icon: Warehouse,
     label: 'Inventory',
     title: 'Centralized Stock Control & Requisitions',
-    description: 'Take control of your hospital supply chain with centralized inventory management. Maintain item master with categories, units, and reorder levels. Track stock movements across departments with full audit trail. Handle department stock requisitions with multi-level approval workflows.',
-    highlights: ['Item Master', 'Stock Requisitions', 'Approval Workflows', 'Reorder Alerts', 'Expiry Tracking'],
+    description: 'Take control of your hospital supply chain with centralized inventory management. Maintain item master with categories, units, and reorder levels. Track stock movements across departments with full audit trail. Handle department stock requisitions with multi-level approval workflows. Manage multiple warehouse sub-stores (Medical, Surgical, Dental, Equipment) with patient entitlement-based dispensing.',
+    highlights: ['Item Master', 'Stock Requisitions', 'Approval Workflows', 'Reorder Alerts', 'Multi-Warehouse', 'Patient Entitlement'],
     screenshot: InventoryScreen,
   },
   {
@@ -222,7 +223,7 @@ const features = [
   },
 ];
 
-const TOTAL_SLIDES = 31; // Title + Overview + 20 modules + OT Dashboard + Workflow + Procurement + Case Studies + Lab Network + Integration + Compliance + Timeline + CTA
+const TOTAL_SLIDES = 32; // Title + Overview + 20 modules + OT Dashboard + Workflow + Procurement + Warehouse + Case Studies + Lab Network + Integration + Compliance + Timeline + CTA
 
 const Presentation = () => {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -355,7 +356,10 @@ const Presentation = () => {
           {/* Slide 25: Procurement Cycle */}
           <ProcurementSlide />
 
-          {/* Slide 26: UAE Case Studies */}
+          {/* Slide 26: Warehouse & Supply Chain */}
+          <WarehouseSlide />
+
+          {/* Slide 27: UAE Case Studies */}
           <CaseStudiesSlide />
 
           {/* Slide 27: Lab Network */}

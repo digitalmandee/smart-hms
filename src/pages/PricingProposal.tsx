@@ -7,6 +7,7 @@ import { ProposalExecutiveSummary } from "@/components/proposal/ProposalExecutiv
 import { ProposalClinicalFeatures } from "@/components/proposal/ProposalClinicalFeatures";
 import { ProposalDiagnosticsFeatures } from "@/components/proposal/ProposalDiagnosticsFeatures";
 import { ProposalPharmacyFeatures } from "@/components/proposal/ProposalPharmacyFeatures";
+import { ProposalWarehouseFeatures } from "@/components/proposal/ProposalWarehouseFeatures";
 import { ProposalFinanceFeatures } from "@/components/proposal/ProposalFinanceFeatures";
 import { ProposalOperationsFeatures } from "@/components/proposal/ProposalOperationsFeatures";
 import { ProposalTechnicalSpecs } from "@/components/proposal/ProposalTechnicalSpecs";
@@ -19,6 +20,7 @@ const pages = [
   { id: "clinical", label: "Clinical Operations", component: ProposalClinicalFeatures },
   { id: "diagnostics", label: "Diagnostics & Lab", component: ProposalDiagnosticsFeatures },
   { id: "pharmacy", label: "Pharmacy & Inventory", component: ProposalPharmacyFeatures },
+  { id: "warehouse", label: "Warehouse & Supply Chain", component: ProposalWarehouseFeatures },
   { id: "finance", label: "Finance & Billing", component: ProposalFinanceFeatures },
   { id: "operations", label: "Operations & Admin", component: ProposalOperationsFeatures },
   { id: "technical", label: "Technical Specs", component: ProposalTechnicalSpecs },

@@ -184,8 +184,8 @@ const features = [
     icon: Warehouse,
     label: 'Inventory',
     title: 'Centralized Stock Control & Requisitions',
-    description: 'Take control of your hospital supply chain with centralized inventory management. Maintain item master with categories, units, and reorder levels. Track stock movements across departments with full audit trail. Handle department stock requisitions with multi-level approval workflows. Monitor consumption patterns and identify slow-moving items. Receive goods with verification against purchase orders. Maintain optimal inventory levels with automated reorder alerts when stock falls below minimum threshold. Track expiry dates for perishable supplies.',
-    highlights: ['Item Master', 'Stock Requisitions', 'Approval Workflows', 'Reorder Alerts', 'Expiry Tracking'],
+    description: 'Take control of your hospital supply chain with centralized inventory management. Maintain item master with categories, units, and reorder levels. Track stock movements across departments with full audit trail. Handle department stock requisitions with multi-level approval workflows. Monitor consumption patterns and identify slow-moving items. Receive goods with verification against purchase orders. Maintain optimal inventory levels with automated reorder alerts when stock falls below minimum threshold. Track expiry dates for perishable supplies. Manage multiple warehouse locations with dedicated sub-stores for Medical, Surgical, Dental, and Equipment supplies. Configure patient entitlement categories (Entitled, Non-Entitled) for automatic free vs. paid dispensing routing.',
+    highlights: ['Item Master', 'Stock Requisitions', 'Approval Workflows', 'Reorder Alerts', 'Expiry Tracking', 'Multi-Warehouse', 'Patient Entitlement'],
     screenshot: InventoryScreen,
   },
   {
