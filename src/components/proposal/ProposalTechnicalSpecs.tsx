@@ -7,7 +7,7 @@ const specs = [
     title: "Cloud Architecture",
     color: "blue",
     items: [
-      { label: "Infrastructure", value: "AWS Tier-1 (Mumbai Region)" },
+      { label: "Infrastructure", value: "AWS Tier-1 (Singapore Region)" },
       { label: "Uptime SLA", value: "99.9% monthly availability" },
       { label: "Auto-Scaling", value: "Dynamic resource allocation" },
       { label: "CDN", value: "CloudFront global edge caching" },
@@ -65,9 +65,7 @@ export const ProposalTechnicalSpecs = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <HealthOS24Logo variant="full" size="md" />
-        <span className="text-sm text-muted-foreground bg-muted px-3 py-1 rounded-full">
-          08 / 10
-        </span>
+        <span className="text-sm text-muted-foreground bg-muted px-3 py-1 rounded-full">08 / 10</span>
       </div>
 
       {/* Title */}
