@@ -7739,6 +7739,7 @@ export type Database = {
           received_by: string | null
           received_date: string
           status: Database["public"]["Enums"]["grn_status"]
+          store_id: string | null
           updated_at: string
           vendor_id: string
           verified_at: string | null
@@ -7758,6 +7759,7 @@ export type Database = {
           received_by?: string | null
           received_date?: string
           status?: Database["public"]["Enums"]["grn_status"]
+          store_id?: string | null
           updated_at?: string
           vendor_id: string
           verified_at?: string | null
@@ -7777,6 +7779,7 @@ export type Database = {
           received_by?: string | null
           received_date?: string
           status?: Database["public"]["Enums"]["grn_status"]
+          store_id?: string | null
           updated_at?: string
           vendor_id?: string
           verified_at?: string | null
@@ -7809,6 +7812,13 @@ export type Database = {
             columns: ["received_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goods_received_notes_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
             referencedColumns: ["id"]
           },
           {
@@ -9192,6 +9202,7 @@ export type Database = {
           location: string | null
           quantity: number
           received_date: string
+          store_id: string | null
           unit_cost: number
           updated_at: string
           vendor_id: string | null
@@ -9207,6 +9218,7 @@ export type Database = {
           location?: string | null
           quantity?: number
           received_date?: string
+          store_id?: string | null
           unit_cost?: number
           updated_at?: string
           vendor_id?: string | null
@@ -9222,6 +9234,7 @@ export type Database = {
           location?: string | null
           quantity?: number
           received_date?: string
+          store_id?: string | null
           unit_cost?: number
           updated_at?: string
           vendor_id?: string | null
@@ -9246,6 +9259,13 @@ export type Database = {
             columns: ["item_id"]
             isOneToOne: false
             referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_stock_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
             referencedColumns: ["id"]
           },
           {
@@ -12032,6 +12052,7 @@ export type Database = {
           quantity: number | null
           reorder_level: number | null
           selling_price: number | null
+          store_id: string | null
           supplier_name: string | null
           unit_price: number | null
           updated_at: string
@@ -12047,6 +12068,7 @@ export type Database = {
           quantity?: number | null
           reorder_level?: number | null
           selling_price?: number | null
+          store_id?: string | null
           supplier_name?: string | null
           unit_price?: number | null
           updated_at?: string
@@ -12062,6 +12084,7 @@ export type Database = {
           quantity?: number | null
           reorder_level?: number | null
           selling_price?: number | null
+          store_id?: string | null
           supplier_name?: string | null
           unit_price?: number | null
           updated_at?: string
@@ -12080,6 +12103,13 @@ export type Database = {
             columns: ["medicine_id"]
             isOneToOne: false
             referencedRelation: "medicines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medicine_inventory_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
             referencedColumns: ["id"]
           },
           {
@@ -15995,6 +16025,7 @@ export type Database = {
           organization_id: string
           po_number: string
           status: Database["public"]["Enums"]["po_status"]
+          store_id: string | null
           subtotal: number
           tax_amount: number
           terms: string | null
@@ -16016,6 +16047,7 @@ export type Database = {
           organization_id: string
           po_number: string
           status?: Database["public"]["Enums"]["po_status"]
+          store_id?: string | null
           subtotal?: number
           tax_amount?: number
           terms?: string | null
@@ -16037,6 +16069,7 @@ export type Database = {
           organization_id?: string
           po_number?: string
           status?: Database["public"]["Enums"]["po_status"]
+          store_id?: string | null
           subtotal?: number
           tax_amount?: number
           terms?: string | null
@@ -16071,6 +16104,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_orders_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
             referencedColumns: ["id"]
           },
           {
@@ -17113,6 +17153,7 @@ export type Database = {
           branch_id: string
           created_at: string
           department_id: string | null
+          from_store_id: string | null
           id: string
           issued_at: string | null
           issued_by: string | null
@@ -17124,6 +17165,7 @@ export type Database = {
           required_date: string | null
           requisition_number: string
           status: Database["public"]["Enums"]["requisition_status"]
+          to_store_id: string | null
           updated_at: string
         }
         Insert: {
@@ -17132,6 +17174,7 @@ export type Database = {
           branch_id: string
           created_at?: string
           department_id?: string | null
+          from_store_id?: string | null
           id?: string
           issued_at?: string | null
           issued_by?: string | null
@@ -17143,6 +17186,7 @@ export type Database = {
           required_date?: string | null
           requisition_number: string
           status?: Database["public"]["Enums"]["requisition_status"]
+          to_store_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -17151,6 +17195,7 @@ export type Database = {
           branch_id?: string
           created_at?: string
           department_id?: string | null
+          from_store_id?: string | null
           id?: string
           issued_at?: string | null
           issued_by?: string | null
@@ -17162,6 +17207,7 @@ export type Database = {
           required_date?: string | null
           requisition_number?: string
           status?: Database["public"]["Enums"]["requisition_status"]
+          to_store_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -17187,6 +17233,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "stock_requisitions_from_store_id_fkey"
+            columns: ["from_store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "stock_requisitions_issued_by_fkey"
             columns: ["issued_by"]
             isOneToOne: false
@@ -17205,6 +17258,237 @@ export type Database = {
             columns: ["requested_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_requisitions_to_store_id_fkey"
+            columns: ["to_store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      store_stock_transfer_items: {
+        Row: {
+          batch_number: string | null
+          created_at: string
+          expiry_date: string | null
+          id: string
+          item_id: string | null
+          item_type: string
+          medicine_id: string | null
+          notes: string | null
+          quantity_received: number
+          quantity_requested: number
+          quantity_sent: number
+          transfer_id: string
+        }
+        Insert: {
+          batch_number?: string | null
+          created_at?: string
+          expiry_date?: string | null
+          id?: string
+          item_id?: string | null
+          item_type?: string
+          medicine_id?: string | null
+          notes?: string | null
+          quantity_received?: number
+          quantity_requested?: number
+          quantity_sent?: number
+          transfer_id: string
+        }
+        Update: {
+          batch_number?: string | null
+          created_at?: string
+          expiry_date?: string | null
+          id?: string
+          item_id?: string | null
+          item_type?: string
+          medicine_id?: string | null
+          notes?: string | null
+          quantity_received?: number
+          quantity_requested?: number
+          quantity_sent?: number
+          transfer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_stock_transfer_items_transfer_id_fkey"
+            columns: ["transfer_id"]
+            isOneToOne: false
+            referencedRelation: "store_stock_transfers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      store_stock_transfers: {
+        Row: {
+          approved_by: string | null
+          created_at: string
+          dispatched_by: string | null
+          from_store_id: string
+          id: string
+          notes: string | null
+          organization_id: string
+          received_by: string | null
+          request_date: string
+          requested_by: string | null
+          status: Database["public"]["Enums"]["transfer_status"]
+          to_store_id: string
+          transfer_number: string
+          updated_at: string
+        }
+        Insert: {
+          approved_by?: string | null
+          created_at?: string
+          dispatched_by?: string | null
+          from_store_id: string
+          id?: string
+          notes?: string | null
+          organization_id: string
+          received_by?: string | null
+          request_date?: string
+          requested_by?: string | null
+          status?: Database["public"]["Enums"]["transfer_status"]
+          to_store_id: string
+          transfer_number: string
+          updated_at?: string
+        }
+        Update: {
+          approved_by?: string | null
+          created_at?: string
+          dispatched_by?: string | null
+          from_store_id?: string
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          received_by?: string | null
+          request_date?: string
+          requested_by?: string | null
+          status?: Database["public"]["Enums"]["transfer_status"]
+          to_store_id?: string
+          transfer_number?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_stock_transfers_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_stock_transfers_dispatched_by_fkey"
+            columns: ["dispatched_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_stock_transfers_from_store_id_fkey"
+            columns: ["from_store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_stock_transfers_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_stock_transfers_received_by_fkey"
+            columns: ["received_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_stock_transfers_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_stock_transfers_to_store_id_fkey"
+            columns: ["to_store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stores: {
+        Row: {
+          branch_id: string
+          code: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          is_central: boolean
+          location_info: Json | null
+          manager_id: string | null
+          name: string
+          organization_id: string
+          store_type: Database["public"]["Enums"]["store_type"]
+          updated_at: string
+        }
+        Insert: {
+          branch_id: string
+          code?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_central?: boolean
+          location_info?: Json | null
+          manager_id?: string | null
+          name: string
+          organization_id: string
+          store_type?: Database["public"]["Enums"]["store_type"]
+          updated_at?: string
+        }
+        Update: {
+          branch_id?: string
+          code?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_central?: boolean
+          location_info?: Json | null
+          manager_id?: string | null
+          name?: string
+          organization_id?: string
+          store_type?: Database["public"]["Enums"]["store_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stores_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stores_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stores_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -19419,6 +19703,14 @@ export type Database = {
         | "rotational"
         | "flexible"
         | "general"
+      store_type:
+        | "central"
+        | "medical"
+        | "surgical"
+        | "dental"
+        | "equipment"
+        | "pharmacy"
+        | "general"
       subscription_plan: "basic" | "professional" | "enterprise"
       subscription_status: "trial" | "active" | "suspended" | "cancelled"
       surgery_priority: "emergency" | "urgent" | "elective"
@@ -19441,6 +19733,13 @@ export type Database = {
         | "scrub_nurse"
         | "circulating_nurse"
         | "technician"
+      transfer_status:
+        | "draft"
+        | "pending"
+        | "approved"
+        | "in_transit"
+        | "received"
+        | "cancelled"
       transfusion_status:
         | "scheduled"
         | "in_progress"
@@ -19938,6 +20237,15 @@ export const Constants = {
         "flexible",
         "general",
       ],
+      store_type: [
+        "central",
+        "medical",
+        "surgical",
+        "dental",
+        "equipment",
+        "pharmacy",
+        "general",
+      ],
       subscription_plan: ["basic", "professional", "enterprise"],
       subscription_status: ["trial", "active", "suspended", "cancelled"],
       surgery_priority: ["emergency", "urgent", "elective"],
@@ -19961,6 +20269,14 @@ export const Constants = {
         "scrub_nurse",
         "circulating_nurse",
         "technician",
+      ],
+      transfer_status: [
+        "draft",
+        "pending",
+        "approved",
+        "in_transit",
+        "received",
+        "cancelled",
       ],
       transfusion_status: [
         "scheduled",
