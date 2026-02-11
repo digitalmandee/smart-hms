@@ -27,7 +27,7 @@ const PAYMENT_COLORS: Record<string, string> = {
   other: "#6b7280",
 };
 
-// ============ EXISTING HOOKS (fixed table name: pharmacy_pos_items) ============
+// ============ EXISTING HOOKS ============
 
 export function usePaymentMethodBreakdown(dateFrom: string, dateTo: string) {
   return useQuery({
@@ -70,7 +70,7 @@ export function usePaymentMethodBreakdown(dateFrom: string, dateTo: string) {
   });
 }
 
-export function useTopSellingMedicines(dateFrom: string, dateTo: string, limit: number = 10) {
+export function useTopSellingMedicines(dateFrom: string, dateTo: string, limit?: number) {
   return useQuery({
     queryKey: ["pharmacy-top-medicines", dateFrom, dateTo, limit],
     queryFn: async () => {
@@ -98,10 +98,11 @@ export function useTopSellingMedicines(dateFrom: string, dateTo: string, limit: 
         medicineStats[id].revenue += Number(item.line_total || 0);
       });
 
-      return Object.entries(medicineStats)
+      const sorted = Object.entries(medicineStats)
         .map(([medicine_id, data]) => ({ medicine_id, ...data }))
-        .sort((a, b) => b.revenue - a.revenue)
-        .slice(0, limit) as TopMedicine[];
+        .sort((a, b) => b.revenue - a.revenue);
+
+      return (limit ? sorted.slice(0, limit) : sorted) as TopMedicine[];
     },
     staleTime: 5 * 60 * 1000,
   });
@@ -130,8 +131,6 @@ export function usePharmacySalesStats(dateFrom: string, dateTo: string) {
     staleTime: 5 * 60 * 1000,
   });
 }
-
-// ============ NEW SALES REPORT HOOKS ============
 
 export function useDailySalesSummary(dateFrom: string, dateTo: string) {
   return useQuery({
@@ -209,7 +208,6 @@ export function useSalesByCategory(dateFrom: string, dateTo: string) {
 
       if (error) throw error;
 
-      // Get medicine->category mapping
       const medicineIds = [...new Set((items || []).map((i: any) => i.medicine_id).filter(Boolean))];
       if (medicineIds.length === 0) return [];
 
@@ -293,7 +291,7 @@ export function useMonthlyComparison(months: number = 6) {
 
       const byMonth: Record<string, { month: string; sales: number; discount: number; count: number }> = {};
       data?.forEach((tx) => {
-        const m = tx.created_at.substring(0, 7); // YYYY-MM
+        const m = tx.created_at.substring(0, 7);
         if (!byMonth[m]) byMonth[m] = { month: m, sales: 0, discount: 0, count: 0 };
         byMonth[m].sales += Number(tx.total_amount || 0);
         byMonth[m].discount += Number(tx.discount_amount || 0);
@@ -431,7 +429,6 @@ export function useDeadStockReport(days: number = 30) {
     queryFn: async () => {
       const cutoff = new Date(Date.now() - days * 86400000).toISOString();
 
-      // Get all inventory with stock
       const { data: inventory, error: invError } = await (supabase as any)
         .from("medicine_inventory")
         .select(`
@@ -442,7 +439,6 @@ export function useDeadStockReport(days: number = 30) {
 
       if (invError) throw invError;
 
-      // Get medicines that had movements recently
       const { data: movements, error: movError } = await (supabase as any)
         .from("pharmacy_stock_movements")
         .select("medicine_id")
@@ -570,7 +566,6 @@ export function useCreditSalesReport(dateFrom: string, dateTo: string) {
   return useQuery({
     queryKey: ["pharmacy-credit-sales", dateFrom, dateTo],
     queryFn: async () => {
-      // Credit sales are transactions where amount_paid < total_amount or due_date is set
       const { data, error } = await supabase
         .from("pharmacy_pos_transactions")
         .select("id, transaction_number, customer_name, customer_phone, total_amount, amount_paid, due_date, created_at, status")
@@ -649,6 +644,502 @@ export function usePOStatusReport() {
         ...v,
         status: v.status.charAt(0).toUpperCase() + v.status.slice(1).replace(/_/g, " "),
       }));
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+// ============ NEW REPORT HOOKS ============
+
+// Customer Sales Report
+export function useCustomerSalesReport(dateFrom: string, dateTo: string) {
+  return useQuery({
+    queryKey: ["pharmacy-customer-sales", dateFrom, dateTo],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("pharmacy_pos_transactions")
+        .select("id, customer_name, customer_phone, total_amount, discount_amount, created_at, status")
+        .eq("status", "completed")
+        .gte("created_at", dateFrom)
+        .lte("created_at", `${dateTo}T23:59:59`);
+
+      if (error) throw error;
+
+      const byCustomer: Record<string, { name: string; phone: string; totalSpent: number; transactions: number; avgSpent: number; totalDiscount: number }> = {};
+      (data || []).forEach((tx) => {
+        const key = tx.customer_name || tx.customer_phone || "Walk-in";
+        if (!byCustomer[key]) byCustomer[key] = { name: tx.customer_name || "Walk-in", phone: tx.customer_phone || "", totalSpent: 0, transactions: 0, avgSpent: 0, totalDiscount: 0 };
+        byCustomer[key].totalSpent += Number(tx.total_amount || 0);
+        byCustomer[key].totalDiscount += Number(tx.discount_amount || 0);
+        byCustomer[key].transactions++;
+      });
+
+      return Object.values(byCustomer)
+        .map(c => ({ ...c, avgSpent: c.transactions > 0 ? c.totalSpent / c.transactions : 0 }))
+        .sort((a, b) => b.totalSpent - a.totalSpent);
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+// Transaction Log
+export function useTransactionLog(dateFrom: string, dateTo: string) {
+  return useQuery({
+    queryKey: ["pharmacy-transaction-log", dateFrom, dateTo],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("pharmacy_pos_transactions")
+        .select("id, transaction_number, customer_name, total_amount, discount_amount, amount_paid, payment_method, status, created_at, subtotal")
+        .gte("created_at", dateFrom)
+        .lte("created_at", `${dateTo}T23:59:59`)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return (data || []).map((tx: any) => ({
+        ...tx,
+        total_amount: Number(tx.total_amount || 0),
+        discount_amount: Number(tx.discount_amount || 0),
+        amount_paid: Number(tx.amount_paid || 0),
+      }));
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+// Refund Rate Analysis
+export function useRefundRateAnalysis(dateFrom: string, dateTo: string) {
+  return useQuery({
+    queryKey: ["pharmacy-refund-rate", dateFrom, dateTo],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("pharmacy_pos_transactions")
+        .select("id, total_amount, status, void_reason, created_at")
+        .gte("created_at", dateFrom)
+        .lte("created_at", `${dateTo}T23:59:59`);
+
+      if (error) throw error;
+
+      const all = data || [];
+      const completed = all.filter(t => t.status === "completed");
+      const voided = all.filter(t => t.status === "voided");
+      const totalSales = completed.reduce((s, t) => s + Number(t.total_amount || 0), 0);
+      const totalRefunds = voided.reduce((s, t) => s + Number(t.total_amount || 0), 0);
+
+      // Reasons breakdown
+      const reasons: Record<string, number> = {};
+      voided.forEach(t => {
+        const r = t.void_reason || "No reason";
+        reasons[r] = (reasons[r] || 0) + 1;
+      });
+
+      // Daily trend
+      const byDay: Record<string, { date: string; refunds: number; sales: number; refundRate: number }> = {};
+      all.forEach(t => {
+        const day = t.created_at.substring(0, 10);
+        if (!byDay[day]) byDay[day] = { date: day, refunds: 0, sales: 0, refundRate: 0 };
+        if (t.status === "voided") byDay[day].refunds++;
+        else if (t.status === "completed") byDay[day].sales++;
+      });
+      Object.values(byDay).forEach(d => {
+        const total = d.sales + d.refunds;
+        d.refundRate = total > 0 ? (d.refunds / total) * 100 : 0;
+      });
+
+      return {
+        totalTransactions: completed.length + voided.length,
+        refundCount: voided.length,
+        refundRate: (completed.length + voided.length) > 0 ? (voided.length / (completed.length + voided.length)) * 100 : 0,
+        totalSales,
+        totalRefunds,
+        reasons: Object.entries(reasons).map(([reason, count]) => ({ reason, count })).sort((a, b) => b.count - a.count),
+        dailyTrend: Object.values(byDay).sort((a, b) => a.date.localeCompare(b.date)),
+      };
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+// Average Basket Size
+export function useBasketSizeAnalysis(dateFrom: string, dateTo: string) {
+  return useQuery({
+    queryKey: ["pharmacy-basket-size", dateFrom, dateTo],
+    queryFn: async () => {
+      const { data: transactions, error: txErr } = await supabase
+        .from("pharmacy_pos_transactions")
+        .select("id, total_amount, created_at, status")
+        .eq("status", "completed")
+        .gte("created_at", dateFrom)
+        .lte("created_at", `${dateTo}T23:59:59`);
+
+      if (txErr) throw txErr;
+
+      const txIds = (transactions || []).map(t => t.id);
+      if (txIds.length === 0) return { avgItems: 0, avgValue: 0, dailyTrend: [] };
+
+      const { data: items, error: itemErr } = await (supabase as any)
+        .from("pharmacy_pos_items")
+        .select("transaction_id, quantity")
+        .in("transaction_id", txIds);
+
+      if (itemErr) throw itemErr;
+
+      const txItemCount: Record<string, number> = {};
+      (items || []).forEach((i: any) => {
+        txItemCount[i.transaction_id] = (txItemCount[i.transaction_id] || 0) + Number(i.quantity || 1);
+      });
+
+      const totalItems = Object.values(txItemCount).reduce((s, c) => s + c, 0);
+      const totalValue = (transactions || []).reduce((s, t) => s + Number(t.total_amount || 0), 0);
+      const txCount = transactions?.length || 1;
+
+      // Daily trend
+      const byDay: Record<string, { date: string; avgItems: number; avgValue: number; count: number; totalItems: number; totalValue: number }> = {};
+      (transactions || []).forEach(tx => {
+        const day = tx.created_at.substring(0, 10);
+        if (!byDay[day]) byDay[day] = { date: day, avgItems: 0, avgValue: 0, count: 0, totalItems: 0, totalValue: 0 };
+        byDay[day].count++;
+        byDay[day].totalValue += Number(tx.total_amount || 0);
+        byDay[day].totalItems += txItemCount[tx.id] || 0;
+      });
+      Object.values(byDay).forEach(d => {
+        d.avgItems = d.count > 0 ? d.totalItems / d.count : 0;
+        d.avgValue = d.count > 0 ? d.totalValue / d.count : 0;
+      });
+
+      return {
+        avgItems: totalItems / txCount,
+        avgValue: totalValue / txCount,
+        dailyTrend: Object.values(byDay).sort((a, b) => a.date.localeCompare(b.date)),
+      };
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+// Batch-wise Stock Report
+export function useBatchStockReport() {
+  return useQuery({
+    queryKey: ["pharmacy-batch-stock"],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("medicine_inventory")
+        .select(`
+          id, quantity, unit_price, selling_price, batch_number, expiry_date, created_at,
+          medicine:medicines!inner(name, category:medicine_categories(name))
+        `)
+        .gt("quantity", 0)
+        .order("expiry_date", { ascending: true });
+
+      if (error) throw error;
+
+      return (data || []).map((inv: any) => ({
+        medicine: inv.medicine?.name || "Unknown",
+        category: inv.medicine?.category?.name || "Uncategorized",
+        batch: inv.batch_number || "N/A",
+        quantity: inv.quantity,
+        unitCost: Number(inv.unit_price || 0),
+        sellingPrice: Number(inv.selling_price || 0),
+        expiryDate: inv.expiry_date || "N/A",
+        value: Number(inv.quantity || 0) * Number(inv.selling_price || 0),
+      }));
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+// Category Stock Distribution
+export function useCategoryStockDistribution() {
+  return useQuery({
+    queryKey: ["pharmacy-category-stock-dist"],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("medicine_inventory")
+        .select(`
+          quantity, selling_price, unit_price,
+          medicine:medicines!inner(category:medicine_categories(name))
+        `)
+        .gt("quantity", 0);
+
+      if (error) throw error;
+
+      const byCat: Record<string, { name: string; items: number; totalQty: number; retailValue: number; costValue: number }> = {};
+      (data || []).forEach((inv: any) => {
+        const cat = inv.medicine?.category?.name || "Uncategorized";
+        if (!byCat[cat]) byCat[cat] = { name: cat, items: 0, totalQty: 0, retailValue: 0, costValue: 0 };
+        byCat[cat].items++;
+        byCat[cat].totalQty += Number(inv.quantity || 0);
+        byCat[cat].retailValue += Number(inv.quantity || 0) * Number(inv.selling_price || 0);
+        byCat[cat].costValue += Number(inv.quantity || 0) * Number(inv.unit_price || 0);
+      });
+
+      return Object.values(byCat).sort((a, b) => b.retailValue - a.retailValue);
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+// Stock Aging Report
+export function useStockAgingReport() {
+  return useQuery({
+    queryKey: ["pharmacy-stock-aging"],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("medicine_inventory")
+        .select(`
+          id, quantity, unit_price, selling_price, batch_number, created_at,
+          medicine:medicines!inner(name, category:medicine_categories(name))
+        `)
+        .gt("quantity", 0);
+
+      if (error) throw error;
+
+      const now = Date.now();
+      return (data || []).map((inv: any) => {
+        const receivedDate = inv.created_at ? new Date(inv.created_at).getTime() : now;
+        const ageDays = Math.floor((now - receivedDate) / 86400000);
+        let bucket = "0-30 days";
+        if (ageDays > 180) bucket = "180+ days";
+        else if (ageDays > 90) bucket = "91-180 days";
+        else if (ageDays > 60) bucket = "61-90 days";
+        else if (ageDays > 30) bucket = "31-60 days";
+
+        return {
+          medicine: inv.medicine?.name || "Unknown",
+          category: inv.medicine?.category?.name || "",
+          batch: inv.batch_number || "N/A",
+          quantity: inv.quantity,
+          ageDays,
+          bucket,
+          value: Number(inv.quantity || 0) * Number(inv.selling_price || 0),
+        };
+      }).sort((a: any, b: any) => b.ageDays - a.ageDays);
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+// Inventory Turnover
+export function useInventoryTurnover(dateFrom: string, dateTo: string) {
+  return useQuery({
+    queryKey: ["pharmacy-inventory-turnover", dateFrom, dateTo],
+    queryFn: async () => {
+      // Get sales quantities per medicine
+      const { data: items, error: itemErr } = await (supabase as any)
+        .from("pharmacy_pos_items")
+        .select(`
+          medicine_id, medicine_name, quantity,
+          transaction:pharmacy_pos_transactions!inner(status, created_at)
+        `)
+        .eq("transaction.status", "completed")
+        .gte("transaction.created_at", dateFrom)
+        .lte("transaction.created_at", `${dateTo}T23:59:59`);
+
+      if (itemErr) throw itemErr;
+
+      // Get current inventory
+      const { data: inventory, error: invErr } = await (supabase as any)
+        .from("medicine_inventory")
+        .select("medicine_id, quantity, medicine:medicines!inner(name)")
+        .gt("quantity", 0);
+
+      if (invErr) throw invErr;
+
+      const salesByMed: Record<string, { name: string; qtySold: number }> = {};
+      (items || []).forEach((i: any) => {
+        const id = i.medicine_id || "unknown";
+        if (!salesByMed[id]) salesByMed[id] = { name: i.medicine_name || "Unknown", qtySold: 0 };
+        salesByMed[id].qtySold += Number(i.quantity || 0);
+      });
+
+      const stockByMed: Record<string, number> = {};
+      (inventory || []).forEach((inv: any) => {
+        const id = inv.medicine_id;
+        stockByMed[id] = (stockByMed[id] || 0) + Number(inv.quantity || 0);
+      });
+
+      const allMedIds = new Set([...Object.keys(salesByMed), ...Object.keys(stockByMed)]);
+      return Array.from(allMedIds).map(id => {
+        const sales = salesByMed[id] || { name: (inventory || []).find((i: any) => i.medicine_id === id)?.medicine?.name || "Unknown", qtySold: 0 };
+        const currentStock = stockByMed[id] || 0;
+        const avgStock = currentStock; // Simplified: use current stock as proxy
+        const turnoverRatio = avgStock > 0 ? sales.qtySold / avgStock : sales.qtySold > 0 ? Infinity : 0;
+
+        return {
+          medicine: sales.name,
+          qtySold: sales.qtySold,
+          currentStock,
+          turnoverRatio: turnoverRatio === Infinity ? 999 : Number(turnoverRatio.toFixed(2)),
+          turnoverLabel: turnoverRatio === Infinity ? "∞" : turnoverRatio.toFixed(2),
+        };
+      }).sort((a, b) => b.turnoverRatio - a.turnoverRatio);
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+// Daily Cash Summary
+export function useDailyCashSummary(dateFrom: string, dateTo: string) {
+  return useQuery({
+    queryKey: ["pharmacy-daily-cash", dateFrom, dateTo],
+    queryFn: async () => {
+      const { data: payments, error } = await (supabase as any)
+        .from("pharmacy_pos_payments")
+        .select(`
+          payment_method, amount,
+          transaction:pharmacy_pos_transactions!inner(status, created_at)
+        `)
+        .eq("transaction.status", "completed")
+        .gte("transaction.created_at", dateFrom)
+        .lte("transaction.created_at", `${dateTo}T23:59:59`);
+
+      if (error) throw error;
+
+      const byDay: Record<string, { date: string; cashIn: number; cardIn: number; otherIn: number; totalIn: number }> = {};
+      (payments || []).forEach((p: any) => {
+        const day = p.transaction?.created_at?.substring(0, 10) || "unknown";
+        if (!byDay[day]) byDay[day] = { date: day, cashIn: 0, cardIn: 0, otherIn: 0, totalIn: 0 };
+        const amt = Number(p.amount || 0);
+        const method = (p.payment_method || "cash").toLowerCase();
+        if (method === "cash") byDay[day].cashIn += amt;
+        else if (method === "card") byDay[day].cardIn += amt;
+        else byDay[day].otherIn += amt;
+        byDay[day].totalIn += amt;
+      });
+
+      return Object.values(byDay).sort((a, b) => a.date.localeCompare(b.date));
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+// Tax Collection Report
+export function useTaxCollectionReport(dateFrom: string, dateTo: string) {
+  return useQuery({
+    queryKey: ["pharmacy-tax-collection", dateFrom, dateTo],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("pharmacy_pos_transactions")
+        .select("id, transaction_number, total_amount, tax_amount, subtotal, created_at, status")
+        .eq("status", "completed")
+        .gte("created_at", dateFrom)
+        .lte("created_at", `${dateTo}T23:59:59`);
+
+      if (error) throw error;
+
+      const transactions = (data || []).map(tx => ({
+        ...tx,
+        tax_amount: Number(tx.tax_amount || 0),
+        total_amount: Number(tx.total_amount || 0),
+        subtotal: Number(tx.subtotal || 0),
+      }));
+
+      const totalTax = transactions.reduce((s, t) => s + t.tax_amount, 0);
+      const totalSales = transactions.reduce((s, t) => s + t.total_amount, 0);
+
+      // Daily aggregation
+      const byDay: Record<string, { date: string; taxCollected: number; salesAmount: number; transactions: number }> = {};
+      transactions.forEach(tx => {
+        const day = tx.created_at.substring(0, 10);
+        if (!byDay[day]) byDay[day] = { date: day, taxCollected: 0, salesAmount: 0, transactions: 0 };
+        byDay[day].taxCollected += tx.tax_amount;
+        byDay[day].salesAmount += tx.total_amount;
+        byDay[day].transactions++;
+      });
+
+      return {
+        totalTax,
+        totalSales,
+        effectiveRate: totalSales > 0 ? (totalTax / totalSales) * 100 : 0,
+        dailySummary: Object.values(byDay).sort((a, b) => a.date.localeCompare(b.date)),
+        transactions: transactions.filter(t => t.tax_amount > 0),
+      };
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+// Cashier Performance
+export function useCashierPerformance(dateFrom: string, dateTo: string) {
+  return useQuery({
+    queryKey: ["pharmacy-cashier-performance", dateFrom, dateTo],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("pharmacy_pos_transactions")
+        .select("id, total_amount, discount_amount, created_by, status, created_at")
+        .eq("status", "completed")
+        .gte("created_at", dateFrom)
+        .lte("created_at", `${dateTo}T23:59:59`);
+
+      if (error) throw error;
+
+      const byCashier: Record<string, { userId: string; totalSales: number; transactions: number; totalDiscount: number }> = {};
+      (data || []).forEach(tx => {
+        const uid = tx.created_by || "unknown";
+        if (!byCashier[uid]) byCashier[uid] = { userId: uid, totalSales: 0, transactions: 0, totalDiscount: 0 };
+        byCashier[uid].totalSales += Number(tx.total_amount || 0);
+        byCashier[uid].totalDiscount += Number(tx.discount_amount || 0);
+        byCashier[uid].transactions++;
+      });
+
+      // Fetch profile names
+      const userIds = Object.keys(byCashier).filter(id => id !== "unknown");
+      let profileMap: Record<string, string> = {};
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, full_name")
+          .in("id", userIds);
+        (profiles || []).forEach(p => { profileMap[p.id] = p.full_name || "Unknown"; });
+      }
+
+      return Object.values(byCashier).map(c => ({
+        cashier: profileMap[c.userId] || (c.userId === "unknown" ? "System" : "User"),
+        totalSales: c.totalSales,
+        transactions: c.transactions,
+        avgSale: c.transactions > 0 ? c.totalSales / c.transactions : 0,
+        totalDiscount: c.totalDiscount,
+      })).sort((a, b) => b.totalSales - a.totalSales);
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+// Peak Hours Report
+export function usePeakHoursReport(dateFrom: string, dateTo: string) {
+  return useQuery({
+    queryKey: ["pharmacy-peak-hours", dateFrom, dateTo],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("pharmacy_pos_transactions")
+        .select("id, total_amount, created_at, status")
+        .eq("status", "completed")
+        .gte("created_at", dateFrom)
+        .lte("created_at", `${dateTo}T23:59:59`);
+
+      if (error) throw error;
+
+      const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      const heatmap: { day: string; dayIndex: number; hour: number; hourLabel: string; count: number; sales: number }[] = [];
+
+      // Initialize grid
+      for (let d = 0; d < 7; d++) {
+        for (let h = 0; h < 24; h++) {
+          heatmap.push({ day: dayNames[d], dayIndex: d, hour: h, hourLabel: `${h.toString().padStart(2, '0')}:00`, count: 0, sales: 0 });
+        }
+      }
+
+      (data || []).forEach(tx => {
+        const dt = new Date(tx.created_at);
+        const dayIdx = dt.getDay();
+        const hour = dt.getHours();
+        const cell = heatmap.find(c => c.dayIndex === dayIdx && c.hour === hour);
+        if (cell) {
+          cell.count++;
+          cell.sales += Number(tx.total_amount || 0);
+        }
+      });
+
+      return heatmap;
     },
     staleTime: 5 * 60 * 1000,
   });
