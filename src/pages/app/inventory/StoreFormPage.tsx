@@ -44,7 +44,7 @@ const formSchema = z.object({
   code: z.string().optional(),
   store_type: z.string().min(1, "Select a warehouse type"),
   description: z.string().optional(),
-  branch_id: z.string().min(1, "Select a branch"),
+  branch_id: z.string().min(1, "Select a branch").refine(v => v !== "none", "Select a branch"),
   manager_id: z.string().optional(),
 });
 

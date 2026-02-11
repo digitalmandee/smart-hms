@@ -261,13 +261,14 @@ export function useVerifyGRN() {
               .insert({
                 medicine_id: item.medicine_id,
                 branch_id: grn.branch_id,
+                store_id: grn.store_id || null,
                 batch_number: item.batch_number,
                 quantity: item.quantity_accepted,
                 unit_price: item.unit_cost,
                 selling_price: item.selling_price || item.unit_cost,
                 expiry_date: item.expiry_date,
-                vendor_id: grn.vendor_id, // Proper FK link to vendor
-                supplier_name: null, // Deprecated, use vendor_id
+                vendor_id: grn.vendor_id,
+                supplier_name: null,
                 organization_id: profile!.organization_id!,
               });
             

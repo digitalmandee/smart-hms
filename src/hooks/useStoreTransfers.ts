@@ -159,6 +159,26 @@ export function useCreateTransfer() {
   });
 }
 
+export function useSubmitTransfer() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("store_stock_transfers")
+        .update({ status: "pending" })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["store-transfers"] });
+      queryClient.invalidateQueries({ queryKey: ["store-transfer"] });
+      toast.success("Transfer submitted for approval");
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+}
+
 export function useApproveTransfer() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -189,13 +209,46 @@ export function useDispatchTransfer() {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ id, items }: { id: string; items: { id: string; quantity_sent: number }[] }) => {
+    mutationFn: async ({ id, items }: { id: string; items: { id: string; item_id: string; quantity_sent: number }[] }) => {
+      // Get transfer details for from_store_id
+      const { data: transfer, error: transferError } = await supabase
+        .from("store_stock_transfers")
+        .select("from_store_id")
+        .eq("id", id)
+        .single();
+      if (transferError) throw transferError;
+
       // Update items with sent quantities
       for (const item of items) {
         await supabase
           .from("store_stock_transfer_items")
           .update({ quantity_sent: item.quantity_sent })
           .eq("id", item.id);
+      }
+
+      // FIFO stock deduction from source store
+      for (const item of items) {
+        let remaining = item.quantity_sent;
+        const { data: stockRows, error: stockErr } = await supabase
+          .from("inventory_stock")
+          .select("id, quantity")
+          .eq("item_id", item.item_id)
+          .eq("store_id", transfer.from_store_id)
+          .gt("quantity", 0)
+          .order("received_date", { ascending: true });
+
+        if (stockErr) throw stockErr;
+
+        for (const row of stockRows || []) {
+          if (remaining <= 0) break;
+          const deduct = Math.min(row.quantity, remaining);
+          const newQty = row.quantity - deduct;
+          await supabase
+            .from("inventory_stock")
+            .update({ quantity: newQty })
+            .eq("id", row.id);
+          remaining -= deduct;
+        }
       }
 
       const { error } = await supabase
@@ -211,7 +264,9 @@ export function useDispatchTransfer() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["store-transfers"] });
       queryClient.invalidateQueries({ queryKey: ["store-transfer"] });
-      toast.success("Transfer dispatched");
+      queryClient.invalidateQueries({ queryKey: ["inventory-stock"] });
+      queryClient.invalidateQueries({ queryKey: ["inventory-items"] });
+      toast.success("Transfer dispatched — stock deducted from source");
     },
     onError: (error: Error) => toast.error(error.message),
   });
@@ -222,12 +277,51 @@ export function useReceiveTransfer() {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ id, items }: { id: string; items: { id: string; quantity_received: number }[] }) => {
+    mutationFn: async ({ id, items }: { id: string; items: { id: string; item_id: string; quantity_received: number }[] }) => {
+      // Get transfer details for to_store_id and branch
+      const { data: transfer, error: transferError } = await supabase
+        .from("store_stock_transfers")
+        .select("to_store_id, from_store_id, transfer_number, to_store:stores!store_stock_transfers_to_store_id_fkey(id, branch_id)")
+        .eq("id", id)
+        .single();
+      if (transferError) throw transferError;
+
+      const toBranchId = (transfer as any).to_store?.branch_id;
+
       for (const item of items) {
         await supabase
           .from("store_stock_transfer_items")
           .update({ quantity_received: item.quantity_received })
           .eq("id", item.id);
+      }
+
+      // Insert stock into destination store
+      for (const item of items) {
+        if (item.quantity_received > 0) {
+          // Get representative cost from source (use latest batch)
+          const { data: srcStock } = await supabase
+            .from("inventory_stock")
+            .select("unit_cost, batch_number, expiry_date")
+            .eq("item_id", item.item_id)
+            .eq("store_id", transfer.from_store_id)
+            .order("received_date", { ascending: false })
+            .limit(1);
+
+          const cost = srcStock?.[0]?.unit_cost || 0;
+
+          await supabase
+            .from("inventory_stock")
+            .insert({
+              item_id: item.item_id,
+              branch_id: toBranchId,
+              store_id: transfer.to_store_id,
+              quantity: item.quantity_received,
+              unit_cost: cost,
+              batch_number: srcStock?.[0]?.batch_number || null,
+              expiry_date: srcStock?.[0]?.expiry_date || null,
+              received_date: new Date().toISOString().split("T")[0],
+            });
+        }
       }
 
       const { error } = await supabase
@@ -244,7 +338,8 @@ export function useReceiveTransfer() {
       queryClient.invalidateQueries({ queryKey: ["store-transfers"] });
       queryClient.invalidateQueries({ queryKey: ["store-transfer"] });
       queryClient.invalidateQueries({ queryKey: ["inventory-stock"] });
-      toast.success("Transfer received");
+      queryClient.invalidateQueries({ queryKey: ["inventory-items"] });
+      toast.success("Transfer received — stock added to destination");
     },
     onError: (error: Error) => toast.error(error.message),
   });
