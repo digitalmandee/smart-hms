@@ -1,50 +1,67 @@
 
+# Fix RLS Policy and Complete Pharmacy Testing
 
-# Fix Two Critical Blockers and Retest
+## Critical Blocker Found
 
-## Issue 1: StoreFormPage Crash -- `manager_id` default
+When testing the independent pharmacy creation flow, toggling modules for "MediCare Pharmacy" fails with:
 
-**File**: `src/pages/app/inventory/StoreFormPage.tsx`, line 102
+> "new row violates row-level security policy for table 'organization_modules'"
 
-The `manager_id` defaults to `""` (empty string). The Select component renders `value={field.value || "none"}`, so when editing it works, but on initial render the empty string can cause a Radix DOM reconciliation error.
+**Root cause**: The RLS policy on `organization_modules` only allows `org_admin` of the **same organization** to manage modules. There is no policy for `super_admin` to manage modules across all organizations.
 
-**Fix**: Change line 102 from `manager_id: ""` to `manager_id: "none"`.
+**Current policies**:
+- `Users can view their org modules` -- SELECT where `organization_id = get_user_organization_id()`
+- `Org admins can manage their org modules` -- ALL where `organization_id = get_user_organization_id() AND has_role(auth.uid(), 'org_admin')`
+
+**Missing**: Super Admin full access policy.
 
 ---
 
-## Issue 2: Transfer Detail -- Missing Foreign Key on `store_stock_transfer_items`
+## Fix: Add Super Admin RLS Policy
 
-**File**: Database migration needed
-
-The `store_stock_transfer_items` table has `item_id uuid` with **no REFERENCES** constraint. The `useStoreTransfer` hook joins via `item:inventory_items(id, ...)`, but PostgREST requires a FK relationship to resolve this join, causing a `PGRST200` error.
-
-**Fix**: Add a Foreign Key constraint via SQL migration:
+Add a new RLS policy on `organization_modules`:
 
 ```sql
-ALTER TABLE public.store_stock_transfer_items
-  ADD CONSTRAINT store_stock_transfer_items_item_id_fkey
-  FOREIGN KEY (item_id) REFERENCES public.inventory_items(id);
+CREATE POLICY "Super admins can manage all organization modules"
+  ON public.organization_modules
+  FOR ALL
+  TO authenticated
+  USING (public.is_super_admin())
+  WITH CHECK (public.is_super_admin());
 ```
+
+This follows the existing pattern used elsewhere (e.g., `organizations`, `branches` tables) where `is_super_admin()` grants universal access.
 
 ---
 
-## Implementation Order
+## Post-Fix Testing Plan
 
-1. Fix `manager_id` default in `StoreFormPage.tsx` (one line change)
-2. Run database migration to add the missing FK constraint
-3. Retest the full flow:
-   - Create a new warehouse
-   - Create a transfer between two warehouses
-   - View transfer detail page
-   - Walk through submit, approve, dispatch, receive
+After applying the migration, retest:
+
+1. **Module Toggle** (Super Admin): Re-enable Pharmacy and Pharmacy POS for MediCare Pharmacy
+2. **Verify Organization** in DB: Confirm `organization_modules` records are created
+3. **Pharmacy Login Test**: Since MediCare Pharmacy has no users yet, pharmacy flows will be tested using the existing `pharmacist@healthos.demo` account (linked to Shifa Medical Center) -- this account already has Pharmacy and POS modules enabled
+4. **Pharmacy Dashboard**: Verify it loads with stats
+5. **POS Terminal**: Open a session, add items, process a sale
+6. **Pharmacy Reports**: Verify sales trends, payment breakdown, top medicines, export functionality
+7. **Stock Movements**: Verify pharmacy stock movement logs
+8. **Returns**: Test the returns workflow
 
 ---
 
 ## Technical Details
 
-| Step | File / Target | Change |
-|------|---------------|--------|
-| 1 | `src/pages/app/inventory/StoreFormPage.tsx` line 102 | `manager_id: ""` to `manager_id: "none"` |
-| 2 | Database migration | `ALTER TABLE store_stock_transfer_items ADD CONSTRAINT ... FOREIGN KEY (item_id) REFERENCES inventory_items(id)` |
-| 3 | Browser testing | End-to-end walkthrough of warehouse creation and transfer lifecycle |
+| Item | Detail |
+|------|--------|
+| Table affected | `organization_modules` |
+| Migration SQL | Single `CREATE POLICY` statement |
+| No code changes | The `useToggleOrganizationModule` hook already handles insert/update correctly |
+| New org ID | `c0d9b317-110d-4f2d-a13b-e79dbc056787` (MediCare Pharmacy) |
+| Existing pharmacist | `pharmacist@healthos.demo` (Shifa Medical Center) -- will use for POS/report testing |
 
+## Steps
+
+1. Run the database migration to add the super admin policy
+2. Retest module toggle for MediCare Pharmacy
+3. Login as pharmacist and test all pharmacy sub-flows (Dashboard, POS, Reports, Returns, Stock Movements)
+4. Document results
