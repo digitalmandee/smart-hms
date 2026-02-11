@@ -1,118 +1,154 @@
 
 
-# Independent Pharmacy Enhancement -- Full Flow Testing, Sidebar Cleanup, and 15+ New Reports
+# Pharmacy Reports Hub Redesign -- Card Layout, No Limits, Pagination, and More Reports
 
-## Overview
+## Problem
 
-The independent pharmacy (MediCare Pharmacy) needs to operate as a standalone retail POS -- no OT modules, no HMIS-linked prescriptions, and a significantly richer reporting suite. This plan covers three main areas:
-
-1. **Sidebar cleanup** -- Remove HMIS-specific menu items for independent pharmacies
-2. **Add Purchase Orders and GRN links** to the pharmacist sidebar so procurement is accessible
-3. **Expand Pharmacy Reports** from 3 tabs to 15+ report types with real DB-backed data
-4. **Seed sample data** for MediCare Pharmacy so reports render with meaningful content
-
----
-
-## Part 1: Sidebar Cleanup for Independent Pharmacy
-
-The pharmacist sidebar currently includes HMIS-specific items that don't apply to standalone pharmacies:
-
-| Remove/Hide | Reason |
-|---|---|
-| Prescriptions (queue) | Linked to doctor appointments -- not relevant for walk-in POS |
-| OT Requests (ot-queue) | Operating Theater module -- hospital only |
-
-**Approach**: Check `organization.facility_type` or module availability. If the org does NOT have `appointments` or `ot_management` modules enabled, hide these items. Use the existing `useOrganizationModules` hook that is already available in the codebase.
-
-**Add to sidebar**:
-- Purchase Orders (`/app/inventory/purchase-orders`)
-- GRN (`/app/inventory/grn`)
-- Returns (`/app/pharmacy/returns`)
-- Sessions (`/app/pharmacy/pos/sessions`)
+The current Pharmacy Reports page has three issues:
+1. **Flat sidebar list** -- reports are listed as text buttons in a left panel, not as visual cards like the main Reports Hub
+2. **Hard data caps** -- Stock Valuation shows only first 50 rows, Profit Margin only first 30 rows; the rest are silently hidden
+3. **No pagination** -- large tables just render everything (or are capped), with no way to navigate pages
+4. **Only 17 reports** -- user wants 10-15 more to fully represent an independent pharmacy POS
 
 ---
 
-## Part 2: Expanded Pharmacy Reports (15+ Reports)
+## Solution
 
-Currently the reports page only has **3 tabs**: Sales Trend (7-day bar chart), Payment Methods (pie chart), Top Products (table). This is insufficient for a real pharmacy.
+### 1. Card-Based Hub Layout (like ReportsHubPage)
 
-### New Report Tabs/Sections to Add:
+Replace the current sidebar-list layout with a proper **card grid hub**. Each report category gets a section with report cards showing:
+- Icon + color badge
+- Report title and short description
+- "View Report" button
 
-**Sales Reports (5)**
-1. **Daily Sales Summary** -- Day-by-day breakdown with totals, discounts, net revenue
-2. **Hourly Sales Analysis** -- Peak hours heatmap showing when most sales happen
-3. **Sales by Category** -- Revenue breakdown by medicine category (Tablets, Syrups, Injections, etc.)
-4. **Discount Analysis** -- Total discounts given, discount percentage trends
-5. **Monthly Comparison** -- Month-over-month sales comparison bar chart
+Clicking a card opens that specific report in a **detail view** (same page, toggled state) with a "Back to Hub" button, date filters, chart, full table with pagination, and export buttons.
 
-**Inventory Reports (5)**
-6. **Stock Valuation Report** -- Total inventory value at cost and selling price, profit margin
-7. **Expiry Report** -- Items expiring within 30/60/90 days with value at risk
-8. **Low Stock / Reorder Report** -- Items below reorder level with suggested reorder quantities
-9. **Dead Stock Report** -- Items with zero movement in the last 30/60/90 days
-10. **Stock Movement Summary** -- Aggregated ins/outs by movement type for the period
+### 2. Remove All Data Caps
 
-**Financial Reports (3)**
-11. **Profit Margin Report** -- Per-item and aggregate margin analysis (selling price vs cost)
-12. **Returns & Refunds Summary** -- Return count, refund amounts, top returned items
-13. **Credit Sales Report** -- Outstanding patient credits and aging
+| Location | Current | Fix |
+|---|---|---|
+| Stock Valuation table (line 357) | `.slice(0, 50)` | Remove slice, use pagination |
+| Profit Margin table (line 477) | `.slice(0, 30)` | Remove slice, use pagination |
+| Top Products hook | `limit` parameter caps at 15 | Remove limit for report view |
+| Export buttons | Already pass full `data` array | No change needed (already unlimited) |
 
-**Supplier/Procurement Reports (2)**
-14. **Supplier Purchase Summary** -- Total purchases by supplier with outstanding payables
-15. **Purchase Order Status Report** -- PO pipeline: draft, pending, ordered, received counts
+### 3. Add Client-Side Pagination Component
 
-### Technical Approach
+Create a reusable `PaginatedTable` wrapper that:
+- Accepts data array + columns
+- Shows 25 rows per page with page controls (Previous / Next / page numbers)
+- Shows "Showing X-Y of Z records" label
+- All data still available for CSV/PDF export (no server-side pagination needed since datasets are org-scoped and manageable)
 
-- **File**: Expand `PharmacyReportsPage.tsx` from a simple 3-tab layout to a sidebar-based report selector (left panel: report list grouped by category; right panel: selected report content)
-- **Hook**: Add new query hooks in `usePharmacyReports.ts` for each report type:
-  - `useHourlySalesAnalysis` -- aggregates `pharmacy_pos_transactions.created_at` by hour
-  - `useSalesByCategory` -- joins `pharmacy_pos_transaction_items` with `medicines` and `medicine_categories`
-  - `useDiscountAnalysis` -- aggregates `discount_amount` from transactions
-  - `useMonthlyComparison` -- groups sales by month
-  - `useStockValuation` -- aggregates `medicine_inventory` (quantity * unit_price vs selling_price)
-  - `useExpiryReport` -- filters `medicine_inventory` by expiry_date buckets
-  - `useLowStockReport` -- filters where `quantity < reorder_level`
-  - `useDeadStockReport` -- left joins inventory with stock movements to find zero-movement items
-  - `useProfitMarginReport` -- computes per-item margins from transaction items
-  - `useReturnsSummary` -- aggregates from voided/refunded transactions
-  - `useCreditSalesReport` -- filters transactions with `payment_type = credit`
-  - `useSupplierPurchaseSummary` -- aggregates from `purchase_orders` + `vendors`
-  - `usePOStatusReport` -- groups POs by status
-- **Export**: Every report will include the existing `ReportExportButton` for PDF/CSV export
-- All queries are organization-scoped via RLS -- hospital pharmacy data remains completely isolated
+### 4. Add 12 New Reports (total: 29 reports)
 
----
+**Sales Reports (add 4)**
+- **Customer Sales Report** -- Top customers by purchase frequency and total spend
+- **Receipt-wise Transaction Log** -- Full transaction log with receipt number, items, payment method
+- **Refund Rate Analysis** -- Refund percentage over time, reasons breakdown
+- **Average Basket Size** -- Trend of average items per transaction and average transaction value
 
-## Part 3: Seed Sample Data for MediCare Pharmacy
+**Inventory Reports (add 4)**
+- **Batch-wise Stock Report** -- All batches per medicine with quantities and expiry
+- **Category Stock Distribution** -- Stock value breakdown by medicine category (pie + table)
+- **Stock Aging Report** -- How long stock has been sitting (by GRN date vs current date)
+- **Inventory Turnover Report** -- Turnover ratio per medicine (sales qty / avg stock)
 
-To make reports show meaningful data, insert sample records into the MediCare Pharmacy org (`c0d9b317-110d-4f2d-a13b-e79dbc056787`):
+**Financial Reports (add 2)**
+- **Daily Cash Summary** -- Opening balance + cash in - cash out = closing, per day
+- **Tax Collection Report** -- Tax collected per transaction, daily/monthly aggregation
 
-1. **Medicine Categories** (5): Tablets, Syrups, Injections, Topical, Supplements
-2. **Medicines** (20-25): Common OTC and prescription drugs
-3. **Medicine Inventory** (30+ batches): With varied quantities, expiry dates (some expiring soon), cost and selling prices
-4. **POS Transactions** (40-50): Spread across the last 30 days with different payment methods, discounts, and customer names
-5. **Transaction Items** (100+): Linked to the transactions above
-6. **POS Payments** (40-50): Cash, card, JazzCash mix
-7. **Stock Movements** (50+): GRN receipts, sales, adjustments
-
-This data seeding will be done via a database migration with INSERT statements, all scoped to the MediCare Pharmacy organization ID.
+**Operational Reports (add 2)**
+- **Cashier Performance** -- Sales per cashier/user, transaction count, average sale value
+- **Peak Hours Report** -- Heatmap grid (day of week x hour) showing transaction density
 
 ---
 
-## Part 4: Files Changed
+## Technical Details
+
+### Files Changed
 
 | File | Change |
 |---|---|
-| `src/config/role-sidebars.ts` | Add Purchase Orders, GRN, Returns, Sessions to pharmacist sidebar; conditionally hide OT/Prescriptions |
-| `src/hooks/usePharmacyReports.ts` | Add 12+ new report query hooks |
-| `src/pages/app/pharmacy/PharmacyReportsPage.tsx` | Complete redesign: report category selector + 15 report panels with charts/tables |
-| `supabase/migrations/...` | Seed data migration for MediCare Pharmacy |
+| `src/pages/app/pharmacy/PharmacyReportsPage.tsx` | Complete redesign: card-grid hub with drill-down detail view; remove all `.slice()` caps; add pagination to every table |
+| `src/hooks/usePharmacyReports.ts` | Add 12 new hooks: `useCustomerSalesReport`, `useTransactionLog`, `useRefundRateAnalysis`, `useBasketSizeAnalysis`, `useBatchStockReport`, `useCategoryStockDistribution`, `useStockAgingReport`, `useInventoryTurnover`, `useDailyCashSummary`, `useTaxCollectionReport`, `useCashierPerformance`, `usePeakHoursReport` |
+| `src/components/reports/PaginatedTable.tsx` | New reusable component: paginated table with configurable page size, page controls, and record count display |
 
----
+### Report Categories (Final: 29 reports)
 
-## Isolation Guarantee
+**Sales Reports (11)**
+1. Daily Sales Summary
+2. Hourly Sales Analysis
+3. Sales by Category
+4. Payment Methods
+5. Discount Analysis
+6. Monthly Comparison
+7. Top Selling Products
+8. Customer Sales Report (new)
+9. Transaction Log (new)
+10. Refund Rate Analysis (new)
+11. Average Basket Size (new)
 
-- All new report hooks query tables that have RLS policies scoped to `organization_id`
-- The seed data migration explicitly sets `organization_id` and `branch_id` to MediCare's IDs
-- Hospital pharmacy (Shifa Medical Center) data is completely untouched
+**Inventory Reports (9)**
+12. Stock Valuation
+13. Expiry Report
+14. Low Stock / Reorder
+15. Dead Stock
+16. Stock Movements
+17. Batch-wise Stock (new)
+18. Category Stock Distribution (new)
+19. Stock Aging (new)
+20. Inventory Turnover (new)
+
+**Financial Reports (5)**
+21. Profit Margin
+22. Returns and Refunds
+23. Credit Sales
+24. Daily Cash Summary (new)
+25. Tax Collection (new)
+
+**Procurement Reports (2)**
+26. Supplier Purchases
+27. PO Status Pipeline
+
+**Operational Reports (2)**
+28. Cashier Performance (new)
+29. Peak Hours Heatmap (new)
+
+### Hub Layout Structure
+
+The page will have two states:
+
+**Hub View** (default):
+- Page header with summary stat cards (Total Sales, Avg Transaction, Discounts, Reports count)
+- Date range filter at top
+- Category sections, each with a grid of report cards (3 columns on desktop, 2 on tablet, 1 on mobile)
+- Each card shows: colored icon, title, 1-line description, "View Report" arrow
+
+**Detail View** (after clicking a card):
+- "Back to Reports Hub" breadcrumb/button at top
+- Report title + date range filter
+- Chart visualization (existing charts preserved)
+- Full paginated table (25 rows/page, no caps)
+- Export button (CSV/PDF) -- exports ALL data regardless of current page
+
+### Pagination Component API
+
+```text
+PaginatedTable
+  props:
+    data: T[]
+    columns: { key, header, render?, align? }[]
+    pageSize?: number (default 25)
+    showCount?: boolean (default true)
+```
+
+Renders a standard Table with:
+- Page navigation (Previous / 1 2 3 ... N / Next)
+- "Showing 1-25 of 142 records" footer
+- No data caps -- all rows accessible via pagination
+
+### Query Hooks (no Supabase row limit issues)
+
+All pharmacy data is organization-scoped via RLS. Even a busy pharmacy would have at most a few thousand transactions per month, well within Supabase's default 1000-row limit per query. For hooks that might exceed this (like Transaction Log over a long date range), the query will use `.range()` or fetch in batches to ensure completeness.
 
