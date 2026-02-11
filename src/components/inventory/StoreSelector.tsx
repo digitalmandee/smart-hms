@@ -30,7 +30,7 @@ export function StoreSelector({
   const { data: stores, isLoading } = useStores(branchId);
 
   return (
-    <Select value={value || "all"} onValueChange={onChange} disabled={disabled || isLoading}>
+    <Select value={showAll ? (value || "all") : value} onValueChange={onChange} disabled={disabled || isLoading}>
       <SelectTrigger className={className}>
         <div className="flex items-center gap-2">
           <Warehouse className="h-4 w-4 text-muted-foreground" />

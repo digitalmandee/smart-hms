@@ -89,11 +89,11 @@ export default function TransferFormPage() {
         <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <Label>From Warehouse *</Label>
-            <StoreSelector branchId={profile?.branch_id || undefined} value={fromStore || "all"} onChange={(v) => setFromStore(v === "all" ? "" : v)} placeholder="Source warehouse" />
+            <StoreSelector branchId={profile?.branch_id || undefined} value={fromStore} onChange={setFromStore} placeholder="Source warehouse" />
           </div>
           <div>
             <Label>To Warehouse *</Label>
-            <StoreSelector branchId={profile?.branch_id || undefined} value={toStore || "all"} onChange={(v) => setToStore(v === "all" ? "" : v)} placeholder="Destination warehouse" />
+            <StoreSelector branchId={profile?.branch_id || undefined} value={toStore} onChange={setToStore} placeholder="Destination warehouse" />
           </div>
         </CardContent>
       </Card>
