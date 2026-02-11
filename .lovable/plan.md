@@ -1,206 +1,166 @@
 
 
-# Warehouse Management Module -- Integrated with Existing Inventory System
+# Complete Remaining Warehouse Management Phases (4-8)
 
-## What You Get
+## Current Status
 
-A new **"Warehouse Management"** section in the hospital admin sidebar where you can create and manage warehouses (Medical Store, Surgical Store, Pharmacy Store, Equipment Store, etc.). Each warehouse operates as a self-contained inventory unit -- its own stock levels, its own POs, its own GRNs, its own requisitions. The existing Inventory system works exactly as it does today, but now scoped per warehouse.
+Phases 1-3 are done: database tables, enums, RLS, seeds (4 Central Warehouses created), `useStores` hook, `StoreSelector` component, store management pages (list + form), routes, and sidebar entries.
 
----
+## What Remains
 
-## How It Works
+### Phase 4: Update Existing Hooks with `store_id` Support
 
-```text
-Hospital Branch
-  |
-  +-- Central Warehouse (default, auto-created)
-  |     +-- Stock Levels (inventory_stock + medicine_inventory)
-  |     +-- Purchase Orders
-  |     +-- GRN (Goods Received)
-  |     +-- Requisitions
-  |
-  +-- Medical Store
-  |     +-- Same sub-pages...
-  |
-  +-- Surgical Store
-  |     +-- Same sub-pages...
-  |
-  +-- Pharmacy Store
-        +-- Same sub-pages...
-```
+**`useInventory.ts`**
+- `useInventoryStock(itemId?, branchId?)` -- add optional `storeId` parameter, apply `.eq("store_id", storeId)` filter, join `store:stores(id, name)` in select
+- `useInventoryDashboardStats()` -- add optional `storeId` parameter, filter stock queries by store when provided
+- `useAdjustStock()` -- add optional `store_id` to filter which stock record to adjust
 
-When you open a warehouse, you see the **same inventory dashboard** you already have -- but filtered to that warehouse's stock only. No duplicate code. The existing pages (Items, Stock Levels, PO, GRN, Requisitions, Reports) all get a `store_id` filter behind the scenes.
+**`usePurchaseOrders.ts`**
+- `usePurchaseOrders()` -- join `store:stores(id, name)` in select query
+- `useCreatePurchaseOrder()` -- accept optional `store_id` in the data object, pass to insert
+
+**`useGRN.ts`**
+- `useGRNs()` -- join `store:stores(id, name)` in select
+- `useCreateGRN()` -- accept optional `store_id`, pass to insert
+- `useVerifyGRN()` -- when inserting into `inventory_stock` or `medicine_inventory`, copy `store_id` from the GRN record
+
+**`useRequisitions.ts`**
+- `useRequisitions()` -- join `from_store:stores!stock_requisitions_from_store_id_fkey(id, name)` in select
+- `useCreateRequisition()` -- accept optional `from_store_id` and `to_store_id`, pass to insert
+- `useIssueStock()` -- filter FIFO stock deduction by `store_id` when the requisition has a `from_store_id`
 
 ---
 
-## Database Changes
+### Phase 5: Update Existing Inventory & Procurement Pages
 
-### 1. New Enums
+**`InventoryDashboard.tsx`**
+- Add a `StoreSelector` dropdown (with "All Warehouses" option) in the header next to the action buttons
+- Pass selected `storeId` to `useInventoryDashboardStats(storeId)`
+- Add a "Warehouses" quick action card linking to `/app/inventory/stores`
+- Add a "Transfers" quick action card linking to `/app/inventory/transfers`
 
-- `store_type`: central, medical, surgical, dental, equipment, pharmacy, general
-- `transfer_status`: draft, pending, approved, in_transit, received, cancelled
+**`StockLevelsPage.tsx`**
+- Add `StoreSelector` dropdown next to category filter
+- Pass selected `storeId` to the stock query for filtering
+- (No new table column needed since the filter already scopes the view)
 
-### 2. New Table: `stores` (Warehouses)
+**`POFormPage.tsx`**
+- Add `StoreSelector` field (labeled "Destination Warehouse") after the Branch selector
+- When branch changes, reset the store selection
+- Pass `store_id` to `createPO.mutateAsync()`
 
-| Column | Type | Purpose |
-|--------|------|---------|
-| id | uuid PK | |
-| organization_id | uuid FK | RLS scoped |
-| branch_id | uuid FK | Which branch this warehouse belongs to |
-| name | text | "Medical Store", "Surgical Store", etc. |
-| code | text | "MED-01", "SURG-01" |
-| store_type | store_type enum | Type of warehouse |
-| manager_id | uuid FK (profiles) | Assigned store manager |
-| is_central | boolean | One central warehouse per branch |
-| is_active | boolean | |
-| location_info | jsonb | Bin/rack/shelf metadata |
+**`POListPage.tsx`**
+- Add "Warehouse" column in the table between "Vendor" and "Order Date"
+- Display `po.store?.name` or "-" if not set
 
-### 3. Add `store_id` to Existing Tables (nullable -- backward compatible)
+**`GRNFormPage.tsx`**
+- Add `StoreSelector` field (labeled "Receiving Warehouse") after the Branch selector
+- Pass `store_id` to `createGRN.mutateAsync()`
 
-- `inventory_stock` -- which warehouse holds this stock
-- `medicine_inventory` -- which warehouse holds this medicine
-- `purchase_orders` -- PO raised for which warehouse
-- `goods_received_notes` -- GRN received into which warehouse
-- `stock_requisitions` -- add `from_store_id` and `to_store_id`
+**`GRNListPage.tsx`**
+- Add "Warehouse" column between "Vendor" and "Received Date"
+- Display `grn.store?.name` or "-"
 
-### 4. New Tables for Inter-Warehouse Transfers
+**`RequisitionFormPage.tsx`**
+- Add "From Warehouse" `StoreSelector` field in the form details section
+- Pass `from_store_id` to `createRequisition.mutateAsync()`
 
-- `store_stock_transfers` -- transfer header (from warehouse, to warehouse, status, approvals)
-- `store_stock_transfer_items` -- line items (item/medicine, quantities requested/sent/received)
-
-### 5. Seed Data
-
-- Auto-create a "Central Warehouse" for each existing branch
-- Update all existing stock records to point to the branch's Central Warehouse
-- Add permissions: `inventory.stores.manage`, `inventory.transfers.manage`
-- Add menu items for Warehouses and Transfers
+**`RequisitionsListPage.tsx`**
+- Add "Warehouse" column between "Department" and "Request Date"
+- Display `req.from_store?.name` or "-"
 
 ---
 
-## Frontend Changes
+### Phase 6: Inter-Store Transfers (New Files)
 
-### New Sidebar Section: "Warehouse Management"
+**New Hook: `src/hooks/useStoreTransfers.ts`**
+- `useStoreTransfers(filters?)` -- list transfers with store name joins, filter by status
+- `useStoreTransfer(id)` -- single transfer with items, item names, store details
+- `useCreateTransfer()` -- create draft transfer with items
+- `useApproveTransfer()` -- set status to `approved`, record `approved_by`
+- `useDispatchTransfer()` -- set status to `in_transit`, record `dispatched_by`, deduct stock from source store
+- `useReceiveTransfer()` -- set status to `received`, record `received_by`, add stock to destination store
 
-Added to `org_admin` and `branch_admin` sidebars:
+**New Page: `src/pages/app/inventory/TransfersListPage.tsx`**
+- List all transfers with columns: Transfer #, From Store, To Store, Status, Date, Requested By
+- Status filter dropdown
+- "New Transfer" button
 
-```text
-Warehouse Management
-  +-- All Warehouses        (/app/inventory/stores)
-  +-- Create Warehouse      (/app/inventory/stores/new)
-  +-- Inter-Store Transfers  (/app/inventory/transfers)
-```
+**New Page: `src/pages/app/inventory/TransferFormPage.tsx`**
+- Form with: From Warehouse (StoreSelector), To Warehouse (StoreSelector), Notes
+- Items builder: select item (inventory or medicine), enter quantity, batch, expiry
+- Create as draft
 
-The existing `store_manager` sidebar also gets these items.
+**New Page: `src/pages/app/inventory/TransferDetailPage.tsx`**
+- Display transfer header with status badge
+- Items table (requested/sent/received quantities)
+- Action buttons based on status: Submit (draft->pending), Approve (pending->approved), Dispatch (approved->in_transit), Receive (in_transit->received)
 
-### New Pages (5 pages)
-
-| Page | Route | Purpose |
-|------|-------|---------|
-| StoresListPage | `/app/inventory/stores` | List all warehouses with type badges, manager, stock summary |
-| StoreFormPage | `/app/inventory/stores/new` | Create warehouse: name, code, type, branch, manager |
-| StoreFormPage | `/app/inventory/stores/:id/edit` | Edit warehouse |
-| TransfersListPage | `/app/inventory/transfers` | List inter-warehouse transfers with status |
-| TransferFormPage | `/app/inventory/transfers/new` | Create transfer: select source/destination warehouse, add items |
-| TransferDetailPage | `/app/inventory/transfers/:id` | View, approve, dispatch, receive transfer |
-
-### New Reusable Components (2 components)
-
-| Component | Purpose |
-|-----------|---------|
-| `StoreSelector.tsx` | Dropdown to pick a warehouse (used in PO, GRN, Requisition forms and dashboard filters) |
-| `StoreStockSummary.tsx` | Card showing a warehouse's stock count, value, and alerts |
-
-### New Hooks (2 hooks)
-
-| Hook | Purpose |
-|------|---------|
-| `useStores.ts` | CRUD for warehouses + `useMyStores()` for store_manager role |
-| `useStoreTransfers.ts` | Transfer CRUD + status transitions (approve, dispatch, receive) |
-
-### Existing Pages Modified (add warehouse filter/selector)
-
-| Page | What Changes |
-|------|-------------|
-| InventoryDashboard | Warehouse filter dropdown in header; stats filtered per warehouse |
-| StockLevelsPage | Warehouse filter dropdown + "Warehouse" column in table |
-| POFormPage | "Destination Warehouse" selector after branch selection |
-| POListPage | "Warehouse" column |
-| GRNFormPage | "Receiving Warehouse" selector |
-| GRNListPage | "Warehouse" column |
-| RequisitionFormPage | "From Warehouse" and "To Warehouse" selectors |
-| RequisitionsListPage | "Warehouse" column |
-
-### Existing Hooks Modified (add store_id parameter)
-
-| Hook | Change |
-|------|--------|
-| `useInventoryStock()` | Accept optional `storeId`, filter by `.eq("store_id", storeId)` |
-| `useInventoryDashboardStats()` | Accept optional `storeId` |
-| `useCreatePurchaseOrder()` | Accept `store_id` in data |
-| `usePurchaseOrders()` | Join `store:stores(id, name)` |
-| `useCreateGRN()` | Accept `store_id` |
-| `useVerifyGRN()` | Set `store_id` on created stock records |
-| `useGRNs()` | Join store name |
-| `useCreateRequisition()` | Accept `from_store_id`, `to_store_id` |
-| `useIssueStock()` | FIFO deduction filtered by store_id |
+**Routes to add in App.tsx:**
+- `/app/inventory/transfers` -- TransfersListPage
+- `/app/inventory/transfers/new` -- TransferFormPage
+- `/app/inventory/transfers/:id` -- TransferDetailPage
 
 ---
 
-## Store Manager Role Wiring
+### Phase 7: Store Manager Auto-Filter
 
-The `store_manager` role already exists. This plan activates it:
-
-- `stores.manager_id` links to the manager's profile
-- When a `store_manager` logs in, the inventory dashboard auto-filters to their assigned warehouse(s)
-- `useMyStores()` hook returns only warehouses where `manager_id = current user`
+- In `InventoryDashboard.tsx`, detect if user role is `store_manager`
+- If so, use `useMyStores()` to get assigned stores and auto-set the store filter
+- Hide the "All Warehouses" option for store managers (they only see their stores)
 
 ---
 
-## Files Summary
+### Phase 8: Sidebar + Seed Data Updates
 
-### Create (8 files)
+**Sidebar (`role-sidebars.ts`):**
+- Add "Store Transfers" menu item under "Warehouse Management" for both `org_admin` and `store_manager` sidebars (path: `/app/inventory/transfers`)
+
+**Seed additional demo stores** (via SQL INSERT):
+- For the main demo organization (org `a0eebc99...`), create sample stores for the first branch:
+  - "Medical Store" (type: medical, code: MED-01)
+  - "Surgical Store" (type: surgical, code: SURG-01)
+  - "Pharmacy Store" (type: pharmacy, code: PHAR-01)
+  - "Equipment Store" (type: equipment, code: EQUIP-01)
+
+---
+
+## Files to Create (4 files)
 
 | File | Purpose |
 |------|---------|
-| `src/hooks/useStores.ts` | Warehouse CRUD hooks |
-| `src/hooks/useStoreTransfers.ts` | Transfer lifecycle hooks |
-| `src/components/inventory/StoreSelector.tsx` | Reusable warehouse dropdown |
-| `src/components/inventory/StoreStockSummary.tsx` | Warehouse stock summary card |
-| `src/pages/app/inventory/StoresListPage.tsx` | Warehouse list page |
-| `src/pages/app/inventory/StoreFormPage.tsx` | Warehouse create/edit form |
-| `src/pages/app/inventory/TransfersListPage.tsx` | Transfer list |
-| `src/pages/app/inventory/TransferFormPage.tsx` | Transfer create form |
-| `src/pages/app/inventory/TransferDetailPage.tsx` | Transfer detail/actions |
+| `src/hooks/useStoreTransfers.ts` | Transfer CRUD + status transition hooks |
+| `src/pages/app/inventory/TransfersListPage.tsx` | Transfer list page |
+| `src/pages/app/inventory/TransferFormPage.tsx` | Transfer creation form |
+| `src/pages/app/inventory/TransferDetailPage.tsx` | Transfer detail with actions |
 
-### Modify (12 files)
+## Files to Modify (12 files)
 
 | File | Changes |
 |------|---------|
-| `src/hooks/useInventory.ts` | Add `storeId` filter param |
-| `src/hooks/usePurchaseOrders.ts` | Add `store_id` to create/join |
-| `src/hooks/useGRN.ts` | Add `store_id` to create/verify/join |
-| `src/hooks/useRequisitions.ts` | Add `from_store_id`/`to_store_id` |
-| `src/pages/app/inventory/InventoryDashboard.tsx` | Warehouse filter + quick action |
-| `src/pages/app/inventory/StockLevelsPage.tsx` | Warehouse filter + column |
+| `src/hooks/useInventory.ts` | Add `storeId` filter to stock/dashboard queries |
+| `src/hooks/usePurchaseOrders.ts` | Add `store_id` to create, join store in list |
+| `src/hooks/useGRN.ts` | Add `store_id` to create/verify, join store in list |
+| `src/hooks/useRequisitions.ts` | Add `from_store_id`/`to_store_id` to create, join store in list |
+| `src/pages/app/inventory/InventoryDashboard.tsx` | Store filter + warehouse quick actions |
+| `src/pages/app/inventory/StockLevelsPage.tsx` | Store filter dropdown |
 | `src/pages/app/inventory/POFormPage.tsx` | Destination warehouse selector |
 | `src/pages/app/inventory/POListPage.tsx` | Warehouse column |
 | `src/pages/app/inventory/GRNFormPage.tsx` | Receiving warehouse selector |
 | `src/pages/app/inventory/GRNListPage.tsx` | Warehouse column |
-| `src/pages/app/inventory/RequisitionFormPage.tsx` | From/To warehouse selectors |
+| `src/pages/app/inventory/RequisitionFormPage.tsx` | From warehouse selector |
 | `src/pages/app/inventory/RequisitionsListPage.tsx` | Warehouse column |
-| `src/App.tsx` | Add routes for warehouse and transfer pages |
-| `src/config/role-sidebars.ts` | Add Warehouse Management section to org_admin, store_manager sidebars |
-
----
+| `src/App.tsx` | Add transfer page routes |
+| `src/config/role-sidebars.ts` | Add Store Transfers menu item |
 
 ## Implementation Order
 
-1. Database migration (enums, stores table, alter existing tables, transfer tables, seeds, RLS, permissions, menu items)
-2. `useStores.ts` hook + `StoreSelector.tsx` component
-3. Warehouse management pages (StoresListPage + StoreFormPage)
-4. Update existing hooks with `store_id` support
-5. Update existing inventory/procurement pages with warehouse filter/selector
-6. `useStoreTransfers.ts` hook + transfer pages
-7. Store manager role auto-filter
-8. Sidebar updates for all admin roles
+1. Update hooks (useInventory, usePurchaseOrders, useGRN, useRequisitions) with store_id support
+2. Update existing pages with StoreSelector and warehouse columns
+3. Create useStoreTransfers hook
+4. Create transfer pages (List, Form, Detail)
+5. Add transfer routes to App.tsx
+6. Update sidebar with transfers menu item
+7. Seed sample stores via SQL INSERT
+8. Store manager auto-filter logic
 
