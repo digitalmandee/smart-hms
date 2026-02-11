@@ -367,6 +367,8 @@ import RequisitionsListPage from "./pages/app/inventory/RequisitionsListPage";
 import RequisitionFormPage from "./pages/app/inventory/RequisitionFormPage";
 import RequisitionDetailPage from "./pages/app/inventory/RequisitionDetailPage";
 import InventoryReportsPage from "./pages/app/inventory/InventoryReportsPage";
+import StoresListPage from "./pages/app/inventory/StoresListPage";
+import StoreFormPage from "./pages/app/inventory/StoreFormPage";
 
 // Accounts pages
 import AccountsDashboard from "./pages/app/accounts/AccountsDashboard";
@@ -788,6 +790,9 @@ function App() {
               <Route path="inventory/requisitions/new" element={<RequisitionFormPage />} />
               <Route path="inventory/requisitions/:id" element={<RequisitionDetailPage />} />
               <Route path="inventory/reports" element={<InventoryReportsPage />} />
+              <Route path="inventory/stores" element={<StoresListPage />} />
+              <Route path="inventory/stores/new" element={<StoreFormPage />} />
+              <Route path="inventory/stores/:id/edit" element={<StoreFormPage />} />
               
               {/* Billing routes */}
               <Route path="billing" element={<BillingDashboard />} />

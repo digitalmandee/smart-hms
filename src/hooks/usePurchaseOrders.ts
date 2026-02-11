@@ -38,6 +38,7 @@ export interface PurchaseOrder {
   id: string;
   organization_id: string;
   branch_id: string;
+  store_id: string | null;
   po_number: string;
   vendor_id: string;
   order_date: string;
@@ -62,6 +63,7 @@ export interface PurchaseOrder {
     phone: string | null;
     address: string | null;
   };
+  store?: { id: string; name: string } | null;
   branch?: {
     id: string;
     name: string;
@@ -103,7 +105,7 @@ export function usePurchaseOrders(filters?: { status?: POStatus; vendorId?: stri
       
       const { data, error } = await query;
       if (error) throw error;
-      return data as PurchaseOrder[];
+      return data as unknown as PurchaseOrder[];
     },
     enabled: !!profile?.organization_id,
   });

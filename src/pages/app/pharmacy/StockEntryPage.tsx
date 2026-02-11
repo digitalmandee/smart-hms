@@ -90,7 +90,8 @@ export default function StockEntryPage() {
         expiry_date: data.expiry_date || null,
         supplier_name: data.supplier_name || null,
         reorder_level: data.reorder_level || 10,
-        vendor_id: null, // Optional vendor link - can be set via GRN
+        vendor_id: null,
+        store_id: null,
       },
       {
         onSuccess: () => navigate("/app/pharmacy/inventory"),

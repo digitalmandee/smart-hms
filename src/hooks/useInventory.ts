@@ -43,6 +43,7 @@ export interface InventoryStock {
   id: string;
   item_id: string;
   branch_id: string;
+  store_id: string | null;
   batch_number: string | null;
   quantity: number;
   unit_cost: number;
@@ -56,6 +57,7 @@ export interface InventoryStock {
   item?: InventoryItem;
   branch?: { id: string; name: string };
   vendor?: { id: string; name: string };
+  store?: { id: string; name: string } | null;
 }
 
 export interface StockAdjustment {
@@ -439,7 +441,7 @@ export function useInventoryStock(itemId?: string, branchId?: string) {
       
       const { data, error } = await query;
       if (error) throw error;
-      return data as InventoryStock[];
+      return data as unknown as InventoryStock[];
     },
     enabled: !!profile?.organization_id,
   });
@@ -470,7 +472,7 @@ export function useExpiringStock(days: number = 30) {
         .order("expiry_date");
       
       if (error) throw error;
-      return data as InventoryStock[];
+      return data as unknown as InventoryStock[];
     },
     enabled: !!profile?.organization_id,
   });

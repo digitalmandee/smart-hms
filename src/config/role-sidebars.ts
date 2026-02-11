@@ -160,6 +160,15 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
           { name: "Reports", path: "/app/inventory/reports", icon: "BarChart3" },
         ]
       },
+      {
+        name: "Warehouse Management",
+        path: "",
+        icon: "Warehouse",
+        children: [
+          { name: "All Warehouses", path: "/app/inventory/stores", icon: "List" },
+          { name: "Create Warehouse", path: "/app/inventory/stores/new", icon: "Plus" },
+        ]
+      },
       { 
         name: "HR & Staff", 
         path: "", 
@@ -1137,6 +1146,15 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         ]
       },
       { name: "Reports", path: "/app/inventory/reports", icon: "BarChart3" },
+      {
+        name: "Warehouse Management",
+        path: "",
+        icon: "Warehouse",
+        children: [
+          { name: "All Warehouses", path: "/app/inventory/stores", icon: "List" },
+          { name: "Create Warehouse", path: "/app/inventory/stores/new", icon: "Plus" },
+        ]
+      },
       { 
         name: "My Work", 
         path: "", 
