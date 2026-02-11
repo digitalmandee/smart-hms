@@ -91,6 +91,7 @@ export function useGRNs(filters?: { status?: GRNStatus; vendorId?: string }) {
           *,
           vendor:vendors(id, vendor_code, name),
           branch:branches(id, name),
+          store:stores(id, name),
           purchase_order:purchase_orders(id, po_number),
           received_by_profile:profiles!goods_received_notes_received_by_fkey(id, full_name)
         `)
@@ -157,6 +158,7 @@ export function useCreateGRN() {
     mutationFn: async (data: {
       vendor_id: string;
       branch_id: string;
+      store_id?: string;
       purchase_order_id?: string;
       invoice_number?: string;
       invoice_date?: string;
@@ -170,6 +172,7 @@ export function useCreateGRN() {
         .insert({
           organization_id: profile!.organization_id!,
           branch_id: data.branch_id,
+          store_id: data.store_id || null,
           grn_number: "", // Auto-generated
           vendor_id: data.vendor_id,
           purchase_order_id: data.purchase_order_id || null,
@@ -276,6 +279,7 @@ export function useVerifyGRN() {
               .insert({
                 item_id: item.item_id,
                 branch_id: grn.branch_id,
+                store_id: grn.store_id || null,
                 batch_number: item.batch_number,
                 quantity: item.quantity_accepted,
                 unit_cost: item.unit_cost,

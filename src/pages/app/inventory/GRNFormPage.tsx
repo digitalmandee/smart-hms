@@ -35,6 +35,7 @@ import { ArrowLeft, Save, Package, Loader2 } from "lucide-react";
 import { usePurchaseOrders, usePurchaseOrder } from "@/hooks/usePurchaseOrders";
 import { useCreateGRN, GRNItem } from "@/hooks/useGRN";
 import { useBranches } from "@/hooks/useBranches";
+import { StoreSelector } from "@/components/inventory/StoreSelector";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -42,6 +43,7 @@ import { toast } from "sonner";
 const formSchema = z.object({
   po_id: z.string().min(1, "Please select a purchase order"),
   branch_id: z.string().min(1, "Branch is required"),
+  store_id: z.string().optional(),
   received_date: z.string().min(1, "Received date is required"),
   invoice_number: z.string().optional(),
   invoice_amount: z.coerce.number().optional(),
@@ -82,6 +84,7 @@ export default function GRNFormPage() {
     defaultValues: {
       po_id: preselectedPOId || "",
       branch_id: profile?.branch_id || "",
+      store_id: "",
       received_date: format(new Date(), "yyyy-MM-dd"),
       invoice_number: "",
       invoice_amount: 0,
@@ -154,6 +157,7 @@ export default function GRNFormPage() {
       await createGRN.mutateAsync({
         vendor_id: selectedPO!.vendor_id,
         branch_id: values.branch_id,
+        store_id: values.store_id || undefined,
         purchase_order_id: values.po_id,
         invoice_number: values.invoice_number || undefined,
         invoice_amount: values.invoice_amount || undefined,
@@ -238,6 +242,26 @@ export default function GRNFormPage() {
                         ))}
                       </SelectContent>
                     </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="store_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Receiving Warehouse</FormLabel>
+                    <FormControl>
+                      <StoreSelector
+                        branchId={form.watch("branch_id") || undefined}
+                        value={field.value || "all"}
+                        onChange={(v) => field.onChange(v === "all" ? "" : v)}
+                        showAll
+                        placeholder="Select warehouse"
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}

@@ -27,11 +27,13 @@ import { useVendors } from "@/hooks/useVendors";
 import { useBranches } from "@/hooks/useBranches";
 import { useCreatePurchaseOrder, type PurchaseOrderItem } from "@/hooks/usePurchaseOrders";
 import { UnifiedPOItemsBuilder } from "@/components/inventory/UnifiedPOItemsBuilder";
+import { StoreSelector } from "@/components/inventory/StoreSelector";
 import { PageHeader } from "@/components/PageHeader";
 
 const poSchema = z.object({
   vendor_id: z.string().min(1, "Vendor is required"),
   branch_id: z.string().min(1, "Branch is required"),
+  store_id: z.string().optional(),
   expected_delivery_date: z.string().optional(),
   terms: z.string().optional(),
   notes: z.string().optional(),
@@ -45,6 +47,7 @@ export default function POFormPage() {
   const vendorIdParam = searchParams.get("vendor_id");
 
   const [items, setItems] = useState<PurchaseOrderItem[]>([]);
+  const [selectedBranch, setSelectedBranch] = useState("");
 
   const { data: vendors } = useVendors();
   const { data: branches } = useBranches();
@@ -55,6 +58,7 @@ export default function POFormPage() {
     defaultValues: {
       vendor_id: vendorIdParam || "",
       branch_id: "",
+      store_id: "",
       expected_delivery_date: "",
       terms: "",
       notes: "",
@@ -70,6 +74,7 @@ export default function POFormPage() {
       const result = await createPO.mutateAsync({
         vendor_id: data.vendor_id,
         branch_id: data.branch_id,
+        store_id: data.store_id || undefined,
         expected_delivery_date: data.expected_delivery_date,
         terms: data.terms,
         notes: data.notes,
@@ -133,7 +138,11 @@ export default function POFormPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Branch *</FormLabel>
-                      <Select value={field.value} onValueChange={field.onChange}>
+                      <Select value={field.value} onValueChange={(v) => {
+                        field.onChange(v);
+                        setSelectedBranch(v);
+                        form.setValue("store_id", "");
+                      }}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select branch" />
@@ -147,6 +156,26 @@ export default function POFormPage() {
                           ))}
                         </SelectContent>
                       </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="store_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Destination Warehouse</FormLabel>
+                      <FormControl>
+                        <StoreSelector
+                          branchId={selectedBranch || undefined}
+                          value={field.value || "all"}
+                          onChange={(v) => field.onChange(v === "all" ? "" : v)}
+                          showAll
+                          placeholder="Select warehouse"
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}

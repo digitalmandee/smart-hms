@@ -414,11 +414,11 @@ export function useUpdateInventoryItem() {
 // STOCK HOOKS
 // =====================================================
 
-export function useInventoryStock(itemId?: string, branchId?: string) {
+export function useInventoryStock(itemId?: string, branchId?: string, storeId?: string) {
   const { profile } = useAuth();
   
   return useQuery({
-    queryKey: ["inventory-stock", profile?.organization_id, itemId, branchId],
+    queryKey: ["inventory-stock", profile?.organization_id, itemId, branchId, storeId],
     queryFn: async () => {
       let query = supabase
         .from("inventory_stock")
@@ -426,7 +426,8 @@ export function useInventoryStock(itemId?: string, branchId?: string) {
           *,
           item:inventory_items(id, item_code, name, unit_of_measure),
           branch:branches(id, name),
-          vendor:vendors(id, name)
+          vendor:vendors(id, name),
+          store:stores(id, name)
         `)
         .gt("quantity", 0)
         .order("received_date", { ascending: false });
@@ -437,6 +438,10 @@ export function useInventoryStock(itemId?: string, branchId?: string) {
       
       if (branchId) {
         query = query.eq("branch_id", branchId);
+      }
+
+      if (storeId && storeId !== "all") {
+        query = query.eq("store_id", storeId);
       }
       
       const { data, error } = await query;
@@ -590,11 +595,11 @@ export function useStockAdjustments(itemId?: string) {
 // DASHBOARD STATS
 // =====================================================
 
-export function useInventoryDashboardStats() {
+export function useInventoryDashboardStats(storeId?: string) {
   const { profile } = useAuth();
   
   return useQuery({
-    queryKey: ["inventory-dashboard-stats", profile?.organization_id],
+    queryKey: ["inventory-dashboard-stats", profile?.organization_id, storeId],
     queryFn: async () => {
       // Total items
       const { count: totalItems } = await supabase
@@ -608,9 +613,13 @@ export function useInventoryDashboardStats() {
         .select("id, reorder_level")
         .eq("is_active", true);
       
-      const { data: stocks } = await supabase
+      let stockQuery = supabase
         .from("inventory_stock")
         .select("item_id, quantity");
+      if (storeId && storeId !== "all") {
+        stockQuery = stockQuery.eq("store_id", storeId);
+      }
+      const { data: stocks } = await stockQuery;
       
       const stockMap = new Map<string, number>();
       stocks?.forEach(s => {
@@ -634,9 +643,13 @@ export function useInventoryDashboardStats() {
         .in("status", ["pending", "approved"]);
       
       // Total inventory value
-      const { data: stockValues } = await supabase
+      let valueQuery = supabase
         .from("inventory_stock")
         .select("quantity, unit_cost");
+      if (storeId && storeId !== "all") {
+        valueQuery = valueQuery.eq("store_id", storeId);
+      }
+      const { data: stockValues } = await valueQuery;
       
       const totalValue = stockValues?.reduce((sum, s) => 
         sum + (s.quantity * s.unit_cost), 0

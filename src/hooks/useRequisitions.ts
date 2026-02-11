@@ -61,6 +61,10 @@ export interface StockRequisition {
     id: string;
     full_name: string;
   };
+  from_store?: {
+    id: string;
+    name: string;
+  } | null;
 }
 
 export function useRequisitions(filters?: { status?: RequisitionStatus; departmentId?: string }) {
@@ -75,6 +79,7 @@ export function useRequisitions(filters?: { status?: RequisitionStatus; departme
           *,
           branch:branches(id, name),
           department:departments(id, name),
+          from_store:stores!stock_requisitions_from_store_id_fkey(id, name),
           requested_by_profile:profiles!stock_requisitions_requested_by_fkey(id, full_name),
           approved_by_profile:profiles!stock_requisitions_approved_by_fkey(id, full_name)
         `)
@@ -140,6 +145,7 @@ export function useCreateRequisition() {
     mutationFn: async (data: {
       branch_id: string;
       department_id?: string;
+      from_store_id?: string;
       required_date?: string;
       priority?: number;
       notes?: string;
@@ -154,6 +160,7 @@ export function useCreateRequisition() {
           requisition_number: "", // Auto-generated
           requested_by: user!.id,
           department_id: data.department_id || null,
+          from_store_id: data.from_store_id || null,
           required_date: data.required_date || null,
           priority: data.priority || 0,
           notes: data.notes || null,

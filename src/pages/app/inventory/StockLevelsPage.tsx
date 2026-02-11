@@ -38,6 +38,7 @@ import {
   Minus,
 } from "lucide-react";
 import { useInventoryItems, useAdjustStock, useAllCategories } from "@/hooks/useInventory";
+import { StoreSelector } from "@/components/inventory/StoreSelector";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
@@ -49,6 +50,7 @@ export default function StockLevelsPage() {
 
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [storeFilter, setStoreFilter] = useState<string>("all");
   const [showLowStock, setShowLowStock] = useState(false);
 
   const { data: items, isLoading } = useInventoryItems({
@@ -134,6 +136,13 @@ export default function StockLevelsPage() {
                 ))}
               </SelectContent>
             </Select>
+            <StoreSelector
+              branchId={profile?.branch_id || undefined}
+              value={storeFilter}
+              onChange={setStoreFilter}
+              showAll
+              className="w-full md:w-48"
+            />
             <Button
               variant={showLowStock ? "default" : "outline"}
               onClick={() => setShowLowStock(!showLowStock)}

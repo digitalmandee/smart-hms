@@ -94,9 +94,10 @@ export default function RequisitionsListPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Requisition #</TableHead>
-                  <TableHead>Requested By</TableHead>
-                  <TableHead>Department</TableHead>
-                  <TableHead>Request Date</TableHead>
+                   <TableHead>Requested By</TableHead>
+                   <TableHead>Department</TableHead>
+                   <TableHead>Warehouse</TableHead>
+                   <TableHead>Request Date</TableHead>
                   <TableHead>Required By</TableHead>
                   <TableHead>Status</TableHead>
                 </TableRow>
@@ -113,8 +114,9 @@ export default function RequisitionsListPage() {
                       </Link>
                     </TableCell>
                     <TableCell>{req.requested_by_profile?.full_name || "-"}</TableCell>
-                    <TableCell>{req.department?.name || "-"}</TableCell>
-                    <TableCell>{format(new Date(req.request_date), "dd MMM yyyy")}</TableCell>
+                     <TableCell>{req.department?.name || "-"}</TableCell>
+                     <TableCell className="text-muted-foreground">{req.from_store?.name || "—"}</TableCell>
+                     <TableCell>{format(new Date(req.request_date), "dd MMM yyyy")}</TableCell>
                     <TableCell>
                       {req.required_date 
                         ? format(new Date(req.required_date), "dd MMM yyyy")
