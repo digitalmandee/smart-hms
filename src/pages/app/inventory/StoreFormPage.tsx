@@ -99,7 +99,7 @@ export default function StoreFormPage() {
       store_type: "general",
       description: "",
       branch_id: profile?.branch_id || "none",
-      manager_id: "",
+      manager_id: "none",
     },
   });
 

@@ -17314,6 +17314,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "store_stock_transfer_items_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "store_stock_transfer_items_transfer_id_fkey"
             columns: ["transfer_id"]
             isOneToOne: false
