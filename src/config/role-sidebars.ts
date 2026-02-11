@@ -433,10 +433,10 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         path: "", 
         icon: "ClipboardList",
         children: [
-          { name: "Prescriptions", path: "/app/pharmacy/queue", icon: "FileText" },
-          { name: "OT Requests", path: "/app/pharmacy/ot-queue", icon: "Syringe" },
           { name: "POS Terminal", path: "/app/pharmacy/pos", icon: "Calculator" },
           { name: "Transactions", path: "/app/pharmacy/pos/transactions", icon: "Receipt" },
+          { name: "Sessions", path: "/app/pharmacy/pos/sessions", icon: "Clock" },
+          { name: "Returns", path: "/app/pharmacy/returns", icon: "RotateCcw" },
         ]
       },
       { 
@@ -450,6 +450,15 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
           { name: "Stock Alerts", path: "/app/pharmacy/alerts", icon: "AlertTriangle" },
           { name: "Movements", path: "/app/pharmacy/stock-movements", icon: "ArrowLeftRight" },
           { name: "Suppliers", path: "/app/inventory/vendors", icon: "Store" },
+        ]
+      },
+      { 
+        name: "Procurement", 
+        path: "", 
+        icon: "ShoppingCart",
+        children: [
+          { name: "Purchase Orders", path: "/app/inventory/purchase-orders", icon: "FileEdit" },
+          { name: "GRN", path: "/app/inventory/grn", icon: "PackageCheck" },
         ]
       },
       { 
