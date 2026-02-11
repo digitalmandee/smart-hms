@@ -91,11 +91,12 @@ export default function GRNListPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>GRN Number</TableHead>
-                  <TableHead>PO Reference</TableHead>
-                  <TableHead>Vendor</TableHead>
-                  <TableHead>Received Date</TableHead>
-                  <TableHead>Invoice #</TableHead>
-                  <TableHead>Status</TableHead>
+                   <TableHead>PO Reference</TableHead>
+                   <TableHead>Vendor</TableHead>
+                   <TableHead>Warehouse</TableHead>
+                   <TableHead>Received Date</TableHead>
+                   <TableHead>Invoice #</TableHead>
+                   <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -122,12 +123,13 @@ export default function GRNListPage() {
                       )}
                     </TableCell>
                     <TableCell>
-                      <div>
-                        <p className="font-medium">{grn.vendor?.name}</p>
-                        <p className="text-xs text-muted-foreground">{grn.vendor?.vendor_code}</p>
-                      </div>
-                    </TableCell>
-                    <TableCell>{format(new Date(grn.received_date), "dd MMM yyyy")}</TableCell>
+                       <div>
+                         <p className="font-medium">{grn.vendor?.name}</p>
+                         <p className="text-xs text-muted-foreground">{grn.vendor?.vendor_code}</p>
+                       </div>
+                     </TableCell>
+                     <TableCell className="text-muted-foreground">{(grn as any).store?.name || "—"}</TableCell>
+                     <TableCell>{format(new Date(grn.received_date), "dd MMM yyyy")}</TableCell>
                     <TableCell>{grn.invoice_number || "-"}</TableCell>
                     <TableCell>
                       <GRNStatusBadge status={grn.status} />

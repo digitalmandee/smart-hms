@@ -167,10 +167,11 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         children: [
           { name: "All Warehouses", path: "/app/inventory/stores", icon: "List" },
           { name: "Create Warehouse", path: "/app/inventory/stores/new", icon: "Plus" },
+          { name: "Store Transfers", path: "/app/inventory/transfers", icon: "ArrowLeftRight" },
         ]
       },
       { 
-        name: "HR & Staff", 
+        name: "HR & Staff",
         path: "", 
         icon: "Users2",
         children: [
@@ -1153,10 +1154,11 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         children: [
           { name: "All Warehouses", path: "/app/inventory/stores", icon: "List" },
           { name: "Create Warehouse", path: "/app/inventory/stores/new", icon: "Plus" },
+          { name: "Store Transfers", path: "/app/inventory/transfers", icon: "ArrowLeftRight" },
         ]
       },
       { 
-        name: "My Work", 
+        name: "My Work",
         path: "", 
         icon: "Briefcase",
         children: [

@@ -91,6 +91,7 @@ export function usePurchaseOrders(filters?: { status?: POStatus; vendorId?: stri
           *,
           vendor:vendors(id, vendor_code, name, email, phone),
           branch:branches(id, name),
+          store:stores(id, name),
           created_by_profile:profiles!purchase_orders_created_by_fkey(id, full_name)
         `)
         .order("created_at", { ascending: false });
@@ -155,6 +156,7 @@ export function useCreatePurchaseOrder() {
     mutationFn: async (data: {
       vendor_id: string;
       branch_id: string;
+      store_id?: string;
       expected_delivery_date?: string;
       terms?: string;
       notes?: string;
@@ -187,6 +189,7 @@ export function useCreatePurchaseOrder() {
         .insert({
           organization_id: profile!.organization_id!,
           branch_id: data.branch_id,
+          store_id: data.store_id || null,
           po_number: "", // Auto-generated
           vendor_id: data.vendor_id,
           expected_delivery_date: data.expected_delivery_date || null,

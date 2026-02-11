@@ -35,11 +35,13 @@ import { ArrowLeft, Save, Plus, Trash2, Package, Loader2 } from "lucide-react";
 import { useInventoryItems } from "@/hooks/useInventory";
 import { useCreateRequisition, RequisitionItem } from "@/hooks/useRequisitions";
 import { useBranches } from "@/hooks/useBranches";
+import { StoreSelector } from "@/components/inventory/StoreSelector";
 import { useAuth } from "@/contexts/AuthContext";
 import { format, addDays } from "date-fns";
 
 const formSchema = z.object({
   branch_id: z.string().min(1, "Branch is required"),
+  from_store_id: z.string().optional(),
   required_date: z.string().min(1, "Required date is required"),
   priority: z.coerce.number(),
   notes: z.string().optional(),
@@ -67,6 +69,7 @@ export default function RequisitionFormPage() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       branch_id: profile?.branch_id || "",
+      from_store_id: "",
       required_date: format(addDays(new Date(), 3), "yyyy-MM-dd"),
       priority: 1,
       notes: "",
@@ -132,6 +135,7 @@ export default function RequisitionFormPage() {
 
       await createRequisition.mutateAsync({
         branch_id: values.branch_id,
+        from_store_id: values.from_store_id || undefined,
         required_date: values.required_date,
         priority: values.priority,
         notes: values.notes || undefined,
@@ -182,6 +186,26 @@ export default function RequisitionFormPage() {
                         ))}
                       </SelectContent>
                     </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="from_store_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>From Warehouse</FormLabel>
+                    <FormControl>
+                      <StoreSelector
+                        branchId={form.watch("branch_id") || undefined}
+                        value={field.value || "all"}
+                        onChange={(v) => field.onChange(v === "all" ? "" : v)}
+                        showAll
+                        placeholder="Select warehouse"
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}

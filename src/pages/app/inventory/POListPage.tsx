@@ -94,11 +94,12 @@ export default function POListPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>PO Number</TableHead>
-                  <TableHead>Vendor</TableHead>
-                  <TableHead>Order Date</TableHead>
-                  <TableHead>Expected Delivery</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Total Amount</TableHead>
+                   <TableHead>Vendor</TableHead>
+                   <TableHead>Warehouse</TableHead>
+                   <TableHead>Order Date</TableHead>
+                   <TableHead>Expected Delivery</TableHead>
+                   <TableHead>Status</TableHead>
+                   <TableHead className="text-right">Total Amount</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -113,12 +114,13 @@ export default function POListPage() {
                       </Link>
                     </TableCell>
                     <TableCell>
-                      <div>
-                        <p className="font-medium">{po.vendor?.name}</p>
-                        <p className="text-xs text-muted-foreground">{po.vendor?.vendor_code}</p>
-                      </div>
-                    </TableCell>
-                    <TableCell>{format(new Date(po.order_date), "dd MMM yyyy")}</TableCell>
+                       <div>
+                         <p className="font-medium">{po.vendor?.name}</p>
+                         <p className="text-xs text-muted-foreground">{po.vendor?.vendor_code}</p>
+                       </div>
+                     </TableCell>
+                     <TableCell className="text-muted-foreground">{(po as any).store?.name || "—"}</TableCell>
+                     <TableCell>{format(new Date(po.order_date), "dd MMM yyyy")}</TableCell>
                     <TableCell>
                       {po.expected_delivery_date 
                         ? format(new Date(po.expected_delivery_date), "dd MMM yyyy")
