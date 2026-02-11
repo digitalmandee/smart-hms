@@ -5,8 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PageHeader } from "@/components/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, CheckCircle, Truck, PackageCheck } from "lucide-react";
-import { useStoreTransfer, useApproveTransfer, useDispatchTransfer, useReceiveTransfer } from "@/hooks/useStoreTransfers";
+import { ArrowLeft, CheckCircle, Truck, PackageCheck, Send } from "lucide-react";
+import { useStoreTransfer, useSubmitTransfer, useApproveTransfer, useDispatchTransfer, useReceiveTransfer } from "@/hooks/useStoreTransfers";
 import { format } from "date-fns";
 
 const statusColors: Record<string, string> = {
@@ -22,6 +22,7 @@ export default function TransferDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data: transfer, isLoading } = useStoreTransfer(id!);
+  const submit = useSubmitTransfer();
   const approve = useApproveTransfer();
   const dispatch = useDispatchTransfer();
   const receive = useReceiveTransfer();
@@ -29,13 +30,14 @@ export default function TransferDetailPage() {
   if (isLoading) return <div className="space-y-4"><Skeleton className="h-8 w-64" /><Skeleton className="h-64 w-full" /></div>;
   if (!transfer) return <p>Transfer not found</p>;
 
+  const handleSubmit = () => submit.mutate(transfer.id);
   const handleApprove = () => approve.mutate(transfer.id);
   const handleDispatch = () => {
-    const items = transfer.items?.map((i) => ({ id: i.id!, quantity_sent: i.quantity_requested })) || [];
+    const items = transfer.items?.map((i) => ({ id: i.id!, item_id: i.item_id, quantity_sent: i.quantity_requested })) || [];
     dispatch.mutate({ id: transfer.id, items });
   };
   const handleReceive = () => {
-    const items = transfer.items?.map((i) => ({ id: i.id!, quantity_received: i.quantity_sent })) || [];
+    const items = transfer.items?.map((i) => ({ id: i.id!, item_id: i.item_id, quantity_received: i.quantity_sent })) || [];
     receive.mutate({ id: transfer.id, items });
   };
 
@@ -47,6 +49,11 @@ export default function TransferDetailPage() {
         actions={
           <div className="flex gap-2">
             {transfer.status === "draft" && (
+              <Button onClick={handleSubmit} disabled={submit.isPending}>
+                <Send className="mr-2 h-4 w-4" /> Submit for Approval
+              </Button>
+            )}
+            {transfer.status === "pending" && (
               <Button onClick={handleApprove} disabled={approve.isPending}>
                 <CheckCircle className="mr-2 h-4 w-4" /> Approve
               </Button>

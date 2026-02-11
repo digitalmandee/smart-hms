@@ -57,6 +57,7 @@ export default function StockLevelsPage() {
     search,
     categoryId: categoryFilter === "all" ? undefined : categoryFilter,
     lowStock: showLowStock,
+    storeId: storeFilter === "all" ? undefined : storeFilter,
   });
 
   // Adjustment modal state

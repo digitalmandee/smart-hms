@@ -264,7 +264,7 @@ export function useUpdateCategory() {
 // ITEM HOOKS
 // =====================================================
 
-export function useInventoryItems(filters?: { categoryId?: string; search?: string; lowStock?: boolean }) {
+export function useInventoryItems(filters?: { categoryId?: string; search?: string; lowStock?: boolean; storeId?: string }) {
   const { profile } = useAuth();
   
   return useQuery({
@@ -290,12 +290,18 @@ export function useInventoryItems(filters?: { categoryId?: string; search?: stri
       const { data, error } = await query;
       if (error) throw error;
       
-      // Get stock totals for each item
+      // Get stock totals for each item, optionally filtered by store
       const itemIds = data.map(i => i.id);
-      const { data: stockData, error: stockError } = await supabase
+      let stockQuery = supabase
         .from("inventory_stock")
         .select("item_id, quantity")
         .in("item_id", itemIds);
+      
+      if (filters?.storeId) {
+        stockQuery = stockQuery.eq("store_id", filters.storeId);
+      }
+      
+      const { data: stockData, error: stockError } = await stockQuery;
       
       if (stockError) throw stockError;
       
