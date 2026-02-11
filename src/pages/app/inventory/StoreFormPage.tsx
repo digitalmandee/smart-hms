@@ -98,7 +98,7 @@ export default function StoreFormPage() {
       code: "",
       store_type: "general",
       description: "",
-      branch_id: profile?.branch_id || "",
+      branch_id: profile?.branch_id || "none",
       manager_id: "",
     },
   });
@@ -233,6 +233,7 @@ export default function StoreFormPage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
+                          <SelectItem value="none" disabled>Select a branch</SelectItem>
                           {branches?.map((b) => (
                             <SelectItem key={b.id} value={b.id}>
                               {b.name}
