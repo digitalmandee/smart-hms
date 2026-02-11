@@ -46,6 +46,11 @@ const clinicDemoAccounts = [
   { email: "clinic.pharmacist@healthos.demo", role: "Pharmacy POS", icon: Pill, color: "bg-orange-500/10 text-orange-600 hover:bg-orange-500/20 border-orange-500/20" },
 ];
 
+// Independent Pharmacy Demo Accounts (MediCare Pharmacy)
+const pharmacyDemoAccounts = [
+  { email: "pharmacy@medicare.demo", role: "Pharmacist", icon: Pill, color: "bg-orange-500/10 text-orange-600 hover:bg-orange-500/20 border-orange-500/20" },
+];
+
 const DEMO_PASSWORD = "Demo@123";
 const UNLOCK_PASSWORD = "1212";
 
@@ -324,6 +329,41 @@ export const LoginPage = () => {
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         {clinicDemoAccounts.map((account) => {
+          const Icon = account.icon;
+          const isLoggingIn = quickLoginEmail === account.email;
+          
+          return (
+            <Button
+              key={account.email}
+              variant="outline"
+              className={`h-auto py-2 px-2 flex flex-col items-center gap-1 border ${account.color} transition-all`}
+              onClick={() => handleQuickLogin(account.email)}
+              disabled={quickLoginEmail !== null}
+            >
+              {isLoggingIn ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Icon className="h-4 w-4" />
+              )}
+              <span className="text-[10px] font-medium">{account.role}</span>
+            </Button>
+          );
+        })}
+      </div>
+
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <Separator className="w-full" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-card px-2 text-muted-foreground">
+            Independent Pharmacy (MediCare Pharmacy)
+          </span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        {pharmacyDemoAccounts.map((account) => {
           const Icon = account.icon;
           const isLoggingIn = quickLoginEmail === account.email;
           
