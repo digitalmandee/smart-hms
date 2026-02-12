@@ -153,7 +153,7 @@ export function useCreateStore() {
           code: data.code || null,
           store_type: data.store_type,
           description: data.description || null,
-          manager_id: data.manager_id || null,
+          manager_id: data.manager_id && data.manager_id !== "none" ? data.manager_id : null,
           is_central: data.is_central || false,
           location_info: data.location_info || {},
         })
