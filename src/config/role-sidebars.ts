@@ -462,6 +462,16 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
           { name: "GRN", path: "/app/inventory/grn", icon: "PackageCheck" },
         ]
       },
+      {
+        name: "Warehouses",
+        path: "",
+        icon: "Warehouse",
+        children: [
+          { name: "All Warehouses", path: "/app/inventory/stores", icon: "List" },
+          { name: "Create Warehouse", path: "/app/inventory/stores/new", icon: "Plus" },
+          { name: "Store Transfers", path: "/app/inventory/transfers", icon: "ArrowLeftRight" },
+        ]
+      },
       { 
         name: "Setup", 
         path: "", 
