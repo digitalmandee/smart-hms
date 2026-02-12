@@ -9,7 +9,7 @@ interface POSReceiptPreviewProps {
 }
 
 export const POSReceiptPreview = forwardRef<HTMLDivElement, POSReceiptPreviewProps>(
-  ({ transaction, organizationName = "Smart HMS Pharmacy", branchName = "Main Branch" }, ref) => {
+  ({ transaction, organizationName = "Pharmacy", branchName = "Main Branch" }, ref) => {
     const paymentMethodLabels: Record<string, string> = {
       cash: "Cash",
       card: "Card",
@@ -214,9 +214,6 @@ export const POSReceiptPreview = forwardRef<HTMLDivElement, POSReceiptPreviewPro
         <div style={styles.footer}>
           <p>Thank you for your purchase!</p>
           <p style={styles.footerSmall}>Get well soon</p>
-          <p style={styles.footerPowered}>
-            Powered by Smart HMS
-          </p>
         </div>
       </div>
     );
