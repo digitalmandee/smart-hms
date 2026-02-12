@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -29,6 +29,7 @@ import { useCreatePurchaseOrder, type PurchaseOrderItem } from "@/hooks/usePurch
 import { UnifiedPOItemsBuilder } from "@/components/inventory/UnifiedPOItemsBuilder";
 import { StoreSelector } from "@/components/inventory/StoreSelector";
 import { PageHeader } from "@/components/PageHeader";
+import { useAuth } from "@/contexts/AuthContext";
 
 const poSchema = z.object({
   vendor_id: z.string().min(1, "Vendor is required"),
@@ -45,6 +46,7 @@ export default function POFormPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const vendorIdParam = searchParams.get("vendor_id");
+  const { profile } = useAuth();
 
   const [items, setItems] = useState<PurchaseOrderItem[]>([]);
   const [selectedBranch, setSelectedBranch] = useState("");
@@ -52,6 +54,9 @@ export default function POFormPage() {
   const { data: vendors } = useVendors();
   const { data: branches } = useBranches();
   const createPO = useCreatePurchaseOrder();
+
+  const isSingleBranch = branches && branches.length === 1;
+  const autoSelectedBranchId = profile?.branch_id || (isSingleBranch ? branches[0]?.id : "") || "";
 
   const form = useForm<POFormData>({
     resolver: zodResolver(poSchema),
@@ -65,6 +70,13 @@ export default function POFormPage() {
     },
   });
 
+  // Auto-select branch from profile or single-branch org
+  useEffect(() => {
+    if (autoSelectedBranchId && !form.getValues("branch_id")) {
+      form.setValue("branch_id", autoSelectedBranchId);
+      setSelectedBranch(autoSelectedBranchId);
+    }
+  }, [autoSelectedBranchId, form]);
   const onSubmit = async (data: POFormData) => {
     if (items.length === 0) {
       return;
@@ -132,6 +144,7 @@ export default function POFormPage() {
                   )}
                 />
 
+                {!isSingleBranch && (
                 <FormField
                   control={form.control}
                   name="branch_id"
@@ -160,6 +173,7 @@ export default function POFormPage() {
                     </FormItem>
                   )}
                 />
+                )}
 
                 <FormField
                   control={form.control}

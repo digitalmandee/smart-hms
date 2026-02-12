@@ -450,6 +450,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
           { name: "Stock Alerts", path: "/app/pharmacy/alerts", icon: "AlertTriangle" },
           { name: "Movements", path: "/app/pharmacy/stock-movements", icon: "ArrowLeftRight" },
           { name: "Suppliers", path: "/app/inventory/vendors", icon: "Store" },
+          { name: "Add Vendor", path: "/app/inventory/vendors/new", icon: "Plus" },
         ]
       },
       { 
@@ -471,17 +472,6 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         ]
       },
       { name: "Reports", path: "/app/pharmacy/reports", icon: "BarChart3" },
-      { 
-        name: "My Work", 
-        path: "", 
-        icon: "Briefcase",
-        children: [
-          { name: "My Schedule", path: "/app/my-schedule", icon: "Calendar" },
-          { name: "My Attendance", path: "/app/my-attendance", icon: "Clock" },
-          { name: "My Leaves", path: "/app/my-leaves", icon: "CalendarOff" },
-          { name: "My Payslips", path: "/app/my-payslips", icon: "FileText" },
-        ]
-      },
     ]
   },
 
