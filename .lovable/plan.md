@@ -1,154 +1,46 @@
 
+# Pharmacy UX Fixes -- Sidebar, PO Form, Vendor Access, and Report Branding
 
-# Pharmacy Reports Hub Redesign -- Card Layout, No Limits, Pagination, and More Reports
+## Issues Identified
 
-## Problem
-
-The current Pharmacy Reports page has three issues:
-1. **Flat sidebar list** -- reports are listed as text buttons in a left panel, not as visual cards like the main Reports Hub
-2. **Hard data caps** -- Stock Valuation shows only first 50 rows, Profit Margin only first 30 rows; the rest are silently hidden
-3. **No pagination** -- large tables just render everything (or are capped), with no way to navigate pages
-4. **Only 17 reports** -- user wants 10-15 more to fully represent an independent pharmacy POS
-
----
-
-## Solution
-
-### 1. Card-Based Hub Layout (like ReportsHubPage)
-
-Replace the current sidebar-list layout with a proper **card grid hub**. Each report category gets a section with report cards showing:
-- Icon + color badge
-- Report title and short description
-- "View Report" button
-
-Clicking a card opens that specific report in a **detail view** (same page, toggled state) with a "Back to Hub" button, date filters, chart, full table with pagination, and export buttons.
-
-### 2. Remove All Data Caps
-
-| Location | Current | Fix |
-|---|---|---|
-| Stock Valuation table (line 357) | `.slice(0, 50)` | Remove slice, use pagination |
-| Profit Margin table (line 477) | `.slice(0, 30)` | Remove slice, use pagination |
-| Top Products hook | `limit` parameter caps at 15 | Remove limit for report view |
-| Export buttons | Already pass full `data` array | No change needed (already unlimited) |
-
-### 3. Add Client-Side Pagination Component
-
-Create a reusable `PaginatedTable` wrapper that:
-- Accepts data array + columns
-- Shows 25 rows per page with page controls (Previous / Next / page numbers)
-- Shows "Showing X-Y of Z records" label
-- All data still available for CSV/PDF export (no server-side pagination needed since datasets are org-scoped and manageable)
-
-### 4. Add 12 New Reports (total: 29 reports)
-
-**Sales Reports (add 4)**
-- **Customer Sales Report** -- Top customers by purchase frequency and total spend
-- **Receipt-wise Transaction Log** -- Full transaction log with receipt number, items, payment method
-- **Refund Rate Analysis** -- Refund percentage over time, reasons breakdown
-- **Average Basket Size** -- Trend of average items per transaction and average transaction value
-
-**Inventory Reports (add 4)**
-- **Batch-wise Stock Report** -- All batches per medicine with quantities and expiry
-- **Category Stock Distribution** -- Stock value breakdown by medicine category (pie + table)
-- **Stock Aging Report** -- How long stock has been sitting (by GRN date vs current date)
-- **Inventory Turnover Report** -- Turnover ratio per medicine (sales qty / avg stock)
-
-**Financial Reports (add 2)**
-- **Daily Cash Summary** -- Opening balance + cash in - cash out = closing, per day
-- **Tax Collection Report** -- Tax collected per transaction, daily/monthly aggregation
-
-**Operational Reports (add 2)**
-- **Cashier Performance** -- Sales per cashier/user, transaction count, average sale value
-- **Peak Hours Report** -- Heatmap grid (day of week x hour) showing transaction density
+1. **Procurement group has no icon** -- Actually it does have `ShoppingCart` icon in the config, but user reports it's missing visually. Will verify and ensure it renders.
+2. **PO form asks for Branch** -- Independent pharmacies have only one branch. The form should auto-select the user's branch from `profile.branch_id` instead of showing a dropdown.
+3. **No way to add vendors from pharmacy** -- The sidebar has "Suppliers" link to `/app/inventory/vendors` (list page), but there's no "Add Vendor" link. Pharmacists need quick access to create new vendors.
+4. **"My Work" section with Attendance/Leaves/Payslips** -- Not relevant for an independent pharmacy owner-operator. These are HR/employee features for hospital staff. Remove from the pharmacist sidebar for standalone pharmacies.
+5. **AI-generated icons in reports** -- The report cards use generic Lucide icons with colored backgrounds. Replace with a cleaner, professional look that uses subtle monochrome icons without the colorful badge backgrounds.
 
 ---
 
-## Technical Details
+## Changes
 
-### Files Changed
+### 1. Pharmacist Sidebar Cleanup (`src/config/role-sidebars.ts`)
+
+- Add "Add Vendor" link (`/app/inventory/vendors/new`) under the Inventory group alongside existing "Suppliers"
+- Remove "My Work" group entirely from the pharmacist sidebar (Schedule, Attendance, Leaves, Payslips are hospital HR features -- not needed for independent pharmacy operators)
+- Verify Procurement icon renders correctly (it's set to `ShoppingCart` which is valid)
+
+### 2. PO Form Auto-Select Branch (`src/pages/app/inventory/POFormPage.tsx`)
+
+- Use `profile.branch_id` from `useAuth()` to auto-select the branch
+- If the user only has one branch (independent pharmacy), hide the branch dropdown entirely and use it automatically
+- If multiple branches exist, still show the selector but pre-fill with the user's assigned branch
+
+### 3. Professional Report Card Styling (`src/pages/app/pharmacy/PharmacyReportsPage.tsx`)
+
+Remove the colored icon badges (e.g., `bg-emerald-100 text-emerald-700`) from report cards. Replace with:
+- Clean monochrome icon (muted foreground color, no background badge)
+- Subtle left border accent per category instead of icon backgrounds
+- Professional typography without flashy colors
+- Category headers use simple text styling instead of colored badges
+
+This gives a corporate/professional feel matching healthcare software standards rather than looking like a consumer app with colorful bubbles.
+
+---
+
+## Files Modified
 
 | File | Change |
 |---|---|
-| `src/pages/app/pharmacy/PharmacyReportsPage.tsx` | Complete redesign: card-grid hub with drill-down detail view; remove all `.slice()` caps; add pagination to every table |
-| `src/hooks/usePharmacyReports.ts` | Add 12 new hooks: `useCustomerSalesReport`, `useTransactionLog`, `useRefundRateAnalysis`, `useBasketSizeAnalysis`, `useBatchStockReport`, `useCategoryStockDistribution`, `useStockAgingReport`, `useInventoryTurnover`, `useDailyCashSummary`, `useTaxCollectionReport`, `useCashierPerformance`, `usePeakHoursReport` |
-| `src/components/reports/PaginatedTable.tsx` | New reusable component: paginated table with configurable page size, page controls, and record count display |
-
-### Report Categories (Final: 29 reports)
-
-**Sales Reports (11)**
-1. Daily Sales Summary
-2. Hourly Sales Analysis
-3. Sales by Category
-4. Payment Methods
-5. Discount Analysis
-6. Monthly Comparison
-7. Top Selling Products
-8. Customer Sales Report (new)
-9. Transaction Log (new)
-10. Refund Rate Analysis (new)
-11. Average Basket Size (new)
-
-**Inventory Reports (9)**
-12. Stock Valuation
-13. Expiry Report
-14. Low Stock / Reorder
-15. Dead Stock
-16. Stock Movements
-17. Batch-wise Stock (new)
-18. Category Stock Distribution (new)
-19. Stock Aging (new)
-20. Inventory Turnover (new)
-
-**Financial Reports (5)**
-21. Profit Margin
-22. Returns and Refunds
-23. Credit Sales
-24. Daily Cash Summary (new)
-25. Tax Collection (new)
-
-**Procurement Reports (2)**
-26. Supplier Purchases
-27. PO Status Pipeline
-
-**Operational Reports (2)**
-28. Cashier Performance (new)
-29. Peak Hours Heatmap (new)
-
-### Hub Layout Structure
-
-The page will have two states:
-
-**Hub View** (default):
-- Page header with summary stat cards (Total Sales, Avg Transaction, Discounts, Reports count)
-- Date range filter at top
-- Category sections, each with a grid of report cards (3 columns on desktop, 2 on tablet, 1 on mobile)
-- Each card shows: colored icon, title, 1-line description, "View Report" arrow
-
-**Detail View** (after clicking a card):
-- "Back to Reports Hub" breadcrumb/button at top
-- Report title + date range filter
-- Chart visualization (existing charts preserved)
-- Full paginated table (25 rows/page, no caps)
-- Export button (CSV/PDF) -- exports ALL data regardless of current page
-
-### Pagination Component API
-
-```text
-PaginatedTable
-  props:
-    data: T[]
-    columns: { key, header, render?, align? }[]
-    pageSize?: number (default 25)
-    showCount?: boolean (default true)
-```
-
-Renders a standard Table with:
-- Page navigation (Previous / 1 2 3 ... N / Next)
-- "Showing 1-25 of 142 records" footer
-- No data caps -- all rows accessible via pagination
-
-### Query Hooks (no Supabase row limit issues)
-
-All pharmacy data is organization-scoped via RLS. Even a busy pharmacy would have at most a few thousand transactions per month, well within Supabase's default 1000-row limit per query. For hooks that might exceed this (like Transaction Log over a long date range), the query will use `.range()` or fetch in batches to ensure completeness.
-
+| `src/config/role-sidebars.ts` | Add "Add Vendor" to pharmacist Inventory group; remove "My Work" group |
+| `src/pages/app/inventory/POFormPage.tsx` | Auto-select branch from `profile.branch_id`; hide branch dropdown for single-branch orgs |
+| `src/pages/app/pharmacy/PharmacyReportsPage.tsx` | Replace colored icon badges with clean monochrome professional styling; remove per-report color properties |
