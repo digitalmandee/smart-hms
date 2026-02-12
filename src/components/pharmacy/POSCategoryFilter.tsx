@@ -30,37 +30,40 @@ export function POSCategoryFilter({
   const activeCategories = categories?.filter((c) => c.is_active) || [];
 
   return (
-    <ScrollArea className="w-full whitespace-nowrap">
-      <div className="flex gap-2 px-1 py-2">
-        <Button
-          variant={selectedCategory === null ? "default" : "outline"}
-          size="sm"
-          className={cn(
-            "rounded-full h-8 px-4 text-xs font-medium",
-            selectedCategory === null && "bg-primary text-primary-foreground"
-          )}
-          onClick={() => onCategoryChange(null)}
-        >
-          All
-        </Button>
-        {activeCategories.slice(0, 6).map((category) => (
+    <div className="relative">
+      <ScrollArea className="w-full whitespace-nowrap">
+        <div className="flex gap-2 px-1 py-2 pr-8">
           <Button
-            key={category.id}
-            variant={selectedCategory === category.id ? "default" : "outline"}
+            variant={selectedCategory === null ? "default" : "outline"}
             size="sm"
             className={cn(
-              "rounded-full h-8 px-4 text-xs font-medium shrink-0",
-              selectedCategory === category.id && "bg-primary text-primary-foreground"
+              "rounded-full h-8 px-4 text-xs font-medium",
+              selectedCategory === null && "bg-primary text-primary-foreground"
             )}
-            onClick={() =>
-              onCategoryChange(selectedCategory === category.id ? null : category.id)
-            }
+            onClick={() => onCategoryChange(null)}
           >
-            {category.name}
+            All
           </Button>
-        ))}
-      </div>
-      <ScrollBar orientation="horizontal" />
-    </ScrollArea>
+          {activeCategories.map((category) => (
+            <Button
+              key={category.id}
+              variant={selectedCategory === category.id ? "default" : "outline"}
+              size="sm"
+              className={cn(
+                "rounded-full h-8 px-4 text-xs font-medium shrink-0",
+                selectedCategory === category.id && "bg-primary text-primary-foreground"
+              )}
+              onClick={() =>
+                onCategoryChange(selectedCategory === category.id ? null : category.id)
+              }
+            >
+              {category.name}
+            </Button>
+          ))}
+        </div>
+        <ScrollBar orientation="horizontal" />
+      </ScrollArea>
+      <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none" />
+    </div>
   );
 }

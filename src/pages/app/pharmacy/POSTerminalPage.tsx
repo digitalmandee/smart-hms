@@ -475,7 +475,7 @@ export default function POSTerminalPage() {
 
           {/* Product Search & Recent Products */}
           <ScrollArea className="flex-1">
-            <div className="p-4 space-y-4">
+            <div className="p-3 space-y-3">
               <POSProductSearch onAddToCart={handleAddToCart} />
               
               {/* Recent Products Quick Add */}

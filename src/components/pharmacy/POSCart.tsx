@@ -75,9 +75,9 @@ export function POSCart({
       <ScrollArea className="flex-1">
         <div className="p-3 space-y-2">
           {items.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-              <div className="p-4 rounded-full bg-muted/50 mb-3">
-                <ShoppingCart className="h-10 w-10 opacity-50" />
+            <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
+              <div className="p-3 rounded-full bg-muted/50 mb-3">
+                <ShoppingCart className="h-8 w-8 opacity-50" />
               </div>
               <p className="font-medium">Cart is empty</p>
               <p className="text-xs mt-1">Search products to add items</p>
@@ -209,7 +209,7 @@ export function POSCart({
                 {percent}%
               </Button>
             ))}
-            <div className="relative flex-1">
+            <div className="relative w-20">
               <Input
                 type="number"
                 value={discountPercent || ""}
