@@ -39,13 +39,12 @@ interface ReportDef {
   name: string;
   description: string;
   icon: any;
-  color: string;
 }
 
 interface ReportCategory {
   label: string;
   icon: any;
-  color: string;
+  borderColor: string;
   reports: ReportDef[];
 }
 
@@ -53,69 +52,68 @@ const REPORT_CATEGORIES: ReportCategory[] = [
   {
     label: "Sales Reports",
     icon: DollarSign,
-    color: "bg-emerald-500/10 text-emerald-600",
+    borderColor: "border-l-primary",
     reports: [
-      { id: "daily-sales", name: "Daily Sales Summary", description: "Day-by-day sales, discounts & net revenue", icon: BarChart3, color: "bg-emerald-100 text-emerald-700" },
-      { id: "hourly-sales", name: "Hourly Sales Analysis", description: "Transaction volume by hour of day", icon: Clock, color: "bg-emerald-100 text-emerald-700" },
-      { id: "sales-category", name: "Sales by Category", description: "Revenue breakdown by medicine category", icon: PieChartIcon, color: "bg-emerald-100 text-emerald-700" },
-      { id: "payment-methods", name: "Payment Methods", description: "Cash, card & digital payment split", icon: Wallet, color: "bg-emerald-100 text-emerald-700" },
-      { id: "discount-analysis", name: "Discount Analysis", description: "Discount trends and impact on revenue", icon: Percent, color: "bg-emerald-100 text-emerald-700" },
-      { id: "monthly-comparison", name: "Monthly Comparison", description: "Month-over-month sales performance", icon: TrendingUp, color: "bg-emerald-100 text-emerald-700" },
-      { id: "top-products", name: "Top Selling Products", description: "Best sellers ranked by revenue", icon: TrendingUp, color: "bg-emerald-100 text-emerald-700" },
-      { id: "customer-sales", name: "Customer Sales", description: "Top customers by spend & frequency", icon: Users, color: "bg-emerald-100 text-emerald-700" },
-      { id: "transaction-log", name: "Transaction Log", description: "Full receipt-wise transaction history", icon: Receipt, color: "bg-emerald-100 text-emerald-700" },
-      { id: "refund-rate", name: "Refund Rate Analysis", description: "Refund trends and reason breakdown", icon: TrendingDown, color: "bg-emerald-100 text-emerald-700" },
-      { id: "basket-size", name: "Average Basket Size", description: "Items per transaction & avg value trend", icon: ShoppingBasket, color: "bg-emerald-100 text-emerald-700" },
+      { id: "daily-sales", name: "Daily Sales Summary", description: "Day-by-day sales, discounts & net revenue", icon: BarChart3 },
+      { id: "hourly-sales", name: "Hourly Sales Analysis", description: "Transaction volume by hour of day", icon: Clock },
+      { id: "sales-category", name: "Sales by Category", description: "Revenue breakdown by medicine category", icon: PieChartIcon },
+      { id: "payment-methods", name: "Payment Methods", description: "Cash, card & digital payment split", icon: Wallet },
+      { id: "discount-analysis", name: "Discount Analysis", description: "Discount trends and impact on revenue", icon: Percent },
+      { id: "monthly-comparison", name: "Monthly Comparison", description: "Month-over-month sales performance", icon: TrendingUp },
+      { id: "top-products", name: "Top Selling Products", description: "Best sellers ranked by revenue", icon: TrendingUp },
+      { id: "customer-sales", name: "Customer Sales", description: "Top customers by spend & frequency", icon: Users },
+      { id: "transaction-log", name: "Transaction Log", description: "Full receipt-wise transaction history", icon: Receipt },
+      { id: "refund-rate", name: "Refund Rate Analysis", description: "Refund trends and reason breakdown", icon: TrendingDown },
+      { id: "basket-size", name: "Average Basket Size", description: "Items per transaction & avg value trend", icon: ShoppingBasket },
     ],
   },
   {
     label: "Inventory Reports",
     icon: Package,
-    color: "bg-blue-500/10 text-blue-600",
+    borderColor: "border-l-accent",
     reports: [
-      { id: "stock-valuation", name: "Stock Valuation", description: "Current inventory cost & retail value", icon: DollarSign, color: "bg-blue-100 text-blue-700" },
-      { id: "expiry-report", name: "Expiry Report", description: "Items expiring within 90 days", icon: AlertTriangle, color: "bg-blue-100 text-blue-700" },
-      { id: "low-stock", name: "Low Stock / Reorder", description: "Items below reorder level", icon: AlertTriangle, color: "bg-blue-100 text-blue-700" },
-      { id: "dead-stock", name: "Dead Stock", description: "No-movement items in last 30 days", icon: Layers, color: "bg-blue-100 text-blue-700" },
-      { id: "stock-movements", name: "Stock Movements", description: "In/out movement summary by type", icon: RefreshCcw, color: "bg-blue-100 text-blue-700" },
-      { id: "batch-stock", name: "Batch-wise Stock", description: "All batches with qty & expiry details", icon: Boxes, color: "bg-blue-100 text-blue-700" },
-      { id: "category-distribution", name: "Category Distribution", description: "Stock value by medicine category", icon: PieChartIcon, color: "bg-blue-100 text-blue-700" },
-      { id: "stock-aging", name: "Stock Aging", description: "How long stock has been sitting", icon: Timer, color: "bg-blue-100 text-blue-700" },
-      { id: "inventory-turnover", name: "Inventory Turnover", description: "Turnover ratio per medicine", icon: RefreshCcw, color: "bg-blue-100 text-blue-700" },
+      { id: "stock-valuation", name: "Stock Valuation", description: "Current inventory cost & retail value", icon: DollarSign },
+      { id: "expiry-report", name: "Expiry Report", description: "Items expiring within 90 days", icon: AlertTriangle },
+      { id: "low-stock", name: "Low Stock / Reorder", description: "Items below reorder level", icon: AlertTriangle },
+      { id: "dead-stock", name: "Dead Stock", description: "No-movement items in last 30 days", icon: Layers },
+      { id: "stock-movements", name: "Stock Movements", description: "In/out movement summary by type", icon: RefreshCcw },
+      { id: "batch-stock", name: "Batch-wise Stock", description: "All batches with qty & expiry details", icon: Boxes },
+      { id: "category-distribution", name: "Category Distribution", description: "Stock value by medicine category", icon: PieChartIcon },
+      { id: "stock-aging", name: "Stock Aging", description: "How long stock has been sitting", icon: Timer },
+      { id: "inventory-turnover", name: "Inventory Turnover", description: "Turnover ratio per medicine", icon: RefreshCcw },
     ],
   },
   {
     label: "Financial Reports",
     icon: TrendingUp,
-    color: "bg-purple-500/10 text-purple-600",
+    borderColor: "border-l-secondary",
     reports: [
-      { id: "profit-margin", name: "Profit Margin", description: "Revenue, cost & margin per medicine", icon: TrendingUp, color: "bg-purple-100 text-purple-700" },
-      { id: "returns-summary", name: "Returns & Refunds", description: "Voided transactions & refund amounts", icon: RotateCcw, color: "bg-purple-100 text-purple-700" },
-      { id: "credit-sales", name: "Credit Sales", description: "Outstanding credit balances", icon: FileText, color: "bg-purple-100 text-purple-700" },
-      { id: "daily-cash", name: "Daily Cash Summary", description: "Cash, card & other collections per day", icon: Wallet, color: "bg-purple-100 text-purple-700" },
-      { id: "tax-collection", name: "Tax Collection", description: "Tax collected daily & per transaction", icon: Calculator, color: "bg-purple-100 text-purple-700" },
+      { id: "profit-margin", name: "Profit Margin", description: "Revenue, cost & margin per medicine", icon: TrendingUp },
+      { id: "returns-summary", name: "Returns & Refunds", description: "Voided transactions & refund amounts", icon: RotateCcw },
+      { id: "credit-sales", name: "Credit Sales", description: "Outstanding credit balances", icon: FileText },
+      { id: "daily-cash", name: "Daily Cash Summary", description: "Cash, card & other collections per day", icon: Wallet },
+      { id: "tax-collection", name: "Tax Collection", description: "Tax collected daily & per transaction", icon: Calculator },
     ],
   },
   {
     label: "Procurement Reports",
     icon: ShoppingCart,
-    color: "bg-amber-500/10 text-amber-600",
+    borderColor: "border-l-muted-foreground",
     reports: [
-      { id: "supplier-summary", name: "Supplier Purchases", description: "Purchase volume by supplier", icon: ShoppingCart, color: "bg-amber-100 text-amber-700" },
-      { id: "po-status", name: "PO Status Pipeline", description: "Purchase order status breakdown", icon: Layers, color: "bg-amber-100 text-amber-700" },
+      { id: "supplier-summary", name: "Supplier Purchases", description: "Purchase volume by supplier", icon: ShoppingCart },
+      { id: "po-status", name: "PO Status Pipeline", description: "Purchase order status breakdown", icon: Layers },
     ],
   },
   {
     label: "Operational Reports",
     icon: Activity,
-    color: "bg-rose-500/10 text-rose-600",
+    borderColor: "border-l-destructive",
     reports: [
-      { id: "cashier-performance", name: "Cashier Performance", description: "Sales & transactions per cashier", icon: UserCheck, color: "bg-rose-100 text-rose-700" },
-      { id: "peak-hours", name: "Peak Hours Heatmap", description: "Transaction density by day & hour", icon: Grid3X3, color: "bg-rose-100 text-rose-700" },
+      { id: "cashier-performance", name: "Cashier Performance", description: "Sales & transactions per cashier", icon: UserCheck },
+      { id: "peak-hours", name: "Peak Hours Heatmap", description: "Transaction density by day & hour", icon: Grid3X3 },
     ],
   },
 ];
-
 const PIE_COLORS = ["#22c55e", "#3b82f6", "#ef4444", "#8b5cf6", "#f59e0b", "#06b6d4", "#ec4899", "#6b7280"];
 
 export default function PharmacyReportsPage() {
@@ -185,24 +183,20 @@ export default function PharmacyReportsPage() {
       {REPORT_CATEGORIES.map((cat) => (
         <div key={cat.label} className="space-y-3">
           <div className="flex items-center gap-2">
-            <div className={`p-1.5 rounded-md ${cat.color}`}>
-              <cat.icon className="h-4 w-4" />
-            </div>
+            <cat.icon className="h-4 w-4 text-muted-foreground" />
             <h2 className="text-lg font-semibold">{cat.label}</h2>
-            <Badge variant="secondary" className="ml-1">{cat.reports.length}</Badge>
+            <span className="text-xs text-muted-foreground">({cat.reports.length})</span>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {cat.reports.map((report) => (
               <Card
                 key={report.id}
-                className="cursor-pointer hover:shadow-md transition-shadow group"
+                className={`cursor-pointer hover:shadow-md transition-shadow group border-l-4 ${cat.borderColor}`}
                 onClick={() => setSelectedReport(report.id)}
               >
                 <CardContent className="pt-5 pb-4">
                   <div className="flex items-start gap-3">
-                    <div className={`p-2 rounded-lg ${report.color} shrink-0`}>
-                      <report.icon className="h-4 w-4" />
-                    </div>
+                    <report.icon className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
                     <div className="flex-1 min-w-0">
                       <h3 className="font-medium text-sm">{report.name}</h3>
                       <p className="text-xs text-muted-foreground mt-0.5">{report.description}</p>
