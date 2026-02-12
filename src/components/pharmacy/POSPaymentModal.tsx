@@ -196,7 +196,7 @@ export function POSPaymentModal({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => handleQuickCash(Math.ceil(total / 100) * 100)}
+                  onClick={() => handleQuickCash(total)}
                 >
                   Exact
                 </Button>

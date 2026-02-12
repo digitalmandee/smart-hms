@@ -207,12 +207,12 @@ export function useCreateTransaction() {
 
       // Calculate totals
       const subtotal = items.reduce((sum, item) => {
-        const lineSubtotal = item.quantity * item.unit_price;
+        const lineSubtotal = item.quantity * item.selling_price;
         const lineDiscount = lineSubtotal * (item.discount_percent / 100);
         return sum + (lineSubtotal - lineDiscount);
       }, 0);
       const taxAmount = items.reduce((sum, item) => {
-        const lineSubtotal = item.quantity * item.unit_price;
+        const lineSubtotal = item.quantity * item.selling_price;
         const lineDiscount = lineSubtotal * (item.discount_percent / 100);
         const taxableAmount = lineSubtotal - lineDiscount;
         return sum + (taxableAmount * (item.tax_percent / 100));
@@ -256,7 +256,7 @@ export function useCreateTransaction() {
 
       // Insert items
       const itemsToInsert = items.map((item) => {
-        const lineSubtotal = item.quantity * item.unit_price;
+        const lineSubtotal = item.quantity * item.selling_price;
         const lineDiscount = lineSubtotal * (item.discount_percent / 100);
         const totalPrice = lineSubtotal - lineDiscount;
         const lineTax = totalPrice * (item.tax_percent / 100);
@@ -268,7 +268,7 @@ export function useCreateTransaction() {
           medicine_name: item.medicine_name,
           batch_number: item.batch_number,
           quantity: item.quantity,
-          unit_price: item.unit_price,
+          unit_price: item.selling_price,
           discount_percent: item.discount_percent,
           discount_amount: lineDiscount,
           tax_percent: item.tax_percent,
