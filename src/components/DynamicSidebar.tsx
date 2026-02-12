@@ -144,6 +144,8 @@ import {
   Radio,
   Server,
   Tv,
+  ShoppingCart,
+  RotateCcw,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -277,6 +279,8 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Radio,
   Server,
   Tv,
+  ShoppingCart,
+  RotateCcw,
 };
 
 interface DynamicSidebarProps {

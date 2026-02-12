@@ -131,6 +131,8 @@ import {
   Radio,
   Server,
   Tv,
+  ShoppingCart,
+  RotateCcw,
   Send,
   LogOut,
   Moon,
@@ -270,6 +272,8 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Radio,
   Server,
   Tv,
+  ShoppingCart,
+  RotateCcw,
   Send,
 };
 
