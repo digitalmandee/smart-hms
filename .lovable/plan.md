@@ -1,39 +1,39 @@
 
-# Pharmacy UX Fixes -- Sidebar, PO Form, Vendor Access, and Report Branding
 
-## Issues Identified
+# POS Terminal UI Fixes
 
-1. **Procurement group has no icon** -- Actually it does have `ShoppingCart` icon in the config, but user reports it's missing visually. Will verify and ensure it renders.
-2. **PO form asks for Branch** -- Independent pharmacies have only one branch. The form should auto-select the user's branch from `profile.branch_id` instead of showing a dropdown.
-3. **No way to add vendors from pharmacy** -- The sidebar has "Suppliers" link to `/app/inventory/vendors` (list page), but there's no "Add Vendor" link. Pharmacists need quick access to create new vendors.
-4. **"My Work" section with Attendance/Leaves/Payslips** -- Not relevant for an independent pharmacy owner-operator. These are HR/employee features for hospital staff. Remove from the pharmacist sidebar for standalone pharmacies.
-5. **AI-generated icons in reports** -- The report cards use generic Lucide icons with colored backgrounds. Replace with a cleaner, professional look that uses subtle monochrome icons without the colorful badge backgrounds.
+## Issues Found
+
+1. **Today's Sales widget clipped at bottom** -- The `POSTodaySummary` component at the bottom of the left panel gets cut off because the ScrollArea above it doesn't leave enough room. The widget needs guaranteed visibility.
+
+2. **Custom discount input truncated** -- The custom `%` input in the Quick Discount row is too narrow (`flex-1` competing with 4 buttons), causing the `C` and `%` to overlap/clip.
+
+3. **Category pills cut off without indicator** -- "Vitamins &..." gets truncated at the right edge. Users can't tell there are more categories to scroll to. Need a fade/gradient hint on the right edge.
+
+4. **Large empty space on left panel** -- The left panel has excessive whitespace between Patient Lookup and Today's Sales because the ScrollArea stretches but content doesn't fill it.
+
+5. **Cart empty state oversized** -- The empty cart icon (`h-10 w-10`) with large padding (`py-12`) wastes space in the right panel.
 
 ---
 
-## Changes
+## Fixes
 
-### 1. Pharmacist Sidebar Cleanup (`src/config/role-sidebars.ts`)
+### 1. Today's Sales Widget (POSTodaySummary / POSTerminalPage)
+- Ensure `POSTodaySummary` is rendered outside the `ScrollArea` with `shrink-0` so it always stays visible at the bottom of the left panel, never scrolled away or clipped.
 
-- Add "Add Vendor" link (`/app/inventory/vendors/new`) under the Inventory group alongside existing "Suppliers"
-- Remove "My Work" group entirely from the pharmacist sidebar (Schedule, Attendance, Leaves, Payslips are hospital HR features -- not needed for independent pharmacy operators)
-- Verify Procurement icon renders correctly (it's set to `ShoppingCart` which is valid)
+### 2. Custom Discount Input (POSCart.tsx)
+- Give the custom `%` input a fixed minimum width (`w-16` or `w-20`) instead of `flex-1` so it doesn't get crushed by the 4 quick discount buttons.
+- Reduce button flex to accommodate the input better.
 
-### 2. PO Form Auto-Select Branch (`src/pages/app/inventory/POFormPage.tsx`)
+### 3. Category Pills Scroll Hint (POSCategoryFilter.tsx)
+- Add a right-edge fade gradient overlay to indicate more categories are available beyond the visible area.
+- Remove the `.slice(0, 6)` limit so all categories are accessible via horizontal scroll.
 
-- Use `profile.branch_id` from `useAuth()` to auto-select the branch
-- If the user only has one branch (independent pharmacy), hide the branch dropdown entirely and use it automatically
-- If multiple branches exist, still show the selector but pre-fill with the user's assigned branch
+### 4. Left Panel Spacing (POSTerminalPage.tsx)
+- The left panel layout is already correct (`flex flex-col` with `ScrollArea flex-1`), but the inner content padding can be tightened. Reduce `space-y-4` to `space-y-3` and inner padding from `p-4` to `p-3` to make it more compact.
 
-### 3. Professional Report Card Styling (`src/pages/app/pharmacy/PharmacyReportsPage.tsx`)
-
-Remove the colored icon badges (e.g., `bg-emerald-100 text-emerald-700`) from report cards. Replace with:
-- Clean monochrome icon (muted foreground color, no background badge)
-- Subtle left border accent per category instead of icon backgrounds
-- Professional typography without flashy colors
-- Category headers use simple text styling instead of colored badges
-
-This gives a corporate/professional feel matching healthcare software standards rather than looking like a consumer app with colorful bubbles.
+### 5. Cart Empty State (POSCart.tsx)
+- Reduce empty state padding from `py-12` to `py-8` and icon from `h-10 w-10` to `h-8 w-8` for a more compact look.
 
 ---
 
@@ -41,6 +41,7 @@ This gives a corporate/professional feel matching healthcare software standards 
 
 | File | Change |
 |---|---|
-| `src/config/role-sidebars.ts` | Add "Add Vendor" to pharmacist Inventory group; remove "My Work" group |
-| `src/pages/app/inventory/POFormPage.tsx` | Auto-select branch from `profile.branch_id`; hide branch dropdown for single-branch orgs |
-| `src/pages/app/pharmacy/PharmacyReportsPage.tsx` | Replace colored icon badges with clean monochrome professional styling; remove per-report color properties |
+| `src/components/pharmacy/POSCart.tsx` | Reduce empty cart padding; fix custom discount input width |
+| `src/components/pharmacy/POSCategoryFilter.tsx` | Remove `.slice(0, 6)` cap; add right-edge fade gradient for scroll hint |
+| `src/pages/app/pharmacy/POSTerminalPage.tsx` | Tighten left panel inner spacing (`p-3`, `space-y-3`) |
+
