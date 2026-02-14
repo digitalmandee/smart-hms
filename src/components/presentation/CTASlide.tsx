@@ -36,7 +36,7 @@ export const CTASlide = () => {
       <div className="flex items-center justify-between mb-4 relative z-10">
         <HealthOS24Logo variant="full" size="md" />
         <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">
-          31 / 31
+          32 / 32
         </span>
       </div>
 
@@ -152,7 +152,7 @@ export const CTASlide = () => {
       {/* Footer */}
       <div className="pt-4 border-t border-border text-center relative z-10">
         <p className="text-sm text-muted-foreground">
-          © 2024 HealthOS 24 - Complete 24/7 Hospital Management System
+          © 2025 HealthOS 24 - Complete 24/7 Hospital Management System
         </p>
         <p className="text-xs text-muted-foreground mt-1">
           Empowering Healthcare Facilities Across the UAE & Beyond

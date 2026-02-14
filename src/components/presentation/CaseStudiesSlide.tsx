@@ -85,7 +85,7 @@ export const CaseStudiesSlide = () => {
           </div>
         </div>
         <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">
-          26 / 31
+          27 / 32
         </span>
       </div>
 

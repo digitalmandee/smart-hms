@@ -58,7 +58,7 @@ export const WorkflowSlide = () => {
           </span>
           <h2 className="text-3xl font-bold">OPD Workflow</h2>
         </div>
-        <span className="text-sm text-muted-foreground font-medium">24 / 31</span>
+        <span className="text-sm text-muted-foreground font-medium">24 / 32</span>
       </div>
 
       {/* Subtitle */}
@@ -112,8 +112,8 @@ export const WorkflowSlide = () => {
 
       {/* Footer */}
       <div className="mt-6 pt-4 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
-        <span>HealthOS - Hospital Management System</span>
-        <span>smarthms.devmine.co</span>
+        <span>HealthOS 24 - Hospital Management System</span>
+        <span>healthos24.com</span>
       </div>
     </div>
   );

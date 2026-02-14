@@ -52,7 +52,7 @@ export const FeaturesOverviewSlide = () => {
           </div>
         </div>
         <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">
-          02 / 31
+          02 / 32
         </span>
       </div>
 
