@@ -65,19 +65,17 @@ const PharmacyDocumentation = () => {
 
     try {
       await document.fonts.ready;
-      // Wait for print mode to render all pages
-      await new Promise(r => setTimeout(r, 1500));
+      await new Promise(r => setTimeout(r, 2000));
 
       const container = printContainerRef.current;
       if (!container) {
-        console.error("Print container not found");
         alert("PDF generation failed: container not ready.");
         return;
       }
 
       const pageElements = container.querySelectorAll('.proposal-page');
       console.log(`Found ${pageElements.length} pages to capture`);
-      
+
       if (pageElements.length === 0) {
         alert("No pages found to generate PDF.");
         return;
@@ -89,10 +87,9 @@ const PharmacyDocumentation = () => {
       const pixelWidth = 794;
       const pixelHeight = 1123;
 
-      let firstPage = true;
-
-      for (const pageEl of pageElements) {
-        const el = pageEl as HTMLElement;
+      for (let i = 0; i < pageElements.length; i++) {
+        const el = pageElements[i] as HTMLElement;
+        console.log(`Capturing page ${i + 1} of ${pageElements.length}...`);
 
         const originalCss = el.style.cssText;
         el.style.width = `${pixelWidth}px`;
@@ -103,23 +100,34 @@ const PharmacyDocumentation = () => {
         el.style.borderRadius = '0';
         el.style.margin = '0';
 
-        await new Promise(r => setTimeout(r, 300));
+        await new Promise(r => setTimeout(r, 200));
 
-        const dataUrl = await toPng(el, {
-          width: pixelWidth,
-          height: pixelHeight,
-          pixelRatio: 2,
-          backgroundColor: '#ffffff',
-        });
+        try {
+          const dataUrl = await toPng(el, {
+            width: pixelWidth,
+            height: pixelHeight,
+            pixelRatio: 1.5,
+            backgroundColor: '#ffffff',
+            skipAutoScale: true,
+          });
 
-        el.style.cssText = originalCss;
+          console.log(`Page ${i + 1} captured successfully`);
 
-        if (!firstPage) pdf.addPage();
-        pdf.addImage(dataUrl, "PNG", 0, 0, pdfWidth, pdfHeight);
-        firstPage = false;
+          if (i > 0) pdf.addPage();
+          pdf.addImage(dataUrl, "PNG", 0, 0, pdfWidth, pdfHeight);
+        } catch (pageError) {
+          console.error(`Failed to capture page ${i + 1}:`, pageError);
+          if (i > 0) pdf.addPage();
+          pdf.setFontSize(14);
+          pdf.text(`Page ${i + 1} failed to render`, 20, 40);
+        } finally {
+          el.style.cssText = originalCss;
+        }
       }
 
+      console.log("All pages captured, saving PDF...");
       pdf.save("HealthOS24-Pharmacy-Documentation.pdf");
+      console.log("PDF saved!");
     } catch (error) {
       console.error("PDF generation failed:", error);
       alert("PDF generation failed. Please try again.");
