@@ -61,60 +61,54 @@ const PharmacyDocumentation = () => {
 
   const handleDownloadPDF = useCallback(async () => {
     setIsDownloading(true);
-    setIsPrintMode(true);
+    const savedPage = currentPage;
 
     try {
-      // Wait for fonts to be fully loaded
       await document.fonts.ready;
-      // Allow pages to render in DOM
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      const capturedCanvases: HTMLCanvasElement[] = [];
 
-      const container = printContainerRef.current;
-      if (!container) return;
+      for (let i = 0; i < pages.length; i++) {
+        setCurrentPage(i);
+        await new Promise((resolve) => setTimeout(resolve, 500));
 
-      const pageElements = container.querySelectorAll(".proposal-page");
-      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-      const pdfWidth = 210;
-      const pdfHeight = 297;
-      const pixelWidth = 794;
-      const pixelHeight = 1123;
+        const pageEl = document.querySelector('.proposal-page') as HTMLElement;
+        if (!pageEl) continue;
 
-      for (let i = 0; i < pageElements.length; i++) {
-        const el = pageElements[i] as HTMLElement;
+        const origStyles = {
+          width: pageEl.style.width,
+          height: pageEl.style.height,
+          overflow: pageEl.style.overflow,
+          boxShadow: pageEl.style.boxShadow,
+          borderRadius: pageEl.style.borderRadius,
+        };
 
-        // Force explicit dimensions for html2canvas
-        el.style.width = `${pixelWidth}px`;
-        el.style.height = `${pixelHeight}px`;
-        el.style.overflow = 'hidden';
-        el.style.background = 'white';
+        pageEl.style.width = '794px';
+        pageEl.style.height = '1123px';
+        pageEl.style.overflow = 'hidden';
+        pageEl.style.boxShadow = 'none';
+        pageEl.style.borderRadius = '0';
 
-        // Let the element settle with forced dimensions
-        await new Promise((resolve) => setTimeout(resolve, 200));
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
-        const canvas = await html2canvas(el, {
-          scale: 2,
+        const canvas = await html2canvas(pageEl, {
+          scale: 3,
           useCORS: true,
           allowTaint: true,
           backgroundColor: "#ffffff",
           logging: false,
-          width: pixelWidth,
-          height: pixelHeight,
-          windowWidth: pixelWidth,
-          windowHeight: pixelHeight,
-          onclone: (clonedDoc) => {
-            const clonedEl = clonedDoc.querySelector('.proposal-page:nth-child(' + (i + 1) + ')') as HTMLElement;
-            if (clonedEl) {
-              clonedEl.style.width = `${pixelWidth}px`;
-              clonedEl.style.height = `${pixelHeight}px`;
-              clonedEl.style.overflow = 'hidden';
-              clonedEl.style.background = 'white';
-            }
-          },
+          width: 794,
+          height: 1123,
         });
 
-        const imgData = canvas.toDataURL("image/jpeg", 0.95);
+        Object.assign(pageEl.style, origStyles);
+        capturedCanvases.push(canvas);
+      }
+
+      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      for (let i = 0; i < capturedCanvases.length; i++) {
+        const imgData = capturedCanvases[i].toDataURL("image/jpeg", 0.98);
         if (i > 0) pdf.addPage();
-        pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
+        pdf.addImage(imgData, "JPEG", 0, 0, 210, 297);
       }
 
       pdf.save("HealthOS24-Pharmacy-Documentation.pdf");
@@ -122,10 +116,10 @@ const PharmacyDocumentation = () => {
       console.error("PDF generation failed:", error);
       alert("PDF generation failed. Please try again.");
     } finally {
-      setIsPrintMode(false);
+      setCurrentPage(savedPage);
       setIsDownloading(false);
     }
-  }, []);
+  }, [currentPage]);
 
   const goToPrevPage = () => {
     if (currentPage > 0) setCurrentPage(currentPage - 1);
