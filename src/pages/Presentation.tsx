@@ -3,7 +3,7 @@ import { FileDown, Printer, ArrowLeft, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
+import { toPng } from "html-to-image";
 import { TitleSlide } from "@/components/presentation/TitleSlide";
 import { FeaturesOverviewSlide } from "@/components/presentation/FeaturesOverviewSlide";
 import { ModuleSlide } from "@/components/presentation/ModuleSlide";
@@ -240,35 +240,33 @@ const Presentation = () => {
 
     try {
       await document.fonts.ready;
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
       const container = printContainerRef.current;
-      if (!container) return;
+      if (!container) {
+        alert("PDF generation failed: container not ready.");
+        return;
+      }
 
       const slideElements = container.querySelectorAll(".slide");
+      console.log(`Found ${slideElements.length} slides to capture`);
+
+      if (slideElements.length === 0) {
+        alert("No slides found to generate PDF.");
+        return;
+      }
+
       const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
       const pdfWidth = 297;
       const pdfHeight = 210;
+      const pixelWidth = 1123;
+      const pixelHeight = 794;
 
       for (let i = 0; i < slideElements.length; i++) {
         const el = slideElements[i] as HTMLElement;
+        console.log(`Capturing slide ${i + 1} of ${slideElements.length}...`);
 
-        // Store original styles
-        const origStyles = {
-          width: el.style.width,
-          height: el.style.height,
-          minHeight: el.style.minHeight,
-          maxWidth: el.style.maxWidth,
-          overflow: el.style.overflow,
-          margin: el.style.margin,
-          borderRadius: el.style.borderRadius,
-          border: el.style.border,
-          boxShadow: el.style.boxShadow,
-        };
-
-        // Force fixed dimensions for capture
-        const pixelWidth = 1123;
-        const pixelHeight = 794;
+        const originalCss = el.style.cssText;
         el.style.width = `${pixelWidth}px`;
         el.style.height = `${pixelHeight}px`;
         el.style.minHeight = `${pixelHeight}px`;
@@ -278,30 +276,42 @@ const Presentation = () => {
         el.style.borderRadius = '0';
         el.style.border = 'none';
         el.style.boxShadow = 'none';
+        el.style.background = 'white';
 
         await new Promise((resolve) => setTimeout(resolve, 200));
 
-        const canvas = await html2canvas(el, {
-          scale: 2,
-          useCORS: true,
-          allowTaint: true,
-          backgroundColor: "#ffffff",
-          logging: false,
-          width: pixelWidth,
-          height: pixelHeight,
-          windowWidth: pixelWidth,
-          windowHeight: pixelHeight,
-        });
+        try {
+          const dataUrl = await toPng(el, {
+            width: pixelWidth,
+            height: pixelHeight,
+            pixelRatio: 1.5,
+            backgroundColor: '#ffffff',
+            skipAutoScale: true,
+          });
 
-        // Restore original styles
-        Object.assign(el.style, origStyles);
-
-        const imgData = canvas.toDataURL("image/jpeg", 0.95);
-        if (i > 0) pdf.addPage();
-        pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
+          if (i > 0) pdf.addPage();
+          pdf.addImage(dataUrl, "PNG", 0, 0, pdfWidth, pdfHeight);
+        } catch (slideError) {
+          console.error(`Failed to capture slide ${i + 1}:`, slideError);
+          if (i > 0) pdf.addPage();
+          pdf.setFontSize(14);
+          pdf.text(`Slide ${i + 1} failed to render`, 40, 100);
+        } finally {
+          el.style.cssText = originalCss;
+        }
       }
 
-      pdf.save("HealthOS24-Presentation.pdf");
+      console.log("All slides captured, saving PDF...");
+      const pdfBlob = pdf.output("blob");
+      const url = URL.createObjectURL(pdfBlob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "HealthOS24-Presentation.pdf";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      console.log("PDF saved!");
     } catch (error) {
       console.error("PDF generation failed:", error);
       alert("PDF generation failed. Please try again.");

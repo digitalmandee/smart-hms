@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Download, Printer, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
+import { toPng } from "html-to-image";
 import { ProposalCoverPage } from "@/components/proposal/ProposalCoverPage";
 import { ProposalExecutiveSummary } from "@/components/proposal/ProposalExecutiveSummary";
 import { ProposalClinicalFeatures } from "@/components/proposal/ProposalClinicalFeatures";
@@ -51,12 +51,22 @@ const PricingProposal = () => {
 
     try {
       await document.fonts.ready;
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
       const container = printContainerRef.current;
-      if (!container) return;
+      if (!container) {
+        alert("PDF generation failed: container not ready.");
+        return;
+      }
 
       const pageElements = container.querySelectorAll(".proposal-page");
+      console.log(`Found ${pageElements.length} pages to capture`);
+
+      if (pageElements.length === 0) {
+        alert("No pages found to generate PDF.");
+        return;
+      }
+
       const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
       const pdfWidth = 210;
       const pdfHeight = 297;
@@ -65,45 +75,51 @@ const PricingProposal = () => {
 
       for (let i = 0; i < pageElements.length; i++) {
         const el = pageElements[i] as HTMLElement;
+        console.log(`Capturing page ${i + 1} of ${pageElements.length}...`);
 
-        const origStyles = {
-          width: el.style.width,
-          height: el.style.height,
-          overflow: el.style.overflow,
-          background: el.style.background,
-          boxShadow: el.style.boxShadow,
-          borderRadius: el.style.borderRadius,
-        };
-
+        const originalCss = el.style.cssText;
         el.style.width = `${pixelWidth}px`;
         el.style.height = `${pixelHeight}px`;
         el.style.overflow = 'hidden';
         el.style.background = 'white';
         el.style.boxShadow = 'none';
         el.style.borderRadius = '0';
+        el.style.margin = '0';
 
         await new Promise((resolve) => setTimeout(resolve, 200));
 
-        const canvas = await html2canvas(el, {
-          scale: 2,
-          useCORS: true,
-          allowTaint: true,
-          backgroundColor: "#ffffff",
-          logging: false,
-          width: pixelWidth,
-          height: pixelHeight,
-          windowWidth: pixelWidth,
-          windowHeight: pixelHeight,
-        });
+        try {
+          const dataUrl = await toPng(el, {
+            width: pixelWidth,
+            height: pixelHeight,
+            pixelRatio: 1.5,
+            backgroundColor: '#ffffff',
+            skipAutoScale: true,
+          });
 
-        Object.assign(el.style, origStyles);
-
-        const imgData = canvas.toDataURL("image/jpeg", 0.95);
-        if (i > 0) pdf.addPage();
-        pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
+          if (i > 0) pdf.addPage();
+          pdf.addImage(dataUrl, "PNG", 0, 0, pdfWidth, pdfHeight);
+        } catch (pageError) {
+          console.error(`Failed to capture page ${i + 1}:`, pageError);
+          if (i > 0) pdf.addPage();
+          pdf.setFontSize(14);
+          pdf.text(`Page ${i + 1} failed to render`, 20, 40);
+        } finally {
+          el.style.cssText = originalCss;
+        }
       }
 
-      pdf.save("HealthOS24-Proposal.pdf");
+      console.log("All pages captured, saving PDF...");
+      const pdfBlob = pdf.output("blob");
+      const url = URL.createObjectURL(pdfBlob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "HealthOS24-Proposal.pdf";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      console.log("PDF saved!");
     } catch (error) {
       console.error("PDF generation failed:", error);
       alert("PDF generation failed. Please try again.");
