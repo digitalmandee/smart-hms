@@ -9,7 +9,7 @@ export const DocPageWrapper = ({ children, pageNumber, totalPages }: DocPageWrap
     {/* Header */}
     <div className="flex items-center justify-between mb-6 pb-4 border-b border-emerald-200">
       <div className="flex items-center gap-2">
-        <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white font-bold text-sm">24</div>
+        <div style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: '#059669', color: 'white', fontWeight: 700, fontSize: 14, lineHeight: '32px', textAlign: 'center' as const, display: 'inline-block', flexShrink: 0 }}>24</div>
         <span className="text-lg font-bold text-gray-900">HealthOS</span>
       </div>
       <span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full">
@@ -84,9 +84,9 @@ export const SubSection = ({ title, children }: { title: string; children: React
 export const ScreenMockup = ({ title, children }: { title: string; children: React.ReactNode }) => (
   <div className="border border-emerald-200 rounded-lg overflow-hidden my-3 shadow-sm">
     <div className="bg-emerald-50 border-b border-emerald-200 px-3 py-1.5 flex items-center gap-1.5">
-      <span className="w-2 h-2 rounded-full bg-red-400" />
-      <span className="w-2 h-2 rounded-full bg-yellow-400" />
-      <span className="w-2 h-2 rounded-full bg-green-400" />
+      <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#f87171', display: 'inline-block' }} />
+      <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#facc15', display: 'inline-block' }} />
+      <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#4ade80', display: 'inline-block' }} />
       <span className="text-[10px] font-medium text-emerald-700 ml-2">{title}</span>
     </div>
     <div className="p-3 bg-white">{children}</div>
@@ -95,7 +95,7 @@ export const ScreenMockup = ({ title, children }: { title: string; children: Rea
 
 export const InfoCard = ({ icon, label, value }: { icon: string; label: string; value: string; color?: string }) => (
   <div className="border border-emerald-200 rounded-lg p-2.5 bg-emerald-50/50 flex items-center gap-2.5 min-w-0">
-    <div className="w-8 h-8 rounded-md bg-emerald-100 flex items-center justify-center text-emerald-700 shrink-0 text-base">
+    <div style={{ width: 32, height: 32, borderRadius: 6, backgroundColor: '#d1fae5', color: '#047857', fontSize: 16, lineHeight: '32px', textAlign: 'center' as const, display: 'inline-block', flexShrink: 0 }}>
       {icon}
     </div>
     <div className="min-w-0">

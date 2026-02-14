@@ -60,7 +60,7 @@ export const FeaturesOverviewSlide = () => {
       <div className="flex items-center justify-center gap-6 mb-6">
         {categories.map((cat) => (
           <div key={cat.label} className="flex items-center gap-2">
-            <div className={`w-3 h-3 rounded-full ${cat.color}`} />
+            <span style={{ width: 12, height: 12, borderRadius: '50%', display: 'inline-block' }} className={cat.color} />
             <span className="text-sm font-medium">{cat.label}</span>
             <span className="text-xs text-muted-foreground">({cat.count})</span>
           </div>

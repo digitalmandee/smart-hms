@@ -5,7 +5,7 @@ export const DocCoverPage = () => {
     <div className="proposal-page flex flex-col justify-between bg-white p-12">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-emerald-600 flex items-center justify-center text-white font-bold text-xl">24</div>
+          <div style={{ width: 48, height: 48, borderRadius: 12, backgroundColor: '#059669', color: 'white', fontWeight: 700, fontSize: 20, lineHeight: '48px', textAlign: 'center' as const, display: 'inline-block' }}>24</div>
           <div className="flex flex-col">
             <span className="text-2xl font-bold text-gray-900 leading-tight">HealthOS</span>
             <span className="text-xs text-gray-500">Smart Hospital Management</span>
@@ -29,11 +29,11 @@ export const DocCoverPage = () => {
 
         <div className="mt-12 flex items-center gap-8 text-sm text-gray-500">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-600" />
+            <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#059669', display: 'inline-block' }} />
             <span>Version 2.0</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-teal-500" />
+            <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#14b8a6', display: 'inline-block' }} />
             <span>{currentDate}</span>
           </div>
         </div>

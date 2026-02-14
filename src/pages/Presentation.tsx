@@ -1,7 +1,9 @@
-import { useState } from "react";
-import { FileDown, Printer, ArrowLeft } from "lucide-react";
+import { useState, useRef, useCallback } from "react";
+import { FileDown, Printer, ArrowLeft, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 import { TitleSlide } from "@/components/presentation/TitleSlide";
 import { FeaturesOverviewSlide } from "@/components/presentation/FeaturesOverviewSlide";
 import { ModuleSlide } from "@/components/presentation/ModuleSlide";
@@ -223,18 +225,77 @@ const features = [
   },
 ];
 
-const TOTAL_SLIDES = 32; // Title + Overview + 20 modules + OT Dashboard + Workflow + Procurement + Warehouse + Case Studies + Lab Network + Integration + Compliance + Timeline + CTA
+const TOTAL_SLIDES = 32;
 
 const Presentation = () => {
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [isPrintMode, setIsPrintMode] = useState(false);
+  const printContainerRef = useRef<HTMLDivElement>(null);
 
-  const handleDownload = () => {
-    setIsGenerating(true);
-    setTimeout(() => {
-      window.print();
-      setIsGenerating(false);
-    }, 500);
+  const handlePrint = () => {
+    window.print();
   };
+
+  const handleDownloadPDF = useCallback(async () => {
+    setIsDownloading(true);
+    setIsPrintMode(true);
+
+    try {
+      await document.fonts.ready;
+      await new Promise((resolve) => setTimeout(resolve, 800));
+
+      const container = printContainerRef.current;
+      if (!container) return;
+
+      const slideElements = container.querySelectorAll(".slide");
+      const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+      const pdfWidth = 297;
+      const pdfHeight = 210;
+      const pixelWidth = 1123;
+      const pixelHeight = 794;
+
+      for (let i = 0; i < slideElements.length; i++) {
+        const el = slideElements[i] as HTMLElement;
+
+        el.style.width = `${pixelWidth}px`;
+        el.style.height = `${pixelHeight}px`;
+        el.style.minHeight = `${pixelHeight}px`;
+        el.style.maxHeight = `${pixelHeight}px`;
+        el.style.overflow = 'hidden';
+        el.style.background = 'white';
+        el.style.margin = '0';
+        el.style.borderRadius = '0';
+        el.style.border = 'none';
+        el.style.boxShadow = 'none';
+
+        await new Promise((resolve) => setTimeout(resolve, 200));
+
+        const canvas = await html2canvas(el, {
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: "#ffffff",
+          logging: false,
+          width: pixelWidth,
+          height: pixelHeight,
+          windowWidth: pixelWidth,
+          windowHeight: pixelHeight,
+        });
+
+        const imgData = canvas.toDataURL("image/jpeg", 0.95);
+        if (i > 0) pdf.addPage();
+        pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
+      }
+
+      pdf.save("HealthOS24-Presentation.pdf");
+    } catch (error) {
+      console.error("PDF generation failed:", error);
+      alert("PDF generation failed. Please try again.");
+    } finally {
+      setIsPrintMode(false);
+      setIsDownloading(false);
+    }
+  }, []);
 
   return (
     <>
@@ -300,44 +361,44 @@ const Presentation = () => {
               <p className="text-xs text-muted-foreground">{TOTAL_SLIDES} slides • Enhanced Edition</p>
             </div>
           </div>
-          <Button onClick={handleDownload} disabled={isGenerating}>
-            {isGenerating ? (
-              <>
-                <Printer className="h-4 w-4 mr-2 animate-pulse" />
-                Preparing...
-              </>
-            ) : (
-              <>
-                <FileDown className="h-4 w-4 mr-2" />
-                Download PDF
-              </>
-            )}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={handlePrint}>
+              <Printer className="h-4 w-4 mr-2" />
+              Print
+            </Button>
+            <Button onClick={handleDownloadPDF} disabled={isDownloading}>
+              {isDownloading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Generating…
+                </>
+              ) : (
+                <>
+                  <FileDown className="h-4 w-4 mr-2" />
+                  Download PDF
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       </div>
 
       {/* Instructions (hidden in print) */}
-      <div className="no-print bg-muted/50 border-b border-border px-4 py-3">
-        <div className="container mx-auto text-center">
-          <p className="text-sm text-muted-foreground">
-            💡 <strong>To save as PDF:</strong> Click "Download PDF" → In print dialog, select <strong>"Save as PDF"</strong> as destination
-          </p>
-          <p className="text-xs text-muted-foreground mt-1">
-            ⚠️ <strong>For colors:</strong> Enable <strong>"Background graphics"</strong> in print settings (More settings → Background graphics)
-          </p>
+      {!isPrintMode && (
+        <div className="no-print bg-muted/50 border-b border-border px-4 py-3">
+          <div className="container mx-auto text-center">
+            <p className="text-sm text-muted-foreground">
+              💡 Click <strong>"Download PDF"</strong> to save as a real PDF file, or <strong>"Print"</strong> to open your browser's print dialog.
+            </p>
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Slides Container */}
-      <div className="no-print:py-8 no-print:px-4 bg-muted/30 min-h-screen">
-        <div className="py-8 px-4">
-          {/* Slide 1: Title */}
+      {/* Download mode: hidden render container for all slides */}
+      {isPrintMode && (
+        <div ref={printContainerRef} style={{ position: 'absolute', left: '-9999px', top: 0 }}>
           <TitleSlide />
-
-          {/* Slide 2: Features Overview */}
           <FeaturesOverviewSlide />
-
-          {/* Slides 3-22: Module Details */}
           {features.map((feature, index) => (
             <ModuleSlide
               key={feature.id}
@@ -346,35 +407,41 @@ const Presentation = () => {
               totalSlides={TOTAL_SLIDES}
             />
           ))}
-
-          {/* Slide 23: OT Live Dashboard */}
           <OTDashboardSlide />
-
-          {/* Slide 24: Patient Workflow */}
           <WorkflowSlide />
-
-          {/* Slide 25: Procurement Cycle */}
           <ProcurementSlide />
-
-          {/* Slide 26: Warehouse & Supply Chain */}
           <WarehouseSlide />
-
-          {/* Slide 27: UAE Case Studies */}
           <CaseStudiesSlide />
-
-          {/* Slide 27: Lab Network */}
           <LabNetworkSlide />
-
-          {/* Slide 28: Integration Ecosystem */}
           <IntegrationSlide />
-
-          {/* Slide 29: Compliance & Security */}
           <ComplianceSlide />
-
-          {/* Slide 30: Implementation Timeline */}
           <TimelineSlide />
+          <CTASlide />
+        </div>
+      )}
 
-          {/* Slide 30: Contact CTA */}
+      {/* Slides Container (screen view) */}
+      <div className="no-print:py-8 no-print:px-4 bg-muted/30 min-h-screen">
+        <div className="py-8 px-4">
+          <TitleSlide />
+          <FeaturesOverviewSlide />
+          {features.map((feature, index) => (
+            <ModuleSlide
+              key={feature.id}
+              feature={feature}
+              slideNumber={index + 3}
+              totalSlides={TOTAL_SLIDES}
+            />
+          ))}
+          <OTDashboardSlide />
+          <WorkflowSlide />
+          <ProcurementSlide />
+          <WarehouseSlide />
+          <CaseStudiesSlide />
+          <LabNetworkSlide />
+          <IntegrationSlide />
+          <ComplianceSlide />
+          <TimelineSlide />
           <CTASlide />
         </div>
       </div>
