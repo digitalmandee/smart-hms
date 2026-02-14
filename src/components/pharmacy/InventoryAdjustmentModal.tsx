@@ -52,6 +52,9 @@ export function InventoryAdjustmentModal({ inventory, open, onOpenChange }: Inve
           <DialogDescription>
             Adjust the quantity for {inventory.medicine?.name}
             {inventory.batch_number && ` (Batch: ${inventory.batch_number})`}
+            {(inventory as any).store?.name && (
+              <span className="block text-xs mt-1">Warehouse: {(inventory as any).store.name}</span>
+            )}
           </DialogDescription>
         </DialogHeader>
 
