@@ -16,6 +16,8 @@ import {
 import { StockLevelBadge } from "@/components/pharmacy/StockLevelBadge";
 import { InventoryAdjustmentModal } from "@/components/pharmacy/InventoryAdjustmentModal";
 import { useInventory, useMedicineCategories, InventoryWithMedicine } from "@/hooks/usePharmacy";
+import { useRackAssignments } from "@/hooks/useStoreRacks";
+import { RackLocationBadge } from "@/components/pharmacy/RackLocationBadge";
 import { ArrowLeft, Plus, Search, Edit } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 
@@ -30,6 +32,7 @@ export default function InventoryPage() {
   const [adjustingItem, setAdjustingItem] = useState<InventoryWithMedicine | null>(null);
 
   const { data: categories } = useMedicineCategories();
+  const { data: rackAssignments } = useRackAssignments();
   const { data: inventory, isLoading } = useInventory(undefined, {
     lowStock: stockFilter === "lowStock",
     expiringSoon: stockFilter === "expiring",
@@ -92,6 +95,25 @@ export default function InventoryPage() {
           >
             {format(expDate, "MMM yyyy")}
           </Badge>
+        );
+      },
+    },
+    {
+      id: "rack_location",
+      header: "Rack Location",
+      cell: ({ row }) => {
+        const assignment = rackAssignments?.find(
+          (a) => a.medicine_id === row.original.medicine_id
+        );
+        if (!assignment) return <span className="text-xs text-muted-foreground">—</span>;
+        return (
+          <RackLocationBadge
+            rackCode={assignment.rack?.rack_code}
+            rackName={assignment.rack?.rack_name}
+            shelfNumber={assignment.shelf_number}
+            position={assignment.position}
+            compact
+          />
         );
       },
     },
