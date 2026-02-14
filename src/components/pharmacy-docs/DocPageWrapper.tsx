@@ -79,3 +79,50 @@ export const SubSection = ({ title, children }: { title: string; children: React
     {children}
   </div>
 );
+
+export const ScreenMockup = ({ title, children }: { title: string; children: React.ReactNode }) => (
+  <div className="border border-emerald-200 rounded-lg overflow-hidden my-3 shadow-sm">
+    <div className="bg-emerald-50 border-b border-emerald-200 px-3 py-1.5 flex items-center gap-1.5">
+      <span className="w-2 h-2 rounded-full bg-red-400" />
+      <span className="w-2 h-2 rounded-full bg-yellow-400" />
+      <span className="w-2 h-2 rounded-full bg-green-400" />
+      <span className="text-[10px] font-medium text-emerald-700 ml-2">{title}</span>
+    </div>
+    <div className="p-3 bg-white">{children}</div>
+  </div>
+);
+
+export const InfoCard = ({ icon, label, value, color = "emerald" }: { icon: React.ReactNode; label: string; value: string; color?: string }) => (
+  <div className={`border border-${color}-200 rounded-lg p-2.5 bg-${color}-50/50 flex items-center gap-2.5 min-w-0`}>
+    <div className={`w-8 h-8 rounded-md bg-${color}-100 flex items-center justify-center text-${color}-700 shrink-0`}>
+      {icon}
+    </div>
+    <div className="min-w-0">
+      <p className="text-[10px] text-muted-foreground truncate">{label}</p>
+      <p className="text-sm font-bold text-foreground">{value}</p>
+    </div>
+  </div>
+);
+
+export const MockupTable = ({ headers, rows }: { headers: string[]; rows: string[][] }) => (
+  <div className="border border-emerald-200 rounded-lg overflow-hidden my-3 text-[10px]">
+    <table className="w-full">
+      <thead>
+        <tr className="bg-emerald-50">
+          {headers.map((h, i) => (
+            <th key={i} className="px-2 py-1.5 text-left font-semibold text-emerald-800 border-b border-emerald-200">{h}</th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((row, ri) => (
+          <tr key={ri} className={ri % 2 === 1 ? "bg-emerald-50/30" : ""}>
+            {row.map((cell, ci) => (
+              <td key={ci} className="px-2 py-1 text-foreground border-b border-emerald-100">{cell}</td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+);

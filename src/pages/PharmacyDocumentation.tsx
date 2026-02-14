@@ -74,7 +74,7 @@ const PharmacyDocumentation = () => {
           .no-print { display: none !important; }
           .print-container { padding: 0 !important; background: white !important; }
           .proposal-page {
-            width: 210mm; min-height: 297mm; page-break-after: always;
+            width: 210mm; height: 297mm; overflow: hidden; page-break-after: always;
             page-break-inside: avoid; background: white !important;
             box-shadow: none !important; margin: 0 !important; border-radius: 0 !important;
           }

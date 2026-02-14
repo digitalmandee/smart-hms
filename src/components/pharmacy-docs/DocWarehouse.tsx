@@ -1,4 +1,4 @@
-import { DocPageWrapper, SectionTitle, FeatureList, SubSection, StepList, TipBox } from "./DocPageWrapper";
+import { DocPageWrapper, SectionTitle, FeatureList, SubSection, TipBox, ScreenMockup } from "./DocPageWrapper";
 import { Warehouse } from "lucide-react";
 
 export const DocWarehouse = () => (
@@ -9,22 +9,32 @@ export const DocWarehouse = () => (
       subtitle="Multi-store inventory isolation with inter-store transfer workflows"
     />
 
+    <ScreenMockup title="Inter-Store Transfer Workflow">
+      <div className="flex items-center justify-between text-[9px] px-2">
+        {[
+          ["📋", "Request", "Draft"],
+          ["✅", "Approve", "Approved"],
+          ["📦", "Dispatch", "In Transit"],
+          ["🏪", "Receive", "Completed"],
+        ].map(([icon, label, status], i) => (
+          <div key={label} className="flex items-center gap-0">
+            <div className="text-center">
+              <div className="w-10 h-10 rounded-full bg-emerald-100 border-2 border-emerald-500 flex items-center justify-center text-base mx-auto">{icon}</div>
+              <p className="font-bold text-foreground mt-1">{label}</p>
+              <p className="text-muted-foreground">{status}</p>
+            </div>
+            {i < 3 && <div className="w-8 h-0.5 bg-emerald-300 mx-1 mt-[-12px]" />}
+          </div>
+        ))}
+      </div>
+    </ScreenMockup>
+
     <SubSection title="Creating & Managing Warehouses">
       <FeatureList items={[
         "Create multiple warehouses: Main Pharmacy, Cold Storage, Sub-Store, etc.",
         "Each warehouse has: Name, Code, Location, Manager, Contact info",
-        "Assign a Store Manager who gets auto-filtered dashboard access",
-        "Activate/deactivate warehouses without losing historical data",
         "Warehouse-specific inventory — stock is isolated per store",
-      ]} />
-    </SubSection>
-
-    <SubSection title="Inter-Store Transfer Workflow">
-      <StepList steps={[
-        "Request — Source store creates a transfer request (Draft status)",
-        "Approve — Destination store manager reviews and approves the request",
-        "Dispatch — Source store picks, packs, and dispatches items (stock deducted via FIFO)",
-        "Receive — Destination store confirms receipt (stock added to destination)",
+        "Activate/deactivate warehouses without losing historical data",
       ]} />
     </SubSection>
 
@@ -33,8 +43,7 @@ export const DocWarehouse = () => (
         "Each transfer assigned unique number: TRF-YYYYMMDD-XXXX",
         "Full lifecycle tracking with status indicators at each stage",
         "Batch and expiry information preserved across transfers",
-        "Transfer history with filters: date, status, source/destination store",
-        "Stock movement entries created for both source (Transfer Out) and destination (Transfer In)",
+        "Stock movements created for both source (Out) and destination (In)",
       ]} />
     </SubSection>
 
@@ -43,7 +52,6 @@ export const DocWarehouse = () => (
         "All inventory pages support store filtering via the global Store Selector",
         "POS terminal operates within the context of the assigned store",
         "Reports can be run per-store or aggregated across all stores",
-        "GRN/Stock entries are tagged to the receiving store",
       ]} />
     </SubSection>
 

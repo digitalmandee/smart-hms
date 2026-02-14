@@ -1,4 +1,4 @@
-import { DocPageWrapper, SectionTitle, FeatureList, SubSection, StepList, TipBox } from "./DocPageWrapper";
+import { DocPageWrapper, SectionTitle, FeatureList, SubSection, StepList, TipBox, ScreenMockup } from "./DocPageWrapper";
 import { Clock } from "lucide-react";
 
 export const DocSessions = () => (
@@ -9,22 +9,36 @@ export const DocSessions = () => (
       subtitle="Daily session management, transaction tracking, and receipt reprinting"
     />
 
+    <ScreenMockup title="Session Summary">
+      <div className="grid grid-cols-3 gap-2 text-[10px]">
+        <div className="text-center border border-emerald-200 rounded p-2 bg-emerald-50/50">
+          <p className="text-muted-foreground">Total Sales</p>
+          <p className="text-sm font-bold text-emerald-700">₹ 24,580</p>
+        </div>
+        <div className="text-center border border-emerald-200 rounded p-2 bg-emerald-50/50">
+          <p className="text-muted-foreground">Transactions</p>
+          <p className="text-sm font-bold text-foreground">38</p>
+        </div>
+        <div className="text-center border border-emerald-200 rounded p-2 bg-emerald-50/50">
+          <p className="text-muted-foreground">Cash Diff.</p>
+          <p className="text-sm font-bold text-green-600">₹ 0.00 ✓</p>
+        </div>
+      </div>
+    </ScreenMockup>
+
     <SubSection title="Session Management">
       <StepList steps={[
         "Open a new session at the start of each shift with opening cash balance",
         "All POS transactions within the shift are linked to the active session",
         "Close session at end of shift — enter actual cash count for reconciliation",
         "System calculates expected vs. actual cash and flags discrepancies",
-        "Session summary shows total sales, refunds, and payment method breakdown",
       ]} />
     </SubSection>
 
     <SubSection title="Transaction Listing">
       <FeatureList items={[
         "View all transactions with date/time, receipt number, and total amount",
-        "Filter by Date Range to view specific periods",
-        "Filter by Status: Completed, Refunded, Partially Refunded, Voided",
-        "Filter by Payment Method: Cash, Card, Mobile Wallet, Credit",
+        "Filter by Date Range, Status, and Payment Method",
         "Search by receipt number or patient name for quick lookup",
       ]} />
     </SubSection>
@@ -32,18 +46,14 @@ export const DocSessions = () => (
     <SubSection title="Transaction Detail View">
       <FeatureList items={[
         "Full itemized breakdown: medicine, quantity, unit price, line total",
-        "Applied discounts and tax amounts per line and overall",
-        "Payment details: method, amount received, change given",
-        "Patient and cashier information",
-        "Linked prescription reference (if applicable)",
-        "Timestamp and session information",
+        "Applied discounts, tax amounts, payment details, and change given",
+        "Patient and cashier info, linked prescription reference",
       ]} />
     </SubSection>
 
     <SubSection title="Receipt Reprint">
       <FeatureList items={[
         "Reprint any historical receipt from the transaction detail page",
-        "Receipt format matches the original with current header/footer settings",
         "Useful for patient insurance claims and record-keeping",
       ]} />
     </SubSection>
