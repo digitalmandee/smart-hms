@@ -1,60 +1,64 @@
 
 
-# Fix Icons and Numbers Rendering in PDF Download
+# Fix PDF Rendering — Replace CSS Variables with Hardcoded Colors
 
 ## Problem
-The `html2canvas` library cannot properly render inline SVG elements. Every Lucide React icon (Clock, CheckCircle, AlertTriangle, BarChart3, etc.) and the HealthOS24 logo SVG appear broken, empty, or invisible in the downloaded PDF. This affects all 18 documentation pages.
+Two rendering issues are causing broken content in the downloaded PDF:
 
-## Root Cause
-Lucide React icons render as inline `<svg>` elements in the DOM. The `html2canvas` library has well-documented limitations with SVG rendering -- it often fails to capture them, producing blank boxes or missing graphics.
+1. **CSS custom properties**: Tailwind classes like `text-foreground`, `text-muted-foreground`, `bg-card`, `bg-background`, `border-border` all resolve to `hsl(var(--something))` at runtime. `html2canvas` cannot reliably resolve CSS custom properties, causing text to become invisible and backgrounds to render incorrectly across all 18 pages.
+
+2. **Dynamic Tailwind classes**: The `InfoCard` component builds class names with template literals (e.g., ``border-${color}-200``). Tailwind's JIT compiler cannot detect these at build time, so the CSS rules are never generated. These elements get no styling at all.
 
 ## Solution
-Replace all Lucide SVG icons in the documentation components with Unicode/emoji text equivalents that `html2canvas` can reliably capture. The visual appearance on-screen will remain clean and professional.
+Replace all CSS-variable-based Tailwind classes in the pharmacy-docs components with hardcoded color values. Since these components are **only used for documentation PDF generation** (not the main app UI), using explicit colors is safe and ensures reliable rendering.
 
 ## Changes
 
-### 1. Update `DocPageWrapper.tsx` -- SectionTitle and InfoCard
-Replace the `icon` prop (currently receives Lucide SVG components) with a `string` type that accepts emoji/Unicode characters instead.
+### 1. `DocPageWrapper.tsx` — Fix all shared components
 
-| Component | Before (SVG) | After (Unicode) |
-|---|---|---|
-| SectionTitle icon | `<LayoutDashboard>` | "📊" |
-| InfoCard icon | `<Clock>`, `<CheckCircle>` | "⏱", "✓" |
+| CSS Variable Class | Hardcoded Replacement |
+|---|---|
+| `text-foreground` | `text-gray-900` |
+| `text-muted-foreground` | `text-gray-500` |
+| `bg-card` | `bg-white` |
+| `bg-muted` | `bg-gray-100` |
+| `border-border` | `border-gray-200` |
+| `border-muted` | `border-gray-200` |
 
-### 2. Update all 17 Doc components to use emoji icons
+Fix `InfoCard` dynamic classes by replacing template literals with hardcoded emerald classes (since all InfoCards in the docs use emerald).
 
-| File | SVG Icon | Replacement |
-|---|---|---|
-| DocDashboard.tsx | LayoutDashboard, Clock, CheckCircle, AlertTriangle, Calendar | 📊, ⏱, ✅, ⚠, 📅 |
-| DocMedicineCatalog.tsx | Pill | 💊 |
-| DocInventory.tsx | Package | 📦 |
-| DocStockEntry.tsx | PackagePlus | 📥 |
-| DocPOSLayout.tsx | Monitor | 🖥 |
-| DocPOSCart.tsx | ShoppingCart | 🛒 |
-| DocPOSPayment.tsx | CreditCard | 💳 |
-| DocSessions.tsx | Clock | ⏱ |
-| DocDispensing.tsx | ClipboardList | 📋 |
-| DocReturns.tsx | RotateCcw | 🔄 |
-| DocStockMovements.tsx | ArrowRightLeft | ↔ |
-| DocWarehouse.tsx | Warehouse | 🏭 |
-| DocProcurement.tsx | FileText | 📄 |
-| DocReports.tsx | BarChart3 | 📊 |
-| DocReportsPage2.tsx | BarChart3 | 📊 |
-| DocSettings.tsx | Settings | ⚙ |
-| DocTableOfContents.tsx | BookOpen | 📖 |
+### 2. All 18 Doc Component Files
 
-### 3. Update `DocPageWrapper.tsx` component signatures
-- Change `SectionTitle` icon prop from `React.ReactNode` to `string` and render it as text inside the styled div
-- Change `InfoCard` icon prop from `React.ReactNode` to `string` and render as text
-- This ensures no SVG elements exist anywhere in the print-rendered pages
+Replace every instance of CSS-variable Tailwind classes with hardcoded equivalents:
+- `DocCoverPage.tsx` — `text-foreground`, `text-muted-foreground`, `bg-card`, `border-border`, `bg-muted`, `bg-background`
+- `DocTableOfContents.tsx` — `text-foreground`, `text-muted-foreground`, `border-muted`
+- `DocDashboard.tsx` through `DocSettings.tsx` — same pattern in all files
 
-### 4. Fix HealthOS24Logo in header/footer
-The `HealthOS24Logo` component also uses an inline SVG. For the documentation pages, replace it with a simple text-based logo: "HealthOS 24" styled with the same emerald branding but using pure text (no SVG).
+### 3. Files to edit (19 total)
+- `src/components/pharmacy-docs/DocPageWrapper.tsx`
+- `src/components/pharmacy-docs/DocCoverPage.tsx`
+- `src/components/pharmacy-docs/DocTableOfContents.tsx`
+- `src/components/pharmacy-docs/DocDashboard.tsx`
+- `src/components/pharmacy-docs/DocMedicineCatalog.tsx`
+- `src/components/pharmacy-docs/DocInventory.tsx`
+- `src/components/pharmacy-docs/DocStockEntry.tsx`
+- `src/components/pharmacy-docs/DocPOSLayout.tsx`
+- `src/components/pharmacy-docs/DocPOSCart.tsx`
+- `src/components/pharmacy-docs/DocPOSPayment.tsx`
+- `src/components/pharmacy-docs/DocSessions.tsx`
+- `src/components/pharmacy-docs/DocDispensing.tsx`
+- `src/components/pharmacy-docs/DocReturns.tsx`
+- `src/components/pharmacy-docs/DocStockMovements.tsx`
+- `src/components/pharmacy-docs/DocWarehouse.tsx`
+- `src/components/pharmacy-docs/DocProcurement.tsx`
+- `src/components/pharmacy-docs/DocReports.tsx`
+- `src/components/pharmacy-docs/DocReportsPage2.tsx`
+- `src/components/pharmacy-docs/DocSettings.tsx`
 
-## Technical Details
-- All changes are limited to `src/components/pharmacy-docs/` directory
-- No changes to the actual application components
-- The `html2canvas` capture settings remain the same
-- Emojis render consistently across browsers and are fully supported by `html2canvas`
-- The on-screen documentation will look slightly different (emoji vs SVG icons) but equally professional
+## Technical Notes
+- Changes are isolated to the `src/components/pharmacy-docs/` directory only
+- No changes to the main application components or themes
+- The on-screen documentation appearance will look nearly identical (same gray tones)
+- `html2canvas` handles standard CSS color values (like `#1f2937`, Tailwind's `gray-900`) perfectly
+- This eliminates the CSS variable dependency entirely for PDF rendering
 
