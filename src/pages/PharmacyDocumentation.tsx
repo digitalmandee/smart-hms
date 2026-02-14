@@ -93,6 +93,7 @@ const PharmacyDocumentation = () => {
         el.style.borderRadius = '0';
         el.style.boxShadow = 'none';
 
+        el.scrollIntoView({ behavior: 'instant' as ScrollBehavior });
         await new Promise(r => setTimeout(r, 200));
 
         const canvas = await html2canvas(el, {
@@ -101,10 +102,26 @@ const PharmacyDocumentation = () => {
           allowTaint: true,
           backgroundColor: "#ffffff",
           logging: false,
-          width: 794,
-          height: 1123,
           windowWidth: 794,
           windowHeight: 1123,
+          onclone: (clonedDoc: Document, clonedEl: HTMLElement) => {
+            const rootStyles = getComputedStyle(document.documentElement);
+            for (let j = 0; j < rootStyles.length; j++) {
+              const prop = rootStyles[j];
+              if (prop.startsWith('--')) {
+                clonedDoc.documentElement.style.setProperty(prop, rootStyles.getPropertyValue(prop));
+              }
+            }
+            clonedEl.querySelectorAll('[class*="sm:block"]').forEach((e) => {
+              e.classList.remove('hidden');
+            });
+            clonedEl.querySelectorAll('img').forEach((img: HTMLImageElement) => {
+              if (!img.width && img.naturalWidth) {
+                img.width = img.naturalWidth;
+                img.height = img.naturalHeight;
+              }
+            });
+          }
         });
 
         Object.assign(el.style, origStyles);
