@@ -1,80 +1,101 @@
 
 
-# Fix Pharmacy PDF: Add `onclone` CSS Variable Copy and `scrollIntoView`
+# Fix Pharmacy PDF: Match the Working PricingProposal.tsx Pattern Exactly
 
-## Problem
-The PDF pages are still rendering with distorted layouts because `html2canvas` clones the DOM into an iframe but loses CSS custom properties (Tailwind theme variables like `--background`, `--foreground`, etc.) and responsive class states. This causes colors, spacing, and visibility to break in the captured output.
+## Root Cause
+
+The Pharmacy PDF code has diverged from the working PricingProposal.tsx pattern. The working proposal uses `width` and `height` in the html2canvas options (which tell html2canvas exactly what area to capture) and does NOT use `onclone` or `scrollIntoView`. The pharmacy code removed `width`/`height` and added `onclone` + `scrollIntoView`, which is causing the distortion.
 
 ## Solution
-Apply the proven fix pattern: add an `onclone` callback to `html2canvas` that copies all CSS custom properties to the cloned document, fixes responsive visibility classes, and scroll each page into view before capture.
+
+Make the Pharmacy `handleDownloadPDF` an exact copy of the working PricingProposal.tsx logic. No experimentation -- just replicate what already works.
 
 ## File: `src/pages/PharmacyDocumentation.tsx`
 
-### Changes to `handleDownloadPDF`:
+### Replace `handleDownloadPDF` with the exact PricingProposal pattern:
 
-1. **Scroll each page into view** before capturing — ensures the browser has fully painted it
-2. **Add `onclone` callback** to the `html2canvas` call that:
-   - Copies ALL CSS custom properties (`--*`) from the real `document.documentElement` to the cloned document root
-   - Removes `hidden` class from any elements that have `sm:block` (since capture viewport is 794px which may trigger mobile breakpoint)
-   - Sets explicit `width`/`height` on images to prevent layout shift
-3. **Remove forced `width`/`height` from html2canvas options** — let the element's own CSS dimensions (already set to 794x1123 via inline overrides) control the size, avoiding double-constraint conflicts
+1. Remove `scrollIntoView` call
+2. Remove `onclone` callback entirely
+3. Add back `width: 794` and `height: 1123` to html2canvas options
+4. Use `scale: 2` instead of `scale: 3` (matches working code)
+5. Use JPEG quality `0.95` instead of `0.98` (matches working code)
 
-### Updated capture loop (replaces lines 78-115):
+### The updated function will be:
 
-```text
-for (let i = 0; i < pageElements.length; i++) {
-  const el = pageElements[i] as HTMLElement;
+```
+const handleDownloadPDF = useCallback(async () => {
+    setIsDownloading(true);
+    setIsPrintMode(true);
 
-  // Save + force A4 dimensions
-  const origStyles = { ... };  // same as current
-  el.style.width = '794px';
-  el.style.height = '1123px';
-  // ... same dimension overrides as current
+    try {
+      await document.fonts.ready;
+      await new Promise(r => setTimeout(r, 800));
 
-  // Scroll into view so browser paints it
-  el.scrollIntoView({ behavior: 'instant' });
-  await new Promise(r => setTimeout(r, 200));
+      const container = printContainerRef.current;
+      if (!container) return;
 
-  const canvas = await html2canvas(el, {
-    scale: 3,
-    useCORS: true,
-    allowTaint: true,
-    backgroundColor: "#ffffff",
-    logging: false,
-    windowWidth: 794,
-    windowHeight: 1123,
-    onclone: (clonedDoc, clonedEl) => {
-      // Copy CSS custom properties to cloned document
-      const rootStyles = getComputedStyle(document.documentElement);
-      for (let j = 0; j < rootStyles.length; j++) {
-        const prop = rootStyles[j];
-        if (prop.startsWith('--')) {
-          clonedDoc.documentElement.style.setProperty(
-            prop, rootStyles.getPropertyValue(prop)
-          );
-        }
+      const pageElements = container.querySelectorAll('.proposal-page');
+      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      const pdfWidth = 210;
+      const pdfHeight = 297;
+      const pixelWidth = 794;
+      const pixelHeight = 1123;
+
+      for (let i = 0; i < pageElements.length; i++) {
+        const el = pageElements[i] as HTMLElement;
+
+        const origStyles = {
+          width: el.style.width,
+          height: el.style.height,
+          overflow: el.style.overflow,
+          background: el.style.background,
+          boxShadow: el.style.boxShadow,
+          borderRadius: el.style.borderRadius,
+        };
+
+        el.style.width = `${pixelWidth}px`;
+        el.style.height = `${pixelHeight}px`;
+        el.style.overflow = 'hidden';
+        el.style.background = 'white';
+        el.style.boxShadow = 'none';
+        el.style.borderRadius = '0';
+
+        await new Promise(r => setTimeout(r, 200));
+
+        const canvas = await html2canvas(el, {
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: "#ffffff",
+          logging: false,
+          width: pixelWidth,
+          height: pixelHeight,
+          windowWidth: pixelWidth,
+          windowHeight: pixelHeight,
+        });
+
+        Object.assign(el.style, origStyles);
+
+        const imgData = canvas.toDataURL("image/jpeg", 0.95);
+        if (i > 0) pdf.addPage();
+        pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
       }
 
-      // Fix responsive hidden elements
-      clonedEl.querySelectorAll('[class*="sm:block"]').forEach((e) => {
-        e.classList.remove('hidden');
-      });
-
-      // Ensure images have explicit dimensions
-      clonedEl.querySelectorAll('img').forEach((img) => {
-        if (!img.width && img.naturalWidth) {
-          img.width = img.naturalWidth;
-          img.height = img.naturalHeight;
-        }
-      });
+      pdf.save("HealthOS24-Pharmacy-Documentation.pdf");
+    } catch (error) {
+      console.error("PDF generation failed:", error);
+      alert("PDF generation failed. Please try again.");
+    } finally {
+      setIsPrintMode(false);
+      setIsDownloading(false);
     }
-  });
-
-  Object.assign(el.style, origStyles);
-  // ... add to PDF same as current
-}
+  }, []);
 ```
 
-Key difference: removed `width: 794` and `height: 1123` from html2canvas options (let the element's inline styles control it), and added `onclone` + `scrollIntoView`.
+### What changes vs current code:
+- Removed: `scrollIntoView`, `onclone` callback, `minHeight`/`maxWidth`/`margin` overrides
+- Added back: `width: pixelWidth` and `height: pixelHeight` in html2canvas options
+- Changed: `scale: 3` to `scale: 2`, JPEG quality `0.98` to `0.95`, initial delay `500ms` to `800ms`
+- Simplified: style overrides to match PricingProposal exactly (6 properties instead of 8)
 
-No other files are modified.
+This is a direct copy of the pattern that already works for the Pricing Proposal, which uses the same `.proposal-page` class and same A4 portrait format.
