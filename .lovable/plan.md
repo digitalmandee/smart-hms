@@ -1,48 +1,38 @@
 
 
-# Fix Pharmacy PDF: Replace html2canvas with html-to-image
+# Update Presentation PDF Download to Match Pharmacy Standard
 
-## Problem
-`html2canvas` **re-renders** the DOM from scratch -- it parses every element and draws it onto a canvas. This process loses subtle CSS positioning (bullets shift, text moves outside containers). No amount of options tuning fixes this because the root cause is html2canvas's rendering engine, not our configuration.
+## What's Already Good
+The presentation content is comprehensive with all 32 slides covering every module:
+- Clinical: Patients, Appointments, OPD, Emergency, OT, IPD, Nursing
+- Diagnostics: Laboratory, Radiology, Blood Bank
+- Pharmacy & Retail: Pharmacy, POS
+- Finance: Billing, Doctor Wallet, Compensation, Accounts
+- Operations: Procurement, Inventory, HR, Reports
+- Special slides: Title, Features Overview, OT Dashboard, Workflow, Procurement, Warehouse, Case Studies, Lab Network, Integration, Compliance, Timeline, CTA
 
-## Solution
-Replace `html2canvas` with the **`html-to-image`** library. This library works completely differently:
-- It uses the browser's native **SVG foreignObject** to take a true screenshot of the element
-- The browser itself renders the content (not a JavaScript re-implementation)
-- CSS layout, bullets, text positioning are preserved exactly as you see them on screen
+No content changes needed -- all modules are covered in detail.
 
-This is the "direct PNG to PDF" approach -- each slide gets captured as a PNG exactly as the browser displays it, then assembled into a PDF.
+## What Needs Fixing
+The PDF download in `/presentation` still uses the old `html2canvas` library and `pdf.save()` method, both of which have been identified as problematic:
+- `html2canvas` causes layout distortions (bullets shift, text moves)
+- `pdf.save()` doesn't trigger downloads in the preview iframe
 
-## Changes
+## Technical Changes
 
-### 1. Install `html-to-image` package
-Add the `html-to-image` npm dependency (replaces html2canvas usage in this file).
+### File: `src/pages/Presentation.tsx`
 
-### 2. File: `src/pages/PharmacyDocumentation.tsx`
+1. **Replace import**: Swap `html2canvas` for `toPng` from `html-to-image`
+2. **Update capture logic**: Replace `html2canvas()` call with `toPng()` using browser-native rendering
+3. **Fix download method**: Replace `pdf.save()` with blob-based download (createObjectURL + anchor click)
+4. **Add error handling**: Per-slide try/catch with fallback page on failure
+5. **Optimize timing**: Add proper delays for font loading and page rendering
 
-- Replace `import html2canvas` with `import { toPng } from 'html-to-image'`
-- Rewrite `handleDownloadPDF` to use `toPng()` instead of `html2canvas()`:
+Key capture settings (landscape A4):
+- Pixel dimensions: 1123x794 (landscape)
+- pixelRatio: 1.5 for sharp output without excessive memory use
+- backgroundColor: '#ffffff'
+- Output format: PNG (lossless) instead of JPEG
 
-```text
-for each page element:
-  1. Force inline styles (794x1123px, no shadows/radius)
-  2. Wait 200ms for repaint
-  3. const dataUrl = await toPng(el, {
-       width: 794,
-       height: 1123,
-       pixelRatio: 2,
-       backgroundColor: '#ffffff',
-     });
-  4. Restore original styles
-  5. Add image to PDF page
-```
-
-- The key difference: `toPng` asks the **browser itself** to render the element into an image via SVG foreignObject, so every bullet, border, and text position is identical to what you see on screen.
-
-### Technical Details
-
-- `html-to-image` is lightweight (~5KB) and has no dependencies
-- `pixelRatio: 2` gives sharp output (equivalent to scale: 2)
-- Output is PNG (lossless) so quality is perfect
-- No `onclone`, no `windowWidth`, no DOM re-rendering -- just a direct browser screenshot
+This mirrors the exact pattern already working in the Pharmacy Documentation page.
 
