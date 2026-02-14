@@ -1,101 +1,48 @@
 
 
-# Fix Pharmacy PDF: Match the Working PricingProposal.tsx Pattern Exactly
+# Fix Pharmacy PDF: Replace html2canvas with html-to-image
 
-## Root Cause
-
-The Pharmacy PDF code has diverged from the working PricingProposal.tsx pattern. The working proposal uses `width` and `height` in the html2canvas options (which tell html2canvas exactly what area to capture) and does NOT use `onclone` or `scrollIntoView`. The pharmacy code removed `width`/`height` and added `onclone` + `scrollIntoView`, which is causing the distortion.
+## Problem
+`html2canvas` **re-renders** the DOM from scratch -- it parses every element and draws it onto a canvas. This process loses subtle CSS positioning (bullets shift, text moves outside containers). No amount of options tuning fixes this because the root cause is html2canvas's rendering engine, not our configuration.
 
 ## Solution
+Replace `html2canvas` with the **`html-to-image`** library. This library works completely differently:
+- It uses the browser's native **SVG foreignObject** to take a true screenshot of the element
+- The browser itself renders the content (not a JavaScript re-implementation)
+- CSS layout, bullets, text positioning are preserved exactly as you see them on screen
 
-Make the Pharmacy `handleDownloadPDF` an exact copy of the working PricingProposal.tsx logic. No experimentation -- just replicate what already works.
+This is the "direct PNG to PDF" approach -- each slide gets captured as a PNG exactly as the browser displays it, then assembled into a PDF.
 
-## File: `src/pages/PharmacyDocumentation.tsx`
+## Changes
 
-### Replace `handleDownloadPDF` with the exact PricingProposal pattern:
+### 1. Install `html-to-image` package
+Add the `html-to-image` npm dependency (replaces html2canvas usage in this file).
 
-1. Remove `scrollIntoView` call
-2. Remove `onclone` callback entirely
-3. Add back `width: 794` and `height: 1123` to html2canvas options
-4. Use `scale: 2` instead of `scale: 3` (matches working code)
-5. Use JPEG quality `0.95` instead of `0.98` (matches working code)
+### 2. File: `src/pages/PharmacyDocumentation.tsx`
 
-### The updated function will be:
+- Replace `import html2canvas` with `import { toPng } from 'html-to-image'`
+- Rewrite `handleDownloadPDF` to use `toPng()` instead of `html2canvas()`:
 
-```
-const handleDownloadPDF = useCallback(async () => {
-    setIsDownloading(true);
-    setIsPrintMode(true);
-
-    try {
-      await document.fonts.ready;
-      await new Promise(r => setTimeout(r, 800));
-
-      const container = printContainerRef.current;
-      if (!container) return;
-
-      const pageElements = container.querySelectorAll('.proposal-page');
-      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-      const pdfWidth = 210;
-      const pdfHeight = 297;
-      const pixelWidth = 794;
-      const pixelHeight = 1123;
-
-      for (let i = 0; i < pageElements.length; i++) {
-        const el = pageElements[i] as HTMLElement;
-
-        const origStyles = {
-          width: el.style.width,
-          height: el.style.height,
-          overflow: el.style.overflow,
-          background: el.style.background,
-          boxShadow: el.style.boxShadow,
-          borderRadius: el.style.borderRadius,
-        };
-
-        el.style.width = `${pixelWidth}px`;
-        el.style.height = `${pixelHeight}px`;
-        el.style.overflow = 'hidden';
-        el.style.background = 'white';
-        el.style.boxShadow = 'none';
-        el.style.borderRadius = '0';
-
-        await new Promise(r => setTimeout(r, 200));
-
-        const canvas = await html2canvas(el, {
-          scale: 2,
-          useCORS: true,
-          allowTaint: true,
-          backgroundColor: "#ffffff",
-          logging: false,
-          width: pixelWidth,
-          height: pixelHeight,
-          windowWidth: pixelWidth,
-          windowHeight: pixelHeight,
-        });
-
-        Object.assign(el.style, origStyles);
-
-        const imgData = canvas.toDataURL("image/jpeg", 0.95);
-        if (i > 0) pdf.addPage();
-        pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
-      }
-
-      pdf.save("HealthOS24-Pharmacy-Documentation.pdf");
-    } catch (error) {
-      console.error("PDF generation failed:", error);
-      alert("PDF generation failed. Please try again.");
-    } finally {
-      setIsPrintMode(false);
-      setIsDownloading(false);
-    }
-  }, []);
+```text
+for each page element:
+  1. Force inline styles (794x1123px, no shadows/radius)
+  2. Wait 200ms for repaint
+  3. const dataUrl = await toPng(el, {
+       width: 794,
+       height: 1123,
+       pixelRatio: 2,
+       backgroundColor: '#ffffff',
+     });
+  4. Restore original styles
+  5. Add image to PDF page
 ```
 
-### What changes vs current code:
-- Removed: `scrollIntoView`, `onclone` callback, `minHeight`/`maxWidth`/`margin` overrides
-- Added back: `width: pixelWidth` and `height: pixelHeight` in html2canvas options
-- Changed: `scale: 3` to `scale: 2`, JPEG quality `0.98` to `0.95`, initial delay `500ms` to `800ms`
-- Simplified: style overrides to match PricingProposal exactly (6 properties instead of 8)
+- The key difference: `toPng` asks the **browser itself** to render the element into an image via SVG foreignObject, so every bullet, border, and text position is identical to what you see on screen.
 
-This is a direct copy of the pattern that already works for the Pricing Proposal, which uses the same `.proposal-page` class and same A4 portrait format.
+### Technical Details
+
+- `html-to-image` is lightweight (~5KB) and has no dependencies
+- `pixelRatio: 2` gives sharp output (equivalent to scale: 2)
+- Output is PNG (lossless) so quality is perfect
+- No `onclone`, no `windowWidth`, no DOM re-rendering -- just a direct browser screenshot
+
