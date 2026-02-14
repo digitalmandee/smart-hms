@@ -1,69 +1,79 @@
 
 
-# Fix: Force html2canvas to Capture at Full A4 Resolution
+# Fix PDF: Render Pages in Offscreen Container
 
-## Root Cause
+## Why Previous Fixes Failed
 
-The preview iframe viewport is narrower than 794px. Even though we set `pageEl.style.width = '794px'`, the browser constrains the element to the available viewport width (~488px). `html2canvas` then captures this squeezed layout, producing distorted output.
+All previous attempts tried to capture the `.proposal-page` element **inside the narrow preview iframe**. The element is constrained by its parent container width (~488px in the Lovable preview). Setting `windowWidth: 1200` on `html2canvas` only affects how it interprets media queries -- it does NOT resize the actual DOM element. The element remains squeezed, and `html2canvas` captures the squeezed layout.
 
-## Solution
+## Solution: Offscreen Rendering Container
 
-Use `html2canvas`'s `windowWidth` and `windowHeight` options to simulate a full-width viewport during capture. This forces `html2canvas` to render the element as if it were in a 794px-wide window, regardless of the actual iframe size.
+Create a temporary, absolutely-positioned offscreen `div` appended directly to `document.body`. Render each page component into this container at exact A4 pixel dimensions (794x1123px). Since the container is positioned off-screen with explicit dimensions and no parent constraints, `html2canvas` captures the full-width layout perfectly.
 
-## Changes -- Single File: `src/pages/PharmacyDocumentation.tsx`
-
-### Update the `html2canvas` call (around line 94)
-
-Add `windowWidth: 1200` and `windowHeight: 1600` to the html2canvas options object:
+## How It Works
 
 ```text
-Before:
-  const canvas = await html2canvas(pageEl, {
-    scale: 3,
-    useCORS: true,
-    allowTaint: true,
-    backgroundColor: "#ffffff",
-    logging: false,
-    width: 794,
-    height: 1123,
-  });
-
-After:
-  const canvas = await html2canvas(pageEl, {
-    scale: 3,
-    useCORS: true,
-    allowTaint: true,
-    backgroundColor: "#ffffff",
-    logging: false,
-    width: 794,
-    height: 1123,
-    windowWidth: 1200,
-    windowHeight: 1600,
-  });
+1. Create a div: position absolute, left -9999px, width 794px, height 1123px
+2. Append it to document.body (bypasses all parent width constraints)
+3. For each page (0-17):
+   a. Use ReactDOM.createRoot to render the page component into the offscreen div
+   b. Wait for fonts + layout to settle
+   c. Capture with html2canvas (the div has full 794px width -- no squeezing)
+   d. Store canvas
+   e. Unmount the React root
+4. Remove the offscreen div
+5. Compile all canvases into PDF with jsPDF
 ```
 
-### Also set `minWidth` on the page element (around line 86)
+## Technical Details
 
-To ensure the element itself doesn't collapse below 794px:
+### File: `src/pages/PharmacyDocumentation.tsx`
 
+**New imports:**
+- `import { createRoot } from "react-dom/client"` (to render components into the offscreen container)
+
+**Replace `handleDownloadPDF` logic:**
+
+1. Create offscreen container:
 ```text
-Before:
-  pageEl.style.width = '794px';
-  pageEl.style.height = '1123px';
-
-After:
-  pageEl.style.width = '794px';
-  pageEl.style.minWidth = '794px';
-  pageEl.style.height = '1123px';
+const offscreen = document.createElement('div');
+offscreen.style.position = 'absolute';
+offscreen.style.left = '-9999px';
+offscreen.style.top = '0';
+offscreen.style.width = '794px';
+offscreen.style.height = '1123px';
+offscreen.style.overflow = 'hidden';
+offscreen.style.background = 'white';
+document.body.appendChild(offscreen);
 ```
 
-And save/restore `minWidth` in `origStyles`.
+2. Copy stylesheets to ensure Tailwind classes resolve correctly (the offscreen div is in the same document, so styles apply automatically).
 
-### Why This Works
+3. For each page, render the component into the offscreen div:
+```text
+for (let i = 0; i < pages.length; i++) {
+  const PageComponent = pages[i].component;
+  const root = createRoot(offscreen);
+  root.render(<PageComponent />);
+  // Wait for render + fonts
+  await new Promise(r => setTimeout(r, 800));
+  // Capture
+  const canvas = await html2canvas(offscreen, { scale: 3, ... });
+  capturedCanvases.push(canvas);
+  root.unmount();
+}
+```
 
-- `windowWidth: 1200` tells html2canvas to pretend the browser window is 1200px wide, giving the 794px element plenty of room
-- `minWidth: '794px'` prevents CSS from collapsing the element below its target width
-- Combined, these ensure the capture matches exactly what users see on a desktop browser, regardless of the preview iframe size
+4. Clean up and generate PDF as before.
 
-No other files need changes.
+**Remove:** The current approach of modifying the visible page's styles (width, minWidth, boxShadow overrides) and relying on `flushSync` page cycling. The visible page no longer participates in capture at all -- the user sees a loading state while pages render offscreen.
+
+### No Other Files Changed
+All 18 page components and `DocPageWrapper.tsx` remain exactly as they are. The offscreen container gives them full A4 width to render naturally.
+
+## Why This Will Work
+- The offscreen div is a direct child of `document.body` with `width: 794px` -- no parent constraints
+- Same document means all CSS/Tailwind classes resolve identically
+- `html2canvas` captures a properly laid-out 794px-wide element
+- The visible UI stays untouched during capture (no flickering pages)
 
