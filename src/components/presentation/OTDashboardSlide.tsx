@@ -22,7 +22,7 @@ export const OTDashboardSlide = () => {
           </div>
         </div>
         <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">
-          23 / 31
+          23 / 32
         </span>
       </div>
 
@@ -176,8 +176,8 @@ export const OTDashboardSlide = () => {
 
       {/* Footer */}
       <div className="mt-6 pt-4 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
-        <span>HealthOS - Hospital Management System</span>
-        <span>smarthms.devmine.co</span>
+        <span>HealthOS 24 - Hospital Management System</span>
+        <span>healthos24.com</span>
       </div>
     </div>
   );

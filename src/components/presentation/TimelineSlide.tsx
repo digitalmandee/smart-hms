@@ -72,7 +72,7 @@ export const TimelineSlide = () => {
           </div>
         </div>
         <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">
-          30 / 31
+          31 / 32
         </span>
       </div>
 
@@ -168,8 +168,8 @@ export const TimelineSlide = () => {
 
       {/* Footer */}
       <div className="mt-4 pt-4 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
-        <span>HealthOS - Hospital Management System</span>
-        <span>smarthms.devmine.co</span>
+        <span>HealthOS 24 - Hospital Management System</span>
+        <span>healthos24.com</span>
       </div>
     </div>
   );
