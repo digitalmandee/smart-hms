@@ -31,8 +31,18 @@ import {
 import { useMedicines } from "@/hooks/useMedicines";
 import { useAddStock } from "@/hooks/usePharmacy";
 import { useAuth } from "@/contexts/AuthContext";
+import { useStores } from "@/hooks/useStores";
+import { useStoreRacks, useRackAssignments } from "@/hooks/useStoreRacks";
+import { RackSelector } from "@/components/pharmacy/RackSelector";
 import { ArrowLeft, Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const stockSchema = z.object({
   medicine_id: z.string().min(1, "Please select a medicine"),
@@ -52,8 +62,12 @@ export default function StockEntryPage() {
   const { profile } = useAuth();
   const [medicineSearch, setMedicineSearch] = useState("");
   const [open, setOpen] = useState(false);
+  const [selectedStoreId, setSelectedStoreId] = useState<string>("");
+  const [selectedRackId, setSelectedRackId] = useState<string>("");
 
   const { data: medicines } = useMedicines(medicineSearch);
+  const { data: stores } = useStores(undefined, "pharmacy");
+  const { data: rackAssignments } = useRackAssignments();
   const addStock = useAddStock();
 
   const form = useForm<StockFormData>({
@@ -70,9 +84,23 @@ export default function StockEntryPage() {
     },
   });
 
-  const selectedMedicine = medicines?.find(
-    (m) => m.id === form.watch("medicine_id")
+  const medicineId = form.watch("medicine_id");
+  const selectedMedicine = medicines?.find((m) => m.id === medicineId);
+
+  // Auto-suggest rack based on existing assignment
+  const suggestedAssignment = rackAssignments?.find(
+    (a) => a.medicine_id === medicineId && (!selectedStoreId || a.store_id === selectedStoreId)
   );
+
+  // When medicine changes, auto-fill store/rack from assignment
+  const prevMedicineIdRef = useState<string>("");
+  if (medicineId && medicineId !== prevMedicineIdRef[0]) {
+    prevMedicineIdRef[1](medicineId);
+    if (suggestedAssignment) {
+      if (!selectedStoreId) setSelectedStoreId(suggestedAssignment.store_id);
+      setSelectedRackId(suggestedAssignment.rack_id);
+    }
+  }
 
   const onSubmit = (data: StockFormData) => {
     if (!profile?.branch_id) {
@@ -91,7 +119,7 @@ export default function StockEntryPage() {
         supplier_name: data.supplier_name || null,
         reorder_level: data.reorder_level || 10,
         vendor_id: null,
-        store_id: null,
+        store_id: selectedStoreId || null,
       },
       {
         onSuccess: () => navigate("/app/pharmacy/inventory"),
@@ -187,6 +215,33 @@ export default function StockEntryPage() {
                   </FormItem>
                 )}
               />
+
+              <div className="grid gap-6 md:grid-cols-2">
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-medium">Warehouse</label>
+                  <Select value={selectedStoreId || "none"} onValueChange={(v) => { setSelectedStoreId(v === "none" ? "" : v); setSelectedRackId(""); }}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select warehouse" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No warehouse</SelectItem>
+                      {stores?.map((s) => (
+                        <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-medium">Rack Location</label>
+                  <RackSelector
+                    storeId={selectedStoreId || undefined}
+                    value={selectedRackId}
+                    onChange={setSelectedRackId}
+                    placeholder="Select rack (optional)"
+                    disabled={!selectedStoreId}
+                  />
+                </div>
+              </div>
 
               <div className="grid gap-6 md:grid-cols-2">
                 <FormField
