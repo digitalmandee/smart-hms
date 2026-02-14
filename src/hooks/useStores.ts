@@ -36,14 +36,15 @@ export interface CreateStoreData {
   manager_id?: string;
   is_central?: boolean;
   location_info?: Record<string, unknown>;
+  context?: string;
 }
 
-// List all stores for the organization, optionally filtered by branch
-export function useStores(branchId?: string) {
+// List all stores for the organization, optionally filtered by branch and context
+export function useStores(branchId?: string, context?: string) {
   const { profile } = useAuth();
 
   return useQuery({
-    queryKey: ["stores", profile?.organization_id, branchId],
+    queryKey: ["stores", profile?.organization_id, branchId, context],
     queryFn: async () => {
       let query = queryTable("stores")
         .select(`
@@ -58,6 +59,10 @@ export function useStores(branchId?: string) {
 
       if (branchId) {
         query = query.eq("branch_id", branchId);
+      }
+
+      if (context) {
+        query = query.eq("context", context);
       }
 
       const { data, error } = await query;
@@ -156,6 +161,7 @@ export function useCreateStore() {
           manager_id: data.manager_id && data.manager_id !== "none" ? data.manager_id : null,
           is_central: data.is_central || false,
           location_info: data.location_info || {},
+          context: data.context || "hospital",
         })
         .select()
         .single();

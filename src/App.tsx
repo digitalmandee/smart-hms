@@ -144,6 +144,11 @@ import StockMovementsPage from "./pages/app/pharmacy/StockMovementsPage";
 import PharmacyReturnsPage from "./pages/app/pharmacy/PharmacyReturnsPage";
 import PharmacySettingsPage from "./pages/app/pharmacy/PharmacySettingsPage";
 import OTMedicationQueuePage from "./pages/app/pharmacy/OTMedicationQueuePage";
+import PharmacyWarehousesListPage from "./pages/app/pharmacy/WarehousesListPage";
+import PharmacyWarehouseFormPage from "./pages/app/pharmacy/WarehouseFormPage";
+import PharmacyWarehouseDetailPage from "./pages/app/pharmacy/WarehouseDetailPage";
+import PharmacyRackManagementPage from "./pages/app/pharmacy/RackManagementPage";
+import PharmacyRackAssignmentsPage from "./pages/app/pharmacy/RackAssignmentsPage";
 
 // Billing pages
 import BillingDashboard from "./pages/app/billing/BillingDashboard";
@@ -643,6 +648,12 @@ function App() {
               <Route path="pharmacy/returns" element={<PharmacyReturnsPage />} />
               <Route path="pharmacy/ot-queue" element={<OTMedicationQueuePage />} />
               <Route path="pharmacy/settings" element={<PharmacySettingsPage />} />
+              <Route path="pharmacy/warehouses" element={<PharmacyWarehousesListPage />} />
+              <Route path="pharmacy/warehouses/new" element={<PharmacyWarehouseFormPage />} />
+              <Route path="pharmacy/warehouses/:id" element={<PharmacyWarehouseDetailPage />} />
+              <Route path="pharmacy/warehouses/:id/edit" element={<PharmacyWarehouseFormPage />} />
+              <Route path="pharmacy/warehouses/:id/racks" element={<PharmacyRackManagementPage />} />
+              <Route path="pharmacy/rack-assignments" element={<PharmacyRackAssignmentsPage />} />
               
               {/* IPD routes */}
               <Route path="ipd" element={<IPDDashboard />} />
