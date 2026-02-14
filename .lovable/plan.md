@@ -1,161 +1,83 @@
 
 
-# Pharmacy Module Documentation -- Downloadable Guide
+# Enhanced Pharmacy Documentation -- UI Mockups and Print Fix
 
-## Overview
-Create a comprehensive, downloadable A4 documentation document for the standalone Pharmacy module, following the same pattern as the existing Pricing Proposal (`/pricing-proposal`). It will be accessible at `/pharmacy-documentation` and consist of approximately 15-18 pages covering every feature in detail.
+## Problems Identified
 
-## Document Structure (Pages)
+### 1. Empty Pages During Download (36 pages instead of 18)
+The CSS uses `min-height: 297mm` for both screen and print modes. During printing, the browser renders each page at minimum A4 height, but `page-break-after: always` forces a new page after each element. If any page's content slightly overflows, the browser creates a second blank page for the overflow. This doubles the page count from 18 to ~36.
 
-### Page 1: Cover Page
-- "HealthOS 24 Pharmacy Module" title
-- "Complete Operations Guide" subtitle
-- Version, date, and branding
+**Fix:** In print mode, switch from `min-height: 297mm` to `height: 297mm` with `overflow: hidden`, so each component is exactly one A4 page with no overflow triggering extra blank pages.
 
-### Page 2: Table of Contents
-- Numbered section listing with page references for all chapters
+### 2. Text-Heavy UI -- No Visual Representation
+Currently every page is bullet lists and text. For a professional documentation guide, key screens should include inline UI mockups that visually show what the user will see.
 
-### Page 3: Dashboard Overview
-- Explanation of KPI cards (Pending Prescriptions, Dispensed Today, Low Stock, Expiring Soon)
-- Quick Actions (Medicine Catalog, Add Stock, View Inventory)
-- Daily Sales Summary widget
-- Prescription Queue preview
-- Mobile vs Desktop view behavior
+**Fix:** Add a `ScreenMockup` component and inline visual diagrams for 8 key pages. These are styled div-based illustrations (not images) that render reliably in both screen and print/PDF.
 
-### Page 4: Medicine Catalog & Categories
-- Adding/editing medicines (name, generic name, category, dosage form, strength)
-- Category management (create, organize)
-- Medicine search and filtering
+---
 
-### Page 5: Inventory Management
-- Stock levels, batch tracking, expiry dates
-- Search and filter by category, stock status (Low Stock, Expiring)
-- Inventory adjustment modal (manual corrections)
-- Reorder level alerts
-- FIFO/FEFO dispensing logic
+## Changes
 
-### Page 6: Stock Entry (GRN)
-- Adding new stock with batch number, expiry, unit price, selling price
-- Supplier assignment
-- Linking to purchase orders
+### File: `src/components/pharmacy-docs/DocPageWrapper.tsx`
+- Add new `ScreenMockup` component -- a bordered container styled like an app window with a title bar, used to show visual representations of screens
+- Add `InfoCard` component -- a compact card with icon, label, and value for showing KPI-style visuals
+- Add `MockupTable` component -- a mini data table for showing inventory/transaction list mockups
 
-### Page 7: POS Terminal (Part 1 -- Layout & Product Search)
-- Full-screen terminal layout (left panel: products, right panel: cart)
-- Barcode scanning input
-- Product search with category filters
-- Recent products quick-add
-- Keyboard shortcuts (F2 Search, F4 Hold, F12 Checkout, Esc)
+### File: `src/pages/PharmacyDocumentation.tsx`
+- Fix print CSS: change `.proposal-page` in `@media print` from `min-height: 297mm` to `height: 297mm; overflow: hidden`
+- This ensures exactly 18 pages in the PDF output
 
-### Page 8: POS Terminal (Part 2 -- Cart & Checkout)
-- Cart management (quantity, line discounts, remove items)
-- Patient linking (search patient, link MR number)
-- Prescription loading from OPD/IPD queue
-- OT Medication queue integration
-- Order Review screen
-- Hold/Recall transactions
+### File: `src/components/pharmacy-docs/DocDashboard.tsx`
+- Add a row of 4 KPI mockup cards (Pending Rx: 12, Dispensed: 45, Low Stock: 8, Expiring: 3) using `InfoCard`
+- Visual representation of what the dashboard looks like
 
-### Page 9: POS Terminal (Part 3 -- Payment & Receipt)
-- Payment modal (Cash, Card, Mobile Wallet, Split payments)
-- Exact amount button, quick cash denominations
-- Credit/Pay Later option with due date
-- Post to Patient Profile (IPD billing integration)
-- Receipt printing and preview
-- Configurable receipt header/footer
+### File: `src/components/pharmacy-docs/DocPOSLayout.tsx`
+- Add a `ScreenMockup` showing the POS terminal layout: left panel (product grid with search bar) and right panel (cart with totals)
+- Compact visual diagram of the split-screen POS interface
 
-### Page 10: POS Sessions & Transaction History
-- Session management (open/close daily sessions)
-- Transaction listing with filters (date, status, payment method)
-- Transaction detail view with itemized breakdown
-- Receipt reprint capability
+### File: `src/components/pharmacy-docs/DocPOSPayment.tsx`
+- Add a visual mockup of the payment modal showing: total amount, payment method buttons (Cash/Card/Wallet), cash input with Exact button, and change display
 
-### Page 11: Prescription Queue & Dispensing
-- Real-time OPD/IPD prescription queue
-- Priority flagging
-- Dispensing workflow (select batches, verify quantities)
-- Batch selection with FIFO/FEFO
-- Send to POS for billing
-- Prescription history log
+### File: `src/components/pharmacy-docs/DocInventory.tsx`
+- Add a `MockupTable` showing a sample inventory view: 3-4 rows with Medicine, Batch, Qty, Expiry, Status columns
 
-### Page 12: Returns & Refunds
-- Search transaction by receipt number
-- Select items to return (partial or full)
-- Return reason documentation
-- Refund method (Cash Refund or Patient Credit)
-- Automatic inventory restocking
-- Returns tracking with unique RET-XXXX numbers
+### File: `src/components/pharmacy-docs/DocReturns.tsx`
+- Add a visual mockup of the return flow: receipt lookup field, selected items with checkboxes, refund method selector
 
-### Page 13: Stock Movements & Alerts
-- Unified movement log (GRN, Sale, Dispense, Adjustment, Return, Transfer In/Out, Expired, Damaged, Opening)
-- Movement type filtering and date range
-- Stock Alerts page (Low stock notifications, Expiry warnings)
-- Configurable thresholds in Settings
+### File: `src/components/pharmacy-docs/DocReports.tsx`
+- Add a visual mockup of the Reports Hub card grid showing 4 sample report cards with icons
 
-### Page 14: Warehouse Management
-- Creating and managing multiple warehouses
-- Inter-store transfers (Request, Approve, Dispatch, Receive)
-- Transfer tracking with TRF-XXXX numbers
-- Store-aware inventory isolation
+### File: `src/components/pharmacy-docs/DocWarehouse.tsx`
+- Add a visual diagram of the transfer workflow: 4 connected steps (Request, Approve, Dispatch, Receive) with status indicators
 
-### Page 15: Procurement (PO & Suppliers)
-- Supplier/vendor management
-- Purchase Order creation and lifecycle
-- GRN processing and invoice matching
-- Indent-to-PO workflow from sub-stores
+### File: `src/components/pharmacy-docs/DocSessions.tsx`
+- Add a mockup of a session summary card showing sales total, transaction count, and cash reconciliation
 
-### Page 16-17: Reports Hub (29 Reports)
-- **Sales Reports** (11): Daily Sales, Hourly Analysis, Sales by Category, Payment Methods, Discount Analysis, Monthly Comparison, Top Products, Customer Sales, Transaction Log, Refund Rate, Basket Size
-- **Inventory Reports** (9): Stock Valuation, Expiry Report, Low Stock/Reorder, Dead Stock, Stock Movements, Batch-wise Stock, Category Distribution, Stock Aging, Inventory Turnover
-- **Financial Reports** (5): Profit Margin, Returns & Refunds, Credit Sales, Daily Cash Summary, Tax Collection
-- **Procurement Reports** (2): Supplier Purchases, PO Status Pipeline
-- **Operational Reports** (2): Cashier Performance, Peak Hours Heatmap
-- Export capabilities (CSV download, print)
+---
 
-### Page 18: Settings & Configuration
-- Default tax rate
-- Receipt header and footer customization
-- Low stock threshold
-- Expiry alert days
-- Customer name requirement toggle
-- Held transactions toggle
-- Auto-print receipt toggle
-- Controlled substance prescription requirement
+## Visual Mockup Style
 
-## Technical Implementation
+All mockups will use:
+- Rounded border with subtle shadow (`border border-emerald-200 rounded-lg`)
+- Mini title bar with dots (like a browser window chrome)
+- Compact layout that fits within the A4 page alongside existing text content
+- Emerald/teal accent colors consistent with the pharmacy brand
+- Print-safe (no background gradients, uses borders and text)
 
-### New Files to Create
-| File | Purpose |
+---
+
+## Files Modified Summary
+
+| File | Changes |
 |---|---|
-| `src/pages/PharmacyDocumentation.tsx` | Main page with toolbar, pagination, print/download (mirrors `PricingProposal.tsx` pattern) |
-| `src/components/pharmacy-docs/DocCoverPage.tsx` | Cover page |
-| `src/components/pharmacy-docs/DocTableOfContents.tsx` | TOC page |
-| `src/components/pharmacy-docs/DocDashboard.tsx` | Dashboard overview |
-| `src/components/pharmacy-docs/DocMedicineCatalog.tsx` | Medicine & categories |
-| `src/components/pharmacy-docs/DocInventory.tsx` | Inventory management |
-| `src/components/pharmacy-docs/DocStockEntry.tsx` | Stock entry / GRN |
-| `src/components/pharmacy-docs/DocPOSLayout.tsx` | POS Terminal part 1 |
-| `src/components/pharmacy-docs/DocPOSCart.tsx` | POS Terminal part 2 |
-| `src/components/pharmacy-docs/DocPOSPayment.tsx` | POS Terminal part 3 |
-| `src/components/pharmacy-docs/DocSessions.tsx` | Sessions & transactions |
-| `src/components/pharmacy-docs/DocDispensing.tsx` | Prescription queue & dispensing |
-| `src/components/pharmacy-docs/DocReturns.tsx` | Returns & refunds |
-| `src/components/pharmacy-docs/DocStockMovements.tsx` | Stock movements & alerts |
-| `src/components/pharmacy-docs/DocWarehouse.tsx` | Warehouse management |
-| `src/components/pharmacy-docs/DocProcurement.tsx` | PO & suppliers |
-| `src/components/pharmacy-docs/DocReports.tsx` | Reports hub (may span 2 pages) |
-| `src/components/pharmacy-docs/DocSettings.tsx` | Settings & configuration |
-
-### Route Addition
-Add to `src/App.tsx`:
-```
-<Route path="pharmacy-documentation" element={<PharmacyDocumentation />} />
-```
-
-### Design Pattern
-- Reuses the same `proposal-page` CSS class for A4 sizing and print optimization
-- Same toolbar with Back, page navigation dots, Print, and Download PDF buttons
-- HealthOS 24 branding with page numbers
-- Uses green accent color (matching existing pharmacy proposal page theme)
-- Each page component is a self-contained A4 page with header, content sections, and footer
-- Sections use icons, feature lists, step-by-step workflows, and tip/note callouts
-- Print mode renders all pages sequentially for full PDF download
+| `src/pages/PharmacyDocumentation.tsx` | Fix print CSS to prevent empty pages |
+| `src/components/pharmacy-docs/DocPageWrapper.tsx` | Add ScreenMockup, InfoCard, MockupTable components |
+| `src/components/pharmacy-docs/DocDashboard.tsx` | Add KPI card mockups |
+| `src/components/pharmacy-docs/DocPOSLayout.tsx` | Add POS terminal layout mockup |
+| `src/components/pharmacy-docs/DocPOSPayment.tsx` | Add payment modal mockup |
+| `src/components/pharmacy-docs/DocInventory.tsx` | Add inventory table mockup |
+| `src/components/pharmacy-docs/DocReturns.tsx` | Add return flow mockup |
+| `src/components/pharmacy-docs/DocReports.tsx` | Add report cards mockup |
+| `src/components/pharmacy-docs/DocWarehouse.tsx` | Add transfer workflow diagram |
+| `src/components/pharmacy-docs/DocSessions.tsx` | Add session summary mockup |
 
