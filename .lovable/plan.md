@@ -1,43 +1,60 @@
 
 
-# Direct PDF Download (No Print Dialog)
+# Fix Icons and Numbers Rendering in PDF Download
 
 ## Problem
-The "Download PDF" button currently opens a browser print dialog, requiring the user to manually select "Save as PDF." This is confusing and not a real download.
+The `html2canvas` library cannot properly render inline SVG elements. Every Lucide React icon (Clock, CheckCircle, AlertTriangle, BarChart3, etc.) and the HealthOS24 logo SVG appear broken, empty, or invisible in the downloaded PDF. This affects all 18 documentation pages.
+
+## Root Cause
+Lucide React icons render as inline `<svg>` elements in the DOM. The `html2canvas` library has well-documented limitations with SVG rendering -- it often fails to capture them, producing blank boxes or missing graphics.
 
 ## Solution
-Use the `html2canvas` + `jspdf` libraries to capture each documentation page as an image and compile them into a downloadable PDF file automatically — no print dialog involved.
+Replace all Lucide SVG icons in the documentation components with Unicode/emoji text equivalents that `html2canvas` can reliably capture. The visual appearance on-screen will remain clean and professional.
 
 ## Changes
 
-### 1. Install Dependencies
-- `jspdf` — generates PDF documents client-side
-- `html2canvas` — renders DOM elements to canvas images
+### 1. Update `DocPageWrapper.tsx` -- SectionTitle and InfoCard
+Replace the `icon` prop (currently receives Lucide SVG components) with a `string` type that accepts emoji/Unicode characters instead.
 
-### 2. Update `src/pages/PharmacyDocumentation.tsx`
-Replace the `handleDownloadPDF` function with a new implementation that:
+| Component | Before (SVG) | After (Unicode) |
+|---|---|---|
+| SectionTitle icon | `<LayoutDashboard>` | "📊" |
+| InfoCard icon | `<Clock>`, `<CheckCircle>` | "⏱", "✓" |
 
-1. Temporarily switches to print mode (renders all 18 pages)
-2. Loops through each `.proposal-page` element
-3. Uses `html2canvas` to capture each page as an image
-4. Creates a new `jsPDF` document (A4 portrait, 210x297mm)
-5. Adds each captured image as a full-page PDF page
-6. Calls `pdf.save("HealthOS24-Pharmacy-Documentation.pdf")` to trigger a real browser file download
-7. Exits print mode
+### 2. Update all 17 Doc components to use emoji icons
 
-The user clicks "Download PDF" and a `.pdf` file appears in their downloads folder — no print dialog, no pop-up windows.
+| File | SVG Icon | Replacement |
+|---|---|---|
+| DocDashboard.tsx | LayoutDashboard, Clock, CheckCircle, AlertTriangle, Calendar | 📊, ⏱, ✅, ⚠, 📅 |
+| DocMedicineCatalog.tsx | Pill | 💊 |
+| DocInventory.tsx | Package | 📦 |
+| DocStockEntry.tsx | PackagePlus | 📥 |
+| DocPOSLayout.tsx | Monitor | 🖥 |
+| DocPOSCart.tsx | ShoppingCart | 🛒 |
+| DocPOSPayment.tsx | CreditCard | 💳 |
+| DocSessions.tsx | Clock | ⏱ |
+| DocDispensing.tsx | ClipboardList | 📋 |
+| DocReturns.tsx | RotateCcw | 🔄 |
+| DocStockMovements.tsx | ArrowRightLeft | ↔ |
+| DocWarehouse.tsx | Warehouse | 🏭 |
+| DocProcurement.tsx | FileText | 📄 |
+| DocReports.tsx | BarChart3 | 📊 |
+| DocReportsPage2.tsx | BarChart3 | 📊 |
+| DocSettings.tsx | Settings | ⚙ |
+| DocTableOfContents.tsx | BookOpen | 📖 |
 
-### 3. Print Button Unchanged
-The "Print" button continues to use `window.print()` for users who want to print directly.
+### 3. Update `DocPageWrapper.tsx` component signatures
+- Change `SectionTitle` icon prop from `React.ReactNode` to `string` and render it as text inside the styled div
+- Change `InfoCard` icon prop from `React.ReactNode` to `string` and render as text
+- This ensures no SVG elements exist anywhere in the print-rendered pages
 
-## Technical Notes
+### 4. Fix HealthOS24Logo in header/footer
+The `HealthOS24Logo` component also uses an inline SVG. For the documentation pages, replace it with a simple text-based logo: "HealthOS 24" styled with the same emerald branding but using pure text (no SVG).
 
-| Aspect | Detail |
-|---|---|
-| Library | `jspdf` (~280KB) + `html2canvas` (~40KB) |
-| Output | A4 portrait, 210x297mm, one page per documentation slide |
-| Quality | 2x pixel ratio for sharp text and mockups |
-| File name | `HealthOS24-Pharmacy-Documentation.pdf` |
-| Page count | Exactly 18 pages (one per component) |
-| No server needed | Entirely client-side generation |
+## Technical Details
+- All changes are limited to `src/components/pharmacy-docs/` directory
+- No changes to the actual application components
+- The `html2canvas` capture settings remain the same
+- Emojis render consistently across browsers and are fully supported by `html2canvas`
+- The on-screen documentation will look slightly different (emoji vs SVG icons) but equally professional
 
