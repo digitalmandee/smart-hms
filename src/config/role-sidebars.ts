@@ -467,8 +467,9 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         path: "",
         icon: "Warehouse",
         children: [
-          { name: "All Warehouses", path: "/app/inventory/stores", icon: "List" },
-          { name: "Create Warehouse", path: "/app/inventory/stores/new", icon: "Plus" },
+          { name: "My Warehouses", path: "/app/pharmacy/warehouses", icon: "List" },
+          { name: "Create Warehouse", path: "/app/pharmacy/warehouses/new", icon: "Plus" },
+          { name: "Rack Assignments", path: "/app/pharmacy/rack-assignments", icon: "LayoutGrid" },
           { name: "Store Transfers", path: "/app/inventory/transfers", icon: "ArrowLeftRight" },
         ]
       },

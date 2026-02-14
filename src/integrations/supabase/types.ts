@@ -12121,6 +12121,74 @@ export type Database = {
           },
         ]
       }
+      medicine_rack_assignments: {
+        Row: {
+          created_at: string
+          id: string
+          medicine_id: string
+          notes: string | null
+          organization_id: string
+          position: string | null
+          rack_id: string
+          shelf_number: string | null
+          store_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          medicine_id: string
+          notes?: string | null
+          organization_id: string
+          position?: string | null
+          rack_id: string
+          shelf_number?: string | null
+          store_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          medicine_id?: string
+          notes?: string | null
+          organization_id?: string
+          position?: string | null
+          rack_id?: string
+          shelf_number?: string | null
+          store_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medicine_rack_assignments_medicine_id_fkey"
+            columns: ["medicine_id"]
+            isOneToOne: false
+            referencedRelation: "medicines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medicine_rack_assignments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medicine_rack_assignments_rack_id_fkey"
+            columns: ["rack_id"]
+            isOneToOne: false
+            referencedRelation: "store_racks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medicine_rack_assignments_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       medicines: {
         Row: {
           category_id: string | null
@@ -17269,6 +17337,60 @@ export type Database = {
           },
         ]
       }
+      store_racks: {
+        Row: {
+          capacity_info: Json | null
+          created_at: string
+          id: string
+          is_active: boolean
+          organization_id: string
+          rack_code: string
+          rack_name: string | null
+          section: string | null
+          store_id: string
+          updated_at: string
+        }
+        Insert: {
+          capacity_info?: Json | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          organization_id: string
+          rack_code: string
+          rack_name?: string | null
+          section?: string | null
+          store_id: string
+          updated_at?: string
+        }
+        Update: {
+          capacity_info?: Json | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          organization_id?: string
+          rack_code?: string
+          rack_name?: string | null
+          section?: string | null
+          store_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_racks_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_racks_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       store_stock_transfer_items: {
         Row: {
           batch_number: string | null
@@ -17434,6 +17556,7 @@ export type Database = {
         Row: {
           branch_id: string
           code: string | null
+          context: string
           created_at: string
           description: string | null
           id: string
@@ -17449,6 +17572,7 @@ export type Database = {
         Insert: {
           branch_id: string
           code?: string | null
+          context?: string
           created_at?: string
           description?: string | null
           id?: string
@@ -17464,6 +17588,7 @@ export type Database = {
         Update: {
           branch_id?: string
           code?: string | null
+          context?: string
           created_at?: string
           description?: string | null
           id?: string

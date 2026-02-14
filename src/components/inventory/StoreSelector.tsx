@@ -16,6 +16,7 @@ interface StoreSelectorProps {
   placeholder?: string;
   disabled?: boolean;
   className?: string;
+  context?: string;
 }
 
 export function StoreSelector({
@@ -26,8 +27,9 @@ export function StoreSelector({
   placeholder = "Select warehouse",
   disabled = false,
   className,
+  context,
 }: StoreSelectorProps) {
-  const { data: stores, isLoading } = useStores(branchId);
+  const { data: stores, isLoading } = useStores(branchId, context);
 
   return (
     <Select value={showAll ? (value || "all") : (value || undefined)} onValueChange={onChange} disabled={disabled || isLoading}>
