@@ -18,6 +18,7 @@ import { InventoryAdjustmentModal } from "@/components/pharmacy/InventoryAdjustm
 import { useInventory, useMedicineCategories, InventoryWithMedicine } from "@/hooks/usePharmacy";
 import { useRackAssignments } from "@/hooks/useStoreRacks";
 import { RackLocationBadge } from "@/components/pharmacy/RackLocationBadge";
+import { StoreSelector } from "@/components/inventory/StoreSelector";
 import { ArrowLeft, Plus, Search, Edit } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 
@@ -29,6 +30,7 @@ export default function InventoryPage() {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [stockFilter, setStockFilter] = useState<string>(initialFilter || "all");
+  const [storeFilter, setStoreFilter] = useState<string>("all");
   const [adjustingItem, setAdjustingItem] = useState<InventoryWithMedicine | null>(null);
 
   const { data: categories } = useMedicineCategories();
@@ -38,6 +40,7 @@ export default function InventoryPage() {
     expiringSoon: stockFilter === "expiring",
     categoryId: categoryFilter !== "all" ? categoryFilter : undefined,
     search: search || undefined,
+    storeId: storeFilter !== "all" ? storeFilter : undefined,
   });
 
   const columns: ColumnDef<InventoryWithMedicine>[] = [
@@ -118,6 +121,13 @@ export default function InventoryPage() {
       },
     },
     {
+      id: "warehouse",
+      header: "Warehouse",
+      cell: ({ row }) => (
+        <span className="text-sm">{row.original.store?.name || <span className="text-muted-foreground">Unassigned</span>}</span>
+      ),
+    },
+    {
       accessorKey: "supplier_name",
       header: "Supplier",
       cell: ({ row }) => row.original.supplier_name || "-",
@@ -168,6 +178,14 @@ export default function InventoryPage() {
             className="pl-9"
           />
         </div>
+        <StoreSelector
+          value={storeFilter}
+          onChange={setStoreFilter}
+          showAll
+          placeholder="All Warehouses"
+          className="w-[180px]"
+          context="pharmacy"
+        />
         <Select value={categoryFilter} onValueChange={setCategoryFilter}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Category" />

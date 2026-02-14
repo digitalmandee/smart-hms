@@ -14,6 +14,7 @@ export interface InventoryWithMedicine extends MedicineInventory {
   medicine: Medicine & {
     category?: MedicineCategory | null;
   };
+  store?: { id: string; name: string } | null;
 }
 
 export interface PrescriptionQueueItem extends Prescription {
@@ -39,6 +40,7 @@ interface InventoryFilters {
   expiringSoon?: boolean;
   categoryId?: string;
   search?: string;
+  storeId?: string;
 }
 
 // Prescription Queue - pending prescriptions for pharmacy
@@ -277,10 +279,15 @@ export function useInventory(branchId?: string, filters: InventoryFilters = {}) 
         .from("medicine_inventory")
         .select(`
           *,
-          medicine:medicines(*, category:medicine_categories(id, name))
+          medicine:medicines(*, category:medicine_categories(id, name)),
+          store:stores(id, name)
         `)
         .eq("branch_id", targetBranchId)
         .order("created_at", { ascending: false });
+
+      if (filters.storeId) {
+        query = query.eq("store_id", filters.storeId);
+      }
 
       const { data, error } = await query;
       if (error) throw error;
