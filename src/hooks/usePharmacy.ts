@@ -151,7 +151,7 @@ export function useDispensePrescription() {
         if (item.inventoryId && item.quantityDispensed > 0) {
           const { data: inventory, error: invError } = await supabase
             .from("medicine_inventory")
-            .select("quantity, selling_price, batch_number, medicine:medicines(id, name)")
+            .select("quantity, selling_price, batch_number, store_id, medicine:medicines(id, name)")
             .eq("id", item.inventoryId)
             .single();
 
@@ -173,6 +173,7 @@ export function useDispensePrescription() {
             await (supabase as any).from("pharmacy_stock_movements").insert({
               organization_id: profile.organization_id,
               branch_id: profile.branch_id,
+              store_id: inventory.store_id || null,
               medicine_id: medicineId,
               inventory_id: item.inventoryId,
               movement_type: "dispense",

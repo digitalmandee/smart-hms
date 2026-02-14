@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import { format, subDays } from "date-fns";
 import { useStockMovements, useStockMovementSummary, MovementType } from "@/hooks/useStockMovements";
+import { StoreSelector } from "@/components/inventory/StoreSelector";
 import { cn } from "@/lib/utils";
 
 const movementTypeConfig: Record<MovementType, { label: string; color: string; icon: "in" | "out" }> = {
@@ -55,11 +56,13 @@ export default function StockMovementsPage() {
   const [startDate, setStartDate] = useState(weekAgo);
   const [endDate, setEndDate] = useState(today);
   const [movementType, setMovementType] = useState<MovementType | "all">("all");
+  const [storeFilter, setStoreFilter] = useState("all");
 
   const { data: movements, isLoading, refetch } = useStockMovements(undefined, {
     startDate,
     endDate,
     movementType: movementType === "all" ? undefined : movementType,
+    storeId: storeFilter === "all" ? undefined : storeFilter,
   });
 
   const { data: summary } = useStockMovementSummary(undefined, startDate, endDate);
@@ -186,6 +189,16 @@ export default function StockMovementsPage() {
                 </SelectContent>
               </Select>
             </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Warehouse</Label>
+              <StoreSelector
+                value={storeFilter}
+                onChange={setStoreFilter}
+                showAll
+                context="pharmacy"
+                className="w-[200px]"
+              />
+            </div>
             <Button variant="outline" size="sm" onClick={() => refetch()}>
               <RefreshCw className="h-4 w-4 mr-1" />
               Refresh
@@ -218,6 +231,7 @@ export default function StockMovementsPage() {
                 <TableRow>
                   <TableHead>Date/Time</TableHead>
                   <TableHead>Medicine</TableHead>
+                  <TableHead>Warehouse</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead className="text-right">Qty</TableHead>
                   <TableHead>Batch</TableHead>
@@ -249,6 +263,9 @@ export default function StockMovementsPage() {
                             </p>
                           )}
                         </div>
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {movement.store?.name || "-"}
                       </TableCell>
                       <TableCell>
                         <Badge 

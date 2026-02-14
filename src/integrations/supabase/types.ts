@@ -14700,6 +14700,7 @@ export type Database = {
           prescription_id: string | null
           session_id: string | null
           status: string
+          store_id: string | null
           subtotal: number
           tax_amount: number
           total_amount: number
@@ -14727,6 +14728,7 @@ export type Database = {
           prescription_id?: string | null
           session_id?: string | null
           status?: string
+          store_id?: string | null
           subtotal?: number
           tax_amount?: number
           total_amount?: number
@@ -14754,6 +14756,7 @@ export type Database = {
           prescription_id?: string | null
           session_id?: string | null
           status?: string
+          store_id?: string | null
           subtotal?: number
           tax_amount?: number
           total_amount?: number
@@ -14804,6 +14807,13 @@ export type Database = {
             columns: ["session_id"]
             isOneToOne: false
             referencedRelation: "pharmacy_pos_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_pos_transactions_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
             referencedColumns: ["id"]
           },
           {
@@ -15082,6 +15092,7 @@ export type Database = {
           reference_id: string | null
           reference_number: string | null
           reference_type: string | null
+          store_id: string | null
           total_value: number | null
           unit_cost: number | null
         }
@@ -15102,6 +15113,7 @@ export type Database = {
           reference_id?: string | null
           reference_number?: string | null
           reference_type?: string | null
+          store_id?: string | null
           total_value?: number | null
           unit_cost?: number | null
         }
@@ -15122,6 +15134,7 @@ export type Database = {
           reference_id?: string | null
           reference_number?: string | null
           reference_type?: string | null
+          store_id?: string | null
           total_value?: number | null
           unit_cost?: number | null
         }
@@ -15159,6 +15172,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_stock_movements_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
             referencedColumns: ["id"]
           },
         ]
