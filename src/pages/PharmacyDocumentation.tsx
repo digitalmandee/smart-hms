@@ -65,70 +65,56 @@ const PharmacyDocumentation = () => {
 
     try {
       await document.fonts.ready;
-      await new Promise(r => setTimeout(r, 500));
+      await new Promise(r => setTimeout(r, 800));
 
       const container = printContainerRef.current;
-      if (!container) throw new Error("Print container not found");
+      if (!container) return;
 
       const pageElements = container.querySelectorAll('.proposal-page');
-      if (pageElements.length === 0) throw new Error("No pages found");
-
       const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      const pdfWidth = 210;
+      const pdfHeight = 297;
+      const pixelWidth = 794;
+      const pixelHeight = 1123;
 
       for (let i = 0; i < pageElements.length; i++) {
         const el = pageElements[i] as HTMLElement;
 
         const origStyles = {
-          width: el.style.width, height: el.style.height, minHeight: el.style.minHeight,
-          maxWidth: el.style.maxWidth, overflow: el.style.overflow, margin: el.style.margin,
-          borderRadius: el.style.borderRadius, boxShadow: el.style.boxShadow,
+          width: el.style.width,
+          height: el.style.height,
+          overflow: el.style.overflow,
+          background: el.style.background,
+          boxShadow: el.style.boxShadow,
+          borderRadius: el.style.borderRadius,
         };
 
-        el.style.width = '794px';
-        el.style.height = '1123px';
-        el.style.minHeight = '1123px';
-        el.style.maxWidth = '794px';
+        el.style.width = `${pixelWidth}px`;
+        el.style.height = `${pixelHeight}px`;
         el.style.overflow = 'hidden';
-        el.style.margin = '0';
-        el.style.borderRadius = '0';
+        el.style.background = 'white';
         el.style.boxShadow = 'none';
+        el.style.borderRadius = '0';
 
-        el.scrollIntoView({ behavior: 'instant' as ScrollBehavior });
         await new Promise(r => setTimeout(r, 200));
 
         const canvas = await html2canvas(el, {
-          scale: 3,
+          scale: 2,
           useCORS: true,
           allowTaint: true,
           backgroundColor: "#ffffff",
           logging: false,
-          windowWidth: 794,
-          windowHeight: 1123,
-          onclone: (clonedDoc: Document, clonedEl: HTMLElement) => {
-            const rootStyles = getComputedStyle(document.documentElement);
-            for (let j = 0; j < rootStyles.length; j++) {
-              const prop = rootStyles[j];
-              if (prop.startsWith('--')) {
-                clonedDoc.documentElement.style.setProperty(prop, rootStyles.getPropertyValue(prop));
-              }
-            }
-            clonedEl.querySelectorAll('[class*="sm:block"]').forEach((e) => {
-              e.classList.remove('hidden');
-            });
-            clonedEl.querySelectorAll('img').forEach((img: HTMLImageElement) => {
-              if (!img.width && img.naturalWidth) {
-                img.width = img.naturalWidth;
-                img.height = img.naturalHeight;
-              }
-            });
-          }
+          width: pixelWidth,
+          height: pixelHeight,
+          windowWidth: pixelWidth,
+          windowHeight: pixelHeight,
         });
 
         Object.assign(el.style, origStyles);
 
-        const imgData = canvas.toDataURL("image/jpeg", 0.98);
+        const imgData = canvas.toDataURL("image/jpeg", 0.95);
         if (i > 0) pdf.addPage();
-        pdf.addImage(imgData, "JPEG", 0, 0, 210, 297);
+        pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
       }
 
       pdf.save("HealthOS24-Pharmacy-Documentation.pdf");
