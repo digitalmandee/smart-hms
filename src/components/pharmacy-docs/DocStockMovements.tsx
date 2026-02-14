@@ -1,10 +1,9 @@
 import { DocPageWrapper, SectionTitle, FeatureList, SubSection, TipBox } from "./DocPageWrapper";
-import { ArrowRightLeft } from "lucide-react";
 
 export const DocStockMovements = () => (
   <DocPageWrapper pageNumber={13} totalPages={18}>
     <SectionTitle
-      icon={<ArrowRightLeft className="w-5 h-5" />}
+      icon="↔️"
       title="Stock Movements & Alerts"
       subtitle="Unified audit log of all inventory changes with configurable alert thresholds"
     />

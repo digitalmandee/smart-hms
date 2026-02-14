@@ -1,10 +1,9 @@
 import { DocPageWrapper, SectionTitle, FeatureList, SubSection, TipBox } from "./DocPageWrapper";
-import { ShoppingCart } from "lucide-react";
 
 export const DocPOSCart = () => (
   <DocPageWrapper pageNumber={8} totalPages={18}>
     <SectionTitle
-      icon={<ShoppingCart className="w-5 h-5" />}
+      icon="🛒"
       title="POS Terminal — Cart & Checkout"
       subtitle="Cart management, patient linking, prescription loading, and hold/recall"
     />

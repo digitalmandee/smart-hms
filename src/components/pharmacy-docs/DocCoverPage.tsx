@@ -1,12 +1,16 @@
-import { HealthOS24Logo } from "@/components/brand/HealthOS24Logo";
-
 export const DocCoverPage = () => {
   const currentDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
   return (
     <div className="proposal-page flex flex-col justify-between bg-gradient-to-br from-background via-background to-emerald-500/5 p-12">
       <div className="flex items-center justify-between">
-        <HealthOS24Logo variant="full" size="lg" showTagline />
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-xl bg-emerald-600 flex items-center justify-center text-white font-bold text-xl">24</div>
+          <div className="flex flex-col">
+            <span className="text-2xl font-bold text-foreground leading-tight">HealthOS</span>
+            <span className="text-xs text-muted-foreground">Smart Hospital Management</span>
+          </div>
+        </div>
         <span className="text-xs text-muted-foreground bg-muted px-3 py-1 rounded-full">
           Operations Guide
         </span>

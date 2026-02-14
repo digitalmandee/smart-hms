@@ -1,10 +1,9 @@
 import { DocPageWrapper, SectionTitle, FeatureList, SubSection, TipBox, MockupTable } from "./DocPageWrapper";
-import { Package } from "lucide-react";
 
 export const DocInventory = () => (
   <DocPageWrapper pageNumber={5} totalPages={18}>
     <SectionTitle
-      icon={<Package className="w-5 h-5" />}
+      icon="📦"
       title="Inventory Management"
       subtitle="Batch-level stock tracking with expiry management and FIFO/FEFO logic"
     />

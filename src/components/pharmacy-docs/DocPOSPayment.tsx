@@ -1,10 +1,9 @@
 import { DocPageWrapper, SectionTitle, FeatureList, SubSection, TipBox, ScreenMockup } from "./DocPageWrapper";
-import { CreditCard } from "lucide-react";
 
 export const DocPOSPayment = () => (
   <DocPageWrapper pageNumber={9} totalPages={18}>
     <SectionTitle
-      icon={<CreditCard className="w-5 h-5" />}
+      icon="💳"
       title="POS Terminal — Payment & Receipt"
       subtitle="Multi-method payments, split billing, credit sales, and receipt configuration"
     />

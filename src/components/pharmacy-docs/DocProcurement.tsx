@@ -1,10 +1,9 @@
 import { DocPageWrapper, SectionTitle, FeatureList, SubSection, StepList, TipBox } from "./DocPageWrapper";
-import { FileText } from "lucide-react";
 
 export const DocProcurement = () => (
   <DocPageWrapper pageNumber={15} totalPages={18}>
     <SectionTitle
-      icon={<FileText className="w-5 h-5" />}
+      icon="📄"
       title="Procurement — PO & Suppliers"
       subtitle="End-to-end procurement lifecycle from vendor management to goods receipt"
     />

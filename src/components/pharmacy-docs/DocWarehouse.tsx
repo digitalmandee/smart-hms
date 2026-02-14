@@ -1,10 +1,9 @@
 import { DocPageWrapper, SectionTitle, FeatureList, SubSection, TipBox, ScreenMockup } from "./DocPageWrapper";
-import { Warehouse } from "lucide-react";
 
 export const DocWarehouse = () => (
   <DocPageWrapper pageNumber={14} totalPages={18}>
     <SectionTitle
-      icon={<Warehouse className="w-5 h-5" />}
+      icon="🏭"
       title="Warehouse Management"
       subtitle="Multi-store inventory isolation with inter-store transfer workflows"
     />

@@ -1,10 +1,9 @@
 import { DocPageWrapper, SectionTitle, SubSection, TipBox } from "./DocPageWrapper";
-import { Settings } from "lucide-react";
 
 export const DocSettings = () => (
   <DocPageWrapper pageNumber={18} totalPages={18}>
     <SectionTitle
-      icon={<Settings className="w-5 h-5" />}
+      icon="⚙️"
       title="Settings & Configuration"
       subtitle="Customize pharmacy operations, tax, receipts, alerts, and compliance controls"
     />
