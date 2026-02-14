@@ -1,10 +1,9 @@
 import { DocPageWrapper, SectionTitle, SubSection, FeatureList, TipBox } from "./DocPageWrapper";
-import { BarChart3 } from "lucide-react";
 
 export const DocReportsPage2 = () => (
   <DocPageWrapper pageNumber={17} totalPages={18}>
     <SectionTitle
-      icon={<BarChart3 className="w-5 h-5" />}
+      icon="📊"
       title="Reports Hub — Detail Views"
       subtitle="Key report features, visualizations, and analytical capabilities"
     />

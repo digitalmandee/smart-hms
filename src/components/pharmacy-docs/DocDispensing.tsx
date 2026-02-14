@@ -1,10 +1,9 @@
 import { DocPageWrapper, SectionTitle, FeatureList, SubSection, StepList, TipBox } from "./DocPageWrapper";
-import { ClipboardList } from "lucide-react";
 
 export const DocDispensing = () => (
   <DocPageWrapper pageNumber={11} totalPages={18}>
     <SectionTitle
-      icon={<ClipboardList className="w-5 h-5" />}
+      icon="📋"
       title="Prescription Queue & Dispensing"
       subtitle="Real-time clinical prescription queue with batch-level dispensing workflow"
     />

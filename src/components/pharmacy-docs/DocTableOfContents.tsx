@@ -1,5 +1,4 @@
 import { DocPageWrapper } from "./DocPageWrapper";
-import { BookOpen } from "lucide-react";
 
 const tocItems = [
   { num: 1, title: "Dashboard Overview", page: 3 },
@@ -22,8 +21,8 @@ const tocItems = [
 export const DocTableOfContents = () => (
   <DocPageWrapper pageNumber={2} totalPages={18}>
     <div className="flex items-center gap-3 mb-8">
-      <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
-        <BookOpen className="w-5 h-5 text-emerald-700" />
+      <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center text-xl">
+        📖
       </div>
       <h2 className="text-2xl font-bold text-foreground">Table of Contents</h2>
     </div>

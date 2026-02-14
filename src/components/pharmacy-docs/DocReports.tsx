@@ -1,5 +1,4 @@
 import { DocPageWrapper, SectionTitle, SubSection, TipBox, ScreenMockup } from "./DocPageWrapper";
-import { BarChart3 } from "lucide-react";
 
 const ReportCategory = ({ title, color, reports }: { title: string; color: string; reports: string[] }) => (
   <div className="mb-3">
@@ -18,7 +17,7 @@ const ReportCategory = ({ title, color, reports }: { title: string; color: strin
 export const DocReports = () => (
   <DocPageWrapper pageNumber={16} totalPages={18}>
     <SectionTitle
-      icon={<BarChart3 className="w-5 h-5" />}
+      icon="📊"
       title="Reports Hub — 29 Reports"
       subtitle="Comprehensive analytics across sales, inventory, finance, procurement, and operations"
     />

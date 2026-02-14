@@ -1,10 +1,9 @@
 import { DocPageWrapper, SectionTitle, FeatureList, SubSection, TipBox, StepList } from "./DocPageWrapper";
-import { Pill } from "lucide-react";
 
 export const DocMedicineCatalog = () => (
   <DocPageWrapper pageNumber={4} totalPages={18}>
     <SectionTitle
-      icon={<Pill className="w-5 h-5" />}
+      icon="💊"
       title="Medicine Catalog & Categories"
       subtitle="Central medicine database with full drug information management"
     />

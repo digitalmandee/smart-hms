@@ -1,10 +1,9 @@
 import { DocPageWrapper, SectionTitle, FeatureList, SubSection, TipBox, ScreenMockup } from "./DocPageWrapper";
-import { Monitor } from "lucide-react";
 
 export const DocPOSLayout = () => (
   <DocPageWrapper pageNumber={7} totalPages={18}>
     <SectionTitle
-      icon={<Monitor className="w-5 h-5" />}
+      icon="🖥️"
       title="POS Terminal — Layout & Product Search"
       subtitle="Full-screen retail point-of-sale with barcode scanning and category filters"
     />

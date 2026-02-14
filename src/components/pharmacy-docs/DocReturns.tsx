@@ -1,10 +1,9 @@
 import { DocPageWrapper, SectionTitle, FeatureList, SubSection, StepList, TipBox, ScreenMockup } from "./DocPageWrapper";
-import { RotateCcw } from "lucide-react";
 
 export const DocReturns = () => (
   <DocPageWrapper pageNumber={12} totalPages={18}>
     <SectionTitle
-      icon={<RotateCcw className="w-5 h-5" />}
+      icon="🔄"
       title="Returns & Refunds"
       subtitle="Process partial or full returns with automatic inventory restocking"
     />

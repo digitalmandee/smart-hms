@@ -1,5 +1,3 @@
-import { HealthOS24Logo } from "@/components/brand/HealthOS24Logo";
-
 interface DocPageWrapperProps {
   children: React.ReactNode;
   pageNumber: number;
@@ -10,7 +8,10 @@ export const DocPageWrapper = ({ children, pageNumber, totalPages }: DocPageWrap
   <div className="proposal-page flex flex-col p-10" style={{ maxHeight: '297mm', overflow: 'hidden' }}>
     {/* Header */}
     <div className="flex items-center justify-between mb-6 pb-4 border-b border-emerald-200">
-      <HealthOS24Logo variant="full" size="sm" />
+      <div className="flex items-center gap-2">
+        <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white font-bold text-sm">24</div>
+        <span className="text-lg font-bold text-foreground">HealthOS</span>
+      </div>
       <span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full">
         Pharmacy Module Guide
       </span>
@@ -27,9 +28,9 @@ export const DocPageWrapper = ({ children, pageNumber, totalPages }: DocPageWrap
   </div>
 );
 
-export const SectionTitle = ({ icon, title, subtitle }: { icon: React.ReactNode; title: string; subtitle?: string }) => (
+export const SectionTitle = ({ icon, title, subtitle }: { icon: string; title: string; subtitle?: string }) => (
   <div className="flex items-start gap-3 mb-5">
-    <div className="w-9 h-9 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-700 shrink-0 mt-0.5">
+    <div className="w-9 h-9 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-700 shrink-0 mt-0.5 text-lg">
       {icon}
     </div>
     <div>
@@ -92,9 +93,9 @@ export const ScreenMockup = ({ title, children }: { title: string; children: Rea
   </div>
 );
 
-export const InfoCard = ({ icon, label, value, color = "emerald" }: { icon: React.ReactNode; label: string; value: string; color?: string }) => (
+export const InfoCard = ({ icon, label, value, color = "emerald" }: { icon: string; label: string; value: string; color?: string }) => (
   <div className={`border border-${color}-200 rounded-lg p-2.5 bg-${color}-50/50 flex items-center gap-2.5 min-w-0`}>
-    <div className={`w-8 h-8 rounded-md bg-${color}-100 flex items-center justify-center text-${color}-700 shrink-0`}>
+    <div className={`w-8 h-8 rounded-md bg-${color}-100 flex items-center justify-center text-${color}-700 shrink-0 text-base`}>
       {icon}
     </div>
     <div className="min-w-0">

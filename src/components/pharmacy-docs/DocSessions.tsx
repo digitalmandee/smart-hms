@@ -1,10 +1,9 @@
 import { DocPageWrapper, SectionTitle, FeatureList, SubSection, StepList, TipBox, ScreenMockup } from "./DocPageWrapper";
-import { Clock } from "lucide-react";
 
 export const DocSessions = () => (
   <DocPageWrapper pageNumber={10} totalPages={18}>
     <SectionTitle
-      icon={<Clock className="w-5 h-5" />}
+      icon="⏱️"
       title="POS Sessions & Transaction History"
       subtitle="Daily session management, transaction tracking, and receipt reprinting"
     />

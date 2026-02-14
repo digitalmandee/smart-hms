@@ -1,10 +1,9 @@
 import { DocPageWrapper, SectionTitle, StepList, SubSection, TipBox, FeatureList } from "./DocPageWrapper";
-import { PackagePlus } from "lucide-react";
 
 export const DocStockEntry = () => (
   <DocPageWrapper pageNumber={6} totalPages={18}>
     <SectionTitle
-      icon={<PackagePlus className="w-5 h-5" />}
+      icon="📥"
       title="Stock Entry (GRN)"
       subtitle="Goods Received Note — record incoming stock with batch and pricing details"
     />
