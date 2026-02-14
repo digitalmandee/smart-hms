@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from "react";
+import { flushSync } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Download, Printer, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
@@ -68,8 +69,8 @@ const PharmacyDocumentation = () => {
       const capturedCanvases: HTMLCanvasElement[] = [];
 
       for (let i = 0; i < pages.length; i++) {
-        setCurrentPage(i);
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        flushSync(() => setCurrentPage(i));
+        await new Promise((resolve) => setTimeout(resolve, 600));
 
         const pageEl = document.querySelector('.proposal-page') as HTMLElement;
         if (!pageEl) continue;
