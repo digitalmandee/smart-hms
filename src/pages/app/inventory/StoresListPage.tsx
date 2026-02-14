@@ -46,7 +46,7 @@ const storeTypeVariants: Record<string, "default" | "secondary" | "outline" | "d
 export default function StoresListPage() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
-  const { data: stores, isLoading } = useAllStores();
+  const { data: stores, isLoading } = useAllStores("hospital");
   const toggleActive = useToggleStoreActive();
 
   const filtered = stores?.filter(

@@ -74,13 +74,13 @@ export function useStores(branchId?: string, context?: string) {
 }
 
 // Get all stores (including inactive) for management
-export function useAllStores() {
+export function useAllStores(context?: string) {
   const { profile } = useAuth();
 
   return useQuery({
-    queryKey: ["stores-all", profile?.organization_id],
+    queryKey: ["stores-all", profile?.organization_id, context],
     queryFn: async () => {
-      const { data, error } = await queryTable("stores")
+      let query = queryTable("stores")
         .select(`
           *,
           branch:branches(id, name),
@@ -90,6 +90,11 @@ export function useAllStores() {
         .order("is_central", { ascending: false })
         .order("name");
 
+      if (context) {
+        query = query.eq("context", context);
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
       return data as Store[];
     },
