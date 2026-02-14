@@ -1,5 +1,4 @@
 import { useState, useRef, useCallback } from "react";
-import { createRoot } from "react-dom/client";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Download, Printer, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
@@ -50,7 +49,9 @@ const PharmacyDocumentation = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [isPrintMode, setIsPrintMode] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isCapturing, setIsCapturing] = useState(false);
   const printContainerRef = useRef<HTMLDivElement>(null);
+  const captureContainerRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = () => {
     setIsPrintMode(true);
@@ -62,26 +63,28 @@ const PharmacyDocumentation = () => {
 
   const handleDownloadPDF = useCallback(async () => {
     setIsDownloading(true);
+    setIsCapturing(true);
 
     try {
+      // Wait for React to render all pages + fonts to settle
+      await new Promise((resolve) => setTimeout(resolve, 100));
       await document.fonts.ready;
+      await new Promise((resolve) => {
+        requestAnimationFrame(() => {
+          setTimeout(resolve, 1000);
+        });
+      });
+
+      const container = captureContainerRef.current;
+      if (!container) throw new Error("Capture container not found");
+
+      const pageElements = container.querySelectorAll('.proposal-page');
+      if (pageElements.length === 0) throw new Error("No pages found to capture");
+
       const capturedCanvases: HTMLCanvasElement[] = [];
 
-      // Create offscreen container directly on document.body — no parent constraints
-      const offscreen = document.createElement('div');
-      offscreen.style.cssText = 'position:absolute;left:-9999px;top:0;width:794px;height:1123px;overflow:hidden;background:white;';
-      offscreen.className = 'proposal-page';
-      document.body.appendChild(offscreen);
-
-      for (let i = 0; i < pages.length; i++) {
-        const PageComponent = pages[i].component;
-        const root = createRoot(offscreen);
-        root.render(<PageComponent />);
-
-        // Wait for render + fonts to settle
-        await new Promise((resolve) => setTimeout(resolve, 800));
-
-        const canvas = await html2canvas(offscreen, {
+      for (let i = 0; i < pageElements.length; i++) {
+        const canvas = await html2canvas(pageElements[i] as HTMLElement, {
           scale: 3,
           useCORS: true,
           allowTaint: true,
@@ -90,12 +93,8 @@ const PharmacyDocumentation = () => {
           width: 794,
           height: 1123,
         });
-
         capturedCanvases.push(canvas);
-        root.unmount();
       }
-
-      document.body.removeChild(offscreen);
 
       const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
       for (let i = 0; i < capturedCanvases.length; i++) {
@@ -109,6 +108,7 @@ const PharmacyDocumentation = () => {
       console.error("PDF generation failed:", error);
       alert("PDF generation failed. Please try again.");
     } finally {
+      setIsCapturing(false);
       setIsDownloading(false);
     }
   }, []);
@@ -206,6 +206,24 @@ const PharmacyDocumentation = () => {
           </div>
         )}
       </div>
+
+      {/* Hidden capture container — renders in main React tree for identical CSS context */}
+      {isCapturing && (
+        <div
+          ref={captureContainerRef}
+          style={{
+            position: 'absolute',
+            left: '-9999px',
+            top: 0,
+            width: '794px',
+          }}
+        >
+          {pages.map((page) => {
+            const PageComp = page.component;
+            return <PageComp key={page.id} />;
+          })}
+        </div>
+      )}
     </div>
   );
 };
