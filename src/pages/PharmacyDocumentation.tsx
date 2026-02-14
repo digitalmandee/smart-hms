@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import { flushSync } from "react-dom";
+import { createRoot } from "react-dom/client";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Download, Printer, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
@@ -62,38 +62,26 @@ const PharmacyDocumentation = () => {
 
   const handleDownloadPDF = useCallback(async () => {
     setIsDownloading(true);
-    const savedPage = currentPage;
 
     try {
       await document.fonts.ready;
       const capturedCanvases: HTMLCanvasElement[] = [];
 
+      // Create offscreen container directly on document.body — no parent constraints
+      const offscreen = document.createElement('div');
+      offscreen.style.cssText = 'position:absolute;left:-9999px;top:0;width:794px;height:1123px;overflow:hidden;background:white;';
+      offscreen.className = 'proposal-page';
+      document.body.appendChild(offscreen);
+
       for (let i = 0; i < pages.length; i++) {
-        flushSync(() => setCurrentPage(i));
-        await new Promise((resolve) => setTimeout(resolve, 600));
+        const PageComponent = pages[i].component;
+        const root = createRoot(offscreen);
+        root.render(<PageComponent />);
 
-        const pageEl = document.querySelector('.proposal-page') as HTMLElement;
-        if (!pageEl) continue;
+        // Wait for render + fonts to settle
+        await new Promise((resolve) => setTimeout(resolve, 800));
 
-        const origStyles = {
-          width: pageEl.style.width,
-          minWidth: pageEl.style.minWidth,
-          height: pageEl.style.height,
-          overflow: pageEl.style.overflow,
-          boxShadow: pageEl.style.boxShadow,
-          borderRadius: pageEl.style.borderRadius,
-        };
-
-        pageEl.style.width = '794px';
-        pageEl.style.minWidth = '794px';
-        pageEl.style.height = '1123px';
-        pageEl.style.overflow = 'hidden';
-        pageEl.style.boxShadow = 'none';
-        pageEl.style.borderRadius = '0';
-
-        await new Promise((resolve) => setTimeout(resolve, 100));
-
-        const canvas = await html2canvas(pageEl, {
+        const canvas = await html2canvas(offscreen, {
           scale: 3,
           useCORS: true,
           allowTaint: true,
@@ -101,13 +89,13 @@ const PharmacyDocumentation = () => {
           logging: false,
           width: 794,
           height: 1123,
-          windowWidth: 1200,
-          windowHeight: 1600,
         });
 
-        Object.assign(pageEl.style, origStyles);
         capturedCanvases.push(canvas);
+        root.unmount();
       }
+
+      document.body.removeChild(offscreen);
 
       const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
       for (let i = 0; i < capturedCanvases.length; i++) {
@@ -121,10 +109,9 @@ const PharmacyDocumentation = () => {
       console.error("PDF generation failed:", error);
       alert("PDF generation failed. Please try again.");
     } finally {
-      setCurrentPage(savedPage);
       setIsDownloading(false);
     }
-  }, [currentPage]);
+  }, []);
 
   const goToPrevPage = () => {
     if (currentPage > 0) setCurrentPage(currentPage - 1);
