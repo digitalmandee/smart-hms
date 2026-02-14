@@ -1,83 +1,100 @@
 
 
-# Link Pharmacy Inventory to Warehouses + Add Missing Store Filter
+# Add store_id to Stock Movements and POS Transactions
 
 ## Problem
-
-The pharmacy inventory system (`medicine_inventory` table) already has a `store_id` column, but:
-1. The **Inventory Page** has no warehouse filter -- users cannot filter stock by warehouse
-2. The **Inventory query** (`useInventory`) does not accept or use `store_id` for filtering
-3. The **Pharmacy Dashboard** stats (low stock, expiring) are not warehouse-aware
-4. The **Inventory Adjustment Modal** does not show which warehouse the stock belongs to
-5. The **Warehouse Detail Page** does not show actual inventory/stock summary for that warehouse
-6. The **POS product search** does not filter by warehouse
+Three key tables/flows are missing warehouse (`store_id`) tracking:
+1. `pharmacy_stock_movements` -- no `store_id` column, so movement history cannot be filtered by warehouse
+2. `pharmacy_pos_transactions` -- no `store_id` column, so POS sales are not linked to a specific warehouse
+3. Dashboard stats (`usePharmacyStats`) are not warehouse-aware
 
 ## What Will Be Done
 
-### 1. Add Warehouse Filter to Inventory Page
-Add a `StoreSelector` dropdown (filtered to `context = "pharmacy"`) to the inventory page filters bar. When a warehouse is selected, only stock from that warehouse is shown.
+### 1. Database Migrations
+Add `store_id` column (nullable, FK to `stores`) to both `pharmacy_stock_movements` and `pharmacy_pos_transactions`. Update the `log_pos_sale_stock_movement()` trigger to propagate `store_id` from the inventory item being sold.
 
-### 2. Update `useInventory` Hook to Support `store_id` Filtering
-Add `storeId` to the `InventoryFilters` interface and apply `.eq("store_id", storeId)` in the query when provided.
+### 2. Update Stock Movement Hooks
+- Add `storeId` to `StockMovementFilters` 
+- Include `store_id` when creating manual adjustments (look up from inventory)
+- Join `stores` table in the query to show warehouse name
 
-### 3. Enhance Warehouse Detail Page with Stock Summary
-On the warehouse detail page, query `medicine_inventory` filtered by `store_id` to show:
-- Total stock items count
-- Total stock value
-- Low stock items count
-- A quick stock table showing medicines in that warehouse
+### 3. Update Stock Movements Page
+- Add a `StoreSelector` (pharmacy context) to the filters bar
+- Add a "Warehouse" column to the movements table
 
-### 4. Show Warehouse Name in Inventory Table
-Add a "Warehouse" column to the inventory table that displays the store name from the `store_id` FK relationship. Update the inventory query to join with `stores` table.
+### 4. Update POS Transaction Creation
+- When creating a POS transaction, derive `store_id` from the first cart item's inventory record
+- Pass `store_id` into the transaction insert
 
-### 5. Update Inventory Adjustment Modal
-Show which warehouse the stock item belongs to in the modal header for context.
+### 5. Update Dispensing Flow
+- When logging stock movements from prescription dispensing, look up and include `store_id` from the inventory record
+
+### 6. Update Dashboard Stats (Optional Enhancement)
+- Make `usePharmacyStats` accept an optional `storeId` parameter to filter stats by warehouse
 
 ---
 
 ## Technical Details
 
+### Database Migration
+
+```sql
+-- Add store_id to pharmacy_stock_movements
+ALTER TABLE pharmacy_stock_movements 
+  ADD COLUMN store_id UUID REFERENCES stores(id);
+
+-- Add store_id to pharmacy_pos_transactions
+ALTER TABLE pharmacy_pos_transactions 
+  ADD COLUMN store_id UUID REFERENCES stores(id);
+
+-- Update the trigger function to propagate store_id from inventory
+CREATE OR REPLACE FUNCTION public.log_pos_sale_stock_movement()
+  RETURNS trigger ...
+  -- Add: look up v_inventory.store_id and include it in the INSERT
+```
+
 ### Files to Modify
 
 | File | Change |
 |---|---|
-| `src/hooks/usePharmacy.ts` | Add `storeId` to `InventoryFilters`; join `store:stores(id, name)` in inventory query; apply `.eq("store_id", storeId)` when provided |
-| `src/pages/app/pharmacy/InventoryPage.tsx` | Add `StoreSelector` to filter bar; pass selected `storeId` to `useInventory`; add "Warehouse" column to table |
-| `src/pages/app/pharmacy/WarehouseDetailPage.tsx` | Query `medicine_inventory` by `store_id` to show stock summary cards (total items, total value, low stock count) and a compact stock list |
-| `src/components/pharmacy/InventoryAdjustmentModal.tsx` | Show warehouse name in the modal if inventory has a `store` relation |
+| `src/hooks/useStockMovements.ts` | Add `storeId` to filters; join `store:stores(id, name)` in query; include `store_id` in adjustment inserts (from inventory lookup) |
+| `src/pages/app/pharmacy/StockMovementsPage.tsx` | Add `StoreSelector` filter; add "Warehouse" column to table |
+| `src/hooks/usePOS.ts` | Look up `store_id` from first item's inventory; pass into transaction insert |
+| `src/hooks/usePharmacy.ts` | In `useDispensePrescription`, look up `store_id` from inventory and include in stock movement insert |
+| DB trigger `log_pos_sale_stock_movement` | Propagate `store_id` from `medicine_inventory` to stock movement row |
 
-### Hook Changes (usePharmacy.ts)
+### Hook Changes (useStockMovements.ts)
 
 ```text
-InventoryFilters:
+StockMovementFilters:
   + storeId?: string
 
-useInventory query:
+StockMovement interface:
+  + store_id?: string | null
+  + store?: { id: string; name: string } | null
+
+useStockMovements query:
   + join: store:stores(id, name)
   + if storeId: .eq("store_id", storeId)
 
-InventoryWithMedicine interface:
-  + store?: { id: string; name: string } | null
+useCreateStockAdjustment:
+  + lookup store_id from medicine_inventory when inventoryId provided
+  + include store_id in insert
 ```
 
-### Inventory Page Changes
+### Stock Movements Page Changes
 
-Add a `StoreSelector` between the search input and category filter:
-- Default: "All Warehouses" (no store_id filter)
-- When selected: filters inventory to that warehouse only
-- Uses `context="pharmacy"` prop to show only pharmacy warehouses
+Add `StoreSelector` (context="pharmacy") between date filters and movement type filter. Add "Warehouse" column after "Medicine" in the table.
 
-Add a "Warehouse" column after "Supplier" that displays `row.original.store?.name || "Unassigned"`.
+### POS Transaction Changes (usePOS.ts)
 
-### Warehouse Detail Page Changes
+Before inserting the transaction, query the first cart item's inventory to get its `store_id`, then include it in the transaction insert payload.
 
-Add two new summary cards:
-- **Stock Items**: Count of `medicine_inventory` rows where `store_id = warehouse.id`
-- **Low Stock**: Count where quantity <= reorder_level
+### Dispensing Flow Changes (usePharmacy.ts)
 
-Add a compact table below the racks list showing top medicines stored in this warehouse (limit 10), with link to full filtered inventory view.
+In `useDispensePrescription`, the inventory query already fetches the record. Add `store_id` to the select fields and include it in the stock movement insert.
 
-### Adjustment Modal Changes
+### Trigger Update (log_pos_sale_stock_movement)
 
-Display `inventory.store?.name` as a subtitle badge in the modal header when available.
+Update the function to read `v_inventory.store_id` (already fetched from `medicine_inventory`) and include it in the INSERT into `pharmacy_stock_movements`.
 
