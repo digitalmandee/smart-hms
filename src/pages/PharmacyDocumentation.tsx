@@ -1,7 +1,9 @@
 import { useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Download, Printer, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft, Download, Printer, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 import { DocCoverPage } from "@/components/pharmacy-docs/DocCoverPage";
 import { DocTableOfContents } from "@/components/pharmacy-docs/DocTableOfContents";
 import { DocDashboard } from "@/components/pharmacy-docs/DocDashboard";
@@ -46,6 +48,7 @@ const PharmacyDocumentation = () => {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(0);
   const [isPrintMode, setIsPrintMode] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const printContainerRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = () => {
@@ -56,79 +59,45 @@ const PharmacyDocumentation = () => {
     }, 100);
   };
 
-  const handleDownloadPDF = useCallback(() => {
+  const handleDownloadPDF = useCallback(async () => {
+    setIsDownloading(true);
     setIsPrintMode(true);
-    setTimeout(() => {
-      const content = printContainerRef.current;
-      if (!content) {
-        setIsPrintMode(false);
-        return;
+
+    // Wait for all pages to render
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    try {
+      const container = printContainerRef.current;
+      if (!container) return;
+
+      const pageElements = container.querySelectorAll(".proposal-page");
+      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      const pdfWidth = 210;
+      const pdfHeight = 297;
+
+      for (let i = 0; i < pageElements.length; i++) {
+        const el = pageElements[i] as HTMLElement;
+        const canvas = await html2canvas(el, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: "#ffffff",
+          width: el.scrollWidth,
+          height: el.scrollHeight,
+        });
+
+        const imgData = canvas.toDataURL("image/jpeg", 0.95);
+        if (i > 0) pdf.addPage();
+        pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
       }
 
-      const printWindow = window.open("", "_blank");
-      if (!printWindow) {
-        alert("Please allow pop-ups to download PDF");
-        setIsPrintMode(false);
-        return;
-      }
-
-      // Get all stylesheets from the current document
-      const styleSheets = Array.from(document.styleSheets);
-      let cssText = "";
-      styleSheets.forEach((sheet) => {
-        try {
-          const rules = Array.from(sheet.cssRules || []);
-          rules.forEach((rule) => {
-            cssText += rule.cssText + "\n";
-          });
-        } catch (e) {
-          // Cross-origin stylesheets can't be read
-          if (sheet.href) {
-            cssText += `@import url("${sheet.href}");\n`;
-          }
-        }
-      });
-
-      printWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <title>HealthOS 24 — Pharmacy Module Documentation</title>
-            <style>
-              ${cssText}
-              
-              @page { size: A4 portrait; margin: 0; }
-              body { 
-                margin: 0; padding: 0; background: white;
-                -webkit-print-color-adjust: exact !important; 
-                print-color-adjust: exact !important; 
-              }
-              .no-print { display: none !important; }
-              .proposal-page {
-                width: 210mm; height: 297mm; overflow: hidden;
-                page-break-after: always; page-break-inside: avoid;
-                break-inside: avoid; background: white;
-                box-shadow: none; margin: 0; border-radius: 0;
-              }
-              .proposal-page:last-child { page-break-after: auto; }
-            </style>
-          </head>
-          <body>
-            ${content.innerHTML}
-          </body>
-        </html>
-      `);
-
-      printWindow.document.close();
-      
-      setTimeout(() => {
-        printWindow.print();
-        printWindow.onafterprint = () => {
-          printWindow.close();
-        };
-        setTimeout(() => setIsPrintMode(false), 500);
-      }, 300);
-    }, 200);
+      pdf.save("HealthOS24-Pharmacy-Documentation.pdf");
+    } catch (error) {
+      console.error("PDF generation failed:", error);
+      alert("PDF generation failed. Please try again.");
+    } finally {
+      setIsPrintMode(false);
+      setIsDownloading(false);
+    }
   }, []);
 
   const goToPrevPage = () => {
@@ -200,8 +169,9 @@ const PharmacyDocumentation = () => {
                 <Button variant="outline" size="sm" onClick={handlePrint} className="gap-2">
                   <Printer className="h-4 w-4" /> Print
                 </Button>
-                <Button size="sm" onClick={handleDownloadPDF} className="gap-2">
-                  <Download className="h-4 w-4" /> Download PDF
+                <Button size="sm" onClick={handleDownloadPDF} disabled={isDownloading} className="gap-2">
+                  {isDownloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                  {isDownloading ? "Generating…" : "Download PDF"}
                 </Button>
               </div>
             </div>
