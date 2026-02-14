@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Download, Printer, ChevronLeft, ChevronRight } from "lucide-react";
@@ -46,6 +46,7 @@ const PharmacyDocumentation = () => {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(0);
   const [isPrintMode, setIsPrintMode] = useState(false);
+  const printContainerRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = () => {
     setIsPrintMode(true);
@@ -54,6 +55,81 @@ const PharmacyDocumentation = () => {
       setTimeout(() => setIsPrintMode(false), 500);
     }, 100);
   };
+
+  const handleDownloadPDF = useCallback(() => {
+    setIsPrintMode(true);
+    setTimeout(() => {
+      const content = printContainerRef.current;
+      if (!content) {
+        setIsPrintMode(false);
+        return;
+      }
+
+      const printWindow = window.open("", "_blank");
+      if (!printWindow) {
+        alert("Please allow pop-ups to download PDF");
+        setIsPrintMode(false);
+        return;
+      }
+
+      // Get all stylesheets from the current document
+      const styleSheets = Array.from(document.styleSheets);
+      let cssText = "";
+      styleSheets.forEach((sheet) => {
+        try {
+          const rules = Array.from(sheet.cssRules || []);
+          rules.forEach((rule) => {
+            cssText += rule.cssText + "\n";
+          });
+        } catch (e) {
+          // Cross-origin stylesheets can't be read
+          if (sheet.href) {
+            cssText += `@import url("${sheet.href}");\n`;
+          }
+        }
+      });
+
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>HealthOS 24 — Pharmacy Module Documentation</title>
+            <style>
+              ${cssText}
+              
+              @page { size: A4 portrait; margin: 0; }
+              body { 
+                margin: 0; padding: 0; background: white;
+                -webkit-print-color-adjust: exact !important; 
+                print-color-adjust: exact !important; 
+              }
+              .no-print { display: none !important; }
+              .proposal-page {
+                width: 210mm; height: 297mm; overflow: hidden;
+                page-break-after: always; page-break-inside: avoid;
+                break-inside: avoid; background: white;
+                box-shadow: none; margin: 0; border-radius: 0;
+              }
+              .proposal-page:last-child { page-break-after: auto; }
+            </style>
+          </head>
+          <body>
+            ${content.innerHTML}
+          </body>
+        </html>
+      `);
+
+      printWindow.document.close();
+      
+      setTimeout(() => {
+        printWindow.print();
+        printWindow.onafterprint = () => {
+          printWindow.close();
+        };
+        setTimeout(() => setIsPrintMode(false), 500);
+      }, 300);
+    }, 200);
+  }, []);
 
   const goToPrevPage = () => {
     if (currentPage > 0) setCurrentPage(currentPage - 1);
@@ -124,7 +200,7 @@ const PharmacyDocumentation = () => {
                 <Button variant="outline" size="sm" onClick={handlePrint} className="gap-2">
                   <Printer className="h-4 w-4" /> Print
                 </Button>
-                <Button size="sm" onClick={handlePrint} className="gap-2">
+                <Button size="sm" onClick={handleDownloadPDF} className="gap-2">
                   <Download className="h-4 w-4" /> Download PDF
                 </Button>
               </div>
@@ -135,7 +211,7 @@ const PharmacyDocumentation = () => {
 
       <div className={`print-container ${isPrintMode ? "" : "container mx-auto px-4 py-8"}`}>
         {isPrintMode ? (
-          <div className="space-y-0">
+          <div ref={printContainerRef} className="space-y-0">
             {pages.map((page) => {
               const PageComponent = page.component;
               return <PageComponent key={page.id} />;
