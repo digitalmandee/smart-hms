@@ -29,8 +29,8 @@ export const DocPageWrapper = ({ children, pageNumber, totalPages }: DocPageWrap
 );
 
 export const SectionTitle = ({ icon, title, subtitle }: { icon: string; title: string; subtitle?: string }) => (
-  <div className="flex items-start gap-3 mb-5">
-    <div className="w-9 h-9 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-700 shrink-0 mt-0.5 text-lg">
+  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 20 }}>
+    <div style={{ width: 36, height: 36, borderRadius: 8, backgroundColor: '#d1fae5', color: '#047857', fontSize: 18, lineHeight: '36px', textAlign: 'center', display: 'inline-block', flexShrink: 0, marginTop: 2 }}>
       {icon}
     </div>
     <div>
@@ -41,10 +41,10 @@ export const SectionTitle = ({ icon, title, subtitle }: { icon: string; title: s
 );
 
 export const FeatureList = ({ items }: { items: string[] }) => (
-  <ul className="space-y-1.5 text-sm text-gray-900">
+  <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: 14, color: '#111827' }}>
     {items.map((item, i) => (
-      <li key={i} className="flex items-start gap-2">
-        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
+      <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 6 }}>
+        <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#10b981', display: 'inline-block', flexShrink: 0, marginTop: 7 }} />
         {item}
       </li>
     ))}
@@ -59,10 +59,10 @@ export const TipBox = ({ title, children }: { title: string; children: React.Rea
 );
 
 export const StepList = ({ steps }: { steps: string[] }) => (
-  <ol className="space-y-2 text-sm text-gray-900">
+  <ol style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: 14, color: '#111827' }}>
     {steps.map((step, i) => (
-      <li key={i} className="flex items-start gap-2">
-        <span className="w-5 h-5 rounded-full bg-emerald-600 text-white text-xs flex items-center justify-center shrink-0 mt-0.5 font-medium">
+      <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 8 }}>
+        <span style={{ width: 20, height: 20, borderRadius: '50%', backgroundColor: '#059669', color: 'white', fontSize: 11, fontWeight: 500, lineHeight: '20px', textAlign: 'center' as const, display: 'inline-block', flexShrink: 0, marginTop: 2 }}>
           {i + 1}
         </span>
         {step}
@@ -73,8 +73,8 @@ export const StepList = ({ steps }: { steps: string[] }) => (
 
 export const SubSection = ({ title, children }: { title: string; children: React.ReactNode }) => (
   <div className="mb-4">
-    <h3 className="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-1.5">
-      <span className="w-1 h-4 bg-emerald-500 rounded-full" />
+    <h3 style={{ fontSize: 14, fontWeight: 600, color: '#111827', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+      <span style={{ width: 4, height: 16, backgroundColor: '#10b981', borderRadius: 9999, display: 'inline-block' }} />
       {title}
     </h3>
     {children}
