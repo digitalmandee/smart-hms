@@ -1,168 +1,83 @@
 
 
-# Warehouse Management System -- Full Implementation Plan
+# Link Pharmacy Inventory to Warehouses + Add Missing Store Filter
 
-## Current State
+## Problem
 
-The system has a basic `stores` table and transfer mechanism, but is severely limited:
-- No rack/bin/shelf management for location tracking within warehouses
-- No pharmacy-specific warehouse pages (pharmacy uses shared inventory routes)
-- No separation between hospital and independent pharmacy warehouse contexts
-- `store_id` exists on `medicine_inventory`, `inventory_stock`, `purchase_orders`, and `goods_received_notes` but is nullable and largely unused in the pharmacy module
-- No product-to-rack mapping or location visibility
+The pharmacy inventory system (`medicine_inventory` table) already has a `store_id` column, but:
+1. The **Inventory Page** has no warehouse filter -- users cannot filter stock by warehouse
+2. The **Inventory query** (`useInventory`) does not accept or use `store_id` for filtering
+3. The **Pharmacy Dashboard** stats (low stock, expiring) are not warehouse-aware
+4. The **Inventory Adjustment Modal** does not show which warehouse the stock belongs to
+5. The **Warehouse Detail Page** does not show actual inventory/stock summary for that warehouse
+6. The **POS product search** does not filter by warehouse
 
-## What Will Be Built
+## What Will Be Done
 
-### Phase 1: Database Schema (Rack Management + Store Enhancements)
+### 1. Add Warehouse Filter to Inventory Page
+Add a `StoreSelector` dropdown (filtered to `context = "pharmacy"`) to the inventory page filters bar. When a warehouse is selected, only stock from that warehouse is shown.
 
-**New table: `store_racks`**
-- `id`, `store_id` (FK to stores), `organization_id`, `rack_code` (e.g., "R-01"), `rack_name` (e.g., "Rack 1 - Cardiovascular"), `section` (optional grouping like "Aisle A"), `capacity_info` (jsonb), `is_active`, timestamps
-- RLS: organization-scoped
+### 2. Update `useInventory` Hook to Support `store_id` Filtering
+Add `storeId` to the `InventoryFilters` interface and apply `.eq("store_id", storeId)` in the query when provided.
 
-**New table: `medicine_rack_assignments`**
-- `id`, `medicine_id` (FK to medicines), `store_id` (FK to stores), `rack_id` (FK to store_racks), `organization_id`, `shelf_number` (text, e.g., "Shelf 3"), `position` (text, e.g., "Left"), `notes`, timestamps
-- Unique constraint on (medicine_id, store_id) -- one medicine has one rack position per store
-- RLS: organization-scoped
+### 3. Enhance Warehouse Detail Page with Stock Summary
+On the warehouse detail page, query `medicine_inventory` filtered by `store_id` to show:
+- Total stock items count
+- Total stock value
+- Low stock items count
+- A quick stock table showing medicines in that warehouse
 
-**Alter `stores` table:**
-- Add `context` column (text, default 'hospital') -- values: 'hospital', 'pharmacy'
-- This separates hospital warehouses from independent pharmacy warehouses
+### 4. Show Warehouse Name in Inventory Table
+Add a "Warehouse" column to the inventory table that displays the store name from the `store_id` FK relationship. Update the inventory query to join with `stores` table.
 
-### Phase 2: Pharmacy Warehouse Pages (New Routes)
-
-Create dedicated pharmacy warehouse pages that are completely separate from the hospital inventory module:
-
-1. **Pharmacy Warehouses List** (`/app/pharmacy/warehouses`)
-   - Lists only warehouses where `context = 'pharmacy'` (or `store_type = 'pharmacy'`)
-   - Create, edit, activate/deactivate warehouses
-   - Shows rack count per warehouse
-
-2. **Pharmacy Warehouse Detail** (`/app/pharmacy/warehouses/:id`)
-   - Overview of a single warehouse: stock summary, rack layout, recent movements
-   - Quick links to manage racks, view stock by rack
-
-3. **Rack Management** (`/app/pharmacy/warehouses/:id/racks`)
-   - CRUD for racks within a warehouse
-   - Visual list: rack code, name, section, assigned medicine count
-   - Assign medicines to racks from this page
-
-4. **Product-to-Rack Mapping** (`/app/pharmacy/rack-assignments`)
-   - Full-page view: which medicine is on which rack in which warehouse
-   - Searchable, filterable table
-   - Bulk assign/reassign medicines to racks
-   - Clear visibility: Medicine Name | Warehouse | Rack | Shelf | Position
-
-### Phase 3: Integrate Warehouse into Pharmacy Inventory Flow
-
-- **Stock Entry Page**: Add rack selector when adding stock -- auto-suggest rack based on medicine's rack assignment
-- **Inventory Page**: Show rack/location column in the inventory table
-- **POS Terminal**: Show rack location next to medicine name during search (helps staff locate items quickly)
-- **Stock Movements**: Filter by warehouse/rack
-
-### Phase 4: Hospital vs Pharmacy Separation
-
-- Hospital inventory module (`/app/inventory/stores`) shows only `context = 'hospital'` warehouses
-- Pharmacy module (`/app/pharmacy/warehouses`) shows only `context = 'pharmacy'` warehouses
-- Inter-store transfers remain available within the same context (hospital-to-hospital, pharmacy-to-pharmacy)
-- Purchase Orders and GRN are already store-aware -- they continue working as-is
-- Independent pharmacy users see only pharmacy warehouses in their StoreSelector
-
-### Phase 5: Sidebar & Navigation Updates
-
-Update the pharmacist sidebar to include:
-```
-Warehouses
-  -- My Warehouses      /app/pharmacy/warehouses
-  -- Create Warehouse   /app/pharmacy/warehouses/new
-  -- Rack Assignments   /app/pharmacy/rack-assignments
-  -- Store Transfers    /app/pharmacy/transfers
-```
-
-Remove the current links to `/app/inventory/stores` and `/app/inventory/transfers` from the pharmacist sidebar.
+### 5. Update Inventory Adjustment Modal
+Show which warehouse the stock item belongs to in the modal header for context.
 
 ---
 
 ## Technical Details
 
-### Database Migration SQL
-
-```sql
--- 1. Store racks table
-CREATE TABLE public.store_racks (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  store_id uuid NOT NULL REFERENCES public.stores(id) ON DELETE CASCADE,
-  organization_id uuid NOT NULL REFERENCES public.organizations(id),
-  rack_code text NOT NULL,
-  rack_name text,
-  section text,
-  capacity_info jsonb DEFAULT '{}',
-  is_active boolean NOT NULL DEFAULT true,
-  created_at timestamptz NOT NULL DEFAULT now(),
-  updated_at timestamptz NOT NULL DEFAULT now(),
-  UNIQUE(store_id, rack_code)
-);
-
-ALTER TABLE public.store_racks ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Users can manage racks in their org"
-  ON public.store_racks FOR ALL TO authenticated
-  USING (organization_id = (SELECT organization_id FROM public.profiles WHERE id = auth.uid()));
-
--- 2. Medicine-to-rack assignments
-CREATE TABLE public.medicine_rack_assignments (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  medicine_id uuid NOT NULL REFERENCES public.medicines(id) ON DELETE CASCADE,
-  store_id uuid NOT NULL REFERENCES public.stores(id) ON DELETE CASCADE,
-  rack_id uuid NOT NULL REFERENCES public.store_racks(id) ON DELETE CASCADE,
-  organization_id uuid NOT NULL REFERENCES public.organizations(id),
-  shelf_number text,
-  position text,
-  notes text,
-  created_at timestamptz NOT NULL DEFAULT now(),
-  updated_at timestamptz NOT NULL DEFAULT now(),
-  UNIQUE(medicine_id, store_id)
-);
-
-ALTER TABLE public.medicine_rack_assignments ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Users can manage rack assignments in their org"
-  ON public.medicine_rack_assignments FOR ALL TO authenticated
-  USING (organization_id = (SELECT organization_id FROM public.profiles WHERE id = auth.uid()));
-
--- 3. Add context column to stores
-ALTER TABLE public.stores ADD COLUMN IF NOT EXISTS context text NOT NULL DEFAULT 'hospital';
-```
-
-### New Files to Create
-
-| File | Purpose |
-|---|---|
-| `src/hooks/useStoreRacks.ts` | CRUD hooks for racks and rack assignments |
-| `src/pages/app/pharmacy/WarehousesListPage.tsx` | Pharmacy warehouse list |
-| `src/pages/app/pharmacy/WarehouseDetailPage.tsx` | Single warehouse overview |
-| `src/pages/app/pharmacy/WarehouseFormPage.tsx` | Create/edit pharmacy warehouse |
-| `src/pages/app/pharmacy/RackManagementPage.tsx` | Manage racks within a warehouse |
-| `src/pages/app/pharmacy/RackAssignmentsPage.tsx` | Product-to-rack mapping view |
-| `src/components/pharmacy/RackSelector.tsx` | Reusable rack dropdown |
-| `src/components/pharmacy/RackLocationBadge.tsx` | Shows rack info inline |
-
 ### Files to Modify
 
 | File | Change |
 |---|---|
-| `src/config/role-sidebars.ts` | Update pharmacist sidebar with pharmacy warehouse routes |
-| `src/App.tsx` | Add new pharmacy warehouse routes |
-| `src/pages/app/pharmacy/StockEntryPage.tsx` | Add rack selector to stock entry form |
-| `src/pages/app/pharmacy/InventoryPage.tsx` | Add rack/location column to inventory table |
-| `src/components/inventory/StoreSelector.tsx` | Filter by context (hospital vs pharmacy) |
-| `src/hooks/useStores.ts` | Add context filter parameter |
-| `src/pages/app/inventory/StoresListPage.tsx` | Filter to show only hospital-context stores |
+| `src/hooks/usePharmacy.ts` | Add `storeId` to `InventoryFilters`; join `store:stores(id, name)` in inventory query; apply `.eq("store_id", storeId)` when provided |
+| `src/pages/app/pharmacy/InventoryPage.tsx` | Add `StoreSelector` to filter bar; pass selected `storeId` to `useInventory`; add "Warehouse" column to table |
+| `src/pages/app/pharmacy/WarehouseDetailPage.tsx` | Query `medicine_inventory` by `store_id` to show stock summary cards (total items, total value, low stock count) and a compact stock list |
+| `src/components/pharmacy/InventoryAdjustmentModal.tsx` | Show warehouse name in the modal if inventory has a `store` relation |
 
-### Scope Note
+### Hook Changes (usePharmacy.ts)
 
-This is a large feature spanning 8+ new files and 7+ modified files plus database migrations. Given the scope, I recommend implementing it in 2-3 iterations:
+```text
+InventoryFilters:
+  + storeId?: string
 
-**Iteration 1** (this plan): Database schema + Pharmacy warehouse pages + Rack management + Rack assignments + Navigation updates
+useInventory query:
+  + join: store:stores(id, name)
+  + if storeId: .eq("store_id", storeId)
 
-**Iteration 2** (follow-up): Integration into POS terminal (show rack location), Stock Entry rack auto-suggest, advanced rack analytics
+InventoryWithMedicine interface:
+  + store?: { id: string; name: string } | null
+```
+
+### Inventory Page Changes
+
+Add a `StoreSelector` between the search input and category filter:
+- Default: "All Warehouses" (no store_id filter)
+- When selected: filters inventory to that warehouse only
+- Uses `context="pharmacy"` prop to show only pharmacy warehouses
+
+Add a "Warehouse" column after "Supplier" that displays `row.original.store?.name || "Unassigned"`.
+
+### Warehouse Detail Page Changes
+
+Add two new summary cards:
+- **Stock Items**: Count of `medicine_inventory` rows where `store_id = warehouse.id`
+- **Low Stock**: Count where quantity <= reorder_level
+
+Add a compact table below the racks list showing top medicines stored in this warehouse (limit 10), with link to full filtered inventory view.
+
+### Adjustment Modal Changes
+
+Display `inventory.store?.name` as a subtitle badge in the modal header when available.
 
