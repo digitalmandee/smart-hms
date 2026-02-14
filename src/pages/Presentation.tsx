@@ -229,7 +229,6 @@ const TOTAL_SLIDES = 32;
 
 const Presentation = () => {
   const [isDownloading, setIsDownloading] = useState(false);
-  const [isPrintMode, setIsPrintMode] = useState(false);
   const printContainerRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = () => {
@@ -238,11 +237,10 @@ const Presentation = () => {
 
   const handleDownloadPDF = useCallback(async () => {
     setIsDownloading(true);
-    setIsPrintMode(true);
 
     try {
       await document.fonts.ready;
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       const container = printContainerRef.current;
       if (!container) return;
@@ -251,18 +249,31 @@ const Presentation = () => {
       const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
       const pdfWidth = 297;
       const pdfHeight = 210;
-      const pixelWidth = 1123;
-      const pixelHeight = 794;
 
       for (let i = 0; i < slideElements.length; i++) {
         const el = slideElements[i] as HTMLElement;
 
+        // Store original styles
+        const origStyles = {
+          width: el.style.width,
+          height: el.style.height,
+          minHeight: el.style.minHeight,
+          maxWidth: el.style.maxWidth,
+          overflow: el.style.overflow,
+          margin: el.style.margin,
+          borderRadius: el.style.borderRadius,
+          border: el.style.border,
+          boxShadow: el.style.boxShadow,
+        };
+
+        // Force fixed dimensions for capture
+        const pixelWidth = 1123;
+        const pixelHeight = 794;
         el.style.width = `${pixelWidth}px`;
         el.style.height = `${pixelHeight}px`;
         el.style.minHeight = `${pixelHeight}px`;
-        el.style.maxHeight = `${pixelHeight}px`;
+        el.style.maxWidth = `${pixelWidth}px`;
         el.style.overflow = 'hidden';
-        el.style.background = 'white';
         el.style.margin = '0';
         el.style.borderRadius = '0';
         el.style.border = 'none';
@@ -282,6 +293,9 @@ const Presentation = () => {
           windowHeight: pixelHeight,
         });
 
+        // Restore original styles
+        Object.assign(el.style, origStyles);
+
         const imgData = canvas.toDataURL("image/jpeg", 0.95);
         if (i > 0) pdf.addPage();
         pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
@@ -292,7 +306,6 @@ const Presentation = () => {
       console.error("PDF generation failed:", error);
       alert("PDF generation failed. Please try again.");
     } finally {
-      setIsPrintMode(false);
       setIsDownloading(false);
     }
   }, []);
@@ -384,45 +397,17 @@ const Presentation = () => {
       </div>
 
       {/* Instructions (hidden in print) */}
-      {!isPrintMode && (
-        <div className="no-print bg-muted/50 border-b border-border px-4 py-3">
-          <div className="container mx-auto text-center">
-            <p className="text-sm text-muted-foreground">
-              💡 Click <strong>"Download PDF"</strong> to save as a real PDF file, or <strong>"Print"</strong> to open your browser's print dialog.
-            </p>
-          </div>
+      <div className="no-print bg-muted/50 border-b border-border px-4 py-3">
+        <div className="container mx-auto text-center">
+          <p className="text-sm text-muted-foreground">
+            💡 Click <strong>"Download PDF"</strong> to save as a real PDF file, or <strong>"Print"</strong> to open your browser's print dialog.
+          </p>
         </div>
-      )}
+      </div>
 
-      {/* Download mode: hidden render container for all slides */}
-      {isPrintMode && (
-        <div ref={printContainerRef} style={{ position: 'absolute', left: '-9999px', top: 0 }}>
-          <TitleSlide />
-          <FeaturesOverviewSlide />
-          {features.map((feature, index) => (
-            <ModuleSlide
-              key={feature.id}
-              feature={feature}
-              slideNumber={index + 3}
-              totalSlides={TOTAL_SLIDES}
-            />
-          ))}
-          <OTDashboardSlide />
-          <WorkflowSlide />
-          <ProcurementSlide />
-          <WarehouseSlide />
-          <CaseStudiesSlide />
-          <LabNetworkSlide />
-          <IntegrationSlide />
-          <ComplianceSlide />
-          <TimelineSlide />
-          <CTASlide />
-        </div>
-      )}
-
-      {/* Slides Container (screen view) */}
-      <div className="no-print:py-8 no-print:px-4 bg-muted/30 min-h-screen">
-        <div className="py-8 px-4">
+      {/* Slides Container */}
+      <div className="bg-muted/30 min-h-screen">
+        <div ref={printContainerRef} className="py-8 px-4">
           <TitleSlide />
           <FeaturesOverviewSlide />
           {features.map((feature, index) => (
