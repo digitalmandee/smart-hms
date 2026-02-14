@@ -49,9 +49,7 @@ const PharmacyDocumentation = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [isPrintMode, setIsPrintMode] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
-  const [isCapturing, setIsCapturing] = useState(false);
   const printContainerRef = useRef<HTMLDivElement>(null);
-  const captureContainerRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = () => {
     setIsPrintMode(true);
@@ -63,28 +61,41 @@ const PharmacyDocumentation = () => {
 
   const handleDownloadPDF = useCallback(async () => {
     setIsDownloading(true);
-    setIsCapturing(true);
+    setIsPrintMode(true);
 
     try {
-      // Wait for React to render all pages + fonts to settle
-      await new Promise((resolve) => setTimeout(resolve, 100));
       await document.fonts.ready;
-      await new Promise((resolve) => {
-        requestAnimationFrame(() => {
-          setTimeout(resolve, 1000);
-        });
-      });
+      await new Promise(r => setTimeout(r, 500));
 
-      const container = captureContainerRef.current;
-      if (!container) throw new Error("Capture container not found");
+      const container = printContainerRef.current;
+      if (!container) throw new Error("Print container not found");
 
       const pageElements = container.querySelectorAll('.proposal-page');
-      if (pageElements.length === 0) throw new Error("No pages found to capture");
+      if (pageElements.length === 0) throw new Error("No pages found");
 
-      const capturedCanvases: HTMLCanvasElement[] = [];
+      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
 
       for (let i = 0; i < pageElements.length; i++) {
-        const canvas = await html2canvas(pageElements[i] as HTMLElement, {
+        const el = pageElements[i] as HTMLElement;
+
+        const origStyles = {
+          width: el.style.width, height: el.style.height, minHeight: el.style.minHeight,
+          maxWidth: el.style.maxWidth, overflow: el.style.overflow, margin: el.style.margin,
+          borderRadius: el.style.borderRadius, boxShadow: el.style.boxShadow,
+        };
+
+        el.style.width = '794px';
+        el.style.height = '1123px';
+        el.style.minHeight = '1123px';
+        el.style.maxWidth = '794px';
+        el.style.overflow = 'hidden';
+        el.style.margin = '0';
+        el.style.borderRadius = '0';
+        el.style.boxShadow = 'none';
+
+        await new Promise(r => setTimeout(r, 200));
+
+        const canvas = await html2canvas(el, {
           scale: 3,
           useCORS: true,
           allowTaint: true,
@@ -92,13 +103,13 @@ const PharmacyDocumentation = () => {
           logging: false,
           width: 794,
           height: 1123,
+          windowWidth: 794,
+          windowHeight: 1123,
         });
-        capturedCanvases.push(canvas);
-      }
 
-      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-      for (let i = 0; i < capturedCanvases.length; i++) {
-        const imgData = capturedCanvases[i].toDataURL("image/jpeg", 0.98);
+        Object.assign(el.style, origStyles);
+
+        const imgData = canvas.toDataURL("image/jpeg", 0.98);
         if (i > 0) pdf.addPage();
         pdf.addImage(imgData, "JPEG", 0, 0, 210, 297);
       }
@@ -108,7 +119,7 @@ const PharmacyDocumentation = () => {
       console.error("PDF generation failed:", error);
       alert("PDF generation failed. Please try again.");
     } finally {
-      setIsCapturing(false);
+      setIsPrintMode(false);
       setIsDownloading(false);
     }
   }, []);
@@ -207,23 +218,6 @@ const PharmacyDocumentation = () => {
         )}
       </div>
 
-      {/* Hidden capture container — renders in main React tree for identical CSS context */}
-      {isCapturing && (
-        <div
-          ref={captureContainerRef}
-          style={{
-            position: 'absolute',
-            left: '-9999px',
-            top: 0,
-            width: '794px',
-          }}
-        >
-          {pages.map((page) => {
-            const PageComp = page.component;
-            return <PageComp key={page.id} />;
-          })}
-        </div>
-      )}
     </div>
   );
 };
