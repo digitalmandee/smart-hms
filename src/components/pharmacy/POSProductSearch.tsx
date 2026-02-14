@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search, Barcode, Package, AlertCircle } from "lucide-react";
 import { useInventory, InventoryWithMedicine } from "@/hooks/usePharmacy";
+import { useRackAssignments } from "@/hooks/useStoreRacks";
+import { RackLocationBadge } from "@/components/pharmacy/RackLocationBadge";
 import { CartItem } from "@/hooks/usePOS";
 import { cn } from "@/lib/utils";
 import { POSCategoryFilter } from "./POSCategoryFilter";
@@ -25,6 +27,7 @@ export function POSProductSearch({ onAddToCart, disabled }: POSProductSearchProp
     search,
     categoryId: selectedCategory || undefined,
   });
+  const { data: rackAssignments } = useRackAssignments();
 
   // Filter inventory with stock > 0
   const availableItems = inventory?.filter((item) => item.quantity > 0) || [];
@@ -169,6 +172,18 @@ export function POSProductSearch({ onAddToCart, disabled }: POSProductSearchProp
                               {item.batch_number && (
                                 <span>• Batch: {item.batch_number}</span>
                               )}
+                              {(() => {
+                                const assignment = rackAssignments?.find(a => a.medicine_id === item.medicine_id);
+                                return assignment ? (
+                                  <RackLocationBadge
+                                    rackCode={assignment.rack?.rack_code}
+                                    rackName={assignment.rack?.rack_name}
+                                    shelfNumber={assignment.shelf_number}
+                                    position={assignment.position}
+                                    compact
+                                  />
+                                ) : null;
+                              })()}
                             </div>
                           </div>
                         </div>
