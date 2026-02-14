@@ -5,7 +5,7 @@ interface DocPageWrapperProps {
 }
 
 export const DocPageWrapper = ({ children, pageNumber, totalPages }: DocPageWrapperProps) => (
-  <div className="proposal-page flex flex-col p-10" style={{ maxHeight: '297mm', overflow: 'hidden' }}>
+  <div className="proposal-page flex flex-col p-10" style={{ width: '210mm', height: '297mm', background: 'white', overflow: 'hidden' }}>
     {/* Header */}
     <div className="flex items-center justify-between mb-6 pb-4 border-b border-emerald-200">
       <div className="flex items-center gap-2">
