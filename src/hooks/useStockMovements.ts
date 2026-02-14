@@ -19,6 +19,7 @@ export interface StockMovement {
   id: string;
   organization_id: string;
   branch_id: string;
+  store_id: string | null;
   medicine_id: string | null;
   inventory_id: string | null;
   movement_type: MovementType;
@@ -36,6 +37,7 @@ export interface StockMovement {
   created_at: string;
   medicine?: { name: string; generic_name: string | null } | null;
   creator?: { full_name: string } | null;
+  store?: { id: string; name: string } | null;
 }
 
 export interface StockMovementFilters {
@@ -44,6 +46,7 @@ export interface StockMovementFilters {
   movementType?: MovementType;
   medicineId?: string;
   search?: string;
+  storeId?: string;
 }
 
 // Helper for raw SQL queries
@@ -67,7 +70,8 @@ export function useStockMovements(branchId?: string, filters?: StockMovementFilt
         .select(`
           *,
           medicine:medicines(name, generic_name),
-          creator:profiles!pharmacy_stock_movements_created_by_fkey(full_name)
+          creator:profiles!pharmacy_stock_movements_created_by_fkey(full_name),
+          store:stores(id, name)
         `)
         .eq("branch_id", targetBranchId)
         .order("created_at", { ascending: false })
@@ -87,6 +91,10 @@ export function useStockMovements(branchId?: string, filters?: StockMovementFilt
 
       if (filters?.medicineId) {
         query = query.eq("medicine_id", filters.medicineId);
+      }
+
+      if (filters?.storeId) {
+        query = query.eq("store_id", filters.storeId);
       }
 
       const { data, error } = await query;
@@ -125,15 +133,17 @@ export function useCreateStockAdjustment() {
         throw new Error("No organization or branch context");
       }
 
-      // Get current stock
+      // Get current stock and store_id
       let previousStock = 0;
+      let storeId: string | null = null;
       if (inventoryId) {
         const { data: inv } = await supabase
           .from("medicine_inventory")
-          .select("quantity")
+          .select("quantity, store_id")
           .eq("id", inventoryId)
           .single();
         previousStock = inv?.quantity || 0;
+        storeId = inv?.store_id || null;
       }
 
       const newStock = previousStock + quantity;
@@ -143,6 +153,7 @@ export function useCreateStockAdjustment() {
         .insert({
           organization_id: profile.organization_id,
           branch_id: profile.branch_id,
+          store_id: storeId,
           medicine_id: medicineId,
           inventory_id: inventoryId || null,
           movement_type: movementType,

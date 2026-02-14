@@ -223,12 +223,25 @@ export function useCreateTransaction() {
 
       posLogger.debug("Transaction totals calculated", { subtotal, taxAmount, totalAmount, amountPaid, changeAmount });
 
+      // Derive store_id from first cart item's inventory
+      let transactionStoreId: string | null = null;
+      const firstInventoryItem = items.find(i => i.inventory_id);
+      if (firstInventoryItem?.inventory_id) {
+        const { data: invLookup } = await supabase
+          .from("medicine_inventory")
+          .select("store_id")
+          .eq("id", firstInventoryItem.inventory_id)
+          .single();
+        transactionStoreId = invLookup?.store_id || null;
+      }
+
       // Create transaction (session_id is now optional/null)
       const { data: transaction, error: txError } = await queryPOSTable("pharmacy_pos_transactions")
         .insert({
           organization_id: profile.organization_id,
           branch_id: profile.branch_id,
           session_id: null, // No session required
+          store_id: transactionStoreId,
           customer_name: customerName || null,
           customer_phone: customerPhone || null,
           patient_id: patientId || null,
@@ -292,7 +305,7 @@ export function useCreateTransaction() {
           // Get current inventory
           const { data: inventory, error: invError } = await supabase
             .from("medicine_inventory")
-            .select("id, quantity, medicine_id, batch_number, selling_price")
+            .select("id, quantity, medicine_id, batch_number, selling_price, store_id")
             .eq("id", item.inventory_id)
             .single();
 
@@ -319,6 +332,7 @@ export function useCreateTransaction() {
           await queryPOSTable("pharmacy_stock_movements").insert({
             organization_id: profile.organization_id,
             branch_id: profile.branch_id,
+            store_id: inventory.store_id || null,
             medicine_id: item.medicine_id,
             inventory_id: item.inventory_id,
             movement_type: "sale",
