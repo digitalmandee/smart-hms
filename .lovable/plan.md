@@ -1,64 +1,69 @@
 
 
-# Fix PDF Rendering — Replace CSS Variables with Hardcoded Colors
+# Fix PDF Download — Switch to Robust Rendering Strategy
 
 ## Problem
-Two rendering issues are causing broken content in the downloaded PDF:
+Despite replacing all SVG icons with emojis and all CSS variables with hardcoded colors, `html2canvas` continues to produce inconsistent results across certain pages. The library has known limitations with:
+- Font rendering timing (fonts may not be loaded when capture starts)
+- Complex CSS layouts (flexbox, grid)
+- Background colors and gradients on certain elements
+- Opacity and transparency values
 
-1. **CSS custom properties**: Tailwind classes like `text-foreground`, `text-muted-foreground`, `bg-card`, `bg-background`, `border-border` all resolve to `hsl(var(--something))` at runtime. `html2canvas` cannot reliably resolve CSS custom properties, causing text to become invisible and backgrounds to render incorrectly across all 18 pages.
-
-2. **Dynamic Tailwind classes**: The `InfoCard` component builds class names with template literals (e.g., ``border-${color}-200``). Tailwind's JIT compiler cannot detect these at build time, so the CSS rules are never generated. These elements get no styling at all.
+The current 500ms wait before capture is insufficient for all 18 pages to fully render with fonts and styles loaded.
 
 ## Solution
-Replace all CSS-variable-based Tailwind classes in the pharmacy-docs components with hardcoded color values. Since these components are **only used for documentation PDF generation** (not the main app UI), using explicit colors is safe and ensures reliable rendering.
+Improve the PDF generation pipeline with three key changes:
 
-## Changes
+### 1. Render Pages One at a Time (Not All at Once)
+Instead of rendering all 18 pages simultaneously and then capturing them, render and capture each page individually. This prevents memory pressure and ensures each page is fully laid out before capture.
 
-### 1. `DocPageWrapper.tsx` — Fix all shared components
+Current flow:
+- Render all 18 pages at once
+- Loop through and capture each
 
-| CSS Variable Class | Hardcoded Replacement |
-|---|---|
-| `text-foreground` | `text-gray-900` |
-| `text-muted-foreground` | `text-gray-500` |
-| `bg-card` | `bg-white` |
-| `bg-muted` | `bg-gray-100` |
-| `border-border` | `border-gray-200` |
-| `border-muted` | `border-gray-200` |
+New flow:
+- For each page: render it alone, wait for it to settle, capture it, then move to the next
 
-Fix `InfoCard` dynamic classes by replacing template literals with hardcoded emerald classes (since all InfoCards in the docs use emerald).
+### 2. Add Font and Layout Stabilization
+- Wait for `document.fonts.ready` before starting capture
+- Add a per-page delay (200ms) after each page renders to ensure layout is complete
+- Force explicit width/height on the capture container to match A4 proportions exactly
 
-### 2. All 18 Doc Component Files
+### 3. Improve html2canvas Configuration
+- Set `logging: false` to prevent console noise
+- Set `allowTaint: true` for cross-origin resources
+- Set `windowWidth` and `windowHeight` to match A4 pixel dimensions at 2x scale
+- Use `onclone` callback to force all computed styles to inline styles, ensuring nothing is lost
 
-Replace every instance of CSS-variable Tailwind classes with hardcoded equivalents:
-- `DocCoverPage.tsx` — `text-foreground`, `text-muted-foreground`, `bg-card`, `border-border`, `bg-muted`, `bg-background`
-- `DocTableOfContents.tsx` — `text-foreground`, `text-muted-foreground`, `border-muted`
-- `DocDashboard.tsx` through `DocSettings.tsx` — same pattern in all files
+## Files to Edit
 
-### 3. Files to edit (19 total)
-- `src/components/pharmacy-docs/DocPageWrapper.tsx`
-- `src/components/pharmacy-docs/DocCoverPage.tsx`
-- `src/components/pharmacy-docs/DocTableOfContents.tsx`
-- `src/components/pharmacy-docs/DocDashboard.tsx`
-- `src/components/pharmacy-docs/DocMedicineCatalog.tsx`
-- `src/components/pharmacy-docs/DocInventory.tsx`
-- `src/components/pharmacy-docs/DocStockEntry.tsx`
-- `src/components/pharmacy-docs/DocPOSLayout.tsx`
-- `src/components/pharmacy-docs/DocPOSCart.tsx`
-- `src/components/pharmacy-docs/DocPOSPayment.tsx`
-- `src/components/pharmacy-docs/DocSessions.tsx`
-- `src/components/pharmacy-docs/DocDispensing.tsx`
-- `src/components/pharmacy-docs/DocReturns.tsx`
-- `src/components/pharmacy-docs/DocStockMovements.tsx`
-- `src/components/pharmacy-docs/DocWarehouse.tsx`
-- `src/components/pharmacy-docs/DocProcurement.tsx`
-- `src/components/pharmacy-docs/DocReports.tsx`
-- `src/components/pharmacy-docs/DocReportsPage2.tsx`
-- `src/components/pharmacy-docs/DocSettings.tsx`
+### `src/pages/PharmacyDocumentation.tsx`
+Update the `handleDownloadPDF` function:
 
-## Technical Notes
-- Changes are isolated to the `src/components/pharmacy-docs/` directory only
-- No changes to the main application components or themes
-- The on-screen documentation appearance will look nearly identical (same gray tones)
-- `html2canvas` handles standard CSS color values (like `#1f2937`, Tailwind's `gray-900`) perfectly
-- This eliminates the CSS variable dependency entirely for PDF rendering
+1. Wait for `document.fonts.ready` before starting
+2. Render all pages in a hidden off-screen container with explicit A4 dimensions (794px x 1123px at 96dpi)
+3. For each `.proposal-page` element:
+   - Force explicit width (794px) and height (1123px) via inline styles
+   - Wait 200ms for the element to settle
+   - Capture with `html2canvas` using improved config
+   - Add to jsPDF
+4. Clean up and trigger download
 
+### `src/components/pharmacy-docs/DocPageWrapper.tsx`
+Add explicit inline styles for the page container to ensure `html2canvas` sees fixed dimensions:
+- `width: 210mm` (via inline style, not just CSS class)
+- `height: 297mm` (fixed, not min-height)
+- `background: white` (via inline style)
+- `overflow: hidden` (via inline style)
+
+This combination of fixes ensures each page is treated as a fixed-size white canvas with all content fully rendered before capture, eliminating the inconsistent rendering issues.
+
+## Technical Details
+
+| Aspect | Current | New |
+|---|---|---|
+| Page rendering | All 18 at once | All at once but with font-ready wait |
+| Wait before capture | Single 500ms delay | `document.fonts.ready` + 300ms settle time |
+| Container sizing | CSS class only | Explicit inline styles (794px x 1123px) |
+| html2canvas config | Basic (scale:2, useCORS) | Enhanced (scale:2, useCORS, windowWidth, onclone for style inlining) |
+| Error handling | Alert on failure | Toast notification with retry option |
