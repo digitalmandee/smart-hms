@@ -1,83 +1,60 @@
 
+# Real Screenshots and Currency Fix for Pharmacy Documentation
 
-# Enhanced Pharmacy Documentation -- UI Mockups and Print Fix
+## Overview
+Replace CSS mockups in the documentation with real screenshots captured from the live pharmacy module, and remove all Indian currency symbols (₹ and Rs.) from the documentation mockups.
 
-## Problems Identified
+## Screenshots Captured
+I successfully logged in as the independent pharmacy user and captured screenshots of these pages:
 
-### 1. Empty Pages During Download (36 pages instead of 18)
-The CSS uses `min-height: 297mm` for both screen and print modes. During printing, the browser renders each page at minimum A4 height, but `page-break-after: always` forces a new page after each element. If any page's content slightly overflows, the browser creates a second blank page for the overflow. This doubles the page count from 18 to ~36.
-
-**Fix:** In print mode, switch from `min-height: 297mm` to `height: 297mm` with `overflow: hidden`, so each component is exactly one A4 page with no overflow triggering extra blank pages.
-
-### 2. Text-Heavy UI -- No Visual Representation
-Currently every page is bullet lists and text. For a professional documentation guide, key screens should include inline UI mockups that visually show what the user will see.
-
-**Fix:** Add a `ScreenMockup` component and inline visual diagrams for 8 key pages. These are styled div-based illustrations (not images) that render reliably in both screen and print/PDF.
-
----
+| Page | Screenshot Source |
+|---|---|
+| Dashboard | `/app/pharmacy` -- KPI cards, alerts, quick actions, sales summary |
+| POS Terminal | `/app/pharmacy/pos` -- Cart, customer fields, discount buttons, checkout |
+| Inventory | `/app/pharmacy/inventory` -- Medicine list with batch, qty, expiry, prices |
+| Medicine Catalog | `/app/pharmacy/medicines` -- Name, category, strength, manufacturer |
+| Reports Hub | `/app/pharmacy/reports` -- Date range, KPI cards, 29 report cards |
+| Returns | `/app/pharmacy/returns` -- KPI cards, find transaction, recent returns |
+| Stock Movements | `/app/pharmacy/stock-movements` -- Filters, movement log with types |
+| Settings | `/app/pharmacy/settings` -- Thresholds, receipt config, POS behavior |
 
 ## Changes
 
-### File: `src/components/pharmacy-docs/DocPageWrapper.tsx`
-- Add new `ScreenMockup` component -- a bordered container styled like an app window with a title bar, used to show visual representations of screens
-- Add `InfoCard` component -- a compact card with icon, label, and value for showing KPI-style visuals
-- Add `MockupTable` component -- a mini data table for showing inventory/transaction list mockups
+### 1. Save Screenshots as Static Assets
+Create screenshot images in `public/docs/pharmacy/` folder by navigating to each pharmacy page and saving the browser screenshots as PNG files.
 
-### File: `src/pages/PharmacyDocumentation.tsx`
-- Fix print CSS: change `.proposal-page` in `@media print` from `min-height: 297mm` to `height: 297mm; overflow: hidden`
-- This ensures exactly 18 pages in the PDF output
+### 2. Currency Symbol Removal (Documentation Mockups)
+Remove all `₹` symbols from the documentation mockup components. Replace with generic values or remove currency prefix entirely:
 
-### File: `src/components/pharmacy-docs/DocDashboard.tsx`
-- Add a row of 4 KPI mockup cards (Pending Rx: 12, Dispensed: 45, Low Stock: 8, Expiring: 3) using `InfoCard`
-- Visual representation of what the dashboard looks like
+**Files with ₹ to fix:**
+- `DocPOSLayout.tsx` -- Product prices (₹2.50, ₹5.00, etc.) changed to plain numbers (2.50, 5.00)
+- `DocPOSPayment.tsx` -- Total Due (₹1,250.00), Cash Received (₹1,500.00), Change Due (₹250.00)
+- `DocSessions.tsx` -- Total Sales (₹24,580), Cash Diff (₹0.00)
+- `DocReturns.tsx` -- Item prices (₹5.00, ₹3.75)
 
-### File: `src/components/pharmacy-docs/DocPOSLayout.tsx`
-- Add a `ScreenMockup` showing the POS terminal layout: left panel (product grid with search bar) and right panel (cart with totals)
-- Compact visual diagram of the split-screen POS interface
+### 3. Update Documentation Components with Real Screenshots
+For each documentation page that currently has CSS mockups, replace the `ScreenMockup` component with an `<img>` tag pointing to the saved screenshot. The image will be styled to fit within the A4 page with a border and rounded corners.
 
-### File: `src/components/pharmacy-docs/DocPOSPayment.tsx`
-- Add a visual mockup of the payment modal showing: total amount, payment method buttons (Cash/Card/Wallet), cash input with Exact button, and change display
+**Components to update:**
+- `DocDashboard.tsx` -- Replace InfoCard mockups with dashboard screenshot
+- `DocPOSLayout.tsx` -- Replace CSS POS layout with POS terminal screenshot
+- `DocPOSPayment.tsx` -- Keep or supplement with POS payment screenshot
+- `DocInventory.tsx` -- Replace MockupTable with inventory page screenshot
+- `DocReturns.tsx` -- Replace CSS return flow with returns page screenshot
+- `DocReports.tsx` -- Replace report card mockups with reports hub screenshot
+- `DocSessions.tsx` -- Replace session summary with stock movements screenshot
+- `DocSettings.tsx` -- Add settings page screenshot
 
-### File: `src/components/pharmacy-docs/DocInventory.tsx`
-- Add a `MockupTable` showing a sample inventory view: 3-4 rows with Medicine, Batch, Qty, Expiry, Status columns
+### 4. Screenshot Styling for Print
+Each screenshot image will use these styles for consistent A4 rendering:
+- `max-width: 100%` and `max-height: 200px` to fit within the page alongside text
+- `border: 1px solid` with emerald accent
+- `border-radius: 8px` and subtle shadow
+- `object-fit: contain` for proper scaling
+- Print-safe: no background gradients
 
-### File: `src/components/pharmacy-docs/DocReturns.tsx`
-- Add a visual mockup of the return flow: receipt lookup field, selected items with checkboxes, refund method selector
-
-### File: `src/components/pharmacy-docs/DocReports.tsx`
-- Add a visual mockup of the Reports Hub card grid showing 4 sample report cards with icons
-
-### File: `src/components/pharmacy-docs/DocWarehouse.tsx`
-- Add a visual diagram of the transfer workflow: 4 connected steps (Request, Approve, Dispatch, Receive) with status indicators
-
-### File: `src/components/pharmacy-docs/DocSessions.tsx`
-- Add a mockup of a session summary card showing sales total, transaction count, and cash reconciliation
-
----
-
-## Visual Mockup Style
-
-All mockups will use:
-- Rounded border with subtle shadow (`border border-emerald-200 rounded-lg`)
-- Mini title bar with dots (like a browser window chrome)
-- Compact layout that fits within the A4 page alongside existing text content
-- Emerald/teal accent colors consistent with the pharmacy brand
-- Print-safe (no background gradients, uses borders and text)
-
----
-
-## Files Modified Summary
-
-| File | Changes |
-|---|---|
-| `src/pages/PharmacyDocumentation.tsx` | Fix print CSS to prevent empty pages |
-| `src/components/pharmacy-docs/DocPageWrapper.tsx` | Add ScreenMockup, InfoCard, MockupTable components |
-| `src/components/pharmacy-docs/DocDashboard.tsx` | Add KPI card mockups |
-| `src/components/pharmacy-docs/DocPOSLayout.tsx` | Add POS terminal layout mockup |
-| `src/components/pharmacy-docs/DocPOSPayment.tsx` | Add payment modal mockup |
-| `src/components/pharmacy-docs/DocInventory.tsx` | Add inventory table mockup |
-| `src/components/pharmacy-docs/DocReturns.tsx` | Add return flow mockup |
-| `src/components/pharmacy-docs/DocReports.tsx` | Add report cards mockup |
-| `src/components/pharmacy-docs/DocWarehouse.tsx` | Add transfer workflow diagram |
-| `src/components/pharmacy-docs/DocSessions.tsx` | Add session summary mockup |
-
+## Technical Notes
+- Screenshots are saved as static PNGs in the `public/` directory -- no database storage needed
+- Images are referenced via relative paths (`/docs/pharmacy/dashboard.png`)
+- Print mode renders images inline -- no external loading required
+- The currency removal is documentation-only; the actual app currency format is separate
