@@ -63,10 +63,12 @@ const PharmacyDocumentation = () => {
     setIsDownloading(true);
     setIsPrintMode(true);
 
-    // Wait for all pages to render
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
     try {
+      // Wait for fonts to be fully loaded
+      await document.fonts.ready;
+      // Allow pages to render in DOM
+      await new Promise((resolve) => setTimeout(resolve, 800));
+
       const container = printContainerRef.current;
       if (!container) return;
 
@@ -74,15 +76,40 @@ const PharmacyDocumentation = () => {
       const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
       const pdfWidth = 210;
       const pdfHeight = 297;
+      const pixelWidth = 794;
+      const pixelHeight = 1123;
 
       for (let i = 0; i < pageElements.length; i++) {
         const el = pageElements[i] as HTMLElement;
+
+        // Force explicit dimensions for html2canvas
+        el.style.width = `${pixelWidth}px`;
+        el.style.height = `${pixelHeight}px`;
+        el.style.overflow = 'hidden';
+        el.style.background = 'white';
+
+        // Let the element settle with forced dimensions
+        await new Promise((resolve) => setTimeout(resolve, 200));
+
         const canvas = await html2canvas(el, {
           scale: 2,
           useCORS: true,
+          allowTaint: true,
           backgroundColor: "#ffffff",
-          width: el.scrollWidth,
-          height: el.scrollHeight,
+          logging: false,
+          width: pixelWidth,
+          height: pixelHeight,
+          windowWidth: pixelWidth,
+          windowHeight: pixelHeight,
+          onclone: (clonedDoc) => {
+            const clonedEl = clonedDoc.querySelector('.proposal-page:nth-child(' + (i + 1) + ')') as HTMLElement;
+            if (clonedEl) {
+              clonedEl.style.width = `${pixelWidth}px`;
+              clonedEl.style.height = `${pixelHeight}px`;
+              clonedEl.style.overflow = 'hidden';
+              clonedEl.style.background = 'white';
+            }
+          },
         });
 
         const imgData = canvas.toDataURL("image/jpeg", 0.95);
