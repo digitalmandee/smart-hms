@@ -304,13 +304,24 @@ const Presentation = () => {
       console.log("All slides captured, saving PDF...");
       const pdfBlob = pdf.output("blob");
       const url = URL.createObjectURL(pdfBlob);
+      
+      // Try multiple download methods for iframe compatibility
       const link = document.createElement("a");
       link.href = url;
       link.download = "HealthOS24-Presentation.pdf";
+      link.style.display = "none";
       document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      
+      // Fallback: open in new tab if anchor click doesn't trigger download
+      setTimeout(() => {
+        window.open(url, "_blank");
+      }, 500);
+      
+      setTimeout(() => {
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }, 5000);
       console.log("PDF saved!");
     } catch (error) {
       console.error("PDF generation failed:", error);
