@@ -3,7 +3,7 @@ import { DocPageWrapper, SectionTitle, SubSection, TipBox, ScreenMockup } from "
 const ReportCategory = ({ title, color, reports }: { title: string; color: string; reports: string[] }) => (
   <div className="mb-3">
     <h4 className="text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color }}>{title} ({reports.length})</h4>
-    <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-xs text-foreground">
+    <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-xs text-gray-900">
       {reports.map((r, i) => (
         <div key={i} className="flex items-center gap-1.5 py-0.5">
           <span className="w-1 h-1 rounded-full shrink-0" style={{ backgroundColor: color }} />
@@ -32,8 +32,8 @@ export const DocReports = () => (
         ].map(([icon, name, cat]) => (
           <div key={name} className="border border-emerald-200 rounded p-2 text-center bg-emerald-50/50">
             <span className="text-base">{icon}</span>
-            <p className="font-semibold text-foreground mt-0.5">{name}</p>
-            <p className="text-muted-foreground">{cat}</p>
+            <p className="font-semibold text-gray-900 mt-0.5">{name}</p>
+            <p className="text-gray-500">{cat}</p>
           </div>
         ))}
       </div>

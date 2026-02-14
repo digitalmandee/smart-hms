@@ -10,7 +10,7 @@ export const DocPageWrapper = ({ children, pageNumber, totalPages }: DocPageWrap
     <div className="flex items-center justify-between mb-6 pb-4 border-b border-emerald-200">
       <div className="flex items-center gap-2">
         <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white font-bold text-sm">24</div>
-        <span className="text-lg font-bold text-foreground">HealthOS</span>
+        <span className="text-lg font-bold text-gray-900">HealthOS</span>
       </div>
       <span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full">
         Pharmacy Module Guide
@@ -21,7 +21,7 @@ export const DocPageWrapper = ({ children, pageNumber, totalPages }: DocPageWrap
     <div className="flex-1">{children}</div>
 
     {/* Footer */}
-    <div className="mt-auto pt-4 border-t border-emerald-100 flex items-center justify-between text-xs text-muted-foreground">
+    <div className="mt-auto pt-4 border-t border-emerald-100 flex items-center justify-between text-xs text-gray-500">
       <span>HealthOS 24 — Pharmacy Module Documentation</span>
       <span>Page {pageNumber} of {totalPages}</span>
     </div>
@@ -34,14 +34,14 @@ export const SectionTitle = ({ icon, title, subtitle }: { icon: string; title: s
       {icon}
     </div>
     <div>
-      <h2 className="text-xl font-bold text-foreground">{title}</h2>
-      {subtitle && <p className="text-sm text-muted-foreground mt-0.5">{subtitle}</p>}
+      <h2 className="text-xl font-bold text-gray-900">{title}</h2>
+      {subtitle && <p className="text-sm text-gray-500 mt-0.5">{subtitle}</p>}
     </div>
   </div>
 );
 
 export const FeatureList = ({ items }: { items: string[] }) => (
-  <ul className="space-y-1.5 text-sm text-foreground">
+  <ul className="space-y-1.5 text-sm text-gray-900">
     {items.map((item, i) => (
       <li key={i} className="flex items-start gap-2">
         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
@@ -59,7 +59,7 @@ export const TipBox = ({ title, children }: { title: string; children: React.Rea
 );
 
 export const StepList = ({ steps }: { steps: string[] }) => (
-  <ol className="space-y-2 text-sm text-foreground">
+  <ol className="space-y-2 text-sm text-gray-900">
     {steps.map((step, i) => (
       <li key={i} className="flex items-start gap-2">
         <span className="w-5 h-5 rounded-full bg-emerald-600 text-white text-xs flex items-center justify-center shrink-0 mt-0.5 font-medium">
@@ -73,7 +73,7 @@ export const StepList = ({ steps }: { steps: string[] }) => (
 
 export const SubSection = ({ title, children }: { title: string; children: React.ReactNode }) => (
   <div className="mb-4">
-    <h3 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-1.5">
+    <h3 className="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-1.5">
       <span className="w-1 h-4 bg-emerald-500 rounded-full" />
       {title}
     </h3>
@@ -93,14 +93,14 @@ export const ScreenMockup = ({ title, children }: { title: string; children: Rea
   </div>
 );
 
-export const InfoCard = ({ icon, label, value, color = "emerald" }: { icon: string; label: string; value: string; color?: string }) => (
-  <div className={`border border-${color}-200 rounded-lg p-2.5 bg-${color}-50/50 flex items-center gap-2.5 min-w-0`}>
-    <div className={`w-8 h-8 rounded-md bg-${color}-100 flex items-center justify-center text-${color}-700 shrink-0 text-base`}>
+export const InfoCard = ({ icon, label, value }: { icon: string; label: string; value: string; color?: string }) => (
+  <div className="border border-emerald-200 rounded-lg p-2.5 bg-emerald-50/50 flex items-center gap-2.5 min-w-0">
+    <div className="w-8 h-8 rounded-md bg-emerald-100 flex items-center justify-center text-emerald-700 shrink-0 text-base">
       {icon}
     </div>
     <div className="min-w-0">
-      <p className="text-[10px] text-muted-foreground truncate">{label}</p>
-      <p className="text-sm font-bold text-foreground">{value}</p>
+      <p className="text-[10px] text-gray-500 truncate">{label}</p>
+      <p className="text-sm font-bold text-gray-900">{value}</p>
     </div>
   </div>
 );
@@ -119,7 +119,7 @@ export const MockupTable = ({ headers, rows }: { headers: string[]; rows: string
         {rows.map((row, ri) => (
           <tr key={ri} className={ri % 2 === 1 ? "bg-emerald-50/30" : ""}>
             {row.map((cell, ci) => (
-              <td key={ci} className="px-2 py-1 text-foreground border-b border-emerald-100">{cell}</td>
+              <td key={ci} className="px-2 py-1 text-gray-900 border-b border-emerald-100">{cell}</td>
             ))}
           </tr>
         ))}

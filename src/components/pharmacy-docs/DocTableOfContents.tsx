@@ -24,17 +24,17 @@ export const DocTableOfContents = () => (
       <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center text-xl">
         📖
       </div>
-      <h2 className="text-2xl font-bold text-foreground">Table of Contents</h2>
+      <h2 className="text-2xl font-bold text-gray-900">Table of Contents</h2>
     </div>
 
     <div className="space-y-0">
       {tocItems.map((item) => (
-        <div key={item.num} className="flex items-center py-2.5 border-b border-dashed border-muted group">
+        <div key={item.num} className="flex items-center py-2.5 border-b border-dashed border-gray-200 group">
           <span className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 text-sm font-semibold flex items-center justify-center shrink-0">
             {item.num}
           </span>
-          <span className="ml-3 text-sm font-medium text-foreground flex-1">{item.title}</span>
-          <span className="text-sm text-muted-foreground font-mono">{item.page}</span>
+          <span className="ml-3 text-sm font-medium text-gray-900 flex-1">{item.title}</span>
+          <span className="text-sm text-gray-500 font-mono">{item.page}</span>
         </div>
       ))}
     </div>

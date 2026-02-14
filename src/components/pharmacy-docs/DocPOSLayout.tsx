@@ -20,8 +20,8 @@ export const DocPOSLayout = () => (
           <div className="grid grid-cols-2 gap-1.5">
             {[["Paracetamol 500mg", "2.50", "150"], ["Amoxicillin 250mg", "5.00", "80"], ["Omeprazole 20mg", "3.75", "200"], ["Cetirizine 10mg", "1.50", "95"]].map(([n,p,s]) => (
               <div key={n} className="border border-emerald-100 rounded p-1.5">
-                <p className="font-semibold text-foreground truncate">{n}</p>
-                <div className="flex justify-between text-muted-foreground"><span>{p}</span><span>Stk: {s}</span></div>
+                <p className="font-semibold text-gray-900 truncate">{n}</p>
+                <div className="flex justify-between text-gray-500"><span>{p}</span><span>Stk: {s}</span></div>
               </div>
             ))}
           </div>
@@ -52,8 +52,8 @@ export const DocPOSLayout = () => (
       <div className="grid grid-cols-2 gap-2 text-sm">
         {[["F2", "Focus search"], ["F4", "Hold transaction"], ["F12", "Checkout"], ["Esc", "Cancel / Close"], ["↑ / ↓", "Navigate list"], ["Enter", "Add product"]].map(([key, desc]) => (
           <div key={key} className="flex items-center gap-2">
-            <kbd className="px-2 py-0.5 bg-muted rounded text-xs font-mono font-semibold">{key}</kbd>
-            <span className="text-muted-foreground">{desc}</span>
+            <kbd className="px-2 py-0.5 bg-gray-100 rounded text-xs font-mono font-semibold">{key}</kbd>
+            <span className="text-gray-500">{desc}</span>
           </div>
         ))}
       </div>
