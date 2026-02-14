@@ -13,7 +13,7 @@ export const DocPOSPayment = () => (
       <div className="text-[10px] space-y-2">
         <div className="text-center border-b border-emerald-200 pb-2">
           <p className="text-muted-foreground">Total Due</p>
-          <p className="text-xl font-bold text-emerald-700">₹ 1,250.00</p>
+          <p className="text-xl font-bold text-emerald-700">1,250.00</p>
         </div>
         <div className="flex gap-1.5 justify-center">
           {["💵 Cash", "💳 Card", "📱 Wallet"].map(m => (
@@ -22,12 +22,12 @@ export const DocPOSPayment = () => (
         </div>
         <div className="flex items-center gap-2 bg-emerald-50/50 rounded p-2 border border-emerald-200">
           <span className="text-muted-foreground">Cash Received:</span>
-          <span className="font-bold flex-1">₹ 1,500.00</span>
+          <span className="font-bold flex-1">1,500.00</span>
           <span className="px-2 py-0.5 bg-emerald-600 text-white rounded text-[9px] font-semibold">Exact</span>
         </div>
         <div className="flex justify-between px-2 font-semibold">
           <span>Change Due:</span>
-          <span className="text-emerald-700">₹ 250.00</span>
+          <span className="text-emerald-700">250.00</span>
         </div>
       </div>
     </ScreenMockup>

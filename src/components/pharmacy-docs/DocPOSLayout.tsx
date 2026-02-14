@@ -19,7 +19,7 @@ export const DocPOSLayout = () => (
             ))}
           </div>
           <div className="grid grid-cols-2 gap-1.5">
-            {[["Paracetamol 500mg", "₹2.50", "150"], ["Amoxicillin 250mg", "₹5.00", "80"], ["Omeprazole 20mg", "₹3.75", "200"], ["Cetirizine 10mg", "₹1.50", "95"]].map(([n,p,s]) => (
+            {[["Paracetamol 500mg", "2.50", "150"], ["Amoxicillin 250mg", "5.00", "80"], ["Omeprazole 20mg", "3.75", "200"], ["Cetirizine 10mg", "1.50", "95"]].map(([n,p,s]) => (
               <div key={n} className="border border-emerald-100 rounded p-1.5">
                 <p className="font-semibold text-foreground truncate">{n}</p>
                 <div className="flex justify-between text-muted-foreground"><span>{p}</span><span>Stk: {s}</span></div>
@@ -30,11 +30,11 @@ export const DocPOSLayout = () => (
         <div className="w-[35%] border border-emerald-200 rounded p-2">
           <p className="font-semibold text-emerald-800 mb-1">🛒 Cart (2 items)</p>
           <div className="space-y-1 mb-2">
-            <div className="flex justify-between"><span>Paracetamol x2</span><span>₹5.00</span></div>
-            <div className="flex justify-between"><span>Omeprazole x1</span><span>₹3.75</span></div>
+            <div className="flex justify-between"><span>Paracetamol x2</span><span>5.00</span></div>
+            <div className="flex justify-between"><span>Omeprazole x1</span><span>3.75</span></div>
           </div>
           <div className="border-t border-emerald-200 pt-1 font-bold flex justify-between">
-            <span>Total</span><span>₹8.75</span>
+            <span>Total</span><span>8.75</span>
           </div>
           <div className="mt-2 bg-emerald-600 text-white text-center rounded py-1 text-[9px] font-semibold">Checkout (F12)</div>
         </div>
