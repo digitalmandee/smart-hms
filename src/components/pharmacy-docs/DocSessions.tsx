@@ -11,15 +11,15 @@ export const DocSessions = () => (
     <ScreenMockup title="Session Summary">
       <div className="grid grid-cols-3 gap-2 text-[10px]">
         <div className="text-center border border-emerald-200 rounded p-2 bg-emerald-50/50">
-          <p className="text-muted-foreground">Total Sales</p>
+          <p className="text-gray-500">Total Sales</p>
           <p className="text-sm font-bold text-emerald-700">24,580</p>
         </div>
         <div className="text-center border border-emerald-200 rounded p-2 bg-emerald-50/50">
-          <p className="text-muted-foreground">Transactions</p>
-          <p className="text-sm font-bold text-foreground">38</p>
+          <p className="text-gray-500">Transactions</p>
+          <p className="text-sm font-bold text-gray-900">38</p>
         </div>
         <div className="text-center border border-emerald-200 rounded p-2 bg-emerald-50/50">
-          <p className="text-muted-foreground">Cash Diff.</p>
+          <p className="text-gray-500">Cash Diff.</p>
           <p className="text-sm font-bold text-green-600">0.00 ✓</p>
         </div>
       </div>

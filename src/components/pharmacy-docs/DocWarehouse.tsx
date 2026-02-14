@@ -19,8 +19,8 @@ export const DocWarehouse = () => (
           <div key={label} className="flex items-center gap-0">
             <div className="text-center">
               <div className="w-10 h-10 rounded-full bg-emerald-100 border-2 border-emerald-500 flex items-center justify-center text-base mx-auto">{icon}</div>
-              <p className="font-bold text-foreground mt-1">{label}</p>
-              <p className="text-muted-foreground">{status}</p>
+              <p className="font-bold text-gray-900 mt-1">{label}</p>
+              <p className="text-gray-500">{status}</p>
             </div>
             {i < 3 && <div className="w-8 h-0.5 bg-emerald-300 mx-1 mt-[-12px]" />}
           </div>

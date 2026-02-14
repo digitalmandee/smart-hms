@@ -24,7 +24,7 @@ export const DocStockMovements = () => (
         ].map(([type, desc]) => (
           <div key={type} className="flex items-start gap-2 py-1">
             <span className="font-medium text-emerald-700 w-24 shrink-0">{type}</span>
-            <span className="text-muted-foreground">{desc}</span>
+            <span className="text-gray-500">{desc}</span>
           </div>
         ))}
       </div>
