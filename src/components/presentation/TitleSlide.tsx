@@ -89,12 +89,12 @@ export const TitleSlide = () => {
             <Zap className="h-4 w-4 text-primary" />
             <span>Cloud-Based</span>
           </div>
-          <div className="w-1 h-1 rounded-full bg-muted-foreground" />
+          <span style={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: 'currentColor', display: 'inline-block', opacity: 0.5 }} />
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Shield className="h-4 w-4 text-primary" />
             <span>HIPAA Compliant</span>
           </div>
-          <div className="w-1 h-1 rounded-full bg-muted-foreground" />
+          <span style={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: 'currentColor', display: 'inline-block', opacity: 0.5 }} />
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Users className="h-4 w-4 text-primary" />
             <span>Multi-Branch</span>
@@ -102,9 +102,9 @@ export const TitleSlide = () => {
         </div>
         <div className="flex items-center justify-center gap-6 text-muted-foreground text-sm">
           <span>{currentDate}</span>
-          <span className="w-1 h-1 rounded-full bg-muted-foreground" />
+          <span style={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: 'currentColor', display: 'inline-block', opacity: 0.5 }} />
           <span>Version 2.0</span>
-          <span className="w-1 h-1 rounded-full bg-muted-foreground" />
+          <span style={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: 'currentColor', display: 'inline-block', opacity: 0.5 }} />
           <span>healthos24.com</span>
         </div>
       </div>

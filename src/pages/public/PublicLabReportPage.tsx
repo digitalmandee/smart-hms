@@ -12,6 +12,8 @@ import { toast } from "sonner";
 import { Search, Loader2, FlaskConical, User, Calendar, Stethoscope, AlertTriangle, Download, Printer, CheckCircle, XCircle, ArrowLeft, FileText, List } from "lucide-react";
 import { format, differenceInYears } from "date-fns";
 import { useReactToPrint } from "react-to-print";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 export default function PublicLabReportPage() {
   // Order number search state
@@ -29,6 +31,7 @@ export default function PublicLabReportPage() {
   
   const [searchTab, setSearchTab] = useState<"order" | "mr">("order");
   const printRef = useRef<HTMLDivElement>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const searchMutation = useSearchPublicLabReport();
   const searchPatientMutation = useSearchPatientReports();
@@ -37,6 +40,41 @@ export default function PublicLabReportPage() {
   const handlePrint = useReactToPrint({
     contentRef: printRef,
   });
+
+  const handleDownloadPDF = async () => {
+    if (!printRef.current) return;
+    setIsDownloading(true);
+    try {
+      await document.fonts.ready;
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      const el = printRef.current;
+      const canvas = await html2canvas(el, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: "#ffffff",
+        logging: false,
+      });
+
+      const imgWidth = 210;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const pdf = new jsPDF({
+        orientation: imgHeight > imgWidth ? "portrait" : "landscape",
+        unit: "mm",
+        format: [imgWidth, imgHeight],
+      });
+
+      const imgData = canvas.toDataURL("image/jpeg", 0.95);
+      pdf.addImage(imgData, "JPEG", 0, 0, imgWidth, imgHeight);
+      pdf.save(`Lab-Report-${report?.order_number || "report"}.pdf`);
+    } catch (error) {
+      console.error("PDF generation failed:", error);
+      alert("PDF generation failed. Please try again.");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -399,9 +437,9 @@ export default function PublicLabReportPage() {
                 <Printer className="h-4 w-4 mr-2" />
                 Print
               </Button>
-              <Button onClick={() => handlePrint()}>
-                <Download className="h-4 w-4 mr-2" />
-                Download PDF
+              <Button onClick={handleDownloadPDF} disabled={isDownloading}>
+                {isDownloading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Download className="h-4 w-4 mr-2" />}
+                {isDownloading ? "Generating…" : "Download PDF"}
               </Button>
             </div>
 

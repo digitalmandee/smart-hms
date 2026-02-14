@@ -59,7 +59,7 @@ export const LabNetworkSlide = () => {
           <div className="space-y-3">
             {emirateLabs.map((item) => (
               <div key={item.emirate} className="flex items-center gap-3">
-                <div className={`w-3 h-3 rounded-full ${item.color}`} />
+                <span style={{ width: 12, height: 12, borderRadius: '50%', display: 'inline-block' }} className={item.color} />
                 <span className="flex-1 text-sm">{item.emirate}</span>
                 <div className="flex items-center gap-2">
                   <div className="w-24 h-2 bg-muted rounded-full overflow-hidden">
