@@ -17,7 +17,7 @@ export const DocReturns = () => (
           <span className="ml-auto px-1.5 py-0.5 bg-emerald-600 text-white rounded text-[8px]">Found</span>
         </div>
         <div className="space-y-1">
-          {[["☑ Paracetamol 500mg", "x2", "₹5.00"], ["☐ Omeprazole 20mg", "x1", "₹3.75"]].map(([n, q, p]) => (
+          {[["☑ Paracetamol 500mg", "x2", "5.00"], ["☐ Omeprazole 20mg", "x1", "3.75"]].map(([n, q, p]) => (
             <div key={n} className="flex justify-between items-center px-1">
               <span>{n}</span><span className="text-muted-foreground">{q}</span><span className="font-semibold">{p}</span>
             </div>
