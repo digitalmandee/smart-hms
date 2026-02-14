@@ -77,6 +77,7 @@ const PharmacyDocumentation = () => {
 
         const origStyles = {
           width: pageEl.style.width,
+          minWidth: pageEl.style.minWidth,
           height: pageEl.style.height,
           overflow: pageEl.style.overflow,
           boxShadow: pageEl.style.boxShadow,
@@ -84,6 +85,7 @@ const PharmacyDocumentation = () => {
         };
 
         pageEl.style.width = '794px';
+        pageEl.style.minWidth = '794px';
         pageEl.style.height = '1123px';
         pageEl.style.overflow = 'hidden';
         pageEl.style.boxShadow = 'none';
@@ -99,6 +101,8 @@ const PharmacyDocumentation = () => {
           logging: false,
           width: 794,
           height: 1123,
+          windowWidth: 1200,
+          windowHeight: 1600,
         });
 
         Object.assign(pageEl.style, origStyles);
