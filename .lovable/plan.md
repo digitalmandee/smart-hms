@@ -1,70 +1,112 @@
 
 
-# Fix PDF: Render All Pages in Main React Tree
+# Fix PDF: Use the Same Proven Pattern as Presentation.tsx
 
-## Why Current Approach Still Fails
+## Root Cause
 
-The `createRoot(offscreen)` approach renders each page in a **separate React tree** — completely disconnected from the main app. While the `<style>` tag exists in the document, the rendering context (font inheritance, CSS variable resolution, layout constraints) can behave differently when the component tree is isolated. `html2canvas` then captures this subtly different layout.
+The hidden container (`left: -9999px`) approach keeps failing because even though the elements are in the React tree, they are positioned offscreen and the browser/html2canvas still doesn't lay them out at full width inside the narrow iframe.
 
-## New Approach: In-Tree Hidden Rendering
+Meanwhile, **Presentation.tsx already has a working PDF download** that uses a completely different approach -- it renders all slides visibly in the page, then forces inline dimensions on each element and uses `windowWidth`/`windowHeight` in html2canvas. This works perfectly.
 
-Instead of creating a separate React root, render ALL 18 pages **inside the main component tree** in a hidden container (similar to how print mode works). This guarantees every page renders with the exact same CSS context as the visible preview. Then capture each page element sequentially.
+## Solution
 
-## Changes — Single File: `src/pages/PharmacyDocumentation.tsx`
+Copy the exact working pattern from Presentation.tsx:
 
-### 1. Add a "download mode" state (like `isPrintMode`)
+1. When downloading, switch to "print mode" which renders ALL 18 pages visibly (this already exists in the code)
+2. Force fixed pixel dimensions on each `.proposal-page` element via inline styles
+3. Capture each element with `html2canvas` using `windowWidth: 794` and `windowHeight: 1123`
+4. Restore original styles and switch back to normal mode
 
-Add `isCapturing` state. When true, render all 18 pages in a hidden container within the main JSX tree.
+## Changes -- Single File: `src/pages/PharmacyDocumentation.tsx`
 
-### 2. Hidden container in JSX
+### Remove the hidden capture container approach
+
+Remove `isCapturing` state, `captureContainerRef`, and the hidden capture `div` at the bottom of the JSX.
+
+### Rewrite `handleDownloadPDF` to match Presentation.tsx pattern
 
 ```text
-{isCapturing && (
-  <div
-    ref={captureContainerRef}
-    style={{
-      position: 'absolute',
-      left: '-9999px',
-      top: 0,
-      width: '794px',
-    }}
-  >
-    {pages.map((page) => {
-      const PageComp = page.component;
-      return <PageComp key={page.id} />;
-    })}
-  </div>
-)}
+const handleDownloadPDF = useCallback(async () => {
+  setIsDownloading(true);
+  setIsPrintMode(true);  // Show all pages visibly
+
+  try {
+    await document.fonts.ready;
+    await new Promise(r => setTimeout(r, 500));
+
+    const container = printContainerRef.current;
+    if (!container) return;
+
+    const pageElements = container.querySelectorAll('.proposal-page');
+    const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+
+    for (let i = 0; i < pageElements.length; i++) {
+      const el = pageElements[i] as HTMLElement;
+
+      // Save original styles
+      const origStyles = {
+        width: el.style.width,
+        height: el.style.height,
+        minHeight: el.style.minHeight,
+        maxWidth: el.style.maxWidth,
+        overflow: el.style.overflow,
+        margin: el.style.margin,
+        borderRadius: el.style.borderRadius,
+        boxShadow: el.style.boxShadow,
+      };
+
+      // Force fixed A4 pixel dimensions (identical to Presentation.tsx approach)
+      el.style.width = '794px';
+      el.style.height = '1123px';
+      el.style.minHeight = '1123px';
+      el.style.maxWidth = '794px';
+      el.style.overflow = 'hidden';
+      el.style.margin = '0';
+      el.style.borderRadius = '0';
+      el.style.boxShadow = 'none';
+
+      await new Promise(r => setTimeout(r, 200));
+
+      const canvas = await html2canvas(el, {
+        scale: 3,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: "#ffffff",
+        logging: false,
+        width: 794,
+        height: 1123,
+        windowWidth: 794,
+        windowHeight: 1123,
+      });
+
+      // Restore original styles
+      Object.assign(el.style, origStyles);
+
+      const imgData = canvas.toDataURL("image/jpeg", 0.98);
+      if (i > 0) pdf.addPage();
+      pdf.addImage(imgData, "JPEG", 0, 0, 210, 297);
+    }
+
+    pdf.save("HealthOS24-Pharmacy-Documentation.pdf");
+  } catch (error) {
+    console.error("PDF generation failed:", error);
+    alert("PDF generation failed. Please try again.");
+  } finally {
+    setIsPrintMode(false);
+    setIsDownloading(false);
+  }
+}, []);
 ```
 
-This is part of the main React tree — all styles, CSS classes, and context apply exactly as they do on screen.
+### Key differences from previous attempts
+- Uses `setIsPrintMode(true)` to render all pages **visibly** (not hidden offscreen)
+- Forces inline pixel dimensions on each element before capture
+- Uses `windowWidth: 794` and `windowHeight: 1123` to tell html2canvas the viewport size
+- Restores styles after each capture
+- This is the **exact same pattern** that works in Presentation.tsx
 
-### 3. Update `handleDownloadPDF`
-
-1. Set `isCapturing = true`
-2. Wait for React to render + fonts to settle (use `requestAnimationFrame` + timeout)
-3. Query all `.proposal-page` elements inside the capture container
-4. Loop through each, capture with `html2canvas` (scale: 3)
-5. Compile into PDF with jsPDF
-6. Set `isCapturing = false`
-
-### 4. Remove `createRoot` import
-
-No longer needed — everything renders in the main tree.
-
-## Why This Will Work
-
-- Pages render in the **exact same React tree** as the visible preview
-- All Tailwind classes, CSS variables, and inherited styles apply identically
-- The hidden container at 794px width matches the on-screen `.proposal-page` width (210mm = ~794px)
-- No isolated rendering context — what you see on screen is exactly what gets captured
-- `html2canvas` captures the same DOM that the browser renders for the visible pages
-
-## Technical Details
-
-- Remove `createRoot` import, add `useEffect` or `useRef` for capture container
-- Add `isCapturing` boolean state
-- The capture container uses `position: absolute; left: -9999px` so it's invisible but fully rendered by the browser
-- Each `.proposal-page` element inside the container is captured individually
-- The `proposal-page` CSS class already sets `width: 210mm` which gives the correct A4 width
+### What gets removed
+- `isCapturing` state
+- `captureContainerRef` ref
+- The hidden capture container JSX block at the bottom
 
