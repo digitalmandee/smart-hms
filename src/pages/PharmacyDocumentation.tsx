@@ -65,38 +65,45 @@ const PharmacyDocumentation = () => {
 
     try {
       await document.fonts.ready;
-      await new Promise(r => setTimeout(r, 800));
+      // Wait for print mode to render all pages
+      await new Promise(r => setTimeout(r, 1500));
 
       const container = printContainerRef.current;
-      if (!container) return;
+      if (!container) {
+        console.error("Print container not found");
+        alert("PDF generation failed: container not ready.");
+        return;
+      }
 
       const pageElements = container.querySelectorAll('.proposal-page');
+      console.log(`Found ${pageElements.length} pages to capture`);
+      
+      if (pageElements.length === 0) {
+        alert("No pages found to generate PDF.");
+        return;
+      }
+
       const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
       const pdfWidth = 210;
       const pdfHeight = 297;
       const pixelWidth = 794;
       const pixelHeight = 1123;
 
-      for (let i = 0; i < pageElements.length; i++) {
-        const el = pageElements[i] as HTMLElement;
+      let firstPage = true;
 
-        const origStyles = {
-          width: el.style.width,
-          height: el.style.height,
-          overflow: el.style.overflow,
-          background: el.style.background,
-          boxShadow: el.style.boxShadow,
-          borderRadius: el.style.borderRadius,
-        };
+      for (const pageEl of pageElements) {
+        const el = pageEl as HTMLElement;
 
+        const originalCss = el.style.cssText;
         el.style.width = `${pixelWidth}px`;
         el.style.height = `${pixelHeight}px`;
         el.style.overflow = 'hidden';
         el.style.background = 'white';
         el.style.boxShadow = 'none';
         el.style.borderRadius = '0';
+        el.style.margin = '0';
 
-        await new Promise(r => setTimeout(r, 200));
+        await new Promise(r => setTimeout(r, 300));
 
         const dataUrl = await toPng(el, {
           width: pixelWidth,
@@ -105,10 +112,11 @@ const PharmacyDocumentation = () => {
           backgroundColor: '#ffffff',
         });
 
-        Object.assign(el.style, origStyles);
+        el.style.cssText = originalCss;
 
-        if (i > 0) pdf.addPage();
+        if (!firstPage) pdf.addPage();
         pdf.addImage(dataUrl, "PNG", 0, 0, pdfWidth, pdfHeight);
+        firstPage = false;
       }
 
       pdf.save("HealthOS24-Pharmacy-Documentation.pdf");
