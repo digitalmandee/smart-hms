@@ -1,47 +1,78 @@
 
 
-# Fix Pharmacy Documentation PDF Download - Distorted Bullets and Icons
+# Fix PDF Downloads Across All Documentation Pages
 
-## Problem
-The downloaded PDF shows distorted numbered circles (step indicators) and bullet dots. This happens because `html2canvas` poorly renders small elements styled with CSS flexbox centering (`flex items-center justify-center` on 20px circles). The on-screen view looks perfect, but the canvas capture misaligns these elements.
+## Problems Identified
 
-## Root Cause
-`html2canvas` has known issues with:
-- Small flex containers (the numbered step circles and bullet dots)
-- `rounded-full` on tiny elements
-- Flex centering on elements under ~24px
+1. **Pharmacy Documentation** -- Bullets/logo STILL distorted because the header logo box (line 12) and ScreenMockup traffic-light dots (lines 87-89) and InfoCard icon (line 98) still use Tailwind flex centering, which html2canvas misrenders. The previous fix only covered SectionTitle, FeatureList, StepList, and SubSection.
 
-## Solution
-Replace flexbox-based centering on small circles with `line-height` + `text-align: center` + `display: inline-block` using **inline styles** (which `html2canvas` handles reliably). This affects 3 components in `DocPageWrapper.tsx`:
+2. **Presentation page** (`/presentation`) -- "Download PDF" calls `window.print()` (opens print dialog, not a real file download).
 
-### Changes to `src/components/pharmacy-docs/DocPageWrapper.tsx`
+3. **Pricing Proposal** (`/pricing-proposal`) -- "Download PDF" calls `handlePrint()` which calls `window.print()`.
 
-**1. `StepList` -- Numbered circles (lines 61-72)**
-Replace the flex-centered `<span>` with inline styles using `line-height` matching the height, `text-align: center`, and `display: inline-block` instead of flexbox.
+4. **Lab Report** (`/lab-reports`) -- Both "Download PDF" and "Print" buttons call the same `useReactToPrint` function.
 
-**2. `FeatureList` -- Bullet dots (lines 43-52)**
-Replace the tiny 6px flex dot with inline-styled `display: inline-block` + `border-radius: 50%` to avoid flex rendering issues.
+---
 
-**3. `SubSection` -- Vertical bar indicator (lines 74-82)**
-Replace the small rounded bar with explicit inline-styled dimensions.
+## Changes
 
-**4. `SectionTitle` -- Icon container (lines 31-41)**
-Apply inline styles to the icon circle container for reliable rendering.
+### File 1: `src/components/pharmacy-docs/DocPageWrapper.tsx`
 
-### What Will NOT Change
-- No changes to the PDF generation logic in `PharmacyDocumentation.tsx`
-- No changes to page layout, colors, or content
-- The on-screen appearance will remain identical
+Convert ALL remaining Tailwind flex-centered small elements to inline styles:
 
-### Technical Approach
-For each small element, convert from:
-```
-className="w-5 h-5 rounded-full bg-emerald-600 text-white text-xs flex items-center justify-center"
-```
-To:
-```
-style={{ width: 20, height: 20, borderRadius: '50%', backgroundColor: '#059669', color: 'white', fontSize: 11, lineHeight: '20px', textAlign: 'center', display: 'inline-block' }}
-```
+- **Header logo box** (line 12): `w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center` to inline `width: 32, height: 32, lineHeight: '32px', textAlign: 'center', display: 'inline-block'`
+- **ScreenMockup dots** (lines 87-89): Three `w-2 h-2 rounded-full` traffic-light dots to inline-styled spans
+- **InfoCard icon container** (line 98): `w-8 h-8 rounded-md flex items-center justify-center` to inline styles
+- **DocCoverPage reference**: The cover page logo (line 8) also needs inline styles
 
-This uses hardcoded colors (already the project convention for pdf-rendered docs) and avoids flexbox on small elements entirely.
+### File 2: `src/components/pharmacy-docs/DocCoverPage.tsx`
+
+- **Logo box** (line 8): `w-12 h-12 rounded-xl bg-emerald-600 flex items-center justify-center` to inline styles
+- **Version dots** (lines 32, 36): `w-2 h-2 rounded-full` to inline styles
+
+### File 3: `src/pages/Presentation.tsx`
+
+Replace `handleDownload` with real PDF generation using `jspdf` + `html2canvas`:
+- Add imports for `jspdf`, `html2canvas`, `useRef`, `useCallback`
+- Add `isDownloading` state and `printContainerRef`
+- New `handleDownloadPDF` function that:
+  - Sets a print/download mode to render all 32 slides
+  - Iterates each `.slide` element
+  - Captures at 1123x794px (landscape A4 pixels) with `html2canvas` at 2x scale
+  - Adds each as a landscape A4 page (297x210mm) in jsPDF
+  - Saves as `HealthOS24-Presentation.pdf`
+- Keep existing Print button behavior (window.print) unchanged
+- Show loading spinner on Download button during generation
+
+### File 4: `src/pages/PricingProposal.tsx`
+
+Replace `handleDownload` with real PDF generation:
+- Add imports for `jspdf`, `html2canvas`, `useRef`, `useCallback`
+- Add `isDownloading` state and `printContainerRef`
+- New `handleDownloadPDF` function using same pattern as PharmacyDocumentation (portrait A4, 794x1123px capture)
+- Keep Print button calling `window.print()` separately
+- Show loading spinner during generation
+
+### File 5: `src/pages/public/PublicLabReportPage.tsx`
+
+Separate Download from Print:
+- Add imports for `jspdf`, `html2canvas`
+- Add `isDownloading` state
+- New `handleDownloadPDF` function that captures `printRef` content as a single-page PDF
+- "Print" button keeps using `useReactToPrint` (unchanged)
+- "Download PDF" button calls new `handleDownloadPDF` instead
+- Filename: `Lab-Report-{order_number}.pdf`
+
+### File 6: `src/components/presentation/TitleSlide.tsx`
+
+Convert small dot separators (line ~80 area: `w-1 h-1 rounded-full bg-muted-foreground`) to inline styles for reliable PDF rendering.
+
+---
+
+## Technical Notes
+
+- All PDF generation follows the proven pattern from `PharmacyDocumentation.tsx`: render all pages, await fonts, iterate with html2canvas at 2x scale, jsPDF addImage
+- Presentation uses **landscape** A4 (297mm x 210mm, 1123x794px); all others use **portrait** (210mm x 297mm, 794x1123px)
+- `jspdf` and `html2canvas` are already installed dependencies
+- No schema or backend changes needed
 
