@@ -1,5 +1,5 @@
-import { DocPageWrapper, SectionTitle, FeatureList, SubSection, TipBox } from "./DocPageWrapper";
-import { LayoutDashboard } from "lucide-react";
+import { DocPageWrapper, SectionTitle, FeatureList, SubSection, TipBox, ScreenMockup, InfoCard } from "./DocPageWrapper";
+import { LayoutDashboard, Clock, CheckCircle, AlertTriangle, Calendar } from "lucide-react";
 
 export const DocDashboard = () => (
   <DocPageWrapper pageNumber={3} totalPages={18}>
@@ -9,14 +9,14 @@ export const DocDashboard = () => (
       subtitle="Your pharmacy command center with real-time KPIs and quick actions"
     />
 
-    <SubSection title="KPI Cards">
-      <FeatureList items={[
-        "Pending Prescriptions — Count of OPD/IPD prescriptions awaiting dispensing",
-        "Dispensed Today — Total prescriptions fulfilled in the current session",
-        "Low Stock Items — Medicines below configured reorder threshold",
-        "Expiring Soon — Items approaching expiry within configured alert window",
-      ]} />
-    </SubSection>
+    <ScreenMockup title="Pharmacy Dashboard">
+      <div className="grid grid-cols-4 gap-2">
+        <InfoCard icon={<Clock className="w-4 h-4" />} label="Pending Rx" value="12" />
+        <InfoCard icon={<CheckCircle className="w-4 h-4" />} label="Dispensed Today" value="45" />
+        <InfoCard icon={<AlertTriangle className="w-4 h-4" />} label="Low Stock Items" value="8" />
+        <InfoCard icon={<Calendar className="w-4 h-4" />} label="Expiring Soon" value="3" />
+      </div>
+    </ScreenMockup>
 
     <SubSection title="Quick Actions">
       <FeatureList items={[

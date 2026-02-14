@@ -1,4 +1,4 @@
-import { DocPageWrapper, SectionTitle, SubSection, TipBox } from "./DocPageWrapper";
+import { DocPageWrapper, SectionTitle, SubSection, TipBox, ScreenMockup } from "./DocPageWrapper";
 import { BarChart3 } from "lucide-react";
 
 const ReportCategory = ({ title, color, reports }: { title: string; color: string; reports: string[] }) => (
@@ -22,6 +22,23 @@ export const DocReports = () => (
       title="Reports Hub — 29 Reports"
       subtitle="Comprehensive analytics across sales, inventory, finance, procurement, and operations"
     />
+
+    <ScreenMockup title="Reports Hub — Card Grid">
+      <div className="grid grid-cols-4 gap-1.5 text-[9px]">
+        {[
+          ["📊", "Daily Sales", "Sales"],
+          ["📦", "Stock Valuation", "Inventory"],
+          ["💰", "Profit Margin", "Financial"],
+          ["👤", "Cashier Perf.", "Operations"],
+        ].map(([icon, name, cat]) => (
+          <div key={name} className="border border-emerald-200 rounded p-2 text-center bg-emerald-50/50">
+            <span className="text-base">{icon}</span>
+            <p className="font-semibold text-foreground mt-0.5">{name}</p>
+            <p className="text-muted-foreground">{cat}</p>
+          </div>
+        ))}
+      </div>
+    </ScreenMockup>
 
     <ReportCategory title="Sales Reports" color="#059669" reports={[
       "Daily Sales Summary", "Hourly Sales Analysis", "Sales by Category",
@@ -48,15 +65,6 @@ export const DocReports = () => (
     <ReportCategory title="Operational Reports" color="#d97706" reports={[
       "Cashier Performance", "Peak Hours Heatmap",
     ]} />
-
-    <SubSection title="Export & Print">
-      <div className="text-sm text-foreground space-y-1">
-        <p>• <strong>CSV Download</strong> — Export any report data as CSV for Excel/Google Sheets analysis</p>
-        <p>• <strong>Print</strong> — Browser-optimized print layout with headers and page breaks</p>
-        <p>• <strong>No data caps</strong> — All rows exported without truncation</p>
-        <p>• <strong>Client-side pagination</strong> — 25 rows per page in the UI for readability</p>
-      </div>
-    </SubSection>
 
     <TipBox title="Drill-Down Architecture">
       The Reports Hub uses a card-based layout. Click any report card to drill into the detail view with charts, filters, and exportable data tables.
