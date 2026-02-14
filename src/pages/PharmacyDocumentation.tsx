@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Download, Printer, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
+import { toPng } from "html-to-image";
 import { DocCoverPage } from "@/components/pharmacy-docs/DocCoverPage";
 import { DocTableOfContents } from "@/components/pharmacy-docs/DocTableOfContents";
 import { DocDashboard } from "@/components/pharmacy-docs/DocDashboard";
@@ -98,23 +98,17 @@ const PharmacyDocumentation = () => {
 
         await new Promise(r => setTimeout(r, 200));
 
-        const canvas = await html2canvas(el, {
-          scale: 2,
-          useCORS: true,
-          allowTaint: true,
-          backgroundColor: "#ffffff",
-          logging: false,
+        const dataUrl = await toPng(el, {
           width: pixelWidth,
           height: pixelHeight,
-          windowWidth: pixelWidth,
-          windowHeight: pixelHeight,
+          pixelRatio: 2,
+          backgroundColor: '#ffffff',
         });
 
         Object.assign(el.style, origStyles);
 
-        const imgData = canvas.toDataURL("image/jpeg", 0.95);
         if (i > 0) pdf.addPage();
-        pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
+        pdf.addImage(dataUrl, "PNG", 0, 0, pdfWidth, pdfHeight);
       }
 
       pdf.save("HealthOS24-Pharmacy-Documentation.pdf");
