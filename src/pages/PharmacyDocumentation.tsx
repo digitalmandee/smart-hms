@@ -126,7 +126,15 @@ const PharmacyDocumentation = () => {
       }
 
       console.log("All pages captured, saving PDF...");
-      pdf.save("HealthOS24-Pharmacy-Documentation.pdf");
+      const pdfBlob = pdf.output("blob");
+      const url = URL.createObjectURL(pdfBlob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "HealthOS24-Pharmacy-Documentation.pdf";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
       console.log("PDF saved!");
     } catch (error) {
       console.error("PDF generation failed:", error);
