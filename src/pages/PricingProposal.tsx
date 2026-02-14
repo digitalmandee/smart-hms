@@ -66,10 +66,21 @@ const PricingProposal = () => {
       for (let i = 0; i < pageElements.length; i++) {
         const el = pageElements[i] as HTMLElement;
 
+        const origStyles = {
+          width: el.style.width,
+          height: el.style.height,
+          overflow: el.style.overflow,
+          background: el.style.background,
+          boxShadow: el.style.boxShadow,
+          borderRadius: el.style.borderRadius,
+        };
+
         el.style.width = `${pixelWidth}px`;
         el.style.height = `${pixelHeight}px`;
         el.style.overflow = 'hidden';
         el.style.background = 'white';
+        el.style.boxShadow = 'none';
+        el.style.borderRadius = '0';
 
         await new Promise((resolve) => setTimeout(resolve, 200));
 
@@ -84,6 +95,8 @@ const PricingProposal = () => {
           windowWidth: pixelWidth,
           windowHeight: pixelHeight,
         });
+
+        Object.assign(el.style, origStyles);
 
         const imgData = canvas.toDataURL("image/jpeg", 0.95);
         if (i > 0) pdf.addPage();
