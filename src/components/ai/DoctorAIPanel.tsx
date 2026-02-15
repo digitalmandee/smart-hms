@@ -8,7 +8,7 @@ import { AIChatMessage } from "./AIChatMessage";
 import { AISuggestionCard } from "./AISuggestionCard";
 import { useAIChat } from "@/hooks/useAIChat";
 import { useAISuggestion } from "@/hooks/useAISuggestion";
-import { Bot, ChevronDown, ChevronUp, Stethoscope, FileText, TestTube, Send, Square, Trash2 } from "lucide-react";
+import { Stethoscope, ChevronDown, ChevronUp, FileText, TestTube, Send, Square, Trash2, Bot } from "lucide-react";
 
 interface DoctorAIPanelProps {
   patientContext?: Record<string, unknown>;
@@ -105,8 +105,8 @@ export function DoctorAIPanel({ patientContext, onSuggestDiagnosis, onSuggestNot
           <CardHeader className="cursor-pointer pb-2 hover:bg-muted/50 transition-colors">
             <CardTitle className="text-sm flex items-center justify-between">
               <span className="flex items-center gap-2">
-                <Bot className="h-4 w-4 text-primary" />
-                AI Clinical Assistant
+              <Stethoscope className="h-4 w-4 text-primary" />
+                Clinical AI Copilot
               </span>
               {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             </CardTitle>
