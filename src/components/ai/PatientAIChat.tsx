@@ -121,8 +121,8 @@ export function PatientAIChat({
               </h3>
               <p className="text-muted-foreground text-sm max-w-sm mb-6">
                 {language === "ar"
-                  ? "مرحباً! أنا طبيبي، مساعدك الطبي الشخصي. أخبرني بما يزعجك وسأساعدك في جمع المعلومات المناسبة لطبيبك."
-                  : "Hello! I'm Tabeebi, your personal medical assistant. Tell me what's bothering you, and I'll help gather the right information for your doctor."}
+                  ? "أهلاً! أنا طبيبي. أخبرني شو عندك وبسألك كم سؤال — مثل ما تزور طبيبك بالضبط."
+                  : "Hi! I'm Tabeebi. Tell me what's bothering you and I'll ask you a few questions — just like visiting your doctor."}
               </p>
               <div className="flex flex-wrap justify-center gap-2 max-w-sm">
                 {SUGGESTED_TOPICS[language].map((topic) => (
