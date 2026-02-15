@@ -5,9 +5,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { AIChatMessage } from "./AIChatMessage";
+import { DoctorAvatar } from "./DoctorAvatar";
 import { useAIChat } from "@/hooks/useAIChat";
 import { useVoiceConsultation } from "@/hooks/useVoiceConsultation";
-import { Stethoscope, Send, Square, Trash2, Globe, Mic, MicOff, Volume2, VolumeX } from "lucide-react";
+import { Send, Square, Trash2, Globe, Mic, MicOff, VolumeX } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface PatientAIChatProps {
@@ -18,18 +19,23 @@ interface PatientAIChatProps {
   compact?: boolean;
 }
 
+const GREETINGS = {
+  en: "Hello! I'm Dr. Tabeebi, your personal AI doctor. 👋\n\nTell me what's bothering you today, and I'll ask you a few focused questions to understand your condition better — just like a real consultation.\n\nYou can type or tap the 🎤 mic to speak.",
+  ar: "أهلاً! أنا د. طبيبي، طبيبك الشخصي بالذكاء الاصطناعي. 👋\n\nأخبرني شو عندك اليوم، وبسألك كم سؤال عشان أفهم حالتك — مثل ما تزور طبيبك بالضبط.\n\nتقدر تكتب أو تضغط 🎤 عشان تتكلم.",
+};
+
 const SUGGESTED_TOPICS = {
   en: [
-    "I have a headache",
-    "Stomach pain",
-    "Fever and chills",
-    "Follow-up on my condition",
+    "🤕 I have a headache",
+    "🤢 Stomach pain",
+    "🤒 Fever and chills",
+    "📋 Follow-up visit",
   ],
   ar: [
-    "لدي صداع",
-    "ألم في المعدة",
-    "حمى وقشعريرة",
-    "متابعة حالتي",
+    "🤕 لدي صداع",
+    "🤢 ألم في المعدة",
+    "🤒 حمى وقشعريرة",
+    "📋 متابعة حالتي",
   ],
 };
 
@@ -62,7 +68,17 @@ export function PatientAIChat({
     patientContext,
     onConversationCreated,
     onAssistantResponse: handleAssistantResponse,
+    initialGreeting: GREETINGS[language],
   });
+
+  // Determine avatar state from voice + loading
+  const avatarState = voice.voiceState === "listening"
+    ? "listening" as const
+    : voice.voiceState === "speaking"
+    ? "speaking" as const
+    : isLoading
+    ? "thinking" as const
+    : "idle" as const;
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -104,41 +120,36 @@ export function PatientAIChat({
   };
 
   const isVoiceActive = voice.voiceState === "listening" || voice.voiceState === "speaking";
+  const showSuggestions = messages.length <= 1; // Only greeting present
 
   return (
     <TooltipProvider>
       <Card className={cn("flex flex-col", compact ? "h-[500px]" : "h-[700px]", className)}>
-        <CardHeader className="flex-shrink-0 pb-3">
+        {/* Header with DoctorAvatar */}
+        <CardHeader className="flex-shrink-0 pb-3 border-b">
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <div className="relative">
-                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Stethoscope className="h-4 w-4 text-primary" />
-                </div>
-                <span className={cn(
-                  "absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-background",
-                  voice.voiceState === "listening" ? "bg-red-500 animate-pulse" :
-                  voice.voiceState === "speaking" ? "bg-blue-500 animate-pulse" :
-                  "bg-green-500"
-                )} />
-              </div>
+            <CardTitle className="flex items-center gap-3 text-lg">
+              <DoctorAvatar state={avatarState} size="sm" />
               <div className="flex flex-col">
-                <span>{language === "ar" ? "طبيبي" : "Tabeebi"}</span>
+                <span className="font-bold">{language === "ar" ? "د. طبيبي" : "Dr. Tabeebi"}</span>
                 <span className="text-xs font-normal text-muted-foreground">
                   {voice.voiceState === "listening"
-                    ? (language === "ar" ? "أستمع..." : "Listening...")
+                    ? (language === "ar" ? "🎙️ أستمع..." : "🎙️ Listening...")
                     : voice.voiceState === "speaking"
-                    ? (language === "ar" ? "أتحدث..." : "Speaking...")
-                    : (language === "ar" ? "طبيبك الشخصي" : "Your Personal Doctor")}
+                    ? (language === "ar" ? "🔊 أتحدث..." : "🔊 Speaking...")
+                    : isLoading
+                    ? (language === "ar" ? "💭 أفكر..." : "💭 Thinking...")
+                    : (language === "ar" ? "🟢 متاح الآن" : "🟢 Available now")}
                 </span>
               </div>
             </CardTitle>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setLanguage(language === "en" ? "ar" : "en")}
                 title="Toggle language"
+                className="h-8 px-2"
               >
                 <Globe className="h-4 w-4 mr-1" />
                 {language === "en" ? "عربي" : "EN"}
@@ -151,13 +162,13 @@ export function PatientAIChat({
                     voice.stopAll();
                     setVoiceModeActive(false);
                   }}
-                  title="Disable voice mode"
+                  className="h-8 px-2"
                 >
                   <VolumeX className="h-4 w-4" />
                 </Button>
               )}
-              {messages.length > 0 && (
-                <Button variant="ghost" size="sm" onClick={handleClear}>
+              {messages.length > 1 && (
+                <Button variant="ghost" size="sm" onClick={handleClear} className="h-8 px-2">
                   <Trash2 className="h-4 w-4" />
                 </Button>
               )}
@@ -167,29 +178,29 @@ export function PatientAIChat({
 
         <CardContent className="flex-1 flex flex-col overflow-hidden p-0">
           <ScrollArea className="flex-1 px-2" ref={scrollRef}>
-            {messages.length === 0 && (
-              <div className="flex flex-col items-center justify-center h-full py-12 px-6 text-center">
-                <div className="relative mb-4">
-                  <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center animate-pulse">
-                    <Stethoscope className="h-10 w-10 text-primary" />
-                  </div>
-                  <span className="absolute bottom-1 right-1 h-3 w-3 rounded-full bg-green-500 border-2 border-background" />
-                </div>
-                <h3 className="text-lg font-semibold mb-1">
-                  {language === "ar" ? "طبيبي" : "Tabeebi"}
-                </h3>
-                <p className="text-muted-foreground text-sm max-w-sm mb-6">
-                  {language === "ar"
-                    ? "أهلاً! أنا طبيبي. أخبرني شو عندك وبسألك كم سؤال — مثل ما تزور طبيبك بالضبط."
-                    : "Hi! I'm Tabeebi. Tell me what's bothering you and I'll ask you a few questions — just like visiting your doctor."}
+            {messages.map((msg, i) => (
+              <AIChatMessage
+                key={i}
+                role={msg.role}
+                content={msg.content}
+                isStreaming={isLoading && i === messages.length - 1 && msg.role === "assistant"}
+                isFirst={i === 0 && msg.role === "assistant"}
+              />
+            ))}
+
+            {/* Suggested topics after greeting */}
+            {showSuggestions && (
+              <div className="px-4 py-3 animate-fade-in">
+                <p className="text-xs text-muted-foreground mb-2">
+                  {language === "ar" ? "أو اختر من المواضيع:" : "Or choose a topic:"}
                 </p>
-                <div className="flex flex-wrap justify-center gap-2 max-w-sm">
+                <div className="flex flex-wrap gap-2">
                   {SUGGESTED_TOPICS[language].map((topic) => (
                     <Button
                       key={topic}
                       variant="outline"
                       size="sm"
-                      className="text-xs"
+                      className="text-xs rounded-full h-8 hover:bg-primary/10 hover:border-primary/30 transition-colors"
                       onClick={() => handleSend(topic)}
                     >
                       {topic}
@@ -198,15 +209,8 @@ export function PatientAIChat({
                 </div>
               </div>
             )}
-            {messages.map((msg, i) => (
-              <AIChatMessage
-                key={i}
-                role={msg.role}
-                content={msg.content}
-                isStreaming={isLoading && i === messages.length - 1 && msg.role === "assistant"}
-              />
-            ))}
-            {/* Show live transcript while listening */}
+
+            {/* Live transcript while listening */}
             {voice.voiceState === "listening" && voice.transcript && (
               <div className="px-4 py-2 text-sm text-muted-foreground italic animate-pulse">
                 {voice.transcript}...
@@ -225,7 +229,7 @@ export function PatientAIChat({
                     ? "صف أعراضك أو اسأل سؤالاً طبياً..."
                     : "Describe your symptoms or ask a medical question..."
                 }
-                className="min-h-[44px] max-h-[120px] resize-none"
+                className="min-h-[44px] max-h-[120px] resize-none text-base"
                 dir={language === "ar" ? "rtl" : "ltr"}
                 disabled={isLoading || voice.voiceState === "listening"}
               />
@@ -237,25 +241,25 @@ export function PatientAIChat({
                     onClick={handleMicToggle}
                     size="icon"
                     className={cn(
-                      "shrink-0 transition-colors",
-                      voice.voiceState === "listening" && "bg-destructive hover:bg-destructive/90 text-destructive-foreground",
-                      voice.voiceState === "speaking" && "bg-blue-500 hover:bg-blue-600 text-white"
+                      "shrink-0 h-11 w-11 rounded-full transition-all",
+                      voice.voiceState === "listening" && "bg-destructive hover:bg-destructive/90 text-destructive-foreground scale-110",
+                      voice.voiceState === "speaking" && "bg-info hover:bg-info/90 text-info-foreground"
                     )}
                     variant={isVoiceActive ? "default" : "outline"}
                     disabled={isLoading && voice.voiceState !== "speaking"}
                   >
                     {voice.voiceState === "listening" ? (
-                      <MicOff className="h-4 w-4" />
+                      <MicOff className="h-5 w-5" />
                     ) : voice.voiceState === "speaking" ? (
-                      <VolumeX className="h-4 w-4" />
+                      <VolumeX className="h-5 w-5" />
                     ) : (
-                      <Mic className="h-4 w-4" />
+                      <Mic className="h-5 w-5" />
                     )}
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
                   {!voice.isSupported
-                    ? (language === "ar" ? "المتصفح لا يدعم التعرف على الصوت" : "Speech recognition not supported in this browser")
+                    ? (language === "ar" ? "المتصفح لا يدعم التعرف على الصوت" : "Speech recognition not supported")
                     : voice.voiceState === "listening"
                     ? (language === "ar" ? "إيقاف الاستماع" : "Stop listening")
                     : voice.voiceState === "speaking"
@@ -264,20 +268,20 @@ export function PatientAIChat({
                 </TooltipContent>
               </Tooltip>
 
-              {/* Send / Stop button */}
+              {/* Send / Stop */}
               {isLoading ? (
-                <Button onClick={stopGeneration} variant="destructive" size="icon" className="shrink-0">
+                <Button onClick={stopGeneration} variant="destructive" size="icon" className="shrink-0 h-11 w-11 rounded-full">
                   <Square className="h-4 w-4" />
                 </Button>
               ) : (
-                <Button onClick={() => handleSend()} size="icon" className="shrink-0" disabled={!input.trim() || voice.voiceState === "listening"}>
+                <Button onClick={() => handleSend()} size="icon" className="shrink-0 h-11 w-11 rounded-full" disabled={!input.trim() || voice.voiceState === "listening"}>
                   <Send className="h-4 w-4" />
                 </Button>
               )}
             </div>
             <p className="text-[10px] text-muted-foreground text-center">
               {language === "ar"
-                ? "للأغراض المعلوماتية فقط. لا يُعد بديلاً عن الاستشارة الطبية المتخصصة."
+                ? "للأغراض المعلوماتية فقط. لا يُعد بديلاً عن الاستشارة الطبية."
                 : "For informational purposes only. Not a substitute for professional medical advice."}
             </p>
           </div>

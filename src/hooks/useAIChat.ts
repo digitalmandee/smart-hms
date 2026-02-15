@@ -14,12 +14,15 @@ interface UseAIChatOptions {
   patientContext?: Record<string, unknown>;
   onConversationCreated?: (id: string) => void;
   onAssistantResponse?: (content: string) => void;
+  initialGreeting?: string;
 }
 
 export function useAIChat(options: UseAIChatOptions = {}) {
-  const { mode = "general", language = "en", patientContext, onConversationCreated, onAssistantResponse } = options;
+  const { mode = "general", language = "en", patientContext, onConversationCreated, onAssistantResponse, initialGreeting } = options;
   const { profile } = useAuth();
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>(
+    initialGreeting ? [{ role: "assistant", content: initialGreeting }] : []
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
