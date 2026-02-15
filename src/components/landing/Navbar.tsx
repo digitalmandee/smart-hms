@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, FileDown } from "lucide-react";
+import { Menu, X, FileDown, Sparkles } from "lucide-react";
 import { HealthOS24Logo, HealthOS24Badge } from "@/components/brand/HealthOS24Logo";
 
 const navLinks = [
+  { label: "Tabeebi", href: "/tabeebi", isSpecial: true, isRoute: true },
   { label: "Features", href: "#features" },
   { label: "Workflow", href: "#flow" },
   { label: "Roles", href: "#roles" },
@@ -36,16 +37,27 @@ export const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-6">
-            {navLinks.map((link) => (
-              <a
-                key={link.label}
-                href={link.href}
-                onClick={(e) => scrollToSection(e, link.href)}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {link.label}
-              </a>
-            ))}
+            {navLinks.map((link) =>
+              link.isRoute ? (
+                <Link
+                  key={link.label}
+                  to={link.href}
+                  className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                  {link.label}
+                </Link>
+              ) : (
+                <a
+                  key={link.label}
+                  href={link.href}
+                  onClick={(e) => scrollToSection(e, link.href)}
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {link.label}
+                </a>
+              )
+            )}
           </div>
 
           {/* Desktop CTA */}
@@ -79,19 +91,31 @@ export const Navbar = () => {
         {/* Mobile Navigation */}
         {isOpen && (
           <div className="md:hidden py-4 space-y-4 border-t border-border animate-fade-in">
-            {navLinks.map((link) => (
-              <a
-                key={link.label}
-                href={link.href}
-                className="block text-sm text-muted-foreground hover:text-foreground transition-colors"
-                onClick={(e) => {
-                  scrollToSection(e, link.href);
-                  setIsOpen(false);
-                }}
-              >
-                {link.label}
-              </a>
-            ))}
+            {navLinks.map((link) =>
+              link.isRoute ? (
+                <Link
+                  key={link.label}
+                  to={link.href}
+                  className="flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                  {link.label}
+                </Link>
+              ) : (
+                <a
+                  key={link.label}
+                  href={link.href}
+                  className="block text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  onClick={(e) => {
+                    scrollToSection(e, link.href);
+                    setIsOpen(false);
+                  }}
+                >
+                  {link.label}
+                </a>
+              )
+            )}
             <div className="flex flex-col gap-2 pt-4">
               <Link to="/auth/login" onClick={() => setIsOpen(false)}>
                 <Button variant="outline" className="w-full">

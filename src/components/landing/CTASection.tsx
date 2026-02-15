@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Phone, Mail, MessageCircle } from "lucide-react";
+import { ArrowRight, Phone, Mail, MessageCircle, Bot } from "lucide-react";
 
 export const CTASection = () => {
   return (
@@ -19,9 +19,23 @@ export const CTASection = () => {
           <p className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
             Join 500+ clinics across Pakistan and the Middle East. Start your free trial today - no credit card required.
           </p>
+
+          {/* Tabeebi CTA */}
+          <div className="mb-8 p-6 rounded-2xl border bg-card/50 max-w-lg mx-auto">
+            <div className="flex items-center justify-center gap-2 mb-3">
+              <Bot className="h-5 w-5 text-primary" />
+              <span className="font-semibold text-foreground">Talk to Dr. Tabeebi — Free, No Signup</span>
+            </div>
+            <Button size="lg" className="group text-lg px-8 w-full sm:w-auto" asChild>
+              <Link to="/tabeebi">
+                Try Tabeebi Now
+                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </Button>
+          </div>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <Button size="lg" className="group text-lg px-8" asChild>
+            <Button size="lg" variant="outline" className="group text-lg px-8" asChild>
               <Link to="/auth/signup">
                 Start Free Trial
                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
