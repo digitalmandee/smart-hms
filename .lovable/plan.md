@@ -1,67 +1,198 @@
 
 
-# Presentation Quality Audit and Fixes
+# AI Integration Plan for HealthOS 24
+## Inspired by Boston Health AI (Hami) -- Powered by DeepSeek
 
-## Content Verification -- All Modules Covered
+---
 
-Every module is present with detailed descriptions, highlights, metrics, and pro tips:
+## Boston Health AI Comparison
 
-| Category | Modules (Slides 3-22) |
-|----------|----------------------|
-| Clinical (7) | Patients, Appointments, OPD, Emergency, OT, IPD, Nursing |
-| Diagnostics (3) | Laboratory, Radiology, Blood Bank |
-| Pharmacy (2) | Pharmacy, POS |
-| Finance (4) | Billing, Doctor Wallet, Compensation, Accounts |
-| Operations (4) | Procurement, Inventory, HR, Reports |
+Boston Health AI's "Hami" is a clinical intelligence companion that covers:
+1. **Patient Intake** -- AI chatbot guides patients through symptom collection before visits
+2. **Ambient Scribe** -- Real-time clinical documentation during doctor visits
+3. **SOAP Notes** -- Automated clinical documentation generation
+4. **Care Coordination** -- Post-visit summaries and follow-up
 
-Plus 12 special slides: Title, Features Overview, OT Dashboard, Workflow, Procurement Cycle, Warehouse & Supply Chain, Case Studies, Lab Network, Integration, Compliance, Timeline, CTA.
+HealthOS 24 already has strong foundations (symptoms input, vitals, prescriptions, diagnosis, lab orders). The AI layer will enhance these existing workflows rather than replace them.
 
-Total: 32 slides. All modules fully detailed. No missing content.
+---
 
-## Issues Found -- Branding and Numbering
+## Phase 1: Core Infrastructure (Edge Function + DeepSeek)
 
-### 1. Wrong slide numbers (show "/31" instead of "/32")
-Nine special slides have hardcoded wrong total. The correct total is 32.
+### What gets built:
+- A single Supabase edge function `ai-assistant` that proxies requests to DeepSeek API
+- Supports both patient and doctor contexts via a `mode` parameter
+- Bilingual system prompts (English + Arabic) with medical terminology
+- Conversation history stored in a new `ai_conversations` table
 
-| Slide | Current | Correct |
-|-------|---------|---------|
-| Features Overview | 02 / 31 | 02 / 32 |
-| OT Dashboard | 23 / 31 | 23 / 32 |
-| Workflow | 24 / 31 | 24 / 32 |
-| Procurement | 25 / 31 | 25 / 32 |
-| Case Studies | 26 / 31 | 27 / 32 |
-| Lab Network | 27 / 31 | 28 / 32 |
-| Integration | 28 / 31 | 29 / 32 |
-| Compliance | 29 / 31 | 30 / 32 |
-| Timeline | 30 / 31 | 31 / 32 |
-| CTA | 31 / 31 | 32 / 32 |
+### Database:
 
-### 2. Old website URL in footers
-Five slides still show "smarthms.devmine.co" instead of "healthos24.com":
-- OT Dashboard, Workflow, Procurement, Integration, Timeline
+```text
+ai_conversations
+  - id (uuid, PK)
+  - organization_id (uuid, FK)
+  - patient_id (uuid, FK, nullable)
+  - user_id (uuid, FK, nullable)
+  - context_type: 'patient_intake' | 'doctor_assist' | 'general'
+  - messages (jsonb array)
+  - metadata (jsonb -- symptoms extracted, etc.)
+  - language: 'en' | 'ar'
+  - created_at, updated_at
 
-### 3. Inconsistent footer brand name
-Some slides say "HealthOS - Hospital Management System" instead of "HealthOS 24 - Hospital Management System":
-- OT Dashboard, Workflow, Procurement, Warehouse, Integration, Timeline
+ai_suggestions_log
+  - id (uuid, PK)
+  - conversation_id (uuid, FK)
+  - suggestion_type: 'diagnosis' | 'prescription' | 'lab_order' | 'soap_note'
+  - suggestion_data (jsonb)
+  - accepted (boolean)
+  - accepted_by (uuid, FK)
+  - created_at
+```
 
-### 4. Outdated copyright year
-CTA slide says "(c) 2024" -- should be "(c) 2025"
+### Edge Function: `supabase/functions/ai-assistant/index.ts`
+- Accepts `mode`, `messages`, `patient_context`, `language`
+- Routes to DeepSeek API (https://api.deepseek.com/v1/chat/completions)
+- Uses DeepSeek-V3 for general chat, DeepSeek-R1 for clinical reasoning
+- Streaming SSE response for real-time token delivery
+- Secret needed: `DEEPSEEK_API_KEY`
 
-## Technical Changes
+---
 
-Update the following 10 files with corrected slide numbers, footer URLs, and brand names:
+## Phase 2: Patient-Facing AI Chat (Like Hami Intake)
 
-- `src/components/presentation/FeaturesOverviewSlide.tsx` -- fix "02 / 31" to "02 / 32"
-- `src/components/presentation/OTDashboardSlide.tsx` -- fix number, footer URL, brand name
-- `src/components/presentation/WorkflowSlide.tsx` -- fix number, footer URL, brand name
-- `src/components/presentation/ProcurementSlide.tsx` -- fix number, footer URL, brand name
-- `src/components/presentation/WarehouseSlide.tsx` -- fix brand name
-- `src/components/presentation/CaseStudiesSlide.tsx` -- fix number
-- `src/components/presentation/LabNetworkSlide.tsx` -- fix number
-- `src/components/presentation/IntegrationSlide.tsx` -- fix number, footer URL, brand name
-- `src/components/presentation/ComplianceSlide.tsx` -- fix number
-- `src/components/presentation/TimelineSlide.tsx` -- fix number, footer URL, brand name
-- `src/components/presentation/CTASlide.tsx` -- fix number, copyright year
+### What it does:
+- Patients access a chat interface (on kiosk, mobile, or patient portal)
+- AI guides them through symptom collection using clinical reasoning
+- Asks follow-up questions based on responses (not a static form)
+- Generates a structured pre-visit summary for the doctor
+- Supports English and Arabic with auto-detection
 
-All changes are simple text replacements -- no structural or layout changes needed.
+### UI Components:
+- `src/components/ai/PatientAIChat.tsx` -- Full chat interface with message bubbles
+- `src/components/ai/AIChatMessage.tsx` -- Individual message component with markdown
+- `src/components/ai/PatientIntakeSummary.tsx` -- Structured output card
+
+### Integration Points:
+- **Kiosk Mode**: Add AI intake option alongside token generation
+- **Appointments**: "Start AI Pre-Visit" button on upcoming appointments
+- **OPD Check-in**: Doctor sees AI-generated intake summary in consultation view
+
+### DeepSeek System Prompt (Patient Mode):
+```text
+You are a medical intake assistant for a hospital. Guide the patient through
+describing their health concerns. Ask one focused question at a time.
+Collect: chief complaint, symptom duration, severity (1-10), associated
+symptoms, medical history, current medications, allergies.
+Be empathetic and clear. Support English and Arabic.
+Do NOT diagnose. Summarize findings for the doctor.
+```
+
+---
+
+## Phase 3: Doctor AI Assistant
+
+### 3A: AI-Assisted Consultation
+- Floating AI assistant panel in the consultation view
+- Doctor can ask: "Suggest diagnosis based on symptoms" or "Generate SOAP note"
+- AI receives full patient context (vitals, symptoms, history, lab results)
+- Suggestions appear as actionable cards the doctor can accept/modify
+
+### 3B: Automated SOAP Notes
+- One-click SOAP note generation from consultation data
+- Uses existing vitals, symptoms, diagnosis, and prescription data
+- Doctor reviews and edits before saving
+- Integrates with existing `PrintableConsultation.tsx`
+
+### 3C: Prescription Suggestions
+- Based on diagnosis, suggest common medications with dosages
+- Cross-reference with patient allergies and current medications
+- Drug interaction warnings
+- Doctor must explicitly accept each suggestion
+
+### UI Components:
+- `src/components/ai/DoctorAIPanel.tsx` -- Slide-out panel in consultation
+- `src/components/ai/AISuggestionCard.tsx` -- Actionable suggestion with Accept/Reject
+- `src/components/ai/SOAPNoteGenerator.tsx` -- One-click SOAP generation
+- `src/components/ai/PrescriptionSuggester.tsx` -- Drug suggestion cards
+
+### DeepSeek System Prompt (Doctor Mode):
+```text
+You are a clinical decision support assistant. You assist doctors with:
+1. Differential diagnosis suggestions based on symptoms and vitals
+2. SOAP note generation from clinical encounter data
+3. Prescription suggestions with dosage guidelines
+4. Lab test recommendations
+
+Always present suggestions as options, never as definitive decisions.
+Include confidence levels. Flag drug interactions and contraindications.
+Support ICD-10 coding. Respond in the doctor's preferred language.
+```
+
+---
+
+## Phase 4: Future Enhancements (Not in initial build)
+
+- **Ambient Scribe**: Voice-to-text during consultations (requires speech API)
+- **Radiology AI**: Image analysis for X-rays/CT scans
+- **Predictive Analytics**: Patient readmission risk, no-show prediction
+- **Insurance Claim AI**: Auto-generate claim narratives
+
+---
+
+## Technical Architecture
+
+```text
+Patient/Doctor (Browser)
+        |
+        v
+  React Chat UI (streaming SSE)
+        |
+        v
+  Supabase Edge Function (ai-assistant)
+    - Auth validation
+    - Context assembly (patient data, vitals, history)
+    - System prompt selection (patient vs doctor mode)
+    - Conversation persistence
+        |
+        v
+  DeepSeek API (V3 for chat, R1 for reasoning)
+    - Streaming response
+    - Tool calling for structured output
+```
+
+---
+
+## Implementation Order
+
+| Step | What | Effort |
+|------|------|--------|
+| 1 | Add `DEEPSEEK_API_KEY` secret, create `ai-assistant` edge function | Small |
+| 2 | Create `ai_conversations` + `ai_suggestions_log` tables | Small |
+| 3 | Build patient AI chat component with streaming | Medium |
+| 4 | Integrate patient intake with kiosk and appointments | Medium |
+| 5 | Build doctor AI panel in consultation view | Medium |
+| 6 | Add SOAP note generator | Small |
+| 7 | Add prescription suggestion engine | Medium |
+| 8 | Arabic language support and testing | Small |
+
+---
+
+## DeepSeek API Details
+
+- **Endpoint**: `https://api.deepseek.com/v1/chat/completions`
+- **Models**: `deepseek-chat` (V3, fast), `deepseek-reasoner` (R1, clinical reasoning)
+- **Pricing**: Very cost-effective (~$0.14/M input tokens, $0.28/M output tokens for V3)
+- **Context**: 64K tokens -- sufficient for full patient history
+- **Streaming**: Supported via SSE (same format as OpenAI)
+- **API Key**: User needs to obtain from https://platform.deepseek.com
+
+---
+
+## Security Considerations
+
+- All AI calls go through the edge function (never direct from client)
+- Patient data never leaves the edge function context unnecessarily
+- Doctor must explicitly accept all AI suggestions (no auto-application)
+- All suggestions logged for audit trail
+- RLS policies on conversation tables scoped to organization
 
