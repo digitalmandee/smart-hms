@@ -139,6 +139,7 @@ Deno.serve(async (req) => {
       language = "en",
       conversation_id,
       stream = true,
+      country_code = "PK",
     } = await req.json();
 
     const contextType = mode as keyof typeof SYSTEM_PROMPTS;
@@ -149,6 +150,14 @@ Deno.serve(async (req) => {
     if (patient_context) {
       contextMessage = `\n\nPatient Context:\n${JSON.stringify(patient_context, null, 2)}`;
     }
+
+    // Add country-specific medical context
+    const countryContextMap: Record<string, string> = {
+      SA: "\n\nCountry: Saudi Arabia. Common OTC: Panadol, Adol, Brufen, Voltaren. Emergency: 997 (ambulance), 911 (general). Currency: SAR. Medications follow SFDA (Saudi FDA) regulations.",
+      AE: "\n\nCountry: UAE. Common OTC: Panadol, Adol, Brufen. Emergency: 998 (ambulance), 999 (police). Currency: AED. Medications follow MOH UAE regulations.",
+      PK: "\n\nCountry: Pakistan. Common OTC: Panadol, Disprin, Brufen, Ponstan. Emergency: 1166 (Rescue), 115 (Edhi). Currency: PKR.",
+    };
+    contextMessage += countryContextMap[country_code] || countryContextMap.PK;
 
     const trimmedMessages = trimMessages(messages);
 

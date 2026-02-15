@@ -64,16 +64,17 @@ export function getCurrentShift(): ShiftType {
 
 // Calculate total from denominations
 export function calculateDenominationTotal(denominations: CashDenominations): number {
-  return (
-    (denominations.note_5000 || 0) * 5000 +
-    (denominations.note_1000 || 0) * 1000 +
-    (denominations.note_500 || 0) * 500 +
-    (denominations.note_100 || 0) * 100 +
-    (denominations.note_50 || 0) * 50 +
-    (denominations.note_20 || 0) * 20 +
-    (denominations.note_10 || 0) * 10 +
-    (denominations.coins || 0)
-  );
+  let total = 0;
+  for (const [key, count] of Object.entries(denominations)) {
+    if (!count || count <= 0) continue;
+    if (key === 'coins') {
+      total += count;
+    } else if (key.startsWith('note_')) {
+      const value = parseInt(key.replace('note_', ''), 10);
+      if (!isNaN(value)) total += count * value;
+    }
+  }
+  return total;
 }
 
 // Hook: Get active session for current user/counter

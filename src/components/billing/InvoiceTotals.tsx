@@ -1,5 +1,7 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
+import { useCountryConfig } from "@/contexts/CountryConfigContext";
 
 interface InvoiceTotalsProps {
   subtotal: number;
@@ -20,6 +22,8 @@ export function InvoiceTotals({
   onTaxChange,
   onDiscountChange,
 }: InvoiceTotalsProps) {
+  const { formatCurrency } = useCurrencyFormatter();
+  const { tax_label } = useCountryConfig();
   const total = subtotal + taxAmount - discountAmount;
   const balance = total - paidAmount;
 
@@ -27,11 +31,11 @@ export function InvoiceTotals({
     <div className="space-y-3 text-sm">
       <div className="flex justify-between">
         <span className="text-muted-foreground">Subtotal</span>
-        <span>Rs. {subtotal.toFixed(2)}</span>
+        <span>{formatCurrency(subtotal)}</span>
       </div>
 
       <div className="flex justify-between items-center">
-        <span className="text-muted-foreground">Tax</span>
+        <span className="text-muted-foreground">{tax_label}</span>
         {editable ? (
           <Input
             type="number"
@@ -42,7 +46,7 @@ export function InvoiceTotals({
             className="w-28 text-right h-8"
           />
         ) : (
-          <span>Rs. {taxAmount.toFixed(2)}</span>
+          <span>{formatCurrency(taxAmount)}</span>
         )}
       </div>
 
@@ -58,25 +62,25 @@ export function InvoiceTotals({
             className="w-28 text-right h-8"
           />
         ) : (
-          <span>- Rs. {discountAmount.toFixed(2)}</span>
+          <span>- {formatCurrency(discountAmount)}</span>
         )}
       </div>
 
       <div className="border-t pt-3 flex justify-between font-semibold text-base">
         <span>Total</span>
-        <span>Rs. {total.toFixed(2)}</span>
+        <span>{formatCurrency(total)}</span>
       </div>
 
       {paidAmount > 0 && (
         <>
           <div className="flex justify-between text-success">
             <span>Paid</span>
-            <span>Rs. {paidAmount.toFixed(2)}</span>
+            <span>{formatCurrency(paidAmount)}</span>
           </div>
           <div className="flex justify-between font-semibold text-lg">
             <span>Balance Due</span>
             <span className={balance > 0 ? "text-destructive" : "text-success"}>
-              Rs. {balance.toFixed(2)}
+              {formatCurrency(balance)}
             </span>
           </div>
         </>

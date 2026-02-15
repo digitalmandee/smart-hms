@@ -1,3 +1,4 @@
+import React, { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 // OPD Checkout Page import
 import OPDCheckoutPage from "@/pages/app/opd/OPDCheckoutPage";
@@ -7,7 +8,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { CountryConfigProvider } from "@/contexts/CountryConfigContext";
+import { CountryConfigProvider, useCountryConfig } from "@/contexts/CountryConfigContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AuthLayout } from "@/layouts/AuthLayout";
 import { DashboardLayout } from "@/layouts/DashboardLayout";
@@ -471,6 +472,18 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+function RTLDirectionSetter() {
+  const { default_language, country_code } = useCountryConfig();
+  useEffect(() => {
+    const dir = default_language === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.dir = dir;
+    document.documentElement.lang = default_language;
+    // Expose country_code for non-React contexts (e.g., useAIChat)
+    (window as any).__COUNTRY_CODE = country_code;
+  }, [default_language, country_code]);
+  return null;
+}
 
 function App() {
   return (

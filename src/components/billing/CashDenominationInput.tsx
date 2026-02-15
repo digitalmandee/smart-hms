@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatCurrency } from "@/lib/currency";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
+import { useCountryConfig } from "@/contexts/CountryConfigContext";
 import { CashDenominations, calculateDenominationTotal } from "@/hooks/useBillingSessions";
 import { Banknote, Coins } from "lucide-react";
 
@@ -15,23 +16,23 @@ interface CashDenominationInputProps {
 }
 
 interface Denomination {
-  key: keyof CashDenominations;
+  key: string;
   label: string;
   value: number;
   icon: typeof Banknote | typeof Coins;
   isCoins?: boolean;
 }
 
-const DENOMINATIONS: Denomination[] = [
-  { key: 'note_5000', label: 'Rs. 5,000', value: 5000, icon: Banknote },
-  { key: 'note_1000', label: 'Rs. 1,000', value: 1000, icon: Banknote },
-  { key: 'note_500', label: 'Rs. 500', value: 500, icon: Banknote },
-  { key: 'note_100', label: 'Rs. 100', value: 100, icon: Banknote },
-  { key: 'note_50', label: 'Rs. 50', value: 50, icon: Banknote },
-  { key: 'note_20', label: 'Rs. 20', value: 20, icon: Banknote },
-  { key: 'note_10', label: 'Rs. 10', value: 10, icon: Banknote },
-  { key: 'coins', label: 'Coins', value: 1, icon: Coins, isCoins: true },
-];
+function buildDenominations(values: number[], currencySymbol: string): Denomination[] {
+  const denoms: Denomination[] = values.map((v) => ({
+    key: `note_${v}`,
+    label: `${currencySymbol} ${v.toLocaleString()}`,
+    value: v,
+    icon: Banknote,
+  }));
+  denoms.push({ key: 'coins', label: 'Coins', value: 1, icon: Coins, isCoins: true });
+  return denoms;
+}
 
 export function CashDenominationInput({
   value = {},
@@ -40,6 +41,12 @@ export function CashDenominationInput({
   expectedCash,
   compact = false,
 }: CashDenominationInputProps) {
+  const { formatCurrency } = useCurrencyFormatter();
+  const { cash_denominations, currency_symbol } = useCountryConfig();
+  const DENOMINATIONS = useMemo(
+    () => buildDenominations(cash_denominations, currency_symbol),
+    [cash_denominations, currency_symbol]
+  );
   const [denominations, setDenominations] = useState<CashDenominations>(value);
   const [total, setTotal] = useState(0);
 
@@ -49,7 +56,7 @@ export function CashDenominationInput({
     onChange(denominations, newTotal);
   }, [denominations]);
 
-  const handleChange = (key: keyof CashDenominations, count: number) => {
+  const handleChange = (key: string, count: number) => {
     setDenominations((prev) => ({
       ...prev,
       [key]: Math.max(0, count),
@@ -69,16 +76,16 @@ export function CashDenominationInput({
                 <Input
                   type="number"
                   min="0"
-                  value={denominations[denom.key as keyof CashDenominations] || ''}
+                  value={denominations[denom.key] || ''}
                   onChange={(e) =>
-                    handleChange(denom.key as keyof CashDenominations, parseInt(e.target.value) || 0)
+                    handleChange(denom.key, parseInt(e.target.value) || 0)
                   }
                   className="h-8 text-sm"
                   placeholder="0"
                 />
                 {!denom.isCoins && (
                   <span className="text-xs text-muted-foreground whitespace-nowrap">
-                    = {formatCurrency((denominations[denom.key as keyof CashDenominations] || 0) * denom.value)}
+                    = {formatCurrency((denominations[denom.key] || 0) * denom.value)}
                   </span>
                 )}
               </div>
@@ -107,7 +114,7 @@ export function CashDenominationInput({
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {DENOMINATIONS.map((denom) => {
             const Icon = denom.icon;
-            const count = denominations[denom.key as keyof CashDenominations] || 0;
+            const count = denominations[denom.key] || 0;
             const subtotal = denom.isCoins ? count : count * denom.value;
 
             return (
@@ -124,7 +131,7 @@ export function CashDenominationInput({
                   min="0"
                   value={count || ''}
                   onChange={(e) =>
-                    handleChange(denom.key as keyof CashDenominations, parseInt(e.target.value) || 0)
+                    handleChange(denom.key, parseInt(e.target.value) || 0)
                   }
                   className="text-center text-lg font-semibold"
                   placeholder="0"

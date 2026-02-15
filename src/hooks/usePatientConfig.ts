@@ -2,13 +2,47 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
-// Default fallback values (used when database is empty)
-const DEFAULT_CITIES = ["Lahore", "Karachi", "Islamabad", "Rawalpindi", "Faisalabad", "Multan", "Peshawar", "Quetta", "Sialkot", "Gujranwala"];
-const DEFAULT_LANGUAGES = ["Urdu", "English", "Punjabi", "Sindhi", "Pashto", "Balochi", "Saraiki"];
-const DEFAULT_OCCUPATIONS = ["Business", "Government Employee", "Private Employee", "Doctor", "Engineer", "Teacher", "Student", "Housewife", "Retired", "Farmer", "Labour", "Other"];
-const DEFAULT_RELATIONS = ["Spouse", "Son", "Daughter", "Father", "Mother", "Brother", "Sister", "Friend", "Other"];
-const DEFAULT_REFERRAL_SOURCES = ["Doctor Referral", "Hospital Referral", "Walk-in", "Online", "Friend/Family", "Advertisement", "Other"];
-const DEFAULT_INSURANCE_PROVIDERS = ["State Life", "Jubilee Life", "EFU Life", "Adamjee Insurance", "Allianz EFU", "IGI Insurance", "Other"];
+// Country-aware default fallback values
+const DEFAULTS_BY_COUNTRY: Record<string, {
+  cities: string[]; languages: string[]; occupations: string[]; relations: string[];
+  referralSources: string[]; insuranceProviders: string[];
+}> = {
+  PK: {
+    cities: ["Lahore", "Karachi", "Islamabad", "Rawalpindi", "Faisalabad", "Multan", "Peshawar", "Quetta", "Sialkot", "Gujranwala"],
+    languages: ["Urdu", "English", "Punjabi", "Sindhi", "Pashto", "Balochi", "Saraiki"],
+    occupations: ["Business", "Government Employee", "Private Employee", "Doctor", "Engineer", "Teacher", "Student", "Housewife", "Retired", "Farmer", "Labour", "Other"],
+    relations: ["Spouse", "Son", "Daughter", "Father", "Mother", "Brother", "Sister", "Friend", "Other"],
+    referralSources: ["Doctor Referral", "Hospital Referral", "Walk-in", "Online", "Friend/Family", "Advertisement", "Other"],
+    insuranceProviders: ["State Life", "Jubilee Life", "EFU Life", "Adamjee Insurance", "Allianz EFU", "IGI Insurance", "Other"],
+  },
+  SA: {
+    cities: ["Riyadh", "Jeddah", "Makkah", "Madinah", "Dammam", "Khobar", "Tabuk", "Abha", "Taif", "Buraidah"],
+    languages: ["Arabic", "English", "Urdu", "Hindi", "Bengali", "Filipino", "Indonesian"],
+    occupations: ["Business", "Government Employee", "Private Sector", "Military", "Doctor", "Engineer", "Teacher", "Student", "Housewife", "Retired", "Other"],
+    relations: ["Spouse", "Son", "Daughter", "Father", "Mother", "Brother", "Sister", "Friend", "Other"],
+    referralSources: ["Doctor Referral", "Hospital Referral", "Walk-in", "Online", "Insurance", "Friend/Family", "Other"],
+    insuranceProviders: ["Bupa Arabia", "Tawuniya", "MedGulf", "Al Rajhi Takaful", "Malath Insurance", "Walaa Insurance", "CCHI", "Other"],
+  },
+  AE: {
+    cities: ["Dubai", "Abu Dhabi", "Sharjah", "Ajman", "Ras Al Khaimah", "Fujairah", "Umm Al Quwain", "Al Ain"],
+    languages: ["Arabic", "English", "Hindi", "Urdu", "Malayalam", "Tagalog", "Bengali"],
+    occupations: ["Business", "Government Employee", "Private Sector", "Doctor", "Engineer", "Teacher", "Student", "Housewife", "Retired", "Other"],
+    relations: ["Spouse", "Son", "Daughter", "Father", "Mother", "Brother", "Sister", "Friend", "Other"],
+    referralSources: ["Doctor Referral", "Hospital Referral", "Walk-in", "Online", "Insurance", "Friend/Family", "Other"],
+    insuranceProviders: ["Daman", "Oman Insurance", "AXA Gulf", "Orient Insurance", "National Health Insurance", "MetLife", "Cigna", "Other"],
+  },
+};
+
+function getDefaults(countryCode?: string) {
+  return DEFAULTS_BY_COUNTRY[countryCode || 'PK'] || DEFAULTS_BY_COUNTRY.PK;
+}
+
+const DEFAULT_CITIES = DEFAULTS_BY_COUNTRY.PK.cities;
+const DEFAULT_LANGUAGES = DEFAULTS_BY_COUNTRY.PK.languages;
+const DEFAULT_OCCUPATIONS = DEFAULTS_BY_COUNTRY.PK.occupations;
+const DEFAULT_RELATIONS = DEFAULTS_BY_COUNTRY.PK.relations;
+const DEFAULT_REFERRAL_SOURCES = DEFAULTS_BY_COUNTRY.PK.referralSources;
+const DEFAULT_INSURANCE_PROVIDERS = DEFAULTS_BY_COUNTRY.PK.insuranceProviders;
 
 export interface ConfigItem {
   id: string;

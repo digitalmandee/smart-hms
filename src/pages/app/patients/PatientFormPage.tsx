@@ -45,6 +45,7 @@ import { PrintablePatientCard } from "@/components/patients/PrintablePatientCard
 import { useOrganization } from "@/hooks/useOrganizations";
 import { useAuth } from "@/contexts/AuthContext";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useCountryConfig } from "@/contexts/CountryConfigContext";
 
 const patientSchema = z.object({
   // Personal Information
@@ -361,15 +362,18 @@ export function PatientFormPage() {
                 <FormField
                   control={form.control}
                   name="national_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>CNIC / National ID</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="XXXXX-XXXXXXX-X" className="h-11" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  render={({ field }) => {
+                    const countryConfig = useCountryConfig();
+                    return (
+                      <FormItem>
+                        <FormLabel>{countryConfig.national_id_label}</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder={countryConfig.national_id_format} className="h-11" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
                 />
 
                 <FormField
