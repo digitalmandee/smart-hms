@@ -1,47 +1,87 @@
 
 
-## Add 500 Medical Knowledge Entries to RAG Database
+## Tabeebi Chat: Modern UI/UX Overhaul + Voice Fix + Doctor Visualization
 
-### Current State
-- **37 entries** exist (mostly English, with a few Arabic/Urdu samples)
-- Categories: red_flags (12), drug_reference (12), clinical_guideline (6), symptom_guide (7)
+### Overview
+Three major areas: (1) Modern, mobile-first UI redesign with a premium healthcare feel, (2) Fix the broken voice system end-to-end, (3) Replace the abstract VoiceOrb with the existing DoctorAvatar as the visual doctor character during voice interactions.
 
-### What Will Be Added
+---
 
-The 500 new entries will be organized as follows:
+### 1. Modern Header and Page Shell
 
-**By Category:**
-| Category | English | Arabic | Urdu | Total |
-|----------|---------|--------|------|-------|
-| Red Flags | 40 | 40 | 40 | 120 |
-| Drug References | 50 | 50 | 50 | 150 |
-| Clinical Guidelines | 40 | 40 | 40 | 120 |
-| Symptom Guides | 37 | 37 | 36 | 110 |
-| **Total** | **167** | **167** | **166** | **500** |
+**TabeebiChatPage.tsx** -- Complete header redesign:
+- Teal gradient header bar with Dr. Tabeebi avatar, name, and live status dot
+- User name shown as a subtle badge with initials avatar
+- Icon buttons (New Chat, History, Logout) with consistent 44px touch targets
+- Safe-area top padding for mobile notch (`padding-top: env(safe-area-inset-top)`)
 
-**Conditions Covered (new, not duplicating existing):**
+**PatientAIChat.tsx** -- Inner chat header polish:
+- Remove the inner header duplication (header responsibility moves to the page shell)
+- Only keep language toggle and voice-off button inline
+- Teal accent line below the header for visual hierarchy
 
-- **Red Flags**: DVT/PE, diabetic ketoacidosis (DKA), ectopic pregnancy, acute abdomen, meningitis, suicidal ideation, hypertensive crisis, hypoglycemia, acute asthma attack, testicular torsion, placental abruption, acute glaucoma, aortic dissection, tension pneumothorax, status epilepticus, and more
-- **Drug References**: Metformin, Amlodipine, Losartan, Atorvastatin, Metoprolol, Salbutamol inhaler, Prednisolone, Amoxicillin, Azithromycin, Ciprofloxacin, Metronidazole, Fluoxetine, Diazepam, Insulin (rapid/long), Warfarin, Aspirin, Diclofenac, Tramadol, Doxycycline, Ranitidine, Loperamide, ORS, Ferrous sulfate, Folic acid, Vitamin D, Calcium, Montelukast, Chlorpheniramine, Domperidone, Hyoscine, and more
-- **Clinical Guidelines**: Type 2 Diabetes management, Hypertension stepwise treatment, Asthma action plan, COPD management, Pregnancy care, Anemia workup, Thyroid disorders, Depression screening (PHQ-9), Pediatric diarrhea/ORS, Malaria treatment, TB screening, HIV PEP, Wound care, Burns management, Fracture first aid, and more
-- **Symptom Guides**: Abdominal pain differentials, headache types, joint pain causes, cough evaluation, dizziness/vertigo, palpitations, urinary symptoms, skin rash differentials, eye redness, ear pain, back pain, weight loss, fatigue, edema/swelling, and more
+---
 
-### How It Will Be Done
+### 2. Voice AI Fix (Critical)
 
-Since this is a **data insertion** (not a schema change), I will use multiple SQL INSERT statements executed via the Supabase insert tool. The entries will be batched to stay within query limits.
+**useVoiceConsultation.ts** -- Root cause and fix:
+- **Bug**: TTS uses `window.puter.ai.txt2speech` which does not exist in this environment -- `isTTSSupported` is always `false`, so speaking never works
+- **Bug**: `onend` handler captures stale `voiceState` from closure, causing incorrect state resets
+- **Fix**: Replace Puter TTS entirely with browser-native `SpeechSynthesis` API (`window.speechSynthesis`)
+- **Fix**: Use a `useRef` for voice state tracking to avoid stale closures
+- **Fix**: Select voice by language map: `en-US`, `ar-SA`, `ur-PK`
+- **Fix**: Add auto-restart on silence timeout (recognition `onend` restarts if still in listening mode)
+- **Fix**: Remove `window.puter` global declaration
 
-Each entry follows the existing format:
-- **keywords**: Array of relevant medical search terms
-- **content**: Markdown-formatted clinical reference with dosages, warnings, and referral criteria
-- **priority**: 10 for red flags, 7 for drugs, 6 for guidelines, 5 for symptom guides
-- **source**: WHO, BNF, NICE, AHA, or custom as appropriate
-- **is_active**: true
+---
 
-### Token Cost Impact
-No change to per-query cost -- the system still only retrieves the top 5 matching entries per patient message. More entries just means better coverage and more accurate matches.
+### 3. Doctor Avatar as Voice Character (Replacing VoiceOrb)
 
-### Technical Notes
-- Entries will be inserted in batches of ~50 per SQL call to avoid timeouts
-- All three languages (en, ar, ur) will have equivalent content for each condition
-- Arabic and Urdu entries will have localized keywords in their respective scripts for better matching
-- No schema changes needed -- the existing `medical_knowledge` table structure supports this directly
+**Voice Overlay in PatientAIChat.tsx** -- Replace the abstract `VoiceOrb` with the `DoctorAvatar` component at `size="lg"`:
+- When voice overlay is active, show the large animated DoctorAvatar in the center
+- Avatar state maps directly: listening (eyes widen, red pulse), speaking (mouth animates, nod), thinking (amber pulse)
+- This gives users a "human-like doctor character" to visualize during voice interaction
+- Surround the avatar with a tappable area -- tap the doctor to toggle mic
+- Show status text below: "Listening... tap to stop", "Dr. Tabeebi is speaking...", etc.
+- Keep the transcript display below the status text
+- The `VoiceOrb` component is no longer used in the overlay but remains available if needed elsewhere
+
+---
+
+### 4. Mobile-First Chat UI Polish
+
+**AIChatMessage.tsx** enhancements:
+- Slightly larger message bubbles with 15px font on mobile for readability
+- Subtle timestamp display below each message bubble (time only, e.g. "2:34 PM")
+- Smoother entrance animation (slide-up fade-in instead of just fade-in)
+- Better max-width on mobile (85% instead of 82%)
+
+**PatientAIChat.tsx -- Input Area** redesign:
+- Pill-shaped input container with subtle border, shadow, and backdrop blur
+- Buttons arranged as: `[Text Input expanding] [Mic 48px] [Send 48px]`
+- 16px font size on textarea to prevent iOS auto-zoom
+- Floating style with rounded-2xl and slight margin from screen edges
+- Minimum 48px touch targets on all interactive elements
+
+**Suggested Topics** improvements:
+- Horizontal scrollable row with `overflow-x-auto` and `flex-nowrap`
+- Larger chips with 44px height for comfortable tapping
+- Hide scrollbar with CSS
+
+**Scroll behavior**:
+- Use `scrollIntoView({ behavior: 'smooth' })` on a bottom sentinel div instead of `scrollTop`
+
+---
+
+### 5. Files to Modify
+
+| File | Changes |
+|------|---------|
+| `src/pages/public/TabeebiChatPage.tsx` | Premium gradient header, user badge, safe-area padding, better layout |
+| `src/components/ai/PatientAIChat.tsx` | Pill input bar, DoctorAvatar in voice overlay (replacing VoiceOrb), horizontal topic chips, mobile polish |
+| `src/components/ai/AIChatMessage.tsx` | Timestamps, larger font, slide-up animation, better spacing |
+| `src/hooks/useVoiceConsultation.ts` | Replace Puter TTS with SpeechSynthesis API, fix stale closure with refs, auto-restart on silence |
+| `src/components/ai/DoctorAvatar.tsx` | Minor: ensure `lg` size works well as tappable voice character (add cursor-pointer when interactive) |
+
+**No new files, dependencies, or secrets needed.** All changes use existing components and browser-native APIs.
+
