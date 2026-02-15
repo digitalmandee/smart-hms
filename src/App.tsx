@@ -57,6 +57,9 @@ import BranchComparisonPage from "./pages/app/reports/BranchComparisonPage";
 import DayEndSummaryReport from "./pages/app/reports/DayEndSummaryReport";
 import OPDDepartmentReport from "./pages/app/reports/OPDDepartmentReport";
 
+// AI pages
+import AIChatPage from "./pages/app/ai/AIChatPage";
+
 // Settings pages
 import { BranchesListPage } from "./pages/app/settings/BranchesListPage";
 import { BranchFormPage } from "./pages/app/settings/BranchFormPage";
@@ -627,6 +630,9 @@ function App() {
               <Route path="opd/gynecology" element={<GynecologyDashboard />} />
               <Route path="opd/reports" element={<DoctorReportsPage />} />
               
+              {/* AI Assistant routes */}
+              <Route path="ai-chat" element={<AIChatPage />} />
+
               {/* Pharmacy routes */}
               <Route path="pharmacy" element={<PharmacyDashboard />} />
               <Route path="pharmacy/pos" element={<POSTerminalPage />} />
