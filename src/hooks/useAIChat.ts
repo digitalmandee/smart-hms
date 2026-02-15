@@ -10,7 +10,7 @@ export interface ChatMessage {
 
 interface UseAIChatOptions {
   mode?: "patient_intake" | "doctor_assist" | "general";
-  language?: "en" | "ar";
+  language?: "en" | "ar" | "ur";
   patientContext?: Record<string, unknown>;
   onConversationCreated?: (id: string) => void;
   onAssistantResponse?: (content: string) => void;
@@ -58,12 +58,10 @@ export function useAIChat(options: UseAIChatOptions = {}) {
 
       const userMessage: ChatMessage = { role: "user", content: content.trim() };
       const updatedMessages = [...messages, userMessage];
-      // Filter out hardcoded initial greeting — AI already knows its persona from system prompt
       const messagesForAPI = updatedMessages.filter((m, i) => !(i === 0 && m.role === "assistant" && initialGreeting && m.content === initialGreeting));
       setMessages(updatedMessages);
       setIsLoading(true);
 
-      // Create conversation on first message
       let convId = conversationId;
       if (!convId) {
         convId = await createConversation();
@@ -81,7 +79,6 @@ export function useAIChat(options: UseAIChatOptions = {}) {
           return;
         }
 
-        // Use streaming
         const response = await fetch(
           `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-assistant`,
           {
@@ -114,7 +111,6 @@ export function useAIChat(options: UseAIChatOptions = {}) {
         const decoder = new TextDecoder();
         let assistantContent = "";
 
-        // Add placeholder assistant message
         setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
 
         while (true) {
@@ -150,7 +146,6 @@ export function useAIChat(options: UseAIChatOptions = {}) {
           }
         }
 
-        // Save conversation and notify
         if (convId && assistantContent) {
           onAssistantResponse?.(assistantContent);
           const finalMessages = [
@@ -169,7 +164,6 @@ export function useAIChat(options: UseAIChatOptions = {}) {
         if ((error as Error).name === "AbortError") return;
         console.error("AI chat error:", error);
         toast.error("Failed to get AI response. Please try again.");
-        // Remove the empty assistant message on error
         setMessages((prev) => prev.filter((m) => m.content !== ""));
       } finally {
         setIsLoading(false);
@@ -185,8 +179,13 @@ export function useAIChat(options: UseAIChatOptions = {}) {
   }, []);
 
   const clearChat = useCallback(() => {
-    setMessages([]);
+    setMessages(initialGreeting ? [{ role: "assistant", content: initialGreeting }] : []);
     setConversationId(null);
+  }, [initialGreeting]);
+
+  const loadConversation = useCallback((id: string, msgs: ChatMessage[]) => {
+    setConversationId(id);
+    setMessages(msgs);
   }, []);
 
   return {
@@ -196,5 +195,6 @@ export function useAIChat(options: UseAIChatOptions = {}) {
     sendMessage,
     stopGeneration,
     clearChat,
+    loadConversation,
   };
 }

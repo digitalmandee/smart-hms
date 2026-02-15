@@ -7,7 +7,6 @@ interface AIChatMessageProps {
   role: "user" | "assistant" | "system";
   content: string;
   isStreaming?: boolean;
-  isFirst?: boolean;
 }
 
 function formatMarkdown(text: string): string {
@@ -35,36 +34,9 @@ function formatMarkdown(text: string): string {
   return html;
 }
 
-export function AIChatMessage({ role, content, isStreaming, isFirst }: AIChatMessageProps) {
+export function AIChatMessage({ role, content, isStreaming }: AIChatMessageProps) {
   const isUser = role === "user";
   const formattedContent = useMemo(() => (isUser ? null : formatMarkdown(content)), [content, isUser]);
-
-  // First assistant message = Consultation Start Card
-  if (!isUser && isFirst) {
-    return (
-      <div className="flex flex-col items-center py-6 px-4 animate-fade-in">
-        <DoctorAvatar state={isStreaming ? "thinking" : "idle"} size="md" />
-        <div className="mt-3 text-center">
-          <h3 className="font-bold text-base text-foreground">Dr. Tabeebi</h3>
-          <p className="text-xs text-muted-foreground">General Physician</p>
-        </div>
-        <div
-          className={cn(
-            "mt-4 w-full max-w-[90%] rounded-2xl px-5 py-4 text-sm leading-relaxed shadow-sm",
-            "bg-primary/5 border border-primary/15 text-foreground"
-          )}
-        >
-          <div
-            className="break-words prose prose-sm max-w-none dark:prose-invert"
-            dangerouslySetInnerHTML={{ __html: formattedContent || "" }}
-          />
-          {isStreaming && content && (
-            <span className="inline-block w-0.5 h-4 bg-primary/60 animate-pulse ml-0.5 align-text-bottom" />
-          )}
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className={cn(

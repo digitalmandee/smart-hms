@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { PatientAIChat } from "@/components/ai/PatientAIChat";
 import { supabase } from "@/integrations/supabase/client";
 import { DoctorAvatar } from "@/components/ai/DoctorAvatar";
+import { ChatHistoryDrawer } from "@/components/ai/ChatHistoryDrawer";
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -46,6 +47,11 @@ export default function TabeebiChatPage() {
             {userName}
           </span>
         )}
+        <ChatHistoryDrawer onSelect={(id, msgs) => {
+          // Force re-mount of PatientAIChat is simplest way to load history
+          // For now, history shows past consultations as read-only reference
+          window.location.hash = "";
+        }} />
         <Button variant="ghost" size="sm" onClick={handleLogout} className="h-7 px-2">
           <LogOut className="h-3.5 w-3.5" />
         </Button>
