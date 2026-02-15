@@ -1,11 +1,13 @@
-import { Bot, User } from "lucide-react";
+import { User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMemo } from "react";
+import { DoctorAvatar } from "./DoctorAvatar";
 
 interface AIChatMessageProps {
   role: "user" | "assistant" | "system";
   content: string;
   isStreaming?: boolean;
+  isFirst?: boolean;
 }
 
 function formatMarkdown(text: string): string {
@@ -32,46 +34,62 @@ function formatMarkdown(text: string): string {
   return html;
 }
 
-export function AIChatMessage({ role, content, isStreaming }: AIChatMessageProps) {
+export function AIChatMessage({ role, content, isStreaming, isFirst }: AIChatMessageProps) {
   const isUser = role === "user";
   const formattedContent = useMemo(() => (isUser ? null : formatMarkdown(content)), [content, isUser]);
 
   return (
-    <div className={cn("flex gap-3 py-4 px-4", isUser ? "flex-row-reverse" : "flex-row")}>
-      <div
-        className={cn(
-          "flex h-8 w-8 shrink-0 items-center justify-center rounded-full",
-          isUser ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-        )}
-      >
-        {isUser ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
-      </div>
-      <div
-        className={cn(
-          "flex-1 space-y-2 overflow-hidden rounded-2xl px-4 py-3 text-sm leading-relaxed",
-          isUser
-            ? "bg-primary text-primary-foreground ml-12"
-            : "bg-muted text-foreground mr-12"
-        )}
-      >
-        {isUser ? (
-          <div className="whitespace-pre-wrap break-words">{content}</div>
-        ) : (
-          <div
-            className="break-words prose prose-sm max-w-none dark:prose-invert"
-            dangerouslySetInnerHTML={{ __html: formattedContent || "" }}
+    <div className={cn(
+      "flex gap-3 py-3 px-3 animate-fade-in",
+      isUser ? "flex-row-reverse" : "flex-row"
+    )}>
+      {/* Avatar */}
+      {isUser ? (
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm">
+          <User className="h-4 w-4" />
+        </div>
+      ) : (
+        <div className="shrink-0 mt-1">
+          <DoctorAvatar
+            state={isStreaming ? (content ? "speaking" : "thinking") : "idle"}
+            size="sm"
           />
+        </div>
+      )}
+
+      {/* Message bubble */}
+      <div className={cn("flex flex-col gap-1 max-w-[80%]", isUser ? "items-end" : "items-start")}>
+        {/* Doctor label on first assistant message */}
+        {!isUser && isFirst && (
+          <span className="text-[11px] font-medium text-primary ml-1">Dr. Tabeebi</span>
         )}
-        {isStreaming && !content && (
-          <span className="inline-flex gap-1">
-            <span className="animate-pulse">●</span>
-            <span className="animate-pulse delay-100">●</span>
-            <span className="animate-pulse delay-200">●</span>
-          </span>
-        )}
-        {isStreaming && content && (
-          <span className="inline-block w-1 h-4 bg-foreground/50 animate-pulse ml-0.5 align-text-bottom" />
-        )}
+        <div
+          className={cn(
+            "rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm",
+            isUser
+              ? "bg-primary text-primary-foreground rounded-tr-md"
+              : "bg-muted text-foreground rounded-tl-md border border-border/50"
+          )}
+        >
+          {isUser ? (
+            <div className="whitespace-pre-wrap break-words">{content}</div>
+          ) : (
+            <div
+              className="break-words prose prose-sm max-w-none dark:prose-invert"
+              dangerouslySetInnerHTML={{ __html: formattedContent || "" }}
+            />
+          )}
+          {isStreaming && !content && (
+            <div className="flex items-center gap-1.5 py-1">
+              <span className="h-2 w-2 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: "0ms" }} />
+              <span className="h-2 w-2 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: "150ms" }} />
+              <span className="h-2 w-2 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: "300ms" }} />
+            </div>
+          )}
+          {isStreaming && content && (
+            <span className="inline-block w-0.5 h-4 bg-primary/60 animate-pulse ml-0.5 align-text-bottom" />
+          )}
+        </div>
       </div>
     </div>
   );
