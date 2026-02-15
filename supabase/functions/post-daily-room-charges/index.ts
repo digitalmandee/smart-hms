@@ -28,6 +28,41 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Authentication: require cron secret or JWT
+    const authHeader = req.headers.get("Authorization");
+    const cronSecret = Deno.env.get("CRON_SECRET");
+
+    if (cronSecret) {
+      // Check for cron secret in header
+      const providedSecret = req.headers.get("x-cron-secret");
+      if (providedSecret !== cronSecret) {
+        // Fall back to JWT check
+        if (!authHeader?.startsWith("Bearer ")) {
+          return new Response(
+            JSON.stringify({ error: "Unauthorized" }),
+            { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+        const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+        const authClient = createClient(Deno.env.get("SUPABASE_URL")!, supabaseAnonKey, {
+          global: { headers: { Authorization: authHeader } },
+        });
+        const token = authHeader.replace("Bearer ", "");
+        const { error: claimsError } = await authClient.auth.getClaims(token);
+        if (claimsError) {
+          return new Response(
+            JSON.stringify({ error: "Unauthorized" }),
+            { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+      }
+    } else if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);

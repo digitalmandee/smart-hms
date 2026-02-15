@@ -235,6 +235,36 @@ serve(async (req) => {
     const analyzerId = req.headers.get('x-analyzer-id');
     const apiKey = req.headers.get('x-api-key');
 
+    // Authentication: require API key for lab result submissions
+    const configuredApiKey = Deno.env.get('LAB_RECEIVER_API_KEY');
+    if (configuredApiKey) {
+      if (!apiKey || apiKey !== configuredApiKey) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'Unauthorized: invalid or missing API key' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    } else {
+      // If no API key configured, require JWT auth
+      const authHeader = req.headers.get('Authorization');
+      if (!authHeader?.startsWith('Bearer ')) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'Unauthorized' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      const authClient = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!, {
+        global: { headers: { Authorization: authHeader } },
+      });
+      const { error: claimsError } = await authClient.auth.getClaims(authHeader.replace('Bearer ', ''));
+      if (claimsError) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'Unauthorized' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
     // Parse request body
     const contentType = req.headers.get('content-type') || '';
     let rawMessage: string;
