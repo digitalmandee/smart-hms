@@ -1,109 +1,108 @@
 
 
-# AI Integration into Existing HealthOS 24 Modules
+# Build Remaining AI Clinical Intelligence Features
 
 ## Overview
 
-This plan integrates AI features directly into the existing module structure -- no new "AI module" is created. Instead, AI capabilities are embedded as enhancements within the OPD, Appointments, and Settings modules where they naturally belong.
+Wire the DoctorAIPanel quick action buttons to send structured prompts, and create four new components: AISuggestionCard, SOAPNoteGenerator, PrescriptionSuggester, and PatientIntakeSummary. All integrate into existing consultation and intake workflows.
 
-## Bug Fix: Edge Function Auth
+---
 
-The current `ai-assistant` edge function uses `supabase.auth.getClaims(token)` which does not exist in the Supabase JS SDK. This must be fixed to use `supabase.auth.getUser(token)` instead, matching the pattern used in other working edge functions like `pacs-gateway`.
+## 1. Wire DoctorAIPanel Quick Action Buttons
 
-## Integration Points (No New Modules)
+**File: `src/components/ai/DoctorAIPanel.tsx`**
 
-```text
-Existing Module          AI Enhancement Added
--------------------------------------------------------------
-OPD / Consultations  --> Doctor AI Assistant panel in sidebar
-Appointments         --> "AI Pre-Visit" button for patients
-Reception            --> AI intake quick action
-Settings             --> DeepSeek API key config display
-Menu (sidebar)       --> AI Chat as submenu under OPD
-```
+Currently the QuickPromptButton components are non-functional -- they render buttons but clicking does nothing. The fix:
 
-## What Gets Built
+- Add a `ref` to the `PatientAIChat` component or lift the `useAIChat` hook into DoctorAIPanel directly
+- Instead of embedding PatientAIChat, use `useAIChat` directly in DoctorAIPanel and build a minimal chat display
+- Each quick action button sends a pre-defined prompt:
+  - **Suggest Diagnosis**: "Based on the patient context provided (symptoms, vitals, chief complaint), suggest a differential diagnosis with confidence levels and ICD-10 codes."
+  - **SOAP Note**: "Generate a SOAP note based on the patient context provided."
+  - **Suggest Labs**: "Based on the symptoms and vitals, recommend appropriate laboratory tests with reasoning."
+- Add callback props: `onSuggestDiagnosis(text)` and `onSuggestNotes(text)` are already defined but unused -- these will be wired to populate the consultation form fields
 
-### 1. Fix Edge Function Auth (Critical)
+## 2. AISuggestionCard Component
 
-File: `supabase/functions/ai-assistant/index.ts`
-- Replace `supabase.auth.getClaims(token)` with `supabase.auth.getUser(token)`
-- Extract `userId` from `user.id` instead of `claimsData.claims.sub`
+**New file: `src/components/ai/AISuggestionCard.tsx`**
 
-### 2. Add Markdown Rendering to AI Chat Messages
+A card that displays an AI suggestion with Accept/Reject actions. Used by DoctorAIPanel to present actionable suggestions.
 
-File: `src/components/ai/AIChatMessage.tsx`
-- Install `react-markdown` is not available, so use a simple markdown-to-HTML approach with `dangerouslySetInnerHTML` or basic formatting
-- Actually, since the best practice says to use markdown rendering, use the prose class with basic whitespace/bold/list formatting via regex
+- Props: `type` (diagnosis | prescription | lab_order | soap_note), `content` (string), `confidence` (optional string), `onAccept`, `onReject`, `isAccepted`
+- Visual: Card with colored left border (blue for diagnosis, green for prescription, orange for labs, purple for SOAP)
+- Accept button auto-fills the relevant consultation field via callbacks
+- Reject button dismisses the suggestion
+- Logs acceptance to `ai_suggestions_log` table via a mutation
 
-### 3. Doctor AI Panel in Consultation Sidebar
+## 3. SOAPNoteGenerator Component
 
-File: `src/components/ai/DoctorAIPanel.tsx` (new)
-- Collapsible panel that sits in the consultation sidebar
-- Pre-loads patient context (vitals, symptoms, chief complaint, history)
-- Mode: `doctor_assist` -- uses DeepSeek-R1 for clinical reasoning
-- Quick action buttons: "Suggest Diagnosis", "Generate SOAP Note", "Suggest Labs"
-- Results appear as selectable suggestions the doctor can accept into the form
+**New file: `src/components/ai/SOAPNoteGenerator.tsx`**
 
-Integration in: `src/pages/app/opd/ConsultationPage.tsx`
-- Add `DoctorAIPanel` to the sidebar (col-span-1 area), below PatientQuickInfo
-- Pass current consultation state as context (vitals, symptoms, diagnosis, etc.)
-- When doctor accepts a suggestion, it auto-fills the relevant form field
+One-click SOAP note generation from current consultation data.
 
-### 4. Patient AI Intake Button on Appointments
+- Props: `patientContext` (vitals, symptoms, diagnosis, chief complaint), `onGenerate(soapNote: string)`, `onAccept(soapNote: string)`
+- Calls `useAIChat` in non-streaming mode (or streaming) with a specific SOAP prompt
+- Displays generated SOAP note in a formatted preview
+- "Apply to Notes" button fills the clinical notes field in the consultation
+- Sections: Subjective, Objective, Assessment, Plan -- each editable before acceptance
 
-File: `src/components/ai/PatientIntakeButton.tsx` (new)
-- Small button component: "Start AI Pre-Visit"
-- Opens a dialog with `PatientAIChat` in compact mode
-- Links conversation to appointment via `onConversationCreated`
+## 4. PrescriptionSuggester Component
 
-Integration in existing appointment views:
-- Add the button to appointment detail/check-in flows
-- Doctor can see AI intake summary in consultation sidebar
+**New file: `src/components/ai/PrescriptionSuggester.tsx`**
 
-### 5. AI Chat Menu Item (Under OPD, Not a New Top-Level Module)
+AI-powered prescription suggestions based on diagnosis.
 
-Database migration:
-- Insert a menu item under OPD: `code: 'opd.ai-chat'`, `name: 'AI Assistant'`, `path: '/app/ai-chat'`, `icon: 'Bot'`
-- No new `available_modules` entry -- this lives under the existing OPD module
-- Permission: `opd.doctor` (only clinical staff)
+- Props: `diagnosis`, `patientContext` (allergies, current medications, vitals), `onAcceptPrescription(items: PrescriptionItemInput[])`
+- Sends prompt asking DeepSeek to suggest medications in structured JSON format
+- Displays each suggested medication as a card with: drug name, dosage, frequency, duration, route
+- Drug interaction warnings highlighted in red
+- Allergy cross-reference warnings
+- Doctor can accept individual items or all at once
+- Accepted items get added to the PrescriptionBuilder in the consultation form
 
-### 6. Reception Quick Action for AI Intake
+## 5. PatientIntakeSummary Component
 
-File: `src/components/reception/ReceptionQuickActions.tsx`
-- Add "AI Patient Intake" button to the existing quick actions grid
-- Path: `/app/ai-chat` -- reuses the existing page
-- Icon: `Bot`, variant: `outline`
+**New file: `src/components/ai/PatientIntakeSummary.tsx`**
 
-### 7. Make PatientAIChat Support Both Modes
+Displays structured AI intake summary for the doctor to review.
 
-File: `src/components/ai/PatientAIChat.tsx`
-- Add a `mode` prop to switch between `patient_intake` and `doctor_assist`
-- The existing component already supports this via the `useAIChat` hook
+- Props: `conversationId` (fetches conversation from ai_conversations table), `onApplySymptoms(symptoms: string[])`, `onApplyChiefComplaint(text: string)`
+- Fetches the AI conversation and parses the structured summary from the last assistant message
+- Displays in a formatted card: Chief Complaint, Duration, Severity, Associated Symptoms, History, Medications, Allergies
+- "Apply to Consultation" button pre-fills consultation form fields
+- Shown in the consultation sidebar when an AI pre-visit conversation exists for the appointment
 
-### 8. useAIChat Hook - Fix Streaming for DeepSeek
+## 6. Update ConsultationPage Integration
 
-File: `src/hooks/useAIChat.ts`
-- The hook already handles SSE streaming correctly
-- Add `mode` passthrough support (already exists)
-- No major changes needed
+**File: `src/pages/app/opd/ConsultationPage.tsx`**
 
-## Files Changed Summary
+- Pass `onSuggestDiagnosis` and `onSuggestNotes` callbacks to DoctorAIPanel that set `diagnosis` and `clinicalNotes` state
+- Add PatientIntakeSummary to sidebar (if AI pre-visit conversation exists for this appointment)
 
-| File | Change Type | Purpose |
-|------|------------|---------|
-| `supabase/functions/ai-assistant/index.ts` | Fix | Auth bug (getClaims to getUser) |
-| `src/components/ai/AIChatMessage.tsx` | Enhance | Basic markdown formatting |
-| `src/components/ai/DoctorAIPanel.tsx` | New | Doctor AI panel for consultations |
-| `src/components/ai/PatientIntakeButton.tsx` | New | Reusable AI intake trigger |
-| `src/pages/app/opd/ConsultationPage.tsx` | Modify | Add DoctorAIPanel to sidebar |
-| `src/components/reception/ReceptionQuickActions.tsx` | Modify | Add AI intake quick action |
-| Migration SQL | New | Add OPD submenu item for AI Chat |
+## 7. useAISuggestion Hook
 
-## What is NOT Created
+**New file: `src/hooks/useAISuggestion.ts`**
 
-- No new `available_modules` entry for AI
-- No new top-level sidebar menu
-- No duplicate "AI module" in the modules settings page
-- Everything integrates into existing OPD, Appointments, and Reception modules
+Small hook to log AI suggestion acceptance/rejection to the `ai_suggestions_log` table.
+
+- `logSuggestion({ conversationId, type, data, accepted, acceptedBy })`
+- Uses `supabase.from('ai_suggestions_log').insert(...)` mutation
+
+---
+
+## Files Summary
+
+| File | Action | Purpose |
+|------|--------|---------|
+| `src/components/ai/DoctorAIPanel.tsx` | Rewrite | Wire quick actions, use useAIChat directly, show suggestions |
+| `src/components/ai/AISuggestionCard.tsx` | Create | Accept/reject suggestion card |
+| `src/components/ai/SOAPNoteGenerator.tsx` | Create | One-click SOAP note generation |
+| `src/components/ai/PrescriptionSuggester.tsx` | Create | AI prescription suggestions |
+| `src/components/ai/PatientIntakeSummary.tsx` | Create | Structured intake summary display |
+| `src/hooks/useAISuggestion.ts` | Create | Log suggestion acceptance to DB |
+| `src/pages/app/opd/ConsultationPage.tsx` | Modify | Wire callbacks, add intake summary |
+
+## No Database Changes Required
+
+The `ai_conversations` and `ai_suggestions_log` tables already exist with the correct schema.
 
