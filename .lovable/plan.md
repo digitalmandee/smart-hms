@@ -1,100 +1,90 @@
 
 
-# Voice Consultation: Puter.js TTS + Web Speech API STT (Zero Cost)
+# Updated Plan: Tabeebi Public Access + Patient Signup + AI Branding on Landing Page
 
 ## Overview
 
-Add voice consultation mode to Tabeebi using **Puter.js** for text-to-speech (free, unlimited, no API key) and the **browser-native Web Speech API** for speech-to-text (also free). Total cost: **$0**.
+This updated plan makes three key changes to the original Tabeebi plan:
 
-No edge function needed. No API keys needed. Everything runs client-side.
-
----
-
-## How It Works
-
-1. Patient taps the **microphone button** next to the send button
-2. Browser listens via Web Speech API and transcribes speech to text
-3. Transcribed text auto-sends as a chat message
-4. When the AI responds, Puter.js speaks the response aloud
-5. Patient can stop playback or continue the voice conversation
+1. **Patient login/signup flow** -- Tabeebi requires login, but with a proper patient-friendly signup experience
+2. **AI Features branding on the landing page** -- Showcase Tabeebi and all AI capabilities prominently on the main landing page
+3. **Modern voice UI, animated avatar, mobile-first design** -- Same as original plan
 
 ---
 
-## Implementation
+## What Changes
 
-### 1. Add Puter.js Script to `index.html`
+### 1. Tabeebi Route with Patient Authentication (NOT fully public)
 
-Add `<script src="https://js.puter.com/v2/">` to the HTML head. This loads the Puter.js SDK globally, giving access to `puter.ai.txt2speech()`.
+Instead of making Tabeebi completely open without login, create a dedicated `/tabeebi` route that:
 
-### 2. New Hook: `src/hooks/useVoiceConsultation.ts`
+- Shows a **branded Tabeebi landing/signup page** for unauthenticated users
+- Includes a simple **patient signup form** (Name, Phone/Email, Password) -- lighter than the full HMS signup
+- After login/signup, shows the full Tabeebi chat experience
+- Hospital patients can also access it with their existing HMS credentials
 
-Manages the full voice mode lifecycle:
+**New files:**
+- `src/pages/public/TabeebiLandingPage.tsx` -- Branded landing with login/signup form built-in (no redirect to `/auth`)
+  - Hero section with animated DoctorAvatar
+  - "Talk to Your AI Doctor" headline
+  - Quick signup form (Name, Email/Phone, Password) inline
+  - Login toggle for existing users
+  - Feature highlights: Voice consultation, Multilingual, AI-powered
+  - HealthOS 24 branding in footer
 
-- **State machine**: `idle` | `listening` | `processing` | `speaking`
-- **STT (Speech-to-Text)**: Uses `window.SpeechRecognition` (Web Speech API)
-  - Handles microphone permission with user-friendly error messages
-  - Continuous recognition with interim results
-  - Language switching: en-US, ar-SA, ur-PK
-  - Graceful fallback if browser doesn't support it
-- **TTS (Text-to-Speech)**: Uses `puter.ai.txt2speech(text)`
-  - Plays returned audio blob via HTML Audio element
-  - Tracks playback state (speaking start/end)
-- **Exposes**: `startListening()`, `stopListening()`, `speakResponse(text)`, `stopSpeaking()`, `voiceState`, `transcript`, `isSupported`
+**Modified files:**
+- `src/App.tsx` -- Add `/tabeebi` public route pointing to `TabeebiLandingPage`
+- When authenticated, `/tabeebi` redirects to `/tabeebi/chat` which renders the full `PatientAIChat` with the modern voice UI
 
-### 3. Update `src/hooks/useAIChat.ts`
+### 2. AI Features Section on Landing Page
 
-Add an `onAssistantResponse` callback option so the voice hook can automatically trigger TTS when the AI finishes streaming a response.
+Add a dedicated **AI-powered features section** to the main landing page (`/`) that showcases all AI improvements:
 
-### 4. Update `src/components/ai/PatientAIChat.tsx`
+**New file:**
+- `src/components/landing/AIFeaturesSection.tsx` -- A visually striking section featuring:
+  - **Tabeebi - AI Virtual Doctor**: Voice consultation, symptom analysis, multilingual (EN/AR/UR)
+  - **AI Clinical Summaries**: Auto-generated patient encounter summaries
+  - **Smart Diagnostics**: AI-assisted symptom triage and follow-up suggestions
+  - Animated demo preview or illustration of Tabeebi in action
+  - "Try Tabeebi Free" CTA button linking to `/tabeebi`
+  - Badge: "Powered by DeepSeek AI"
 
-- Add a **microphone toggle button** next to the send button
-- Visual states:
-  - Pulsing red dot when listening
-  - Speaker icon when AI is speaking
-  - Stop button to cancel playback
-- Transcribed speech auto-populates input and sends
-- AI responses automatically spoken when voice mode is active
-- Tooltip shown if Web Speech API is unavailable in the browser
+**Modified files:**
+- `src/pages/Index.tsx` -- Add `AIFeaturesSection` between existing sections (after FeaturesTabs, before RoleSelector)
+- `src/components/landing/HeroSection.tsx` -- Update the badge from "Now with AI-powered diagnostics" to something more prominent, and keep the CTA
+
+### 3. DoctorAvatar, VoiceOrb, and Modern Chat UI (from original plan)
+
+Same as the previously approved plan:
+
+- `src/components/ai/DoctorAvatar.tsx` -- Animated 2D doctor with idle/listening/thinking/speaking states
+- `src/components/ai/VoiceOrb.tsx` -- Pulsing voice visualization orb
+- Updated `src/components/ai/PatientAIChat.tsx` -- Integrate avatar + voice orb + modern mobile-first layout
 
 ---
 
-## Technical Details
-
-### Files Changed
+## Files Summary
 
 | Action | File | Purpose |
 |--------|------|---------|
-| Modify | `index.html` | Add Puter.js script tag |
-| Create | `src/hooks/useVoiceConsultation.ts` | Voice state machine (STT + TTS) |
-| Modify | `src/hooks/useAIChat.ts` | Add onAssistantResponse callback |
-| Modify | `src/components/ai/PatientAIChat.tsx` | Mic button, voice indicators, auto-speak |
+| Create | `src/pages/public/TabeebiLandingPage.tsx` | Branded patient login/signup + Tabeebi intro |
+| Create | `src/components/landing/AIFeaturesSection.tsx` | AI features showcase for main landing page |
+| Create | `src/components/ai/DoctorAvatar.tsx` | Animated 2D doctor character |
+| Create | `src/components/ai/VoiceOrb.tsx` | Voice visualization orb |
+| Modify | `src/App.tsx` | Add `/tabeebi` and `/tabeebi/chat` routes |
+| Modify | `src/pages/Index.tsx` | Add AIFeaturesSection to landing page |
+| Modify | `src/components/landing/HeroSection.tsx` | Enhanced AI badge/CTA |
+| Modify | `src/components/ai/PatientAIChat.tsx` | Avatar, voice orb, mobile-first layout |
 
-### No secrets or edge functions required
+---
 
-### Puter.js TTS call pattern
+## Implementation Order
 
-```text
-const response = await puter.ai.txt2speech(text);
-// response is an audio Blob
-const url = URL.createObjectURL(response);
-const audio = new Audio(url);
-audio.play();
-```
-
-### Web Speech API STT pattern
-
-```text
-const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-recognition.lang = "en-US"; // or ar-SA, ur-PK
-recognition.continuous = true;
-recognition.onresult = (event) => { /* get transcript */ };
-recognition.start();
-```
-
-### Implementation Order
-
-1. Add Puter.js script to index.html
-2. Create useVoiceConsultation hook
-3. Update useAIChat with response callback
-4. Integrate voice UI into PatientAIChat
+1. Create DoctorAvatar and VoiceOrb components
+2. Create AIFeaturesSection for the landing page
+3. Update Index.tsx and HeroSection.tsx with AI branding
+4. Create TabeebiLandingPage with inline patient signup/login
+5. Add routes in App.tsx (`/tabeebi`, `/tabeebi/chat`)
+6. Update PatientAIChat with modern voice UI + avatar
+7. Test end-to-end on mobile viewport
 
