@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { CountryConfigProvider } from "@/contexts/CountryConfigContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AuthLayout } from "@/layouts/AuthLayout";
 import { DashboardLayout } from "@/layouts/DashboardLayout";
@@ -71,6 +72,7 @@ import { UsersListPage } from "./pages/app/settings/UsersListPage";
 import { UserDetailPage } from "./pages/app/settings/UserDetailPage";
 import StaffCreatePage from "./pages/app/settings/StaffCreatePage";
 import { OrganizationSettingsPage } from "./pages/app/settings/OrganizationSettingsPage";
+import CountryRegionSettingsPage from "./pages/app/settings/CountryRegionSettingsPage";
 import { RolesPermissionsPage } from "./pages/app/settings/RolesPermissionsPage";
 import ServicesListPage from "./pages/app/services/ServicesListPage";
 import ServiceFormPage from "./pages/app/services/ServiceFormPage";
@@ -539,7 +541,9 @@ function App() {
               path="/app"
               element={
                 <ProtectedRoute>
-                  <DashboardLayout />
+                  <CountryConfigProvider>
+                    <DashboardLayout />
+                  </CountryConfigProvider>
                 </ProtectedRoute>
               }
             >
@@ -961,6 +965,7 @@ function App() {
               <Route path="settings/staff/new" element={<StaffCreatePage />} />
               <Route path="settings/users/:id" element={<UserDetailPage />} />
               <Route path="settings/organization" element={<OrganizationSettingsPage />} />
+              <Route path="settings/country" element={<CountryRegionSettingsPage />} />
               <Route path="settings/roles" element={<RolesPermissionsPage />} />
               
               {/* Services routes - top level */}

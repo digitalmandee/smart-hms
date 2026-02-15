@@ -13401,14 +13401,26 @@ export type Database = {
           billing_workflow: string | null
           city: string | null
           country: string | null
+          country_code: string | null
           created_at: string
+          currency_code: string | null
+          currency_locale: string | null
+          currency_symbol: string | null
+          date_format: string | null
+          default_language: string | null
           default_tax_rate: number | null
+          e_invoicing_enabled: boolean | null
+          e_invoicing_provider: string | null
           email: string | null
           facility_type: string | null
+          fiscal_year_start: string | null
           id: string
           logo_url: string | null
           name: string
+          national_id_format: string | null
+          national_id_label: string | null
           phone: string | null
+          phone_country_code: string | null
           receipt_footer: string | null
           receipt_header: string | null
           slug: string
@@ -13418,7 +13430,10 @@ export type Database = {
           subscription_status:
             | Database["public"]["Enums"]["subscription_status"]
             | null
+          supported_languages: string[] | null
+          tax_label: string | null
           tax_number: string | null
+          tax_registration_label: string | null
           trial_ends_at: string | null
           updated_at: string
           website: string | null
@@ -13431,14 +13446,26 @@ export type Database = {
           billing_workflow?: string | null
           city?: string | null
           country?: string | null
+          country_code?: string | null
           created_at?: string
+          currency_code?: string | null
+          currency_locale?: string | null
+          currency_symbol?: string | null
+          date_format?: string | null
+          default_language?: string | null
           default_tax_rate?: number | null
+          e_invoicing_enabled?: boolean | null
+          e_invoicing_provider?: string | null
           email?: string | null
           facility_type?: string | null
+          fiscal_year_start?: string | null
           id?: string
           logo_url?: string | null
           name: string
+          national_id_format?: string | null
+          national_id_label?: string | null
           phone?: string | null
+          phone_country_code?: string | null
           receipt_footer?: string | null
           receipt_header?: string | null
           slug: string
@@ -13448,7 +13475,10 @@ export type Database = {
           subscription_status?:
             | Database["public"]["Enums"]["subscription_status"]
             | null
+          supported_languages?: string[] | null
+          tax_label?: string | null
           tax_number?: string | null
+          tax_registration_label?: string | null
           trial_ends_at?: string | null
           updated_at?: string
           website?: string | null
@@ -13461,14 +13491,26 @@ export type Database = {
           billing_workflow?: string | null
           city?: string | null
           country?: string | null
+          country_code?: string | null
           created_at?: string
+          currency_code?: string | null
+          currency_locale?: string | null
+          currency_symbol?: string | null
+          date_format?: string | null
+          default_language?: string | null
           default_tax_rate?: number | null
+          e_invoicing_enabled?: boolean | null
+          e_invoicing_provider?: string | null
           email?: string | null
           facility_type?: string | null
+          fiscal_year_start?: string | null
           id?: string
           logo_url?: string | null
           name?: string
+          national_id_format?: string | null
+          national_id_label?: string | null
           phone?: string | null
+          phone_country_code?: string | null
           receipt_footer?: string | null
           receipt_header?: string | null
           slug?: string
@@ -13478,7 +13520,10 @@ export type Database = {
           subscription_status?:
             | Database["public"]["Enums"]["subscription_status"]
             | null
+          supported_languages?: string[] | null
+          tax_label?: string | null
           tax_number?: string | null
+          tax_registration_label?: string | null
           trial_ends_at?: string | null
           updated_at?: string
           website?: string | null
