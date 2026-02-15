@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Clock, MessageSquare } from "lucide-react";
+import { Clock, MessageSquare, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ChatMessage } from "@/hooks/useAIChat";
 import { format } from "date-fns";
@@ -17,9 +17,10 @@ interface ConversationSummary {
 
 interface ChatHistoryDrawerProps {
   onSelect: (id: string, messages: ChatMessage[]) => void;
+  onNewChat?: () => void;
 }
 
-export function ChatHistoryDrawer({ onSelect }: ChatHistoryDrawerProps) {
+export function ChatHistoryDrawer({ onSelect, onNewChat }: ChatHistoryDrawerProps) {
   const [open, setOpen] = useState(false);
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [loading, setLoading] = useState(false);
@@ -72,6 +73,18 @@ export function ChatHistoryDrawer({ onSelect }: ChatHistoryDrawerProps) {
         <DrawerHeader className="pb-2">
           <DrawerTitle className="text-sm">Past Consultations</DrawerTitle>
         </DrawerHeader>
+        <div className="px-4 pb-2">
+          <button
+            className="w-full flex items-center gap-2 rounded-xl border border-dashed border-primary/40 p-3 text-sm font-medium text-primary hover:bg-primary/5 transition-colors"
+            onClick={() => {
+              onNewChat?.();
+              setOpen(false);
+            }}
+          >
+            <Plus className="h-4 w-4" />
+            New Consultation
+          </button>
+        </div>
         <ScrollArea className="px-4 pb-4 flex-1">
           {loading ? (
             <p className="text-sm text-muted-foreground text-center py-6">Loading...</p>
