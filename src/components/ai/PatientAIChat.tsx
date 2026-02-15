@@ -8,7 +8,7 @@ import { DoctorAvatar } from "./DoctorAvatar";
 import { VoiceOrb } from "./VoiceOrb";
 import { useAIChat, ChatMessage } from "@/hooks/useAIChat";
 import { useVoiceConsultation } from "@/hooks/useVoiceConsultation";
-import { Send, Square, Trash2, Globe, Mic, MicOff, VolumeX, X } from "lucide-react";
+import { Send, Square, Plus, Globe, Mic, MicOff, VolumeX, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface PatientAIChatProps {
@@ -17,6 +17,8 @@ interface PatientAIChatProps {
   onConversationCreated?: (id: string) => void;
   className?: string;
   compact?: boolean;
+  initialConversationId?: string;
+  initialMessages?: ChatMessage[];
 }
 
 const GREETINGS: Record<string, string> = {
@@ -55,6 +57,8 @@ export function PatientAIChat({
   onConversationCreated,
   className,
   compact = false,
+  initialConversationId,
+  initialMessages,
 }: PatientAIChatProps) {
   const [input, setInput] = useState("");
   const [language, setLanguage] = useState<"en" | "ar" | "ur">("en");
@@ -83,6 +87,13 @@ export function PatientAIChat({
     onAssistantResponse: handleAssistantResponse,
     initialGreeting: GREETINGS[language],
   });
+
+  // Load conversation from history on mount
+  useEffect(() => {
+    if (initialConversationId && initialMessages) {
+      loadConversation(initialConversationId, initialMessages);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const isRTL = language === "ar" || language === "ur";
 
@@ -210,8 +221,8 @@ export function PatientAIChat({
                 </Button>
               )}
               {messages.length > 1 && (
-                <Button variant="ghost" size="sm" onClick={handleClear} className="h-8 px-2">
-                  <Trash2 className="h-4 w-4" />
+                <Button variant="ghost" size="sm" onClick={handleClear} className="h-8 px-2" title="New chat">
+                  <Plus className="h-4 w-4" />
                 </Button>
               )}
             </div>
