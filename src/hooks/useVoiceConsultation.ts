@@ -171,7 +171,8 @@ export function useVoiceConsultation(language: string = "en") {
       };
 
       utterance.onend = () => {
-        setVoiceState("idle");
+        // Small delay before setting idle so overlay can show "tap to speak again"
+        setTimeout(() => setVoiceState("idle"), 300);
       };
 
       utterance.onerror = () => {
