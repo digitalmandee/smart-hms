@@ -309,6 +309,8 @@ export default function ConsultationPage() {
               vitals,
               diagnosis,
             }}
+            onSuggestDiagnosis={setDiagnosis}
+            onSuggestNotes={setClinicalNotes}
           />
           
           {/* Active Surgery Requests */}
