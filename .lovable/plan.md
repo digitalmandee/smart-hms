@@ -1,100 +1,125 @@
 
 
-# Fix Language-Reactive Greeting + Merge Tabeebi into Main HMS Landing Page
+# Complete Homepage Rebrand -- Tabeebi AI Front and Center
 
-## Two Issues to Fix
+## What's Wrong Now
 
-### Issue 1: Greeting Doesn't Change with Language
+Looking at the current homepage, Tabeebi appears as a small section buried in the middle of the page -- just 3 cards (For Patients / For Doctors / For Admins) and a workflow strip. The hero section barely mentions it with a tiny badge. There is no visual showcase of the actual chat interface, no training details, no AI capabilities highlighted. The page reads like a generic HMS with "oh by the way, we have AI too."
 
-Currently, when a user switches language (EN/AR/UR), the greeting message stays in the original language. This happens because `useAIChat` sets the initial greeting once via `useState` and never updates it when the language prop changes.
-
-**Fix in `PatientAIChat.tsx`:**
-- Add a `useEffect` that watches the `language` state
-- When language changes and the chat only has the greeting message (no real conversation yet), reset the messages array with the new language's greeting via `clearChat`
-- Update `useAIChat` hook: make `clearChat` accept an optional new greeting parameter, or handle it by re-calling with the new greeting
-
-**Fix in `useAIChat.ts`:**
-- Track `initialGreeting` changes -- when it changes and messages only contain the greeting, swap it out
+The user wants the homepage to lead with Tabeebi as the star feature -- showing how it's custom-trained, how it handles consultations/prescriptions, and how it powers the entire HMS. The other modules (OPD, Pharmacy, Billing, etc.) should feel AI-enhanced, not standalone.
 
 ---
 
-### Issue 2: Merge Tabeebi into Main HMS Landing Page
+## Changes
 
-The main landing page (`/`) needs to prominently showcase how Tabeebi AI powers the entire HMS -- not just as a standalone chatbot, but as an integrated AI layer helping both doctors and patients.
+### 1. Hero Section Overhaul (HeroSection.tsx)
 
-**Revamp `AIFeaturesSection.tsx` to show two perspectives:**
+**Current:** "The Operating System for Modern Healthcare" with a screenshot carousel of Doctor Dashboard / Pharmacy / Billing.
 
-**For Patients:**
-- Voice consultations in 3 languages
-- 24/7 symptom checking before visiting clinic
-- No waiting rooms -- talk to a doctor instantly
+**New:**
+- Headline: "Custom-Trained AI Doctor Inside Your HMS"
+- Subtitle: "Meet Tabeebi -- a purpose-built medical AI that handles patient consultations, generates prescriptions, creates clinical summaries, and speaks 3 languages. All integrated into your hospital management system."
+- Replace the screenshot carousel with a visual mockup of the Tabeebi chat interface (a styled card showing a sample doctor-patient conversation)
+- Add a "Try Tabeebi Now" primary CTA button alongside "Start Free Trial"
+- Keep the social proof badges (500+ Clinics, 50K+ Patients, 2M+ Prescriptions)
+- Add new AI-specific stats: "50K+ Consultations", "3 Languages", "24/7 Available"
 
-**For Doctors:**
-- Auto-generated clinical summaries after each consultation
-- AI-assisted patient intake (pre-screens patients before they see the doctor)
-- Smart diagnostic suggestions during OPD
+### 2. New "AI Capabilities" Section (replace current AIFeaturesSection.tsx)
 
-**For Hospital Admin:**
-- Reduced doctor workload = more patients per day
-- Automated documentation saves hours
-- Differentiate from competitors with AI-powered care
+Completely rebuild this section to be a proper AI showcase:
 
-**Update `HeroSection.tsx`:**
-- Keep the "Introducing Tabeebi" badge but make it link to `/tabeebi`
-- Add a secondary mention: "Now with Custom AI Doctor" in the subtitle area
+**Row 1 -- "What Makes Tabeebi Different":**
+Four capability cards with icons:
+- "Custom-Trained on Clinical Data" -- Not a generic chatbot. Trained on medical protocols, drug interactions, and clinical workflows specific to your practice.
+- "Voice-First Consultations" -- Patients speak naturally in English, Arabic, or Urdu. Tabeebi listens, understands, and responds like a real doctor.
+- "Prescription Generation" -- Generates complete e-prescriptions with dosages, drug interaction checks, and pharmacy routing -- all from the consultation.
+- "Clinical Summaries for Doctors" -- Every patient interaction produces a structured clinical summary that appears on the doctor's dashboard before they even see the patient.
 
-**Add a new "AI Across Your HMS" section or expand the existing one:**
-- Show a visual flow: Patient talks to Tabeebi -> AI pre-screens -> Doctor gets summary -> Prescription auto-generated
-- Three column cards: "For Patients", "For Doctors", "For Admins"
+**Row 2 -- "AI Across Every Module":**
+Show how AI enhances each HMS module (not just chat):
+- OPD: "AI pre-screens patients before doctor sees them"
+- Pharmacy: "Smart drug interaction alerts powered by AI"
+- Billing: "AI-suggested billing codes from diagnosis"
+- Lab: "AI flags abnormal results with clinical context"
+
+**Row 3 -- Training & Trust:**
+- "Trained on 100K+ clinical conversations"
+- "Clinically structured guidance -- not random internet answers"
+- "Continuously learning from your practice patterns"
+- "Complete audit trail of every consultation"
+
+### 3. Add Tabeebi to Navbar (Navbar.tsx)
+
+Add "Tabeebi" as a nav link (linking to /tabeebi) with a small sparkle/star icon to make it stand out from regular nav items.
+
+### 4. Enhance Workflow Diagram (WorkflowDiagram.tsx)
+
+Update the Register -> Queue -> Consult -> Prescribe -> Dispense -> Billing flow to show where AI is involved:
+- Before "Consult": Add "Tabeebi Pre-Screen" step showing AI pre-screens the patient
+- At "Consult": Add note "AI summary ready for doctor"
+- At "Prescribe": Add note "AI-generated prescription"
+
+### 5. Update CTA Section (CTASection.tsx)
+
+Add a Tabeebi-specific CTA: "Talk to Dr. Tabeebi now -- free, no signup needed" button linking to /tabeebi, placed above the existing "Start Free Trial" CTA.
+
+### 6. Reorder Page Sections (Index.tsx)
+
+Move the AI section higher -- right after the hero and trust badges, before the problem/solution section. The flow becomes:
+
+1. Hero (Tabeebi-led)
+2. Trust Badges
+3. AI Capabilities (the new Tabeebi showcase)
+4. Problem/Solution
+5. Features Tabs (20 modules)
+6. Workflow Diagram (AI-enhanced)
+7. Everything else stays the same
 
 ---
-
-## Files Changed
-
-| File | Changes |
-|------|---------|
-| `src/hooks/useAIChat.ts` | React to `initialGreeting` changes -- reset greeting when language switches |
-| `src/components/ai/PatientAIChat.tsx` | Add effect to reset chat greeting on language change |
-| `src/components/landing/AIFeaturesSection.tsx` | Complete revamp: 3-perspective layout (Patient/Doctor/Admin), workflow visual, stronger CTA |
-| `src/components/landing/HeroSection.tsx` | Strengthen the Tabeebi mention in hero, add "AI-Powered" to subtitle |
 
 ## Technical Details
 
-### Greeting Language Fix
+### Files Changed
 
-In `useAIChat.ts`, add a `useEffect` watching `initialGreeting`:
+| File | Changes |
+|------|---------|
+| `src/components/landing/HeroSection.tsx` | New AI-first headline, Tabeebi chat mockup replacing screenshot carousel, AI stats row, "Try Tabeebi" CTA |
+| `src/components/landing/AIFeaturesSection.tsx` | Complete rebuild: AI capabilities cards, AI-across-modules grid, training/trust section |
+| `src/components/landing/Navbar.tsx` | Add "Tabeebi" nav link with icon |
+| `src/components/landing/WorkflowDiagram.tsx` | Add AI steps (pre-screen, AI summary, AI prescription) to the flow |
+| `src/components/landing/CTASection.tsx` | Add "Talk to Dr. Tabeebi" CTA button |
+| `src/pages/Index.tsx` | Reorder sections: AI section moves up, right after TrustBadges |
 
+### Hero Chat Mockup
+
+A styled card component showing a sample conversation:
 ```
-useEffect(() => {
-  if (initialGreeting && messages.length <= 1 && !conversationId) {
-    setMessages([{ role: "assistant", content: initialGreeting }]);
-  }
-}, [initialGreeting]);
+Patient: "I have a headache and mild fever since yesterday"
+Dr. Tabeebi: "I understand. Let me ask a few questions. 
+Is the headache on one side or both? Any nausea?"
+Patient: "Both sides, no nausea"  
+Dr. Tabeebi: "Based on your symptoms, this appears to be 
+a tension headache with viral fever. I recommend 
+Paracetamol 500mg every 6 hours..."
 ```
+This gives visitors an instant feel for what Tabeebi actually does.
 
-This only swaps the greeting if no real conversation has started yet (messages.length <= 1 and no active conversation).
+### AI-Enhanced Workflow Steps
 
-### AIFeaturesSection Revamp Structure
+Current 6 steps become 8:
+1. Register (same)
+2. Queue (same)
+3. **Tabeebi Pre-Screen** (NEW) -- "Patient talks to AI, symptoms documented"
+4. Consult -- updated to "Doctor sees pre-screened patient with AI summary"
+5. Prescribe -- updated to "AI-assisted e-prescription with drug checks"
+6. Dispense (same)
+7. Billing (same)
 
+### Navbar Tabeebi Link
+
+Add between existing nav links:
 ```
-Section Header: "Custom AI Integrated Across Your HMS"
-
-Row 1: Three cards
-  - For Patients: Voice consultations, 24/7 access, trilingual
-  - For Doctors: Auto summaries, smart intake, diagnostic assist  
-  - For Admins: More throughput, less paperwork, competitive edge
-
-Row 2: Workflow strip
-  Patient -> Tabeebi Pre-Screen -> Doctor Dashboard -> AI Summary -> Prescription
-  (visual flow with icons and arrows)
-
-Row 3: CTA
-  "Try Tabeebi Now" button -> /tabeebi
-  "See Full Demo" button -> /auth/login
+{ label: "Tabeebi", href: "/tabeebi", isSpecial: true }
 ```
-
-### HeroSection Updates
-
-- Change the badge text from "Introducing Tabeebi -- AI Virtual Doctor" to "Custom AI Doctor Built-In"
-- Add a line in the description: "With Tabeebi, our custom-trained AI doctor, patients get instant consultations while doctors get AI-generated clinical summaries."
+Rendered with a small Bot icon and primary color to stand out.
 
