@@ -5,14 +5,27 @@ import { supabase } from "@/integrations/supabase/client";
 import { DoctorAvatar } from "@/components/ai/DoctorAvatar";
 import { ChatHistoryDrawer } from "@/components/ai/ChatHistoryDrawer";
 import { ChatMessage } from "@/hooks/useAIChat";
-import { LogOut, Plus } from "lucide-react";
+import { LogOut, Plus, Globe, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+const LANG_CYCLE: Array<"en" | "ar" | "ur"> = ["en", "ar", "ur"];
+const LANG_LABELS: Record<string, string> = { en: "عربي", ar: "اردو", ur: "EN" };
 
 export default function TabeebiChatPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState("");
+  const [userEmail, setUserEmail] = useState("");
   const [chatKey, setChatKey] = useState(0);
+  const [language, setLanguage] = useState<"en" | "ar" | "ur">("en");
   const [loadedConversation, setLoadedConversation] = useState<{ id: string; messages: ChatMessage[] } | null>(null);
 
   useEffect(() => {
@@ -23,6 +36,7 @@ export default function TabeebiChatPage() {
         return;
       }
       setUserName(session.user.user_metadata?.full_name || session.user.email || "");
+      setUserEmail(session.user.email || "");
       setLoading(false);
     };
     checkAuth();
@@ -43,6 +57,11 @@ export default function TabeebiChatPage() {
     setChatKey(prev => prev + 1);
   };
 
+  const cycleLang = () => {
+    const idx = LANG_CYCLE.indexOf(language);
+    setLanguage(LANG_CYCLE[(idx + 1) % LANG_CYCLE.length]);
+  };
+
   const userInitials = userName
     ? userName.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()
     : "?";
@@ -57,7 +76,7 @@ export default function TabeebiChatPage() {
 
   return (
     <div className="h-[100dvh] bg-background flex flex-col overflow-hidden">
-      {/* Premium gradient header */}
+      {/* Single gradient header */}
       <div
         className="flex-shrink-0 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground"
         style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
@@ -77,16 +96,18 @@ export default function TabeebiChatPage() {
 
           {/* Right: actions */}
           <div className="flex items-center gap-1">
-            {userName && (
-              <div className="flex items-center gap-1.5 mr-1 bg-white/15 rounded-full px-2 py-1">
-                <div className="w-5 h-5 rounded-full bg-white/25 flex items-center justify-center text-[9px] font-bold">
-                  {userInitials}
-                </div>
-                <span className="text-[11px] font-medium truncate max-w-[80px] hidden sm:inline">
-                  {userName.split(" ")[0]}
-                </span>
-              </div>
-            )}
+            {/* Language toggle */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={cycleLang}
+              className="h-8 px-2 text-primary-foreground hover:bg-white/15 rounded-full"
+              title="Toggle language"
+            >
+              <Globe className="h-3.5 w-3.5 mr-1" />
+              <span className="text-[11px]">{LANG_LABELS[language]}</span>
+            </Button>
+
             <Button
               variant="ghost"
               size="sm"
@@ -100,26 +121,43 @@ export default function TabeebiChatPage() {
               onSelect={handleSelectHistory}
               onNewChat={handleNewChat}
             />
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleLogout}
-              className="h-8 w-8 p-0 text-primary-foreground hover:bg-white/15 rounded-full"
-              title="Sign out"
-            >
-              <LogOut className="h-3.5 w-3.5" />
-            </Button>
+
+            {/* Profile dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="h-8 w-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-[10px] font-bold transition-colors focus:outline-none">
+                  {userInitials}
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 z-[100]">
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col gap-1">
+                    <p className="text-sm font-medium">{userName}</p>
+                    {userEmail && (
+                      <p className="text-xs text-muted-foreground truncate">{userEmail}</p>
+                    )}
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive cursor-pointer">
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>
 
-      {/* Chat */}
+      {/* Chat — no inner header */}
       <main className="flex-1 flex flex-col overflow-hidden">
         <PatientAIChat
           key={chatKey}
           mode="patient_intake"
           className="flex-1 rounded-none"
           compact={false}
+          language={language}
+          onLanguageChange={setLanguage}
           initialConversationId={loadedConversation?.id}
           initialMessages={loadedConversation?.messages}
         />

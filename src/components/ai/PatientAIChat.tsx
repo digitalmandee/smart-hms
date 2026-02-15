@@ -6,7 +6,7 @@ import { AIChatMessage } from "./AIChatMessage";
 import { DoctorAvatar } from "./DoctorAvatar";
 import { useAIChat, ChatMessage } from "@/hooks/useAIChat";
 import { useVoiceConsultation } from "@/hooks/useVoiceConsultation";
-import { Send, Square, Plus, Globe, Mic, MicOff, VolumeX, X } from "lucide-react";
+import { Send, Square, Mic, MicOff, VolumeX, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface PatientAIChatProps {
@@ -15,6 +15,8 @@ interface PatientAIChatProps {
   onConversationCreated?: (id: string) => void;
   className?: string;
   compact?: boolean;
+  language?: "en" | "ar" | "ur";
+  onLanguageChange?: (lang: "en" | "ar" | "ur") => void;
   initialConversationId?: string;
   initialMessages?: ChatMessage[];
 }
@@ -46,25 +48,24 @@ const SUGGESTED_TOPICS: Record<string, string[]> = {
   ],
 };
 
-const LANG_CYCLE: Array<"en" | "ar" | "ur"> = ["en", "ar", "ur"];
-const LANG_LABELS: Record<string, string> = { en: "عربي", ar: "اردو", ur: "EN" };
-
 export function PatientAIChat({
   mode = "patient_intake",
   patientContext,
   onConversationCreated,
   className,
   compact = false,
+  language = "en",
+  onLanguageChange,
   initialConversationId,
   initialMessages,
 }: PatientAIChatProps) {
   const [input, setInput] = useState("");
-  const [language, setLanguage] = useState<"en" | "ar" | "ur">("en");
   const [voiceModeActive, setVoiceModeActive] = useState(false);
   const [showVoiceOverlay, setShowVoiceOverlay] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const expectingSpeechRef = useRef(false);
 
   const voiceLang = language === "ur" ? "en" : language;
   const voice = useVoiceConsultation(voiceLang);
@@ -72,8 +73,12 @@ export function PatientAIChat({
   const handleAssistantResponse = useCallback(
     (content: string) => {
       if (voiceModeActive) {
+        expectingSpeechRef.current = true;
         setShowVoiceOverlay(true);
-        voice.speakResponse(content);
+        // Small delay to ensure overlay is mounted before speech starts
+        setTimeout(() => {
+          voice.speakResponse(content);
+        }, 100);
       }
     },
     [voiceModeActive, voice]
@@ -105,10 +110,24 @@ export function PatientAIChat({
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Close voice overlay when speaking ends
+  // Close voice overlay — with guard for expectingSpeech
   useEffect(() => {
+    if (voice.voiceState === "speaking" || voice.voiceState === "listening") {
+      // Speech is active, keep overlay open and clear the guard
+      expectingSpeechRef.current = false;
+      return;
+    }
+    
     if (voice.voiceState === "idle" && showVoiceOverlay && !isLoading) {
-      const timer = setTimeout(() => setShowVoiceOverlay(false), 500);
+      // Don't close if we're expecting speech to start soon
+      if (expectingSpeechRef.current) {
+        const guardTimer = setTimeout(() => {
+          expectingSpeechRef.current = false;
+        }, 2000);
+        return () => clearTimeout(guardTimer);
+      }
+      // Keep overlay for 1.5s after speech ends so user can tap to speak again
+      const timer = setTimeout(() => setShowVoiceOverlay(false), 1500);
       return () => clearTimeout(timer);
     }
   }, [voice.voiceState, showVoiceOverlay, isLoading]);
@@ -138,7 +157,7 @@ export function PatientAIChat({
       setVoiceModeActive(true);
       setShowVoiceOverlay(true);
       voice.startListening((finalText) => {
-        setShowVoiceOverlay(false);
+        // Don't hide overlay — keep it showing while AI processes
         handleSend(finalText);
       });
     }
@@ -151,21 +170,8 @@ export function PatientAIChat({
     clearChat();
   };
 
-  const cycleLang = () => {
-    const idx = LANG_CYCLE.indexOf(language);
-    setLanguage(LANG_CYCLE[(idx + 1) % LANG_CYCLE.length]);
-  };
-
   const isVoiceActive = voice.voiceState === "listening" || voice.voiceState === "speaking";
   const showSuggestions = messages.length <= 1;
-
-  const statusText = voice.voiceState === "listening"
-    ? (isRTL ? "أستمع..." : "Listening...")
-    : voice.voiceState === "speaking"
-    ? (isRTL ? "يتحدث..." : "Speaking...")
-    : isLoading
-    ? (isRTL ? "يفكر..." : "Thinking...")
-    : (isRTL ? "متاح" : "Online");
 
   const overlayStatusText = voice.voiceState === "listening"
     ? (isRTL ? "أستمع إليك... اضغط للإيقاف" : "I'm listening... tap to stop")
@@ -173,7 +179,7 @@ export function PatientAIChat({
     ? (isRTL ? "د. طبيبي يتحدث..." : "Dr. Tabeebi is speaking...")
     : isLoading
     ? (isRTL ? "يفكر في إجابتك..." : "Thinking about your answer...")
-    : (isRTL ? "اضغط على الطبيب للتحدث" : "Tap the doctor to speak");
+    : (isRTL ? "اضغط للتحدث مرة أخرى" : "Tap to speak again");
 
   return (
     <TooltipProvider>
@@ -182,64 +188,7 @@ export function PatientAIChat({
         "h-full min-h-0",
         className
       )}>
-        {/* Compact header with status */}
-        <div className="flex-shrink-0 px-4 py-2.5 border-b bg-background/80 backdrop-blur-sm">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <DoctorAvatar state={avatarState} size="sm" />
-              <div className="flex flex-col">
-                <span className="font-bold text-sm">
-                  {language === "ar" ? "د. طبيبي" : language === "ur" ? "ڈاکٹر طبیبی" : "Dr. Tabeebi"}
-                </span>
-                <div className="flex items-center gap-1.5">
-                  <span className={cn(
-                    "w-1.5 h-1.5 rounded-full",
-                    avatarState === "idle" && "bg-green-500",
-                    avatarState === "listening" && "bg-red-500 animate-pulse",
-                    avatarState === "speaking" && "bg-blue-500 animate-pulse",
-                    avatarState === "thinking" && "bg-amber-500 animate-pulse",
-                  )} />
-                  <span className="text-[11px] text-muted-foreground">
-                    {statusText}
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center gap-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={cycleLang}
-                title="Toggle language"
-                className="h-8 px-2 rounded-full"
-              >
-                <Globe className="h-4 w-4 mr-1" />
-                <span className="text-xs">{LANG_LABELS[language]}</span>
-              </Button>
-              {voiceModeActive && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    voice.stopAll();
-                    setVoiceModeActive(false);
-                    setShowVoiceOverlay(false);
-                  }}
-                  className="h-8 w-8 p-0 rounded-full"
-                >
-                  <VolumeX className="h-4 w-4" />
-                </Button>
-              )}
-              {messages.length > 1 && (
-                <Button variant="ghost" size="sm" onClick={handleClear} className="h-8 w-8 p-0 rounded-full" title="New chat">
-                  <Plus className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Chat messages */}
+        {/* Chat messages — no inner header */}
         <div className="flex-1 overflow-hidden relative">
           <ScrollArea className="h-full px-1" ref={scrollRef}>
             {messages.map((msg, i) => (
@@ -289,7 +238,9 @@ export function PatientAIChat({
               className="absolute inset-0 z-50 bg-background/95 backdrop-blur-xl flex flex-col items-center justify-center gap-4 animate-fade-in"
               onClick={() => {
                 if (voice.voiceState === "idle" && !isLoading) {
+                  voice.stopAll();
                   setShowVoiceOverlay(false);
+                  setVoiceModeActive(false);
                 }
               }}
             >
@@ -301,6 +252,7 @@ export function PatientAIChat({
                   e.stopPropagation();
                   voice.stopAll();
                   setShowVoiceOverlay(false);
+                  setVoiceModeActive(false);
                 }}
               >
                 <X className="h-4 w-4" />
@@ -330,13 +282,18 @@ export function PatientAIChat({
                     {[0, 1, 2, 3, 4].map((i) => (
                       <div
                         key={i}
-                        className="w-1 bg-red-500/80 rounded-full"
+                        className="w-1 bg-destructive/80 rounded-full"
                         style={{
                           animation: `voiceWave 0.6s ease-in-out ${i * 0.08}s infinite`,
                         }}
                       />
                     ))}
                   </div>
+                )}
+                {voice.voiceState === "idle" && !isLoading && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {isRTL ? "اضغط على الطبيب للتحدث" : "Tap doctor to speak again"}
+                  </p>
                 )}
               </div>
 
