@@ -16,7 +16,7 @@ const AI_FEATURES = [
     icon: Brain,
     title: "Smart Diagnostics",
     description: "AI-assisted symptom triage with structured follow-up questions — just like visiting a real doctor. Powered by advanced reasoning.",
-    badge: "DeepSeek AI",
+    badge: "Advanced",
     color: "from-blue-500/20 to-blue-500/5",
     iconColor: "text-blue-500",
   },
@@ -33,7 +33,7 @@ const AI_FEATURES = [
 const VOICE_CAPABILITIES = [
   { icon: Mic, label: "Voice Consultation" },
   { icon: Globe, label: "Trilingual (EN/AR/UR)" },
-  { icon: Sparkles, label: "Powered by DeepSeek" },
+  { icon: Sparkles, label: "Smart Diagnostics" },
 ];
 
 export function AIFeaturesSection() {
