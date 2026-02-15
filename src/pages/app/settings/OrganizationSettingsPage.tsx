@@ -379,7 +379,8 @@ export function OrganizationSettingsPage() {
                   placeholder="17.00"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Pakistan GST standard rate is 17%
+                  Default tax rate. Configure country-specific tax in{" "}
+                  <a href="/app/settings/country" className="text-primary underline">Country & Region</a> settings.
                 </p>
               </div>
             </div>
