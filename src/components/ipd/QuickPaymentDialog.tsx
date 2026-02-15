@@ -34,6 +34,7 @@ export function QuickPaymentDialog({
   balanceAmount,
   onSuccess,
 }: QuickPaymentDialogProps) {
+  const { formatCurrency } = useCurrencyFormatter();
   const [amount, setAmount] = useState(balanceAmount.toString());
   const [paymentMethodId, setPaymentMethodId] = useState("");
   const [referenceNumber, setReferenceNumber] = useState("");

@@ -29,6 +29,7 @@ import type { Database } from "@/integrations/supabase/types";
 type POStatus = Database["public"]["Enums"]["po_status"];
 
 export default function POListPage() {
+  const { formatCurrency } = useCurrencyFormatter();
   const [statusFilter, setStatusFilter] = useState<POStatus | "all">("all");
   const { data: purchaseOrders, isLoading } = usePurchaseOrders(
     statusFilter !== "all" ? { status: statusFilter } : undefined

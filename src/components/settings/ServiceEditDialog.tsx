@@ -54,6 +54,7 @@ export function ServiceEditDialog({
   onSave,
   isPending,
 }: ServiceEditDialogProps) {
+  const { formatCurrency } = useCurrencyFormatter();
   const isEditing = !!service;
   
   const [name, setName] = useState("");

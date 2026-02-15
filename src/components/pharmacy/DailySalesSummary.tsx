@@ -23,6 +23,7 @@ interface TransactionItem {
 
 export function DailySalesSummary() {
   const { profile } = useAuth();
+  const { formatCurrency } = useCurrencyFormatter();
   const today = format(new Date(), "yyyy-MM-dd");
 
   const { data, isLoading } = useQuery({

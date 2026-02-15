@@ -32,6 +32,7 @@ export default function SurgeryFormPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { profile } = useAuth();
+  const { formatCurrency } = useCurrencyFormatter();
   
   // Get prefill values from URL params
   const prefillDate = searchParams.get('date');

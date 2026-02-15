@@ -27,6 +27,7 @@ const chargeTypeColors: Record<string, string> = {
 };
 
 export function PatientIPDChargesPreview({ patientId }: PatientIPDChargesPreviewProps) {
+  const { formatCurrency } = useCurrencyFormatter();
   const { data, isLoading } = usePatientUnbilledCharges(patientId);
 
   if (isLoading) {
