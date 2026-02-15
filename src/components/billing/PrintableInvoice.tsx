@@ -16,6 +16,9 @@ interface PrintableInvoiceProps {
     tax_id?: string | null;
   };
   branchName?: string;
+  currencySymbol?: string;
+  currencyLocale?: string;
+  taxLabel?: string;
 }
 
 // Inline styles for print compatibility
@@ -392,11 +395,13 @@ const styles = {
 };
 
 export const PrintableInvoice = forwardRef<HTMLDivElement, PrintableInvoiceProps>(
-  ({ invoice, organization, branchName }, ref) => {
+  ({ invoice, organization, branchName, currencySymbol = "Rs.", currencyLocale = "en-PK", taxLabel = "Tax" }, ref) => {
     const balance = (invoice.total_amount || 0) - (invoice.paid_amount || 0);
     const isPaid = invoice.status === "paid";
     const verificationUrl = getInvoiceVerificationUrl(invoice.invoice_number, organization?.slug);
     const qrCodeUrl = generateQRCodeUrl(verificationUrl, 80);
+
+    const fc = (amount: number) => `${currencySymbol} ${amount.toLocaleString(currencyLocale, { minimumFractionDigits: 2 })}`;
 
     const getStatusStyle = () => {
       if (isPaid) return { ...styles.statusBadge, ...styles.statusPaid };
@@ -445,7 +450,7 @@ export const PrintableInvoice = forwardRef<HTMLDivElement, PrintableInvoiceProps
                     <span>Reg: {organization.registration_number}</span>
                   )}
                   {organization?.tax_id && (
-                    <span>Tax ID: {organization.tax_id}</span>
+                    <span>{taxLabel} ID: {organization.tax_id}</span>
                   )}
                 </div>
               )}
@@ -532,11 +537,11 @@ export const PrintableInvoice = forwardRef<HTMLDivElement, PrintableInvoiceProps
                 </td>
                 <td style={styles.tableCellCenter}>{item.quantity}</td>
                 <td style={styles.tableCellRight}>
-                  Rs. {Number(item.unit_price).toLocaleString("en-PK", { minimumFractionDigits: 2 })}
+                  {fc(Number(item.unit_price))}
                 </td>
                 <td style={styles.tableCellCenter}>{item.discount_percent || 0}%</td>
                 <td style={styles.tableCellRightBold}>
-                  Rs. {Number(item.total_price).toLocaleString("en-PK", { minimumFractionDigits: 2 })}
+                  {fc(Number(item.total_price))}
                 </td>
               </tr>
             ))}
@@ -549,14 +554,14 @@ export const PrintableInvoice = forwardRef<HTMLDivElement, PrintableInvoiceProps
             <div style={styles.totalsRow}>
               <span style={styles.totalsLabel}>Subtotal:</span>
               <span style={styles.totalsValue}>
-                Rs. {Number(invoice.subtotal).toLocaleString("en-PK", { minimumFractionDigits: 2 })}
+                {fc(Number(invoice.subtotal))}
               </span>
             </div>
             {Number(invoice.tax_amount) > 0 && (
               <div style={styles.totalsRow}>
-                <span style={styles.totalsLabel}>Tax:</span>
+                <span style={styles.totalsLabel}>{taxLabel}:</span>
                 <span style={styles.totalsValue}>
-                  Rs. {Number(invoice.tax_amount).toLocaleString("en-PK", { minimumFractionDigits: 2 })}
+                  {fc(Number(invoice.tax_amount))}
                 </span>
               </div>
             )}
@@ -564,28 +569,28 @@ export const PrintableInvoice = forwardRef<HTMLDivElement, PrintableInvoiceProps
               <div style={styles.totalsRow}>
                 <span style={styles.totalsLabel}>Discount:</span>
                 <span style={styles.discountValue}>
-                  - Rs. {Number(invoice.discount_amount).toLocaleString("en-PK", { minimumFractionDigits: 2 })}
+                  - {fc(Number(invoice.discount_amount))}
                 </span>
               </div>
             )}
             <div style={styles.totalsTotalRow}>
               <span>TOTAL:</span>
               <span style={{ fontFamily: "monospace" }}>
-                Rs. {Number(invoice.total_amount).toLocaleString("en-PK", { minimumFractionDigits: 2 })}
+                {fc(Number(invoice.total_amount))}
               </span>
             </div>
             {Number(invoice.paid_amount) > 0 && (
               <div style={styles.totalsPaidRow}>
                 <span>Paid:</span>
                 <span style={{ fontFamily: "monospace" }}>
-                  Rs. {Number(invoice.paid_amount).toLocaleString("en-PK", { minimumFractionDigits: 2 })}
+                  {fc(Number(invoice.paid_amount))}
                 </span>
               </div>
             )}
             <div style={getBalanceStyle()}>
               <span>BALANCE DUE:</span>
               <span style={{ fontFamily: "monospace" }}>
-                Rs. {balance.toLocaleString("en-PK", { minimumFractionDigits: 2 })}
+                {fc(balance)}
               </span>
             </div>
           </div>
@@ -595,7 +600,7 @@ export const PrintableInvoice = forwardRef<HTMLDivElement, PrintableInvoiceProps
         <div style={styles.amountWordsBox}>
           <p style={styles.amountWordsLabel}>Amount in Words</p>
           <p style={styles.amountWordsValue}>
-            Rupees {numberToWords(invoice.total_amount || 0)} Only
+            {numberToWords(invoice.total_amount || 0)} Only
           </p>
         </div>
 
@@ -643,7 +648,7 @@ export const PrintableInvoice = forwardRef<HTMLDivElement, PrintableInvoiceProps
 
 PrintableInvoice.displayName = "PrintableInvoice";
 
-// Helper function to convert number to words (Indian numbering system)
+// Helper function to convert number to words
 function numberToWords(num: number): string {
   if (num === 0) return "zero";
 

@@ -5,13 +5,16 @@ import { format } from "date-fns";
 interface PrintableGRNProps {
   grn: GoodsReceivedNote;
   organizationName?: string;
+  currencySymbol?: string;
 }
 
 export const PrintableGRN = forwardRef<HTMLDivElement, PrintableGRNProps>(
-  ({ grn, organizationName = "Hospital" }, ref) => {
+  ({ grn, organizationName = "Hospital", currencySymbol = "Rs." }, ref) => {
     const totalValue = grn.items?.reduce((sum, item) => 
       sum + (item.quantity_accepted * item.unit_cost), 0
     ) || 0;
+
+    const fc = (amount: number) => `${currencySymbol} ${amount.toLocaleString()}`;
 
     return (
       <div ref={ref} className="p-8 bg-white text-black print:p-4">
@@ -78,9 +81,9 @@ export const PrintableGRN = forwardRef<HTMLDivElement, PrintableGRNProps>(
                 <td className="text-center py-2 text-sm">{item.quantity_received}</td>
                 <td className="text-center py-2 text-sm font-medium text-green-600">{item.quantity_accepted}</td>
                 <td className="text-center py-2 text-sm font-medium text-red-600">{item.quantity_rejected}</td>
-                <td className="text-right py-2 text-sm">Rs. {item.unit_cost.toLocaleString()}</td>
+                <td className="text-right py-2 text-sm">{fc(item.unit_cost)}</td>
                 <td className="text-right py-2 text-sm">
-                  Rs. {(item.quantity_accepted * item.unit_cost).toLocaleString()}
+                  {fc(item.quantity_accepted * item.unit_cost)}
                 </td>
               </tr>
             ))}
@@ -92,12 +95,12 @@ export const PrintableGRN = forwardRef<HTMLDivElement, PrintableGRNProps>(
           <div className="w-64">
             <div className="flex justify-between py-2 font-bold border-t">
               <span>Total Value:</span>
-              <span>Rs. {totalValue.toLocaleString()}</span>
+              <span>{fc(totalValue)}</span>
             </div>
             {grn.invoice_amount && (
               <div className="flex justify-between py-1 text-sm">
                 <span>Invoice Amount:</span>
-                <span>Rs. {grn.invoice_amount.toLocaleString()}</span>
+                <span>{fc(grn.invoice_amount)}</span>
               </div>
             )}
           </div>
