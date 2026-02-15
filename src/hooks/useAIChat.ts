@@ -13,10 +13,11 @@ interface UseAIChatOptions {
   language?: "en" | "ar";
   patientContext?: Record<string, unknown>;
   onConversationCreated?: (id: string) => void;
+  onAssistantResponse?: (content: string) => void;
 }
 
 export function useAIChat(options: UseAIChatOptions = {}) {
-  const { mode = "general", language = "en", patientContext, onConversationCreated } = options;
+  const { mode = "general", language = "en", patientContext, onConversationCreated, onAssistantResponse } = options;
   const { profile } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -144,8 +145,9 @@ export function useAIChat(options: UseAIChatOptions = {}) {
           }
         }
 
-        // Save conversation
+        // Save conversation and notify
         if (convId && assistantContent) {
+          onAssistantResponse?.(assistantContent);
           const finalMessages = [
             ...updatedMessages,
             { role: "assistant" as const, content: assistantContent },
@@ -169,7 +171,7 @@ export function useAIChat(options: UseAIChatOptions = {}) {
         abortRef.current = null;
       }
     },
-    [messages, isLoading, conversationId, createConversation, mode, language, patientContext]
+    [messages, isLoading, conversationId, createConversation, mode, language, patientContext, onAssistantResponse]
   );
 
   const stopGeneration = useCallback(() => {
