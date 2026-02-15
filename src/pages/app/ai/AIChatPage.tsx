@@ -7,10 +7,10 @@ export default function AIChatPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Your AI Doctor"
+        title="Tabeebi - Your Personal Doctor"
         breadcrumbs={[
           { label: "OPD", href: "/app/opd" },
-          { label: "AI Doctor" },
+          { label: "Tabeebi" },
         ]}
       />
       <div className="max-w-3xl mx-auto space-y-4">
@@ -18,7 +18,7 @@ export default function AIChatPage() {
           <CardContent className="flex items-center gap-3 py-3">
             <Stethoscope className="h-5 w-5 text-primary shrink-0" />
             <p className="text-sm text-muted-foreground">
-              Get preliminary medical guidance. Dr. AI will ask about your symptoms and prepare a summary for your physician.
+              Get preliminary medical guidance. Tabeebi will ask about your symptoms and prepare a summary for your physician.
             </p>
           </CardContent>
         </Card>
