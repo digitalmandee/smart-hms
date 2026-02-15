@@ -22,7 +22,8 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 const LANG_CYCLE: Array<"en" | "ar" | "ur"> = ["en", "ar", "ur"];
-const LANG_LABELS: Record<string, string> = { en: "عربي", ar: "اردو", ur: "EN" };
+const LANG_LABELS: Record<string, string> = { en: "EN", ar: "AR", ur: "UR" };
+const LANG_FULL: Record<string, string> = { en: "English", ar: "العربية", ur: "اردو" };
 
 interface ConversationSummary {
   id: string;
@@ -252,22 +253,51 @@ export default function TabeebiChatPage() {
           <div className={cn("border-t border-border", sidebarCollapsed ? "p-2 space-y-2" : "p-3 space-y-1")}>
             {sidebarCollapsed ? (
               <>
-                <button onClick={cycleLang} className="h-9 w-9 mx-auto rounded-lg flex items-center justify-center text-muted-foreground hover:bg-accent/50 transition-colors" title={`Language: ${LANG_LABELS[language]}`}>
-                  <Globe className="h-4 w-4" />
-                </button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="h-9 w-9 mx-auto rounded-lg flex items-center justify-center text-muted-foreground hover:bg-primary/10 transition-colors" title={`Language: ${LANG_FULL[language]}`}>
+                      <Globe className="h-4 w-4" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent side="right" className="w-40 z-[100]">
+                    {LANG_CYCLE.map((lang) => (
+                      <DropdownMenuItem
+                        key={lang}
+                        onClick={() => setLanguage(lang)}
+                        className={cn("cursor-pointer", language === lang && "bg-primary/10 font-medium")}
+                      >
+                        <span className="flex-1">{LANG_FULL[lang]}</span>
+                        {language === lang && <span className="text-primary text-xs">✓</span>}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 <button onClick={handleLogout} className="h-9 w-9 mx-auto rounded-lg flex items-center justify-center text-destructive hover:bg-destructive/10 transition-colors" title="Sign out">
                   <LogOut className="h-4 w-4" />
                 </button>
               </>
             ) : (
               <>
-                <button
-                  onClick={cycleLang}
-                  className="w-full flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-accent/10 transition-colors"
-                >
-                  <Globe className="h-4 w-4" />
-                  <span>Language: {LANG_LABELS[language]}</span>
-                </button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="w-full flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-primary/10 transition-colors">
+                      <Globe className="h-4 w-4" />
+                      <span>Language: {LANG_FULL[language]}</span>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent side="right" className="w-40 z-[100]">
+                    {LANG_CYCLE.map((lang) => (
+                      <DropdownMenuItem
+                        key={lang}
+                        onClick={() => setLanguage(lang)}
+                        className={cn("cursor-pointer", language === lang && "bg-primary/10 font-medium")}
+                      >
+                        <span className="flex-1">{LANG_FULL[lang]}</span>
+                        {language === lang && <span className="text-primary text-xs">✓</span>}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 <button
                   onClick={handleLogout}
                   className="w-full flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors"
@@ -304,18 +334,33 @@ export default function TabeebiChatPage() {
             </div>
 
             {/* Right: actions */}
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5">
               {isMobile && (
                 <>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={cycleLang}
-                    className="h-9 px-2.5 text-muted-foreground hover:text-foreground rounded-full"
-                  >
-                    <Globe className="h-4 w-4 mr-1" />
-                    <span className="text-xs">{LANG_LABELS[language]}</span>
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-9 px-2.5 text-muted-foreground hover:text-foreground hover:bg-primary/10 rounded-full"
+                      >
+                        <Globe className="h-4 w-4 mr-1" />
+                        <span className="text-xs font-medium">{LANG_LABELS[language]}</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-40 z-[100]">
+                      {LANG_CYCLE.map((lang) => (
+                        <DropdownMenuItem
+                          key={lang}
+                          onClick={() => setLanguage(lang)}
+                          className={cn("cursor-pointer", language === lang && "bg-primary/10 font-medium")}
+                        >
+                          <span className="flex-1">{LANG_FULL[lang]}</span>
+                          {language === lang && <span className="text-primary text-xs">✓</span>}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                   <Button
                     variant="ghost"
                     size="sm"

@@ -184,7 +184,7 @@ export function PatientAIChat({
   return (
     <TooltipProvider>
       <div className={cn(
-        "flex flex-col bg-gradient-to-b from-background to-accent/10",
+        "flex flex-col bg-gradient-to-b from-background to-primary/5",
         "h-full min-h-0",
         className
       )}>
@@ -322,7 +322,7 @@ export function PatientAIChat({
         <div className="flex-shrink-0 p-3 bg-background/80 backdrop-blur-sm space-y-2"
           style={{ paddingBottom: "max(12px, env(safe-area-inset-bottom, 12px))" }}
         >
-          <div className="flex items-end gap-2 bg-accent/30 border border-border/40 rounded-2xl px-3 py-2 shadow-sm">
+          <div className="flex items-end gap-2 bg-primary/10 border border-primary/20 rounded-2xl px-3 py-2 shadow-sm">
             <textarea
               ref={inputRef}
               value={voice.voiceState === "listening" ? voice.transcript : input}
