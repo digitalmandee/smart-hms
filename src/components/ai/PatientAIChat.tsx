@@ -81,9 +81,9 @@ export function PatientAIChat({
               <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-green-500 border-2 border-background" />
             </div>
             <div className="flex flex-col">
-              <span>{language === "ar" ? "الدكتور الذكي" : "Dr. AI"}</span>
+            <span>{language === "ar" ? "طبيبي" : "Tabeebi"}</span>
               <span className="text-xs font-normal text-muted-foreground">
-                {language === "ar" ? "طبيبك الشخصي" : "Your Personal AI Doctor"}
+                {language === "ar" ? "طبيبك الشخصي" : "Your Personal Doctor"}
               </span>
             </div>
           </CardTitle>
@@ -117,12 +117,12 @@ export function PatientAIChat({
                 <span className="absolute bottom-1 right-1 h-3 w-3 rounded-full bg-green-500 border-2 border-background" />
               </div>
               <h3 className="text-lg font-semibold mb-1">
-                {language === "ar" ? "الدكتور الذكي" : "Dr. AI"}
+                {language === "ar" ? "طبيبي" : "Tabeebi"}
               </h3>
               <p className="text-muted-foreground text-sm max-w-sm mb-6">
                 {language === "ar"
-                  ? "مرحباً! أنا الدكتور الذكي، مساعدك الطبي الشخصي. أخبرني بما يزعجك وسأساعدك في جمع المعلومات المناسبة لطبيبك."
-                  : "Hello! I'm Dr. AI, your personal medical assistant. Tell me what's bothering you, and I'll help gather the right information for your doctor."}
+                  ? "مرحباً! أنا طبيبي، مساعدك الطبي الشخصي. أخبرني بما يزعجك وسأساعدك في جمع المعلومات المناسبة لطبيبك."
+                  : "Hello! I'm Tabeebi, your personal medical assistant. Tell me what's bothering you, and I'll help gather the right information for your doctor."}
               </p>
               <div className="flex flex-wrap justify-center gap-2 max-w-sm">
                 {SUGGESTED_TOPICS[language].map((topic) => (

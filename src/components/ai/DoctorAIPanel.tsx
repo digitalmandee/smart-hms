@@ -106,7 +106,7 @@ export function DoctorAIPanel({ patientContext, onSuggestDiagnosis, onSuggestNot
             <CardTitle className="text-sm flex items-center justify-between">
               <span className="flex items-center gap-2">
               <Stethoscope className="h-4 w-4 text-primary" />
-                Clinical AI Copilot
+                Tabeebi Clinical
               </span>
               {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             </CardTitle>
@@ -132,7 +132,7 @@ export function DoctorAIPanel({ patientContext, onSuggestDiagnosis, onSuggestNot
               {messages.length === 0 && (
                 <div className="flex flex-col items-center justify-center h-full py-8 text-center">
                   <Bot className="h-8 w-8 text-muted-foreground/50 mb-2" />
-                  <p className="text-xs text-muted-foreground">Use quick actions or type a clinical question</p>
+                  <p className="text-xs text-muted-foreground">Use Tabeebi quick actions or type a clinical question</p>
                 </div>
               )}
               {messages.map((msg, i) => (
