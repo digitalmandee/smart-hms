@@ -1,4 +1,4 @@
-import { UserPlus, Clock, Stethoscope, FileText, Pill, Receipt, ArrowRight } from 'lucide-react';
+import { UserPlus, Clock, Stethoscope, FileText, Pill, Receipt, ArrowRight, Bot, Brain } from 'lucide-react';
 import { AnimatedSection, StaggerChildren } from './AnimatedSection';
 
 const steps = [
@@ -15,16 +15,24 @@ const steps = [
     color: 'bg-purple-500',
   },
   {
-    icon: Stethoscope,
-    title: 'Consult',
-    description: 'Doctor sees patient, records vitals & diagnosis',
+    icon: Bot,
+    title: 'AI Pre-Screen',
+    description: 'Tabeebi collects symptoms & documents history',
     color: 'bg-primary',
+    isAI: true,
   },
   {
-    icon: FileText,
-    title: 'Prescribe',
-    description: 'E-prescription created, sent to pharmacy',
+    icon: Stethoscope,
+    title: 'Consult',
+    description: 'Doctor sees pre-screened patient with AI summary ready',
+    color: 'bg-teal-600',
+  },
+  {
+    icon: Brain,
+    title: 'AI Prescription',
+    description: 'AI-assisted e-prescription with drug interaction checks',
     color: 'bg-orange-500',
+    isAI: true,
   },
   {
     icon: Pill,
@@ -46,13 +54,13 @@ export const WorkflowDiagram = () => {
       <div className="container mx-auto px-4">
         <AnimatedSection animation="fade-up" className="text-center mb-16">
           <span className="inline-block px-4 py-1.5 bg-primary/10 text-primary rounded-full text-sm font-medium mb-4">
-            Seamless Flow
+            AI-Enhanced Flow
           </span>
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            From Walk-in to Walkout in Minutes
+            From Walk-in to Walkout — <span className="text-primary">AI at Every Step</span>
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Every step is connected. No data re-entry. No lost prescriptions. Just smooth operations.
+            Tabeebi pre-screens patients, generates clinical summaries, and assists with prescriptions — all integrated into the flow.
           </p>
         </AnimatedSection>
 
@@ -66,17 +74,17 @@ export const WorkflowDiagram = () => {
               const Icon = step.icon;
               return (
                 <div key={step.title} className="flex items-center">
-                  <div className="flex flex-col items-center text-center w-36">
-                    <div className={`w-16 h-16 rounded-2xl ${step.color} flex items-center justify-center text-white shadow-lg mb-4`}>
-                      <Icon className="h-8 w-8" />
+                  <div className="flex flex-col items-center text-center w-32">
+                    <div className={`w-14 h-14 rounded-2xl ${step.color} flex items-center justify-center text-white shadow-lg mb-3 ${step.isAI ? 'ring-2 ring-primary/40 ring-offset-2 ring-offset-background' : ''}`}>
+                      <Icon className="h-7 w-7" />
                     </div>
-                    <h4 className="font-semibold mb-1">{step.title}</h4>
-                    <p className="text-sm text-muted-foreground">{step.description}</p>
+                    <h4 className={`font-semibold mb-1 text-sm ${step.isAI ? 'text-primary' : ''}`}>{step.title}</h4>
+                    <p className="text-xs text-muted-foreground leading-snug">{step.description}</p>
                   </div>
                   {index < steps.length - 1 && (
-                    <div className="flex items-center px-2 mt-[-60px]">
-                      <div className="w-12 h-0.5 bg-gradient-to-r from-muted-foreground/30 to-muted-foreground/10" />
-                      <ArrowRight className="h-5 w-5 text-muted-foreground/50" />
+                    <div className="flex items-center px-1 mt-[-60px]">
+                      <div className="w-8 h-0.5 bg-gradient-to-r from-muted-foreground/30 to-muted-foreground/10" />
+                      <ArrowRight className="h-4 w-4 text-muted-foreground/50" />
                     </div>
                   )}
                 </div>
@@ -94,7 +102,7 @@ export const WorkflowDiagram = () => {
                 <div key={step.title}>
                   <div className="flex items-start gap-4">
                     <div className="flex flex-col items-center">
-                      <div className={`w-12 h-12 rounded-xl ${step.color} flex items-center justify-center text-white shadow-lg`}>
+                      <div className={`w-12 h-12 rounded-xl ${step.color} flex items-center justify-center text-white shadow-lg ${step.isAI ? 'ring-2 ring-primary/40 ring-offset-2 ring-offset-background' : ''}`}>
                         <Icon className="h-6 w-6" />
                       </div>
                       {index < steps.length - 1 && (
@@ -102,7 +110,7 @@ export const WorkflowDiagram = () => {
                       )}
                     </div>
                     <div className="flex-1 pt-1">
-                      <h4 className="font-semibold">{step.title}</h4>
+                      <h4 className={`font-semibold ${step.isAI ? 'text-primary' : ''}`}>{step.title}</h4>
                       <p className="text-sm text-muted-foreground">{step.description}</p>
                     </div>
                   </div>
@@ -116,7 +124,7 @@ export const WorkflowDiagram = () => {
         <AnimatedSection animation="fade-up" delay={400} className="text-center mt-16">
           <p className="text-muted-foreground mb-4">
             Average patient visit time reduced from <span className="font-bold text-foreground">45 minutes</span> to{' '}
-            <span className="font-bold text-primary">15 minutes</span>
+            <span className="font-bold text-primary">15 minutes</span> — thanks to AI pre-screening
           </p>
         </AnimatedSection>
       </div>
