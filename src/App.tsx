@@ -32,6 +32,10 @@ import PublicQueueDisplay from "./pages/public/PublicQueueDisplay";
 import PublicERDisplay from "./pages/public/PublicERDisplay";
 import PublicTokenKiosk from "./pages/public/PublicTokenKiosk";
 
+// Tabeebi public pages
+import TabeebiLandingPage from "./pages/public/TabeebiLandingPage";
+import TabeebiChatPage from "./pages/public/TabeebiChatPage";
+
 // Super Admin pages
 import { SuperAdminDashboard } from "./pages/super-admin/SuperAdminDashboard";
 import { OrganizationsListPage } from "./pages/super-admin/OrganizationsListPage";
@@ -490,6 +494,10 @@ function App() {
             
             {/* Public Lab Report Portal */}
             <Route path="/lab-reports" element={<PublicLabReportPage />} />
+            
+            {/* Tabeebi AI Doctor */}
+            <Route path="/tabeebi" element={<TabeebiLandingPage />} />
+            <Route path="/tabeebi/chat" element={<TabeebiChatPage />} />
             
             {/* Test Cases Documentation (hidden - not linked from landing page) */}
             <Route path="/test-cases" element={<TestCasesPage />} />
