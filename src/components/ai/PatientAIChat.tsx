@@ -9,6 +9,7 @@ import { Bot, Send, Square, Trash2, Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface PatientAIChatProps {
+  mode?: "patient_intake" | "doctor_assist" | "general";
   patientContext?: Record<string, unknown>;
   onConversationCreated?: (id: string) => void;
   className?: string;
@@ -16,6 +17,7 @@ interface PatientAIChatProps {
 }
 
 export function PatientAIChat({
+  mode = "patient_intake",
   patientContext,
   onConversationCreated,
   className,
@@ -26,7 +28,7 @@ export function PatientAIChat({
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const { messages, isLoading, sendMessage, stopGeneration, clearChat } = useAIChat({
-    mode: "patient_intake",
+    mode,
     language,
     patientContext,
     onConversationCreated,

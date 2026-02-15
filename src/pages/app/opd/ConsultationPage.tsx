@@ -25,6 +25,7 @@ import { PatientQuickInfo } from "@/components/consultation/PatientQuickInfo";
 import { PreviousVisits } from "@/components/consultation/PreviousVisits";
 import { VisitSummaryDialog } from "@/components/consultation/VisitSummaryDialog";
 import { RecommendSurgeryDialog } from "@/components/ot/RecommendSurgeryDialog";
+import { DoctorAIPanel } from "@/components/ai/DoctorAIPanel";
 import { usePatientSurgeryRequests } from "@/hooks/useSurgeryRequests";
 import { generateVisitId } from "@/lib/visit-id";
 import { cn } from "@/lib/utils";
@@ -298,6 +299,17 @@ export default function ConsultationPage() {
         {/* Sidebar */}
         <div className="space-y-6">
           {patient && <PatientQuickInfo patient={patient} vitals={nurseVitals} />}
+
+          {/* AI Clinical Assistant */}
+          <DoctorAIPanel
+            patientContext={{
+              patient_name: `${patient?.first_name} ${patient?.last_name || ""}`,
+              chief_complaint: chiefComplaint,
+              symptoms,
+              vitals,
+              diagnosis,
+            }}
+          />
           
           {/* Active Surgery Requests */}
           {patientSurgeryRequests && patientSurgeryRequests.length > 0 && (
