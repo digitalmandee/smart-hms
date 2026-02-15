@@ -160,17 +160,19 @@ export function PatientPhotoCapture({
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
-      const { data: urlData } = supabase.storage
+      // Get signed URL (bucket is private)
+      const { data: signedData, error: signedError } = await supabase.storage
         .from("patient-photos")
-        .getPublicUrl(filePath);
+        .createSignedUrl(filePath, 3600);
 
-      const photoUrl = urlData.publicUrl;
+      if (signedError || !signedData?.signedUrl) throw signedError || new Error("Failed to generate signed URL");
 
-      // Update patient record
+      const photoUrl = signedData.signedUrl;
+
+      // Store the storage path (not signed URL) in patient record
       await updatePatient.mutateAsync({
         id: patientId,
-        data: { profile_photo_url: photoUrl },
+        data: { profile_photo_url: filePath },
       });
 
       toast({

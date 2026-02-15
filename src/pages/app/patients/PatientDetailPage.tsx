@@ -86,10 +86,14 @@ export function PatientDetailPage() {
   const isNative = Capacitor.isNativePlatform();
   const showMobileUI = isMobileScreen || isNative;
 
-  // Update local photo URL when patient data changes
+  // Update local photo URL when patient data changes - resolve signed URL
   useEffect(() => {
     if (patient?.profile_photo_url) {
-      setPhotoUrl(patient.profile_photo_url);
+      import("@/lib/storage-utils").then(({ getPatientPhotoSignedUrl }) => {
+        getPatientPhotoSignedUrl(patient.profile_photo_url).then((url) => {
+          if (url) setPhotoUrl(url);
+        });
+      });
     }
   }, [patient?.profile_photo_url]);
 
