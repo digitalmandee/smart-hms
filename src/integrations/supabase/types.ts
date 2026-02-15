@@ -413,6 +413,98 @@ export type Database = {
           },
         ]
       }
+      ai_conversations: {
+        Row: {
+          context_type: Database["public"]["Enums"]["ai_context_type"]
+          created_at: string
+          id: string
+          language: string
+          messages: Json
+          metadata: Json | null
+          organization_id: string
+          patient_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          context_type?: Database["public"]["Enums"]["ai_context_type"]
+          created_at?: string
+          id?: string
+          language?: string
+          messages?: Json
+          metadata?: Json | null
+          organization_id: string
+          patient_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          context_type?: Database["public"]["Enums"]["ai_context_type"]
+          created_at?: string
+          id?: string
+          language?: string
+          messages?: Json
+          metadata?: Json | null
+          organization_id?: string
+          patient_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_conversations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_conversations_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_suggestions_log: {
+        Row: {
+          accepted: boolean | null
+          accepted_by: string | null
+          conversation_id: string
+          created_at: string
+          id: string
+          suggestion_data: Json
+          suggestion_type: Database["public"]["Enums"]["ai_suggestion_type"]
+        }
+        Insert: {
+          accepted?: boolean | null
+          accepted_by?: string | null
+          conversation_id: string
+          created_at?: string
+          id?: string
+          suggestion_data?: Json
+          suggestion_type: Database["public"]["Enums"]["ai_suggestion_type"]
+        }
+        Update: {
+          accepted?: boolean | null
+          accepted_by?: string | null
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          suggestion_data?: Json
+          suggestion_type?: Database["public"]["Enums"]["ai_suggestion_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_suggestions_log_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "ai_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ambulance_alerts: {
         Row: {
           ambulance_id: string | null
@@ -19556,6 +19648,12 @@ export type Database = {
         | "transfer"
         | "referral"
         | "direct"
+      ai_context_type: "patient_intake" | "doctor_assist" | "general"
+      ai_suggestion_type:
+        | "diagnosis"
+        | "prescription"
+        | "lab_order"
+        | "soap_note"
       ambulance_status: "incoming" | "arrived" | "cancelled"
       anesthesia_type:
         | "general"
@@ -20056,6 +20154,13 @@ export const Constants = {
         "transfer",
         "referral",
         "direct",
+      ],
+      ai_context_type: ["patient_intake", "doctor_assist", "general"],
+      ai_suggestion_type: [
+        "diagnosis",
+        "prescription",
+        "lab_order",
+        "soap_note",
       ],
       ambulance_status: ["incoming", "arrived", "cancelled"],
       anesthesia_type: [
