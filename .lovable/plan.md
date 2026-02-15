@@ -1,293 +1,203 @@
 
-# KSA + UAE Multi-Country Readiness Plan
 
-## Overview
+# Complete Remaining Phases: KSA/UAE Multi-Country Readiness
 
-This plan makes the HMS and Tabeebi dynamically configurable per country (Pakistan, KSA, UAE). The super admin selects the country at the organization level, and everything -- currency, tax, language, ID formats, working days, regulatory labels -- adapts automatically. No code changes needed per deployment.
+## Status Summary
 
----
+Session 1 (DONE): Database columns added, `CountryConfigProvider`, `useCountryConfig()`, `countryPresets.ts`, dynamic `currency.ts`, and Super Admin country selection UI.
 
-## Phase 1: Country Configuration Foundation
-
-### 1.1 Database Schema Changes
-
-Add new columns to the `organizations` table to store country-specific configuration:
-
-```
-ALTER TABLE organizations ADD COLUMN IF NOT EXISTS currency_code TEXT DEFAULT 'PKR';
-ALTER TABLE organizations ADD COLUMN IF NOT EXISTS currency_symbol TEXT DEFAULT 'Rs.';
-ALTER TABLE organizations ADD COLUMN IF NOT EXISTS currency_locale TEXT DEFAULT 'en-PK';
-ALTER TABLE organizations ADD COLUMN IF NOT EXISTS tax_label TEXT DEFAULT 'GST';
-ALTER TABLE organizations ADD COLUMN IF NOT EXISTS national_id_label TEXT DEFAULT 'CNIC';
-ALTER TABLE organizations ADD COLUMN IF NOT EXISTS national_id_format TEXT DEFAULT 'XXXXX-XXXXXXX-X';
-ALTER TABLE organizations ADD COLUMN IF NOT EXISTS supported_languages TEXT[] DEFAULT ARRAY['en', 'ur'];
-ALTER TABLE organizations ADD COLUMN IF NOT EXISTS default_language TEXT DEFAULT 'en';
-ALTER TABLE organizations ADD COLUMN IF NOT EXISTS date_format TEXT DEFAULT 'DD/MM/YYYY';
-ALTER TABLE organizations ADD COLUMN IF NOT EXISTS fiscal_year_start TEXT DEFAULT '07';
-ALTER TABLE organizations ADD COLUMN IF NOT EXISTS e_invoicing_enabled BOOLEAN DEFAULT false;
-ALTER TABLE organizations ADD COLUMN IF NOT EXISTS e_invoicing_provider TEXT; -- 'zatca' for KSA, null for others
-ALTER TABLE organizations ADD COLUMN IF NOT EXISTS tax_registration_label TEXT DEFAULT 'NTN';
-ALTER TABLE organizations ADD COLUMN IF NOT EXISTS phone_country_code TEXT DEFAULT '+92';
-```
-
-### 1.2 Country Presets (applied on country selection)
-
-When the super admin selects a country, a preset fills all the above fields:
-
-| Field | Pakistan | KSA | UAE |
-|-------|----------|-----|-----|
-| currency_code | PKR | SAR | AED |
-| currency_symbol | Rs. | SAR | AED |
-| currency_locale | en-PK | ar-SA | ar-AE |
-| tax_label | GST | VAT | VAT |
-| default_tax_rate | 17 | 15 | 5 |
-| national_id_label | CNIC | Iqama / National ID | Emirates ID |
-| national_id_format | XXXXX-XXXXXXX-X | XXXXXXXXXX | 784-XXXX-XXXXXXX-X |
-| supported_languages | [en, ur] | [en, ar] | [en, ar] |
-| default_language | en | en | en |
-| working_days | Mon-Sat | Sun-Thu | Mon-Fri |
-| timezone | Asia/Karachi | Asia/Riyadh | Asia/Dubai |
-| fiscal_year_start | 07 (July) | 01 (January) | 01 (January) |
-| e_invoicing_enabled | false | true | false |
-| e_invoicing_provider | null | zatca | null |
-| tax_registration_label | NTN | VAT TIN | TRN |
-| phone_country_code | +92 | +966 | +971 |
+Remaining: Sessions 2, 3, and 4. Given the massive scope (~170+ files touched), this plan covers all three sessions but will implement in priority order within a single pass.
 
 ---
 
-## Phase 2: Dynamic Currency System
+## Session 2: Hardcoded Currency Fix + Patient Config + Cash Denominations
 
-### 2.1 Refactor `src/lib/currency.ts`
+### 2.1 Create a `useCurrencyFormatter` Hook
 
-Replace hardcoded "Rs." with a context-aware system:
+A convenience hook that reads from `useCountryConfig()` and returns pre-bound formatting functions, so components don't need to manually pass config every time.
 
-- Create a new hook `useCountryConfig()` that reads the organization's country settings from the `organizations` table
-- Expose a `CountryConfigProvider` React context at the app root
-- Refactor `formatCurrency()`, `formatCurrencyFull()`, `formatCurrencyCompact()`, `parseCurrency()` to accept config or read from context
-- For KSA: "SAR 1,500.00" (no Lakh/Crore -- use K/M/B)
-- For UAE: "AED 1,500.00" (same Western numbering)
-- For PK: Keep existing Rs. with Lakh/Crore system
+**New file: `src/hooks/useCurrencyFormatter.ts`**
 
-### 2.2 Fix Hardcoded "Rs." References
+Returns: `{ formatCurrency, formatCurrencyFull, formatCurrencyCompact, currencySymbol, currencyCode }`
 
-There are ~30 files with hardcoded `Rs.` strings (e.g., `CashDenominationInput.tsx`, `PrintablePaymentReceipt.tsx`, toast messages, landing pages). All will be updated to use `formatCurrency()` from context.
+### 2.2 Fix Hardcoded "Rs." in ~46 Component Files
 
-Cash denomination input (`CashDenominationInput.tsx`) will be made dynamic:
-- PK: 5000, 1000, 500, 100, 50, 20, 10 notes
-- KSA: 500, 200, 100, 50, 20, 10, 5, 1 Riyals
-- UAE: 1000, 500, 200, 100, 50, 20, 10, 5 Dirhams
+Replace all inline `Rs. ${amount}` patterns with `formatCurrency(amount)` using the new hook. Key files include:
 
----
+| Category | Files |
+|----------|-------|
+| Pharmacy POS | `POSCart.tsx`, `POSPaymentModal.tsx`, `POSReceipt.tsx`, `POSHeldTransactions.tsx` |
+| Billing | `PrintablePaymentReceipt.tsx`, `PrintableReceipt.tsx`, `PrintableInvoice.tsx`, `InvoiceTotals.tsx`, `CollectionsWidget.tsx`, `PatientBalanceCard.tsx`, `CloseSessionDialog.tsx`, `DailyClosingSummary.tsx`, `ExpenseEntryCard.tsx` |
+| HR/Payroll | `DoctorEarningsPage.tsx`, `TaxSlabsPage.tsx`, `PayrollPage.tsx`, `DoctorSettlementPage.tsx` |
+| Inventory | `ItemDetailPage.tsx`, `PurchaseOrderFormPage.tsx`, `GRNFormPage.tsx` |
+| OT/Surgery | `SurgeryFormPage.tsx` |
+| Billing Reports | `BillingReportsPage.tsx` |
+| Dashboard widgets | Various dashboard metric cards |
+| Landing page | `HeroSection.tsx` stat badges |
 
-## Phase 3: Tax Compliance
+For print templates (receipt, invoice), the hook can't be used directly (they're forwardRef). These will accept `currencySymbol` as a prop from the parent.
 
-### 3.1 VAT for KSA (15%)
+### 2.3 Dynamic Cash Denominations (`CashDenominationInput.tsx`)
 
-- Tax label throughout the app changes from "GST" to "VAT" dynamically based on `tax_label` field
-- Default tax rate set to 15% for KSA, 5% for UAE, 17% for PK
-- Tax registration number label: "NTN" (PK) vs "VAT TIN" (KSA) vs "TRN" (UAE)
+Replace the hardcoded PKR denomination array with country-aware denominations from `useCountryConfig().cash_denominations`. The denomination keys will be generated dynamically (e.g., `note_500`, `note_200`) instead of the current fixed `note_5000`...`note_10` structure.
 
-### 3.2 ZATCA E-Invoicing Readiness (KSA Only)
+Also update `useBillingSessions.ts` `CashDenominations` type and `calculateDenominationTotal` to work with dynamic denomination values.
 
-This is a significant sub-project. Phase 1 will lay the groundwork:
+### 2.4 Country-Aware Patient Config (`usePatientConfig.ts`)
 
-- Add `zatca_invoice_type` column to `invoices` table (standard / simplified)
-- Add `zatca_uuid`, `zatca_icv` (Invoice Counter Value), `zatca_pih` (Previous Invoice Hash) columns
-- Create a new edge function `zatca-einvoice` that:
-  - Generates UBL 2.1 XML from invoice data
-  - Creates TLV-encoded QR code (Base64) containing: seller name, VAT number, timestamp, total with VAT, VAT amount
-  - Signs the XML with the organization's cryptographic stamp (CSID) -- initially stored as a secret
-  - Reports/clears invoices with ZATCA sandbox API
-- Add QR code to printed invoices when `e_invoicing_enabled = true`
-- This will be implemented as a separate module that activates only for KSA organizations
+Add country-based default fallbacks when the database config tables are empty:
 
-### 3.3 UAE Compliance
+- **Cities**: KSA gets Riyadh, Jeddah, Makkah, Madinah, Dammam, etc. UAE gets Dubai, Abu Dhabi, Sharjah, Ajman, etc.
+- **Languages**: KSA/UAE get Arabic, English, Urdu, Hindi. UAE also gets Malayalam, Tagalog.
+- **Insurance Providers**: KSA gets Bupa Arabia, Tawuniya, MedGulf. UAE gets Daman, Oman Insurance, AXA Gulf.
 
-- UAE has no mandatory e-invoicing system yet (as of 2025), but the FTA (Federal Tax Authority) requires TRN on invoices
-- Ensure TRN is displayed on all receipts/invoices for UAE organizations
-- Support Dhareeba (Qatar-style) if UAE mandates e-invoicing in future -- the architecture supports plugging in new providers
+### 2.5 Patient Form Adaptations (`PatientFormPage.tsx`)
+
+- Change "CNIC / National ID" label to dynamic `national_id_label` from country config
+- Change placeholder from "XXXXX-XXXXXXX-X" to `national_id_format` from country config
+- Auto-prefix phone input with `phone_country_code`
+- Default nationality based on country (Pakistani / Saudi / Emirati)
 
 ---
 
-## Phase 4: Localization (Arabic RTL Support)
+## Session 3: Arabic RTL + Translation Infrastructure + Bilingual Receipts
 
-### 4.1 RTL Layout Support
+### 3.1 RTL Support Infrastructure
 
-- Add `dir` attribute to the root `<html>` element dynamically based on `default_language`
-- When Arabic is the selected UI language: `dir="rtl"`
-- Use Tailwind's RTL plugin (`rtl:` prefix) for layout-sensitive styles (margins, paddings, text alignment)
-- All Radix UI components already support RTL natively
+**New file: `src/lib/i18n/index.ts`** -- Lightweight translation engine:
+- Load translations from JSON objects (not files, to avoid async complexity)
+- `useTranslation()` hook returns `t('key')` function
+- Direction detection: `useDirection()` returns `'ltr'` or `'rtl'` based on `default_language`
 
-### 4.2 Arabic Translation Layer
+**Modify: `src/App.tsx`** -- Set `document.documentElement.dir` and `document.documentElement.lang` dynamically based on `default_language` from `CountryConfigProvider`.
 
-- Create `src/lib/i18n/` with translation files:
-  - `en.json` -- English (default, current strings)
-  - `ar.json` -- Arabic translations for all UI labels
-- Use a lightweight `useTranslation()` hook (no heavy i18n library needed)
-- Priority screens for Arabic translation:
-  - Patient registration form
-  - Billing / invoices / receipts
-  - Tabeebi chat interface (already supports Arabic)
-  - Print templates (receipts, prescriptions)
+**Modify: `tailwind.config.ts`** -- Ensure RTL plugin is conceptually supported (Tailwind v3 has built-in `rtl:` variant when `dir="rtl"` is on html element).
 
-### 4.3 Bilingual Receipts/Invoices
+### 3.2 Translation Files
 
-For KSA and UAE, receipts and invoices must show both Arabic and English:
-- Organization name in both languages
-- Line item descriptions in both languages (if available)
-- Legal footer in Arabic
-- Update `PrintablePaymentReceipt.tsx` and all print templates
+**New: `src/lib/i18n/translations/en.ts`** -- English strings for priority screens:
+- Common: Save, Cancel, Submit, Delete, Search, Loading, etc.
+- Patient form labels
+- Billing labels (Invoice, Receipt, Payment, Balance Due, etc.)
+- Navigation items
 
----
+**New: `src/lib/i18n/translations/ar.ts`** -- Arabic equivalents for all the above.
 
-## Phase 5: Country-Specific Patient Config
+Initial translation scope: ~150 strings covering patient registration, billing/invoices, navigation, and common actions. Not full app translation -- that's an ongoing effort.
 
-### 5.1 Dynamic Defaults in `usePatientConfig.ts`
+### 3.3 Bilingual Receipts/Invoices
 
-Replace hardcoded Pakistani cities/languages/insurance providers with country-aware defaults:
+**Modify: `PrintablePaymentReceipt.tsx`** and **`PrintableInvoice.tsx`**:
+- When country is SA or AE, render labels in both English and Arabic (e.g., "Invoice / فاتورة")
+- Add Arabic organization name field (new column `name_ar` on organizations table -- requires migration)
+- Legal footer in Arabic for KSA: VAT registration info
+- For UAE: TRN display on all invoices
 
-| Config | Pakistan | KSA | UAE |
-|--------|----------|-----|-----|
-| Cities | Lahore, Karachi, ... | Riyadh, Jeddah, Makkah, Madinah, Dammam | Dubai, Abu Dhabi, Sharjah, Ajman |
-| Languages | Urdu, English, Punjabi, ... | Arabic, English, Urdu, Hindi | Arabic, English, Hindi, Urdu, Malayalam, Tagalog |
-| Insurance | State Life, Jubilee, ... | Bupa Arabia, Tawuniya, MedGulf | Daman, Oman Insurance, AXA Gulf |
-| ID Label | CNIC | Iqama / National ID | Emirates ID |
-| ID Format | XXXXX-XXXXXXX-X | 10-digit number | 784-XXXX-XXXXXXX-X |
+**Database migration**: Add `name_ar` column to `organizations` table for Arabic name.
 
-### 5.2 Patient Form Adaptations
+### 3.4 Tax Label Dynamism
 
-- `PatientFormPage.tsx`: Change "CNIC / National ID" label dynamically
-- Change placeholder format based on country
-- Change nationality default based on country
-- Phone input: auto-prefix with country code
+All places showing "GST" or "Tax" will read from `countryConfig.tax_label` (already available). Files include:
+- `InvoiceTotals.tsx`
+- `PrintablePaymentReceipt.tsx`
+- `PrintableInvoice.tsx`
+- Various billing forms
 
 ---
 
-## Phase 6: Tabeebi Multi-Country Support
+## Session 4: ZATCA E-Invoicing + Tabeebi Country Context
 
-### 6.1 Edge Function Updates (`ai-assistant/index.ts`)
+### 4.1 ZATCA E-Invoicing Foundation (KSA Only)
 
-- Add country context to the system prompt so Tabeebi knows:
-  - Which medications are available in that country
-  - Local emergency numbers (999 PK, 997 KSA, 998/999 UAE)
-  - Local pharmacy brands and drug names
-  - Currency for any cost references
+**Database migration**: Add columns to `invoices` table:
+- `zatca_invoice_type` (TEXT, default 'simplified')
+- `zatca_uuid` (UUID)
+- `zatca_icv` (INTEGER -- Invoice Counter Value)
+- `zatca_pih` (TEXT -- Previous Invoice Hash)
+- `zatca_qr_code` (TEXT -- Base64 QR data)
+- `zatca_status` (TEXT -- 'pending', 'reported', 'cleared')
 
-### 6.2 Tabeebi Landing Page
+**New edge function: `supabase/functions/zatca-einvoice/index.ts`**:
+- Accepts invoice ID
+- Generates TLV-encoded QR code containing: seller name, VAT TIN, timestamp, total with VAT, VAT amount
+- Generates Base64 QR string and stores it on the invoice
+- Phase 1: QR generation only (no XML signing or ZATCA API integration -- that requires CSID certificates from ZATCA)
 
-- Update `TabeebiLandingPage.tsx` to show relevant languages based on country
-- For KSA/UAE: default to Arabic interface with English toggle
-- Voice consultation language options adapt to country's `supported_languages`
+**Modify: `PrintableInvoice.tsx`** and **`PrintablePaymentReceipt.tsx`**:
+- When `e_invoicing_enabled === true` and `zatca_qr_code` exists, render QR code on the printed receipt
+- Show VAT breakdown (15%) separately
 
----
+### 4.2 Tabeebi Country-Aware Prompts (`ai-assistant/index.ts`)
 
-## Phase 7: Super Admin Country Selection UI
+Enhance the system prompt with country context passed from the frontend:
+- Accept `country_code` in the request body
+- Append country-specific context to the system prompt:
+  - **KSA**: "Patient is in Saudi Arabia. Common OTC brands: Panadol, Adol, Brufen. Emergency: 997. Currency: SAR."
+  - **UAE**: "Patient is in UAE. Common OTC brands: Panadol, Adol. Emergency: 998/999. Currency: AED."
+  - **PK**: "Patient is in Pakistan. Common OTC brands: Panadol, Disprin. Emergency: 1166/115. Currency: PKR."
 
-### 7.1 New Settings Page Section
+**Modify: `src/hooks/useAIChat.ts`** -- Pass `country_code` from `useCountryConfig()` in the API request body.
 
-Add a "Country & Region" section to the organization settings (accessible only to super_admin):
+### 4.3 Tabeebi Landing Page (`TabeebiLandingPage.tsx`)
 
-- Country selector dropdown: Pakistan, Saudi Arabia, UAE
-- On selection: auto-fills all preset values (currency, tax, timezone, working days, etc.)
-- Allow manual override of individual fields after preset
-- Preview panel showing: "Currency: SAR, Tax: VAT 15%, ID: Iqama, Timezone: Asia/Riyadh"
-- Warning dialog: "Changing country will update currency, tax rates, and regional settings. Existing financial data will not be converted."
-
-### 7.2 Working Days Configuration
-
-- PK default: Monday-Saturday
-- KSA default: Sunday-Thursday (Friday-Saturday weekend)
-- UAE default: Monday-Friday (Saturday-Sunday weekend)
-- These are already stored in `working_days` column, just need proper defaults
-
----
-
-## Implementation Priority & Phasing
-
-Given the scope, implementation should be split into multiple sessions:
-
-**Session 1 (This Session):**
-1. Database migration -- add country config columns
-2. Country presets logic
-3. `useCountryConfig` hook + `CountryConfigProvider`
-4. Refactor `currency.ts` to be dynamic
-5. Super admin country selection UI
-
-**Session 2:**
-1. Fix all hardcoded "Rs." references (30 files)
-2. Dynamic cash denominations
-3. Patient config country defaults
-4. Patient form adaptations (ID label, format)
-
-**Session 3:**
-1. Arabic RTL support infrastructure
-2. Translation system (`i18n/`)
-3. Bilingual receipt/invoice templates
-
-**Session 4:**
-1. ZATCA e-invoicing edge function
-2. QR code generation for KSA invoices
-3. Tabeebi country-aware prompts
+- Default language selector shows only languages from `supported_languages` (e.g., KSA shows EN/AR, not UR)
+- Voice consultation language adapts accordingly
 
 ---
 
 ## Technical Details
 
-### Files to Create
+### Files to Create (7 new files)
 
 | File | Purpose |
 |------|---------|
-| `src/contexts/CountryConfigContext.tsx` | React context providing country config to all components |
-| `src/hooks/useCountryConfig.ts` | Hook to read organization's country settings |
-| `src/lib/countryPresets.ts` | Country preset definitions (PK, KSA, UAE) |
-| `src/lib/i18n/en.json` | English translations (Session 3) |
-| `src/lib/i18n/ar.json` | Arabic translations (Session 3) |
-| `src/lib/i18n/useTranslation.ts` | Lightweight translation hook (Session 3) |
-| `supabase/functions/zatca-einvoice/index.ts` | ZATCA XML generation + QR (Session 4) |
+| `src/hooks/useCurrencyFormatter.ts` | Convenience hook wrapping currency.ts with country config |
+| `src/lib/i18n/index.ts` | Translation engine + useTranslation hook + useDirection hook |
+| `src/lib/i18n/translations/en.ts` | English translation strings |
+| `src/lib/i18n/translations/ar.ts` | Arabic translation strings |
+| `supabase/functions/zatca-einvoice/index.ts` | ZATCA QR code generation for KSA invoices |
 
-### Files to Modify
+### Files to Modify (~50+ files)
 
 | File | Changes |
 |------|---------|
-| `src/lib/currency.ts` | Make all functions country-config-aware |
-| `src/hooks/usePatientConfig.ts` | Country-aware defaults for cities, languages, insurance |
-| `src/hooks/useBranchSettings.ts` | Read country from org, adjust timezone/working day defaults |
-| `src/hooks/useOrganizationDefaults.ts` | Include new country config fields |
-| `src/pages/app/patients/PatientFormPage.tsx` | Dynamic ID label, format, nationality |
-| `src/components/billing/CashDenominationInput.tsx` | Country-specific denominations |
-| `src/components/billing/PrintablePaymentReceipt.tsx` | Dynamic currency + bilingual support |
-| `src/pages/app/settings/BranchFormPage.tsx` | Auto-select timezone from country |
-| `supabase/functions/ai-assistant/index.ts` | Add country context to Tabeebi prompts |
-| ~30 files with hardcoded "Rs." | Replace with `formatCurrency()` |
+| `src/hooks/useBillingSessions.ts` | Dynamic CashDenominations type |
+| `src/components/billing/CashDenominationInput.tsx` | Country-aware denominations |
+| `src/hooks/usePatientConfig.ts` | Country-aware default fallbacks |
+| `src/pages/app/patients/PatientFormPage.tsx` | Dynamic ID label/format/phone prefix |
+| `src/components/billing/PrintablePaymentReceipt.tsx` | Dynamic currency + bilingual + QR |
+| `src/components/billing/PrintableInvoice.tsx` | Dynamic currency + bilingual + QR |
+| `src/components/billing/PrintableReceipt.tsx` | Dynamic currency |
+| `src/components/pharmacy/POSCart.tsx` | Replace Rs. with formatCurrency |
+| `src/components/pharmacy/POSPaymentModal.tsx` | Replace Rs. with formatCurrency |
+| `src/components/pharmacy/POSReceipt.tsx` | Replace Rs. with formatCurrency |
+| `src/components/pharmacy/POSHeldTransactions.tsx` | Replace Rs. with formatCurrency |
+| `src/pages/app/hr/payroll/DoctorEarningsPage.tsx` | Replace Rs. with formatCurrency |
+| `src/pages/app/hr/setup/TaxSlabsPage.tsx` | Replace Rs. with formatCurrency |
+| `src/pages/app/inventory/ItemDetailPage.tsx` | Replace Rs. with formatCurrency |
+| `src/pages/app/ot/SurgeryFormPage.tsx` | Replace Rs. with formatCurrency |
+| `src/pages/app/billing/BillingReportsPage.tsx` | Replace Rs. with formatCurrency |
+| `src/App.tsx` | Add RTL direction + lang attribute |
+| `supabase/functions/ai-assistant/index.ts` | Country context in prompts |
+| `src/hooks/useAIChat.ts` | Pass country_code to edge function |
+| `supabase/config.toml` | Add zatca-einvoice function config |
+| ~30 additional files with hardcoded Rs. | Replace with formatCurrency |
 
-### Database Migration SQL (Session 1)
+### Database Migrations
 
-```sql
-ALTER TABLE organizations 
-  ADD COLUMN IF NOT EXISTS currency_code TEXT DEFAULT 'PKR',
-  ADD COLUMN IF NOT EXISTS currency_symbol TEXT DEFAULT 'Rs.',
-  ADD COLUMN IF NOT EXISTS currency_locale TEXT DEFAULT 'en-PK',
-  ADD COLUMN IF NOT EXISTS tax_label TEXT DEFAULT 'GST',
-  ADD COLUMN IF NOT EXISTS national_id_label TEXT DEFAULT 'CNIC',
-  ADD COLUMN IF NOT EXISTS national_id_format TEXT DEFAULT 'XXXXX-XXXXXXX-X',
-  ADD COLUMN IF NOT EXISTS supported_languages TEXT[] DEFAULT ARRAY['en', 'ur'],
-  ADD COLUMN IF NOT EXISTS default_language TEXT DEFAULT 'en',
-  ADD COLUMN IF NOT EXISTS date_format TEXT DEFAULT 'DD/MM/YYYY',
-  ADD COLUMN IF NOT EXISTS fiscal_year_start TEXT DEFAULT '07',
-  ADD COLUMN IF NOT EXISTS e_invoicing_enabled BOOLEAN DEFAULT false,
-  ADD COLUMN IF NOT EXISTS e_invoicing_provider TEXT,
-  ADD COLUMN IF NOT EXISTS tax_registration_label TEXT DEFAULT 'NTN',
-  ADD COLUMN IF NOT EXISTS phone_country_code TEXT DEFAULT '+92';
-```
+1. Add `name_ar TEXT` to `organizations` table
+2. Add ZATCA columns to `invoices` table (`zatca_uuid`, `zatca_icv`, `zatca_pih`, `zatca_qr_code`, `zatca_status`, `zatca_invoice_type`)
 
-### CountryConfigProvider Architecture
+### Implementation Order
 
-```text
-App.tsx
-  |-- CountryConfigProvider (reads org country settings, provides to tree)
-        |-- All pages/components
-              |-- useCountryConfig() --> { currency, taxLabel, idLabel, ... }
-              |-- formatCurrency(amount) --> uses context automatically
-```
+Given the volume of changes, implementation will proceed in this order:
+1. `useCurrencyFormatter` hook (enables everything else)
+2. Fix hardcoded Rs. in billing/pharmacy components (highest user impact)
+3. Dynamic cash denominations
+4. Patient config country defaults + form adaptations
+5. i18n infrastructure + RTL support
+6. Arabic translations for priority screens
+7. Bilingual receipt templates + tax label dynamism
+8. ZATCA edge function + QR code on receipts
+9. Tabeebi country-aware prompts
 
-This ensures every component in the app can access country-specific settings without prop-drilling or hardcoded values.
