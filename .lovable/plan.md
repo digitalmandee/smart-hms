@@ -1,69 +1,113 @@
 
 
-## Fix Tabeebi Chat: Input Visibility, Layout, and History Saving
+## Improve Tabeebi AI: Smarter, More Human-like Medical Consultations
 
-### Problems Identified
+### Problems
 
-1. **Chat input disappears when conversation grows** -- The `PatientAIChat` component has a hardcoded height (`h-[700px]` or `h-[500px]`). When used in `TabeebiChatPage` with `className="flex-1 h-auto"`, the internal fixed height still applies and conflicts with the flex layout. On mobile browsers (especially Safari), as messages accumulate, the input area scrolls out of the visible viewport because the container overflows beyond the screen.
+1. **Repetitive generic questions** -- The AI asks the same checklist (location, duration, severity 1-10, aggravating factors, medical history, medications, allergies) for every patient regardless of symptoms. Real doctors adapt based on the complaint.
 
-2. **History is always empty** -- In `useAIChat.ts`, the `createConversation` function checks `if (!profile?.organization_id) return null`. Public Tabeebi users sign up through the public auth flow and do not have a profile row in the `profiles` table (which is for staff/org users). This means `profile` is always `null` for them, so conversations are never saved to the database. The `ChatHistoryDrawer` then finds nothing.
+2. **No patient profile awareness** -- The user's name, gender, and any known info from their auth profile is never sent to the AI, so it asks redundant questions like gender.
 
-3. **ChatHistoryDrawer doesn't actually load selected conversations** -- When a user taps a past conversation, the `onSelect` handler in `TabeebiChatPage` only does `window.location.hash = ""` instead of calling `loadConversation` on the chat component.
+3. **Too many questions before conclusion** -- The current prompt says "after 5-6 exchanges" but the max_tokens is only 256 during intake, which forces short one-question responses indefinitely. The AI has no way to know how many exchanges have occurred.
+
+4. **Lacks medical reasoning depth** -- Responses feel formulaic ("On a scale of 1-10...") rather than clinically thoughtful. Real doctors ask contextual follow-ups based on the specific complaint.
 
 ---
 
 ### Plan
 
-#### Step 1: Fix the layout so the input never disappears
+#### Step 1: Rewrite the system prompt to be clinically intelligent
 
-**File: `src/components/ai/PatientAIChat.tsx`**
+**File: `supabase/functions/ai-assistant/index.ts`**
 
-- Remove the hardcoded `h-[500px]` / `h-[700px]` from the container div
-- Change the container to use `h-full` so it fills whatever parent provides
-- This allows `TabeebiChatPage` (which sets `flex-1`) to control the height properly
-- The input area already uses `flex-shrink-0`, so it will stay pinned at the bottom
+Replace the rigid checklist-based prompt with a clinical reasoning prompt that:
 
-For the `AIChatPage` (desktop OPD usage), wrap the component in a container with a max height so it doesn't stretch infinitely on desktop.
+- Instructs the AI to adapt questions based on the specific complaint (not a fixed checklist)
+- Tells the AI the patient's name and gender upfront so it never asks those
+- Includes a message count in the system context so the AI knows when to wrap up (after 4-5 user messages, provide assessment)
+- Encourages symptom-specific follow-ups (e.g., for stomach pain: "Have you eaten anything unusual?" not "On a scale of 1-10...")
+- Removes the rigid "flow" checklist and replaces with clinical reasoning guidelines
+- Keeps the assessment format but triggers it earlier
 
-#### Step 2: Fix conversation saving for public (non-org) users
+#### Step 2: Pass user profile data to the AI
 
 **File: `src/hooks/useAIChat.ts`**
 
-- In `createConversation`, remove the hard requirement for `organization_id`
-- Instead, get the current user's ID directly from `supabase.auth.getUser()`
-- Insert the conversation with `user_id` (the `created_by` column) and set `organization_id` to `null` when the user has no org
-- This allows public Tabeebi users to have their conversations saved
+- Include the user's display name and gender (from auth metadata) in the `patient_context` sent to the edge function
 
-#### Step 3: Fix ChatHistoryDrawer to filter by current user and load conversations
+**File: `src/components/ai/PatientAIChat.tsx`**
 
-**File: `src/components/ai/ChatHistoryDrawer.tsx`**
+- Pull the user's name from auth session metadata and pass it as `patientContext`
 
-- Add a filter `.eq("created_by", userId)` so users only see their own past conversations (important since RLS may not be scoped per-user for this table)
+#### Step 3: Inject message count and profile into system context
 
-**File: `src/pages/public/TabeebiChatPage.tsx`**
+**File: `supabase/functions/ai-assistant/index.ts`**
 
-- Use a React `key` on `PatientAIChat` tied to a selected conversation ID to force re-mount when loading history
-- Pass the loaded conversation data to `PatientAIChat` via props so the `loadConversation` function in the hook is actually called
+- Add `message_count` to the system context so the AI knows how deep into the conversation it is
+- Inject patient name/gender into the system message so the AI never asks for them
+- Increase `max_tokens` for patient_intake from 256 to 512 (early exchanges) and keep 1024 for assessment phase
 
-#### Step 4: Fix AIChatPage (desktop) wrapper
+#### Step 4: Update Arabic and Urdu prompts similarly
 
-**File: `src/pages/app/ai/AIChatPage.tsx`**
+**File: `supabase/functions/ai-assistant/index.ts`**
 
-- Add an explicit height container (e.g., `h-[700px]`) around `PatientAIChat` so the desktop view retains its current bounded size
+- Mirror the English prompt improvements in the Arabic and Urdu system prompts
 
 ---
 
 ### Technical Details
 
-**Layout fix (PatientAIChat.tsx line 168-172):**
-- Current: `compact ? "h-[500px]" : "h-[700px]"`
-- New: `"h-full min-h-0"` -- uses full parent height, `min-h-0` allows flex children to shrink properly
+**New system prompt approach (English):**
 
-**History fix (useAIChat.ts line 42):**
-- Current: `if (!profile?.organization_id) return null`
-- New: Get user via `supabase.auth.getUser()`, use the user ID for `created_by`, and allow `organization_id` to be null
+```
+You are Dr. Tabeebi, a warm senior family physician (20yr experience).
+You ONLY answer medical/health questions.
 
-**Conversation loading (TabeebiChatPage.tsx):**
-- Add state for `activeConversationId` and pass it as the `key` prop to `PatientAIChat`
-- When a history item is selected, set the conversation state which triggers a re-mount with the loaded messages
+PATIENT INFO (do NOT ask for these):
+- Name: {name}
+- Gender: {gender}
+
+CONSULTATION STYLE:
+- Ask ONE focused question per turn. Be warm and empathetic.
+- Think like a real doctor: your follow-up questions should be specific
+  to the complaint, not a generic checklist.
+- For stomach pain: ask about food, bowel changes, nausea — not "rate 1-10"
+  unless pain severity is clinically relevant.
+- For fever: ask about duration, associated symptoms (cough, body aches,
+  rash), travel history, sick contacts.
+- NEVER repeat information the patient already provided.
+- NEVER ask gender or name.
+
+TIMING:
+- Current exchange count: {count}
+- After the patient has answered 4-5 questions, provide your Doctor's Assessment.
+- Do NOT keep asking indefinitely. Conclude with actionable advice.
+
+ASSESSMENT FORMAT:
+**Doctor's Assessment**
+**Most Likely**: [condition] — [plain explanation]
+**What I Recommend**:
+- **Medication**: [specific OTC with exact dose]
+- **Home Remedies**: [specific actions]
+**Red Flags — See a Doctor If**: [2-3 dangerous symptoms]
+**Next Steps**: [when/which specialist]
+```
+
+**Max tokens adjustment:**
+- Exchange count < 8: 512 tokens (enough for thoughtful questions)
+- Exchange count >= 8: 1024 tokens (enough for full assessment)
+
+**Patient context injection (useAIChat.ts):**
+```typescript
+// Get user metadata from auth session
+const userName = user.user_metadata?.full_name || "";
+const userGender = user.user_metadata?.gender || "";
+```
+
+**Edge function context building:**
+```typescript
+contextMessage += `\nPatient Name: ${patient_context?.name || "Unknown"}`;
+contextMessage += `\nPatient Gender: ${patient_context?.gender || "Not specified"}`;
+contextMessage += `\nExchange Count: ${messages.length}`;
+```
 
