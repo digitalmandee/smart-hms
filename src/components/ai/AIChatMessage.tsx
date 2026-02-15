@@ -8,6 +8,7 @@ interface AIChatMessageProps {
   role: "user" | "assistant" | "system";
   content: string;
   isStreaming?: boolean;
+  timestamp?: Date;
 }
 
 function formatMarkdown(text: string): string {
@@ -16,26 +17,20 @@ function formatMarkdown(text: string): string {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
 
-  // Bold
   html = html.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
-  // Italic (single * or _)
   html = html.replace(/(?<!\*)\*([^*]+?)\*(?!\*)/g, "<em>$1</em>");
   html = html.replace(/_(.+?)_/g, "<em class='text-muted-foreground text-xs'>$1</em>");
-  // Unordered lists
   html = html.replace(/^- (.+)$/gm, "<li>$1</li>");
   html = html.replace(/(<li>.*<\/li>\n?)+/g, (match) => `<ul class="list-disc pl-4 my-1.5 space-y-1">${match}</ul>`);
-  // Ordered lists
   html = html.replace(/^\d+\.\s(.+)$/gm, "<li>$1</li>");
-  // Headers
   html = html.replace(/^### (.+)$/gm, '<h4 class="font-semibold mt-3 mb-1">$1</h4>');
   html = html.replace(/^## (.+)$/gm, '<h3 class="font-semibold text-base mt-3 mb-1">$1</h3>');
-  // Line breaks
   html = html.replace(/\n/g, "<br/>");
 
   return html;
 }
 
-export function AIChatMessage({ role, content, isStreaming }: AIChatMessageProps) {
+export function AIChatMessage({ role, content, isStreaming, timestamp }: AIChatMessageProps) {
   const isUser = role === "user";
   const formattedContent = useMemo(() => {
     if (isUser) return null;
@@ -46,9 +41,14 @@ export function AIChatMessage({ role, content, isStreaming }: AIChatMessageProps
     });
   }, [content, isUser]);
 
+  const timeStr = timestamp
+    ? timestamp.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
+    : null;
+
   return (
     <div className={cn(
-      "flex gap-2.5 py-2.5 px-3 animate-fade-in",
+      "flex gap-2.5 py-2 px-3",
+      "animate-[slideUp_0.3s_ease-out]",
       isUser ? "flex-row-reverse" : "flex-row"
     )}>
       {/* Avatar */}
@@ -66,10 +66,10 @@ export function AIChatMessage({ role, content, isStreaming }: AIChatMessageProps
       )}
 
       {/* Message bubble */}
-      <div className={cn("flex flex-col gap-0.5 max-w-[82%]", isUser ? "items-end" : "items-start")}>
+      <div className={cn("flex flex-col gap-0.5 max-w-[85%]", isUser ? "items-end" : "items-start")}>
         <div
           className={cn(
-            "rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm",
+            "rounded-2xl px-4 py-3 text-[15px] leading-relaxed shadow-sm",
             isUser
               ? "bg-primary text-primary-foreground rounded-tr-md"
               : "bg-accent/50 text-foreground rounded-tl-md border border-border/30"
@@ -94,7 +94,17 @@ export function AIChatMessage({ role, content, isStreaming }: AIChatMessageProps
             <span className="inline-block w-0.5 h-4 bg-primary/60 animate-pulse ml-0.5 align-text-bottom" />
           )}
         </div>
+        {timeStr && (
+          <span className="text-[10px] text-muted-foreground/60 px-1">{timeStr}</span>
+        )}
       </div>
+
+      <style>{`
+        @keyframes slideUp {
+          from { opacity: 0; transform: translateY(8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </div>
   );
 }
