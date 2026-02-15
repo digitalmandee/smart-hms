@@ -26,6 +26,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/PageHeader";
 
 export default function ItemsListPage() {
+  const { formatCurrency } = useCurrencyFormatter();
   const [search, setSearch] = useState("");
   const [categoryId, setCategoryId] = useState<string>("all");
   const [showLowStock, setShowLowStock] = useState(false);

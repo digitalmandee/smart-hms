@@ -46,6 +46,7 @@ import { toast } from "sonner";
 export default function StockLevelsPage() {
   const navigate = useNavigate();
   const { profile } = useAuth();
+  const { formatCurrency } = useCurrencyFormatter();
   const { data: categories } = useAllCategories();
   const adjustStock = useAdjustStock();
 

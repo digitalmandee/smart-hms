@@ -44,6 +44,7 @@ import { usePrint } from "@/hooks/usePrint";
 export default function PODetailPage() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const { formatCurrency } = useCurrencyFormatter();
 
   const { data: po, isLoading } = usePurchaseOrder(id || "");
   const approveMutation = useApprovePurchaseOrder();

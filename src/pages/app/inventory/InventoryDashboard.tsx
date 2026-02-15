@@ -21,6 +21,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function InventoryDashboard() {
   const { profile } = useAuth();
+  const { formatCurrency } = useCurrencyFormatter();
   const [selectedStore, setSelectedStore] = useState<string>("all");
   const storeId = selectedStore === "all" ? undefined : selectedStore;
 

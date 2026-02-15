@@ -33,6 +33,7 @@ export default function VendorDetailPage() {
   const navigate = useNavigate();
   const { id } = useParams();
 
+  const { formatCurrency } = useCurrencyFormatter();
   const { data: vendor, isLoading } = useVendor(id || "");
   const { data: purchaseHistory } = useVendorPurchaseHistory(id || "");
 

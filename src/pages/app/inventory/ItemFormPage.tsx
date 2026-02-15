@@ -46,6 +46,7 @@ export default function ItemFormPage() {
   const navigate = useNavigate();
   const { id } = useParams();
   const isEdit = !!id;
+  const { currencySymbol } = useCurrencyFormatter();
 
   const { data: item, isLoading: itemLoading } = useInventoryItem(id || "");
   const { data: categories } = useAllCategories();

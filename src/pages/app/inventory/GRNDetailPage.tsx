@@ -31,6 +31,7 @@ import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 export default function GRNDetailPage() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const { formatCurrency } = useCurrencyFormatter();
 
   const { data: grn, isLoading } = useGRN(id || "");
   const verifyMutation = useVerifyGRN();
