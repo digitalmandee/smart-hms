@@ -84,7 +84,7 @@ export function ChatHistoryDrawer({ onSelect, onNewChat }: ChatHistoryDrawerProp
   return (
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>
-        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-primary-foreground hover:bg-white/15 rounded-full">
+        <Button variant="ghost" size="sm" className="h-9 w-9 p-0 text-muted-foreground hover:text-foreground rounded-full">
           <Clock className="h-3.5 w-3.5" />
         </Button>
       </DrawerTrigger>

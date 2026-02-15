@@ -277,12 +277,12 @@ export function PatientAIChat({
                 <p className="text-sm font-medium text-foreground">
                   {overlayStatusText}
                 </p>
-                {voice.voiceState === "listening" && (
+          {voice.voiceState === "listening" && (
                   <div className="flex items-center justify-center gap-1 mt-2">
                     {[0, 1, 2, 3, 4].map((i) => (
                       <div
                         key={i}
-                        className="w-1 bg-destructive/80 rounded-full"
+                        className="w-1 bg-primary/70 rounded-full"
                         style={{
                           animation: `voiceWave 0.6s ease-in-out ${i * 0.08}s infinite`,
                         }}
@@ -344,8 +344,8 @@ export function PatientAIChat({
                   onClick={handleMicToggle}
                   className={cn(
                     "shrink-0 h-10 w-10 rounded-full flex items-center justify-center transition-all active:scale-95",
-                    voice.voiceState === "listening" && "bg-destructive text-destructive-foreground scale-110 shadow-lg shadow-destructive/30",
-                    voice.voiceState === "speaking" && "bg-blue-500 text-white shadow-lg shadow-blue-500/30",
+                    voice.voiceState === "listening" && "bg-primary text-primary-foreground scale-110 shadow-lg shadow-primary/30",
+                    voice.voiceState === "speaking" && "bg-primary/80 text-primary-foreground shadow-lg shadow-primary/20",
                     voice.voiceState === "idle" && !isLoading && "bg-muted hover:bg-muted-foreground/20 text-muted-foreground",
                   )}
                   disabled={isLoading && voice.voiceState !== "speaking"}
@@ -374,7 +374,7 @@ export function PatientAIChat({
             {isLoading ? (
               <button
                 onClick={stopGeneration}
-                className="shrink-0 h-10 w-10 rounded-full flex items-center justify-center bg-destructive text-destructive-foreground active:scale-95 transition-transform"
+                className="shrink-0 h-10 w-10 rounded-full flex items-center justify-center bg-muted-foreground/20 text-foreground active:scale-95 transition-transform"
               >
                 <Square className="h-4 w-4" />
               </button>

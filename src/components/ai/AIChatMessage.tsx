@@ -41,20 +41,21 @@ export function AIChatMessage({ role, content, isStreaming, timestamp }: AIChatM
     });
   }, [content, isUser]);
 
-  const timeStr = timestamp
-    ? timestamp.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
-    : null;
+  const displayTime = useMemo(() => {
+    const t = timestamp || new Date();
+    return t.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  }, [timestamp]);
 
   return (
     <div className={cn(
       "flex gap-2.5 py-2 px-3",
-      "animate-[slideUp_0.3s_ease-out]",
+      "animate-fade-in",
       isUser ? "flex-row-reverse" : "flex-row"
     )}>
       {/* Avatar */}
       {isUser ? (
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm">
-          <User className="h-3.5 w-3.5" />
+        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm">
+          <User className="h-3 w-3" />
         </div>
       ) : (
         <div className="shrink-0 mt-0.5">
@@ -66,13 +67,13 @@ export function AIChatMessage({ role, content, isStreaming, timestamp }: AIChatM
       )}
 
       {/* Message bubble */}
-      <div className={cn("flex flex-col gap-0.5 max-w-[85%]", isUser ? "items-end" : "items-start")}>
+      <div className={cn("flex flex-col gap-0.5 max-w-[82%]", isUser ? "items-end" : "items-start")}>
         <div
           className={cn(
-            "rounded-2xl px-4 py-3 text-[15px] leading-relaxed shadow-sm",
+            "rounded-2xl px-4 py-2.5 text-[14px] leading-relaxed",
             isUser
-              ? "bg-primary text-primary-foreground rounded-tr-md"
-              : "bg-accent/50 text-foreground rounded-tl-md border border-border/30"
+              ? "bg-primary text-primary-foreground rounded-tr-sm"
+              : "bg-card text-foreground rounded-tl-sm border border-border/50 shadow-sm"
           )}
         >
           {isUser ? (
@@ -83,26 +84,41 @@ export function AIChatMessage({ role, content, isStreaming, timestamp }: AIChatM
               dangerouslySetInnerHTML={{ __html: formattedContent || "" }}
             />
           )}
+
+          {/* Thinking indicator — smooth breathing dots */}
           {isStreaming && !content && (
-            <div className="flex items-center gap-1.5 py-1">
-              <span className="h-2 w-2 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: "0ms" }} />
-              <span className="h-2 w-2 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: "150ms" }} />
-              <span className="h-2 w-2 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: "300ms" }} />
+            <div className="flex items-center gap-1.5 py-1.5">
+              {[0, 1, 2].map((i) => (
+                <span
+                  key={i}
+                  className="h-2 w-2 rounded-full bg-primary/50"
+                  style={{
+                    animation: `breathe 1.4s ease-in-out ${i * 0.2}s infinite`,
+                  }}
+                />
+              ))}
             </div>
           )}
+
+          {/* Streaming cursor */}
           {isStreaming && content && (
-            <span className="inline-block w-0.5 h-4 bg-primary/60 animate-pulse ml-0.5 align-text-bottom" />
+            <span
+              className="inline-block w-0.5 h-4 bg-primary/70 ml-0.5 align-text-bottom"
+              style={{ animation: "blink 1s steps(2) infinite" }}
+            />
           )}
         </div>
-        {timeStr && (
-          <span className="text-[10px] text-muted-foreground/60 px-1">{timeStr}</span>
-        )}
+        <span className="text-[10px] text-muted-foreground/50 px-1">{displayTime}</span>
       </div>
 
       <style>{`
-        @keyframes slideUp {
-          from { opacity: 0; transform: translateY(8px); }
-          to { opacity: 1; transform: translateY(0); }
+        @keyframes breathe {
+          0%, 100% { opacity: 0.3; transform: scale(0.85); }
+          50% { opacity: 1; transform: scale(1.1); }
+        }
+        @keyframes blink {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0; }
         }
       `}</style>
     </div>
