@@ -1,98 +1,64 @@
 
 
-## Tabeebi Chat: Premium UI/UX Redesign
+## Tabeebi Chat: Markdown Fix, Sidebar Toggle, Header Polish, and Typing Animation
 
-### Problems Identified
+### Issues to Fix
 
-1. **No desktop layout** -- Chat fills full screen width on desktop with no sidebar or max-width constraint, looks unprofessional
-2. **Header looks generic/AI** -- Plain teal gradient with tiny SVG avatar and small text, no visual hierarchy
-3. **Voice overlay is ugly** -- Red/destructive colors for waveforms, no proper animation during AI thinking/typing
-4. **Message bubbles are plain** -- No typing indicator animation that feels polished, orange/destructive mic button colors feel random
-5. **Input area lacks polish** -- Mic and send buttons use destructive/muted colors inconsistently
-6. **No thinking animation** -- When AI is processing, there is no engaging visual feedback beyond 3 bouncing dots
-
----
-
-### 1. Desktop Layout with Sidebar
-
-**TabeebiChatPage.tsx** -- Add responsive layout:
-- On desktop (md+): Show a left sidebar panel (280px) with user info, past consultations list, and new chat button
-- Chat area constrained to max-width 720px, centered, with subtle card shadow
-- On mobile: Keep current full-screen layout, no sidebar (use existing drawer for history)
-- Use `useIsMobile()` hook to toggle between layouts
-
-**Sidebar content (desktop only):**
-- User avatar + name at top
-- "New Consultation" button
-- List of past consultations (reuse ChatHistoryDrawer data logic inline)
-- Language toggle at bottom
-- Sign out link
+1. **Broken markdown rendering** -- The `formatMarkdown()` function fails on patterns like `**Most Likely Outcome**:` (renders as `Most Likely Outcome**:` with stray asterisks), numbered lists with `:` after bold text get split across lines showing "ri" fragments, and `Home Remedies &:` appears garbled
+2. **No sidebar collapse/toggle** -- Desktop sidebar has no way to collapse it
+3. **Header too plain** -- Icons are generic, "AI Medical Assistant" text still feels basic, no visual distinction
+4. **No typing/thinking animation in chat** -- When the bot is processing (before streaming starts), there is no visible "thinking" bubble in the message list
+5. **Max tokens too low for assessments** -- `max_tokens: 512` for intake with < 8 messages causes truncation on detailed assessments (the "Home Remedies &: ri" issue is truncation mid-word)
 
 ---
 
-### 2. Premium Header Redesign
+### 1. Fix Markdown Rendering (Root Cause of Garbled Text)
 
-**TabeebiChatPage.tsx header:**
-- Replace plain gradient with a clean white/light header with subtle bottom border
-- Doctor avatar (size "sm") on the left with name "Dr. Tabeebi" and a green "Online" dot
-- On mobile: keep action buttons (new chat, history drawer, profile) on the right
-- On desktop: move most actions to sidebar, header is minimal (just branding + profile)
-- Remove the generic "AI Medical Assistant" subtitle, replace with animated "Online" status
+**AIChatMessage.tsx** -- Rewrite `formatMarkdown()`:
+- The current regex `\*\*(.+?)\*\*/g` is non-greedy but fails when `**` appears next to `:` or on multi-line content
+- Fix: process line-by-line instead of whole-text regex to properly handle numbered lists (`1.`, `2.`), bold text with colons, and nested formatting
+- Add proper handling for numbered lists: wrap consecutive `<li>` from `\d+\.` in `<ol>` tags (currently no `<ol>` wrapper)
+- Handle edge case: `**Home Remedies &**:` where the colon is outside the bold markers
+- Add `ol` to DOMPurify ALLOWED_TAGS
 
----
+### 2. Fix Truncation (max_tokens too low)
 
-### 3. Voice Overlay Premium Redesign
+**supabase/functions/ai-assistant/index.ts**:
+- Change `maxTokens` for `patient_intake` from `512` (when < 8 messages) to `768`, and from `1024` to `1536` for assessments (>= 8 messages)
+- This prevents the AI response from being cut off mid-sentence ("Home Remedies &:\nri" is a truncated "Home Remedies & Lifestyle Tips:\n1. ...")
 
-**PatientAIChat.tsx voice overlay:**
-- Replace `bg-destructive/80` waveform bars with teal/primary colored bars
-- During listening: smooth teal waveform animation, pulsing teal glow around doctor avatar (not red)
-- During thinking/processing: subtle breathing animation on avatar with amber shimmer
-- During speaking: mouth animation on doctor + teal sound waves
-- Add a frosted glass effect (backdrop-blur-2xl with white/dark overlay)
-- Better close button placement (top-right, subtle)
+### 3. Add Sidebar Collapse Toggle
 
----
+**TabeebiChatPage.tsx**:
+- Add a `sidebarCollapsed` state (default: false)
+- When collapsed, sidebar shrinks to 60px showing only icons (new chat, history icon list, settings)
+- Add a toggle button (ChevronLeft/ChevronRight or PanelLeftClose/PanelLeftOpen icon) at the top of the sidebar
+- Smooth width transition with `transition-all duration-300`
 
-### 4. Typing/Thinking Animation
+### 4. Better Header
 
-**AIChatMessage.tsx:**
-- Replace 3 bouncing dots with a smoother "breathing" dot animation using opacity and scale
-- During streaming, show a subtle cursor blink (already exists but make it more visible)
-- Auto-generate timestamp for each message using `new Date()` at creation if not provided
+**TabeebiChatPage.tsx header**:
+- Remove the "Online" label duplication (green dot is enough)
+- On mobile, make icons slightly larger (h-4.5 w-4.5) with better spacing
+- Add a subtle bottom shadow instead of just border for depth
+- Replace generic Globe/Plus/Clock icons with more distinct styling (filled vs outline based on state)
 
----
+### 5. Thinking Bubble in Chat
 
-### 5. Input Bar Polish
-
-**PatientAIChat.tsx input area:**
-- Mic button: use primary/teal color scheme instead of destructive red when listening
-- When listening, mic button pulses teal (not red) to match brand
-- Send button: filled primary when active, soft muted when disabled
-- Remove the destructive stop button color, use muted/secondary instead
-- Add subtle typing animation hint text
-
----
-
-### 6. Color Consistency Fix
-
-Across all files, replace:
-- `bg-destructive` / `bg-red-500` on voice elements with `bg-primary` / teal variants
-- `shadow-destructive` with `shadow-primary`
-- Keep red only for actual errors/warnings, not for "listening" state
+**PatientAIChat.tsx**:
+- When `isLoading` is true and the last message is from the user (AI hasn't started streaming yet), render a temporary "thinking" `AIChatMessage` with `role="assistant"`, empty content, and `isStreaming={true}`
+- This shows the breathing dots animation in the chat while the AI processes
 
 ---
 
 ### Technical Details
 
-**Files to modify:**
-
 | File | Changes |
 |------|---------|
-| `src/pages/public/TabeebiChatPage.tsx` | Desktop sidebar layout with useIsMobile, clean header, move history to sidebar on desktop |
-| `src/components/ai/PatientAIChat.tsx` | Voice overlay redesign (teal not red), input bar polish, thinking animation |
-| `src/components/ai/AIChatMessage.tsx` | Better typing indicator, auto-timestamps |
-| `src/components/ai/DoctorAvatar.tsx` | Change listening state from red to primary/teal colors |
-| `src/components/ai/ChatHistoryDrawer.tsx` | Minor: only render drawer trigger on mobile |
+| `src/components/ai/AIChatMessage.tsx` | Rewrite `formatMarkdown()` to handle bold-with-colon, numbered lists with `<ol>`, line-by-line processing; add `ol` to DOMPurify tags |
+| `src/pages/public/TabeebiChatPage.tsx` | Add sidebar collapse toggle with icon-only mode, improve header shadow/spacing |
+| `src/components/ai/PatientAIChat.tsx` | Add thinking bubble when `isLoading` and last message is user |
+| `supabase/functions/ai-assistant/index.ts` | Increase max_tokens: 512 to 768 (early), 1024 to 1536 (assessment) |
 
-**No new dependencies needed.** Uses existing `useIsMobile` hook, existing color palette, existing components.
+No new dependencies needed.
 
