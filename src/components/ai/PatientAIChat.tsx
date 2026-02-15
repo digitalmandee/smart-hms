@@ -167,7 +167,7 @@ export function PatientAIChat({
     <TooltipProvider>
       <div className={cn(
         "flex flex-col bg-gradient-to-b from-background to-accent/10",
-        compact ? "h-[500px]" : "h-[700px]",
+        "h-full min-h-0",
         className
       )}>
         {/* Compact header */}

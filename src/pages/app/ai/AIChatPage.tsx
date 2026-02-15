@@ -22,7 +22,9 @@ export default function AIChatPage() {
             </p>
           </CardContent>
         </Card>
-        <PatientAIChat />
+        <div className="h-[700px]">
+          <PatientAIChat />
+        </div>
       </div>
     </div>
   );

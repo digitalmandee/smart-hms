@@ -27,12 +27,16 @@ export function ChatHistoryDrawer({ onSelect }: ChatHistoryDrawerProps) {
   useEffect(() => {
     if (!open) return;
     setLoading(true);
-    supabase
-      .from("ai_conversations")
-      .select("id, created_at, updated_at, messages, context_type")
-      .order("updated_at", { ascending: false })
-      .limit(20)
-      .then(({ data }) => {
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { setLoading(false); return; }
+      supabase
+        .from("ai_conversations")
+        .select("id, created_at, updated_at, messages, context_type")
+        .eq("user_id", user.id)
+        .order("updated_at", { ascending: false })
+        .limit(20)
+        .then(({ data }) => {
         if (data) {
           setConversations(
             data
@@ -48,6 +52,7 @@ export function ChatHistoryDrawer({ onSelect }: ChatHistoryDrawerProps) {
         }
         setLoading(false);
       });
+    })();
   }, [open]);
 
   const getSnippet = (msgs: ChatMessage[]) => {
