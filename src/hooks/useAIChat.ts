@@ -58,6 +58,8 @@ export function useAIChat(options: UseAIChatOptions = {}) {
 
       const userMessage: ChatMessage = { role: "user", content: content.trim() };
       const updatedMessages = [...messages, userMessage];
+      // Filter out hardcoded initial greeting — AI already knows its persona from system prompt
+      const messagesForAPI = updatedMessages.filter((m, i) => !(i === 0 && m.role === "assistant" && initialGreeting && m.content === initialGreeting));
       setMessages(updatedMessages);
       setIsLoading(true);
 
@@ -91,7 +93,7 @@ export function useAIChat(options: UseAIChatOptions = {}) {
             },
             body: JSON.stringify({
               mode,
-              messages: updatedMessages,
+              messages: messagesForAPI,
               patient_context: patientContext,
               language,
               conversation_id: convId,
