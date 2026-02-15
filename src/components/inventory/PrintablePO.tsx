@@ -5,10 +5,12 @@ import { format } from "date-fns";
 interface PrintablePOProps {
   po: PurchaseOrder;
   organizationName?: string;
+  currencySymbol?: string;
 }
 
 export const PrintablePO = forwardRef<HTMLDivElement, PrintablePOProps>(
-  ({ po, organizationName = "Hospital" }, ref) => {
+  ({ po, organizationName = "Hospital", currencySymbol = "Rs." }, ref) => {
+    const fc = (amount: number) => `${currencySymbol} ${amount.toLocaleString()}`;
     const subtotal = po.items?.reduce((sum, item) => {
       const itemSubtotal = item.quantity * item.unit_price;
       const discount = itemSubtotal * (item.discount_percent / 100);
@@ -74,10 +76,10 @@ export const PrintablePO = forwardRef<HTMLDivElement, PrintablePOProps>(
                   </div>
                 </td>
                 <td className="text-center py-2 text-sm">{item.quantity} {item.item?.unit_of_measure}</td>
-                <td className="text-right py-2 text-sm">Rs. {item.unit_price.toLocaleString()}</td>
+                <td className="text-right py-2 text-sm">{fc(item.unit_price)}</td>
                 <td className="text-center py-2 text-sm">{item.tax_percent}%</td>
                 <td className="text-center py-2 text-sm">{item.discount_percent}%</td>
-                <td className="text-right py-2 text-sm">Rs. {item.total_price.toLocaleString()}</td>
+                <td className="text-right py-2 text-sm">{fc(item.total_price)}</td>
               </tr>
             ))}
           </tbody>
@@ -88,19 +90,19 @@ export const PrintablePO = forwardRef<HTMLDivElement, PrintablePOProps>(
           <div className="w-64">
             <div className="flex justify-between py-1 text-sm">
               <span>Subtotal:</span>
-              <span>Rs. {subtotal.toLocaleString()}</span>
+              <span>{fc(subtotal)}</span>
             </div>
             <div className="flex justify-between py-1 text-sm">
               <span>Tax:</span>
-              <span>Rs. {po.tax_amount.toLocaleString()}</span>
+              <span>{fc(po.tax_amount)}</span>
             </div>
             <div className="flex justify-between py-1 text-sm">
               <span>Discount:</span>
-              <span>Rs. {po.discount_amount.toLocaleString()}</span>
+              <span>{fc(po.discount_amount)}</span>
             </div>
             <div className="flex justify-between py-2 font-bold border-t">
               <span>Grand Total:</span>
-              <span>Rs. {po.total_amount.toLocaleString()}</span>
+              <span>{fc(po.total_amount)}</span>
             </div>
           </div>
         </div>

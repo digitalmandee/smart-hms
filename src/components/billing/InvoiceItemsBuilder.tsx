@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -45,6 +46,7 @@ export function InvoiceItemsBuilder({
   onChange,
   disabled,
 }: InvoiceItemsBuilderProps) {
+  const { formatCurrency: fc } = useCurrencyFormatter();
   const { data: serviceTypes } = useServiceTypes();
   const { data: categories } = useServiceCategories();
   const { data: beds } = useBeds();
@@ -236,10 +238,10 @@ export function InvoiceItemsBuilder({
                   </div>
                 </TableCell>
                 <TableCell className="text-right">{item.quantity}</TableCell>
-                <TableCell className="text-right">Rs. {item.unit_price.toFixed(2)}</TableCell>
+                <TableCell className="text-right">{fc(item.unit_price)}</TableCell>
                 <TableCell className="text-right">{item.discount_percent || 0}%</TableCell>
                 <TableCell className="text-right font-medium">
-                  Rs. {calculateItemTotal(item).toFixed(2)}
+                  {fc(calculateItemTotal(item))}
                 </TableCell>
                 <TableCell>
                   <Button
@@ -329,7 +331,7 @@ export function InvoiceItemsBuilder({
                               <div className="flex-1 flex justify-between items-center">
                                 <span>{service.name}</span>
                                 <span className="text-muted-foreground text-sm">
-                                  Rs. {service.default_price?.toLocaleString()}
+                                  {fc(service.default_price)}
                                 </span>
                               </div>
                             </CommandItem>

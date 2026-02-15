@@ -26,6 +26,7 @@ import { SurgeryCharges, SurgeonFeeTemplate, templateToSurgeryCharges, calculate
 import { useCheckRoomAvailability, useCheckDoctorAvailability } from "@/hooks/useCheckAvailability";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 
 export default function SurgeryFormPage() {
   const navigate = useNavigate();
@@ -223,7 +224,7 @@ export default function SurgeryFormPage() {
           }
         }
 
-        toast.success(`Surgery scheduled with Rs. ${totalOTCharges.toLocaleString()} added to admission bill`);
+        toast.success(`Surgery scheduled with ${formatCurrency(totalOTCharges)} added to admission bill`);
       }
 
       navigate("/app/ot/schedule");
@@ -561,7 +562,7 @@ export default function SurgeryFormPage() {
                   <div className="text-center">
                     <p className="text-sm text-muted-foreground">Total OT Charges</p>
                     <p className="text-2xl font-bold text-primary">
-                      Rs. {totalOTCharges.toLocaleString()}
+                      {formatCurrency(totalOTCharges)}
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
                       Will be added to admission bill

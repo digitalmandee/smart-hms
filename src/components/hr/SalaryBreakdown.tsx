@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import { formatCurrency } from "@/lib/currency";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 
 interface SalaryComponent {
   name: string;
@@ -24,6 +24,7 @@ export function SalaryBreakdown({
   showCard = true,
   compact = false,
 }: SalaryBreakdownProps) {
+  const { formatCurrency } = useCurrencyFormatter();
   const earnings = components.filter((c) => c.type === "earning");
   const deductions = components.filter((c) => c.type === "deduction");
 

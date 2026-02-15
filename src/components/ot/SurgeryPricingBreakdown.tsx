@@ -13,6 +13,7 @@ import {
   Calculator 
 } from "lucide-react";
 import { SurgeryCharges, calculateSurgeryChargesTotal } from "@/hooks/useSurgeonFeeTemplates";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 
 interface SurgeryPricingBreakdownProps {
   charges: SurgeryCharges;
@@ -27,6 +28,7 @@ export function SurgeryPricingBreakdown({
   disabled = false,
   showTotal = true,
 }: SurgeryPricingBreakdownProps) {
+  const { formatCurrency, currencySymbol } = useCurrencyFormatter();
   const handleChange = (field: keyof Omit<SurgeryCharges, "total">, value: number) => {
     const newCharges = { ...charges, [field]: value };
     newCharges.total = calculateSurgeryChargesTotal(newCharges);
@@ -97,7 +99,7 @@ export function SurgeryPricingBreakdown({
               </Label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
-                  Rs.
+                  {currencySymbol}
                 </span>
                 <Input
                   type="number"
@@ -120,7 +122,7 @@ export function SurgeryPricingBreakdown({
             <div className="flex items-center justify-between bg-muted/50 rounded-lg p-3">
               <span className="font-medium">Total Surgery Cost</span>
               <Badge variant="default" className="text-lg px-3 py-1">
-                Rs. {total.toLocaleString()}
+                {formatCurrency(total)}
               </Badge>
             </div>
           </>

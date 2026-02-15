@@ -1,6 +1,6 @@
 import { forwardRef } from "react";
 import { format } from "date-fns";
-import { formatCurrency } from "@/lib/currency";
+import { formatCurrency as formatCurrencyDefault } from "@/lib/currency";
 
 interface AdmissionSlipPrintProps {
   admission: {
@@ -38,10 +38,12 @@ interface AdmissionSlipPrintProps {
   };
   organizationName?: string;
   branchName?: string;
+  currencySymbol?: string;
 }
 
 export const AdmissionSlipPrint = forwardRef<HTMLDivElement, AdmissionSlipPrintProps>(
-  ({ admission, organizationName = "Hospital", branchName }, ref) => {
+  ({ admission, organizationName = "Hospital", branchName, currencySymbol }, ref) => {
+    const fc = (amount: number) => currencySymbol ? `${currencySymbol} ${amount.toLocaleString()}` : formatCurrencyDefault(amount);
     const patient = admission.patient;
     const patientAge = patient?.date_of_birth
       ? Math.floor(
@@ -163,7 +165,7 @@ export const AdmissionSlipPrint = forwardRef<HTMLDivElement, AdmissionSlipPrintP
           <div className="text-sm">
             <p className="text-lg font-bold">
               <strong>Deposit Collected:</strong>{" "}
-              {formatCurrency(admission.deposit_amount || 0)}
+              {fc(admission.deposit_amount || 0)}
             </p>
           </div>
         </div>

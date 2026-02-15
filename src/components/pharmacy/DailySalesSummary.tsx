@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -131,7 +132,7 @@ export function DailySalesSummary() {
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-primary/10 rounded-lg p-3 text-center">
             <p className="text-2xl font-bold text-primary">
-              Rs. {(data?.total_sales || 0).toLocaleString()}
+              {formatCurrency(data?.total_sales || 0)}
             </p>
             <p className="text-xs text-muted-foreground">Total Revenue</p>
           </div>
@@ -147,7 +148,7 @@ export function DailySalesSummary() {
             <Banknote className="h-4 w-4 text-green-600" />
             <div>
               <p className="text-sm font-medium">
-                Rs. {(data?.cash_sales || 0).toLocaleString()}
+                {formatCurrency(data?.cash_sales || 0)}
               </p>
               <p className="text-[10px] text-muted-foreground">Cash</p>
             </div>
@@ -156,7 +157,7 @@ export function DailySalesSummary() {
             <CreditCard className="h-4 w-4 text-blue-600" />
             <div>
               <p className="text-sm font-medium">
-                Rs. {(data?.card_sales || 0).toLocaleString()}
+                {formatCurrency(data?.card_sales || 0)}
               </p>
               <p className="text-[10px] text-muted-foreground">Card</p>
             </div>

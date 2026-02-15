@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -73,7 +74,7 @@ export default function InventoryDashboard() {
             <StatsCard title="Total Items" value={stats?.totalItems || 0} icon={Package} description="Active inventory items" />
             <StatsCard title="Low Stock Items" value={stats?.lowStockCount || 0} icon={AlertTriangle} description="Below reorder level" />
             <StatsCard title="Pending POs" value={stats?.pendingPOs || 0} icon={ClipboardPen} description="Awaiting approval" />
-            <StatsCard title="Inventory Value" value={`Rs. ${((stats?.totalValue || 0) / 1000).toFixed(0)}K`} icon={BarChart3} description="Total stock value" />
+            <StatsCard title="Inventory Value" value={formatCurrency((stats?.totalValue || 0))} icon={BarChart3} description="Total stock value" />
           </>
         )}
       </div>
@@ -179,7 +180,7 @@ export default function InventoryDashboard() {
                     </div>
                     <div className="text-right">
                       <POStatusBadge status={po.status} />
-                      <p className="text-xs text-muted-foreground mt-1">Rs. {po.total_amount.toLocaleString()}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{formatCurrency(po.total_amount)}</p>
                     </div>
                   </Link>
                 ))}

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -261,11 +262,11 @@ export function ServiceEditDialog({
                       <div className="flex-1 space-y-1">
                         <div className="flex items-center gap-2">
                           <Badge variant="outline" className="font-mono">
-                            Rs. {entry.old_price?.toLocaleString() || "0"}
+                            {formatCurrency(entry.old_price || 0)}
                           </Badge>
                           <span className="text-muted-foreground">→</span>
                           <Badge variant="secondary" className="font-mono">
-                            Rs. {entry.new_price.toLocaleString()}
+                            {formatCurrency(entry.new_price)}
                           </Badge>
                         </div>
                         <div className="text-sm text-muted-foreground">

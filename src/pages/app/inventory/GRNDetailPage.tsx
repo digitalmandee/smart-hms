@@ -26,6 +26,7 @@ import { useGRN, useVerifyGRN, usePostGRN } from "@/hooks/useGRN";
 import { usePrint } from "@/hooks/usePrint";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 
 export default function GRNDetailPage() {
   const navigate = useNavigate();
@@ -224,14 +225,14 @@ export default function GRNDetailPage() {
                 <p className="text-sm text-muted-foreground">Invoice Amount</p>
                 <p className="font-medium">
                   {grn.invoice_amount
-                    ? `Rs. ${grn.invoice_amount.toLocaleString()}`
+                    ? formatCurrency(grn.invoice_amount)
                     : "—"}
                 </p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Total Value</p>
                 <p className="font-medium text-lg">
-                  Rs. {totalAmount.toLocaleString()}
+                  {formatCurrency(totalAmount)}
                 </p>
               </div>
             </div>
@@ -284,10 +285,10 @@ export default function GRNDetailPage() {
                       : "—"}
                   </TableCell>
                   <TableCell className="text-right">
-                    Rs. {item.unit_cost?.toLocaleString()}
+                    {formatCurrency(item.unit_cost)}
                   </TableCell>
                   <TableCell className="text-right font-medium">
-                    Rs. {((item.quantity_accepted || 0) * (item.unit_cost || 0)).toLocaleString()}
+                    {formatCurrency((item.quantity_accepted || 0) * (item.unit_cost || 0))}
                   </TableCell>
                 </TableRow>
               ))}
