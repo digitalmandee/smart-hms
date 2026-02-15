@@ -1,6 +1,7 @@
 import { User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMemo } from "react";
+import DOMPurify from "dompurify";
 import { DoctorAvatar } from "./DoctorAvatar";
 
 interface AIChatMessageProps {
@@ -36,7 +37,14 @@ function formatMarkdown(text: string): string {
 
 export function AIChatMessage({ role, content, isStreaming }: AIChatMessageProps) {
   const isUser = role === "user";
-  const formattedContent = useMemo(() => (isUser ? null : formatMarkdown(content)), [content, isUser]);
+  const formattedContent = useMemo(() => {
+    if (isUser) return null;
+    const rawHtml = formatMarkdown(content);
+    return DOMPurify.sanitize(rawHtml, {
+      ALLOWED_TAGS: ['strong', 'em', 'ul', 'li', 'h3', 'h4', 'br'],
+      ALLOWED_ATTR: ['class', 'style'],
+    });
+  }, [content, isUser]);
 
   return (
     <div className={cn(

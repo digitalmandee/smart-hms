@@ -79,24 +79,28 @@ Deno.serve(async (req) => {
       auth: { autoRefreshToken: false, persistSession: false },
     });
 
-    // Verify caller has admin permissions
-    const userClient = createClient(supabaseUrl, supabaseServiceKey, {
+    // Verify caller has admin permissions using anon key client
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const userClient = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } },
     });
     
-    const { data: { user: callerUser }, error: authError } = await userClient.auth.getUser();
-    if (authError || !callerUser) {
+    const token = authHeader.replace(/^Bearer\s+/i, "");
+    const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
       return new Response(
         JSON.stringify({ success: false, error: "Unauthorized" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
+    const callerId = claimsData.claims.sub;
+
     // Check caller is org_admin or super_admin
     const { data: callerRoles } = await supabaseAdmin
       .from("user_roles")
       .select("role")
-      .eq("user_id", callerUser.id);
+      .eq("user_id", callerId);
     
     const isAdmin = callerRoles?.some(r => 
       r.role === "super_admin" || r.role === "org_admin" || r.role === "branch_admin"

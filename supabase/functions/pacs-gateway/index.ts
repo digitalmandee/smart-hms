@@ -274,24 +274,37 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
-    // Try to get organization ID from auth header
+    // Authentication: require JWT for all endpoints
     let organizationId: string | null = null;
     const authHeader = req.headers.get('Authorization');
     
-    if (authHeader) {
-      const token = authHeader.replace('Bearer ', '');
-      const { data: { user } } = await supabase.auth.getUser(token);
-      
-      if (user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('organization_id')
-          .eq('id', user.id)
-          .single();
-        
-        organizationId = profile?.organization_id || null;
-      }
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
+
+    const token = authHeader.replace('Bearer ', '');
+    const authClient = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: claimsData, error: claimsError } = await authClient.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const userId = claimsData.claims.sub;
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('organization_id')
+      .eq('id', userId)
+      .single();
+    
+    organizationId = profile?.organization_id || null;
     
     // Try to get config from database first, then fall back to env vars
     let config: PACSConfig | null = null;
