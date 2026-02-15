@@ -79,21 +79,16 @@ export function PatientAIChat({
     [voiceModeActive, voice]
   );
 
-  const { messages, isLoading, sendMessage, stopGeneration, clearChat, loadConversation } = useAIChat({
+  const { messages, isLoading, sendMessage, stopGeneration, clearChat } = useAIChat({
     mode,
     language,
     patientContext,
     onConversationCreated,
     onAssistantResponse: handleAssistantResponse,
-    initialGreeting: GREETINGS[language],
+    initialGreeting: initialConversationId ? undefined : GREETINGS[language],
+    initialConversationId,
+    initialMessages,
   });
-
-  // Load conversation from history on mount
-  useEffect(() => {
-    if (initialConversationId && initialMessages) {
-      loadConversation(initialConversationId, initialMessages);
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const isRTL = language === "ar" || language === "ur";
 

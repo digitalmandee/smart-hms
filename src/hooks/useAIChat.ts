@@ -15,23 +15,25 @@ interface UseAIChatOptions {
   onConversationCreated?: (id: string) => void;
   onAssistantResponse?: (content: string) => void;
   initialGreeting?: string;
+  initialConversationId?: string;
+  initialMessages?: ChatMessage[];
 }
 
 export function useAIChat(options: UseAIChatOptions = {}) {
-  const { mode = "general", language = "en", patientContext, onConversationCreated, onAssistantResponse, initialGreeting } = options;
+  const { mode = "general", language = "en", patientContext, onConversationCreated, onAssistantResponse, initialGreeting, initialConversationId, initialMessages } = options;
   const { profile } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>(
-    initialGreeting ? [{ role: "assistant", content: initialGreeting }] : []
+    initialMessages || (initialGreeting ? [{ role: "assistant", content: initialGreeting }] : [])
   );
 
   // React to initialGreeting changes (e.g. language switch) — only if no real conversation yet
   useEffect(() => {
-    if (initialGreeting && messages.length <= 1 && !conversationId) {
+    if (initialGreeting && messages.length <= 1 && !conversationId && !initialConversationId) {
       setMessages([{ role: "assistant", content: initialGreeting }]);
     }
   }, [initialGreeting]);
   const [isLoading, setIsLoading] = useState(false);
-  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [conversationId, setConversationId] = useState<string | null>(initialConversationId || null);
   const abortRef = useRef<AbortController | null>(null);
 
   const createConversation = useCallback(async () => {
