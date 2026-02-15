@@ -1,181 +1,97 @@
 
 
-# Tabeebi Overhaul + Consultation History Mobile Fix
+# Reduce Tabeebi Token Usage by ~50%
 
-This plan addresses two things: (1) the approved Tabeebi improvements (human-like AI, realistic avatar, speaking UI, voice overlay) and (2) making the consultation history page more mobile-app-friendly.
+## Problem
 
----
+Every API call sends the full system prompt (~800 tokens) plus the entire conversation history. After 6 exchanges, the cumulative input tokens are around 8,500-10,000. This can be cut roughly in half.
 
-## Part 1: Deep Medical AI Prompt Rewrite
+## Optimizations
+
+### 1. Compress the System Prompt (save ~400 tokens per call)
 
 **File: `supabase/functions/ai-assistant/index.ts`**
 
-The current `patient_intake` prompt produces a dry "Pre-Visit Summary" after questions. The rewrite will make Tabeebi behave like a senior family physician who:
+The current `patient_intake` system prompt is verbose with repeated examples and formatting templates. Rewrite it to be more concise while keeping the same behavior:
 
-- Skips questions the patient already answered (no repetition)
-- After 5-6 exchanges, provides a **Doctor's Assessment** instead of just a summary:
-  - Most likely condition(s) with empathetic explanation
-  - Specific OTC medications with dosages (e.g., "Paracetamol 500mg every 6 hours")
-  - Home remedies and lifestyle advice
-  - Red flags requiring ER/urgent care
-  - When to see a doctor in person and what type of specialist
-  - Warm, caring closing
-- Uses natural human phrases ("I understand that must be uncomfortable", "Based on what you've told me...")
-- Keeps the medical guardrails and disclaimers
+- Remove redundant phrasing (e.g., the assessment template has both instructions AND a full example -- keep just the template)
+- Merge the medical guardrail into the main prompt instead of appending it as a separate block
+- Use shorthand for the question flow (single line per step instead of multi-line)
+- Target: ~400 tokens instead of ~800
 
----
+### 2. Trim Conversation History (save ~30-40% on later messages)
 
-## Part 2: Realistic Doctor Avatar
+**File: `supabase/functions/ai-assistant/index.ts`**
 
-**File: `src/components/ai/DoctorAvatar.tsx`**
+Instead of sending ALL messages to DeepSeek, implement a sliding window:
 
-Replace the current abstract cartoon SVG with a more detailed, photorealistic-style illustrated doctor:
+- Always send the system prompt + first user message (chief complaint context)
+- Send only the last 4 message pairs (8 messages) of conversation history
+- This caps the growing history and prevents ballooning costs on longer consultations
+- For a typical 5-6 exchange consultation, this has no effect (all messages fit). But it prevents runaway costs if users chat longer.
 
-- Realistic face with skin tone, gentle expression, glasses, detailed white coat
-- Proper size system:
-  - `xs` (32px) -- for chat bubble inline avatars (face only, no rings/waves)
-  - `sm` (48px) -- for chat header
-  - `md` (80px) -- for consultation start card
-  - `lg` (120px) -- for landing/loading screens
-- Expressive states: blinking eyes (idle), widened eyes (listening), mouth animation (speaking), pulsing glow (thinking)
-- Remove the oversized ring/pulse decorations at small sizes
+### 3. Lower max_tokens for Question Phase
 
----
+**File: `supabase/functions/ai-assistant/index.ts`**
 
-## Part 3: Voice Overlay UI
+During the question phase (messages count < 10), the AI only needs to ask 1-3 sentences. Set `max_tokens: 256` for early exchanges, and only increase to `1024` when the conversation is long enough for the assessment phase.
 
-**File: `src/components/ai/PatientAIChat.tsx`**
+This prevents the model from generating unnecessarily long responses during Q&A.
 
-Integrate VoiceOrb as a floating overlay when voice mode is active:
+### 4. Skip Sending the Initial Greeting Message
 
-- When user taps mic: semi-transparent overlay slides up with VoiceOrb centered
-- Shows real-time transcript below the orb
-- "Listening..." / "Speaking..." label
-- Tap orb or background to dismiss
-- When AI responds in voice mode: overlay shows speaking waveform
-- Remove the Card wrapper for edge-to-edge mobile layout
-- Add subtle gradient background to chat area
+**File: `src/hooks/useAIChat.ts`**
+
+The initial greeting ("Hello! I'm Tabeebi...") is a client-side hardcoded message. Currently it gets included in the `messages` array sent to the API. Filter it out before sending since the AI doesn't need to "see" its own greeting -- it already knows its persona from the system prompt.
 
 ---
 
-## Part 4: Warmer Chat Message UI
+## Expected Result
 
-**File: `src/components/ai/AIChatMessage.tsx`**
+| Metric | Before | After |
+|--------|--------|-------|
+| System prompt tokens | ~800/call | ~400/call |
+| Max tokens (Q&A phase) | 1024 | 256 |
+| History sent (6 exchanges) | All 12 msgs | All 12 (capped at 8 pairs for longer chats) |
+| Total tokens (6 exchanges) | ~10,000 | ~5,000-6,000 |
 
-- First assistant message renders as a "Consultation Start Card" with larger avatar, "Dr. Tabeebi - General Physician" label
-- Assistant bubbles use warmer teal-tinted background instead of plain gray
-- Timestamps on messages ("just now", "2 min ago")
-- Subtle slide-up entrance animations
-- Use `xs` size DoctorAvatar in regular assistant bubbles (32px, no rings)
-
----
-
-## Part 5: Chat Page Cleanup
-
-**File: `src/pages/public/TabeebiChatPage.tsx`**
-
-- Remove the redundant header (let PatientAIChat handle the full doctor header)
-- Make the page truly edge-to-edge on mobile
-- Full `100dvh` layout with no wasted space
+Roughly a 40-50% reduction for a typical consultation.
 
 ---
 
-## Part 6: Consultation History Mobile Enhancement
-
-**File: `src/components/mobile/MobileConsultationHistory.tsx`**
-
-The component already exists and works, but needs polish to feel more like a native mobile app:
-
-- Add a sticky search bar at the top that stays visible while scrolling
-- Use larger, more visually distinct consultation cards with colored left border (green for diagnosed, gray for pending)
-- Add swipe-to-view gesture hint (subtle arrow animation)
-- Increase card padding and spacing for better touch targets
-- Show relative dates ("Today", "Yesterday", "3 days ago") alongside absolute dates
-- Add a floating "scroll to top" button when scrolled down
-- Improve the empty state with a more engaging illustration
-- Add section headers by date group ("Today", "This Week", "Earlier")
-
-**File: `src/pages/app/opd/ConsultationHistoryPage.tsx`**
-
-- Ensure mobile detection triggers correctly for PWA mode
-- Pass any missing props to the mobile component
-
----
-
-## Technical Details
-
-### System Prompt Structure (ai-assistant/index.ts)
-
-Phase 1 (Questions): Natural conversational flow, but the prompt explicitly instructs: "If the patient has already mentioned a symptom detail, do NOT ask about it again. Adapt your next question based on what they said."
-
-Phase 2 (Doctor's Assessment): After 5-6 exchanges, output format changes from "Pre-Visit Summary" to:
-
-```
-**Doctor's Assessment**
-
-Based on what you've described, [empathetic acknowledgment].
-
-**Most Likely**: [condition] - [brief plain-language explanation]
-
-**What I Recommend**:
-- [OTC medication with dose, e.g., "Paracetamol 500mg every 6 hours for pain"]
-- [Home remedy, e.g., "Apply a cold compress for 15 minutes"]
-- [Lifestyle advice]
-
-**Watch For These Red Flags**:
-- [symptom that needs ER]
-- [symptom that needs urgent care]
-
-**Next Steps**: [when to see doctor, what specialist]
-
-Take care, and don't hesitate to come back if anything changes.
-
-_Disclaimer: This is AI-generated guidance. Always consult a healthcare professional for definitive diagnosis and treatment._
-```
-
-### DoctorAvatar Size Map
-
-| Size | Pixels | Use Case | Decorations |
-|------|--------|----------|-------------|
-| xs | 32px | Chat bubbles | None (face only) |
-| sm | 48px | Chat header | Status dot only |
-| md | 80px | Consultation card | Subtle ring |
-| lg | 120px | Landing/loading | Full rings + pulse |
-
-### Voice Overlay Flow
-
-1. User taps mic -> overlay slides up (dark semi-transparent bg)
-2. VoiceOrb centered with "Listening..." label
-3. Live transcript appears below orb
-4. On final transcript -> overlay dismisses, message sends
-5. When AI responds + voice active -> overlay reappears with "Speaking..." state
-6. Tap anywhere or stop button to dismiss
-
-### Consultation History Mobile Improvements
-
-- Date grouping using `date-fns` `isToday`, `isYesterday`, `isThisWeek`
-- Colored left border: `border-l-4 border-l-green-500` for consultations with diagnosis, `border-l-gray-300` for pending
-- Sticky search: `sticky top-0 z-10 bg-background/95 backdrop-blur-sm`
-- Section headers: small gray labels between card groups
-
-### Files Changed Summary
+## Files Changed
 
 | Action | File | Purpose |
 |--------|------|---------|
-| Modify | `supabase/functions/ai-assistant/index.ts` | Human-like doctor prompts with real medical guidance |
-| Modify | `src/components/ai/DoctorAvatar.tsx` | Realistic avatar with xs/sm/md/lg sizes |
-| Modify | `src/components/ai/AIChatMessage.tsx` | Consultation card, warmer bubbles, timestamps |
-| Modify | `src/components/ai/PatientAIChat.tsx` | Voice overlay, edge-to-edge layout, gradient bg |
-| Modify | `src/pages/public/TabeebiChatPage.tsx` | Remove redundant header, full-screen chat |
-| Modify | `src/components/mobile/MobileConsultationHistory.tsx` | Date groups, colored borders, sticky search, native feel |
+| Modify | `supabase/functions/ai-assistant/index.ts` | Compressed prompt, sliding window, dynamic max_tokens |
+| Modify | `src/hooks/useAIChat.ts` | Filter out hardcoded greeting before sending to API |
 
-### Implementation Order
+## Technical Details
 
-1. Rewrite system prompts in edge function (most impactful)
-2. Redesign DoctorAvatar with realistic look + proper size variants
-3. Update AIChatMessage with consultation card + warmer styling
-4. Update PatientAIChat with voice overlay + mobile layout
-5. Clean up TabeebiChatPage
-6. Enhance MobileConsultationHistory
-7. Deploy edge function and test end-to-end
+### Compressed Prompt Strategy
+
+The current prompt has three sections that can be condensed:
+- "YOUR PERSONALITY" section: merge into a single line instruction
+- "CONSULTATION FLOW": reduce from 12 lines to 6, remove examples
+- "DOCTOR'S ASSESSMENT" template: keep the template, remove the prose explanation around it
+- Merge MEDICAL_GUARDRAIL directly into the prompt text
+
+### Dynamic max_tokens Logic
+
+```
+const messageCount = messages.length;
+const maxTokens = messageCount >= 10 ? 1024 : 256;
+```
+
+This means the AI generates short focused questions early, and only produces the full assessment when enough exchanges have happened.
+
+### Sliding Window Implementation
+
+```
+const recentMessages = messages.length > 8
+  ? [messages[0], messages[1], ...messages.slice(-6)]
+  : messages;
+```
+
+Keep the first exchange (chief complaint) plus the last 3 pairs for context.
 
