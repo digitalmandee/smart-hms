@@ -1,40 +1,65 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { AnimatedSection } from "./AnimatedSection";
-import { Stethoscope, Mic, Globe, Brain, FileText, Shield, ArrowRight, Zap, HeartPulse } from "lucide-react";
+import {
+  Stethoscope, Mic, Globe, Brain, FileText, Shield, ArrowRight, Zap,
+  HeartPulse, Users, ClipboardList, BarChart3, UserCheck, Clock, Bot,
+  ChevronRight,
+} from "lucide-react";
 
-const AI_FEATURES = [
+const PERSPECTIVES = [
   {
-    icon: Stethoscope,
-    title: "Tabeebi — Custom AI Doctor",
-    description: "A purpose-built medical AI that conducts voice consultations in English, Arabic & Urdu. Trained on clinical protocols to think like a real physician.",
-    badge: "Custom AI",
+    title: "For Patients",
+    icon: HeartPulse,
     color: "from-primary/20 to-primary/5",
     iconColor: "text-primary",
+    items: [
+      "24/7 voice consultations — no waiting rooms",
+      "Trilingual support: English, Arabic & Urdu",
+      "Symptom pre-screening before visiting the clinic",
+      "Structured medical guidance you can trust",
+    ],
   },
   {
-    icon: Brain,
-    title: "Intelligent Diagnostics",
-    description: "Custom-trained symptom analysis with structured clinical follow-up questions. Follows the same diagnostic flow as experienced physicians.",
-    badge: "Physician-Grade",
+    title: "For Doctors",
+    icon: Stethoscope,
     color: "from-blue-500/20 to-blue-500/5",
     iconColor: "text-blue-500",
+    items: [
+      "AI-assisted patient intake — pre-screened before you see them",
+      "Auto-generated clinical summaries after each visit",
+      "Smart diagnostic suggestions during OPD",
+      "Reduced documentation time by up to 70%",
+    ],
   },
   {
-    icon: FileText,
-    title: "AI Clinical Summaries",
-    description: "Auto-generated patient encounter summaries, structured assessments, and clinical notes — saving doctors hours of documentation.",
-    badge: "Auto-Generate",
+    title: "For Admins",
+    icon: BarChart3,
     color: "from-emerald-500/20 to-emerald-500/5",
     iconColor: "text-emerald-500",
+    items: [
+      "More patients per day with reduced doctor workload",
+      "Automated documentation saves hours daily",
+      "Stand out from competitors with AI-powered care",
+      "Complete audit trail of every AI consultation",
+    ],
   },
 ];
 
+const WORKFLOW_STEPS = [
+  { icon: Users, label: "Patient talks to Tabeebi", sub: "Voice or text" },
+  { icon: Brain, label: "AI pre-screens symptoms", sub: "Custom-trained model" },
+  { icon: ClipboardList, label: "Doctor gets summary", sub: "On their dashboard" },
+  { icon: FileText, label: "AI clinical notes", sub: "Auto-generated" },
+  { icon: UserCheck, label: "Prescription ready", sub: "In seconds" },
+];
+
 const CAPABILITIES = [
+  { icon: Bot, label: "Custom-Trained Medical AI" },
   { icon: Mic, label: "Voice-First Consultation" },
   { icon: Globe, label: "Trilingual (EN/AR/UR)" },
-  { icon: Shield, label: "Structured Guidance" },
-  { icon: HeartPulse, label: "Custom Medical Training" },
+  { icon: Shield, label: "Clinically Structured Guidance" },
+  { icon: Clock, label: "Available 24/7" },
 ];
 
 export function AIFeaturesSection() {
@@ -48,33 +73,58 @@ export function AIFeaturesSection() {
             <span className="text-sm font-medium text-primary">Custom-Built Medical AI</span>
           </div>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
-            Meet <span className="text-primary">Tabeebi</span> — Your AI Doctor
+            <span className="text-primary">Tabeebi</span> — AI Integrated Across Your HMS
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            The first HMS with a custom-trained AI doctor. Voice consultations, intelligent diagnostics, 
-            and auto-generated clinical summaries — purpose-built for healthcare.
+            Not a generic chatbot. A purpose-built, custom-trained AI doctor embedded into every layer of your 
+            hospital management system — helping patients, doctors, and admins simultaneously.
           </p>
         </AnimatedSection>
 
-        {/* Feature cards */}
+        {/* Three perspective cards */}
         <div className="grid md:grid-cols-3 gap-6 mb-16">
-          {AI_FEATURES.map((feature, i) => (
-            <AnimatedSection key={feature.title} animation="fade-up" delay={i * 150}>
-              <div className={`relative group h-full rounded-2xl border bg-gradient-to-br ${feature.color} p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1`}>
-                <div className="flex items-start justify-between mb-4">
-                  <div className={`w-12 h-12 rounded-xl bg-background/80 flex items-center justify-center ${feature.iconColor}`}>
-                    <feature.icon className="h-6 w-6" />
+          {PERSPECTIVES.map((p, i) => (
+            <AnimatedSection key={p.title} animation="fade-up" delay={i * 150}>
+              <div className={`relative group h-full rounded-2xl border bg-gradient-to-br ${p.color} p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1`}>
+                <div className="flex items-center gap-3 mb-5">
+                  <div className={`w-11 h-11 rounded-xl bg-background/80 flex items-center justify-center ${p.iconColor}`}>
+                    <p.icon className="h-5 w-5" />
                   </div>
-                  <span className="text-xs font-medium px-3 py-1 rounded-full bg-background/80 text-foreground/70">
-                    {feature.badge}
-                  </span>
+                  <h3 className="text-lg font-bold text-foreground">{p.title}</h3>
                 </div>
-                <h3 className="text-lg font-semibold text-foreground mb-2">{feature.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{feature.description}</p>
+                <ul className="space-y-3">
+                  {p.items.map((item) => (
+                    <li key={item} className="flex items-start gap-2 text-sm text-muted-foreground">
+                      <ChevronRight className={`h-4 w-4 mt-0.5 shrink-0 ${p.iconColor}`} />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             </AnimatedSection>
           ))}
         </div>
+
+        {/* Workflow strip */}
+        <AnimatedSection animation="fade-up" delay={300} className="mb-16">
+          <h3 className="text-xl font-bold text-foreground text-center mb-8">How Tabeebi Works Across Your Workflow</h3>
+          <div className="flex flex-col md:flex-row items-stretch justify-center gap-3 md:gap-0">
+            {WORKFLOW_STEPS.map((step, i) => (
+              <div key={step.label} className="flex items-center">
+                <div className="flex flex-col items-center text-center px-4 py-4 rounded-xl bg-card border min-w-[140px]">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+                    <step.icon className="h-5 w-5 text-primary" />
+                  </div>
+                  <span className="text-sm font-semibold text-foreground">{step.label}</span>
+                  <span className="text-[11px] text-muted-foreground mt-1">{step.sub}</span>
+                </div>
+                {i < WORKFLOW_STEPS.length - 1 && (
+                  <ArrowRight className="h-5 w-5 text-muted-foreground/40 mx-1 hidden md:block shrink-0" />
+                )}
+              </div>
+            ))}
+          </div>
+        </AnimatedSection>
 
         {/* CTA strip */}
         <AnimatedSection animation="fade-up" delay={500}>
@@ -82,10 +132,10 @@ export function AIFeaturesSection() {
             <div className="flex flex-col md:flex-row items-center justify-between gap-6">
               <div className="text-center md:text-left">
                 <h3 className="text-2xl font-bold text-foreground mb-2">
-                  Try Tabeebi Free
+                  Experience Tabeebi — Custom AI Doctor
                 </h3>
                 <p className="text-muted-foreground mb-4 md:mb-0">
-                  Talk to our custom AI doctor now — trained for real clinical consultations.
+                  Talk to our custom-trained medical AI now. Purpose-built for real clinical consultations.
                 </p>
                 <div className="flex flex-wrap justify-center md:justify-start gap-2 mt-3">
                   {CAPABILITIES.map((cap) => (
@@ -99,12 +149,20 @@ export function AIFeaturesSection() {
                   ))}
                 </div>
               </div>
-              <Button size="lg" className="group text-lg px-8 shrink-0" asChild>
-                <Link to="/tabeebi">
-                  Talk to Tabeebi
-                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                </Link>
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-3 shrink-0">
+                <Button size="lg" className="group text-lg px-8" asChild>
+                  <Link to="/tabeebi">
+                    Try Tabeebi Free
+                    <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                </Button>
+                <Button size="lg" variant="outline" className="group text-lg px-8" asChild>
+                  <Link to="/auth/login">
+                    See Full Demo
+                    <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                </Button>
+              </div>
             </div>
           </div>
         </AnimatedSection>
