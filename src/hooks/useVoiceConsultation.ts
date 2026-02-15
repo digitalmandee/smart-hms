@@ -16,11 +16,6 @@ declare global {
   interface Window {
     SpeechRecognition: new () => SpeechRecognition;
     webkitSpeechRecognition: new () => SpeechRecognition;
-    puter: {
-      ai: {
-        txt2speech: (text: string) => Promise<Blob>;
-      };
-    };
   }
 
   interface SpeechRecognition extends EventTarget {
@@ -46,29 +41,36 @@ const LANG_MAP: Record<string, string> = {
 export function useVoiceConsultation(language: string = "en") {
   const [voiceState, setVoiceState] = useState<VoiceState>("idle");
   const [transcript, setTranscript] = useState("");
+  const voiceStateRef = useRef<VoiceState>("idle");
   const recognitionRef = useRef<SpeechRecognition | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const audioUrlRef = useRef<string | null>(null);
+  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const onFinalRef = useRef<((text: string) => void) | null>(null);
 
   const isSupported =
     typeof window !== "undefined" &&
     !!(window.SpeechRecognition || window.webkitSpeechRecognition);
 
   const isTTSSupported =
-    typeof window !== "undefined" && !!window.puter;
+    typeof window !== "undefined" && !!window.speechSynthesis;
+
+  // Keep ref in sync
+  useEffect(() => {
+    voiceStateRef.current = voiceState;
+  }, [voiceState]);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
       recognitionRef.current?.abort();
-      audioRef.current?.pause();
-      if (audioUrlRef.current) URL.revokeObjectURL(audioUrlRef.current);
+      window.speechSynthesis?.cancel();
     };
   }, []);
 
   const startListening = useCallback(
     (onFinalTranscript?: (text: string) => void) => {
       if (!isSupported) return;
+
+      onFinalRef.current = onFinalTranscript || null;
 
       const SpeechRecognitionClass =
         window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -99,7 +101,7 @@ export function useVoiceConsultation(language: string = "en") {
         if (finalTranscript) {
           setTranscript(finalTranscript.trim());
           setVoiceState("processing");
-          onFinalTranscript?.(finalTranscript.trim());
+          onFinalRef.current?.(finalTranscript.trim());
         } else {
           setTranscript(interimTranscript);
         }
@@ -107,28 +109,38 @@ export function useVoiceConsultation(language: string = "en") {
 
       recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
         console.error("Speech recognition error:", event.error);
-        setVoiceState("idle");
+        if (event.error !== "no-speech") {
+          setVoiceState("idle");
+        }
       };
 
       recognition.onend = () => {
-        if (voiceState === "listening") {
-          setVoiceState("idle");
+        // Use ref to get the latest state (avoid stale closure)
+        const currentState = voiceStateRef.current;
+        if (currentState === "listening") {
+          // Auto-restart on silence timeout
+          try {
+            recognition.start();
+          } catch {
+            setVoiceState("idle");
+          }
         }
       };
 
       recognitionRef.current = recognition;
       recognition.start();
     },
-    [isSupported, language, voiceState]
+    [isSupported, language]
   );
 
   const stopListening = useCallback(() => {
-    recognitionRef.current?.stop();
+    recognitionRef.current?.abort();
+    recognitionRef.current = null;
     setVoiceState("idle");
   }, []);
 
   const speakResponse = useCallback(
-    async (text: string) => {
+    (text: string) => {
       if (!isTTSSupported || !text.trim()) return;
 
       // Clean markdown/special chars for better speech
@@ -141,47 +153,41 @@ export function useVoiceConsultation(language: string = "en") {
 
       if (!cleanText) return;
 
-      try {
+      window.speechSynthesis.cancel(); // Stop any ongoing speech
+
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+      utterance.lang = LANG_MAP[language] || "en-US";
+      utterance.rate = 0.95;
+      utterance.pitch = 1.0;
+
+      // Try to find a matching voice
+      const voices = window.speechSynthesis.getVoices();
+      const targetLang = LANG_MAP[language] || "en-US";
+      const matchingVoice = voices.find(v => v.lang.startsWith(targetLang.split("-")[0]));
+      if (matchingVoice) utterance.voice = matchingVoice;
+
+      utterance.onstart = () => {
         setVoiceState("speaking");
-        const blob = await window.puter.ai.txt2speech(cleanText);
-        
-        if (audioUrlRef.current) URL.revokeObjectURL(audioUrlRef.current);
-        const url = URL.createObjectURL(blob);
-        audioUrlRef.current = url;
+      };
 
-        const audio = new Audio(url);
-        audioRef.current = audio;
-
-        audio.onended = () => {
-          setVoiceState("idle");
-          URL.revokeObjectURL(url);
-          audioUrlRef.current = null;
-        };
-
-        audio.onerror = () => {
-          setVoiceState("idle");
-          URL.revokeObjectURL(url);
-          audioUrlRef.current = null;
-        };
-
-        await audio.play();
-      } catch (error) {
-        console.error("TTS error:", error);
+      utterance.onend = () => {
         setVoiceState("idle");
-      }
+      };
+
+      utterance.onerror = () => {
+        setVoiceState("idle");
+      };
+
+      utteranceRef.current = utterance;
+      setVoiceState("speaking");
+      window.speechSynthesis.speak(utterance);
     },
-    [isTTSSupported]
+    [isTTSSupported, language]
   );
 
   const stopSpeaking = useCallback(() => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-    }
-    if (audioUrlRef.current) {
-      URL.revokeObjectURL(audioUrlRef.current);
-      audioUrlRef.current = null;
-    }
+    window.speechSynthesis?.cancel();
+    utteranceRef.current = null;
     setVoiceState("idle");
   }, []);
 
