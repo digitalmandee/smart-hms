@@ -6,7 +6,7 @@ import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/comp
 import { AIChatMessage } from "./AIChatMessage";
 import { DoctorAvatar } from "./DoctorAvatar";
 import { VoiceOrb } from "./VoiceOrb";
-import { useAIChat } from "@/hooks/useAIChat";
+import { useAIChat, ChatMessage } from "@/hooks/useAIChat";
 import { useVoiceConsultation } from "@/hooks/useVoiceConsultation";
 import { Send, Square, Trash2, Globe, Mic, MicOff, VolumeX, X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -19,12 +19,13 @@ interface PatientAIChatProps {
   compact?: boolean;
 }
 
-const GREETINGS = {
-  en: "Hello! I'm Dr. Tabeebi, your personal doctor. 👋\n\nTell me what's bothering you today, and I'll ask you a few focused questions to understand your condition better — just like a real consultation.\n\nYou can type or tap the 🎤 mic to speak.",
-  ar: "أهلاً! أنا د. طبيبي، طبيبك الشخصي. 👋\n\nأخبرني شو عندك اليوم، وبسألك كم سؤال عشان أفهم حالتك — مثل ما تزور طبيبك بالضبط.\n\nتقدر تكتب أو تضغط 🎤 عشان تتكلم.",
+const GREETINGS: Record<string, string> = {
+  en: "Hello! I'm Dr. Tabeebi. What brings you in today?",
+  ar: "أهلاً! أنا د. طبيبي. شو بتحس فيه اليوم؟",
+  ur: "السلام علیکم! میں ڈاکٹر طبیبی ہوں۔ آج کیا تکلیف ہے؟",
 };
 
-const SUGGESTED_TOPICS = {
+const SUGGESTED_TOPICS: Record<string, string[]> = {
   en: [
     "🤕 I have a headache",
     "🤢 Stomach pain",
@@ -37,7 +38,16 @@ const SUGGESTED_TOPICS = {
     "🤒 حمى وقشعريرة",
     "📋 متابعة حالتي",
   ],
+  ur: [
+    "🤕 مجھے سر درد ہے",
+    "🤢 پیٹ میں درد",
+    "🤒 بخار اور سردی",
+    "📋 فالو اپ وزٹ",
+  ],
 };
+
+const LANG_CYCLE: Array<"en" | "ar" | "ur"> = ["en", "ar", "ur"];
+const LANG_LABELS: Record<string, string> = { en: "عربي", ar: "اردو", ur: "EN" };
 
 export function PatientAIChat({
   mode = "patient_intake",
@@ -47,12 +57,13 @@ export function PatientAIChat({
   compact = false,
 }: PatientAIChatProps) {
   const [input, setInput] = useState("");
-  const [language, setLanguage] = useState<"en" | "ar">("en");
+  const [language, setLanguage] = useState<"en" | "ar" | "ur">("en");
   const [voiceModeActive, setVoiceModeActive] = useState(false);
   const [showVoiceOverlay, setShowVoiceOverlay] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const voice = useVoiceConsultation(language);
+  const voiceLang = language === "ur" ? "en" : language;
+  const voice = useVoiceConsultation(voiceLang);
 
   const handleAssistantResponse = useCallback(
     (content: string) => {
@@ -64,7 +75,7 @@ export function PatientAIChat({
     [voiceModeActive, voice]
   );
 
-  const { messages, isLoading, sendMessage, stopGeneration, clearChat } = useAIChat({
+  const { messages, isLoading, sendMessage, stopGeneration, clearChat, loadConversation } = useAIChat({
     mode,
     language,
     patientContext,
@@ -72,6 +83,8 @@ export function PatientAIChat({
     onAssistantResponse: handleAssistantResponse,
     initialGreeting: GREETINGS[language],
   });
+
+  const isRTL = language === "ar" || language === "ur";
 
   // Determine avatar state from voice + loading
   const avatarState = voice.voiceState === "listening"
@@ -134,8 +147,21 @@ export function PatientAIChat({
     clearChat();
   };
 
+  const cycleLang = () => {
+    const idx = LANG_CYCLE.indexOf(language);
+    setLanguage(LANG_CYCLE[(idx + 1) % LANG_CYCLE.length]);
+  };
+
   const isVoiceActive = voice.voiceState === "listening" || voice.voiceState === "speaking";
   const showSuggestions = messages.length <= 1;
+
+  const statusText = voice.voiceState === "listening"
+    ? (isRTL ? "أستمع..." : "Listening...")
+    : voice.voiceState === "speaking"
+    ? (isRTL ? "يتحدث..." : "Speaking...")
+    : isLoading
+    ? (isRTL ? "يفكر..." : "Thinking...")
+    : (isRTL ? "متاح" : "Available");
 
   return (
     <TooltipProvider>
@@ -150,15 +176,11 @@ export function PatientAIChat({
             <div className="flex items-center gap-3">
               <DoctorAvatar state={avatarState} size="sm" />
               <div className="flex flex-col">
-                <span className="font-bold text-sm">{language === "ar" ? "د. طبيبي" : "Dr. Tabeebi"}</span>
+                <span className="font-bold text-sm">
+                  {language === "ar" ? "د. طبيبي" : language === "ur" ? "ڈاکٹر طبیبی" : "Dr. Tabeebi"}
+                </span>
                 <span className="text-[11px] font-normal text-muted-foreground">
-                  {voice.voiceState === "listening"
-                    ? (language === "ar" ? "🎙️ أستمع..." : "🎙️ Listening...")
-                    : voice.voiceState === "speaking"
-                    ? (language === "ar" ? "🔊 أتحدث..." : "🔊 Speaking...")
-                    : isLoading
-                    ? (language === "ar" ? "💭 أفكر..." : "💭 Thinking...")
-                    : (language === "ar" ? "🟢 متاح الآن" : "🟢 Available now")}
+                  {statusText}
                 </span>
               </div>
             </div>
@@ -166,12 +188,12 @@ export function PatientAIChat({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setLanguage(language === "en" ? "ar" : "en")}
+                onClick={cycleLang}
                 title="Toggle language"
                 className="h-8 px-2"
               >
                 <Globe className="h-4 w-4 mr-1" />
-                {language === "en" ? "عربي" : "EN"}
+                {LANG_LABELS[language]}
               </Button>
               {voiceModeActive && (
                 <Button
@@ -205,7 +227,6 @@ export function PatientAIChat({
                 role={msg.role}
                 content={msg.content}
                 isStreaming={isLoading && i === messages.length - 1 && msg.role === "assistant"}
-                isFirst={i === 0 && msg.role === "assistant"}
               />
             ))}
 
@@ -213,10 +234,10 @@ export function PatientAIChat({
             {showSuggestions && (
               <div className="px-4 py-3 animate-fade-in">
                 <p className="text-xs text-muted-foreground mb-2">
-                  {language === "ar" ? "أو اختر من المواضيع:" : "Or choose a topic:"}
+                  {language === "ar" ? "أو اختر من المواضيع:" : language === "ur" ? "یا کوئی موضوع چنیں:" : "Or choose a topic:"}
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {SUGGESTED_TOPICS[language].map((topic) => (
+                  {(SUGGESTED_TOPICS[language] || SUGGESTED_TOPICS.en).map((topic) => (
                     <Button
                       key={topic}
                       variant="outline"
@@ -276,12 +297,12 @@ export function PatientAIChat({
 
               <p className="text-sm font-medium text-muted-foreground">
                 {voice.voiceState === "listening"
-                  ? (language === "ar" ? "أستمع... اضغط للإيقاف" : "Listening... tap to stop")
+                  ? (isRTL ? "أستمع... اضغط للإيقاف" : "Listening... tap to stop")
                   : voice.voiceState === "speaking"
-                  ? (language === "ar" ? "🔊 د. طبيبي يتحدث..." : "🔊 Dr. Tabeebi is speaking...")
+                  ? (isRTL ? "د. طبيبي يتحدث..." : "Dr. Tabeebi is speaking...")
                   : isLoading
-                  ? (language === "ar" ? "💭 أفكر..." : "💭 Thinking...")
-                  : (language === "ar" ? "اضغط للتحدث" : "Tap to speak")}
+                  ? (isRTL ? "يفكر..." : "Thinking...")
+                  : (isRTL ? "اضغط للتحدث" : "Tap to speak")}
               </p>
 
               {voice.transcript && (
@@ -303,10 +324,12 @@ export function PatientAIChat({
               placeholder={
                 language === "ar"
                   ? "صف أعراضك أو اسأل سؤالاً طبياً..."
+                  : language === "ur"
+                  ? "اپنی علامات بیان کریں..."
                   : "Describe your symptoms or ask a medical question..."
               }
               className="min-h-[44px] max-h-[120px] resize-none text-base"
-              dir={language === "ar" ? "rtl" : "ltr"}
+              dir={isRTL ? "rtl" : "ltr"}
               disabled={isLoading || voice.voiceState === "listening"}
             />
 
@@ -335,12 +358,12 @@ export function PatientAIChat({
               </TooltipTrigger>
               <TooltipContent>
                 {!voice.isSupported
-                  ? (language === "ar" ? "المتصفح لا يدعم التعرف على الصوت" : "Speech recognition not supported")
+                  ? "Speech recognition not supported"
                   : voice.voiceState === "listening"
-                  ? (language === "ar" ? "إيقاف الاستماع" : "Stop listening")
+                  ? "Stop listening"
                   : voice.voiceState === "speaking"
-                  ? (language === "ar" ? "إيقاف التحدث" : "Stop speaking")
-                  : (language === "ar" ? "تحدث مع طبيبي" : "Speak to Tabeebi")}
+                  ? "Stop speaking"
+                  : "Speak to Tabeebi"}
               </TooltipContent>
             </Tooltip>
 
@@ -358,6 +381,8 @@ export function PatientAIChat({
           <p className="text-[10px] text-muted-foreground text-center">
             {language === "ar"
               ? "للأغراض المعلوماتية فقط. لا يُعد بديلاً عن الاستشارة الطبية."
+              : language === "ur"
+              ? "صرف معلوماتی مقاصد کے لیے۔ پیشہ ورانہ طبی مشورے کا متبادل نہیں۔"
               : "For informational purposes only. Not a substitute for professional medical advice."}
           </p>
         </div>
