@@ -1,103 +1,100 @@
 
 
-# Make Tabeebi Feel Like a Real Doctor -- Final Polish
+# Fix Language-Reactive Greeting + Merge Tabeebi into Main HMS Landing Page
 
-## Issues Identified from Screenshot
+## Two Issues to Fix
 
-The screenshot shows the current state still has problems:
-1. Greeting is too long and instructional ("Tell me what's bothering you... just like a real consultation" -- a real doctor wouldn't say that)
-2. The big "Consultation Start Card" with centered avatar feels like an AI onboarding screen, not a doctor's office
-3. No way to access past consultation history from the chat page
-4. Urdu language is missing (only EN/AR available, but app claims trilingual)
-5. The "General Physician" subtitle under the avatar card is unnecessary ceremony
+### Issue 1: Greeting Doesn't Change with Language
 
-## Changes
+Currently, when a user switches language (EN/AR/UR), the greeting message stays in the original language. This happens because `useAIChat` sets the initial greeting once via `useState` and never updates it when the language prop changes.
 
-### 1. Shorter, Natural Greeting (PatientAIChat.tsx)
+**Fix in `PatientAIChat.tsx`:**
+- Add a `useEffect` that watches the `language` state
+- When language changes and the chat only has the greeting message (no real conversation yet), reset the messages array with the new language's greeting via `clearChat`
+- Update `useAIChat` hook: make `clearChat` accept an optional new greeting parameter, or handle it by re-calling with the new greeting
 
-Replace the current wordy greeting with something a real doctor would say:
+**Fix in `useAIChat.ts`:**
+- Track `initialGreeting` changes -- when it changes and messages only contain the greeting, swap it out
 
-- EN: "Hello! I'm Dr. Tabeebi. What brings you in today?"
-- AR: "أهلاً! أنا د. طبيبي. شو بتحس فيه اليوم؟"
-- UR (new): "السلام علیکم! میں ڈاکٹر طبیبی ہوں۔ آج کیا تکلیف ہے؟"
+---
 
-No mention of "type or tap mic", no "just like a real consultation" -- just a simple doctor greeting.
+### Issue 2: Merge Tabeebi into Main HMS Landing Page
 
-### 2. Remove the Consultation Start Card (AIChatMessage.tsx)
+The main landing page (`/`) needs to prominently showcase how Tabeebi AI powers the entire HMS -- not just as a standalone chatbot, but as an integrated AI layer helping both doctors and patients.
 
-The first message currently renders as a big centered card with avatar + "Dr. Tabeebi / General Physician" label. Replace it with a simple chat bubble just like any other assistant message. The doctor header is already in the top bar -- no need to repeat it.
+**Revamp `AIFeaturesSection.tsx` to show two perspectives:**
 
-### 3. Add Urdu Language Support
+**For Patients:**
+- Voice consultations in 3 languages
+- 24/7 symptom checking before visiting clinic
+- No waiting rooms -- talk to a doctor instantly
 
-**PatientAIChat.tsx**: Add "ur" as a third language option. Update the language toggle to cycle EN -> عربي -> اردو.
+**For Doctors:**
+- Auto-generated clinical summaries after each consultation
+- AI-assisted patient intake (pre-screens patients before they see the doctor)
+- Smart diagnostic suggestions during OPD
 
-**useAIChat.ts**: Extend the language type to include "ur".
+**For Hospital Admin:**
+- Reduced doctor workload = more patients per day
+- Automated documentation saves hours
+- Differentiate from competitors with AI-powered care
 
-**supabase/functions/ai-assistant/index.ts**: Add Urdu system prompt for `patient_intake`, `doctor_assist`, and `general` modes. Map "ur" language to the Urdu prompt.
+**Update `HeroSection.tsx`:**
+- Keep the "Introducing Tabeebi" badge but make it link to `/tabeebi`
+- Add a secondary mention: "Now with Custom AI Doctor" in the subtitle area
 
-### 4. Add Chat History Button (TabeebiChatPage.tsx)
+**Add a new "AI Across Your HMS" section or expand the existing one:**
+- Show a visual flow: Patient talks to Tabeebi -> AI pre-screens -> Doctor gets summary -> Prescription auto-generated
+- Three column cards: "For Patients", "For Doctors", "For Admins"
 
-Add a small "History" icon button (ClockIcon) in the top bar next to the logout button. Tapping it opens a bottom sheet / slide-up panel showing past AI conversations from the `ai_conversations` table, with date and a preview snippet. Tapping one loads that conversation into the chat.
+---
 
-### 5. Simplify the Chat Header Subtitle (PatientAIChat.tsx)
-
-Remove emoji from status text. Use cleaner status:
-- "Available" instead of "🟢 Available now"
-- "Listening..." instead of "🎙️ Listening..."
-- "Thinking..." instead of "💭 Thinking..."
-
-## Technical Details
-
-### Urdu System Prompt (ai-assistant/index.ts)
-
-Add `ur` key to each prompt in `SYSTEM_PROMPTS`:
-
-```
-patient_intake.ur: Same clinical flow as EN/AR but in Urdu script. 
-"آپ ڈاکٹر طبیبی ہیں، ایک تجربہ کار فیملی ڈاکٹر..."
-```
-
-Update language resolution: `const lang = language === "ar" ? "ar" : language === "ur" ? "ur" : "en";`
-
-### Chat History (TabeebiChatPage.tsx + new component)
-
-- New component: `src/components/ai/ChatHistoryDrawer.tsx`
-- Queries `ai_conversations` table filtered by current user
-- Shows as a Vaul drawer (mobile-friendly bottom sheet)
-- Each item shows: date, first user message snippet
-- On select: loads messages into chat via a new `loadConversation` method on `useAIChat`
-
-### useAIChat Changes
-
-- Add `language: "en" | "ar" | "ur"` type
-- Add `loadConversation(id, messages)` method to restore a past conversation
-- Keep existing greeting filter logic
-
-### Language Toggle (PatientAIChat.tsx)
-
-Current: button toggles between EN and Arabic
-New: cycle through 3 languages: EN -> AR -> UR -> EN
-Display: "عربي" / "اردو" / "EN" based on current
-
-### Suggested Topics in Urdu
-
-```
-ur: [
-  "🤕 مجھے سر درد ہے",
-  "🤢 پیٹ میں درد",
-  "🤒 بخار اور سردی",
-  "📋 فالو اپ وزٹ",
-]
-```
-
-### Files Changed
+## Files Changed
 
 | File | Changes |
 |------|---------|
-| `supabase/functions/ai-assistant/index.ts` | Add Urdu prompts, update lang resolution |
-| `src/hooks/useAIChat.ts` | Add "ur" to language type, add `loadConversation` method |
-| `src/components/ai/PatientAIChat.tsx` | Shorter greetings, Urdu support, 3-way language toggle, remove emoji from status |
-| `src/components/ai/AIChatMessage.tsx` | Remove Consultation Start Card, render first message as normal bubble |
-| `src/pages/public/TabeebiChatPage.tsx` | Add history button + drawer |
-| `src/components/ai/ChatHistoryDrawer.tsx` | New -- bottom sheet with past consultations |
+| `src/hooks/useAIChat.ts` | React to `initialGreeting` changes -- reset greeting when language switches |
+| `src/components/ai/PatientAIChat.tsx` | Add effect to reset chat greeting on language change |
+| `src/components/landing/AIFeaturesSection.tsx` | Complete revamp: 3-perspective layout (Patient/Doctor/Admin), workflow visual, stronger CTA |
+| `src/components/landing/HeroSection.tsx` | Strengthen the Tabeebi mention in hero, add "AI-Powered" to subtitle |
+
+## Technical Details
+
+### Greeting Language Fix
+
+In `useAIChat.ts`, add a `useEffect` watching `initialGreeting`:
+
+```
+useEffect(() => {
+  if (initialGreeting && messages.length <= 1 && !conversationId) {
+    setMessages([{ role: "assistant", content: initialGreeting }]);
+  }
+}, [initialGreeting]);
+```
+
+This only swaps the greeting if no real conversation has started yet (messages.length <= 1 and no active conversation).
+
+### AIFeaturesSection Revamp Structure
+
+```
+Section Header: "Custom AI Integrated Across Your HMS"
+
+Row 1: Three cards
+  - For Patients: Voice consultations, 24/7 access, trilingual
+  - For Doctors: Auto summaries, smart intake, diagnostic assist  
+  - For Admins: More throughput, less paperwork, competitive edge
+
+Row 2: Workflow strip
+  Patient -> Tabeebi Pre-Screen -> Doctor Dashboard -> AI Summary -> Prescription
+  (visual flow with icons and arrows)
+
+Row 3: CTA
+  "Try Tabeebi Now" button -> /tabeebi
+  "See Full Demo" button -> /auth/login
+```
+
+### HeroSection Updates
+
+- Change the badge text from "Introducing Tabeebi -- AI Virtual Doctor" to "Custom AI Doctor Built-In"
+- Add a line in the description: "With Tabeebi, our custom-trained AI doctor, patients get instant consultations while doctors get AI-generated clinical summaries."
 
