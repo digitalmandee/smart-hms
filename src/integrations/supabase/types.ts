@@ -12036,6 +12036,62 @@ export type Database = {
           },
         ]
       }
+      medical_knowledge: {
+        Row: {
+          category: string
+          condition: string
+          content: string
+          created_at: string
+          id: string
+          is_active: boolean
+          keywords: string[]
+          language: string
+          organization_id: string | null
+          priority: number
+          source: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          condition: string
+          content: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          keywords?: string[]
+          language?: string
+          organization_id?: string | null
+          priority?: number
+          source?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          condition?: string
+          content?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          keywords?: string[]
+          language?: string
+          organization_id?: string | null
+          priority?: number
+          source?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medical_knowledge_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       medication_administration: {
         Row: {
           actual_time: string | null
