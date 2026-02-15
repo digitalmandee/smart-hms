@@ -16,9 +16,15 @@ interface PrintableReceiptProps {
   };
   organization?: {
     name: string;
+    name_ar?: string | null;
     address?: string | null;
     phone?: string | null;
+    tax_registration_number?: string | null;
   };
+  currencySymbol?: string;
+  taxLabel?: string;
+  isBilingual?: boolean;
+  taxRegistrationLabel?: string;
 }
 
 const styles = {
@@ -141,18 +147,27 @@ const styles = {
 };
 
 export const PrintableReceipt = forwardRef<HTMLDivElement, PrintableReceiptProps>(
-  ({ payment, invoice, patient, organization }, ref) => {
+  ({ payment, invoice, patient, organization, currencySymbol = 'Rs.', taxLabel, isBilingual = false, taxRegistrationLabel }, ref) => {
     const previousPaid = (invoice.paid_amount || 0) - Number(payment.amount);
     const balanceDue = (invoice.total_amount || 0) - (invoice.paid_amount || 0);
+    const fmt = (amount: number) => `${currencySymbol} ${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
     return (
       <div ref={ref} style={styles.container}>
         {/* Header */}
         <div style={styles.header}>
           <h1 style={styles.orgName}>{organization?.name || "Healthcare Clinic"}</h1>
+          {isBilingual && organization?.name_ar && (
+            <p style={{ ...styles.orgAddress, fontSize: '14px', fontFamily: 'Arial, sans-serif' }}>{organization.name_ar}</p>
+          )}
           {organization?.address && <p style={styles.orgAddress}>{organization.address}</p>}
           {organization?.phone && <p style={styles.orgAddress}>Tel: {organization.phone}</p>}
-          <p style={styles.receiptTitle}>PAYMENT RECEIPT</p>
+          {organization?.tax_registration_number && taxRegistrationLabel && (
+            <p style={styles.orgAddress}>{taxRegistrationLabel}: {organization.tax_registration_number}</p>
+          )}
+          <p style={styles.receiptTitle}>
+            PAYMENT RECEIPT{isBilingual ? ' / إيصال دفع' : ''}
+          </p>
         </div>
 
         {/* Receipt Details */}
@@ -180,8 +195,8 @@ export const PrintableReceipt = forwardRef<HTMLDivElement, PrintableReceiptProps
         {/* Payment Details */}
         <div style={styles.paymentSection}>
           <div style={styles.amountPaidRow}>
-            <span>Amount Paid:</span>
-            <span>Rs. {Number(payment.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            <span>Amount Paid:{isBilingual ? ' / المبلغ المدفوع' : ''}</span>
+            <span>{fmt(Number(payment.amount))}</span>
           </div>
           <div style={styles.methodRow}>
             <span>Method:</span>
@@ -198,21 +213,21 @@ export const PrintableReceipt = forwardRef<HTMLDivElement, PrintableReceiptProps
         {/* Summary */}
         <div style={styles.summarySection}>
           <div style={styles.summaryRow}>
-            <span>Invoice Total:</span>
-            <span>Rs. {Number(invoice.total_amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            <span>Invoice Total:{isBilingual ? ' / إجمالي الفاتورة' : ''}</span>
+            <span>{fmt(Number(invoice.total_amount))}</span>
           </div>
           <div style={styles.summaryRow}>
-            <span>Previous Paid:</span>
-            <span>Rs. {previousPaid.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            <span>Previous Paid:{isBilingual ? ' / المدفوع سابقاً' : ''}</span>
+            <span>{fmt(previousPaid)}</span>
           </div>
           <div style={styles.summaryRow}>
-            <span>This Payment:</span>
-            <span>Rs. {Number(payment.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            <span>This Payment:{isBilingual ? ' / هذه الدفعة' : ''}</span>
+            <span>{fmt(Number(payment.amount))}</span>
           </div>
           <div style={styles.balanceRow}>
-            <span>Balance Due:</span>
+            <span>Balance Due:{isBilingual ? ' / الرصيد المستحق' : ''}</span>
             <span style={balanceDue > 0 ? styles.balanceDue : undefined}>
-              Rs. {balanceDue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {fmt(balanceDue)}
             </span>
           </div>
         </div>

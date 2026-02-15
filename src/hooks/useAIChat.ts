@@ -102,6 +102,7 @@ export function useAIChat(options: UseAIChatOptions = {}) {
               language,
               conversation_id: convId,
               stream: true,
+              country_code: (window as any).__COUNTRY_CODE || "PK",
             }),
             signal: abortRef.current.signal,
           }

@@ -9485,6 +9485,12 @@ export type Database = {
           tax_amount: number | null
           total_amount: number | null
           updated_at: string
+          zatca_icv: number | null
+          zatca_invoice_type: string | null
+          zatca_pih: string | null
+          zatca_qr_code: string | null
+          zatca_status: string | null
+          zatca_uuid: string | null
         }
         Insert: {
           balance_amount?: number | null
@@ -9504,6 +9510,12 @@ export type Database = {
           tax_amount?: number | null
           total_amount?: number | null
           updated_at?: string
+          zatca_icv?: number | null
+          zatca_invoice_type?: string | null
+          zatca_pih?: string | null
+          zatca_qr_code?: string | null
+          zatca_status?: string | null
+          zatca_uuid?: string | null
         }
         Update: {
           balance_amount?: number | null
@@ -9523,6 +9535,12 @@ export type Database = {
           tax_amount?: number | null
           total_amount?: number | null
           updated_at?: string
+          zatca_icv?: number | null
+          zatca_invoice_type?: string | null
+          zatca_pih?: string | null
+          zatca_qr_code?: string | null
+          zatca_status?: string | null
+          zatca_uuid?: string | null
         }
         Relationships: [
           {
@@ -13417,6 +13435,7 @@ export type Database = {
           id: string
           logo_url: string | null
           name: string
+          name_ar: string | null
           national_id_format: string | null
           national_id_label: string | null
           phone: string | null
@@ -13462,6 +13481,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           name: string
+          name_ar?: string | null
           national_id_format?: string | null
           national_id_label?: string | null
           phone?: string | null
@@ -13507,6 +13527,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           name?: string
+          name_ar?: string | null
           national_id_format?: string | null
           national_id_label?: string | null
           phone?: string | null
