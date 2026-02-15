@@ -83,12 +83,20 @@ export function useAIChat(options: UseAIChatOptions = {}) {
 
         const { data: sessionData } = await supabase.auth.getSession();
         const accessToken = sessionData?.session?.access_token;
+        const currentUser = sessionData?.session?.user;
 
         if (!accessToken) {
           toast.error("Please sign in to use AI chat");
           setIsLoading(false);
           return;
         }
+
+        // Inject user profile data into patient_context
+        const enrichedContext = {
+          ...patientContext,
+          name: patientContext?.name || currentUser?.user_metadata?.full_name || "",
+          gender: patientContext?.gender || currentUser?.user_metadata?.gender || "",
+        };
 
         const response = await fetch(
           `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-assistant`,
@@ -102,7 +110,7 @@ export function useAIChat(options: UseAIChatOptions = {}) {
             body: JSON.stringify({
               mode,
               messages: messagesForAPI,
-              patient_context: patientContext,
+              patient_context: enrichedContext,
               language,
               conversation_id: convId,
               stream: true,
