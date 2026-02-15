@@ -1,22 +1,22 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { AnimatedSection } from "./AnimatedSection";
-import { Stethoscope, Mic, Globe, Brain, FileText, Sparkles, ArrowRight } from "lucide-react";
+import { Stethoscope, Mic, Globe, Brain, FileText, Shield, ArrowRight, Zap, HeartPulse } from "lucide-react";
 
 const AI_FEATURES = [
   {
     icon: Stethoscope,
-    title: "Tabeebi — AI Virtual Doctor",
-    description: "Voice-powered medical consultations in English, Arabic & Urdu. Patients describe symptoms and get AI-guided clinical assessments.",
-    badge: "Voice Enabled",
+    title: "Tabeebi — Custom AI Doctor",
+    description: "A purpose-built medical AI that conducts voice consultations in English, Arabic & Urdu. Trained on clinical protocols to think like a real physician.",
+    badge: "Custom AI",
     color: "from-primary/20 to-primary/5",
     iconColor: "text-primary",
   },
   {
     icon: Brain,
-    title: "Smart Diagnostics",
-    description: "AI-assisted symptom triage with structured follow-up questions — just like visiting a real doctor. Powered by advanced reasoning.",
-    badge: "Advanced",
+    title: "Intelligent Diagnostics",
+    description: "Custom-trained symptom analysis with structured clinical follow-up questions. Follows the same diagnostic flow as experienced physicians.",
+    badge: "Physician-Grade",
     color: "from-blue-500/20 to-blue-500/5",
     iconColor: "text-blue-500",
   },
@@ -30,10 +30,11 @@ const AI_FEATURES = [
   },
 ];
 
-const VOICE_CAPABILITIES = [
-  { icon: Mic, label: "Voice Consultation" },
+const CAPABILITIES = [
+  { icon: Mic, label: "Voice-First Consultation" },
   { icon: Globe, label: "Trilingual (EN/AR/UR)" },
-  { icon: Sparkles, label: "Smart Diagnostics" },
+  { icon: Shield, label: "Structured Guidance" },
+  { icon: HeartPulse, label: "Custom Medical Training" },
 ];
 
 export function AIFeaturesSection() {
@@ -43,15 +44,15 @@ export function AIFeaturesSection() {
         {/* Section header */}
         <AnimatedSection animation="fade-up" className="text-center mb-16">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
-            <Sparkles className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium text-primary">AI-Powered Healthcare</span>
+            <Zap className="h-4 w-4 text-primary" />
+            <span className="text-sm font-medium text-primary">Custom-Built Medical AI</span>
           </div>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
             Meet <span className="text-primary">Tabeebi</span> — Your AI Doctor
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            The first HMS with a built-in AI virtual doctor. Voice consultations, 
-            smart diagnostics, and auto-generated clinical summaries — all integrated seamlessly.
+            The first HMS with a custom-trained AI doctor. Voice consultations, intelligent diagnostics, 
+            and auto-generated clinical summaries — purpose-built for healthcare.
           </p>
         </AnimatedSection>
 
@@ -84,11 +85,10 @@ export function AIFeaturesSection() {
                   Try Tabeebi Free
                 </h3>
                 <p className="text-muted-foreground mb-4 md:mb-0">
-                  Talk to our AI doctor now. No signup required to explore.
+                  Talk to our custom AI doctor now — trained for real clinical consultations.
                 </p>
-                {/* Capability chips */}
                 <div className="flex flex-wrap justify-center md:justify-start gap-2 mt-3">
-                  {VOICE_CAPABILITIES.map((cap) => (
+                  {CAPABILITIES.map((cap) => (
                     <span
                       key={cap.label}
                       className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full bg-background border text-muted-foreground"
