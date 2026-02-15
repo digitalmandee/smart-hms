@@ -12,22 +12,83 @@ interface AIChatMessageProps {
 }
 
 function formatMarkdown(text: string): string {
-  let html = text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+  const lines = text.split("\n");
+  const output: string[] = [];
+  let inUl = false;
+  let inOl = false;
 
-  html = html.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
-  html = html.replace(/(?<!\*)\*([^*]+?)\*(?!\*)/g, "<em>$1</em>");
-  html = html.replace(/_(.+?)_/g, "<em class='text-muted-foreground text-xs'>$1</em>");
-  html = html.replace(/^- (.+)$/gm, "<li>$1</li>");
-  html = html.replace(/(<li>.*<\/li>\n?)+/g, (match) => `<ul class="list-disc pl-4 my-1.5 space-y-1">${match}</ul>`);
-  html = html.replace(/^\d+\.\s(.+)$/gm, "<li>$1</li>");
-  html = html.replace(/^### (.+)$/gm, '<h4 class="font-semibold mt-3 mb-1">$1</h4>');
-  html = html.replace(/^## (.+)$/gm, '<h3 class="font-semibold text-base mt-3 mb-1">$1</h3>');
-  html = html.replace(/\n/g, "<br/>");
+  const esc = (s: string) =>
+    s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
-  return html;
+  const inlineFormat = (line: string): string => {
+    // Bold: **text** (handles colons/punctuation after closing **)
+    line = line.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+    // Italic with *
+    line = line.replace(/(?<!\*)\*([^*]+?)\*(?!\*)/g, "<em>$1</em>");
+    // Italic with _
+    line = line.replace(/_(.+?)_/g, "<em class='text-muted-foreground text-xs'>$1</em>");
+    return line;
+  };
+
+  for (let i = 0; i < lines.length; i++) {
+    let raw = lines[i];
+    let escaped = esc(raw);
+
+    // Headings
+    const h3 = escaped.match(/^### (.+)$/);
+    if (h3) {
+      if (inUl) { output.push("</ul>"); inUl = false; }
+      if (inOl) { output.push("</ol>"); inOl = false; }
+      output.push(`<h4 class="font-semibold mt-3 mb-1">${inlineFormat(h3[1])}</h4>`);
+      continue;
+    }
+    const h2 = escaped.match(/^## (.+)$/);
+    if (h2) {
+      if (inUl) { output.push("</ul>"); inUl = false; }
+      if (inOl) { output.push("</ol>"); inOl = false; }
+      output.push(`<h3 class="font-semibold text-base mt-3 mb-1">${inlineFormat(h2[1])}</h3>`);
+      continue;
+    }
+
+    // Unordered list
+    const ul = escaped.match(/^- (.+)$/);
+    if (ul) {
+      if (inOl) { output.push("</ol>"); inOl = false; }
+      if (!inUl) { output.push('<ul class="list-disc pl-4 my-1.5 space-y-1">'); inUl = true; }
+      output.push(`<li>${inlineFormat(ul[1])}</li>`);
+      continue;
+    }
+
+    // Ordered list
+    const ol = escaped.match(/^\d+\.\s(.+)$/);
+    if (ol) {
+      if (inUl) { output.push("</ul>"); inUl = false; }
+      if (!inOl) { output.push('<ol class="list-decimal pl-4 my-1.5 space-y-1">'); inOl = true; }
+      output.push(`<li>${inlineFormat(ol[1])}</li>`);
+      continue;
+    }
+
+    // Close any open list
+    if (inUl) { output.push("</ul>"); inUl = false; }
+    if (inOl) { output.push("</ol>"); inOl = false; }
+
+    // Regular line
+    if (escaped.trim() === "") {
+      output.push("<br/>");
+    } else {
+      output.push(inlineFormat(escaped));
+      // Add line break unless next line starts a block element
+      const next = i + 1 < lines.length ? lines[i + 1] : "";
+      if (next && !next.match(/^(#{2,3} |- |\d+\.\s)/) && next.trim() !== "") {
+        output.push("<br/>");
+      }
+    }
+  }
+
+  if (inUl) output.push("</ul>");
+  if (inOl) output.push("</ol>");
+
+  return output.join("\n");
 }
 
 export function AIChatMessage({ role, content, isStreaming, timestamp }: AIChatMessageProps) {
@@ -36,7 +97,7 @@ export function AIChatMessage({ role, content, isStreaming, timestamp }: AIChatM
     if (isUser) return null;
     const rawHtml = formatMarkdown(content);
     return DOMPurify.sanitize(rawHtml, {
-      ALLOWED_TAGS: ['strong', 'em', 'ul', 'li', 'h3', 'h4', 'br'],
+      ALLOWED_TAGS: ['strong', 'em', 'ul', 'ol', 'li', 'h3', 'h4', 'br'],
       ALLOWED_ATTR: ['class', 'style'],
     });
   }, [content, isUser]);

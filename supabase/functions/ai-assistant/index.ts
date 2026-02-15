@@ -353,7 +353,7 @@ Deno.serve(async (req) => {
     const model = mode === "doctor_assist" ? "deepseek-reasoner" : "deepseek-chat";
 
     const maxTokens = mode === "patient_intake"
-      ? (messageCount >= 8 ? 1024 : 512)
+      ? (messageCount >= 8 ? 1536 : 768)
       : mode === "doctor_assist" ? 2048 : 2048;
 
     if (stream) {

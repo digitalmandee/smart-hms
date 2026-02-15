@@ -200,6 +200,15 @@ export function PatientAIChat({
               />
             ))}
 
+            {/* Thinking bubble — shown when loading and last message is from user */}
+            {isLoading && messages.length > 0 && messages[messages.length - 1].role === "user" && (
+              <AIChatMessage
+                role="assistant"
+                content=""
+                isStreaming={true}
+              />
+            )}
+
             {/* Suggested topics */}
             {showSuggestions && (
               <div className="px-4 py-3 animate-fade-in">

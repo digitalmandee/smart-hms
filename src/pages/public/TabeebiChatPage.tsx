@@ -6,7 +6,7 @@ import { DoctorAvatar } from "@/components/ai/DoctorAvatar";
 import { ChatHistoryDrawer } from "@/components/ai/ChatHistoryDrawer";
 import { ChatMessage } from "@/hooks/useAIChat";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { LogOut, Plus, Globe, Clock, MessageSquare, Trash2 } from "lucide-react";
+import { LogOut, Plus, Globe, MessageSquare, Trash2, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -46,6 +46,7 @@ export default function TabeebiChatPage() {
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [sidebarLoading, setSidebarLoading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -147,65 +148,99 @@ export default function TabeebiChatPage() {
     <div className="h-[100dvh] bg-background flex overflow-hidden">
       {/* ──── Desktop Sidebar ──── */}
       {!isMobile && (
-        <aside className="w-[280px] flex-shrink-0 bg-card border-r border-border flex flex-col">
-          {/* Sidebar header */}
-          <div className="p-4 border-b border-border">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-semibold text-primary">
-                {userInitials}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{userName}</p>
-                <p className="text-[11px] text-muted-foreground truncate">{userEmail}</p>
-              </div>
-            </div>
-            <Button
-              onClick={handleNewChat}
-              className="w-full gap-2 rounded-xl h-10"
-              size="sm"
+        <aside className={cn(
+          "flex-shrink-0 bg-card border-r border-border flex flex-col transition-all duration-300 overflow-hidden",
+          sidebarCollapsed ? "w-[60px]" : "w-[280px]"
+        )}>
+          {/* Toggle button */}
+          <div className={cn("flex items-center border-b border-border h-14", sidebarCollapsed ? "justify-center px-0" : "justify-between px-4")}>
+            {!sidebarCollapsed && <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Consultations</p>}
+            <button
+              onClick={() => setSidebarCollapsed(p => !p)}
+              className="h-8 w-8 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-accent/50 hover:text-foreground transition-colors"
             >
-              <Plus className="h-4 w-4" />
-              New Consultation
-            </Button>
+              {sidebarCollapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+            </button>
+          </div>
+
+          {/* Sidebar header */}
+          <div className={cn("border-b border-border", sidebarCollapsed ? "p-2" : "p-4")}>
+            {!sidebarCollapsed && (
+              <div className="flex items-center gap-3 mb-4">
+                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-semibold text-primary">
+                  {userInitials}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{userName}</p>
+                  <p className="text-[11px] text-muted-foreground truncate">{userEmail}</p>
+                </div>
+              </div>
+            )}
+            {sidebarCollapsed ? (
+              <button
+                onClick={handleNewChat}
+                className="h-9 w-9 mx-auto rounded-lg bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 transition-colors"
+                title="New Consultation"
+              >
+                <Plus className="h-4 w-4" />
+              </button>
+            ) : (
+              <Button
+                onClick={handleNewChat}
+                className="w-full gap-2 rounded-xl h-10"
+                size="sm"
+              >
+                <Plus className="h-4 w-4" />
+                New Consultation
+              </Button>
+            )}
           </div>
 
           {/* Conversations list */}
           <div className="flex-1 overflow-hidden flex flex-col">
-            <div className="px-4 pt-3 pb-2">
-              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Recent</p>
-            </div>
-            <ScrollArea className="flex-1 px-2">
+            {!sidebarCollapsed && (
+              <div className="px-4 pt-3 pb-2">
+                <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Recent</p>
+              </div>
+            )}
+            <ScrollArea className={cn("flex-1", sidebarCollapsed ? "px-1" : "px-2")}>
               {sidebarLoading ? (
                 <div className="flex items-center justify-center py-8">
                   <div className="h-5 w-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
                 </div>
               ) : conversations.length === 0 ? (
-                <p className="text-xs text-muted-foreground text-center py-8">No past consultations</p>
+                !sidebarCollapsed && <p className="text-xs text-muted-foreground text-center py-8">No past consultations</p>
               ) : (
                 <div className="space-y-0.5 pb-2">
                   {conversations.map((c) => (
                     <div
                       key={c.id}
                       className={cn(
-                        "group flex items-center gap-2 rounded-lg px-3 py-2.5 cursor-pointer transition-colors hover:bg-accent/10",
+                        "group flex items-center gap-2 rounded-lg cursor-pointer transition-colors hover:bg-accent/10",
+                        sidebarCollapsed ? "justify-center px-0 py-2.5" : "px-3 py-2.5",
                         loadedConversation?.id === c.id && "bg-primary/8 border border-primary/15"
                       )}
                       onClick={() => handleSelectHistory(c.id, c.messages)}
+                      title={sidebarCollapsed ? getSnippet(c.messages) : undefined}
                     >
                       <MessageSquare className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[13px] truncate">{getSnippet(c.messages)}</p>
-                        <p className="text-[10px] text-muted-foreground">
-                          {format(new Date(c.updated_at), "MMM d · h:mm a")}
-                        </p>
-                      </div>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); handleDeleteConversation(c.id); }}
-                        disabled={deletingId === c.id}
-                        className="shrink-0 h-7 w-7 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
-                      >
-                        <Trash2 className={cn("h-3 w-3", deletingId === c.id && "animate-spin")} />
-                      </button>
+                      {!sidebarCollapsed && (
+                        <>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[13px] truncate">{getSnippet(c.messages)}</p>
+                            <p className="text-[10px] text-muted-foreground">
+                              {format(new Date(c.updated_at), "MMM d · h:mm a")}
+                            </p>
+                          </div>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleDeleteConversation(c.id); }}
+                            disabled={deletingId === c.id}
+                            className="shrink-0 h-7 w-7 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
+                          >
+                            <Trash2 className={cn("h-3 w-3", deletingId === c.id && "animate-spin")} />
+                          </button>
+                        </>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -214,21 +249,34 @@ export default function TabeebiChatPage() {
           </div>
 
           {/* Sidebar footer */}
-          <div className="p-3 border-t border-border space-y-1">
-            <button
-              onClick={cycleLang}
-              className="w-full flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-accent/10 transition-colors"
-            >
-              <Globe className="h-4 w-4" />
-              <span>Language: {LANG_LABELS[language]}</span>
-            </button>
-            <button
-              onClick={handleLogout}
-              className="w-full flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors"
-            >
-              <LogOut className="h-4 w-4" />
-              <span>Sign out</span>
-            </button>
+          <div className={cn("border-t border-border", sidebarCollapsed ? "p-2 space-y-2" : "p-3 space-y-1")}>
+            {sidebarCollapsed ? (
+              <>
+                <button onClick={cycleLang} className="h-9 w-9 mx-auto rounded-lg flex items-center justify-center text-muted-foreground hover:bg-accent/50 transition-colors" title={`Language: ${LANG_LABELS[language]}`}>
+                  <Globe className="h-4 w-4" />
+                </button>
+                <button onClick={handleLogout} className="h-9 w-9 mx-auto rounded-lg flex items-center justify-center text-destructive hover:bg-destructive/10 transition-colors" title="Sign out">
+                  <LogOut className="h-4 w-4" />
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={cycleLang}
+                  className="w-full flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-accent/10 transition-colors"
+                >
+                  <Globe className="h-4 w-4" />
+                  <span>Language: {LANG_LABELS[language]}</span>
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span>Sign out</span>
+                </button>
+              </>
+            )}
           </div>
         </aside>
       )}
@@ -237,7 +285,7 @@ export default function TabeebiChatPage() {
       <div className="flex-1 flex flex-col min-w-0">
         {/* Clean header */}
         <header
-          className="flex-shrink-0 bg-card border-b border-border"
+          className="flex-shrink-0 bg-card border-b border-border shadow-sm"
           style={{ paddingTop: isMobile ? "env(safe-area-inset-top, 0px)" : undefined }}
         >
           <div className="flex items-center justify-between px-4 h-14">
@@ -249,9 +297,8 @@ export default function TabeebiChatPage() {
               </div>
               <div>
                 <h1 className="text-sm font-semibold leading-tight">Dr. Tabeebi</h1>
-                <p className="text-[11px] text-green-600 leading-tight flex items-center gap-1">
-                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                  Online
+                <p className="text-[11px] text-muted-foreground leading-tight">
+                  AI Medical Consultant
                 </p>
               </div>
             </div>
