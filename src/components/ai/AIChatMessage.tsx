@@ -46,7 +46,7 @@ export function AIChatMessage({ role, content, isStreaming, isFirst }: AIChatMes
         <DoctorAvatar state={isStreaming ? "thinking" : "idle"} size="md" />
         <div className="mt-3 text-center">
           <h3 className="font-bold text-base text-foreground">Dr. Tabeebi</h3>
-          <p className="text-xs text-muted-foreground">General Physician • AI Assistant</p>
+          <p className="text-xs text-muted-foreground">General Physician</p>
         </div>
         <div
           className={cn(

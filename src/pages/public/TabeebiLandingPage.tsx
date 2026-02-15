@@ -15,7 +15,7 @@ type AuthMode = "login" | "signup";
 const FEATURES = [
   { icon: Mic, label: "Voice Consultation", desc: "Talk naturally in your language" },
   { icon: Globe, label: "Trilingual", desc: "English, Arabic & Urdu" },
-  { icon: Brain, label: "Smart Diagnostics", desc: "AI-powered symptom analysis" },
+  { icon: Brain, label: "Smart Diagnostics", desc: "Clinical symptom analysis" },
 ];
 
 export default function TabeebiLandingPage() {
@@ -108,7 +108,7 @@ export default function TabeebiLandingPage() {
         </div>
         <div className="flex items-center gap-1 text-xs text-muted-foreground">
           <Sparkles className="h-3 w-3 text-primary" />
-          Powered by DeepSeek AI
+          Virtual Clinic
         </div>
       </header>
 
@@ -123,7 +123,7 @@ export default function TabeebiLandingPage() {
               Meet <span className="text-primary">Tabeebi</span>
             </h1>
             <p className="text-xl text-muted-foreground">
-              Your AI-Powered Virtual Doctor
+              Your Personal Doctor
             </p>
             <p className="text-muted-foreground leading-relaxed">
               Describe your symptoms by voice or text in English, Arabic or Urdu. 
@@ -185,7 +185,7 @@ export default function TabeebiLandingPage() {
                 </h2>
                 <p className="text-sm text-muted-foreground mt-1">
                   {authMode === "signup"
-                    ? "Start your AI health consultation"
+                    ? "Start your consultation"
                     : "Continue your health journey"}
                 </p>
               </div>
@@ -265,7 +265,7 @@ export default function TabeebiLandingPage() {
       {/* Footer */}
       <footer className="px-5 py-4 text-center border-t">
         <p className="text-xs text-muted-foreground">
-          © 2024 HealthOS 24. All rights reserved. • Tabeebi is powered by DeepSeek AI
+          © 2025 HealthOS 24. All rights reserved.
         </p>
       </footer>
     </div>

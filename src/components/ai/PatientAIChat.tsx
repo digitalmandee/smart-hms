@@ -20,8 +20,8 @@ interface PatientAIChatProps {
 }
 
 const GREETINGS = {
-  en: "Hello! I'm Dr. Tabeebi, your personal AI doctor. 👋\n\nTell me what's bothering you today, and I'll ask you a few focused questions to understand your condition better — just like a real consultation.\n\nYou can type or tap the 🎤 mic to speak.",
-  ar: "أهلاً! أنا د. طبيبي، طبيبك الشخصي بالذكاء الاصطناعي. 👋\n\nأخبرني شو عندك اليوم، وبسألك كم سؤال عشان أفهم حالتك — مثل ما تزور طبيبك بالضبط.\n\nتقدر تكتب أو تضغط 🎤 عشان تتكلم.",
+  en: "Hello! I'm Dr. Tabeebi, your personal doctor. 👋\n\nTell me what's bothering you today, and I'll ask you a few focused questions to understand your condition better — just like a real consultation.\n\nYou can type or tap the 🎤 mic to speak.",
+  ar: "أهلاً! أنا د. طبيبي، طبيبك الشخصي. 👋\n\nأخبرني شو عندك اليوم، وبسألك كم سؤال عشان أفهم حالتك — مثل ما تزور طبيبك بالضبط.\n\nتقدر تكتب أو تضغط 🎤 عشان تتكلم.",
 };
 
 const SUGGESTED_TOPICS = {
