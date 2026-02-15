@@ -8,6 +8,112 @@ const corsHeaders = {
 
 const DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions";
 
+// Medical stopwords to filter out from keyword extraction
+const STOPWORDS = new Set([
+  "i", "me", "my", "have", "has", "had", "am", "is", "are", "was", "were",
+  "been", "be", "do", "does", "did", "a", "an", "the", "and", "or", "but",
+  "in", "on", "at", "to", "for", "of", "with", "by", "from", "as", "into",
+  "it", "its", "this", "that", "these", "those", "can", "could", "would",
+  "should", "will", "shall", "may", "might", "must", "not", "no", "nor",
+  "so", "if", "then", "than", "too", "very", "just", "about", "above",
+  "after", "again", "all", "also", "any", "because", "before", "between",
+  "both", "each", "few", "get", "got", "here", "how", "like", "lot",
+  "make", "many", "more", "most", "much", "need", "new", "now", "old",
+  "only", "other", "our", "out", "over", "own", "really", "right", "same",
+  "she", "he", "her", "him", "his", "some", "still", "such", "take",
+  "tell", "their", "them", "there", "they", "thing", "think", "time",
+  "two", "up", "us", "want", "way", "we", "well", "what", "when",
+  "where", "which", "while", "who", "why", "work", "year", "you", "your",
+  "feel", "feeling", "since", "last", "day", "days", "week", "weeks",
+  "month", "months", "ago", "today", "yesterday", "morning", "night",
+  "going", "getting", "sometimes", "often", "usually", "little", "bit",
+  "please", "help", "thank", "thanks", "doctor", "dr", "hello", "hi",
+  "yes", "no", "okay", "ok",
+]);
+
+/**
+ * Extract medical keywords from the user's latest message
+ */
+function extractMedicalKeywords(message: string): string[] {
+  const words = message
+    .toLowerCase()
+    .replace(/[^\w\s\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]/g, " ")
+    .split(/\s+/)
+    .filter((w) => w.length > 2 && !STOPWORDS.has(w));
+
+  // Also extract common medical bigrams
+  const text = message.toLowerCase();
+  const bigrams: string[] = [];
+  const medicalBigrams = [
+    "chest pain", "sore throat", "back pain", "blood pressure",
+    "heart attack", "stomach pain", "abdominal pain", "head ache",
+    "headache", "skin rash", "blood sugar", "short breath",
+    "shortness breath", "urinary tract", "high fever",
+  ];
+  for (const bg of medicalBigrams) {
+    if (text.includes(bg)) {
+      bigrams.push(...bg.split(" "));
+    }
+  }
+
+  return [...new Set([...words, ...bigrams])];
+}
+
+/**
+ * Query medical_knowledge table for relevant entries
+ */
+async function fetchMedicalContext(
+  supabaseServiceClient: ReturnType<typeof createClient>,
+  keywords: string[],
+  language: string,
+  maxEntries = 5
+): Promise<string> {
+  if (keywords.length === 0) return "";
+
+  try {
+    const { data, error } = await supabaseServiceClient
+      .from("medical_knowledge")
+      .select("category, title, content")
+      .eq("is_active", true)
+      .or(`language.eq.${language},language.eq.en`)
+      .overlaps("keywords", keywords)
+      .order("priority", { ascending: false })
+      .limit(maxEntries);
+
+    if (error) {
+      console.error("RAG lookup error:", error);
+      return "";
+    }
+
+    if (!data || data.length === 0) return "";
+
+    // Format entries and cap at ~500 tokens (~2000 chars)
+    const categoryLabels: Record<string, string> = {
+      red_flags: "⚠️ Red Flag",
+      drug_reference: "💊 Drug Reference",
+      clinical_guideline: "📋 Guideline",
+      symptom_guide: "🔍 Symptom Guide",
+    };
+
+    let context = "\n\nCLINICAL REFERENCE (use these verified guidelines when relevant to the patient's symptoms):\n---\n";
+    let totalChars = 0;
+    const MAX_CHARS = 2000;
+
+    for (const entry of data) {
+      const label = categoryLabels[entry.category] || entry.category;
+      const block = `[${label}] ${entry.title}:\n${entry.content}\n---\n`;
+      if (totalChars + block.length > MAX_CHARS) break;
+      context += block;
+      totalChars += block.length;
+    }
+
+    return context;
+  } catch (err) {
+    console.error("RAG fetch failed:", err);
+    return "";
+  }
+}
+
 function buildPatientIntakePrompt(lang: string, patientName: string, patientGender: string, exchangeCount: number): string {
   const name = patientName || "Unknown";
   const gender = patientGender || "Not specified";
@@ -169,6 +275,12 @@ Deno.serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } }
     );
 
+    // Service role client for RAG queries (bypasses RLS)
+    const supabaseService = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+
     const token = authHeader.replace("Bearer ", "");
     const { data: { user }, error: userError } = await supabase.auth.getUser(token);
     if (userError || !user) {
@@ -191,6 +303,16 @@ Deno.serve(async (req) => {
     const lang = language === "ar" ? "ar" : language === "ur" ? "ur" : "en";
     const messageCount = messages.length;
 
+    // === RAG: Extract keywords from latest user message and fetch medical context ===
+    let ragContext = "";
+    const lastUserMessage = [...messages].reverse().find((m: { role: string }) => m.role === "user");
+    if (lastUserMessage) {
+      const keywords = extractMedicalKeywords(lastUserMessage.content);
+      if (keywords.length > 0) {
+        ragContext = await fetchMedicalContext(supabaseService, keywords, lang);
+      }
+    }
+
     // Build system prompt
     let systemPrompt: string;
     if (mode === "patient_intake") {
@@ -204,7 +326,6 @@ Deno.serve(async (req) => {
 
     let contextMessage = "";
     if (patient_context) {
-      // Don't dump raw JSON — just add relevant medical context
       const { name, gender, ...medicalContext } = patient_context as Record<string, unknown>;
       if (Object.keys(medicalContext).length > 0) {
         contextMessage = `\n\nAdditional Patient Context:\n${JSON.stringify(medicalContext, null, 2)}`;
@@ -219,6 +340,9 @@ Deno.serve(async (req) => {
     };
     contextMessage += countryContextMap[country_code] || countryContextMap.PK;
 
+    // Append RAG context
+    contextMessage += ragContext;
+
     const trimmedMessages = trimMessages(messages);
 
     const deepseekMessages = [
@@ -228,7 +352,6 @@ Deno.serve(async (req) => {
 
     const model = mode === "doctor_assist" ? "deepseek-reasoner" : "deepseek-chat";
 
-    // Dynamic max_tokens: give more room for assessment phase
     const maxTokens = mode === "patient_intake"
       ? (messageCount >= 8 ? 1024 : 512)
       : mode === "doctor_assist" ? 2048 : 2048;
