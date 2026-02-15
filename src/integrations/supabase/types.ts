@@ -421,7 +421,7 @@ export type Database = {
           language: string
           messages: Json
           metadata: Json | null
-          organization_id: string
+          organization_id: string | null
           patient_id: string | null
           updated_at: string
           user_id: string | null
@@ -433,7 +433,7 @@ export type Database = {
           language?: string
           messages?: Json
           metadata?: Json | null
-          organization_id: string
+          organization_id?: string | null
           patient_id?: string | null
           updated_at?: string
           user_id?: string | null
@@ -445,7 +445,7 @@ export type Database = {
           language?: string
           messages?: Json
           metadata?: Json | null
-          organization_id?: string
+          organization_id?: string | null
           patient_id?: string | null
           updated_at?: string
           user_id?: string | null

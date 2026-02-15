@@ -35,12 +35,16 @@ export function useAIChat(options: UseAIChatOptions = {}) {
   const abortRef = useRef<AbortController | null>(null);
 
   const createConversation = useCallback(async () => {
-    if (!profile?.organization_id) return null;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return null;
+
+    const orgId = profile?.organization_id || null;
 
     const { data, error } = await supabase
       .from("ai_conversations")
       .insert([{
-        organization_id: profile.organization_id,
+        ...(orgId ? { organization_id: orgId } : {}),
+        user_id: user.id,
         context_type: mode,
         language,
         messages: JSON.parse("[]"),

@@ -11,6 +11,7 @@ export default function TabeebiChatPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState("");
+  const [chatKey, setChatKey] = useState(0);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -47,10 +48,8 @@ export default function TabeebiChatPage() {
             {userName}
           </span>
         )}
-        <ChatHistoryDrawer onSelect={(id, msgs) => {
-          // Force re-mount of PatientAIChat is simplest way to load history
-          // For now, history shows past consultations as read-only reference
-          window.location.hash = "";
+        <ChatHistoryDrawer onSelect={() => {
+          setChatKey(prev => prev + 1);
         }} />
         <Button variant="ghost" size="sm" onClick={handleLogout} className="h-7 px-2">
           <LogOut className="h-3.5 w-3.5" />
@@ -60,8 +59,9 @@ export default function TabeebiChatPage() {
       {/* Chat — takes all remaining space */}
       <main className="flex-1 flex flex-col overflow-hidden">
         <PatientAIChat
+          key={chatKey}
           mode="patient_intake"
-          className="flex-1 h-auto rounded-none"
+          className="flex-1 rounded-none"
           compact={false}
         />
       </main>
