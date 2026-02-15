@@ -1,90 +1,59 @@
 
 
-# Updated Plan: Tabeebi Public Access + Patient Signup + AI Branding on Landing Page
+# Fix Tabeebi Chat: Welcome Message, Doctor Avatar, and Engaging UI
 
-## Overview
+## Issues Identified
 
-This updated plan makes three key changes to the original Tabeebi plan:
-
-1. **Patient login/signup flow** -- Tabeebi requires login, but with a proper patient-friendly signup experience
-2. **AI Features branding on the landing page** -- Showcase Tabeebi and all AI capabilities prominently on the main landing page
-3. **Modern voice UI, animated avatar, mobile-first design** -- Same as original plan
+1. **No welcome message on load** -- Tabeebi only speaks after the user sends something. It should greet the patient first like a real doctor would.
+2. **DoctorAvatar not shown in chat** -- The animated doctor avatar exists but is only used on the loading screen. It's missing from the chat header and message bubbles.
+3. **Chat UI is plain** -- Generic bot icon, flat bubbles, no warmth or personality.
 
 ---
 
-## What Changes
+## Changes
 
-### 1. Tabeebi Route with Patient Authentication (NOT fully public)
+### 1. Add Auto-Welcome Message (useAIChat.ts)
 
-Instead of making Tabeebi completely open without login, create a dedicated `/tabeebi` route that:
+When the chat initializes with zero messages, automatically inject a welcome message from the assistant:
 
-- Shows a **branded Tabeebi landing/signup page** for unauthenticated users
-- Includes a simple **patient signup form** (Name, Phone/Email, Password) -- lighter than the full HMS signup
-- After login/signup, shows the full Tabeebi chat experience
-- Hospital patients can also access it with their existing HMS credentials
+- English: "Hello! I'm Tabeebi, your personal doctor. Tell me what's bothering you today, and I'll ask a few questions to understand your condition better."
+- Arabic: A matching Arabic greeting
+- This message appears immediately on page load -- no user action needed
+- The welcome message will be set via an `initialGreeting` option so it loads instantly without an API call
 
-**New files:**
-- `src/pages/public/TabeebiLandingPage.tsx` -- Branded landing with login/signup form built-in (no redirect to `/auth`)
-  - Hero section with animated DoctorAvatar
-  - "Talk to Your AI Doctor" headline
-  - Quick signup form (Name, Email/Phone, Password) inline
-  - Login toggle for existing users
-  - Feature highlights: Voice consultation, Multilingual, AI-powered
-  - HealthOS 24 branding in footer
+### 2. Show DoctorAvatar in Chat UI (PatientAIChat.tsx)
 
-**Modified files:**
-- `src/App.tsx` -- Add `/tabeebi` public route pointing to `TabeebiLandingPage`
-- When authenticated, `/tabeebi` redirects to `/tabeebi/chat` which renders the full `PatientAIChat` with the modern voice UI
+- Replace the stethoscope icon in the **chat header** with the animated `DoctorAvatar` component (small size)
+- The avatar state will reflect voice state: idle, listening, speaking, thinking
+- Replace the generic `Bot` icon in **assistant message bubbles** (AIChatMessage.tsx) with a mini DoctorAvatar or a styled doctor icon
 
-### 2. AI Features Section on Landing Page
+### 3. Redesign Chat Message Bubbles (AIChatMessage.tsx)
 
-Add a dedicated **AI-powered features section** to the main landing page (`/`) that showcases all AI improvements:
+Make the chat feel more personal and doctor-like:
 
-**New file:**
-- `src/components/landing/AIFeaturesSection.tsx` -- A visually striking section featuring:
-  - **Tabeebi - AI Virtual Doctor**: Voice consultation, symptom analysis, multilingual (EN/AR/UR)
-  - **AI Clinical Summaries**: Auto-generated patient encounter summaries
-  - **Smart Diagnostics**: AI-assisted symptom triage and follow-up suggestions
-  - Animated demo preview or illustration of Tabeebi in action
-  - "Try Tabeebi Free" CTA button linking to `/tabeebi`
-  - Badge: "Powered by DeepSeek AI"
+- **Assistant messages**: Show a small doctor avatar (from DoctorAvatar SVG) next to the bubble, with a subtle "Dr. Tabeebi" label above the first message
+- **User messages**: Keep the user icon but make it warmer with initials or a friendlier style
+- **Typing indicator**: Replace plain dots with the DoctorAvatar in "thinking" state
+- Add subtle entrance animations to messages (fade-in slide-up)
 
-**Modified files:**
-- `src/pages/Index.tsx` -- Add `AIFeaturesSection` between existing sections (after FeaturesTabs, before RoleSelector)
-- `src/components/landing/HeroSection.tsx` -- Update the badge from "Now with AI-powered diagnostics" to something more prominent, and keep the CTA
+### 4. Enhanced Empty State (PatientAIChat.tsx)
 
-### 3. DoctorAvatar, VoiceOrb, and Modern Chat UI (from original plan)
-
-Same as the previously approved plan:
-
-- `src/components/ai/DoctorAvatar.tsx` -- Animated 2D doctor with idle/listening/thinking/speaking states
-- `src/components/ai/VoiceOrb.tsx` -- Pulsing voice visualization orb
-- Updated `src/components/ai/PatientAIChat.tsx` -- Integrate avatar + voice orb + modern mobile-first layout
+Since we now auto-show a welcome message, the empty state with suggested topics will appear below the welcome message instead of as a standalone screen. The DoctorAvatar (medium size) will be shown above the greeting.
 
 ---
 
-## Files Summary
+## Files Changed
 
 | Action | File | Purpose |
 |--------|------|---------|
-| Create | `src/pages/public/TabeebiLandingPage.tsx` | Branded patient login/signup + Tabeebi intro |
-| Create | `src/components/landing/AIFeaturesSection.tsx` | AI features showcase for main landing page |
-| Create | `src/components/ai/DoctorAvatar.tsx` | Animated 2D doctor character |
-| Create | `src/components/ai/VoiceOrb.tsx` | Voice visualization orb |
-| Modify | `src/App.tsx` | Add `/tabeebi` and `/tabeebi/chat` routes |
-| Modify | `src/pages/Index.tsx` | Add AIFeaturesSection to landing page |
-| Modify | `src/components/landing/HeroSection.tsx` | Enhanced AI badge/CTA |
-| Modify | `src/components/ai/PatientAIChat.tsx` | Avatar, voice orb, mobile-first layout |
+| Modify | `src/hooks/useAIChat.ts` | Add initial welcome message on mount |
+| Modify | `src/components/ai/PatientAIChat.tsx` | DoctorAvatar in header, enhanced empty state with suggestions below welcome |
+| Modify | `src/components/ai/AIChatMessage.tsx` | Doctor avatar in assistant bubbles, message animations, typing indicator |
 
----
+## Technical Details
 
-## Implementation Order
-
-1. Create DoctorAvatar and VoiceOrb components
-2. Create AIFeaturesSection for the landing page
-3. Update Index.tsx and HeroSection.tsx with AI branding
-4. Create TabeebiLandingPage with inline patient signup/login
-5. Add routes in App.tsx (`/tabeebi`, `/tabeebi/chat`)
-6. Update PatientAIChat with modern voice UI + avatar
-7. Test end-to-end on mobile viewport
+- The welcome message is injected client-side (no API call) as a pre-set assistant message when `messages` array is empty on first render
+- DoctorAvatar state syncs with voice state: `idle` by default, `listening` when mic is active, `speaking` when TTS plays, `thinking` when waiting for AI response
+- Message entrance animation uses the existing `animate-fade-in` utility from the project's animation system
+- Suggested topic chips appear after the welcome message bubble so the user sees both the greeting and quick-start options
 
