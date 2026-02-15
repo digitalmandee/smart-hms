@@ -28,6 +28,7 @@ import {
   HeldTransaction 
 } from "@/hooks/useHeldTransactions";
 import { CartItem } from "@/hooks/usePOS";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 
 interface POSHeldTransactionsProps {
   onRecall: (items: CartItem[], customerName?: string, customerPhone?: string, patientId?: string) => void;
@@ -38,6 +39,7 @@ export function POSHeldTransactionsDialog({ onRecall }: POSHeldTransactionsProps
   const { data: heldTransactions, isLoading } = useHeldTransactions();
   const recallMutation = useRecallTransaction();
   const deleteMutation = useDeleteHeldTransaction();
+  const { formatCurrency } = useCurrencyFormatter();
 
   const handleRecall = async (held: HeldTransaction) => {
     try {
@@ -141,7 +143,7 @@ export function POSHeldTransactionsDialog({ onRecall }: POSHeldTransactionsProps
                                 {itemCount} items
                               </Badge>
                               <span className="font-semibold text-sm">
-                                Rs. {total.toFixed(2)}
+                                {formatCurrency(total)}
                               </span>
                             </div>
 

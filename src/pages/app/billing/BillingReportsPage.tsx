@@ -13,12 +13,14 @@ import { useDailyCollections, useRevenueByCategory, usePaymentMethodDistribution
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, PieChart, Pie, Cell, CartesianGrid } from "recharts";
 import { CalendarIcon, DollarSign, Clock, AlertTriangle, TrendingUp, Loader2, FileText, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 
 const COLORS = ["hsl(var(--primary))", "hsl(var(--chart-2))", "hsl(var(--chart-3))", "hsl(var(--chart-4))", "hsl(var(--chart-5))", "hsl(var(--muted))"];
 const AGING_COLORS = ["hsl(var(--success))", "hsl(var(--warning))", "hsl(var(--destructive))"];
 
 export default function BillingReportsPage() {
   const navigate = useNavigate();
+  const { formatCurrency } = useCurrencyFormatter();
   const [dateRange, setDateRange] = useState({
     from: subDays(new Date(), 30),
     to: new Date(),
@@ -74,7 +76,7 @@ export default function BillingReportsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              Rs. {totalRevenue.toLocaleString()}
+              {formatCurrency(totalRevenue)}
             </div>
             <p className="text-xs text-muted-foreground">
               {format(dateRange.from, "MMM d")} - {format(dateRange.to, "MMM d")}
@@ -93,7 +95,7 @@ export default function BillingReportsPage() {
             ) : (
               <>
                 <div className="text-2xl font-bold text-destructive">
-                  Rs. {(outstandingData?.total || 0).toLocaleString()}
+                  {formatCurrency(outstandingData?.total || 0)}
                 </div>
                 <p className="text-xs text-muted-foreground">
                   {outstandingData?.count || 0} pending invoices
@@ -125,7 +127,7 @@ export default function BillingReportsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              Rs. {dailyData?.length ? Math.round(totalRevenue / dailyData.length).toLocaleString() : 0}
+              {formatCurrency(dailyData?.length ? Math.round(totalRevenue / dailyData.length) : 0)}
             </div>
             <p className="text-xs text-muted-foreground">
               Average collection per day
@@ -282,7 +284,7 @@ export default function BillingReportsPage() {
                 <div className="text-right">
                   <p className="text-sm font-medium">Total Outstanding</p>
                   <p className="text-lg font-bold text-destructive">
-                    Rs. {agingData.totalOutstanding.toLocaleString()}
+                    {formatCurrency(agingData.totalOutstanding)}
                   </p>
                 </div>
               </div>
@@ -301,13 +303,12 @@ export default function BillingReportsPage() {
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold" style={{ color: AGING_COLORS[index] }}>
-                        Rs. {bucket.amount.toLocaleString()}
+                        {formatCurrency(bucket.amount)}
                       </div>
                       <p className="text-sm text-muted-foreground">
                         {bucket.count} invoice{bucket.count !== 1 ? "s" : ""}
                       </p>
                       
-                      {/* Invoice list preview */}
                       {bucket.invoices.length > 0 && (
                         <div className="mt-4 space-y-2 max-h-[200px] overflow-y-auto">
                           {bucket.invoices.slice(0, 5).map((inv) => (
@@ -323,7 +324,7 @@ export default function BillingReportsPage() {
                                 </p>
                               </div>
                               <div className="text-right flex items-center gap-2">
-                                <span className="font-medium">Rs. {inv.balance.toLocaleString()}</span>
+                                <span className="font-medium">{formatCurrency(inv.balance)}</span>
                                 <ChevronRight className="h-4 w-4 text-muted-foreground" />
                               </div>
                             </div>
@@ -378,7 +379,7 @@ export default function BillingReportsPage() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-medium">Rs. {service.revenue.toLocaleString()}</p>
+                    <p className="font-medium">{formatCurrency(service.revenue)}</p>
                   </div>
                 </div>
               ))}

@@ -6,6 +6,7 @@ import { Trash2, Minus, Plus, ShoppingCart, Percent, AlertTriangle } from "lucid
 import { CartItem } from "@/hooks/usePOS";
 import { cn } from "@/lib/utils";
 import { useMemo } from "react";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 
 interface POSCartProps {
   items: CartItem[];
@@ -36,6 +37,7 @@ export function POSCart({
   onCheckout,
   disabled,
 }: POSCartProps) {
+  const { formatCurrency } = useCurrencyFormatter();
   // Check for stock issues
   const stockIssues = useMemo(() => {
     return items.filter(item => item.quantity > item.available_quantity);
@@ -101,7 +103,7 @@ export function POSCart({
                       <p className="font-medium text-sm truncate">{item.medicine_name}</p>
                       <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                         <span className="text-xs text-muted-foreground">
-                          Rs. {item.selling_price.toFixed(2)}
+                          {formatCurrency(item.selling_price)}
                         </span>
                         {item.batch_number && (
                           <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
@@ -170,7 +172,7 @@ export function POSCart({
                         <Plus className="h-3 w-3" />
                       </Button>
                     </div>
-                    <p className="font-semibold text-sm">Rs. {lineTotal.toFixed(2)}</p>
+                    <p className="font-semibold text-sm">{formatCurrency(lineTotal)}</p>
                   </div>
 
                   {item.quantity >= item.available_quantity && !isOutOfStock && (
@@ -228,20 +230,20 @@ export function POSCart({
         <div className="p-3 space-y-2">
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Subtotal</span>
-            <span className="font-medium">Rs. {subtotal.toFixed(2)}</span>
+            <span className="font-medium">{formatCurrency(subtotal)}</span>
           </div>
 
           {discountAmount > 0 && (
             <div className="flex justify-between text-sm">
               <span className="text-green-600 dark:text-green-400">Discount ({discountPercent}%)</span>
-              <span className="text-green-600 dark:text-green-400 font-medium">- Rs. {discountAmount.toFixed(2)}</span>
+              <span className="text-green-600 dark:text-green-400 font-medium">- {formatCurrency(discountAmount)}</span>
             </div>
           )}
 
           {taxAmount > 0 && (
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Tax</span>
-              <span className="font-medium">Rs. {taxAmount.toFixed(2)}</span>
+              <span className="font-medium">{formatCurrency(taxAmount)}</span>
             </div>
           )}
 
@@ -249,7 +251,7 @@ export function POSCart({
           <div className="pt-3 mt-2 border-t border-dashed">
             <div className="flex justify-between items-center">
               <span className="text-lg font-semibold">Total</span>
-              <span className="text-2xl font-bold text-primary">Rs. {total.toFixed(2)}</span>
+              <span className="text-2xl font-bold text-primary">{formatCurrency(total)}</span>
             </div>
           </div>
         </div>
@@ -272,7 +274,7 @@ export function POSCart({
             disabled={disabled || items.length === 0 || hasStockIssues}
           >
             <ShoppingCart className="h-5 w-5 mr-2" />
-            {hasStockIssues ? "Fix Stock Issues" : `Checkout — Rs. ${total.toFixed(2)}`}
+            {hasStockIssues ? "Fix Stock Issues" : `Checkout — ${formatCurrency(total)}`}
           </Button>
         </div>
       </div>

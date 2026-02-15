@@ -33,6 +33,8 @@ interface PrintablePaymentReceiptProps {
     slug?: string;
   };
   showQR?: boolean;
+  currencySymbol?: string;
+  taxLabel?: string;
 }
 
 const styles = {
@@ -117,7 +119,6 @@ const styles = {
     color: '#6b7280',
     margin: '2px 0 0 0',
   } as React.CSSProperties,
-  // Table styles
   tableSection: {
     borderTop: '1px dashed #9ca3af',
     paddingTop: '8px',
@@ -155,7 +156,6 @@ const styles = {
     textAlign: 'right' as const,
     fontSize: '10px',
   } as React.CSSProperties,
-  // Totals section
   totalsSection: {
     borderTop: '1px dashed #9ca3af',
     paddingTop: '8px',
@@ -181,7 +181,6 @@ const styles = {
     paddingTop: '4px',
     borderTop: '1px solid #d1d5db',
   } as React.CSSProperties,
-  // Payment section
   paymentSection: {
     borderTop: '1px dashed #9ca3af',
     padding: '12px 0',
@@ -211,7 +210,6 @@ const styles = {
     paddingTop: '4px',
     borderTop: '1px solid #fecaca',
   } as React.CSSProperties,
-  // QR section
   qrSection: {
     textAlign: 'center' as const,
     borderTop: '1px dashed #9ca3af',
@@ -229,7 +227,6 @@ const styles = {
     color: '#6b7280',
     marginTop: '4px',
   } as React.CSSProperties,
-  // Footer
   footer: {
     textAlign: 'center' as const,
     borderTop: '1px dashed #9ca3af',
@@ -267,9 +264,12 @@ export const PrintablePaymentReceipt = forwardRef<HTMLDivElement, PrintablePayme
     balanceDue = 0,
     receivedBy,
     organization,
-    showQR = true
+    showQR = true,
+    currencySymbol = "Rs.",
+    taxLabel = "Tax",
   }, ref) => {
     const qrData = getInvoiceVerificationUrl(invoiceNumber, organization.slug);
+    const fc = (amount: number) => `${currencySymbol} ${amount.toLocaleString()}`;
 
     return (
       <div ref={ref} style={styles.container}>
@@ -329,7 +329,7 @@ export const PrintablePaymentReceipt = forwardRef<HTMLDivElement, PrintablePayme
                   <tr key={index} style={styles.tableRow}>
                     <td style={styles.tableCell}>{item.description}</td>
                     <td style={styles.tableCellRight}>{item.quantity}</td>
-                    <td style={styles.tableCellRight}>Rs. {item.total.toLocaleString()}</td>
+                    <td style={styles.tableCellRight}>{fc(item.total)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -342,24 +342,24 @@ export const PrintablePaymentReceipt = forwardRef<HTMLDivElement, PrintablePayme
           {subtotal !== undefined && (
             <div style={styles.totalsRow}>
               <span>Subtotal:</span>
-              <span>Rs. {subtotal.toLocaleString()}</span>
+              <span>{fc(subtotal)}</span>
             </div>
           )}
           {tax !== undefined && tax > 0 && (
             <div style={styles.totalsRow}>
-              <span>Tax:</span>
-              <span>Rs. {tax.toLocaleString()}</span>
+              <span>{taxLabel}:</span>
+              <span>{fc(tax)}</span>
             </div>
           )}
           {discount !== undefined && discount > 0 && (
             <div style={styles.discountRow}>
               <span>Discount:</span>
-              <span>-Rs. {discount.toLocaleString()}</span>
+              <span>-{fc(discount)}</span>
             </div>
           )}
           <div style={styles.totalRow}>
             <span>Total:</span>
-            <span>Rs. {totalAmount.toLocaleString()}</span>
+            <span>{fc(totalAmount)}</span>
           </div>
         </div>
 
@@ -367,7 +367,7 @@ export const PrintablePaymentReceipt = forwardRef<HTMLDivElement, PrintablePayme
         <div style={styles.paymentSection}>
           <div style={styles.amountPaidRow}>
             <span>Amount Paid:</span>
-            <span style={styles.amountPaidValue}>Rs. {paidAmount.toLocaleString()}</span>
+            <span style={styles.amountPaidValue}>{fc(paidAmount)}</span>
           </div>
           <div style={styles.methodRow}>
             <span style={styles.label}>Method:</span>
@@ -382,7 +382,7 @@ export const PrintablePaymentReceipt = forwardRef<HTMLDivElement, PrintablePayme
           {balanceDue > 0 && (
             <div style={styles.balanceDueRow}>
               <span>Balance Due:</span>
-              <span>Rs. {balanceDue.toLocaleString()}</span>
+              <span>{fc(balanceDue)}</span>
             </div>
           )}
         </div>

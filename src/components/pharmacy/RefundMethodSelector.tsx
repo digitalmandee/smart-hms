@@ -2,6 +2,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Banknote, CreditCard, Wallet, ArrowDownCircle } from "lucide-react";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 
 export type RefundMethod = "cash_refund" | "add_credit" | "deduct_outstanding";
 
@@ -25,6 +26,7 @@ export function RefundMethodSelector({
   outstandingAmount = 0,
 }: RefundMethodSelectorProps) {
   const showPatientOptions = !!patientName;
+  const { formatCurrency } = useCurrencyFormatter();
   
   // Calculate resulting balances
   const newCreditIfAdded = currentCreditBalance + refundAmount;
@@ -49,7 +51,7 @@ export function RefundMethodSelector({
                   </Label>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Pay Rs. {refundAmount.toLocaleString()} directly to customer
+                  Pay {formatCurrency(refundAmount)} directly to customer
                 </p>
               </div>
             </div>
@@ -70,17 +72,17 @@ export function RefundMethodSelector({
                     </Label>
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Add Rs. {refundAmount.toLocaleString()} to {patientName}'s credit balance
+                    Add {formatCurrency(refundAmount)} to {patientName}'s credit balance
                   </p>
                   <div className="flex items-center gap-2 mt-2 text-xs">
                     <span className="text-muted-foreground">Current:</span>
                     <span className={currentCreditBalance >= 0 ? "text-green-600" : "text-red-600"}>
-                      Rs. {Math.abs(currentCreditBalance).toLocaleString()}
+                      {formatCurrency(Math.abs(currentCreditBalance))}
                       {currentCreditBalance >= 0 ? " credit" : " owed"}
                     </span>
                     <span className="text-muted-foreground">→</span>
                     <span className="text-green-600 font-medium">
-                      Rs. {newCreditIfAdded.toLocaleString()} credit
+                      {formatCurrency(newCreditIfAdded)} credit
                     </span>
                   </div>
                 </div>
@@ -103,20 +105,20 @@ export function RefundMethodSelector({
                     </Label>
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Apply Rs. {Math.min(refundAmount, outstandingAmount).toLocaleString()} to {patientName}'s pending dues
+                    Apply {formatCurrency(Math.min(refundAmount, outstandingAmount))} to {patientName}'s pending dues
                   </p>
                   <div className="flex items-center gap-2 mt-2 text-xs">
                     <span className="text-muted-foreground">Outstanding:</span>
-                    <span className="text-red-600">Rs. {outstandingAmount.toLocaleString()}</span>
+                    <span className="text-red-600">{formatCurrency(outstandingAmount)}</span>
                     <span className="text-muted-foreground">→</span>
                     <span className={newOutstandingIfDeducted > 0 ? "text-amber-600" : "text-green-600"}>
-                      Rs. {newOutstandingIfDeducted.toLocaleString()}
+                      {formatCurrency(newOutstandingIfDeducted)}
                       {newOutstandingIfDeducted === 0 && " (Cleared!)"}
                     </span>
                   </div>
                   {remainingToRefund > 0 && (
                     <p className="text-xs text-blue-600 mt-1">
-                      + Rs. {remainingToRefund.toLocaleString()} will be added to credit
+                      + {formatCurrency(remainingToRefund)} will be added to credit
                     </p>
                   )}
                 </div>

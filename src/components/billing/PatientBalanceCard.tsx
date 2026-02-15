@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { usePatientBalance } from "@/hooks/useBilling";
 import { AlertCircle } from "lucide-react";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 
 interface PatientBalanceCardProps {
   patientId: string | undefined;
@@ -8,6 +9,7 @@ interface PatientBalanceCardProps {
 
 export function PatientBalanceCard({ patientId }: PatientBalanceCardProps) {
   const { data } = usePatientBalance(patientId);
+  const { formatCurrency } = useCurrencyFormatter();
 
   if (!patientId || !data || data.outstanding === 0) return null;
 
@@ -20,7 +22,7 @@ export function PatientBalanceCard({ patientId }: PatientBalanceCardProps) {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="text-2xl font-bold">Rs. {data.outstanding.toFixed(2)}</p>
+        <p className="text-2xl font-bold">{formatCurrency(data.outstanding)}</p>
         <p className="text-xs text-muted-foreground mt-1">
           {data.invoices.length} pending invoice(s)
         </p>

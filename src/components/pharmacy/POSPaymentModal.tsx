@@ -18,6 +18,7 @@ import {
   Clock,
 } from "lucide-react";
 import { POSPayment } from "@/hooks/usePOS";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 
 interface POSPaymentModalProps {
   open: boolean;
@@ -61,6 +62,7 @@ export function POSPaymentModal({
   isProcessing,
   selectedPatientId,
 }: POSPaymentModalProps) {
+  const { formatCurrency, currencySymbol } = useCurrencyFormatter();
   const [selectedMethod, setSelectedMethod] = useState<string>("cash");
   const [cashReceived, setCashReceived] = useState<number>(total);
   const [cardReference, setCardReference] = useState("");
@@ -107,24 +109,24 @@ export function POSPaymentModal({
           <div className="p-4 bg-muted rounded-lg space-y-2">
             <div className="flex justify-between text-sm">
               <span>Subtotal</span>
-              <span>Rs. {subtotal.toFixed(2)}</span>
+              <span>{formatCurrency(subtotal)}</span>
             </div>
             {discountAmount > 0 && (
               <div className="flex justify-between text-sm text-green-600">
                 <span>Discount</span>
-                <span>- Rs. {discountAmount.toFixed(2)}</span>
+                <span>- {formatCurrency(discountAmount)}</span>
               </div>
             )}
             {taxAmount > 0 && (
               <div className="flex justify-between text-sm">
                 <span>Tax</span>
-                <span>Rs. {taxAmount.toFixed(2)}</span>
+                <span>{formatCurrency(taxAmount)}</span>
               </div>
             )}
             <Separator />
             <div className="flex justify-between font-semibold text-lg">
               <span>Total</span>
-              <span>Rs. {total.toFixed(2)}</span>
+              <span>{formatCurrency(total)}</span>
             </div>
           </div>
 
@@ -190,7 +192,7 @@ export function POSPaymentModal({
                     size="sm"
                     onClick={() => handleQuickCash(amount)}
                   >
-                    Rs. {amount}
+                    {currencySymbol} {amount}
                   </Button>
                 ))}
                 <Button
@@ -206,7 +208,7 @@ export function POSPaymentModal({
                 <div className="flex justify-between items-center p-3 bg-success/10 rounded-lg border border-success/20">
                   <span className="font-medium text-success">Change</span>
                   <Badge variant="default" className="text-lg bg-success">
-                    Rs. {changeAmount.toFixed(2)}
+                    {formatCurrency(changeAmount)}
                   </Badge>
                 </div>
               )}
@@ -223,7 +225,7 @@ export function POSPaymentModal({
                 />
               </div>
               <p className="text-sm text-muted-foreground">
-                Amount: Rs. {total.toFixed(2)} will be charged
+                Amount: {formatCurrency(total)} will be charged
               </p>
             </TabsContent>
 
@@ -237,7 +239,7 @@ export function POSPaymentModal({
                 />
               </div>
               <p className="text-sm text-muted-foreground">
-                Amount: Rs. {total.toFixed(2)}
+                Amount: {formatCurrency(total)}
               </p>
             </TabsContent>
 
@@ -251,7 +253,7 @@ export function POSPaymentModal({
                 />
               </div>
               <p className="text-sm text-muted-foreground">
-                Amount: Rs. {total.toFixed(2)}
+                Amount: {formatCurrency(total)}
               </p>
             </TabsContent>
 
@@ -265,7 +267,7 @@ export function POSPaymentModal({
                 />
               </div>
               <p className="text-sm text-muted-foreground">
-                Amount: Rs. {total.toFixed(2)}
+                Amount: {formatCurrency(total)}
               </p>
             </TabsContent>
 
@@ -282,7 +284,7 @@ export function POSPaymentModal({
                   <div className="p-3 bg-warning/10 border border-warning/20 rounded-lg">
                     <p className="text-sm font-medium text-warning">Credit Sale</p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      This sale will be recorded as credit. Amount: Rs. {total.toFixed(2)}
+                      This sale will be recorded as credit. Amount: {formatCurrency(total)}
                     </p>
                   </div>
                   <div className="space-y-2">

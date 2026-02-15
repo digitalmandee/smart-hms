@@ -198,7 +198,7 @@ export function UnifiedPOItemsBuilder({ items, onChange, disabled }: UnifiedPOIt
                 </div>
               </TableCell>
               <TableCell>{item.quantity}</TableCell>
-              <TableCell>Rs. {item.unit_price.toLocaleString()}</TableCell>
+              <TableCell>{formatCurrency(item.unit_price)}</TableCell>
               <TableCell>{item.tax_percent}%</TableCell>
               <TableCell>{item.discount_percent}%</TableCell>
               <TableCell className="text-right font-medium">

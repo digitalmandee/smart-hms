@@ -6,10 +6,11 @@ interface POSReceiptPreviewProps {
   transaction: POSTransaction;
   organizationName?: string;
   branchName?: string;
+  currencySymbol?: string;
 }
 
 export const POSReceiptPreview = forwardRef<HTMLDivElement, POSReceiptPreviewProps>(
-  ({ transaction, organizationName = "Pharmacy", branchName = "Main Branch" }, ref) => {
+  ({ transaction, organizationName = "Pharmacy", branchName = "Main Branch", currencySymbol = "Rs." }, ref) => {
     const paymentMethodLabels: Record<string, string> = {
       cash: "Cash",
       card: "Card",
@@ -18,6 +19,8 @@ export const POSReceiptPreview = forwardRef<HTMLDivElement, POSReceiptPreviewPro
       bank_transfer: "Bank Transfer",
       other: "Other",
     };
+
+    const fc = (amount: number) => `${currencySymbol} ${amount.toFixed(2)}`;
 
     // Inline styles for print compatibility
     const styles = {
@@ -148,10 +151,10 @@ export const POSReceiptPreview = forwardRef<HTMLDivElement, POSReceiptPreviewPro
             <div key={index} style={styles.itemRow}>
               <div style={styles.row}>
                 <span style={styles.itemName}>{item.medicine_name}</span>
-                <span>Rs. {item.line_total.toFixed(2)}</span>
+                <span>{fc(item.line_total)}</span>
               </div>
               <div style={styles.itemDetail}>
-                {item.quantity} x Rs. {item.unit_price.toFixed(2)}
+                {item.quantity} x {fc(item.unit_price)}
                 {item.discount_percent > 0 && ` (-${item.discount_percent}%)`}
               </div>
             </div>
@@ -164,20 +167,20 @@ export const POSReceiptPreview = forwardRef<HTMLDivElement, POSReceiptPreviewPro
         <div style={styles.columnLayout}>
           <div style={styles.row}>
             <span>Subtotal:</span>
-            <span>Rs. {Number(transaction.subtotal).toFixed(2)}</span>
+            <span>{fc(Number(transaction.subtotal))}</span>
           </div>
           
           {Number(transaction.discount_amount) > 0 && (
             <div style={styles.row}>
               <span>Discount ({transaction.discount_percent}%):</span>
-              <span>-Rs. {Number(transaction.discount_amount).toFixed(2)}</span>
+              <span>-{fc(Number(transaction.discount_amount))}</span>
             </div>
           )}
           
           {Number(transaction.tax_amount) > 0 && (
             <div style={styles.row}>
               <span>Tax:</span>
-              <span>Rs. {Number(transaction.tax_amount).toFixed(2)}</span>
+              <span>{fc(Number(transaction.tax_amount))}</span>
             </div>
           )}
           
@@ -185,7 +188,7 @@ export const POSReceiptPreview = forwardRef<HTMLDivElement, POSReceiptPreviewPro
           
           <div style={styles.rowBold}>
             <span>TOTAL:</span>
-            <span>Rs. {Number(transaction.total_amount).toFixed(2)}</span>
+            <span>{fc(Number(transaction.total_amount))}</span>
           </div>
         </div>
 
@@ -196,14 +199,14 @@ export const POSReceiptPreview = forwardRef<HTMLDivElement, POSReceiptPreviewPro
           {transaction.payments?.map((payment, index) => (
             <div key={index} style={styles.row}>
               <span>{paymentMethodLabels[payment.payment_method]}:</span>
-              <span>Rs. {Number(payment.amount).toFixed(2)}</span>
+              <span>{fc(Number(payment.amount))}</span>
             </div>
           ))}
           
           {Number(transaction.change_amount) > 0 && (
             <div style={styles.rowSemibold}>
               <span>Change:</span>
-              <span>Rs. {Number(transaction.change_amount).toFixed(2)}</span>
+              <span>{fc(Number(transaction.change_amount))}</span>
             </div>
           )}
         </div>
