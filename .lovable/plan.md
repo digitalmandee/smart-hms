@@ -1,90 +1,62 @@
 
 
-# Transform AI Chat into "Your Personal AI Doctor"
+# Apply "Tabeebi" (طبيبي) Branding Across AI Chat
 
 ## Overview
 
-Rebrand the AI chat from a generic assistant into a warm, personal "AI Doctor" experience. Add server-side guardrails to reject non-medical questions, and improve the UI with a doctor persona, suggested medical topics, and a disclaimer.
+Rebrand the AI assistant from "Dr. AI" to **Tabeebi** (طبيبي), meaning "My Doctor" in Arabic. Update all patient-facing and doctor-facing components, plus the server-side system prompts.
+
+**Tagline:** "طبيبك الشخصي - Your Personal Doctor"
 
 ---
 
-## 1. Server-Side Medical Topic Guardrail
+## Changes
 
-**File: `supabase/functions/ai-assistant/index.ts`**
+### 1. PatientAIChat.tsx (Patient-facing chat)
 
-Update ALL system prompts (patient_intake, doctor_assist, general) to include a strict instruction:
+- Title: "Dr. AI" --> "Tabeebi" (EN), "طبيبي" (AR)
+- Subtitle: "Your Personal AI Doctor" --> "Your Personal Doctor" (EN), "طبيبك الشخصي" (AR)
+- Welcome heading: "Dr. AI" --> "Tabeebi" / "طبيبي"
+- Welcome message updated:
+  - EN: "Hello! I'm Tabeebi, your personal medical assistant. Tell me what's bothering you, and I'll help gather the right information for your doctor."
+  - AR: "مرحبا! أنا طبيبي، مساعدك الطبي الشخصي. أخبرني بما يزعجك وسأساعدك في جمع المعلومات المناسبة لطبيبك."
+- Language toggle label stays the same
 
-```
-IMPORTANT: You are STRICTLY a medical assistant. If the user asks about anything 
-unrelated to health, medicine, symptoms, treatments, medications, or hospital 
-procedures, politely decline and redirect them to discuss their health concerns. 
-Never answer questions about politics, entertainment, coding, weather, sports, 
-or any non-medical topic.
-```
+### 2. DoctorAIPanel.tsx (Doctor-facing clinical panel)
 
-This is the most reliable guardrail since it's enforced at the AI level regardless of which client calls it.
+- Title: "Clinical AI Copilot" --> "Tabeebi Clinical" 
+- Empty state text updated to reference Tabeebi branding
 
-## 2. Rebrand UI as "Your AI Doctor"
+### 3. AIChatPage.tsx (Full-page chat)
 
-**File: `src/components/ai/PatientAIChat.tsx`**
+- Page title: "Your AI Doctor" --> "Tabeebi - Your Personal Doctor"
+- Breadcrumb: "AI Doctor" --> "Tabeebi"
+- Intro card text: Updated to reference Tabeebi by name
 
-- Change title from "AI Medical Intake" to "Dr. AI" or "Your AI Doctor" (AR: "طبيبك الذكي")
-- Replace Bot icon with Stethoscope icon for a medical feel
-- Update welcome message to feel personal:
-  - EN: "Hello! I'm Dr. AI, your personal medical assistant. Tell me what's bothering you, and I'll help gather the right information for your doctor."
-  - AR: "مرحباً! أنا الدكتور الذكي، مساعدك الطبي الشخصي. أخبرني بما يزعجك وسأساعدك في جمع المعلومات المناسبة لطبيبك."
-- Add a small medical disclaimer at the bottom: "For informational purposes only. Not a substitute for professional medical advice."
-- Add suggested medical topic chips (quick-start buttons) when chat is empty:
-  - "I have a headache"
-  - "Stomach pain"
-  - "Fever and chills"
-  - "Follow-up on my condition"
-- Add a subtle gradient/pulse animation on the doctor avatar to feel more "alive"
+### 4. Edge Function: ai-assistant/index.ts (System prompts)
 
-## 3. Update AIChatPage with Doctor Persona
+All system prompts updated to use "Tabeebi" identity:
 
-**File: `src/pages/app/ai/AIChatPage.tsx`**
-
-- Change page title to "Your AI Doctor"
-- Add a brief intro card above the chat: "Get preliminary medical guidance. Dr. AI will ask about your symptoms and prepare a summary for your physician."
-- Add breadcrumb: OPD > AI Doctor
-
-## 4. Update DoctorAIPanel Branding
-
-**File: `src/components/ai/DoctorAIPanel.tsx`**
-
-- Rename from "AI Clinical Assistant" to "Clinical AI Copilot" to differentiate from the patient-facing "Dr. AI"
-- Keep the Stethoscope-based branding consistent
-
-## 5. Enhance Welcome Screen
-
-**File: `src/components/ai/PatientAIChat.tsx`**
-
-Replace the single welcome message with a richer empty state:
-- Large Stethoscope icon with subtle animation
-- "Dr. AI" name prominently displayed
-- Tagline: "Your personal medical intake assistant"
-- 3-4 suggested topic chips the user can tap to start
-- Medical disclaimer text
+- **patient_intake (EN):** "You are Tabeebi, a warm and empathetic personal medical intake assistant..."
+- **patient_intake (AR):** "أنت طبيبي، مساعد استقبال طبي شخصي ودود ومتعاطف..."
+- **doctor_assist (EN):** "You are Tabeebi Clinical, a clinical decision support assistant..."
+- **doctor_assist (AR):** "أنت طبيبي السريري، مساعد دعم القرار السريري..."
+- **general (EN):** "You are Tabeebi, a helpful and professional personal medical assistant..."
+- **general (AR):** "أنت طبيبي، مساعد طبي شخصي مفيد ومحترف..."
+- Medical guardrail messages also updated to say "I'm Tabeebi" instead of "I'm Dr. AI"
 
 ---
 
-## Files Changed Summary
+## Technical Details
 
-| File | Change | Purpose |
-|------|--------|---------|
-| `supabase/functions/ai-assistant/index.ts` | Modify | Add medical-only guardrail to all system prompts |
-| `src/components/ai/PatientAIChat.tsx` | Modify | Rebrand as "Dr. AI", add topic chips, disclaimer |
-| `src/pages/app/ai/AIChatPage.tsx` | Modify | Update page title, add intro card |
-| `src/components/ai/DoctorAIPanel.tsx` | Modify | Rename to "Clinical AI Copilot" |
+### Files Modified
 
-## Access Points (No Changes Needed)
+| File | Changes |
+|------|---------|
+| `src/components/ai/PatientAIChat.tsx` | Replace all "Dr. AI" / "الدكتور الذكي" references with "Tabeebi" / "طبيبي". Update welcome message text. |
+| `src/components/ai/DoctorAIPanel.tsx` | Rename "Clinical AI Copilot" to "Tabeebi Clinical". Update empty state text. |
+| `src/pages/app/ai/AIChatPage.tsx` | Update page title, breadcrumb label, and intro card text. |
+| `supabase/functions/ai-assistant/index.ts` | Update all system prompt strings and guardrail messages to use Tabeebi identity. |
 
-The AI chat is already accessible from:
-- OPD sidebar menu: "AI Assistant" (doctors only)
-- Reception Quick Actions: "AI Patient Intake"
-- Consultation sidebar: DoctorAIPanel
-- Appointment dialogs: PatientIntakeButton
-
-No new routes or modules are created.
+### No structural or logic changes -- purely text/branding updates.
 
