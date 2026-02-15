@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +24,7 @@ const statusColors: Record<string, string> = {
 };
 
 export default function SettlementsPage() {
+  const { formatCurrency } = useCurrencyFormatter();
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedResignation, setSelectedResignation] = useState<string>("");
@@ -143,7 +145,7 @@ export default function SettlementsPage() {
             <div className="flex items-center gap-4">
               <TrendingDown className="h-8 w-8 text-destructive" />
               <div>
-                <div className="text-2xl font-bold">Rs. {totalDue.toLocaleString()}</div>
+                <div className="text-2xl font-bold">{formatCurrency(totalDue)}</div>
                 <p className="text-muted-foreground text-sm">Total Due</p>
               </div>
             </div>
@@ -154,7 +156,7 @@ export default function SettlementsPage() {
             <div className="flex items-center gap-4">
               <TrendingUp className="h-8 w-8 text-green-600" />
               <div>
-                <div className="text-2xl font-bold">Rs. {totalPaid.toLocaleString()}</div>
+                <div className="text-2xl font-bold">{formatCurrency(totalPaid)}</div>
                 <p className="text-muted-foreground text-sm">Total Paid</p>
               </div>
             </div>
@@ -205,13 +207,13 @@ export default function SettlementsPage() {
                       {getEmployeeName(settlement.employee_id)}
                     </TableCell>
                     <TableCell className="text-green-600">
-                      Rs. {(settlement.total_earnings || 0).toLocaleString()}
+                      {formatCurrency(settlement.total_earnings || 0)}
                     </TableCell>
                     <TableCell className="text-destructive">
-                      Rs. {(settlement.total_deductions || 0).toLocaleString()}
+                      {formatCurrency(settlement.total_deductions || 0)}
                     </TableCell>
                     <TableCell className="font-bold">
-                      Rs. {(settlement.net_payable || 0).toLocaleString()}
+                      {formatCurrency(settlement.net_payable || 0)}
                     </TableCell>
                     <TableCell>
                       <Badge className={statusColors[settlement.status || "draft"]}>
@@ -324,7 +326,7 @@ export default function SettlementsPage() {
                 </div>
               </div>
               <div className="mt-2 text-right font-semibold text-green-700">
-                Total Earnings: Rs. {totalEarnings.toLocaleString()}
+                Total Earnings: {formatCurrency(totalEarnings)}
               </div>
             </div>
 
@@ -364,7 +366,7 @@ export default function SettlementsPage() {
                 </div>
               </div>
               <div className="mt-2 text-right font-semibold text-destructive">
-                Total Deductions: Rs. {totalDeductions.toLocaleString()}
+                Total Deductions: {formatCurrency(totalDeductions)}
               </div>
             </div>
 
@@ -373,7 +375,7 @@ export default function SettlementsPage() {
               <div className="flex justify-between items-center">
                 <span className="text-lg font-semibold">Net Payable</span>
                 <span className={`text-2xl font-bold ${netPayable >= 0 ? "text-green-700" : "text-destructive"}`}>
-                  Rs. {netPayable.toLocaleString()}
+                  {formatCurrency(netPayable)}
                 </span>
               </div>
             </div>

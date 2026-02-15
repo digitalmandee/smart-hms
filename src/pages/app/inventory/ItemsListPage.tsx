@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -148,7 +149,7 @@ export default function ItemsListPage() {
                       />
                     </TableCell>
                     <TableCell className="text-right">
-                      Rs. {item.standard_cost.toLocaleString()}
+                      {formatCurrency(item.standard_cost)}
                     </TableCell>
                   </TableRow>
                 ))}

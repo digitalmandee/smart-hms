@@ -1,4 +1,5 @@
 import { useNavigate, useParams } from "react-router-dom";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -127,7 +128,7 @@ export default function VendorDetailPage() {
           </CardHeader>
           <CardContent>
             <span className="text-2xl font-bold">
-              Rs. {totalPOValue.toLocaleString()}
+              {formatCurrency(totalPOValue)}
             </span>
           </CardContent>
         </Card>
@@ -274,7 +275,7 @@ export default function VendorDetailPage() {
                       <POStatusBadge status={po.status} />
                     </TableCell>
                     <TableCell className="text-right font-medium">
-                      Rs. {po.total_amount?.toLocaleString()}
+                      {formatCurrency(po.total_amount)}
                     </TableCell>
                   </TableRow>
                 ))}

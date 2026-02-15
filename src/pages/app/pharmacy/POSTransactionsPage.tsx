@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { DataTable } from "@/components/DataTable";
@@ -18,6 +19,7 @@ import { Eye, Search, Store } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 
 export default function POSTransactionsPage() {
+  const { formatCurrency } = useCurrencyFormatter();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [dateFilter, setDateFilter] = useState<string>(""); // Empty = all dates
@@ -57,7 +59,7 @@ export default function POSTransactionsPage() {
       header: "Total",
       cell: ({ row }) => (
         <span className="font-medium">
-          Rs. {Number(row.original.total_amount).toFixed(2)}
+          {formatCurrency(Number(row.original.total_amount))}
         </span>
       ),
     },
@@ -173,7 +175,7 @@ export default function POSTransactionsPage() {
         </div>
         <div className="bg-card border rounded-lg p-4">
           <p className="text-sm text-muted-foreground">Total Revenue</p>
-          <p className="text-2xl font-bold text-green-600">Rs. {totalSales.toFixed(2)}</p>
+          <p className="text-2xl font-bold text-green-600">{formatCurrency(totalSales)}</p>
         </div>
       </div>
 

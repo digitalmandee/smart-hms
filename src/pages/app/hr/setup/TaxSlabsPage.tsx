@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTaxSlabs, useCreateTaxSlab, useUpdateTaxSlab, useDeleteTaxSlab } from "@/hooks/usePayroll";
 import { Plus, Pencil, Trash2, Calculator, Percent, Info } from "lucide-react";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { toast } from "sonner";
 
 interface TaxSlabForm {
@@ -104,7 +105,7 @@ export default function TaxSlabsPage() {
     }
   };
 
-  const formatCurrency = (value: number) => `Rs. ${value?.toLocaleString() || 0}`;
+  const { formatCurrency, currencySymbol } = useCurrencyFormatter();
 
   const calculateTax = (income: number) => {
     let totalTax = 0;
@@ -304,13 +305,13 @@ export default function TaxSlabsPage() {
               <Input
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="e.g., 0% - Up to Rs. 50,000"
+                placeholder={`e.g., 0% - Up to ${currencySymbol} 50,000`}
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Min Income (Rs.)</Label>
+                <Label>Min Income ({currencySymbol})</Label>
                 <Input
                   type="number"
                   value={formData.min_income}
@@ -319,7 +320,7 @@ export default function TaxSlabsPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Max Income (Rs.)</Label>
+                <Label>Max Income ({currencySymbol})</Label>
                 <Input
                   type="number"
                   value={formData.max_income || ""}
@@ -341,7 +342,7 @@ export default function TaxSlabsPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Fixed Amount (Rs.)</Label>
+                <Label>Fixed Amount ({currencySymbol})</Label>
                 <Input
                   type="number"
                   value={formData.fixed_amount}

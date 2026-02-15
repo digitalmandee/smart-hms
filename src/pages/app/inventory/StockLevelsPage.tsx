@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -233,10 +234,10 @@ export default function StockLevelsPage() {
                         )}
                       </TableCell>
                       <TableCell className="text-right">
-                        Rs. {item.standard_cost?.toLocaleString() || "0"}
+                        {formatCurrency(item.standard_cost || 0)}
                       </TableCell>
                       <TableCell className="text-right font-medium">
-                        Rs. {(stock * (item.standard_cost || 0)).toLocaleString()}
+                        {formatCurrency(stock * (item.standard_cost || 0))}
                       </TableCell>
                       <TableCell>
                         <Button

@@ -24,8 +24,10 @@ import {
 } from "lucide-react";
 import { useInventoryItem, useInventoryStock, useStockAdjustments } from "@/hooks/useInventory";
 import { format } from "date-fns";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 
 export default function ItemDetailPage() {
+  const { formatCurrency } = useCurrencyFormatter();
   const navigate = useNavigate();
   const { id } = useParams();
 
@@ -133,7 +135,7 @@ export default function ItemDetailPage() {
           </CardHeader>
           <CardContent>
             <span className="text-2xl font-bold">
-              Rs. {item.standard_cost?.toLocaleString() || "0"}
+              {formatCurrency(item.standard_cost || 0)}
             </span>
           </CardContent>
         </Card>
@@ -146,7 +148,7 @@ export default function ItemDetailPage() {
           </CardHeader>
           <CardContent>
             <span className="text-2xl font-bold">
-              Rs. {((totalStock * (item.standard_cost || 0))).toLocaleString()}
+              {formatCurrency(totalStock * (item.standard_cost || 0))}
             </span>
           </CardContent>
         </Card>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -29,6 +30,7 @@ interface UnifiedPOItemsBuilderProps {
 }
 
 export function UnifiedPOItemsBuilder({ items, onChange, disabled }: UnifiedPOItemsBuilderProps) {
+  const { formatCurrency: fc } = useCurrencyFormatter();
   const { data: inventoryItems } = useInventoryItems();
   const { data: medicines } = useMedicines();
   
@@ -198,11 +200,11 @@ export function UnifiedPOItemsBuilder({ items, onChange, disabled }: UnifiedPOIt
                 </div>
               </TableCell>
               <TableCell>{item.quantity}</TableCell>
-              <TableCell>{formatCurrency(item.unit_price)}</TableCell>
+              <TableCell>{fc(item.unit_price)}</TableCell>
               <TableCell>{item.tax_percent}%</TableCell>
               <TableCell>{item.discount_percent}%</TableCell>
               <TableCell className="text-right font-medium">
-                Rs. {item.total_price.toLocaleString()}
+                {fc(item.total_price)}
               </TableCell>
               <TableCell>
                 {!disabled && (
@@ -303,7 +305,7 @@ export function UnifiedPOItemsBuilder({ items, onChange, disabled }: UnifiedPOIt
                 />
               </TableCell>
               <TableCell className="text-right font-medium">
-                Rs. {calculateItemTotal(newItem).toLocaleString()}
+                {fc(calculateItemTotal(newItem))}
               </TableCell>
               <TableCell>
                 <Button
@@ -328,15 +330,15 @@ export function UnifiedPOItemsBuilder({ items, onChange, disabled }: UnifiedPOIt
         <div className="w-64 space-y-2">
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Subtotal:</span>
-            <span>Rs. {subtotal.toLocaleString()}</span>
+            <span>{fc(subtotal)}</span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Tax:</span>
-            <span>Rs. {totalTax.toLocaleString()}</span>
+            <span>{fc(totalTax)}</span>
           </div>
           <div className="flex justify-between font-medium border-t pt-2">
             <span>Grand Total:</span>
-            <span>Rs. {grandTotal.toLocaleString()}</span>
+            <span>{fc(grandTotal)}</span>
           </div>
         </div>
       </div>

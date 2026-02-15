@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -100,7 +101,7 @@ export function PatientIPDChargesPreview({ patientId }: PatientIPDChargesPreview
                     )}
                   </div>
                   <span className="font-medium">
-                    Rs. {charge.total_amount.toLocaleString()}
+                    {formatCurrency(charge.total_amount)}
                   </span>
                 </div>
               ))}
@@ -133,7 +134,7 @@ export function PatientIPDChargesPreview({ patientId }: PatientIPDChargesPreview
                     <span>{charge.description}</span>
                   </div>
                   <span className="font-medium">
-                    Rs. {charge.total_amount.toLocaleString()}
+                    {formatCurrency(charge.total_amount)}
                   </span>
                 </div>
               ))}
@@ -150,7 +151,7 @@ export function PatientIPDChargesPreview({ patientId }: PatientIPDChargesPreview
         <div className="flex items-center justify-between pt-3 border-t border-amber-200 dark:border-amber-800">
           <span className="font-medium">Total Pending</span>
           <span className="text-lg font-bold text-amber-700 dark:text-amber-400">
-            Rs. {data.total.toLocaleString()}
+            {formatCurrency(data.total)}
           </span>
         </div>
       </CardContent>

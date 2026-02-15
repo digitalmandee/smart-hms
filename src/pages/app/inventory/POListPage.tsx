@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -130,7 +131,7 @@ export default function POListPage() {
                       <POStatusBadge status={po.status} />
                     </TableCell>
                     <TableCell className="text-right font-medium">
-                      Rs. {po.total_amount.toLocaleString()}
+                      {formatCurrency(po.total_amount)}
                     </TableCell>
                   </TableRow>
                 ))}

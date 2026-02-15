@@ -1,4 +1,5 @@
 import { useNavigate, useParams } from "react-router-dom";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -275,11 +276,11 @@ export default function PODetailPage() {
                     </div>
                   </TableCell>
                   <TableCell className="text-center">{item.quantity}</TableCell>
-                  <TableCell className="text-right">Rs. {item.unit_price.toLocaleString()}</TableCell>
+                  <TableCell className="text-right">{formatCurrency(item.unit_price)}</TableCell>
                   <TableCell className="text-center">{item.tax_percent}%</TableCell>
                   <TableCell className="text-center">{item.discount_percent}%</TableCell>
                   <TableCell className="text-right font-medium">
-                    Rs. {item.total_price.toLocaleString()}
+                    {formatCurrency(item.total_price)}
                   </TableCell>
                   <TableCell className="text-center">
                     <span className={item.received_quantity >= item.quantity ? "text-green-600" : ""}>
@@ -297,20 +298,20 @@ export default function PODetailPage() {
             <div className="w-64 space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Subtotal:</span>
-                <span>Rs. {po.subtotal.toLocaleString()}</span>
+                <span>{formatCurrency(po.subtotal)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Tax:</span>
-                <span>Rs. {po.tax_amount.toLocaleString()}</span>
+                <span>{formatCurrency(po.tax_amount)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Discount:</span>
-                <span>Rs. {po.discount_amount.toLocaleString()}</span>
+                <span>{formatCurrency(po.discount_amount)}</span>
               </div>
               <Separator />
               <div className="flex justify-between font-medium">
                 <span>Grand Total:</span>
-                <span>Rs. {po.total_amount.toLocaleString()}</span>
+                <span>{formatCurrency(po.total_amount)}</span>
               </div>
             </div>
           </div>

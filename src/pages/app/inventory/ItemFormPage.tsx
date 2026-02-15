@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { useNavigate, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -210,7 +211,7 @@ export default function ItemFormPage() {
                   name="standard_cost"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Standard Cost (Rs.)</FormLabel>
+                      <FormLabel>Standard Cost ({currencySymbol})</FormLabel>
                       <FormControl>
                         <Input type="number" step="0.01" {...field} />
                       </FormControl>

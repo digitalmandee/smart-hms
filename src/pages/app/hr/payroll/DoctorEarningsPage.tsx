@@ -13,7 +13,8 @@ import { Plus, DollarSign, Receipt, TrendingUp, CheckCircle, Loader2, Download }
 import { useDoctorEarnings, useCreateDoctorEarning, useMarkEarningsAsPaid } from "@/hooks/useDoctorCompensation";
 import { useDoctors } from "@/hooks/useDoctors";
 import { format } from "date-fns";
-import { exportToCSV, formatCurrency } from "@/lib/exportUtils";
+import { exportToCSV, formatCurrency as exportFormatCurrency } from "@/lib/exportUtils";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 
 const SOURCE_TYPES = [
   { value: "consultation", label: "Consultation" },
@@ -27,6 +28,7 @@ const SOURCE_TYPES = [
 ];
 
 export default function DoctorEarningsPage() {
+  const { formatCurrency, currencySymbol } = useCurrencyFormatter();
   const [selectedDoctor, setSelectedDoctor] = useState<string>("all");
   const [isPaidFilter, setIsPaidFilter] = useState<string>("all");
   const [sourceFilter, setSourceFilter] = useState<string>("all");
@@ -107,10 +109,10 @@ export default function DoctorEarningsPage() {
         { key: "earning_date", header: "Date", format: (v) => format(new Date(v), "yyyy-MM-dd") },
         { key: "source_type", header: "Source" },
         { key: "source_reference", header: "Reference" },
-        { key: "gross_amount", header: "Gross Amount", format: formatCurrency },
+        { key: "gross_amount", header: "Gross Amount", format: exportFormatCurrency },
         { key: "doctor_share_percent", header: "Share %" },
-        { key: "doctor_share_amount", header: "Doctor Share", format: formatCurrency },
-        { key: "hospital_share_amount", header: "Hospital Share", format: formatCurrency },
+        { key: "doctor_share_amount", header: "Doctor Share", format: exportFormatCurrency },
+        { key: "hospital_share_amount", header: "Hospital Share", format: exportFormatCurrency },
         { key: "is_paid", header: "Status", format: (v) => (v ? "Paid" : "Unpaid") },
       ]
     );
@@ -232,7 +234,7 @@ export default function DoctorEarningsPage() {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label>Gross Amount (Rs.)</Label>
+                      <Label>Gross Amount ({currencySymbol})</Label>
                       <Input
                         type="number"
                         value={formData.gross_amount}
@@ -254,10 +256,10 @@ export default function DoctorEarningsPage() {
                   {formData.gross_amount > 0 && formData.doctor_share_percent > 0 && (
                     <div className="p-3 bg-muted rounded-lg">
                       <p className="text-sm text-muted-foreground">
-                        Doctor Share: <strong>Rs. {((formData.gross_amount * formData.doctor_share_percent) / 100).toLocaleString()}</strong>
+                        Doctor Share: <strong>{formatCurrency((formData.gross_amount * formData.doctor_share_percent) / 100)}</strong>
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        Hospital Share: <strong>Rs. {(formData.gross_amount - (formData.gross_amount * formData.doctor_share_percent) / 100).toLocaleString()}</strong>
+                        Hospital Share: <strong>{formatCurrency(formData.gross_amount - (formData.gross_amount * formData.doctor_share_percent) / 100)}</strong>
                       </p>
                     </div>
                   )}
@@ -301,7 +303,7 @@ export default function DoctorEarningsPage() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Total Earnings</p>
-                <p className="text-2xl font-bold">Rs. {totalEarnings.toLocaleString()}</p>
+                <p className="text-2xl font-bold">{formatCurrency(totalEarnings)}</p>
               </div>
             </div>
           </CardContent>
@@ -314,7 +316,7 @@ export default function DoctorEarningsPage() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Unpaid</p>
-                <p className="text-2xl font-bold">Rs. {unpaidEarnings.toLocaleString()}</p>
+                <p className="text-2xl font-bold">{formatCurrency(unpaidEarnings)}</p>
               </div>
             </div>
           </CardContent>
@@ -327,7 +329,7 @@ export default function DoctorEarningsPage() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Paid</p>
-                <p className="text-2xl font-bold">Rs. {paidEarnings.toLocaleString()}</p>
+                <p className="text-2xl font-bold">{formatCurrency(paidEarnings)}</p>
               </div>
             </div>
           </CardContent>
@@ -433,9 +435,9 @@ export default function DoctorEarningsPage() {
                     <TableCell className="font-medium">{getDoctorName(earning.doctor_id)}</TableCell>
                     <TableCell>{getSourceBadge(earning.source_type)}</TableCell>
                     <TableCell>{earning.source_reference || "-"}</TableCell>
-                    <TableCell className="text-right">Rs. {Number(earning.gross_amount).toLocaleString()}</TableCell>
+                    <TableCell className="text-right">{formatCurrency(Number(earning.gross_amount))}</TableCell>
                     <TableCell className="text-right">{earning.doctor_share_percent}%</TableCell>
-                    <TableCell className="text-right font-medium">Rs. {Number(earning.doctor_share_amount).toLocaleString()}</TableCell>
+                    <TableCell className="text-right font-medium">{formatCurrency(Number(earning.doctor_share_amount))}</TableCell>
                     <TableCell>
                       <Badge variant={earning.is_paid ? "default" : "secondary"}>
                         {earning.is_paid ? "Paid" : "Unpaid"}

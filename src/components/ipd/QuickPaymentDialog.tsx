@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import {
   Dialog,
   DialogContent,
@@ -77,7 +78,7 @@ export function QuickPaymentDialog({
         notes: notes || `Payment for ${invoiceNumber}`,
       });
 
-      toast.success(`Payment of Rs. ${paymentAmount.toLocaleString()} recorded successfully`);
+      toast.success(`Payment of ${formatCurrency(paymentAmount)} recorded successfully`);
       onSuccess?.();
     } catch (error: any) {
       toast.error(error.message || "Failed to record payment");
@@ -110,7 +111,7 @@ export function QuickPaymentDialog({
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="p-3 bg-muted rounded-lg text-sm">
               <p className="text-muted-foreground">Invoice: {invoiceNumber}</p>
-              <p className="font-semibold">Balance Due: Rs. {balanceAmount.toLocaleString()}</p>
+              <p className="font-semibold">Balance Due: {formatCurrency(balanceAmount)}</p>
             </div>
 
             <div className="space-y-2">
