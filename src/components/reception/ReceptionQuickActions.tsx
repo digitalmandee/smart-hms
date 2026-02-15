@@ -9,6 +9,7 @@ import {
   Footprints,
   TestTube,
   BedDouble,
+  Bot,
 } from "lucide-react";
 
 interface QuickAction {
@@ -75,6 +76,13 @@ const quickActions: QuickAction[] = [
     path: "/app/appointments",
     variant: "secondary",
     description: "Appointments list",
+  },
+  {
+    label: "AI Patient Intake",
+    icon: Bot,
+    path: "/app/ai-chat",
+    variant: "outline",
+    description: "AI-guided intake",
   },
 ];
 
