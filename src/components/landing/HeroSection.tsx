@@ -56,13 +56,13 @@ export const HeroSection = () => {
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Left: Content */}
           <AnimatedSection animation="fade-right" className="space-y-8">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
+            <Link to="/tabeebi" className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-colors">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
               </span>
-              <span className="text-sm font-medium text-primary">Introducing Tabeebi — AI Virtual Doctor</span>
-            </div>
+              <span className="text-sm font-medium text-primary">Custom AI Doctor Built-In — Try Tabeebi</span>
+            </Link>
             
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight">
               <span className="text-primary">{displayText}</span>
@@ -77,6 +77,8 @@ export const HeroSection = () => {
               Stop juggling paper files, Excel sheets, and WhatsApp groups. 
               <span className="text-foreground font-medium"> One platform</span> for patient registration, 
               appointments, prescriptions, pharmacy, and billing.
+              {" "}With <span className="text-primary font-semibold">Tabeebi</span>, our custom-trained AI doctor, 
+              patients get instant consultations while doctors get AI-generated clinical summaries.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4">

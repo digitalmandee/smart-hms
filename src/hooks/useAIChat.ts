@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -23,6 +23,13 @@ export function useAIChat(options: UseAIChatOptions = {}) {
   const [messages, setMessages] = useState<ChatMessage[]>(
     initialGreeting ? [{ role: "assistant", content: initialGreeting }] : []
   );
+
+  // React to initialGreeting changes (e.g. language switch) — only if no real conversation yet
+  useEffect(() => {
+    if (initialGreeting && messages.length <= 1 && !conversationId) {
+      setMessages([{ role: "assistant", content: initialGreeting }]);
+    }
+  }, [initialGreeting]);
   const [isLoading, setIsLoading] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
