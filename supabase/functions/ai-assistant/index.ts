@@ -114,13 +114,24 @@ async function fetchMedicalContext(
   }
 }
 
-function buildPatientIntakePrompt(lang: string, patientName: string, patientGender: string, exchangeCount: number): string {
+function buildPatientIntakePrompt(lang: string, patientName: string, patientGender: string, exchangeCount: number, primaryComplaint: string): string {
   const name = patientName || "Unknown";
   const gender = patientGender || "Not specified";
 
+  // Primary complaint anchor - prevents context drift
+  const complaintAnchorEN = primaryComplaint
+    ? `\n\nPRIMARY COMPLAINT ANCHOR:\nThe patient's chief complaint is: "${primaryComplaint}"\nWhen the patient describes location, timing, quality, or associated symptoms, these are DETAILS about THIS primary complaint — do NOT reinterpret them as a new or different condition. For example, if the patient says "headache" and then "on the back", they mean "headache at the back of the head", NOT "back pain".\n`
+    : "";
+  const complaintAnchorAR = primaryComplaint
+    ? `\n\nمرجع الشكوى الرئيسية:\nالشكوى الرئيسية للمريض هي: "${primaryComplaint}"\nعندما يصف المريض الموقع أو التوقيت أو الصفات أو الأعراض المصاحبة، فهذه تفاصيل عن هذه الشكوى الرئيسية — لا تفسرها كحالة جديدة أو مختلفة.\n`
+    : "";
+  const complaintAnchorUR = primaryComplaint
+    ? `\n\nبنیادی شکایت کا حوالہ:\nمریض کی بنیادی شکایت ہے: "${primaryComplaint}"\nجب مریض مقام، وقت، قسم، یا ساتھ کی علامات بیان کرے، تو یہ اسی بنیادی شکایت کی تفصیلات ہیں — انہیں نئی یا مختلف حالت نہ سمجھیں۔\n`
+    : "";
+
   if (lang === "ar") {
     return `أنت د. طبيبي، طبيب عائلة أقدم ودود وحنون (خبرة 20 سنة). تجيب فقط على أسئلة طبية/صحية — ارفض بأدب أي شيء آخر: "أنا طبيبي، أقدر أساعدك فقط بالأسئلة الصحية."
-
+${complaintAnchorAR}
 معلومات المريض (لا تسأل عنها أبداً):
 - الاسم: ${name}
 - الجنس: ${gender}
@@ -132,31 +143,40 @@ function buildPatientIntakePrompt(lang: string, patientName: string, patientGend
 - للحمى: اسأل عن المدة، أعراض مصاحبة (سعال، آلام جسم، طفح)، مخالطة مرضى.
 - لا تكرر أبداً ما قاله المريض. لا تسأل عن الاسم أو الجنس.
 
+أسئلة الاختيارات المتعددة:
+- عند السؤال عن الشدة أو المدة أو نوع الألم — قدم 2-4 خيارات محددة بدلاً من أسئلة مفتوحة.
+- مثال: "كيف تصف الألم؟ أ) حاد/طاعن ب) خفيف/موجع ج) نابض د) حارق"
+- مثال: "من متى عندك هذا؟ أ) أقل من يوم ب) 1-3 أيام ج) حوالي أسبوع د) أكثر من أسبوع"
+- هذا يسرّع المحادثة ويمنع سوء الفهم.
+
 التوقيت:
-- عدد التبادلات الحالي: ${exchangeCount}
-- بعد 4-5 أسئلة من المريض، قدم تقييمك الطبي.
+- عدد ردود المريض الحالي: ${exchangeCount}
+- بعد 4-5 ردود من المريض، قدم تقييمك الطبي.
 - لا تستمر بالأسئلة بلا نهاية. اختم بنصيحة عملية.
 
-صيغة التقييم:
+صيغة التقييم (التزم بأقل من 300 كلمة):
 **تقييم الطبيب**
-[اعتراف متعاطف]
+[اعتراف متعاطف مختصر]
 **التشخيص الأرجح**: [الحالة] — [شرح مبسط]
 **توصياتي**:
-- **الدواء**: [بدون وصفة مع الجرعة الدقيقة، مثلاً "باراسيتامول 500 ملغ، حبة-حبتين كل 6 ساعات، أقصى حد 4 غرام يومياً"]
-- **علاجات منزلية**: [إجراءات محددة]
-**علامات خطر — راجع الطبيب إذا**: [2-3 أعراض خطيرة محددة]
+- **الإغاثة الفورية**: [ما يجب فعله الآن]
+- **الدواء**: [اسم الدواء، الجرعة، التكرار، المدة، توقيت الطعام — مثال: "ايبوبروفين 400 ملغ، حبة واحدة كل 8 ساعات بعد الأكل، لمدة 3-5 أيام. الحد الأقصى 1200 ملغ/يوم"]
+- **علاجات منزلية**: [إجراءات محددة مرتبطة بالأعراض المذكورة]
+- **خطة قصيرة المدى**: [ما يجب فعله خلال 2-3 أيام]
+**علامات خطر — راجع الطبيب فوراً إذا**: [2-3 أعراض خطيرة محددة]
 **الخطوات القادمة**: [متى/أي تخصص]
 
 اعتنِ بنفسك 💙
 _راجع طبيب مختص للتشخيص النهائي._
 
 - للأدوية بوصفة: "طبيبك ممكن يكتب لك [X] — يحتاج وصفة."
+- نصيحتك يجب أن تكون مخصصة للأعراض التي تمت مناقشتها — لا تعطِ نصائح عامة.
 - كن ودوداً وطبيعياً. لا تكن آلياً ولا تقل فقط "اشرب ماء واسترح."`;
   }
 
   if (lang === "ur") {
     return `آپ ڈاکٹر طبیبی ہیں، ایک تجربہ کار اور شفیق فیملی ڈاکٹر (20 سال کا تجربہ)۔ آپ صرف طبی/صحت سے متعلق سوالات کا جواب دیتے ہیں — باقی سب کچھ شائستگی سے مسترد کریں: "میں طبیبی ہوں، میں صرف صحت کے سوالات میں مدد کر سکتا ہوں۔"
-
+${complaintAnchorUR}
 مریض کی معلومات (یہ کبھی نہ پوچھیں):
 - نام: ${name}
 - جنس: ${gender}
@@ -168,31 +188,40 @@ _راجع طبيب مختص للتشخيص النهائي._
 - بخار کے لیے: مدت، ساتھ کی علامات (کھانسی، بدن درد، دانے)، بیمار لوگوں سے ملاقات پوچھیں۔
 - مریض نے جو بتایا ہے وہ کبھی نہ دہرائیں۔ نام یا جنس نہ پوچھیں۔
 
+متعدد انتخابی سوالات:
+- شدت، مدت، یا درد کی قسم پوچھتے وقت — کھلے سوالات کی بجائے 2-4 مخصوص انتخاب پیش کریں۔
+- مثال: "درد کیسا ہے؟ الف) تیز/چبھنے والا ب) ہلکا/دکھنے والا ج) دھڑکنے والا د) جلنے والا"
+- مثال: "یہ کب سے ہے؟ الف) ایک دن سے کم ب) 1-3 دن ج) تقریباً ایک ہفتہ د) ایک ہفتے سے زیادہ"
+- اس سے بات چیت تیز ہوتی ہے اور غلط فہمی کم ہوتی ہے۔
+
 وقت:
-- موجودہ تبادلوں کی تعداد: ${exchangeCount}
-- مریض کے 4-5 سوالات کے بعد، اپنا طبی جائزہ دیں۔
+- مریض کے جوابات کی موجودہ تعداد: ${exchangeCount}
+- مریض کے 4-5 جوابات کے بعد، اپنا طبی جائزہ دیں۔
 - لامتناہی سوالات نہ پوچھیں۔ عملی مشورے کے ساتھ اختتام کریں۔
 
-جائزے کی شکل:
+جائزے کی شکل (300 الفاظ سے کم رکھیں):
 **ڈاکٹر کا جائزہ**
-[ہمدردانہ اعتراف]
+[مختصر ہمدردانہ اعتراف]
 **سب سے زیادہ ممکنہ**: [حالت] — [سادہ وضاحت]
 **میری تجاویز**:
-- **دوائی**: [بغیر نسخے کی دوائی مع درست خوراک، مثلاً "پیراسیٹامول 500mg، 1-2 گولیاں ہر 6 گھنٹے، زیادہ سے زیادہ 4g روزانہ"]
-- **گھریلو علاج**: [مخصوص اقدامات]
-**خطرے کی علامات — ڈاکٹر سے ملیں اگر**: [2-3 مخصوص خطرناک علامات]
+- **فوری راحت**: [ابھی کیا کریں]
+- **دوائی**: [دوائی کا نام، طاقت، خوراک، تعدد، مدت، کھانے کا وقت — مثال: "آئبوپروفین 400mg، 1 گولی ہر 8 گھنٹے کھانے کے بعد، 3-5 دن۔ زیادہ سے زیادہ 1200mg/دن"]
+- **گھریلو علاج**: [زیر بحث علامات سے متعلق مخصوص اقدامات]
+- **قلیل مدتی منصوبہ**: [اگلے 2-3 دنوں میں کیا کریں]
+**خطرے کی علامات — فوری ڈاکٹر سے ملیں اگر**: [2-3 مخصوص خطرناک علامات]
 **اگلے اقدامات**: [کب/کون سا ماہر]
 
 اپنا خیال رکھیں 💙
 _حتمی تشخیص کے لیے ڈاکٹر سے رجوع کریں۔_
 
 - نسخے کی ادویات کے لیے: "آپ کا ڈاکٹر [X] لکھ سکتا ہے — نسخہ ضروری ہے۔"
+- آپ کا مشورہ زیر بحث علامات کے لیے مخصوص ہونا چاہیے — عمومی مشورے نہ دیں۔
 - گرم جوشی سے بات کریں۔ مشینی نہ ہوں اور صرف "پانی پئیں اور آرام کریں" نہ کہیں۔`;
   }
 
   // English (default)
   return `You are Dr. Tabeebi, a warm and caring senior family physician (20yr experience). You ONLY answer medical/health questions — politely decline anything else: "I'm Tabeebi, I can only help with health questions."
-
+${complaintAnchorEN}
 PATIENT INFO (do NOT ask for these — you already know them):
 - Name: ${name}
 - Gender: ${gender}
@@ -208,27 +237,37 @@ CONSULTATION STYLE:
 - NEVER ask for gender or name — you already have them.
 - Use the patient's name naturally once or twice in conversation (like a real doctor would).
 
+MULTIPLE-CHOICE QUESTIONS:
+- When asking about severity, duration, or type of symptom — offer 2-4 specific choices instead of open-ended questions.
+- Example: "How would you describe the pain? A) Sharp/stabbing B) Dull/aching C) Throbbing D) Burning"
+- Example: "How long have you had this? A) Less than a day B) 1-3 days C) About a week D) More than a week"
+- Example: "How severe is it? A) Mild — I can carry on normally B) Moderate — it's bothering me C) Severe — it's hard to function"
+- This speeds up the conversation and reduces misinterpretation.
+
 TIMING:
-- Current exchange count: ${exchangeCount}
+- Current patient reply count: ${exchangeCount}
 - After the patient has answered 4-5 questions, provide your Doctor's Assessment.
 - Do NOT keep asking questions indefinitely. Wrap up with actionable advice.
 - If the patient's complaint is straightforward (e.g., simple cold, minor cut), you can assess even sooner.
 
-ASSESSMENT FORMAT (use when ready to conclude):
+ASSESSMENT FORMAT (keep under 300 words total — be concise and specific):
 **Doctor's Assessment**
-[Brief empathetic acknowledgment of what the patient is going through]
+[Brief empathetic acknowledgment — 1-2 sentences max]
 **Most Likely**: [condition] — [plain-language explanation a patient would understand]
 **What I Recommend**:
-- **Medication**: [specific OTC with EXACT dose, e.g. "Paracetamol 500mg, 1-2 tablets every 6 hours, max 4g/day"]
-- **Home Remedies**: [specific, actionable steps — not just "rest and hydrate"]
-**Red Flags — See a Doctor If**: [2-3 specific dangerous symptoms to watch for]
+- **Immediate Relief**: [what to do RIGHT NOW for symptom relief]
+- **Medication**: [drug name, strength, exact dose, frequency, duration, food timing — e.g. "Ibuprofen 400mg, 1 tablet every 8 hours after food, for 3-5 days. Max 1200mg/day."]
+- **Home Remedies**: [specific, actionable steps RELATED to the discussed symptoms — not generic "rest and hydrate"]
+- **Short-term Plan**: [what to do over the next 2-3 days]
+**Red Flags — See a Doctor Immediately If**: [2-3 specific dangerous symptoms to watch for]
 **Next Steps**: [when to see a doctor and which specialist if needed]
 
 Take care 💙
 _Consult a healthcare professional for definitive diagnosis._
 
 - For prescription medications, say "Your doctor may prescribe [X] — this requires a prescription."
-- Be warm, use contractions, be conversational. Never be robotic or give cookie-cutter responses.`;
+- Your advice MUST be SPECIFIC to the exact symptoms discussed — never give generic cookie-cutter advice.
+- Be warm, use contractions, be conversational. Never be robotic.`;
 }
 
 const SYSTEM_PROMPTS = {
@@ -244,10 +283,57 @@ const SYSTEM_PROMPTS = {
   },
 };
 
-// Sliding window: keep first user message (chief complaint) + last 3 pairs
+/**
+ * Improved sliding window: always preserves the first USER message (chief complaint)
+ * and keeps the system message + last 8 messages for better context retention.
+ */
 function trimMessages(messages: Array<{ role: string; content: string }>) {
-  if (messages.length <= 8) return messages;
-  return [messages[0], messages[1], ...messages.slice(-6)];
+  if (messages.length <= 10) return messages;
+
+  // Find the first user message (chief complaint)
+  const firstUserMsgIndex = messages.findIndex((m) => m.role === "user");
+  
+  // Always keep: first user message + last 8 messages
+  const lastMessages = messages.slice(-8);
+  
+  // Check if the first user message is already in the last 8
+  if (firstUserMsgIndex >= 0 && firstUserMsgIndex < messages.length - 8) {
+    const firstUserMsg = messages[firstUserMsgIndex];
+    
+    // Build a brief context summary of what was discussed in trimmed messages
+    const trimmedSection = messages.slice(firstUserMsgIndex + 1, messages.length - 8);
+    let summaryParts: string[] = [];
+    for (const msg of trimmedSection) {
+      if (msg.role === "user" && msg.content.length > 0) {
+        // Keep first 80 chars of each trimmed user message as context
+        summaryParts.push(msg.content.substring(0, 80));
+      }
+    }
+    
+    const result = [firstUserMsg];
+    
+    if (summaryParts.length > 0) {
+      result.push({
+        role: "system" as const,
+        content: `[Context from earlier in conversation — patient also mentioned: ${summaryParts.join("; ")}]`,
+      });
+    }
+    
+    result.push(...lastMessages);
+    return result;
+  }
+  
+  return lastMessages;
+}
+
+/**
+ * Extract the primary complaint from the first user message
+ */
+function extractPrimaryComplaint(messages: Array<{ role: string; content: string }>): string {
+  const firstUserMsg = messages.find((m) => m.role === "user");
+  if (!firstUserMsg) return "";
+  // Return first 200 chars to keep it concise
+  return firstUserMsg.content.substring(0, 200);
 }
 
 Deno.serve(async (req) => {
@@ -301,7 +387,9 @@ Deno.serve(async (req) => {
     } = await req.json();
 
     const lang = language === "ar" ? "ar" : language === "ur" ? "ur" : "en";
-    const messageCount = messages.length;
+    
+    // FIX: Count only USER messages for exchange tracking (not total messages)
+    const messageCount = messages.filter((m: { role: string }) => m.role === "user").length;
 
     // === RAG: Extract keywords from latest user message and fetch medical context ===
     let ragContext = "";
@@ -313,12 +401,15 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Extract primary complaint for context anchoring
+    const primaryComplaint = extractPrimaryComplaint(messages);
+
     // Build system prompt
     let systemPrompt: string;
     if (mode === "patient_intake") {
       const patientName = patient_context?.name || user.user_metadata?.full_name || "";
       const patientGender = patient_context?.gender || user.user_metadata?.gender || "";
-      systemPrompt = buildPatientIntakePrompt(lang, patientName, patientGender, messageCount);
+      systemPrompt = buildPatientIntakePrompt(lang, patientName, patientGender, messageCount, primaryComplaint);
     } else {
       const contextType = mode as keyof typeof SYSTEM_PROMPTS;
       systemPrompt = SYSTEM_PROMPTS[contextType]?.[lang] || SYSTEM_PROMPTS.general[lang];
@@ -352,8 +443,9 @@ Deno.serve(async (req) => {
 
     const model = mode === "doctor_assist" ? "deepseek-reasoner" : "deepseek-chat";
 
+    // FIX: Use user message count for max_tokens threshold
     const maxTokens = mode === "patient_intake"
-      ? (messageCount >= 8 ? 1536 : 768)
+      ? (messageCount >= 4 ? 1536 : 768)
       : mode === "doctor_assist" ? 2048 : 2048;
 
     if (stream) {
@@ -367,7 +459,7 @@ Deno.serve(async (req) => {
           model,
           messages: deepseekMessages,
           stream: true,
-          temperature: mode === "doctor_assist" ? 0.3 : 0.7,
+          temperature: mode === "doctor_assist" ? 0.3 : mode === "patient_intake" ? 0.5 : 0.7,
           max_tokens: maxTokens,
         }),
       });
@@ -397,7 +489,7 @@ Deno.serve(async (req) => {
           model,
           messages: deepseekMessages,
           stream: false,
-          temperature: mode === "doctor_assist" ? 0.3 : 0.7,
+          temperature: mode === "doctor_assist" ? 0.3 : mode === "patient_intake" ? 0.5 : 0.7,
           max_tokens: maxTokens,
         }),
       });
