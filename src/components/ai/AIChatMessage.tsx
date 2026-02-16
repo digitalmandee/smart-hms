@@ -12,7 +12,14 @@ interface AIChatMessageProps {
   isLatest?: boolean;
   onOptionSelect?: (option: string) => void;
   onOtherSelect?: () => void;
+  language?: "en" | "ar" | "ur";
 }
+
+const OTHER_LABELS: Record<string, string> = {
+  en: "✏️ Other (type your own answer)",
+  ar: "✏️ غير ذلك (اكتب إجابتك)",
+  ur: "✏️ کوئی اور (اپنا جواب لکھیں)",
+};
 
 const OPTION_REGEX = /^[A-D]\) .+$/;
 
@@ -111,7 +118,7 @@ function formatMarkdown(text: string): string {
   return output.join("\n");
 }
 
-export function AIChatMessage({ role, content, isStreaming, timestamp, isLatest, onOptionSelect, onOtherSelect }: AIChatMessageProps) {
+export function AIChatMessage({ role, content, isStreaming, timestamp, isLatest, onOptionSelect, onOtherSelect, language = "en" }: AIChatMessageProps) {
   const isUser = role === "user";
 
   const { questionText, options } = useMemo(() => {
@@ -223,7 +230,7 @@ export function AIChatMessage({ role, content, isStreaming, timestamp, isLatest,
               onClick={() => onOtherSelect?.()}
               className="text-left text-[13px] px-4 py-2.5 rounded-2xl border border-dashed border-muted-foreground/30 bg-card hover:bg-muted/50 hover:border-muted-foreground/50 text-muted-foreground transition-all active:scale-[0.98]"
             >
-              ✏️ Other (type your own answer)
+              {OTHER_LABELS[language] || OTHER_LABELS.en}
             </button>
           </div>
         )}
