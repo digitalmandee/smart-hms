@@ -47,7 +47,7 @@ export const FeaturesOverviewSlide = () => {
         <div className="flex items-center gap-3">
           <HealthOS24Logo variant="icon" size="md" />
           <div>
-            <h2 className="text-2xl font-bold">20 AI-Powered Modules</h2>
+            <h2 className="text-2xl font-bold">AI-Driven 20+ Modules</h2>
             <p className="text-sm text-muted-foreground">AI-Powered Hospital System at Your Fingertips</p>
           </div>
         </div>
