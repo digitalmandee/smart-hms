@@ -152,7 +152,7 @@ export const CTASlide = () => {
       {/* Footer */}
       <div className="pt-4 border-t border-border text-center relative z-10">
         <p className="text-sm text-muted-foreground">
-          © 2026 HealthOS 24 - Complete 24/7 Hospital Management System
+          © 2026 HealthOS 24 - AI-Powered Hospital Management System
         </p>
         <p className="text-xs text-muted-foreground mt-1">
           Empowering Healthcare Facilities Across the UAE & Beyond
