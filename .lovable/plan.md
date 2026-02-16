@@ -1,40 +1,57 @@
 
 
-## Fix Mobile Edge-to-Edge Spacing - Increase Padding
+## Fix Mobile Padding - Remove Conflicting Padding Overrides
 
-### Problem
-The current `px-5` (20px) mobile padding is too tight -- content still feels like it's touching the screen edges. Need more breathing room on mobile screens.
+### Root Cause Found
 
-### Fix
-Increase mobile padding from `px-5` (20px) to `px-6` (24px) and tablet padding from `sm:px-6` (24px) to `sm:px-8` (32px) across ALL landing page containers. This gives noticeably more breathing room on both mobile and tablet.
-
-**Change pattern in every file:**
+The Tailwind config at `tailwind.config.ts` line 10 defines:
 ```
-px-5 sm:px-6 lg:px-4  -->  px-6 sm:px-8 lg:px-4
+container: {
+  center: true,
+  padding: "2rem",   // = 32px on ALL breakpoints
+}
 ```
 
-### Files to Update (15 files, one line each)
+This means every `container` div already gets **32px** horizontal padding by default. But the recent changes added `px-6 sm:px-8 lg:px-4` which **overrides and reduces** the padding:
+- Mobile: `px-6` = 24px (DOWN from 32px -- making it WORSE)
+- Tablet: `sm:px-8` = 32px (same as default)
+- Desktop: `lg:px-4` = 16px (DOWN from 32px)
+
+Each change we made was actually fighting against the built-in container padding.
+
+### The Fix
+
+**Remove all explicit `px-*` classes** from containers that use the `.container` class. The container's built-in `padding: 2rem` (32px) will provide consistent, generous spacing on all screen sizes.
+
+Change pattern in every file:
+```
+container mx-auto px-6 sm:px-8 lg:px-4  -->  container mx-auto
+```
+
+### Files to Update (15 files)
 
 | File | Line |
 |------|------|
-| `src/components/landing/Navbar.tsx` | Line 31 |
+| `src/components/landing/Navbar.tsx` | ~Line 31 |
 | `src/components/landing/HeroSection.tsx` | Line 66 |
 | `src/components/landing/TrustBadges.tsx` | Line 14 |
 | `src/components/landing/ProblemSolutionSection.tsx` | Line 34 |
-| `src/components/landing/FeaturesTabs.tsx` | Line 219 |
-| `src/components/landing/AIFeaturesSection.tsx` | Line 58 |
+| `src/components/landing/FeaturesTabs.tsx` | ~Line 219 |
+| `src/components/landing/AIFeaturesSection.tsx` | ~Line 58 |
 | `src/components/landing/WorkflowDiagram.tsx` | Line 54 |
 | `src/components/landing/ProcurementCycleDiagram.tsx` | Line 80 |
-| `src/components/landing/WarehouseSection.tsx` | Line 51 |
-| `src/components/landing/RoleSelector.tsx` | Line 167 |
+| `src/components/landing/WarehouseSection.tsx` | ~Line 51 |
+| `src/components/landing/RoleSelector.tsx` | ~Line 167 |
 | `src/components/landing/ComparisonTable.tsx` | Line 263 |
-| `src/components/landing/TestimonialsSection.tsx` | Line 40 |
-| `src/components/landing/FAQSection.tsx` | Line 37 |
+| `src/components/landing/TestimonialsSection.tsx` | ~Line 40 |
+| `src/components/landing/FAQSection.tsx` | ~Line 37 |
 | `src/components/landing/CTASection.tsx` | Line 13 |
 | `src/components/landing/Footer.tsx` | Line 35 |
 
-### Result
-- Mobile: 24px side padding (was 20px) -- 20% more breathing room
-- Tablet: 32px side padding (was 24px) -- 33% more breathing room
-- Desktop: unchanged (container max-width handles spacing)
+Also clean up `src/App.css`: remove the `#root` styles (`max-width: 1280px`, `padding: 2rem`, `text-align: center`) which are leftover Vite boilerplate and can interfere with layout.
 
+### Result
+- Mobile: 32px side padding (was being reduced to 24px)
+- Tablet: 32px side padding (consistent)
+- Desktop: 32px side padding (was being reduced to 16px)
+- Clean, consistent spacing managed by one config value
