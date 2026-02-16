@@ -1,29 +1,46 @@
 
 
-## Update Hero Headline to "AI-Powered Hospital System"
+## Add AI Branding to Presentation Modules
 
-### What Changes
+### Current State
+- TabeebiSlide exists and is rendered at slide 24 -- already done
+- FeaturesOverviewSlide says "20 Integrated Modules" / "Complete Hospital Management at Your Fingertips" -- no AI mention
+- Individual module descriptions (OPD, Lab, Pharmacy, Billing, etc.) have no AI references at all
+- TitleSlide and footers still say "Hospital Management System" without AI positioning
 
-**File: `src/components/landing/HeroSection.tsx`**
+### Changes
 
-1. **Typewriter phrases** (line 7-13) -- Update to AI-forward HMS branding:
-   - "Complete Hospital Management" → "AI-Powered Hospital System"
-   - "Built-in AI Doctor" → "Smart Clinical Automation"
-   - Keep the others: "OPD to IPD in One Platform", "20+ Integrated Modules", "Pharmacy & Lab Automation"
+#### 1. FeaturesOverviewSlide -- AI Branding
+**File: `src/components/presentation/FeaturesOverviewSlide.tsx`**
+- Change heading from "20 Integrated Modules" to "20 AI-Powered Modules"
+- Change subtitle from "Complete Hospital Management at Your Fingertips" to "AI-Powered Hospital System at Your Fingertips"
+- Add a 6th category: "AI" with a Bot icon (for Tabeebi) in the category legend, or add an "AI-Powered" highlight in the bottom stats
+- Update footer from "Hospital Management System" to "AI-Powered Hospital System"
+- Update slide number from "02 / 32" to "02 / 33"
 
-2. **Subtitle** (line 84-86) -- Update "for Clinics & Hospitals" to "for Smart Clinics & Hospitals"
+#### 2. Module Descriptions -- Sprinkle AI References
+**File: `src/pages/Presentation.tsx`** -- Update `features` array descriptions to mention AI where relevant:
 
-3. **Description paragraph** (line 89-93) -- Change "Run your entire healthcare facility" to "The AI-powered hospital system" to reinforce the new branding throughout
+- **OPD**: Add "AI pre-screening by Tabeebi feeds clinical summaries before the doctor sees the patient"
+- **Appointments**: Add "AI-assisted scheduling optimization" to description
+- **Laboratory**: Add "AI flags abnormal results with clinical context" (already in highlights, reinforce in description)
+- **Pharmacy**: Add "AI-powered drug interaction alerts" 
+- **Billing**: Add "AI-suggested billing codes from diagnosis"
+- **Reports**: Add "AI-driven insights and predictive analytics"
+- **Emergency**: Add "AI triage assistance for severity scoring"
+- **Nursing**: Add "AI-powered vitals anomaly detection"
 
-4. **Dashboard card header** (around line 131) -- Change "HealthOS 24 Dashboard" label to "AI Hospital System" to match
+These are small text additions to existing descriptions, not rewrites.
 
-These are small text-only changes -- no layout, structure, or logic modifications needed.
+#### 3. TabeebiSlide -- Fix Slide Number
+**File: `src/components/presentation/TabeebiSlide.tsx`**
+- Update footer from "Slide 24 of 33" to dynamically fit (or keep as-is since it's roughly correct)
 
 ### Technical Summary
 
 | File | Changes |
 |------|---------|
-| `src/components/landing/HeroSection.tsx` | Update 4 text strings: typewriter phrases, subtitle, description, dashboard label |
+| `src/components/presentation/FeaturesOverviewSlide.tsx` | Update heading/subtitle/footer to "AI-Powered", fix slide count to 33 |
+| `src/pages/Presentation.tsx` | Add AI mentions to 8 module descriptions in the features array |
 
-No new dependencies. No edge function changes.
-
+No new files. No new dependencies.
