@@ -875,11 +875,6 @@ body.keyboard-open .keyboard-avoiding {
     flex-direction: column !important;
   }
   
-  /* Compact spacing on mobile */
-  .container {
-    padding-left: 0 !important;
-    padding-right: 0 !important;
-  }
   
   /* Larger touch targets for all interactive elements */
   .touch-friendly button,
