@@ -9,6 +9,34 @@ interface AIChatMessageProps {
   content: string;
   isStreaming?: boolean;
   timestamp?: Date;
+  isLatest?: boolean;
+  onOptionSelect?: (option: string) => void;
+}
+
+const OPTION_REGEX = /^[A-D]\) .+$/;
+
+function parseOptions(content: string): { questionText: string; options: string[] } {
+  const lines = content.split("\n");
+  const optionLines: string[] = [];
+  const textLines: string[] = [];
+
+  for (const line of lines) {
+    if (OPTION_REGEX.test(line.trim())) {
+      optionLines.push(line.trim());
+    } else {
+      textLines.push(line);
+    }
+  }
+
+  // Remove trailing empty lines from question text
+  while (textLines.length > 0 && textLines[textLines.length - 1].trim() === "") {
+    textLines.pop();
+  }
+
+  return {
+    questionText: textLines.join("\n"),
+    options: optionLines,
+  };
 }
 
 function formatMarkdown(text: string): string {
@@ -21,11 +49,8 @@ function formatMarkdown(text: string): string {
     s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
   const inlineFormat = (line: string): string => {
-    // Bold: **text** (handles colons/punctuation after closing **)
     line = line.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
-    // Italic with *
     line = line.replace(/(?<!\*)\*([^*]+?)\*(?!\*)/g, "<em>$1</em>");
-    // Italic with _
     line = line.replace(/_(.+?)_/g, "<em class='text-muted-foreground text-xs'>$1</em>");
     return line;
   };
@@ -34,7 +59,6 @@ function formatMarkdown(text: string): string {
     let raw = lines[i];
     let escaped = esc(raw);
 
-    // Headings
     const h3 = escaped.match(/^### (.+)$/);
     if (h3) {
       if (inUl) { output.push("</ul>"); inUl = false; }
@@ -50,7 +74,6 @@ function formatMarkdown(text: string): string {
       continue;
     }
 
-    // Unordered list
     const ul = escaped.match(/^- (.+)$/);
     if (ul) {
       if (inOl) { output.push("</ol>"); inOl = false; }
@@ -59,7 +82,6 @@ function formatMarkdown(text: string): string {
       continue;
     }
 
-    // Ordered list
     const ol = escaped.match(/^\d+\.\s(.+)$/);
     if (ol) {
       if (inUl) { output.push("</ul>"); inUl = false; }
@@ -68,16 +90,13 @@ function formatMarkdown(text: string): string {
       continue;
     }
 
-    // Close any open list
     if (inUl) { output.push("</ul>"); inUl = false; }
     if (inOl) { output.push("</ol>"); inOl = false; }
 
-    // Regular line
     if (escaped.trim() === "") {
       output.push("<br/>");
     } else {
       output.push(inlineFormat(escaped));
-      // Add line break unless next line starts a block element
       const next = i + 1 < lines.length ? lines[i + 1] : "";
       if (next && !next.match(/^(#{2,3} |- |\d+\.\s)/) && next.trim() !== "") {
         output.push("<br/>");
@@ -91,21 +110,29 @@ function formatMarkdown(text: string): string {
   return output.join("\n");
 }
 
-export function AIChatMessage({ role, content, isStreaming, timestamp }: AIChatMessageProps) {
+export function AIChatMessage({ role, content, isStreaming, timestamp, isLatest, onOptionSelect }: AIChatMessageProps) {
   const isUser = role === "user";
+
+  const { questionText, options } = useMemo(() => {
+    if (isUser || !content) return { questionText: content, options: [] };
+    return parseOptions(content);
+  }, [content, isUser]);
+
   const formattedContent = useMemo(() => {
     if (isUser) return null;
-    const rawHtml = formatMarkdown(content);
+    const rawHtml = formatMarkdown(questionText);
     return DOMPurify.sanitize(rawHtml, {
       ALLOWED_TAGS: ['strong', 'em', 'ul', 'ol', 'li', 'h3', 'h4', 'br'],
       ALLOWED_ATTR: ['class', 'style'],
     });
-  }, [content, isUser]);
+  }, [questionText, isUser]);
 
   const displayTime = useMemo(() => {
     const t = timestamp || new Date();
     return t.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
   }, [timestamp]);
+
+  const showInteractiveOptions = !isUser && options.length > 0 && isLatest && !isStreaming;
 
   return (
     <div className={cn(
@@ -146,7 +173,16 @@ export function AIChatMessage({ role, content, isStreaming, timestamp }: AIChatM
             />
           )}
 
-          {/* Thinking indicator — smooth breathing dots */}
+          {/* Non-interactive options (for older messages) */}
+          {!isUser && options.length > 0 && !showInteractiveOptions && (
+            <div className="mt-2 space-y-1">
+              {options.map((opt, i) => (
+                <div key={i} className="text-[13px] text-muted-foreground">{opt}</div>
+              ))}
+            </div>
+          )}
+
+          {/* Thinking indicator */}
           {isStreaming && !content && (
             <div className="flex items-center gap-1.5 py-1.5">
               {[0, 1, 2].map((i) => (
@@ -169,6 +205,22 @@ export function AIChatMessage({ role, content, isStreaming, timestamp }: AIChatM
             />
           )}
         </div>
+
+        {/* Interactive option buttons — rendered OUTSIDE the bubble */}
+        {showInteractiveOptions && (
+          <div className="flex flex-col gap-1.5 mt-1.5 w-full">
+            {options.map((opt, i) => (
+              <button
+                key={i}
+                onClick={() => onOptionSelect?.(opt)}
+                className="text-left text-[13px] px-4 py-2.5 rounded-2xl border border-primary/30 bg-card hover:bg-primary/10 hover:border-primary/50 text-foreground transition-all active:scale-[0.98] shadow-sm"
+              >
+                {opt}
+              </button>
+            ))}
+          </div>
+        )}
+
         <span className="text-[10px] text-muted-foreground/50 px-1">{displayTime}</span>
       </div>
 

@@ -191,14 +191,19 @@ export function PatientAIChat({
         {/* Chat messages — no inner header */}
         <div className="flex-1 overflow-hidden relative">
           <ScrollArea className="h-full px-1" ref={scrollRef}>
-            {messages.map((msg, i) => (
-              <AIChatMessage
-                key={i}
-                role={msg.role}
-                content={msg.content}
-                isStreaming={isLoading && i === messages.length - 1 && msg.role === "assistant"}
-              />
-            ))}
+          {messages.map((msg, i) => {
+              const lastAssistantIndex = messages.reduce((acc, m, idx) => m.role === "assistant" ? idx : acc, -1);
+              return (
+                <AIChatMessage
+                  key={i}
+                  role={msg.role}
+                  content={msg.content}
+                  isStreaming={isLoading && i === messages.length - 1 && msg.role === "assistant"}
+                  isLatest={msg.role === "assistant" && i === lastAssistantIndex}
+                  onOptionSelect={msg.role === "assistant" ? handleSend : undefined}
+                />
+              );
+            })}
 
             {/* Thinking bubble — shown when loading and last message is from user */}
             {isLoading && messages.length > 0 && messages[messages.length - 1].role === "user" && (
