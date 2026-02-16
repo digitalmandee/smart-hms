@@ -1,57 +1,35 @@
 
 
-## Fix Mobile Padding - Remove Conflicting Padding Overrides
+## Fix: Remove CSS Rule That Kills Mobile Container Padding
 
-### Root Cause Found
+### Root Cause (FOUND)
 
-The Tailwind config at `tailwind.config.ts` line 10 defines:
-```
-container: {
-  center: true,
-  padding: "2rem",   // = 32px on ALL breakpoints
+In `src/index.css` at **lines 879-882**, inside a `@media (max-width: 767px)` block, there is this rule:
+
+```css
+.container {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
 }
 ```
 
-This means every `container` div already gets **32px** horizontal padding by default. But the recent changes added `px-6 sm:px-8 lg:px-4` which **overrides and reduces** the padding:
-- Mobile: `px-6` = 24px (DOWN from 32px -- making it WORSE)
-- Tablet: `sm:px-8` = 32px (same as default)
-- Desktop: `lg:px-4` = 16px (DOWN from 32px)
-
-Each change we made was actually fighting against the built-in container padding.
+This uses `!important` to force-remove ALL horizontal padding from every `.container` element on mobile. No matter what Tailwind generates (32px default), this rule wins because of `!important`. This is why every change we made had zero effect.
 
 ### The Fix
 
-**Remove all explicit `px-*` classes** from containers that use the `.container` class. The container's built-in `padding: 2rem` (32px) will provide consistent, generous spacing on all screen sizes.
+**Delete lines 878-882** from `src/index.css` (the "Compact spacing on mobile" `.container` override). This single change will restore the 32px container padding on mobile across the entire landing page.
 
-Change pattern in every file:
-```
-container mx-auto px-6 sm:px-8 lg:px-4  -->  container mx-auto
-```
+| File | Change |
+|------|--------|
+| `src/index.css` (lines 878-882) | Remove the `.container { padding-left: 0 !important; padding-right: 0 !important; }` rule |
 
-### Files to Update (15 files)
+No other files need to change. The `container mx-auto` class already on all 15 landing components will correctly apply 32px padding once this override is gone.
 
-| File | Line |
-|------|------|
-| `src/components/landing/Navbar.tsx` | ~Line 31 |
-| `src/components/landing/HeroSection.tsx` | Line 66 |
-| `src/components/landing/TrustBadges.tsx` | Line 14 |
-| `src/components/landing/ProblemSolutionSection.tsx` | Line 34 |
-| `src/components/landing/FeaturesTabs.tsx` | ~Line 219 |
-| `src/components/landing/AIFeaturesSection.tsx` | ~Line 58 |
-| `src/components/landing/WorkflowDiagram.tsx` | Line 54 |
-| `src/components/landing/ProcurementCycleDiagram.tsx` | Line 80 |
-| `src/components/landing/WarehouseSection.tsx` | ~Line 51 |
-| `src/components/landing/RoleSelector.tsx` | ~Line 167 |
-| `src/components/landing/ComparisonTable.tsx` | Line 263 |
-| `src/components/landing/TestimonialsSection.tsx` | ~Line 40 |
-| `src/components/landing/FAQSection.tsx` | ~Line 37 |
-| `src/components/landing/CTASection.tsx` | Line 13 |
-| `src/components/landing/Footer.tsx` | Line 35 |
+### Why This Existed
 
-Also clean up `src/App.css`: remove the `#root` styles (`max-width: 1280px`, `padding: 2rem`, `text-align: center`) which are leftover Vite boilerplate and can interfere with layout.
+This was likely added for the internal app pages (dashboard, OPD, billing, etc.) where full-width layouts are desired on mobile. But it also affects the public landing page since both use the `.container` class.
 
-### Result
-- Mobile: 32px side padding (was being reduced to 24px)
-- Tablet: 32px side padding (consistent)
-- Desktop: 32px side padding (was being reduced to 16px)
-- Clean, consistent spacing managed by one config value
+### Risk Check
+
+Internal app pages use `DashboardLayout` with their own padding structure (sidebar + content area), so removing this rule will not affect them -- they don't rely on the `.container` class for their layout.
+
