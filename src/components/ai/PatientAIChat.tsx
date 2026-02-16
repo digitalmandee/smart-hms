@@ -201,6 +201,7 @@ export function PatientAIChat({
                   isStreaming={isLoading && i === messages.length - 1 && msg.role === "assistant"}
                   isLatest={msg.role === "assistant" && i === lastAssistantIndex}
                   onOptionSelect={msg.role === "assistant" ? handleSend : undefined}
+                  onOtherSelect={msg.role === "assistant" ? () => inputRef.current?.focus() : undefined}
                 />
               );
             })}

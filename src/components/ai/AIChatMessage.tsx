@@ -11,6 +11,7 @@ interface AIChatMessageProps {
   timestamp?: Date;
   isLatest?: boolean;
   onOptionSelect?: (option: string) => void;
+  onOtherSelect?: () => void;
 }
 
 const OPTION_REGEX = /^[A-D]\) .+$/;
@@ -110,7 +111,7 @@ function formatMarkdown(text: string): string {
   return output.join("\n");
 }
 
-export function AIChatMessage({ role, content, isStreaming, timestamp, isLatest, onOptionSelect }: AIChatMessageProps) {
+export function AIChatMessage({ role, content, isStreaming, timestamp, isLatest, onOptionSelect, onOtherSelect }: AIChatMessageProps) {
   const isUser = role === "user";
 
   const { questionText, options } = useMemo(() => {
@@ -218,6 +219,12 @@ export function AIChatMessage({ role, content, isStreaming, timestamp, isLatest,
                 {opt}
               </button>
             ))}
+            <button
+              onClick={() => onOtherSelect?.()}
+              className="text-left text-[13px] px-4 py-2.5 rounded-2xl border border-dashed border-muted-foreground/30 bg-card hover:bg-muted/50 hover:border-muted-foreground/50 text-muted-foreground transition-all active:scale-[0.98]"
+            >
+              ✏️ Other (type your own answer)
+            </button>
           </div>
         )}
 
