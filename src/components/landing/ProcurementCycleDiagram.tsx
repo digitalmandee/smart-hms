@@ -77,7 +77,7 @@ const procurementSteps = [
 export const ProcurementCycleDiagram = () => {
   return (
     <section className="py-20 bg-gradient-to-b from-muted/30 to-background overflow-hidden">
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-5 sm:px-6 lg:px-4">
         <AnimatedSection animation="fade-up" className="text-center mb-16">
           <span className="inline-block px-4 py-1.5 bg-violet-500/10 text-violet-600 rounded-full text-sm font-medium mb-4">
             Supply Chain
