@@ -31,7 +31,7 @@ const problems = [
 export const ProblemSolutionSection = () => {
   return (
     <section className="py-16 md:py-24 bg-muted/30">
-      <div className="container mx-auto px-5 sm:px-6 lg:px-4">
+      <div className="container mx-auto px-6 sm:px-8 lg:px-4">
         <div className="text-center max-w-3xl mx-auto mb-8 md:mb-16">
           <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-3 md:mb-4 text-foreground">
             Sound familiar?

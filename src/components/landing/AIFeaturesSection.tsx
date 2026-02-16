@@ -55,7 +55,7 @@ const trustPoints = [
 export function AIFeaturesSection() {
   return (
     <section className="py-20 bg-gradient-to-b from-background to-muted/30 overflow-hidden">
-      <div className="container mx-auto px-5 sm:px-6 lg:px-4">
+      <div className="container mx-auto px-6 sm:px-8 lg:px-4">
         {/* Section header */}
         <AnimatedSection animation="fade-up" className="text-center mb-16">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">

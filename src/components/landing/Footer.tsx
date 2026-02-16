@@ -32,7 +32,7 @@ const footerLinks = {
 export const Footer = () => {
   return (
     <footer className="bg-card border-t border-border">
-      <div className="container mx-auto px-5 sm:px-6 lg:px-4 py-10 md:py-16">
+      <div className="container mx-auto px-6 sm:px-8 lg:px-4 py-10 md:py-16">
         {/* Brand section - always full width on top */}
         <div className="mb-8 pb-8 border-b border-border lg:border-0 lg:pb-0 lg:mb-0 lg:float-left lg:w-1/3 lg:pr-8">
           <Link to="/" className="inline-block mb-4">
