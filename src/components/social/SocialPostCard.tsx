@@ -2,8 +2,27 @@ import { useRef, useState, useEffect } from "react";
 import { toPng } from "html-to-image";
 import { Download, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import type { SocialPost } from "./socialPostsData";
+
+// Map brandColor string to Tailwind classes
+const colorMap: Record<string, { bar: string; logoBg: string; pillBg: string; pillText: string; iconBg: string; iconText: string; decorBg: string }> = {
+  teal:    { bar: "#0d9488", logoBg: "#0d9488", pillBg: "#ccfbf1", pillText: "#0f766e", iconBg: "#ccfbf1", iconText: "#0d9488", decorBg: "#0d9488" },
+  sky:     { bar: "#0284c7", logoBg: "#0284c7", pillBg: "#e0f2fe", pillText: "#0369a1", iconBg: "#e0f2fe", iconText: "#0284c7", decorBg: "#0284c7" },
+  violet:  { bar: "#7c3aed", logoBg: "#7c3aed", pillBg: "#ede9fe", pillText: "#6d28d9", iconBg: "#ede9fe", iconText: "#7c3aed", decorBg: "#7c3aed" },
+  red:     { bar: "#dc2626", logoBg: "#dc2626", pillBg: "#fee2e2", pillText: "#b91c1c", iconBg: "#fee2e2", iconText: "#dc2626", decorBg: "#dc2626" },
+  emerald: { bar: "#059669", logoBg: "#059669", pillBg: "#d1fae5", pillText: "#047857", iconBg: "#d1fae5", iconText: "#059669", decorBg: "#059669" },
+  cyan:    { bar: "#0891b2", logoBg: "#0891b2", pillBg: "#cffafe", pillText: "#0e7490", iconBg: "#cffafe", iconText: "#0891b2", decorBg: "#0891b2" },
+  orange:  { bar: "#ea580c", logoBg: "#ea580c", pillBg: "#ffedd5", pillText: "#c2410c", iconBg: "#ffedd5", iconText: "#ea580c", decorBg: "#ea580c" },
+  indigo:  { bar: "#4f46e5", logoBg: "#4f46e5", pillBg: "#e0e7ff", pillText: "#4338ca", iconBg: "#e0e7ff", iconText: "#4f46e5", decorBg: "#4f46e5" },
+  slate:   { bar: "#475569", logoBg: "#475569", pillBg: "#f1f5f9", pillText: "#334155", iconBg: "#f1f5f9", iconText: "#475569", decorBg: "#475569" },
+  lime:    { bar: "#65a30d", logoBg: "#65a30d", pillBg: "#ecfccb", pillText: "#4d7c0f", iconBg: "#ecfccb", iconText: "#65a30d", decorBg: "#65a30d" },
+  pink:    { bar: "#ec4899", logoBg: "#ec4899", pillBg: "#fce7f3", pillText: "#be185d", iconBg: "#fce7f3", iconText: "#ec4899", decorBg: "#ec4899" },
+  rose:    { bar: "#e11d48", logoBg: "#e11d48", pillBg: "#ffe4e6", pillText: "#be123c", iconBg: "#ffe4e6", iconText: "#e11d48", decorBg: "#e11d48" },
+  fuchsia: { bar: "#c026d3", logoBg: "#c026d3", pillBg: "#fae8ff", pillText: "#a21caf", iconBg: "#fae8ff", iconText: "#c026d3", decorBg: "#c026d3" },
+  purple:  { bar: "#9333ea", logoBg: "#9333ea", pillBg: "#f3e8ff", pillText: "#7e22ce", iconBg: "#f3e8ff", iconText: "#9333ea", decorBg: "#9333ea" },
+  blue:    { bar: "#2563eb", logoBg: "#2563eb", pillBg: "#dbeafe", pillText: "#1d4ed8", iconBg: "#dbeafe", iconText: "#2563eb", decorBg: "#2563eb" },
+  amber:   { bar: "#d97706", logoBg: "#d97706", pillBg: "#fef3c7", pillText: "#b45309", iconBg: "#fef3c7", iconText: "#d97706", decorBg: "#d97706" },
+};
 
 interface SocialPostCardProps {
   post: SocialPost;
@@ -15,6 +34,7 @@ export const SocialPostCard = ({ post }: SocialPostCardProps) => {
   const [downloading, setDownloading] = useState(false);
   const [scale, setScale] = useState(0.25);
   const Icon = post.icon;
+  const colors = colorMap[post.brandColor] || colorMap.teal;
 
   useEffect(() => {
     const wrapper = wrapperRef.current;
@@ -77,52 +97,137 @@ export const SocialPostCard = ({ post }: SocialPostCardProps) => {
               ref={cardRef}
               data-social-card
               data-post-id={post.id}
-              className={cn(
-                "w-[1080px] h-[1080px] flex flex-col justify-between p-[80px] relative overflow-hidden bg-gradient-to-br",
-                post.gradientFrom,
-                post.gradientTo
-              )}
-              style={{ fontFamily: "'Inter', system-ui, sans-serif" }}
+              style={{
+                width: "1080px",
+                height: "1080px",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+                position: "relative",
+                overflow: "hidden",
+                backgroundColor: "#ffffff",
+                fontFamily: "'Inter', system-ui, sans-serif",
+              }}
             >
+              {/* Top accent bar */}
+              <div
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: "12px",
+                  backgroundColor: colors.bar,
+                }}
+              />
+
               {/* Decorative circles */}
               <div
-                className={cn("absolute -top-[200px] -right-[200px] w-[500px] h-[500px] rounded-full opacity-10", post.accentColor)}
+                style={{
+                  position: "absolute",
+                  top: "-180px",
+                  right: "-180px",
+                  width: "500px",
+                  height: "500px",
+                  borderRadius: "50%",
+                  backgroundColor: colors.decorBg,
+                  opacity: 0.04,
+                }}
               />
               <div
-                className={cn("absolute -bottom-[150px] -left-[150px] w-[400px] h-[400px] rounded-full opacity-[0.07]", post.accentColor)}
+                style={{
+                  position: "absolute",
+                  bottom: "-120px",
+                  left: "-120px",
+                  width: "380px",
+                  height: "380px",
+                  borderRadius: "50%",
+                  backgroundColor: colors.decorBg,
+                  opacity: 0.03,
+                }}
               />
 
-              {/* Top: Logo + Module badge */}
-              <div className="flex items-center justify-between relative z-10">
-                <div className="flex items-center gap-[16px]">
-                  <div className="w-[64px] h-[64px] bg-white/15 backdrop-blur-sm rounded-[16px] flex items-center justify-center border border-white/20">
-                    <span className="text-white font-bold text-[28px]" style={{ letterSpacing: "-2px" }}>24</span>
+              {/* Content area with padding */}
+              <div style={{ padding: "80px", paddingTop: "60px", display: "flex", flexDirection: "column", justifyContent: "space-between", height: "100%", position: "relative", zIndex: 10 }}>
+                {/* Top: Logo + Module badge */}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "12px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+                    <div
+                      style={{
+                        width: "64px",
+                        height: "64px",
+                        backgroundColor: colors.logoBg,
+                        borderRadius: "16px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <span style={{ color: "#ffffff", fontWeight: 700, fontSize: "28px", letterSpacing: "-2px" }}>24</span>
+                    </div>
+                    <span style={{ color: "#1e293b", fontSize: "28px", fontWeight: 700, letterSpacing: "-0.025em" }}>HealthOS</span>
                   </div>
-                  <span className="text-white/80 text-[28px] font-bold tracking-tight">HealthOS</span>
+                  {post.module && (
+                    <span
+                      style={{
+                        backgroundColor: colors.pillBg,
+                        color: colors.pillText,
+                        fontSize: "22px",
+                        fontWeight: 600,
+                        padding: "10px 24px",
+                        borderRadius: "9999px",
+                      }}
+                    >
+                      {post.module}
+                    </span>
+                  )}
                 </div>
-                {post.module && (
-                  <span className="bg-white/15 backdrop-blur-sm text-white text-[22px] font-semibold px-[24px] py-[10px] rounded-full border border-white/20">
-                    {post.module}
-                  </span>
-                )}
-              </div>
 
-              {/* Center: Hook + Subtext */}
-              <div className="flex-1 flex flex-col justify-center gap-[40px] relative z-10">
-                <h2 className="text-white text-[72px] font-extrabold leading-[1.1] tracking-tight drop-shadow-lg">
-                  {post.hook}
-                </h2>
-                <p className="text-white/75 text-[32px] leading-[1.4] font-medium max-w-[850px]">
-                  {post.subtext}
-                </p>
-              </div>
-
-              {/* Bottom: Icon + watermark */}
-              <div className="flex items-end justify-between relative z-10">
-                <div className="w-[80px] h-[80px] rounded-[20px] flex items-center justify-center bg-white/15 backdrop-blur-sm border border-white/20">
-                  <Icon className="w-[44px] h-[44px] text-white" strokeWidth={1.5} />
+                {/* Center: Hook + Subtext */}
+                <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: "36px" }}>
+                  <h2
+                    style={{
+                      color: "#0f172a",
+                      fontSize: "72px",
+                      fontWeight: 800,
+                      lineHeight: 1.1,
+                      letterSpacing: "-0.025em",
+                      margin: 0,
+                    }}
+                  >
+                    {post.hook}
+                  </h2>
+                  <p
+                    style={{
+                      color: "#64748b",
+                      fontSize: "32px",
+                      lineHeight: 1.4,
+                      fontWeight: 500,
+                      maxWidth: "850px",
+                      margin: 0,
+                    }}
+                  >
+                    {post.subtext}
+                  </p>
                 </div>
-                <span className="text-white/40 text-[24px] font-medium tracking-wide">healthos.com</span>
+
+                {/* Bottom: Icon + watermark */}
+                <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
+                  <div
+                    style={{
+                      width: "80px",
+                      height: "80px",
+                      borderRadius: "20px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      backgroundColor: colors.iconBg,
+                    }}
+                  >
+                    <Icon style={{ width: "44px", height: "44px", color: colors.iconText }} strokeWidth={1.5} />
+                  </div>
+                  <span style={{ color: "#cbd5e1", fontSize: "24px", fontWeight: 500, letterSpacing: "0.05em" }}>healthos.com</span>
+                </div>
               </div>
             </div>
           </div>
