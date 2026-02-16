@@ -48,7 +48,7 @@ const stats = [
 export const WarehouseSection = () => {
   return (
     <section className="py-20 bg-muted/30">
-      <div className="container mx-auto px-6 sm:px-8 lg:px-4">
+      <div className="container mx-auto">
         <AnimatedSection animation="fade-up" className="text-center mb-12">
           <span className="inline-block px-4 py-1.5 bg-indigo-500/10 text-indigo-600 rounded-full text-sm font-medium mb-4">
             Enterprise Supply Chain
