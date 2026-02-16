@@ -23,11 +23,11 @@ const Index = () => {
       <main>
         <HeroSection />
         <TrustBadges />
-        <AIFeaturesSection />
         <AnimatedSection animation="fade-up">
           <ProblemSolutionSection />
         </AnimatedSection>
         <FeaturesTabs />
+        <AIFeaturesSection />
         <WorkflowDiagram />
         <ProcurementCycleDiagram />
         <WarehouseSection />

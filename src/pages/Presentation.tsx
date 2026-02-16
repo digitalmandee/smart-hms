@@ -17,6 +17,7 @@ import { IntegrationSlide } from "@/components/presentation/IntegrationSlide";
 import { ComplianceSlide } from "@/components/presentation/ComplianceSlide";
 import { TimelineSlide } from "@/components/presentation/TimelineSlide";
 import { CTASlide } from "@/components/presentation/CTASlide";
+import { TabeebiSlide } from "@/components/presentation/TabeebiSlide";
 import {
   PatientRegistrationScreen,
   AppointmentScreen,
@@ -225,7 +226,7 @@ const features = [
   },
 ];
 
-const TOTAL_SLIDES = 32;
+const TOTAL_SLIDES = 33;
 
 const Presentation = () => {
   const [isDownloading, setIsDownloading] = useState(false);
@@ -440,6 +441,7 @@ const Presentation = () => {
             />
           ))}
           <OTDashboardSlide />
+          <TabeebiSlide />
           <WorkflowSlide />
           <ProcurementSlide />
           <WarehouseSlide />
