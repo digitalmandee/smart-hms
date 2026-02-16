@@ -260,7 +260,7 @@ interface ComparisonRow {
 export const ComparisonTable = () => {
   return (
     <section id="compare" className="py-20 bg-background">
-      <div className="container mx-auto px-6 sm:px-8 lg:px-4">
+      <div className="container mx-auto">
         <AnimatedSection animation="fade-up" className="text-center mb-12">
           <span className="inline-block px-4 py-1.5 bg-primary/10 text-primary rounded-full text-sm font-medium mb-4">
             Why Switch?

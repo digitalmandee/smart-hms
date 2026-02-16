@@ -11,7 +11,7 @@ const badges = [
 export const TrustBadges = () => {
   return (
     <div className="bg-muted/50 border-y py-6">
-      <div className="container mx-auto px-6 sm:px-8 lg:px-4">
+      <div className="container mx-auto">
         <StaggerChildren
           staggerDelay={100}
           className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8"

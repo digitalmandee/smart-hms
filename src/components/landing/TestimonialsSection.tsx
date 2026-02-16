@@ -37,7 +37,7 @@ const caseStudies = [
 export const TestimonialsSection = () => {
   return (
     <section id="testimonials" className="py-16 md:py-24 bg-muted/30">
-      <div className="container mx-auto px-6 sm:px-8 lg:px-4">
+      <div className="container mx-auto">
         {/* Case Studies Bar */}
         <AnimatedSection animation="fade-up">
           <div className="max-w-4xl mx-auto mb-12 md:mb-16">
