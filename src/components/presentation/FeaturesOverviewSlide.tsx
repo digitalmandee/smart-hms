@@ -47,12 +47,12 @@ export const FeaturesOverviewSlide = () => {
         <div className="flex items-center gap-3">
           <HealthOS24Logo variant="icon" size="md" />
           <div>
-            <h2 className="text-2xl font-bold">20 Integrated Modules</h2>
-            <p className="text-sm text-muted-foreground">Complete Hospital Management at Your Fingertips</p>
+            <h2 className="text-2xl font-bold">20 AI-Powered Modules</h2>
+            <p className="text-sm text-muted-foreground">AI-Powered Hospital System at Your Fingertips</p>
           </div>
         </div>
         <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">
-          02 / 32
+          02 / 33
         </span>
       </div>
 
@@ -89,8 +89,8 @@ export const FeaturesOverviewSlide = () => {
       <div className="mt-6 pt-4 border-t border-border">
         <div className="grid grid-cols-4 gap-4">
           <div className="text-center">
-            <div className="text-2xl font-bold text-primary">100%</div>
-            <div className="text-xs text-muted-foreground">Integrated</div>
+            <div className="text-2xl font-bold text-primary">AI-Powered</div>
+            <div className="text-xs text-muted-foreground">Smart Modules</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-primary">Real-time</div>
@@ -109,7 +109,7 @@ export const FeaturesOverviewSlide = () => {
 
       {/* Footer */}
       <div className="mt-4 pt-4 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
-        <span>HealthOS 24 - Hospital Management System</span>
+        <span>HealthOS 24 - AI-Powered Hospital System</span>
         <span>healthos24.com</span>
       </div>
     </div>
