@@ -5,28 +5,6 @@ import { Button } from "@/components/ui/button";
 import type { SocialPost } from "./socialPostsData";
 import { renderScreenMockup } from "./SocialPostMockups";
 
-const colorMap: Record<string, {
-  bar: string; logoBg: string; pillBg: string; pillText: string;
-  bottomBar: string; decorBg: string;
-}> = {
-  teal:    { bar: "#0d9488", logoBg: "#0d9488", pillBg: "#ccfbf1", pillText: "#0f766e", bottomBar: "#0d9488", decorBg: "#0d9488" },
-  sky:     { bar: "#0284c7", logoBg: "#0284c7", pillBg: "#e0f2fe", pillText: "#0369a1", bottomBar: "#0284c7", decorBg: "#0284c7" },
-  violet:  { bar: "#7c3aed", logoBg: "#7c3aed", pillBg: "#ede9fe", pillText: "#6d28d9", bottomBar: "#7c3aed", decorBg: "#7c3aed" },
-  red:     { bar: "#dc2626", logoBg: "#dc2626", pillBg: "#fee2e2", pillText: "#b91c1c", bottomBar: "#dc2626", decorBg: "#dc2626" },
-  emerald: { bar: "#059669", logoBg: "#059669", pillBg: "#d1fae5", pillText: "#047857", bottomBar: "#059669", decorBg: "#059669" },
-  cyan:    { bar: "#0891b2", logoBg: "#0891b2", pillBg: "#cffafe", pillText: "#0e7490", bottomBar: "#0891b2", decorBg: "#0891b2" },
-  orange:  { bar: "#ea580c", logoBg: "#ea580c", pillBg: "#ffedd5", pillText: "#c2410c", bottomBar: "#ea580c", decorBg: "#ea580c" },
-  indigo:  { bar: "#4f46e5", logoBg: "#4f46e5", pillBg: "#e0e7ff", pillText: "#4338ca", bottomBar: "#4f46e5", decorBg: "#4f46e5" },
-  slate:   { bar: "#475569", logoBg: "#475569", pillBg: "#f1f5f9", pillText: "#334155", bottomBar: "#475569", decorBg: "#475569" },
-  lime:    { bar: "#65a30d", logoBg: "#65a30d", pillBg: "#ecfccb", pillText: "#4d7c0f", bottomBar: "#65a30d", decorBg: "#65a30d" },
-  pink:    { bar: "#ec4899", logoBg: "#ec4899", pillBg: "#fce7f3", pillText: "#be185d", bottomBar: "#ec4899", decorBg: "#ec4899" },
-  rose:    { bar: "#e11d48", logoBg: "#e11d48", pillBg: "#ffe4e6", pillText: "#be123c", bottomBar: "#e11d48", decorBg: "#e11d48" },
-  fuchsia: { bar: "#c026d3", logoBg: "#c026d3", pillBg: "#fae8ff", pillText: "#a21caf", bottomBar: "#c026d3", decorBg: "#c026d3" },
-  purple:  { bar: "#9333ea", logoBg: "#9333ea", pillBg: "#f3e8ff", pillText: "#7e22ce", bottomBar: "#9333ea", decorBg: "#9333ea" },
-  blue:    { bar: "#2563eb", logoBg: "#2563eb", pillBg: "#dbeafe", pillText: "#1d4ed8", bottomBar: "#2563eb", decorBg: "#2563eb" },
-  amber:   { bar: "#d97706", logoBg: "#d97706", pillBg: "#fef3c7", pillText: "#b45309", bottomBar: "#d97706", decorBg: "#d97706" },
-};
-
 interface SocialPostCardProps {
   post: SocialPost;
 }
@@ -36,7 +14,7 @@ export const SocialPostCard = ({ post }: SocialPostCardProps) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [downloading, setDownloading] = useState(false);
   const [scale, setScale] = useState(0.25);
-  const colors = colorMap[post.brandColor] || colorMap.teal;
+  const isDark = post.id % 2 !== 0; // odd = dark, even = light
 
   useEffect(() => {
     const wrapper = wrapperRef.current;
@@ -88,61 +66,129 @@ export const SocialPostCard = ({ post }: SocialPostCardProps) => {
               data-post-id={post.id}
               style={{
                 width: "1080px", height: "1080px", display: "flex", flexDirection: "column",
-                position: "relative", overflow: "hidden", backgroundColor: "#ffffff",
+                position: "relative", overflow: "hidden",
+                background: isDark
+                  ? "linear-gradient(160deg, #062e2a 0%, #0a3d38 30%, #0d9488 100%)"
+                  : "linear-gradient(180deg, #ffffff 0%, #f0fdfa 100%)",
                 fontFamily: "'Inter', system-ui, sans-serif",
               }}
             >
-              {/* Top accent bar */}
-              <div style={{ height: "10px", backgroundColor: colors.bar, flexShrink: 0 }} />
+              {/* Top accent bar - only for light style */}
+              {!isDark && (
+                <div style={{ height: "10px", backgroundColor: "#0d9488", flexShrink: 0 }} />
+              )}
 
               {/* Decorative circles */}
-              <div style={{ position: "absolute", top: "-100px", right: "-100px", width: "400px", height: "400px", borderRadius: "50%", backgroundColor: colors.decorBg, opacity: 0.06 }} />
-              <div style={{ position: "absolute", bottom: "80px", left: "-80px", width: "300px", height: "300px", borderRadius: "50%", backgroundColor: colors.decorBg, opacity: 0.04 }} />
+              <div style={{
+                position: "absolute", top: "-120px", right: "-120px",
+                width: "450px", height: "450px", borderRadius: "50%",
+                backgroundColor: isDark ? "rgba(255,255,255,0.06)" : "rgba(13,148,136,0.06)",
+              }} />
+              <div style={{
+                position: "absolute", top: "200px", right: "80px",
+                width: "200px", height: "200px", borderRadius: "50%",
+                backgroundColor: isDark ? "rgba(255,255,255,0.04)" : "rgba(13,148,136,0.04)",
+              }} />
+              <div style={{
+                position: "absolute", bottom: "120px", left: "-100px",
+                width: "350px", height: "350px", borderRadius: "50%",
+                backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(13,148,136,0.05)",
+              }} />
+              {/* Dot pattern - top right */}
+              <div style={{
+                position: "absolute", top: "60px", right: "40px",
+                display: "grid", gridTemplateColumns: "repeat(4, 12px)", gap: "10px",
+                opacity: isDark ? 0.12 : 0.08,
+              }}>
+                {Array.from({ length: 16 }).map((_, i) => (
+                  <div key={i} style={{
+                    width: "6px", height: "6px", borderRadius: "50%",
+                    backgroundColor: isDark ? "#fff" : "#0d9488",
+                  }} />
+                ))}
+              </div>
 
               {/* Main content */}
-              <div style={{ flex: 1, padding: "36px 56px 0", display: "flex", flexDirection: "column", position: "relative", zIndex: 10 }}>
+              <div style={{ flex: 1, padding: "40px 56px 0", display: "flex", flexDirection: "column", position: "relative", zIndex: 10 }}>
 
                 {/* Header: Logo + Module */}
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "24px" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
-                    <div style={{ width: "48px", height: "48px", backgroundColor: colors.logoBg, borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <div style={{
+                      width: "48px", height: "48px",
+                      backgroundColor: isDark ? "rgba(255,255,255,0.15)" : "#0d9488",
+                      borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center",
+                    }}>
                       <span style={{ color: "#fff", fontWeight: 800, fontSize: "20px", letterSpacing: "-1.5px" }}>24</span>
                     </div>
-                    <span style={{ color: "#1e293b", fontSize: "24px", fontWeight: 700, letterSpacing: "-0.02em" }}>HealthOS</span>
+                    <span style={{
+                      color: isDark ? "#ffffff" : "#1e293b",
+                      fontSize: "24px", fontWeight: 700, letterSpacing: "-0.02em",
+                    }}>HealthOS</span>
                   </div>
                   {post.module && (
-                    <span style={{ backgroundColor: colors.pillBg, color: colors.pillText, fontSize: "18px", fontWeight: 600, padding: "6px 18px", borderRadius: "9999px" }}>
+                    <span style={{
+                      backgroundColor: isDark ? "rgba(255,255,255,0.15)" : "#ccfbf1",
+                      color: isDark ? "#ffffff" : "#0f766e",
+                      fontSize: "18px", fontWeight: 600, padding: "6px 18px", borderRadius: "9999px",
+                    }}>
                       {post.module}
                     </span>
                   )}
                 </div>
 
-                {/* Hook text — above mockup */}
-                <h2 style={{ color: "#0f172a", fontSize: "46px", fontWeight: 800, lineHeight: 1.1, letterSpacing: "-0.03em", margin: "0 0 8px" }}>
+                {/* Hook text */}
+                <h2 style={{
+                  color: isDark ? "#ffffff" : "#0f172a",
+                  fontSize: "46px", fontWeight: 800, lineHeight: 1.1,
+                  letterSpacing: "-0.03em", margin: "0 0 10px",
+                }}>
                   {post.hook}
                 </h2>
 
                 {/* Subtext */}
-                <p style={{ color: "#64748b", fontSize: "22px", lineHeight: 1.4, fontWeight: 500, margin: "0 0 20px" }}>
+                <p style={{
+                  color: isDark ? "#99f6e4" : "#0d9488",
+                  fontSize: "22px", lineHeight: 1.4, fontWeight: 500, margin: "0 0 24px",
+                }}>
                   {post.subtext}
                 </p>
 
-                {/* Module UI Mockup */}
-                <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", minHeight: 0 }}>
-                  <div style={{ transform: "scale(1.15)", transformOrigin: "top center" }}>
-                    {renderScreenMockup(post.screenType)}
+                {/* Module UI Mockup in frame */}
+                <div style={{
+                  flex: 1, display: "flex", flexDirection: "column", justifyContent: "center",
+                  minHeight: 0, paddingBottom: "12px",
+                }}>
+                  <div style={{
+                    backgroundColor: "#ffffff",
+                    borderRadius: "16px",
+                    padding: "16px",
+                    boxShadow: isDark
+                      ? "0 20px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.1)"
+                      : "0 20px 60px rgba(13,148,136,0.15), 0 0 0 2px rgba(13,148,136,0.12)",
+                    overflow: "hidden",
+                  }}>
+                    <div style={{ transform: "scale(1.05)", transformOrigin: "top center" }}>
+                      {renderScreenMockup(post.screenType)}
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* Bottom strip */}
               <div style={{
-                height: "72px", backgroundColor: colors.bottomBar, flexShrink: 0,
+                height: "72px",
+                backgroundColor: isDark ? "rgba(0,0,0,0.25)" : "#0d9488",
+                flexShrink: 0,
                 display: "flex", alignItems: "center", justifyContent: "space-between",
                 padding: "0 56px",
               }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                  <div style={{ width: "32px", height: "32px", backgroundColor: "rgba(255,255,255,0.25)", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <div style={{
+                    width: "32px", height: "32px",
+                    backgroundColor: "rgba(255,255,255,0.25)",
+                    borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center",
+                  }}>
                     <span style={{ color: "#fff", fontWeight: 800, fontSize: "14px", letterSpacing: "-1px" }}>24</span>
                   </div>
                   <span style={{ color: "#ffffff", fontSize: "20px", fontWeight: 700, letterSpacing: "0.02em" }}>HealthOS</span>
