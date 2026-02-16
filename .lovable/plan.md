@@ -1,77 +1,74 @@
 
 
-## 30 Social Media Post Designs for HealthOS 24
+## Redesign Social Media Posts - Light, Brand-Consistent Design
 
-### What You Get
-A new `/social-media-posts` page with 30 professionally designed, downloadable social media cards optimized for Instagram (1080x1080), LinkedIn, and Facebook. Each card will be a visually rich React component that can be downloaded as a PNG image with one click.
+### Current Problem
+The posts currently use dark gradient backgrounds (dark teal, dark blue, dark red) which look generic and don't match the HealthOS brand. The landing page uses a clean, modern, light design with teal primary, white backgrounds, subtle shadows, and professional typography.
 
-### Post Categories (30 total)
+### New Design Direction
+Complete visual overhaul to match the HealthOS landing page aesthetic shown in the reference image:
 
-**Module Spotlight Posts (10 posts)**
-1. "Still using paper files? Register patients in 30 seconds with CNIC auto-fill" (Patients)
-2. "Your patients hate waiting. Show them live token queues on TV displays" (Appointments)
-3. "AI pre-screens patients before the doctor even walks in" (OPD + Tabeebi)
-4. "5-Level triage in seconds. Because emergencies can't wait" (Emergency)
-5. "Track every pill, every batch, every expiry -- automatically" (Pharmacy)
-6. "Lab results in minutes, not days. With AI-flagged abnormals" (Laboratory)
-7. "From surgery scheduling to PACU -- one seamless OT workflow" (OT)
-8. "Admit, treat, discharge, bill -- IPD without the chaos" (IPD)
-9. "Double-entry accounting that posts itself. Zero manual entries" (Accounts)
-10. "Requisition to vendor payment -- procurement on autopilot" (Procurement)
+- **White background** as the card base
+- **8px colored accent bar** at the top of each card (using the post's brand color)
+- **Dark text** for hook headlines (slate-900) instead of white-on-dark
+- **Muted gray text** for subtext (slate-500)
+- **Colored icon circle** (light tint background with darker icon, e.g., teal-100 bg + teal-600 icon)
+- **Module badge** as a colored pill (e.g., teal-100 bg with teal-700 text)
+- **Logo "24" badge** uses the brand color (teal-500 bg, white text)
+- **"HealthOS" label** in dark text (slate-800)
+- **Subtle decorative elements** -- very light colored circles at 5% opacity instead of heavy dark ones
+- **"healthos.com" watermark** in gray-300
 
-**AI / Tabeebi Posts (5 posts)**
-11. "Meet Tabeebi -- your AI doctor that never sleeps"
-12. "AI drug interaction alerts could save a life today"
-13. "Tabeebi pre-screens patients so doctors focus on what matters"
-14. "AI-powered billing codes from diagnosis -- no more guessing"
-15. "Predictive analytics that spot trends before you ask"
+### Card Layout (1080x1080)
 
-**Workflow / Process Posts (5 posts)**
-16. "Walk-in to walkout in 15 minutes -- here's the flow" (OPD workflow)
-17. "The complete procurement cycle in 6 steps"
-18. "How a single prescription flows from doctor to patient"
-19. "From blood donor to transfusion -- zero errors"
-20. "Nurse shift handover -- nothing falls through the cracks"
+```text
++--------------------------------------------------+
+| [========== colored top bar 12px ===========]     |
+|                                                   |
+|  [24 badge]  HealthOS          [Module pill]      |
+|                                                   |
+|                                                   |
+|  Large Bold Hook Text                             |
+|  in Dark Slate Color                              |
+|                                                   |
+|  Supporting subtext in                             |
+|  muted gray color                                 |
+|                                                   |
+|                                                   |
+|  [Icon in colored circle]       healthos.com      |
+|                                                   |
+|        [subtle decorative blob, bottom-right]     |
++--------------------------------------------------+
+```
 
-**Stats / Impact Posts (5 posts)**
-21. "45 min to 15 min -- average patient visit time with AI"
-22. "20+ modules. 1 platform. Zero paper."
-23. "40% fewer no-shows with automated SMS reminders"
-24. "99.5% three-way match accuracy in procurement"
-25. "24/7 operations. Because healthcare never stops."
+### Files to Change
 
-**Brand / CTA Posts (5 posts)**
-26. "AI-Powered Hospital Management System -- built for Pakistan"
-27. "The future of healthcare is here. Are you ready?"
-28. "Stop managing chaos. Start managing health." (brand hook)
-29. "From 5-bed clinic to 500-bed hospital -- HealthOS scales with you"
-30. "Book your free demo today -- healthos.com"
+**1. `src/components/social/socialPostsData.ts`**
+- Replace `gradientFrom` and `gradientTo` fields with `lightBg` (e.g., `"bg-teal-50"`) and `brandColor` (e.g., `"teal"`)
+- Each post gets a light tinted background and a brand color string used to derive all accent classes
+- Keep all hooks, subtext, icons, modules, and categories unchanged
 
-### Design System for Cards
-Each post card will be a 1080x1080px (1:1 ratio) design with:
-- HealthOS 24 logo in the corner
-- Bold hook text at the top (large, attention-grabbing)
-- Supporting text or a mini workflow diagram in the center
-- Module icon with color-coded accent matching our brand palette (teal, coral, blue, purple, etc.)
-- Gradient backgrounds varying per category
-- "healthos.com" watermark at the bottom
-- Brand-consistent typography and colors
+**2. `src/components/social/SocialPostCard.tsx`**
+- Card background: white with subtle light tinted background
+- Top: 12px colored accent bar spanning full width
+- Logo "24" badge: colored background (e.g., bg-teal-500) with white text
+- "HealthOS" text: slate-800
+- Module badge: light colored pill (e.g., bg-teal-100 text-teal-700)
+- Hook text: slate-900, extrabold (same size 72px)
+- Subtext: slate-500 (same size 32px)
+- Icon circle: light colored bg (e.g., bg-teal-100) with darker icon (e.g., text-teal-600)
+- Watermark: text-gray-400
+- Decorative circles: 5% opacity in the accent color
+- All download logic remains unchanged
 
-### Page Features
-- Grid layout showing all 30 posts as cards
-- Filter tabs: All | Modules | AI | Workflows | Stats | Brand
-- "Download PNG" button on each card (uses html-to-image, already installed)
-- "Download All" button to batch download all 30 as individual PNGs
-- Each card renders at 1080x1080 internally, scaled down for preview
+**3. `src/pages/SocialMediaPosts.tsx`**
+- No changes needed -- page layout, filters, and download logic stay the same
 
-### Technical Details
-
-| Item | Detail |
-|------|--------|
-| New page | `src/pages/SocialMediaPosts.tsx` |
-| New components | `src/components/social/SocialPostCard.tsx` (reusable card wrapper with download), `src/components/social/posts/` folder with post data |
-| Route | `/social-media-posts` added to `App.tsx` |
-| Download tech | `html-to-image` (already installed) -- `toPng()` at 1080x1080 |
-| Dependencies | None new -- uses existing `html-to-image`, `lucide-react`, brand components |
-| Files created | 3 new files: page, card component, post data/configs |
+### What Stays the Same
+- All 30 post hooks and subtext content
+- All icons and module labels
+- Category filtering and tabs
+- Download PNG functionality (html-to-image)
+- Page layout and grid
+- 1080x1080 internal rendering with ResizeObserver scaling
 
