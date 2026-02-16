@@ -5,10 +5,10 @@ import { useEffect, useState } from "react";
 import { AnimatedSection } from "./AnimatedSection";
 
 const typewriterPhrases = [
-  "Complete Hospital Management",
+  "AI-Powered Hospital System",
   "OPD to IPD in One Platform",
   "20+ Integrated Modules",
-  "Built-in AI Doctor",
+  "Smart Clinical Automation",
   "Pharmacy & Lab Automation",
 ];
 
@@ -82,12 +82,12 @@ export const HeroSection = () => {
               <span className="animate-pulse">|</span>
               <br />
               <span className="text-muted-foreground text-3xl md:text-4xl lg:text-5xl">
-                for Clinics & Hospitals
+                for Smart Clinics & Hospitals
               </span>
             </h1>
 
             <p className="text-lg md:text-xl text-muted-foreground max-w-xl leading-relaxed">
-              Run your entire healthcare facility with{" "}
+              The AI-powered hospital system with{" "}
               <span className="text-foreground font-medium">20+ integrated modules</span> — from OPD, IPD, and Emergency to Pharmacy, Lab, Billing, and HR. With{" "}
               <span className="text-primary font-semibold">Tabeebi AI</span> built in for intelligent patient pre-screening.
             </p>
@@ -132,7 +132,7 @@ export const HeroSection = () => {
                     <Building2 className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-foreground text-sm">HealthOS 24 Dashboard</h4>
+                    <h4 className="font-semibold text-foreground text-sm">AI Hospital System</h4>
                     <span className="text-xs text-muted-foreground">All modules • One platform</span>
                   </div>
                 </div>
