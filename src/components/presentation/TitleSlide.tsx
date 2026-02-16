@@ -1,4 +1,4 @@
-import { Users, FlaskConical, Building2, Shield, Zap } from "lucide-react";
+import { Users, FlaskConical, Building2, Shield, Zap, Bot } from "lucide-react";
 import { HealthOS24Logo } from "@/components/brand/HealthOS24Logo";
 
 const stats = [
@@ -16,6 +16,7 @@ const highlights = [
   'Accounts',
   'OT & Surgery',
   'Radiology',
+  'Tabeebi AI',
 ];
 
 export const TitleSlide = () => {
@@ -42,13 +43,13 @@ export const TitleSlide = () => {
 
         {/* Main Title */}
         <h1 className="text-5xl md:text-6xl font-bold text-center mb-4 leading-tight">
-          Complete Hospital<br />
+          AI-Powered Hospital<br />
           <span className="text-primary">Management System</span>
         </h1>
 
         {/* Subtitle */}
         <p className="text-2xl text-muted-foreground text-center mb-6 max-w-2xl">
-          20 Integrated Modules for 24/7 Healthcare Operations
+          AI-Driven 20+ Modules for 24/7 Healthcare Operations
         </p>
 
         {/* Feature highlights */}

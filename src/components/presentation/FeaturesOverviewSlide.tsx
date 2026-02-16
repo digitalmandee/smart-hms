@@ -1,7 +1,7 @@
 import { 
   Users, Calendar, Stethoscope, FlaskConical, Pill, Receipt, BarChart3, Store, 
   UserCog, Calculator, HeartPulse, ScanLine, Warehouse, Hotel, Siren, Scissors, 
-  Droplet, Wallet, BadgePercent, Truck
+  Droplet, Wallet, BadgePercent, Truck, Bot
 } from "lucide-react";
 import { HealthOS24Logo } from "@/components/brand/HealthOS24Logo";
 
@@ -26,6 +26,7 @@ const modules = [
   { icon: Warehouse, label: "Inventory", color: "bg-orange-500" },
   { icon: UserCog, label: "HR & Payroll", color: "bg-orange-500" },
   { icon: BarChart3, label: "Reports", color: "bg-orange-500" },
+  { icon: Bot, label: "Tabeebi AI", color: "bg-pink-500" },
 ];
 
 const categories = [
@@ -34,6 +35,7 @@ const categories = [
   { label: "Pharmacy", color: "bg-green-500", count: 2 },
   { label: "Finance", color: "bg-purple-500", count: 4 },
   { label: "Operations", color: "bg-orange-500", count: 4 },
+  { label: "AI (Tabeebi)", color: "bg-pink-500", count: 1 },
 ];
 
 export const FeaturesOverviewSlide = () => {
@@ -109,7 +111,7 @@ export const FeaturesOverviewSlide = () => {
 
       {/* Footer */}
       <div className="mt-4 pt-4 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
-        <span>HealthOS 24 - AI-Powered Hospital System</span>
+        <span>HealthOS 24 - AI-Powered Hospital Management System</span>
         <span>healthos24.com</span>
       </div>
     </div>

@@ -1,4 +1,5 @@
-import { Bot, Mic, FileText, ClipboardList, Clock, Globe, MessageCircle } from "lucide-react";
+import { Bot, Mic, FileText, ClipboardList, Clock, Globe, MessageCircle, Sparkles } from "lucide-react";
+import { HealthOS24Logo } from "@/components/brand/HealthOS24Logo";
 
 const capabilities = [
   {
@@ -31,19 +32,39 @@ const stats = [
 
 export function TabeebiSlide() {
   return (
-    <div className="slide">
+    <div className="slide flex flex-col bg-gradient-to-br from-pink-500/10 via-background to-primary/5 relative overflow-hidden">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-10 right-10 w-60 h-60 rounded-full bg-pink-500 blur-3xl" />
+        <div className="absolute bottom-10 left-10 w-40 h-40 rounded-full bg-primary blur-3xl" />
+      </div>
+
+      {/* Gradient Header Bar */}
+      <div className="h-2 bg-gradient-to-r from-pink-500 via-primary to-pink-400 rounded-t-lg -mx-8 -mt-8 mb-6" />
+
       {/* Header */}
-      <div className="flex items-center gap-3 mb-8">
-        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-          <Bot className="h-6 w-6 text-primary" />
+      <div className="flex items-center justify-between mb-6 relative z-10">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 rounded-xl bg-gradient-to-br from-pink-500 to-primary shadow-lg">
+            <Bot className="h-6 w-6 text-white" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold">
+              Built-in Medical AI — <span className="text-pink-500">Tabeebi</span>
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              A competitive advantage included in every HealthOS 24 installation
+            </p>
+          </div>
         </div>
-        <div>
-          <h2 className="text-3xl font-bold text-foreground">
-            Built-in Medical AI — <span className="text-primary">Tabeebi</span>
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            A competitive advantage included in every HealthOS 24 installation
-          </p>
+        <div className="flex items-center gap-3">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-pink-500/10 text-pink-600 rounded-full text-xs font-semibold border border-pink-500/20">
+            <Sparkles className="h-3 w-3" />
+            Built-in with every HealthOS 24
+          </span>
+          <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">
+            24 / 33
+          </span>
         </div>
       </div>
 
@@ -97,10 +118,10 @@ export function TabeebiSlide() {
         </div>
       </div>
 
-      {/* Slide footer */}
-      <div className="absolute bottom-4 left-0 right-0 flex justify-between items-center px-8 text-xs text-muted-foreground">
-        <span>HealthOS 24</span>
-        <span>Slide 24 of 33</span>
+      {/* Footer */}
+      <div className="mt-auto pt-4 border-t border-border flex items-center justify-between text-xs text-muted-foreground relative z-10">
+        <span>HealthOS 24 - AI-Powered Hospital Management System</span>
+        <span>healthos24.com</span>
       </div>
     </div>
   );

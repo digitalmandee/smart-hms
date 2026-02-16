@@ -112,7 +112,7 @@ export const WorkflowSlide = () => {
 
       {/* Footer */}
       <div className="mt-6 pt-4 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
-        <span>HealthOS 24 - Hospital Management System</span>
+        <span>HealthOS 24 - AI-Powered Hospital Management System</span>
         <span>healthos24.com</span>
       </div>
     </div>
