@@ -18,6 +18,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Presentation from "./pages/Presentation";
 import PricingProposal from "./pages/PricingProposal";
+import SocialMediaPosts from "./pages/SocialMediaPosts";
 import PharmacyDocumentation from "./pages/PharmacyDocumentation";
 import TestCasesPage from "./pages/TestCasesPage";
 import { LoginPage } from "./pages/auth/LoginPage";
@@ -499,6 +500,7 @@ function App() {
               <Route path="/" element={<Index />} />
               <Route path="/presentation" element={<Presentation />} />
               <Route path="/pricing-proposal" element={<PricingProposal />} />
+              <Route path="/social-media-posts" element={<SocialMediaPosts />} />
               <Route path="/pharmacy-documentation" element={<PharmacyDocumentation />} />
             {/* Public display routes - NO AUTH REQUIRED for TV displays and kiosks */}
             <Route path="/display/queue/:organizationId" element={<PublicQueueDisplay />} />
