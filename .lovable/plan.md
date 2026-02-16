@@ -1,37 +1,40 @@
 
 
-## Fix Mobile Homepage Edge-to-Edge Padding
+## Fix Mobile Edge-to-Edge Spacing - Increase Padding
 
 ### Problem
-On mobile, several landing page sections have only `px-4` (16px) padding, making content feel like it's touching the screen edges. Some sections already use the correct `px-5 sm:px-6 lg:px-4` pattern (20px on mobile, 24px on tablet), but 6 actively-used sections don't.
+The current `px-5` (20px) mobile padding is too tight -- content still feels like it's touching the screen edges. Need more breathing room on mobile screens.
 
 ### Fix
-Standardize ALL landing page container padding to `px-5 sm:px-6 lg:px-4` -- giving 20px breathing room on mobile, 24px on tablets, and the standard 16px on desktop where the container max-width handles spacing.
+Increase mobile padding from `px-5` (20px) to `px-6` (24px) and tablet padding from `sm:px-6` (24px) to `sm:px-8` (32px) across ALL landing page containers. This gives noticeably more breathing room on both mobile and tablet.
 
-### Sections to Fix (currently using `px-4`)
-
-| File | Section |
-|------|---------|
-| `src/components/landing/WorkflowDiagram.tsx` | Hospital Workflow diagram |
-| `src/components/landing/ProcurementCycleDiagram.tsx` | Procurement cycle |
-
-These are the two sections rendered on the Index page that still use `px-4`. The other files with `px-4` (PricingSection, BenefitsSection, FlowSection, FeaturesSection, ModulesSection, RolesSection) are older/unused components not rendered on the current homepage.
-
-### Change
-In each file, replace:
+**Change pattern in every file:**
 ```
-container mx-auto px-4
-```
-with:
-```
-container mx-auto px-5 sm:px-6 lg:px-4
+px-5 sm:px-6 lg:px-4  -->  px-6 sm:px-8 lg:px-4
 ```
 
-### Files to Change
+### Files to Update (15 files, one line each)
 
-| File | Change |
-|------|--------|
-| `src/components/landing/WorkflowDiagram.tsx` (line 54) | `px-4` to `px-5 sm:px-6 lg:px-4` |
-| `src/components/landing/ProcurementCycleDiagram.tsx` (line 80) | `px-4` to `px-5 sm:px-6 lg:px-4` |
+| File | Line |
+|------|------|
+| `src/components/landing/Navbar.tsx` | Line 31 |
+| `src/components/landing/HeroSection.tsx` | Line 66 |
+| `src/components/landing/TrustBadges.tsx` | Line 14 |
+| `src/components/landing/ProblemSolutionSection.tsx` | Line 34 |
+| `src/components/landing/FeaturesTabs.tsx` | Line 219 |
+| `src/components/landing/AIFeaturesSection.tsx` | Line 58 |
+| `src/components/landing/WorkflowDiagram.tsx` | Line 54 |
+| `src/components/landing/ProcurementCycleDiagram.tsx` | Line 80 |
+| `src/components/landing/WarehouseSection.tsx` | Line 51 |
+| `src/components/landing/RoleSelector.tsx` | Line 167 |
+| `src/components/landing/ComparisonTable.tsx` | Line 263 |
+| `src/components/landing/TestimonialsSection.tsx` | Line 40 |
+| `src/components/landing/FAQSection.tsx` | Line 37 |
+| `src/components/landing/CTASection.tsx` | Line 13 |
+| `src/components/landing/Footer.tsx` | Line 35 |
 
-This is a two-line fix that makes mobile padding consistent across the entire homepage.
+### Result
+- Mobile: 24px side padding (was 20px) -- 20% more breathing room
+- Tablet: 32px side padding (was 24px) -- 33% more breathing room
+- Desktop: unchanged (container max-width handles spacing)
+
