@@ -1,54 +1,77 @@
 
 
-## Update Presentation to "AI-Powered Hospital Management System"
+## 30 Social Media Post Designs for HealthOS 24
 
-### Problem
-- TitleSlide still says "Complete Hospital / Management System" -- needs "AI-Powered" branding
-- 8 slide footers still say "Hospital Management System" instead of "AI-Powered Hospital Management System"
-- Tabeebi is buried at slide 24 with no visual prominence -- needs better highlighting
-- FeaturesOverviewSlide has no Tabeebi/AI category in the legend
-- TitleSlide subtitle says "20 Integrated Modules" -- should say "AI-Driven 20+ Modules"
+### What You Get
+A new `/social-media-posts` page with 30 professionally designed, downloadable social media cards optimized for Instagram (1080x1080), LinkedIn, and Facebook. Each card will be a visually rich React component that can be downloaded as a PNG image with one click.
 
-### Changes
+### Post Categories (30 total)
 
-#### 1. TitleSlide -- AI Branding
-**File: `src/components/presentation/TitleSlide.tsx`**
-- Change heading from "Complete Hospital / Management System" to "AI-Powered Hospital / Management System"
-- Change subtitle from "20 Integrated Modules for 24/7 Healthcare Operations" to "AI-Driven 20+ Modules for 24/7 Healthcare Operations"
-- Add "AI-Powered" or "Tabeebi AI" as a highlight chip alongside OPD, IPD, etc.
+**Module Spotlight Posts (10 posts)**
+1. "Still using paper files? Register patients in 30 seconds with CNIC auto-fill" (Patients)
+2. "Your patients hate waiting. Show them live token queues on TV displays" (Appointments)
+3. "AI pre-screens patients before the doctor even walks in" (OPD + Tabeebi)
+4. "5-Level triage in seconds. Because emergencies can't wait" (Emergency)
+5. "Track every pill, every batch, every expiry -- automatically" (Pharmacy)
+6. "Lab results in minutes, not days. With AI-flagged abnormals" (Laboratory)
+7. "From surgery scheduling to PACU -- one seamless OT workflow" (OT)
+8. "Admit, treat, discharge, bill -- IPD without the chaos" (IPD)
+9. "Double-entry accounting that posts itself. Zero manual entries" (Accounts)
+10. "Requisition to vendor payment -- procurement on autopilot" (Procurement)
 
-#### 2. FeaturesOverviewSlide -- Add Tabeebi to Legend
-**File: `src/components/presentation/FeaturesOverviewSlide.tsx`**
-- Add a 6th category in the legend: "AI (Tabeebi)" with a distinct color (e.g., `bg-pink-500`)
-- Add Tabeebi as a 21st module card in the grid with Bot icon and pink color
-- This visually highlights Tabeebi as a core module, not just a hidden slide
+**AI / Tabeebi Posts (5 posts)**
+11. "Meet Tabeebi -- your AI doctor that never sleeps"
+12. "AI drug interaction alerts could save a life today"
+13. "Tabeebi pre-screens patients so doctors focus on what matters"
+14. "AI-powered billing codes from diagnosis -- no more guessing"
+15. "Predictive analytics that spot trends before you ask"
 
-#### 3. TabeebiSlide -- Better Visual Prominence
-**File: `src/components/presentation/TabeebiSlide.tsx`**
-- Add a gradient background similar to TitleSlide for visual impact
-- Add a prominent "Built-in with every HealthOS 24" badge/banner
-- Add the HealthOS24Logo and consistent footer styling matching other slides
-- Update footer to match the "AI-Powered Hospital Management System" branding
+**Workflow / Process Posts (5 posts)**
+16. "Walk-in to walkout in 15 minutes -- here's the flow" (OPD workflow)
+17. "The complete procurement cycle in 6 steps"
+18. "How a single prescription flows from doctor to patient"
+19. "From blood donor to transfusion -- zero errors"
+20. "Nurse shift handover -- nothing falls through the cracks"
 
-#### 4. All Slide Footers -- Unified Branding
-Update footer text from "Hospital Management System" to "AI-Powered Hospital Management System" in:
-- `ModuleSlide.tsx`
-- `WorkflowSlide.tsx`
-- `CTASlide.tsx`
-- `WarehouseSlide.tsx`
-- `ProcurementSlide.tsx`
-- `TimelineSlide.tsx`
-- `IntegrationSlide.tsx`
-- `OTDashboardSlide.tsx`
+**Stats / Impact Posts (5 posts)**
+21. "45 min to 15 min -- average patient visit time with AI"
+22. "20+ modules. 1 platform. Zero paper."
+23. "40% fewer no-shows with automated SMS reminders"
+24. "99.5% three-way match accuracy in procurement"
+25. "24/7 operations. Because healthcare never stops."
 
-### Technical Summary
+**Brand / CTA Posts (5 posts)**
+26. "AI-Powered Hospital Management System -- built for Pakistan"
+27. "The future of healthcare is here. Are you ready?"
+28. "Stop managing chaos. Start managing health." (brand hook)
+29. "From 5-bed clinic to 500-bed hospital -- HealthOS scales with you"
+30. "Book your free demo today -- healthos.com"
 
-| File | Changes |
-|------|---------|
-| `TitleSlide.tsx` | Update heading to "AI-Powered Hospital Management System", subtitle to "AI-Driven 20+", add Tabeebi highlight chip |
-| `FeaturesOverviewSlide.tsx` | Add "AI (Tabeebi)" category + Tabeebi module card in grid |
-| `TabeebiSlide.tsx` | Add gradient background, HealthOS logo, prominent badge, consistent footer |
-| 8 other slide files | Update footer from "Hospital Management System" to "AI-Powered Hospital Management System" |
+### Design System for Cards
+Each post card will be a 1080x1080px (1:1 ratio) design with:
+- HealthOS 24 logo in the corner
+- Bold hook text at the top (large, attention-grabbing)
+- Supporting text or a mini workflow diagram in the center
+- Module icon with color-coded accent matching our brand palette (teal, coral, blue, purple, etc.)
+- Gradient backgrounds varying per category
+- "healthos.com" watermark at the bottom
+- Brand-consistent typography and colors
 
-No new files. No new dependencies.
+### Page Features
+- Grid layout showing all 30 posts as cards
+- Filter tabs: All | Modules | AI | Workflows | Stats | Brand
+- "Download PNG" button on each card (uses html-to-image, already installed)
+- "Download All" button to batch download all 30 as individual PNGs
+- Each card renders at 1080x1080 internally, scaled down for preview
+
+### Technical Details
+
+| Item | Detail |
+|------|--------|
+| New page | `src/pages/SocialMediaPosts.tsx` |
+| New components | `src/components/social/SocialPostCard.tsx` (reusable card wrapper with download), `src/components/social/posts/` folder with post data |
+| Route | `/social-media-posts` added to `App.tsx` |
+| Download tech | `html-to-image` (already installed) -- `toPng()` at 1080x1080 |
+| Dependencies | None new -- uses existing `html-to-image`, `lucide-react`, brand components |
+| Files created | 3 new files: page, card component, post data/configs |
 
