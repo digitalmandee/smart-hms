@@ -1,49 +1,61 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Play, Building2, MessageCircle, Globe, Clock, Bot } from "lucide-react";
+import { ArrowRight, Play, Building2, Users, Stethoscope, FlaskConical, Pill, Receipt, Hotel, Siren, Scissors, BarChart3, Bot, ShieldCheck, Clock, Globe } from "lucide-react";
 import { useEffect, useState } from "react";
 import { AnimatedSection } from "./AnimatedSection";
 
-const chatMessages = [
-  { role: "patient", text: "I have a headache and mild fever since yesterday" },
-  { role: "doctor", text: "I understand. Let me ask a few questions.\nIs the headache on one side or both sides? Any nausea or vomiting?" },
-  { role: "patient", text: "Both sides, no nausea" },
-  { role: "doctor", text: "Based on your symptoms, this appears to be a tension headache with viral fever. I recommend Paracetamol 500mg every 6 hours and plenty of fluids. If fever persists beyond 3 days, please visit the clinic." },
+const typewriterPhrases = [
+  "Complete Hospital Management",
+  "OPD to IPD in One Platform",
+  "20+ Integrated Modules",
+  "Built-in AI Doctor",
+  "Pharmacy & Lab Automation",
 ];
 
-const aiStats = [
-  { icon: MessageCircle, label: "50K+ Consultations", color: "text-primary" },
+const hmsModules = [
+  { icon: Users, label: "Patients" },
+  { icon: Stethoscope, label: "OPD" },
+  { icon: Hotel, label: "IPD" },
+  { icon: Siren, label: "Emergency" },
+  { icon: Scissors, label: "OT" },
+  { icon: FlaskConical, label: "Laboratory" },
+  { icon: Pill, label: "Pharmacy" },
+  { icon: Receipt, label: "Billing" },
+  { icon: BarChart3, label: "Reports" },
+];
+
+const stats = [
+  { icon: Building2, label: "500+ Clinics", color: "text-primary" },
+  { icon: ShieldCheck, label: "20+ Modules", color: "text-primary" },
   { icon: Globe, label: "3 Languages", color: "text-primary" },
   { icon: Clock, label: "24/7 Available", color: "text-primary" },
 ];
 
 export const HeroSection = () => {
   const [displayText, setDisplayText] = useState("");
-  const [visibleMessages, setVisibleMessages] = useState(0);
-  const fullText = "Custom-Trained AI Doctor";
+  const [phraseIndex, setPhraseIndex] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
-    let index = 0;
-    const timer = setInterval(() => {
-      if (index <= fullText.length) {
-        setDisplayText(fullText.slice(0, index));
-        index++;
+    const currentPhrase = typewriterPhrases[phraseIndex];
+    let timeout: ReturnType<typeof setTimeout>;
+
+    if (!isDeleting) {
+      if (displayText.length < currentPhrase.length) {
+        timeout = setTimeout(() => setDisplayText(currentPhrase.slice(0, displayText.length + 1)), 60);
       } else {
-        clearInterval(timer);
+        timeout = setTimeout(() => setIsDeleting(true), 2000);
       }
-    }, 60);
-    return () => clearInterval(timer);
-  }, []);
-
-  // Animate chat messages appearing one by one
-  useEffect(() => {
-    if (visibleMessages < chatMessages.length) {
-      const timer = setTimeout(() => {
-        setVisibleMessages((prev) => prev + 1);
-      }, 1200 + visibleMessages * 1500);
-      return () => clearTimeout(timer);
+    } else {
+      if (displayText.length > 0) {
+        timeout = setTimeout(() => setDisplayText(displayText.slice(0, -1)), 30);
+      } else {
+        setIsDeleting(false);
+        setPhraseIndex((prev) => (prev + 1) % typewriterPhrases.length);
+      }
     }
-  }, [visibleMessages]);
+    return () => clearTimeout(timeout);
+  }, [displayText, isDeleting, phraseIndex]);
 
   return (
     <section className="relative min-h-[90vh] flex items-center overflow-hidden bg-gradient-to-br from-background via-background to-primary/5">
@@ -55,129 +67,103 @@ export const HeroSection = () => {
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Left: Content */}
           <AnimatedSection animation="fade-right" className="space-y-8">
-            <Link
-              to="/tabeebi"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-colors"
-            >
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
               </span>
               <span className="text-sm font-medium text-primary">
-                Meet Tabeebi — Your Custom AI Doctor
+                Powered by Tabeebi AI — Built-in Medical Intelligence
               </span>
-            </Link>
+            </div>
 
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight">
               <span className="text-primary">{displayText}</span>
               <span className="animate-pulse">|</span>
               <br />
               <span className="text-muted-foreground text-3xl md:text-4xl lg:text-5xl">
-                Inside Your HMS
+                for Clinics & Hospitals
               </span>
             </h1>
 
             <p className="text-lg md:text-xl text-muted-foreground max-w-xl leading-relaxed">
-              Meet <span className="text-primary font-semibold">Tabeebi</span> — a purpose-built medical AI that handles patient consultations, generates prescriptions, creates clinical summaries, and speaks{" "}
-              <span className="text-foreground font-medium">3 languages</span>. All integrated into your hospital management system.
+              Run your entire healthcare facility with{" "}
+              <span className="text-foreground font-medium">20+ integrated modules</span> — from OPD, IPD, and Emergency to Pharmacy, Lab, Billing, and HR. With{" "}
+              <span className="text-primary font-semibold">Tabeebi AI</span> built in for intelligent patient pre-screening.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4">
               <Button size="lg" className="group text-lg px-8" asChild>
-                <Link to="/tabeebi">
-                  Try Tabeebi Now
+                <Link to="/auth/signup">
+                  Start Free Trial
                   <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </Button>
               <Button size="lg" variant="outline" className="group text-lg px-8" asChild>
-                <Link to="/auth/signup">
+                <Link to="/auth/login">
                   <Play className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform" />
-                  Start Free Trial
+                  View Demo
                 </Link>
               </Button>
             </div>
 
-            {/* AI Stats + Social Proof */}
+            {/* Stats */}
             <div className="pt-8 border-t border-border">
               <div className="flex flex-wrap gap-3">
-                {aiStats.map((stat) => (
+                {stats.map((stat) => (
                   <div key={stat.label} className="flex items-center gap-2 px-4 py-2 rounded-lg bg-muted/50">
                     <stat.icon className={`h-4 w-4 ${stat.color}`} />
                     <span className="text-sm font-medium text-foreground">{stat.label}</span>
                   </div>
                 ))}
-                <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-muted/50">
-                  <Building2 className="h-4 w-4 text-primary" />
-                  <span className="text-sm font-medium text-foreground">500+ Clinics</span>
-                </div>
               </div>
             </div>
           </AnimatedSection>
 
-          {/* Right: Tabeebi Chat Mockup */}
+          {/* Right: HMS Module Grid */}
           <AnimatedSection animation="fade-left" delay={200} className="relative mt-8 lg:mt-0">
             <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 via-transparent to-accent/20 rounded-3xl blur-2xl" />
 
             <div className="relative max-w-sm mx-auto lg:max-w-md">
               <div className="rounded-2xl border bg-card shadow-xl overflow-hidden">
-                {/* Chat header */}
+                {/* Header */}
                 <div className="flex items-center gap-3 px-5 py-4 border-b bg-gradient-to-r from-primary/10 to-primary/5">
                   <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-                    <Bot className="h-5 w-5 text-primary" />
+                    <Building2 className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-foreground text-sm">Dr. Tabeebi</h4>
-                    <div className="flex items-center gap-1">
-                      <span className="w-2 h-2 rounded-full bg-success" />
-                      <span className="text-xs text-muted-foreground">Online • EN / AR / UR</span>
-                    </div>
+                    <h4 className="font-semibold text-foreground text-sm">HealthOS 24 Dashboard</h4>
+                    <span className="text-xs text-muted-foreground">All modules • One platform</span>
                   </div>
                 </div>
 
-                {/* Chat messages */}
-                <div className="p-4 space-y-3 min-h-[280px] bg-muted/20">
-                  {chatMessages.slice(0, visibleMessages).map((msg, i) => (
+                {/* Module grid */}
+                <div className="p-5 grid grid-cols-3 gap-3">
+                  {hmsModules.map((mod, i) => (
                     <div
-                      key={i}
-                      className={`flex ${msg.role === "patient" ? "justify-end" : "justify-start"} animate-fade-in`}
+                      key={mod.label}
+                      className="flex flex-col items-center gap-2 p-3 rounded-xl border bg-muted/30 hover:bg-primary/5 hover:border-primary/30 transition-all duration-300 animate-fade-in"
+                      style={{ animationDelay: `${i * 100}ms` }}
                     >
-                      <div
-                        className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
-                          msg.role === "patient"
-                            ? "bg-primary text-primary-foreground rounded-br-md"
-                            : "bg-card border rounded-bl-md text-foreground"
-                        }`}
-                      >
-                        {msg.text.split("\n").map((line, j) => (
-                          <p key={j} className={j > 0 ? "mt-1" : ""}>{line}</p>
-                        ))}
+                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <mod.icon className="h-5 w-5 text-primary" />
                       </div>
+                      <span className="text-xs font-medium text-foreground">{mod.label}</span>
                     </div>
                   ))}
-                  {visibleMessages < chatMessages.length && (
-                    <div className="flex justify-start">
-                      <div className="bg-card border rounded-2xl rounded-bl-md px-4 py-3">
-                        <div className="flex gap-1">
-                          <span className="w-2 h-2 bg-muted-foreground/40 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                          <span className="w-2 h-2 bg-muted-foreground/40 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                          <span className="w-2 h-2 bg-muted-foreground/40 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
-                        </div>
-                      </div>
-                    </div>
-                  )}
                 </div>
 
-                {/* Input bar */}
-                <div className="px-4 py-3 border-t bg-card">
-                  <div className="flex items-center gap-2 rounded-xl bg-muted/50 border px-4 py-2.5 text-sm text-muted-foreground">
-                    <span>Type your symptoms...</span>
-                  </div>
+                {/* Tabeebi badge */}
+                <div className="px-5 py-3 border-t bg-muted/20 flex items-center justify-center gap-2">
+                  <Bot className="h-4 w-4 text-primary" />
+                  <span className="text-xs font-medium text-muted-foreground">
+                    + Tabeebi AI built into every module
+                  </span>
                 </div>
               </div>
 
-              {/* Label */}
               <div className="text-center mt-4">
-                <span className="text-sm text-muted-foreground">Live preview of a Tabeebi consultation</span>
+                <span className="text-sm text-muted-foreground">Complete HMS with 20+ modules</span>
               </div>
             </div>
           </AnimatedSection>

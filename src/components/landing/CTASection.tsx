@@ -20,22 +20,8 @@ export const CTASection = () => {
             Join 500+ clinics across Pakistan and the Middle East. Start your free trial today - no credit card required.
           </p>
 
-          {/* Tabeebi CTA */}
-          <div className="mb-8 p-6 rounded-2xl border bg-card/50 max-w-lg mx-auto">
-            <div className="flex items-center justify-center gap-2 mb-3">
-              <Bot className="h-5 w-5 text-primary" />
-              <span className="font-semibold text-foreground">Talk to Dr. Tabeebi — Free, No Signup</span>
-            </div>
-            <Button size="lg" className="group text-lg px-8 w-full sm:w-auto" asChild>
-              <Link to="/tabeebi">
-                Try Tabeebi Now
-                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-              </Link>
-            </Button>
-          </div>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <Button size="lg" variant="outline" className="group text-lg px-8" asChild>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+            <Button size="lg" className="group text-lg px-8" asChild>
               <Link to="/auth/signup">
                 Start Free Trial
                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
@@ -46,6 +32,17 @@ export const CTASection = () => {
                 Login to Demo
               </Link>
             </Button>
+          </div>
+
+          {/* Tabeebi secondary CTA */}
+          <div className="mb-12 p-4 rounded-2xl border bg-card/50 max-w-md mx-auto">
+            <div className="flex items-center justify-center gap-2">
+              <Bot className="h-4 w-4 text-primary" />
+              <span className="text-sm text-muted-foreground">Or try our AI doctor:</span>
+              <Link to="/tabeebi" className="text-sm font-semibold text-primary hover:underline">
+                Talk to Tabeebi →
+              </Link>
+            </div>
           </div>
           
           {/* Contact options */}

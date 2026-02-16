@@ -1,11 +1,10 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { AnimatedSection, StaggerChildren } from "./AnimatedSection";
+import { AnimatedSection } from "./AnimatedSection";
 import {
   Brain, Mic, FileText, Shield, ArrowRight, Zap,
   HeartPulse, Stethoscope, BarChart3, Pill, FlaskConical,
   ClipboardList, BookOpen, Lock, TrendingUp, Bot,
-  ChevronRight,
 } from "lucide-react";
 
 const capabilities = [
@@ -61,14 +60,14 @@ export function AIFeaturesSection() {
         <AnimatedSection animation="fade-up" className="text-center mb-16">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
             <Zap className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium text-primary">What Makes Tabeebi Different</span>
+            <span className="text-sm font-medium text-primary">Built-in Medical AI</span>
           </div>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
-            A <span className="text-primary">Custom-Built</span> Medical AI — Not a Generic Chatbot
+            Meet <span className="text-primary">Tabeebi</span> — Your Built-in AI Doctor
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Purpose-trained on real clinical data, Tabeebi delivers physician-level consultations,
-            auto-generates prescriptions, and feeds structured summaries directly to your doctors.
+            Every HealthOS 24 installation comes with Tabeebi — a purpose-trained medical AI
+            that handles patient pre-screening, generates prescriptions, and feeds clinical summaries to your doctors.
           </p>
         </AnimatedSection>
 
@@ -94,7 +93,7 @@ export function AIFeaturesSection() {
             Tabeebi isn't just a chatbot — it enhances every part of your HMS with intelligent automation.
           </p>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {aiModules.map((mod, i) => (
+            {aiModules.map((mod) => (
               <div
                 key={mod.module}
                 className="flex items-start gap-3 p-4 rounded-xl border bg-card/50 hover:bg-card transition-colors"
@@ -112,7 +111,7 @@ export function AIFeaturesSection() {
         </AnimatedSection>
 
         {/* Row 3: Training & Trust */}
-        <AnimatedSection animation="fade-up" className="mb-16">
+        <AnimatedSection animation="fade-up">
           <div className="rounded-2xl border bg-gradient-to-br from-primary/5 to-accent/5 p-8 md:p-10">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
@@ -127,26 +126,6 @@ export function AIFeaturesSection() {
                   <span className="text-sm text-muted-foreground">{tp.text}</span>
                 </div>
               ))}
-            </div>
-          </div>
-        </AnimatedSection>
-
-        {/* CTA */}
-        <AnimatedSection animation="fade-up">
-          <div className="text-center">
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="group text-lg px-8" asChild>
-                <Link to="/tabeebi">
-                  Try Tabeebi Free
-                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                </Link>
-              </Button>
-              <Button size="lg" variant="outline" className="group text-lg px-8" asChild>
-                <Link to="/auth/login">
-                  See Full Demo
-                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                </Link>
-              </Button>
             </div>
           </div>
         </AnimatedSection>
