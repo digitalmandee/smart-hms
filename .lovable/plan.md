@@ -1,147 +1,184 @@
 
-# Fix: HeyGen Avatar Not Showing — Two Root Causes Found
+# Self-Hosted 3D AI Avatar with Lip Sync + Hand Movements
 
-## Diagnosis
+## The Answer to Your Question
 
-I read the SDK source code directly (`node_modules/@heygen/streaming-avatar/lib/index.esm.js`) and found two bugs in the current `HeyGenAvatar.tsx` that prevent the video stream from ever appearing.
+Yes — with a **3D character model** (VRM/GLB format), you have 100% programmatic control over:
+- **Lip sync** — via viseme morph targets (mouth shapes like "A", "E", "I", "O", "U", "sil")
+- **Hand/arm movements** — pre-built bone animations (idle wave, gesture while speaking)
+- **Head nod** — bone rotation during speech
+- **Eye blink** — morph target driven on a timer
+- **Facial expressions** — happy, thinking, neutral via blend shapes
 
-### Bug 1: Stale Closure in `useImperativeHandle` (speak always silently returns)
-
-The `speak()` method inside `useImperativeHandle` captures `status` at the time the ref is created. When `status` later changes from `"connecting"` to `"ready"`, the closure still holds the old value.
-
-**Current broken code:**
-```tsx
-const [status, setStatus] = useState<"connecting" | "ready" | "error">("connecting");
-
-useImperativeHandle(ref, () => ({
-  async speak(text: string) {
-    if (!avatarRef.current || status !== "ready") return;  // status is always "connecting" here
-```
-
-The ref is created once on mount when `status = "connecting"`. Even after the stream connects and `status` becomes `"ready"`, the `speak()` function still checks the stale value and returns early. **The avatar never speaks.**
-
-**Fix:** Use a `useRef` for the status flag instead of `useState`, so the imperative handle always reads the latest value:
-```tsx
-const statusRef = useRef<"connecting" | "ready" | "error">("connecting");
-// ...
-if (!avatarRef.current || statusRef.current !== "ready") return;
-```
-
-### Bug 2: Video Stays Blank — `srcObject` Set Before Video Element Mounts
-
-The `STREAM_READY` event may fire during `createStartAvatar()` before the React render has committed the `<video>` DOM element. When `status === "connecting"`, `HeyGenAvatar` returns `<DoctorAvatarLarge />` — the `<video>` element is **not in the DOM yet**. So `videoRef.current` is `null` when the stream arrives, and `srcObject` is never assigned.
-
-**Current broken flow:**
-```
-createStartAvatar() starts
-  → STREAM_READY fires  
-  → videoRef.current is null (video not mounted yet)
-  → srcObject never set
-  → setStatus("ready")  ← status changes
-  → React renders <video> element for first time
-  → but stream is already lost, never re-assigned
-```
-
-**Fix:** Store the `MediaStream` in a ref. When `<video>` mounts (via a callback ref or effect), assign the stream from the ref:
-```tsx
-const pendingStreamRef = useRef<MediaStream | null>(null);
-
-// In STREAM_READY handler:
-avatar.on(StreamingEvents.STREAM_READY, (event) => {
-  const stream = (event as CustomEvent).detail as MediaStream;
-  pendingStreamRef.current = stream;
-  setStatus("ready");  // now triggers re-render with <video>
-});
-
-// In video element — use callback ref to assign stream immediately on mount:
-<video
-  ref={(el) => {
-    videoRef.current = el;
-    if (el && pendingStreamRef.current) {
-      el.srcObject = pendingStreamRef.current;
-      el.play().catch(() => {});
-    }
-  }}
-/>
-```
+**No HeyGen. No third-party streaming. No quota. 100% yours.**
 
 ---
 
-## Files to Change
-
-Only `src/components/ai/HeyGenAvatar.tsx` needs updating.
-
----
-
-## Complete Fix Summary
+## How It Works
 
 ```text
-Fix 1: Replace useState "status" with useRef "statusRef"
-        → imperative handle always reads latest value
-        → speak() and interrupt() work correctly after connection
-
-Fix 2: Store MediaStream in pendingStreamRef
-        → video element gets stream assigned on DOM mount via callback ref
-        → video plays immediately when <video> appears in DOM
-
-Fix 3: Also re-check stream assignment in a useEffect on status change
-        → safety net for edge cases where ref callback fires before stream arrives
+AI text response arrives
+      ↓
+ElevenLabs Edge Function → returns MP3 audio blob
+      ↓
+AudioContext plays audio → AnalyserNode reads amplitude 60fps
+      ↓
+Amplitude → mapped to viseme (mouth shape)
+      ↓
+Three.js + VRM renders 3D character with mouth open/closed
+      ↓
+Separate animation clips play on bones (hand gesture, head nod, idle sway)
 ```
 
 ---
 
-## Technical Details
+## Technology Stack
 
-### The `emit` / `on` system (confirmed from SDK source)
+| Tool | Role | Cost |
+|------|------|------|
+| **Three.js** | 3D rendering engine | Free (npm) |
+| **@pixiv/three-vrm** | VRM avatar control (morph targets, bones) | Free (npm) |
+| **Ready Player Me** | Generate a doctor avatar as .vrm/.glb file | Free |
+| **ElevenLabs** | High quality doctor voice TTS | ~$0.30/1M chars |
+| **Web Audio API** | Amplitude capture → drives lip sync | Free (browser built-in) |
 
-```js
-// SDK line 1219
-StreamingAvatar.prototype.emit = function (eventType, detail) {
-    var event = new CustomEvent(eventType, { detail: detail });
-    this.eventTarget.dispatchEvent(event);
-};
+ElevenLabs already has a dedicated docs integration in this project and is the standard for this use case. An `ELEVENLABS_API_KEY` secret just needs to be added.
 
-// SDK line 905 — STREAM_READY fires with mediaStream as detail
-_this.emit(StreamingEvents.STREAM_READY, _this.mediaStream);
+---
+
+## Visual Result
+
+```text
+┌────────────────────────────────┐
+│                                │
+│     [3D Doctor Character]      │
+│      - Blinking eyes           │
+│      - Mouth opens with voice  │
+│      - Head nods when speaking │
+│      - Hand gestures while     │
+│        explaining something    │
+│      - Idle sway animation     │
+│                                │
+└────────────────────────────────┘
+        [ 🎤 Tap to speak ]
 ```
 
-So `event.detail` IS the `MediaStream` — this part is correct. The problem is timing (video not mounted) + stale closure (speak blocked).
+---
 
-### Updated `HeyGenAvatar.tsx` structure
+## Architecture Diagram
 
-```tsx
-const statusRef = useRef<"connecting" | "ready" | "error">("connecting");
-const [statusState, setStatusState] = useState<"connecting" | "ready" | "error">("connecting");
-const pendingStreamRef = useRef<MediaStream | null>(null);
-const videoRef = useRef<HTMLVideoElement | null>(null);
-
-// Callback ref: assigns stream as soon as <video> mounts
-const videoCallbackRef = (el: HTMLVideoElement | null) => {
-  videoRef.current = el;
-  if (el && pendingStreamRef.current) {
-    el.srcObject = pendingStreamRef.current;
-    el.play().catch(() => {});
-  }
-};
-
-// STREAM_READY handler:
-avatar.on(StreamingEvents.STREAM_READY, (event: CustomEvent) => {
-  const stream = event.detail as MediaStream;
-  pendingStreamRef.current = stream;
-  statusRef.current = "ready";
-  setStatusState("ready");  // triggers re-render → <video> mounts → callback ref fires
-});
-
-// useImperativeHandle — reads statusRef (not stale state):
-useImperativeHandle(ref, () => ({
-  async speak(text) {
-    if (!avatarRef.current || statusRef.current !== "ready") return;
-    // ...
-  }
-}));
+```text
+TabeebiVoicePage
+    │
+    ├── useAIChat (DeepSeek) → text response
+    │
+    ├── useLipSyncTTS (NEW hook)
+    │       ├── Calls elevenlabs-tts edge function
+    │       ├── Plays via AudioContext
+    │       ├── AnalyserNode → amplitude (0–1) at 60fps
+    │       └── exposes: speak(text), stop(), amplitude, isPlaying
+    │
+    └── VRMAvatarCanvas (NEW component)
+            ├── Three.js Scene + WebGLRenderer
+            ├── @pixiv/three-vrm loads .vrm file
+            ├── amplitude → viseme morph target weight
+            ├── AnimationMixer: idle / speaking / thinking clips
+            └── Eye blink timer (every 3–5s random)
 ```
 
-This ensures:
-1. `speak()` checks the live value via `statusRef` — never stale
-2. The stream is stored in `pendingStreamRef` — survives until the `<video>` mounts
-3. The callback ref assigns `srcObject` immediately when `<video>` appears in the DOM
+---
+
+## Files to Create / Edit
+
+| File | Action | Description |
+|------|--------|-------------|
+| `supabase/functions/elevenlabs-tts/index.ts` | Create | TTS proxy edge function, returns MP3 binary |
+| `src/hooks/useLipSyncTTS.ts` | Create | Audio playback + amplitude extraction hook |
+| `src/components/ai/VRMAvatarCanvas.tsx` | Create | Three.js + VRM canvas component |
+| `public/avatars/doctor.vrm` | Add | VRM model file from Ready Player Me |
+| `src/pages/public/TabeebiVoicePage.tsx` | Edit | Swap HeyGenAvatar → VRMAvatarCanvas, wire amplitude |
+| `src/components/ai/HeyGenAvatar.tsx` | Delete | No longer needed |
+
+---
+
+## Implementation Steps
+
+### Step 1 — ElevenLabs TTS Edge Function
+A Supabase edge function that:
+- Receives `{ text, language }` POST request
+- Calls ElevenLabs `/v1/text-to-speech/{voiceId}` with the `ELEVENLABS_API_KEY` secret
+- Returns raw MP3 binary stream
+- Uses voice `George` (JBFqnCBsd6RMkjVDRZzb) for a doctor-like deep voice
+
+### Step 2 — `useLipSyncTTS` Hook
+```typescript
+// Core logic
+const audioCtx = new AudioContext();
+const analyser = audioCtx.createAnalyser();
+const source = audioCtx.createMediaElementSource(audioElement);
+source.connect(analyser);
+analyser.connect(audioCtx.destination);
+
+// 60fps amplitude loop
+function tick() {
+  analyser.getByteFrequencyData(data);
+  const avg = data.reduce((a, b) => a + b) / data.length;
+  setAmplitude(avg / 128); // 0–1
+  rafId = requestAnimationFrame(tick);
+}
+```
+Exposes: `speak(text)`, `stop()`, `amplitude: number`, `isPlaying: boolean`
+
+### Step 3 — VRM Avatar (Ready Player Me)
+1. Go to **readyplayer.me** → create a doctor avatar (white coat, professional look)
+2. Download as `.vrm` file
+3. Place in `public/avatars/doctor.vrm`
+
+The VRM format has built-in morph targets for lip sync:
+- `viseme_aa` — "A" sound (open mouth)
+- `viseme_ih` — "I" sound
+- `viseme_ou` — "O/U" sound
+- `viseme_ee` — "E" sound
+- `viseme_oh` — neutral open
+- `mouthClose` — closed
+
+### Step 4 — `VRMAvatarCanvas` Component
+```typescript
+// Per-frame update driven by amplitude from useLipSyncTTS
+vrm.expressionManager.setValue("aa", amplitude * 0.8);  // mouth open
+vrm.expressionManager.setValue("blink", blinkValue);    // eye blink
+
+// Three.js animation clips for:
+// - idle: subtle body sway
+// - speaking: head nods, hand gesture
+// - thinking: chin-rub pose or subtle tilt
+```
+
+### Step 5 — Wire into TabeebiVoicePage
+- Replace `<HeyGenAvatar>` with `<VRMAvatarCanvas amplitude={amplitude} state={avatarState} />`
+- Replace `avatarRef.current.speak(content)` with `lipSyncTTS.speak(content)`
+- Remove the `avatarRef` HeyGen ref entirely
+
+---
+
+## What You Get vs HeyGen
+
+| Feature | HeyGen | This Solution |
+|---------|--------|---------------|
+| Lip sync | ✅ (but quota) | ✅ |
+| Hand movements | ❌ | ✅ |
+| Head nod | ✅ | ✅ |
+| Eye blink | ✅ | ✅ |
+| Custom avatar look | ❌ fixed | ✅ full control |
+| Works offline | ❌ | ✅ (after load) |
+| Monthly cost | $$ quota | ~$0 (tiny ElevenLabs cost) |
+| Cold start delay | 2–3s session | 0s |
+| Dependency | HeyGen API | ElevenLabs only (for voice) |
+
+---
+
+## One Thing Needed First
+
+Before implementing, we need to add `ELEVENLABS_API_KEY` as a Supabase secret. You can get a free API key at [elevenlabs.io](https://elevenlabs.io) — free tier gives 10,000 characters/month which is plenty for testing.
+
+Once the key is added, the full implementation can be built in one shot.
