@@ -1,123 +1,118 @@
 
 
-# Fix OPD Checkout Flow: Doctor Commission and Invoice Gaps
+# OPD Flow Audit: Gaps and Enhancements
 
-## Problem Summary
+## Audit Summary
 
-The OPD checkout page creates invoices **without** `doctor_id` or `service_type_id` on invoice items. The `post_consultation_earning` database trigger requires BOTH to credit doctor commissions. This means doctors never get paid for consultations billed through checkout.
+I traced the entire OPD flow end-to-end: Walk-in registration, token generation, token screen display, doctor dashboard, consultation, prescription, checkout/invoicing, and doctor wallet commissions. Here are the findings.
 
-Additionally, the walk-in page passes `doctor_id` but also skips `service_type_id`, so the trigger's primary path (JOIN on `service_types.category = 'consultation'`) fails there too -- it only works via the fragile date-based fallback.
+---
 
-## Gaps Found
+## Critical Bug Found
 
-| Gap | Location | Severity |
-|-----|----------|----------|
-| No `doctor_id` on checkout invoice items | `OPDCheckoutPage.tsx` lines 212, 242 | HIGH - commission never posts |
-| No `service_type_id` on checkout invoice items | `OPDCheckoutPage.tsx` lines 212, 242 | HIGH - trigger JOIN fails |
-| No `service_type_id` on walk-in invoice items | `OPDWalkInPage.tsx` line 349 | HIGH - relies on fallback only |
-| `handleGenerateInvoice` doesn't link invoice to appointment | `OPDCheckoutPage.tsx` line 201 | MEDIUM - allows duplicate invoicing |
-| No consultation `service_type_id` stored in `ChargeItem` | `OPDCheckoutPage.tsx` line 32 | ROOT CAUSE of missing data |
+### Checkout Page Never Receives Appointment ID (CRITICAL)
 
-## Plan
-
-### 1. Extend `ChargeItem` interface to carry `doctorId` and `serviceTypeId`
-
-Add optional fields to the `ChargeItem` interface so they flow from charge-building into invoice creation.
-
-### 2. Attach `doctor_id` and `service_type_id` when building the consultation charge
-
-When building the consultation charge item (line 132-143), fetch the first `service_types` record with `category = 'consultation'` for the org, and set both `doctorId` (from `appointment.doctor.id`) and `serviceTypeId`.
-
-### 3. Fix `handleGenerateInvoice` and `handlePayNow` to pass these through
-
-Map charge items to include `doctor_id` and `service_type_id` in the `items` array sent to `createInvoice`.
-
-### 4. Link invoice to appointment in `handleGenerateInvoice`
-
-After invoice creation in `handleGenerateInvoice`, update the appointment record with `invoice_id` (same as `handlePayNow` already does).
-
-### 5. Fix walk-in page to also pass `service_type_id`
-
-Add `service_type_id` to the walk-in invoice item so the trigger's primary path works instead of relying on the date-based fallback.
-
-## Technical Details
-
-### File: `src/pages/app/opd/OPDCheckoutPage.tsx`
-
-**Change 1 - ChargeItem interface (line 32):**
-```typescript
-interface ChargeItem {
-  id: string;
-  type: "consultation" | "lab" | "prescription";
-  description: string;
-  amount: number;
-  status: "pending" | "invoiced" | "paid";
-  referenceId?: string;
-  doctorId?: string;
-  serviceTypeId?: string;
-}
+The `ConsultationPage` and `PendingCheckoutPage` both navigate to:
+```
+/app/opd/checkout?appointmentId=XXX  (query parameter)
 ```
 
-**Change 2 - Build consultation charge (lines 132-143):**
-- Query `service_types` where `category = 'consultation'` to get a service type ID
-- Set `doctorId: appointment.doctor?.id` and `serviceTypeId` on the charge item
-
-**Change 3 - handleGenerateInvoice items mapping (line 212):**
-```typescript
-items: itemsToInvoice.map(item => ({
-  description: item.description,
-  quantity: 1,
-  unit_price: item.amount,
-  discount_percent: 0,
-  total_price: item.amount,
-  doctor_id: item.doctorId,
-  service_type_id: item.serviceTypeId,
-})),
+But `OPDCheckoutPage` reads from:
+```
+const { appointmentId } = useParams();  (route parameter)
 ```
 
-**Change 4 - Link appointment after invoice in handleGenerateInvoice (after line 220):**
-```typescript
-await supabase
-  .from("appointments")
-  .update({ invoice_id: invoiceData.id })
-  .eq("id", appointment.id);
-```
+This means when a doctor completes a consultation with pending orders and gets redirected to checkout, the `appointmentId` is **always undefined**, making the checkout page show "Appointment not found". This breaks the entire post-consultation billing flow.
 
-**Change 5 - handlePayNow items mapping (line 242):**
-Same `doctor_id` and `service_type_id` additions as Change 3.
+**Fix:** Add `useSearchParams` fallback in `OPDCheckoutPage` so it reads from either route params or query params.
 
-### File: `src/pages/app/opd/OPDWalkInPage.tsx`
+---
 
-**Change 6 - Add service_type_id to walk-in invoice item (line 349):**
-- Query `service_types` where `category = 'consultation'` and org matches
-- Pass `service_type_id` alongside the existing `doctor_id`
+## Commission Pipeline Verification
 
-### Fetch Strategy for Consultation Service Type
+### Previously Fixed (confirmed working in code)
 
-Add a React Query hook or inline query at the top of both pages to fetch the consultation service type:
+The last round of changes correctly added `doctor_id` and `service_type_id` to invoice items in both `OPDCheckoutPage` and `OPDWalkInPage`. The database trigger `post_consultation_earning` is properly structured to:
 
-```typescript
-const { data: consultationServiceType } = useQuery({
-  queryKey: ["consultation-service-type"],
-  queryFn: async () => {
-    const { data } = await supabase
-      .from("service_types")
-      .select("id")
-      .eq("category", "consultation")
-      .limit(1)
-      .single();
-    return data;
-  },
-});
-```
+1. Find invoice items with `doctor_id` + `service_type_id` (consultation category)
+2. Look up the doctor's `compensation_plan` (50% default share)
+3. Insert into `doctor_earnings`
+4. Has fallback logic for backwards compatibility
 
-This ID is then used when building charge items and invoice items.
+### Still Broken: Historical invoices have no commission
 
-## Expected Result
+Verified in the database: the paid invoice `INV-20260128-610` ("General Physician Consultation - Dr. Dr. Ayesha Nawaz") has `doctor_id: NULL` and `service_type_id: NULL`. No `doctor_earnings` records exist. These were created before the fix and cannot be retroactively corrected by the trigger (it only fires on status change to "paid").
 
-After these changes:
-1. Doctor commissions auto-post via the trigger's primary path (direct `doctor_id` on invoice items with matching `service_type_id`)
-2. No reliance on the fragile date-based fallback
-3. No duplicate invoicing risk (appointment linked to invoice immediately)
-4. Both walk-in and checkout paths produce identical, correct invoice data
+---
+
+## Token Display Gap
+
+### Department-Prefixed Token Not Shown (MEDIUM)
+
+The `generate_opd_token` RPC returns `token_display` (e.g., "MED-001") but this value is:
+- Generated in `useCreateAppointment` and returned as part of the result
+- **Never stored** in the appointments table (no `token_display` column)
+- **Never used** in any UI component
+
+The walk-in complete screen shows just `{tokenNumber}` (plain number), the `PrintableTokenSlip` shows `#{tokenNumber}`, and the doctor dashboard shows `Token #{apt.token_number}`. The department prefix is lost.
+
+**Fix:** Use `formatTokenDisplay()` from `src/lib/opd-token.ts` along with the OPD department code from the appointment's `opd_department` relation.
+
+---
+
+## Complete Fix Plan
+
+### 1. Fix Checkout Page Routing (CRITICAL)
+
+**File:** `src/pages/app/opd/OPDCheckoutPage.tsx`
+
+- Import `useSearchParams` from react-router-dom
+- Read `appointmentId` from either route params or query params:
+  ```
+  const { appointmentId: routeAppointmentId } = useParams();
+  const [searchParams] = useSearchParams();
+  const appointmentId = routeAppointmentId || searchParams.get("appointmentId");
+  ```
+
+### 2. Show Department-Prefixed Token in Walk-In Complete Screen
+
+**File:** `src/pages/app/opd/OPDWalkInPage.tsx`
+
+- Store `token_display` from `createAppointment` result (it already returns this)
+- Show `token_display || tokenNumber` in the complete step UI
+- Pass `token_display` to `PrintableTokenSlip` (update the component to accept and display it)
+
+### 3. Show Department-Prefixed Token in Doctor Dashboard
+
+**File:** `src/pages/app/opd/DoctorDashboard.tsx`
+
+- Use the `opd_department` relation (already fetched via `useAppointments`) to format token display
+- Replace `Token #{apt.token_number}` with formatted token using department code
+
+### 4. Show Department-Prefixed Token in PrintableTokenSlip
+
+**File:** `src/components/clinic/PrintableTokenSlip.tsx`
+
+- Add optional `tokenDisplay` prop
+- Show `tokenDisplay` when available, fall back to `#{tokenNumber}`
+
+### 5. Remove `(supabase as any)` Cast
+
+**File:** `src/pages/app/opd/OPDCheckoutPage.tsx` and `OPDWalkInPage.tsx`
+
+The `service_types` table is in the Supabase types, so the `as any` cast is unnecessary. Remove it for proper type safety.
+
+---
+
+## Technical Changes Summary
+
+| File | Change | Priority |
+|------|--------|----------|
+| `OPDCheckoutPage.tsx` | Fix appointmentId routing (useSearchParams fallback) | CRITICAL |
+| `OPDCheckoutPage.tsx` | Remove `(supabase as any)` cast | LOW |
+| `OPDWalkInPage.tsx` | Store and display `token_display` from appointment result | MEDIUM |
+| `OPDWalkInPage.tsx` | Remove `(supabase as any)` cast | LOW |
+| `PrintableTokenSlip.tsx` | Add `tokenDisplay` prop, show prefixed token | MEDIUM |
+| `DoctorDashboard.tsx` | Format token with department code | MEDIUM |
+| `MobileDoctorView.tsx` | Format token with department code | MEDIUM |
 
