@@ -114,6 +114,7 @@ import KioskTerminalPage from "./pages/kiosk/KioskTerminalPage";
 import FilteredQueueDisplayPage from "./pages/display/FilteredQueueDisplayPage";
 // OPD pages
 import DoctorDashboard from "./pages/app/opd/DoctorDashboard";
+import OPDAdminDashboard from "./pages/app/opd/OPDAdminDashboard";
 import OPDWalkInPage from "./pages/app/opd/OPDWalkInPage";
 import ConsultationPage from "./pages/app/opd/ConsultationPage";
 import OPDVitalsPage from "./pages/app/opd/OPDVitalsPage";
@@ -123,6 +124,12 @@ import OPDOrdersPage from "./pages/app/opd/OPDOrdersPage";
 import NurseDashboard from "./pages/app/opd/NurseDashboard";
 import MyWalletPage from "./pages/app/MyWalletPage";
 import ReceptionistDashboard from "./pages/app/reception/ReceptionistDashboard";
+
+// HR missing route pages
+import LeaveCalendarPage from "./pages/app/hr/leaves/LeaveCalendarPage";
+import LeaveApprovalsPage from "./pages/app/hr/leaves/LeaveApprovalsPage";
+import EmployeeDirectoryPage from "./pages/app/hr/EmployeeDirectoryPage";
+import AttendanceCorrectionsPage from "./pages/app/hr/attendance/AttendanceCorrectionsPage";
 
 // Lab pages
 import LabDashboard from "./pages/app/lab/LabDashboard";
@@ -641,7 +648,7 @@ function App() {
               {/* OPD routes */}
               <Route path="opd" element={<DoctorDashboard />} />
               <Route path="opd/walk-in" element={<OPDWalkInPage />} />
-              <Route path="opd/nursing" element={<NurseDashboard />} />
+              <Route path="opd/admin-dashboard" element={<OPDAdminDashboard />} />
               
               {/* Reception routes */}
               <Route path="reception" element={<ReceptionistDashboard />} />
@@ -798,23 +805,7 @@ function App() {
               <Route path="lab/analyzers/:id/mapping" element={<LabAnalyzerMappingPage />} />
               <Route path="lab/reports" element={<LabReportsPage />} />
               
-              {/* Radiology routes */}
-              <Route path="radiology" element={<RadiologyDashboard />} />
-              <Route path="radiology/orders" element={<ImagingOrdersListPage />} />
-              <Route path="radiology/orders/new" element={<ImagingOrderFormPage />} />
-              <Route path="radiology/orders/:id" element={<ImagingOrderDetailPage />} />
-              <Route path="radiology/worklist" element={<TechnicianWorklistPage />} />
-              <Route path="radiology/capture/:orderId" element={<ImageCapturePage />} />
-              <Route path="radiology/schedule" element={<ImagingSchedulePage />} />
-              <Route path="radiology/reporting" element={<ReportingWorklistPage />} />
-              <Route path="radiology/reporting/:orderId" element={<ReportEntryPage />} />
-              <Route path="radiology/verification" element={<ReportVerificationPage />} />
-              <Route path="radiology/modalities" element={<ModalitiesListPage />} />
-              <Route path="radiology/procedures" element={<ProceduresListPage />} />
-              <Route path="radiology/pacs" element={<PACSStudiesPage />} />
-              <Route path="radiology/pacs/settings" element={<PACSSettingsPage />} />
-              <Route path="radiology/pacs/servers" element={<PACSServersPage />} />
-              <Route path="radiology/pacs/guide" element={<PACSSetupGuidePage />} />
+              {/* Duplicate radiology block removed */}
               
               {/* Inventory routes */}
               <Route path="inventory" element={<InventoryDashboard />} />
@@ -890,24 +881,17 @@ function App() {
               <Route path="accounts/reports/balance-sheet" element={<BalanceSheetPage />} />
               <Route path="accounts/reports/cash-flow" element={<CashFlowPage />} />
               
-              {/* Additional IPD routes */}
-              <Route path="ipd/history" element={<AdmissionHistoryPage />} />
-              <Route path="ipd/vitals" element={<IPDVitalsPage />} />
-              <Route path="ipd/nursing-notes" element={<NursingNotesPage />} />
-              <Route path="ipd/care-plans" element={<CarePlansPage />} />
-              <Route path="ipd/charges" element={<IPDChargesPage />} />
-              <Route path="ipd/beds/transfers" element={<BedTransfersPage />} />
-              <Route path="ipd/care/medications" element={<MedicationChartPage />} />
-              <Route path="ipd/reports" element={<IPDReportsPage />} />
-              <Route path="ipd/diet" element={<DietManagementPage />} />
-              <Route path="ipd/births" element={<BirthRecordsPage />} />
-              <Route path="ipd/births/new" element={<BirthRecordFormPage />} />
-              <Route path="ipd/deaths" element={<DeathRecordsPage />} />
+              {/* Additional IPD setup routes */}
               <Route path="ipd/setup/diet-types" element={<DietTypesPage />} />
               <Route path="ipd/setup/ward-types" element={<WardTypesPage />} />
               <Route path="ipd/setup/bed-types" element={<BedTypesPage />} />
               <Route path="ipd/setup/bed-features" element={<BedFeaturesPage />} />
               <Route path="ipd/setup/floors" element={<FloorsPage />} />
+              <Route path="ipd/beds/transfers" element={<BedTransfersPage />} />
+              <Route path="ipd/care/medications" element={<MedicationChartPage />} />
+              <Route path="ipd/births" element={<BirthRecordsPage />} />
+              <Route path="ipd/births/new" element={<BirthRecordFormPage />} />
+              <Route path="ipd/deaths" element={<DeathRecordsPage />} />
               
               {/* Certificates routes */}
               <Route path="certificates" element={<CertificatesPage />} />
@@ -970,6 +954,10 @@ function App() {
               <Route path="hr/attendance/emergency-roster" element={<EmergencyRosterPage />} />
               <Route path="hr/attendance/publish" element={<PublishRosterPage />} />
               <Route path="hr/attendance/roster-reports" element={<RosterReportsPage />} />
+              <Route path="hr/leaves/calendar" element={<LeaveCalendarPage />} />
+              <Route path="hr/leaves/approvals" element={<LeaveApprovalsPage />} />
+              <Route path="hr/employees/directory" element={<EmployeeDirectoryPage />} />
+              <Route path="hr/attendance/corrections" element={<AttendanceCorrectionsPage />} />
               
               {/* Settings routes */}
               <Route path="settings/branches" element={<BranchesListPage />} />
