@@ -26,7 +26,7 @@ function VitalBadge({ label, value, unit, color }: { label: string; value?: numb
 
 export function CompactVitals({ vitals, nurseVitals, onChange, readOnly = false }: CompactVitalsProps) {
   const hasNurseVitals = nurseVitals && Object.keys(nurseVitals).length > 0;
-  const [expanded, setExpanded] = useState(!hasNurseVitals);
+  const [expanded, setExpanded] = useState(false);
 
   const displayVitals = vitals;
   const bp = displayVitals.blood_pressure;

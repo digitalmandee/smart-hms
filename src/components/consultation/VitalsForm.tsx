@@ -59,7 +59,7 @@ export function VitalsForm({ vitals, onChange, readOnly = false }: VitalsFormPro
     <Card>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg flex items-center gap-2">
+          <CardTitle className="text-sm flex items-center gap-2">
             <Activity className="h-5 w-5 text-primary" />
             Vitals
           </CardTitle>
@@ -71,7 +71,7 @@ export function VitalsForm({ vitals, onChange, readOnly = false }: VitalsFormPro
         </div>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 gap-3">
           {/* Blood Pressure */}
           <div className="space-y-2">
             <Label className="flex items-center gap-1">
