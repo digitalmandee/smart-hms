@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { DoctorAvatarLarge } from "@/components/ai/DoctorAvatarLarge";
+import { HeyGenAvatar, type HeyGenAvatarHandle } from "@/components/ai/HeyGenAvatar";
 import { useVoiceConsultation } from "@/hooks/useVoiceConsultation";
 import { useAIChat } from "@/hooks/useAIChat";
 import { Mic, MicOff, MessageSquare, Globe, RotateCcw } from "lucide-react";
@@ -48,8 +49,9 @@ export default function TabeebiVoicePage() {
   const [language, setLanguage] = useState<"en" | "ar" | "ur">(
     (searchParams.get("lang") as "en" | "ar" | "ur") || "en"
   );
-  const [autoListen, setAutoListen] = useState(true);
+  const [autoListen, setAutoListen] = useState(false);
   const [recentExchanges, setRecentExchanges] = useState<Array<{ role: "user" | "assistant"; content: string }>>([]);
+  const avatarRef = useRef<HeyGenAvatarHandle>(null);
   const autoListenTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isProcessingRef = useRef(false);
 
@@ -74,8 +76,12 @@ export default function TabeebiVoicePage() {
       const updated: Array<{ role: "user" | "assistant"; content: string }> = [...prev, { role: "assistant" as const, content }];
       return updated.slice(-6);
     });
-    // Speak the full response — audio is pre-unlocked from mic tap gesture
-    speakRef.current(content);
+    // Use HeyGen avatar for real lip-sync; fall back to browser TTS if avatar not ready
+    if (avatarRef.current) {
+      avatarRef.current.speak(content);
+    } else {
+      speakRef.current(content);
+    }
   }, []);
 
   const { sendMessage, isLoading, messages } = useAIChat({
@@ -92,7 +98,7 @@ export default function TabeebiVoicePage() {
     : isLoading ? "thinking"
     : "idle";
 
-  // Auto-listen after AI finishes speaking
+  // Auto-listen after AI finishes speaking (fallback when HeyGen not used)
   useEffect(() => {
     if (voiceState === "idle" && !isLoading && autoListen && !isProcessingRef.current && !loading) {
       if (recentExchanges.length > 0) {
@@ -117,7 +123,6 @@ export default function TabeebiVoicePage() {
 
   const handleMicPress = () => {
     // CRITICAL: unlockAudio() MUST be called synchronously here (inside the click handler)
-    // so the browser's Web Audio context is primed before any async speak() calls.
     unlockAudio();
 
     if (autoListenTimerRef.current) clearTimeout(autoListenTimerRef.current);
@@ -125,11 +130,22 @@ export default function TabeebiVoicePage() {
     if (voiceState === "listening") {
       stopListening();
     } else if (voiceState === "speaking") {
+      // Interrupt the HeyGen avatar + stop browser TTS fallback
+      avatarRef.current?.interrupt();
       stopAll();
     } else if (!isLoading) {
       startListening(handleFinalTranscript);
     }
   };
+
+  const handleAvatarStopTalking = useCallback(() => {
+    // Auto-listen after avatar finishes speaking
+    if (autoListen && !isProcessingRef.current) {
+      autoListenTimerRef.current = setTimeout(() => {
+        startListening(handleFinalTranscript);
+      }, 800);
+    }
+  }, [autoListen, startListening, handleFinalTranscript]);
 
   const handleLanguageChange = (lang: "en" | "ar" | "ur") => {
     setLanguage(lang);
@@ -221,7 +237,12 @@ export default function TabeebiVoicePage() {
 
         {/* Avatar — takes up most of the screen */}
         <div className="flex-1 flex flex-col items-center justify-center min-h-0">
-          <DoctorAvatarLarge state={avatarState} />
+          <HeyGenAvatar
+            ref={avatarRef}
+            state={avatarState}
+            onStartTalking={() => {}}
+            onStopTalking={handleAvatarStopTalking}
+          />
         </div>
 
         {/* Caption area — last Dr. Tabeebi response as subtitle */}
