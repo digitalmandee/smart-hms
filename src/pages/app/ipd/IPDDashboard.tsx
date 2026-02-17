@@ -4,26 +4,21 @@ import { ModernStatsCard } from "@/components/ModernStatsCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { 
-  Building2, 
-  Bed, 
-  Users, 
-  UserPlus, 
-  LogOut,
-  ClipboardList,
-  Plus,
-  ArrowRight,
-  Wallet,
-  RefreshCw
+  Building2, Bed, Users, UserPlus, LogOut, ClipboardList,
+  Plus, ArrowRight, Wallet, RefreshCw, Activity, Beaker, Calendar
 } from "lucide-react";
 import { useIPDStats } from "@/hooks/useIPD";
 import { useAdmissions } from "@/hooks/useAdmissions";
 import { usePendingRounds } from "@/hooks/useDailyRounds";
 import { usePendingDischarges } from "@/hooks/useDischarge";
 import { usePostTodayRoomCharges } from "@/hooks/useRoomChargeSync";
+import { useIPDDashboardEnhancedStats } from "@/hooks/useIPDDashboardStats";
 import { AdmissionCard } from "@/components/ipd/AdmissionCard";
 import { format } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
+import { canViewFinancials } from "@/lib/permissions";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Capacitor } from "@capacitor/core";
 import { MobileIPDDashboard } from "@/components/mobile/MobileIPDDashboard";
@@ -32,6 +27,8 @@ import { useQueryClient } from "@tanstack/react-query";
 export default function IPDDashboard() {
   const navigate = useNavigate();
   const { profile } = useAuth();
+  const roles = (profile as any)?.roles || [];
+  const showFinancials = canViewFinancials(roles);
   const isMobileScreen = useIsMobile();
   const isNative = Capacitor.isNativePlatform();
   const showMobileUI = isMobileScreen || isNative;
@@ -42,6 +39,7 @@ export default function IPDDashboard() {
   const { data: pendingRounds, isLoading: loadingRounds } = usePendingRounds();
   const { data: pendingDischarges, isLoading: loadingDischarges } = usePendingDischarges();
   const { postCharges, isPosting } = usePostTodayRoomCharges();
+  const { data: enhanced } = useIPDDashboardEnhancedStats();
 
   const firstName = profile?.full_name?.split(" ")[0] || "Doctor";
 
@@ -243,6 +241,109 @@ export default function IPDDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Ward-wise Occupancy */}
+      {enhanced?.wardOccupancy && enhanced.wardOccupancy.length > 0 && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Building2 className="h-4 w-4 text-primary" />
+              Ward-wise Occupancy
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+              {enhanced.wardOccupancy.map(ward => (
+                <div key={ward.wardId} className="p-3 rounded-lg border bg-card">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="font-medium text-sm">{ward.wardName}</span>
+                    <Badge variant={ward.occupancyPercent > 80 ? "destructive" : ward.occupancyPercent > 50 ? "default" : "secondary"}>
+                      {ward.occupancyPercent}%
+                    </Badge>
+                  </div>
+                  <Progress value={ward.occupancyPercent} className="h-2 mb-1" />
+                  <p className="text-xs text-muted-foreground">{ward.occupiedBeds}/{ward.totalBeds} beds occupied</p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Clinical KPIs & Financial Summary */}
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card>
+          <CardContent className="pt-6 text-center">
+            <Activity className="h-8 w-8 mx-auto mb-2 text-primary" />
+            <p className="text-2xl font-bold">{enhanced?.avgLengthOfStay || 0} days</p>
+            <p className="text-sm text-muted-foreground">Avg Length of Stay</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6 text-center">
+            <Calendar className="h-8 w-8 mx-auto mb-2 text-primary" />
+            <p className="text-2xl font-bold">{enhanced?.todayProcedures || 0}</p>
+            <p className="text-sm text-muted-foreground">Today's Procedures</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6 text-center">
+            <Beaker className="h-8 w-8 mx-auto mb-2 text-warning" />
+            <p className="text-2xl font-bold">{enhanced?.pendingLabResults || 0}</p>
+            <p className="text-sm text-muted-foreground">Pending Lab Results</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Financial Summary (finance roles only) */}
+      {showFinancials && enhanced?.financialSummary && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Wallet className="h-4 w-4 text-primary" />
+              Active Admissions Financial Summary
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="p-4 bg-success/10 rounded-lg text-center">
+                <p className="text-sm text-muted-foreground">Total Deposits</p>
+                <p className="text-xl font-bold text-success">₨ {enhanced.financialSummary.totalDeposits.toLocaleString()}</p>
+              </div>
+              <div className="p-4 bg-warning/10 rounded-lg text-center">
+                <p className="text-sm text-muted-foreground">Total Charges</p>
+                <p className="text-xl font-bold text-warning">₨ {enhanced.financialSummary.totalCharges.toLocaleString()}</p>
+              </div>
+              <div className="p-4 bg-destructive/10 rounded-lg text-center">
+                <p className="text-sm text-muted-foreground">Outstanding</p>
+                <p className="text-xl font-bold text-destructive">₨ {Math.max(0, enhanced.financialSummary.outstandingBalance).toLocaleString()}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Discharge Pipeline */}
+      {enhanced?.dischargePipeline && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <LogOut className="h-4 w-4 text-primary" />
+              Discharge Pipeline
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-4 overflow-x-auto pb-2">
+              {enhanced.dischargePipeline.map(stage => (
+                <div key={stage.stage} className="flex-1 min-w-[120px] p-4 rounded-lg border bg-card text-center">
+                  <p className="text-2xl font-bold">{stage.count}</p>
+                  <p className="text-sm text-muted-foreground">{stage.label}</p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Quick Navigation */}
       <div className="grid gap-4 md:grid-cols-4">
