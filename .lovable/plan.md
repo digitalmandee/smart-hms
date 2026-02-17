@@ -1,148 +1,139 @@
 
+# Tabeebi Voice Mode - Human AI Character Experience (Browser TTS)
 
-# Comprehensive QA Audit & Dashboard Enhancement Plan
+## What You're Building
 
-## Part 1: Menu Structure Issues Found
-
-### A. IPD Module - Patient Care Children Orphaned (CRITICAL)
-- `ipd.care` (id: `507a300b`) is the **active** parent but has **0 direct children**
-- `ipd.patient-care` (id: `c239134c`, code prefix used by children like `ipd.care.rounds`) is a **different inactive item** that holds 7 children: Daily Rounds, Vitals, Nursing Notes, Medications, eMAR, Diet, Care Plans
-- **Result**: The "Patient Care" submenu appears empty in the sidebar
-- **Fix**: Update the 7 children's `parent_id` from `c239134c` to `507a300b`
-
-### B. IPD Records - Empty Group (CRITICAL)
-- `ipd.records` (id: `46d4a867`) is active but has **0 children**
-- Pages exist: Birth Records (`/app/ipd/birth-records`), Death Records (`/app/ipd/death-records`), IPD Reports (`/app/ipd/reports`)
-- **Fix**: Insert 3 child menu items under `ipd.records`
-
-### C. IPD Nursing Station - Missing from Menu
-- Route exists: `/app/ipd/nursing` (NursingStationPage)
-- No menu item points there
-- **Fix**: Add menu item under `ipd.care`
-
-### D. Billing Module - Missing Menu Items
-Pages exist but no menu items:
-| Page | Route | Status |
-|------|-------|--------|
-| Insurance Companies | `/app/billing/insurance/companies` | No menu item |
-| Insurance Plans | `/app/billing/insurance/plans` | No menu item |
-| Claims | `/app/billing/claims` | No menu item |
-| Claims Report | `/app/billing/claims-report` | No menu item |
-| Daily Closing | `/app/billing/daily-closing` | No menu item |
-
-**Fix**: Add an "Insurance & Claims" submenu and a "Daily Closing" item under Billing
-
-### E. Accounts Module - Missing Menu Items
-Only 3 children exist (Dashboard, AR, AP). Missing from menu:
-| Page | Route |
-|------|-------|
-| Chart of Accounts | `/app/accounts/chart-of-accounts` |
-| Account Types | `/app/accounts/types` |
-| Journal Entries | `/app/accounts/journal-entries` |
-| General Ledger | `/app/accounts/ledger` |
-| Bank & Cash | `/app/accounts/bank-accounts` |
-| Budgets | `/app/accounts/budgets` |
-| Financial Reports | `/app/accounts/reports` (parent with sub-routes) |
-| Vendor Payments | `/app/accounts/vendor-payments` |
-
-**Fix**: Insert ~8 menu items under Accounts
-
-### F. HR Module - 4 Missing Routes
-Menu items exist but no routes in App.tsx:
-- `/app/hr/leaves/calendar` - No route
-- `/app/hr/leaves/approvals` - No route
-- `/app/hr/employees/directory` - No route
-- `/app/hr/attendance/corrections` - No route
-
-**Fix**: Add routes + simple redirect/placeholder pages
-
-### G. OPD Module - `required_module` Inconsistency
-- OPD parent and several children (Doctor Dashboard, Nurse Station, History) have `required_module: NULL` instead of `'opd'`
-- **Fix**: Update to `required_module = 'opd'`
-
-### H. Duplicate Routes in App.tsx
-- `opd/nursing` appears twice (lines 644 and 648)
-- Several IPD routes are duplicated between lines 691-727 and 893-910
-- Radiology routes are defined twice (lines 766-784 and 801-817)
-- **Fix**: Remove duplicate route blocks
+A dedicated full-screen **Voice Consultation Room** for Tabeebi at `/tabeebi/voice` where the entire interaction is voice-driven. The patient sees a large animated doctor character filling the screen, speaks to it, and hears the AI respond using the browser's built-in `speechSynthesis` (the same TTS module already in `useVoiceConsultation.ts`). No ElevenLabs needed — we reuse everything you already have.
 
 ---
 
-## Part 2: Billing-Accounts-IPD-OPD Linkage Audit
+## What Changes vs. Current Voice Mode
 
-### What Works Well
-- Invoices auto-post to journal entries via `post_invoice_to_journal()` trigger
-- Payments auto-post via `post_payment_to_journal()` trigger
-- Lab orders auto-created from invoices via `create_lab_order_from_invoice()` trigger
-- IPD charges tracked in `ipd_charges` table, linked to admissions
-- OPD Walk-in creates invoice + appointment + payment in one flow
-- IPD Billing Dashboard shows deposit vs charges vs balance per admission
-- GRN verification posts to AP via `post_grn_to_journal()` trigger
+**Current:** Voice is a floating overlay on top of the chat UI. The doctor avatar is 120px. The experience is "chat with a voice add-on."
 
-### Issues Found
-1. **No OPD-specific dashboard** exists - OPD only has DoctorDashboard (doctor-centric) and NurseDashboard (nurse-centric). There is no admin/management OPD dashboard showing today's OPD stats, revenue, department-wise breakdown, etc.
-2. **IPD Dashboard is basic** - shows stats + recent admissions but lacks financial summary, department-wise occupancy charts, or clinical KPIs
+**New:** A full-screen immersive room. The doctor avatar is ~280–320px tall. There are no chat bubbles — just the character, a status line, the live transcript, and a big tap-to-speak button. It feels like a video call with an AI doctor.
 
 ---
 
-## Part 3: New Dashboards Needed
+## Files to Create / Edit
 
-### A. OPD Admin Dashboard (New Page)
-A comprehensive OPD management dashboard showing:
-
-- **Stats Row**: Total Patients Today, Completed Consultations, In Queue, Revenue Today
-- **Department-wise Breakdown**: Table showing each OPD department with patient count, completed, pending, avg wait time
-- **Doctor Performance**: Table with doctor name, patients seen, avg consultation time, revenue generated
-- **Hourly Patient Flow**: Bar chart showing patient arrivals per hour
-- **Revenue Breakdown**: Today's OPD revenue by payment status (paid, pending, waived)
-- **Quick Links**: Walk-in, Reports, Pending Checkouts, History
-- **Recent Consultations**: Last 10 completed consultations with status
-
-### B. Enhanced IPD Dashboard (Enhance Existing)
-Add to the current IPD Dashboard:
-
-- **Ward-wise Occupancy**: Visual cards per ward showing occupied/total beds, occupancy %
-- **Financial Summary Section** (visible to finance roles only): Total deposits, unbilled charges, outstanding balance
-- **Clinical KPIs**: Average length of stay, today's procedures, pending lab results
-- **Discharge Pipeline**: Visual showing patients by discharge stage (pending summary, pending billing, ready)
-- **Recent Activity Feed**: Last 10 actions (admissions, discharges, transfers, rounds)
-
----
-
-## Implementation Plan
-
-### Step 1: Database Fixes (Menu Items)
-- Update 7 IPD care children `parent_id` to correct parent
-- Insert ~20 missing menu items (IPD Records, Billing Insurance/Claims/Daily Closing, Accounts sub-items)
-- Fix OPD `required_module` values
-
-### Step 2: Code Fixes
-- Remove duplicate routes in App.tsx
-- Add 4 missing HR routes with redirect pages
-
-### Step 3: Create OPD Admin Dashboard
-- New file: `src/pages/app/opd/OPDAdminDashboard.tsx`
-- New hook: `src/hooks/useOPDDashboardStats.ts` (queries appointments, invoices, consultations for today)
-- Add route: `/app/opd/admin-dashboard`
-- Add menu item: `opd.admin_dashboard`
-
-### Step 4: Enhance IPD Dashboard
-- Add ward occupancy section to `IPDDashboard.tsx`
-- Add financial summary (gated by `canViewFinancials`)
-- Add discharge pipeline visualization
-- New hook: `src/hooks/useIPDDashboardStats.ts` for ward-level stats
-
----
-
-## Technical Details
-
-| File | Change |
+| File | Action |
 |------|--------|
-| Database `menu_items` | ~20 INSERT + 8 UPDATE statements |
-| `src/App.tsx` | Remove duplicate routes, add 5 new routes |
-| `src/pages/app/opd/OPDAdminDashboard.tsx` | New file - comprehensive OPD dashboard |
-| `src/hooks/useOPDDashboardStats.ts` | New hook - OPD stats queries |
-| `src/pages/app/ipd/IPDDashboard.tsx` | Enhance with ward occupancy, financial summary, discharge pipeline |
-| `src/hooks/useIPDDashboardStats.ts` | New hook - ward-level stats, clinical KPIs |
-| 4 HR placeholder pages | Simple redirect pages for missing routes |
+| `src/pages/public/TabeebiVoicePage.tsx` | **Create** — full-screen voice consultation page |
+| `src/components/ai/DoctorAvatarLarge.tsx` | **Create** — enhanced large SVG avatar (280px, more expressive lip-sync, breathing, head-tilt states) |
+| `src/pages/public/TabeebiChatPage.tsx` | **Edit** — add "Voice Mode" button in header next to language picker |
+| `src/App.tsx` | **Edit** — add `/tabeebi/voice` route |
 
+No new hooks needed. `useVoiceConsultation` + `useAIChat` are reused exactly as-is.
+
+---
+
+## Voice Page Layout
+
+```text
+┌─────────────────────────────────────────────────────┐
+│  ←  Dr. Tabeebi              🌐 EN    [profile icon] │
+├─────────────────────────────────────────────────────┤
+│                                                     │
+│                                                     │
+│            [DoctorAvatarLarge ~300px]               │
+│         animated — idle/listening/thinking          │
+│              /speaking based on state               │
+│                                                     │
+│    ┌──────────────────────────────────────────┐     │
+│    │  "I'm listening... tap to stop"          │     │
+│    │  ●●●●● (waveform bars when listening)    │     │
+│    └──────────────────────────────────────────┘     │
+│                                                     │
+│   "I've had a headache since morning..."  ← live    │
+│            transcript in subtle bubble              │
+│                                                     │
+│                  [  🎤  ]  ← 80px mic button        │
+│              Tap to speak / Tap to stop             │
+│                                                     │
+│  ─────────────────────────────────────────────────  │
+│  Last response (2–3 lines, faded, scrollable):      │
+│  "Your headache could be tension-related..."        │
+└─────────────────────────────────────────────────────┘
+```
+
+---
+
+## DoctorAvatarLarge — What's Enhanced
+
+The existing `DoctorAvatar` is 120px max and built for inline use. The new `DoctorAvatarLarge` is designed for hero placement:
+
+- **Size**: 280–320px, fills vertical space
+- **Breathing**: Subtle chest/shoulder scale animation on idle (makes it feel alive)
+- **Head tilt**: When `listening`, the head tilts ~3–4 degrees (curiosity cue)
+- **Larger mouth animation**: The speaking mouth animation is more visible and dramatic at large size — mouth opens/closes clearly
+- **Eye expressions**:
+  - `idle`: Natural slow blink every ~4s (already done, but larger and more visible)
+  - `listening`: Pupils slightly dilate (SVG animate attributeName="r")
+  - `thinking`: Eyes shift slightly left (looking-away expression using a translate animation)
+  - `speaking`: Light head nod + mouth open/close wave
+- **Pulse rings**: Larger, more dramatic rings (3 concentric) behind the avatar circle
+- **Sound wave bars**: Taller bars on left (listening) and right (speaking) sides
+
+All animations use SVG `<animate>` / CSS keyframes — no external deps.
+
+---
+
+## Voice Page Logic
+
+The page reuses `useAIChat` (for AI responses) and `useVoiceConsultation` (for STT + browser TTS):
+
+1. User taps the mic button → `startListening()` → avatar shows `listening` state
+2. Speech captured → final transcript sent to `sendMessage()` → avatar shows `thinking`
+3. AI response streams in → `onAssistantResponse` fires → `speakResponse(content)` → avatar shows `speaking`
+4. TTS finishes → avatar returns to `idle` → mic button pulses inviting next tap
+5. Language selector in header changes both STT language and TTS language (same as chat page)
+
+**Auto-listen after response**: After the AI finishes speaking, there's a 1-second pause then `startListening()` auto-fires — so the conversation flows naturally without needing to tap every time (can be toggled off).
+
+---
+
+## Navigation
+
+- **From chat page**: A `Mic` icon button labeled "Voice Mode" added to the header right side (next to language picker), navigates to `/tabeebi/voice`
+- **From voice page**: A `←` back button + "Chat Mode" text link returns to `/tabeebi/chat`
+- Both pages share the same auth check (session required, redirect to `/tabeebi` if not logged in)
+- Language state is passed via URL query param `?lang=en` so both pages stay in sync
+
+---
+
+## Technical Notes
+
+- `useVoiceConsultation` already handles voices via `window.speechSynthesis.getVoices()` — it picks the best available matching voice for the language. This works well for English (multiple natural voices available in Chrome/Edge). Arabic has decent browser support. Urdu falls back to English TTS.
+- The `speakResponse()` function already cleans markdown before speaking — reused as-is.
+- No new edge functions, no API keys, no billing changes needed.
+- The page is mobile-first — the large avatar scales down gracefully on small screens using `clamp()` sizing.
+
+---
+
+## Specific Code Changes
+
+### 1. `src/components/ai/DoctorAvatarLarge.tsx` (New)
+- Same SVG structure as `DoctorAvatar` but scaled to fill 280–320px
+- Enhanced `breathing` animation on body
+- Head tilt via CSS transform on listening state
+- More expressive mouth (wider open/close arc on speaking)
+- 3-ring radial pulse animation behind the circle
+
+### 2. `src/pages/public/TabeebiVoicePage.tsx` (New)
+- Auth guard (same pattern as `TabeebiChatPage`)
+- Language state from URL query param, synced with header picker
+- `useVoiceConsultation(language)` for STT + TTS
+- `useAIChat({ mode: "patient_intake", language, onAssistantResponse })` for AI
+- Full-screen layout: avatar top-center, status text, transcript bubble, 80px mic button
+- Last AI response shown below mic button (last 2–3 lines, faded)
+- Auto-listen toggle (default on)
+
+### 3. `src/pages/public/TabeebiChatPage.tsx` (Edit)
+- Add `Mic` icon button in header (right side, before profile dropdown)
+- On click: `navigate('/tabeebi/voice?lang=' + language)`
+- Tooltip: "Switch to Voice Mode"
+
+### 4. `src/App.tsx` (Edit)
+- Add `import TabeebiVoicePage from "./pages/public/TabeebiVoicePage";`
+- Add `<Route path="/tabeebi/voice" element={<TabeebiVoicePage />} />` alongside the existing `/tabeebi/chat` route
