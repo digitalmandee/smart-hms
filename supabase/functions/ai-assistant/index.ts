@@ -472,10 +472,10 @@ Deno.serve(async (req) => {
       : mode === "pharmacy_lookup" ? "deepseek-chat"
       : "deepseek-chat";
 
-    // FIX: Use user message count for max_tokens threshold
+    // Voice mode gets capped tokens to enforce brevity; otherwise scale with exchange depth
     const maxTokens = mode === "pharmacy_lookup" ? 512
       : mode === "patient_intake"
-        ? (messageCount >= 4 ? 1536 : 768)
+        ? (voiceMode ? 120 : messageCount >= 4 ? 1536 : 768)
         : mode === "doctor_assist" ? 2048 : 2048;
 
     if (stream) {
@@ -489,7 +489,7 @@ Deno.serve(async (req) => {
           model,
           messages: deepseekMessages,
           stream: true,
-          temperature: mode === "pharmacy_lookup" ? 0.2 : mode === "doctor_assist" ? 0.3 : mode === "patient_intake" ? 0.5 : 0.7,
+          temperature: mode === "pharmacy_lookup" ? 0.2 : mode === "doctor_assist" ? 0.3 : (mode === "patient_intake" && voiceMode) ? 0.3 : mode === "patient_intake" ? 0.5 : 0.7,
           max_tokens: maxTokens,
         }),
       });
@@ -519,7 +519,7 @@ Deno.serve(async (req) => {
           model,
           messages: deepseekMessages,
           stream: false,
-          temperature: mode === "pharmacy_lookup" ? 0.2 : mode === "doctor_assist" ? 0.3 : mode === "patient_intake" ? 0.5 : 0.7,
+          temperature: mode === "pharmacy_lookup" ? 0.2 : mode === "doctor_assist" ? 0.3 : (mode === "patient_intake" && voiceMode) ? 0.3 : mode === "patient_intake" ? 0.5 : 0.7,
           max_tokens: maxTokens,
         }),
       });

@@ -61,20 +61,22 @@ export default function TabeebiVoicePage() {
     });
   }, [navigate]);
 
-  // Hooks first — so speakRef always points to the latest version
-  const { voiceState, transcript, isSupported, startListening, stopListening, speakResponse, stopAll } =
+  // Hooks first — so refs always point to the latest version
+  const { voiceState, transcript, isSupported, unlockAudio, speakBridge, startListening, stopListening, speakResponse, stopAll } =
     useVoiceConsultation(language);
 
-  // Keep a ref to speakResponse so callbacks never capture a stale closure
+  // Keep refs so async callbacks never capture stale closures
   const speakRef = useRef(speakResponse);
   speakRef.current = speakResponse;
+  const speakBridgeRef = useRef(speakBridge);
+  speakBridgeRef.current = speakBridge;
 
   const handleAssistantResponse = useCallback((content: string) => {
     setRecentExchanges(prev => {
       const updated: Array<{ role: "user" | "assistant"; content: string }> = [...prev, { role: "assistant" as const, content }];
       return updated.slice(-6);
     });
-    // Speak the full response — called directly from callback (not useEffect) so browser allows it
+    // Speak the full response — audio is pre-unlocked from mic tap gesture
     speakRef.current(content);
   }, []);
 
@@ -95,7 +97,6 @@ export default function TabeebiVoicePage() {
   // Auto-listen after AI finishes speaking
   useEffect(() => {
     if (voiceState === "idle" && !isLoading && autoListen && !isProcessingRef.current && !loading) {
-      // Only auto-start if we've had at least one exchange
       if (recentExchanges.length > 0) {
         autoListenTimerRef.current = setTimeout(() => {
           startListening(handleFinalTranscript);
@@ -110,12 +111,18 @@ export default function TabeebiVoicePage() {
   const handleFinalTranscript = useCallback((text: string) => {
     isProcessingRef.current = true;
     setRecentExchanges(prev => [...prev, { role: "user" as const, content: text }].slice(-6));
+    // Immediately fill the silence while AI processes
+    speakBridgeRef.current();
     sendMessage(text).finally(() => {
       isProcessingRef.current = false;
     });
   }, [sendMessage]);
 
   const handleMicPress = () => {
+    // CRITICAL: unlockAudio() MUST be called synchronously here (inside the click handler)
+    // so the browser's Web Audio context is primed before any async speak() calls.
+    unlockAudio();
+
     if (autoListenTimerRef.current) clearTimeout(autoListenTimerRef.current);
 
     if (voiceState === "listening") {
