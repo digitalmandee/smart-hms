@@ -290,13 +290,6 @@ export default function ConsultationPage() {
 
         {/* Center - Main Tabbed Interface */}
         <div className="space-y-4">
-          {/* Vitals Bar - full width above tabs */}
-          <CompactVitals
-            vitals={vitals}
-            nurseVitals={nurseVitals}
-            onChange={setVitals}
-          />
-
           {/* Top action bar */}
           <div className="flex justify-end gap-2">
             <Button variant="outline" size="sm" onClick={handleSaveDraft} disabled={isSaving}>
@@ -331,6 +324,11 @@ export default function ConsultationPage() {
 
             {/* Clinical Tab */}
             <TabsContent value="clinical" className="space-y-4 mt-4">
+              <CompactVitals
+                vitals={vitals}
+                nurseVitals={nurseVitals}
+                onChange={setVitals}
+              />
               <div className="space-y-2">
                 <Label>Chief Complaint</Label>
                 <Textarea
