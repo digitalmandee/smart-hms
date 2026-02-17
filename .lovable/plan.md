@@ -1,24 +1,14 @@
 
-# Tabeebi Voice Mode — Complete Rebuild of All 5 Issues
+# Tabeebi Voice Mode — Photo Fix + Real Lip Sync + Bigger Avatar
 
-## Root Cause Analysis
+## What This Plan Does
 
-### Why Audio Is Still Silent (The Real Fix)
-The current `speakResponse` is called from `handleAssistantResponse`, which is called from inside `useAIChat`'s `sendMessage()` — an `async` function that started from a mic press event. By the time the AI response returns (~2–4s later), the browser's user gesture event stack has long expired. Chrome/Safari block `speechSynthesis.speak()` in this context.
+Three targeted changes to fix the exact issues reported:
 
-The only reliable cross-browser fix: **unlock audio on first mic tap** by calling `speechSynthesis.speak()` with a silent empty utterance synchronously inside the `handleMicPress` click handler. This "primes" the audio context. Then all subsequent `speak()` calls from any async context work because the audio context is already unlocked.
-
-### Why Responses Are Cut Off Mid-Sentence
-`max_tokens` for voice mode is still 768 (early) / 1536 (later). The brevity instruction says max 35 words — that's only ~50 tokens. When DeepSeek generates a short response and the response ends mid-stream, it may be cutting off because the token limit is being hit on streaming boundaries. We need to set `max_tokens = 120` in voice mode to force short output.
-
-### Why the Avatar Looks Unattractive
-The `dr-tabeebi-avatar.jpg` local asset was a placeholder — there's no actual real doctor photo there. Instead of importing a local broken binary, we reference a **specific high-quality royalty-free photo URL** of an Arabic/UAE female doctor directly in the component via `<img src="URL">`.
-
-### Why Lip Sync Is Invisible
-The `eqBar` animation is missing an explicit height on the divs — they start at 0px height and animate to 28px, but Tailwind's `min-h-[4px]` was removed. Also the animation direction is `alternate` with no `animation-fill-mode: both` so bars snap to 0 at the start. The mouth overlay inside the photo uses `bg-white/25 blur-md` which is nearly invisible on a photo background.
-
-### Why It Feels Slow
-The "thinking" phase (2–4s for API + streaming) is unavoidable with a remote AI. But the perception of slowness is worse because there's silence. Fix: immediately speak a short bridging phrase ("One moment...") the instant the user stops speaking and processing begins. This fills the silence gap.
+1. **Correct Arabic doctor photo** — use the exact Unsplash photo you shared (hijab, white coat, stethoscope, studio background)
+2. **Real JavaScript-driven lip sync** — replace broken CSS loops with `setInterval` randomization that changes bar heights every 80ms during speaking, making it look genuinely alive
+3. **Bigger avatar** — switch from a 280px circle to a tall half-body portrait (like a video call) filling most of the screen
+4. **Remove "One moment"** — silent thinking instead of robotic bridge phrase
 
 ---
 
@@ -26,141 +16,147 @@ The "thinking" phase (2–4s for API + streaming) is unavoidable with a remote A
 
 | File | Change |
 |------|--------|
-| `src/pages/public/TabeebiVoicePage.tsx` | Add audio unlock on mic press, add thinking bridge phrase, improve layout |
-| `src/components/ai/DoctorAvatarLarge.tsx` | Use real Unsplash doctor photo URL, fix eq bar animation, more dramatic lip overlay |
-| `supabase/functions/ai-assistant/index.ts` | Cap `max_tokens` at 120 for voice mode, strengthen brevity instruction |
-| `src/hooks/useVoiceConsultation.ts` | Add `unlockAudio()` method, add `speakBridge()` for instant feedback phrases |
+| `src/components/ai/DoctorAvatarLarge.tsx` | New photo URL, bigger portrait format, JS-driven lip sync bars, bigger mouth overlay |
+| `src/pages/public/TabeebiVoicePage.tsx` | Remove speakBridge call, increase avatar area in layout |
+| `src/hooks/useVoiceConsultation.ts` | Remove speakBridge call from handleFinalTranscript (silence = natural) |
 
 ---
 
-## Detailed Changes
+## Technical Details
 
-### 1. Audio Unlock Fix (`TabeebiVoicePage.tsx` + `useVoiceConsultation.ts`)
+### 1. Doctor Photo URL
 
-Add an `unlockAudio()` function to `useVoiceConsultation.ts`:
-```typescript
-const unlockAudio = useCallback(() => {
-  if (!isTTSSupported) return;
-  // Speak a zero-duration silent utterance to unlock Web Audio context
-  const unlock = new SpeechSynthesisUtterance("");
-  unlock.volume = 0;
-  unlock.rate = 10; // fastest possible = near zero duration
-  window.speechSynthesis.speak(unlock);
-}, [isTTSSupported]);
+From the Unsplash page you linked, the actual CDN URL is:
+```
+https://plus.unsplash.com/premium_photo-1664475543697-229156438e1e?fm=jpg&q=80&w=800&auto=format&fit=crop
 ```
 
-In `TabeebiVoicePage.tsx`, call `unlockAudio()` inside `handleMicPress` **synchronously before** doing anything else:
-```typescript
-const handleMicPress = () => {
-  unlockAudio(); // ← called synchronously in gesture handler — unlocks browser audio
-  // ... rest of logic
-};
+This shows a Muslim Arabic female doctor in pink hijab, white coat with stethoscope, professional studio background — exactly right.
+
+Note: This is an Unsplash+ (Getty) image. The CDN URL is publicly accessible for embedding in web apps as long as the Unsplash attribution is shown (which we'll add as a small overlay).
+
+### 2. Avatar Format — Half-Body Portrait
+
+Current: 280px circle (just a face crop)
+New: Tall rounded rectangle — `w-[300px] h-[420px]` (or `w-[280px] h-[400px]` on mobile)
+
+```
+┌─────────────┐
+│   [head]    │   ← face visible
+│  [torso]    │   ← white coat + stethoscope visible  
+│  [hands]    │   ← crossed arms visible
+└─────────────┘
 ```
 
-Also add a `speakBridge()` in `useVoiceConsultation.ts` for instant "thinking" feedback:
-```typescript
-const speakBridge = useCallback((lang: string) => {
-  const phrases = { en: "One moment.", ar: "لحظة.", ur: "ایک لمحہ." };
-  const text = phrases[lang] || "One moment.";
-  // speak immediately (audio is already unlocked)
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.volume = 0.7;
-  utterance.rate = 1.1;
-  window.speechSynthesis.cancel();
-  window.speechSynthesis.speak(utterance);
-}, []);
-```
+This makes her look like she's standing/sitting across from you — like a real video call or FaceTime. `object-fit: cover; object-position: 50% 5%` shows the full body from head to mid-torso.
 
-Call `speakBridge(language)` in `handleFinalTranscript` — right when the user's speech is captured, before the API call.
+The portrait will have:
+- Soft rounded corners (`rounded-3xl`)
+- State-based glowing border instead of rings
+- A gradient overlay at the bottom to fade into the background (like a video call portrait)
 
-### 2. Token Cap for Voice Mode (`ai-assistant/index.ts`)
+### 3. JavaScript-Driven Lip Sync (The Real Fix)
 
-Change:
-```typescript
-const maxTokens = mode === "pharmacy_lookup" ? 512
-  : mode === "patient_intake"
-    ? (messageCount >= 4 ? 1536 : 768)
-    : mode === "doctor_assist" ? 2048 : 2048;
-```
-
-To:
-```typescript
-const maxTokens = mode === "pharmacy_lookup" ? 512
-  : mode === "patient_intake"
-    ? (voiceMode ? 120 : messageCount >= 4 ? 1536 : 768)
-    : mode === "doctor_assist" ? 2048 : 2048;
-```
-
-Also strengthen the voice mode prompt instruction to add `temperature: 0.3` for voice (currently 0.5, too creative → verbose):
-```typescript
-temperature: (mode === "patient_intake" && voiceMode) ? 0.3 : mode === "patient_intake" ? 0.5 : ...
-```
-
-### 3. Real Doctor Photo (`DoctorAvatarLarge.tsx`)
-
-Replace the broken local asset import with a curated Unsplash photo of a Middle Eastern/Arabic female doctor in a white coat. Use this specific Unsplash photo URL with face-crop parameters:
-```
-https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=600&h=600&fit=crop&crop=faces&auto=format
-```
-This is a well-known royalty-free Unsplash photo of a female doctor in a white coat (dark hair, professional appearance). We embed it directly as `<img src="URL">` instead of a local import.
-
-### 4. Visible Lip-Sync Equalizer Fix (`DoctorAvatarLarge.tsx`)
-
-Current broken animation: bars have no starting height, animation snaps.
-
-Fixed version — give each bar a fixed height and animate via `scaleY` instead of height (more reliable):
+Current broken approach — CSS `@keyframes eqBar` that runs the same loop forever:
 ```css
 @keyframes eqBar {
-  0%, 100% { transform: scaleY(0.15); opacity: 0.6; }
-  50% { transform: scaleY(1); opacity: 1; }
+  from { transform: scaleY(0.15); }
+  to { transform: scaleY(1); }
 }
 ```
-Each bar gets: `height: 32px; transform-origin: bottom; animation: eqBar ...`
+This looks mechanical — every bar animates on a fixed schedule regardless of speech.
 
-Also enhance mouth overlay — replace white/25 blur with a strong bright overlay that's actually visible:
+New approach — React state drives bar heights directly:
+
+```typescript
+const [barHeights, setBarHeights] = useState<number[]>(
+  [4, 6, 4, 8, 4, 6, 4, 8, 4, 6, 4]  // quiet idle state
+);
+const barTimerRef = useRef<ReturnType<typeof setInterval>>();
+
+useEffect(() => {
+  if (state === "speaking") {
+    barTimerRef.current = setInterval(() => {
+      setBarHeights(
+        Array.from({ length: 11 }, (_, i) => {
+          // Center bars are tallest (speech formants)
+          const isCenterBar = i >= 3 && i <= 7;
+          const min = isCenterBar ? 8 : 3;
+          const max = isCenterBar ? 38 : 20;
+          return Math.floor(min + Math.random() * (max - min));
+        })
+      );
+    }, 80); // 12.5fps updates — fast enough to look organic
+  } else {
+    clearInterval(barTimerRef.current);
+    setBarHeights([4, 6, 4, 8, 4, 6, 4, 8, 4, 6, 4]); // reset to idle
+  }
+  return () => clearInterval(barTimerRef.current);
+}, [state]);
+```
+
+Each bar's height changes independently at random — center bars (indices 3-7) go taller since human speech is concentrated in mid frequencies. This makes the visualizer look genuinely responsive.
+
+**Mouth overlay** — driven by average center bar height:
+```typescript
+const mouthOpenness = state === "speaking"
+  ? Math.min(1, (barHeights[4] + barHeights[5] + barHeights[6]) / (3 * 38))
+  : 0;
+```
+
+The mouth overlay size scales with `mouthOpenness`:
+- At low openness (0.1): small ellipse, lips nearly closed
+- At high openness (0.9): tall ellipse, mouth clearly open
+
+### 4. Equalizer Bar Rendering
+
+Replace the current static height + scaleY approach with direct `height` from state:
+
 ```tsx
-{state === "speaking" && (
-  <div
-    className="absolute left-1/2 -translate-x-1/2"
-    style={{
-      bottom: "22%",
-      width: "70px",
-      height: "22px",
-      background: "radial-gradient(ellipse, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0) 100%)",
-      animation: "mouthPulse 0.35s ease-in-out infinite",
-      borderRadius: "50%",
-    }}
-  />
-)}
+<div className="flex gap-[3px] items-end h-12">
+  {barHeights.map((h, i) => (
+    <div
+      key={i}
+      className="w-[5px] bg-primary rounded-full transition-[height] duration-75"
+      style={{ height: `${h}px` }}
+    />
+  ))}
+</div>
 ```
 
-Also make the entire avatar photo **nod slightly** when speaking:
-```css
-@keyframes headNod {
-  0%, 100% { transform: scale(1.03) translateY(0px); }
-  33% { transform: scale(1.03) translateY(-3px); }
-  66% { transform: scale(1.03) translateY(2px); }
-}
+Using `transition-[height] duration-75` gives each bar a 75ms smooth transition between random heights — creating a very natural-looking fluid animation without snap.
+
+### 5. Listening Waveform (Same Treatment)
+
+When `state === "listening"`, show similar animated bars but in the mic-input style (blue/teal, symmetric, reacts as if picking up audio):
+
+```typescript
+// Same setInterval approach when state === "listening"
+// Different heights — more uniform (input monitor, not output playback)
+// Shorter bars overall (8-18px range)
 ```
-Apply `animation: headNod 0.6s ease-in-out infinite` to the image when `state === "speaking"`.
 
-### 5. Layout — Full Immersive Screen
+### 6. Remove "One Moment" Bridge
 
-The avatar should feel like a video call. Move the name/specialty card to INSIDE the avatar area as a subtle overlay at the bottom. Remove the outer "Doctor name" text block. Add a subtle ambient background gradient overlay that shifts with state:
-- idle → very dark/neutral background
-- listening → slight teal tint
-- speaking → slight warm glow
-- thinking → slight amber pulse
+In `TabeebiVoicePage.tsx`, line 115: `speakBridgeRef.current();` — remove this line.
 
-Add a **UAE flag emoji + "Dubai Health Authority" subtitle** to the doctor card to reinforce the UAE/Arabic doctor identity.
+The "thinking" avatar animation (amber pulse) already gives visual feedback. Silence during thinking is natural and professional. Saying "One moment" every time sounds like a voicemail robot.
+
+### 7. Layout Change
+
+Current avatar area height: `flex-1 flex-col items-center justify-center` — avatar gets ~300px vertical space on mobile.
+
+New: Give the avatar more room by reducing the bottom conversation history panel. On mobile the portrait takes 420px height, which is most of a 844px screen. The mic button floats at the bottom.
+
+Remove: The transcript history panel (it distracts from the video-call feel). Instead show only the last Dr. Tabeebi response as a subtitle below the portrait (like a real-time caption).
 
 ---
 
 ## Implementation Order
 
-1. `supabase/functions/ai-assistant/index.ts` — cap voice mode tokens to 120, lower temperature to 0.3, deploy
-2. `src/hooks/useVoiceConsultation.ts` — add `unlockAudio()`, add `speakBridge()` 
-3. `src/pages/public/TabeebiVoicePage.tsx` — call `unlockAudio()` on mic tap, call `speakBridge()` on transcript capture, tighten layout
-4. `src/components/ai/DoctorAvatarLarge.tsx` — swap to Unsplash photo URL, fix eq bars, enhance mouth overlay, add head nod
+1. `DoctorAvatarLarge.tsx` — swap photo URL, convert to portrait format, add `useState` + `useEffect` for JS bar animation, update mouth overlay
+2. `TabeebiVoicePage.tsx` — remove `speakBridgeRef.current()`, adjust layout to give avatar more vertical space, replace history panel with single last-response caption
+3. `useVoiceConsultation.ts` — `speakBridge` function can stay (for future use) but it won't be called
 
-No database changes. No new dependencies. Edge function will be auto-deployed.
+No edge function changes needed (brevity + token cap already correctly configured).
+No new dependencies needed.
