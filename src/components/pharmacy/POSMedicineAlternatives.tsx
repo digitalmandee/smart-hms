@@ -14,20 +14,41 @@ import {
 } from "@/components/ui/collapsible";
 import { useAIChat } from "@/hooks/useAIChat";
 import { DoctorAvatar } from "@/components/ai/DoctorAvatar";
-import { Search, RefreshCw, ChevronDown, FlaskConical } from "lucide-react";
+import { Search, RefreshCw, ChevronDown, FlaskConical, Plus, Package } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { CartItem } from "@/hooks/usePOS";
+import { StockLevelBadge } from "./StockLevelBadge";
 
 interface SaltResult {
   salt: string;
   alternatives: string[];
 }
 
-export function POSMedicineAlternatives() {
+interface InventoryMatch {
+  id: string;
+  medicine_id: string;
+  medicine_name: string;
+  batch_number: string | null;
+  quantity: number;
+  selling_price: number;
+  reorder_level: number;
+}
+
+interface POSMedicineAlternativesProps {
+  onAddToCart?: (item: CartItem) => void;
+}
+
+export function POSMedicineAlternatives({ onAddToCart }: POSMedicineAlternativesProps) {
   const [query, setQuery] = useState("");
   const [showSalt, setShowSalt] = useState(false);
   const [results, setResults] = useState<string[] | null>(null);
   const [saltInfo, setSaltInfo] = useState<string | null>(null);
   const [searched, setSearched] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [inventoryMap, setInventoryMap] = useState<Record<string, InventoryMatch>>({});
+  const [loadingInventory, setLoadingInventory] = useState(false);
+  const { profile } = useAuth();
 
   const { messages, isLoading, sendMessage, clearChat } = useAIChat({
     mode: "pharmacy_lookup",
@@ -38,6 +59,7 @@ export function POSMedicineAlternatives() {
     setResults(null);
     setSaltInfo(null);
     setSearched(true);
+    setInventoryMap({});
 
     const prompt = showSalt
       ? `For medicine "${query.trim()}": return JSON {"salt":"generic/salt composition with strength","alternatives":["Brand1","Brand2","Brand3","Brand4","Brand5"]}. Include 5 alternatives available in Pakistan. No other text.`
@@ -46,7 +68,7 @@ export function POSMedicineAlternatives() {
     await sendMessage(prompt);
   }, [query, isLoading, sendMessage, showSalt]);
 
-  // Parse results from assistant message via useEffect (not in render)
+  // Parse results from assistant message
   useEffect(() => {
     if (isLoading || !searched) return;
     const lastAssistant = messages.filter((m) => m.role === "assistant").pop();
@@ -76,11 +98,91 @@ export function POSMedicineAlternatives() {
     }
   }, [messages, isLoading, searched, showSalt, results]);
 
+  // Inventory lookup after results are parsed
+  useEffect(() => {
+    if (!results || results.length === 0 || !profile?.branch_id) return;
+
+    const lookupInventory = async () => {
+      setLoadingInventory(true);
+      try {
+        const orFilter = results
+          .map((name) => `medicine_name.ilike.%${name.replace(/[%_]/g, "")}%`)
+          .join(",");
+
+        const { data } = await supabase
+          .from("medicine_inventory")
+          .select("id, medicine_id, quantity, batch_number, selling_price, reorder_level, medicine:medicines!medicine_inventory_medicine_id_fkey(id, name)")
+          .eq("branch_id", profile.branch_id)
+          .or(orFilter)
+          .gt("quantity", 0)
+          .order("quantity", { ascending: false });
+
+        if (data) {
+          const map: Record<string, InventoryMatch> = {};
+          for (const item of data) {
+            const med = item.medicine as any;
+            const medName = med?.name || "";
+            // Match against each result name (case-insensitive)
+            for (const resultName of results) {
+              const normalizedResult = resultName.toLowerCase().trim();
+              const normalizedMed = medName.toLowerCase().trim();
+              if (
+                normalizedMed.includes(normalizedResult) ||
+                normalizedResult.includes(normalizedMed)
+              ) {
+                if (!map[resultName] || item.quantity > (map[resultName]?.quantity || 0)) {
+                  map[resultName] = {
+                    id: item.id,
+                    medicine_id: item.medicine_id || med?.id,
+                    medicine_name: medName,
+                    batch_number: item.batch_number,
+                    quantity: item.quantity,
+                    selling_price: item.selling_price || 0,
+                    reorder_level: item.reorder_level || 10,
+                  };
+                }
+              }
+            }
+          }
+          setInventoryMap(map);
+        }
+      } catch (err) {
+        console.error("Inventory lookup failed:", err);
+      } finally {
+        setLoadingInventory(false);
+      }
+    };
+
+    lookupInventory();
+  }, [results, profile?.branch_id]);
+
+  const handleAddItem = (name: string) => {
+    const match = inventoryMap[name];
+    if (!match || !onAddToCart) return;
+
+    const cartItem: CartItem = {
+      id: crypto.randomUUID(),
+      inventory_id: match.id,
+      medicine_id: match.medicine_id,
+      medicine_name: match.medicine_name,
+      batch_number: match.batch_number,
+      quantity: 1,
+      unit_price: match.selling_price,
+      selling_price: match.selling_price,
+      available_quantity: match.quantity,
+      discount_percent: 0,
+      tax_percent: 0,
+    };
+
+    onAddToCart(cartItem);
+  };
+
   const handleReset = () => {
     setQuery("");
     setResults(null);
     setSaltInfo(null);
     setSearched(false);
+    setInventoryMap({});
     clearChat();
   };
 
@@ -150,7 +252,7 @@ export function POSMedicineAlternatives() {
               </Label>
             </div>
 
-            {/* Loading state — animated avatar + skeletons */}
+            {/* Loading state */}
             {isLoading && (
               <div className="py-4 space-y-3">
                 <div className="flex flex-col items-center gap-2">
@@ -183,24 +285,58 @@ export function POSMedicineAlternatives() {
               </div>
             )}
 
-            {/* Results list — card-style with staggered animation */}
+            {/* Results list with stock info */}
             {results && results.length > 0 && !isLoading && (
               <div className="space-y-1.5">
                 <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide px-1">
                   Alternatives Available
                 </p>
-                {results.map((name, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg border border-primary/10 bg-background hover:bg-primary/5 hover:border-primary/25 hover:-translate-y-0.5 transition-all duration-200 animate-fade-in"
-                    style={{ animationDelay: `${i * 80}ms`, animationFillMode: "both" }}
-                  >
-                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-br from-primary/80 to-primary text-primary-foreground text-[11px] font-bold flex items-center justify-center shadow-sm">
-                      {i + 1}
-                    </span>
-                    <span className="text-xs font-medium">{name}</span>
-                  </div>
-                ))}
+                {results.map((name, i) => {
+                  const match = inventoryMap[name];
+                  const inStock = !!match && match.quantity > 0;
+
+                  return (
+                    <div
+                      key={i}
+                      className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg border transition-all duration-200 animate-fade-in ${
+                        inStock
+                          ? "border-primary/10 bg-background hover:bg-primary/5 hover:border-primary/25 hover:-translate-y-0.5"
+                          : "border-border/50 bg-muted/30 opacity-60"
+                      }`}
+                      style={{ animationDelay: `${i * 80}ms`, animationFillMode: "both" }}
+                    >
+                      <span className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-br from-primary/80 to-primary text-primary-foreground text-[11px] font-bold flex items-center justify-center shadow-sm">
+                        {i + 1}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <span className="text-xs font-medium block">{name}</span>
+                        {loadingInventory ? (
+                          <Skeleton className="h-3 w-16 mt-0.5 bg-primary/10" />
+                        ) : inStock ? (
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <Package className="h-3 w-3 text-green-600" />
+                            <span className="text-[10px] text-green-600 font-medium">
+                              In Stock ({match.quantity})
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-[10px] text-muted-foreground">Not in inventory</span>
+                        )}
+                      </div>
+                      {inStock && onAddToCart && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleAddItem(name)}
+                          className="h-7 px-2 text-[10px] gap-1 border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground"
+                        >
+                          <Plus className="h-3 w-3" />
+                          Add
+                        </Button>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
 

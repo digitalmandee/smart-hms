@@ -10,6 +10,7 @@ import { POSOrderReview } from "@/components/pharmacy/POSOrderReview";
 import { POSQuickActions } from "@/components/pharmacy/POSQuickActions";
 import { POSRecentProducts } from "@/components/pharmacy/POSRecentProducts";
 import { POSMedicineAlternatives } from "@/components/pharmacy/POSMedicineAlternatives";
+import { POSCartCompanion } from "@/components/pharmacy/POSCartCompanion";
 import { POSTodaySummary } from "@/components/pharmacy/POSTodaySummary";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -480,7 +481,7 @@ export default function POSTerminalPage() {
               <POSProductSearch onAddToCart={handleAddToCart} />
 
               {/* AI Medicine Alternatives */}
-              <POSMedicineAlternatives />
+              <POSMedicineAlternatives onAddToCart={handleAddToCart} />
               
               {/* Recent Products Quick Add */}
               <POSRecentProducts onAddToCart={handleAddToCart} />
@@ -572,6 +573,9 @@ export default function POSTerminalPage() {
               />
             </div>
           </div>
+
+          {/* Smart Suggest Companion */}
+          <POSCartCompanion cartItems={cart} onAddToCart={handleAddToCart} />
 
           {/* Cart */}
           <div className="flex-1 overflow-hidden flex flex-col">
