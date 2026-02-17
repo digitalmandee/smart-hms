@@ -27,8 +27,6 @@ import { PreviousVisits } from "@/components/consultation/PreviousVisits";
 import { VisitSummaryDialog } from "@/components/consultation/VisitSummaryDialog";
 import { RecommendSurgeryDialog } from "@/components/ot/RecommendSurgeryDialog";
 import { DoctorAIPanel } from "@/components/ai/DoctorAIPanel";
-import { PrescriptionSuggester } from "@/components/ai/PrescriptionSuggester";
-import { MedicineAlternatives } from "@/components/ai/MedicineAlternatives";
 import { usePatientSurgeryRequests } from "@/hooks/useSurgeryRequests";
 import { generateVisitId } from "@/lib/visit-id";
 import { cn } from "@/lib/utils";
@@ -355,29 +353,6 @@ export default function ConsultationPage() {
                 notes={prescriptionNotes}
                 onNotesChange={setPrescriptionNotes}
               />
-
-              {/* AI Prescription Suggester - shows when diagnosis exists */}
-              <PrescriptionSuggester
-                diagnosis={diagnosis}
-                patientContext={patientContext}
-                onAcceptPrescription={(items) => {
-                  setPrescriptionItems(prev => [...prev, ...items]);
-                }}
-              />
-
-              {/* Medicine Alternatives Search */}
-              <MedicineAlternatives
-                onSelectAlternative={(name) => {
-                  setPrescriptionItems(prev => [...prev, {
-                    medicine_name: name,
-                    dosage: "",
-                    frequency: "",
-                    duration: "",
-                    quantity: 1,
-                    instructions: "",
-                  }]);
-                }}
-              />
             </TabsContent>
 
             {/* Labs Tab */}
@@ -399,6 +374,16 @@ export default function ConsultationPage() {
                 patientContext={patientContext}
                 onSuggestDiagnosis={setDiagnosis}
                 onSuggestNotes={setClinicalNotes}
+                onAddMedicineToPrescription={(name) => {
+                  setPrescriptionItems(prev => [...prev, {
+                    medicine_name: name,
+                    dosage: "",
+                    frequency: "",
+                    duration: "",
+                    quantity: 1,
+                    instructions: "",
+                  }]);
+                }}
               />
             </TabsContent>
           </Tabs>
