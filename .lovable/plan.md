@@ -1,115 +1,147 @@
 
-# HeyGen Streaming Avatar — Full Implementation
+# Fix: HeyGen Avatar Not Showing — Two Root Causes Found
 
-## What Gets Built
+## Diagnosis
 
-Replace the static JPEG with a live WebRTC video stream from HeyGen. The doctor's face actually moves, lip-syncs to speech, and blinks in real-time. The existing mic + AI flow stays intact — only the visual layer is swapped.
+I read the SDK source code directly (`node_modules/@heygen/streaming-avatar/lib/index.esm.js`) and found two bugs in the current `HeyGenAvatar.tsx` that prevent the video stream from ever appearing.
 
-## Architecture
+### Bug 1: Stale Closure in `useImperativeHandle` (speak always silently returns)
 
-```text
-User taps mic
-     ↓
-SpeechRecognition captures voice (unchanged)
-     ↓
-DeepSeek AI generates text response (unchanged)
-     ↓
-Text sent to HeyGen avatar.speak(text)  ← NEW
-     ↓
-HeyGen streams live talking video via WebRTC  ← NEW
-     ↓
-<video> element shows real lip-synced doctor face  ← NEW
+The `speak()` method inside `useImperativeHandle` captures `status` at the time the ref is created. When `status` later changes from `"connecting"` to `"ready"`, the closure still holds the old value.
+
+**Current broken code:**
+```tsx
+const [status, setStatus] = useState<"connecting" | "ready" | "error">("connecting");
+
+useImperativeHandle(ref, () => ({
+  async speak(text: string) {
+    if (!avatarRef.current || status !== "ready") return;  // status is always "connecting" here
 ```
 
-## Speed Optimisation (Fast Session)
+The ref is created once on mount when `status = "connecting"`. Even after the stream connects and `status` becomes `"ready"`, the `speak()` function still checks the stale value and returns early. **The avatar never speaks.**
 
-HeyGen streaming sessions must be created ONCE and kept alive. The session starts as soon as the page loads (not on first mic press). This eliminates the ~2-3s cold start delay. We use:
-- `quality: "low"` for fastest stream startup
-- Keep-alive ping to prevent 30s idle disconnect
-- Pre-warm the session immediately on component mount
+**Fix:** Use a `useRef` for the status flag instead of `useState`, so the imperative handle always reads the latest value:
+```tsx
+const statusRef = useRef<"connecting" | "ready" | "error">("connecting");
+// ...
+if (!avatarRef.current || statusRef.current !== "ready") return;
+```
 
-## Files to Create / Edit
+### Bug 2: Video Stays Blank — `srcObject` Set Before Video Element Mounts
 
-| File | Action |
-|------|--------|
-| `supabase/functions/heygen-token/index.ts` | Create — exchanges API key for WebRTC session token |
-| `supabase/config.toml` | Edit — add `[functions.heygen-token] verify_jwt = false` |
-| `src/components/ai/HeyGenAvatar.tsx` | Create — WebRTC `<video>` component with DoctorAvatarLarge fallback |
-| `src/pages/public/TabeebiVoicePage.tsx` | Edit — swap avatar, route AI text to avatar.speak(), fix auto-mic bug |
+The `STREAM_READY` event may fire during `createStartAvatar()` before the React render has committed the `<video>` DOM element. When `status === "connecting"`, `HeyGenAvatar` returns `<DoctorAvatarLarge />` — the `<video>` element is **not in the DOM yet**. So `videoRef.current` is `null` when the stream arrives, and `srcObject` is never assigned.
 
-`DoctorAvatarLarge.tsx` — unchanged, used as loading skeleton only.
+**Current broken flow:**
+```
+createStartAvatar() starts
+  → STREAM_READY fires  
+  → videoRef.current is null (video not mounted yet)
+  → srcObject never set
+  → setStatus("ready")  ← status changes
+  → React renders <video> element for first time
+  → but stream is already lost, never re-assigned
+```
+
+**Fix:** Store the `MediaStream` in a ref. When `<video>` mounts (via a callback ref or effect), assign the stream from the ref:
+```tsx
+const pendingStreamRef = useRef<MediaStream | null>(null);
+
+// In STREAM_READY handler:
+avatar.on(StreamingEvents.STREAM_READY, (event) => {
+  const stream = (event as CustomEvent).detail as MediaStream;
+  pendingStreamRef.current = stream;
+  setStatus("ready");  // now triggers re-render with <video>
+});
+
+// In video element — use callback ref to assign stream immediately on mount:
+<video
+  ref={(el) => {
+    videoRef.current = el;
+    if (el && pendingStreamRef.current) {
+      el.srcObject = pendingStreamRef.current;
+      el.play().catch(() => {});
+    }
+  }}
+/>
+```
+
+---
+
+## Files to Change
+
+Only `src/components/ai/HeyGenAvatar.tsx` needs updating.
+
+---
+
+## Complete Fix Summary
+
+```text
+Fix 1: Replace useState "status" with useRef "statusRef"
+        → imperative handle always reads latest value
+        → speak() and interrupt() work correctly after connection
+
+Fix 2: Store MediaStream in pendingStreamRef
+        → video element gets stream assigned on DOM mount via callback ref
+        → video plays immediately when <video> appears in DOM
+
+Fix 3: Also re-check stream assignment in a useEffect on status change
+        → safety net for edge cases where ref callback fires before stream arrives
+```
 
 ---
 
 ## Technical Details
 
-### 1. Edge Function: `heygen-token`
+### The `emit` / `on` system (confirmed from SDK source)
 
-The browser cannot call HeyGen directly with the secret key. Our edge function acts as a secure proxy:
+```js
+// SDK line 1219
+StreamingAvatar.prototype.emit = function (eventType, detail) {
+    var event = new CustomEvent(eventType, { detail: detail });
+    this.eventTarget.dispatchEvent(event);
+};
 
-```
-Browser → POST /heygen-token → Edge Function → HeyGen API (with secret key) → returns {session_id, sdp, ice_servers}
-```
-
-The function calls:
-```
-POST https://api.heygen.com/v1/streaming.create_token
-x-api-key: HEYGEN_API_KEY
-```
-
-Returns a short-lived token the browser uses to initiate WebRTC directly with HeyGen's servers.
-
-### 2. `HeyGenAvatar.tsx` Component
-
-Uses the `@heygen/streaming-avatar` npm package. Key design:
-
-- Renders a `<video>` element inside the same portrait frame (`min(300px,86vw)` × `min(420px,54vh)`)
-- Same rounded corners + glow border as `DoctorAvatarLarge`
-- Shows `DoctorAvatarLarge state="thinking"` while connecting (loading skeleton)
-- Exposes `speak(text)` and `interrupt()` via `useImperativeHandle` ref
-
-Session lifecycle:
-```text
-mount → createStartAvatar() → STREAM_READY → show <video>
-                                           → speak(text) on AI response
-unmount → stopAvatar()
+// SDK line 905 — STREAM_READY fires with mediaStream as detail
+_this.emit(StreamingEvents.STREAM_READY, _this.mediaStream);
 ```
 
-Keep-alive: A `setInterval` pings HeyGen every 25s to prevent idle timeout.
+So `event.detail` IS the `MediaStream` — this part is correct. The problem is timing (video not mounted) + stale closure (speak blocked).
 
-Events wired up:
-- `AVATAR_START_TALKING` → signals parent (for avatar glow effect)
-- `AVATAR_STOP_TALKING` → signals parent
+### Updated `HeyGenAvatar.tsx` structure
 
-### 3. `TabeebiVoicePage.tsx` Changes
+```tsx
+const statusRef = useRef<"connecting" | "ready" | "error">("connecting");
+const [statusState, setStatusState] = useState<"connecting" | "ready" | "error">("connecting");
+const pendingStreamRef = useRef<MediaStream | null>(null);
+const videoRef = useRef<HTMLVideoElement | null>(null);
 
-Two small changes:
-1. Replace `<DoctorAvatarLarge>` with `<HeyGenAvatar ref={avatarRef} state={avatarState} />`
-2. In `handleAssistantResponse`: call `avatarRef.current?.speak(content)` instead of `speakRef.current(content)` (removes browser TTS entirely)
-3. In `handleMicPress` when `voiceState === "speaking"`: call `avatarRef.current?.interrupt()` to allow user to interrupt
-4. Fix auto-mic bug: change `autoListen` default from `true` to `false` — only auto-listen after the avatar finishes speaking (driven by `AVATAR_STOP_TALKING` event)
+// Callback ref: assigns stream as soon as <video> mounts
+const videoCallbackRef = (el: HTMLVideoElement | null) => {
+  videoRef.current = el;
+  if (el && pendingStreamRef.current) {
+    el.srcObject = pendingStreamRef.current;
+    el.play().catch(() => {});
+  }
+};
 
-### 4. `supabase/config.toml`
+// STREAM_READY handler:
+avatar.on(StreamingEvents.STREAM_READY, (event: CustomEvent) => {
+  const stream = event.detail as MediaStream;
+  pendingStreamRef.current = stream;
+  statusRef.current = "ready";
+  setStatusState("ready");  // triggers re-render → <video> mounts → callback ref fires
+});
 
-Add:
-```toml
-[functions.heygen-token]
-verify_jwt = false
+// useImperativeHandle — reads statusRef (not stale state):
+useImperativeHandle(ref, () => ({
+  async speak(text) {
+    if (!avatarRef.current || statusRef.current !== "ready") return;
+    // ...
+  }
+}));
 ```
 
-### 5. Secret Storage
-
-`HEYGEN_API_KEY` = `sk_V2_hgu_kxgx5MFEhzQ_Tkq5OX0brKdQFjqZnla610iEUWuCWGZf` stored as a Supabase secret — never exposed to the browser.
-
----
-
-## Implementation Steps
-
-1. Add `HEYGEN_API_KEY` secret to Supabase
-2. Create `supabase/functions/heygen-token/index.ts` — token exchange proxy
-3. Update `supabase/config.toml` — add heygen-token function config
-4. Install `@heygen/streaming-avatar` package
-5. Create `src/components/ai/HeyGenAvatar.tsx` — live video component
-6. Edit `src/pages/public/TabeebiVoicePage.tsx` — wire everything together, fix auto-mic
-
-No database changes. No new RLS policies needed.
+This ensures:
+1. `speak()` checks the live value via `statusRef` — never stale
+2. The stream is stored in `pendingStreamRef` — survives until the `<video>` mounts
+3. The callback ref assigns `srcObject` immediately when `<video>` appears in the DOM
