@@ -155,33 +155,51 @@ export function useVoiceConsultation(language: string = "en") {
 
       window.speechSynthesis.cancel(); // Stop any ongoing speech
 
-      const utterance = new SpeechSynthesisUtterance(cleanText);
-      utterance.lang = LANG_MAP[language] || "en-US";
-      utterance.rate = 0.95;
-      utterance.pitch = 1.0;
+      const doSpeak = () => {
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        utterance.lang = LANG_MAP[language] || "en-US";
+        utterance.rate = 0.95;
+        utterance.pitch = 1.0;
 
-      // Try to find a matching voice
-      const voices = window.speechSynthesis.getVoices();
-      const targetLang = LANG_MAP[language] || "en-US";
-      const matchingVoice = voices.find(v => v.lang.startsWith(targetLang.split("-")[0]));
-      if (matchingVoice) utterance.voice = matchingVoice;
+        // Try to find a matching voice
+        const voices = window.speechSynthesis.getVoices();
+        const targetLang = LANG_MAP[language] || "en-US";
+        const matchingVoice = voices.find(v => v.lang.startsWith(targetLang.split("-")[0]));
+        if (matchingVoice) utterance.voice = matchingVoice;
 
-      utterance.onstart = () => {
+        utterance.onstart = () => {
+          setVoiceState("speaking");
+        };
+
+        utterance.onend = () => {
+          setTimeout(() => setVoiceState("idle"), 300);
+        };
+
+        utterance.onerror = () => {
+          setVoiceState("idle");
+        };
+
+        utteranceRef.current = utterance;
         setVoiceState("speaking");
+        window.speechSynthesis.speak(utterance);
       };
 
-      utterance.onend = () => {
-        // Small delay before setting idle so overlay can show "tap to speak again"
-        setTimeout(() => setVoiceState("idle"), 300);
-      };
-
-      utterance.onerror = () => {
-        setVoiceState("idle");
-      };
-
-      utteranceRef.current = utterance;
-      setVoiceState("speaking");
-      window.speechSynthesis.speak(utterance);
+      // Browsers load voices asynchronously — wait if not ready yet
+      const voices = window.speechSynthesis.getVoices();
+      if (voices.length > 0) {
+        doSpeak();
+      } else {
+        const onVoicesChanged = () => {
+          window.speechSynthesis.removeEventListener("voiceschanged", onVoicesChanged);
+          doSpeak();
+        };
+        window.speechSynthesis.addEventListener("voiceschanged", onVoicesChanged);
+        // Fallback: speak anyway after 500ms even if voiceschanged never fires
+        setTimeout(() => {
+          window.speechSynthesis.removeEventListener("voiceschanged", onVoicesChanged);
+          doSpeak();
+        }, 500);
+      }
     },
     [isTTSSupported, language]
   );
