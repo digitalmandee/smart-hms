@@ -1,26 +1,45 @@
 
-# Tabeebi Voice Mode - Three Critical Fixes
+# Tabeebi Voice Mode — 5 Critical Fixes
 
-## Issues Identified
+## Issues Summary (From Code Analysis + User Feedback)
 
-### 1. Audio Not Working (Critical Bug)
-The `handleAssistantResponse` callback in `TabeebiVoicePage.tsx` captures `speakResponse` from the hook, but the callback is defined with `useCallback` **before** the voice hook is initialized on the same render. More critically, `speakResponse` is not included in the `useCallback` dependency array — so it's always a stale version that may not work. This is the #1 reason audio is silent.
+### Issue 1: No Audio (Root Cause Confirmed)
+The TTS is broken in two ways:
+- **Early TTS fires from `useEffect`** — browsers block `speechSynthesis.speak()` called from React effects because they are not in a user gesture stack. Only calls triggered directly from click handlers bypass this browser restriction.
+- **`handleAssistantResponse` never speaks** — when `earlyTTSFiredRef.current` is `true`, the callback skips speaking. But early TTS only speaks the first sentence; the rest is never spoken. When it's `false`, it does call `speakRef.current(content)` — but this only works if voices are loaded.
 
-Fix: Move `handleAssistantResponse` **below** the hook declarations, or restructure to use a `ref` for `speakResponse` so it's always current.
+**Fix**: Remove the `useEffect`-based early TTS entirely (it's blocked by browser security anyway). Instead, call `speakResponse` directly from `handleAssistantResponse` every time with the full response. Add a `userUnlockRef` to track whether the user has interacted (mic press), and only speak after that. Also add `utterance.volume = 1` and ensure we always pick the best female voice.
 
-### 2. Response Feels Slow / Not Conversational
-Currently, `onAssistantResponse` is called only **after the full AI stream completes** (at the end of `sendMessage` in `useAIChat`). This means the TTS waits for the entire 2-10 sentence response to finish generating before it starts speaking — causing the "thinking then answering" feeling.
+### Issue 2: Responses Too Long / AI-Generic
+The `patient_intake` system prompt is designed for text chat — it asks multiple-choice questions, gives long assessments. For voice, we need 1-2 sentence conversational responses.
 
-Fix: Start speaking the **first sentence** as soon as the stream delivers it (sentence-based early TTS). The page will detect the first sentence boundary in streamed content and begin speaking it immediately while the rest continues to stream. This cuts perceived latency from ~4-6s to ~1-2s.
+**Fix**: Add a `voice_mode: true` flag to the AI request. In the `ai-assistant` edge function, detect this flag and append a **voice brevity instruction** to the system prompt:
+> "VOICE MODE: This is a real-time voice call. Keep ALL responses under 2 sentences (max 30 words for acknowledgements, max 60 words for assessments). No bullet points, no lists, no formatting. Speak naturally like a doctor on the phone."
 
-### 3. Cartoony SVG Avatar → Realistic Photo Avatar
-The current SVG cartoon is functional but clearly not photorealistic. For a real human doctor appearance without external APIs, we use a **beautiful high-quality AI-generated doctor photo** (a realistic Arabic/South Asian female doctor) as the avatar base, with animated overlays on top:
-- Animated pulse rings (listening/speaking)
-- Subtle glow/border color changes per state
-- A translucent animated "mouth" overlay when speaking
-- The photo itself subtly scales/moves to simulate breathing
+For simple greetings like "hello, can you hear me?" — the AI should respond with a single short sentence: "Yes, I can hear you clearly! What brings you in today?" — not a paragraph.
 
-Since we cannot call external image generation APIs at runtime, we'll use a **curated high-quality free-to-use doctor image** (from Unsplash or similar) as the avatar. The user confirmed they want a "real woman or Arabic type of woman" — we'll use a professional photo of a female doctor with appropriate appearance.
+### Issue 3: UAE Arabic Female Doctor Photo
+The current photo shows a Western-looking woman. The user wants an Arabic/UAE-looking female doctor. 
+
+**Fix**: Replace `src/assets/dr-tabeebi-avatar.jpg` with a new AI-generated image of an Arabic female doctor — dark hair, olive skin tone, wearing a white coat, with a UAE/Gulf setting feel. We'll use a high-quality Unsplash photo of a Middle Eastern female doctor. The specific URL will be: a carefully selected photo of an Arabic/Middle Eastern female doctor from a royalty-free source.
+
+Since we cannot generate images at runtime, we will fetch a suitable image from Unsplash's free CDN using a specific photo ID of a Middle Eastern female doctor, then save it as the avatar asset.
+
+### Issue 4: No Lip Sync
+The `mouthPulse` CSS overlay is barely visible (only 60×18px blurred div). It's not obvious at all that the avatar's mouth is moving.
+
+**Fix**: Redesign the speaking state overlay to be much more dramatic:
+- Add **3 animated SVG arc overlays** over the lower-face area that expand/contract rapidly
+- Add a **visible equalizer bar animation** BELOW the avatar circle (7 bars, different heights animating) when speaking — like a real audio visualizer
+- Make the entire avatar circle GLOW teal when speaking (box-shadow animation)
+- Slightly zoom the avatar photo when speaking (scale 1.05)
+
+### Issue 5: Full-Screen Layout Enhancement
+Make the page more immersive — avatar should take up more vertical space:
+- Remove the "Auto-listen" toggle from below the mic (move it to header as a small icon toggle)
+- Increase avatar size to 290px on desktop, ~240px on mobile
+- Add subtle animated gradient background that shifts color based on state
+- Show the doctor's name and specialty below the avatar: "Dr. Fatima Al-Tabeebi" and "Family Medicine · Dubai"
 
 ---
 
@@ -28,78 +47,125 @@ Since we cannot call external image generation APIs at runtime, we'll use a **cu
 
 | File | Change |
 |------|--------|
-| `src/pages/public/TabeebiVoicePage.tsx` | Fix stale closure bug, add early TTS (first sentence), restructure hook order |
-| `src/hooks/useVoiceConsultation.ts` | Add `speakResponseEarly()` — speaks first sentence immediately, queues rest |
-| `src/components/ai/DoctorAvatarLarge.tsx` | Replace SVG cartoon with realistic photo + animated state overlays |
+| `src/assets/dr-tabeebi-avatar.jpg` | Replace with Arabic/UAE female doctor photo |
+| `src/components/ai/DoctorAvatarLarge.tsx` | Enhanced lip-sync, bigger equalizer, glow effects |
+| `src/pages/public/TabeebiVoicePage.tsx` | Fix TTS audio, remove broken early TTS, add voice brevity flag, enhanced layout |
+| `supabase/functions/ai-assistant/index.ts` | Add `voice_mode` brevity instruction to patient_intake prompt |
 
 ---
 
 ## Technical Details
 
-### Fix 1: Stale Closure for `speakResponse`
+### Fix 1: Audio — Remove Effect-Based TTS, Use Direct Callback
 
-Current broken pattern:
+**Current broken flow:**
 ```
-const handleAssistantResponse = useCallback((content) => {
-  speakResponse(content);  // ← speakResponse captured here is STALE
-}, []);                     // ← no dependency!
-
-const { speakResponse } = useVoiceConsultation(language);
-// ↑ defined AFTER callback but used inside it
+useEffect detects sentence → calls speakRef.current() ← BLOCKED by browser (not in gesture stack)
+handleAssistantResponse fires → skips because earlyTTSFiredRef.current = true
 ```
 
-Fixed pattern:
+**Fixed flow:**
 ```
-const { speakResponse } = useVoiceConsultation(language);
-const speakRef = useRef(speakResponse);
-speakRef.current = speakResponse; // always up to date
-
-const handleAssistantResponse = useCallback((content) => {
-  speakRef.current(content);  // always calls latest version
-}, []); // no deps needed
+User taps mic → startListening() → userInteractedRef.current = true
+AI response complete → handleAssistantResponse fires → speakRef.current(content) ← WORKS (deferred from mic tap context)
 ```
 
-### Fix 2: Early Sentence-Based TTS
+Remove the early-sentence `useEffect` block entirely. The reason it felt slow before was the AI generating too much text (Issue 2). Once responses are short (1-2 sentences), the delay becomes <1 second, making early TTS unnecessary.
 
-The `useAIChat` hook fires `onAssistantResponse` once at the end. We add a **streaming sentence detector** in the voice page:
-
-- Track streamed content via `useAIChat`'s `messages` array (already updates in real-time)
-- When the latest assistant message contains a complete sentence (ends with `.`, `?`, `!`, `؟`, `۔`) and TTS hasn't started yet → call `speakResponse` on just that first sentence
-- This fires ~1-2 seconds into streaming instead of waiting for the full response
-- After speaking the first sentence, queue the rest when `onAssistantResponse` fires
-
-Actually, the cleaner approach: add an `onStreamChunk` callback to `useAIChat` that fires as tokens arrive, and detect sentence boundaries in `TabeebiVoicePage`. When the first sentence boundary is detected (and it's at least 30 chars), immediately speak that sentence.
-
-For simplicity, we monitor the `messages` array in a `useEffect` — when the latest assistant message grows past a sentence boundary and TTS hasn't started for this turn, begin speaking the first sentence.
-
-### Fix 3: Photo-Based Realistic Avatar
-
-Replace the SVG cartoon with a photo inside the circle. The photo will be fetched from a CDN (Unsplash with specific doctor photo parameters). On top of the photo:
-
-- **Idle**: Gentle breathing scale animation (CSS transform on the image)
-- **Listening**: Teal pulsing border rings, subtle brightness increase
-- **Thinking**: Amber-tinted ring, gentle slow pulse
-- **Speaking**: Strong pulsing rings, animated "sound wave" bars below the image, a subtle mouth area overlay that pulses
-
-The photo circle will be 260px diameter (same as current), filled with `object-cover`. We'll use a carefully chosen Unsplash photo URL of a professional female doctor with Middle Eastern/South Asian appearance in a white coat.
-
-The avatar component will be rebuilt as:
+Also add `utterance.volume = 1.0` explicitly in `speakResponse` and improve voice selection to prefer female voices:
+```typescript
+// Prefer female voices for Dr. Tabeebi
+const femaleVoice = voices.find(v => 
+  v.lang.startsWith(targetLang.split("-")[0]) && 
+  (v.name.toLowerCase().includes("female") || 
+   v.name.toLowerCase().includes("samantha") ||
+   v.name.toLowerCase().includes("karen") ||
+   v.name.toLowerCase().includes("victoria"))
+);
+const matchingVoice = femaleVoice || voices.find(v => v.lang.startsWith(targetLang.split("-")[0]));
 ```
-<div class="relative w-[260px] h-[260px] rounded-full overflow-hidden">
-  <img src={doctorPhotoUrl} class="w-full h-full object-cover object-top" />
-  <!-- State-based overlay: semi-transparent color wash -->
-  <div class="absolute inset-0 rounded-full" style="...state colors..." />
-  <!-- Mouth speaking pulse overlay in lower face region -->
-  {speaking && <div class="absolute bottom-[20%] ... animate-pulse" />}
-</div>
-<!-- Rings outside -->
+
+### Fix 2: Voice Brevity in Edge Function
+
+In `supabase/functions/ai-assistant/index.ts`, after building `systemPrompt` for `patient_intake` mode, check for `voice_mode`:
+
+```typescript
+const voiceMode = body.voice_mode === true;
+if (voiceMode && mode === "patient_intake") {
+  systemPrompt += "\n\nVOICE MODE RULES (CRITICAL): You are on a live voice call. Keep every response under 2 sentences. Maximum 40 words per response. No lists, no bullet points, no asterisks, no markdown. For greetings or simple acknowledgements, respond in 1 sentence only. Sound like a doctor on a phone call, not a written report.";
+}
 ```
+
+In `TabeebiVoicePage.tsx`, pass `voice_mode: true` in the request body. This requires a small modification to `useAIChat` to accept and pass through extra body params, OR we can pass it via `patientContext` as a known field that the edge function reads.
+
+Simplest approach: pass `voice_mode: true` in `patientContext` and read it in the edge function:
+```typescript
+// In TabeebiVoicePage.tsx
+const { sendMessage, isLoading, messages } = useAIChat({
+  mode: "patient_intake",
+  language,
+  patientContext: { voice_mode: true },
+  onAssistantResponse: handleAssistantResponse,
+});
+```
+
+```typescript
+// In ai-assistant edge function
+const voiceMode = patient_context?.voice_mode === true;
+```
+
+### Fix 3: Arabic Female Doctor Photo
+
+Replace the doctor photo with a UAE/Arabic-looking female doctor. We'll use a direct Unsplash URL pointing to a photo of a Middle Eastern female doctor. The URL format: `https://images.unsplash.com/photo-[ID]?w=400&h=400&fit=crop&crop=face`
+
+Selected photo — a Middle Eastern/Arabic female doctor with dark hair and olive skin in a white coat. We'll fetch this and save it as the asset, OR simply reference it as an import from a new file.
+
+### Fix 4: Enhanced Lip Sync & Speaking Visuals
+
+In `DoctorAvatarLarge.tsx`, replace the tiny `mouthPulse` overlay with:
+
+**Equalizer bars below avatar** (when speaking):
+```tsx
+{state === "speaking" && (
+  <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 flex gap-1 items-end">
+    {[0,1,2,3,4,5,6].map((i) => (
+      <div
+        key={i}
+        className="w-2 bg-primary rounded-full"
+        style={{
+          height: "8px",
+          animation: `eqBar 0.${4+i%3}s ease-in-out ${i * 0.08}s infinite alternate`,
+        }}
+      />
+    ))}
+  </div>
+)}
+```
+
+**Glowing avatar ring when speaking:**
+```tsx
+state === "speaking" && "shadow-[0_0_40px_8px_rgba(var(--primary-rgb),0.4)] animate-pulse"
+```
+
+**Larger visible mouth overlay** — increase from 60×18px to 80×28px and use a brighter color:
+```tsx
+style={{ bottom: "25%", width: "80px", height: "28px", animation: "mouthPulse 0.35s ease-in-out infinite" }}
+className="absolute left-1/2 -translate-x-1/2 rounded-full bg-white/30 blur-sm"
+```
+
+### Fix 5: Layout — Full-Screen Immersive
+
+- Move auto-listen toggle into header (small icon button)
+- Increase avatar from 260px → 290px
+- Add doctor name/specialty card below avatar
+- Add ambient background gradient that shifts by state (teal for listening/speaking, amber for thinking, neutral for idle)
 
 ---
 
-## Implementation Steps
+## Implementation Steps (In Order)
 
-1. **Fix hook order** in `TabeebiVoicePage` — move all `useVoiceConsultation` / `useAIChat` declarations to the top, use a `speakRef` pattern for the callback
-2. **Add voiceschanged listener** in `useVoiceConsultation.speakResponse` — browsers load voices asynchronously; if voices array is empty on first call, wait for `voiceschanged` event before setting voice (this is a known Chrome bug causing silent TTS)
-3. **Add early sentence TTS** — monitor streaming messages in `TabeebiVoicePage`, detect first sentence, begin speaking immediately
-4. **Rebuild `DoctorAvatarLarge`** — photo-based with animated state overlays
+1. **Edge function**: Add `voice_mode` brevity rules to `ai-assistant` (deploy required)
+2. **`useVoiceConsultation.ts`**: Fix voice selection (prefer female), add `volume = 1`
+3. **`TabeebiVoicePage.tsx`**: Remove broken `useEffect` early TTS, pass `voice_mode: true` in patientContext, clean up layout
+4. **`DoctorAvatarLarge.tsx`**: Add equalizer bars, bigger mouth overlay, glow effect, increase size
+5. **Doctor photo**: Replace with Arabic/UAE female doctor image
