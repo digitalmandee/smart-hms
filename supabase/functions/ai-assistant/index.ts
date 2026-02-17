@@ -423,12 +423,20 @@ Deno.serve(async (req) => {
     // Extract primary complaint for context anchoring
     const primaryComplaint = extractPrimaryComplaint(messages);
 
+    // Detect voice mode from patient_context
+    const voiceMode = patient_context?.voice_mode === true;
+
     // Build system prompt
     let systemPrompt: string;
     if (mode === "patient_intake") {
       const patientName = patient_context?.name || user.user_metadata?.full_name || "";
       const patientGender = patient_context?.gender || user.user_metadata?.gender || "";
       systemPrompt = buildPatientIntakePrompt(lang, patientName, patientGender, messageCount, primaryComplaint);
+      
+      // Voice mode: override with ultra-brief conversational responses
+      if (voiceMode) {
+        systemPrompt += "\n\nVOICE CALL MODE (CRITICAL — override all other instructions about length):\nYou are on a LIVE VOICE PHONE CALL with the patient RIGHT NOW. The patient will HEAR your response read aloud.\n- Keep EVERY response to 1-2 short sentences. Max 35 words.\n- For greetings like 'hello', 'can you hear me', 'hi' — respond in ONE sentence only: e.g. 'Yes, I can hear you clearly! What brings you in today?'\n- ZERO bullet points, ZERO lists, ZERO markdown, ZERO asterisks.\n- Speak like a real doctor on a phone call — casual, warm, natural.\n- Ask only ONE question at a time.\n- Example good response: 'Sharp chest pain sounds concerning — how long has it been going on?'\n- Example bad response: any response with bullets, lists, or more than 2 sentences.";
+      }
     } else {
       const contextType = mode as keyof typeof SYSTEM_PROMPTS;
       systemPrompt = SYSTEM_PROMPTS[contextType]?.[lang] || SYSTEM_PROMPTS.general[lang];
@@ -436,7 +444,7 @@ Deno.serve(async (req) => {
 
     let contextMessage = "";
     if (patient_context) {
-      const { name, gender, ...medicalContext } = patient_context as Record<string, unknown>;
+      const { name, gender, voice_mode, ...medicalContext } = patient_context as Record<string, unknown>;
       if (Object.keys(medicalContext).length > 0) {
         contextMessage = `\n\nAdditional Patient Context:\n${JSON.stringify(medicalContext, null, 2)}`;
       }

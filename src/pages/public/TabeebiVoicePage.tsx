@@ -49,12 +49,9 @@ export default function TabeebiVoicePage() {
     (searchParams.get("lang") as "en" | "ar" | "ur") || "en"
   );
   const [autoListen, setAutoListen] = useState(true);
-  const [lastResponse, setLastResponse] = useState<string>("");
   const [recentExchanges, setRecentExchanges] = useState<Array<{ role: "user" | "assistant"; content: string }>>([]);
   const autoListenTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isProcessingRef = useRef(false);
-  // Track whether early TTS has already fired for the current AI turn
-  const earlyTTSFiredRef = useRef(false);
 
   // Auth check
   useEffect(() => {
@@ -73,24 +70,18 @@ export default function TabeebiVoicePage() {
   speakRef.current = speakResponse;
 
   const handleAssistantResponse = useCallback((content: string) => {
-    setLastResponse(content);
     setRecentExchanges(prev => {
       const updated: Array<{ role: "user" | "assistant"; content: string }> = [...prev, { role: "assistant" as const, content }];
       return updated.slice(-6);
     });
-    // If early TTS already started the first sentence, speak the remainder only
-    if (earlyTTSFiredRef.current) {
-      earlyTTSFiredRef.current = false;
-      // Full response is already being spoken — no double-speak
-    } else {
-      earlyTTSFiredRef.current = false;
-      speakRef.current(content);
-    }
+    // Speak the full response — called directly from callback (not useEffect) so browser allows it
+    speakRef.current(content);
   }, []);
 
   const { sendMessage, isLoading, messages } = useAIChat({
     mode: "patient_intake",
     language,
+    patientContext: { voice_mode: true },
     onAssistantResponse: handleAssistantResponse,
   });
 
@@ -100,23 +91,6 @@ export default function TabeebiVoicePage() {
     : voiceState === "speaking" ? "speaking"
     : isLoading ? "thinking"
     : "idle";
-
-  // Early sentence TTS: fire as soon as first complete sentence is streamed
-  useEffect(() => {
-    if (!isLoading) return;
-    const lastMsg = messages[messages.length - 1];
-    if (!lastMsg || lastMsg.role !== "assistant") return;
-    if (earlyTTSFiredRef.current) return;
-    if (voiceState === "speaking") return;
-
-    const content = lastMsg.content;
-    // Detect first sentence boundary (at least 40 chars)
-    const sentenceMatch = content.match(/^(.{40,}?[.!?؟۔])\s/);
-    if (sentenceMatch) {
-      earlyTTSFiredRef.current = true;
-      speakRef.current(sentenceMatch[1]);
-    }
-  }, [messages, isLoading, voiceState]);
 
   // Auto-listen after AI finishes speaking
   useEffect(() => {
@@ -160,7 +134,6 @@ export default function TabeebiVoicePage() {
 
   const handleReset = () => {
     stopAll();
-    setLastResponse("");
     setRecentExchanges([]);
     isProcessingRef.current = false;
   };
@@ -243,7 +216,7 @@ export default function TabeebiVoicePage() {
       <div className="flex-1 flex flex-col items-center justify-between overflow-hidden px-4 py-4">
 
         {/* Avatar section */}
-        <div className="flex-1 flex flex-col items-center justify-center gap-4 min-h-0">
+        <div className="flex-1 flex flex-col items-center justify-center gap-3 min-h-0">
           <DoctorAvatarLarge state={avatarState} />
 
           {/* Status text */}
@@ -268,20 +241,7 @@ export default function TabeebiVoicePage() {
         </div>
 
         {/* Mic button */}
-        <div className="flex flex-col items-center gap-3 flex-shrink-0">
-          {/* Auto-listen toggle */}
-          <button
-            onClick={() => setAutoListen(p => !p)}
-            className={cn(
-              "text-[11px] px-3 py-1 rounded-full border transition-colors",
-              autoListen
-                ? "bg-primary/10 border-primary/30 text-primary"
-                : "bg-muted border-border text-muted-foreground"
-            )}
-          >
-            {autoListen ? "Auto-listen: ON" : "Auto-listen: OFF"}
-          </button>
-
+        <div className="flex flex-col items-center gap-2 flex-shrink-0">
           {/* The big mic button */}
           <button
             onClick={handleMicPress}
