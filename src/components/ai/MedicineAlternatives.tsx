@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAIChat } from "@/hooks/useAIChat";
-import { Pill, Search, Loader2, ArrowRight, RefreshCw } from "lucide-react";
+import { Search, Loader2, ArrowRight, RefreshCw } from "lucide-react";
+import { DoctorAvatar } from "@/components/ai/DoctorAvatar";
 
 interface Alternative {
   name: string;
@@ -69,8 +70,8 @@ export function MedicineAlternatives({ onSelectAlternative }: MedicineAlternativ
     <Card>
       <CardHeader className="pb-2">
         <CardTitle className="text-sm flex items-center gap-2">
-          <Pill className="h-4 w-4 text-primary" />
-          Medicine Alternatives
+          <DoctorAvatar size="xs" state={isLoading ? "thinking" : "idle"} />
+          Tabeebi Medicine Alternatives
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -146,6 +147,7 @@ export function MedicineAlternatives({ onSelectAlternative }: MedicineAlternativ
         {!searched && (
           <p className="text-xs text-muted-foreground text-center py-2">
             Search for a medicine to see generic equivalents and brand alternatives
+            <span className="block text-[9px] text-muted-foreground/60 mt-1">Powered by Tabeebi</span>
           </p>
         )}
       </CardContent>
