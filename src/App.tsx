@@ -38,6 +38,7 @@ import PublicTokenKiosk from "./pages/public/PublicTokenKiosk";
 // Tabeebi public pages
 import TabeebiLandingPage from "./pages/public/TabeebiLandingPage";
 import TabeebiChatPage from "./pages/public/TabeebiChatPage";
+import TabeebiVoicePage from "./pages/public/TabeebiVoicePage";
 
 // Super Admin pages
 import { SuperAdminDashboard } from "./pages/super-admin/SuperAdminDashboard";
@@ -522,6 +523,7 @@ function App() {
             {/* Tabeebi AI Doctor */}
             <Route path="/tabeebi" element={<TabeebiLandingPage />} />
             <Route path="/tabeebi/chat" element={<TabeebiChatPage />} />
+            <Route path="/tabeebi/voice" element={<TabeebiVoicePage />} />
             
             {/* Test Cases Documentation (hidden - not linked from landing page) */}
             <Route path="/test-cases" element={<TestCasesPage />} />

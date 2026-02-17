@@ -6,7 +6,7 @@ import { DoctorAvatar } from "@/components/ai/DoctorAvatar";
 import { ChatHistoryDrawer } from "@/components/ai/ChatHistoryDrawer";
 import { ChatMessage } from "@/hooks/useAIChat";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { LogOut, Plus, Globe, MessageSquare, Trash2, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { LogOut, Plus, Globe, MessageSquare, Trash2, PanelLeftClose, PanelLeftOpen, Mic } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -375,6 +375,18 @@ export default function TabeebiChatPage() {
                   />
                 </>
               )}
+
+              {/* Voice Mode button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate(`/tabeebi/voice?lang=${language}`)}
+                className="h-9 px-2.5 text-muted-foreground hover:text-foreground hover:bg-primary/10 rounded-full gap-1.5"
+                title="Switch to Voice Mode"
+              >
+                <Mic className="h-4 w-4" />
+                <span className="hidden sm:inline text-xs font-medium">Voice</span>
+              </Button>
 
               {/* Profile dropdown */}
               <DropdownMenu>
