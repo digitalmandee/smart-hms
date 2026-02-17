@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { format } from 'date-fns';
 import { Users, Clock, RefreshCw, Maximize, Minimize, ArrowLeft, AlertTriangle, Volume2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -27,6 +27,8 @@ export default function QueueDisplayPage() {
   const { data: departments } = useOPDDepartments();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const prevServingRef = useRef<string | null>(null);
+  const [tokenChanged, setTokenChanged] = useState(false);
 
   // Get selected department info
   const selectedDepartment = departments?.find(d => d.id === selectedDepartmentId);
@@ -86,6 +88,30 @@ export default function QueueDisplayPage() {
 
   // Get current serving (in_progress)
   const nowServing = sortedQueue.filter(a => a.status === 'in_progress');
+
+  // Detect token change and play chime
+  useEffect(() => {
+    const currentServingId = nowServing[0]?.id || null;
+    if (prevServingRef.current && currentServingId && currentServingId !== prevServingRef.current) {
+      setTokenChanged(true);
+      // Play chime sound
+      try {
+        const ctx = new AudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.value = 880;
+        osc.type = 'sine';
+        gain.gain.value = 0.3;
+        osc.start();
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+        osc.stop(ctx.currentTime + 0.5);
+      } catch { /* audio not supported */ }
+      setTimeout(() => setTokenChanged(false), 2000);
+    }
+    prevServingRef.current = currentServingId;
+  }, [nowServing]);
   
   // Get waiting patients (checked_in), sorted by priority
   const waiting = sortedQueue.filter(a => a.status === 'checked_in');
@@ -238,7 +264,10 @@ export default function QueueDisplayPage() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4 lg:gap-6">
                           <div 
-                            className="w-20 h-20 lg:w-24 lg:h-24 rounded-full flex items-center justify-center text-2xl lg:text-3xl font-bold font-mono shadow-md"
+                            className={cn(
+                              "w-20 h-20 lg:w-24 lg:h-24 rounded-full flex items-center justify-center text-2xl lg:text-3xl font-bold font-mono shadow-md transition-transform",
+                              tokenChanged && "animate-pulse scale-110"
+                            )}
                             style={{ 
                               backgroundColor: dept?.color || 'hsl(var(--primary))',
                               color: 'white'

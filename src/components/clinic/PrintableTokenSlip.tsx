@@ -27,6 +27,7 @@ interface PrintableTokenSlipProps {
     slug?: string;
   };
   tokenDisplay?: string;
+  departmentName?: string;
   showQR?: boolean;
   showPayment?: boolean;
   customMessage?: string;
@@ -172,6 +173,7 @@ export const PrintableTokenSlip = forwardRef<HTMLDivElement, PrintableTokenSlipP
       paymentStatus = "paid",
       organization,
       tokenDisplay,
+      departmentName,
       showQR = true,
       showPayment = true,
       customMessage,
@@ -214,6 +216,14 @@ export const PrintableTokenSlip = forwardRef<HTMLDivElement, PrintableTokenSlipP
         {/* Token Title */}
         <div style={styles.tokenTitle}>
           <p style={styles.tokenLabel}>OPD Token</p>
+          {departmentName && (
+            <p style={{ fontSize: "11px", fontWeight: 600, margin: "2px 0 0", color: "#374151" }}>{departmentName}</p>
+          )}
+          {appointmentDate && (
+            <p style={{ fontSize: "10px", color: "#6b7280", margin: "2px 0 0" }}>
+              {format(new Date(appointmentDate + "T00:00:00"), "dd MMM yyyy")}
+            </p>
+          )}
         </div>
 
         {/* Large Token Number */}

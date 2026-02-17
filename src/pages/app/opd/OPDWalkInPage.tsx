@@ -393,10 +393,16 @@ export default function OPDWalkInPage() {
         appointment_date: format(new Date(), "yyyy-MM-dd"),
         appointment_time: format(new Date(), "HH:mm"),
         appointment_type: "walk_in",
-        status: "scheduled",
+        status: "checked_in",
         chief_complaint: "OPD Consultation",
         payment_status: "paid",
       });
+
+      // Link invoice to appointment
+      await supabase
+        .from('appointments')
+        .update({ invoice_id: invoice.id })
+        .eq('id', appointment.id);
 
       setTokenNumber(appointment.token_number || 0);
       setTokenDisplay(appointment.token_display || null);
@@ -887,11 +893,17 @@ export default function OPDWalkInPage() {
                 <Button 
                   size="lg" 
                   onClick={handlePaymentComplete}
-                  disabled={isProcessing}
+                  disabled={isProcessing || !hasActiveSession}
                   className="px-8"
+                  title={!hasActiveSession ? "Open a billing session first to collect payments" : undefined}
                 >
                   {isProcessing ? (
                     "Processing..."
+                  ) : !hasActiveSession ? (
+                    <>
+                      <Ticket className="h-5 w-5 mr-2" />
+                      Session Required
+                    </>
                   ) : (
                     <>
                       <Ticket className="h-5 w-5 mr-2" />
