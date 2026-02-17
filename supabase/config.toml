@@ -35,3 +35,6 @@ verify_jwt = false
 
 [functions.zatca-einvoice]
 verify_jwt = false
+
+[functions.heygen-token]
+verify_jwt = false
