@@ -16,6 +16,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Users, CheckCircle, Clock, Play, Stethoscope, History, AlertTriangle, Search, Activity, DollarSign } from "lucide-react";
 import { PatientGlobalSearch } from "@/components/patients/PatientGlobalSearch";
 import { generateVisitId } from "@/lib/visit-id";
+import { formatTokenDisplay } from "@/lib/opd-token";
 import { PaymentStatusBadge } from "@/components/radiology/PaymentStatusBadge";
 import { MobileDoctorView } from "@/components/mobile/MobileDoctorView";
 
@@ -187,7 +188,7 @@ export default function DoctorDashboard() {
                       MR# {(currentPatient.patient as any)?.patient_number}
                     </p>
                   </div>
-                  <Badge>Token #{currentPatient.token_number}</Badge>
+                  <Badge>Token {formatTokenDisplay(currentPatient.token_number, (currentPatient as any).opd_department?.code)}</Badge>
                 </div>
                 {currentPatient.chief_complaint && (
                   <p className="text-sm">
@@ -206,7 +207,7 @@ export default function DoctorDashboard() {
                 <p className="text-muted-foreground">No patient in progress</p>
                 <div className="p-3 border rounded-lg">
                   <p className="font-medium">Next: {(nextPatient.patient as any)?.first_name}</p>
-                  <p className="text-sm text-muted-foreground">Token #{nextPatient.token_number}</p>
+                  <p className="text-sm text-muted-foreground">Token {formatTokenDisplay(nextPatient.token_number, (nextPatient as any).opd_department?.code)}</p>
                 </div>
                 <Button asChild className="w-full">
                   <Link to={`/app/opd/consultation/${nextPatient.id}`}>
@@ -259,7 +260,7 @@ export default function DoctorDashboard() {
                     >
                       <div className="flex items-center gap-3">
                         <Badge variant={apt.status === "in_progress" ? "default" : "outline"} className="min-w-[50px] justify-center">
-                          #{apt.token_number}
+                          {formatTokenDisplay(apt.token_number, (apt as any).opd_department?.code)}
                         </Badge>
                         <div className="flex-1">
                           <div className="flex items-center gap-2 flex-wrap">

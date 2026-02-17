@@ -92,6 +92,7 @@ export default function OPDWalkInPage() {
   
   // Result state
   const [tokenNumber, setTokenNumber] = useState<number | null>(null);
+  const [tokenDisplay, setTokenDisplay] = useState<string | null>(null);
   const [invoiceNumber, setInvoiceNumber] = useState<string | null>(null);
   const [showPrintDialog, setShowPrintDialog] = useState(false);
   const [showWaiverDialog, setShowWaiverDialog] = useState(false);
@@ -116,7 +117,7 @@ export default function OPDWalkInPage() {
   const { data: consultationServiceType } = useQuery({
     queryKey: ["consultation-service-type", profile?.organization_id],
     queryFn: async () => {
-      const { data } = await (supabase as any)
+      const { data } = await supabase
         .from("service_types")
         .select("id")
         .eq("category", "consultation")
@@ -248,6 +249,7 @@ export default function OPDWalkInPage() {
       });
 
       setTokenNumber(appointment.token_number || 0);
+      setTokenDisplay(appointment.token_display || null);
       setInvoiceNumber(null);
       setPaymentStatusResult("pending");
       setStep("complete");
@@ -305,6 +307,7 @@ export default function OPDWalkInPage() {
         .eq('id', appointment.id);
 
       setTokenNumber(appointment.token_number || 0);
+      setTokenDisplay(appointment.token_display || null);
       setInvoiceNumber(null);
       setPaymentStatusResult("waived");
       setStep("complete");
@@ -396,6 +399,7 @@ export default function OPDWalkInPage() {
       });
 
       setTokenNumber(appointment.token_number || 0);
+      setTokenDisplay(appointment.token_display || null);
       setInvoiceNumber(invoice.invoice_number);
       setPaymentStatusResult("paid");
       setStep("complete");
@@ -458,6 +462,7 @@ export default function OPDWalkInPage() {
     setAmountReceived("");
     setReferenceNumber("");
     setTokenNumber(null);
+    setTokenDisplay(null);
     setInvoiceNumber(null);
     setShowPrintDialog(false);
   };
@@ -931,7 +936,7 @@ export default function OPDWalkInPage() {
             <div className="grid grid-cols-2 gap-6">
               <div className="bg-primary/5 p-6 rounded-lg text-center border">
                 <p className="text-muted-foreground mb-2">Token Number</p>
-                <p className="text-5xl font-bold text-primary">{tokenNumber}</p>
+                <p className="text-5xl font-bold text-primary">{tokenDisplay || tokenNumber}</p>
               </div>
               <div className="bg-muted p-6 rounded-lg text-center border">
                 <p className="text-muted-foreground mb-2">Payment Status</p>
@@ -1015,6 +1020,7 @@ export default function OPDWalkInPage() {
         <PrintableTokenSlip
           ref={tokenSlipRef}
           tokenNumber={tokenNumber || 0}
+          tokenDisplay={tokenDisplay || undefined}
           appointmentDate={format(new Date(), "yyyy-MM-dd")}
           patient={{
             name: selectedPatientName,

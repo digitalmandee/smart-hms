@@ -26,6 +26,7 @@ interface PrintableTokenSlipProps {
     logo_url?: string | null;
     slug?: string;
   };
+  tokenDisplay?: string;
   showQR?: boolean;
   showPayment?: boolean;
   customMessage?: string;
@@ -170,6 +171,7 @@ export const PrintableTokenSlip = forwardRef<HTMLDivElement, PrintableTokenSlipP
       paymentMethod,
       paymentStatus = "paid",
       organization,
+      tokenDisplay,
       showQR = true,
       showPayment = true,
       customMessage,
@@ -215,7 +217,7 @@ export const PrintableTokenSlip = forwardRef<HTMLDivElement, PrintableTokenSlipP
         </div>
 
         {/* Large Token Number */}
-        <div style={styles.tokenNumber}>#{tokenNumber}</div>
+        <div style={styles.tokenNumber}>{tokenDisplay || `#${tokenNumber}`}</div>
         
         {/* Visit ID */}
         <div style={{ textAlign: "center", marginBottom: "12px" }}>

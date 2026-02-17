@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useHaptics } from "@/hooks/useHaptics";
 import { cn } from "@/lib/utils";
+import { formatTokenDisplay } from "@/lib/opd-token";
 
 interface MobileDoctorViewProps {
   profile: any;
@@ -151,7 +152,7 @@ export function MobileDoctorView({
             >
               <div className="flex items-center justify-between mb-2">
                 <Badge className="bg-primary text-primary-foreground">In Progress</Badge>
-                <Badge variant="outline">Token #{currentPatient.token_number}</Badge>
+                <Badge variant="outline">Token {formatTokenDisplay(currentPatient.token_number, (currentPatient as any).opd_department?.code)}</Badge>
               </div>
               <h3 className="text-lg font-semibold">
                 {(currentPatient.patient as any)?.first_name}{" "}

@@ -1,6 +1,6 @@
 // OPD Checkout Page - handles billing and payment processing for OPD visits
 import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
@@ -41,7 +41,9 @@ interface ChargeItem {
 }
 
 export default function OPDCheckoutPage() {
-  const { appointmentId } = useParams();
+  const { appointmentId: routeAppointmentId } = useParams();
+  const [searchParams] = useSearchParams();
+  const appointmentId = routeAppointmentId || searchParams.get("appointmentId");
   const navigate = useNavigate();
   const { profile } = useAuth();
   const [selectedCharges, setSelectedCharges] = useState<string[]>([]);
@@ -58,7 +60,7 @@ export default function OPDCheckoutPage() {
   const { data: consultationServiceType } = useQuery({
     queryKey: ["consultation-service-type", profile?.organization_id],
     queryFn: async () => {
-      const { data } = await (supabase as any)
+      const { data } = await supabase
         .from("service_types")
         .select("id")
         .eq("category", "consultation")
