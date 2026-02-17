@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { DoctorAvatarLarge } from "@/components/ai/DoctorAvatarLarge";
-import { HeyGenAvatar, type HeyGenAvatarHandle } from "@/components/ai/HeyGenAvatar";
+import { VRMAvatarCanvas } from "@/components/ai/VRMAvatarCanvas";
 import { useVoiceConsultation } from "@/hooks/useVoiceConsultation";
 import { useAIChat } from "@/hooks/useAIChat";
 import { Mic, MicOff, MessageSquare, Globe, RotateCcw } from "lucide-react";
@@ -51,7 +51,6 @@ export default function TabeebiVoicePage() {
   );
   const [autoListen, setAutoListen] = useState(false);
   const [recentExchanges, setRecentExchanges] = useState<Array<{ role: "user" | "assistant"; content: string }>>([]);
-  const avatarRef = useRef<HeyGenAvatarHandle>(null);
   const autoListenTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isProcessingRef = useRef(false);
 
@@ -76,12 +75,7 @@ export default function TabeebiVoicePage() {
       const updated: Array<{ role: "user" | "assistant"; content: string }> = [...prev, { role: "assistant" as const, content }];
       return updated.slice(-6);
     });
-    // Use HeyGen avatar for real lip-sync; fall back to browser TTS if avatar not ready
-    if (avatarRef.current) {
-      avatarRef.current.speak(content);
-    } else {
-      speakRef.current(content);
-    }
+    speakRef.current(content);
   }, []);
 
   const { sendMessage, isLoading, messages } = useAIChat({
@@ -130,8 +124,6 @@ export default function TabeebiVoicePage() {
     if (voiceState === "listening") {
       stopListening();
     } else if (voiceState === "speaking") {
-      // Interrupt the HeyGen avatar + stop browser TTS fallback
-      avatarRef.current?.interrupt();
       stopAll();
     } else if (!isLoading) {
       startListening(handleFinalTranscript);
@@ -237,12 +229,7 @@ export default function TabeebiVoicePage() {
 
         {/* Avatar — takes up most of the screen */}
         <div className="flex-1 flex flex-col items-center justify-center min-h-0">
-          <HeyGenAvatar
-            ref={avatarRef}
-            state={avatarState}
-            onStartTalking={() => {}}
-            onStopTalking={handleAvatarStopTalking}
-          />
+          <VRMAvatarCanvas state={avatarState} />
         </div>
 
         {/* Caption area — last Dr. Tabeebi response as subtitle */}
