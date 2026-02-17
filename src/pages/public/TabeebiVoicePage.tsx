@@ -62,14 +62,12 @@ export default function TabeebiVoicePage() {
   }, [navigate]);
 
   // Hooks first — so refs always point to the latest version
-  const { voiceState, transcript, isSupported, unlockAudio, speakBridge, startListening, stopListening, speakResponse, stopAll } =
+  const { voiceState, transcript, isSupported, unlockAudio, startListening, stopListening, speakResponse, stopAll } =
     useVoiceConsultation(language);
 
-  // Keep refs so async callbacks never capture stale closures
+  // Keep ref so async callbacks never capture stale closures
   const speakRef = useRef(speakResponse);
   speakRef.current = speakResponse;
-  const speakBridgeRef = useRef(speakBridge);
-  speakBridgeRef.current = speakBridge;
 
   const handleAssistantResponse = useCallback((content: string) => {
     setRecentExchanges(prev => {
@@ -111,8 +109,7 @@ export default function TabeebiVoicePage() {
   const handleFinalTranscript = useCallback((text: string) => {
     isProcessingRef.current = true;
     setRecentExchanges(prev => [...prev, { role: "user" as const, content: text }].slice(-6));
-    // Immediately fill the silence while AI processes
-    speakBridgeRef.current();
+    // Silence while thinking — avatar "thinking" state gives visual feedback
     sendMessage(text).finally(() => {
       isProcessingRef.current = false;
     });
@@ -219,37 +216,47 @@ export default function TabeebiVoicePage() {
         </div>
       </header>
 
-      {/* Main content */}
-      <div className="flex-1 flex flex-col items-center justify-between overflow-hidden px-4 py-4">
+      {/* Main content — full-screen video-call layout */}
+      <div className="flex-1 flex flex-col items-center justify-between overflow-hidden px-4 py-3">
 
-        {/* Avatar section */}
-        <div className="flex-1 flex flex-col items-center justify-center gap-3 min-h-0">
+        {/* Avatar — takes up most of the screen */}
+        <div className="flex-1 flex flex-col items-center justify-center min-h-0">
           <DoctorAvatarLarge state={avatarState} />
-
-          {/* Status text */}
-          <div className="text-center space-y-1">
-            <p className={cn(
-              "text-sm font-medium transition-all duration-300",
-              avatarState === "listening" && "text-primary",
-              avatarState === "speaking" && "text-primary",
-              avatarState === "thinking" && "text-amber-500",
-              avatarState === "idle" && "text-muted-foreground",
-            )}>
-              {statusText}
-            </p>
-
-            {/* Live transcript bubble */}
-            {transcript && voiceState === "listening" && (
-              <div className="max-w-xs mx-auto bg-primary/10 border border-primary/20 rounded-2xl px-4 py-2 animate-fade-in">
-                <p className="text-sm text-foreground/80 italic">"{transcript}"</p>
-              </div>
-            )}
-          </div>
         </div>
 
-        {/* Mic button */}
-        <div className="flex flex-col items-center gap-2 flex-shrink-0">
-          {/* The big mic button */}
+        {/* Caption area — last Dr. Tabeebi response as subtitle */}
+        <div className="w-full max-w-sm flex-shrink-0 text-center min-h-[56px] flex flex-col items-center justify-center gap-1 pb-1">
+          {/* Status text */}
+          <p className={cn(
+            "text-sm font-medium transition-all duration-300",
+            avatarState === "listening" && "text-primary",
+            avatarState === "speaking" && "text-primary",
+            avatarState === "thinking" && "text-amber-500",
+            avatarState === "idle" && "text-muted-foreground",
+          )}>
+            {statusText}
+          </p>
+
+          {/* Live transcript while listening */}
+          {transcript && voiceState === "listening" && (
+            <div className="max-w-xs mx-auto bg-primary/10 border border-primary/20 rounded-2xl px-4 py-1.5">
+              <p className="text-xs text-foreground/80 italic">"{transcript}"</p>
+            </div>
+          )}
+
+          {/* Last Dr. Tabeebi response (caption) */}
+          {!transcript && recentExchanges.length > 0 && (() => {
+            const last = [...recentExchanges].reverse().find(m => m.role === "assistant");
+            return last ? (
+              <p className="text-xs text-muted-foreground/70 line-clamp-2 max-w-[280px]">
+                {last.content.length > 120 ? last.content.slice(0, 120) + "…" : last.content}
+              </p>
+            ) : null;
+          })()}
+        </div>
+
+        {/* Mic button — floating bottom */}
+        <div className="flex flex-col items-center gap-2 flex-shrink-0 pb-2">
           <button
             onClick={handleMicPress}
             disabled={micBusy && voiceState !== "speaking"}
@@ -267,39 +274,14 @@ export default function TabeebiVoicePage() {
           >
             {micActive ? <MicOff className="h-8 w-8" /> : <Mic className="h-8 w-8" />}
           </button>
-
           <p className="text-xs text-muted-foreground">
             {micActive ? "Tap to stop" : voiceState === "speaking" ? "Tap to interrupt" : "Tap to speak"}
           </p>
         </div>
 
-        {/* Recent conversation history */}
-        {recentExchanges.length > 0 && (
-          <div className="w-full max-w-sm flex-shrink-0 mt-3">
-            <div className="border-t border-border pt-3 space-y-1.5 max-h-28 overflow-y-auto">
-              {recentExchanges.slice(-4).map((msg, i) => (
-                <div
-                  key={i}
-                  className={cn(
-                    "text-[11px] leading-relaxed line-clamp-2",
-                    msg.role === "user"
-                      ? "text-muted-foreground/60 text-right"
-                      : "text-muted-foreground/80 text-left"
-                  )}
-                >
-                  <span className={cn("font-medium mr-1", msg.role === "user" ? "text-muted-foreground/70" : "text-primary/60")}>
-                    {msg.role === "user" ? "You:" : "Dr. Tabeebi:"}
-                  </span>
-                  {msg.content.length > 100 ? msg.content.slice(0, 100) + "…" : msg.content}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* STT not supported warning */}
         {!isSupported && (
-          <div className="w-full max-w-sm bg-destructive/10 border border-destructive/20 rounded-xl p-3 text-center">
+          <div className="w-full max-w-sm bg-destructive/10 border border-destructive/20 rounded-xl p-3 text-center flex-shrink-0">
             <p className="text-xs text-destructive">
               Voice input is not supported in this browser. Please use Chrome or Edge.
             </p>
