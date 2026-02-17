@@ -112,6 +112,22 @@ export default function OPDWalkInPage() {
   const createInvoice = useCreateInvoice();
   const recordPayment = useRecordPayment();
 
+  // Fetch consultation service type for commission tracking
+  const { data: consultationServiceType } = useQuery({
+    queryKey: ["consultation-service-type", profile?.organization_id],
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from("service_types")
+        .select("id")
+        .eq("category", "consultation")
+        .eq("organization_id", profile!.organization_id!)
+        .limit(1)
+        .single();
+      return data;
+    },
+    enabled: !!profile?.organization_id,
+  });
+
   // Fetch today's queue counts for all doctors
   const { data: todayAppointments } = useQuery({
     queryKey: ['opd-queue-counts', profile?.branch_id],
@@ -350,7 +366,8 @@ export default function OPDWalkInPage() {
           description: `${selectedDoctor.specialty} Consultation - ${selectedDoctor.name}`,
           quantity: 1,
           unit_price: selectedDoctor.fee,
-          doctor_id: selectedDoctor.id, // Link to doctor for wallet earnings
+          doctor_id: selectedDoctor.id,
+          service_type_id: consultationServiceType?.id, // Link to consultation service type for commission trigger
         }],
         status: "pending",
       });

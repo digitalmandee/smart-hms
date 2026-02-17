@@ -36,6 +36,8 @@ interface ChargeItem {
   amount: number;
   status: "pending" | "invoiced" | "paid";
   referenceId?: string;
+  doctorId?: string;
+  serviceTypeId?: string;
 }
 
 export default function OPDCheckoutPage() {
@@ -51,6 +53,22 @@ export default function OPDCheckoutPage() {
   
   const createInvoice = useCreateInvoice();
   const recordPayment = useRecordPayment();
+
+  // Fetch consultation service type for commission tracking
+  const { data: consultationServiceType } = useQuery({
+    queryKey: ["consultation-service-type", profile?.organization_id],
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from("service_types")
+        .select("id")
+        .eq("category", "consultation")
+        .eq("organization_id", profile!.organization_id!)
+        .limit(1)
+        .single();
+      return data;
+    },
+    enabled: !!profile?.organization_id,
+  });
 
   // Fetch appointment with related data
   const { data: appointment, isLoading: appointmentLoading } = useQuery({
@@ -139,6 +157,8 @@ export default function OPDCheckoutPage() {
         amount: fee,
         status: appointment.invoice_id ? "invoiced" : "pending",
         referenceId: appointment.id,
+        doctorId: appointment.doctor?.id,
+        serviceTypeId: consultationServiceType?.id,
       });
     }
   }
@@ -215,9 +235,17 @@ export default function OPDCheckoutPage() {
           unit_price: item.amount,
           discount_percent: 0,
           total_price: item.amount,
+          doctor_id: item.doctorId,
+          service_type_id: item.serviceTypeId,
         })),
         notes: `OPD Visit: ${generateVisitId(appointment)}`,
       });
+
+      // Link invoice to appointment to prevent duplicate invoicing
+      await supabase
+        .from("appointments")
+        .update({ invoice_id: invoiceData.id })
+        .eq("id", appointment.id);
 
       toast.success("Invoice generated successfully");
       navigate(`/app/billing/invoices/${invoiceData.id}`);
@@ -245,6 +273,8 @@ export default function OPDCheckoutPage() {
           unit_price: item.amount,
           discount_percent: 0,
           total_price: item.amount,
+          doctor_id: item.doctorId,
+          service_type_id: item.serviceTypeId,
         })),
         notes: `OPD Visit: ${generateVisitId(appointment)}`,
       });
