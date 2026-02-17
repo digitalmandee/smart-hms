@@ -1,10 +1,9 @@
 import { Suspense, useRef, useEffect, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 import { VRM, VRMLoaderPlugin, VRMUtils } from "@pixiv/three-vrm";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { DoctorAvatarLarge } from "./DoctorAvatarLarge";
+import { ProceduralDoctorAvatar } from "./ProceduralDoctorAvatar";
 import { cn } from "@/lib/utils";
 
 type AvatarState = "idle" | "listening" | "thinking" | "speaking";
@@ -14,9 +13,6 @@ interface VRMAvatarCanvasProps {
   className?: string;
 }
 
-// Default placeholder VRM from pixiv (works immediately, no file needed)
-const FALLBACK_VRM_URL =
-  "https://pixiv.github.io/three-vrm/packages/three-vrm/examples/models/VRM1_Constraint_Twist_Sample.vrm";
 const LOCAL_VRM_PATH = "/avatars/doctor.vrm";
 
 // ─── Inner scene rendered inside <Canvas> ────────────────────────────────────
@@ -196,12 +192,17 @@ export function VRMAvatarCanvas({ state = "idle", className }: VRMAvatarCanvasPr
   const [vrmStatus, setVrmStatus] = useState<"loading" | "ready" | "error">("loading");
   const [vrmUrl, setVrmUrl] = useState<string | null>(null);
 
-  // Try local file first, fall back to CDN placeholder
+  // Try local VRM file; if not found, stay null → show ProceduralDoctorAvatar
   useEffect(() => {
     fetch(LOCAL_VRM_PATH, { method: "HEAD" })
-      .then((r) => setVrmUrl(r.ok ? LOCAL_VRM_PATH : FALLBACK_VRM_URL))
-      .catch(() => setVrmUrl(FALLBACK_VRM_URL));
+      .then((r) => { if (r.ok) setVrmUrl(LOCAL_VRM_PATH); })
+      .catch(() => {});
   }, []);
+
+  // No local VRM → show procedural 3D avatar
+  if (!vrmUrl) {
+    return <ProceduralDoctorAvatar state={state} className={className} />;
+  }
 
   const borderGlow =
     state === "speaking"
@@ -211,11 +212,6 @@ export function VRMAvatarCanvas({ state = "idle", className }: VRMAvatarCanvasPr
       : state === "thinking"
       ? "0 0 0 2px hsl(40 80% 55%/0.4), 0 0 16px 4px hsl(40 80% 55%/0.1)"
       : "0 0 0 1px hsl(var(--border))";
-
-  // Show fallback while loading or on error
-  if (!vrmUrl || (vrmStatus === "loading" && !vrmUrl)) {
-    return <DoctorAvatarLarge state={state === "thinking" ? "thinking" : state} className={className} />;
-  }
 
   return (
     <div className={cn("relative flex flex-col items-center", className)}>
@@ -231,10 +227,10 @@ export function VRMAvatarCanvas({ state = "idle", className }: VRMAvatarCanvasPr
           background: "hsl(var(--card))",
         }}
       >
-        {/* Show DoctorAvatarLarge inline while VRM loads */}
+        {/* Show ProceduralDoctorAvatar inline while VRM loads */}
         {vrmStatus === "loading" && (
           <div className="absolute inset-0 z-10">
-            <DoctorAvatarLarge state="thinking" className="w-full h-full" />
+            <ProceduralDoctorAvatar state="thinking" className="w-full h-full" />
           </div>
         )}
 
@@ -264,9 +260,9 @@ export function VRMAvatarCanvas({ state = "idle", className }: VRMAvatarCanvasPr
         <div
           className={cn(
             "absolute inset-0 transition-all duration-500 pointer-events-none",
-            state === "listening" && "bg-primary/8",
+            state === "listening" && "bg-primary/[0.08]",
             state === "thinking" && "bg-amber-500/10",
-            state === "speaking" && "bg-primary/5",
+            state === "speaking" && "bg-primary/[0.05]",
           )}
         />
 
