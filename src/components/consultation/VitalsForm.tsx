@@ -17,9 +17,10 @@ interface VitalsFormProps {
   vitals: Vitals;
   onChange: (vitals: Vitals) => void;
   readOnly?: boolean;
+  embedded?: boolean;
 }
 
-export function VitalsForm({ vitals, onChange, readOnly = false }: VitalsFormProps) {
+export function VitalsForm({ vitals, onChange, readOnly = false, embedded = false }: VitalsFormProps) {
   const [tempUnit, setTempUnit] = useState<'F' | 'C'>(vitals.temperature_unit || 'F');
 
   const updateVitals = (updates: Partial<Vitals>) => {
@@ -55,22 +56,7 @@ export function VitalsForm({ vitals, onChange, readOnly = false }: VitalsFormPro
     });
   };
 
-  return (
-    <Card>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <Activity className="h-5 w-5 text-primary" />
-            Vitals
-          </CardTitle>
-          {!readOnly && (
-            <Button variant="outline" size="sm" onClick={setNormalVitals}>
-              Set Normal Values
-            </Button>
-          )}
-        </div>
-      </CardHeader>
-      <CardContent>
+  const gridContent = (
         <div className="grid grid-cols-2 gap-3">
           {/* Blood Pressure */}
           <div className="space-y-2">
@@ -245,6 +231,40 @@ export function VitalsForm({ vitals, onChange, readOnly = false }: VitalsFormPro
             </div>
           </div>
         </div>
+  );
+
+  if (embedded) {
+    return (
+      <div>
+        {!readOnly && (
+          <div className="flex justify-end mb-2">
+            <Button variant="outline" size="sm" onClick={setNormalVitals}>
+              Set Normal Values
+            </Button>
+          </div>
+        )}
+        {gridContent}
+      </div>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <Activity className="h-5 w-5 text-primary" />
+            Vitals
+          </CardTitle>
+          {!readOnly && (
+            <Button variant="outline" size="sm" onClick={setNormalVitals}>
+              Set Normal Values
+            </Button>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent>
+        {gridContent}
       </CardContent>
     </Card>
   );
