@@ -9,6 +9,7 @@ import { POSHeldTransactionsDialog } from "@/components/pharmacy/POSHeldTransact
 import { POSOrderReview } from "@/components/pharmacy/POSOrderReview";
 import { POSQuickActions } from "@/components/pharmacy/POSQuickActions";
 import { POSRecentProducts } from "@/components/pharmacy/POSRecentProducts";
+import { POSMedicineAlternatives } from "@/components/pharmacy/POSMedicineAlternatives";
 import { POSTodaySummary } from "@/components/pharmacy/POSTodaySummary";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -477,6 +478,9 @@ export default function POSTerminalPage() {
           <ScrollArea className="flex-1">
             <div className="p-3 space-y-3">
               <POSProductSearch onAddToCart={handleAddToCart} />
+
+              {/* AI Medicine Alternatives */}
+              <POSMedicineAlternatives />
               
               {/* Recent Products Quick Add */}
               <POSRecentProducts onAddToCart={handleAddToCart} />
