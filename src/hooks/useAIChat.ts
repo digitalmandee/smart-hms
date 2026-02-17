@@ -9,7 +9,7 @@ export interface ChatMessage {
 }
 
 interface UseAIChatOptions {
-  mode?: "patient_intake" | "doctor_assist" | "general";
+  mode?: "patient_intake" | "doctor_assist" | "general" | "pharmacy_lookup";
   language?: "en" | "ar" | "ur";
   patientContext?: Record<string, unknown>;
   onConversationCreated?: (id: string) => void;
@@ -47,7 +47,7 @@ export function useAIChat(options: UseAIChatOptions = {}) {
       .insert([{
         ...(orgId ? { organization_id: orgId } : {}),
         user_id: user.id,
-        context_type: mode,
+        context_type: mode === "pharmacy_lookup" ? "general" : mode,
         language,
         messages: JSON.parse("[]"),
         metadata: patientContext ? JSON.parse(JSON.stringify(patientContext)) : JSON.parse("{}"),
