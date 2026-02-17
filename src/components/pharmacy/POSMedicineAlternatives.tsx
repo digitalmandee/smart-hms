@@ -150,23 +150,42 @@ export function POSMedicineAlternatives({ onAddToCart }: POSMedicineAlternatives
     const lookupInventory = async () => {
       setLoadingInventory(true);
       try {
-        const orFilter = results
-          .map((name) => `medicine_name.ilike.%${name.replace(/[%_]/g, "")}%`)
+        // Step 1: Find medicines by name (fuzzy match)
+        const nameFilter = results
+          .map((name) => `name.ilike.%${name.replace(/[%_]/g, "")}%`)
           .join(",");
 
-        const { data } = await supabase
+        const { data: medicines } = await supabase
+          .from("medicines")
+          .select("id, name")
+          .or(nameFilter);
+
+        if (!medicines || medicines.length === 0) {
+          setInventoryMap({});
+          setLoadingInventory(false);
+          return;
+        }
+
+        // Step 2: Get inventory for matched medicine IDs at this branch
+        const medicineIds = medicines.map((m) => m.id);
+        const { data: inventory } = await supabase
           .from("medicine_inventory")
-          .select("id, medicine_id, quantity, batch_number, selling_price, reorder_level, medicine:medicines!medicine_inventory_medicine_id_fkey(id, name)")
+          .select("id, medicine_id, quantity, batch_number, selling_price, reorder_level")
           .eq("branch_id", profile.branch_id)
-          .or(orFilter)
+          .in("medicine_id", medicineIds)
           .gt("quantity", 0)
           .order("quantity", { ascending: false });
 
-        if (data) {
+        if (inventory) {
+          // Build a medicine_id -> medicine name map
+          const medNameMap: Record<string, string> = {};
+          for (const m of medicines) {
+            medNameMap[m.id] = m.name;
+          }
+
           const map: Record<string, InventoryMatch> = {};
-          for (const item of data) {
-            const med = item.medicine as any;
-            const medName = med?.name || "";
+          for (const item of inventory) {
+            const medName = medNameMap[item.medicine_id] || "";
             // Match against each result name (case-insensitive)
             for (const resultName of results) {
               const normalizedResult = resultName.toLowerCase().trim();
@@ -178,7 +197,7 @@ export function POSMedicineAlternatives({ onAddToCart }: POSMedicineAlternatives
                 if (!map[resultName] || item.quantity > (map[resultName]?.quantity || 0)) {
                   map[resultName] = {
                     id: item.id,
-                    medicine_id: item.medicine_id || med?.id,
+                    medicine_id: item.medicine_id,
                     medicine_name: medName,
                     batch_number: item.batch_number,
                     quantity: item.quantity,
