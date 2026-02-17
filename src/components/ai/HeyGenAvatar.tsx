@@ -27,34 +27,45 @@ interface HeyGenAvatarProps {
 
 export const HeyGenAvatar = forwardRef<HeyGenAvatarHandle, HeyGenAvatarProps>(
   ({ state = "idle", onStartTalking, onStopTalking, className }, ref) => {
-    const videoRef = useRef<HTMLVideoElement>(null);
-    const avatarRef = useRef<StreamingAvatar | null>(null);
-    const keepAliveRef = useRef<ReturnType<typeof setInterval> | null>(null);
-    const [status, setStatus] = useState<"connecting" | "ready" | "error">("connecting");
-    const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const avatarRef = useRef<StreamingAvatar | null>(null);
+  const keepAliveRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const statusRef = useRef<"connecting" | "ready" | "error">("connecting");
+  const [statusState, setStatusState] = useState<"connecting" | "ready" | "error">("connecting");
+  const pendingStreamRef = useRef<MediaStream | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-    useImperativeHandle(ref, () => ({
-      async speak(text: string) {
-        if (!avatarRef.current || status !== "ready") return;
-        try {
-          await avatarRef.current.speak({
-            text,
-            taskType: TaskType.REPEAT,
-            taskMode: TaskMode.SYNC,
-          });
-        } catch (e) {
-          console.error("HeyGen speak error:", e);
-        }
-      },
-      async interrupt() {
-        if (!avatarRef.current || status !== "ready") return;
-        try {
-          await avatarRef.current.interrupt();
-        } catch (e) {
-          console.error("HeyGen interrupt error:", e);
-        }
-      },
-    }));
+  // Callback ref: assigns stream immediately when <video> mounts in DOM
+  const videoCallbackRef = (el: HTMLVideoElement | null) => {
+    videoRef.current = el;
+    if (el && pendingStreamRef.current) {
+      el.srcObject = pendingStreamRef.current;
+      el.play().catch(() => {});
+    }
+  };
+
+  useImperativeHandle(ref, () => ({
+    async speak(text: string) {
+      if (!avatarRef.current || statusRef.current !== "ready") return;
+      try {
+        await avatarRef.current.speak({
+          text,
+          taskType: TaskType.REPEAT,
+          taskMode: TaskMode.SYNC,
+        });
+      } catch (e) {
+        console.error("HeyGen speak error:", e);
+      }
+    },
+    async interrupt() {
+      if (!avatarRef.current || statusRef.current !== "ready") return;
+      try {
+        await avatarRef.current.interrupt();
+      } catch (e) {
+        console.error("HeyGen interrupt error:", e);
+      }
+    },
+  }));
 
     useEffect(() => {
       let cancelled = false;
@@ -79,15 +90,13 @@ export const HeyGenAvatar = forwardRef<HeyGenAvatarHandle, HeyGenAvatarProps>(
           avatar.on(StreamingEvents.STREAM_READY, (event) => {
             if (cancelled) return;
             const stream = (event as any).detail as MediaStream;
-            if (videoRef.current) {
-              videoRef.current.srcObject = stream;
-              videoRef.current.play().catch(() => {});
-            }
-            setStatus("ready");
+            pendingStreamRef.current = stream;
+            statusRef.current = "ready";
+            setStatusState("ready");
           });
 
           avatar.on(StreamingEvents.STREAM_DISCONNECTED, () => {
-            if (!cancelled) setStatus("error");
+            if (!cancelled) { statusRef.current = "error"; setStatusState("error"); }
           });
 
           avatar.on(StreamingEvents.AVATAR_START_TALKING, () => {
@@ -120,7 +129,8 @@ export const HeyGenAvatar = forwardRef<HeyGenAvatarHandle, HeyGenAvatarProps>(
         } catch (err: any) {
           console.error("HeyGen init error:", err);
           if (!cancelled) {
-            setStatus("error");
+            statusRef.current = "error";
+            setStatusState("error");
             setErrorMsg(err?.message ?? "Connection failed");
           }
         }
@@ -147,12 +157,12 @@ export const HeyGenAvatar = forwardRef<HeyGenAvatarHandle, HeyGenAvatarProps>(
         : "0 0 0 1px hsl(var(--border))";
 
     // Show fallback skeleton while connecting
-    if (status === "connecting") {
+    if (statusState === "connecting") {
       return <DoctorAvatarLarge state="thinking" className={className} />;
     }
 
     // Show fallback on error
-    if (status === "error") {
+    if (statusState === "error") {
       return <DoctorAvatarLarge state={state} className={className} />;
     }
 
@@ -170,7 +180,7 @@ export const HeyGenAvatar = forwardRef<HeyGenAvatarHandle, HeyGenAvatarProps>(
           }}
         >
           <video
-            ref={videoRef}
+            ref={videoCallbackRef}
             autoPlay
             playsInline
             muted={false}
