@@ -57,12 +57,12 @@ export function VitalsForm({ vitals, onChange, readOnly = false, embedded = fals
   };
 
   const gridContent = (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-x-3 gap-y-2">
           {/* Blood Pressure */}
-          <div className="space-y-2">
-            <Label className="flex items-center gap-1">
-              <Heart className="h-4 w-4 text-red-500" />
-              Blood Pressure
+          <div className="space-y-1">
+            <Label className="flex items-center gap-1 text-xs">
+              <Heart className="h-3 w-3 text-red-500" />
+              BP
             </Label>
             <div className="flex items-center gap-1">
               <Input
@@ -70,16 +70,16 @@ export function VitalsForm({ vitals, onChange, readOnly = false, embedded = fals
                 placeholder="Sys"
                 value={vitals.blood_pressure?.systolic || ""}
                 onChange={(e) => handleBPChange('systolic', e.target.value)}
-                className="w-16 text-center"
+                className="w-14 text-center h-8 text-xs"
                 disabled={readOnly}
               />
-              <span>/</span>
+              <span className="text-xs">/</span>
               <Input
                 type="number"
                 placeholder="Dia"
                 value={vitals.blood_pressure?.diastolic || ""}
                 onChange={(e) => handleBPChange('diastolic', e.target.value)}
-                className="w-16 text-center"
+                className="w-14 text-center h-8 text-xs"
                 disabled={readOnly}
               />
               <span className="text-sm text-muted-foreground">mmHg</span>
@@ -87,9 +87,9 @@ export function VitalsForm({ vitals, onChange, readOnly = false, embedded = fals
           </div>
 
           {/* Pulse */}
-          <div className="space-y-2">
-            <Label className="flex items-center gap-1">
-              <Activity className="h-4 w-4 text-pink-500" />
+          <div className="space-y-1">
+            <Label className="flex items-center gap-1 text-xs">
+              <Activity className="h-3 w-3 text-pink-500" />
               Pulse
             </Label>
             <div className="flex items-center gap-1">
@@ -98,7 +98,7 @@ export function VitalsForm({ vitals, onChange, readOnly = false, embedded = fals
                 placeholder="72"
                 value={vitals.pulse || ""}
                 onChange={(e) => updateVitals({ pulse: parseInt(e.target.value) || undefined })}
-                className="w-20"
+                className="w-16 h-8 text-xs"
                 disabled={readOnly}
               />
               <span className="text-sm text-muted-foreground">bpm</span>
@@ -106,10 +106,10 @@ export function VitalsForm({ vitals, onChange, readOnly = false, embedded = fals
           </div>
 
           {/* Temperature */}
-          <div className="space-y-2">
-            <Label className="flex items-center gap-1">
-              <Thermometer className="h-4 w-4 text-orange-500" />
-              Temperature
+          <div className="space-y-1">
+            <Label className="flex items-center gap-1 text-xs">
+              <Thermometer className="h-3 w-3 text-orange-500" />
+              Temp
             </Label>
             <div className="flex items-center gap-1">
               <Input
@@ -121,7 +121,7 @@ export function VitalsForm({ vitals, onChange, readOnly = false, embedded = fals
                   temperature: parseFloat(e.target.value) || undefined,
                   temperature_unit: tempUnit,
                 })}
-                className="w-20"
+                className="w-16 h-8 text-xs"
                 disabled={readOnly}
               />
               <Select
@@ -132,7 +132,7 @@ export function VitalsForm({ vitals, onChange, readOnly = false, embedded = fals
                 }}
                 disabled={readOnly}
               >
-                <SelectTrigger className="w-16">
+                <SelectTrigger className="w-14 h-8 text-xs">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -144,9 +144,9 @@ export function VitalsForm({ vitals, onChange, readOnly = false, embedded = fals
           </div>
 
           {/* SpO2 */}
-          <div className="space-y-2">
-            <Label className="flex items-center gap-1">
-              <Wind className="h-4 w-4 text-blue-500" />
+          <div className="space-y-1">
+            <Label className="flex items-center gap-1 text-xs">
+              <Wind className="h-3 w-3 text-blue-500" />
               SpO2
             </Label>
             <div className="flex items-center gap-1">
@@ -155,7 +155,7 @@ export function VitalsForm({ vitals, onChange, readOnly = false, embedded = fals
                 placeholder="98"
                 value={vitals.spo2 || ""}
                 onChange={(e) => updateVitals({ spo2: parseInt(e.target.value) || undefined })}
-                className="w-20"
+                className="w-16 h-8 text-xs"
                 disabled={readOnly}
               />
               <span className="text-sm text-muted-foreground">%</span>
@@ -163,10 +163,10 @@ export function VitalsForm({ vitals, onChange, readOnly = false, embedded = fals
           </div>
 
           {/* Weight */}
-          <div className="space-y-2">
-            <Label className="flex items-center gap-1">
-              <Weight className="h-4 w-4 text-green-500" />
-              Weight
+          <div className="space-y-1">
+            <Label className="flex items-center gap-1 text-xs">
+              <Weight className="h-3 w-3 text-green-500" />
+              Wt
             </Label>
             <div className="flex items-center gap-1">
               <Input
@@ -175,7 +175,7 @@ export function VitalsForm({ vitals, onChange, readOnly = false, embedded = fals
                 placeholder="70"
                 value={vitals.weight || ""}
                 onChange={(e) => updateVitals({ weight: parseFloat(e.target.value) || undefined })}
-                className="w-20"
+                className="w-16 h-8 text-xs"
                 disabled={readOnly}
               />
               <span className="text-sm text-muted-foreground">kg</span>
@@ -183,10 +183,10 @@ export function VitalsForm({ vitals, onChange, readOnly = false, embedded = fals
           </div>
 
           {/* Height */}
-          <div className="space-y-2">
-            <Label className="flex items-center gap-1">
-              <Ruler className="h-4 w-4 text-purple-500" />
-              Height
+          <div className="space-y-1">
+            <Label className="flex items-center gap-1 text-xs">
+              <Ruler className="h-3 w-3 text-purple-500" />
+              Ht
             </Label>
             <div className="flex items-center gap-1">
               <Input
@@ -194,7 +194,7 @@ export function VitalsForm({ vitals, onChange, readOnly = false, embedded = fals
                 placeholder="170"
                 value={vitals.height || ""}
                 onChange={(e) => updateVitals({ height: parseInt(e.target.value) || undefined })}
-                className="w-20"
+                className="w-16 h-8 text-xs"
                 disabled={readOnly}
               />
               <span className="text-sm text-muted-foreground">cm</span>
@@ -202,15 +202,15 @@ export function VitalsForm({ vitals, onChange, readOnly = false, embedded = fals
           </div>
 
           {/* Respiratory Rate */}
-          <div className="space-y-2">
-            <Label>Respiratory Rate</Label>
+          <div className="space-y-1">
+            <Label className="text-xs">RR</Label>
             <div className="flex items-center gap-1">
               <Input
                 type="number"
                 placeholder="16"
                 value={vitals.respiratory_rate || ""}
                 onChange={(e) => updateVitals({ respiratory_rate: parseInt(e.target.value) || undefined })}
-                className="w-20"
+                className="w-16 h-8 text-xs"
                 disabled={readOnly}
               />
               <span className="text-sm text-muted-foreground">/min</span>
@@ -218,13 +218,13 @@ export function VitalsForm({ vitals, onChange, readOnly = false, embedded = fals
           </div>
 
           {/* BMI (calculated) */}
-          <div className="space-y-2">
-            <Label>BMI</Label>
+          <div className="space-y-1">
+            <Label className="text-xs">BMI</Label>
             <div className="flex items-center gap-1">
               <Input
                 type="text"
                 value={vitals.bmi || "-"}
-                className="w-20 bg-muted"
+                className="w-16 h-8 text-xs bg-muted"
                 disabled
               />
               <span className="text-sm text-muted-foreground">kg/m²</span>
