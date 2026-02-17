@@ -8,18 +8,15 @@ interface DoctorAvatarLargeProps {
   className?: string;
 }
 
-// Arabic/Gulf Muslim female doctor — hijab, white coat, stethoscope, studio background
-// From: https://unsplash.com/photos/BK25mS15dhk
 const DOCTOR_PHOTO_URL =
   "https://plus.unsplash.com/premium_photo-1664475543697-229156438e1e?fm=jpg&q=80&w=800&auto=format&fit=crop";
 
-const IDLE_BARS   = [4, 6, 4, 8, 4, 6, 4, 8, 4, 6, 4];
+const IDLE_BARS = [4, 6, 4, 8, 4, 6, 4, 8, 4, 6, 4];
 
 export function DoctorAvatarLarge({ state = "idle", className }: DoctorAvatarLargeProps) {
   const [barHeights, setBarHeights] = useState<number[]>(IDLE_BARS);
   const timerRef = useRef<ReturnType<typeof setInterval>>();
 
-  // JS-driven bar animation — speaking: random tall bars, listening: random short uniform bars
   useEffect(() => {
     clearInterval(timerRef.current);
 
@@ -53,43 +50,47 @@ export function DoctorAvatarLarge({ state = "idle", className }: DoctorAvatarLar
       ? Math.min(1, (barHeights[4] + barHeights[5] + barHeights[6]) / (3 * 40))
       : 0;
 
-  // Border glow color per state
+  // Border glow — dramatic during speaking
   const borderGlow =
     state === "speaking"
-      ? "0 0 0 3px hsl(var(--primary)/0.8), 0 0 40px 10px hsl(var(--primary)/0.35)"
+      ? "0 0 0 4px hsl(var(--primary)), 0 0 60px 20px hsl(var(--primary)/0.5), 0 0 100px 40px hsl(var(--primary)/0.2)"
       : state === "listening"
       ? "0 0 0 2px hsl(var(--primary)/0.5), 0 0 20px 4px hsl(var(--primary)/0.2)"
       : state === "thinking"
       ? "0 0 0 2px hsl(40 80% 55%/0.4), 0 0 16px 4px hsl(40 80% 55%/0.1)"
       : "0 0 0 1px hsl(var(--border))";
 
-  return (
-    <div className={cn("relative flex flex-col items-center gap-3", className)}>
+  // Animation applied to the CONTAINER (not img) so overflow-hidden doesn't clip it
+  const containerAnimation =
+    state === "speaking"
+      ? "headNod 0.65s ease-in-out infinite"
+      : state === "idle"
+      ? "avatarFloat 5s ease-in-out infinite"
+      : undefined;
 
-      {/* Portrait container */}
+  return (
+    <div className={cn("relative flex flex-col items-center", className)}>
+
+      {/* Portrait container — animation HERE so it's visible (not clipped) */}
       <div
-        className="relative overflow-hidden rounded-3xl transition-all duration-500"
+        className={cn(
+          "relative overflow-hidden rounded-3xl transition-[box-shadow,transform] duration-500",
+          state === "speaking" && "scale-[1.03]"
+        )}
         style={{
           width: "min(300px, 86vw)",
           height: "min(420px, 54vh)",
           boxShadow: borderGlow,
-          transform: state === "speaking" ? "scale(1.015)" : "scale(1)",
+          animation: containerAnimation,
+          perspective: "800px",
         }}
       >
-        {/* Doctor photo */}
+        {/* Doctor photo — static, no animation on the img itself */}
         <img
           src={DOCTOR_PHOTO_URL}
-          alt="Dr. Fatima Al-Tabeebi"
+          alt="Doctor avatar"
           className="w-full h-full object-cover"
-          style={{
-            objectPosition: "50% 8%",
-            animation:
-              state === "speaking"
-                ? "headNod 0.65s ease-in-out infinite"
-                : state === "idle"
-                ? "avatarFloat 5s ease-in-out infinite"
-                : undefined,
-          }}
+          style={{ objectPosition: "50% 8%" }}
         />
 
         {/* State tint overlay */}
@@ -103,36 +104,43 @@ export function DoctorAvatarLarge({ state = "idle", className }: DoctorAvatarLar
         />
 
         {/* Bottom gradient fade */}
-        <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-background/70 to-transparent pointer-events-none" />
+        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-background/80 to-transparent pointer-events-none" />
 
-        {/* Mouth glow overlay — driven by mouthOpenness */}
+        {/* Dark mouth oval — scales open/closed with mouthOpenness (visible on bright photo) */}
         {state === "speaking" && (
-          <>
-            <div
-              className="absolute left-1/2 -translate-x-1/2 rounded-full pointer-events-none"
-              style={{
-                bottom: "24%",
-                width: "90px",
-                height: `${10 + mouthOpenness * 28}px`,
-                background:
-                  "radial-gradient(ellipse, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0) 100%)",
-                transition: "height 75ms ease-out",
-                borderRadius: "50%",
-              }}
-            />
-            <div
-              className="absolute left-1/2 -translate-x-1/2 rounded-full pointer-events-none"
-              style={{
-                bottom: "25%",
-                width: "52px",
-                height: `${6 + mouthOpenness * 18}px`,
-                background:
-                  "radial-gradient(ellipse, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0) 100%)",
-                transition: "height 60ms ease-out",
-                borderRadius: "50%",
-              }}
-            />
-          </>
+          <div
+            className="absolute left-1/2 -translate-x-1/2 pointer-events-none"
+            style={{
+              bottom: "29%",
+              width: `${36 + mouthOpenness * 20}px`,
+              height: `${8 + mouthOpenness * 22}px`,
+              background: "radial-gradient(ellipse, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0) 80%)",
+              borderRadius: "50%",
+              transition: "width 70ms ease-out, height 70ms ease-out",
+            }}
+          />
+        )}
+
+        {/* EQ bars — inside portrait, bottom-center overlay, big + glowing */}
+        {(state === "speaking" || state === "listening") && (
+          <div
+            className="absolute left-1/2 -translate-x-1/2 flex gap-[4px] items-end pointer-events-none"
+            style={{ bottom: "52px", height: "60px" }}
+          >
+            {barHeights.map((h, i) => (
+              <div
+                key={i}
+                style={{
+                  width: "7px",
+                  height: `${h}px`,
+                  borderRadius: "9999px",
+                  background: "hsl(var(--primary))",
+                  boxShadow: "0 0 6px 1px hsl(var(--primary)/0.6)",
+                  transition: "height 75ms ease-out",
+                }}
+              />
+            ))}
+          </div>
         )}
 
         {/* Thinking shimmer */}
@@ -144,12 +152,6 @@ export function DoctorAvatarLarge({ state = "idle", className }: DoctorAvatarLar
         {state === "listening" && (
           <div className="absolute inset-0 rounded-3xl ring-2 ring-primary/40 animate-pulse pointer-events-none" />
         )}
-
-        {/* Name card overlay at bottom */}
-        <div className="absolute bottom-0 left-0 right-0 px-4 pb-3 pointer-events-none">
-          <p className="text-[13px] font-semibold text-white drop-shadow-md">Dr. Fatima Al-Tabeebi</p>
-          <p className="text-[11px] text-white/80 drop-shadow">🇦🇪 Family Medicine · Dubai, UAE</p>
-        </div>
 
         {/* Status dot */}
         <span
@@ -163,33 +165,15 @@ export function DoctorAvatarLarge({ state = "idle", className }: DoctorAvatarLar
         />
       </div>
 
-      {/* Equalizer bars — JS-driven heights */}
-      <div className="flex gap-[3px] items-end" style={{ height: "48px" }}>
-        {barHeights.map((h, i) => (
-          <div
-            key={i}
-            className={cn(
-              "rounded-full transition-[height] duration-75",
-              state === "speaking" || state === "listening" ? "bg-primary" : "bg-muted-foreground/25",
-              state !== "speaking" && state !== "listening" && "opacity-40"
-            )}
-            style={{ width: "5px", height: `${h}px` }}
-          />
-        ))}
-      </div>
-
-      {/* Attribution (required for Unsplash+ embed) */}
-      <p className="text-[9px] text-muted-foreground/40 -mt-1">Photo: Unsplash+</p>
-
       <style>{`
         @keyframes avatarFloat {
           0%, 100% { transform: translateY(0px); }
           50% { transform: translateY(-6px); }
         }
         @keyframes headNod {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          30% { transform: translateY(-4px) rotate(0.4deg); }
-          70% { transform: translateY(3px) rotate(-0.3deg); }
+          0%, 100% { transform: translateY(0px) rotateX(0deg); }
+          30% { transform: translateY(-8px) rotateX(1.5deg); }
+          70% { transform: translateY(6px) rotateX(-1deg); }
         }
       `}</style>
     </div>
