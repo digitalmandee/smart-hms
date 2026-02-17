@@ -1,61 +1,88 @@
 
+# Tabeebi Smart Pharmacy AI - Stock-Aware Recommendations + One-Click Add
 
-# Fix Tabeebi Medicine Check - Speed + UI Polish
+## What We're Building
 
-## Problems Identified
+When a pharmacist searches for a medicine alternative via "Tabeebi Medicine Check," the system will automatically cross-reference the AI results with your actual inventory. Alternatives that are **in stock** get a green "In Stock" badge and a one-click "Add to Cart" button. Out-of-stock alternatives are grayed out. This turns Tabeebi from a lookup tool into a direct sales assistant.
 
-1. **Slow search**: Uses `deepseek-reasoner` model (meant for complex reasoning) for simple medicine lookups. This is overkill and causes long wait times.
-2. **Raw JSON shown**: When salt mode is on, the result sometimes shows raw JSON text like `{ "salt": "Paracetamol...", "alternatives": ["Calpol"...` instead of parsed, styled results (parsing happens in render cycle which can miss).
-3. **Bland results UI**: Plain text list with no visual punch - needs animated loading, card-style results, and better salt display.
+Additionally, we'll add a **Tabeebi Smart Suggest** widget that proactively recommends commonly paired medicines (e.g., "You added Augmentin -- consider adding a probiotic") based on what's already in the cart.
 
-## Solution
+## Changes
 
-### 1. Add `pharmacy_lookup` mode to edge function (speed fix)
-
-**File: `supabase/functions/ai-assistant/index.ts`**
-
-- Add a new mode `pharmacy_lookup` that routes to `deepseek-chat` (fast model) instead of `deepseek-reasoner`
-- Use temperature 0.2 for deterministic results
-- Lower max_tokens to 512 (we only need a short JSON response)
-- This alone should cut response time from 10-15s to 2-4s
-
-### 2. Fix result parsing bug
+### 1. Stock-Aware Alternative Results with One-Click Add
 
 **File: `src/components/pharmacy/POSMedicineAlternatives.tsx`**
 
-The current parsing runs during render (lines 49-73) which is an anti-pattern - it can cause infinite loops or miss updates. Move parsing into a `useEffect` that triggers when `messages` changes and `isLoading` becomes false.
+Current state: Results show alternative names as plain text. No connection to inventory.
 
-### 3. Redesign the loading + results UI
+New behavior:
+- After AI returns alternatives, fuzzy-match each name against `medicine_inventory` (via the existing `useInventory` hook with a search query)
+- For each alternative, show stock status:
+  - **In Stock**: Green badge with quantity + "Add" button
+  - **Out of Stock**: Dimmed text, no button
+- Clicking "Add" instantly adds the matched inventory item to the POS cart (same as `POSProductSearch` does)
+- The component now receives `onAddToCart` prop (same `CartItem` callback as `POSProductSearch`)
 
-**File: `src/components/pharmacy/POSMedicineAlternatives.tsx`**
+Implementation approach:
+- After results are parsed in the existing `useEffect`, trigger a batch inventory lookup using `supabase.from('medicine_inventory')` with `.or()` filter matching each alternative name
+- Store matched inventory in local state
+- Render each result card with stock info and an "Add" button when matched
 
-Loading state:
-- Animated `DoctorAvatar` (size "sm", state "thinking") centered with a pulsing "Tabeebi is checking..." text
-- Add 3 skeleton shimmer lines below for anticipation
+### 2. Pass `onAddToCart` to POSMedicineAlternatives
 
-Salt display (when salt mode is on):
-- Dedicated card with a flask icon, salt name in bold, strength highlighted in a teal badge
-- Clear visual separation from the alternatives list
+**File: `src/pages/app/pharmacy/POSTerminalPage.tsx`**
 
-Results list:
-- Each alternative in a mini-card with teal-gradient numbered circle, hover lift effect
-- Staggered fade-in animation using CSS `animation-delay` on each item
-- Subtle border and rounded corners per item
+- Change `<POSMedicineAlternatives />` to `<POSMedicineAlternatives onAddToCart={handleAddToCart} />`
 
-Empty state:
-- DoctorAvatar (xs) + "Type a medicine name to find alternatives" with a subtle pill icon
+### 3. Tabeebi Cart Companion - "Frequently Bought Together" Suggestions
 
-### 4. Update useAIChat mode type
+**File: `src/components/pharmacy/POSCartCompanion.tsx` (new)**
 
-**File: `src/hooks/useAIChat.ts`**
+A small Tabeebi-branded widget placed above or below the cart that watches what's in the cart and suggests complementary medicines:
 
-- Add `pharmacy_lookup` to the mode union type
+- When a medicine is added to cart, call the `pharmacy_lookup` mode with a prompt like: "For a patient buying [medicine names], suggest 2-3 complementary OTC medicines commonly recommended together. Return JSON array of names."
+- Cross-reference results with inventory (same pattern as above)
+- Show as small pill-shaped suggestion chips with "Add" buttons
+- Debounced: only triggers 1.5s after the last cart change, and only if cart has items
+- Collapsible, branded with DoctorAvatar (xs)
+
+### 4. Tabeebi Expiry Intelligence
+
+**File: `src/components/pharmacy/ExpiryAlert.tsx`**
+
+- Add Tabeebi branding (DoctorAvatar xs icon)
+- When clicked, show a Tabeebi-powered suggestion: "These items are expiring soon. Consider running a discount promotion or bundling them."
+- Small enhancement, mostly branding alignment
 
 ## Technical Summary
 
 | File | Change |
 |------|--------|
-| `supabase/functions/ai-assistant/index.ts` | Add `pharmacy_lookup` mode routing to `deepseek-chat` with temp 0.2, max 512 tokens |
-| `src/hooks/useAIChat.ts` | Add `pharmacy_lookup` to mode type |
-| `src/components/pharmacy/POSMedicineAlternatives.tsx` | Switch to `pharmacy_lookup` mode, fix parsing with useEffect, redesign loading/results UI with animations |
+| `src/components/pharmacy/POSMedicineAlternatives.tsx` | Add `onAddToCart` prop, inventory lookup after AI results, stock badges, one-click "Add" buttons |
+| `src/pages/app/pharmacy/POSTerminalPage.tsx` | Pass `onAddToCart={handleAddToCart}` to `POSMedicineAlternatives` |
+| `src/components/pharmacy/POSCartCompanion.tsx` | New component: AI-powered "frequently bought together" suggestions with stock check and one-click add |
+| `src/components/pharmacy/ExpiryAlert.tsx` | Minor Tabeebi branding update |
 
+### Inventory Matching Strategy
+
+```text
+AI returns: ["Calpol", "Tylenol", "Febrol", "Provas", "Panadol CF"]
+                    |
+         Query medicine_inventory
+         .or('medicine.name.ilike.%Calpol%,...')
+         .gt('quantity', 0)
+                    |
+         Match results by fuzzy name comparison
+                    |
+         Render: [Calpol - In Stock (45) [+ Add]] [Tylenol - Out of Stock]
+```
+
+### Data Flow for Cart Companion
+
+```text
+Cart changes -> debounce 1.5s -> AI prompt with cart items
+     -> parse JSON array -> inventory lookup
+     -> show suggestion chips with [+ Add] buttons
+```
+
+No database migrations needed. No new edge function modes needed (reuses `pharmacy_lookup`). No new secrets required.
