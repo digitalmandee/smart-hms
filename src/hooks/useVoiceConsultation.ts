@@ -38,6 +38,12 @@ const LANG_MAP: Record<string, string> = {
   ur: "ur-PK",
 };
 
+const BRIDGE_PHRASES: Record<string, string> = {
+  en: "One moment.",
+  ar: "لحظة.",
+  ur: "ایک لمحہ۔",
+};
+
 export function useVoiceConsultation(language: string = "en") {
   const [voiceState, setVoiceState] = useState<VoiceState>("idle");
   const [transcript, setTranscript] = useState("");
@@ -45,6 +51,7 @@ export function useVoiceConsultation(language: string = "en") {
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const onFinalRef = useRef<((text: string) => void) | null>(null);
+  const audioUnlockedRef = useRef(false);
 
   const isSupported =
     typeof window !== "undefined" &&
@@ -65,6 +72,36 @@ export function useVoiceConsultation(language: string = "en") {
       window.speechSynthesis?.cancel();
     };
   }, []);
+
+  /**
+   * Must be called synchronously inside a user gesture handler (e.g. button click).
+   * Speaks a silent utterance to "unlock" the Web Audio / SpeechSynthesis context in
+   * Chrome/Safari, so subsequent async calls to speak() are not blocked.
+   */
+  const unlockAudio = useCallback(() => {
+    if (!isTTSSupported || audioUnlockedRef.current) return;
+    const unlock = new SpeechSynthesisUtterance(" ");
+    unlock.volume = 0;
+    unlock.rate = 10;
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(unlock);
+    audioUnlockedRef.current = true;
+  }, [isTTSSupported]);
+
+  /**
+   * Speak a short "thinking" bridge phrase immediately after capturing user speech.
+   * Audio must already be unlocked (call unlockAudio first).
+   */
+  const speakBridge = useCallback(() => {
+    if (!isTTSSupported) return;
+    const text = BRIDGE_PHRASES[language] || BRIDGE_PHRASES.en;
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.volume = 0.85;
+    utterance.rate = 1.05;
+    utterance.lang = LANG_MAP[language] || "en-US";
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utterance);
+  }, [isTTSSupported, language]);
 
   const startListening = useCallback(
     (onFinalTranscript?: (text: string) => void) => {
@@ -115,7 +152,6 @@ export function useVoiceConsultation(language: string = "en") {
       };
 
       recognition.onend = () => {
-        // Use ref to get the latest state (avoid stale closure)
         const currentState = voiceStateRef.current;
         if (currentState === "listening") {
           // Auto-restart on silence timeout
@@ -153,7 +189,7 @@ export function useVoiceConsultation(language: string = "en") {
 
       if (!cleanText) return;
 
-      window.speechSynthesis.cancel(); // Stop any ongoing speech
+      window.speechSynthesis.cancel();
 
       const doSpeak = () => {
         const utterance = new SpeechSynthesisUtterance(cleanText);
@@ -166,12 +202,17 @@ export function useVoiceConsultation(language: string = "en") {
         const voices = window.speechSynthesis.getVoices();
         const targetLang = LANG_MAP[language] || "en-US";
         const langCode = targetLang.split("-")[0];
-        const femaleKeywords = ["female", "samantha", "karen", "victoria", "zira", "google us english", "fiona", "moira", "tessa", "veena", "ava", "allison", "susan"];
-        const femaleVoice = voices.find(v =>
-          v.lang.startsWith(langCode) &&
-          femaleKeywords.some(k => v.name.toLowerCase().includes(k))
+        const femaleKeywords = [
+          "female", "samantha", "karen", "victoria", "zira",
+          "google us english", "fiona", "moira", "tessa", "veena",
+          "ava", "allison", "susan", "aria", "jenny", "siri",
+        ];
+        const femaleVoice = voices.find(
+          (v) =>
+            v.lang.startsWith(langCode) &&
+            femaleKeywords.some((k) => v.name.toLowerCase().includes(k))
         );
-        const langVoice = voices.find(v => v.lang.startsWith(langCode));
+        const langVoice = voices.find((v) => v.lang.startsWith(langCode));
         const matchingVoice = femaleVoice || langVoice;
         if (matchingVoice) utterance.voice = matchingVoice;
 
@@ -192,7 +233,6 @@ export function useVoiceConsultation(language: string = "en") {
         window.speechSynthesis.speak(utterance);
       };
 
-      // Browsers load voices asynchronously — wait if not ready yet
       const voices = window.speechSynthesis.getVoices();
       if (voices.length > 0) {
         doSpeak();
@@ -202,7 +242,6 @@ export function useVoiceConsultation(language: string = "en") {
           doSpeak();
         };
         window.speechSynthesis.addEventListener("voiceschanged", onVoicesChanged);
-        // Fallback: speak anyway after 500ms even if voiceschanged never fires
         setTimeout(() => {
           window.speechSynthesis.removeEventListener("voiceschanged", onVoicesChanged);
           doSpeak();
@@ -228,6 +267,8 @@ export function useVoiceConsultation(language: string = "en") {
     transcript,
     isSupported,
     isTTSSupported,
+    unlockAudio,
+    speakBridge,
     startListening,
     stopListening,
     speakResponse,
