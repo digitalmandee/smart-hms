@@ -10,7 +10,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Save, Check, ArrowLeft, CalendarIcon, Scissors, Stethoscope, Pill, TestTube, Bot } from "lucide-react";
+import { Loader2, Save, Check, ArrowLeft, CalendarIcon, Scissors, Stethoscope, Pill, TestTube } from "lucide-react";
+import { DoctorAvatar } from "@/components/ai/DoctorAvatar";
 import { useAppointment, useUpdateAppointment } from "@/hooks/useAppointments";
 import { useConsultationByAppointment, useCreateConsultation, useUpdateConsultation, Vitals } from "@/hooks/useConsultations";
 import { useCreatePrescription, PrescriptionItemInput } from "@/hooks/usePrescriptions";
@@ -302,8 +303,8 @@ export default function ConsultationPage() {
                 Labs
               </TabsTrigger>
               <TabsTrigger value="ai" className="text-xs gap-1">
-                <Bot className="h-3.5 w-3.5" />
-                AI Assistant
+                <DoctorAvatar size="xs" className="scale-50 -m-2" />
+                Tabeebi
               </TabsTrigger>
             </TabsList>
 
@@ -367,7 +368,7 @@ export default function ConsultationPage() {
               />
             </TabsContent>
 
-            {/* AI Assistant Tab */}
+            {/* Tabeebi Tab */}
             <TabsContent value="ai" className="mt-4">
               <DoctorAIPanel
                 standalone
