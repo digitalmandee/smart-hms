@@ -158,13 +158,21 @@ export function useVoiceConsultation(language: string = "en") {
       const doSpeak = () => {
         const utterance = new SpeechSynthesisUtterance(cleanText);
         utterance.lang = LANG_MAP[language] || "en-US";
-        utterance.rate = 0.95;
-        utterance.pitch = 1.0;
+        utterance.rate = 0.92;
+        utterance.pitch = 1.05;
+        utterance.volume = 1.0;
 
-        // Try to find a matching voice
+        // Prefer female voices for Dr. Tabeebi
         const voices = window.speechSynthesis.getVoices();
         const targetLang = LANG_MAP[language] || "en-US";
-        const matchingVoice = voices.find(v => v.lang.startsWith(targetLang.split("-")[0]));
+        const langCode = targetLang.split("-")[0];
+        const femaleKeywords = ["female", "samantha", "karen", "victoria", "zira", "google us english", "fiona", "moira", "tessa", "veena", "ava", "allison", "susan"];
+        const femaleVoice = voices.find(v =>
+          v.lang.startsWith(langCode) &&
+          femaleKeywords.some(k => v.name.toLowerCase().includes(k))
+        );
+        const langVoice = voices.find(v => v.lang.startsWith(langCode));
+        const matchingVoice = femaleVoice || langVoice;
         if (matchingVoice) utterance.voice = matchingVoice;
 
         utterance.onstart = () => {
