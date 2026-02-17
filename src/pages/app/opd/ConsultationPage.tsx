@@ -297,6 +297,18 @@ export default function ConsultationPage() {
             onChange={setVitals}
           />
 
+          {/* Top action bar */}
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" size="sm" onClick={handleSaveDraft} disabled={isSaving}>
+              {isSaving ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <Save className="h-3.5 w-3.5 mr-1.5" />}
+              Save Draft
+            </Button>
+            <Button size="sm" onClick={handleComplete} disabled={isCompleting}>
+              {isCompleting ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <Check className="h-3.5 w-3.5 mr-1.5" />}
+              Complete
+            </Button>
+          </div>
+
           <Tabs defaultValue="clinical" className="w-full">
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="clinical" className="text-xs gap-1">
