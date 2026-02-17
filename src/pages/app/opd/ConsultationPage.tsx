@@ -238,7 +238,7 @@ export default function ConsultationPage() {
         }
       />
 
-      <div className="grid gap-4 lg:grid-cols-[260px_1fr_280px]">
+      <div className="grid gap-4 lg:grid-cols-[260px_1fr]">
         {/* Left Sidebar - Patient Info */}
         <div className="space-y-4">
           {patient && <PatientQuickInfo patient={patient} vitals={nurseVitals} />}
@@ -270,10 +270,33 @@ export default function ConsultationPage() {
             </Card>
           )}
 
+          {/* Previous Visits in sidebar */}
+          {patient && (
+            <PreviousVisits
+              patientId={patient.id}
+              compact
+              onCopyDiagnosis={setDiagnosis}
+              onCopyPrescription={(items) => setPrescriptionItems(items.map(i => ({
+                medicine_name: i.medicine_name,
+                dosage: i.dosage,
+                frequency: i.frequency,
+                duration: i.duration,
+                quantity: i.quantity,
+                instructions: i.instructions,
+              })))}
+            />
+          )}
         </div>
 
         {/* Center - Main Tabbed Interface */}
         <div className="space-y-4">
+          {/* Vitals Bar - full width above tabs */}
+          <CompactVitals
+            vitals={vitals}
+            nurseVitals={nurseVitals}
+            onChange={setVitals}
+          />
+
           <Tabs defaultValue="clinical" className="w-full">
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="clinical" className="text-xs gap-1">
@@ -392,31 +415,10 @@ export default function ConsultationPage() {
           </div>
         </div>
 
-        {/* Right Sidebar - Vitals */}
-        <div className="space-y-4">
-          <CompactVitals
-            vitals={vitals}
-            nurseVitals={nurseVitals}
-            onChange={setVitals}
-          />
-        </div>
+        {/* Right sidebar removed - vitals moved above tabs */}
       </div>
 
-      {/* Previous Visits - Full width below the grid */}
-      {patient && (
-        <PreviousVisits
-          patientId={patient.id}
-          onCopyDiagnosis={setDiagnosis}
-          onCopyPrescription={(items) => setPrescriptionItems(items.map(i => ({
-            medicine_name: i.medicine_name,
-            dosage: i.dosage,
-            frequency: i.frequency,
-            duration: i.duration,
-            quantity: i.quantity,
-            instructions: i.instructions,
-          })))}
-        />
-      )}
+      {/* Previous Visits moved to left sidebar */}
 
       {/* Visit Summary Dialog */}
       {patient && (

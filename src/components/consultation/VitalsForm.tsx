@@ -57,7 +57,7 @@ export function VitalsForm({ vitals, onChange, readOnly = false, embedded = fals
   };
 
   const gridContent = (
-        <div className="grid grid-cols-2 gap-x-3 gap-y-2">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-2">
           {/* Blood Pressure */}
           <div className="space-y-1">
             <Label className="flex items-center gap-1 text-xs">

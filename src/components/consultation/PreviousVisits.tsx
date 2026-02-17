@@ -10,19 +10,21 @@ import { Link } from "react-router-dom";
 
 interface PreviousVisitsProps {
   patientId: string;
+  compact?: boolean;
   onCopyDiagnosis?: (diagnosis: string) => void;
   onCopyPrescription?: (items: any[]) => void;
 }
 
 export function PreviousVisits({
   patientId,
+  compact = false,
   onCopyDiagnosis,
   onCopyPrescription,
 }: PreviousVisitsProps) {
   const { data: consultations = [], isLoading: loadingConsultations } =
-    usePatientConsultationHistory(patientId, 5);
+    usePatientConsultationHistory(patientId, compact ? 3 : 5);
   const { data: prescriptions = [], isLoading: loadingPrescriptions } =
-    usePatientPrescriptions(patientId, 5);
+    usePatientPrescriptions(patientId, compact ? 3 : 5);
 
   const isLoading = loadingConsultations || loadingPrescriptions;
 
@@ -50,6 +52,52 @@ export function PreviousVisits({
     return null;
   }
 
+  // Compact sidebar version
+  if (compact) {
+    return (
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <History className="h-4 w-4 text-primary" />
+            Previous Visits ({consultations.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {consultations.map((consultation) => {
+            const relatedPrescription = prescriptions.find(
+              (p) => p.consultation_id === consultation.id
+            );
+            return (
+              <Link
+                key={consultation.id}
+                to={`/app/opd/consultations/${consultation.id}`}
+                className="block border rounded p-2 space-y-1 hover:bg-accent/50 transition-colors"
+              >
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-medium">
+                    {format(new Date(consultation.created_at), "MMM d, yyyy")}
+                  </p>
+                  {relatedPrescription && (
+                    <Badge variant="outline" className="text-[10px] px-1 py-0">
+                      <Pill className="h-2.5 w-2.5 mr-0.5" />
+                      {relatedPrescription.items?.length || 0}
+                    </Badge>
+                  )}
+                </div>
+                {consultation.diagnosis && (
+                  <p className="text-[11px] text-muted-foreground line-clamp-1">
+                    {consultation.diagnosis}
+                  </p>
+                )}
+              </Link>
+            );
+          })}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Full-width version
   return (
     <Card>
       <CardHeader className="pb-3">
