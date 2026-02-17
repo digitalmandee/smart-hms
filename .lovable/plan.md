@@ -1,41 +1,59 @@
 
 
-# Fix Vitals Overflow + Empty Previous Visits Area
+# Consultation Page Revamp - 2-Column Layout
 
-## Issues
+## Problem
 
-1. **Vitals form overflows the right sidebar** (~280px wide) when expanded. The `grid-cols-2` layout with `w-16`/`w-20` inputs plus labels and unit text exceeds the column width. Labels like "Blood Pressure" and "Respiratory Rate" are too long.
-2. **Empty white space below** the 3-column grid when there are no previous visits, because `PreviousVisits` returns `null`.
+The current 3-column layout (`260px | flex | 280px`) causes persistent overflow issues. The 280px right column is too narrow for the Vitals form inputs. Previous Visits at the bottom is invisible when there are no visits and wasted space.
 
-## Changes
+## New Layout: 2-Column Design
 
-### 1. Fix VitalsForm for narrow sidebar
+Remove the right sidebar entirely. Move Vitals and Previous Visits into more natural positions:
 
-**File: `src/components/consultation/VitalsForm.tsx`**
+```text
++------------------+--------------------------------------------+
+| Patient Info     | [Vitals Bar - horizontal badges/expand]    |
+| (260px sidebar)  |--------------------------------------------|
+|                  | [Clinical] [Prescription] [Labs] [Tabeebi] |
+| Allergies        |                                            |
+| Chronic          |   Tab Content Area                         |
+| Medications      |                                            |
+|                  |                                            |
+| Previous Visits  |--------------------------------------------|
+| (collapsible)    | [Save Draft] [Recommend Surgery] [Complete]|
++------------------+--------------------------------------------+
+```
 
-- Change grid from `grid-cols-2` to `grid-cols-1` so each vital stacks vertically in the narrow sidebar
-- Shorten labels: "Blood Pressure" -> "BP", "Temperature" -> "Temp", "Respiratory Rate" -> "RR"
-- Reduce input widths from `w-16`/`w-20` to `w-14`/`w-16`
-- Make the BP row more compact: put both Sys/Dia inputs on one line with smaller widths
-- Reduce the temperature Select trigger from `w-16` to `w-14`
+### Changes
 
-### 2. Remove empty space when no previous visits
+**1. ConsultationPage.tsx - Switch to 2-column layout**
+- Change grid from `lg:grid-cols-[260px_1fr_280px]` to `lg:grid-cols-[260px_1fr]`
+- Remove the right sidebar column entirely
+- Move `CompactVitals` to the top of the center column (above tabs), giving it full width
+- Move `PreviousVisits` into the left sidebar below patient info (instead of full-width bottom section)
 
-**File: `src/components/consultation/PreviousVisits.tsx`**
+**2. VitalsForm.tsx - Use 4-column grid for wider space**
+- Since vitals now lives in the main content area (not 280px sidebar), change grid to `grid-cols-2 md:grid-cols-4` so all 8 vitals fit in 2 rows on desktop
+- Each input group stays compact with small inputs
 
-- The component already returns `null` when no consultations exist (line 49-51), which is correct
-- The empty space is caused by the parent container spacing. No change needed in this file.
+**3. CompactVitals.tsx - No structural changes**
+- Already works well with badge view (collapsed) and form view (expanded)
+- Will naturally fit better in the wider center column
 
-**File: `src/pages/app/opd/ConsultationPage.tsx`**
+**4. PreviousVisits.tsx - Compact sidebar version**
+- Move into left sidebar as a collapsible section using Collapsible component
+- Show last 3 visits as small clickable cards (date + diagnosis summary)
+- Each card links to the consultation detail page
+- When no visits exist, render nothing (already does this)
 
-- The `PreviousVisits` section already conditionally renders based on `patient` existing. Since the component returns `null` when there are no visits, there should be no visible empty space. However, the outer container may have padding/margin. We will ensure the wrapper div doesn't add spacing when there's nothing to show by keeping it as-is (the component already returns null).
-
-Actually, looking at the screenshot more carefully: the empty white area below is just the page background since the 3-column grid content ends and there's nothing below. This is expected behavior -- there is no "empty card" being rendered. The fix is simply cosmetic: the page content should not have excessive bottom padding.
-
-## Technical Summary
+## Technical Details
 
 | File | Change |
 |------|--------|
-| `src/components/consultation/VitalsForm.tsx` | Switch to single-column grid layout, shorten labels, reduce input widths for 280px sidebar fit |
-| `src/pages/app/opd/ConsultationPage.tsx` | Remove excessive bottom padding/spacing if any, ensure Previous Visits wrapper has no empty space |
+| `ConsultationPage.tsx` L241 | Grid: `lg:grid-cols-[260px_1fr]`, remove right sidebar div (L396-402) |
+| `ConsultationPage.tsx` L276 | Insert `CompactVitals` above `Tabs` in center column |
+| `ConsultationPage.tsx` L243 | Move `PreviousVisits` into left sidebar after patient info |
+| `ConsultationPage.tsx` L405-419 | Remove bottom `PreviousVisits` section |
+| `VitalsForm.tsx` L60 | Change grid to `grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-2` for wider layout |
+| `PreviousVisits.tsx` | Add `compact` prop: when true, render as vertical list of small visit cards for sidebar use |
 
