@@ -1,14 +1,36 @@
 
-# Tabeebi Voice Mode — Photo Fix + Real Lip Sync + Bigger Avatar
+# Tabeebi Avatar — Full Visual Overhaul
 
-## What This Plan Does
+## Confirmed Issues (From Code + Screenshot Analysis)
 
-Three targeted changes to fix the exact issues reported:
+### Issue 1: Head Nod Is Completely Invisible
+The `headNod` CSS animation is applied to the `<img>` element inside a `overflow-hidden` container. When the image translates Y by -4px to +3px, those pixels are clipped by the parent — the user sees zero movement. This is why the image appears static.
 
-1. **Correct Arabic doctor photo** — use the exact Unsplash photo you shared (hijab, white coat, stethoscope, studio background)
-2. **Real JavaScript-driven lip sync** — replace broken CSS loops with `setInterval` randomization that changes bar heights every 80ms during speaking, making it look genuinely alive
-3. **Bigger avatar** — switch from a 280px circle to a tall half-body portrait (like a video call) filling most of the screen
-4. **Remove "One moment"** — silent thinking instead of robotic bridge phrase
+**Fix**: Apply the animation to the entire portrait `<div>` container (not just the img). This way the whole card rocks/bobs together — fully visible.
+
+### Issue 2: Equalizer Bars Are Too Small to Notice
+11 bars, 5px wide each, in a 48px tall container **below** the portrait. Even though the JS interval IS updating them (session replay confirmed), they are visually too small and too far from the face to feel like lip sync.
+
+**Fix**: Move the equalizer bars **inside** the portrait as a bottom overlay (like a real audio call interface), increase size dramatically — 8px wide bars, up to 60px tall — and use a vivid glow color.
+
+### Issue 3: "Dr. Fatima" Name Overlay + Attribution Must Be Removed
+The name card (`Dr. Fatima Al-Tabeebi`, `🇦🇪 Family Medicine`) and `Photo: Unsplash+` text sit on top of the image. User doesn't want to expose these labels.
+
+**Fix**: Remove the name/specialty overlay from inside the portrait. Remove the Unsplash attribution text. The header already shows "Dr. Tabeebi" as the title — no need to repeat it inside the photo.
+
+### Issue 4: Mouth Overlay Is Nearly Invisible
+The white radial gradient on the photo is barely visible against the bright photo background. The user cannot see any "mouth movement" effect.
+
+**Fix**: Replace with a dark semi-transparent oval at the mouth position that **scales open/closed** based on `mouthOpenness`. A dark shape on the bright face photo will be clearly visible as a mouth animation.
+
+### Issue 5: Static Feel — Not Like a "3D AI Human"
+The photo has no movement at all from the user's perspective (animations are clipped). It needs to feel alive.
+
+**Fix**: 
+- Apply `headNod` to the container div (not img) — the whole portrait visibly nods
+- Add a subtle `perspective(800px) rotateX()` 3D tilt during speaking for depth effect
+- Scale the portrait container slightly larger when speaking (1.03x)
+- Add a strong pulsing glow ring around the portrait during speaking
 
 ---
 
@@ -16,147 +38,172 @@ Three targeted changes to fix the exact issues reported:
 
 | File | Change |
 |------|--------|
-| `src/components/ai/DoctorAvatarLarge.tsx` | New photo URL, bigger portrait format, JS-driven lip sync bars, bigger mouth overlay |
-| `src/pages/public/TabeebiVoicePage.tsx` | Remove speakBridge call, increase avatar area in layout |
-| `src/hooks/useVoiceConsultation.ts` | Remove speakBridge call from handleFinalTranscript (silence = natural) |
+| `src/components/ai/DoctorAvatarLarge.tsx` | Fix head nod clipping, move EQ bars inside portrait, bigger bars, remove name overlay, fix mouth overlay |
+
+Only one file needs to change.
 
 ---
 
 ## Technical Details
 
-### 1. Doctor Photo URL
+### Fix 1: Move Animation From `<img>` to Container `<div>`
 
-From the Unsplash page you linked, the actual CDN URL is:
-```
-https://plus.unsplash.com/premium_photo-1664475543697-229156438e1e?fm=jpg&q=80&w=800&auto=format&fit=crop
-```
-
-This shows a Muslim Arabic female doctor in pink hijab, white coat with stethoscope, professional studio background — exactly right.
-
-Note: This is an Unsplash+ (Getty) image. The CDN URL is publicly accessible for embedding in web apps as long as the Unsplash attribution is shown (which we'll add as a small overlay).
-
-### 2. Avatar Format — Half-Body Portrait
-
-Current: 280px circle (just a face crop)
-New: Tall rounded rectangle — `w-[300px] h-[420px]` (or `w-[280px] h-[400px]` on mobile)
-
-```
-┌─────────────┐
-│   [head]    │   ← face visible
-│  [torso]    │   ← white coat + stethoscope visible  
-│  [hands]    │   ← crossed arms visible
-└─────────────┘
+**Current (broken — clips):**
+```tsx
+<div className="relative overflow-hidden rounded-3xl" style={{ ... }}>
+  <img style={{ animation: state === "speaking" ? "headNod 0.65s..." : undefined }} />
 ```
 
-This makes her look like she's standing/sitting across from you — like a real video call or FaceTime. `object-fit: cover; object-position: 50% 5%` shows the full body from head to mid-torso.
-
-The portrait will have:
-- Soft rounded corners (`rounded-3xl`)
-- State-based glowing border instead of rings
-- A gradient overlay at the bottom to fade into the background (like a video call portrait)
-
-### 3. JavaScript-Driven Lip Sync (The Real Fix)
-
-Current broken approach — CSS `@keyframes eqBar` that runs the same loop forever:
-```css
-@keyframes eqBar {
-  from { transform: scaleY(0.15); }
-  to { transform: scaleY(1); }
-}
-```
-This looks mechanical — every bar animates on a fixed schedule regardless of speech.
-
-New approach — React state drives bar heights directly:
-
-```typescript
-const [barHeights, setBarHeights] = useState<number[]>(
-  [4, 6, 4, 8, 4, 6, 4, 8, 4, 6, 4]  // quiet idle state
-);
-const barTimerRef = useRef<ReturnType<typeof setInterval>>();
-
-useEffect(() => {
-  if (state === "speaking") {
-    barTimerRef.current = setInterval(() => {
-      setBarHeights(
-        Array.from({ length: 11 }, (_, i) => {
-          // Center bars are tallest (speech formants)
-          const isCenterBar = i >= 3 && i <= 7;
-          const min = isCenterBar ? 8 : 3;
-          const max = isCenterBar ? 38 : 20;
-          return Math.floor(min + Math.random() * (max - min));
-        })
-      );
-    }, 80); // 12.5fps updates — fast enough to look organic
-  } else {
-    clearInterval(barTimerRef.current);
-    setBarHeights([4, 6, 4, 8, 4, 6, 4, 8, 4, 6, 4]); // reset to idle
-  }
-  return () => clearInterval(barTimerRef.current);
-}, [state]);
+**Fixed:**
+```tsx
+<div
+  className="relative overflow-hidden rounded-3xl"
+  style={{
+    animation: state === "speaking" ? "headNod 0.65s ease-in-out infinite"
+             : state === "idle"     ? "avatarFloat 5s ease-in-out infinite"
+             : undefined,
+    transform: state === "speaking" ? "scale(1.03)" : "scale(1)",
+  }}
+>
+  <img className="w-full h-full object-cover" style={{ objectPosition: "50% 8%" }} />
 ```
 
-Each bar's height changes independently at random — center bars (indices 3-7) go taller since human speech is concentrated in mid frequencies. This makes the visualizer look genuinely responsive.
+The container's `overflow-hidden` clips the image inside, but the container itself is NOT inside any overflow-hidden parent — so the container's own animation is fully visible. The head nod will be clearly visible to the user.
 
-**Mouth overlay** — driven by average center bar height:
-```typescript
-const mouthOpenness = state === "speaking"
-  ? Math.min(1, (barHeights[4] + barHeights[5] + barHeights[6]) / (3 * 38))
-  : 0;
-```
+### Fix 2: EQ Bars — Inside Portrait, Much Bigger
 
-The mouth overlay size scales with `mouthOpenness`:
-- At low openness (0.1): small ellipse, lips nearly closed
-- At high openness (0.9): tall ellipse, mouth clearly open
-
-### 4. Equalizer Bar Rendering
-
-Replace the current static height + scaleY approach with direct `height` from state:
+Remove the external EQ bar section below the avatar. Instead, overlay them inside the portrait at the bottom:
 
 ```tsx
-<div className="flex gap-[3px] items-end h-12">
-  {barHeights.map((h, i) => (
-    <div
-      key={i}
-      className="w-[5px] bg-primary rounded-full transition-[height] duration-75"
-      style={{ height: `${h}px` }}
-    />
-  ))}
-</div>
+{/* EQ bars — inside portrait, bottom center overlay */}
+{(state === "speaking" || state === "listening") && (
+  <div
+    className="absolute bottom-14 left-1/2 -translate-x-1/2 flex gap-[4px] items-end"
+    style={{ height: "60px" }}
+  >
+    {barHeights.map((h, i) => (
+      <div
+        key={i}
+        style={{
+          width: "7px",
+          height: `${h}px`,
+          borderRadius: "9999px",
+          background: "hsl(var(--primary))",
+          boxShadow: "0 0 6px 1px hsl(var(--primary)/0.6)",
+          transition: "height 75ms ease-out",
+        }}
+      />
+    ))}
+  </div>
+)}
 ```
 
-Using `transition-[height] duration-75` gives each bar a 75ms smooth transition between random heights — creating a very natural-looking fluid animation without snap.
+This places glowing teal bars directly on the lower chest/chin area of the photo during speaking — immediately visible and tied to the face.
 
-### 5. Listening Waveform (Same Treatment)
+### Fix 3: Dark Mouth Overlay (Visible on Bright Photo)
 
-When `state === "listening"`, show similar animated bars but in the mic-input style (blue/teal, symmetric, reacts as if picking up audio):
+Replace the nearly-invisible white radial gradient with a dark oval that clearly shows mouth opening/closing:
 
-```typescript
-// Same setInterval approach when state === "listening"
-// Different heights — more uniform (input monitor, not output playback)
-// Shorter bars overall (8-18px range)
+```tsx
+{state === "speaking" && (
+  <div
+    className="absolute left-1/2 -translate-x-1/2 pointer-events-none"
+    style={{
+      bottom: "29%",           // position at mouth level in the photo
+      width: `${36 + mouthOpenness * 20}px`,
+      height: `${8 + mouthOpenness * 22}px`,
+      background: "radial-gradient(ellipse, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0) 80%)",
+      borderRadius: "50%",
+      transition: "width 70ms ease-out, height 70ms ease-out",
+    }}
+  />
+)}
 ```
 
-### 6. Remove "One Moment" Bridge
+A dark semi-transparent oval at mouth position clearly reads as "mouth opening" against the bright white background of the studio photo. Scales from 36×8px (nearly closed) to 56×30px (open).
 
-In `TabeebiVoicePage.tsx`, line 115: `speakBridgeRef.current();` — remove this line.
+### Fix 4: Remove Name Card and Attribution
 
-The "thinking" avatar animation (amber pulse) already gives visual feedback. Silence during thinking is natural and professional. Saying "One moment" every time sounds like a voicemail robot.
+Delete the name card overlay div and the `<p className="text-[9px]...">Photo: Unsplash+</p>` attribution element entirely. The header already shows "Dr. Tabeebi — Voice Consultation".
 
-### 7. Layout Change
+### Fix 5: 3D Perspective Tilt During Speaking
 
-Current avatar area height: `flex-1 flex-col items-center justify-center` — avatar gets ~300px vertical space on mobile.
+Add a subtle perspective transform to the container to give a 3D depth effect:
 
-New: Give the avatar more room by reducing the bottom conversation history panel. On mobile the portrait takes 420px height, which is most of a 844px screen. The mic button floats at the bottom.
+```tsx
+style={{
+  perspective: "800px",
+  // existing styles...
+}}
+```
 
-Remove: The transcript history panel (it distracts from the video-call feel). Instead show only the last Dr. Tabeebi response as a subtitle below the portrait (like a real-time caption).
+And update the `headNod` keyframe to include a slight X rotation:
+
+```css
+@keyframes headNod {
+  0%, 100% { transform: translateY(0px) rotateX(0deg); }
+  30%       { transform: translateY(-8px) rotateX(1.5deg); }
+  70%       { transform: translateY(6px) rotateX(-1deg); }
+}
+```
+
+### Fix 6: Speaking Glow Ring (Much More Dramatic)
+
+Current glow: `boxShadow: "0 0 0 3px hsl(var(--primary)/0.8), 0 0 40px 10px hsl(var(--primary)/0.35)"` — decent but could be stronger.
+
+Add a CSS `animate-pulse` class on the container during speaking AND a brighter outer glow:
+
+```tsx
+boxShadow: state === "speaking"
+  ? "0 0 0 4px hsl(var(--primary)), 0 0 60px 20px hsl(var(--primary)/0.5), 0 0 100px 40px hsl(var(--primary)/0.2)"
+  : ...
+```
 
 ---
 
-## Implementation Order
+## Updated `DoctorAvatarLarge.tsx` Structure
 
-1. `DoctorAvatarLarge.tsx` — swap photo URL, convert to portrait format, add `useState` + `useEffect` for JS bar animation, update mouth overlay
-2. `TabeebiVoicePage.tsx` — remove `speakBridgeRef.current()`, adjust layout to give avatar more vertical space, replace history panel with single last-response caption
-3. `useVoiceConsultation.ts` — `speakBridge` function can stay (for future use) but it won't be called
+```
+<div className="flex flex-col items-center gap-3">
+  
+  {/* Portrait container — animation applied HERE (not on img) */}
+  <div
+    style={{
+      animation: speaking ? "headNod 0.65s..." : idle ? "avatarFloat 5s..." : undefined,
+      boxShadow: glow,
+      transform: speaking ? "scale(1.03)" : "scale(1)",
+    }}
+    className="relative overflow-hidden rounded-3xl transition-all duration-500"
+  >
+    {/* Photo — static, no animation */}
+    <img src={DOCTOR_PHOTO_URL} />
+    
+    {/* State tint overlay */}
+    {/* Bottom gradient fade */}
+    {/* Mouth dark oval — visible on bright photo */}
+    {/* EQ bars — overlaid inside bottom of portrait */}
+    {/* Thinking shimmer */}
+    {/* Listening pulse ring */}
+    {/* Status dot */}
+    {/* NO name card — removed */}
+  </div>
 
-No edge function changes needed (brevity + token cap already correctly configured).
-No new dependencies needed.
+  {/* NO external EQ bars below — moved inside portrait */}
+  {/* NO attribution text — removed */}
+  
+</div>
+```
+
+---
+
+## Implementation Steps
+
+1. Move `headNod` and `avatarFloat` animation from `<img>` style to the portrait container `<div>` style
+2. Remove the name card overlay (`Dr. Fatima Al-Tabeebi` + `🇦🇪 Family Medicine`) from inside the portrait
+3. Remove the `<p>Photo: Unsplash+</p>` attribution below
+4. Replace the white radial gradient mouth overlay with a dark oval that scales with `mouthOpenness`
+5. Move equalizer bars inside the portrait as a bottom-center overlay (bigger, with glow)
+6. Update `headNod` keyframe to include Y translation that is larger (+8px/-8px) and optionally a slight rotateX for 3D feel
+7. Strengthen the speaking glow ring
+
+No hooks changes. No edge function changes. Single file only.
