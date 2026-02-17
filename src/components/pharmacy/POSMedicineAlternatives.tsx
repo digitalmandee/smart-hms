@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/collapsible";
 import { useAIChat } from "@/hooks/useAIChat";
 import { DoctorAvatar } from "@/components/ai/DoctorAvatar";
-import { Search, RefreshCw, ChevronDown, FlaskConical, Plus, Package } from "lucide-react";
+import { Search, RefreshCw, ChevronDown, FlaskConical, Plus, Package, Check, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { CartItem } from "@/hooks/usePOS";
@@ -48,6 +48,9 @@ export function POSMedicineAlternatives({ onAddToCart }: POSMedicineAlternatives
   const [isOpen, setIsOpen] = useState(false);
   const [inventoryMap, setInventoryMap] = useState<Record<string, InventoryMatch>>({});
   const [loadingInventory, setLoadingInventory] = useState(false);
+  const [searchPhase, setSearchPhase] = useState<"correct" | "alternatives">("correct");
+  const [correctedName, setCorrectedName] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const { profile } = useAuth();
 
   const { messages, isLoading, sendMessage, clearChat } = useAIChat({
@@ -60,43 +63,85 @@ export function POSMedicineAlternatives({ onAddToCart }: POSMedicineAlternatives
     setSaltInfo(null);
     setSearched(true);
     setInventoryMap({});
+    setCorrectedName(null);
+    setSearchPhase("correct");
+
+    // Step 1: Ask AI to correct the medicine name
+    const correctionPrompt = `Correct this medicine name to the closest real medicine: "${query.trim()}". Return ONLY the corrected name, nothing else.`;
+    await sendMessage(correctionPrompt);
+  }, [query, isLoading, sendMessage]);
+
+  const handleConfirmCorrection = useCallback(async () => {
+    if (!correctedName || isLoading) return;
+    setQuery(correctedName);
+    setSearchPhase("alternatives");
+    setResults(null);
+    setSaltInfo(null);
 
     const prompt = showSalt
-      ? `For medicine "${query.trim()}": return JSON {"salt":"generic/salt composition with strength","alternatives":["Brand1","Brand2","Brand3","Brand4","Brand5"]}. Include 5 alternatives available in Pakistan. No other text.`
-      : `List 5 alternative brand names for "${query.trim()}" available in Pakistan. Return ONLY a JSON array of strings. No explanation.`;
+      ? `For medicine "${correctedName}": return JSON {"salt":"generic/salt composition with strength","alternatives":["Brand1","Brand2","Brand3","Brand4","Brand5"]}. Include 5 alternatives available in Pakistan. No other text.`
+      : `List 5 alternative brand names for "${correctedName}" available in Pakistan. Return ONLY a JSON array of strings. No explanation.`;
 
     await sendMessage(prompt);
-  }, [query, isLoading, sendMessage, showSalt]);
+  }, [correctedName, isLoading, sendMessage, showSalt]);
 
-  // Parse results from assistant message
+  const handleEditCorrection = useCallback(() => {
+    setCorrectedName(null);
+    setSearchPhase("correct");
+    setSearched(false);
+    setTimeout(() => inputRef.current?.focus(), 50);
+  }, []);
+
+  // Parse AI response based on searchPhase
   useEffect(() => {
     if (isLoading || !searched) return;
     const lastAssistant = messages.filter((m) => m.role === "assistant").pop();
-    if (!lastAssistant?.content || results !== null) return;
+    if (!lastAssistant?.content) return;
 
-    try {
-      if (showSalt) {
-        const objMatch = lastAssistant.content.match(/\{[\s\S]*\}/);
-        if (objMatch) {
-          const parsed = JSON.parse(objMatch[0]) as SaltResult;
-          if (parsed.salt && Array.isArray(parsed.alternatives)) {
-            setSaltInfo(parsed.salt);
-            setResults(parsed.alternatives);
-          }
-        }
-      } else {
-        const arrMatch = lastAssistant.content.match(/\[[\s\S]*\]/);
-        if (arrMatch) {
-          const parsed = JSON.parse(arrMatch[0]) as string[];
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setResults(parsed);
-          }
+    if (searchPhase === "correct" && correctedName === null) {
+      // Extract corrected name (plain text response)
+      const cleaned = lastAssistant.content.trim().replace(/^["']|["']$/g, "").trim();
+      if (cleaned) {
+        // If corrected name matches query, skip confirmation and go straight to alternatives
+        if (cleaned.toLowerCase() === query.trim().toLowerCase()) {
+          setCorrectedName(cleaned);
+          // Auto-proceed
+          setSearchPhase("alternatives");
+          setResults(null);
+          setSaltInfo(null);
+          const prompt = showSalt
+            ? `For medicine "${cleaned}": return JSON {"salt":"generic/salt composition with strength","alternatives":["Brand1","Brand2","Brand3","Brand4","Brand5"]}. Include 5 alternatives available in Pakistan. No other text.`
+            : `List 5 alternative brand names for "${cleaned}" available in Pakistan. Return ONLY a JSON array of strings. No explanation.`;
+          sendMessage(prompt);
+        } else {
+          setCorrectedName(cleaned);
         }
       }
-    } catch {
-      // Parse failed — fallback text will show
+    } else if (searchPhase === "alternatives" && results === null) {
+      try {
+        if (showSalt) {
+          const objMatch = lastAssistant.content.match(/\{[\s\S]*\}/);
+          if (objMatch) {
+            const parsed = JSON.parse(objMatch[0]) as SaltResult;
+            if (parsed.salt && Array.isArray(parsed.alternatives)) {
+              setSaltInfo(parsed.salt);
+              setResults(parsed.alternatives);
+            }
+          }
+        } else {
+          const arrMatch = lastAssistant.content.match(/\[[\s\S]*\]/);
+          if (arrMatch) {
+            const parsed = JSON.parse(arrMatch[0]) as string[];
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setResults(parsed);
+            }
+          }
+        }
+      } catch {
+        // Parse failed — fallback text will show
+      }
     }
-  }, [messages, isLoading, searched, showSalt, results]);
+  }, [messages, isLoading, searched, showSalt, results, searchPhase, correctedName]);
 
   // Inventory lookup after results are parsed
   useEffect(() => {
@@ -183,6 +228,8 @@ export function POSMedicineAlternatives({ onAddToCart }: POSMedicineAlternatives
     setSaltInfo(null);
     setSearched(false);
     setInventoryMap({});
+    setCorrectedName(null);
+    setSearchPhase("correct");
     clearChat();
   };
 
@@ -212,6 +259,7 @@ export function POSMedicineAlternatives({ onAddToCart }: POSMedicineAlternatives
               <div className="relative flex-1">
                 <Search className="absolute left-2.5 top-2 h-3.5 w-3.5 text-muted-foreground" />
                 <Input
+                  ref={inputRef}
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSearch()}
@@ -251,6 +299,33 @@ export function POSMedicineAlternatives({ onAddToCart }: POSMedicineAlternatives
                 Include Salt/Generic Info
               </Label>
             </div>
+
+            {/* "Did you mean?" confirmation strip */}
+            {correctedName && searchPhase === "correct" && !isLoading && (
+              <div className="animate-fade-in flex items-center gap-2.5 px-3 py-2.5 rounded-lg border border-primary/30 bg-primary/5">
+                <DoctorAvatar size="xs" state="idle" />
+                <p className="flex-1 text-xs">
+                  Did you mean <span className="font-semibold text-primary">{correctedName}</span>?
+                </p>
+                <Button
+                  size="sm"
+                  onClick={handleConfirmCorrection}
+                  className="h-7 w-7 p-0 rounded-full"
+                  title="Confirm"
+                >
+                  <Check className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={handleEditCorrection}
+                  className="h-7 w-7 p-0 rounded-full"
+                  title="Edit"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            )}
 
             {/* Loading state */}
             {isLoading && (
