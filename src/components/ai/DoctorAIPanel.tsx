@@ -14,6 +14,7 @@ interface DoctorAIPanelProps {
   patientContext?: Record<string, unknown>;
   onSuggestDiagnosis?: (text: string) => void;
   onSuggestNotes?: (text: string) => void;
+  standalone?: boolean;
 }
 
 const QUICK_PROMPTS = {
@@ -22,8 +23,8 @@ const QUICK_PROMPTS = {
   labs: "Based on the symptoms and vitals, recommend appropriate laboratory tests with reasoning.",
 };
 
-export function DoctorAIPanel({ patientContext, onSuggestDiagnosis, onSuggestNotes }: DoctorAIPanelProps) {
-  const [isOpen, setIsOpen] = useState(false);
+export function DoctorAIPanel({ patientContext, onSuggestDiagnosis, onSuggestNotes, standalone = false }: DoctorAIPanelProps) {
+  const [isOpen, setIsOpen] = useState(standalone);
   const [input, setInput] = useState("");
   const [lastQuickAction, setLastQuickAction] = useState<keyof typeof QUICK_PROMPTS | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -98,6 +99,93 @@ export function DoctorAIPanel({ patientContext, onSuggestDiagnosis, onSuggestNot
     }
   };
 
+  const panelContent = (
+    <CardContent className={standalone ? "space-y-3" : "pt-0 space-y-3"}>
+      {/* Quick Actions */}
+      <div className="flex flex-wrap gap-2">
+        <Button variant="outline" size="sm" className="text-xs gap-1" onClick={() => handleQuickAction("diagnosis")} disabled={isLoading}>
+          <Stethoscope className="h-3 w-3" /> Suggest Diagnosis
+        </Button>
+        <Button variant="outline" size="sm" className="text-xs gap-1" onClick={() => handleQuickAction("soap")} disabled={isLoading}>
+          <FileText className="h-3 w-3" /> SOAP Note
+        </Button>
+        <Button variant="outline" size="sm" className="text-xs gap-1" onClick={() => handleQuickAction("labs")} disabled={isLoading}>
+          <TestTube className="h-3 w-3" /> Suggest Labs
+        </Button>
+      </div>
+
+      {/* Chat Messages */}
+      <ScrollArea className={standalone ? "h-[400px]" : "h-[300px]"} ref={scrollRef}>
+        {messages.length === 0 && (
+          <div className="flex flex-col items-center justify-center h-full py-8 text-center">
+            <Bot className="h-8 w-8 text-muted-foreground/50 mb-2" />
+            <p className="text-xs text-muted-foreground">Use Tabeebi quick actions or type a clinical question</p>
+          </div>
+        )}
+        {messages.map((msg, i) => (
+          <AIChatMessage
+            key={i}
+            role={msg.role}
+            content={msg.content}
+            isStreaming={isLoading && i === messages.length - 1 && msg.role === "assistant"}
+          />
+        ))}
+      </ScrollArea>
+
+      {/* Suggestion Card */}
+      {showSuggestion && suggestionType && (
+        <AISuggestionCard
+          type={suggestionType}
+          content={lastAssistant.content.slice(0, 500) + (lastAssistant.content.length > 500 ? "..." : "")}
+          onAccept={handleAcceptSuggestion}
+          onReject={handleRejectSuggestion}
+        />
+      )}
+
+      {/* Input */}
+      <div className="flex gap-2">
+        <Textarea
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Ask a clinical question..."
+          className="min-h-[40px] max-h-[80px] resize-none text-sm"
+          disabled={isLoading}
+        />
+        <div className="flex flex-col gap-1">
+          {isLoading ? (
+            <Button onClick={stopGeneration} variant="destructive" size="icon" className="h-8 w-8 shrink-0">
+              <Square className="h-3 w-3" />
+            </Button>
+          ) : (
+            <Button onClick={handleSend} size="icon" className="h-8 w-8 shrink-0" disabled={!input.trim()}>
+              <Send className="h-3 w-3" />
+            </Button>
+          )}
+          {messages.length > 0 && (
+            <Button onClick={clearChat} variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+              <Trash2 className="h-3 w-3" />
+            </Button>
+          )}
+        </div>
+      </div>
+    </CardContent>
+  );
+
+  if (standalone) {
+    return (
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <Stethoscope className="h-4 w-4 text-primary" />
+            Tabeebi Clinical Assistant
+          </CardTitle>
+        </CardHeader>
+        {panelContent}
+      </Card>
+    );
+  }
+
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <Card>
@@ -113,76 +201,7 @@ export function DoctorAIPanel({ patientContext, onSuggestDiagnosis, onSuggestNot
           </CardHeader>
         </CollapsibleTrigger>
         <CollapsibleContent>
-          <CardContent className="pt-0 space-y-3">
-            {/* Quick Actions */}
-            <div className="flex flex-wrap gap-2">
-              <Button variant="outline" size="sm" className="text-xs gap-1" onClick={() => handleQuickAction("diagnosis")} disabled={isLoading}>
-                <Stethoscope className="h-3 w-3" /> Suggest Diagnosis
-              </Button>
-              <Button variant="outline" size="sm" className="text-xs gap-1" onClick={() => handleQuickAction("soap")} disabled={isLoading}>
-                <FileText className="h-3 w-3" /> SOAP Note
-              </Button>
-              <Button variant="outline" size="sm" className="text-xs gap-1" onClick={() => handleQuickAction("labs")} disabled={isLoading}>
-                <TestTube className="h-3 w-3" /> Suggest Labs
-              </Button>
-            </div>
-
-            {/* Chat Messages */}
-            <ScrollArea className="h-[300px]" ref={scrollRef}>
-              {messages.length === 0 && (
-                <div className="flex flex-col items-center justify-center h-full py-8 text-center">
-                  <Bot className="h-8 w-8 text-muted-foreground/50 mb-2" />
-                  <p className="text-xs text-muted-foreground">Use Tabeebi quick actions or type a clinical question</p>
-                </div>
-              )}
-              {messages.map((msg, i) => (
-                <AIChatMessage
-                  key={i}
-                  role={msg.role}
-                  content={msg.content}
-                  isStreaming={isLoading && i === messages.length - 1 && msg.role === "assistant"}
-                />
-              ))}
-            </ScrollArea>
-
-            {/* Suggestion Card */}
-            {showSuggestion && suggestionType && (
-              <AISuggestionCard
-                type={suggestionType}
-                content={lastAssistant.content.slice(0, 500) + (lastAssistant.content.length > 500 ? "..." : "")}
-                onAccept={handleAcceptSuggestion}
-                onReject={handleRejectSuggestion}
-              />
-            )}
-
-            {/* Input */}
-            <div className="flex gap-2">
-              <Textarea
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Ask a clinical question..."
-                className="min-h-[40px] max-h-[80px] resize-none text-sm"
-                disabled={isLoading}
-              />
-              <div className="flex flex-col gap-1">
-                {isLoading ? (
-                  <Button onClick={stopGeneration} variant="destructive" size="icon" className="h-8 w-8 shrink-0">
-                    <Square className="h-3 w-3" />
-                  </Button>
-                ) : (
-                  <Button onClick={handleSend} size="icon" className="h-8 w-8 shrink-0" disabled={!input.trim()}>
-                    <Send className="h-3 w-3" />
-                  </Button>
-                )}
-                {messages.length > 0 && (
-                  <Button onClick={clearChat} variant="ghost" size="icon" className="h-8 w-8 shrink-0">
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                )}
-              </div>
-            </div>
-          </CardContent>
+          {panelContent}
         </CollapsibleContent>
       </Card>
     </Collapsible>

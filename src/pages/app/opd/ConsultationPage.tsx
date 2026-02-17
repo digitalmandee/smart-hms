@@ -9,14 +9,15 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Save, Check, ArrowLeft, CalendarIcon, Scissors } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Loader2, Save, Check, ArrowLeft, CalendarIcon, Scissors, Stethoscope, Pill, TestTube, Bot } from "lucide-react";
 import { useAppointment, useUpdateAppointment } from "@/hooks/useAppointments";
 import { useConsultationByAppointment, useCreateConsultation, useUpdateConsultation, Vitals } from "@/hooks/useConsultations";
 import { useCreatePrescription, PrescriptionItemInput } from "@/hooks/usePrescriptions";
 import { useCreateLabOrder, LabOrderItemInput } from "@/hooks/useLabOrders";
 import { useDoctors } from "@/hooks/useDoctors";
 import { useAuth } from "@/contexts/AuthContext";
-import { VitalsForm } from "@/components/consultation/VitalsForm";
+import { CompactVitals } from "@/components/consultation/CompactVitals";
 import { SymptomsInput } from "@/components/consultation/SymptomsInput";
 import { DiagnosisInput } from "@/components/consultation/DiagnosisInput";
 import { PrescriptionBuilder } from "@/components/consultation/PrescriptionBuilder";
@@ -26,6 +27,8 @@ import { PreviousVisits } from "@/components/consultation/PreviousVisits";
 import { VisitSummaryDialog } from "@/components/consultation/VisitSummaryDialog";
 import { RecommendSurgeryDialog } from "@/components/ot/RecommendSurgeryDialog";
 import { DoctorAIPanel } from "@/components/ai/DoctorAIPanel";
+import { PrescriptionSuggester } from "@/components/ai/PrescriptionSuggester";
+import { MedicineAlternatives } from "@/components/ai/MedicineAlternatives";
 import { usePatientSurgeryRequests } from "@/hooks/useSurgeryRequests";
 import { generateVisitId } from "@/lib/visit-id";
 import { cn } from "@/lib/utils";
@@ -213,113 +216,41 @@ export default function ConsultationPage() {
     setShowVisitSummary(false);
   };
 
+  const patientContext = {
+    patient_name: `${patient?.first_name} ${patient?.last_name || ""}`,
+    chief_complaint: chiefComplaint,
+    symptoms,
+    vitals,
+    diagnosis,
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PageHeader
         title="Consultation"
         description={`${patient?.first_name} ${patient?.last_name || ""} - Visit: ${visitId}`}
         actions={
-          <Button variant="outline" onClick={() => navigate(-1)}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => navigate(-1)}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back
+            </Button>
+          </div>
         }
       />
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Main Form */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Chief Complaint */}
-          <div className="space-y-2">
-            <Label>Chief Complaint</Label>
-            <Textarea
-              placeholder="Patient's main complaint..."
-              value={chiefComplaint}
-              onChange={(e) => setChiefComplaint(e.target.value)}
-              rows={2}
-            />
-          </div>
-
-          <VitalsForm vitals={vitals} onChange={setVitals} />
-          <SymptomsInput symptoms={symptoms} onChange={setSymptoms} />
-          <DiagnosisInput
-            diagnosis={diagnosis}
-            onDiagnosisChange={setDiagnosis}
-            clinicalNotes={clinicalNotes}
-            onClinicalNotesChange={setClinicalNotes}
-          />
-          <PrescriptionBuilder
-            items={prescriptionItems}
-            onChange={setPrescriptionItems}
-            notes={prescriptionNotes}
-            onNotesChange={setPrescriptionNotes}
-          />
-          <LabOrderBuilder
-            items={labOrderItems}
-            onChange={setLabOrderItems}
-            priority={labOrderPriority}
-            onPriorityChange={setLabOrderPriority}
-            notes={labOrderNotes}
-            onNotesChange={setLabOrderNotes}
-          />
-
-          {/* Follow-up */}
-          <div className="space-y-2">
-            <Label>Follow-up Date (Optional)</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !followUpDate && "text-muted-foreground")}>
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {followUpDate ? format(followUpDate, "PPP") : "Select follow-up date"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar mode="single" selected={followUpDate} onSelect={setFollowUpDate} disabled={(date) => date < new Date()} />
-              </PopoverContent>
-            </Popover>
-          </div>
-
-          {/* Actions */}
-          <div className="flex gap-3 pt-4 flex-wrap">
-            <Button variant="outline" onClick={handleSaveDraft} disabled={isSaving}>
-              {isSaving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
-              Save Draft
-            </Button>
-            <Button variant="secondary" onClick={() => setShowRecommendSurgery(true)}>
-              <Scissors className="h-4 w-4 mr-2" />
-              Recommend Surgery
-            </Button>
-            <Button onClick={handleComplete} disabled={isCompleting}>
-              {isCompleting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Check className="h-4 w-4 mr-2" />}
-              Complete Consultation
-            </Button>
-          </div>
-        </div>
-
-        {/* Sidebar */}
-        <div className="space-y-6">
+      <div className="grid gap-4 lg:grid-cols-[260px_1fr_280px]">
+        {/* Left Sidebar - Patient Info */}
+        <div className="space-y-4">
           {patient && <PatientQuickInfo patient={patient} vitals={nurseVitals} />}
 
-          {/* AI Clinical Assistant */}
-          <DoctorAIPanel
-            patientContext={{
-              patient_name: `${patient?.first_name} ${patient?.last_name || ""}`,
-              chief_complaint: chiefComplaint,
-              symptoms,
-              vitals,
-              diagnosis,
-            }}
-            onSuggestDiagnosis={setDiagnosis}
-            onSuggestNotes={setClinicalNotes}
-          />
-          
           {/* Active Surgery Requests */}
           {patientSurgeryRequests && patientSurgeryRequests.length > 0 && (
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm flex items-center gap-2">
                   <Scissors className="h-4 w-4 text-warning" />
-                  Surgery Recommendations
+                  Surgery Requests
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
@@ -354,6 +285,148 @@ export default function ConsultationPage() {
               })))}
             />
           )}
+        </div>
+
+        {/* Center - Main Tabbed Interface */}
+        <div className="space-y-4">
+          <Tabs defaultValue="clinical" className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="clinical" className="text-xs gap-1">
+                <Stethoscope className="h-3.5 w-3.5" />
+                Clinical
+              </TabsTrigger>
+              <TabsTrigger value="prescription" className="text-xs gap-1">
+                <Pill className="h-3.5 w-3.5" />
+                Prescription
+              </TabsTrigger>
+              <TabsTrigger value="labs" className="text-xs gap-1">
+                <TestTube className="h-3.5 w-3.5" />
+                Labs
+              </TabsTrigger>
+              <TabsTrigger value="ai" className="text-xs gap-1">
+                <Bot className="h-3.5 w-3.5" />
+                AI Assistant
+              </TabsTrigger>
+            </TabsList>
+
+            {/* Clinical Tab */}
+            <TabsContent value="clinical" className="space-y-4 mt-4">
+              <div className="space-y-2">
+                <Label>Chief Complaint</Label>
+                <Textarea
+                  placeholder="Patient's main complaint..."
+                  value={chiefComplaint}
+                  onChange={(e) => setChiefComplaint(e.target.value)}
+                  rows={2}
+                />
+              </div>
+
+              <SymptomsInput symptoms={symptoms} onChange={setSymptoms} />
+              
+              <DiagnosisInput
+                diagnosis={diagnosis}
+                onDiagnosisChange={setDiagnosis}
+                clinicalNotes={clinicalNotes}
+                onClinicalNotesChange={setClinicalNotes}
+              />
+
+              {/* Follow-up */}
+              <div className="space-y-2">
+                <Label>Follow-up Date (Optional)</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !followUpDate && "text-muted-foreground")}>
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {followUpDate ? format(followUpDate, "PPP") : "Select follow-up date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar mode="single" selected={followUpDate} onSelect={setFollowUpDate} disabled={(date) => date < new Date()} />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </TabsContent>
+
+            {/* Prescription Tab */}
+            <TabsContent value="prescription" className="space-y-4 mt-4">
+              <PrescriptionBuilder
+                items={prescriptionItems}
+                onChange={setPrescriptionItems}
+                notes={prescriptionNotes}
+                onNotesChange={setPrescriptionNotes}
+              />
+
+              {/* AI Prescription Suggester - shows when diagnosis exists */}
+              <PrescriptionSuggester
+                diagnosis={diagnosis}
+                patientContext={patientContext}
+                onAcceptPrescription={(items) => {
+                  setPrescriptionItems(prev => [...prev, ...items]);
+                }}
+              />
+
+              {/* Medicine Alternatives Search */}
+              <MedicineAlternatives
+                onSelectAlternative={(name) => {
+                  setPrescriptionItems(prev => [...prev, {
+                    medicine_name: name,
+                    dosage: "",
+                    frequency: "",
+                    duration: "",
+                    quantity: 1,
+                    instructions: "",
+                  }]);
+                }}
+              />
+            </TabsContent>
+
+            {/* Labs Tab */}
+            <TabsContent value="labs" className="space-y-4 mt-4">
+              <LabOrderBuilder
+                items={labOrderItems}
+                onChange={setLabOrderItems}
+                priority={labOrderPriority}
+                onPriorityChange={setLabOrderPriority}
+                notes={labOrderNotes}
+                onNotesChange={setLabOrderNotes}
+              />
+            </TabsContent>
+
+            {/* AI Assistant Tab */}
+            <TabsContent value="ai" className="mt-4">
+              <DoctorAIPanel
+                standalone
+                patientContext={patientContext}
+                onSuggestDiagnosis={setDiagnosis}
+                onSuggestNotes={setClinicalNotes}
+              />
+            </TabsContent>
+          </Tabs>
+
+          {/* Actions - Always visible */}
+          <div className="flex gap-3 pt-2 flex-wrap border-t">
+            <Button variant="outline" onClick={handleSaveDraft} disabled={isSaving}>
+              {isSaving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+              Save Draft
+            </Button>
+            <Button variant="secondary" onClick={() => setShowRecommendSurgery(true)}>
+              <Scissors className="h-4 w-4 mr-2" />
+              Recommend Surgery
+            </Button>
+            <Button onClick={handleComplete} disabled={isCompleting}>
+              {isCompleting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Check className="h-4 w-4 mr-2" />}
+              Complete Consultation
+            </Button>
+          </div>
+        </div>
+
+        {/* Right Sidebar - Vitals */}
+        <div className="space-y-4">
+          <CompactVitals
+            vitals={vitals}
+            nurseVitals={nurseVitals}
+            onChange={setVitals}
+          />
         </div>
       </div>
 
