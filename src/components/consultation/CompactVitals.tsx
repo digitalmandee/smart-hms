@@ -81,7 +81,7 @@ export function CompactVitals({ vitals, nurseVitals, onChange, readOnly = false 
         {/* Expanded full form */}
         {expanded && (
           <div className="mt-2">
-            <VitalsForm vitals={vitals} onChange={onChange} readOnly={readOnly} />
+            <VitalsForm vitals={vitals} onChange={onChange} readOnly={readOnly} embedded />
           </div>
         )}
       </CardContent>

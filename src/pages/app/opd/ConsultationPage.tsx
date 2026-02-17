@@ -270,20 +270,6 @@ export default function ConsultationPage() {
             </Card>
           )}
 
-          {patient && (
-            <PreviousVisits
-              patientId={patient.id}
-              onCopyDiagnosis={setDiagnosis}
-              onCopyPrescription={(items) => setPrescriptionItems(items.map(i => ({
-                medicine_name: i.medicine_name,
-                dosage: i.dosage,
-                frequency: i.frequency,
-                duration: i.duration,
-                quantity: i.quantity,
-                instructions: i.instructions,
-              })))}
-            />
-          )}
         </div>
 
         {/* Center - Main Tabbed Interface */}
@@ -415,6 +401,22 @@ export default function ConsultationPage() {
           />
         </div>
       </div>
+
+      {/* Previous Visits - Full width below the grid */}
+      {patient && (
+        <PreviousVisits
+          patientId={patient.id}
+          onCopyDiagnosis={setDiagnosis}
+          onCopyPrescription={(items) => setPrescriptionItems(items.map(i => ({
+            medicine_name: i.medicine_name,
+            dosage: i.dosage,
+            frequency: i.frequency,
+            duration: i.duration,
+            quantity: i.quantity,
+            instructions: i.instructions,
+          })))}
+        />
+      )}
 
       {/* Visit Summary Dialog */}
       {patient && (
