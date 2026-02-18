@@ -1,437 +1,284 @@
 
-# Fix: Complete Sidebar Translation — Missing Names in Lookup Map + Missing Sub-Item Keys
+# End-to-End Translation Implementation Plan
 
-## Root Cause Analysis from Screenshot
+## Reality Check: Current State
 
-The screenshot shows Arabic mode working for some items but 5 sidebar items remain in English:
-- **"Reception"** — not in `SIDEBAR_NAME_TO_KEY` map
-- **"Inpatient (IPD)"** — not in map (the map has "IPD" but the DB item name is "Inpatient (IPD)")
-- **"Operation Theatre"** — not in map
-- **"Blood Bank"** — not in map
-- **"Accounts & Finance"** — not in map (map has "Accounts" but DB item is "Accounts & Finance")
+From the investigation, here is the **true scope** of what's missing:
 
-These are **database menu items** (for branch_admin/dynamic menu users). The `SIDEBAR_NAME_TO_KEY` lookup map in `DynamicSidebar.tsx` only covers static-config item names but is missing the database menu item names which differ slightly.
+- `useTranslation()` is called in only **4 files** out of hundreds: `DashboardPage.tsx`, `DynamicSidebar.tsx`, `CollectionsWidget.tsx`, `PharmacyAlertsWidget.tsx`
+- **Every single module page** (IPD, OPD, Billing, Patients, Lab, Pharmacy, HR, etc.) has 100% hardcoded English
+- **Every toast message** across 69+ hook files is hardcoded English
+- **`ModernPageHeader`** has hardcoded "Good Morning/Afternoon/Evening" and uses `format(new Date(), "EEEE, MMMM d, yyyy")` — English date always
+- **`PageHeader`** component is used by all module pages — no translation hook
+- The date "Thursday, February 19, 2026" shown in the screenshot is still in English
+- **Every table column header, button label, badge, tab label, status text** is hardcoded English
 
-Additionally, ALL child sub-items from `role-sidebars.ts` are untranslated because they have unique names not in the lookup map:
-- "All Organizations", "Add Organization", "Branch Analytics", "Role Management" (super_admin children)
-- "Branch Branding", "Branch Roles", "Branding & Logo", "Audit Logs", "Billing" (org_admin children)
-- "OPD Departments", "Specializations", "Qualifications", "Items", "Stock Levels", "GRN", "Requisitions" (org_admin config children)
-- "POS Terminal", "Transactions", "Sessions", "Returns", "Medicines", "Stock", "Add Stock", "Stock Alerts", "Movements", "Suppliers", "Add Vendor" (pharmacist children)
-- "Sample Queue", "Test Templates" (lab_technician children)
-- "Worklist", "Verification", "Archive", "Studies", "Modalities", "Procedures", "Report Templates" (radiology children)
-- "Donor List", "Register Donor", "Donations", "Cross Match", "Requests", "Transfusions" (blood bank children)
-- "Today's Schedule", "All Surgeries", "Surgery Requests", "Schedule Surgery", "PACU" (OT children)
-- "Daily Attendance", "Attendance Sheet", "Biometric Setup", "Duty Roster", "OT Roster", "Emergency Roster", "On-Call Schedule", "Publish Roster", "Roster Reports", "Overtime" (HR children)
-- "Leave Management", "Leave Requests", "Leave Balances" (HR children)
-- "Recruitment", "Exit Management", "Compliance", "Directory", "Add Employee" etc. (HR children)
-- "Accounting", "Receivables", "Payables", "Banking" (finance children)
-- "All Warehouses", "Create Warehouse", "Store Transfers", "Rack Assignments" (warehouse children)
-- "Register Patient", "Book Appointment", "Today's Schedule", "Queue", "Bed Availability", "Ward View", "New Admission", "Active Admissions" (receptionist children)
-- Many more unique sub-items
+## The Right Strategy: Layered Translation
 
-## What Needs To Be Done
+Rather than trying to translate 200+ files one by one (impossible), the plan targets high-leverage **shared components** and **key module pages**, which cascade translation to many pages at once:
 
-### 1. Add Missing Top-Level Names to SIDEBAR_NAME_TO_KEY
+### Layer 1: Shared Components (highest leverage — affects every page)
 
-Add these to the lookup map in `DynamicSidebar.tsx` with new translation keys:
-```
-"Reception"           → "nav.reception"
-"Inpatient (IPD)"     → "nav.inpatientIpd"
-"Operation Theatre"   → "nav.operationTheatre"
-"Blood Bank"          → "nav.bloodBank"
-"Accounts & Finance"  → "nav.accountsFinance"
-```
+1. **`ModernPageHeader.tsx`** — Used by IPD, HR, OT, and many dashboards. Fix:
+   - Import `useTranslation` + `useCountryConfig` for locale
+   - Translate `getTimeOfDay()` greeting strings using `t()`
+   - Fix date: use `date-fns` locale (`arSA` for Arabic, `ur` for Urdu) for locale-aware month/day names
 
-Also add other names from static configs not yet in map:
-```
-"Nursing"             → "nav.nursing"
-"Recovery"            → "nav.recovery"
-"OT Rooms"            → "nav.otRooms"
-"OT Queue"            → "nav.otQueue"
-"Accounting"          → "nav.accounting"
-"Receivables"         → "nav.receivables"
-"Payables"            → "nav.payables"
-"Banking"             → "nav.banking"
-"Stock"               → "nav.stock"
-"Requests"            → "nav.requests"
-"Leave Management"    → "nav.leaveManagement"
-"Recruitment"         → "nav.recruitment"
-"Exit Management"     → "nav.exitManagement"
-"Compliance"          → "nav.compliance"
-"OT Charges"          → "nav.otCharges"
-"Beds & Rooms"        → already exists as "nav.bedsRooms"
-"Surgeries"           → already exists as "nav.surgeries"
-```
+2. **`PageHeader.tsx`** — Used by Patients, Billing, Admissions, etc. No changes to this component since it renders whatever strings are passed to it (the pages pass already-hardcoded strings). Instead, pages that call it must use `t()` for the title/description props.
 
-### 2. Add Missing Sub-Item Translation Keys
+### Layer 2: Key Module Pages (high visibility)
 
-Add all unique child item names to `en.ts`, `ar.ts`, and `ur.ts`:
+3. **`src/pages/app/ipd/IPDDashboard.tsx`** — The current route. Has 15+ hardcoded strings:
+   - "IPD Dashboard", "Inpatient department overview and management"
+   - "Total Wards", "Bed Occupancy", "Active Patients", "Today's Activity"
+   - "Pending Rounds", "Pending Discharges", "Ward-wise Occupancy"
+   - "Avg Length of Stay", "Today's Procedures", "Pending Lab Results"
+   - "Post Room Charges", "New Admission", "Active", "Discharges"
+   - "Recent Admissions", "Bed Map", "Admissions", "IPD Billing", "Nursing Station"
 
-**New navigation sub-item keys:**
-```
-// Top-level missing items
-"nav.reception"              → Reception / الاستقبال / ریسپشن
-"nav.inpatientIpd"           → Inpatient (IPD) / المرضى الداخليون / داخلی مریض (IPD)
-"nav.operationTheatre"       → Operation Theatre / غرفة العمليات / آپریشن تھیٹر
-"nav.bloodBank"              → Blood Bank / بنك الدم / بلڈ بینک
-"nav.accountsFinance"        → Accounts & Finance / الحسابات والمالية / اکاؤنٹس اور مالیات
-"nav.nursing"                → Nursing / التمريض / نرسنگ
-"nav.recovery"               → Recovery / التعافي / ریکوری
-"nav.otQueue"                → OT Queue / قائمة غرفة العمليات / OT قطار
-"nav.accounting"             → Accounting / المحاسبة / محاسبہ
-"nav.receivables"            → Receivables / المستحقات / وصولیاں
-"nav.payables"               → Payables / المدفوعات / ادائیگیاں
-"nav.banking"                → Banking / الخدمات المصرفية / بینکنگ
-"nav.stock"                  → Stock / المخزون / اسٹاک
-"nav.requests"               → Requests / الطلبات / درخواستیں
-"nav.leaveManagement"        → Leave Management / إدارة الإجازات / چھٹی انتظام
-"nav.recruitment"            → Recruitment / التوظيف / بھرتی
-"nav.exitManagement"         → Exit Management / إدارة الخروج / خروج انتظام
-"nav.compliance"             → Compliance / الامتثال / تعمیل
-"nav.otCharges"              → OT Charges / رسوم غرفة العمليات / OT چارجز
-"nav.otRooms"                → OT Rooms / غرف العمليات / OT کمرے
+4. **`src/pages/app/patients/PatientsListPage.tsx`** — Column headers "Patient #", "Name", "Age", "Gender", "Phone", "Status", buttons "Register Patient", "Refresh"
 
-// Sub-items for org_admin/branches
-"nav.branchBranding"         → Branch Branding / علامة الفرع / برانچ برانڈنگ
-"nav.branchRoles"            → Branch Roles / أدوار الفرع / برانچ کردار
-"nav.brandingLogo"           → Branding & Logo / العلامة والشعار / برانڈنگ اور لوگو
-"nav.auditLogs"              → Audit Logs / سجلات التدقيق / آڈٹ لاگز
-"nav.opdDepartments"         → OPD Departments / أقسام العيادات الخارجية / OPD محکمے
-"nav.specializations"        → Specializations / التخصصات / تخصصات
-"nav.qualifications"         → Qualifications / المؤهلات / اہلیت
-"nav.items"                  → Items / العناصر / اشیاء
-"nav.stockLevels"            → Stock Levels / مستويات المخزون / اسٹاک سطح
-"nav.grn"                    → GRN / إيصال البضاعة / GRN
-"nav.requisitions"           → Requisitions / طلبات الشراء / درخواستیں
-"nav.allWarehouses"          → All Warehouses / جميع المستودعات / تمام گودام
-"nav.createWarehouse"        → Create Warehouse / إنشاء مستودع / گودام بنائیں
-"nav.storeTransfers"         → Store Transfers / نقل المخزون / اسٹور منتقلی
-"nav.subscriptionPlans"      → Subscription Plans / خطط الاشتراك / سبسکرپشن پلانز
-"nav.organizationBilling"    → Organization Billing / فوترة المؤسسة / تنظیم بلنگ
-"nav.platformSettings"       → Platform Settings / إعدادات المنصة / پلیٹ فارم سیٹنگز
-"nav.moduleCatalog"          → Module Catalog / كتالوج الوحدات / ماڈیول کیٹالاگ
-"nav.systemHealth"           → System Health / صحة النظام / سسٹم صحت
-"nav.supportTickets"         → Support Tickets / تذاكر الدعم / سپورٹ ٹکٹ
-"nav.allOrganizations"       → All Organizations / جميع المؤسسات / تمام تنظیمیں
-"nav.addOrganization"        → Add Organization / إضافة مؤسسة / تنظیم شامل کریں
-"nav.branchAnalytics"        → Branch Analytics / تحليلات الفرع / برانچ تجزیہ
-"nav.roleManagement"         → Role Management / إدارة الأدوار / کردار انتظام
+5. **`src/pages/app/billing/InvoicesListPage.tsx`** — Column headers "Invoice #", "Date", "Patient", "Amount", "Status"
 
-// Pharmacist sub-items
-"nav.posTerminal"            → POS Terminal / نقطة البيع / POS ٹرمینل
-"nav.transactions"           → Transactions / المعاملات / لین دین
-"nav.sessions"               → Sessions / الجلسات / سیشنز
-"nav.returns"                → Returns / المرتجعات / واپسی
-"nav.medicines"              → Medicines / الأدوية / دوائیں
-"nav.addStock"               → Add Stock / إضافة مخزون / اسٹاک شامل کریں
-"nav.stockAlerts"            → Stock Alerts / تنبيهات المخزون / اسٹاک الرٹس
-"nav.movements"              → Movements / الحركات / نقل و حرکت
-"nav.suppliers"              → Suppliers / الموردون / سپلائرز
-"nav.addVendor"              → Add Vendor / إضافة مورد / وینڈر شامل کریں
-"nav.myWarehouses"           → My Warehouses / مستودعاتي / میرے گودام
-"nav.rackAssignments"        → Rack Assignments / تخصيص الرفوف / ریک اسائنمنٹ
+6. **`src/pages/app/ipd/AdmissionsListPage.tsx`** — "Admissions", "Manage patient admissions", "New Admission", "Refresh", "Search by patient name..."
 
-// Lab sub-items
-"nav.sampleQueue"            → Sample Queue / قائمة العينات / نمونہ قطار
-"nav.testTemplates"          → Test Templates / قوالب الاختبارات / ٹیسٹ ٹیمپلیٹ
+### Layer 3: Toast Messages (centralize in hooks)
 
-// Radiology sub-items
-"nav.worklist"               → Worklist / قائمة العمل / ورک لسٹ
-"nav.verification"           → Verification / التحقق / تصدیق
-"nav.archive"                → Archive / الأرشيف / آرکائیو
-"nav.studies"                → Studies / الدراسات / مطالعات
-"nav.modalities"             → Modalities / الوسائط / طریقے
-"nav.procedures"             → Procedures / الإجراءات / طریق کار
-"nav.reportTemplates"        → Report Templates / قوالب التقارير / رپورٹ ٹیمپلیٹ
-"nav.schedule"               → Schedule / الجدول / شیڈول
-"nav.setupGuide"             → Setup Guide / دليل الإعداد / سیٹ اپ گائیڈ
+The 2,804 toast calls across 69 hook files cannot all be translated individually. The pragmatic approach:
 
-// Blood Bank sub-items
-"nav.donorList"              → Donor List / قائمة المتبرعين / ڈونر فہرست
-"nav.registerDonor"          → Register Donor / تسجيل متبرع / ڈونر رجسٹر کریں
-"nav.donations"              → Donations / التبرعات / عطیات
-"nav.crossMatch"             → Cross Match / مطابقة الدم / کراس میچ
-"nav.transfusions"           → Transfusions / عمليات نقل الدم / منتقلی خون
+- Create a **`useToastTranslations()` utility hook** that returns pre-built translated toast functions: `toastSuccess(key)`, `toastError(key)`
+- Add ~30 common toast message keys to `en.ts`, `ar.ts`, `ur.ts`:
+  - `"toast.savedSuccess"`, `"toast.saveFailed"`, `"toast.deletedSuccess"`, `"toast.deleteFailed"`, `"toast.createdSuccess"`, `"toast.createFailed"`, `"toast.updatedSuccess"`, `"toast.updateFailed"`, etc.
+- Update the **most-used hooks** (`useAdmissions`, `usePatients`, `useBilling`, `useIPD`) to use this utility
 
-// OT sub-items
-"nav.todaysSchedule"         → Today's Schedule / جدول اليوم / آج کا شیڈول
-"nav.allSurgeries"           → All Surgeries / جميع العمليات / تمام آپریشن
-"nav.surgeryRequests"        → Surgery Requests / طلبات العمليات / آپریشن درخواستیں
-"nav.scheduleSurgery"        → Schedule Surgery / جدولة عملية / آپریشن شیڈول کریں
-"nav.pacu"                   → PACU / وحدة التعافي / PACU
-"nav.intraNotes"             → Intra-Op Notes / ملاحظات العملية / آپریشن نوٹس
-"nav.instrumentCount"        → Instrument Count / عد الأدوات / آلات کی گنتی
-"nav.otRoomsItem"            → OT Rooms / غرف العمليات / OT کمرے
-"nav.surgeryList"            → Surgery List / قائمة العمليات / آپریشن فہرست
-"nav.medicationQueue"        → Medication Queue / قائمة الدواء / دوا قطار
-"nav.medicationCharges"      → Medication Charges / رسوم الدواء / دوا چارجز
+### Layer 4: Translation Key Expansion
 
-// HR sub-items
-"nav.directory"              → Directory / الدليل / ڈائریکٹری
-"nav.addEmployee"            → Add Employee / إضافة موظف / ملازم شامل کریں
-"nav.doctors"                → Doctors / الأطباء / ڈاکٹرز
-"nav.nurses"                 → Nurses / الممرضون / نرسیں
-"nav.paramedicalStaff"       → Paramedical Staff / الطاقم شبه الطبي / پیراطبی عملہ
-"nav.supportStaff"           → Support Staff / الطاقم الداعم / معاون عملہ
-"nav.visitingDoctors"        → Visiting Doctors / الأطباء الزائرون / وزیٹنگ ڈاکٹرز
-"nav.dailyAttendance"        → Daily Attendance / الحضور اليومي / روزانہ حاضری
-"nav.attendanceSheet"        → Attendance Sheet / كشف الحضور / حاضری شیٹ
-"nav.biometricSetup"         → Biometric Setup / إعداد البيومتري / بایومیٹرک سیٹ اپ
-"nav.dutyRoster"             → Duty Roster / جدول الخدمة / ڈیوٹی روسٹر
-"nav.otRoster"               → OT Roster / جدول غرفة العمليات / OT روسٹر
-"nav.emergencyRoster"        → Emergency Roster / جدول الطوارئ / ایمرجنسی روسٹر
-"nav.onCallSchedule"         → On-Call Schedule / جدول المناوبات / آن کال شیڈول
-"nav.publishRoster"          → Publish Roster / نشر الجدول / روسٹر شائع کریں
-"nav.rosterReports"          → Roster Reports / تقارير الجدول / روسٹر رپورٹس
-"nav.overtime"               → Overtime / الأوقات الإضافية / اوور ٹائم
-"nav.leaveRequests"          → Leave Requests / طلبات الإجازة / چھٹی درخواستیں
-"nav.leaveBalances"          → Leave Balances / أرصدة الإجازة / چھٹی بیلنس
-"nav.processPayroll"         → Process Payroll / معالجة الرواتب / تنخواہ پروسیس
-"nav.employeeSalaries"       → Employee Salaries / رواتب الموظفين / ملازم تنخواہیں
-"nav.doctorCompensation"     → Doctor Compensation / تعويض الطبيب / ڈاکٹر معاوضہ
-"nav.doctorEarnings"         → Doctor Earnings / أرباح الطبيب / ڈاکٹر آمدنی
-"nav.walletBalances"         → Wallet Balances / أرصدة المحفظة / والٹ بیلنس
-"nav.loansAdvances"          → Loans & Advances / القروض والسلف / قرضے اور ایڈوانس
-"nav.payslips"               → Payslips / كشوف الرواتب / پے سلپ
-"nav.bankSheets"             → Bank Sheets / كشوف البنك / بینک شیٹس
-"nav.jobOpenings"            → Job Openings / فرص العمل / ملازمت کے مواقع
-"nav.applications"           → Applications / الطلبات / درخواستیں
-"nav.resignations"           → Resignations / الاستقالات / استعفے
-"nav.clearance"              → Clearance / التسوية / کلیئرنس
-"nav.finalSettlement"        → Final Settlement / التسوية النهائية / حتمی تصفیہ
-"nav.exitInterviews"         → Exit Interviews / مقابلات الخروج / ایگزٹ انٹرویوز
-"nav.medicalFitness"         → Medical Fitness / اللياقة الطبية / طبی فٹنس
-"nav.vaccinations"           → Vaccinations / التطعيمات / ویکسینیشن
-"nav.disciplinary"           → Disciplinary / التأديبي / تادیبی
-"nav.departments"            → Departments / الأقسام / محکمے
-"nav.designations"           → Designations / المسميات الوظيفية / عہدے
-"nav.employeeCategories"     → Employee Categories / فئات الموظفين / ملازم زمرے
-"nav.leaveTypes"             → Leave Types / أنواع الإجازات / چھٹی کی اقسام
-"nav.shifts"                 → Shifts / الوردیات / شفٹیں
-"nav.holidays"               → Holidays / العطلات / تعطیلات
-
-// Finance sub-items
-"nav.generalLedger"          → General Ledger / دفتر الأستاذ / جنرل لیجر
-"nav.outstanding"            → Outstanding / المبالغ المستحقة / واجب الادا
-"nav.vendorBills"            → Vendor Bills / فواتير الموردين / وینڈر بلز
-"nav.vendorPayments"         → Vendor Payments / مدفوعات الموردين / وینڈر ادائیگیاں
-"nav.bankAccounts"           → Bank Accounts / الحسابات المصرفية / بینک اکاؤنٹس
-"nav.budgets"                → Budgets / الميزانيات / بجٹ
-"nav.financialReports"       → Financial Reports / التقارير المالية / مالی رپورٹس
-"nav.trialBalance"           → Trial Balance / ميزان المراجعة / ٹرائل بیلنس
-"nav.profitLoss"             → Profit & Loss / الأرباح والخسائر / نفع و نقصان
-"nav.balanceSheet"           → Balance Sheet / الميزانية العمومية / بیلنس شیٹ
-"nav.cashFlow"               → Cash Flow / التدفق النقدي / نقد کا بہاؤ
-"nav.accountTypes"           → Account Types / أنواع الحسابات / اکاؤنٹ اقسام
-
-// Inventory sub-items
-"nav.search"                 → Search / بحث / تلاش
-
-// Receptionist sub-items
-"nav.bookAppointment"        → Book Appointment / حجز موعد / ملاقات بک کریں
-"nav.queue"                  → Queue / قائمة الانتظار / قطار
-"nav.bedAvailability"        → Bed Availability / توفر الأسرة / بستر دستیابی
-"nav.wardView"               → Ward View / عرض الجناح / وارڈ منظر
-"nav.newAdmission"           → New Admission / قبول جديد / نئی داخلگی
-"nav.activeAdmissions"       → Active Admissions / القبول النشط / فعال داخلگی
-"nav.opdCheckout"            → OPD Checkout / خروج العيادة الخارجية / OPD چیک آؤٹ
-"nav.newInvoice"             → New Invoice / فاتورة جديدة / نئی انوائس
-
-// OPD Children (for doctor role)
-"nav.ipd_patients"           (use existing nav.myPatients)
-"nav.requestDischarge"       → Request Discharge / طلب خروج / خروج کی درخواست
-
-// Receptionist OT Charges children
-"nav.medicationChargesItem"  → Medication Charges / رسوم الدواء / دوا چارجز
-
-// Inventory organization sub-items
-"nav.organizationReports"    → Organization Reports / تقارير المؤسسة / تنظیم رپورٹس
-"nav.branchComparison"       → Branch Comparison / مقارنة الفروع / برانچ موازنہ
-"nav.dayEndSummary"          → Day-End Summary / ملخص نهاية اليوم / دن کا اختتامی خلاصہ
-```
+Add new keys to `en.ts`, `ar.ts`, `ur.ts` for:
+- IPD module labels (stats cards, section headings, actions)
+- Patients module labels
+- Billing module labels  
+- Common page actions (New Admission, Refresh, Search...)
+- Toast messages (30 common patterns)
+- Date locale support
 
 ## Files to Change
 
 | File | Change |
 |------|--------|
-| `src/lib/i18n/translations/en.ts` | Add ~90 new sub-item nav keys |
+| `src/lib/i18n/translations/en.ts` | Add ~60 new keys: IPD labels, common page strings, toast messages |
 | `src/lib/i18n/translations/ar.ts` | Add matching Arabic translations |
 | `src/lib/i18n/translations/ur.ts` | Add matching Urdu translations |
-| `src/components/DynamicSidebar.tsx` | Expand `SIDEBAR_NAME_TO_KEY` with ~95 additional entries for all missing names |
+| `src/components/ModernPageHeader.tsx` | Import `useTranslation`; translate greeting; use locale-aware date formatting |
+| `src/pages/app/ipd/IPDDashboard.tsx` | Import `useTranslation`; replace all hardcoded strings with `t()` |
+| `src/pages/app/patients/PatientsListPage.tsx` | Import `useTranslation`; translate page header, column names, button labels |
+| `src/pages/app/billing/InvoicesListPage.tsx` | Import `useTranslation`; translate headers and labels |
+| `src/pages/app/ipd/AdmissionsListPage.tsx` | Import `useTranslation`; translate headers and labels |
+| `src/hooks/useAdmissions.ts` | Use translated toast messages via centralized approach |
+| `src/hooks/usePatients.ts` | Use translated toast messages |
 
-## Sidebar SIDEBAR_NAME_TO_KEY Additions
+## New Translation Keys
 
-The lookup map needs these additions (beyond what's already there):
-
-```ts
-// Database menu item names (different from static config)
-"Reception": "nav.reception",
-"Inpatient (IPD)": "nav.inpatientIpd",
-"Operation Theatre": "nav.operationTheatre",
-"Blood Bank": "nav.bloodBank",
-"Accounts & Finance": "nav.accountsFinance",
-
-// Static config sub-items not yet mapped
-"Branch Branding": "nav.branchBranding",
-"Branch Roles": "nav.branchRoles",
-"Branding & Logo": "nav.brandingLogo",
-"Audit Logs": "nav.auditLogs",
-"OPD Departments": "nav.opdDepartments",
-"Specializations": "nav.specializations",
-"Qualifications": "nav.qualifications",
-"Items": "nav.items",
-"Stock Levels": "nav.stockLevels",
-"GRN": "nav.grn",
-"Requisitions": "nav.requisitions",
-"All Warehouses": "nav.allWarehouses",
-"Create Warehouse": "nav.createWarehouse",
-"Store Transfers": "nav.storeTransfers",
-"Nursing": "nav.nursing",
-"Recovery": "nav.recovery",
-"OT Queue": "nav.otQueue",
-"OT Charges": "nav.otCharges",
-"OT Rooms": "nav.otRooms",
-"Accounting": "nav.accounting",
-"Receivables": "nav.receivables",
-"Payables": "nav.payables",
-"Banking": "nav.banking",
-"Stock": "nav.stock",
-"Requests": "nav.requests",
-"Leave Management": "nav.leaveManagement",
-"Recruitment": "nav.recruitment",
-"Exit Management": "nav.exitManagement",
-"Compliance": "nav.compliance",
-"POS Terminal": "nav.posTerminal",
-"Transactions": "nav.transactions",
-"Sessions": "nav.sessions",
-"Returns": "nav.returns",
-"Medicines": "nav.medicines",
-"Add Stock": "nav.addStock",
-"Stock Alerts": "nav.stockAlerts",
-"Movements": "nav.movements",
-"Suppliers": "nav.suppliers",
-"Add Vendor": "nav.addVendor",
-"My Warehouses": "nav.myWarehouses",
-"Rack Assignments": "nav.rackAssignments",
-"Sample Queue": "nav.sampleQueue",
-"Test Templates": "nav.testTemplates",
-"Worklist": "nav.worklist",
-"Verification": "nav.verification",
-"Archive": "nav.archive",
-"Studies": "nav.studies",
-"Modalities": "nav.modalities",
-"Procedures": "nav.procedures",
-"Report Templates": "nav.reportTemplates",
-"Schedule": "nav.schedule",
-"Setup Guide": "nav.setupGuide",
-"Donor List": "nav.donorList",
-"Register Donor": "nav.registerDonor",
-"Donations": "nav.donations",
-"Cross Match": "nav.crossMatch",
-"Transfusions": "nav.transfusions",
-"Today's Schedule": "nav.todaysSchedule",
-"All Surgeries": "nav.allSurgeries",
-"Surgery Requests": "nav.surgeryRequests",
-"Schedule Surgery": "nav.scheduleSurgery",
-"PACU": "nav.pacu",
-"Intra-Op Notes": "nav.intraNotes",
-"Instrument Count": "nav.instrumentCount",
-"Surgery List": "nav.surgeryList",
-"Medication Queue": "nav.medicationQueue",
-"Medication Charges": "nav.medicationCharges",
-"Directory": "nav.directory",
-"Add Employee": "nav.addEmployee",
-"Doctors": "nav.doctors",
-"Nurses": "nav.nurses",
-"Paramedical Staff": "nav.paramedicalStaff",
-"Support Staff": "nav.supportStaff",
-"Visiting Doctors": "nav.visitingDoctors",
-"Daily Attendance": "nav.dailyAttendance",
-"Attendance Sheet": "nav.attendanceSheet",
-"Biometric Setup": "nav.biometricSetup",
-"Duty Roster": "nav.dutyRoster",
-"OT Roster": "nav.otRoster",
-"Emergency Roster": "nav.emergencyRoster",
-"On-Call Schedule": "nav.onCallSchedule",
-"Publish Roster": "nav.publishRoster",
-"Roster Reports": "nav.rosterReports",
-"Overtime": "nav.overtime",
-"Leave Requests": "nav.leaveRequests",
-"Leave Balances": "nav.leaveBalances",
-"Process Payroll": "nav.processPayroll",
-"Employee Salaries": "nav.employeeSalaries",
-"Doctor Compensation": "nav.doctorCompensation",
-"Doctor Earnings": "nav.doctorEarnings",
-"Wallet Balances": "nav.walletBalances",
-"Loans & Advances": "nav.loansAdvances",
-"Payslips": "nav.payslips",
-"Bank Sheets": "nav.bankSheets",
-"Job Openings": "nav.jobOpenings",
-"Applications": "nav.applications",
-"Resignations": "nav.resignations",
-"Clearance": "nav.clearance",
-"Final Settlement": "nav.finalSettlement",
-"Exit Interviews": "nav.exitInterviews",
-"Medical Fitness": "nav.medicalFitness",
-"Vaccinations": "nav.vaccinations",
-"Disciplinary": "nav.disciplinary",
-"Departments": "nav.departments",
-"Designations": "nav.designations",
-"Employee Categories": "nav.employeeCategories",
-"Leave Types": "nav.leaveTypes",
-"Shifts": "nav.shifts",
-"Holidays": "nav.holidays",
-"General Ledger": "nav.generalLedger",
-"Outstanding": "nav.outstanding",
-"Vendor Bills": "nav.vendorBills",
-"Vendor Payments": "nav.vendorPayments",
-"Bank Accounts": "nav.bankAccounts",
-"Budgets": "nav.budgets",
-"Financial Reports": "nav.financialReports",
-"Trial Balance": "nav.trialBalance",
-"Profit & Loss": "nav.profitLoss",
-"Balance Sheet": "nav.balanceSheet",
-"Cash Flow": "nav.cashFlow",
-"Account Types": "nav.accountTypes",
-"Book Appointment": "nav.bookAppointment",
-"Queue": "nav.queue",
-"Bed Availability": "nav.bedAvailability",
-"Ward View": "nav.wardView",
-"New Admission": "nav.newAdmission",
-"Active Admissions": "nav.activeAdmissions",
-"OPD Checkout": "nav.opdCheckout",
-"New Invoice": "nav.newInvoice",
-"Request Discharge": "nav.requestDischarge",
-"Organization Reports": "nav.organizationReports",
-"Branch Comparison": "nav.branchComparison",
-"Day-End Summary": "nav.dayEndSummary",
-"Subscription Plans": "nav.subscriptionPlans",
-"Organization Billing": "nav.organizationBilling",
-"Platform Settings": "nav.platformSettings",
-"Module Catalog": "nav.moduleCatalog",
-"System Health": "nav.systemHealth",
-"Support Tickets": "nav.supportTickets",
-"All Organizations": "nav.allOrganizations",
-"Add Organization": "nav.addOrganization",
-"Branch Analytics": "nav.branchAnalytics",
-"Role Management": "nav.roleManagement",
-"Beds": "nav.beds",
-"Wards": "nav.wards",
-"Housekeeping": "nav.housekeeping",
-"Ward Rounds": "nav.wardRounds",
-"Vitals": "nav.vitals",
-"Nursing Notes": "nav.nursingNotes",
-"Medication Chart": "nav.medicationChart",
-"Search": "nav.search",
-"IPD Patients": "nav.ipdPatients",
-"ER Triage": "nav.erTriage",
-"Pre-Anesthesia": "nav.preAnesthesia",
+### IPD Module
+```
+"ipd.dashboard"             → IPD Dashboard / لوحة تحكم التنويم / IPD ڈیش بورڈ
+"ipd.subtitle"              → Inpatient department overview / نظرة عامة على قسم التنويم / داخلی محکمے کا جائزہ
+"ipd.totalWards"            → Total Wards / إجمالي الأجنحة / کل وارڈ
+"ipd.activeWards"           → Active wards / الأجنحة النشطة / فعال وارڈ
+"ipd.bedOccupancy"          → Bed Occupancy / إشغال الأسرة / بستر کا قبضہ
+"ipd.available"             → available / متاح / دستیاب
+"ipd.activePatients"        → Active Patients / المرضى النشطاء / فعال مریض
+"ipd.currentlyAdmitted"     → Currently admitted / المقبولون حالياً / ابھی داخل
+"ipd.todayActivity"         → Today's Activity / نشاط اليوم / آج کی سرگرمی
+"ipd.admissionsDischarges"  → Admissions / Discharges / القبول / الخروج / داخلگی / خروج
+"ipd.pendingRounds"         → Pending Rounds / الجولات المعلقة / زیر التواء وزٹ
+"ipd.pendingDischarges"     → Pending Discharges / خروج معلق / زیر التواء خروج
+"ipd.wardOccupancy"         → Ward-wise Occupancy / إشغال الأجنحة / وارڈ کی بھرائی
+"ipd.avgLOS"                → Avg Length of Stay / متوسط مدة الإقامة / قیام کا اوسط
+"ipd.todayProcedures"       → Today's Procedures / إجراءات اليوم / آج کے طریقہ کار
+"ipd.pendingLabResults"     → Pending Lab Results / نتائج المختبر المعلقة / زیر التواء لیب نتائج
+"ipd.postRoomCharges"       → Post Room Charges / ترحيل رسوم الغرفة / کمرے کے چارجز جمع کریں
+"ipd.newAdmission"          → New Admission / قبول جديد / نئی داخلگی
+"ipd.allRoundsComplete"     → All rounds completed for today / اكتملت جميع الجولات لليوم / آج کے سب وزٹ مکمل
+"ipd.noPendingDischarges"   → No pending discharges / لا يوجد خروج معلق / کوئی زیر التواء خروج نہیں
+"ipd.recentAdmissions"      → Recent Admissions / القبول الأخير / حالیہ داخلگی
+"ipd.bedMap"                → Bed Map / خريطة الأسرة / بستر نقشہ
+"ipd.admissions"            → Admissions / القبول / داخلگی
+"ipd.ipdBilling"            → IPD Billing / فوترة التنويم / IPD بلنگ
+"ipd.nursingStation"        → Nursing Station / محطة التمريض / نرسنگ اسٹیشن
+"ipd.financialSummary"      → Active Admissions Financial Summary / ملخص مالي / مالی خلاصہ
+"ipd.totalDeposits"         → Total Deposits / إجمالي الودائع / کل جمع
+"ipd.totalCharges"          → Total Charges / إجمالي الرسوم / کل چارجز
+"ipd.outstandingBalance"    → Outstanding / المبلغ المستحق / واجب الادا
+"ipd.dischargePipeline"     → Discharge Pipeline / مسار الخروج / خروج پائپ لائن
+"ipd.bedsOccupied"          → beds occupied / أسرة مشغولة / بستر استعمال میں
+"ipd.start"                 → Start / ابدأ / شروع کریں
+"ipd.discharge"             → Discharge / خروج / خارج کریں
+"ipd.viewAllPending"        → View all {n} pending / عرض الكل / سب دیکھیں
 ```
 
-## What This Fixes
+### Patients Module
+```
+"patients.title"            → Patients / المرضى / مریض
+"patients.subtitle"         → Manage patient records / إدارة سجلات المرضى / مریض ریکارڈ
+"patients.patientNo"        → Patient # / رقم المريض / مریض نمبر
+"patients.registerPatient"  → Register Patient / تسجيل مريض / مریض رجسٹر کریں
+"patients.totalPatients"    → Total Patients / إجمالي المرضى / کل مریض
+"patients.newThisMonth"     → New This Month / جدد هذا الشهر / اس ماہ نئے
+"patients.activePatients"   → Active Patients / مرضى نشطاء / فعال مریض
+```
 
-After this change:
-- Every sidebar item for every role (org_admin, doctor, nurse, pharmacist, receptionist, lab_technician, radiologist, blood_bank_technician, surgeon, anesthetist, hr_manager, finance_manager, store_manager, etc.) will have its name translated to Arabic or Urdu
-- The database menu items ("Reception", "Inpatient (IPD)", "Operation Theatre", "Blood Bank", "Accounts & Finance") will be correctly translated
-- ALL child/sub-menu items will translate correctly since they now have entries in the lookup map
-- Both static-config sidebars AND database-driven sidebars are covered
+### Billing / Invoices
+```
+"invoices.title"            → Invoices / الفواتير / انوائسز
+"invoices.subtitle"         → Manage billing and invoices / إدارة الفواتير / بلنگ انتظام
+"invoices.invoiceNo"        → Invoice # / رقم الفاتورة / انوائس نمبر
+"invoices.newInvoice"       → New Invoice / فاتورة جديدة / نئی انوائس
+"invoices.allTypes"         → All Types / جميع الأنواع / تمام اقسام
+"invoices.consultation"     → Consultation / استشارة / مشاورت
+```
+
+### Admissions
+```
+"admissions.title"          → Admissions / القبول / داخلگی
+"admissions.subtitle"       → Manage patient admissions / إدارة قبول المرضى / مریض داخلگی
+"admissions.newAdmission"   → New Admission / قبول جديد / نئی داخلگی
+"admissions.refresh"        → Refresh / تحديث / ریفریش
+"admissions.searchPlaceholder" → Search by patient name, admission # or MRN / البحث / تلاش کریں
+"admissions.admitted"       → Admitted / المقبولون / داخل
+"admissions.pending"        → Pending / معلق / زیر التواء
+"admissions.discharged"     → Discharged / خارجون / خارج
+"admissions.all"            → All / الكل / سب
+```
+
+### Common Page Actions
+```
+"common.refresh"            → Refresh / تحديث / ریفریش
+"common.newAdmission"       → New Admission / قبول جديد / نئی داخلگی
+"common.viewAll"            → View All / عرض الكل / سب دیکھیں
+"common.loading"            (already exists)
+"common.noData"             → No data found / لم يتم العثور على بيانات / کوئی ڈیٹا نہیں
+"common.error"              → Error / خطأ / خطا
+"common.tryAgain"           → Try again / حاول مرة أخرى / دوبارہ کوشش کریں
+"common.days"               → days / أيام / دن
+"common.bedsOccupied"       → beds occupied / أسرة مشغولة / بستر استعمال میں
+"common.quickStats"         → Quick Stats / إحصائيات سريعة / فوری اعداد
+```
+
+### Toast Messages
+```
+"toast.savedSuccess"        → Saved successfully / تم الحفظ بنجاح / کامیابی سے محفوظ
+"toast.saveFailed"          → Failed to save / فشل الحفظ / محفوظ کرنا ناکام
+"toast.createdSuccess"      → Created successfully / تم الإنشاء بنجاح / کامیابی سے بنایا
+"toast.createFailed"        → Failed to create / فشل الإنشاء / بنانا ناکام
+"toast.updatedSuccess"      → Updated successfully / تم التحديث بنجاح / کامیابی سے اپڈیٹ
+"toast.updateFailed"        → Failed to update / فشل التحديث / اپڈیٹ ناکام
+"toast.deletedSuccess"      → Deleted successfully / تم الحذف بنجاح / کامیابی سے حذف
+"toast.deleteFailed"        → Failed to delete / فشل الحذف / حذف ناکام
+"toast.admissionCreated"    → Patient admission created successfully / تم قبول المريض / مریض کامیابی سے داخل
+"toast.admissionFailed"     → Failed to create admission / فشل قبول المريض / داخلگی ناکام
+"toast.dischargeSuccess"    → Patient discharged successfully / تم خروج المريض / مریض کامیابی سے خارج
+"toast.dischargeFailed"     → Failed to discharge patient / فشل خروج المريض / خروج ناکام
+"toast.wardCreated"         → Ward created successfully / تم إنشاء الجناح / وارڈ کامیابی سے بنا
+"toast.wardUpdated"         → Ward updated successfully / تم تحديث الجناح / وارڈ کامیابی سے اپڈیٹ
+"toast.wardFailed"          → Failed to save ward / فشل حفظ الجناح / وارڈ ناکام
+"toast.chargeAdded"         → Charge added successfully / تمت إضافة الرسوم / چارج کامیابی سے شامل
+"toast.chargeFailed"        → Failed to add charge / فشل إضافة الرسوم / چارج شامل ناکام
+"toast.invoiceGenerated"    → Invoice generated / تم إنشاء الفاتورة / انوائس بنائی
+"toast.invoiceFailed"       → Failed to generate invoice / فشل إنشاء الفاتورة / انوائس ناکام
+"toast.dashboardRefreshed"  → Dashboard refreshed / تم تحديث لوحة التحكم / ڈیش بورڈ ریفریش
+"toast.refreshFailed"       → Failed to refresh dashboard / فشل التحديث / ریفریش ناکام
+"toast.roomChargesPosted"   → Room charges posted / تم ترحيل رسوم الغرف / کمرے چارجز جمع
+"toast.roomChargesFailed"   → Failed to post room charges / فشل ترحيل رسوم الغرف / کمرے چارجز ناکام
+"toast.missingContext"      → Missing required information / معلومات مفقودة / ضروری معلومات غائب
+"toast.paymentProcessed"    → Payment processed successfully / تمت معالجة الدفعة / ادائیگی مکمل
+"toast.paymentFailed"       → Failed to process payment / فشل معالجة الدفعة / ادائیگی ناکام
+```
+
+### Date Locale (ModernPageHeader)
+The date "Thursday, February 19, 2026" must show in Arabic/Urdu. Use `date-fns/locale`:
+- Arabic: `import { ar } from 'date-fns/locale'` → `format(new Date(), "EEEE, MMMM d, yyyy", { locale: ar })`
+- Urdu: Urdu is not natively in date-fns so use Arabic locale for now (both RTL, numerals same) or fallback to a custom function
+- This will produce: "الخميس، 19 فبراير 2026" for Arabic
+
+## Implementation Details
+
+### ModernPageHeader.tsx Changes
+```tsx
+import { useTranslation, useCountryConfig } from "@/lib/i18n";
+import { ar as arLocale, enUS } from "date-fns/locale";
+
+// Inside component:
+const { t } = useTranslation();
+const { default_language } = useCountryConfig();
+const dateLocale = default_language === "ar" ? arLocale 
+                 : default_language === "ur" ? arLocale  // Arabic numerals, similar
+                 : enUS;
+const today = format(new Date(), "EEEE, MMMM d, yyyy", { locale: dateLocale });
+
+// Replace getTimeOfDay() which returns hardcoded English:
+function getTimeOfDay(t) {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 12) return { greeting: t("dashboard.goodMorning"), icon: ... };
+  ...
+}
+```
+
+### IPDDashboard.tsx Changes
+Import `useTranslation`, replace all ~25 hardcoded strings with `t("ipd.xxx")` keys.
+
+### Toast Strategy for Hooks
+Since hooks can't call React hooks directly unless they're custom hooks, the approach is:
+- The toast strings in hooks **already pass a string** to `toast.success()` 
+- Since `sonner`'s `toast` is framework-agnostic, we can't inject `t()` into hooks easily without refactoring
+- **Pragmatic approach**: Translate the ~20 most visible toast messages in the IPD hooks (`useAdmissions`, `useIPD`, `useDischarge`) by passing a translated message from the component layer, or by creating a standalone translation function (non-hook) that reads the language from localStorage/sessionStorage as a fallback
+
+### Standalone Translation Function (for hooks)
+```ts
+// In src/lib/i18n/index.ts - add:
+export function getTranslatedString(key: TranslationKey): string {
+  // Read language from stored org config (cached)
+  const lang = localStorage.getItem("org_language") || "en";
+  const langMap = translations[lang];
+  return (langMap && langMap[key]) || en[key] || key;
+}
+```
+
+This allows hooks to call `getTranslatedString("toast.admissionCreated")` without being React hooks themselves.
+
+## Summary of All Changes
+
+| File | Priority | Changes |
+|------|----------|---------|
+| `src/lib/i18n/translations/en.ts` | Critical | +60 new keys |
+| `src/lib/i18n/translations/ar.ts` | Critical | +60 Arabic translations |
+| `src/lib/i18n/translations/ur.ts` | Critical | +60 Urdu translations |
+| `src/lib/i18n/index.ts` | Critical | Add `getTranslatedString()` standalone function + cache language in localStorage |
+| `src/components/ModernPageHeader.tsx` | High | Translate greetings + locale-aware date |
+| `src/pages/app/ipd/IPDDashboard.tsx` | High | Full i18n (current route) |
+| `src/pages/app/ipd/AdmissionsListPage.tsx` | High | Translate page headers and actions |
+| `src/pages/app/patients/PatientsListPage.tsx` | High | Translate page headers, columns |
+| `src/pages/app/billing/InvoicesListPage.tsx` | Medium | Translate page headers, columns |
+| `src/pages/app/ipd/WardFormPage.tsx` | Medium | Toast translations |
+| `src/pages/app/ipd/DischargeFormPage.tsx` | Medium | Toast translations |
+| `src/pages/app/ipd/AdmissionFormPage.tsx` | Medium | Toast translations |
+| `src/pages/app/ipd/IPDChargesPage.tsx` | Medium | Toast translations |
+
+## Important Note on Scope
+
+The user's request for "everything" covers 200+ files. A complete implementation in one pass would touch every single page, component, form, and hook in the codebase. This plan tackles the highest-value targets first:
+
+1. The shared `ModernPageHeader` and date formatting (fixes dozens of pages at once)
+2. The IPD module fully (current route being viewed)
+3. Patients and Billing list pages (most visited)
+4. Toast messages for IPD operations (most frequent user interactions)
+5. New translation keys for all the above
+
+After these changes, the user will see Arabic/Urdu on:
+- The date in the header on all pages using `ModernPageHeader`
+- The entire IPD dashboard and admissions pages
+- Patients and billing list pages
+- All toast notifications from IPD operations
+- All existing sidebar items (already done)
+- Dashboard page (already done)
+
+The remaining modules (OPD, Lab, HR, OT, etc.) can be translated in subsequent passes following the exact same pattern.
