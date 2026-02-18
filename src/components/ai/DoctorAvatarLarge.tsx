@@ -9,7 +9,7 @@ interface DoctorAvatarLargeProps {
 }
 
 const DOCTOR_PHOTO_URL =
-  "https://plus.unsplash.com/premium_photo-1664475543697-229156438e1e?fm=jpg&q=80&w=800&auto=format&fit=crop";
+  "https://images.unsplash.com/photo-1594824476967-48c8b964273f?fm=jpg&q=90&w=800&auto=format&fit=crop";
 
 const IDLE_BARS = [4, 6, 4, 8, 4, 6, 4, 8, 4, 6, 4];
 
@@ -90,7 +90,7 @@ export function DoctorAvatarLarge({ state = "idle", className }: DoctorAvatarLar
           src={DOCTOR_PHOTO_URL}
           alt="Doctor avatar"
           className="w-full h-full object-cover"
-          style={{ objectPosition: "50% 8%" }}
+          style={{ objectPosition: "50% 15%" }}
         />
 
         {/* State tint overlay */}
