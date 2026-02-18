@@ -1,4 +1,5 @@
 import { useState } from "react";
+import DOMPurify from "dompurify";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -90,9 +91,9 @@ export default function EmailTemplatesPage() {
     setTimeout(() => setCopiedPlaceholder(null), 2000);
   };
 
-  const getPreviewHtml = (template: string) => {
-    // Replace placeholders with sample data
-    return template
+  const getPreviewHtml = (template: string): string => {
+    // Replace placeholders with sample data, then sanitize to prevent XSS
+    const replaced = template
       .replace(/\{\{patient_name\}\}/g, "John Doe")
       .replace(/\{\{patient_email\}\}/g, "john@example.com")
       .replace(/\{\{patient_number\}\}/g, "PT-240117-0001")
@@ -121,6 +122,10 @@ export default function EmailTemplatesPage() {
       .replace(/\{\{prescription_number\}\}/g, "RX-240117-0001")
       .replace(/\{\{medication_count\}\}/g, "3")
       .replace(/\{\{pharmacy_hours\}\}/g, "8:00 AM - 10:00 PM");
+    return DOMPurify.sanitize(replaced, {
+      ALLOWED_TAGS: ["p", "strong", "em", "b", "i", "h1", "h2", "h3", "h4", "br", "ul", "ol", "li", "div", "span", "a", "table", "tr", "td", "th", "thead", "tbody", "img"],
+      ALLOWED_ATTR: ["href", "style", "class", "src", "alt", "width", "height", "cellpadding", "cellspacing", "border"],
+    });
   };
 
   if (isLoading) {
