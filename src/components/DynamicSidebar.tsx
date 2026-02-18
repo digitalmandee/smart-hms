@@ -154,6 +154,97 @@ import { useAuth } from "@/contexts/AuthContext";
 import { ROLE_SIDEBAR_CONFIG, getPrimaryRole } from "@/config/role-sidebars";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useTranslation } from "@/lib/i18n";
+import type { TranslationKey } from "@/lib/i18n";
+
+// Maps hardcoded sidebar names → translation keys
+const SIDEBAR_NAME_TO_KEY: Record<string, TranslationKey> = {
+  "Dashboard": "nav.dashboard",
+  "Patients": "nav.patients",
+  "Appointments": "nav.appointments",
+  "Billing": "nav.billing",
+  "Pharmacy": "nav.pharmacy",
+  "Laboratory": "nav.lab",
+  "IPD": "nav.ipd",
+  "OPD": "nav.opd",
+  "HR": "nav.hr",
+  "Inventory": "nav.inventory",
+  "Settings": "nav.settings",
+  "Reports": "nav.reports",
+  "Emergency": "nav.emergency",
+  "Branches": "nav.branches",
+  "Users & Staff": "nav.usersStaff",
+  "Organization": "nav.organization",
+  "Services": "nav.services",
+  "Configuration": "nav.configuration",
+  "Warehouse Management": "nav.warehouseManagement",
+  "HR & Staff": "nav.hrStaff",
+  "Accounts": "nav.accounts",
+  "All Branches": "nav.allBranches",
+  "Add Branch": "nav.addBranch",
+  "All Users": "nav.allUsers",
+  "Roles & Permissions": "nav.rolesPermissions",
+  "Invite Users": "nav.inviteUsers",
+  "Profile": "nav.profile",
+  "Modules": "nav.modules",
+  "All Services": "nav.allServices",
+  "Categories": "nav.categories",
+  "Consultations": "nav.consultations",
+  "Lab Tests": "nav.labTests",
+  "Radiology": "nav.radiology",
+  "Rooms & Beds": "nav.roomsBeds",
+  "Payment Methods": "nav.paymentMethods",
+  "Tax Settings": "nav.taxSettings",
+  "Receipt Templates": "nav.receiptTemplates",
+  "Purchase Orders": "nav.purchaseOrders",
+  "Vendors": "nav.vendors",
+  "Employees": "nav.employees",
+  "Attendance": "nav.attendance",
+  "Leaves": "nav.leaves",
+  "Payroll": "nav.payroll",
+  "Invoices": "nav.invoices",
+  "Payments": "nav.payments",
+  "My Work": "nav.myWork",
+  "My Schedule": "nav.mySchedule",
+  "My Wallet": "nav.myWallet",
+  "My Attendance": "nav.myAttendance",
+  "My Leaves": "nav.myLeaves",
+  "My Payslips": "nav.myPayslips",
+  "Patient Queue": "nav.patientQueue",
+  "Today's Queue": "nav.todaysQueue",
+  "My Calendar": "nav.myCalendar",
+  "Triage": "nav.triage",
+  "Vitals Entry": "nav.vitalsEntry",
+  "OPD Orders": "nav.opdOrders",
+  "History": "nav.history",
+  "All Appointments": "nav.allAppointments",
+  "Chart of Accounts": "nav.chartOfAccounts",
+  "Journal Entries": "nav.journalEntries",
+  "Accounts Payable": "nav.accountsPayable",
+  "Dispensing": "nav.dispensing",
+  "Procurement": "nav.procurement",
+  "Warehouses": "nav.warehouses",
+  "Setup": "nav.setup",
+  "Lab Work": "nav.labWork",
+  "Reporting": "nav.reporting",
+  "PACS": "nav.pacs",
+  "Donors": "nav.donors",
+  "Blood Work": "nav.bloodWork",
+  "Surgeries": "nav.surgeries",
+  "Pre-Op": "nav.preOp",
+  "Patient Care": "nav.patientCare",
+  "Ward Management": "nav.wardManagement",
+  "Imaging": "nav.imaging",
+  "Assessments": "nav.assessments",
+  "Beds & Rooms": "nav.bedsRooms",
+  "My Patients": "nav.myPatients",
+  "All Patients": "nav.allPatients",
+  "Organizations": "nav.organizations",
+  "Platform Users": "nav.platformUsers",
+  "Billing & Plans": "nav.billingPlans",
+  "System": "nav.system",
+  "Support": "nav.support",
+};
 
 const ADMIN_ROLES = ["super_admin", "org_admin", "branch_admin"];
 
@@ -301,6 +392,7 @@ interface RecursiveMenuItemProps {
   };
   level: number;
   index: number;
+  translateName: (name: string) => string;
   isCollapsed: boolean;
   openMenus: string[];
   toggleMenu: (code: string) => void;
@@ -314,6 +406,7 @@ const RecursiveMenuItem = ({
   item,
   level,
   index,
+  translateName,
   isCollapsed,
   openMenus,
   toggleMenu,
@@ -328,6 +421,7 @@ const RecursiveMenuItem = ({
   const isOpen = openMenus.includes(menuCode);
   const itemIsActive = isActive(item.path);
   const badgeCount = item.path ? badgeCounts[item.path] : undefined;
+  const displayName = translateName(item.name);
 
   // Visual hierarchy based on level - using progressive indentation only
   const getLevelStyles = () => {
@@ -367,12 +461,12 @@ const RecursiveMenuItem = ({
               isCollapsed && level === 0 && "justify-center px-2",
               styles.padding
             )}
-            title={isCollapsed ? item.name : undefined}
+            title={isCollapsed ? displayName : undefined}
           >
             {IconComponent && <IconComponent className={cn(styles.iconSize, "flex-shrink-0")} />}
             {!isCollapsed && (
               <>
-                <span className="flex-1 text-left">{item.name}</span>
+                <span className="flex-1 text-left">{displayName}</span>
                 <ChevronDown
                   className={cn(
                     "h-4 w-4 transition-transform opacity-60",
@@ -391,6 +485,7 @@ const RecursiveMenuItem = ({
                 item={child}
                 level={level + 1}
                 index={childIndex}
+                translateName={translateName}
                 isCollapsed={isCollapsed}
                 openMenus={openMenus}
                 toggleMenu={toggleMenu}
@@ -418,12 +513,12 @@ const RecursiveMenuItem = ({
         itemIsActive && cn(styles.activeBg, "text-sidebar-accent-foreground"),
         styles.padding
       )}
-      title={isCollapsed ? item.name : undefined}
+      title={isCollapsed ? displayName : undefined}
     >
       {IconComponent && <IconComponent className={cn(styles.iconSize, "flex-shrink-0")} />}
       {!isCollapsed && (
         <>
-          <span className="flex-1 text-left">{item.name}</span>
+          <span className="flex-1 text-left">{displayName}</span>
           {badgeCount !== undefined && badgeCount > 0 && (
             <Badge variant="destructive" className="h-5 min-w-5 px-1.5 text-xs">
               {badgeCount > 99 ? "99+" : badgeCount}
@@ -440,10 +535,12 @@ const RecursiveMenuItem = ({
   );
 };
 
+
 export const DynamicSidebar = ({ isCollapsed = false, onToggle, showDesktopToggle = false }: DynamicSidebarProps) => {
   // Use database menu items for admin roles, static config for operational roles
   const { menuItems: dbMenuItems, isLoading: menuLoading } = useMenuItems();
   const { profile, roles, signOut, isSuperAdmin, isLoading: authLoading } = useAuth();
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const [openMenus, setOpenMenus] = useState<string[]>([]);
@@ -644,6 +741,10 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle, showDesktopToggl
               item={item}
               level={0}
               index={index}
+              translateName={(name) => {
+                const key = SIDEBAR_NAME_TO_KEY[name];
+                return key ? t(key) : name;
+              }}
               isCollapsed={isCollapsed}
               openMenus={openMenus}
               toggleMenu={toggleMenu}

@@ -1,12 +1,13 @@
-import { useCallback, useMemo } from "react";
+import { useCallback } from "react";
 import { useCountryConfig } from "@/contexts/CountryConfigContext";
 import { en, type TranslationKey } from "./translations/en";
 import { ar } from "./translations/ar";
+import { ur } from "./translations/ur";
 
 const translations: Record<string, Record<string, string>> = {
   en,
   ar,
-  // Urdu falls back to English for now
+  ur,
 };
 
 /**
