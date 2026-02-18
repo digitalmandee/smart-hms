@@ -1,220 +1,437 @@
 
-# Fix: Complete RTL Layout + End-to-End Translations
+# Fix: Complete Sidebar Translation — Missing Names in Lookup Map + Missing Sub-Item Keys
 
-## Problems Identified from Screenshots
+## Root Cause Analysis from Screenshot
 
-### 1. Sidebar on Wrong Side (Desktop)
-The `DashboardLayout` uses `flex-row-reverse` for RTL. This works for the overall container, but the desktop sidebar is inside `<div className="hidden lg:block relative">` — the browser honours `flex-row-reverse` which should put it on the right. Looking more carefully at image-61, the sidebar IS on the left even on the larger screen. The reason: the `RecursiveMenuItem` has `justify-start` and `pl-3/pl-8/pl-12` padding — which in RTL mode puts the icon and text flush LEFT inside the sidebar, but in a RTL sidebar they should start from the RIGHT. The sidebar container itself is on the correct side (because of `flex-row-reverse`), but its internal alignment is wrong.
+The screenshot shows Arabic mode working for some items but 5 sidebar items remain in English:
+- **"Reception"** — not in `SIDEBAR_NAME_TO_KEY` map
+- **"Inpatient (IPD)"** — not in map (the map has "IPD" but the DB item name is "Inpatient (IPD)")
+- **"Operation Theatre"** — not in map
+- **"Blood Bank"** — not in map
+- **"Accounts & Finance"** — not in map (map has "Accounts" but DB item is "Accounts & Finance")
 
-### 2. Sidebar Internal RTL Alignment (Critical)
-Every button in `DynamicSidebar` has these hardcoded LTR values:
-- `justify-start` → should be `justify-end` in RTL (or use `justify-start` which flips with `dir="rtl"`)
-- `pl-3`, `pl-8`, `pl-12` → should be `pr-3`, `pr-8`, `pr-12` in RTL
-- `text-left` → should be `text-right` in RTL
-- `ml-auto` on the collapse toggle → should be `mr-auto` in RTL
+These are **database menu items** (for branch_admin/dynamic menu users). The `SIDEBAR_NAME_TO_KEY` lookup map in `DynamicSidebar.tsx` only covers static-config item names but is missing the database menu item names which differ slightly.
 
-The `RecursiveMenuItem` does not currently receive or use `isRTL`. This needs to be passed down.
+Additionally, ALL child sub-items from `role-sidebars.ts` are untranslated because they have unique names not in the lookup map:
+- "All Organizations", "Add Organization", "Branch Analytics", "Role Management" (super_admin children)
+- "Branch Branding", "Branch Roles", "Branding & Logo", "Audit Logs", "Billing" (org_admin children)
+- "OPD Departments", "Specializations", "Qualifications", "Items", "Stock Levels", "GRN", "Requisitions" (org_admin config children)
+- "POS Terminal", "Transactions", "Sessions", "Returns", "Medicines", "Stock", "Add Stock", "Stock Alerts", "Movements", "Suppliers", "Add Vendor" (pharmacist children)
+- "Sample Queue", "Test Templates" (lab_technician children)
+- "Worklist", "Verification", "Archive", "Studies", "Modalities", "Procedures", "Report Templates" (radiology children)
+- "Donor List", "Register Donor", "Donations", "Cross Match", "Requests", "Transfusions" (blood bank children)
+- "Today's Schedule", "All Surgeries", "Surgery Requests", "Schedule Surgery", "PACU" (OT children)
+- "Daily Attendance", "Attendance Sheet", "Biometric Setup", "Duty Roster", "OT Roster", "Emergency Roster", "On-Call Schedule", "Publish Roster", "Roster Reports", "Overtime" (HR children)
+- "Leave Management", "Leave Requests", "Leave Balances" (HR children)
+- "Recruitment", "Exit Management", "Compliance", "Directory", "Add Employee" etc. (HR children)
+- "Accounting", "Receivables", "Payables", "Banking" (finance children)
+- "All Warehouses", "Create Warehouse", "Store Transfers", "Rack Assignments" (warehouse children)
+- "Register Patient", "Book Appointment", "Today's Schedule", "Queue", "Bed Availability", "Ward View", "New Admission", "Active Admissions" (receptionist children)
+- Many more unique sub-items
 
-### 3. Missing Translations in Widgets (CollectionsWidget + PharmacyAlertsWidget)
-These two components contain entirely hardcoded English:
+## What Needs To Be Done
 
-**CollectionsWidget needs:**
-- "Collections Overview" → `dashboard.collectionsOverview` (key exists)
-- "Today's pending and overdue invoices" → new key `dashboard.todaysPendingOverdue`
-- "Collected Today" → new key `dashboard.collectedToday`
-- "Pending Today" → new key `dashboard.pendingToday`
-- "Overdue" → new key `dashboard.overdue`
-- "View Reports" → new key `dashboard.viewReports`
-- "Today's Pending" → new key `dashboard.todaysPending`
-- "No overdue invoices" → new key `dashboard.noOverdueInvoices`
-- "All payments are on track" → new key `dashboard.allPaymentsOnTrack`
-- "d overdue" → new key `dashboard.daysOverdue`
-- "View all X pending invoices" → new key `dashboard.viewAllPendingInvoices`
-- "View all X overdue invoices" → new key `dashboard.viewAllOverdueInvoices`
+### 1. Add Missing Top-Level Names to SIDEBAR_NAME_TO_KEY
 
-**PharmacyAlertsWidget needs:**
-- "Pharmacy Alerts" → `dashboard.pharmacyAlerts` (key exists)
-- "Stock levels and expiry warnings" → new key `dashboard.stockLevelsExpiry`
-- "View Inventory" → new key `dashboard.viewInventory`
-- "Low Stock" → new key `dashboard.lowStock`
-- "Expiring Soon" → new key `dashboard.expiringSoon`
-- "To Dispense" → new key `dashboard.toDispense`
-- "Low Stock Items" → new key `dashboard.lowStockItems`
-- "Expiring Soon (30 days)" → new key `dashboard.expiringSoon30Days`
-- "Inventory looks good!" → new key `dashboard.inventoryLooksGood`
-- "No stock alerts at this time" → new key `dashboard.noStockAlerts`
-- "left" (qty left) → new key `common.left`
-- "Batch:", "Qty:" → new keys `common.batch`, `common.qty`
-- "Expired" / "Today" → new keys `common.expired`, `common.today`
+Add these to the lookup map in `DynamicSidebar.tsx` with new translation keys:
+```
+"Reception"           → "nav.reception"
+"Inpatient (IPD)"     → "nav.inpatientIpd"
+"Operation Theatre"   → "nav.operationTheatre"
+"Blood Bank"          → "nav.bloodBank"
+"Accounts & Finance"  → "nav.accountsFinance"
+```
 
-### 4. Dashboard Mixed Content
-- The date is rendered via `format(new Date(), "EEEE, MMMM d, yyyy")` — English locale hardcoded. For Arabic/Urdu need to use locale-aware formatting or translate the date separately.
-- "pending" / "in queue" / "+X today" change labels on stat cards are hardcoded English strings
-- Role names at bottom are shown raw ("org_admin") not translated
+Also add other names from static configs not yet in map:
+```
+"Nursing"             → "nav.nursing"
+"Recovery"            → "nav.recovery"
+"OT Rooms"            → "nav.otRooms"
+"OT Queue"            → "nav.otQueue"
+"Accounting"          → "nav.accounting"
+"Receivables"         → "nav.receivables"
+"Payables"            → "nav.payables"
+"Banking"             → "nav.banking"
+"Stock"               → "nav.stock"
+"Requests"            → "nav.requests"
+"Leave Management"    → "nav.leaveManagement"
+"Recruitment"         → "nav.recruitment"
+"Exit Management"     → "nav.exitManagement"
+"Compliance"          → "nav.compliance"
+"OT Charges"          → "nav.otCharges"
+"Beds & Rooms"        → already exists as "nav.bedsRooms"
+"Surgeries"           → already exists as "nav.surgeries"
+```
 
-### 5. Sidebar Toggle Button Text
-- "Expand sidebar" / "Collapse sidebar" tooltip texts are hardcoded English
+### 2. Add Missing Sub-Item Translation Keys
 
----
+Add all unique child item names to `en.ts`, `ar.ts`, and `ur.ts`:
+
+**New navigation sub-item keys:**
+```
+// Top-level missing items
+"nav.reception"              → Reception / الاستقبال / ریسپشن
+"nav.inpatientIpd"           → Inpatient (IPD) / المرضى الداخليون / داخلی مریض (IPD)
+"nav.operationTheatre"       → Operation Theatre / غرفة العمليات / آپریشن تھیٹر
+"nav.bloodBank"              → Blood Bank / بنك الدم / بلڈ بینک
+"nav.accountsFinance"        → Accounts & Finance / الحسابات والمالية / اکاؤنٹس اور مالیات
+"nav.nursing"                → Nursing / التمريض / نرسنگ
+"nav.recovery"               → Recovery / التعافي / ریکوری
+"nav.otQueue"                → OT Queue / قائمة غرفة العمليات / OT قطار
+"nav.accounting"             → Accounting / المحاسبة / محاسبہ
+"nav.receivables"            → Receivables / المستحقات / وصولیاں
+"nav.payables"               → Payables / المدفوعات / ادائیگیاں
+"nav.banking"                → Banking / الخدمات المصرفية / بینکنگ
+"nav.stock"                  → Stock / المخزون / اسٹاک
+"nav.requests"               → Requests / الطلبات / درخواستیں
+"nav.leaveManagement"        → Leave Management / إدارة الإجازات / چھٹی انتظام
+"nav.recruitment"            → Recruitment / التوظيف / بھرتی
+"nav.exitManagement"         → Exit Management / إدارة الخروج / خروج انتظام
+"nav.compliance"             → Compliance / الامتثال / تعمیل
+"nav.otCharges"              → OT Charges / رسوم غرفة العمليات / OT چارجز
+"nav.otRooms"                → OT Rooms / غرف العمليات / OT کمرے
+
+// Sub-items for org_admin/branches
+"nav.branchBranding"         → Branch Branding / علامة الفرع / برانچ برانڈنگ
+"nav.branchRoles"            → Branch Roles / أدوار الفرع / برانچ کردار
+"nav.brandingLogo"           → Branding & Logo / العلامة والشعار / برانڈنگ اور لوگو
+"nav.auditLogs"              → Audit Logs / سجلات التدقيق / آڈٹ لاگز
+"nav.opdDepartments"         → OPD Departments / أقسام العيادات الخارجية / OPD محکمے
+"nav.specializations"        → Specializations / التخصصات / تخصصات
+"nav.qualifications"         → Qualifications / المؤهلات / اہلیت
+"nav.items"                  → Items / العناصر / اشیاء
+"nav.stockLevels"            → Stock Levels / مستويات المخزون / اسٹاک سطح
+"nav.grn"                    → GRN / إيصال البضاعة / GRN
+"nav.requisitions"           → Requisitions / طلبات الشراء / درخواستیں
+"nav.allWarehouses"          → All Warehouses / جميع المستودعات / تمام گودام
+"nav.createWarehouse"        → Create Warehouse / إنشاء مستودع / گودام بنائیں
+"nav.storeTransfers"         → Store Transfers / نقل المخزون / اسٹور منتقلی
+"nav.subscriptionPlans"      → Subscription Plans / خطط الاشتراك / سبسکرپشن پلانز
+"nav.organizationBilling"    → Organization Billing / فوترة المؤسسة / تنظیم بلنگ
+"nav.platformSettings"       → Platform Settings / إعدادات المنصة / پلیٹ فارم سیٹنگز
+"nav.moduleCatalog"          → Module Catalog / كتالوج الوحدات / ماڈیول کیٹالاگ
+"nav.systemHealth"           → System Health / صحة النظام / سسٹم صحت
+"nav.supportTickets"         → Support Tickets / تذاكر الدعم / سپورٹ ٹکٹ
+"nav.allOrganizations"       → All Organizations / جميع المؤسسات / تمام تنظیمیں
+"nav.addOrganization"        → Add Organization / إضافة مؤسسة / تنظیم شامل کریں
+"nav.branchAnalytics"        → Branch Analytics / تحليلات الفرع / برانچ تجزیہ
+"nav.roleManagement"         → Role Management / إدارة الأدوار / کردار انتظام
+
+// Pharmacist sub-items
+"nav.posTerminal"            → POS Terminal / نقطة البيع / POS ٹرمینل
+"nav.transactions"           → Transactions / المعاملات / لین دین
+"nav.sessions"               → Sessions / الجلسات / سیشنز
+"nav.returns"                → Returns / المرتجعات / واپسی
+"nav.medicines"              → Medicines / الأدوية / دوائیں
+"nav.addStock"               → Add Stock / إضافة مخزون / اسٹاک شامل کریں
+"nav.stockAlerts"            → Stock Alerts / تنبيهات المخزون / اسٹاک الرٹس
+"nav.movements"              → Movements / الحركات / نقل و حرکت
+"nav.suppliers"              → Suppliers / الموردون / سپلائرز
+"nav.addVendor"              → Add Vendor / إضافة مورد / وینڈر شامل کریں
+"nav.myWarehouses"           → My Warehouses / مستودعاتي / میرے گودام
+"nav.rackAssignments"        → Rack Assignments / تخصيص الرفوف / ریک اسائنمنٹ
+
+// Lab sub-items
+"nav.sampleQueue"            → Sample Queue / قائمة العينات / نمونہ قطار
+"nav.testTemplates"          → Test Templates / قوالب الاختبارات / ٹیسٹ ٹیمپلیٹ
+
+// Radiology sub-items
+"nav.worklist"               → Worklist / قائمة العمل / ورک لسٹ
+"nav.verification"           → Verification / التحقق / تصدیق
+"nav.archive"                → Archive / الأرشيف / آرکائیو
+"nav.studies"                → Studies / الدراسات / مطالعات
+"nav.modalities"             → Modalities / الوسائط / طریقے
+"nav.procedures"             → Procedures / الإجراءات / طریق کار
+"nav.reportTemplates"        → Report Templates / قوالب التقارير / رپورٹ ٹیمپلیٹ
+"nav.schedule"               → Schedule / الجدول / شیڈول
+"nav.setupGuide"             → Setup Guide / دليل الإعداد / سیٹ اپ گائیڈ
+
+// Blood Bank sub-items
+"nav.donorList"              → Donor List / قائمة المتبرعين / ڈونر فہرست
+"nav.registerDonor"          → Register Donor / تسجيل متبرع / ڈونر رجسٹر کریں
+"nav.donations"              → Donations / التبرعات / عطیات
+"nav.crossMatch"             → Cross Match / مطابقة الدم / کراس میچ
+"nav.transfusions"           → Transfusions / عمليات نقل الدم / منتقلی خون
+
+// OT sub-items
+"nav.todaysSchedule"         → Today's Schedule / جدول اليوم / آج کا شیڈول
+"nav.allSurgeries"           → All Surgeries / جميع العمليات / تمام آپریشن
+"nav.surgeryRequests"        → Surgery Requests / طلبات العمليات / آپریشن درخواستیں
+"nav.scheduleSurgery"        → Schedule Surgery / جدولة عملية / آپریشن شیڈول کریں
+"nav.pacu"                   → PACU / وحدة التعافي / PACU
+"nav.intraNotes"             → Intra-Op Notes / ملاحظات العملية / آپریشن نوٹس
+"nav.instrumentCount"        → Instrument Count / عد الأدوات / آلات کی گنتی
+"nav.otRoomsItem"            → OT Rooms / غرف العمليات / OT کمرے
+"nav.surgeryList"            → Surgery List / قائمة العمليات / آپریشن فہرست
+"nav.medicationQueue"        → Medication Queue / قائمة الدواء / دوا قطار
+"nav.medicationCharges"      → Medication Charges / رسوم الدواء / دوا چارجز
+
+// HR sub-items
+"nav.directory"              → Directory / الدليل / ڈائریکٹری
+"nav.addEmployee"            → Add Employee / إضافة موظف / ملازم شامل کریں
+"nav.doctors"                → Doctors / الأطباء / ڈاکٹرز
+"nav.nurses"                 → Nurses / الممرضون / نرسیں
+"nav.paramedicalStaff"       → Paramedical Staff / الطاقم شبه الطبي / پیراطبی عملہ
+"nav.supportStaff"           → Support Staff / الطاقم الداعم / معاون عملہ
+"nav.visitingDoctors"        → Visiting Doctors / الأطباء الزائرون / وزیٹنگ ڈاکٹرز
+"nav.dailyAttendance"        → Daily Attendance / الحضور اليومي / روزانہ حاضری
+"nav.attendanceSheet"        → Attendance Sheet / كشف الحضور / حاضری شیٹ
+"nav.biometricSetup"         → Biometric Setup / إعداد البيومتري / بایومیٹرک سیٹ اپ
+"nav.dutyRoster"             → Duty Roster / جدول الخدمة / ڈیوٹی روسٹر
+"nav.otRoster"               → OT Roster / جدول غرفة العمليات / OT روسٹر
+"nav.emergencyRoster"        → Emergency Roster / جدول الطوارئ / ایمرجنسی روسٹر
+"nav.onCallSchedule"         → On-Call Schedule / جدول المناوبات / آن کال شیڈول
+"nav.publishRoster"          → Publish Roster / نشر الجدول / روسٹر شائع کریں
+"nav.rosterReports"          → Roster Reports / تقارير الجدول / روسٹر رپورٹس
+"nav.overtime"               → Overtime / الأوقات الإضافية / اوور ٹائم
+"nav.leaveRequests"          → Leave Requests / طلبات الإجازة / چھٹی درخواستیں
+"nav.leaveBalances"          → Leave Balances / أرصدة الإجازة / چھٹی بیلنس
+"nav.processPayroll"         → Process Payroll / معالجة الرواتب / تنخواہ پروسیس
+"nav.employeeSalaries"       → Employee Salaries / رواتب الموظفين / ملازم تنخواہیں
+"nav.doctorCompensation"     → Doctor Compensation / تعويض الطبيب / ڈاکٹر معاوضہ
+"nav.doctorEarnings"         → Doctor Earnings / أرباح الطبيب / ڈاکٹر آمدنی
+"nav.walletBalances"         → Wallet Balances / أرصدة المحفظة / والٹ بیلنس
+"nav.loansAdvances"          → Loans & Advances / القروض والسلف / قرضے اور ایڈوانس
+"nav.payslips"               → Payslips / كشوف الرواتب / پے سلپ
+"nav.bankSheets"             → Bank Sheets / كشوف البنك / بینک شیٹس
+"nav.jobOpenings"            → Job Openings / فرص العمل / ملازمت کے مواقع
+"nav.applications"           → Applications / الطلبات / درخواستیں
+"nav.resignations"           → Resignations / الاستقالات / استعفے
+"nav.clearance"              → Clearance / التسوية / کلیئرنس
+"nav.finalSettlement"        → Final Settlement / التسوية النهائية / حتمی تصفیہ
+"nav.exitInterviews"         → Exit Interviews / مقابلات الخروج / ایگزٹ انٹرویوز
+"nav.medicalFitness"         → Medical Fitness / اللياقة الطبية / طبی فٹنس
+"nav.vaccinations"           → Vaccinations / التطعيمات / ویکسینیشن
+"nav.disciplinary"           → Disciplinary / التأديبي / تادیبی
+"nav.departments"            → Departments / الأقسام / محکمے
+"nav.designations"           → Designations / المسميات الوظيفية / عہدے
+"nav.employeeCategories"     → Employee Categories / فئات الموظفين / ملازم زمرے
+"nav.leaveTypes"             → Leave Types / أنواع الإجازات / چھٹی کی اقسام
+"nav.shifts"                 → Shifts / الوردیات / شفٹیں
+"nav.holidays"               → Holidays / العطلات / تعطیلات
+
+// Finance sub-items
+"nav.generalLedger"          → General Ledger / دفتر الأستاذ / جنرل لیجر
+"nav.outstanding"            → Outstanding / المبالغ المستحقة / واجب الادا
+"nav.vendorBills"            → Vendor Bills / فواتير الموردين / وینڈر بلز
+"nav.vendorPayments"         → Vendor Payments / مدفوعات الموردين / وینڈر ادائیگیاں
+"nav.bankAccounts"           → Bank Accounts / الحسابات المصرفية / بینک اکاؤنٹس
+"nav.budgets"                → Budgets / الميزانيات / بجٹ
+"nav.financialReports"       → Financial Reports / التقارير المالية / مالی رپورٹس
+"nav.trialBalance"           → Trial Balance / ميزان المراجعة / ٹرائل بیلنس
+"nav.profitLoss"             → Profit & Loss / الأرباح والخسائر / نفع و نقصان
+"nav.balanceSheet"           → Balance Sheet / الميزانية العمومية / بیلنس شیٹ
+"nav.cashFlow"               → Cash Flow / التدفق النقدي / نقد کا بہاؤ
+"nav.accountTypes"           → Account Types / أنواع الحسابات / اکاؤنٹ اقسام
+
+// Inventory sub-items
+"nav.search"                 → Search / بحث / تلاش
+
+// Receptionist sub-items
+"nav.bookAppointment"        → Book Appointment / حجز موعد / ملاقات بک کریں
+"nav.queue"                  → Queue / قائمة الانتظار / قطار
+"nav.bedAvailability"        → Bed Availability / توفر الأسرة / بستر دستیابی
+"nav.wardView"               → Ward View / عرض الجناح / وارڈ منظر
+"nav.newAdmission"           → New Admission / قبول جديد / نئی داخلگی
+"nav.activeAdmissions"       → Active Admissions / القبول النشط / فعال داخلگی
+"nav.opdCheckout"            → OPD Checkout / خروج العيادة الخارجية / OPD چیک آؤٹ
+"nav.newInvoice"             → New Invoice / فاتورة جديدة / نئی انوائس
+
+// OPD Children (for doctor role)
+"nav.ipd_patients"           (use existing nav.myPatients)
+"nav.requestDischarge"       → Request Discharge / طلب خروج / خروج کی درخواست
+
+// Receptionist OT Charges children
+"nav.medicationChargesItem"  → Medication Charges / رسوم الدواء / دوا چارجز
+
+// Inventory organization sub-items
+"nav.organizationReports"    → Organization Reports / تقارير المؤسسة / تنظیم رپورٹس
+"nav.branchComparison"       → Branch Comparison / مقارنة الفروع / برانچ موازنہ
+"nav.dayEndSummary"          → Day-End Summary / ملخص نهاية اليوم / دن کا اختتامی خلاصہ
+```
 
 ## Files to Change
 
 | File | Change |
 |------|--------|
-| `src/lib/i18n/translations/en.ts` | Add ~25 new keys for widgets and common labels |
-| `src/lib/i18n/translations/ar.ts` | Add Arabic translations for all new keys |
-| `src/lib/i18n/translations/ur.ts` | Add Urdu translations for all new keys |
-| `src/components/DynamicSidebar.tsx` | Pass `isRTL` into `RecursiveMenuItem`; fix padding direction, `text-left→text-start`, `justify-start` RTL flip, `ml-auto→ms-auto` for collapse toggle; fix logo section direction |
-| `src/components/billing/CollectionsWidget.tsx` | Import `useTranslation`; replace all hardcoded English strings with `t()` calls |
-| `src/components/pharmacy/PharmacyAlertsWidget.tsx` | Import `useTranslation`; replace all hardcoded English strings with `t()` calls |
-| `src/pages/app/DashboardPage.tsx` | Fix the date format to use locale + translate stat card change labels |
+| `src/lib/i18n/translations/en.ts` | Add ~90 new sub-item nav keys |
+| `src/lib/i18n/translations/ar.ts` | Add matching Arabic translations |
+| `src/lib/i18n/translations/ur.ts` | Add matching Urdu translations |
+| `src/components/DynamicSidebar.tsx` | Expand `SIDEBAR_NAME_TO_KEY` with ~95 additional entries for all missing names |
 
----
+## Sidebar SIDEBAR_NAME_TO_KEY Additions
 
-## Detailed Changes
+The lookup map needs these additions (beyond what's already there):
 
-### New Translation Keys (en.ts / ar.ts / ur.ts)
+```ts
+// Database menu item names (different from static config)
+"Reception": "nav.reception",
+"Inpatient (IPD)": "nav.inpatientIpd",
+"Operation Theatre": "nav.operationTheatre",
+"Blood Bank": "nav.bloodBank",
+"Accounts & Finance": "nav.accountsFinance",
 
+// Static config sub-items not yet mapped
+"Branch Branding": "nav.branchBranding",
+"Branch Roles": "nav.branchRoles",
+"Branding & Logo": "nav.brandingLogo",
+"Audit Logs": "nav.auditLogs",
+"OPD Departments": "nav.opdDepartments",
+"Specializations": "nav.specializations",
+"Qualifications": "nav.qualifications",
+"Items": "nav.items",
+"Stock Levels": "nav.stockLevels",
+"GRN": "nav.grn",
+"Requisitions": "nav.requisitions",
+"All Warehouses": "nav.allWarehouses",
+"Create Warehouse": "nav.createWarehouse",
+"Store Transfers": "nav.storeTransfers",
+"Nursing": "nav.nursing",
+"Recovery": "nav.recovery",
+"OT Queue": "nav.otQueue",
+"OT Charges": "nav.otCharges",
+"OT Rooms": "nav.otRooms",
+"Accounting": "nav.accounting",
+"Receivables": "nav.receivables",
+"Payables": "nav.payables",
+"Banking": "nav.banking",
+"Stock": "nav.stock",
+"Requests": "nav.requests",
+"Leave Management": "nav.leaveManagement",
+"Recruitment": "nav.recruitment",
+"Exit Management": "nav.exitManagement",
+"Compliance": "nav.compliance",
+"POS Terminal": "nav.posTerminal",
+"Transactions": "nav.transactions",
+"Sessions": "nav.sessions",
+"Returns": "nav.returns",
+"Medicines": "nav.medicines",
+"Add Stock": "nav.addStock",
+"Stock Alerts": "nav.stockAlerts",
+"Movements": "nav.movements",
+"Suppliers": "nav.suppliers",
+"Add Vendor": "nav.addVendor",
+"My Warehouses": "nav.myWarehouses",
+"Rack Assignments": "nav.rackAssignments",
+"Sample Queue": "nav.sampleQueue",
+"Test Templates": "nav.testTemplates",
+"Worklist": "nav.worklist",
+"Verification": "nav.verification",
+"Archive": "nav.archive",
+"Studies": "nav.studies",
+"Modalities": "nav.modalities",
+"Procedures": "nav.procedures",
+"Report Templates": "nav.reportTemplates",
+"Schedule": "nav.schedule",
+"Setup Guide": "nav.setupGuide",
+"Donor List": "nav.donorList",
+"Register Donor": "nav.registerDonor",
+"Donations": "nav.donations",
+"Cross Match": "nav.crossMatch",
+"Transfusions": "nav.transfusions",
+"Today's Schedule": "nav.todaysSchedule",
+"All Surgeries": "nav.allSurgeries",
+"Surgery Requests": "nav.surgeryRequests",
+"Schedule Surgery": "nav.scheduleSurgery",
+"PACU": "nav.pacu",
+"Intra-Op Notes": "nav.intraNotes",
+"Instrument Count": "nav.instrumentCount",
+"Surgery List": "nav.surgeryList",
+"Medication Queue": "nav.medicationQueue",
+"Medication Charges": "nav.medicationCharges",
+"Directory": "nav.directory",
+"Add Employee": "nav.addEmployee",
+"Doctors": "nav.doctors",
+"Nurses": "nav.nurses",
+"Paramedical Staff": "nav.paramedicalStaff",
+"Support Staff": "nav.supportStaff",
+"Visiting Doctors": "nav.visitingDoctors",
+"Daily Attendance": "nav.dailyAttendance",
+"Attendance Sheet": "nav.attendanceSheet",
+"Biometric Setup": "nav.biometricSetup",
+"Duty Roster": "nav.dutyRoster",
+"OT Roster": "nav.otRoster",
+"Emergency Roster": "nav.emergencyRoster",
+"On-Call Schedule": "nav.onCallSchedule",
+"Publish Roster": "nav.publishRoster",
+"Roster Reports": "nav.rosterReports",
+"Overtime": "nav.overtime",
+"Leave Requests": "nav.leaveRequests",
+"Leave Balances": "nav.leaveBalances",
+"Process Payroll": "nav.processPayroll",
+"Employee Salaries": "nav.employeeSalaries",
+"Doctor Compensation": "nav.doctorCompensation",
+"Doctor Earnings": "nav.doctorEarnings",
+"Wallet Balances": "nav.walletBalances",
+"Loans & Advances": "nav.loansAdvances",
+"Payslips": "nav.payslips",
+"Bank Sheets": "nav.bankSheets",
+"Job Openings": "nav.jobOpenings",
+"Applications": "nav.applications",
+"Resignations": "nav.resignations",
+"Clearance": "nav.clearance",
+"Final Settlement": "nav.finalSettlement",
+"Exit Interviews": "nav.exitInterviews",
+"Medical Fitness": "nav.medicalFitness",
+"Vaccinations": "nav.vaccinations",
+"Disciplinary": "nav.disciplinary",
+"Departments": "nav.departments",
+"Designations": "nav.designations",
+"Employee Categories": "nav.employeeCategories",
+"Leave Types": "nav.leaveTypes",
+"Shifts": "nav.shifts",
+"Holidays": "nav.holidays",
+"General Ledger": "nav.generalLedger",
+"Outstanding": "nav.outstanding",
+"Vendor Bills": "nav.vendorBills",
+"Vendor Payments": "nav.vendorPayments",
+"Bank Accounts": "nav.bankAccounts",
+"Budgets": "nav.budgets",
+"Financial Reports": "nav.financialReports",
+"Trial Balance": "nav.trialBalance",
+"Profit & Loss": "nav.profitLoss",
+"Balance Sheet": "nav.balanceSheet",
+"Cash Flow": "nav.cashFlow",
+"Account Types": "nav.accountTypes",
+"Book Appointment": "nav.bookAppointment",
+"Queue": "nav.queue",
+"Bed Availability": "nav.bedAvailability",
+"Ward View": "nav.wardView",
+"New Admission": "nav.newAdmission",
+"Active Admissions": "nav.activeAdmissions",
+"OPD Checkout": "nav.opdCheckout",
+"New Invoice": "nav.newInvoice",
+"Request Discharge": "nav.requestDischarge",
+"Organization Reports": "nav.organizationReports",
+"Branch Comparison": "nav.branchComparison",
+"Day-End Summary": "nav.dayEndSummary",
+"Subscription Plans": "nav.subscriptionPlans",
+"Organization Billing": "nav.organizationBilling",
+"Platform Settings": "nav.platformSettings",
+"Module Catalog": "nav.moduleCatalog",
+"System Health": "nav.systemHealth",
+"Support Tickets": "nav.supportTickets",
+"All Organizations": "nav.allOrganizations",
+"Add Organization": "nav.addOrganization",
+"Branch Analytics": "nav.branchAnalytics",
+"Role Management": "nav.roleManagement",
+"Beds": "nav.beds",
+"Wards": "nav.wards",
+"Housekeeping": "nav.housekeeping",
+"Ward Rounds": "nav.wardRounds",
+"Vitals": "nav.vitals",
+"Nursing Notes": "nav.nursingNotes",
+"Medication Chart": "nav.medicationChart",
+"Search": "nav.search",
+"IPD Patients": "nav.ipdPatients",
+"ER Triage": "nav.erTriage",
+"Pre-Anesthesia": "nav.preAnesthesia",
 ```
-// Collections widget
-"dashboard.todaysPendingOverdue"  → "Today's pending and overdue invoices" / "فواتير اليوم المعلقة والمتأخرة" / "آج کی زیر التواء اور واجب الادا انوائسز"
-"dashboard.collectedToday"        → "Collected Today" / "تم التحصيل اليوم" / "آج وصول ہوا"
-"dashboard.pendingToday"          → "Pending Today" / "معلق اليوم" / "آج زیر التواء"
-"dashboard.overdue"               → "Overdue" / "متأخر" / "واجب الادا"
-"dashboard.viewReports"           → "View Reports" / "عرض التقارير" / "رپورٹس دیکھیں"
-"dashboard.todaysPending"         → "Today's Pending" / "معلق اليوم" / "آج کے زیر التواء"
-"dashboard.noOverdueInvoices"     → "No overdue invoices" / "لا توجد فواتير متأخرة" / "کوئی واجب الادا انوائس نہیں"
-"dashboard.allPaymentsOnTrack"    → "All payments are on track" / "جميع المدفوعات في موعدها" / "تمام ادائیگیاں وقت پر ہیں"
-"dashboard.daysOverdue"           → "d overdue" / "يوم متأخر" / "دن واجب الادا"
-"dashboard.viewAllPending"        → "View all pending invoices" / "عرض جميع الفواتير المعلقة" / "تمام زیر التواء انوائسز دیکھیں"
-"dashboard.viewAllOverdue"        → "View all overdue invoices" / "عرض جميع الفواتير المتأخرة" / "تمام واجب الادا انوائسز دیکھیں"
 
-// Pharmacy widget
-"dashboard.stockLevelsExpiry"     → "Stock levels and expiry warnings" / "مستويات المخزون وتحذيرات انتهاء الصلاحية" / "اسٹاک سطح اور میعاد ختم ہونے کی وارننگ"
-"dashboard.viewInventory"         → "View Inventory" / "عرض المخزون" / "انوینٹری دیکھیں"
-"dashboard.lowStock"              → "Low Stock" / "مخزون منخفض" / "کم اسٹاک"
-"dashboard.expiringSoon"          → "Expiring Soon" / "ستنتهي قريباً" / "جلد ختم ہونے والا"
-"dashboard.toDispense"            → "To Dispense" / "للصرف" / "فراہم کرنے کے لیے"
-"dashboard.lowStockItems"         → "Low Stock Items" / "مواد منخفض المخزون" / "کم اسٹاک اشیاء"
-"dashboard.expiringSoon30Days"    → "Expiring Soon (30 days)" / "ستنتهي قريباً (30 يوم)" / "جلد ختم ہونے والا (30 دن)"
-"dashboard.inventoryLooksGood"    → "Inventory looks good!" / "المخزون جيد!" / "انوینٹری ٹھیک ہے!"
-"dashboard.noStockAlerts"         → "No stock alerts at this time" / "لا توجد تنبيهات مخزون الآن" / "ابھی کوئی اسٹاک الرٹ نہیں"
+## What This Fixes
 
-// Common additions
-"common.left"                     → "left" / "متبقي" / "باقی"
-"common.batch"                    → "Batch" / "دفعة" / "بیچ"
-"common.qty"                      → "Qty" / "الكمية" / "مقدار"
-"common.expired"                  → "Expired" / "منتهي الصلاحية" / "ختم شدہ"
-"common.today"                    → "Today" / "اليوم" / "آج"
-"common.pending"                  → "pending" / "معلق" / "زیر التواء"
-"common.inQueue"                  → "in queue" / "في الانتظار" / "قطار میں"
-"common.newToday"                 → "new today" / "جديد اليوم" / "آج نیا"
-```
-
-### DynamicSidebar RTL Fix (Most Critical)
-
-**Problem**: `RecursiveMenuItem` has `justify-start`, `pl-3/pl-8/pl-12`, `text-left` hardcoded.
-
-**Fix**: Pass `isRTL` prop down through `RecursiveMenuItem`. Update `getLevelStyles()` to conditionally use `pr-` vs `pl-` padding. Update text alignment and button justification:
-
-```tsx
-// RecursiveMenuItem receives isRTL prop
-interface RecursiveMenuItemProps {
-  ...
-  isRTL: boolean;
-}
-
-// getLevelStyles uses isRTL
-const getLevelStyles = () => {
-  const paddingClass = isRTL 
-    ? { 0: "pr-3", 1: "pr-8", 2: "pr-12" }[level] || "pr-12"
-    : { 0: "pl-3", 1: "pl-8", 2: "pl-12" }[level] || "pl-12";
-
-  return {
-    iconSize: "h-4 w-4",
-    textStyle: "font-medium text-sm",
-    hoverBg: "hover:bg-sidebar-accent",
-    activeBg: "bg-sidebar-accent",
-    padding: paddingClass,
-  };
-};
-
-// Button class: replace justify-start with justify-start (this already flips with dir=rtl via flex)
-// text-left → text-start (CSS logical property, auto-flips)
-// The ChevronDown stays at the end naturally with flex
-
-// Logo area: ml-auto → ms-auto (logical margin)
-// Mobile close button: ml-auto → ms-auto
-```
-
-**Key insight**: `text-start` is a Tailwind CSS logical property that automatically means `text-left` in LTR and `text-right` in RTL. Similarly `ps-3` / `pe-3` are logical padding-start/end. This avoids needing `isRTL` at all for text direction — just using Tailwind logical classes fixes everything:
-
-- `pl-3` → `ps-3` (padding-inline-start: auto-flips)
-- `pl-8` → `ps-8`
-- `pl-12` → `ps-12`
-- `text-left` → `text-start`
-- `ml-auto` → `ms-auto`
-- `justify-start` stays as-is (flex already respects RTL direction)
-
-This is cleaner: no `isRTL` prop needed in `RecursiveMenuItem`.
-
-### CollectionsWidget — Replace All Hardcoded Text
-
-Import `useTranslation`, replace:
-- "Collections Overview" → `t("dashboard.collectionsOverview")`  
-- "Today's pending and overdue invoices" → `t("dashboard.todaysPendingOverdue")`
-- "View Reports" → `t("dashboard.viewReports")`
-- "Collected Today" → `t("dashboard.collectedToday")`
-- "Pending Today" → `t("dashboard.pendingToday")`
-- `Today's Pending ({n})` → `` `${t("dashboard.todaysPending")} (${n})` ``
-- `Overdue ({n})` → `` `${t("dashboard.overdue")} (${n})` ``
-- `{n}d overdue` → `` `${n}${t("dashboard.daysOverdue")}` ``
-- "View all X pending invoices" → `` `${t("dashboard.viewAllPending")} (${n})` ``
-- "No overdue invoices" → `t("dashboard.noOverdueInvoices")`
-- "All payments are on track" → `t("dashboard.allPaymentsOnTrack")`
-
-### PharmacyAlertsWidget — Replace All Hardcoded Text
-
-Import `useTranslation`, replace:
-- "Pharmacy Alerts" → `t("dashboard.pharmacyAlerts")`
-- "Stock levels and expiry warnings" → `t("dashboard.stockLevelsExpiry")`
-- "View Inventory" → `t("dashboard.viewInventory")`
-- "Low Stock" → `t("dashboard.lowStock")`
-- "Expiring Soon" → `t("dashboard.expiringSoon")`
-- "To Dispense" → `t("dashboard.toDispense")`
-- "Low Stock Items" → `t("dashboard.lowStockItems")`
-- "Expiring Soon (30 days)" → `t("dashboard.expiringSoon30Days")`
-- "Inventory looks good!" → `t("dashboard.inventoryLooksGood")`
-- "No stock alerts at this time" → `t("dashboard.noStockAlerts")`
-- `{qty} left` → `` `${qty} ${t("common.left")}` ``
-- "Batch:" → `` `${t("common.batch")}:` ``
-- "Expired" / "Today" → `t("common.expired")` / `t("common.today")`
-
-### DashboardPage — Fix Remaining English Strings
-
-- Stat card `change` labels: `+${stats.newPatientsToday} today` → `` `+${stats.newPatientsToday} ${t("common.newToday")}` ``
-- `${stats.pendingAppointments} pending` → `` `${stats.pendingAppointments} ${t("common.pending")}` ``
-- `${stats.queueCount} in queue` → `` `${stats.queueCount} ${t("common.inQueue")}` ``
-- "No roles assigned yet. Contact your administrator." → new key or hardcoded acceptable (rarely seen)
-
----
-
-## Summary of All Files Changed
-
-| File | Key Changes |
-|------|-------------|
-| `src/lib/i18n/translations/en.ts` | +23 new keys for widgets |
-| `src/lib/i18n/translations/ar.ts` | +23 Arabic translations |
-| `src/lib/i18n/translations/ur.ts` | +23 Urdu translations |
-| `src/components/DynamicSidebar.tsx` | `pl-*` → `ps-*`, `text-left` → `text-start`, `ml-auto` → `ms-auto` (Tailwind logical properties — no isRTL prop needed) |
-| `src/components/billing/CollectionsWidget.tsx` | Full i18n integration |
-| `src/components/pharmacy/PharmacyAlertsWidget.tsx` | Full i18n integration |
-| `src/pages/app/DashboardPage.tsx` | Translate stat card change labels |
-
-## Result After Fix
-
-- Sidebar: icons and text align from right-to-left in RTL; submenus indent from right; chevrons on correct side
-- CollectionsWidget: fully in Arabic/Urdu when language is switched
-- PharmacyAlertsWidget: fully in Arabic/Urdu when language is switched
-- Dashboard stat change labels ("5 pending", "+3 today") translated
-- All text direction follows `dir="rtl"` on the HTML element via Tailwind logical properties
+After this change:
+- Every sidebar item for every role (org_admin, doctor, nurse, pharmacist, receptionist, lab_technician, radiologist, blood_bank_technician, surgeon, anesthetist, hr_manager, finance_manager, store_manager, etc.) will have its name translated to Arabic or Urdu
+- The database menu items ("Reception", "Inpatient (IPD)", "Operation Theatre", "Blood Bank", "Accounts & Finance") will be correctly translated
+- ALL child/sub-menu items will translate correctly since they now have entries in the lookup map
+- Both static-config sidebars AND database-driven sidebars are covered
