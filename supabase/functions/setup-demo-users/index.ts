@@ -6,7 +6,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const DEMO_PASSWORD = "Demo@123";
+const DEMO_PASSWORD = Deno.env.get("DEMO_USER_PASSWORD") || "Demo@123";
 
 // OT Demo users to create
 const OT_DEMO_USERS = [

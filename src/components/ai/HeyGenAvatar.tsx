@@ -7,6 +7,7 @@ import StreamingAvatar, {
 } from "@heygen/streaming-avatar";
 import { DoctorAvatarLarge } from "./DoctorAvatarLarge";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 const AVATAR_ID = "c3f695d081884624bb5fbd00751e30e3";
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
@@ -72,10 +73,17 @@ export const HeyGenAvatar = forwardRef<HeyGenAvatarHandle, HeyGenAvatarProps>(
 
       async function initAvatar() {
         try {
-          // 1. Get a short-lived token from our edge function
+          // 1. Get the current session token for auth
+          const { data: sessionData } = await supabase.auth.getSession();
+          const accessToken = sessionData?.session?.access_token;
+
+          // 2. Get a short-lived token from our edge function (authenticated)
           const res = await fetch(`${SUPABASE_URL}/functions/v1/heygen-token`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+              "Content-Type": "application/json",
+              ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+            },
           });
           const { token, error: tokenError } = await res.json();
           if (tokenError || !token) throw new Error(tokenError ?? "No token");

@@ -31,6 +31,31 @@ serve(async (req: Request) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Require authentication
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    });
+  }
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+
+  const authClient = createClient(supabaseUrl, supabaseAnonKey, {
+    global: { headers: { Authorization: authHeader } },
+  });
+
+  const jwtToken = authHeader.replace("Bearer ", "");
+  const { data: claimsData, error: claimsError } = await authClient.auth.getClaims(jwtToken);
+  if (claimsError || !claimsData?.claims) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    });
+  }
+
   try {
     const { organization_id, test_recipient }: RequestBody = await req.json();
 
@@ -38,8 +63,7 @@ serve(async (req: Request) => {
       throw new Error("organization_id and test_recipient are required");
     }
 
-    // Create Supabase client
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    // Create service-role client for reading org settings
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
@@ -141,10 +165,8 @@ serve(async (req: Request) => {
 
       console.log("Test email sent via Resend:", result);
     } else if (settings.email_provider === "sendgrid") {
-      // SendGrid implementation would go here
       throw new Error("SendGrid provider is not yet implemented. Please use Resend.");
     } else if (settings.email_provider === "smtp") {
-      // SMTP implementation would go here
       throw new Error("Custom SMTP is not yet implemented. Please use Resend.");
     } else {
       throw new Error(`Unknown email provider: ${settings.email_provider}`);
