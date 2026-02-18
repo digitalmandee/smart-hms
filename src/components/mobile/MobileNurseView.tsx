@@ -9,7 +9,8 @@ import {
   Clock,
   Plus,
   Search,
-  ChevronRight
+  ChevronRight,
+  ChevronLeft
 } from "lucide-react";
 import { PullToRefresh } from "@/components/mobile/PullToRefresh";
 import { MobileStatsCard } from "@/components/mobile/MobileStatsCard";
@@ -18,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useHaptics } from "@/hooks/useHaptics";
 import { cn } from "@/lib/utils";
+import { useIsRTL } from "@/lib/i18n";
 
 interface NursingQueueData {
   awaitingVitals: any[];
@@ -44,6 +46,7 @@ export function MobileNurseView({
 }: MobileNurseViewProps) {
   const navigate = useNavigate();
   const haptics = useHaptics();
+  const isRTL = useIsRTL();
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -284,6 +287,7 @@ function VitalsTaskCard({ appointment, onClick }: { appointment: any; onClick: (
 
 // Sub-component for ready patient card
 function ReadyPatientCard({ appointment }: { appointment: any }) {
+  const isRTL = useIsRTL();
   return (
     <div className="bg-card border rounded-xl p-4 border-l-4 border-l-emerald-500">
       <div className="flex items-center justify-between">
@@ -293,7 +297,7 @@ function ReadyPatientCard({ appointment }: { appointment: any }) {
               #{appointment.token_number}
             </Badge>
             <Badge className="text-xs bg-emerald-500/20 text-emerald-700 border-emerald-500/30">
-              <UserCheck className="h-3 w-3 mr-1" />
+              <UserCheck className="h-3 w-3 me-1" />
               Ready
             </Badge>
           </div>
@@ -306,7 +310,7 @@ function ReadyPatientCard({ appointment }: { appointment: any }) {
             </p>
           )}
         </div>
-        <ChevronRight className="h-5 w-5 text-muted-foreground" />
+        {isRTL ? <ChevronLeft className="h-5 w-5 text-muted-foreground" /> : <ChevronRight className="h-5 w-5 text-muted-foreground" />}
       </div>
     </div>
   );

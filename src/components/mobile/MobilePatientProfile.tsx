@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import { Capacitor } from "@capacitor/core";
+import { useIsRTL } from "@/lib/i18n";
 
 interface Patient {
   id: string;
@@ -96,6 +97,7 @@ export function MobilePatientProfile({
   tabContent,
 }: MobilePatientProfileProps) {
   const [activeTab, setActiveTab] = useState("overview");
+  const isRTL = useIsRTL();
 
   const triggerHaptic = async () => {
     if (Capacitor.isNativePlatform()) {
@@ -141,9 +143,9 @@ export function MobilePatientProfile({
       <div className="pb-24">
         {/* Header with Back Button */}
         <div className="sticky top-0 z-10 bg-background border-b px-4 py-3 flex items-center gap-3">
-          <Link to="/app/patients">
+        <Link to="/app/patients">
             <Button variant="ghost" size="icon" className="shrink-0">
-              <ChevronLeft className="h-5 w-5" />
+              {isRTL ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
             </Button>
           </Link>
           <div className="flex-1 min-w-0">

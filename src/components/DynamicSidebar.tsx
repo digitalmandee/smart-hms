@@ -701,7 +701,7 @@ const RecursiveMenuItem = ({
         </>
       )}
       {isCollapsed && badgeCount !== undefined && badgeCount > 0 && (
-        <span className="absolute -top-1 -right-1 h-4 min-w-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] flex items-center justify-center">
+        <span className="absolute -top-1 end-[-4px] h-4 min-w-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] flex items-center justify-center">
           {badgeCount > 9 ? "9+" : badgeCount}
         </span>
       )}

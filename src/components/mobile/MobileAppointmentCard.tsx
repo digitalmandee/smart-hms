@@ -1,7 +1,8 @@
-import { Clock, User, ChevronRight } from "lucide-react";
+import { Clock, User, ChevronRight, ChevronLeft } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useHaptics } from "@/hooks/useHaptics";
+import { useIsRTL } from "@/lib/i18n";
 
 interface MobileAppointmentCardProps {
   id: string;
@@ -38,6 +39,7 @@ export function MobileAppointmentCard({
   onClick
 }: MobileAppointmentCardProps) {
   const haptics = useHaptics();
+  const isRTL = useIsRTL();
   const statusInfo = statusConfig[status] || statusConfig.scheduled;
 
   const formatTime = (timeStr: string) => {
@@ -109,7 +111,7 @@ export function MobileAppointmentCard({
           )}
         </div>
 
-        <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-1" />
+        {isRTL ? <ChevronLeft className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-1" /> : <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-1" />}
       </div>
     </div>
   );
