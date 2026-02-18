@@ -11,97 +11,45 @@ import {
   BedDouble,
   Bot,
 } from "lucide-react";
+import { useTranslation } from "@/lib/i18n";
 
 interface QuickAction {
-  label: string;
+  labelKey: string;
   icon: React.ComponentType<{ className?: string }>;
   path: string;
   variant?: "default" | "outline" | "secondary";
-  description: string;
+  descKey: string;
 }
 
 const quickActions: QuickAction[] = [
-  {
-    label: "Register Patient",
-    icon: UserPlus,
-    path: "/app/patients/new",
-    variant: "default",
-    description: "Add new patient",
-  },
-  {
-    label: "Schedule Appointment",
-    icon: CalendarPlus,
-    path: "/app/appointments/new",
-    variant: "outline",
-    description: "Book appointment",
-  },
-  {
-    label: "Walk-in Patient",
-    icon: Footprints,
-    path: "/app/opd/walk-in",
-    variant: "default",
-    description: "Register & collect fee",
-  },
-  {
-    label: "View Beds",
-    icon: BedDouble,
-    path: "/app/ipd/beds",
-    variant: "outline",
-    description: "Check bed availability",
-  },
-  {
-    label: "Create Lab Test",
-    icon: TestTube,
-    path: "/app/lab/create-order",
-    variant: "outline",
-    description: "Order lab tests",
-  },
-  {
-    label: "View Patients",
-    icon: Users,
-    path: "/app/patients",
-    variant: "secondary",
-    description: "Patient directory",
-  },
-  {
-    label: "Queue Display",
-    icon: Monitor,
-    path: "/app/appointments/queue-display",
-    variant: "secondary",
-    description: "TV display",
-  },
-  {
-    label: "Today's Report",
-    icon: FileText,
-    path: "/app/appointments",
-    variant: "secondary",
-    description: "Appointments list",
-  },
-  {
-    label: "AI Patient Intake",
-    icon: Bot,
-    path: "/app/ai-chat",
-    variant: "outline",
-    description: "AI-guided intake",
-  },
+  { labelKey: "reception.registerPatient", icon: UserPlus, path: "/app/patients/new", variant: "default", descKey: "reception.addNewPatient" },
+  { labelKey: "reception.scheduleAppointment", icon: CalendarPlus, path: "/app/appointments/new", variant: "outline", descKey: "reception.bookAppointment" },
+  { labelKey: "reception.walkInPatient", icon: Footprints, path: "/app/opd/walk-in", variant: "default", descKey: "reception.collectFee" },
+  { labelKey: "reception.viewBeds", icon: BedDouble, path: "/app/ipd/beds", variant: "outline", descKey: "reception.checkBedAvail" },
+  { labelKey: "reception.createLabTest", icon: TestTube, path: "/app/lab/create-order", variant: "outline", descKey: "reception.orderLabTests" },
+  { labelKey: "reception.viewPatients", icon: Users, path: "/app/patients", variant: "secondary", descKey: "reception.patientDirectory" },
+  { labelKey: "reception.queueDisplay", icon: Monitor, path: "/app/appointments/queue-display", variant: "secondary", descKey: "reception.tvDisplay" },
+  { labelKey: "reception.todaysReport", icon: FileText, path: "/app/appointments", variant: "secondary", descKey: "reception.appointmentsList" },
+  { labelKey: "reception.aiIntake", icon: Bot, path: "/app/ai-chat", variant: "outline", descKey: "reception.aiGuided" },
 ];
 
 export function ReceptionQuickActions() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   return (
     <div className="grid grid-cols-2 gap-3">
       {quickActions.map((action) => (
         <Button
-          key={action.label}
+          key={action.labelKey}
           variant={action.variant}
           className="h-auto py-4 flex flex-col items-center gap-2"
           onClick={() => navigate(action.path)}
         >
           <action.icon className="h-6 w-6" />
           <div className="text-center">
-            <div className="font-medium text-sm">{action.label}</div>
-            <div className="text-xs opacity-70">{action.description}</div>
+            <div className="font-medium text-sm">{t(action.labelKey as any)}</div>
+            <div className="text-xs opacity-70">{t(action.descKey as any)}</div>
           </div>
         </Button>
       ))}

@@ -1,8 +1,9 @@
 import { format } from "date-fns";
-import { Clock, User, ChevronRight, AlertCircle } from "lucide-react";
+import { Clock, User, ChevronRight, ChevronLeft, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { useHaptics } from "@/hooks/useHaptics";
+import { useIsRTL } from "@/lib/i18n";
 
 interface AppointmentCardProps {
   id: string;

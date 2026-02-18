@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n";
 
 type StatusType = 
   | "active" 
@@ -29,22 +30,27 @@ const statusStyles: Record<StatusType, string> = {
   info: "bg-info/10 text-info border-info/20",
 };
 
-const statusLabels: Record<StatusType, string> = {
-  active: "Active",
-  inactive: "Inactive",
-  trial: "Trial",
-  suspended: "Suspended",
-  cancelled: "Cancelled",
-  pending: "Pending",
-  success: "Success",
-  warning: "Warning",
-  info: "Info",
-};
-
 export function StatusBadge({ status, label }: StatusBadgeProps) {
+  const { t } = useTranslation();
   const normalizedStatus = status.toLowerCase() as StatusType;
   const styles = statusStyles[normalizedStatus] || statusStyles.inactive;
-  const displayLabel = label || statusLabels[normalizedStatus] || status;
+
+  const getDefaultLabel = (): string => {
+    switch (normalizedStatus) {
+      case "active": return t("status.active");
+      case "inactive": return t("status.inactive");
+      case "trial": return t("status.trial");
+      case "suspended": return t("status.suspended");
+      case "cancelled": return t("common.cancelled");
+      case "pending": return t("common.pending");
+      case "success": return t("status.success");
+      case "warning": return t("status.warning");
+      case "info": return t("status.info");
+      default: return status;
+    }
+  };
+
+  const displayLabel = label || getDefaultLabel();
 
   return (
     <Badge

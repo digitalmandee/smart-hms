@@ -1,7 +1,8 @@
-import { Check, Clock, AlertCircle, ChevronRight } from "lucide-react";
+import { Check, Clock, AlertCircle, ChevronRight, ChevronLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { useHaptics } from "@/hooks/useHaptics";
+import { useIsRTL } from "@/lib/i18n";
 
 interface TaskCardProps {
   id: string;

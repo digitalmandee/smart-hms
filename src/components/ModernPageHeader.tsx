@@ -1,9 +1,9 @@
 import { format } from "date-fns";
 import { ar as arLocale, enUS } from "date-fns/locale";
-import { ChevronRight, Sun, Moon, Sunset, CloudSun, LucideIcon } from "lucide-react";
+import { ChevronLeft, ChevronRight, Sun, Moon, Sunset, CloudSun, LucideIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { useTranslation } from "@/lib/i18n";
+import { useTranslation, useIsRTL } from "@/lib/i18n";
 import { useCountryConfig } from "@/contexts/CountryConfigContext";
 
 interface BreadcrumbItem {
@@ -70,6 +70,7 @@ export function ModernPageHeader({
 }: ModernPageHeaderProps) {
   const { t } = useTranslation();
   const { default_language } = useCountryConfig();
+  const isRTL = useIsRTL();
 
   const dateLocale = default_language === "ar" || default_language === "ur" ? arLocale : enUS;
   const today = format(new Date(), "EEEE, MMMM d, yyyy", { locale: dateLocale });
@@ -88,7 +89,7 @@ export function ModernPageHeader({
         <nav className="flex items-center gap-1 text-sm text-muted-foreground mb-3">
           {breadcrumbs.map((item, index) => (
             <div key={index} className="flex items-center gap-1">
-              {index > 0 && <ChevronRight className="h-4 w-4" />}
+              {index > 0 && (isRTL ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />)}
               {item.href ? (
                 <Link
                   to={item.href}
