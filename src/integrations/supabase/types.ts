@@ -8698,6 +8698,8 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           deductible_amount: number | null
+          drg_code: string | null
+          icd_codes: string[] | null
           id: string
           invoice_id: string | null
           notes: string | null
@@ -8709,6 +8711,7 @@ export type Database = {
           payment_reference: string | null
           pre_auth_date: string | null
           pre_auth_number: string | null
+          pre_auth_status: string | null
           rejection_reason: string | null
           status: string | null
           submission_date: string | null
@@ -8729,6 +8732,8 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           deductible_amount?: number | null
+          drg_code?: string | null
+          icd_codes?: string[] | null
           id?: string
           invoice_id?: string | null
           notes?: string | null
@@ -8740,6 +8745,7 @@ export type Database = {
           payment_reference?: string | null
           pre_auth_date?: string | null
           pre_auth_number?: string | null
+          pre_auth_status?: string | null
           rejection_reason?: string | null
           status?: string | null
           submission_date?: string | null
@@ -8760,6 +8766,8 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           deductible_amount?: number | null
+          drg_code?: string | null
+          icd_codes?: string[] | null
           id?: string
           invoice_id?: string | null
           notes?: string | null
@@ -8771,6 +8779,7 @@ export type Database = {
           payment_reference?: string | null
           pre_auth_date?: string | null
           pre_auth_number?: string | null
+          pre_auth_status?: string | null
           rejection_reason?: string | null
           status?: string | null
           submission_date?: string | null
@@ -13879,6 +13888,7 @@ export type Database = {
       }
       patient_insurance: {
         Row: {
+          cchi_number: string | null
           created_at: string | null
           end_date: string | null
           group_number: string | null
@@ -13898,6 +13908,7 @@ export type Database = {
           verified_by: string | null
         }
         Insert: {
+          cchi_number?: string | null
           created_at?: string | null
           end_date?: string | null
           group_number?: string | null
@@ -13917,6 +13928,7 @@ export type Database = {
           verified_by?: string | null
         }
         Update: {
+          cchi_number?: string | null
           created_at?: string | null
           end_date?: string | null
           group_number?: string | null

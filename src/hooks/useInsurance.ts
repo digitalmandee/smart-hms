@@ -49,6 +49,7 @@ export interface PatientInsurance {
   policy_number: string;
   group_number: string | null;
   member_id: string | null;
+  cchi_number: string | null;
   subscriber_name: string | null;
   subscriber_relationship: string | null;
   start_date: string;
@@ -80,6 +81,8 @@ export interface InsuranceClaim {
   status: string;
   pre_auth_number: string | null;
   pre_auth_date: string | null;
+  drg_code: string | null;
+  icd_codes: string[];
   approval_date: string | null;
   rejection_reason: string | null;
   appeal_notes: string | null;
