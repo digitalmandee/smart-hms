@@ -5,11 +5,13 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Pill, AlertTriangle, Clock, ArrowRight, Package } from "lucide-react";
 import { useDashboardPharmacy } from "@/hooks/usePharmacy";
-import { format, differenceInDays } from "date-fns";
+import { differenceInDays } from "date-fns";
+import { useTranslation } from "@/lib/i18n";
 
 export function PharmacyAlertsWidget() {
   const navigate = useNavigate();
   const { data, isLoading } = useDashboardPharmacy();
+  const { t } = useTranslation();
 
   if (isLoading) {
     return (
@@ -35,13 +37,13 @@ export function PharmacyAlertsWidget() {
           <div>
             <CardTitle className="text-lg flex items-center gap-2">
               <Pill className="h-5 w-5" />
-              Pharmacy Alerts
+              {t("dashboard.pharmacyAlerts")}
             </CardTitle>
-            <CardDescription>Stock levels and expiry warnings</CardDescription>
+            <CardDescription>{t("dashboard.stockLevelsExpiry")}</CardDescription>
           </div>
           <Button variant="ghost" size="sm" onClick={() => navigate("/app/pharmacy/inventory")}>
-            View Inventory
-            <ArrowRight className="ml-1 h-4 w-4" />
+            {t("dashboard.viewInventory")}
+            <ArrowRight className="ms-1 h-4 w-4" />
           </Button>
         </div>
       </CardHeader>
@@ -51,17 +53,17 @@ export function PharmacyAlertsWidget() {
           <div className="p-3 rounded-lg bg-warning/10 border border-warning/20 text-center">
             <Package className="h-4 w-4 text-warning mx-auto mb-1" />
             <p className="text-lg font-bold">{lowStockItems.length}</p>
-            <p className="text-xs text-muted-foreground">Low Stock</p>
+            <p className="text-xs text-muted-foreground">{t("dashboard.lowStock")}</p>
           </div>
           <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-center">
             <Clock className="h-4 w-4 text-destructive mx-auto mb-1" />
             <p className="text-lg font-bold">{expiringItems.length}</p>
-            <p className="text-xs text-muted-foreground">Expiring Soon</p>
+            <p className="text-xs text-muted-foreground">{t("dashboard.expiringSoon")}</p>
           </div>
           <div className="p-3 rounded-lg bg-primary/10 border border-primary/20 text-center">
             <Pill className="h-4 w-4 text-primary mx-auto mb-1" />
             <p className="text-lg font-bold">{pendingPrescriptions}</p>
-            <p className="text-xs text-muted-foreground">To Dispense</p>
+            <p className="text-xs text-muted-foreground">{t("dashboard.toDispense")}</p>
           </div>
         </div>
 
@@ -70,7 +72,7 @@ export function PharmacyAlertsWidget() {
           <div>
             <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
               <AlertTriangle className="h-4 w-4 text-warning" />
-              Low Stock Items
+              {t("dashboard.lowStockItems")}
             </h4>
             <div className="space-y-2 max-h-28 overflow-y-auto">
               {lowStockItems.slice(0, 4).map((item) => (
@@ -81,11 +83,11 @@ export function PharmacyAlertsWidget() {
                   <div>
                     <p className="text-sm font-medium">{item.medicine?.name}</p>
                     <p className="text-xs text-muted-foreground">
-                      {item.medicine?.strength} • Batch: {item.batch_number || "N/A"}
+                      {item.medicine?.strength} • {t("common.batch")}: {item.batch_number || "N/A"}
                     </p>
                   </div>
                   <Badge variant="outline" className="text-warning border-warning">
-                    {item.quantity} left
+                    {item.quantity} {t("common.left")}
                   </Badge>
                 </div>
               ))}
@@ -96,7 +98,7 @@ export function PharmacyAlertsWidget() {
                   className="w-full text-xs"
                   onClick={() => navigate("/app/pharmacy/inventory?filter=lowStock")}
                 >
-                  View all {lowStockItems.length} low stock items
+                  {t("dashboard.lowStockItems")} ({lowStockItems.length})
                 </Button>
               )}
             </div>
@@ -108,7 +110,7 @@ export function PharmacyAlertsWidget() {
           <div>
             <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
               <Clock className="h-4 w-4 text-destructive" />
-              Expiring Soon (30 days)
+              {t("dashboard.expiringSoon30Days")}
             </h4>
             <div className="space-y-2 max-h-28 overflow-y-auto">
               {expiringItems.slice(0, 4).map((item) => {
@@ -129,7 +131,7 @@ export function PharmacyAlertsWidget() {
                     <div>
                       <p className="text-sm font-medium">{item.medicine?.name}</p>
                       <p className="text-xs text-muted-foreground">
-                        Batch: {item.batch_number || "N/A"} • Qty: {item.quantity}
+                        {t("common.batch")}: {item.batch_number || "N/A"} • {t("common.qty")}: {item.quantity}
                       </p>
                     </div>
                     <Badge
@@ -137,10 +139,10 @@ export function PharmacyAlertsWidget() {
                       className={isExpired ? "" : "text-destructive border-destructive"}
                     >
                       {isExpired
-                        ? "Expired"
+                        ? t("common.expired")
                         : daysUntilExpiry === 0
-                        ? "Today"
-                        : `${daysUntilExpiry}d left`}
+                        ? t("common.today")
+                        : `${daysUntilExpiry}d ${t("common.left")}`}
                     </Badge>
                   </div>
                 );
@@ -152,7 +154,7 @@ export function PharmacyAlertsWidget() {
                   className="w-full text-xs text-destructive hover:text-destructive"
                   onClick={() => navigate("/app/pharmacy/inventory?filter=expiring")}
                 >
-                  View all {expiringItems.length} expiring items
+                  {t("dashboard.expiringSoon")} ({expiringItems.length})
                 </Button>
               )}
             </div>
@@ -166,8 +168,8 @@ export function PharmacyAlertsWidget() {
               <Package className="h-4 w-4 text-success" />
             </div>
             <div>
-              <p className="text-sm font-medium text-success">Inventory looks good!</p>
-              <p className="text-xs text-muted-foreground">No stock alerts at this time</p>
+              <p className="text-sm font-medium text-success">{t("dashboard.inventoryLooksGood")}</p>
+              <p className="text-xs text-muted-foreground">{t("dashboard.noStockAlerts")}</p>
             </div>
           </div>
         )}

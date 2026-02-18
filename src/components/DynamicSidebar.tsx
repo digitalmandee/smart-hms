@@ -423,7 +423,7 @@ const RecursiveMenuItem = ({
   const badgeCount = item.path ? badgeCounts[item.path] : undefined;
   const displayName = translateName(item.name);
 
-  // Visual hierarchy based on level - using progressive indentation only
+  // Visual hierarchy based on level - using logical properties for RTL support
   const getLevelStyles = () => {
     const common = {
       iconSize: "h-4 w-4",
@@ -434,12 +434,12 @@ const RecursiveMenuItem = ({
 
     switch (level) {
       case 0:
-        return { ...common, padding: "pl-3" };
+        return { ...common, padding: "ps-3" };
       case 1:
-        return { ...common, padding: "pl-8" };
+        return { ...common, padding: "ps-8" };
       case 2:
       default:
-        return { ...common, padding: "pl-12" };
+        return { ...common, padding: "ps-12" };
     }
   };
 
@@ -466,7 +466,7 @@ const RecursiveMenuItem = ({
             {IconComponent && <IconComponent className={cn(styles.iconSize, "flex-shrink-0")} />}
             {!isCollapsed && (
               <>
-                <span className="flex-1 text-left">{displayName}</span>
+                <span className="flex-1 text-start">{displayName}</span>
                 <ChevronDown
                   className={cn(
                     "h-4 w-4 transition-transform opacity-60",
@@ -518,7 +518,7 @@ const RecursiveMenuItem = ({
       {IconComponent && <IconComponent className={cn(styles.iconSize, "flex-shrink-0")} />}
       {!isCollapsed && (
         <>
-          <span className="flex-1 text-left">{displayName}</span>
+          <span className="flex-1 text-start">{displayName}</span>
           {badgeCount !== undefined && badgeCount > 0 && (
             <Badge variant="destructive" className="h-5 min-w-5 px-1.5 text-xs">
               {badgeCount > 99 ? "99+" : badgeCount}
@@ -697,7 +697,7 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle, showDesktopToggl
             variant="ghost"
             size="icon"
             onClick={onToggle}
-            className="ml-auto text-white hover:bg-white/20 lg:hidden"
+            className="ms-auto text-white hover:bg-white/20 lg:hidden"
           >
             <X className="h-5 w-5" />
           </Button>
@@ -711,7 +711,7 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle, showDesktopToggl
             onClick={onToggle}
             className={cn(
               "text-white hover:bg-white/20",
-              isCollapsed ? "mx-auto" : "ml-auto"
+              isCollapsed ? "mx-auto" : "ms-auto"
             )}
             title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           >

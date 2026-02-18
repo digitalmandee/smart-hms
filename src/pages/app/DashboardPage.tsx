@@ -183,7 +183,7 @@ export const DashboardPage = () => {
         <ModernStatsCard
           title={t("dashboard.totalPatients")}
           value={stats?.totalPatients || 0}
-          change={stats?.newPatientsToday ? `+${stats.newPatientsToday} today` : undefined}
+          change={stats?.newPatientsToday ? `+${stats.newPatientsToday} ${t("common.newToday")}` : undefined}
           icon={Users}
           variant="primary"
           loading={isLoading}
@@ -192,7 +192,7 @@ export const DashboardPage = () => {
         <ModernStatsCard
           title={t("dashboard.todayAppointments")}
           value={stats?.todayAppointments || 0}
-          change={stats?.pendingAppointments ? `${stats.pendingAppointments} pending` : undefined}
+          change={stats?.pendingAppointments ? `${stats.pendingAppointments} ${t("common.pending")}` : undefined}
           icon={Calendar}
           variant="info"
           loading={isLoading}
@@ -201,7 +201,7 @@ export const DashboardPage = () => {
         <ModernStatsCard
           title={t("dashboard.activeConsultations")}
           value={stats?.activeConsultations || 0}
-          change={stats?.queueCount ? `${stats.queueCount} in queue` : undefined}
+          change={stats?.queueCount ? `${stats.queueCount} ${t("common.inQueue")}` : undefined}
           icon={Stethoscope}
           variant="success"
           loading={isLoading}
