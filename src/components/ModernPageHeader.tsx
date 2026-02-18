@@ -1,7 +1,10 @@
 import { format } from "date-fns";
+import { ar as arLocale, enUS } from "date-fns/locale";
 import { ChevronRight, Sun, Moon, Sunset, CloudSun, LucideIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n";
+import { useCountryConfig } from "@/contexts/CountryConfigContext";
 
 interface BreadcrumbItem {
   label: string;
@@ -27,16 +30,16 @@ export interface ModernPageHeaderProps {
   iconColor?: string;
 }
 
-function getTimeOfDay(): { greeting: string; icon: React.ReactNode } {
+function getTimeOfDay(goodMorning: string, goodAfternoon: string, goodEvening: string, goodNight: string): { greeting: string; icon: React.ReactNode } {
   const hour = new Date().getHours();
   if (hour >= 5 && hour < 12) {
-    return { greeting: "Good Morning", icon: <Sun className="h-5 w-5 text-warning" /> };
+    return { greeting: goodMorning, icon: <Sun className="h-5 w-5 text-warning" /> };
   } else if (hour >= 12 && hour < 17) {
-    return { greeting: "Good Afternoon", icon: <CloudSun className="h-5 w-5 text-warning" /> };
+    return { greeting: goodAfternoon, icon: <CloudSun className="h-5 w-5 text-warning" /> };
   } else if (hour >= 17 && hour < 21) {
-    return { greeting: "Good Evening", icon: <Sunset className="h-5 w-5 text-destructive" /> };
+    return { greeting: goodEvening, icon: <Sunset className="h-5 w-5 text-destructive" /> };
   } else {
-    return { greeting: "Good Night", icon: <Moon className="h-5 w-5 text-info" /> };
+    return { greeting: goodNight, icon: <Moon className="h-5 w-5 text-info" /> };
   }
 }
 
@@ -65,8 +68,18 @@ export function ModernPageHeader({
   icon: HeaderIcon,
   iconColor = "text-primary",
 }: ModernPageHeaderProps) {
-  const { greeting, icon } = getTimeOfDay();
-  const today = format(new Date(), "EEEE, MMMM d, yyyy");
+  const { t } = useTranslation();
+  const { default_language } = useCountryConfig();
+
+  const dateLocale = default_language === "ar" || default_language === "ur" ? arLocale : enUS;
+  const today = format(new Date(), "EEEE, MMMM d, yyyy", { locale: dateLocale });
+
+  const { greeting, icon } = getTimeOfDay(
+    t("dashboard.goodMorning"),
+    t("dashboard.goodAfternoon"),
+    t("dashboard.goodEvening"),
+    t("dashboard.goodNight")
+  );
 
   return (
     <div className={cn("mb-6 -mx-6 -mt-6 px-6 pt-6 pb-4", variantStyles[variant])}>
@@ -132,7 +145,7 @@ export function ModernPageHeader({
       {quickStats && quickStats.length > 0 && (
         <div className="flex items-center gap-6 mt-4 pt-4 border-t border-border/50">
           <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-            Quick Stats
+            {t("common.quickStats")}
           </span>
           <div className="flex items-center gap-6">
             {quickStats.map((stat, index) => (

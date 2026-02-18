@@ -43,6 +43,10 @@ export function CountryConfigProvider({ children }: { children: React.ReactNode 
       return { ...COUNTRY_PRESETS.PK, isLoading };
     }
 
+    // Cache language for non-hook access (getTranslatedString in hooks/services)
+    const lang = (orgConfig as any).default_language || COUNTRY_PRESETS.PK.default_language || "en";
+    localStorage.setItem("org_default_language", lang);
+
     const countryCode = ((orgConfig as any).country_code || 'PK') as CountryCode;
     const preset = COUNTRY_PRESETS[countryCode] || COUNTRY_PRESETS.PK;
 

@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Capacitor } from "@capacitor/core";
 import { PageHeader } from "@/components/PageHeader";
+import { useTranslation } from "@/lib/i18n";
 import { DataTable } from "@/components/DataTable";
 import { Button } from "@/components/ui/button";
 import {
@@ -42,74 +43,55 @@ interface InvoiceRow {
 
 type CategoryFilter = "all" | "lab" | "radiology" | "consultation";
 
-const columns: ColumnDef<InvoiceRow>[] = [
-  {
-    accessorKey: "invoice_number",
-    header: "Invoice #",
-    cell: ({ row }) => (
-      <span className="font-mono">{row.original.invoice_number}</span>
-    ),
-  },
-  {
-    accessorKey: "invoice_date",
-    header: "Date",
-    cell: ({ row }) =>
-      row.original.invoice_date
-        ? format(new Date(row.original.invoice_date), "MMM dd, yyyy")
-        : "-",
-  },
-  {
-    accessorKey: "patient",
-    header: "Patient",
-    cell: ({ row }) => (
-      <div>
-        <p className="font-medium">
-          {row.original.patient?.first_name} {row.original.patient?.last_name}
-        </p>
-        <p className="text-xs text-muted-foreground">
-          {row.original.patient?.patient_number}
-        </p>
-      </div>
-    ),
-  },
-  {
-    accessorKey: "total_amount",
-    header: "Amount",
-    cell: ({ row }) => (
-      <span className="font-medium">
-        Rs. {Number(row.original.total_amount || 0).toLocaleString()}
-      </span>
-    ),
-  },
-  {
-    accessorKey: "paid_amount",
-    header: "Paid",
-    cell: ({ row }) => (
-      <span className="text-success">
-        Rs. {Number(row.original.paid_amount || 0).toLocaleString()}
-      </span>
-    ),
-  },
-  {
-    accessorKey: "balance",
-    header: "Balance",
-    cell: ({ row }) => {
-      const balance =
-        Number(row.original.total_amount || 0) -
-        Number(row.original.paid_amount || 0);
-      return (
-        <span className={balance > 0 ? "text-destructive font-medium" : ""}>
-          Rs. {balance.toLocaleString()}
-        </span>
-      );
+function useColumns() {
+  const { t } = useTranslation();
+  const columns: ColumnDef<InvoiceRow>[] = [
+    {
+      accessorKey: "invoice_number",
+      header: t("invoices.invoiceNo"),
+      cell: ({ row }) => <span className="font-mono">{row.original.invoice_number}</span>,
     },
-  },
-  {
-    accessorKey: "status",
-    header: "Status",
-    cell: ({ row }) => <InvoiceStatusBadge status={row.original.status} />,
-  },
-];
+    {
+      accessorKey: "invoice_date",
+      header: t("invoices.date"),
+      cell: ({ row }) => row.original.invoice_date ? format(new Date(row.original.invoice_date), "MMM dd, yyyy") : "-",
+    },
+    {
+      accessorKey: "patient",
+      header: t("invoices.patient"),
+      cell: ({ row }) => (
+        <div>
+          <p className="font-medium">{row.original.patient?.first_name} {row.original.patient?.last_name}</p>
+          <p className="text-xs text-muted-foreground">{row.original.patient?.patient_number}</p>
+        </div>
+      ),
+    },
+    {
+      accessorKey: "total_amount",
+      header: t("invoices.amount"),
+      cell: ({ row }) => <span className="font-medium">Rs. {Number(row.original.total_amount || 0).toLocaleString()}</span>,
+    },
+    {
+      accessorKey: "paid_amount",
+      header: t("invoices.paid"),
+      cell: ({ row }) => <span className="text-success">Rs. {Number(row.original.paid_amount || 0).toLocaleString()}</span>,
+    },
+    {
+      accessorKey: "balance",
+      header: t("invoices.balance"),
+      cell: ({ row }) => {
+        const balance = Number(row.original.total_amount || 0) - Number(row.original.paid_amount || 0);
+        return <span className={balance > 0 ? "text-destructive font-medium" : ""}>Rs. {balance.toLocaleString()}</span>;
+      },
+    },
+    {
+      accessorKey: "status",
+      header: t("invoices.status"),
+      cell: ({ row }) => <InvoiceStatusBadge status={row.original.status} />,
+    },
+  ];
+  return columns;
+}
 
 // Hook to get invoices with their service categories
 function useInvoicesWithCategories(branchId?: string, statusFilter?: InvoiceStatus | "all") {
