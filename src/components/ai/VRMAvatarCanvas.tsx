@@ -3,7 +3,7 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { VRM, VRMLoaderPlugin, VRMUtils } from "@pixiv/three-vrm";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { ProceduralDoctorAvatar } from "./ProceduralDoctorAvatar";
+import { AvatarPlaceholderCard } from "./AvatarPlaceholderCard";
 import { cn } from "@/lib/utils";
 
 type AvatarState = "idle" | "listening" | "thinking" | "speaking";
@@ -199,9 +199,9 @@ export function VRMAvatarCanvas({ state = "idle", className }: VRMAvatarCanvasPr
       .catch(() => {});
   }, []);
 
-  // No local VRM → show procedural 3D avatar
+  // No local VRM → show polished illustrated avatar card
   if (!vrmUrl) {
-    return <ProceduralDoctorAvatar state={state} className={className} />;
+    return <AvatarPlaceholderCard state={state} className={className} />;
   }
 
   const borderGlow =
@@ -227,10 +227,10 @@ export function VRMAvatarCanvas({ state = "idle", className }: VRMAvatarCanvasPr
           background: "hsl(var(--card))",
         }}
       >
-        {/* Show ProceduralDoctorAvatar inline while VRM loads */}
+        {/* Show AvatarPlaceholderCard inline while VRM loads */}
         {vrmStatus === "loading" && (
           <div className="absolute inset-0 z-10">
-            <ProceduralDoctorAvatar state="thinking" className="w-full h-full" />
+            <AvatarPlaceholderCard state="thinking" className="w-full h-full" />
           </div>
         )}
 
