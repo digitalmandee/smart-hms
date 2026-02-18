@@ -19,24 +19,28 @@ const LANGUAGE_LABELS: Record<string, { label: string; native: string }> = {
   ur: { label: "Urdu", native: "اردو" },
 };
 
+const ALL_LANGUAGES = ['en', 'ar', 'ur'];
+
 export function LanguageSwitcher({ className }: { className?: string }) {
   const { default_language, supported_languages } = useCountryConfig();
   const { profile } = useAuth();
   const queryClient = useQueryClient();
   const [isSwitching, setIsSwitching] = useState(false);
 
-  // Only show if org supports more than one language
-  if (!supported_languages || supported_languages.length <= 1) return null;
+  if (!profile?.organization_id) return null;
 
   const switchLanguage = async (lang: string) => {
     if (!profile?.organization_id || isSwitching || lang === default_language) return;
     setIsSwitching(true);
     try {
+      const newSupported = supported_languages?.includes(lang)
+        ? supported_languages
+        : [...(supported_languages || ['en']), lang];
       await supabase.rpc("set_org_language", {
         p_language: lang,
-        p_supported_languages: supported_languages,
+        p_supported_languages: newSupported,
       } as any);
-      queryClient.invalidateQueries({ queryKey: ["country-config", profile.organization_id] });
+      await queryClient.refetchQueries({ queryKey: ["country-config", profile.organization_id] });
     } finally {
       setIsSwitching(false);
     }
@@ -63,7 +67,7 @@ export function LanguageSwitcher({ className }: { className?: string }) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-[140px] bg-popover">
-        {supported_languages.map((lang) => {
+        {ALL_LANGUAGES.map((lang) => {
           const info = LANGUAGE_LABELS[lang] ?? { label: lang, native: lang };
           const isActive = lang === default_language;
           return (
