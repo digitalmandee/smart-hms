@@ -1,145 +1,146 @@
 
-# Procedural 3D Doctor Avatar — No File Required
+# Improve Female Doctor Avatar — Better Photo + Feminine 3D Features
 
-## The Problem
-The `VRMAvatarCanvas` component requires a `.vrm` file (either local or from CDN). The pixiv CDN is discontinued, and no local file exists at `public/avatars/doctor.vrm`. The result is a broken canvas that falls back to the static photo.
+## Overview
 
-## The Solution: A 100% Code-Generated 3D Doctor
-
-Instead of loading any external file, we build the avatar entirely with **Three.js geometry primitives** inside React Three Fiber. No `.vrm`, no CDN, no external dependency — it renders immediately and we control every part of it.
-
-The avatar is a stylized humanoid doctor: head, neck, torso (white coat), arms, hands — all assembled from `SphereGeometry`, `CapsuleGeometry`, `BoxGeometry`. It is animated with sinusoidal bone-style transforms and driven by the same `state` prop as before (`idle | listening | thinking | speaking`).
+Two files need updating:
+1. **`DoctorAvatarLarge.tsx`** — Replace the Unsplash photo URL with a better quality Arabic female doctor image
+2. **`ProceduralDoctorAvatar.tsx`** — Add clearly feminine features to the 3D avatar: long hair flowing down, softer face proportions, eyelashes, and smaller nose/jaw
 
 ---
 
-## What the Avatar Looks Like
+## 1. DoctorAvatarLarge.tsx — Better Photo
+
+Replace the current `DOCTOR_PHOTO_URL` with a higher quality, clearly Arabic female doctor photo. The current URL is a generic stock photo. We'll switch to a better Unsplash photo that shows a professional female doctor with a white coat, ideally with visible hijab or darker features to represent an Arabic/Middle Eastern doctor.
+
+**New URL candidates (Unsplash free-to-use):**
+```
+https://images.unsplash.com/photo-1594824476967-48c8b964273f?fm=jpg&q=90&w=800&auto=format&fit=crop
+```
+This is a close-up of a female doctor in white coat — professional, warm skin tone, high quality.
+
+Also improve `objectPosition` from `"50% 8%"` to `"50% 15%"` to better frame the face.
+
+---
+
+## 2. ProceduralDoctorAvatar.tsx — Feminine 3D Features
+
+The current avatar is mostly gender-neutral. We'll add these feminine features:
+
+### A. Long Hair
+The current hair is just a top-cap hemisphere. We'll add:
+- **Side hair panels** — two flattened box meshes on left/right that extend downward past the shoulders, giving the silhouette of long flowing hair
+- **Back hair volume** — a slightly larger sphere segment behind the head
+- **Softer hairline** — round the top cap more
 
 ```text
-        ( O )        ← Head (sphere, skin tone)
-          |           ← Neck
-     [  BODY  ]       ← Torso (white coat + stethoscope)
-      /       \       ← Upper arms
-    [ ]       [ ]     ← Forearms
+Before:         After:
+   (_____)        (_______)
+   | HEAD |      |  HEAD  |
+   |      |     ||        ||   ← side hair panels
+                ||        ||
+                 \      /
 ```
 
-Rendered in a rounded card with the same glow/border effects as `DoctorAvatarLarge` — so the page layout stays identical.
+### B. Softer Face Proportions
+- **Slightly smaller head sphere** (`r=0.165` instead of `0.175`) — more delicate
+- **Smaller nose** (`r=0.013` instead of `0.018`)
+- **Eyebrows** — slightly thinner and more arched (`rotation z` increased slightly, width reduced from `0.046` to `0.038`)
+- **Lips** — slightly fuller/wider (`0.075` wide instead of `0.07`)
+
+### C. Eyelashes
+Add thin dark curved strips above each eye — two small `boxGeometry` meshes rotated slightly over the upper eye area, dark brown/black. Gives a clearly feminine look.
+
+### D. Earrings
+Small gold sphere dangling from each ear — adds feminine detail with minimal geometry.
+
+### E. Softer Coat — Remove Tie
+The current avatar has a blue shirt/tie in the center. For a female doctor, replace this with:
+- A simple light blue undershirt (no tie)
+- Slightly narrower lapels (more delicate look)
+
+### F. Hijab Option (optional but fitting for Arabic context)
+Add a head covering mesh — a slightly oversized sphere cap in a teal/navy color that wraps around the head sides and back, sitting over the hair. This is culturally appropriate for an Arabic female doctor and would make Tabeebi feel authentic to its target users.
 
 ---
 
-## Technical Implementation
+## Files Changed
 
-### Component: `ProceduralDoctorAvatar.tsx` (replaces VRMAvatarCanvas dependency on VRM)
-
-Built entirely using `@react-three/fiber` + `@react-three/drei` + Three.js primitives — all already installed.
-
-**Body parts (all via `useRef` on `<group>` nodes):**
-
-| Part | Geometry | Color |
-|------|----------|-------|
-| Head | SphereGeometry r=0.18 | `#f5c5a3` (skin) |
-| Hair | SphereGeometry r=0.19 (top half) | `#3d2b1f` (dark brown) |
-| Eyes | 2x SphereGeometry r=0.025 | white + dark iris |
-| Mouth | BoxGeometry (thin bar) | `#c87f6f` |
-| Neck | CylinderGeometry | skin |
-| Torso | BoxGeometry | white (coat) |
-| Lapels | BoxGeometry | white |
-| Tie/shirt | BoxGeometry | light blue |
-| Left/Right Upper Arm | CapsuleGeometry | white |
-| Left/Right Forearm | CapsuleGeometry | white |
-| Stethoscope | TorusGeometry + CylinderGeometry | silver/gray |
-
-**Animation (inside `useFrame`, no external clips needed):**
-
-```typescript
-// Lip sync — exactly same as VRMAvatarCanvas amplitude simulation
-if (state === "speaking") {
-  ampRef.current.timeSince += delta;
-  if (ampRef.current.timeSince > 0.08) {
-    ampRef.current.target = Math.random() * 0.9 + 0.1;
-    ampRef.current.timeSince = 0;
-  }
-} else {
-  ampRef.current.target = 0;
-}
-ampRef.current.current = THREE.MathUtils.lerp(
-  ampRef.current.current, ampRef.current.target, delta * 12
-);
-
-// Mouth open = scale mouth mesh on Y axis
-if (mouthRef.current) {
-  mouthRef.current.scale.y = 1 + ampRef.current.current * 3.5;
-}
-
-// Eye blink — scale eyes to 0 on Y axis every 3-5s
-if (eyeGroupRef.current) {
-  eyeGroupRef.current.scale.y = blinkValue;
-}
-
-// Head nod during speaking
-if (headRef.current) {
-  headRef.current.rotation.x = state === "speaking"
-    ? Math.sin(t * 2.4) * 0.08
-    : state === "thinking" ? -0.06
-    : state === "listening" ? 0.04
-    : Math.sin(t * 0.5) * 0.02;
-}
-
-// Arm sway
-if (leftArmRef.current) {
-  leftArmRef.current.rotation.z = state === "speaking"
-    ? 0.4 + Math.sin(t * 1.5) * 0.1
-    : 0.35 + Math.sin(t * 0.5) * 0.02;
-}
-```
-
-**Body breathing animation:**
-```typescript
-// Gentle chest rise/fall on torso
-if (torsoRef.current) {
-  torsoRef.current.scale.y = 1 + Math.sin(t * 0.8) * 0.008;
-}
-```
+| File | Change |
+|------|--------|
+| `src/components/ai/DoctorAvatarLarge.tsx` | New photo URL, better objectPosition |
+| `src/components/ai/ProceduralDoctorAvatar.tsx` | Long hair, softer face, eyelashes, earrings, hijab, remove tie |
 
 ---
 
-## Files to Change
+## Technical Details for ProceduralDoctorAvatar
 
-| File | Action | What |
-|------|--------|------|
-| `src/components/ai/ProceduralDoctorAvatar.tsx` | **Create** | Self-contained 3D avatar, no .vrm needed |
-| `src/components/ai/VRMAvatarCanvas.tsx` | **Edit** | Remove broken CDN fallback, import `ProceduralDoctorAvatar` as fallback when no local VRM exists |
-| `src/pages/public/TabeebiVoicePage.tsx` | **No change** | Already uses `VRMAvatarCanvas` which will auto-use the new procedural avatar |
+### Long hair meshes (added inside `<group ref={headRef}>`)
+```tsx
+{/* Back hair volume */}
+<mesh position={[0, -0.02, -0.08]}>
+  <sphereGeometry args={[0.19, 24, 24, 0, Math.PI * 2, 0, Math.PI * 0.65]} />
+  <meshStandardMaterial color={hairColor} roughness={0.95} />
+</mesh>
 
-### VRMAvatarCanvas.tsx change (3 lines)
+{/* Left side hair panel */}
+<mesh position={[-0.16, -0.18, -0.02]} rotation={[0.1, 0, 0.08]}>
+  <boxGeometry args={[0.06, 0.32, 0.08]} />
+  <meshStandardMaterial color={hairColor} roughness={0.9} />
+</mesh>
 
-Remove `FALLBACK_VRM_URL` and the broken CDN fetch fallback. When `vrmUrl` is `null`, render `<ProceduralDoctorAvatar>` instead of `<DoctorAvatarLarge>`:
-
-```typescript
-// Before
-fetch(LOCAL_VRM_PATH, { method: "HEAD" })
-  .then((r) => setVrmUrl(r.ok ? LOCAL_VRM_PATH : FALLBACK_VRM_URL))
-  .catch(() => setVrmUrl(FALLBACK_VRM_URL));
-
-// After
-fetch(LOCAL_VRM_PATH, { method: "HEAD" })
-  .then((r) => { if (r.ok) setVrmUrl(LOCAL_VRM_PATH); })
-  .catch(() => {});
-
-// No VRM = show ProceduralDoctorAvatar (3D, not static photo)
-if (!vrmUrl) {
-  return <ProceduralDoctorAvatar state={state} className={className} />;
-}
+{/* Right side hair panel */}
+<mesh position={[0.16, -0.18, -0.02]} rotation={[0.1, 0, -0.08]}>
+  <boxGeometry args={[0.06, 0.32, 0.08]} />
+  <meshStandardMaterial color={hairColor} roughness={0.9} />
+</mesh>
 ```
 
----
+### Eyelashes (added inside `eyeGroupRef` group)
+```tsx
+{/* Left eyelash */}
+<mesh position={[-0.068, 0.058, 0.163]} rotation={[0, 0, 0.1]}>
+  <boxGeometry args={[0.044, 0.006, 0.002]} />
+  <meshStandardMaterial color="#0d0600" roughness={0.9} />
+</mesh>
+{/* Right eyelash */}
+<mesh position={[0.068, 0.058, 0.163]} rotation={[0, 0, -0.1]}>
+  <boxGeometry args={[0.044, 0.006, 0.002]} />
+  <meshStandardMaterial color="#0d0600" roughness={0.9} />
+</mesh>
+```
 
-## Result
+### Gold earrings
+```tsx
+{/* Left earring */}
+<mesh position={[-0.19, -0.04, 0]}>
+  <sphereGeometry args={[0.012, 8, 8]} />
+  <meshStandardMaterial color="#d4a017" metalness={0.9} roughness={0.1} />
+</mesh>
+{/* Right earring */}
+<mesh position={[0.19, -0.04, 0]}>
+  <sphereGeometry args={[0.012, 8, 8]} />
+  <meshStandardMaterial color="#d4a017" metalness={0.9} roughness={0.1} />
+</mesh>
+```
 
-- **Immediate 3D avatar** — renders with zero file loading
-- **Lip sync** — simulated amplitude drives mouth open/close
-- **Eye blinks** — every 3-5 seconds
-- **Head nods** — during speaking
-- **Arm sway** — during idle and speaking
-- **Doctor appearance** — white coat, stethoscope, professional look
-- **Same card layout** — same glow border, same rounded card, same state tints as before
-- **Upgradeable** — drop `public/avatars/doctor.vrm` later and it auto-upgrades to a custom character model
+### Hijab (head covering)
+```tsx
+{/* Hijab — wraps over hair, around sides and back */}
+<mesh position={[0, 0.01, -0.01]}>
+  <sphereGeometry args={[0.196, 32, 32, 0, Math.PI * 2, 0, Math.PI * 0.72]} />
+  <meshStandardMaterial color="#1a4a5a" roughness={0.85} />
+</mesh>
+{/* Hijab side left drape */}
+<mesh position={[-0.18, -0.22, -0.01]} rotation={[0.05, 0, 0.05]}>
+  <boxGeometry args={[0.07, 0.38, 0.1]} />
+  <meshStandardMaterial color="#1a4a5a" roughness={0.85} />
+</mesh>
+{/* Hijab side right drape */}
+<mesh position={[0.18, -0.22, -0.01]} rotation={[0.05, 0, -0.05]}>
+  <boxGeometry args={[0.07, 0.38, 0.1]} />
+  <meshStandardMaterial color="#1a4a5a" roughness={0.85} />
+</mesh>
+```
+
+The hijab color `#1a4a5a` (deep teal) matches Tabeebi's brand color (premium teal UI noted in memory). This ties the avatar to the brand visually.
