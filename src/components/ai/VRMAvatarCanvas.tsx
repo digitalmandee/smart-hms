@@ -199,8 +199,8 @@ export function VRMAvatarCanvas({ state = "idle", className }: VRMAvatarCanvasPr
       .catch(() => {});
   }, []);
 
-  // No local VRM → show polished illustrated avatar card
-  if (!vrmUrl) {
+  // No local VRM or error loading VRM → show polished illustrated avatar card
+  if (!vrmUrl || vrmStatus === "error") {
     return <AvatarPlaceholderCard state={state} className={className} />;
   }
 
