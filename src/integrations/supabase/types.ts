@@ -19749,6 +19749,10 @@ export type Database = {
         }
         Returns: string
       }
+      set_org_language: {
+        Args: { p_language: string; p_supported_languages: string[] }
+        Returns: undefined
+      }
       validate_kiosk_session: {
         Args: { p_session_token: string }
         Returns: {
