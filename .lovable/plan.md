@@ -1,52 +1,72 @@
 
-# Fix: Language Switcher — Show All 3 Languages Always
+# Fix: RTL Layout Not Flipping — Two Root Causes
 
-## Root Cause (Confirmed by Database)
+## What the Evidence Shows
 
-The database confirms ALL organizations have `supported_languages: ['en', 'ur']`. Arabic is never in this array because:
-- The PK country preset only includes `['en', 'ur']`
-- Users must manually go to Settings > Country & Region, enable Arabic, and save — most users skip this step
+The RPC call works perfectly:
+- `POST /rpc/set_org_language` returns **204** (success)
+- The DB response confirms `"default_language":"ar"`, `"supported_languages":["en","ur","ar"]`
+- The language switcher button correctly updates to show "عربي"
 
-The `LanguageSwitcher` renders only languages present in `supported_languages`, so Arabic never appears in the navbar.
+But the layout never flips to RTL. Two bugs cause this:
 
-## The Simple Fix
+---
 
-**Remove the dependency on `supported_languages` entirely from the navbar switcher.** Always show all 3 languages (English, Arabic, Urdu) in the dropdown. When a user picks one, automatically update both `default_language` AND `supported_languages` to include it.
+## Bug 1 — `RTLDirectionSetter` is Defined But Never Rendered
 
-This eliminates the two-step flow (Settings → enable → Save → then switch) and makes the feature work out of the box.
+In `src/App.tsx`, the `RTLDirectionSetter` component is defined (lines 485–495) with the correct logic:
+```ts
+const dir = ['ar', 'ur'].includes(default_language) ? 'rtl' : 'ltr';
+document.documentElement.dir = dir;
+```
 
-## Changes Required
+But searching the entire codebase for `<RTLDirectionSetter` returns **zero results** — it is never placed in the JSX tree. Because it requires `CountryConfigProvider` context (which only wraps `/app/*` routes at line 568), it must be rendered **inside** that provider.
 
-### 1. `src/components/LanguageSwitcher.tsx`
+**Fix**: Add `<RTLDirectionSetter />` inside the `CountryConfigProvider` in App.tsx, just before `<DashboardLayout />`:
+```tsx
+<CountryConfigProvider>
+  <RTLDirectionSetter />
+  <DashboardLayout />
+</CountryConfigProvider>
+```
 
-- Always render all 3 languages: `['en', 'ar', 'ur']`
-- Remove the `supported_languages.length <= 1` guard (replace with a simpler check or always show)
-- When switching to a language, pass the merged array so it gets added to `supported_languages` automatically:
-  ```ts
-  const newSupported = supported_languages.includes(lang)
-    ? supported_languages
-    : [...supported_languages, lang];
-  await supabase.rpc("set_org_language", {
-    p_language: lang,
-    p_supported_languages: newSupported,
-  });
-  ```
-- After the RPC call, await the query refetch (not just invalidate) to ensure the UI updates immediately before the spinner stops
+---
 
-### 2. `src/contexts/CountryConfigContext.tsx`
+## Bug 2 — `DashboardLayout` Sidebar is Hardcoded LTR
 
-- After `queryClient.invalidateQueries`, the context re-fetches, but there can be a timing issue where `isSwitching` becomes `false` before the new data arrives. To fix this, use `queryClient.refetchQueries` instead of `invalidateQueries` (refetch is synchronous — it waits for completion).
+Even after `dir="rtl"` is set on `<html>`, the sidebar stays on the left because:
 
-## Summary of Changes
+- Line 51: `<div className="flex h-screen overflow-hidden bg-background">` — flex row always puts sidebar first (left)
+- Line 72: `<SheetContent side="left" ...>` — mobile sidebar always slides from left
+- Line 67: `className="lg:hidden fixed top-4 left-4 z-40"` — hamburger menu hardcoded to left
+
+**Fix in `src/layouts/DashboardLayout.tsx`**:
+
+1. Make the flex container direction-aware: when RTL, sidebar should be on the right. Use `useIsRTL()` hook from `src/lib/i18n/index.ts` which already works correctly.
+
+2. Change the `SheetContent` side to be dynamic: `side={isRTL ? "right" : "left"}`
+
+3. Change the hamburger button position: `className={isRTL ? "lg:hidden fixed top-4 right-4 z-40" : "lg:hidden fixed top-4 left-4 z-40"}`
+
+4. Change the `flex-row` to `flex-row-reverse` when RTL so the sidebar appears on the right side naturally.
+
+---
+
+## Files to Change
 
 | File | Change |
 |------|--------|
-| `src/components/LanguageSwitcher.tsx` | Always show all 3 languages; auto-add to supported_languages when switching; use refetchQueries for immediate update |
+| `src/App.tsx` | Add `<RTLDirectionSetter />` inside `CountryConfigProvider` (1 line) |
+| `src/layouts/DashboardLayout.tsx` | Use `useIsRTL()` to flip sidebar side, hamburger position, and flex direction |
 
-## Result
+---
 
-- Arabic always visible in navbar dropdown (no need to go to Settings first)
-- Clicking Arabic → saves `default_language: 'ar'`, adds `'ar'` to `supported_languages`, flips layout to RTL
-- Clicking Urdu → saves `default_language: 'ur'`, adds `'ur'` to `supported_languages`, flips layout to RTL
-- Clicking English → saves `default_language: 'en'`, flips layout back to LTR
-- No more two-step process through Settings
+## Result After Fix
+
+- Clicking Arabic in the language dropdown:
+  - Saves to DB (already working)
+  - `RTLDirectionSetter` fires, sets `document.documentElement.dir = 'rtl'`
+  - `DashboardLayout` detects RTL via `useIsRTL()`, moves sidebar to the right, hamburger to top-right
+  - Page content flows right-to-left
+- Clicking English → layout returns to LTR with sidebar on left
+- Urdu behaves identically to Arabic (RTL)
