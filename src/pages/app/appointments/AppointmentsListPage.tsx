@@ -25,6 +25,7 @@ import { MobileStatsCard } from '@/components/mobile/MobileStatsCard';
 import { MobileAppointmentCard } from '@/components/mobile/MobileAppointmentCard';
 import { PullToRefresh } from '@/components/mobile/PullToRefresh';
 import { useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from '@/lib/i18n';
 
 type AppointmentStatus = Database['public']['Enums']['appointment_status'];
 
@@ -37,18 +38,10 @@ const statusColors: Record<string, string> = {
   no_show: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300',
 };
 
-const statusLabels: Record<string, string> = {
-  scheduled: 'Scheduled',
-  checked_in: 'Checked In',
-  in_progress: 'In Progress',
-  completed: 'Completed',
-  cancelled: 'Cancelled',
-  no_show: 'No Show',
-};
-
 export default function AppointmentsListPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const [dateFilter, setDateFilter] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [statusFilter, setStatusFilter] = useState<AppointmentStatus | 'all'>('all');
   const [doctorFilter, setDoctorFilter] = useState<string>('all');
@@ -66,10 +59,19 @@ export default function AppointmentsListPage() {
   const { data: stats } = useAppointmentStats();
   const { data: doctors } = useDoctors();
 
+  const statusLabels: Record<string, string> = {
+    scheduled: t("appointments.scheduled"),
+    checked_in: t("appointments.checkedIn"),
+    in_progress: t("appointments.inProgress"),
+    completed: t("appointments.completed"),
+    cancelled: t("appointments.cancelled"),
+    no_show: t("appointments.noShow"),
+  };
+
   const columns: ColumnDef<any>[] = [
     {
       accessorKey: 'token_number',
-      header: 'Token',
+      header: t("appointments.token"),
       cell: ({ row }) => (
         <span className="font-mono font-medium">
           #{row.original.token_number || '-'}
@@ -78,7 +80,7 @@ export default function AppointmentsListPage() {
     },
     {
       accessorKey: 'patient',
-      header: 'Patient',
+      header: t("appointments.patient"),
       cell: ({ row }) => {
         const patient = row.original.patient;
         return (
@@ -95,7 +97,7 @@ export default function AppointmentsListPage() {
     },
     {
       accessorKey: 'appointment_time',
-      header: 'Time',
+      header: t("common.time"),
       cell: ({ row }) => {
         const time = row.original.appointment_time;
         if (!time) return '--:--';
@@ -107,7 +109,7 @@ export default function AppointmentsListPage() {
     },
     {
       accessorKey: 'doctor',
-      header: 'Doctor',
+      header: t("appointments.doctor"),
       cell: ({ row }) => {
         const doctor = row.original.doctor;
         return doctor ? (
@@ -122,13 +124,13 @@ export default function AppointmentsListPage() {
     },
     {
       accessorKey: 'appointment_type',
-      header: 'Type',
+      header: t("appointments.type"),
       cell: ({ row }) => {
         const type = row.original.appointment_type;
         const typeLabels: Record<string, string> = {
-          walk_in: 'Walk-in',
-          scheduled: 'Scheduled',
-          follow_up: 'Follow-up',
+          walk_in: t("appointments.walkIn"),
+          scheduled: t("appointments.scheduled"),
+          follow_up: t("appointments.followUp"),
         };
         return (
           <Badge variant="outline">
@@ -139,7 +141,7 @@ export default function AppointmentsListPage() {
     },
     {
       accessorKey: 'status',
-      header: 'Status',
+      header: t("common.status"),
       cell: ({ row }) => {
         const status = row.original.status || 'scheduled';
         return (
@@ -151,7 +153,7 @@ export default function AppointmentsListPage() {
     },
     {
       accessorKey: 'chief_complaint',
-      header: 'Chief Complaint',
+      header: t("appointments.chiefComplaint"),
       cell: ({ row }) => (
         <span className="text-sm text-muted-foreground line-clamp-1">
           {row.original.chief_complaint || '-'}
@@ -173,34 +175,34 @@ export default function AppointmentsListPage() {
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-xl font-bold">Appointments</h1>
+              <h1 className="text-xl font-bold">{t("appointments.title")}</h1>
               <p className="text-sm text-muted-foreground">{format(new Date(dateFilter), 'EEEE, MMM d')}</p>
             </div>
             <Button size="sm" onClick={() => navigate('/app/appointments/new')}>
               <Plus className="h-4 w-4 mr-1" />
-              New
+              {t("appointments.new")}
             </Button>
           </div>
 
           {/* Stats Grid - 2 columns */}
           <div className="grid grid-cols-2 gap-3">
             <MobileStatsCard
-              title="Today"
+              title={t("appointments.today")}
               value={stats?.todayCount || 0}
               icon={<Calendar className="h-4 w-4" />}
             />
             <MobileStatsCard
-              title="Waiting"
+              title={t("appointments.waiting")}
               value={stats?.scheduled || 0}
               icon={<Clock className="h-4 w-4" />}
             />
             <MobileStatsCard
-              title="Completed"
+              title={t("appointments.completed")}
               value={stats?.completed || 0}
               icon={<CheckCircle className="h-4 w-4" />}
             />
             <MobileStatsCard
-              title="Cancelled"
+              title={t("appointments.cancelled")}
               value={stats?.cancelled || 0}
               icon={<XCircle className="h-4 w-4" />}
             />
@@ -209,11 +211,11 @@ export default function AppointmentsListPage() {
           {/* Quick Filter Chips */}
           <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4">
             {[
-              { value: 'all', label: 'All' },
-              { value: 'scheduled', label: 'Scheduled' },
-              { value: 'checked_in', label: 'Checked In' },
-              { value: 'in_progress', label: 'In Progress' },
-              { value: 'completed', label: 'Completed' },
+              { value: 'all', label: t("common.all") },
+              { value: 'scheduled', label: t("appointments.scheduled") },
+              { value: 'checked_in', label: t("appointments.checkedIn") },
+              { value: 'in_progress', label: t("appointments.inProgress") },
+              { value: 'completed', label: t("appointments.completed") },
             ].map((filter) => (
               <Badge
                 key={filter.value}
@@ -236,7 +238,7 @@ export default function AppointmentsListPage() {
           ) : appointments?.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground bg-card border rounded-xl">
               <Calendar className="h-10 w-10 mx-auto mb-2 opacity-30" />
-              <p className="text-sm">No appointments found</p>
+              <p className="text-sm">{t("appointments.noFound")}</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -266,7 +268,7 @@ export default function AppointmentsListPage() {
               onClick={() => navigate('/app/appointments/queue')}
             >
               <Users className="h-4 w-4 mr-2" />
-              View Queue
+              {t("appointments.viewQueue")}
             </Button>
           </div>
         </div>
@@ -278,21 +280,21 @@ export default function AppointmentsListPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Appointments"
-        description="Manage patient appointments and scheduling"
+        title={t("appointments.title")}
+        description={t("appointments.subtitle")}
         breadcrumbs={[
-          { label: 'Dashboard', href: '/app' },
-          { label: 'Appointments' },
+          { label: t("nav.dashboard"), href: '/app' },
+          { label: t("appointments.title") },
         ]}
         actions={
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => navigate('/app/appointments/queue')}>
               <Users className="h-4 w-4 mr-2" />
-              Queue
+              {t("appointments.queue")}
             </Button>
             <Button onClick={() => navigate('/app/appointments/new')}>
               <Plus className="h-4 w-4 mr-2" />
-              New Appointment
+              {t("appointments.newAppointment")}
             </Button>
           </div>
         }
@@ -301,24 +303,24 @@ export default function AppointmentsListPage() {
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-4">
         <StatsCard
-          title="Today's Appointments"
+          title={t("appointments.todaysAppointments")}
           value={stats?.todayCount || 0}
           icon={Calendar}
         />
         <StatsCard
-          title="Waiting"
+          title={t("appointments.waiting")}
           value={stats?.scheduled || 0}
           icon={Clock}
           variant="warning"
         />
         <StatsCard
-          title="Completed"
+          title={t("appointments.completed")}
           value={stats?.completed || 0}
           icon={CheckCircle}
           variant="success"
         />
         <StatsCard
-          title="Cancelled"
+          title={t("appointments.cancelled")}
           value={stats?.cancelled || 0}
           icon={XCircle}
           variant="warning"
@@ -336,24 +338,24 @@ export default function AppointmentsListPage() {
         </div>
         <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
           <SelectTrigger className="w-40">
-            <SelectValue placeholder="All Statuses" />
+            <SelectValue placeholder={t("appointments.allStatuses")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="scheduled">Scheduled</SelectItem>
-            <SelectItem value="checked_in">Checked In</SelectItem>
-            <SelectItem value="in_progress">In Progress</SelectItem>
-            <SelectItem value="completed">Completed</SelectItem>
-            <SelectItem value="cancelled">Cancelled</SelectItem>
-            <SelectItem value="no_show">No Show</SelectItem>
+            <SelectItem value="all">{t("appointments.allStatuses")}</SelectItem>
+            <SelectItem value="scheduled">{t("appointments.scheduled")}</SelectItem>
+            <SelectItem value="checked_in">{t("appointments.checkedIn")}</SelectItem>
+            <SelectItem value="in_progress">{t("appointments.inProgress")}</SelectItem>
+            <SelectItem value="completed">{t("appointments.completed")}</SelectItem>
+            <SelectItem value="cancelled">{t("appointments.cancelled")}</SelectItem>
+            <SelectItem value="no_show">{t("appointments.noShow")}</SelectItem>
           </SelectContent>
         </Select>
         <Select value={doctorFilter} onValueChange={setDoctorFilter}>
           <SelectTrigger className="w-48">
-            <SelectValue placeholder="All Doctors" />
+            <SelectValue placeholder={t("appointments.allDoctors")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Doctors</SelectItem>
+            <SelectItem value="all">{t("appointments.allDoctors")}</SelectItem>
             {doctors?.map((doctor) => (
               <SelectItem key={doctor.id} value={doctor.id}>
                 Dr. {doctor.profile?.full_name}
@@ -370,7 +372,7 @@ export default function AppointmentsListPage() {
         isLoading={isLoading}
         onRowClick={(row) => navigate(`/app/appointments/${row.id}`)}
         searchKey="patient"
-        searchPlaceholder="Search patients..."
+        searchPlaceholder={t("appointments.searchPlaceholder")}
       />
     </div>
   );
