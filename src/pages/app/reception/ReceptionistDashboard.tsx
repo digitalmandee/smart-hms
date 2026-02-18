@@ -14,10 +14,12 @@ import { RecentRegistrationCard } from "@/components/reception/RecentRegistratio
 import { PendingSurgeryRequestsCard } from "@/components/reception/PendingSurgeryRequestsCard";
 import { UpcomingSurgeriesCard } from "@/components/reception/UpcomingSurgeriesCard";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTranslation } from "@/lib/i18n";
 
 export default function ReceptionistDashboard() {
   const navigate = useNavigate();
   const { profile } = useAuth();
+  const { t } = useTranslation();
   const { data: dashboardData, isLoading: dashboardLoading } = useReceptionDashboard();
   const { data: patientStats, isLoading: statsLoading } = usePatientStats();
   const { data: recentPatients, isLoading: recentLoading } = useRecentPatients(5);
@@ -28,79 +30,78 @@ export default function ReceptionistDashboard() {
   return (
     <div className="space-y-6">
       <ModernPageHeader
-        title="Reception Desk"
+        title={t("reception.desk")}
         userName={firstName}
         showGreeting
         variant="gradient"
         actions={
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => navigate("/app/appointments/calendar")}>
-              <Calendar className="h-4 w-4 mr-2" />
-              Schedule
+              <Calendar className="h-4 w-4 me-2" />
+              {t("reception.schedule")}
             </Button>
             <Button variant="outline" onClick={() => navigate("/app/ot/surgeries")}>
-              <Scissors className="h-4 w-4 mr-2" />
-              All Surgeries
+              <Scissors className="h-4 w-4 me-2" />
+              {t("reception.allSurgeries")}
             </Button>
             <Button onClick={() => navigate("/app/patients/new")}>
-              <UserPlus className="h-4 w-4 mr-2" />
-              New Patient
+              <UserPlus className="h-4 w-4 me-2" />
+              {t("reception.newPatient")}
             </Button>
           </div>
         }
         quickStats={[
-          { label: "Scheduled", value: dashboardData?.statusCounts.scheduled || 0, variant: "warning" },
-          { label: "Checked In", value: dashboardData?.statusCounts.checked_in || 0, variant: "success" },
-          { label: "Completed", value: dashboardData?.statusCounts.completed || 0 },
+          { label: t("appointments.scheduled"), value: dashboardData?.statusCounts.scheduled || 0, variant: "warning" },
+          { label: t("appointments.checkedIn"), value: dashboardData?.statusCounts.checked_in || 0, variant: "success" },
+          { label: t("appointments.completed"), value: dashboardData?.statusCounts.completed || 0 },
         ]}
       />
 
       {/* Stats Overview */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <ModernStatsCard
-          title="Today's Appointments"
+          title={t("reception.todaysAppointments")}
           value={isLoading ? "..." : dashboardData?.todaysAppointments.length || 0}
           icon={Calendar}
-          description="Total scheduled for today"
+          description={t("common.today")}
           variant="primary"
           delay={0}
         />
         <ModernStatsCard
-          title="Registered Today"
+          title={t("reception.registeredToday")}
           value={statsLoading ? "..." : patientStats?.today || 0}
           icon={UserPlus}
-          description="New patients today"
+          description={t("common.newToday")}
           variant="success"
           delay={100}
         />
         <ModernStatsCard
-          title="Registered This Month"
+          title={t("reception.registeredThisMonth")}
           value={statsLoading ? "..." : patientStats?.thisMonth || 0}
           icon={Users}
-          description="New patients this month"
+          description={t("common.today")}
           variant="info"
           delay={200}
         />
         <ModernStatsCard
-          title="Waiting (Scheduled)"
+          title={t("reception.waitingScheduled")}
           value={isLoading ? "..." : dashboardData?.statusCounts.scheduled || 0}
           icon={Clock}
-          description="Yet to check in"
+          description={t("common.pending")}
           variant="warning"
           delay={300}
         />
       </div>
 
-      {/* Main Content: 2x2 Grid */}
+      {/* Main Content */}
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Today's Schedule */}
         <Card className="transition-all hover:shadow-lg">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center gap-2">
               <div className="p-2 rounded-lg bg-primary/10">
                 <Calendar className="h-4 w-4 text-primary" />
               </div>
-              Today's Schedule
+              {t("reception.todaysSchedule")}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
@@ -113,37 +114,30 @@ export default function ReceptionistDashboard() {
           </CardContent>
         </Card>
 
-        {/* Pending Surgery Requests */}
         <PendingSurgeryRequestsCard maxItems={4} />
-
-        {/* Upcoming Scheduled Surgeries */}
         <UpcomingSurgeriesCard maxItems={4} />
 
-        {/* Upcoming Appointments */}
         <Card className="transition-all hover:shadow-lg">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center gap-2">
               <div className="p-2 rounded-lg bg-warning/10">
                 <Clock className="h-4 w-4 text-warning" />
               </div>
-              Upcoming (Next)
+              {t("reception.upcomingNext")}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <ScrollArea className="h-[350px]">
               <div className="space-y-2 p-4 pt-0">
                 {dashboardLoading ? (
-                  <p className="text-sm text-muted-foreground text-center py-8">Loading...</p>
+                  <p className="text-sm text-muted-foreground text-center py-8">{t("common.loading")}</p>
                 ) : dashboardData?.upcomingAppointments.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-8">
-                    No upcoming appointments
+                    {t("reception.noUpcomingAppts")}
                   </p>
                 ) : (
                   dashboardData?.upcomingAppointments.map((appointment) => (
-                    <UpcomingAppointmentCard 
-                      key={appointment.id} 
-                      appointment={appointment} 
-                    />
+                    <UpcomingAppointmentCard key={appointment.id} appointment={appointment} />
                   ))
                 )}
               </div>
@@ -151,10 +145,9 @@ export default function ReceptionistDashboard() {
           </CardContent>
         </Card>
 
-        {/* Quick Actions */}
         <Card className="transition-all hover:shadow-lg">
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Quick Actions</CardTitle>
+            <CardTitle className="text-lg">{t("reception.quickActions")}</CardTitle>
           </CardHeader>
           <CardContent>
             <ReceptionQuickActions />
@@ -162,22 +155,21 @@ export default function ReceptionistDashboard() {
         </Card>
       </div>
 
-      {/* Recent Registrations Strip */}
       <Card className="transition-all hover:shadow-lg">
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center gap-2">
             <div className="p-2 rounded-lg bg-success/10">
               <UserPlus className="h-4 w-4 text-success" />
             </div>
-            Recently Registered
+            {t("reception.recentlyRegistered")}
           </CardTitle>
         </CardHeader>
         <CardContent>
           {recentLoading ? (
-            <p className="text-sm text-muted-foreground text-center py-4">Loading...</p>
+            <p className="text-sm text-muted-foreground text-center py-4">{t("common.loading")}</p>
           ) : recentPatients?.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4">
-              No patients registered today
+              {t("reception.noRegisteredToday")}
             </p>
           ) : (
             <div className="flex gap-4 overflow-x-auto pb-2">

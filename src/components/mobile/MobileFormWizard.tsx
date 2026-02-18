@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import { Capacitor } from "@capacitor/core";
+import { useTranslation, useIsRTL } from "@/lib/i18n";
 
 export interface FormStep {
   id: string;
@@ -32,6 +33,8 @@ export function MobileFormWizard({
   showProgress = true,
 }: MobileFormWizardProps) {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const { t } = useTranslation();
+  const isRTL = useIsRTL();
   const currentStep = steps[currentStepIndex];
   const isFirstStep = currentStepIndex === 0;
   const isLastStep = currentStepIndex === steps.length - 1;
@@ -124,8 +127,8 @@ export function MobileFormWizard({
           disabled={isFirstStep || isSubmitting}
           className="h-12 px-6"
         >
-          <ChevronLeft className="h-4 w-4 mr-1" />
-          Back
+          {isRTL ? <ChevronRight className="h-4 w-4 me-1" /> : <ChevronLeft className="h-4 w-4 me-1" />}
+          {t("common.back")}
         </Button>
         <Button
           type="button"
@@ -134,16 +137,16 @@ export function MobileFormWizard({
           className="flex-1 h-12"
         >
           {isSubmitting ? (
-            "Processing..."
+            t("common.loading")
           ) : isLastStep ? (
             <>
-              <Check className="h-4 w-4 mr-2" />
+              <Check className="h-4 w-4 me-2" />
               {submitLabel}
             </>
           ) : (
             <>
-              Next
-              <ChevronRight className="h-4 w-4 ml-1" />
+              {t("common.next")}
+              {isRTL ? <ChevronLeft className="h-4 w-4 ms-1" /> : <ChevronRight className="h-4 w-4 ms-1" />}
             </>
           )}
         </Button>
@@ -168,13 +171,14 @@ export function MobileFormContainer({
   onBack,
   actions,
 }: MobileFormContainerProps) {
+  const isRTL = useIsRTL();
   return (
     <div className="flex flex-col min-h-full pb-24">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background border-b px-4 py-3 flex items-center gap-3">
         {onBack && (
           <Button variant="ghost" size="icon" onClick={onBack} className="shrink-0">
-            <ChevronLeft className="h-5 w-5" />
+            {isRTL ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
           </Button>
         )}
         <div className="flex-1 min-w-0">

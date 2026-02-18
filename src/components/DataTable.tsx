@@ -30,6 +30,8 @@ import {
 } from "@/components/ui/select";
 import { ChevronLeft, ChevronRight, Search, Loader2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslation, useIsRTL } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -45,7 +47,7 @@ export function DataTable<TData, TValue>({
   columns,
   data,
   searchKey,
-  searchPlaceholder = "Search...",
+  searchPlaceholder,
   isLoading = false,
   onRowClick,
   pageSize = 10,
@@ -53,6 +55,10 @@ export function DataTable<TData, TValue>({
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+  const { t } = useTranslation();
+  const isRTL = useIsRTL();
+
+  const resolvedPlaceholder = searchPlaceholder ?? t("common.search");
 
   const table = useReactTable({
     data,
@@ -117,14 +123,17 @@ export function DataTable<TData, TValue>({
       {searchKey && (
         <div className="flex items-center gap-2">
           <div className="relative max-w-sm">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Search className={cn(
+              "absolute top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground",
+              isRTL ? "right-3" : "left-3"
+            )} />
             <Input
-              placeholder={searchPlaceholder}
+              placeholder={resolvedPlaceholder}
               value={(table.getColumn(searchKey)?.getFilterValue() as string) ?? ""}
               onChange={(event) =>
                 table.getColumn(searchKey)?.setFilterValue(event.target.value)
               }
-              className="pl-9"
+              className={isRTL ? "pr-9" : "pl-9"}
             />
           </div>
         </div>
@@ -167,7 +176,7 @@ export function DataTable<TData, TValue>({
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                  No results found.
+                  {t("common.noResults")}
                 </TableCell>
               </TableRow>
             )}
@@ -177,7 +186,7 @@ export function DataTable<TData, TValue>({
 
       <div className="flex items-center justify-between">
         <div className="text-sm text-muted-foreground">
-          Page {table.getState().pagination.pageIndex + 1} of{" "}
+          {t("common.page")} {table.getState().pagination.pageIndex + 1} {t("common.of")}{" "}
           {table.getPageCount() || 1}
         </div>
         <div className="flex items-center gap-2">
@@ -191,7 +200,7 @@ export function DataTable<TData, TValue>({
             <SelectContent>
               {[10, 20, 30, 50].map((size) => (
                 <SelectItem key={size} value={size.toString()}>
-                  {size} rows
+                  {size} {t("common.rows")}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -202,7 +211,7 @@ export function DataTable<TData, TValue>({
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
           >
-            <ChevronLeft className="h-4 w-4" />
+            {isRTL ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
           </Button>
           <Button
             variant="outline"
@@ -210,7 +219,7 @@ export function DataTable<TData, TValue>({
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
           >
-            <ChevronRight className="h-4 w-4" />
+            {isRTL ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
           </Button>
         </div>
       </div>

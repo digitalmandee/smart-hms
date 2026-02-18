@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useTranslation, useIsRTL } from "@/lib/i18n";
 import {
   Sheet,
   SheetContent,
@@ -295,7 +296,7 @@ function MobileMenuItem({ item, level = 0, onClose, isActive }: MobileMenuItemPr
   
   const hasChildren = item.children && item.children.length > 0;
   const Icon = iconMap[item.icon] || LayoutDashboard;
-  const paddingLeft = level === 0 ? "pl-3" : level === 1 ? "pl-8" : "pl-12";
+  const paddingStart = level === 0 ? "ps-3" : level === 1 ? "ps-8" : "ps-12";
   
   const handleClick = () => {
     haptics.light();
@@ -315,8 +316,8 @@ function MobileMenuItem({ item, level = 0, onClose, isActive }: MobileMenuItemPr
       <Collapsible open={isOpen} onOpenChange={handleToggle}>
         <CollapsibleTrigger className="w-full">
           <div className={cn(
-            "flex items-center justify-between py-3 pr-3 touch-manipulation active:bg-muted/50 rounded-lg transition-colors",
-            paddingLeft
+            "flex items-center justify-between py-3 pe-3 touch-manipulation active:bg-muted/50 rounded-lg transition-colors",
+            paddingStart
           )}>
             <div className="flex items-center gap-3">
               <Icon className="h-5 w-5 text-muted-foreground shrink-0" />
@@ -351,8 +352,8 @@ function MobileMenuItem({ item, level = 0, onClose, isActive }: MobileMenuItemPr
       to={item.path || "#"} 
       onClick={handleClick}
       className={cn(
-        "flex items-center gap-3 py-3 pr-3 touch-manipulation rounded-lg transition-colors",
-        paddingLeft,
+        "flex items-center gap-3 py-3 pe-3 touch-manipulation rounded-lg transition-colors",
+        paddingStart,
         active 
           ? "bg-primary/10 text-primary" 
           : "active:bg-muted/50 text-foreground"
@@ -378,6 +379,8 @@ export function MobileSideMenu({ open, onOpenChange }: MobileSideMenuProps) {
   const { profile, roles, signOut, isSuperAdmin } = useAuth();
   const { theme, setTheme } = useTheme();
   const haptics = useHaptics();
+  const { t } = useTranslation();
+  const isRTL = useIsRTL();
 
   // Database-driven menus for admin roles
   const { menuItems: dbMenuItems, isLoading: menuLoading } = useMenuItems();
@@ -441,7 +444,7 @@ export function MobileSideMenu({ open, onOpenChange }: MobileSideMenuProps) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
-        side="left"
+        side={isRTL ? "right" : "left"}
         className="w-[300px] p-0 flex flex-col"
         hideCloseButton
       >
@@ -458,7 +461,7 @@ export function MobileSideMenu({ open, onOpenChange }: MobileSideMenuProps) {
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-              <SheetTitle className="text-base font-semibold truncate text-left">
+              <SheetTitle className="text-base font-semibold truncate text-start">
                 {profile?.full_name || "User"}
               </SheetTitle>
               <p className="text-sm text-muted-foreground truncate">
@@ -488,7 +491,7 @@ export function MobileSideMenu({ open, onOpenChange }: MobileSideMenuProps) {
           <div className="flex items-center justify-between px-3 py-2">
             <div className="flex items-center gap-3">
               <Moon className="h-5 w-5 text-muted-foreground" />
-              <span className="font-medium text-sm">Dark Mode</span>
+              <span className="font-medium text-sm">{t("common.darkMode")}</span>
             </div>
             <Switch
               checked={theme === "dark"}
@@ -503,8 +506,8 @@ export function MobileSideMenu({ open, onOpenChange }: MobileSideMenuProps) {
             className="w-full text-destructive border-destructive/30 hover:bg-destructive/10"
             onClick={handleSignOut}
           >
-            <LogOut className="h-4 w-4 mr-2" />
-            Sign Out
+            <LogOut className="h-4 w-4 me-2" />
+            {t("common.signOut")}
           </Button>
           
           <p className="text-xs text-center text-muted-foreground">
