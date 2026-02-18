@@ -14,7 +14,8 @@ import { useOrganization, useUpdateOrganization } from "@/hooks/useOrganizations
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { COUNTRY_PRESETS, COUNTRY_OPTIONS, type CountryCode } from "@/lib/countryPresets";
-import { Globe, DollarSign, FileText, Phone, Calendar, Shield, Loader2 } from "lucide-react";
+import { Globe, DollarSign, FileText, Phone, Calendar, Shield, Loader2, Languages } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function CountryRegionSettingsPage() {
@@ -22,6 +23,7 @@ export default function CountryRegionSettingsPage() {
   const { data: org, isLoading } = useOrganization(profile?.organization_id || undefined);
   const updateOrg = useUpdateOrganization();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const [selectedCountry, setSelectedCountry] = useState<CountryCode>("PK");
   const [currencySymbol, setCurrencySymbol] = useState("Rs.");
@@ -33,7 +35,9 @@ export default function CountryRegionSettingsPage() {
   const [taxRegLabel, setTaxRegLabel] = useState("NTN");
   const [phoneCode, setPhoneCode] = useState("+92");
   const [eInvoicingEnabled, setEInvoicingEnabled] = useState(false);
+  const [defaultLanguage, setDefaultLanguage] = useState("en");
   const [isSaving, setIsSaving] = useState(false);
+  const [isSavingLanguage, setIsSavingLanguage] = useState(false);
 
   // Load current org config
   useEffect(() => {
@@ -49,6 +53,7 @@ export default function CountryRegionSettingsPage() {
       setTaxRegLabel(o.tax_registration_label || "NTN");
       setPhoneCode(o.phone_country_code || "+92");
       setEInvoicingEnabled(o.e_invoicing_enabled || false);
+      setDefaultLanguage(o.default_language || "en");
     }
   }, [org]);
 
@@ -113,6 +118,24 @@ export default function CountryRegionSettingsPage() {
       });
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleSaveLanguage = async () => {
+    if (!profile?.organization_id) return;
+    setIsSavingLanguage(true);
+    try {
+      const { error } = await supabase
+        .from("organizations")
+        .update({ default_language: defaultLanguage } as any)
+        .eq("id", profile.organization_id);
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ["country-config", profile.organization_id] });
+      toast({ title: "Language updated", description: `UI language set to ${defaultLanguage === "ar" ? "Arabic" : "English"}.` });
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setIsSavingLanguage(false);
     }
   };
 
@@ -276,6 +299,52 @@ export default function CountryRegionSettingsPage() {
             </div>
           </CardContent>
         </Card>
+
+
+        {/* Language Settings */}
+        {COUNTRY_PRESETS[selectedCountry].supported_languages.includes("ar") && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Languages className="h-5 w-5" />
+                UI Language
+              </CardTitle>
+              <CardDescription>
+                Choose the default interface language for your organization. Arabic enables full RTL layout.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-3 md:grid-cols-2">
+                {[
+                  { code: "en", label: "English", sublabel: "Left-to-right layout" },
+                  { code: "ar", label: "العربية — Arabic", sublabel: "Right-to-left (RTL) layout" },
+                ].map((lang) => (
+                  <button
+                    key={lang.code}
+                    onClick={() => setDefaultLanguage(lang.code)}
+                    className={`p-4 rounded-lg border-2 text-left transition-all ${
+                      defaultLanguage === lang.code
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-primary/50"
+                    }`}
+                  >
+                    <p className="font-semibold">{lang.label}</p>
+                    <p className="text-xs text-muted-foreground">{lang.sublabel}</p>
+                    {defaultLanguage === lang.code && (
+                      <Badge className="mt-2" variant="default">Active</Badge>
+                    )}
+                  </button>
+                ))}
+              </div>
+              <div className="flex justify-end">
+                <Button onClick={handleSaveLanguage} disabled={isSavingLanguage}>
+                  {isSavingLanguage && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Save Language
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Preview */}
         <Card>

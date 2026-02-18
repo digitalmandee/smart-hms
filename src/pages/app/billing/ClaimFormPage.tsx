@@ -21,6 +21,10 @@ interface ClaimFormData {
   patient_insurance_id: string;
   invoice_id: string;
   claim_date: string;
+  pre_auth_number: string;
+  pre_auth_date: string;
+  drg_code: string;
+  icd_codes: string;
   notes: string;
 }
 
@@ -108,11 +112,19 @@ export default function ClaimFormPage() {
 
   const onSubmit = async (data: ClaimFormData) => {
     try {
+      const icdCodesArray = data.icd_codes
+        ? data.icd_codes.split(',').map((c) => c.trim()).filter(Boolean)
+        : [];
+
       await createClaim.mutateAsync({
         patient_insurance_id: data.patient_insurance_id,
         invoice_id: invoiceId || undefined,
         total_amount: totalClaimAmount,
         notes: data.notes,
+        pre_auth_number: data.pre_auth_number || undefined,
+        pre_auth_date: data.pre_auth_date || undefined,
+        drg_code: data.drg_code || undefined,
+        icd_codes: icdCodesArray,
         items: claimItems.map(item => ({
           description: item.description,
           service_code: item.service_code,
@@ -238,6 +250,38 @@ export default function ClaimFormPage() {
                 </div>
               </div>
 
+              {/* KSA Compliance Fields */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Pre-Auth Number</Label>
+                  <Input
+                    {...register('pre_auth_number')}
+                    placeholder="Authorization number from insurer"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Pre-Auth Date</Label>
+                  <Input type="date" {...register('pre_auth_date')} />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>ICD-10 Diagnosis Codes</Label>
+                  <Input
+                    {...register('icd_codes')}
+                    placeholder="e.g. J18.9, I10 (comma-separated)"
+                  />
+                  <p className="text-xs text-muted-foreground">Required for KSA insurance claims</p>
+                </div>
+                <div className="space-y-2">
+                  <Label>DRG Code</Label>
+                  <Input
+                    {...register('drg_code')}
+                    placeholder="Diagnosis Related Group code"
+                  />
+                </div>
+              </div>
+
               {selectedInsurance && (
                 <div className="p-4 bg-muted rounded-lg">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
@@ -266,6 +310,7 @@ export default function ClaimFormPage() {
               )}
             </CardContent>
           </Card>
+
 
           {/* Claim Items */}
           <Card>

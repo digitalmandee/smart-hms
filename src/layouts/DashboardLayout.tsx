@@ -10,6 +10,7 @@ import { MobileProvider } from "@/contexts/MobileContext";
 import { MobileHeader } from "@/components/mobile/MobileHeader";
 import { BottomNavigation } from "@/components/mobile/BottomNavigation";
 import { cn } from "@/lib/utils";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 export const DashboardLayout = () => {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -75,7 +76,11 @@ export const DashboardLayout = () => {
 
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto">
-        <div className="container py-6 lg:py-8">
+        {/* Top bar with language switcher */}
+        <div className="flex justify-end items-center px-6 pt-3 pb-0">
+          <LanguageSwitcher />
+        </div>
+        <div className="container py-4 lg:py-6">
           <Outlet />
         </div>
       </main>
