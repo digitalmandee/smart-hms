@@ -36,6 +36,7 @@ export default function CountryRegionSettingsPage() {
   const [phoneCode, setPhoneCode] = useState("+92");
   const [eInvoicingEnabled, setEInvoicingEnabled] = useState(false);
   const [defaultLanguage, setDefaultLanguage] = useState("en");
+  const [supportedLanguages, setSupportedLanguages] = useState<string[]>(["en"]);
   const [isSaving, setIsSaving] = useState(false);
   const [isSavingLanguage, setIsSavingLanguage] = useState(false);
 
@@ -54,6 +55,7 @@ export default function CountryRegionSettingsPage() {
       setPhoneCode(o.phone_country_code || "+92");
       setEInvoicingEnabled(o.e_invoicing_enabled || false);
       setDefaultLanguage(o.default_language || "en");
+      setSupportedLanguages((o.supported_languages as string[]) || ["en"]);
     }
   }, [org]);
 
@@ -90,8 +92,6 @@ export default function CountryRegionSettingsPage() {
           default_tax_rate: parseFloat(taxRate) || preset.default_tax_rate,
           national_id_label: nationalIdLabel,
           national_id_format: nationalIdFormat,
-          supported_languages: preset.supported_languages,
-          default_language: preset.default_language,
           date_format: preset.date_format,
           fiscal_year_start: preset.fiscal_year_start,
           e_invoicing_enabled: eInvoicingEnabled,
@@ -125,13 +125,14 @@ export default function CountryRegionSettingsPage() {
     if (!profile?.organization_id) return;
     setIsSavingLanguage(true);
     try {
-      const { error } = await supabase
-        .from("organizations")
-        .update({ default_language: defaultLanguage } as any)
-        .eq("id", profile.organization_id);
+      const { error } = await supabase.rpc("set_org_language", {
+        p_language: defaultLanguage,
+        p_supported_languages: supportedLanguages,
+      } as any);
       if (error) throw error;
       queryClient.invalidateQueries({ queryKey: ["country-config", profile.organization_id] });
-      toast({ title: "Language updated", description: `UI language set to ${defaultLanguage === "ar" ? "Arabic" : "English"}.` });
+      const langLabel = { en: "English", ar: "العربية", ur: "اردو" }[defaultLanguage] || defaultLanguage;
+      toast({ title: "Language updated", description: `UI language set to ${langLabel}.` });
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
@@ -302,49 +303,81 @@ export default function CountryRegionSettingsPage() {
 
 
         {/* Language Settings */}
-        {COUNTRY_PRESETS[selectedCountry].supported_languages.includes("ar") && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Languages className="h-5 w-5" />
-                UI Language
-              </CardTitle>
-              <CardDescription>
-                Choose the default interface language for your organization. Arabic enables full RTL layout.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-3 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Languages className="h-5 w-5" />
+              UI Language
+            </CardTitle>
+            <CardDescription>
+              Enable languages for your organization and set the default. Arabic enables full RTL layout.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Enable/disable languages */}
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-muted-foreground">Enabled Languages</p>
+              <div className="space-y-2">
                 {[
                   { code: "en", label: "English", sublabel: "Left-to-right layout" },
                   { code: "ar", label: "العربية — Arabic", sublabel: "Right-to-left (RTL) layout" },
-                ].map((lang) => (
-                  <button
-                    key={lang.code}
-                    onClick={() => setDefaultLanguage(lang.code)}
-                    className={`p-4 rounded-lg border-2 text-left transition-all ${
-                      defaultLanguage === lang.code
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:border-primary/50"
-                    }`}
-                  >
-                    <p className="font-semibold">{lang.label}</p>
-                    <p className="text-xs text-muted-foreground">{lang.sublabel}</p>
-                    {defaultLanguage === lang.code && (
-                      <Badge className="mt-2" variant="default">Active</Badge>
-                    )}
-                  </button>
-                ))}
+                  { code: "ur", label: "اردو — Urdu", sublabel: "Right-to-left (RTL) layout" },
+                ].map((lang) => {
+                  const isEnabled = supportedLanguages.includes(lang.code);
+                  const isDefault = defaultLanguage === lang.code;
+                  return (
+                    <div
+                      key={lang.code}
+                      className={`flex items-center justify-between p-3 rounded-lg border transition-all ${
+                        isEnabled ? "border-primary/40 bg-primary/5" : "border-border"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Switch
+                          checked={isEnabled}
+                          disabled={lang.code === "en"} // English always required
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSupportedLanguages((prev) => [...prev, lang.code]);
+                            } else {
+                              // Can't disable the current default
+                              if (defaultLanguage === lang.code) {
+                                setDefaultLanguage("en");
+                              }
+                              setSupportedLanguages((prev) => prev.filter((l) => l !== lang.code));
+                            }
+                          }}
+                        />
+                        <div>
+                          <p className="font-medium text-sm">{lang.label}</p>
+                          <p className="text-xs text-muted-foreground">{lang.sublabel}</p>
+                        </div>
+                      </div>
+                      {isEnabled && (
+                        <button
+                          onClick={() => setDefaultLanguage(lang.code)}
+                          className={`text-xs px-3 py-1 rounded-full border transition-all ${
+                            isDefault
+                              ? "bg-primary text-primary-foreground border-primary"
+                              : "border-border text-muted-foreground hover:border-primary/50"
+                          }`}
+                        >
+                          {isDefault ? "Default ✓" : "Set Default"}
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
-              <div className="flex justify-end">
-                <Button onClick={handleSaveLanguage} disabled={isSavingLanguage}>
-                  {isSavingLanguage && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Save Language
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+            </div>
+            <div className="flex justify-end">
+              <Button onClick={handleSaveLanguage} disabled={isSavingLanguage}>
+                {isSavingLanguage && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Save Language Settings
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Preview */}
         <Card>

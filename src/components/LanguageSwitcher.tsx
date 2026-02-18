@@ -32,10 +32,10 @@ export function LanguageSwitcher({ className }: { className?: string }) {
     if (!profile?.organization_id || isSwitching || lang === default_language) return;
     setIsSwitching(true);
     try {
-      await supabase
-        .from("organizations")
-        .update({ default_language: lang } as any)
-        .eq("id", profile.organization_id);
+      await supabase.rpc("set_org_language", {
+        p_language: lang,
+        p_supported_languages: supported_languages,
+      } as any);
       queryClient.invalidateQueries({ queryKey: ["country-config", profile.organization_id] });
     } finally {
       setIsSwitching(false);
