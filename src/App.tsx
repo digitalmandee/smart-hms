@@ -485,7 +485,7 @@ const queryClient = new QueryClient({
 function RTLDirectionSetter() {
   const { default_language, country_code } = useCountryConfig();
   useEffect(() => {
-    const dir = default_language === 'ar' ? 'rtl' : 'ltr';
+    const dir = ['ar', 'ur'].includes(default_language) ? 'rtl' : 'ltr';
     document.documentElement.dir = dir;
     document.documentElement.lang = default_language;
     // Expose country_code for non-React contexts (e.g., useAIChat)
