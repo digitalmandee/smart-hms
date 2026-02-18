@@ -134,21 +134,21 @@ function DoctorScene({ state }: { state: AvatarState }) {
         <meshStandardMaterial color={coatColor} roughness={0.6} metalness={0.05} />
       </mesh>
 
-      {/* Shirt / tie area */}
+      {/* Shirt area — clean undershirt, no tie */}
       <mesh position={[0, 0.64, 0.112]}>
-        <boxGeometry args={[0.12, 0.38, 0.01]} />
+        <boxGeometry args={[0.1, 0.38, 0.01]} />
         <meshStandardMaterial color={shirtColor} roughness={0.7} />
       </mesh>
 
-      {/* Coat lapel left */}
-      <mesh position={[-0.1, 0.78, 0.108]} rotation={[0, 0, 0.25]}>
-        <boxGeometry args={[0.09, 0.18, 0.01]} />
+      {/* Coat lapel left — narrower/more delicate */}
+      <mesh position={[-0.09, 0.78, 0.108]} rotation={[0, 0, 0.28]}>
+        <boxGeometry args={[0.08, 0.16, 0.01]} />
         <meshStandardMaterial color={coatColor} roughness={0.5} />
       </mesh>
 
-      {/* Coat lapel right */}
-      <mesh position={[0.1, 0.78, 0.108]} rotation={[0, 0, -0.25]}>
-        <boxGeometry args={[0.09, 0.18, 0.01]} />
+      {/* Coat lapel right — narrower/more delicate */}
+      <mesh position={[0.09, 0.78, 0.108]} rotation={[0, 0, -0.28]}>
+        <boxGeometry args={[0.08, 0.16, 0.01]} />
         <meshStandardMaterial color={coatColor} roughness={0.5} />
       </mesh>
 
@@ -179,95 +179,150 @@ function DoctorScene({ state }: { state: AvatarState }) {
       {/* ── Head group ──────────────────────────────────────────────────── */}
       <group ref={headRef} position={[0, 1.07, 0]}>
 
-        {/* Head sphere */}
+        {/* Head sphere — slightly smaller/more delicate */}
         <mesh>
-          <sphereGeometry args={[0.175, 32, 32]} />
+          <sphereGeometry args={[0.165, 32, 32]} />
           <meshStandardMaterial color={skinColor} roughness={0.75} metalness={0.02} />
         </mesh>
 
-        {/* Hair — top cap */}
+        {/* Hair — top cap (back volume first so hijab goes on top) */}
         <mesh position={[0, 0.06, -0.01]}>
-          <sphereGeometry args={[0.182, 32, 32, 0, Math.PI * 2, 0, Math.PI * 0.52]} />
+          <sphereGeometry args={[0.174, 32, 32, 0, Math.PI * 2, 0, Math.PI * 0.52]} />
+          <meshStandardMaterial color={hairColor} roughness={0.9} />
+        </mesh>
+
+        {/* Back hair volume */}
+        <mesh position={[0, -0.02, -0.08]}>
+          <sphereGeometry args={[0.19, 24, 24, 0, Math.PI * 2, 0, Math.PI * 0.65]} />
+          <meshStandardMaterial color={hairColor} roughness={0.95} />
+        </mesh>
+
+        {/* Left side hair panel */}
+        <mesh position={[-0.16, -0.18, -0.02]} rotation={[0.1, 0, 0.08]}>
+          <boxGeometry args={[0.06, 0.32, 0.08]} />
+          <meshStandardMaterial color={hairColor} roughness={0.9} />
+        </mesh>
+
+        {/* Right side hair panel */}
+        <mesh position={[0.16, -0.18, -0.02]} rotation={[0.1, 0, -0.08]}>
+          <boxGeometry args={[0.06, 0.32, 0.08]} />
           <meshStandardMaterial color={hairColor} roughness={0.9} />
         </mesh>
 
         {/* Forehead hairline fill */}
-        <mesh position={[0, 0.155, 0.06]}>
-          <boxGeometry args={[0.28, 0.04, 0.05]} />
+        <mesh position={[0, 0.145, 0.06]}>
+          <boxGeometry args={[0.26, 0.04, 0.05]} />
           <meshStandardMaterial color={hairColor} roughness={0.9} />
+        </mesh>
+
+        {/* ── Hijab — wraps over hair, teal brand color ─────────────── */}
+        <mesh position={[0, 0.01, -0.01]}>
+          <sphereGeometry args={[0.196, 32, 32, 0, Math.PI * 2, 0, Math.PI * 0.72]} />
+          <meshStandardMaterial color="#1a4a5a" roughness={0.85} />
+        </mesh>
+        {/* Hijab side left drape */}
+        <mesh position={[-0.18, -0.22, -0.01]} rotation={[0.05, 0, 0.05]}>
+          <boxGeometry args={[0.07, 0.38, 0.1]} />
+          <meshStandardMaterial color="#1a4a5a" roughness={0.85} />
+        </mesh>
+        {/* Hijab side right drape */}
+        <mesh position={[0.18, -0.22, -0.01]} rotation={[0.05, 0, -0.05]}>
+          <boxGeometry args={[0.07, 0.38, 0.1]} />
+          <meshStandardMaterial color="#1a4a5a" roughness={0.85} />
         </mesh>
 
         {/* ── Eyes group (scaled for blink) ───────────────────────────── */}
         <group ref={eyeGroupRef}>
           {/* Left eye white */}
-          <mesh position={[-0.068, 0.035, 0.155]}>
-            <sphereGeometry args={[0.028, 16, 16]} />
+          <mesh position={[-0.068, 0.035, 0.147]}>
+            <sphereGeometry args={[0.026, 16, 16]} />
             <meshStandardMaterial color={eyeWhite} roughness={0.1} />
           </mesh>
           {/* Left iris */}
-          <mesh position={[-0.068, 0.035, 0.178]}>
-            <sphereGeometry args={[0.018, 16, 16]} />
+          <mesh position={[-0.068, 0.035, 0.168]}>
+            <sphereGeometry args={[0.017, 16, 16]} />
             <meshStandardMaterial color={irisDark} roughness={0.2} />
           </mesh>
           {/* Left pupil */}
-          <mesh position={[-0.068, 0.035, 0.188]}>
-            <sphereGeometry args={[0.009, 8, 8]} />
+          <mesh position={[-0.068, 0.035, 0.178]}>
+            <sphereGeometry args={[0.008, 8, 8]} />
             <meshStandardMaterial color="#000000" roughness={0.1} />
           </mesh>
 
           {/* Right eye white */}
-          <mesh position={[0.068, 0.035, 0.155]}>
-            <sphereGeometry args={[0.028, 16, 16]} />
+          <mesh position={[0.068, 0.035, 0.147]}>
+            <sphereGeometry args={[0.026, 16, 16]} />
             <meshStandardMaterial color={eyeWhite} roughness={0.1} />
           </mesh>
           {/* Right iris */}
-          <mesh position={[0.068, 0.035, 0.178]}>
-            <sphereGeometry args={[0.018, 16, 16]} />
+          <mesh position={[0.068, 0.035, 0.168]}>
+            <sphereGeometry args={[0.017, 16, 16]} />
             <meshStandardMaterial color={irisDark} roughness={0.2} />
           </mesh>
           {/* Right pupil */}
-          <mesh position={[0.068, 0.035, 0.188]}>
-            <sphereGeometry args={[0.009, 8, 8]} />
+          <mesh position={[0.068, 0.035, 0.178]}>
+            <sphereGeometry args={[0.008, 8, 8]} />
             <meshStandardMaterial color="#000000" roughness={0.1} />
+          </mesh>
+
+          {/* Left eyelash */}
+          <mesh position={[-0.068, 0.058, 0.155]} rotation={[0, 0, 0.1]}>
+            <boxGeometry args={[0.044, 0.006, 0.002]} />
+            <meshStandardMaterial color="#0d0600" roughness={0.9} />
+          </mesh>
+          {/* Right eyelash */}
+          <mesh position={[0.068, 0.058, 0.155]} rotation={[0, 0, -0.1]}>
+            <boxGeometry args={[0.044, 0.006, 0.002]} />
+            <meshStandardMaterial color="#0d0600" roughness={0.9} />
           </mesh>
         </group>
 
-        {/* Eyebrows */}
-        <mesh position={[-0.068, 0.075, 0.16]} rotation={[0, 0, 0.08]}>
-          <boxGeometry args={[0.046, 0.008, 0.004]} />
+        {/* Eyebrows — thinner, more arched for feminine look */}
+        <mesh position={[-0.068, 0.072, 0.152]} rotation={[0, 0, 0.14]}>
+          <boxGeometry args={[0.038, 0.007, 0.004]} />
           <meshStandardMaterial color={hairColor} roughness={0.9} />
         </mesh>
-        <mesh position={[0.068, 0.075, 0.16]} rotation={[0, 0, -0.08]}>
-          <boxGeometry args={[0.046, 0.008, 0.004]} />
+        <mesh position={[0.068, 0.072, 0.152]} rotation={[0, 0, -0.14]}>
+          <boxGeometry args={[0.038, 0.007, 0.004]} />
           <meshStandardMaterial color={hairColor} roughness={0.9} />
         </mesh>
 
-        {/* Nose */}
-        <mesh position={[0, -0.01, 0.172]}>
-          <sphereGeometry args={[0.018, 12, 12]} />
+        {/* Nose — smaller/more delicate */}
+        <mesh position={[0, -0.01, 0.162]}>
+          <sphereGeometry args={[0.013, 12, 12]} />
           <meshStandardMaterial color="#d4956e" roughness={0.9} />
         </mesh>
 
-        {/* Mouth area skin */}
-        <mesh position={[0, -0.065, 0.165]}>
-          <boxGeometry args={[0.07, 0.025, 0.002]} />
+        {/* Mouth area — slightly fuller lips */}
+        <mesh position={[0, -0.062, 0.156]}>
+          <boxGeometry args={[0.075, 0.025, 0.002]} />
           <meshStandardMaterial color={lipColor} roughness={0.5} />
         </mesh>
 
         {/* Mouth opening (animated) */}
-        <mesh ref={mouthRef} position={[0, -0.065, 0.167]}>
-          <boxGeometry args={[0.055, 0.012, 0.002]} />
+        <mesh ref={mouthRef} position={[0, -0.062, 0.158]}>
+          <boxGeometry args={[0.058, 0.012, 0.002]} />
           <meshStandardMaterial color={mouthColor} roughness={0.6} />
         </mesh>
 
         {/* Ears */}
-        <mesh position={[-0.178, 0.01, 0]}>
-          <sphereGeometry args={[0.028, 12, 12]} />
+        <mesh position={[-0.168, 0.01, 0]}>
+          <sphereGeometry args={[0.026, 12, 12]} />
           <meshStandardMaterial color={skinColor} roughness={0.8} />
         </mesh>
-        <mesh position={[0.178, 0.01, 0]}>
-          <sphereGeometry args={[0.028, 12, 12]} />
+        <mesh position={[0.168, 0.01, 0]}>
+          <sphereGeometry args={[0.026, 12, 12]} />
           <meshStandardMaterial color={skinColor} roughness={0.8} />
+        </mesh>
+
+        {/* Gold earrings */}
+        <mesh position={[-0.186, -0.04, 0]}>
+          <sphereGeometry args={[0.012, 8, 8]} />
+          <meshStandardMaterial color="#d4a017" metalness={0.9} roughness={0.1} />
+        </mesh>
+        <mesh position={[0.186, -0.04, 0]}>
+          <sphereGeometry args={[0.012, 8, 8]} />
+          <meshStandardMaterial color="#d4a017" metalness={0.9} roughness={0.1} />
         </mesh>
       </group>
 
