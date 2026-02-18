@@ -1,284 +1,383 @@
 
-# End-to-End Translation Implementation Plan
+# Complete End-to-End Translation: Remaining Modules
 
-## Reality Check: Current State
+## Current State (After Previous Work)
+- Translation system: ✅ Working (`useTranslation`, `getTranslatedString`, localStorage caching)
+- Sidebar items: ✅ All translated
+- Dashboard (main): ✅ Translated
+- IPD Dashboard + Admissions List: ✅ Translated
+- Patients List + Invoices List: ✅ Translated
+- CollectionsWidget + PharmacyAlertsWidget: ✅ Translated
 
-From the investigation, here is the **true scope** of what's missing:
+## What Still Needs Translation (All Remaining Modules)
 
-- `useTranslation()` is called in only **4 files** out of hundreds: `DashboardPage.tsx`, `DynamicSidebar.tsx`, `CollectionsWidget.tsx`, `PharmacyAlertsWidget.tsx`
-- **Every single module page** (IPD, OPD, Billing, Patients, Lab, Pharmacy, HR, etc.) has 100% hardcoded English
-- **Every toast message** across 69+ hook files is hardcoded English
-- **`ModernPageHeader`** has hardcoded "Good Morning/Afternoon/Evening" and uses `format(new Date(), "EEEE, MMMM d, yyyy")` — English date always
-- **`PageHeader`** component is used by all module pages — no translation hook
-- The date "Thursday, February 19, 2026" shown in the screenshot is still in English
-- **Every table column header, button label, badge, tab label, status text** is hardcoded English
+After deep reading every module dashboard and list page, here is the complete remaining work:
 
-## The Right Strategy: Layered Translation
+### 1. OPD Admin Dashboard (`src/pages/app/opd/OPDAdminDashboard.tsx`)
+Hardcoded strings:
+- "OPD Dashboard", "Today's outpatient department overview"
+- "History", "Walk-in" (buttons)
+- quickStats: "Patients", "Completed", "In Queue"
+- Stats cards: "Total Patients", "Completed", "In Queue", "Revenue Today"
+- "Department-wise Breakdown" section title
+- Table headers: "Department", "Patients", "Completed", "Revenue"
+- "No department data for today", "No patient flow data yet"
+- "Hourly Patient Flow", "Doctor Performance"
+- Table headers: "Doctor", "Patients", "Revenue"
+- "No doctor data for today"
+- "Revenue Breakdown" with "Paid", "Pending", "Cancelled/Waived"
+- Quick navigation: "Walk-in", "Pending Checkout", "OPD Reports", "History"
+- "Recent Consultations" with headers "Patient", "Doctor", "Status", "Time"
+- "No consultations today"
 
-Rather than trying to translate 200+ files one by one (impossible), the plan targets high-leverage **shared components** and **key module pages**, which cascade translation to many pages at once:
+### 2. Billing Dashboard (`src/pages/app/billing/BillingDashboard.tsx`)
+Hardcoded strings:
+- "Billing Dashboard", "Manage invoices, payments, and collections"
+- "Create Invoice" (button)
+- Stats: "Today's Collections", "Pending Invoices", "Outstanding Amount", "Invoices Today"
+- "Quick Actions" section + "Open Billing Session", "Create New Invoice", "View Pending Invoices", "Daily Closing"
+- "Recent Invoices", "View All"
+- "No invoices yet"
 
-### Layer 1: Shared Components (highest leverage — affects every page)
+### 3. HR Dashboard (`src/pages/app/hr/HRDashboard.tsx`)
+Hardcoded strings:
+- "HR Dashboard", subtitle with date
+- Stats: "Total Employees", "Present Today", "On Leave Today", "Payroll Status"
+- change labels: "Active workforce", "X late arrivals", "X pending requests", "This month"
+- quickAccessItems: "Doctors", "Nurses", "Attendance", "Payroll" + subtitles
+- "Pending Leave Requests", "View All", "No pending requests", "All leave requests have been processed"
+- "Today's Attendance" with "Present", "Absent", "Late", "On Leave"
+- "View Attendance"
+- "Birthdays This Month", "No birthdays this month", "This month"
+- "Alerts", "pending leave requests", "loan approvals pending", "licenses expiring soon"
+- "No pending alerts"
+- "Recent Employees", "View All", "No employees found", "Add First Employee"
 
-1. **`ModernPageHeader.tsx`** — Used by IPD, HR, OT, and many dashboards. Fix:
-   - Import `useTranslation` + `useCountryConfig` for locale
-   - Translate `getTimeOfDay()` greeting strings using `t()`
-   - Fix date: use `date-fns` locale (`arSA` for Arabic, `ur` for Urdu) for locale-aware month/day names
+### 4. Lab Dashboard (`src/pages/app/lab/LabDashboard.tsx`)
+Hardcoded strings:
+- "Laboratory", "Manage lab orders and results"
+- "Enter Results", "View Queue" (buttons)
+- quickStats: "Pending", "STAT", "Completed"
+- STAT alert: "X STAT order(s) require immediate attention", "Process these high-priority orders first", "View STAT Orders"
+- Stats: "Pending Orders", "STAT Orders", "Collected Today", "Completed Today"
+- "Lab Queue", "View all pending orders", "Enter Results", "Record test results"
+- Status badges: "Ordered", "Collected", "Processing", "Completed"
+- Priority badges: "Urgent", "Routine"
+- "Recent Orders", "View All", "No pending lab orders"
+- "X test(s)"
 
-2. **`PageHeader.tsx`** — Used by Patients, Billing, Admissions, etc. No changes to this component since it renders whatever strings are passed to it (the pages pass already-hardcoded strings). Instead, pages that call it must use `t()` for the title/description props.
+### 5. Pharmacy Dashboard (`src/pages/app/pharmacy/PharmacyDashboard.tsx`)
+Hardcoded strings:
+- "Pharmacy", (no subtitle)
+- "Inventory", "View Queue" (buttons)
+- quickStats: "Pending", "Dispensed", "Low Stock"
+- Stats: "Pending Prescriptions", "Dispensed Today", "Low Stock Items", "Expiring Soon"
+- Quick actions: "Medicine Catalog", "Manage medicines", "Add Stock", "Add new inventory", "View Inventory", "Stock levels & batches"
+- "Prescription Queue", "View All (X)", "No pending prescriptions"
 
-### Layer 2: Key Module Pages (high visibility)
+### 6. OT Dashboard (`src/pages/app/ot/OTDashboard.tsx`)
+Hardcoded strings:
+- "Operation Theatre", "Manage surgical scheduling, OT rooms, and post-op recovery"
+- "Refresh", "Schedule Surgery" (buttons)
+- quickStats: "In Progress", "Completed", "Emergency"
+- Stats: "Today's Surgeries", "X in progress", "Available Rooms", "OT rooms ready", "In PACU", "Recovering patients", "Emergency Cases", "Today"
+- Quick stats row: "Scheduled this week", "Currently in progress", "Completed today"
+- "OT Room Status", "Current status of all operating rooms", "Manage Rooms"
+- "Today's Surgeries", "Surgery queue for today", "Full Schedule"
+- "Upcoming Surgeries", "Scheduled for the next 30 days", "View Schedule"
+- "No upcoming surgeries scheduled", "Schedule Surgery", "+X more surgeries"
+- toast: "Dashboard refreshed"
 
-3. **`src/pages/app/ipd/IPDDashboard.tsx`** — The current route. Has 15+ hardcoded strings:
-   - "IPD Dashboard", "Inpatient department overview and management"
-   - "Total Wards", "Bed Occupancy", "Active Patients", "Today's Activity"
-   - "Pending Rounds", "Pending Discharges", "Ward-wise Occupancy"
-   - "Avg Length of Stay", "Today's Procedures", "Pending Lab Results"
-   - "Post Room Charges", "New Admission", "Active", "Discharges"
-   - "Recent Admissions", "Bed Map", "Admissions", "IPD Billing", "Nursing Station"
+### 7. Org Admin Dashboard (`src/pages/app/OrgAdminDashboardPage.tsx`)
+Hardcoded strings:
+- "Organization Overview"
+- quickStats: "Branches", "Total Staff", "Today's Appointments"
+- "Manage Branches"
+- Stats: "Active Branches", "Across organization", "Total Patients", "All branches", "Staff Members", "Active users", "Today's Appointments", "In progress", "Active Consultations"
+- "Branch Overview", "Quick view of all active branches in your organization"
+- "No active branches found", "Create your first branch to get started", "Create Branch"
 
-4. **`src/pages/app/patients/PatientsListPage.tsx`** — Column headers "Patient #", "Name", "Age", "Gender", "Phone", "Status", buttons "Register Patient", "Refresh"
+### 8. Appointments List Page (`src/pages/app/appointments/AppointmentsListPage.tsx`)
+Hardcoded strings:
+- "Appointments", "Manage patient appointments and scheduling"
+- "Queue", "New Appointment" (buttons)
+- Mobile header: "Appointments"
+- statusLabels: "Scheduled", "Checked In", "In Progress", "Completed", "Cancelled", "No Show"
+- typeLabels: "Walk-in", "Scheduled", "Follow-up"
+- Stats: "Today's Appointments", "Waiting", "Completed", "Cancelled"
+- Filter dropdowns: "All Statuses", "Scheduled", "Checked In"... "All Doctors"
+- Table headers: "Token", "Patient", "Time", "Doctor", "Type", "Status", "Chief Complaint"
+- "No appointments found", "Search patients..."
+- Mobile filter chips: "All", "Scheduled", "Checked In"...
+- "View Queue"
 
-5. **`src/pages/app/billing/InvoicesListPage.tsx`** — Column headers "Invoice #", "Date", "Patient", "Amount", "Status"
+---
 
-6. **`src/pages/app/ipd/AdmissionsListPage.tsx`** — "Admissions", "Manage patient admissions", "New Admission", "Refresh", "Search by patient name..."
+## Translation Keys to Add (~120 new keys)
 
-### Layer 3: Toast Messages (centralize in hooks)
+### OPD Module
+```
+"opd.dashboard"               → OPD Dashboard / لوحة تحكم العيادات الخارجية / OPD ڈیش بورڈ
+"opd.subtitle"                → Today's outpatient department overview / نظرة عامة على العيادات الخارجية / آج کے بیرونی مریضوں کا جائزہ
+"opd.departmentBreakdown"     → Department-wise Breakdown / التوزيع حسب الأقسام / قسم کے مطابق تقسیم
+"opd.hourlyFlow"              → Hourly Patient Flow / تدفق المرضى في الساعة / گھنٹے وار مریض کا بہاؤ
+"opd.doctorPerformance"       → Doctor Performance / أداء الأطباء / ڈاکٹر کی کارکردگی
+"opd.revenueBreakdown"        → Revenue Breakdown / تفصيل الإيرادات / آمدنی کی تفصیل
+"opd.recentConsultations"     → Recent Consultations / الاستشارات الأخيرة / حالیہ مشاورتیں
+"opd.noDeptData"              → No department data for today / لا بيانات للأقسام اليوم / آج قسم کا کوئی ڈیٹا نہیں
+"opd.noFlowData"              → No patient flow data yet / لا بيانات تدفق المرضى / ابھی کوئی بہاؤ ڈیٹا نہیں
+"opd.noDoctorData"            → No doctor data for today / لا بيانات الأطباء اليوم / آج ڈاکٹر کا کوئی ڈیٹا نہیں
+"opd.noConsultations"         → No consultations today / لا استشارات اليوم / آج کوئی مشاورت نہیں
+"opd.pendingCheckout"         → Pending Checkout / خروج معلق / زیر التواء چیک آؤٹ
+"opd.opdReports"              → OPD Reports / تقارير العيادات الخارجية / OPD رپورٹس
+"opd.walkIn"                  → Walk-in / حضور مباشر / واک ان
+"opd.cancelled"               → Cancelled/Waived / ملغي / منسوخ
+```
 
-The 2,804 toast calls across 69 hook files cannot all be translated individually. The pragmatic approach:
+### Billing Module
+```
+"billing.dashboard"           → Billing Dashboard / لوحة تحكم الفوترة / بلنگ ڈیش بورڈ
+"billing.dashboardSubtitle"   → Manage invoices, payments, and collections / إدارة الفواتير والمدفوعات / انوائسز اور ادائیگیاں
+"billing.createInvoice"       → Create Invoice / إنشاء فاتورة / انوائس بنائیں
+"billing.todayCollections"    → Today's Collections / تحصيلات اليوم / آج کی وصولیاں
+"billing.pendingInvoices"     → Pending Invoices / الفواتير المعلقة / زیر التواء انوائسز
+"billing.outstandingAmount"   → Outstanding Amount / المبلغ المستحق / واجب الادا رقم
+"billing.invoicesToday"       → Invoices Today / فواتير اليوم / آج کی انوائسز
+"billing.quickActions"        → Quick Actions / إجراءات سريعة / فوری کارروائیاں
+"billing.openSession"         → Open Billing Session / فتح جلسة الفوترة / بلنگ سیشن کھولیں
+"billing.createNewInvoice"    → Create New Invoice / إنشاء فاتورة جديدة / نئی انوائس بنائیں
+"billing.viewPendingInvoices" → View Pending Invoices / عرض الفواتير المعلقة / زیر التواء انوائسز دیکھیں
+"billing.dailyClosing"        → Daily Closing / الإغلاق اليومي / روزانہ بندش
+"billing.recentInvoices"      → Recent Invoices / الفواتير الأخيرة / حالیہ انوائسز
+"billing.noInvoicesYet"       → No invoices yet / لا توجد فواتير بعد / ابھی کوئی انوائس نہیں
+```
 
-- Create a **`useToastTranslations()` utility hook** that returns pre-built translated toast functions: `toastSuccess(key)`, `toastError(key)`
-- Add ~30 common toast message keys to `en.ts`, `ar.ts`, `ur.ts`:
-  - `"toast.savedSuccess"`, `"toast.saveFailed"`, `"toast.deletedSuccess"`, `"toast.deleteFailed"`, `"toast.createdSuccess"`, `"toast.createFailed"`, `"toast.updatedSuccess"`, `"toast.updateFailed"`, etc.
-- Update the **most-used hooks** (`useAdmissions`, `usePatients`, `useBilling`, `useIPD`) to use this utility
+### HR Module
+```
+"hr.dashboard"                → HR Dashboard / لوحة تحكم الموارد البشرية / HR ڈیش بورڈ
+"hr.totalEmployees"           → Total Employees / إجمالي الموظفين / کل ملازمین
+"hr.activeWorkforce"          → Active workforce / القوى العاملة النشطة / فعال افرادی قوت
+"hr.presentToday"             → Present Today / الحضور اليوم / آج حاضر
+"hr.lateArrivals"             → late arrivals / وصل متأخرون / دیر سے آنے والے
+"hr.onLeaveToday"             → On Leave Today / في إجازة اليوم / آج چھٹی پر
+"hr.pendingRequests"          → pending requests / طلبات معلقة / زیر التواء درخواستیں
+"hr.payrollStatus"            → Payroll Status / حالة الرواتب / تنخواہ کی حالت
+"hr.thisMonth"                → This month / هذا الشهر / اس ماہ
+"hr.attendanceSubtitle"       → Track time / تتبع الوقت / وقت ٹریک کریں
+"hr.payrollSubtitle"          → Salary processing / معالجة الرواتب / تنخواہ پروسیسنگ
+"hr.pendingLeaveRequests"     → Pending Leave Requests / طلبات الإجازة المعلقة / زیر التواء چھٹی درخواستیں
+"hr.noPendingRequests"        → No pending requests / لا طلبات معلقة / کوئی زیر التواء درخواست نہیں
+"hr.allRequestsProcessed"     → All leave requests have been processed / تمت معالجة جميع الطلبات / تمام درخواستیں مکمل
+"hr.todaysAttendance"         → Today's Attendance / حضور اليوم / آج کی حاضری
+"hr.present"                  → Present / حاضر / حاضر
+"hr.absent"                   → Absent / غائب / غیر حاضر
+"hr.late"                     → Late / متأخر / دیر سے
+"hr.onLeave"                  → On Leave / في إجازة / چھٹی پر
+"hr.viewAttendance"           → View Attendance / عرض الحضور / حاضری دیکھیں
+"hr.birthdaysThisMonth"       → Birthdays This Month / أعياد الميلاد هذا الشهر / اس ماہ سالگرہ
+"hr.noBirthdays"              → No birthdays this month / لا أعياد ميلاد هذا الشهر / اس ماہ کوئی سالگرہ نہیں
+"hr.alerts"                   → Alerts / التنبيهات / الرٹس
+"hr.pendingLeaveAlerts"       → pending leave requests / طلبات إجازة معلقة / زیر التواء چھٹی درخواستیں
+"hr.loanApprovalsPending"     → loan approvals pending / موافقات القروض المعلقة / زیر التواء قرض منظوری
+"hr.licensesExpiringSoon"     → licenses expiring soon / رخص ستنتهي قريباً / جلد ختم ہونے والے لائسنس
+"hr.noPendingAlerts"          → No pending alerts / لا تنبيهات معلقة / کوئی زیر التواء الرٹ نہیں
+"hr.recentEmployees"          → Recent Employees / الموظفون الأخيرون / حالیہ ملازمین
+"hr.noEmployeesFound"         → No employees found / لم يتم العثور على موظفين / کوئی ملازم نہیں ملا
+"hr.addFirstEmployee"         → Add First Employee / أضف أول موظف / پہلا ملازم شامل کریں
+"hr.urgent"                   → Urgent / عاجل / فوری
+"hr.action"                   → Action / إجراء / کارروائی
+```
 
-### Layer 4: Translation Key Expansion
+### Lab Module
+```
+"lab.dashboard"               → Laboratory / المختبر / لیبارٹری
+"lab.subtitle"                → Manage lab orders and results / إدارة طلبات المختبر والنتائج / لیب آرڈرز اور نتائج
+"lab.enterResults"            → Enter Results / إدخال النتائج / نتائج درج کریں
+"lab.viewQueue"               → View Queue / عرض القائمة / قائمہ دیکھیں
+"lab.statAlert"               → STAT order(s) require immediate attention / طلبات STAT تستدعي الاهتمام الفوري / STAT آرڈرز فوری توجہ چاہتے ہیں
+"lab.processStatFirst"        → Process these high-priority orders first / قم بمعالجة هذه الطلبات ذات الأولوية أولاً / یہ اہم آرڈرز پہلے پروسیس کریں
+"lab.viewStatOrders"          → View STAT Orders / عرض طلبات STAT / STAT آرڈرز دیکھیں
+"lab.pendingOrders"           → Pending Orders / الطلبات المعلقة / زیر التواء آرڈرز
+"lab.statOrders"              → STAT Orders / طلبات STAT / STAT آرڈرز
+"lab.collectedToday"          → Collected Today / تم جمعه اليوم / آج جمع ہوا
+"lab.completedToday"          → Completed Today / اكتمل اليوم / آج مکمل
+"lab.labQueue"                → Lab Queue / قائمة المختبر / لیب قائمہ
+"lab.viewAllPending"          → View all pending orders / عرض جميع الطلبات المعلقة / تمام زیر التواء آرڈرز
+"lab.enterResultsAction"      → Enter Results / إدخال النتائج / نتائج درج کریں
+"lab.recordTestResults"       → Record test results / تسجيل نتائج الاختبار / ٹیسٹ نتائج ریکارڈ کریں
+"lab.recentOrders"            → Recent Orders / الطلبات الأخيرة / حالیہ آرڈرز
+"lab.noPendingOrders"         → No pending lab orders / لا طلبات مختبر معلقة / کوئی زیر التواء لیب آرڈر نہیں
+"lab.tests"                   → test(s) / اختبار / ٹیسٹ
+"lab.ordered"                 → Ordered / مطلوب / آرڈر کیا گیا
+"lab.collected"               → Collected / تم الجمع / جمع کیا گیا
+"lab.processing"              → Processing / قيد المعالجة / پروسیسنگ
+"lab.completed"               → Completed / مكتمل / مکمل
+"lab.urgent"                  → Urgent / عاجل / فوری
+"lab.routine"                 → Routine / روتين / معمولی
+```
 
-Add new keys to `en.ts`, `ar.ts`, `ur.ts` for:
-- IPD module labels (stats cards, section headings, actions)
-- Patients module labels
-- Billing module labels  
-- Common page actions (New Admission, Refresh, Search...)
-- Toast messages (30 common patterns)
-- Date locale support
+### Pharmacy Module
+```
+"pharmacy.dashboard"          → Pharmacy / الصيدلية / فارمیسی
+"pharmacy.inventory"          → Inventory / المخزون / انوینٹری
+"pharmacy.pendingPrescriptions" → Pending Prescriptions / وصفات معلقة / زیر التواء نسخے
+"pharmacy.dispensedToday"     → Dispensed Today / تم الصرف اليوم / آج دیا گیا
+"pharmacy.lowStockItems"      → Low Stock Items / مواد منخفض المخزون / کم اسٹاک اشیاء
+"pharmacy.expiringSoon"       → Expiring Soon / ستنتهي قريباً / جلد ختم ہونے والا
+"pharmacy.medicineCatalog"    → Medicine Catalog / كتالوج الأدوية / دوا کیٹالاگ
+"pharmacy.manageMedicines"    → Manage medicines / إدارة الأدوية / دوائیں منظم کریں
+"pharmacy.addNewInventory"    → Add new inventory / إضافة مخزون جديد / نئی انوینٹری شامل کریں
+"pharmacy.stockLevelsBatches" → Stock levels & batches / مستويات المخزون والدفعات / اسٹاک سطح اور بیچ
+"pharmacy.prescriptionQueue"  → Prescription Queue / قائمة الوصفات / نسخوں کی قائمہ
+"pharmacy.noPendingPrescriptions" → No pending prescriptions / لا وصفات معلقة / کوئی زیر التواء نسخہ نہیں
+"pharmacy.viewAll"            → View All ({n}) / عرض الكل ({n}) / سب دیکھیں ({n})
+```
+
+### OT Module
+```
+"ot.dashboard"                → Operation Theatre / غرفة العمليات / آپریشن تھیٹر
+"ot.subtitle"                 → Manage surgical scheduling, OT rooms, and post-op recovery / إدارة جدولة العمليات / آپریشن شیڈولنگ اور بعد آپریشن ریکوری
+"ot.todaysSurgeries"          → Today's Surgeries / عمليات اليوم / آج کے آپریشن
+"ot.inProgress"               → in progress / قيد التنفيذ / جاری ہے
+"ot.availableRooms"           → Available Rooms / الغرف المتاحة / دستیاب کمرے
+"ot.otRoomsReady"             → OT rooms ready / غرف العمليات جاهزة / OT کمرے تیار
+"ot.inPacu"                   → In PACU / في وحدة التعافي / PACU میں
+"ot.recoveringPatients"       → Recovering patients / مرضى في مرحلة التعافي / صحت یاب ہونے والے مریض
+"ot.emergencyCases"           → Emergency Cases / حالات الطوارئ / ایمرجنسی کیسز
+"ot.scheduledThisWeek"        → Scheduled this week / مجدولة هذا الأسبوع / اس ہفتے شیڈول
+"ot.currentlyInProgress"      → Currently in progress / قيد التنفيذ حالياً / ابھی جاری ہے
+"ot.completedToday"           → Completed today / اكتملت اليوم / آج مکمل
+"ot.otRoomStatus"             → OT Room Status / حالة غرف العمليات / OT کمرے کی حالت
+"ot.currentStatusAllRooms"    → Current status of all operating rooms / الحالة الراهنة لجميع غرف العمليات / تمام آپریشن کمروں کی حالت
+"ot.manageRooms"              → Manage Rooms / إدارة الغرف / کمرے منظم کریں
+"ot.surgeryQueue"             → Surgery queue for today / قائمة عمليات اليوم / آج کے آپریشن کی قائمہ
+"ot.fullSchedule"             → Full Schedule / الجدول الكامل / مکمل شیڈول
+"ot.upcomingSurgeries"        → Upcoming Surgeries / العمليات القادمة / آنے والے آپریشن
+"ot.next30Days"               → Scheduled for the next 30 days / مجدولة للثلاثين يوماً القادمة / اگلے 30 دنوں میں شیڈول
+"ot.viewSchedule"             → View Schedule / عرض الجدول / شیڈول دیکھیں
+"ot.noUpcomingSurgeries"      → No upcoming surgeries scheduled / لا عمليات قادمة مجدولة / کوئی آنے والا آپریشن نہیں
+"ot.scheduleSurgery"          → Schedule Surgery / جدولة عملية / آپریشن شیڈول کریں
+"ot.moreSurgeries"            → more surgeries / عمليات أخرى / مزید آپریشن
+"ot.room"                     → Room / الغرفة / کمرہ
+"ot.dashboardRefreshed"       → Dashboard refreshed / تم تحديث لوحة التحكم / ڈیش بورڈ ریفریش ہوا
+```
+
+### Org Admin Dashboard
+```
+"org.overview"                → Organization Overview / نظرة عامة على المؤسسة / تنظیم کا جائزہ
+"org.branches"                → Branches / الفروع / شاخیں
+"org.totalStaff"              → Total Staff / إجمالي الطاقم / کل عملہ
+"org.todaysAppointments"      → Today's Appointments / مواعيد اليوم / آج کی ملاقاتیں
+"org.manageBranches"          → Manage Branches / إدارة الفروع / شاخیں منظم کریں
+"org.activeBranches"          → Active Branches / الفروع النشطة / فعال شاخیں
+"org.acrossOrganization"      → Across organization / عبر المؤسسة / پوری تنظیم میں
+"org.allBranches"             → All branches / جميع الفروع / تمام شاخیں
+"org.staffMembers"            → Staff Members / أفراد الطاقم / عملہ کے افراد
+"org.activeUsers"             → Active users / المستخدمون النشطاء / فعال صارفین
+"org.inProgress"              → In progress / قيد التنفيذ / جاری ہے
+"org.activeConsultations"     → Active Consultations / الاستشارات النشطة / فعال مشاورتیں
+"org.branchOverview"          → Branch Overview / نظرة عامة على الفروع / شاخوں کا جائزہ
+"org.quickView"               → Quick view of all active branches / عرض سريع لجميع الفروع النشطة / تمام فعال شاخوں کا فوری جائزہ
+"org.noActiveBranches"        → No active branches found / لم يتم العثور على فروع نشطة / کوئی فعال شاخ نہیں ملی
+"org.createBranchPrompt"      → Create your first branch to get started / أنشئ أول فرع للبدء / شروع کرنے کے لیے پہلی شاخ بنائیں
+"org.createBranch"            → Create Branch / إنشاء فرع / شاخ بنائیں
+```
+
+### Appointments Module
+```
+"appointments.title"          → Appointments / المواعيد / ملاقاتیں
+"appointments.subtitle"       → Manage patient appointments and scheduling / إدارة مواعيد المرضى / مریض ملاقاتوں کا انتظام
+"appointments.newAppointment" → New Appointment / موعد جديد / نئی ملاقات
+"appointments.queue"          → Queue / قائمة الانتظار / قطار
+"appointments.viewQueue"      → View Queue / عرض القائمة / قائمہ دیکھیں
+"appointments.todaysAppointments" → Today's Appointments / مواعيد اليوم / آج کی ملاقاتیں
+"appointments.waiting"        → Waiting / في الانتظار / انتظار میں
+"appointments.completed"      → Completed / مكتمل / مکمل
+"appointments.cancelled"      → Cancelled / ملغي / منسوخ
+"appointments.allStatuses"    → All Statuses / جميع الحالات / تمام حالات
+"appointments.scheduled"      → Scheduled / مجدول / شیڈول
+"appointments.checkedIn"      → Checked In / تم تسجيل الوصول / چیک ان
+"appointments.inProgress"     → In Progress / قيد التنفيذ / جاری ہے
+"appointments.noShow"         → No Show / لم يحضر / نہیں آیا
+"appointments.allDoctors"     → All Doctors / جميع الأطباء / تمام ڈاکٹرز
+"appointments.token"          → Token / الرمز / ٹوکن
+"appointments.patient"        → Patient / المريض / مریض
+"appointments.doctor"         → Doctor / الطبيب / ڈاکٹر
+"appointments.type"           → Type / النوع / قسم
+"appointments.chiefComplaint" → Chief Complaint / الشكوى الرئيسية / اہم شکایت
+"appointments.walkIn"         → Walk-in / حضور مباشر / واک ان
+"appointments.followUp"       → Follow-up / متابعة / فالو اپ
+"appointments.noFound"        → No appointments found / لم يتم العثور على مواعيد / کوئی ملاقات نہیں ملی
+"appointments.searchPlaceholder" → Search patients... / البحث عن مرضى... / مریض تلاش کریں...
+"appointments.today"          → Today / اليوم / آج
+```
+
+### Common additions
+```
+"common.paid"                 → Paid / مدفوع / ادا شدہ
+"common.cancelled"            → Cancelled / ملغي / منسوخ
+"common.viewAll"              (already exists)
+"common.revenue"              → Revenue / الإيرادات / آمدنی
+"common.collections"          → Collections / التحصيلات / وصولیاں
+```
+
+---
 
 ## Files to Change
 
-| File | Change |
-|------|--------|
-| `src/lib/i18n/translations/en.ts` | Add ~60 new keys: IPD labels, common page strings, toast messages |
-| `src/lib/i18n/translations/ar.ts` | Add matching Arabic translations |
-| `src/lib/i18n/translations/ur.ts` | Add matching Urdu translations |
-| `src/components/ModernPageHeader.tsx` | Import `useTranslation`; translate greeting; use locale-aware date formatting |
-| `src/pages/app/ipd/IPDDashboard.tsx` | Import `useTranslation`; replace all hardcoded strings with `t()` |
-| `src/pages/app/patients/PatientsListPage.tsx` | Import `useTranslation`; translate page header, column names, button labels |
-| `src/pages/app/billing/InvoicesListPage.tsx` | Import `useTranslation`; translate headers and labels |
-| `src/pages/app/ipd/AdmissionsListPage.tsx` | Import `useTranslation`; translate headers and labels |
-| `src/hooks/useAdmissions.ts` | Use translated toast messages via centralized approach |
-| `src/hooks/usePatients.ts` | Use translated toast messages |
+| File | Changes |
+|------|---------|
+| `src/lib/i18n/translations/en.ts` | Add ~120 new keys across OPD, Billing, HR, Lab, Pharmacy, OT, Org Admin, Appointments modules |
+| `src/lib/i18n/translations/ar.ts` | Matching Arabic translations for all new keys |
+| `src/lib/i18n/translations/ur.ts` | Matching Urdu translations for all new keys |
+| `src/pages/app/opd/OPDAdminDashboard.tsx` | `import useTranslation`; replace all ~25 hardcoded strings with `t()` |
+| `src/pages/app/billing/BillingDashboard.tsx` | `import useTranslation`; replace all ~14 hardcoded strings |
+| `src/pages/app/hr/HRDashboard.tsx` | `import useTranslation`; replace all ~30 hardcoded strings including the date subtitle |
+| `src/pages/app/lab/LabDashboard.tsx` | `import useTranslation`; replace all ~20 hardcoded strings |
+| `src/pages/app/pharmacy/PharmacyDashboard.tsx` | `import useTranslation`; replace all ~15 hardcoded strings |
+| `src/pages/app/ot/OTDashboard.tsx` | `import useTranslation`; replace all ~25 hardcoded strings |
+| `src/pages/app/OrgAdminDashboardPage.tsx` | `import useTranslation`; replace all ~15 hardcoded strings |
+| `src/pages/app/appointments/AppointmentsListPage.tsx` | `import useTranslation`; replace all ~25 hardcoded strings, statusLabels, typeLabels |
 
-## New Translation Keys
+## Implementation Approach
 
-### IPD Module
-```
-"ipd.dashboard"             → IPD Dashboard / لوحة تحكم التنويم / IPD ڈیش بورڈ
-"ipd.subtitle"              → Inpatient department overview / نظرة عامة على قسم التنويم / داخلی محکمے کا جائزہ
-"ipd.totalWards"            → Total Wards / إجمالي الأجنحة / کل وارڈ
-"ipd.activeWards"           → Active wards / الأجنحة النشطة / فعال وارڈ
-"ipd.bedOccupancy"          → Bed Occupancy / إشغال الأسرة / بستر کا قبضہ
-"ipd.available"             → available / متاح / دستیاب
-"ipd.activePatients"        → Active Patients / المرضى النشطاء / فعال مریض
-"ipd.currentlyAdmitted"     → Currently admitted / المقبولون حالياً / ابھی داخل
-"ipd.todayActivity"         → Today's Activity / نشاط اليوم / آج کی سرگرمی
-"ipd.admissionsDischarges"  → Admissions / Discharges / القبول / الخروج / داخلگی / خروج
-"ipd.pendingRounds"         → Pending Rounds / الجولات المعلقة / زیر التواء وزٹ
-"ipd.pendingDischarges"     → Pending Discharges / خروج معلق / زیر التواء خروج
-"ipd.wardOccupancy"         → Ward-wise Occupancy / إشغال الأجنحة / وارڈ کی بھرائی
-"ipd.avgLOS"                → Avg Length of Stay / متوسط مدة الإقامة / قیام کا اوسط
-"ipd.todayProcedures"       → Today's Procedures / إجراءات اليوم / آج کے طریقہ کار
-"ipd.pendingLabResults"     → Pending Lab Results / نتائج المختبر المعلقة / زیر التواء لیب نتائج
-"ipd.postRoomCharges"       → Post Room Charges / ترحيل رسوم الغرفة / کمرے کے چارجز جمع کریں
-"ipd.newAdmission"          → New Admission / قبول جديد / نئی داخلگی
-"ipd.allRoundsComplete"     → All rounds completed for today / اكتملت جميع الجولات لليوم / آج کے سب وزٹ مکمل
-"ipd.noPendingDischarges"   → No pending discharges / لا يوجد خروج معلق / کوئی زیر التواء خروج نہیں
-"ipd.recentAdmissions"      → Recent Admissions / القبول الأخير / حالیہ داخلگی
-"ipd.bedMap"                → Bed Map / خريطة الأسرة / بستر نقشہ
-"ipd.admissions"            → Admissions / القبول / داخلگی
-"ipd.ipdBilling"            → IPD Billing / فوترة التنويم / IPD بلنگ
-"ipd.nursingStation"        → Nursing Station / محطة التمريض / نرسنگ اسٹیشن
-"ipd.financialSummary"      → Active Admissions Financial Summary / ملخص مالي / مالی خلاصہ
-"ipd.totalDeposits"         → Total Deposits / إجمالي الودائع / کل جمع
-"ipd.totalCharges"          → Total Charges / إجمالي الرسوم / کل چارجز
-"ipd.outstandingBalance"    → Outstanding / المبلغ المستحق / واجب الادا
-"ipd.dischargePipeline"     → Discharge Pipeline / مسار الخروج / خروج پائپ لائن
-"ipd.bedsOccupied"          → beds occupied / أسرة مشغولة / بستر استعمال میں
-"ipd.start"                 → Start / ابدأ / شروع کریں
-"ipd.discharge"             → Discharge / خروج / خارج کریں
-"ipd.viewAllPending"        → View all {n} pending / عرض الكل / سب دیکھیں
-```
+Each file will follow this exact pattern (already proven in IPDDashboard and others):
 
-### Patients Module
-```
-"patients.title"            → Patients / المرضى / مریض
-"patients.subtitle"         → Manage patient records / إدارة سجلات المرضى / مریض ریکارڈ
-"patients.patientNo"        → Patient # / رقم المريض / مریض نمبر
-"patients.registerPatient"  → Register Patient / تسجيل مريض / مریض رجسٹر کریں
-"patients.totalPatients"    → Total Patients / إجمالي المرضى / کل مریض
-"patients.newThisMonth"     → New This Month / جدد هذا الشهر / اس ماہ نئے
-"patients.activePatients"   → Active Patients / مرضى نشطاء / فعال مریض
-```
-
-### Billing / Invoices
-```
-"invoices.title"            → Invoices / الفواتير / انوائسز
-"invoices.subtitle"         → Manage billing and invoices / إدارة الفواتير / بلنگ انتظام
-"invoices.invoiceNo"        → Invoice # / رقم الفاتورة / انوائس نمبر
-"invoices.newInvoice"       → New Invoice / فاتورة جديدة / نئی انوائس
-"invoices.allTypes"         → All Types / جميع الأنواع / تمام اقسام
-"invoices.consultation"     → Consultation / استشارة / مشاورت
-```
-
-### Admissions
-```
-"admissions.title"          → Admissions / القبول / داخلگی
-"admissions.subtitle"       → Manage patient admissions / إدارة قبول المرضى / مریض داخلگی
-"admissions.newAdmission"   → New Admission / قبول جديد / نئی داخلگی
-"admissions.refresh"        → Refresh / تحديث / ریفریش
-"admissions.searchPlaceholder" → Search by patient name, admission # or MRN / البحث / تلاش کریں
-"admissions.admitted"       → Admitted / المقبولون / داخل
-"admissions.pending"        → Pending / معلق / زیر التواء
-"admissions.discharged"     → Discharged / خارجون / خارج
-"admissions.all"            → All / الكل / سب
-```
-
-### Common Page Actions
-```
-"common.refresh"            → Refresh / تحديث / ریفریش
-"common.newAdmission"       → New Admission / قبول جديد / نئی داخلگی
-"common.viewAll"            → View All / عرض الكل / سب دیکھیں
-"common.loading"            (already exists)
-"common.noData"             → No data found / لم يتم العثور على بيانات / کوئی ڈیٹا نہیں
-"common.error"              → Error / خطأ / خطا
-"common.tryAgain"           → Try again / حاول مرة أخرى / دوبارہ کوشش کریں
-"common.days"               → days / أيام / دن
-"common.bedsOccupied"       → beds occupied / أسرة مشغولة / بستر استعمال میں
-"common.quickStats"         → Quick Stats / إحصائيات سريعة / فوری اعداد
-```
-
-### Toast Messages
-```
-"toast.savedSuccess"        → Saved successfully / تم الحفظ بنجاح / کامیابی سے محفوظ
-"toast.saveFailed"          → Failed to save / فشل الحفظ / محفوظ کرنا ناکام
-"toast.createdSuccess"      → Created successfully / تم الإنشاء بنجاح / کامیابی سے بنایا
-"toast.createFailed"        → Failed to create / فشل الإنشاء / بنانا ناکام
-"toast.updatedSuccess"      → Updated successfully / تم التحديث بنجاح / کامیابی سے اپڈیٹ
-"toast.updateFailed"        → Failed to update / فشل التحديث / اپڈیٹ ناکام
-"toast.deletedSuccess"      → Deleted successfully / تم الحذف بنجاح / کامیابی سے حذف
-"toast.deleteFailed"        → Failed to delete / فشل الحذف / حذف ناکام
-"toast.admissionCreated"    → Patient admission created successfully / تم قبول المريض / مریض کامیابی سے داخل
-"toast.admissionFailed"     → Failed to create admission / فشل قبول المريض / داخلگی ناکام
-"toast.dischargeSuccess"    → Patient discharged successfully / تم خروج المريض / مریض کامیابی سے خارج
-"toast.dischargeFailed"     → Failed to discharge patient / فشل خروج المريض / خروج ناکام
-"toast.wardCreated"         → Ward created successfully / تم إنشاء الجناح / وارڈ کامیابی سے بنا
-"toast.wardUpdated"         → Ward updated successfully / تم تحديث الجناح / وارڈ کامیابی سے اپڈیٹ
-"toast.wardFailed"          → Failed to save ward / فشل حفظ الجناح / وارڈ ناکام
-"toast.chargeAdded"         → Charge added successfully / تمت إضافة الرسوم / چارج کامیابی سے شامل
-"toast.chargeFailed"        → Failed to add charge / فشل إضافة الرسوم / چارج شامل ناکام
-"toast.invoiceGenerated"    → Invoice generated / تم إنشاء الفاتورة / انوائس بنائی
-"toast.invoiceFailed"       → Failed to generate invoice / فشل إنشاء الفاتورة / انوائس ناکام
-"toast.dashboardRefreshed"  → Dashboard refreshed / تم تحديث لوحة التحكم / ڈیش بورڈ ریفریش
-"toast.refreshFailed"       → Failed to refresh dashboard / فشل التحديث / ریفریش ناکام
-"toast.roomChargesPosted"   → Room charges posted / تم ترحيل رسوم الغرف / کمرے چارجز جمع
-"toast.roomChargesFailed"   → Failed to post room charges / فشل ترحيل رسوم الغرف / کمرے چارجز ناکام
-"toast.missingContext"      → Missing required information / معلومات مفقودة / ضروری معلومات غائب
-"toast.paymentProcessed"    → Payment processed successfully / تمت معالجة الدفعة / ادائیگی مکمل
-"toast.paymentFailed"       → Failed to process payment / فشل معالجة الدفعة / ادائیگی ناکام
-```
-
-### Date Locale (ModernPageHeader)
-The date "Thursday, February 19, 2026" must show in Arabic/Urdu. Use `date-fns/locale`:
-- Arabic: `import { ar } from 'date-fns/locale'` → `format(new Date(), "EEEE, MMMM d, yyyy", { locale: ar })`
-- Urdu: Urdu is not natively in date-fns so use Arabic locale for now (both RTL, numerals same) or fallback to a custom function
-- This will produce: "الخميس، 19 فبراير 2026" for Arabic
-
-## Implementation Details
-
-### ModernPageHeader.tsx Changes
 ```tsx
-import { useTranslation, useCountryConfig } from "@/lib/i18n";
-import { ar as arLocale, enUS } from "date-fns/locale";
+import { useTranslation } from "@/lib/i18n";
 
-// Inside component:
-const { t } = useTranslation();
-const { default_language } = useCountryConfig();
-const dateLocale = default_language === "ar" ? arLocale 
-                 : default_language === "ur" ? arLocale  // Arabic numerals, similar
-                 : enUS;
-const today = format(new Date(), "EEEE, MMMM d, yyyy", { locale: dateLocale });
-
-// Replace getTimeOfDay() which returns hardcoded English:
-function getTimeOfDay(t) {
-  const hour = new Date().getHours();
-  if (hour >= 5 && hour < 12) return { greeting: t("dashboard.goodMorning"), icon: ... };
-  ...
+export default function SomeDashboard() {
+  const { t } = useTranslation();
+  // ... rest of component
+  
+  // Replace: "OPD Dashboard"
+  // With:    t("opd.dashboard")
+  
+  // For dynamic strings with variables:
+  // Replace: `${count} in progress`
+  // With:    `${count} ${t("ot.inProgress")}`
 }
 ```
 
-### IPDDashboard.tsx Changes
-Import `useTranslation`, replace all ~25 hardcoded strings with `t("ipd.xxx")` keys.
-
-### Toast Strategy for Hooks
-Since hooks can't call React hooks directly unless they're custom hooks, the approach is:
-- The toast strings in hooks **already pass a string** to `toast.success()` 
-- Since `sonner`'s `toast` is framework-agnostic, we can't inject `t()` into hooks easily without refactoring
-- **Pragmatic approach**: Translate the ~20 most visible toast messages in the IPD hooks (`useAdmissions`, `useIPD`, `useDischarge`) by passing a translated message from the component layer, or by creating a standalone translation function (non-hook) that reads the language from localStorage/sessionStorage as a fallback
-
-### Standalone Translation Function (for hooks)
-```ts
-// In src/lib/i18n/index.ts - add:
-export function getTranslatedString(key: TranslationKey): string {
-  // Read language from stored org config (cached)
-  const lang = localStorage.getItem("org_language") || "en";
-  const langMap = translations[lang];
-  return (langMap && langMap[key]) || en[key] || key;
-}
+For `statusLabels` objects in Appointments, convert to use `t()`:
+```tsx
+const statusLabels: Record<string, string> = {
+  scheduled: t("appointments.scheduled"),
+  checked_in: t("appointments.checkedIn"),
+  // etc.
+};
 ```
 
-This allows hooks to call `getTranslatedString("toast.admissionCreated")` without being React hooks themselves.
+## Result After This Implementation
 
-## Summary of All Changes
+After these changes are complete, every user switching to Arabic or Urdu will see translated text across:
+- ✅ OPD Admin Dashboard (all stat cards, tables, section titles)
+- ✅ Billing Dashboard (stats, quick actions, recent invoices section)
+- ✅ HR Dashboard (all stats, attendance, leave requests, alerts, birthdays)
+- ✅ Lab Dashboard (STAT alerts, stats, priority/status badges, queue section)
+- ✅ Pharmacy Dashboard (stats, quick action cards, prescription queue)
+- ✅ OT Dashboard (stats, room status, surgery queue, upcoming surgeries)
+- ✅ Org Admin Dashboard (branch overview, stats, no-data states)
+- ✅ Appointments List (table headers, status/type labels, filters, stats)
 
-| File | Priority | Changes |
-|------|----------|---------|
-| `src/lib/i18n/translations/en.ts` | Critical | +60 new keys |
-| `src/lib/i18n/translations/ar.ts` | Critical | +60 Arabic translations |
-| `src/lib/i18n/translations/ur.ts` | Critical | +60 Urdu translations |
-| `src/lib/i18n/index.ts` | Critical | Add `getTranslatedString()` standalone function + cache language in localStorage |
-| `src/components/ModernPageHeader.tsx` | High | Translate greetings + locale-aware date |
-| `src/pages/app/ipd/IPDDashboard.tsx` | High | Full i18n (current route) |
-| `src/pages/app/ipd/AdmissionsListPage.tsx` | High | Translate page headers and actions |
-| `src/pages/app/patients/PatientsListPage.tsx` | High | Translate page headers, columns |
-| `src/pages/app/billing/InvoicesListPage.tsx` | Medium | Translate page headers, columns |
-| `src/pages/app/ipd/WardFormPage.tsx` | Medium | Toast translations |
-| `src/pages/app/ipd/DischargeFormPage.tsx` | Medium | Toast translations |
-| `src/pages/app/ipd/AdmissionFormPage.tsx` | Medium | Toast translations |
-| `src/pages/app/ipd/IPDChargesPage.tsx` | Medium | Toast translations |
-
-## Important Note on Scope
-
-The user's request for "everything" covers 200+ files. A complete implementation in one pass would touch every single page, component, form, and hook in the codebase. This plan tackles the highest-value targets first:
-
-1. The shared `ModernPageHeader` and date formatting (fixes dozens of pages at once)
-2. The IPD module fully (current route being viewed)
-3. Patients and Billing list pages (most visited)
-4. Toast messages for IPD operations (most frequent user interactions)
-5. New translation keys for all the above
-
-After these changes, the user will see Arabic/Urdu on:
-- The date in the header on all pages using `ModernPageHeader`
-- The entire IPD dashboard and admissions pages
-- Patients and billing list pages
-- All toast notifications from IPD operations
-- All existing sidebar items (already done)
-- Dashboard page (already done)
-
-The remaining modules (OPD, Lab, HR, OT, etc.) can be translated in subsequent passes following the exact same pattern.
+This represents the most heavily-visited pages for all user roles in the system.
