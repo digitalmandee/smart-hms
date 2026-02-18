@@ -1,66 +1,55 @@
 
-# Improve Female Doctor Avatar — Better Photo + Feminine 3D Features
+# Replace Broken 3D Avatar with Polished Illustrated Avatar Card
 
-## Overview
+## The Problem
 
-Two files need updating:
-1. **`DoctorAvatarLarge.tsx`** — Replace the Unsplash photo URL with a better quality Arabic female doctor image
-2. **`ProceduralDoctorAvatar.tsx`** — Add clearly feminine features to the 3D avatar: long hair flowing down, softer face proportions, eyelashes, and smaller nose/jaw
+Right now, when no VRM file exists (which is always the case until you upload one), `VRMAvatarCanvas` falls back to `ProceduralDoctorAvatar` — a blocky, low-quality Three.js mesh that looks terrible. The much better `DoctorAvatarLarge` (photo-based) exists but is only used as a tiny loading spinner.
 
----
+## The Fix
 
-## 1. DoctorAvatarLarge.tsx — Better Photo
+Replace the `ProceduralDoctorAvatar` fallback inside `VRMAvatarCanvas` with a **beautiful illustrated avatar card** — using the existing `DoctorAvatar` SVG component (which already has idle float, speaking nod, listening pulse, eye blink animations) wrapped in a professional styled card with:
 
-Replace the current `DOCTOR_PHOTO_URL` with a higher quality, clearly Arabic female doctor photo. The current URL is a generic stock photo. We'll switch to a better Unsplash photo that shows a professional female doctor with a white coat, ideally with visible hijab or darker features to represent an Arabic/Middle Eastern doctor.
+- A rich teal gradient background (brand color)
+- Animated EQ bars when speaking/listening (reused from `DoctorAvatarLarge`)
+- Glow border matching the state
+- "Dr. Tabeebi" name badge at the bottom
+- No Three.js dependency — pure React/CSS, zero loading time
 
-**New URL candidates (Unsplash free-to-use):**
-```
-https://images.unsplash.com/photo-1594824476967-48c8b964273f?fm=jpg&q=90&w=800&auto=format&fit=crop
-```
-This is a close-up of a female doctor in white coat — professional, warm skin tone, high quality.
-
-Also improve `objectPosition` from `"50% 8%"` to `"50% 15%"` to better frame the face.
+This is a **temporary polished placeholder** until the VRM file is ready. Once you drop `doctor.vrm` into `public/avatars/`, it automatically switches to the 3D avatar — no code changes needed.
 
 ---
 
-## 2. ProceduralDoctorAvatar.tsx — Feminine 3D Features
+## What Changes
 
-The current avatar is mostly gender-neutral. We'll add these feminine features:
+### 1. New component: `AvatarPlaceholderCard`
 
-### A. Long Hair
-The current hair is just a top-cap hemisphere. We'll add:
-- **Side hair panels** — two flattened box meshes on left/right that extend downward past the shoulders, giving the silhouette of long flowing hair
-- **Back hair volume** — a slightly larger sphere segment behind the head
-- **Softer hairline** — round the top cap more
+A self-contained card (inside `VRMAvatarCanvas.tsx` or its own file) that replaces `ProceduralDoctorAvatar`:
 
 ```text
-Before:         After:
-   (_____)        (_______)
-   | HEAD |      |  HEAD  |
-   |      |     ||        ||   ← side hair panels
-                ||        ||
-                 \      /
+┌─────────────────────────────┐  ← rounded-3xl card, teal gradient bg
+│                             │
+│      ╔═══════════╗          │  ← teal brand ring (animated on state)
+│      ║  DR SVG   ║          │  ← DoctorAvatar size="lg", animated
+│      ╚═══════════╝          │
+│                             │
+│   ▌▌ ▌▌▌ ▌▌ ▌▌▌ ▌▌        │  ← EQ bars (speaking/listening)
+│                             │
+│  ┌─────────────────────┐    │
+│  │   Dr. Tabeebi  🩺   │    │  ← name badge
+│  │   AI Health Assistant│   │
+│  └─────────────────────┘    │
+└─────────────────────────────┘
 ```
 
-### B. Softer Face Proportions
-- **Slightly smaller head sphere** (`r=0.165` instead of `0.175`) — more delicate
-- **Smaller nose** (`r=0.013` instead of `0.018`)
-- **Eyebrows** — slightly thinner and more arched (`rotation z` increased slightly, width reduced from `0.046` to `0.038`)
-- **Lips** — slightly fuller/wider (`0.075` wide instead of `0.07`)
+### 2. Update `VRMAvatarCanvas.tsx`
 
-### C. Eyelashes
-Add thin dark curved strips above each eye — two small `boxGeometry` meshes rotated slightly over the upper eye area, dark brown/black. Gives a clearly feminine look.
+Replace the `ProceduralDoctorAvatar` import and usage (line 6 and line 204) with the new `AvatarPlaceholderCard`. The VRM loading path stays completely unchanged — when a VRM file is detected, it still shows the 3D canvas.
 
-### D. Earrings
-Small gold sphere dangling from each ear — adds feminine detail with minimal geometry.
+Also fix the loading fallback (line 233) to use the new card instead of the 3D avatar.
 
-### E. Softer Coat — Remove Tie
-The current avatar has a blue shirt/tie in the center. For a female doctor, replace this with:
-- A simple light blue undershirt (no tie)
-- Slightly narrower lapels (more delicate look)
+### 3. Update `DoctorAvatar.tsx` (small fix)
 
-### F. Hijab Option (optional but fitting for Arabic context)
-Add a head covering mesh — a slightly oversized sphere cap in a teal/navy color that wraps around the head sides and back, sitting over the hair. This is culturally appropriate for an Arabic female doctor and would make Tabeebi feel authentic to its target users.
+The existing `DoctorAvatar` SVG component used in chat already handles all 4 states well. No changes needed there — it gets reused inside the new card at `size="lg"`.
 
 ---
 
@@ -68,79 +57,29 @@ Add a head covering mesh — a slightly oversized sphere cap in a teal/navy colo
 
 | File | Change |
 |------|--------|
-| `src/components/ai/DoctorAvatarLarge.tsx` | New photo URL, better objectPosition |
-| `src/components/ai/ProceduralDoctorAvatar.tsx` | Long hair, softer face, eyelashes, earrings, hijab, remove tie |
+| `src/components/ai/VRMAvatarCanvas.tsx` | Replace `ProceduralDoctorAvatar` import + fallback with new `AvatarPlaceholderCard` |
+| `src/components/ai/AvatarPlaceholderCard.tsx` | New file — polished illustrated card using existing `DoctorAvatar` SVG |
+
+The `ProceduralDoctorAvatar.tsx` file is kept intact — it stays as-is until the VRM file arrives, it just won't be rendered anymore.
 
 ---
 
-## Technical Details for ProceduralDoctorAvatar
+## Technical Details
 
-### Long hair meshes (added inside `<group ref={headRef}>`)
-```tsx
-{/* Back hair volume */}
-<mesh position={[0, -0.02, -0.08]}>
-  <sphereGeometry args={[0.19, 24, 24, 0, Math.PI * 2, 0, Math.PI * 0.65]} />
-  <meshStandardMaterial color={hairColor} roughness={0.95} />
-</mesh>
+### AvatarPlaceholderCard layout
 
-{/* Left side hair panel */}
-<mesh position={[-0.16, -0.18, -0.02]} rotation={[0.1, 0, 0.08]}>
-  <boxGeometry args={[0.06, 0.32, 0.08]} />
-  <meshStandardMaterial color={hairColor} roughness={0.9} />
-</mesh>
+- **Container**: `min(300px, 86vw)` × `min(420px, 54vh)` — matches `DoctorAvatarLarge` exactly so the voice page layout doesn't shift
+- **Background**: `linear-gradient(160deg, hsl(174 84% 12%) 0%, hsl(174 84% 6%) 100%)` — deep brand teal, looks premium in dark mode
+- **Center avatar**: `DoctorAvatar size="lg"` floating in the middle with existing animations
+- **State ring**: Outer glow ring animates based on state (same `borderGlow` logic already in the codebase)
+- **EQ bars**: Reuse the same animated bar logic from `DoctorAvatarLarge` — 11 bars, teal color, glowing
+- **Name badge**: Frosted glass pill at the bottom: "Dr. Tabeebi · AI Health Assistant"
+- **Status dot**: Top-right corner, green/teal/amber depending on state
 
-{/* Right side hair panel */}
-<mesh position={[0.16, -0.18, -0.02]} rotation={[0.1, 0, -0.08]}>
-  <boxGeometry args={[0.06, 0.32, 0.08]} />
-  <meshStandardMaterial color={hairColor} roughness={0.9} />
-</mesh>
-```
+### Why this is better than the current 3D avatar
 
-### Eyelashes (added inside `eyeGroupRef` group)
-```tsx
-{/* Left eyelash */}
-<mesh position={[-0.068, 0.058, 0.163]} rotation={[0, 0, 0.1]}>
-  <boxGeometry args={[0.044, 0.006, 0.002]} />
-  <meshStandardMaterial color="#0d0600" roughness={0.9} />
-</mesh>
-{/* Right eyelash */}
-<mesh position={[0.068, 0.058, 0.163]} rotation={[0, 0, -0.1]}>
-  <boxGeometry args={[0.044, 0.006, 0.002]} />
-  <meshStandardMaterial color="#0d0600" roughness={0.9} />
-</mesh>
-```
-
-### Gold earrings
-```tsx
-{/* Left earring */}
-<mesh position={[-0.19, -0.04, 0]}>
-  <sphereGeometry args={[0.012, 8, 8]} />
-  <meshStandardMaterial color="#d4a017" metalness={0.9} roughness={0.1} />
-</mesh>
-{/* Right earring */}
-<mesh position={[0.19, -0.04, 0]}>
-  <sphereGeometry args={[0.012, 8, 8]} />
-  <meshStandardMaterial color="#d4a017" metalness={0.9} roughness={0.1} />
-</mesh>
-```
-
-### Hijab (head covering)
-```tsx
-{/* Hijab — wraps over hair, around sides and back */}
-<mesh position={[0, 0.01, -0.01]}>
-  <sphereGeometry args={[0.196, 32, 32, 0, Math.PI * 2, 0, Math.PI * 0.72]} />
-  <meshStandardMaterial color="#1a4a5a" roughness={0.85} />
-</mesh>
-{/* Hijab side left drape */}
-<mesh position={[-0.18, -0.22, -0.01]} rotation={[0.05, 0, 0.05]}>
-  <boxGeometry args={[0.07, 0.38, 0.1]} />
-  <meshStandardMaterial color="#1a4a5a" roughness={0.85} />
-</mesh>
-{/* Hijab side right drape */}
-<mesh position={[0.18, -0.22, -0.01]} rotation={[0.05, 0, -0.05]}>
-  <boxGeometry args={[0.07, 0.38, 0.1]} />
-  <meshStandardMaterial color="#1a4a5a" roughness={0.85} />
-</mesh>
-```
-
-The hijab color `#1a4a5a` (deep teal) matches Tabeebi's brand color (premium teal UI noted in memory). This ties the avatar to the brand visually.
+- Zero WebGL/Three.js overhead — instant render
+- The existing `DoctorAvatar` SVG already has: float animation, speaking nod, eye blink, listening pulse rings, sound waves — all perfectly implemented
+- Consistent brand colors
+- No geometry artifacts or camera framing issues
+- Works perfectly until VRM file is ready
