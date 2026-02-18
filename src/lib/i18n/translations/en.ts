@@ -32,6 +32,14 @@ export const en = {
   "common.reset": "Reset",
   "common.total": "Total",
   "common.amount": "Amount",
+  "common.left": "left",
+  "common.batch": "Batch",
+  "common.qty": "Qty",
+  "common.expired": "Expired",
+  "common.today": "Today",
+  "common.pending": "pending",
+  "common.inQueue": "in queue",
+  "common.newToday": "new today",
 
   // Navigation
   "nav.dashboard": "Dashboard",
@@ -238,6 +246,28 @@ export const en = {
   "dashboard.failedLoad": "Failed to load dashboard statistics",
   "dashboard.tryRefreshing": "Please try refreshing the page",
   "dashboard.retry": "Retry",
+  // Collections widget
+  "dashboard.todaysPendingOverdue": "Today's pending and overdue invoices",
+  "dashboard.collectedToday": "Collected Today",
+  "dashboard.pendingToday": "Pending Today",
+  "dashboard.overdue": "Overdue",
+  "dashboard.viewReports": "View Reports",
+  "dashboard.todaysPending": "Today's Pending",
+  "dashboard.noOverdueInvoices": "No overdue invoices",
+  "dashboard.allPaymentsOnTrack": "All payments are on track",
+  "dashboard.daysOverdue": "d overdue",
+  "dashboard.viewAllPending": "View all pending invoices",
+  "dashboard.viewAllOverdue": "View all overdue invoices",
+  // Pharmacy widget
+  "dashboard.stockLevelsExpiry": "Stock levels and expiry warnings",
+  "dashboard.viewInventory": "View Inventory",
+  "dashboard.lowStock": "Low Stock",
+  "dashboard.expiringSoon": "Expiring Soon",
+  "dashboard.toDispense": "To Dispense",
+  "dashboard.lowStockItems": "Low Stock Items",
+  "dashboard.expiringSoon30Days": "Expiring Soon (30 days)",
+  "dashboard.inventoryLooksGood": "Inventory looks good!",
+  "dashboard.noStockAlerts": "No stock alerts at this time",
 } as const;
 
 export type TranslationKey = keyof typeof en;

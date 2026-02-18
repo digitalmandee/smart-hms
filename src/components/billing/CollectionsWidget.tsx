@@ -5,12 +5,13 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Receipt, AlertTriangle, Clock, ArrowRight, TrendingUp } from "lucide-react";
 import { useDashboardBilling } from "@/hooks/useBilling";
-import { format } from "date-fns";
 import { formatCurrency } from "@/lib/currency";
+import { useTranslation } from "@/lib/i18n";
 
 export function CollectionsWidget() {
   const navigate = useNavigate();
   const { data, isLoading } = useDashboardBilling();
+  const { t } = useTranslation();
 
   if (isLoading) {
     return (
@@ -31,7 +32,6 @@ export function CollectionsWidget() {
     todayPending = [],
     overdueInvoices = [],
     todayCollected = 0,
-    todayTarget = 0,
   } = data || {};
 
   const totalPendingAmount = todayPending.reduce((sum, inv) => {
@@ -51,13 +51,13 @@ export function CollectionsWidget() {
           <div>
             <CardTitle className="text-lg flex items-center gap-2">
               <Receipt className="h-5 w-5" />
-              Collections Overview
+              {t("dashboard.collectionsOverview")}
             </CardTitle>
-            <CardDescription>Today's pending and overdue invoices</CardDescription>
+            <CardDescription>{t("dashboard.todaysPendingOverdue")}</CardDescription>
           </div>
           <Button variant="ghost" size="sm" onClick={() => navigate("/app/billing/reports")}>
-            View Reports
-            <ArrowRight className="ml-1 h-4 w-4" />
+            {t("dashboard.viewReports")}
+            <ArrowRight className="ms-1 h-4 w-4" />
           </Button>
         </div>
       </CardHeader>
@@ -67,14 +67,14 @@ export function CollectionsWidget() {
           <div className="p-3 rounded-lg bg-success/10 border border-success/20">
             <div className="flex items-center gap-2 text-success mb-1">
               <TrendingUp className="h-4 w-4" />
-              <span className="text-xs font-medium">Collected Today</span>
+              <span className="text-xs font-medium">{t("dashboard.collectedToday")}</span>
             </div>
             <p className="text-lg font-bold">{formatCurrency(todayCollected)}</p>
           </div>
           <div className="p-3 rounded-lg bg-warning/10 border border-warning/20">
             <div className="flex items-center gap-2 text-warning mb-1">
               <Clock className="h-4 w-4" />
-              <span className="text-xs font-medium">Pending Today</span>
+              <span className="text-xs font-medium">{t("dashboard.pendingToday")}</span>
             </div>
             <p className="text-lg font-bold">{formatCurrency(totalPendingAmount)}</p>
           </div>
@@ -85,7 +85,7 @@ export function CollectionsWidget() {
           <div>
             <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
               <Clock className="h-4 w-4 text-muted-foreground" />
-              Today's Pending ({todayPending.length})
+              {t("dashboard.todaysPending")} ({todayPending.length})
             </h4>
             <div className="space-y-2 max-h-32 overflow-y-auto">
               {todayPending.slice(0, 3).map((invoice) => (
@@ -112,7 +112,7 @@ export function CollectionsWidget() {
                   className="w-full text-xs"
                   onClick={() => navigate("/app/billing/invoices?status=pending")}
                 >
-                  View all {todayPending.length} pending invoices
+                  {t("dashboard.viewAllPending")} ({todayPending.length})
                 </Button>
               )}
             </div>
@@ -124,8 +124,8 @@ export function CollectionsWidget() {
           <div>
             <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
               <AlertTriangle className="h-4 w-4 text-destructive" />
-              Overdue ({overdueInvoices.length})
-              <Badge variant="destructive" className="ml-auto">
+              {t("dashboard.overdue")} ({overdueInvoices.length})
+              <Badge variant="destructive" className="ms-auto">
                 {formatCurrency(totalOverdueAmount)}
               </Badge>
             </h4>
@@ -143,7 +143,7 @@ export function CollectionsWidget() {
                   >
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium">{invoice.invoice_number}</span>
-                      <span className="text-xs text-destructive">{daysOverdue}d overdue</span>
+                      <span className="text-xs text-destructive">{daysOverdue}{t("dashboard.daysOverdue")}</span>
                     </div>
                     <span className="text-sm font-medium text-destructive">
                       {formatCurrency((invoice.total_amount || 0) - (invoice.paid_amount || 0))}
@@ -158,7 +158,7 @@ export function CollectionsWidget() {
                   className="w-full text-xs text-destructive hover:text-destructive"
                   onClick={() => navigate("/app/billing/reports")}
                 >
-                  View all {overdueInvoices.length} overdue invoices
+                  {t("dashboard.viewAllOverdue")} ({overdueInvoices.length})
                 </Button>
               )}
             </div>
@@ -169,8 +169,8 @@ export function CollectionsWidget() {
               <TrendingUp className="h-4 w-4 text-success" />
             </div>
             <div>
-              <p className="text-sm font-medium text-success">No overdue invoices</p>
-              <p className="text-xs text-muted-foreground">All payments are on track</p>
+              <p className="text-sm font-medium text-success">{t("dashboard.noOverdueInvoices")}</p>
+              <p className="text-xs text-muted-foreground">{t("dashboard.allPaymentsOnTrack")}</p>
             </div>
           </div>
         )}
