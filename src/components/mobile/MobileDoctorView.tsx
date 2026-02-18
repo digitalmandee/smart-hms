@@ -9,7 +9,8 @@ import {
   Calendar, 
   FlaskConical,
   Search,
-  ChevronRight
+  ChevronRight,
+  ChevronLeft
 } from "lucide-react";
 import { PullToRefresh } from "@/components/mobile/PullToRefresh";
 import { MobileStatsCard } from "@/components/mobile/MobileStatsCard";
@@ -20,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { useHaptics } from "@/hooks/useHaptics";
 import { cn } from "@/lib/utils";
 import { formatTokenDisplay } from "@/lib/opd-token";
+import { useIsRTL } from "@/lib/i18n";
 
 interface MobileDoctorViewProps {
   profile: any;
@@ -44,6 +46,7 @@ export function MobileDoctorView({
 }: MobileDoctorViewProps) {
   const navigate = useNavigate();
   const haptics = useHaptics();
+  const isRTL = useIsRTL();
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -168,7 +171,7 @@ export function MobileDoctorView({
               )}
               <Button className="w-full mt-3" size="lg">
                 Continue Consultation
-                <ChevronRight className="h-4 w-4 ml-2" />
+                {isRTL ? <ChevronLeft className="h-4 w-4 ms-2" /> : <ChevronRight className="h-4 w-4 ms-2" />}
               </Button>
             </div>
           </div>

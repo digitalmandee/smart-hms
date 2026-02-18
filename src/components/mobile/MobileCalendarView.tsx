@@ -2,6 +2,7 @@ import { useState, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format, addDays, subDays, isSameDay } from 'date-fns';
 import { ChevronLeft, ChevronRight, Clock, Scissors, Check, X, AlertTriangle, Calendar as CalendarIcon } from 'lucide-react';
+import { useIsRTL } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -80,6 +81,7 @@ export function MobileCalendarView({
 }: MobileCalendarViewProps) {
   const navigate = useNavigate();
   const haptics = useHaptics();
+  const isRTL = useIsRTL();
   const [calendarOpen, setCalendarOpen] = useState(false);
   const dateScrollRef = useRef<HTMLDivElement>(null);
 
