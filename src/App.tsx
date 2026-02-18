@@ -566,6 +566,7 @@ function App() {
               element={
                 <ProtectedRoute>
                   <CountryConfigProvider>
+                    <RTLDirectionSetter />
                     <DashboardLayout />
                   </CountryConfigProvider>
                 </ProtectedRoute>

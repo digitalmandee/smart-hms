@@ -11,6 +11,7 @@ import { MobileHeader } from "@/components/mobile/MobileHeader";
 import { BottomNavigation } from "@/components/mobile/BottomNavigation";
 import { cn } from "@/lib/utils";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { useIsRTL } from "@/lib/i18n";
 
 export const DashboardLayout = () => {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -20,6 +21,7 @@ export const DashboardLayout = () => {
   const isMobileScreen = useIsMobile();
   const isNative = Capacitor.isNativePlatform();
   const showMobileUI = isMobileScreen || isNative;
+  const isRTL = useIsRTL();
 
   // Mobile/Native Layout - Same routes, native feel
   if (showMobileUI) {
@@ -48,7 +50,7 @@ export const DashboardLayout = () => {
 
   // Desktop Layout - Existing sidebar layout
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className={cn("flex h-screen overflow-hidden bg-background", isRTL && "flex-row-reverse")}>
       {/* Desktop Sidebar */}
       <div className="hidden lg:block relative">
         <DynamicSidebar 
@@ -64,12 +66,12 @@ export const DashboardLayout = () => {
           <Button
             variant="ghost"
             size="icon"
-            className="lg:hidden fixed top-4 left-4 z-40"
+            className={cn("lg:hidden fixed top-4 z-40", isRTL ? "right-4" : "left-4")}
           >
             <Menu className="h-5 w-5" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="p-0 w-64" hideCloseButton>
+        <SheetContent side={isRTL ? "right" : "left"} className="p-0 w-64" hideCloseButton>
           <DynamicSidebar onToggle={() => setIsMobileOpen(false)} />
         </SheetContent>
       </Sheet>
@@ -77,7 +79,7 @@ export const DashboardLayout = () => {
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto">
         {/* Top bar with language switcher */}
-        <div className="flex justify-end items-center px-6 pt-3 pb-0">
+        <div className={cn("flex items-center px-6 pt-3 pb-0", isRTL ? "justify-start" : "justify-end")}>
           <LanguageSwitcher />
         </div>
         <div className="container py-4 lg:py-6">
