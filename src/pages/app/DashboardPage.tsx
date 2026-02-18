@@ -15,6 +15,7 @@ import { format } from "date-fns";
 import { formatCurrency } from "@/lib/currency";
 import { canViewFinancials } from "@/lib/permissions";
 import { Database } from "@/integrations/supabase/types";
+import { useTranslation } from "@/lib/i18n";
 
 // Role-based dashboard redirect mapping
 const ROLE_DASHBOARD_MAP: Record<string, string> = {
@@ -40,22 +41,24 @@ const ADMIN_ROLES = ["super_admin", "org_admin", "branch_admin"];
 
 const getGreeting = () => {
   const hour = new Date().getHours();
-  if (hour < 6) return { text: "Good Night", icon: Moon };
-  if (hour < 12) return { text: "Good Morning", icon: Sunrise };
-  if (hour < 17) return { text: "Good Afternoon", icon: Sun };
-  if (hour < 21) return { text: "Good Evening", icon: Sunset };
-  return { text: "Good Night", icon: Moon };
+  if (hour < 6) return { key: "dashboard.goodNight" as const, icon: Moon };
+  if (hour < 12) return { key: "dashboard.goodMorning" as const, icon: Sunrise };
+  if (hour < 17) return { key: "dashboard.goodAfternoon" as const, icon: Sun };
+  if (hour < 21) return { key: "dashboard.goodEvening" as const, icon: Sunset };
+  return { key: "dashboard.goodNight" as const, icon: Moon };
 };
 
 export const DashboardPage = () => {
   const navigate = useNavigate();
   const { profile, roles, permissions, isLoading: authLoading } = useAuth();
+  const { t } = useTranslation();
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [waitingForRoles, setWaitingForRoles] = useState(true);
   const { data: stats, isLoading, isError, refetch, isFetching } = useDashboardStats();
 
   const greeting = getGreeting();
   const GreetingIcon = greeting.icon;
+  const greetingText = t(greeting.key);
   
   // Check if user can view financial data
   type AppRole = Database["public"]["Enums"]["app_role"];
@@ -121,10 +124,10 @@ export const DashboardPage = () => {
   })();
 
   const quickActions = [
-    { label: "New Patient", icon: Users, href: "/app/patients/new", color: "bg-primary/10 text-primary" },
-    { label: "Schedule Appointment", icon: Calendar, href: "/app/appointments/new", color: "bg-info/10 text-info" },
-    { label: "Today's Queue", icon: Stethoscope, href: "/app/appointments/queue", color: "bg-success/10 text-success" },
-    { label: "Create Invoice", icon: Receipt, href: "/app/billing/invoices/new", color: "bg-accent/10 text-accent" },
+    { label: t("dashboard.newPatient"), icon: Users, href: "/app/patients/new", color: "bg-primary/10 text-primary" },
+    { label: t("dashboard.scheduleAppointment"), icon: Calendar, href: "/app/appointments/new", color: "bg-info/10 text-info" },
+    { label: t("dashboard.todaysQueue"), icon: Stethoscope, href: "/app/appointments/queue", color: "bg-success/10 text-success" },
+    { label: t("dashboard.createInvoice"), icon: Receipt, href: "/app/billing/invoices/new", color: "bg-accent/10 text-accent" },
   ];
 
   return (
@@ -139,10 +142,10 @@ export const DashboardPage = () => {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-foreground animate-fade-in">
-                {greeting.text}, {firstName}!
+                {greetingText}, {firstName}!
               </h1>
               <p className="text-muted-foreground animate-fade-in">
-                {format(new Date(), "EEEE, MMMM d, yyyy")} • Here's what's happening today
+                {format(new Date(), "EEEE, MMMM d, yyyy")} • {t("dashboard.hereToday")}
               </p>
             </div>
           </div>
@@ -154,7 +157,7 @@ export const DashboardPage = () => {
             className="gap-2 bg-background/50 backdrop-blur-sm"
           >
             <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
-            Refresh
+            {t("dashboard.refresh")}
           </Button>
         </div>
       </div>
@@ -165,11 +168,11 @@ export const DashboardPage = () => {
           <CardContent className="flex items-center gap-3 py-4">
             <AlertTriangle className="h-5 w-5 text-destructive" />
             <div className="flex-1">
-              <p className="text-sm font-medium text-destructive">Failed to load dashboard statistics</p>
-              <p className="text-xs text-muted-foreground">Please try refreshing the page</p>
+              <p className="text-sm font-medium text-destructive">{t("dashboard.failedLoad")}</p>
+              <p className="text-xs text-muted-foreground">{t("dashboard.tryRefreshing")}</p>
             </div>
             <Button variant="outline" size="sm" onClick={() => refetch()}>
-              Retry
+              {t("dashboard.retry")}
             </Button>
           </CardContent>
         </Card>
@@ -178,7 +181,7 @@ export const DashboardPage = () => {
       {/* Stats Grid with Modern Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <ModernStatsCard
-          title="Total Patients"
+          title={t("dashboard.totalPatients")}
           value={stats?.totalPatients || 0}
           change={stats?.newPatientsToday ? `+${stats.newPatientsToday} today` : undefined}
           icon={Users}
@@ -187,7 +190,7 @@ export const DashboardPage = () => {
           onClick={() => navigate("/app/patients")}
         />
         <ModernStatsCard
-          title="Today's Appointments"
+          title={t("dashboard.todayAppointments")}
           value={stats?.todayAppointments || 0}
           change={stats?.pendingAppointments ? `${stats.pendingAppointments} pending` : undefined}
           icon={Calendar}
@@ -196,7 +199,7 @@ export const DashboardPage = () => {
           onClick={() => navigate("/app/appointments")}
         />
         <ModernStatsCard
-          title="Active Consultations"
+          title={t("dashboard.activeConsultations")}
           value={stats?.activeConsultations || 0}
           change={stats?.queueCount ? `${stats.queueCount} in queue` : undefined}
           icon={Stethoscope}
@@ -206,9 +209,9 @@ export const DashboardPage = () => {
         />
         {showFinancials && (
           <ModernStatsCard
-            title="Today's Revenue"
+            title={t("dashboard.todayRevenue")}
             value={formatAmount(stats?.todayRevenue || 0)}
-            change="Live updates"
+            change={t("dashboard.liveUpdates")}
             icon={TrendingUp}
             variant="accent"
             loading={isLoading}
@@ -222,8 +225,8 @@ export const DashboardPage = () => {
         {/* Quick Actions */}
         <Card className="shadow-soft overflow-hidden">
           <CardHeader className="bg-gradient-to-r from-muted/50 to-transparent">
-            <CardTitle className="text-lg">Quick Actions</CardTitle>
-            <CardDescription>Common tasks you can perform</CardDescription>
+            <CardTitle className="text-lg">{t("dashboard.quickActions")}</CardTitle>
+            <CardDescription>{t("dashboard.commonTasks")}</CardDescription>
           </CardHeader>
           <CardContent className="pt-4">
             <div className="grid grid-cols-2 gap-3">
@@ -250,8 +253,8 @@ export const DashboardPage = () => {
         ) : (
           <Card className="shadow-soft">
             <CardHeader className="bg-gradient-to-r from-muted/50 to-transparent">
-              <CardTitle className="text-lg">Clinical Summary</CardTitle>
-              <CardDescription>Your clinical activity overview</CardDescription>
+              <CardTitle className="text-lg">{t("dashboard.clinicalSummary")}</CardTitle>
+              <CardDescription>{t("dashboard.clinicalActivity")}</CardDescription>
             </CardHeader>
             <CardContent className="pt-4">
               <div className="flex items-center gap-3 p-4 rounded-xl bg-muted/50 border border-border">
@@ -259,9 +262,9 @@ export const DashboardPage = () => {
                   <Stethoscope className="h-4 w-4 text-primary" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium">Focus on patient care</p>
+                  <p className="text-sm font-medium">{t("dashboard.focusPatientCare")}</p>
                   <p className="text-xs text-muted-foreground">
-                    View your appointments and consultations
+                    {t("dashboard.viewAppointments")}
                   </p>
                 </div>
               </div>
@@ -277,8 +280,8 @@ export const DashboardPage = () => {
         {/* Alerts */}
         <Card className="shadow-soft">
           <CardHeader className="bg-gradient-to-r from-muted/50 to-transparent">
-            <CardTitle className="text-lg">Alerts & Notifications</CardTitle>
-            <CardDescription>Important updates requiring attention</CardDescription>
+            <CardTitle className="text-lg">{t("dashboard.alertsNotifications")}</CardTitle>
+            <CardDescription>{t("dashboard.importantUpdates")}</CardDescription>
           </CardHeader>
           <CardContent className="pt-4">
             <div className="space-y-3">
@@ -287,9 +290,9 @@ export const DashboardPage = () => {
                   <AlertTriangle className="h-4 w-4 text-success" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium">All caught up!</p>
+                  <p className="text-sm font-medium">{t("dashboard.allCaughtUp")}</p>
                   <p className="text-xs text-muted-foreground">
-                    No pending alerts at the moment
+                    {t("dashboard.noPendingAlerts")}
                   </p>
                 </div>
               </div>
@@ -301,8 +304,8 @@ export const DashboardPage = () => {
       {/* User Access Card */}
       <Card className="shadow-soft overflow-hidden">
         <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent">
-          <CardTitle className="text-lg">Your Access</CardTitle>
-          <CardDescription>Your current roles and permissions</CardDescription>
+          <CardTitle className="text-lg">{t("dashboard.yourAccess")}</CardTitle>
+          <CardDescription>{t("dashboard.yourRoles")}</CardDescription>
         </CardHeader>
         <CardContent className="pt-4">
           <div className="flex flex-wrap gap-2">
