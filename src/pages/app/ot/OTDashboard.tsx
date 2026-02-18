@@ -29,10 +29,13 @@ import { format, addDays } from "date-fns";
 import { useOTStats, useOTRooms, useTodaySurgeries, useSurgeries, useStartSurgery, useCompleteSurgery } from "@/hooks/useOT";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { useTranslation } from "@/lib/i18n";
+import { getTranslatedString } from "@/lib/i18n";
 
 export default function OTDashboard() {
   const navigate = useNavigate();
   const { profile } = useAuth();
+  const { t } = useTranslation();
   const isMobileScreen = useIsMobile();
   const isNative = Capacitor.isNativePlatform();
   const showMobileUI = isMobileScreen || isNative;
@@ -73,8 +76,9 @@ export default function OTDashboard() {
 
   const handleRefresh = () => {
     refetch();
-    toast.success("Dashboard refreshed");
+    toast.success(getTranslatedString("toast.dashboardRefreshed"));
   };
+
   // Show mobile UI on mobile devices
   if (showMobileUI) {
     return <MobileOTDashboard />;
@@ -83,8 +87,8 @@ export default function OTDashboard() {
   return (
     <div className="space-y-6">
       <ModernPageHeader
-        title="Operation Theatre"
-        subtitle="Manage surgical scheduling, OT rooms, and post-op recovery"
+        title={t("ot.dashboard")}
+        subtitle={t("ot.subtitle")}
         userName={firstName}
         showGreeting
         variant="gradient"
@@ -92,18 +96,18 @@ export default function OTDashboard() {
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={handleRefresh}>
               <RefreshCw className="h-4 w-4 mr-2" />
-              Refresh
+              {t("ot.refresh")}
             </Button>
             <Button onClick={() => navigate("/app/ot/surgeries/new")}>
               <Plus className="h-4 w-4 mr-2" />
-              Schedule Surgery
+              {t("ot.scheduleSurgery")}
             </Button>
           </div>
         }
         quickStats={[
-          { label: "In Progress", value: stats?.inProgress || 0, variant: "warning" },
-          { label: "Completed", value: stats?.completed || 0, variant: "success" },
-          { label: "Emergency", value: stats?.emergencyCases || 0, variant: "destructive" },
+          { label: t("ot.inProgressLabel"), value: stats?.inProgress || 0, variant: "warning" },
+          { label: t("ot.completedLabel"), value: stats?.completed || 0, variant: "success" },
+          { label: t("ot.emergencyLabel"), value: stats?.emergencyCases || 0, variant: "destructive" },
         ]}
       />
 
@@ -116,34 +120,34 @@ export default function OTDashboard() {
         ) : (
           <>
             <ModernStatsCard
-              title="Today's Surgeries"
+              title={t("ot.todaysSurgeries")}
               value={stats?.todaySurgeries || 0}
               icon={Scissors}
-              description={`${stats?.inProgress || 0} in progress`}
+              description={`${stats?.inProgress || 0} ${t("ot.inProgress")}`}
               variant="primary"
               delay={0}
             />
             <ModernStatsCard
-              title="Available Rooms"
+              title={t("ot.availableRooms")}
               value={`${stats?.availableRooms || 0}/${stats?.totalRooms || 0}`}
               icon={Building2}
-              description="OT rooms ready"
+              description={t("ot.otRoomsReady")}
               variant="info"
               delay={100}
             />
             <ModernStatsCard
-              title="In PACU"
+              title={t("ot.inPacu")}
               value={stats?.pacuPatients || 0}
               icon={HeartPulse}
-              description="Recovering patients"
+              description={t("ot.recoveringPatients")}
               variant="success"
               delay={200}
             />
             <ModernStatsCard
-              title="Emergency Cases"
+              title={t("ot.emergencyCases")}
               value={stats?.emergencyCases || 0}
               icon={AlertTriangle}
-              description="Today"
+              description={t("ot.today")}
               variant={stats?.emergencyCases ? "destructive" : "default"}
               delay={300}
             />
@@ -163,7 +167,7 @@ export default function OTDashboard() {
             </div>
             <div>
               <p className="text-2xl font-bold">{stats?.scheduledThisWeek || 0}</p>
-              <p className="text-sm text-muted-foreground">Scheduled this week</p>
+              <p className="text-sm text-muted-foreground">{t("ot.scheduledThisWeek")}</p>
             </div>
           </CardContent>
         </Card>
@@ -178,7 +182,7 @@ export default function OTDashboard() {
             </div>
             <div>
               <p className="text-2xl font-bold">{stats?.inProgress || 0}</p>
-              <p className="text-sm text-muted-foreground">Currently in progress</p>
+              <p className="text-sm text-muted-foreground">{t("ot.currentlyInProgress")}</p>
             </div>
           </CardContent>
         </Card>
@@ -193,7 +197,7 @@ export default function OTDashboard() {
             </div>
             <div>
               <p className="text-2xl font-bold">{stats?.completed || 0}</p>
-              <p className="text-sm text-muted-foreground">Completed today</p>
+              <p className="text-sm text-muted-foreground">{t("ot.completedToday")}</p>
             </div>
           </CardContent>
         </Card>
@@ -213,12 +217,12 @@ export default function OTDashboard() {
                   <div className="p-2 rounded-lg bg-primary/10">
                     <Building2 className="h-4 w-4 text-primary" />
                   </div>
-                  OT Room Status
+                  {t("ot.otRoomStatus")}
                 </CardTitle>
-                <CardDescription>Current status of all operating rooms</CardDescription>
+                <CardDescription>{t("ot.currentStatusAllRooms")}</CardDescription>
               </div>
               <Button variant="outline" size="sm" onClick={() => navigate("/app/ot/rooms")}>
-                Manage Rooms
+                {t("ot.manageRooms")}
               </Button>
             </div>
           </CardHeader>
@@ -241,12 +245,12 @@ export default function OTDashboard() {
                   <div className="p-2 rounded-lg bg-warning/10">
                     <Scissors className="h-4 w-4 text-warning" />
                   </div>
-                  Today's Surgeries
+                  {t("ot.todaysSurgeriesTitle")}
                 </CardTitle>
-                <CardDescription>Surgery queue for today</CardDescription>
+                <CardDescription>{t("ot.surgeryQueue")}</CardDescription>
               </div>
               <Button variant="outline" size="sm" onClick={() => navigate("/app/ot/schedule")}>
-                Full Schedule
+                {t("ot.fullSchedule")}
               </Button>
             </div>
           </CardHeader>
@@ -263,7 +267,7 @@ export default function OTDashboard() {
         </Card>
       </div>
 
-      {/* Upcoming Surgeries (Next 7 Days) */}
+      {/* Upcoming Surgeries (Next 30 Days) */}
       <Card className="transition-all hover:shadow-lg">
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -272,15 +276,15 @@ export default function OTDashboard() {
                 <div className="p-2 rounded-lg bg-info/10">
                   <Calendar className="h-4 w-4 text-info" />
                 </div>
-                Upcoming Surgeries
+                {t("ot.upcomingSurgeries")}
                 {upcomingSurgeries && upcomingSurgeries.length > 0 && (
                   <Badge variant="secondary">{upcomingSurgeries.length}</Badge>
                 )}
               </CardTitle>
-              <CardDescription>Scheduled for the next 30 days</CardDescription>
+              <CardDescription>{t("ot.next30Days")}</CardDescription>
             </div>
             <Button variant="outline" size="sm" onClick={() => navigate("/app/ot/schedule")}>
-              View Schedule
+              {t("ot.viewSchedule")}
               <ArrowRight className="h-4 w-4 ml-1" />
             </Button>
           </div>
@@ -289,14 +293,14 @@ export default function OTDashboard() {
           {!upcomingSurgeries || upcomingSurgeries.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <Calendar className="h-12 w-12 mx-auto mb-3" />
-              <p>No upcoming surgeries scheduled</p>
+              <p>{t("ot.noUpcomingSurgeries")}</p>
               <Button 
                 variant="outline" 
                 size="sm" 
                 className="mt-3"
                 onClick={() => navigate("/app/ot/surgeries/new")}
               >
-                Schedule Surgery
+                {t("ot.scheduleSurgery")}
               </Button>
             </div>
           ) : (
@@ -312,7 +316,7 @@ export default function OTDashboard() {
                     >
                       <div className="flex items-center gap-2 mb-2">
                         <Badge variant={isToday ? "default" : "outline"} className="text-xs">
-                          {isToday ? "Today" : format(new Date(surgery.scheduled_date), "MMM d")}
+                          {isToday ? t("ot.today") : format(new Date(surgery.scheduled_date), "MMM d")}
                         </Badge>
                         <span className="text-xs text-muted-foreground">
                           {format(new Date(`2000-01-01T${surgery.scheduled_start_time}`), 'h:mm a')}
@@ -325,7 +329,7 @@ export default function OTDashboard() {
                       </div>
                       {surgery.ot_room?.name && (
                         <p className="text-xs text-muted-foreground mt-1">
-                          Room: {surgery.ot_room.name}
+                          {t("ot.room")}: {surgery.ot_room.name}
                         </p>
                       )}
                     </div>
@@ -334,7 +338,7 @@ export default function OTDashboard() {
               </div>
               {upcomingSurgeries.length > 6 && (
                 <p className="text-center text-sm text-muted-foreground mt-3">
-                  +{upcomingSurgeries.length - 6} more surgeries
+                  +{upcomingSurgeries.length - 6} {t("ot.moreSurgeries")}
                 </p>
               )}
             </ScrollArea>

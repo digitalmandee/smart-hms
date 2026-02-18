@@ -21,10 +21,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Capacitor } from "@capacitor/core";
 import { MobileLabView } from "@/components/mobile/MobileLabView";
+import { useTranslation } from "@/lib/i18n";
 
 export default function LabDashboard() {
   const navigate = useNavigate();
   const { profile } = useAuth();
+  const { t } = useTranslation();
   const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useLabDashboardStats();
   const { data: recentOrders, isLoading: ordersLoading, refetch: refetchOrders } = useRecentLabOrders(5);
   
@@ -58,22 +60,22 @@ export default function LabDashboard() {
       case "stat":
         return <Badge variant="destructive" className="animate-pulse-soft">STAT</Badge>;
       case "urgent":
-        return <Badge className="bg-warning text-warning-foreground">Urgent</Badge>;
+        return <Badge className="bg-warning text-warning-foreground">{t("lab.urgent")}</Badge>;
       default:
-        return <Badge variant="secondary">Routine</Badge>;
+        return <Badge variant="secondary">{t("lab.routine")}</Badge>;
     }
   };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "ordered":
-        return <Badge className="bg-info/10 text-info border-info/20">Ordered</Badge>;
+        return <Badge className="bg-info/10 text-info border-info/20">{t("lab.ordered")}</Badge>;
       case "collected":
-        return <Badge className="bg-warning/10 text-warning border-warning/20">Collected</Badge>;
+        return <Badge className="bg-warning/10 text-warning border-warning/20">{t("lab.collected")}</Badge>;
       case "processing":
-        return <Badge className="bg-primary/10 text-primary border-primary/20">Processing</Badge>;
+        return <Badge className="bg-primary/10 text-primary border-primary/20">{t("lab.processing")}</Badge>;
       case "completed":
-        return <Badge className="bg-success/10 text-success border-success/20">Completed</Badge>;
+        return <Badge className="bg-success/10 text-success border-success/20">{t("lab.completed")}</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -82,8 +84,8 @@ export default function LabDashboard() {
   return (
     <div className="space-y-6">
       <ModernPageHeader
-        title="Laboratory"
-        subtitle="Manage lab orders and results"
+        title={t("lab.dashboard")}
+        subtitle={t("lab.subtitle")}
         userName={firstName}
         showGreeting
         variant="gradient"
@@ -91,18 +93,18 @@ export default function LabDashboard() {
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => navigate("/app/lab/orders")}>
               <ClipboardList className="mr-2 h-4 w-4" />
-              Enter Results
+              {t("lab.enterResults")}
             </Button>
             <Button onClick={() => navigate("/app/lab/queue")}>
               <TestTube className="mr-2 h-4 w-4" />
-              View Queue
+              {t("lab.viewQueue")}
             </Button>
           </div>
         }
         quickStats={[
-          { label: "Pending", value: stats?.pendingOrders || 0, variant: "warning" },
+          { label: t("common.pending"), value: stats?.pendingOrders || 0, variant: "warning" },
           { label: "STAT", value: stats?.statOrders || 0, variant: "destructive" },
-          { label: "Completed", value: stats?.completedToday || 0, variant: "success" },
+          { label: t("lab.completed"), value: stats?.completedToday || 0, variant: "success" },
         ]}
       />
 
@@ -112,10 +114,10 @@ export default function LabDashboard() {
           <AlertTriangle className="h-5 w-5 text-destructive" />
           <div className="flex-1">
             <p className="font-medium text-destructive">
-              {stats.statOrders} STAT order{stats.statOrders > 1 ? "s" : ""} require immediate attention
+              {stats.statOrders} {t("lab.statAlert")}
             </p>
             <p className="text-sm text-muted-foreground">
-              Process these high-priority orders first
+              {t("lab.processStatFirst")}
             </p>
           </div>
           <Button 
@@ -123,7 +125,7 @@ export default function LabDashboard() {
             size="sm"
             onClick={() => navigate("/app/lab/queue?priority=stat")}
           >
-            View STAT Orders
+            {t("lab.viewStatOrders")}
           </Button>
         </div>
       )}
@@ -137,7 +139,7 @@ export default function LabDashboard() {
         ) : (
           <>
             <ModernStatsCard
-              title="Pending Orders"
+              title={t("lab.pendingOrders")}
               value={stats?.pendingOrders || 0}
               icon={TestTube}
               variant="warning"
@@ -145,7 +147,7 @@ export default function LabDashboard() {
               delay={0}
             />
             <ModernStatsCard
-              title="STAT Orders"
+              title={t("lab.statOrders")}
               value={stats?.statOrders || 0}
               icon={AlertTriangle}
               variant="destructive"
@@ -153,14 +155,14 @@ export default function LabDashboard() {
               delay={100}
             />
             <ModernStatsCard
-              title="Collected Today"
+              title={t("lab.collectedToday")}
               value={stats?.collectedToday || 0}
               icon={Droplet}
               variant="info"
               delay={200}
             />
             <ModernStatsCard
-              title="Completed Today"
+              title={t("lab.completedToday")}
               value={stats?.completedToday || 0}
               icon={CheckCircle2}
               variant="success"
@@ -181,8 +183,8 @@ export default function LabDashboard() {
               <ClipboardList className="h-6 w-6" />
             </div>
             <div className="flex-1">
-              <h3 className="font-semibold">Lab Queue</h3>
-              <p className="text-sm text-muted-foreground">View all pending orders</p>
+              <h3 className="font-semibold">{t("lab.labQueue")}</h3>
+              <p className="text-sm text-muted-foreground">{t("lab.viewAllPending")}</p>
             </div>
             <ArrowRight className="h-5 w-5 text-muted-foreground" />
           </CardContent>
@@ -197,8 +199,8 @@ export default function LabDashboard() {
               <CheckCircle2 className="h-6 w-6" />
             </div>
             <div className="flex-1">
-              <h3 className="font-semibold">Enter Results</h3>
-              <p className="text-sm text-muted-foreground">Record test results</p>
+              <h3 className="font-semibold">{t("lab.enterResults")}</h3>
+              <p className="text-sm text-muted-foreground">{t("lab.recordTestResults")}</p>
             </div>
             <ArrowRight className="h-5 w-5 text-muted-foreground" />
           </CardContent>
@@ -212,10 +214,10 @@ export default function LabDashboard() {
             <div className="p-2 rounded-lg bg-primary/10">
               <TestTube className="h-4 w-4 text-primary" />
             </div>
-            Recent Orders
+            {t("lab.recentOrders")}
           </CardTitle>
           <Button variant="ghost" size="sm" onClick={() => navigate("/app/lab/queue")}>
-            View All
+            {t("common.viewAll")}
           </Button>
         </CardHeader>
         <CardContent>
@@ -228,7 +230,7 @@ export default function LabDashboard() {
           ) : !recentOrders || recentOrders.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <TestTube className="h-12 w-12 mx-auto mb-3 opacity-50" />
-              <p>No pending lab orders</p>
+              <p>{t("lab.noPendingOrders")}</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -248,7 +250,7 @@ export default function LabDashboard() {
                     <div className="flex items-center gap-3 text-sm text-muted-foreground">
                       <span>{order.order_number}</span>
                       <span>•</span>
-                      <span>{order.lab_order_items?.length || 0} test(s)</span>
+                      <span>{order.lab_order_items?.length || 0} {t("lab.tests")}</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">

@@ -15,10 +15,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Capacitor } from "@capacitor/core";
 import { MobilePharmacyView } from "@/components/mobile/MobilePharmacyView";
+import { useTranslation } from "@/lib/i18n";
 
 export default function PharmacyDashboard() {
   const navigate = useNavigate();
   const { profile } = useAuth();
+  const { t } = useTranslation();
   const { data: stats, isLoading: statsLoading, refetch: refetchStats } = usePharmacyStats();
   const { data: queue, isLoading: queueLoading, refetch: refetchQueue } = usePrescriptionQueue();
   const { data: lowStockItems, refetch: refetchLowStock } = useLowStockItems();
@@ -55,7 +57,7 @@ export default function PharmacyDashboard() {
   return (
     <div className="space-y-6">
       <ModernPageHeader
-        title="Pharmacy"
+        title={t("pharmacy.dashboard")}
         userName={firstName}
         showGreeting
         variant="gradient"
@@ -63,18 +65,18 @@ export default function PharmacyDashboard() {
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => navigate("/app/pharmacy/inventory")}>
               <Package className="mr-2 h-4 w-4" />
-              Inventory
+              {t("pharmacy.inventory")}
             </Button>
             <Button onClick={() => navigate("/app/pharmacy/queue")}>
               <ClipboardList className="mr-2 h-4 w-4" />
-              View Queue
+              {t("pharmacy.viewQueue")}
             </Button>
           </div>
         }
         quickStats={[
-          { label: "Pending", value: stats?.pendingPrescriptions || 0, variant: "warning" },
-          { label: "Dispensed", value: stats?.dispensedToday || 0, variant: "success" },
-          { label: "Low Stock", value: lowStockItems?.length || 0, variant: "destructive" },
+          { label: t("pharmacy.pending"), value: stats?.pendingPrescriptions || 0, variant: "warning" },
+          { label: t("pharmacy.dispensed"), value: stats?.dispensedToday || 0, variant: "success" },
+          { label: t("pharmacy.lowStock"), value: lowStockItems?.length || 0, variant: "destructive" },
         ]}
       />
 
@@ -93,7 +95,7 @@ export default function PharmacyDashboard() {
         ) : (
           <>
             <ModernStatsCard
-              title="Pending Prescriptions"
+              title={t("pharmacy.pendingPrescriptions")}
               value={stats?.pendingPrescriptions || 0}
               icon={ClipboardList}
               variant="warning"
@@ -101,14 +103,14 @@ export default function PharmacyDashboard() {
               delay={0}
             />
             <ModernStatsCard
-              title="Dispensed Today"
+              title={t("pharmacy.dispensedToday")}
               value={stats?.dispensedToday || 0}
               icon={Pill}
               variant="success"
               delay={100}
             />
             <ModernStatsCard
-              title="Low Stock Items"
+              title={t("pharmacy.lowStockItems")}
               value={stats?.lowStockItems || 0}
               icon={AlertTriangle}
               variant="destructive"
@@ -116,7 +118,7 @@ export default function PharmacyDashboard() {
               delay={200}
             />
             <ModernStatsCard
-              title="Expiring Soon"
+              title={t("pharmacy.expiringSoon")}
               value={stats?.expiringItems || 0}
               icon={Clock}
               variant="info"
@@ -138,8 +140,8 @@ export default function PharmacyDashboard() {
               <Pill className="h-6 w-6" />
             </div>
             <div>
-              <h3 className="font-semibold">Medicine Catalog</h3>
-              <p className="text-sm text-muted-foreground">Manage medicines</p>
+              <h3 className="font-semibold">{t("pharmacy.medicineCatalog")}</h3>
+              <p className="text-sm text-muted-foreground">{t("pharmacy.manageMedicines")}</p>
             </div>
           </CardContent>
         </Card>
@@ -153,8 +155,8 @@ export default function PharmacyDashboard() {
               <Plus className="h-6 w-6" />
             </div>
             <div>
-              <h3 className="font-semibold">Add Stock</h3>
-              <p className="text-sm text-muted-foreground">Add new inventory</p>
+              <h3 className="font-semibold">{t("pharmacy.addStock")}</h3>
+              <p className="text-sm text-muted-foreground">{t("pharmacy.addNewInventory")}</p>
             </div>
           </CardContent>
         </Card>
@@ -168,8 +170,8 @@ export default function PharmacyDashboard() {
               <Package className="h-6 w-6" />
             </div>
             <div>
-              <h3 className="font-semibold">View Inventory</h3>
-              <p className="text-sm text-muted-foreground">Stock levels & batches</p>
+              <h3 className="font-semibold">{t("pharmacy.viewInventory")}</h3>
+              <p className="text-sm text-muted-foreground">{t("pharmacy.stockLevelsBatches")}</p>
             </div>
           </CardContent>
         </Card>
@@ -187,11 +189,11 @@ export default function PharmacyDashboard() {
             <div className="p-2 rounded-lg bg-warning/10">
               <ClipboardList className="h-4 w-4 text-warning" />
             </div>
-            Prescription Queue
+            {t("pharmacy.prescriptionQueue")}
           </CardTitle>
           {queue && queue.length > 4 && (
             <Button variant="ghost" size="sm" onClick={() => navigate("/app/pharmacy/queue")}>
-              View All ({queue.length})
+              {t("pharmacy.viewAll")} ({queue.length})
             </Button>
           )}
         </CardHeader>
@@ -205,7 +207,7 @@ export default function PharmacyDashboard() {
           ) : recentQueue.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <ClipboardList className="h-12 w-12 mx-auto mb-3 opacity-50" />
-              <p>No pending prescriptions</p>
+              <p>{t("pharmacy.noPendingPrescriptions")}</p>
             </div>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

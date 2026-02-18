@@ -8,10 +8,12 @@ import { ModernPageHeader } from "@/components/ModernPageHeader";
 import { ModernStatsCard } from "@/components/ModernStatsCard";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "@/lib/i18n";
 
 export default function OrgAdminDashboardPage() {
   const { profile } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const { data: stats, isLoading } = useQuery({
     queryKey: ["org-admin-stats", profile?.organization_id],
@@ -85,20 +87,20 @@ export default function OrgAdminDashboardPage() {
   return (
     <div className="space-y-6">
       <ModernPageHeader
-        title="Organization Overview"
+        title={t("org.overview")}
         userName={firstName}
         showGreeting
         variant="gradient"
         icon={Building2}
         iconColor="primary"
         quickStats={[
-          { label: "Branches", value: stats?.branchCount || 0, variant: "default" },
-          { label: "Total Staff", value: stats?.staffCount || 0 },
-          { label: "Today's Appointments", value: stats?.appointmentsToday || 0, variant: "success" },
+          { label: t("org.branches"), value: stats?.branchCount || 0, variant: "default" },
+          { label: t("org.totalStaff"), value: stats?.staffCount || 0 },
+          { label: t("org.todaysAppointments"), value: stats?.appointmentsToday || 0, variant: "success" },
         ]}
         actions={
           <Button onClick={() => navigate("/app/settings/branches")} className="gap-2">
-            Manage Branches
+            {t("org.manageBranches")}
             <ArrowRight className="h-4 w-4" />
           </Button>
         }
@@ -106,45 +108,45 @@ export default function OrgAdminDashboardPage() {
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         <ModernStatsCard
-          title="Active Branches"
+          title={t("org.activeBranches")}
           value={stats?.branchCount || 0}
           icon={Building2}
           variant="primary"
-          description="Across organization"
+          description={t("org.acrossOrganization")}
           onClick={() => navigate("/app/settings/branches")}
         />
 
         <ModernStatsCard
-          title="Total Patients"
+          title={t("org.totalPatients")}
           value={stats?.patientCount?.toLocaleString() || "0"}
           icon={Users}
           variant="info"
-          description="All branches"
+          description={t("org.allBranches")}
         />
 
         <ModernStatsCard
-          title="Staff Members"
+          title={t("org.staffMembers")}
           value={stats?.staffCount || 0}
           icon={Stethoscope}
           variant="success"
-          description="Active users"
+          description={t("org.activeUsers")}
           onClick={() => navigate("/app/settings/users")}
         />
 
         <ModernStatsCard
-          title="Today's Appointments"
+          title={t("org.todaysAppointments")}
           value={stats?.appointmentsToday || 0}
           icon={CalendarCheck}
           variant="warning"
-          description="All branches"
+          description={t("org.allBranchesDesc")}
         />
 
         <ModernStatsCard
-          title="Active Consultations"
+          title={t("org.activeConsultations")}
           value={stats?.activeConsultations || 0}
           icon={Activity}
           variant="accent"
-          description="In progress"
+          description={t("org.inProgress")}
         />
       </div>
 
@@ -154,9 +156,9 @@ export default function OrgAdminDashboardPage() {
             <div className="p-2 rounded-lg bg-primary/10">
               <TrendingUp className="h-5 w-5 text-primary" />
             </div>
-            Branch Overview
+            {t("org.branchOverview")}
           </CardTitle>
-          <CardDescription>Quick view of all active branches in your organization</CardDescription>
+          <CardDescription>{t("org.quickView")}</CardDescription>
         </CardHeader>
         <CardContent className="pt-6">
           {stats?.branches && stats.branches.length > 0 ? (
@@ -182,10 +184,10 @@ export default function OrgAdminDashboardPage() {
           ) : (
             <div className="text-center py-12 text-muted-foreground">
               <Building2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p className="text-lg font-medium">No active branches found</p>
-              <p className="text-sm mt-1">Create your first branch to get started</p>
+              <p className="text-lg font-medium">{t("org.noActiveBranches")}</p>
+              <p className="text-sm mt-1">{t("org.createBranchPrompt")}</p>
               <Button variant="outline" className="mt-4" onClick={() => navigate("/app/settings/branches/new")}>
-                Create Branch
+                {t("org.createBranch")}
               </Button>
             </div>
           )}

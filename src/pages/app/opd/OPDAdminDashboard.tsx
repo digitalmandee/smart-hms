@@ -18,10 +18,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { canViewFinancials } from "@/lib/permissions";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { format } from "date-fns";
+import { useTranslation } from "@/lib/i18n";
 
 export default function OPDAdminDashboard() {
   const navigate = useNavigate();
   const { profile } = useAuth();
+  const { t } = useTranslation();
   const { data: stats, isLoading } = useOPDDashboardStats();
   const { data: deptStats, isLoading: deptLoading } = useOPDDepartmentStats("today");
   
@@ -32,8 +34,8 @@ export default function OPDAdminDashboard() {
   return (
     <div className="space-y-6">
       <ModernPageHeader
-        title="OPD Dashboard"
-        subtitle="Today's outpatient department overview"
+        title={t("opd.dashboard")}
+        subtitle={t("opd.subtitle")}
         userName={firstName}
         showGreeting
         variant="gradient"
@@ -41,53 +43,53 @@ export default function OPDAdminDashboard() {
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => navigate("/app/opd/history")}>
               <History className="h-4 w-4 mr-2" />
-              History
+              {t("opd.history")}
             </Button>
             <Button onClick={() => navigate("/app/opd/walk-in")}>
               <UserPlus className="h-4 w-4 mr-2" />
-              Walk-in
+              {t("opd.walkIn")}
             </Button>
           </div>
         }
         quickStats={[
-          { label: "Patients", value: stats?.totalPatients || 0 },
-          { label: "Completed", value: stats?.completedConsultations || 0, variant: "success" },
-          { label: "In Queue", value: stats?.inQueue || 0, variant: "warning" },
+          { label: t("opd.patients"), value: stats?.totalPatients || 0 },
+          { label: t("opd.completed"), value: stats?.completedConsultations || 0, variant: "success" },
+          { label: t("opd.inQueue"), value: stats?.inQueue || 0, variant: "warning" },
         ]}
       />
 
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <ModernStatsCard
-          title="Total Patients"
+          title={t("opd.totalPatients")}
           value={stats?.totalPatients || 0}
           icon={Users}
-          description="Today"
+          description={t("opd.today")}
           variant="primary"
           delay={0}
         />
         <ModernStatsCard
-          title="Completed"
+          title={t("opd.completed")}
           value={stats?.completedConsultations || 0}
           icon={UserCheck}
-          description="Consultations done"
+          description={t("opd.consultationsDone")}
           variant="success"
           delay={100}
         />
         <ModernStatsCard
-          title="In Queue"
+          title={t("opd.inQueue")}
           value={stats?.inQueue || 0}
           icon={Clock}
-          description="Waiting / In progress"
+          description={t("opd.waitingInProgress")}
           variant="warning"
           delay={200}
         />
         {showFinancials && (
           <ModernStatsCard
-            title="Revenue Today"
+            title={t("opd.revenueToday")}
             value={`₨ ${(stats?.revenueToday || 0).toLocaleString()}`}
             icon={IndianRupee}
-            description="Collections"
+            description={t("opd.collections")}
             variant="info"
             delay={300}
           />
@@ -101,7 +103,7 @@ export default function OPDAdminDashboard() {
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center gap-2">
               <Stethoscope className="h-4 w-4 text-primary" />
-              Department-wise Breakdown
+              {t("opd.departmentBreakdown")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -113,10 +115,10 @@ export default function OPDAdminDashboard() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Department</TableHead>
-                    <TableHead className="text-center">Patients</TableHead>
-                    <TableHead className="text-center">Completed</TableHead>
-                    {showFinancials && <TableHead className="text-right">Revenue</TableHead>}
+                    <TableHead>{t("opd.department")}</TableHead>
+                    <TableHead className="text-center">{t("opd.patients")}</TableHead>
+                    <TableHead className="text-center">{t("opd.completed")}</TableHead>
+                    {showFinancials && <TableHead className="text-right">{t("opd.revenue")}</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -136,7 +138,7 @@ export default function OPDAdminDashboard() {
                 </TableBody>
               </Table>
             ) : (
-              <p className="text-sm text-muted-foreground text-center py-4">No department data for today</p>
+              <p className="text-sm text-muted-foreground text-center py-4">{t("opd.noDeptData")}</p>
             )}
           </CardContent>
         </Card>
@@ -146,7 +148,7 @@ export default function OPDAdminDashboard() {
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center gap-2">
               <Clock className="h-4 w-4 text-primary" />
-              Hourly Patient Flow
+              {t("opd.hourlyFlow")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -159,11 +161,11 @@ export default function OPDAdminDashboard() {
                   <XAxis dataKey="hour" tickFormatter={(h) => `${h}:00`} className="text-xs" />
                   <YAxis allowDecimals={false} className="text-xs" />
                   <Tooltip labelFormatter={(h) => `${h}:00 - ${Number(h)+1}:00`} />
-                  <Bar dataKey="count" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name="Patients" />
+                  <Bar dataKey="count" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name={t("opd.patients")} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <p className="text-sm text-muted-foreground text-center py-4">No patient flow data yet</p>
+              <p className="text-sm text-muted-foreground text-center py-4">{t("opd.noFlowData")}</p>
             )}
           </CardContent>
         </Card>
@@ -176,7 +178,7 @@ export default function OPDAdminDashboard() {
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center gap-2">
               <Users className="h-4 w-4 text-primary" />
-              Doctor Performance
+              {t("opd.doctorPerformance")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -188,9 +190,9 @@ export default function OPDAdminDashboard() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Doctor</TableHead>
-                    <TableHead className="text-center">Patients</TableHead>
-                    {showFinancials && <TableHead className="text-right">Revenue</TableHead>}
+                    <TableHead>{t("opd.doctor")}</TableHead>
+                    <TableHead className="text-center">{t("opd.patients")}</TableHead>
+                    {showFinancials && <TableHead className="text-right">{t("opd.revenue")}</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -206,7 +208,7 @@ export default function OPDAdminDashboard() {
                 </TableBody>
               </Table>
             ) : (
-              <p className="text-sm text-muted-foreground text-center py-4">No doctor data for today</p>
+              <p className="text-sm text-muted-foreground text-center py-4">{t("opd.noDoctorData")}</p>
             )}
           </CardContent>
         </Card>
@@ -217,7 +219,7 @@ export default function OPDAdminDashboard() {
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center gap-2">
                 <IndianRupee className="h-4 w-4 text-primary" />
-                Revenue Breakdown
+                {t("opd.revenueBreakdown")}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -226,15 +228,15 @@ export default function OPDAdminDashboard() {
               ) : (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between p-3 bg-success/10 rounded-lg">
-                    <span className="text-sm font-medium">Paid</span>
+                    <span className="text-sm font-medium">{t("opd.paid")}</span>
                     <span className="text-lg font-bold text-success">₨ {(stats?.revenueBreakdown?.paid || 0).toLocaleString()}</span>
                   </div>
                   <div className="flex items-center justify-between p-3 bg-warning/10 rounded-lg">
-                    <span className="text-sm font-medium">Pending</span>
+                    <span className="text-sm font-medium">{t("opd.pending")}</span>
                     <span className="text-lg font-bold text-warning">₨ {(stats?.revenueBreakdown?.pending || 0).toLocaleString()}</span>
                   </div>
                   <div className="flex items-center justify-between p-3 bg-destructive/10 rounded-lg">
-                    <span className="text-sm font-medium">Cancelled/Waived</span>
+                    <span className="text-sm font-medium">{t("opd.cancelled")}</span>
                     <span className="text-lg font-bold text-destructive">₨ {(stats?.revenueBreakdown?.waived || 0).toLocaleString()}</span>
                   </div>
                 </div>
@@ -247,10 +249,10 @@ export default function OPDAdminDashboard() {
       {/* Quick Navigation */}
       <div className="grid gap-4 md:grid-cols-4">
         {[
-          { label: "Walk-in", icon: UserPlus, path: "/app/opd/walk-in", color: "from-primary to-primary/80" },
-          { label: "Pending Checkout", icon: ClipboardList, path: "/app/opd/pending-checkout", color: "from-warning to-warning/80" },
-          { label: "OPD Reports", icon: ClipboardList, path: "/app/opd/reports", color: "from-info to-info/80" },
-          { label: "History", icon: History, path: "/app/opd/history", color: "from-success to-success/80" },
+          { label: t("opd.walkIn"), icon: UserPlus, path: "/app/opd/walk-in", color: "from-primary to-primary/80" },
+          { label: t("opd.pendingCheckout"), icon: ClipboardList, path: "/app/opd/pending-checkout", color: "from-warning to-warning/80" },
+          { label: t("opd.opdReports"), icon: ClipboardList, path: "/app/opd/reports", color: "from-info to-info/80" },
+          { label: t("opd.history"), icon: History, path: "/app/opd/history", color: "from-success to-success/80" },
         ].map(item => (
           <Card 
             key={item.path}
@@ -272,10 +274,10 @@ export default function OPDAdminDashboard() {
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-lg flex items-center gap-2">
             <Stethoscope className="h-4 w-4 text-primary" />
-            Recent Consultations
+            {t("opd.recentConsultations")}
           </CardTitle>
           <Button variant="link" onClick={() => navigate("/app/opd/history")}>
-            View All <ArrowRight className="h-4 w-4 ml-1" />
+            {t("common.viewAll")} <ArrowRight className="h-4 w-4 ml-1" />
           </Button>
         </CardHeader>
         <CardContent>
@@ -287,10 +289,10 @@ export default function OPDAdminDashboard() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Patient</TableHead>
-                  <TableHead>Doctor</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Time</TableHead>
+                  <TableHead>{t("opd.patient")}</TableHead>
+                  <TableHead>{t("opd.doctor")}</TableHead>
+                  <TableHead>{t("opd.status")}</TableHead>
+                  <TableHead>{t("opd.time")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -313,7 +315,7 @@ export default function OPDAdminDashboard() {
               </TableBody>
             </Table>
           ) : (
-            <p className="text-sm text-muted-foreground text-center py-4">No consultations today</p>
+            <p className="text-sm text-muted-foreground text-center py-4">{t("opd.noConsultations")}</p>
           )}
         </CardContent>
       </Card>

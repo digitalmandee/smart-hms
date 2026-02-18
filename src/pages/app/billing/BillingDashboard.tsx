@@ -22,10 +22,12 @@ import {
 import { format } from "date-fns";
 import { InvoiceStatusBadge } from "@/components/billing/InvoiceStatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslation } from "@/lib/i18n";
 
 export default function BillingDashboard() {
   const navigate = useNavigate();
   const { profile } = useAuth();
+  const { t } = useTranslation();
   const { data: stats, isLoading: statsLoading } = useBillingStats(profile?.branch_id || undefined);
   const { data: invoices, isLoading: invoicesLoading } = useInvoices(profile?.branch_id || undefined);
   const { data: activeSession } = useActiveSession();
@@ -36,12 +38,12 @@ export default function BillingDashboard() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Billing Dashboard"
-        description="Manage invoices, payments, and collections"
+        title={t("billing.dashboard")}
+        description={t("billing.dashboardSubtitle")}
         actions={
           <Button onClick={() => navigate("/app/billing/invoices/new")}>
             <Plus className="mr-2 h-4 w-4" />
-            Create Invoice
+            {t("billing.createInvoice")}
           </Button>
         }
       />
@@ -55,25 +57,25 @@ export default function BillingDashboard() {
         ) : (
           <>
             <StatsCard
-              title="Today's Collections"
+              title={t("billing.todayCollections")}
               value={`Rs. ${stats?.todayCollections?.toLocaleString() || 0}`}
               icon={DollarSign}
               className="bg-success/10 border-success/20"
             />
             <StatsCard
-              title="Pending Invoices"
+              title={t("billing.pendingInvoices")}
               value={stats?.pendingCount || 0}
               icon={Clock}
               onClick={() => navigate("/app/billing/invoices?status=pending")}
             />
             <StatsCard
-              title="Outstanding Amount"
+              title={t("billing.outstandingAmount")}
               value={`Rs. ${stats?.pendingAmount?.toLocaleString() || 0}`}
               icon={TrendingUp}
               className="text-warning"
             />
             <StatsCard
-              title="Invoices Today"
+              title={t("billing.invoicesToday")}
               value={stats?.invoicesToday || 0}
               icon={FileText}
             />
@@ -89,7 +91,7 @@ export default function BillingDashboard() {
         {/* Quick Actions */}
         <Card>
           <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
+            <CardTitle>{t("billing.quickActions")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {!activeSession ? (
@@ -99,7 +101,7 @@ export default function BillingDashboard() {
                 onClick={() => setShowOpenSession(true)}
               >
                 <Monitor className="mr-2 h-4 w-4" />
-                Open Billing Session
+                {t("billing.openSession")}
               </Button>
             ) : null}
             <Button
@@ -108,7 +110,7 @@ export default function BillingDashboard() {
               onClick={() => navigate("/app/billing/invoices/new")}
             >
               <Plus className="mr-2 h-4 w-4" />
-              Create New Invoice
+              {t("billing.createNewInvoice")}
             </Button>
             <Button
               variant="outline"
@@ -116,7 +118,7 @@ export default function BillingDashboard() {
               onClick={() => navigate("/app/billing/invoices?status=pending")}
             >
               <Clock className="mr-2 h-4 w-4" />
-              View Pending Invoices
+              {t("billing.viewPendingInvoices")}
             </Button>
             <Button
               variant="outline"
@@ -124,7 +126,7 @@ export default function BillingDashboard() {
               onClick={() => navigate("/app/billing/daily-closing")}
             >
               <CalendarCheck className="mr-2 h-4 w-4" />
-              Daily Closing
+              {t("billing.dailyClosing")}
             </Button>
           </CardContent>
         </Card>
@@ -132,13 +134,13 @@ export default function BillingDashboard() {
         {/* Recent Invoices */}
         <Card className="lg:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Recent Invoices</CardTitle>
+            <CardTitle>{t("billing.recentInvoices")}</CardTitle>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => navigate("/app/billing/invoices")}
             >
-              View All
+              {t("common.viewAll")}
               <ArrowRight className="ml-1 h-4 w-4" />
             </Button>
           </CardHeader>
@@ -151,7 +153,7 @@ export default function BillingDashboard() {
               </div>
             ) : recentInvoices.length === 0 ? (
               <p className="text-center text-muted-foreground py-8">
-                No invoices yet
+                {t("billing.noInvoicesYet")}
               </p>
             ) : (
               <div className="space-y-3">
