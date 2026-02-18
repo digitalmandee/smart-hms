@@ -36,7 +36,7 @@ export function useTranslation() {
  */
 export function useDirection(): "ltr" | "rtl" {
   const { default_language } = useCountryConfig();
-  return default_language === "ar" ? "rtl" : "ltr";
+  return ["ar", "ur"].includes(default_language) ? "rtl" : "ltr";
 }
 
 /**
