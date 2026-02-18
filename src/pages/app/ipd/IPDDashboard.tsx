@@ -17,12 +17,15 @@ import { usePostTodayRoomCharges } from "@/hooks/useRoomChargeSync";
 import { useIPDDashboardEnhancedStats } from "@/hooks/useIPDDashboardStats";
 import { AdmissionCard } from "@/components/ipd/AdmissionCard";
 import { format } from "date-fns";
+import { ar as arLocale, enUS } from "date-fns/locale";
 import { useAuth } from "@/contexts/AuthContext";
 import { canViewFinancials } from "@/lib/permissions";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Capacitor } from "@capacitor/core";
 import { MobileIPDDashboard } from "@/components/mobile/MobileIPDDashboard";
 import { useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "@/lib/i18n";
+import { useCountryConfig } from "@/contexts/CountryConfigContext";
 
 export default function IPDDashboard() {
   const navigate = useNavigate();
@@ -33,6 +36,9 @@ export default function IPDDashboard() {
   const isNative = Capacitor.isNativePlatform();
   const showMobileUI = isMobileScreen || isNative;
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
+  const { default_language } = useCountryConfig();
+  const dateLocale = default_language === "ar" || default_language === "ur" ? arLocale : enUS;
 
   const { data: stats, isLoading: loadingStats } = useIPDStats();
   const { data: recentAdmissions, isLoading: loadingAdmissions } = useAdmissions("admitted");
@@ -69,8 +75,8 @@ export default function IPDDashboard() {
   return (
     <div className="space-y-6">
       <ModernPageHeader
-        title="IPD Dashboard"
-        subtitle="Inpatient department overview and management"
+        title={t("ipd.dashboard")}
+        subtitle={t("ipd.subtitle")}
         userName={firstName}
         showGreeting
         variant="gradient"
@@ -82,52 +88,52 @@ export default function IPDDashboard() {
               disabled={isPosting}
             >
               <RefreshCw className={`h-4 w-4 mr-2 ${isPosting ? 'animate-spin' : ''}`} />
-              Post Room Charges
+              {t("ipd.postRoomCharges")}
             </Button>
             <Button onClick={() => navigate("/app/ipd/admissions/new")}>
               <Plus className="h-4 w-4 mr-2" />
-              New Admission
+              {t("ipd.newAdmission")}
             </Button>
           </div>
         }
         quickStats={[
-          { label: "Active", value: stats?.activeAdmissions || 0, variant: "success" },
-          { label: "Pending Rounds", value: pendingRounds?.length || 0, variant: "warning" },
-          { label: "Discharges", value: pendingDischarges?.length || 0 },
+          { label: t("common.active"), value: stats?.activeAdmissions || 0, variant: "success" },
+          { label: t("ipd.pendingRounds"), value: pendingRounds?.length || 0, variant: "warning" },
+          { label: t("ipd.discharge"), value: pendingDischarges?.length || 0 },
         ]}
       />
 
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <ModernStatsCard
-          title="Total Wards"
+          title={t("ipd.totalWards")}
           value={stats?.totalWards || 0}
           icon={Building2}
-          description="Active wards"
+          description={t("ipd.activeWards")}
           variant="primary"
           delay={0}
         />
         <ModernStatsCard
-          title="Bed Occupancy"
+          title={t("ipd.bedOccupancy")}
           value={`${stats?.occupiedBeds || 0}/${stats?.totalBeds || 0}`}
           icon={Bed}
-          description={`${stats?.availableBeds || 0} available`}
+          description={`${stats?.availableBeds || 0} ${t("ipd.available")}`}
           variant="info"
           delay={100}
         />
         <ModernStatsCard
-          title="Active Patients"
+          title={t("ipd.activePatients")}
           value={stats?.activeAdmissions || 0}
           icon={Users}
-          description="Currently admitted"
+          description={t("ipd.currentlyAdmitted")}
           variant="success"
           delay={200}
         />
         <ModernStatsCard
-          title="Today's Activity"
+          title={t("ipd.todayActivity")}
           value={`+${stats?.todayAdmissions || 0} / -${stats?.todayDischarges || 0}`}
           icon={UserPlus}
-          description="Admissions / Discharges"
+          description={t("ipd.admissionsDischarges")}
           variant="warning"
           delay={300}
         />
@@ -142,13 +148,13 @@ export default function IPDDashboard() {
               <div className="p-2 rounded-lg bg-primary/10">
                 <ClipboardList className="h-4 w-4 text-primary" />
               </div>
-              Pending Rounds
+              {t("ipd.pendingRounds")}
             </CardTitle>
             <Badge variant="outline">{pendingRounds?.length || 0}</Badge>
           </CardHeader>
           <CardContent>
             {loadingRounds ? (
-              <div className="text-sm text-muted-foreground">Loading...</div>
+              <div className="text-sm text-muted-foreground">{t("common.loading")}</div>
             ) : pendingRounds && pendingRounds.length > 0 ? (
               <div className="space-y-2">
                 {pendingRounds.slice(0, 5).map((adm: any) => (
@@ -161,7 +167,7 @@ export default function IPDDashboard() {
                         {adm.patient?.first_name} {adm.patient?.last_name}
                       </span>
                       <span className="text-muted-foreground ml-2">
-                        Bed {adm.bed?.bed_number}
+                        {t("ipd.bed")} {adm.bed?.bed_number}
                       </span>
                     </div>
                     <Button
@@ -169,7 +175,7 @@ export default function IPDDashboard() {
                       size="sm"
                       onClick={() => navigate(`/app/ipd/rounds/${adm.id}`)}
                     >
-                      Start
+                      {t("ipd.start")}
                     </Button>
                   </div>
                 ))}
@@ -179,14 +185,14 @@ export default function IPDDashboard() {
                     className="w-full"
                     onClick={() => navigate("/app/ipd/rounds")}
                   >
-                    View all {pendingRounds.length} pending
+                    {t("ipd.viewAllPending")} ({pendingRounds.length})
                     <ArrowRight className="h-4 w-4 ml-1" />
                   </Button>
                 )}
               </div>
             ) : (
               <div className="text-sm text-muted-foreground text-center py-4">
-                All rounds completed for today
+                {t("ipd.allRoundsComplete")}
               </div>
             )}
           </CardContent>
@@ -199,7 +205,7 @@ export default function IPDDashboard() {
               <div className="p-2 rounded-lg bg-warning/10">
                 <LogOut className="h-4 w-4 text-warning" />
               </div>
-              Pending Discharges
+              {t("ipd.pendingDischarges")}
             </CardTitle>
             <Badge variant="outline" className="bg-warning/10 text-warning">
               {pendingDischarges?.length || 0}
@@ -207,7 +213,7 @@ export default function IPDDashboard() {
           </CardHeader>
           <CardContent>
             {loadingDischarges ? (
-              <div className="text-sm text-muted-foreground">Loading...</div>
+              <div className="text-sm text-muted-foreground">{t("common.loading")}</div>
             ) : pendingDischarges && pendingDischarges.length > 0 ? (
               <div className="space-y-2">
                 {pendingDischarges.slice(0, 5).map((adm: any) => (
@@ -220,7 +226,7 @@ export default function IPDDashboard() {
                         {adm.patient?.first_name} {adm.patient?.last_name}
                       </span>
                       <span className="text-muted-foreground ml-2">
-                        Expected: {format(new Date(adm.expected_discharge_date), "dd MMM")}
+                        {t("ipd.expected")}: {format(new Date(adm.expected_discharge_date), "dd MMM", { locale: dateLocale })}
                       </span>
                     </div>
                     <Button
@@ -228,14 +234,14 @@ export default function IPDDashboard() {
                       size="sm"
                       onClick={() => navigate(`/app/ipd/discharge/${adm.id}`)}
                     >
-                      Discharge
+                      {t("ipd.discharge")}
                     </Button>
                   </div>
                 ))}
               </div>
             ) : (
               <div className="text-sm text-muted-foreground text-center py-4">
-                No pending discharges
+                {t("ipd.noPendingDischarges")}
               </div>
             )}
           </CardContent>
@@ -248,7 +254,7 @@ export default function IPDDashboard() {
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center gap-2">
               <Building2 className="h-4 w-4 text-primary" />
-              Ward-wise Occupancy
+              {t("ipd.wardOccupancy")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -262,7 +268,7 @@ export default function IPDDashboard() {
                     </Badge>
                   </div>
                   <Progress value={ward.occupancyPercent} className="h-2 mb-1" />
-                  <p className="text-xs text-muted-foreground">{ward.occupiedBeds}/{ward.totalBeds} beds occupied</p>
+                  <p className="text-xs text-muted-foreground">{ward.occupiedBeds}/{ward.totalBeds} {t("ipd.bedsOccupied")}</p>
                 </div>
               ))}
             </div>
@@ -275,22 +281,22 @@ export default function IPDDashboard() {
         <Card>
           <CardContent className="pt-6 text-center">
             <Activity className="h-8 w-8 mx-auto mb-2 text-primary" />
-            <p className="text-2xl font-bold">{enhanced?.avgLengthOfStay || 0} days</p>
-            <p className="text-sm text-muted-foreground">Avg Length of Stay</p>
+            <p className="text-2xl font-bold">{enhanced?.avgLengthOfStay || 0} {t("ipd.days")}</p>
+            <p className="text-sm text-muted-foreground">{t("ipd.avgLOS")}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6 text-center">
             <Calendar className="h-8 w-8 mx-auto mb-2 text-primary" />
             <p className="text-2xl font-bold">{enhanced?.todayProcedures || 0}</p>
-            <p className="text-sm text-muted-foreground">Today's Procedures</p>
+            <p className="text-sm text-muted-foreground">{t("ipd.todayProcedures")}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6 text-center">
             <Beaker className="h-8 w-8 mx-auto mb-2 text-warning" />
             <p className="text-2xl font-bold">{enhanced?.pendingLabResults || 0}</p>
-            <p className="text-sm text-muted-foreground">Pending Lab Results</p>
+            <p className="text-sm text-muted-foreground">{t("ipd.pendingLabResults")}</p>
           </CardContent>
         </Card>
       </div>
@@ -301,21 +307,21 @@ export default function IPDDashboard() {
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center gap-2">
               <Wallet className="h-4 w-4 text-primary" />
-              Active Admissions Financial Summary
+              {t("ipd.financialSummary")}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid gap-4 md:grid-cols-3">
               <div className="p-4 bg-success/10 rounded-lg text-center">
-                <p className="text-sm text-muted-foreground">Total Deposits</p>
+                <p className="text-sm text-muted-foreground">{t("ipd.totalDeposits")}</p>
                 <p className="text-xl font-bold text-success">₨ {enhanced.financialSummary.totalDeposits.toLocaleString()}</p>
               </div>
               <div className="p-4 bg-warning/10 rounded-lg text-center">
-                <p className="text-sm text-muted-foreground">Total Charges</p>
+                <p className="text-sm text-muted-foreground">{t("ipd.totalCharges")}</p>
                 <p className="text-xl font-bold text-warning">₨ {enhanced.financialSummary.totalCharges.toLocaleString()}</p>
               </div>
               <div className="p-4 bg-destructive/10 rounded-lg text-center">
-                <p className="text-sm text-muted-foreground">Outstanding</p>
+                <p className="text-sm text-muted-foreground">{t("ipd.outstandingBalance")}</p>
                 <p className="text-xl font-bold text-destructive">₨ {Math.max(0, enhanced.financialSummary.outstandingBalance).toLocaleString()}</p>
               </div>
             </div>
@@ -329,7 +335,7 @@ export default function IPDDashboard() {
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center gap-2">
               <LogOut className="h-4 w-4 text-primary" />
-              Discharge Pipeline
+              {t("ipd.dischargePipeline")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -355,7 +361,7 @@ export default function IPDDashboard() {
             <div className="p-3 rounded-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/30 group-hover:scale-110 transition-transform">
               <Building2 className="h-6 w-6" />
             </div>
-            <span className="font-medium">Wards</span>
+            <span className="font-medium">{t("ipd.wards")}</span>
           </CardContent>
         </Card>
         <Card 
@@ -366,7 +372,7 @@ export default function IPDDashboard() {
             <div className="p-3 rounded-xl bg-gradient-to-br from-info to-info/80 text-info-foreground shadow-lg shadow-info/30 group-hover:scale-110 transition-transform">
               <Bed className="h-6 w-6" />
             </div>
-            <span className="font-medium">Bed Map</span>
+            <span className="font-medium">{t("ipd.bedMap")}</span>
           </CardContent>
         </Card>
         <Card 
@@ -377,7 +383,7 @@ export default function IPDDashboard() {
             <div className="p-3 rounded-xl bg-gradient-to-br from-success to-success/80 text-success-foreground shadow-lg shadow-success/30 group-hover:scale-110 transition-transform">
               <Users className="h-6 w-6" />
             </div>
-            <span className="font-medium">Admissions</span>
+            <span className="font-medium">{t("ipd.admissions")}</span>
           </CardContent>
         </Card>
         <Card 
@@ -388,7 +394,7 @@ export default function IPDDashboard() {
             <div className="p-3 rounded-xl bg-gradient-to-br from-success to-success/80 text-success-foreground shadow-lg shadow-success/30 group-hover:scale-110 transition-transform">
               <Wallet className="h-6 w-6" />
             </div>
-            <span className="font-medium">IPD Billing</span>
+            <span className="font-medium">{t("ipd.ipdBilling")}</span>
           </CardContent>
         </Card>
         <Card 
@@ -399,7 +405,7 @@ export default function IPDDashboard() {
             <div className="p-3 rounded-xl bg-gradient-to-br from-warning to-warning/80 text-warning-foreground shadow-lg shadow-warning/30 group-hover:scale-110 transition-transform">
               <ClipboardList className="h-6 w-6" />
             </div>
-            <span className="font-medium">Nursing Station</span>
+            <span className="font-medium">{t("ipd.nursingStation")}</span>
           </CardContent>
         </Card>
       </div>
@@ -411,30 +417,30 @@ export default function IPDDashboard() {
             <div className="p-2 rounded-lg bg-success/10">
               <UserPlus className="h-4 w-4 text-success" />
             </div>
-            Recent Admissions
+            {t("ipd.recentAdmissions")}
           </CardTitle>
-          <Button variant="link" onClick={() => navigate("/app/ipd/admissions")}>
-            View All
-            <ArrowRight className="h-4 w-4 ml-1" />
+          <Button variant="ghost" size="sm" onClick={() => navigate("/app/ipd/admissions")}>
+            {t("common.viewAll")} <ArrowRight className="h-4 w-4 ml-1" />
           </Button>
         </CardHeader>
         <CardContent>
           {loadingAdmissions ? (
-            <div className="text-sm text-muted-foreground">Loading...</div>
+            <div className="text-sm text-muted-foreground">{t("common.loading")}</div>
           ) : recentAdmissions && recentAdmissions.length > 0 ? (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {recentAdmissions.slice(0, 6).map((admission: any) => (
                 <AdmissionCard
                   key={admission.id}
                   admission={admission}
-                  compact
                   onView={(id) => navigate(`/app/ipd/admissions/${id}`)}
+                  onRounds={(id) => navigate(`/app/ipd/rounds/${id}`)}
+                  onDischarge={(id) => navigate(`/app/ipd/discharge/${id}`)}
                 />
               ))}
             </div>
           ) : (
             <div className="text-center py-8 text-muted-foreground">
-              No active admissions
+              {t("common.noData")}
             </div>
           )}
         </CardContent>

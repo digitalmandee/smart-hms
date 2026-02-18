@@ -47,4 +47,16 @@ export function useIsRTL(): boolean {
   return useDirection() === "rtl";
 }
 
+/**
+ * Standalone translation function for use outside React hooks (e.g. in mutation callbacks).
+ * Reads the language from localStorage cache set by CountryConfigProvider.
+ */
+export function getTranslatedString(key: TranslationKey, fallback?: string): string {
+  const lang = localStorage.getItem("org_default_language") || "en";
+  const langMap = translations[lang];
+  if (langMap && langMap[key]) return langMap[key];
+  if (en[key]) return en[key];
+  return fallback || key;
+}
+
 export type { TranslationKey };
