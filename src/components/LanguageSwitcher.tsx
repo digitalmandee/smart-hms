@@ -1,11 +1,23 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useCountryConfig } from "@/contexts/CountryConfigContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQueryClient } from "@tanstack/react-query";
-import { Languages, Loader2 } from "lucide-react";
+import { Languages, Loader2, Check, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+const LANGUAGE_LABELS: Record<string, { label: string; native: string }> = {
+  en: { label: "English", native: "English" },
+  ar: { label: "Arabic", native: "عربي" },
+  ur: { label: "Urdu", native: "اردو" },
+};
 
 export function LanguageSwitcher({ className }: { className?: string }) {
   const { default_language, supported_languages } = useCountryConfig();
@@ -13,42 +25,62 @@ export function LanguageSwitcher({ className }: { className?: string }) {
   const queryClient = useQueryClient();
   const [isSwitching, setIsSwitching] = useState(false);
 
-  // Only show if org supports Arabic
-  if (!supported_languages.includes("ar")) return null;
+  // Only show if org supports more than one language
+  if (!supported_languages || supported_languages.length <= 1) return null;
 
-  const toggleLanguage = async () => {
-    if (!profile?.organization_id || isSwitching) return;
-    const newLang = default_language === "ar" ? "en" : "ar";
+  const switchLanguage = async (lang: string) => {
+    if (!profile?.organization_id || isSwitching || lang === default_language) return;
     setIsSwitching(true);
     try {
       await supabase
         .from("organizations")
-        .update({ default_language: newLang } as any)
+        .update({ default_language: lang } as any)
         .eq("id", profile.organization_id);
-      // Invalidate so CountryConfigContext refetches
       queryClient.invalidateQueries({ queryKey: ["country-config", profile.organization_id] });
     } finally {
       setIsSwitching(false);
     }
   };
 
-  const isArabic = default_language === "ar";
+  const currentLang = LANGUAGE_LABELS[default_language] ?? { label: default_language, native: default_language };
 
   return (
-    <Button
-      variant="ghost"
-      size="sm"
-      onClick={toggleLanguage}
-      disabled={isSwitching}
-      className={cn("gap-2 font-medium", className)}
-      title={isArabic ? "Switch to English" : "التبديل إلى العربية"}
-    >
-      {isSwitching ? (
-        <Loader2 className="h-4 w-4 animate-spin" />
-      ) : (
-        <Languages className="h-4 w-4" />
-      )}
-      <span className="text-sm">{isArabic ? "EN" : "ع"}</span>
-    </Button>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          size="sm"
+          disabled={isSwitching}
+          className={cn("gap-1.5 font-medium", className)}
+        >
+          {isSwitching ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Languages className="h-4 w-4" />
+          )}
+          <span className="text-sm">{currentLang.native}</span>
+          <ChevronDown className="h-3 w-3 opacity-60" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="min-w-[140px] bg-popover">
+        {supported_languages.map((lang) => {
+          const info = LANGUAGE_LABELS[lang] ?? { label: lang, native: lang };
+          const isActive = lang === default_language;
+          return (
+            <DropdownMenuItem
+              key={lang}
+              onClick={() => switchLanguage(lang)}
+              className="flex items-center justify-between gap-3 cursor-pointer"
+            >
+              <div className="flex flex-col">
+                <span className="text-sm font-medium">{info.native}</span>
+                <span className="text-xs text-muted-foreground">{info.label}</span>
+              </div>
+              {isActive && <Check className="h-4 w-4 text-primary shrink-0" />}
+            </DropdownMenuItem>
+          );
+        })}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
