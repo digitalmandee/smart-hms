@@ -19,6 +19,7 @@ import { generateVisitId } from "@/lib/visit-id";
 import { formatTokenDisplay } from "@/lib/opd-token";
 import { PaymentStatusBadge } from "@/components/radiology/PaymentStatusBadge";
 import { MobileDoctorView } from "@/components/mobile/MobileDoctorView";
+import { useTranslation, useIsRTL } from "@/lib/i18n";
 
 export default function DoctorDashboard() {
   const { profile } = useAuth();
@@ -27,6 +28,8 @@ export default function DoctorDashboard() {
   const isNative = Capacitor.isNativePlatform();
   const showMobileUI = isMobileScreen || isNative;
   const today = format(new Date(), "yyyy-MM-dd");
+  const { t } = useTranslation();
+  const isRTL = useIsRTL();
 
   const { data: doctors = [] } = useDoctors();
   const currentDoctor = doctors.find(d => d.profile?.id === profile?.id);
@@ -53,8 +56,8 @@ export default function DoctorDashboard() {
 
   const getPriorityBadge = (priority: number | null) => {
     if (!priority || priority <= 1) return null;
-    if (priority >= 3) return <Badge variant="destructive" className="text-xs">Emergency</Badge>;
-    if (priority === 2) return <Badge variant="default" className="text-xs bg-warning text-warning-foreground">Urgent</Badge>;
+    if (priority >= 3) return <Badge variant="destructive" className="text-xs">{t("opd.emergency")}</Badge>;
+    if (priority === 2) return <Badge variant="default" className="text-xs bg-warning text-warning-foreground">{t("opd.urgent")}</Badge>;
     return null;
   };
 
@@ -73,7 +76,6 @@ export default function DoctorDashboard() {
   };
 
   const handleQueueItemClick = async (appointmentId: string, status: string) => {
-    // Update status to in_progress if checked_in
     if (status === 'checked_in') {
       await updateAppointment.mutateAsync({
         id: appointmentId,
@@ -83,9 +85,7 @@ export default function DoctorDashboard() {
     navigate(`/app/opd/consultation/${appointmentId}`);
   };
 
-  // Handle refresh for pull-to-refresh
   const handleRefresh = async () => {
-    // Refetch is handled by react-query's refetch
     await Promise.resolve();
   };
 
@@ -109,13 +109,13 @@ export default function DoctorDashboard() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Doctor Dashboard"
-        description={`Welcome, Dr. ${profile?.full_name || "Doctor"}`}
+        title={t("opd.doctorDashboard")}
+        description={`${t("opd.welcomeDoctor")} ${profile?.full_name || "Doctor"}`}
         actions={
           <Button asChild variant="outline">
             <Link to="/app/opd/history">
-              <History className="h-4 w-4 mr-2" />
-              View History
+              <History className="h-4 w-4 me-2" />
+              {t("opd.viewHistory")}
             </Link>
           </Button>
         }
@@ -126,12 +126,12 @@ export default function DoctorDashboard() {
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
             <Search className="h-4 w-4" />
-            Find Patient
+            {t("opd.findPatient")}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <PatientGlobalSearch 
-            placeholder="Search any patient by MR#, name, or phone..."
+            placeholder={t("opd.searchByMr")}
           />
         </CardContent>
       </Card>
@@ -139,25 +139,25 @@ export default function DoctorDashboard() {
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-4">
         <StatsCard
-          title="Today's Patients"
+          title={t("opd.todaysPatients")}
           value={todayAppointments.length}
           icon={Users}
           variant="primary"
         />
         <StatsCard
-          title="Completed"
+          title={t("opd.vitalsComplete")}
           value={stats?.completed || 0}
           icon={CheckCircle}
           variant="success"
         />
         <StatsCard
-          title="Pending"
+          title={t("common.pending")}
           value={stats?.pending || 0}
           icon={Clock}
           variant="warning"
         />
         <StatsCard
-          title="In Queue"
+          title={t("common.inQueue")}
           value={queuedPatients.length}
           icon={Stethoscope}
           variant="info"
@@ -170,7 +170,7 @@ export default function DoctorDashboard() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Play className="h-5 w-5 text-primary" />
-              Current Patient
+              {t("opd.currentPatient")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -192,32 +192,32 @@ export default function DoctorDashboard() {
                 </div>
                 {currentPatient.chief_complaint && (
                   <p className="text-sm">
-                    <span className="text-muted-foreground">Chief Complaint:</span>{" "}
+                    <span className="text-muted-foreground">{t("opd.chiefComplaintLabel")}</span>{" "}
                     {currentPatient.chief_complaint}
                   </p>
                 )}
                 <Button asChild className="w-full">
                   <Link to={`/app/opd/consultation/${currentPatient.id}`}>
-                    Continue Consultation
+                    {t("opd.continueConsultation")}
                   </Link>
                 </Button>
               </div>
             ) : nextPatient ? (
               <div className="space-y-3">
-                <p className="text-muted-foreground">No patient in progress</p>
+                <p className="text-muted-foreground">{t("opd.noPatientInProgress")}</p>
                 <div className="p-3 border rounded-lg">
                   <p className="font-medium">Next: {(nextPatient.patient as any)?.first_name}</p>
                   <p className="text-sm text-muted-foreground">Token {formatTokenDisplay(nextPatient.token_number, (nextPatient as any).opd_department?.code)}</p>
                 </div>
                 <Button asChild className="w-full">
                   <Link to={`/app/opd/consultation/${nextPatient.id}`}>
-                    Start Consultation
+                    {t("opd.startConsultation")}
                   </Link>
                 </Button>
               </div>
             ) : (
               <p className="text-center py-8 text-muted-foreground">
-                No patients in queue
+                {t("opd.noPatientsInQueue")}
               </p>
             )}
           </CardContent>
@@ -228,7 +228,7 @@ export default function DoctorDashboard() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Clock className="h-5 w-5" />
-              Patient Queue
+              {t("opd.patientQueue")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -238,7 +238,7 @@ export default function DoctorDashboard() {
               </div>
             ) : queuedPatients.length === 0 ? (
               <p className="text-center py-8 text-muted-foreground">
-                No patients waiting
+                {t("opd.noPatientsWaiting")}
               </p>
             ) : (
               <div className="space-y-2">
@@ -286,7 +286,7 @@ export default function DoctorDashboard() {
                           </div>
                           {apt.chief_complaint && (
                             <p className="text-xs text-muted-foreground mt-1 line-clamp-1">
-                              <AlertTriangle className="h-3 w-3 inline mr-1" />
+                              <AlertTriangle className="h-3 w-3 inline me-1" />
                               {apt.chief_complaint}
                             </p>
                           )}
@@ -317,7 +317,7 @@ export default function DoctorDashboard() {
                             <PaymentStatusBadge status={apt.payment_status} compact showIcon={false} />
                           )}
                           <Badge variant={apt.status === "in_progress" ? "default" : "secondary"}>
-                            {apt.status === "in_progress" ? "In Progress" : "Waiting"}
+                            {apt.status === "in_progress" ? t("opd.inProgress") : t("opd.waiting")}
                           </Badge>
                           <Play className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>

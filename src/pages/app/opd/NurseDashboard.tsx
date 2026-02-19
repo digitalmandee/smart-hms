@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { format, formatDistanceToNow } from 'date-fns';
+import { format } from 'date-fns';
 import { Capacitor } from '@capacitor/core';
 import { 
   Activity, 
@@ -10,8 +10,6 @@ import {
   RefreshCw,
   AlertTriangle,
   Search,
-  Calendar,
-  Clock,
   Hash,
   DollarSign,
   Building2
@@ -36,18 +34,15 @@ import { generateVisitId } from '@/lib/visit-id';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { MobileNurseView } from '@/components/mobile/MobileNurseView';
 import { useAuth } from '@/contexts/AuthContext';
-
-const priorityLabels: Record<number, { label: string; variant: 'destructive' | 'default' | 'secondary' | 'outline' }> = {
-  2: { label: 'Emergency', variant: 'destructive' },
-  1: { label: 'Urgent', variant: 'default' },
-  0: { label: 'Normal', variant: 'secondary' },
-};
+import { useTranslation, useIsRTL } from '@/lib/i18n';
 
 export default function NurseDashboard() {
   const navigate = useNavigate();
   const { profile } = useAuth();
   const [patientSearch, setPatientSearch] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState<string | undefined>();
+  const { t } = useTranslation();
+  const isRTL = useIsRTL();
   
   const { data: queue, isLoading, refetch } = useNursingQueue(selectedDepartment);
   const { data: patients, isLoading: patientsLoading } = usePatients(patientSearch);
@@ -63,7 +58,12 @@ export default function NurseDashboard() {
   const inProgress = queue?.inProgress || [];
   const totalToday = awaitingVitals.length + vitalsComplete.length + inProgress.length;
 
-  // Handle refresh for pull-to-refresh
+  const priorityLabels: Record<number, { label: string; variant: 'destructive' | 'default' | 'secondary' | 'outline' }> = {
+    2: { label: t("opd.emergency"), variant: 'destructive' },
+    1: { label: t("opd.urgent"), variant: 'default' },
+    0: { label: t("opd.normal"), variant: 'secondary' },
+  };
+
   const handleRefresh = async () => {
     await refetch();
   };
@@ -80,12 +80,11 @@ export default function NurseDashboard() {
   }
 
   // Desktop Layout
-
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Nurse Station"
-        description={`Today, ${format(new Date(), 'EEEE, MMMM d, yyyy')}`}
+        title={t("opd.nurseStation")}
+        description={`${format(new Date(), 'EEEE, MMMM d, yyyy')}`}
         actions={
           <div className="flex items-center gap-2">
             <OPDDepartmentSelector
@@ -93,15 +92,15 @@ export default function NurseDashboard() {
               onChange={setSelectedDepartment}
               branchId={profile?.branch_id}
               showAllOption
-              allOptionLabel="All Departments"
+              allOptionLabel={t("opd.allDepartments")}
               placeholder="Filter by OPD"
             />
             <Button variant="outline" size="sm" onClick={() => refetch()}>
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Refresh
+              <RefreshCw className="h-4 w-4 me-2" />
+              {t("opd.refresh")}
             </Button>
             <Button onClick={() => navigate('/app/appointments/queue')}>
-              View Full Queue
+              {t("opd.viewFullQueue")}
             </Button>
           </div>
         }
@@ -112,18 +111,18 @@ export default function NurseDashboard() {
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
             <Search className="h-5 w-5" />
-            Quick Patient Search
+            {t("opd.quickPatientSearch")}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex gap-2">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground`} />
               <Input 
-                placeholder="Search by MR#, name, or phone..." 
+                placeholder={t("opd.searchByMrNamePhone")}
                 value={patientSearch}
                 onChange={(e) => setPatientSearch(e.target.value)}
-                className="pl-9"
+                className={isRTL ? 'pr-9' : 'pl-9'}
               />
             </div>
           </div>
@@ -131,7 +130,7 @@ export default function NurseDashboard() {
           {showPatientResults && (
             <div className="mt-3 border rounded-lg divide-y max-h-48 overflow-auto">
               {patientsLoading ? (
-                <div className="p-3 text-center text-muted-foreground">Searching...</div>
+                <div className="p-3 text-center text-muted-foreground">{t("opd.searching")}</div>
               ) : patients && patients.length > 0 ? (
                 patients.slice(0, 5).map((patient) => (
                   <div 
@@ -155,13 +154,13 @@ export default function NurseDashboard() {
                         navigate(`/app/appointments/new?patientId=${patient.id}`);
                       }}
                     >
-                      Book Appointment
+                      {t("opd.bookAppointment")}
                     </Button>
                   </div>
                 ))
               ) : (
                 <div className="p-3 text-center text-muted-foreground">
-                  No patients found
+                  {t("opd.noPatientsFound")}
                 </div>
               )}
             </div>
@@ -172,25 +171,25 @@ export default function NurseDashboard() {
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <StatsCard
-          title="Awaiting Vitals"
+          title={t("opd.awaitingVitals")}
           value={awaitingVitals.length}
           icon={Activity}
           variant="warning"
         />
         <StatsCard
-          title="Vitals Complete"
+          title={t("opd.readyForDoctor")}
           value={vitalsComplete.length}
           icon={UserCheck}
           variant="success"
         />
         <StatsCard
-          title="In Consultation"
+          title={t("opd.inConsultation")}
           value={inProgress.length}
           icon={Stethoscope}
           variant="info"
         />
         <StatsCard
-          title="Total Today"
+          title={t("opd.totalToday")}
           value={totalToday}
           icon={Users}
           variant="default"
@@ -202,18 +201,18 @@ export default function NurseDashboard() {
         {/* Column 1: Awaiting Vitals */}
         <Card className="lg:col-span-1">
           <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-amber-600">
+        <CardTitle className="flex items-center gap-2 text-warning">
               <Activity className="h-5 w-5" />
-              Awaiting Vitals
+              {t("opd.awaitingVitals")}
               {awaitingVitals.length > 0 && (
-                <Badge variant="secondary" className="ml-auto">
+                <Badge variant="secondary" className="ms-auto">
                   {awaitingVitals.length}
                 </Badge>
               )}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ScrollArea className="h-[400px] pr-4">
+            <ScrollArea className="h-[400px] pe-4">
               {isLoading ? (
                 <div className="space-y-3">
                   {[1, 2, 3].map((i) => (
@@ -223,7 +222,7 @@ export default function NurseDashboard() {
               ) : awaitingVitals.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-32 text-muted-foreground">
                   <UserCheck className="h-8 w-8 mb-2" />
-                  <p className="text-sm">All patients have vitals recorded</p>
+                  <p className="text-sm">{t("opd.allVitalsRecorded")}</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -240,21 +239,21 @@ export default function NurseDashboard() {
           </CardContent>
         </Card>
 
-        {/* Column 2: Vitals Complete */}
+        {/* Column 2: Ready for Doctor */}
         <Card className="lg:col-span-1">
           <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-green-600">
+            <CardTitle className="flex items-center gap-2 text-success">
               <UserCheck className="h-5 w-5" />
-              Ready for Doctor
+              {t("opd.readyForDoctor")}
               {vitalsComplete.length > 0 && (
-                <Badge variant="secondary" className="ml-auto">
+                <Badge variant="secondary" className="ms-auto">
                   {vitalsComplete.length}
                 </Badge>
               )}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ScrollArea className="h-[400px] pr-4">
+            <ScrollArea className="h-[400px] pe-4">
               {isLoading ? (
                 <div className="space-y-3">
                   {[1, 2, 3].map((i) => (
@@ -263,8 +262,8 @@ export default function NurseDashboard() {
                 </div>
               ) : vitalsComplete.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-32 text-muted-foreground">
-                  <Clock className="h-8 w-8 mb-2" />
-                  <p className="text-sm">No patients ready yet</p>
+                  <AlertTriangle className="h-8 w-8 mb-2" />
+                  <p className="text-sm">{t("opd.noPatientsReady")}</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -276,7 +275,7 @@ export default function NurseDashboard() {
                     const opdDept = (appointment as any).opd_department;
                     
                     return (
-                      <Card key={appointment.id} className="p-3 border-l-4 border-l-green-500">
+                      <Card key={appointment.id} className="p-3 border-s-4 border-s-green-500">
                         <div className="flex items-start justify-between">
                           <div>
                             <div className="flex items-center gap-2">
@@ -287,7 +286,7 @@ export default function NurseDashboard() {
                                 size="md"
                               />
                               <Badge variant={priorityLabels[appointment.priority || 0]?.variant || 'secondary'}>
-                                {priorityLabels[appointment.priority || 0]?.label || 'Normal'}
+                                {priorityLabels[appointment.priority || 0]?.label || t("opd.normal")}
                               </Badge>
                             </div>
                             <p className="font-medium mt-1">
@@ -295,17 +294,15 @@ export default function NurseDashboard() {
                             </p>
                             <p className="text-xs text-muted-foreground">
                               {appointment.patient?.patient_number}
-                              {opdDept && <span className="ml-2">• {opdDept.name}</span>}
+                              {opdDept && <span className="ms-2">• {opdDept.name}</span>}
                             </p>
-                            {/* Visit ID */}
-                          <div className="flex items-center gap-1 mt-1">
-                            <Hash className="h-3 w-3 text-muted-foreground" />
-                            <span className="text-xs font-mono text-muted-foreground">{visitId}</span>
-                            {/* Payment Status for non-paid */}
-                            {appointment.payment_status && appointment.payment_status !== 'paid' && (
-                              <PaymentStatusBadge status={appointment.payment_status} compact showIcon={false} />
-                            )}
-                          </div>
+                            <div className="flex items-center gap-1 mt-1">
+                              <Hash className="h-3 w-3 text-muted-foreground" />
+                              <span className="text-xs font-mono text-muted-foreground">{visitId}</span>
+                              {appointment.payment_status && appointment.payment_status !== 'paid' && (
+                                <PaymentStatusBadge status={appointment.payment_status} compact showIcon={false} />
+                              )}
+                            </div>
                           </div>
                           <VitalsSummaryBadge vitals={appointment.check_in_vitals} />
                         </div>
@@ -328,7 +325,7 @@ export default function NurseDashboard() {
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2">
               <Activity className="h-5 w-5" />
-              Quick Actions
+              {t("opd.quickActions")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -341,18 +338,18 @@ export default function NurseDashboard() {
       {inProgress.length > 0 && (
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-blue-600">
+            <CardTitle className="flex items-center gap-2 text-info">
               <Stethoscope className="h-5 w-5" />
-              Active Consultations
+              {t("opd.activeConsultations")}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex gap-4 overflow-x-auto pb-2">
               {inProgress.map((appointment) => (
-                <Card key={appointment.id} className="min-w-[200px] p-4 bg-blue-50 dark:bg-blue-950 border-blue-200">
+        <Card key={appointment.id} className="min-w-[200px] p-4 bg-info/10 border-info/30">
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
-                      <span className="font-bold text-blue-600">#{appointment.token_number}</span>
+                    <div className="h-10 w-10 rounded-full bg-info/20 flex items-center justify-center">
+                      <span className="font-bold text-info">#{appointment.token_number}</span>
                     </div>
                     <div>
                       <p className="font-medium">

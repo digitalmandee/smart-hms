@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { 
   Building2, Bed, Users, UserPlus, LogOut, ClipboardList,
-  Plus, ArrowRight, Wallet, RefreshCw, Activity, Beaker, Calendar
+  Plus, ArrowRight, ArrowLeft, Wallet, RefreshCw, Activity, Beaker, Calendar
 } from "lucide-react";
 import { useIPDStats } from "@/hooks/useIPD";
 import { useAdmissions } from "@/hooks/useAdmissions";
@@ -24,8 +24,9 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Capacitor } from "@capacitor/core";
 import { MobileIPDDashboard } from "@/components/mobile/MobileIPDDashboard";
 import { useQueryClient } from "@tanstack/react-query";
-import { useTranslation } from "@/lib/i18n";
+import { useTranslation, useIsRTL } from "@/lib/i18n";
 import { useCountryConfig } from "@/contexts/CountryConfigContext";
+
 
 export default function IPDDashboard() {
   const navigate = useNavigate();
@@ -37,6 +38,7 @@ export default function IPDDashboard() {
   const showMobileUI = isMobileScreen || isNative;
   const queryClient = useQueryClient();
   const { t } = useTranslation();
+  const isRTL = useIsRTL();
   const { default_language } = useCountryConfig();
   const dateLocale = default_language === "ar" || default_language === "ur" ? arLocale : enUS;
 
@@ -87,11 +89,11 @@ export default function IPDDashboard() {
               onClick={() => postCharges()}
               disabled={isPosting}
             >
-              <RefreshCw className={`h-4 w-4 mr-2 ${isPosting ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`h-4 w-4 me-2 ${isPosting ? 'animate-spin' : ''}`} />
               {t("ipd.postRoomCharges")}
             </Button>
             <Button onClick={() => navigate("/app/ipd/admissions/new")}>
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="h-4 w-4 me-2" />
               {t("ipd.newAdmission")}
             </Button>
           </div>
@@ -166,7 +168,7 @@ export default function IPDDashboard() {
                       <span className="font-medium">
                         {adm.patient?.first_name} {adm.patient?.last_name}
                       </span>
-                      <span className="text-muted-foreground ml-2">
+                      <span className="text-muted-foreground ms-2">
                         {t("ipd.bed")} {adm.bed?.bed_number}
                       </span>
                     </div>
@@ -186,7 +188,7 @@ export default function IPDDashboard() {
                     onClick={() => navigate("/app/ipd/rounds")}
                   >
                     {t("ipd.viewAllPending")} ({pendingRounds.length})
-                    <ArrowRight className="h-4 w-4 ml-1" />
+                    {isRTL ? <ArrowLeft className="h-4 w-4 ms-1" /> : <ArrowRight className="h-4 w-4 ms-1" />}
                   </Button>
                 )}
               </div>
@@ -225,7 +227,7 @@ export default function IPDDashboard() {
                       <span className="font-medium">
                         {adm.patient?.first_name} {adm.patient?.last_name}
                       </span>
-                      <span className="text-muted-foreground ml-2">
+                      <span className="text-muted-foreground ms-2">
                         {t("ipd.expected")}: {format(new Date(adm.expected_discharge_date), "dd MMM", { locale: dateLocale })}
                       </span>
                     </div>
@@ -420,7 +422,7 @@ export default function IPDDashboard() {
             {t("ipd.recentAdmissions")}
           </CardTitle>
           <Button variant="ghost" size="sm" onClick={() => navigate("/app/ipd/admissions")}>
-            {t("common.viewAll")} <ArrowRight className="h-4 w-4 ml-1" />
+            {t("common.viewAll")} {isRTL ? <ArrowLeft className="h-4 w-4 ms-1" /> : <ArrowRight className="h-4 w-4 ms-1" />}
           </Button>
         </CardHeader>
         <CardContent>
