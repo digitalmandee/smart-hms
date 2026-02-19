@@ -50,7 +50,8 @@ export const DashboardLayout = () => {
 
   // Desktop Layout - Existing sidebar layout
   return (
-    <div className={cn("flex h-screen overflow-hidden bg-background", isRTL && "flex-row-reverse")}>
+    <div dir={isRTL ? "rtl" : "ltr"} className={cn("flex h-screen overflow-hidden bg-background", isRTL && "flex-row-reverse")}>
+
       {/* Desktop Sidebar */}
       <div className="hidden lg:block relative">
         <DynamicSidebar 
