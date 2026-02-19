@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "@/lib/i18n";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +18,7 @@ import { PageHeader } from "@/components/PageHeader";
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
 
 export default function EmployeePerformanceReport() {
+  const { t } = useTranslation();
   const [startDate, setStartDate] = useState(startOfMonth(new Date()));
   const [endDate, setEndDate] = useState(endOfMonth(new Date()));
   const [departmentId, setDepartmentId] = useState("all");
@@ -79,7 +81,7 @@ export default function EmployeePerformanceReport() {
         title="Employee Performance Report"
         description="Attendance rates, punctuality, and productivity metrics"
         breadcrumbs={[
-          { label: "HR", href: "/app/hr" },
+          { label: t('nav.hr' as any), href: "/app/hr" },
           { label: "Reports", href: "/app/hr/reports" },
           { label: "Performance" },
         ]}

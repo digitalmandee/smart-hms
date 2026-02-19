@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useTranslation } from "@/lib/i18n";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ const MONTHS = [
 ];
 
 export default function PayslipsPage() {
+  const { t } = useTranslation();
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
   const [selectedRun, setSelectedRun] = useState<any>(null);
@@ -140,7 +142,7 @@ export default function PayslipsPage() {
         title="Payslips"
         description="View and print employee payslips"
         breadcrumbs={[
-          { label: "HR", href: "/app/hr" },
+          { label: t('nav.hr' as any), href: "/app/hr" },
           { label: "Payroll", href: "/app/hr/payroll" },
           { label: "Payslips" },
         ]}

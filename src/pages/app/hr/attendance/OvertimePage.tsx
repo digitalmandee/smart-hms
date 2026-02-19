@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "@/lib/i18n";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +16,7 @@ import { format, startOfMonth, endOfMonth } from "date-fns";
 import { formatCurrency } from "@/lib/currency";
 
 export default function OvertimePage() {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState<string>("all");
   const [selectedMonth, setSelectedMonth] = useState(() => format(new Date(), "yyyy-MM"));
@@ -73,7 +75,7 @@ export default function OvertimePage() {
       <PageHeader
         title="Overtime Management"
         breadcrumbs={[
-          { label: "HR", href: "/app/hr" },
+          { label: t('nav.hr' as any), href: "/app/hr" },
           { label: "Attendance", href: "/app/hr/attendance" },
           { label: "Overtime" }
         ]}

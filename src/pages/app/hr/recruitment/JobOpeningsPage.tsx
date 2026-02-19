@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "@/lib/i18n";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
@@ -29,6 +30,7 @@ const EMPLOYMENT_TYPES = [
 ];
 
 export default function JobOpeningsPage() {
+  const { t } = useTranslation();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingJob, setEditingJob] = useState<any>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -134,7 +136,7 @@ export default function JobOpeningsPage() {
         title="Job Openings"
         description="Manage open positions and recruitment"
         breadcrumbs={[
-          { label: "HR", href: "/app/hr" },
+          { label: t('nav.hr' as any), href: "/app/hr" },
           { label: "Recruitment", href: "/app/hr/recruitment" },
           { label: "Job Openings" },
         ]}

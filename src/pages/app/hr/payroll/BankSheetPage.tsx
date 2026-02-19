@@ -134,7 +134,7 @@ export default function BankSheetPage() {
         title="Bank Transfer Sheets"
         description="Download bank transfer files for completed payroll runs"
         breadcrumbs={[
-          { label: "HR", href: "/app/hr" },
+          { label: t('nav.hr' as any), href: "/app/hr" },
           { label: "Payroll", href: "/app/hr/payroll" },
           { label: "Bank Sheets" },
         ]}

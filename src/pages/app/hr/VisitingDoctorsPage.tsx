@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "@/lib/i18n";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,7 @@ import { useDoctorCompensationPlans } from "@/hooks/useDoctorCompensation";
 import { Search, Plus, Stethoscope, DollarSign, Calendar, Clock } from "lucide-react";
 
 export default function VisitingDoctorsPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -49,7 +51,7 @@ export default function VisitingDoctorsPage() {
         title="Visiting Doctors"
         description="Manage visiting consultants and their compensation plans"
         breadcrumbs={[
-          { label: "HR", href: "/app/hr" },
+          { label: t('nav.hr' as any), href: "/app/hr" },
           { label: "Employees" },
           { label: "Visiting Doctors" },
         ]}

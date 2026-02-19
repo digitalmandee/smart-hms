@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "@/lib/i18n";
 import { format } from "date-fns";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,7 @@ import { useEmployees, useDepartments } from "@/hooks/useHR";
 import { Loader2, Search, Clock, Users, UserCheck, UserX, CalendarDays } from "lucide-react";
 
 export default function AttendancePage() {
+  const { t } = useTranslation();
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [search, setSearch] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState<string>("all");
@@ -56,7 +58,7 @@ export default function AttendancePage() {
         title="Daily Attendance"
         description={`Attendance for ${format(selectedDate, "EEEE, MMMM d, yyyy")}`}
         breadcrumbs={[
-          { label: "HR", href: "/app/hr" },
+          { label: t('nav.hr' as any), href: "/app/hr" },
           { label: "Attendance" },
         ]}
       />

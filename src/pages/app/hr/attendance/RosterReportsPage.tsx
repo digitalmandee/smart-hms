@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "@/lib/i18n";
 import { format, startOfMonth, endOfMonth, subMonths } from "date-fns";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,7 @@ import {
 type ReportType = "shift-distribution" | "coverage-gaps" | "overtime" | "department-summary" | "on-call-frequency";
 
 export default function RosterReportsPage() {
+  const { t } = useTranslation();
   const { profile } = useAuth();
   const [selectedReport, setSelectedReport] = useState<ReportType>("shift-distribution");
   const [selectedMonth, setSelectedMonth] = useState(() => format(new Date(), "yyyy-MM"));
@@ -119,7 +121,7 @@ export default function RosterReportsPage() {
         title="Roster Reports"
         description="Analyze roster data and identify patterns"
         breadcrumbs={[
-          { label: "HR", href: "/app/hr" },
+          { label: t('nav.hr' as any), href: "/app/hr" },
           { label: "Attendance", href: "/app/hr/attendance" },
           { label: "Roster Reports" },
         ]}

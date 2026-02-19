@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "@/lib/i18n";
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,7 @@ import {
 } from "lucide-react";
 
 export default function DoctorsListPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { data: doctors, isLoading } = useAllDoctors();
   const { data: branches } = useBranches();
@@ -71,7 +73,7 @@ export default function DoctorsListPage() {
         title="Doctors"
         description="Manage doctor employees and clinical staff"
         breadcrumbs={[
-          { label: "HR", href: "/app/hr" },
+          { label: t('nav.hr' as any), href: "/app/hr" },
           { label: "Doctors" },
         ]}
         actions={

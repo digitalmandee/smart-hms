@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "@/lib/i18n";
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,7 @@ import {
 } from "lucide-react";
 
 export default function NursesListPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedWard, setSelectedWard] = useState<string>("");
@@ -53,7 +55,7 @@ export default function NursesListPage() {
         title="Nursing Staff"
         description="Manage nurses and nursing assignments"
         breadcrumbs={[
-          { label: "HR", href: "/app/hr" },
+          { label: t('nav.hr' as any), href: "/app/hr" },
           { label: "Nursing Staff" },
         ]}
         actions={

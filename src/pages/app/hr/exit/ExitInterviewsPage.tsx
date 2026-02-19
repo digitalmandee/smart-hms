@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "@/lib/i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -30,6 +31,7 @@ const REASONS = [
 ];
 
 export default function ExitInterviewsPage() {
+  const { t } = useTranslation();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedResignation, setSelectedResignation] = useState<string>("");
 
@@ -111,7 +113,7 @@ export default function ExitInterviewsPage() {
         title="Exit Interviews"
         description="Conduct and track exit interviews for departing employees"
         breadcrumbs={[
-          { label: "HR", href: "/app/hr" },
+          { label: t('nav.hr' as any), href: "/app/hr" },
           { label: "Exit Management" },
           { label: "Exit Interviews" },
         ]}

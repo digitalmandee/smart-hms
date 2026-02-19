@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "@/lib/i18n";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -41,6 +42,7 @@ interface DoctorBalance {
 }
 
 export default function DoctorWalletBalancesPage() {
+  const { t } = useTranslation();
   const { profile } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedBalance, setSelectedBalance] = useState<DoctorBalance | null>(null);
@@ -180,7 +182,7 @@ export default function DoctorWalletBalancesPage() {
         title="Doctor Wallet Balances"
         description="View and manage pending commission payments for all doctors"
         breadcrumbs={[
-          { label: "HR", href: "/app/hr" },
+          { label: t('nav.hr' as any), href: "/app/hr" },
           { label: "Payroll", href: "/app/hr/payroll" },
           { label: "Wallet Balances" },
         ]}

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "@/lib/i18n";
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -45,6 +46,7 @@ import { format, parseISO, differenceInDays } from "date-fns";
 import { exportToCSV, formatDate } from "@/lib/exportUtils";
 
 export default function MedicalLicensesPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [licenseTypeFilter, setLicenseTypeFilter] = useState<string>("all");
@@ -165,7 +167,7 @@ export default function MedicalLicensesPage() {
         title="Medical Licenses & Certifications"
         description="Track professional licenses and certifications across your organization"
         breadcrumbs={[
-          { label: "HR", href: "/app/hr" },
+          { label: t('nav.hr' as any), href: "/app/hr" },
           { label: "Compliance", href: "/app/hr/compliance" },
           { label: "Medical Licenses" },
         ]}

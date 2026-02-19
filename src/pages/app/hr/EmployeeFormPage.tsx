@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "@/lib/i18n";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -101,6 +102,7 @@ const DOCTOR_CATEGORIES = ["doctor", "physician", "consultant", "specialist"];
 const NURSE_CATEGORIES = ["nurse", "nursing", "rn", "lpn", "head nurse", "charge nurse"];
 
 export default function EmployeeFormPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams();
   const [searchParams] = useSearchParams();
@@ -450,7 +452,7 @@ export default function EmployeeFormPage() {
         title={isEditing ? "Edit Employee" : "Add New Employee"}
         description={isEditing ? "Update employee information" : "Register a new staff member"}
         breadcrumbs={[
-          { label: "HR", href: "/app/hr" },
+          { label: t('nav.hr' as any), href: "/app/hr" },
           { label: "Employees", href: "/app/hr/employees" },
           { label: isEditing ? "Edit" : "New" },
         ]}
