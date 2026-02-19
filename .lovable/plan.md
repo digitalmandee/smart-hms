@@ -1,143 +1,143 @@
 
 
-# Deep RTL & Translation Fix — Sidebar, Global Direction, and Full Coverage
+# Complete RTL Sidebar Fix, Toast Translation & Breadcrumb Coverage
 
-## Problem Summary
+## Issues Identified from Screenshot
 
-Looking at the screenshot, three core issues are visible:
+### 1. Sidebar Items Still LTR (CRITICAL)
+The sidebar menu items show icons on the LEFT and chevrons on the RIGHT even in Arabic. The `RTLDirectionSetter` correctly sets `dir="rtl"` on `<html>`, and the `SheetContent` portal should inherit it. However, the `SheetContent` component uses Radix Dialog portal which renders at `document.body`. Since `<html>` has `dir="rtl"`, the portal SHOULD inherit it.
 
-1. **Sidebar icons are on the LEFT, text in the middle, chevrons on the RIGHT** -- this is LTR layout forced into Arabic text. In a proper RTL sidebar, icons should start from the RIGHT edge, with chevrons on the LEFT.
-2. **The `dir` attribute is only set on wrapper `<div>` elements**, not on the `<html>` root. This means all portal-based components (dropdowns, modals, tooltips) render in LTR even in Arabic/Urdu.
-3. **The MobileSideMenu does NOT translate menu items at all** -- it renders raw English `item.name` values without using the `SIDEBAR_NAME_TO_KEY` translation map. Role labels (e.g., "Receptionist") are also hardcoded English.
+**Root cause investigation needed:** The `SheetContent` in `MobileSideMenu` needs an explicit `dir` attribute to guarantee RTL in the portal context. Add `dir={isRTL ? "rtl" : "ltr"}` to the `SheetContent` element.
 
----
+Additionally, the close button in `sheet.tsx` uses hardcoded `right-4` positioning instead of logical `end-4`.
 
-## Root Causes
+### 2. Date Still Shows "Friday, Fe..." in English
+The `ModernPageHeader` uses `arLocale` (Arabic locale from date-fns) for Urdu too, but the format pattern `"EEEE, MMMM d, yyyy"` with `arLocale` should output Arabic day names. The screenshot shows partial English which may be a rendering/truncation issue, but we should also add Urdu date locale support.
 
-### 1. No global `dir` on `<html>` element
-The planned `useDocumentDirection` hook was never created. Without `document.documentElement.dir = "rtl"`, the browser treats the entire page as LTR. Only the wrapper div inside DashboardLayout has `dir="rtl"`, which does NOT affect:
-- Radix UI portals (Select, Dialog, Popover, Toast)
-- Browser scrollbar position
-- Input text direction by default
+### 3. Toast Messages — 888 Hardcoded English Strings
+Found ~888 `toast.success()` / `toast.error()` calls across 61 files with hardcoded English strings like:
+- "Dashboard refreshed"
+- "Device updated successfully"
+- "Failed to save device"
+- "Please select employee and date"
 
-### 2. Desktop layout uses `flex-row-reverse` hack
-Line 53 of `DashboardLayout.tsx`:
-```
-className={cn("flex h-screen ...", isRTL && "flex-row-reverse")}
-```
-This is a hack. When `dir="rtl"` is properly applied at the HTML level, flexbox automatically reverses -- no `flex-row-reverse` needed. The hack causes double-reversal issues in some nested components.
+These need to use `getTranslatedString()` (the non-hook utility) since many are in async callbacks outside React render context.
 
-### 3. MobileSideMenu renders untranslated names
-`MobileSideMenu.tsx` line 324: `<span>{item.name}</span>` -- renders raw English sidebar item names. The `SIDEBAR_NAME_TO_KEY` translation map from `DynamicSidebar.tsx` is not imported or used here.
+### 4. Breadcrumbs — 40+ HR Files Still Hardcoded
+40 HR files still have `label: "HR"` instead of `label: t('nav.hr')`. Plus:
+- 2 Lab files with `label: "Lab"`
+- 1 Billing file with `label: "Billing"`
 
-### 4. Role labels are hardcoded English
-`ROLE_LABELS` in `src/constants/roles.ts` has entries like `receptionist: "Receptionist"`. The MobileSideMenu shows this directly at line 421: `const roleLabel = ROLE_LABELS[primaryRole]`.
+### 5. Form Fields, Placeholders, Select Options Still English
+Many form pages beyond PatientFormPage still have hardcoded English labels, placeholders, and select options (gender values, blood groups, marital status labels, etc.).
 
 ---
 
 ## Implementation Plan
 
-### Step 1: Create `useDocumentDirection` hook (NEW FILE)
+### Phase 1: Fix Sidebar RTL in Portal (HIGH PRIORITY)
 
-Create `src/hooks/useDocumentDirection.ts` that sets `document.documentElement.dir` and `document.documentElement.lang` based on the current language. This is the W3C standard approach.
+**File: `src/components/mobile/MobileSideMenu.tsx`**
+- Add `dir={isRTL ? "rtl" : "ltr"}` to `<SheetContent>` element to force RTL inside the portal
 
-### Step 2: Wire the hook in App.tsx
+**File: `src/components/ui/sheet.tsx`**
+- Change `right-4` on close button to `end-4` (logical property for RTL)
 
-Add a small wrapper component inside `CountryConfigProvider` that calls `useDocumentDirection()` once at the app root. This ensures ALL components (including portals) inherit RTL direction.
+### Phase 2: Add Common Toast Translation Keys
 
-### Step 3: Clean up DashboardLayout.tsx
-
-- Remove the `flex-row-reverse` hack from desktop layout (line 53) -- `dir="rtl"` on `<html>` handles this automatically
-- Keep the `dir` attributes on wrappers as a safety net but they become redundant
-
-### Step 4: Add translation to MobileSideMenu
-
-Import `SIDEBAR_NAME_TO_KEY` from `DynamicSidebar.tsx` (export it first), then wrap all `item.name` renders with the translation lookup:
+**Files: `en.ts`, `ar.ts`, `ur.ts`**
+Add ~30 common toast message keys:
 ```
-const displayName = SIDEBAR_NAME_TO_KEY[item.name] 
-  ? t(SIDEBAR_NAME_TO_KEY[item.name]) 
-  : item.name;
+"toast.saved"              -> Saved successfully / تم الحفظ بنجاح / کامیابی سے محفوظ
+"toast.deleted"            -> Deleted successfully / تم الحذف بنجاح / کامیابی سے حذف
+"toast.updated"            -> Updated successfully / تم التحديث بنجاح / کامیابی سے اپڈیٹ
+"toast.created"            -> Created successfully / تم الإنشاء بنجاح / کامیابی سے بنایا گیا
+"toast.error"              -> An error occurred / حدث خطأ / ایک خرابی ہوئی
+"toast.saveFailed"         -> Failed to save / فشل في الحفظ / محفوظ کرنے میں ناکام
+"toast.deleteFailed"       -> Failed to delete / فشل في الحذف / حذف کرنے میں ناکام
+"toast.updateFailed"       -> Failed to update / فشل في التحديث / اپڈیٹ کرنے میں ناکام
+"toast.fillRequired"       -> Please fill required fields / يرجى ملء الحقول المطلوبة / براہ کرم ضروری خانے بھریں
+"toast.refreshed"          -> Refreshed / تم التحديث / ریفریش ہوگیا
+"toast.refreshFailed"      -> Failed to refresh / فشل في التحديث / ریفریش ناکام
+"toast.selectRequired"     -> Please select required items / يرجى اختيار العناصر المطلوبة / براہ کرم مطلوبہ آئٹمز منتخب کریں
+"toast.copied"             -> Copied to clipboard / تم النسخ / کاپی ہوگیا
+"toast.submitted"          -> Submitted successfully / تم الإرسال بنجاح / کامیابی سے جمع
+"toast.approved"           -> Approved successfully / تم الموافقة بنجاح / کامیابی سے منظور
+"toast.rejected"           -> Rejected / تم الرفض / مسترد
+"toast.cancelled"          -> Cancelled / تم الإلغاء / منسوخ
+"toast.deviceAdded"        -> Device added / تمت إضافة الجهاز / ڈیوائس شامل
+"toast.deviceDeleted"      -> Device deleted / تم حذف الجهاز / ڈیوائس حذف
+"toast.entryAdded"         -> Entry added / تمت الإضافة / اندراج شامل
+"toast.loginRequired"      -> Please log in / يرجى تسجيل الدخول / براہ کرم لاگ ان کریں
+"toast.noPermission"       -> You don't have permission / ليس لديك صلاحية / آپ کو اجازت نہیں
+"toast.networkError"       -> Network error / خطأ في الشبكة / نیٹ ورک خرابی
+"toast.invalidData"        -> Invalid data / بيانات غير صالحة / غلط ڈیٹا
+"toast.statusUpdated"      -> Status updated / تم تحديث الحالة / حالت اپڈیٹ
+"toast.reasonRequired"     -> Please provide a reason / يرجى تقديم السبب / براہ کرم وجہ بتائیں
 ```
 
-This needs to be done in the `MobileMenuItem` component (lines 293-373) for both parent and leaf items.
+### Phase 3: Wire Toast Messages in Key Pages
 
-### Step 5: Translate role labels
+Replace hardcoded toast strings with `getTranslatedString()` in the most-used pages first:
+- `DashboardPage.tsx`
+- `BiometricDevicesPage.tsx`
+- `OTMedicationChargesPage.tsx`
+- `PublishRosterPage.tsx`
+- `ReportTemplatesPage.tsx`
+- `CategoriesPage.tsx` (inventory)
+- `GRNFormPage.tsx`
 
-Add translation keys for all role labels (`role.receptionist`, `role.doctor`, `role.nurse`, etc.) to all three language files, and use `t()` in `MobileSideMenu` instead of raw `ROLE_LABELS`.
+Pattern:
+```tsx
+// Before
+toast.success("Device updated successfully");
+// After
+toast.success(getTranslatedString("toast.updated"));
+```
 
-### Step 6: Fix user profile name display
+### Phase 4: Fix Breadcrumbs in 40+ HR Files
 
-The username "Usman Ali Shah" and email shown in the sidebar are database values (not translatable), but the role label beneath it needs translation.
+All 40 HR files need `label: "HR"` replaced with `label: t('nav.hr' as any)`. Each file needs:
+1. Import `useTranslation` (if not already imported)
+2. Add `const { t } = useTranslation();` (if not already present)
+3. Replace `label: "HR"` with `label: t('nav.hr' as any)`
+
+**HR files (40):** PayrollRunDetailPage, OvertimePage, LeaveBalancesPage, ParamedicalStaffPage, LeavesPage, AttendancePage, ApplicationsPage, OnCallSchedulePage, ExitInterviewsPage, EmployeePerformanceReport, SettlementsPage, EmergencyRosterPage, ClearancePage, LoansAdvancesPage, ResignationsPage, ProcessPayrollPage, DoctorsListPage, NursesListPage, SupportStaffPage, VisitingDoctorsPage, EmployeesListPage, EmployeeFormPage, DutyRosterPage, OTDutyRosterPage, PublishRosterPage, RosterReportsPage, AttendanceReportsPage, BiometricDevicesPage, HRReportsPage, DepartmentsPage, DesignationsPage, EmployeeCategoriesPage, ShiftsPage, LeaveTypesPage, HolidaysPage, SalaryComponentsPage, TaxSlabsPage, ComplianceDashboardPage, MedicalFitnessPage, VaccinationsPage, DisciplinaryPage, MedicalLicensesPage, EmployeeDocumentsPage, JobOpeningsPage, PayslipsPage, PayrollReportsPage, BankSheetPage, DoctorWalletBalancesPage, DailyCommissionReport, DoctorCompensationPage, DoctorEarningsPage, EmployeeSalariesPage
+
+**Lab files (1):** LabTestTemplateFormPage — `label: "Lab"` to `label: t('nav.lab' as any)`
+
+**Billing files (1):** InsuranceCompaniesPage — `label: "Billing"` to `label: t('nav.billing' as any)`
+
+### Phase 5: Date Locale for Urdu
+
+Currently `ModernPageHeader` falls back to `arLocale` for Urdu. This shows Arabic numerals/month names rather than Urdu. Since date-fns doesn't have a native Urdu locale, `arLocale` is the closest match and acceptable for now.
 
 ---
 
 ## Files to Change
 
-| File | Action | Details |
-|------|--------|---------|
-| `src/hooks/useDocumentDirection.ts` | NEW | Sets `document.documentElement.dir` and `.lang` reactively |
-| `src/App.tsx` | EDIT | Add `useDocumentDirection()` call inside a wrapper component |
-| `src/layouts/DashboardLayout.tsx` | EDIT | Remove `flex-row-reverse` hack, keep `dir` on wrappers |
-| `src/components/DynamicSidebar.tsx` | EDIT | Export `SIDEBAR_NAME_TO_KEY` so MobileSideMenu can use it |
-| `src/components/mobile/MobileSideMenu.tsx` | EDIT | Import and use `SIDEBAR_NAME_TO_KEY` + `useTranslation` for all menu items; translate role label |
-| `src/lib/i18n/translations/en.ts` | EDIT | Add ~20 role label keys (`role.superAdmin`, `role.doctor`, etc.) |
-| `src/lib/i18n/translations/ar.ts` | EDIT | Arabic role labels |
-| `src/lib/i18n/translations/ur.ts` | EDIT | Urdu role labels |
+| File | Action |
+|------|--------|
+| `src/components/mobile/MobileSideMenu.tsx` | Add `dir` to SheetContent |
+| `src/components/ui/sheet.tsx` | `right-4` to `end-4` on close button |
+| `src/lib/i18n/translations/en.ts` | Add ~26 toast keys |
+| `src/lib/i18n/translations/ar.ts` | Arabic toast translations |
+| `src/lib/i18n/translations/ur.ts` | Urdu toast translations |
+| 40+ HR page files | Replace `label: "HR"` with `t('nav.hr')` |
+| `src/pages/app/lab/LabTestTemplateFormPage.tsx` | Replace `label: "Lab"` with `t('nav.lab')` |
+| `src/pages/app/billing/InsuranceCompaniesPage.tsx` | Replace `label: "Billing"` with `t('nav.billing')` |
+| 7+ high-traffic pages | Replace hardcoded toast strings with `getTranslatedString()` |
 
 ---
 
-## New Translation Keys
+## Expected Outcome
 
-```
-"role.superAdmin"         -> Super Admin / مدير النظام / سپر ایڈمن
-"role.orgAdmin"           -> Organization Admin / مدير المنظمة / تنظیم ایڈمن
-"role.branchAdmin"        -> Branch Admin / مدير الفرع / برانچ ایڈمن
-"role.doctor"             -> Doctor / طبيب / ڈاکٹر
-"role.surgeon"            -> Surgeon / جراح / سرجن
-"role.anesthetist"        -> Anesthetist / طبيب تخدير / اینستھیٹسٹ
-"role.nurse"              -> Nurse / ممرضة / نرس
-"role.opdNurse"           -> OPD Nurse / ممرضة العيادات / او پی ڈی نرس
-"role.ipdNurse"           -> IPD Nurse / ممرضة الداخلي / آئی پی ڈی نرس
-"role.otNurse"            -> OT Nurse / ممرضة العمليات / او ٹی نرس
-"role.receptionist"       -> Receptionist / موظف الاستقبال / ریسپشنسٹ
-"role.pharmacist"         -> Pharmacist / صيدلي / فارماسسٹ
-"role.otPharmacist"       -> OT Pharmacist / صيدلي العمليات / او ٹی فارماسسٹ
-"role.labTechnician"      -> Lab Technician / فني المختبر / لیب ٹیکنیشن
-"role.radiologist"        -> Radiologist / أخصائي أشعة / ریڈیالوجسٹ
-"role.radiologyTechnician"-> Radiology Technician / فني الأشعة / ریڈیالوجی ٹیکنیشن
-"role.bloodBankTechnician"-> Blood Bank Technician / فني بنك الدم / بلڈ بینک ٹیکنیشن
-"role.accountant"         -> Accountant / محاسب / اکاؤنٹنٹ
-"role.financeManager"     -> Finance Manager / مدير المالية / فنانس مینیجر
-"role.hrManager"          -> HR Manager / مدير الموارد البشرية / ایچ آر مینیجر
-"role.hrOfficer"          -> HR Officer / مسؤول الموارد البشرية / ایچ آر آفیسر
-"role.storeManager"       -> Store Manager / مدير المخزن / اسٹور مینیجر
-"role.otTechnician"       -> OT Technician / فني العمليات / او ٹی ٹیکنیشن
-```
-
----
-
-## How the Sidebar Will Work After Fix
-
-1. `<html dir="rtl">` is set globally when Arabic/Urdu is active
-2. The sidebar `<aside>` naturally flows from RIGHT edge because of inherited `dir="rtl"`
-3. `justify-start` on buttons means items start from the RIGHT (start edge in RTL)
-4. Icon appears on RIGHT, then text, then chevron on LEFT -- proper native RTL
-5. `ps-3`, `ps-8`, `ps-12` indentation automatically becomes right-padding in RTL
-6. No `flex-row-reverse` hack needed -- flexbox handles it natively
-7. All portal-based dropdowns (Select, Dialog) render RTL because `<html>` has `dir="rtl"`
-
----
-
-## Expected Visual Outcome
-
-| Element | Before (broken) | After (fixed) |
-|---------|-----------------|---------------|
-| Sidebar icons | Left side (LTR) | Right side (RTL native) |
-| Sidebar chevrons | Right side | Left side |
-| Menu item text | Left-aligned | Right-aligned (native) |
-| Dropdown portals | LTR always | RTL when Arabic/Urdu |
-| Role label "Receptionist" | English always | Arabic/Urdu translated |
-| Mobile sidebar items | English always | Fully translated |
-| Input text direction | LTR | RTL native |
-| Browser scrollbar | Right side | Left side in RTL |
+| Area | Before | After |
+|------|--------|-------|
+| Sidebar menu items in Arabic | Icons LEFT, chevrons RIGHT (LTR) | Icons RIGHT, chevrons LEFT (native RTL) |
+| Sheet close button | Fixed `right-4` | Logical `end-4` |
+| Toast "Device updated" | English always | Arabic/Urdu translated |
+| Toast "Failed to save" | English always | Arabic/Urdu translated |
+| 40 HR breadcrumbs "HR" | English always | Translated |
+| Lab/Billing breadcrumbs | English always | Translated |
 
