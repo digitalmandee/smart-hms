@@ -1229,6 +1229,31 @@ export const en = {
   "patient.completionLabel": "Complete",
   "patient.saveChanges": "Save Changes",
 
+  // Role labels
+  "role.superAdmin": "Super Admin",
+  "role.orgAdmin": "Organization Admin",
+  "role.branchAdmin": "Branch Admin",
+  "role.doctor": "Doctor",
+  "role.surgeon": "Surgeon",
+  "role.anesthetist": "Anesthetist",
+  "role.nurse": "Nurse",
+  "role.opdNurse": "OPD Nurse",
+  "role.ipdNurse": "IPD Nurse",
+  "role.otNurse": "OT Nurse",
+  "role.receptionist": "Receptionist",
+  "role.pharmacist": "Pharmacist",
+  "role.otPharmacist": "OT Pharmacist",
+  "role.labTechnician": "Lab Technician",
+  "role.radiologist": "Radiologist",
+  "role.radiologyTechnician": "Radiology Technician",
+  "role.bloodBankTechnician": "Blood Bank Technician",
+  "role.accountant": "Accountant",
+  "role.financeManager": "Finance Manager",
+  "role.hrManager": "HR Manager",
+  "role.hrOfficer": "HR Officer",
+  "role.storeManager": "Store Manager",
+  "role.otTechnician": "OT Technician",
+
 } as const;
 
 export type TranslationKey = keyof typeof en;

@@ -160,7 +160,7 @@ import { useTranslation, useIsRTL } from "@/lib/i18n";
 import type { TranslationKey } from "@/lib/i18n";
 
 // Maps hardcoded sidebar names → translation keys
-const SIDEBAR_NAME_TO_KEY: Record<string, TranslationKey> = {
+export const SIDEBAR_NAME_TO_KEY: Record<string, TranslationKey> = {
   // Core navigation
   "Dashboard": "nav.dashboard",
   "Patients": "nav.patients",

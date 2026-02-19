@@ -1229,6 +1229,31 @@ export const ar: Record<TranslationKey, string> = {
   "patient.new": "جديد",
   "patient.completionLabel": "مكتمل",
   "patient.saveChanges": "حفظ التغييرات",
+
+  // Role labels
+  "role.superAdmin": "مدير النظام",
+  "role.orgAdmin": "مدير المنظمة",
+  "role.branchAdmin": "مدير الفرع",
+  "role.doctor": "طبيب",
+  "role.surgeon": "جراح",
+  "role.anesthetist": "طبيب تخدير",
+  "role.nurse": "ممرضة",
+  "role.opdNurse": "ممرضة العيادات",
+  "role.ipdNurse": "ممرضة الداخلي",
+  "role.otNurse": "ممرضة العمليات",
+  "role.receptionist": "موظف الاستقبال",
+  "role.pharmacist": "صيدلي",
+  "role.otPharmacist": "صيدلي العمليات",
+  "role.labTechnician": "فني المختبر",
+  "role.radiologist": "أخصائي أشعة",
+  "role.radiologyTechnician": "فني الأشعة",
+  "role.bloodBankTechnician": "فني بنك الدم",
+  "role.accountant": "محاسب",
+  "role.financeManager": "مدير المالية",
+  "role.hrManager": "مدير الموارد البشرية",
+  "role.hrOfficer": "مسؤول الموارد البشرية",
+  "role.storeManager": "مدير المخزن",
+  "role.otTechnician": "فني العمليات",
 };
 
 
