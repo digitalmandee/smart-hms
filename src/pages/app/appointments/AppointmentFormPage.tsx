@@ -37,6 +37,8 @@ import { PaymentMethodSelector } from '@/components/billing/PaymentMethodSelecto
 import { PrintableTokenSlip } from '@/components/clinic/PrintableTokenSlip';
 import { usePrint } from '@/hooks/usePrint';
 import { Clock, Users, CheckCircle, Printer, Banknote } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
+
 
 const appointmentSchema = z.object({
   patient_id: z.string().min(1, 'Please select a patient'),
@@ -66,7 +68,9 @@ export default function AppointmentFormPage() {
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const { profile } = useAuth();
+  const { t } = useTranslation();
   const isEditing = !!id;
+
 
   // Pre-fill from URL params (from calendar click)
   const prefillDate = searchParams.get('date');
@@ -355,12 +359,12 @@ export default function AppointmentFormPage() {
     return (
       <div className="space-y-6">
         <PageHeader
-          title="Token Generated"
-          description={completedData.isPaid ? "Appointment created and payment recorded" : "Appointment created - Payment pending"}
+          title={t('apptForm.tokenGenerated')}
+          description={completedData.isPaid ? t('apptForm.appointmentCreatedPaid') : t('apptForm.appointmentPending')}
           breadcrumbs={[
-            { label: 'Dashboard', href: '/app' },
-            { label: 'Appointments', href: '/app/appointments' },
-            { label: 'Success' },
+            { label: t('nav.dashboard'), href: '/app' },
+            { label: t('nav.appointments'), href: '/app/appointments' },
+            { label: t('apptForm.success') },
           ]}
         />
 
@@ -369,7 +373,7 @@ export default function AppointmentFormPage() {
             <CheckCircle className="h-16 w-16 text-primary mx-auto" />
             
             <div>
-              <p className="text-sm text-muted-foreground mb-2">Token Number</p>
+              <p className="text-sm text-muted-foreground mb-2">{t('apptForm.tokenNumber')}</p>
               <div className="text-6xl font-bold text-primary">#{completedData.tokenNumber}</div>
             </div>
 
@@ -379,52 +383,52 @@ export default function AppointmentFormPage() {
                 ? 'bg-primary/10 text-primary' 
                 : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
             }`}>
-              {completedData.isPaid ? 'Paid' : 'Payment Pending'}
+              {completedData.isPaid ? t('apptForm.paid') : t('apptForm.paymentPending')}
             </div>
 
             <div className="border-t pt-4 space-y-2 text-sm">
               {completedData.isPaid && completedData.invoiceNumber && (
                 <>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Invoice:</span>
+                    <span className="text-muted-foreground">{t('apptForm.invoice')}</span>
                     <span className="font-mono font-medium">{completedData.invoiceNumber}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Amount Paid:</span>
+                    <span className="text-muted-foreground">{t('apptForm.amountPaid')}</span>
                     <span className="font-semibold">Rs. {completedData.amountPaid?.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Payment Method:</span>
+                    <span className="text-muted-foreground">{t('apptForm.paymentMethodLabel')}</span>
                     <span>{completedData.paymentMethodName}</span>
                   </div>
                 </>
               )}
               {!completedData.isPaid && (
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Consultation Fee:</span>
-                  <span className="font-semibold text-amber-600">Rs. {consultationFee.toLocaleString()} (Due)</span>
+                  <span className="text-muted-foreground">{t('apptForm.consultationFee')}</span>
+                  <span className="font-semibold text-amber-600">Rs. {consultationFee.toLocaleString()} ({t('apptForm.dueLabel')})</span>
                 </div>
               )}
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Patient:</span>
+                <span className="text-muted-foreground">{t('apptForm.patientLabel')}</span>
                 <span>{selectedPatient?.full_name || selectedPatient?.first_name}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Doctor:</span>
+                <span className="text-muted-foreground">{t('apptForm.doctorLabel')}</span>
                 <span>Dr. {selectedDoctor?.profile?.full_name}</span>
               </div>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
               <Button onClick={() => handlePrint({ title: 'Token Slip' })}>
-                <Printer className="mr-2 h-4 w-4" />
-                Print Token
+                <Printer className="me-2 h-4 w-4" />
+                {t('apptForm.printToken')}
               </Button>
               <Button variant="outline" onClick={() => navigate('/app/appointments')}>
-                Back to Appointments
+                {t('apptForm.backToAppointments')}
               </Button>
               <Button variant="ghost" onClick={resetForm}>
-                New Appointment
+                {t('apptForm.newAppointment')}
               </Button>
             </div>
           </CardContent>
@@ -461,17 +465,18 @@ export default function AppointmentFormPage() {
     );
   }
 
+
   // Payment step for walk-in/emergency
   if (showPaymentStep && pendingFormData) {
     return (
       <div className="space-y-6">
         <PageHeader
-          title="Collect Payment"
-          description="Collect consultation fee before generating token"
+          title={t('apptForm.collectPayment')}
+          description={t('apptForm.collectDesc')}
           breadcrumbs={[
-            { label: 'Dashboard', href: '/app' },
-            { label: 'Appointments', href: '/app/appointments' },
-            { label: 'Payment' },
+            { label: t('nav.dashboard'), href: '/app' },
+            { label: t('nav.appointments'), href: '/app/appointments' },
+            { label: t('apptForm.payment') },
           ]}
         />
 
@@ -481,32 +486,32 @@ export default function AppointmentFormPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Banknote className="h-5 w-5" />
-                Payment Summary
+                {t('apptForm.paymentSummary')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Patient:</span>
+                  <span className="text-muted-foreground">{t('apptForm.patientLabel')}</span>
                   <span className="font-medium">{selectedPatient?.full_name || selectedPatient?.first_name}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Doctor:</span>
+                  <span className="text-muted-foreground">{t('apptForm.doctorLabel')}</span>
                   <span>Dr. {selectedDoctor?.profile?.full_name}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Specialty:</span>
+                  <span className="text-muted-foreground">{t('apptForm.specialty')}</span>
                   <span>{selectedDoctor?.specialization || 'General'}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Type:</span>
+                  <span className="text-muted-foreground">{t('apptForm.type')}</span>
                   <span className="capitalize">{pendingFormData.appointment_type.replace('_', ' ')}</span>
                 </div>
               </div>
 
               <div className="border-t pt-4">
                 <div className="flex justify-between text-lg font-semibold">
-                  <span>Consultation Fee</span>
+                  <span>{t('apptForm.consultationFee')}</span>
                   <span className="text-primary">Rs. {consultationFee.toLocaleString()}</span>
                 </div>
               </div>
@@ -516,11 +521,11 @@ export default function AppointmentFormPage() {
           {/* Payment Method Card */}
           <Card>
             <CardHeader>
-              <CardTitle>Payment Method</CardTitle>
+              <CardTitle>{t('apptForm.paymentMethod')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Select Payment Method</label>
+                <label className="text-sm font-medium">{t('apptForm.selectPaymentMethod')}</label>
                 <PaymentMethodSelector
                   value={paymentMethodId}
                   onValueChange={setPaymentMethodId}
@@ -528,9 +533,9 @@ export default function AppointmentFormPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">Reference Number (Optional)</label>
+                <label className="text-sm font-medium">{t('apptForm.referenceNumber')}</label>
                 <Input
-                  placeholder="Transaction ID or reference..."
+                  placeholder={t('apptForm.referencePlaceholder')}
                   value={referenceNumber}
                   onChange={(e) => setReferenceNumber(e.target.value)}
                 />
@@ -549,14 +554,14 @@ export default function AppointmentFormPage() {
                   setPendingFormData(null);
                 }}
               >
-                Back
+                {t('common.back')}
               </Button>
               <Button
                 onClick={handlePaymentAndCreate}
                 disabled={!paymentMethodId || isProcessing}
                 className="flex-1"
               >
-                {isProcessing ? 'Processing...' : `Collect Rs. ${consultationFee.toLocaleString()} & Generate Token`}
+                {isProcessing ? t('apptForm.processing') : `Collect Rs. ${consultationFee.toLocaleString()} & Generate Token`}
               </Button>
             </div>
             
@@ -565,7 +570,7 @@ export default function AppointmentFormPage() {
                 <span className="w-full border-t" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">or</span>
+                <span className="bg-background px-2 text-muted-foreground">{t('apptForm.or')}</span>
               </div>
             </div>
             
@@ -576,7 +581,7 @@ export default function AppointmentFormPage() {
               disabled={isProcessing}
               className="text-muted-foreground"
             >
-              Skip Payment - Generate Token Only (Pay Later)
+              {t('apptForm.skipPayment')}
             </Button>
           </div>
         </div>
@@ -584,14 +589,15 @@ export default function AppointmentFormPage() {
     );
   }
 
+
   return (
     <div className="space-y-6">
       <PageHeader
-        title={isEditing ? 'Edit Appointment' : 'New Appointment'}
+        title={isEditing ? t('apptForm.editAppointment') : t('apptForm.newAppointment')}
         description={isEditing ? 'Update appointment details' : 'Book a new appointment'}
         breadcrumbs={[
-          { label: 'Dashboard', href: '/app' },
-          { label: 'Appointments', href: '/app/appointments' },
+          { label: t('nav.dashboard'), href: '/app' },
+          { label: t('nav.appointments'), href: '/app/appointments' },
           { label: isEditing ? 'Edit' : 'New' },
         ]}
       />
@@ -604,7 +610,7 @@ export default function AppointmentFormPage() {
               {/* Patient Selection */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Patient</CardTitle>
+                  <CardTitle>{t('apptForm.patient')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <FormField
@@ -612,7 +618,7 @@ export default function AppointmentFormPage() {
                     name="patient_id"
                     render={() => (
                       <FormItem>
-                        <FormLabel>Select Patient</FormLabel>
+                        <FormLabel>{t('apptForm.selectPatient')}</FormLabel>
                         <FormControl>
                           <PatientSearch
                             onSelect={handlePatientSelect}
@@ -630,7 +636,7 @@ export default function AppointmentFormPage() {
               {/* Appointment Details */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Appointment Details</CardTitle>
+                  <CardTitle>{t('apptForm.appointmentDetails')}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <FormField
@@ -638,11 +644,11 @@ export default function AppointmentFormPage() {
                     name="branch_id"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Branch</FormLabel>
+                        <FormLabel>{t('apptForm.branch')}</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select branch" />
+                              <SelectValue placeholder={t('apptForm.selectBranch')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -663,11 +669,11 @@ export default function AppointmentFormPage() {
                     name="doctor_id"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Doctor</FormLabel>
+                        <FormLabel>{t('apptForm.doctor')}</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select doctor" />
+                              <SelectValue placeholder={t('apptForm.selectDoctor')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -689,7 +695,7 @@ export default function AppointmentFormPage() {
                     name="appointment_type"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Appointment Type</FormLabel>
+                        <FormLabel>{t('apptForm.appointmentType')}</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
@@ -697,13 +703,13 @@ export default function AppointmentFormPage() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="walk_in">Walk-in</SelectItem>
-                            <SelectItem value="scheduled">Scheduled</SelectItem>
-                            <SelectItem value="follow_up">Follow-up</SelectItem>
+                            <SelectItem value="walk_in">{t('apptForm.walkIn')}</SelectItem>
+                            <SelectItem value="scheduled">{t('apptForm.scheduled')}</SelectItem>
+                            <SelectItem value="follow_up">{t('apptForm.followUp')}</SelectItem>
                             <SelectItem value="emergency">
                               <span className="flex items-center gap-2">
                                 <span className="w-2 h-2 rounded-full bg-destructive" />
-                                Emergency
+                                {t('apptForm.emergency')}
                               </span>
                             </SelectItem>
                           </SelectContent>
@@ -718,7 +724,7 @@ export default function AppointmentFormPage() {
                     name="appointment_date"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Date</FormLabel>
+                        <FormLabel>{t('apptForm.date')}</FormLabel>
                         <FormControl>
                           <Input type="date" {...field} min={format(new Date(), 'yyyy-MM-dd')} />
                         </FormControl>
@@ -736,7 +742,7 @@ export default function AppointmentFormPage() {
               {requiresTimeSlot ? (
                 <Card>
                   <CardHeader>
-                    <CardTitle>Select Time Slot</CardTitle>
+                    <CardTitle>{t('apptForm.selectTimeSlot')}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <FormField
@@ -764,7 +770,7 @@ export default function AppointmentFormPage() {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Users className="h-5 w-5" />
-                      {appointmentType === 'walk_in' ? 'Walk-in Appointment' : 'Emergency Appointment'}
+                      {appointmentType === 'walk_in' ? t('apptForm.walkInTitle') : t('apptForm.emergencyTitle')}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -773,12 +779,12 @@ export default function AppointmentFormPage() {
                       <div>
                         <p className="font-medium">
                           {appointmentType === 'walk_in' 
-                            ? 'Patient will be added to the queue'
-                            : 'Patient will be prioritized immediately'
+                            ? t('apptForm.addedToQueue')
+                            : t('apptForm.prioritizedNow')
                           }
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          Payment will be collected before generating token
+                          {t('apptForm.paymentBeforeToken')}
                         </p>
                       </div>
                     </div>
@@ -787,7 +793,7 @@ export default function AppointmentFormPage() {
                     {selectedDoctorId && (
                       <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg">
                         <div className="flex justify-between items-center">
-                          <span className="text-sm text-muted-foreground">Consultation Fee:</span>
+                          <span className="text-sm text-muted-foreground">{t('apptForm.consultationFee')}:</span>
                           <span className="font-semibold text-primary">Rs. {consultationFee.toLocaleString()}</span>
                         </div>
                       </div>
@@ -799,7 +805,7 @@ export default function AppointmentFormPage() {
               {/* Additional Info */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Additional Information</CardTitle>
+                  <CardTitle>{t('apptForm.additionalInfo')}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <FormField
@@ -807,10 +813,10 @@ export default function AppointmentFormPage() {
                     name="chief_complaint"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Chief Complaint</FormLabel>
+                        <FormLabel>{t('apptForm.chiefComplaint')}</FormLabel>
                         <FormControl>
                           <Textarea
-                            placeholder="Describe the main reason for visit..."
+                            placeholder={t('apptForm.chiefComplaintPlaceholder')}
                             {...field}
                           />
                         </FormControl>
@@ -824,10 +830,10 @@ export default function AppointmentFormPage() {
                     name="notes"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Notes (Optional)</FormLabel>
+                        <FormLabel>{t('apptForm.notesOptional')}</FormLabel>
                         <FormControl>
                           <Textarea
-                            placeholder="Any additional notes..."
+                            placeholder={t('apptForm.notesPlaceholder')}
                             {...field}
                           />
                         </FormControl>
@@ -848,7 +854,7 @@ export default function AppointmentFormPage() {
               onClick={() => navigate('/app/appointments')}
               className="flex-1 md:flex-none h-12 md:h-10"
             >
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button
               type="submit"
@@ -856,12 +862,12 @@ export default function AppointmentFormPage() {
               className="flex-1 md:flex-none h-12 md:h-10"
             >
               {createAppointment.isPending || updateAppointment.isPending
-                ? 'Saving...'
+                ? t('apptForm.saving')
                 : isEditing
-                ? 'Update Appointment'
+                ? t('apptForm.updateAppointment')
                 : requiresPayFirst
-                ? 'Continue to Payment'
-                : 'Book Appointment'}
+                ? t('apptForm.continueToPayment')
+                : t('apptForm.bookAppointment')}
             </Button>
           </div>
         </form>
