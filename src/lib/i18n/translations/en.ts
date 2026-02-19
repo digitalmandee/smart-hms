@@ -1227,6 +1227,7 @@ export const en = {
   "patient.edit": "Edit",
   "patient.new": "New",
   "patient.completionLabel": "Complete",
+  "patient.saveChanges": "Save Changes",
 
 } as const;
 

@@ -21,8 +21,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+import { useTranslation } from "@/lib/i18n";
+
 export default function LabTestTemplatesListPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [search, setSearch] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
   
@@ -49,8 +52,8 @@ export default function LabTestTemplatesListPage() {
         title="Lab Test Templates"
         description="Configure test parameters and normal ranges"
         breadcrumbs={[
-          { label: "Lab", href: "/app/lab" },
-          { label: "Test Templates" },
+          { label: t('nav.lab'), href: "/app/lab" },
+          { label: t('nav.testTemplates') },
         ]}
         actions={
           <Button onClick={() => navigate("/app/lab/templates/new")}>

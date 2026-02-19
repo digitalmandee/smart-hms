@@ -34,6 +34,7 @@ import { LeaveBalanceWidget } from "@/components/hr/LeaveBalanceWidget";
 export default function EmployeeDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { data: employee, isLoading } = useEmployee(id || "");
   const { data: doctorData, isLoading: loadingDoctor } = useDoctorByEmployeeId(id || "");
   const { data: nurseData, isLoading: loadingNurse } = useNurseByEmployeeId(id || "");
@@ -101,8 +102,8 @@ export default function EmployeeDetailPage() {
         title={`${employee.first_name} ${employee.last_name || ""}`}
         description={`Employee ID: ${employee.employee_number}`}
         breadcrumbs={[
-          { label: "HR", href: "/app/hr" },
-          { label: "Employees", href: "/app/hr/employees" },
+          { label: t('nav.hr'), href: "/app/hr" },
+          { label: t('nav.employees'), href: "/app/hr/employees" },
           { label: `${employee.first_name} ${employee.last_name || ""}` },
         ]}
         actions={

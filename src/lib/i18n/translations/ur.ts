@@ -1228,6 +1228,7 @@ export const ur: Record<TranslationKey, string> = {
   "patient.edit": "ترمیم",
   "patient.new": "نئی",
   "patient.completionLabel": "مکمل",
+  "patient.saveChanges": "تبدیلیاں محفوظ کریں",
 };
 
 
