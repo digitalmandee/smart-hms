@@ -39,11 +39,13 @@ import { PrintableTokenSlip } from "@/components/clinic/PrintableTokenSlip";
 import { PrintablePaymentReceipt } from "@/components/billing/PrintablePaymentReceipt";
 import { FeeWaiverDialog } from "@/components/appointments/FeeWaiverDialog";
 import { SessionStatusBanner } from "@/components/billing/SessionStatusBanner";
+import { useTranslation, useIsRTL } from "@/lib/i18n";
 import { 
   UserPlus, Search, Stethoscope, CreditCard, Ticket, 
   Printer, Check, Users, Phone, ArrowLeft, ArrowRight, Clock, ShieldOff
 } from "lucide-react";
 import { format } from "date-fns";
+
 
 type PaymentMethod = "cash" | "card" | "mobile_wallet" | "upi";
 
@@ -59,6 +61,8 @@ export default function OPDWalkInPage() {
   const { profile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const isRTL = useIsRTL();
   
   // Session requirement for payment collection
   const { hasActiveSession, session } = useRequireSession("reception");
@@ -477,16 +481,21 @@ export default function OPDWalkInPage() {
     ? Math.max(0, (parseFloat(amountReceived) || 0) - selectedDoctor.fee)
     : 0;
 
-  const stepLabels = ["Patient", "Doctor", "Payment", "Complete"];
+  const stepLabels = [
+    t("opd.walkIn.patient"),
+    t("apptForm.doctor"),
+    t("apptForm.collectPayment"),
+    t("apptForm.tokenGenerated"),
+  ];
 
   return (
     <div className="space-y-4">
       <PageHeader
-        title="Walk-in Patient Registration"
-        description="Register walk-in patients, collect fees, and issue tokens"
+        title={t("opd.walkIn.title")}
+        description={t("opd.walkIn.description")}
         breadcrumbs={[
           { label: "OPD", href: "/app/opd" },
-          { label: "Walk-in Registration" },
+          { label: t("opd.walkIn.title") },
         ]}
       />
 
@@ -951,67 +960,67 @@ export default function OPDWalkInPage() {
                 <p className="text-5xl font-bold text-primary">{tokenDisplay || tokenNumber}</p>
               </div>
               <div className="bg-muted p-6 rounded-lg text-center border">
-                <p className="text-muted-foreground mb-2">Payment Status</p>
+                <p className="text-muted-foreground mb-2">{t("opd.walkIn.paymentStatus")}</p>
                 {paymentStatusResult === "paid" ? (
                   <div>
-                    <p className="text-xl font-bold text-green-600">PAID</p>
+                    <p className="text-xl font-bold text-success">{t("opd.walkIn.paid")}</p>
                     <p className="text-sm text-muted-foreground">{invoiceNumber}</p>
                   </div>
                 ) : paymentStatusResult === "pending" ? (
-                  <p className="text-xl font-bold text-amber-600">PAY LATER</p>
+                  <p className="text-xl font-bold text-warning">{t("opd.walkIn.payLaterStatus")}</p>
                 ) : (
-                  <p className="text-xl font-bold text-gray-600">WAIVED</p>
+                  <p className="text-xl font-bold text-muted-foreground">{t("opd.walkIn.waived")}</p>
                 )}
               </div>
             </div>
 
             <div className="bg-muted/50 p-4 rounded-lg space-y-2">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Patient</span>
+                <span className="text-muted-foreground">{t("opd.walkIn.patient")}</span>
                 <span className="font-medium">{selectedPatientName}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Doctor</span>
+                <span className="text-muted-foreground">{t("opd.walkIn.doctor")}</span>
                 <span className="font-medium">{selectedDoctor.name}</span>
               </div>
               {paymentStatusResult === "paid" && (
                 <>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Amount Paid</span>
+                    <span className="text-muted-foreground">{t("opd.walkIn.amountPaid")}</span>
                     <span className="font-medium text-primary">Rs. {selectedDoctor.fee.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Payment Method</span>
+                    <span className="text-muted-foreground">{t("opd.walkIn.paymentMethod")}</span>
                     <span className="font-medium capitalize">{paymentMethod.replace('_', ' ')}</span>
                   </div>
                 </>
               )}
               {paymentStatusResult === "pending" && (
                 <div className="flex justify-between pt-2 border-t">
-                  <span className="text-amber-600 font-medium">Fee Pending</span>
-                  <span className="font-bold text-amber-600">Rs. {selectedDoctor.fee.toLocaleString()}</span>
+                  <span className="text-warning font-medium">{t("opd.walkIn.feePending")}</span>
+                  <span className="font-bold text-warning">Rs. {selectedDoctor.fee.toLocaleString()}</span>
                 </div>
               )}
               {paymentStatusResult === "waived" && (
                 <div className="flex justify-between pt-2 border-t">
-                  <span className="text-gray-600 font-medium">Fee Waived</span>
-                  <span className="line-through text-gray-500">Rs. {selectedDoctor.fee.toLocaleString()}</span>
+                  <span className="text-muted-foreground font-medium">{t("opd.walkIn.feeWaived")}</span>
+                  <span className="line-through text-muted-foreground">Rs. {selectedDoctor.fee.toLocaleString()}</span>
                 </div>
               )}
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button variant="outline" onClick={handlePrintToken}>
-                <Printer className="h-4 w-4 mr-2" />
-                Print Token
+                <Printer className="h-4 w-4 me-2" />
+                {t("opd.walkIn.printToken")}
               </Button>
               <Button variant="outline" onClick={handlePrintReceipt}>
-                <Printer className="h-4 w-4 mr-2" />
-                Print Receipt
+                <Printer className="h-4 w-4 me-2" />
+                {t("opd.walkIn.printReceipt")}
               </Button>
               <Button onClick={handlePrintBoth}>
-                <Printer className="h-4 w-4 mr-2" />
-                Print Both
+                <Printer className="h-4 w-4 me-2" />
+                {t("opd.walkIn.printBoth")}
               </Button>
             </div>
 
@@ -1019,8 +1028,8 @@ export default function OPDWalkInPage() {
 
             <div className="flex justify-center">
               <Button size="lg" onClick={handleNewToken} className="px-8">
-                <UserPlus className="h-5 w-5 mr-2" />
-                Register Next Patient
+                <UserPlus className="h-5 w-5 me-2" />
+                {t("opd.walkIn.registerNextPatient")}
               </Button>
             </div>
           </CardContent>

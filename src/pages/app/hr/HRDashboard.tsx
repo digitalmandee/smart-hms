@@ -21,6 +21,7 @@ import {
   DollarSign,
   AlertCircle,
   ChevronRight,
+  ChevronLeft,
   Gift,
   FileText,
   Stethoscope,
@@ -28,11 +29,13 @@ import {
   Building2,
 } from "lucide-react";
 import { format } from "date-fns";
-import { useTranslation } from "@/lib/i18n";
+import { useTranslation, useIsRTL } from "@/lib/i18n";
 
 export default function HRDashboard() {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const isRTL = useIsRTL();
+
   const today = format(new Date(), "yyyy-MM-dd");
 
   const { data: employeeStats, isLoading: loadingEmployeeStats } = useEmployeeStats();
@@ -142,7 +145,7 @@ export default function HRDashboard() {
             </CardTitle>
             <Button variant="ghost" size="sm" onClick={() => navigate("/app/hr/leaves/requests")}>
               {t("common.viewAll")}
-              <ChevronRight className="h-4 w-4 ml-1" />
+              {isRTL ? <ChevronLeft className="h-4 w-4 ms-1" /> : <ChevronRight className="h-4 w-4 ms-1" />}
             </Button>
           </CardHeader>
           <CardContent className="space-y-3 pt-4">
@@ -291,7 +294,7 @@ export default function HRDashboard() {
           </CardTitle>
           <Button variant="ghost" size="sm" onClick={() => navigate("/app/hr/employees")}>
             {t("common.viewAll")}
-            <ChevronRight className="h-4 w-4 ml-1" />
+            {isRTL ? <ChevronLeft className="h-4 w-4 ms-1" /> : <ChevronRight className="h-4 w-4 ms-1" />}
           </Button>
         </CardHeader>
         <CardContent className="pt-4">
