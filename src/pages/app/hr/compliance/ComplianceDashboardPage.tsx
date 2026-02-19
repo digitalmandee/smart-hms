@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "@/lib/i18n";
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -48,6 +49,7 @@ const INCIDENT_SEVERITY = [
 ];
 
 export default function ComplianceDashboardPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
   const [isVaccineDialogOpen, setIsVaccineDialogOpen] = useState(false);
@@ -174,7 +176,7 @@ export default function ComplianceDashboardPage() {
         title="Compliance & Documents"
         description="Track medical fitness, vaccinations, and incidents"
         breadcrumbs={[
-          { label: "HR", href: "/app/hr" },
+          { label: t('nav.hr' as any), href: "/app/hr" },
           { label: "Compliance" },
         ]}
       />

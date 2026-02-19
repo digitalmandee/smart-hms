@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "@/lib/i18n";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,6 +12,7 @@ import { useLeaveBalances } from "@/hooks/useLeaves";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function LeaveBalancesPage() {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const { data: employees, isLoading: employeesLoading } = useEmployees();
   const { data: leaveBalances, isLoading: balancesLoading } = useLeaveBalances();
@@ -40,7 +42,7 @@ export default function LeaveBalancesPage() {
         title="Leave Balances"
         description="View employee leave balances and entitlements"
         breadcrumbs={[
-          { label: "HR", href: "/app/hr" },
+          { label: t('nav.hr' as any), href: "/app/hr" },
           { label: "Leave Management", href: "/app/hr/leaves" },
           { label: "Leave Balances" },
         ]}

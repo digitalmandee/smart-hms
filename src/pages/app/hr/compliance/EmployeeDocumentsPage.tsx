@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "@/lib/i18n";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -66,6 +67,7 @@ interface EmployeeWithDocs {
 }
 
 export default function EmployeeDocumentsPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { profile } = useAuth();
   const [search, setSearch] = useState("");
@@ -192,7 +194,7 @@ export default function EmployeeDocumentsPage() {
         title="Employee Documents Repository"
         description="View and manage all employee documents and certifications"
         breadcrumbs={[
-          { label: "HR", href: "/app/hr" },
+          { label: t('nav.hr' as any), href: "/app/hr" },
           { label: "Compliance", href: "/app/hr/compliance" },
           { label: "Documents" },
         ]}

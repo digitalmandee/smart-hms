@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "@/lib/i18n";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ const statusColors: Record<string, string> = {
 };
 
 export default function SupportStaffPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -83,7 +85,7 @@ export default function SupportStaffPage() {
         title="Support Staff"
         description="Manage administrative, housekeeping, security, and other support personnel"
         breadcrumbs={[
-          { label: "HR", href: "/app/hr" },
+          { label: t('nav.hr' as any), href: "/app/hr" },
           { label: "Employees" },
           { label: "Support Staff" },
         ]}

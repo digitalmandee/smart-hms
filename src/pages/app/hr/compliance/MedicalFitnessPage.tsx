@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "@/lib/i18n";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +14,7 @@ import { HeartPulse, Search, Users, AlertTriangle, CheckCircle, Clock, FileText 
 import { differenceInDays, addMonths, format } from "date-fns";
 
 export default function MedicalFitnessPage() {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -96,7 +98,7 @@ export default function MedicalFitnessPage() {
       <PageHeader
         title="Medical Fitness Examinations"
         breadcrumbs={[
-          { label: "HR", href: "/app/hr" },
+          { label: t('nav.hr' as any), href: "/app/hr" },
           { label: "Compliance", href: "/app/hr/compliance" },
           { label: "Medical Fitness" }
         ]}

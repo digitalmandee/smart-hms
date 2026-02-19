@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "@/lib/i18n";
 import { format, startOfWeek, addDays, addWeeks, subWeeks } from "date-fns";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -44,6 +45,7 @@ interface RosterPublishStatus {
 }
 
 export default function PublishRosterPage() {
+  const { t } = useTranslation();
   const { profile } = useAuth();
   const queryClient = useQueryClient();
   const [currentWeekStart, setCurrentWeekStart] = useState(() => 
@@ -157,7 +159,7 @@ export default function PublishRosterPage() {
         title="Publish Roster"
         description="Review and publish weekly staff rosters"
         breadcrumbs={[
-          { label: "HR", href: "/app/hr" },
+          { label: t('nav.hr' as any), href: "/app/hr" },
           { label: "Attendance", href: "/app/hr/attendance" },
           { label: "Publish Roster" },
         ]}
