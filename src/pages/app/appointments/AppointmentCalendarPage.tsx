@@ -31,6 +31,8 @@ import { useDoctors } from '@/hooks/useDoctors';
 import { useBranches } from '@/hooks/useBranches';
 import { useAuth } from '@/contexts/AuthContext';
 import { DoctorGridCalendar } from '@/components/appointments/DoctorGridCalendar';
+import { useTranslation, useIsRTL } from '@/lib/i18n';
+
 
 const statusColors: Record<string, string> = {
   scheduled: 'bg-blue-500',
@@ -45,6 +47,9 @@ export default function AppointmentCalendarPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { profile } = useAuth();
+  const { t, language } = useTranslation();
+  const isRTL = useIsRTL();
+
   
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -102,20 +107,20 @@ export default function AppointmentCalendarPage() {
           <Button
             variant={viewMode === 'day' ? 'secondary' : 'ghost'}
             size="sm"
-            className="rounded-r-none gap-2"
+            className="rounded-e-none gap-2"
             onClick={() => setViewMode('day')}
           >
             <Grid3X3 className="h-4 w-4" />
-            Day
+            {t('apptCal.day')}
           </Button>
           <Button
             variant={viewMode === 'month' ? 'secondary' : 'ghost'}
             size="sm"
-            className="rounded-l-none gap-2"
+            className="rounded-s-none gap-2"
             onClick={() => setViewMode('month')}
           >
             <CalendarDays className="h-4 w-4" />
-            Month
+            {t('apptCal.month')}
           </Button>
         </div>
 
@@ -126,9 +131,9 @@ export default function AppointmentCalendarPage() {
             size="icon" 
             onClick={() => {
               if (viewMode === 'day') {
-                setSelectedDate(subDays(selectedDate, 1));
+                setSelectedDate(isRTL ? addDays(selectedDate, 1) : subDays(selectedDate, 1));
               } else {
-                setCurrentMonth(subMonths(currentMonth, 1));
+                setCurrentMonth(isRTL ? addMonths(currentMonth, 1) : subMonths(currentMonth, 1));
               }
             }}
           >
@@ -145,9 +150,9 @@ export default function AppointmentCalendarPage() {
             size="icon" 
             onClick={() => {
               if (viewMode === 'day') {
-                setSelectedDate(addDays(selectedDate, 1));
+                setSelectedDate(isRTL ? subDays(selectedDate, 1) : addDays(selectedDate, 1));
               } else {
-                setCurrentMonth(addMonths(currentMonth, 1));
+                setCurrentMonth(isRTL ? subMonths(currentMonth, 1) : addMonths(currentMonth, 1));
               }
             }}
           >
@@ -160,19 +165,19 @@ export default function AppointmentCalendarPage() {
               setCurrentMonth(new Date());
             }}
           >
-            Today
+            {t('apptCal.today')}
           </Button>
         </div>
       </div>
 
       <div className="flex items-center gap-2">
         {/* Branch Filter */}
-        <Select value={branchFilter} onValueChange={setBranchFilter}>
+        <Select key={`branch-${language}`} value={branchFilter} onValueChange={setBranchFilter}>
           <SelectTrigger className="w-40">
-            <SelectValue placeholder="All Branches" />
+            <SelectValue placeholder={t('apptCal.allBranches')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Branches</SelectItem>
+            <SelectItem value="all">{t('apptCal.allBranches')}</SelectItem>
             {branches?.map((branch) => (
               <SelectItem key={branch.id} value={branch.id}>
                 {branch.name}
@@ -182,12 +187,12 @@ export default function AppointmentCalendarPage() {
         </Select>
 
         {/* Doctor Filter */}
-        <Select value={doctorFilter} onValueChange={setDoctorFilter}>
+        <Select key={`doctor-${language}`} value={doctorFilter} onValueChange={setDoctorFilter}>
           <SelectTrigger className="w-48">
-            <SelectValue placeholder="All Doctors" />
+            <SelectValue placeholder={t('apptCal.allDoctors')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Doctors</SelectItem>
+            <SelectItem value="all">{t('apptCal.allDoctors')}</SelectItem>
             {doctors?.map((doctor) => (
               <SelectItem key={doctor.id} value={doctor.id}>
                 Dr. {doctor.profile?.full_name}
@@ -198,6 +203,7 @@ export default function AppointmentCalendarPage() {
       </div>
     </div>
   );
+
 
   const renderDays = () => {
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -307,17 +313,17 @@ export default function AppointmentCalendarPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Appointment Calendar"
-        description="View and manage appointments - click on any slot to book"
+        title={t('apptCal.title')}
+        description={t('apptCal.description')}
         breadcrumbs={[
-          { label: 'Dashboard', href: '/app' },
-          { label: 'Appointments', href: '/app/appointments' },
-          { label: 'Calendar' },
+          { label: t('nav.dashboard'), href: '/app' },
+          { label: t('nav.appointments'), href: '/app/appointments' },
+          { label: t('apptCal.title') },
         ]}
         actions={
           <Button onClick={() => navigate('/app/appointments/new')}>
-            <Plus className="h-4 w-4 mr-2" />
-            New Appointment
+            <Plus className="h-4 w-4 me-2" />
+            {t('apptCal.newAppointment')}
           </Button>
         }
       />

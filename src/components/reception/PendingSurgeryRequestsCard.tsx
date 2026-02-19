@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePendingSurgeryRequests } from "@/hooks/useSurgeryRequests";
 import { useSurgeries } from "@/hooks/useOT";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTranslation, useIsRTL } from "@/lib/i18n";
 import { 
   Scissors, 
   Calendar, 
@@ -14,11 +15,13 @@ import {
   AlertCircle, 
   Clock,
   ChevronRight,
+  ChevronLeft,
   User,
   CreditCard,
   FileText
 } from "lucide-react";
 import { format, parseISO, addDays } from "date-fns";
+
 
 const priorityConfig = {
   elective: { label: "Elective", variant: "secondary" as const, icon: Clock },
@@ -33,6 +36,9 @@ interface PendingSurgeryRequestsCardProps {
 export function PendingSurgeryRequestsCard({ maxItems = 5 }: PendingSurgeryRequestsCardProps) {
   const navigate = useNavigate();
   const { profile } = useAuth();
+  const { t } = useTranslation();
+  const isRTL = useIsRTL();
+
   
   // Fetch pending surgery requests (doctor recommendations)
   const { data: requests, isLoading: requestsLoading } = usePendingSurgeryRequests(profile?.branch_id || undefined);
@@ -83,11 +89,11 @@ export function PendingSurgeryRequestsCard({ maxItems = 5 }: PendingSurgeryReque
             <div className="p-2 rounded-lg bg-warning/10">
               <Scissors className="h-4 w-4 text-warning" />
             </div>
-            Surgeries to Process
+            {t('reception.surgeriesToProcess')}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground text-center py-4">Loading...</p>
+          <p className="text-sm text-muted-foreground text-center py-4">{t('common.loading')}</p>
         </CardContent>
       </Card>
     );
@@ -101,9 +107,9 @@ export function PendingSurgeryRequestsCard({ maxItems = 5 }: PendingSurgeryReque
             <div className="p-2 rounded-lg bg-warning/10">
               <Scissors className="h-4 w-4 text-warning" />
             </div>
-            Surgeries to Process
+            {t('reception.surgeriesToProcess')}
             {totalCount > 0 && (
-              <Badge variant="secondary" className="ml-2">
+              <Badge variant="secondary" className="ms-2">
                 {totalCount}
               </Badge>
             )}
@@ -113,15 +119,15 @@ export function PendingSurgeryRequestsCard({ maxItems = 5 }: PendingSurgeryReque
             size="sm"
             onClick={() => navigate("/app/ot/surgeries")}
           >
-            View All
-            <ChevronRight className="h-4 w-4 ml-1" />
+            {t('common.viewAll')}
+            {isRTL ? <ChevronLeft className="h-4 w-4 ms-1" /> : <ChevronRight className="h-4 w-4 ms-1" />}
           </Button>
         </div>
       </CardHeader>
       <CardContent className="p-0">
         {totalCount === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-8 px-4">
-            No surgeries need processing
+            {t('reception.noSurgeriesNeeded')}
           </p>
         ) : (
           <Tabs defaultValue={surgeriesToProcess.length > 0 ? "scheduled" : "requests"} className="w-full">

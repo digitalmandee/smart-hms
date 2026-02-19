@@ -1169,6 +1169,66 @@ export const ar: Record<TranslationKey, string> = {
   "opd.walkIn.printReceipt": "طباعة الإيصال",
   "opd.walkIn.printBoth": "طباعة الاثنين",
   "opd.walkIn.registerNextPatient": "تسجيل المريض التالي",
+
+  // Reception sub-components
+  "reception.surgeriesToProcess": "العمليات للمعالجة",
+  "reception.noSurgeriesNeeded": "لا توجد عمليات تحتاج معالجة",
+  "reception.noAppointmentsToday": "لا مواعيد مجدولة اليوم",
+  "apptForm.updateDesc": "تحديث تفاصيل الموعد",
+  "apptForm.bookDesc": "حجز موعد جديد",
+
+
+  // Appointment Calendar
+
+  "apptCal.title": "تقويم المواعيد",
+  "apptCal.description": "عرض وإدارة المواعيد - انقر على أي وقت للحجز",
+  "apptCal.allDoctors": "جميع الأطباء",
+  "apptCal.allBranches": "جميع الفروع",
+  "apptCal.today": "اليوم",
+  "apptCal.month": "شهر",
+  "apptCal.day": "يوم",
+  "apptCal.time": "الوقت",
+  "apptCal.newAppointment": "موعد جديد",
+
+  // Patient Form additional labels
+  "patient.registerNew": "تسجيل مريض جديد",
+  "patient.fillDetails": "أدخل بيانات المريض",
+  "patient.editPatientDesc": "تعديل سجل المريض",
+  "patient.patientInformation": "معلومات المريض",
+  "patient.showMore": "عرض المزيد من الحقول",
+  "patient.showLess": "عرض أقل",
+  "patient.personalDetails": "التفاصيل الشخصية",
+  "patient.contactInformation": "معلومات الاتصال",
+  "patient.fatherHusbandNameLabel": "اسم الأب/الزوج",
+  "patient.maritalStatusLabel": "الحالة الاجتماعية",
+  "patient.single": "أعزب",
+  "patient.married": "متزوج",
+  "patient.divorced": "مطلق",
+  "patient.widowed": "أرمل",
+  "patient.numberOfChildren": "عدد الأطفال",
+  "patient.nationalityLabel": "الجنسية",
+  "patient.religion": "الديانة",
+  "patient.occupationLabel": "المهنة",
+  "patient.preferredLanguage": "اللغة المفضلة",
+  "patient.passportNumber": "رقم جواز السفر",
+  "patient.secondaryPhone": "هاتف ثانوي",
+  "patient.streetAddress": "عنوان الشارع",
+  "patient.postalCode": "الرمز البريدي",
+  "patient.emergencyContactName": "اسم جهة الطوارئ",
+  "patient.emergencyRelation": "صلة القرابة",
+  "patient.emergencyPhone": "هاتف الطوارئ",
+  "patient.insuranceSection": "التأمين",
+  "patient.insuranceProvider": "مزود التأمين",
+  "patient.insuranceId": "رقم وثيقة التأمين",
+  "patient.referral": "الإحالة",
+  "patient.referredBy": "أُحيل بواسطة",
+  "patient.referralDetails": "تفاصيل الإحالة",
+  "patient.additionalNotes": "ملاحظات إضافية",
+  "patient.branch": "الفرع",
+  "patient.edit": "تعديل",
+  "patient.new": "جديد",
+  "patient.completionLabel": "مكتمل",
 };
+
 
 

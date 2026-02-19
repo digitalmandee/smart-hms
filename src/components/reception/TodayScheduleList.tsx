@@ -4,11 +4,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Eye } from "lucide-react";
 import { AppointmentWithRelations } from "@/hooks/useAppointments";
+import { useTranslation } from "@/lib/i18n";
 
 interface TodayScheduleListProps {
   appointments: AppointmentWithRelations[];
   isLoading: boolean;
 }
+
 
 const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "destructive" }> = {
   scheduled: { label: "Scheduled", variant: "secondary" },
@@ -21,11 +23,12 @@ const statusConfig: Record<string, { label: string; variant: "default" | "second
 
 export function TodayScheduleList({ appointments, isLoading }: TodayScheduleListProps) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   if (isLoading) {
     return (
       <div className="p-4 text-center text-muted-foreground">
-        Loading schedule...
+        {t('common.loading')}
       </div>
     );
   }
@@ -33,10 +36,11 @@ export function TodayScheduleList({ appointments, isLoading }: TodayScheduleList
   if (appointments.length === 0) {
     return (
       <div className="p-4 text-center text-muted-foreground">
-        No appointments scheduled for today
+        {t('reception.noAppointmentsToday')}
       </div>
     );
   }
+
 
   // Group appointments by hour
   const groupedByHour: Record<string, AppointmentWithRelations[]> = {};

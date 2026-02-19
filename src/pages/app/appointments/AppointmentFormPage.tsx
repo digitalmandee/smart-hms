@@ -594,11 +594,11 @@ export default function AppointmentFormPage() {
     <div className="space-y-6">
       <PageHeader
         title={isEditing ? t('apptForm.editAppointment') : t('apptForm.newAppointment')}
-        description={isEditing ? 'Update appointment details' : 'Book a new appointment'}
+        description={isEditing ? t('apptForm.updateDesc') : t('apptForm.bookDesc')}
         breadcrumbs={[
           { label: t('nav.dashboard'), href: '/app' },
           { label: t('nav.appointments'), href: '/app/appointments' },
-          { label: isEditing ? 'Edit' : 'New' },
+          { label: isEditing ? t('patient.edit') : t('patient.new') },
         ]}
       />
 
