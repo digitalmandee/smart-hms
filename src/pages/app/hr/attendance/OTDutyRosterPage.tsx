@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "@/lib/i18n";
 import { format, startOfWeek, addDays } from "date-fns";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -39,6 +40,7 @@ const OT_DEPARTMENTS = ["Surgery", "Orthopedics", "Gynecology", "Neurosurgery", 
 const OT_ROLES = ["Surgeon", "Anesthetist", "OT Nurse", "OT Technician"];
 
 export default function OTDutyRosterPage() {
+  const { t } = useTranslation();
   const { profile } = useAuth();
   const [currentWeekStart, setCurrentWeekStart] = useState(() => 
     startOfWeek(new Date(), { weekStartsOn: 1 })
@@ -119,7 +121,7 @@ export default function OTDutyRosterPage() {
         title="OT Duty Roster"
         description="Manage operating theater staff schedules"
         breadcrumbs={[
-          { label: "HR", href: "/app/hr" },
+          { label: t('nav.hr' as any), href: "/app/hr" },
           { label: "Attendance", href: "/app/hr/attendance" },
           { label: "OT Duty Roster" },
         ]}

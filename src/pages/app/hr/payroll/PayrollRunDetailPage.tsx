@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
+import { useTranslation } from "@/lib/i18n";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,7 @@ const MONTHS = [
 ];
 
 export default function PayrollRunDetailPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
@@ -87,7 +89,7 @@ export default function PayrollRunDetailPage() {
         title={`Payroll Run - ${periodLabel}`}
         description="View and manage payroll run details"
         breadcrumbs={[
-          { label: "HR", href: "/app/hr" },
+          { label: t('nav.hr' as any), href: "/app/hr" },
           { label: "Payroll", href: "/app/hr/payroll" },
           { label: periodLabel },
         ]}

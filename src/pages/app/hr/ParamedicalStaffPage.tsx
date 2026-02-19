@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "@/lib/i18n";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ const statusColors: Record<string, string> = {
 };
 
 export default function ParamedicalStaffPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -66,7 +68,7 @@ export default function ParamedicalStaffPage() {
         title="Paramedical Staff"
         description="Manage technicians, lab staff, and other paramedical employees"
         breadcrumbs={[
-          { label: "HR", href: "/app/hr" },
+          { label: t('nav.hr' as any), href: "/app/hr" },
           { label: "Employees" },
           { label: "Paramedical Staff" },
         ]}

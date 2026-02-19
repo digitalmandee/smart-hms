@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "@/lib/i18n";
 import { format, startOfWeek, addDays } from "date-fns";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -35,6 +36,7 @@ import { ChevronLeft, ChevronRight, Siren, UserPlus, Loader2, AlertTriangle } fr
 import { toast } from "sonner";
 
 export default function EmergencyRosterPage() {
+  const { t } = useTranslation();
   const { profile } = useAuth();
   const [currentWeekStart, setCurrentWeekStart] = useState(() => 
     startOfWeek(new Date(), { weekStartsOn: 1 })
@@ -118,7 +120,7 @@ export default function EmergencyRosterPage() {
         title="Emergency Roster"
         description="Manage emergency department 24/7 coverage"
         breadcrumbs={[
-          { label: "HR", href: "/app/hr" },
+          { label: t('nav.hr' as any), href: "/app/hr" },
           { label: "Attendance", href: "/app/hr/attendance" },
           { label: "Emergency Roster" },
         ]}

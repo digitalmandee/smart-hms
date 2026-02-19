@@ -482,6 +482,7 @@ export function MobileSideMenu({ open, onOpenChange }: MobileSideMenuProps) {
         side={isRTL ? "right" : "left"}
         className="w-[300px] p-0 flex flex-col"
         hideCloseButton
+        dir={isRTL ? "rtl" : "ltr"}
       >
         {/* Profile Header */}
         <SheetHeader className="p-4 pb-3 border-b">

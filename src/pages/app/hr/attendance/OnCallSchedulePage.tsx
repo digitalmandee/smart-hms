@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "@/lib/i18n";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -21,6 +22,7 @@ import { Phone, ChevronLeft, ChevronRight, Users, Clock, AlertCircle, Calendar, 
 import { format, startOfWeek, addDays, addWeeks, subWeeks } from "date-fns";
 
 export default function OnCallSchedulePage() {
+  const { t } = useTranslation();
   const { profile } = useAuth();
   const [selectedDepartment, setSelectedDepartment] = useState<string>("all");
   const [currentWeekStart, setCurrentWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
@@ -106,7 +108,7 @@ export default function OnCallSchedulePage() {
       <PageHeader
         title="On-Call Schedule"
         breadcrumbs={[
-          { label: "HR", href: "/app/hr" },
+          { label: t('nav.hr' as any), href: "/app/hr" },
           { label: "Attendance", href: "/app/hr/attendance" },
           { label: "On-Call Schedule" }
         ]}

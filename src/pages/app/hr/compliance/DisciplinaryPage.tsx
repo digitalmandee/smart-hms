@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "@/lib/i18n";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +20,7 @@ const ACTION_TYPES = [
 ];
 
 export default function DisciplinaryPage() {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState<string>("all");
   const [selectedActionType, setSelectedActionType] = useState<string>("all");
@@ -45,7 +47,7 @@ export default function DisciplinaryPage() {
       <PageHeader
         title="Disciplinary Actions"
         breadcrumbs={[
-          { label: "HR", href: "/app/hr" },
+          { label: t('nav.hr' as any), href: "/app/hr" },
           { label: "Compliance", href: "/app/hr/compliance" },
           { label: "Disciplinary" }
         ]}
