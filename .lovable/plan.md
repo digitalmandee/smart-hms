@@ -1,288 +1,156 @@
 
-# Complete Translation & RTL Coverage: Sidebar, Forms, Dynamic Fields
+# RTL Arabic/Urdu Audit Report — Complete Findings & Fix Plan
 
-## Root Cause Analysis
+## Audit Summary
 
-After a thorough audit, three distinct problems remain:
+After reading through all major pages, shared components, and translation files, here is the precise state of what is working correctly and what still needs fixing.
 
-### Problem 1: 100+ DB Menu Items Not in the Sidebar Translation Map
-The `SIDEBAR_NAME_TO_KEY` map in `DynamicSidebar.tsx` only covers ~120 names. The actual database `menu_items` table has **~250 distinct names**. Any name not in the map falls through to the raw English string. The items the user saw ("Walk-in Patient", "Schedule Appointment", "Dashboard" etc.) are real examples of this gap.
+---
 
-**Missing DB menu items (confirmed by querying `menu_items` table):**
+## What is Already Working Correctly
+
+- **IPD Dashboard** — 100% translated, all `t()` calls. No raw English strings found.
+- **Billing Dashboard & Invoices List** — 100% translated.
+- **HR Dashboard** — 100% translated. All stat cards, quick access tiles, alerts, and buttons use `t()`.
+- **Pharmacy Dashboard, Lab Dashboard, OT Dashboard, Org Admin Dashboard** — All translated.
+- **Main Dashboard** — Translated.
+- **Appointments List & Form** — Translated (done in previous session).
+- **Reception Dashboard & Quick Actions** — Translated (done in previous session).
+- **Patients List** — Translated.
+- **Admissions List (IPD)** — Translated.
+- **DataTable** — RTL-aware: search icon flips, pagination icons flip, strings use `t()`.
+- **PageHeader & ModernPageHeader** — Breadcrumb chevrons flip in RTL.
+- **MobileHeader** — `flex-row-reverse` in RTL, badge position logical.
+- **MobileSideMenu** — Opens from correct side (`isRTL ? "right" : "left"`), logical padding (`ps-*`, `pe-*`), translated "Dark Mode" / "Sign Out".
+- **MobileFormWizard** — Chevrons and spacing RTL-corrected.
+- **BottomNavigation** — Uses `t()` for all labels.
+- **StatusBadge** — Translated.
+- **DynamicSidebar** — 250+ DB menu items now in `SIDEBAR_NAME_TO_KEY` map; all three translation files updated.
+- **DashboardLayout** — `dir={isRTL ? "rtl" : "ltr"}` applied to root, causing sidebar to move to the right in RTL automatically.
+
+---
+
+## What Still Needs Fixing (6 Issues)
+
+### Issue 1 — OPD Doctor Dashboard: 100% Hardcoded English (HIGH)
+
+`src/pages/app/opd/DoctorDashboard.tsx` has NO `useTranslation` import. All strings are hardcoded:
+- `title="Doctor Dashboard"`, `description="Welcome, Dr. ..."`
+- `"Find Patient"`, `"Search any patient by MR#, name, or phone..."`
+- `"Today's Patients"`, `"Completed"`, `"Pending"`, `"In Queue"`
+- `"Current Patient"`, `"Patient Queue"`, `"Continue Consultation"`, `"Start Consultation"`
+- `"No patients in queue"`, `"No patients waiting"`, `"No patient in progress"`
+- `"Chief Complaint:"`, `"View History"`, `"In Progress"`, `"Waiting"`, `"Emergency"`, `"Urgent"`
+- Physical CSS: `mr-2` on `History` icon button (should be `me-2`), `left-3` not applicable here but icon buttons lack RTL-awareness
+
+**Fix**: Add `useTranslation` + `useIsRTL`, create ~20 new `opd.*` keys, replace all hardcoded strings, fix `mr-2` → `me-2`.
+
+### Issue 2 — OPD Nurse Dashboard: 100% Hardcoded English (HIGH)
+
+`src/pages/app/opd/NurseDashboard.tsx` has NO `useTranslation`. All strings hardcoded:
+- `title="Nurse Station"`, `description="Today, ..."`
+- `"All Departments"`, `"Refresh"`, `"View Full Queue"`
+- `"Quick Patient Search"`, `"Search by MR#, name, or phone..."`, `"Book Appointment"`, `"Searching..."`, `"No patients found"`
+- `"Awaiting Vitals"`, `"Vitals Complete"`, `"In Consultation"`, `"Total Today"`, `"Ready for Doctor"`, `"Quick Actions"`, `"Active Consultations"`
+- `"All patients have vitals recorded"`, `"No patients ready yet"`
+- Priority labels: `'Emergency'`, `'Urgent'`, `'Normal'` (hardcoded in `priorityLabels` constant)
+- Physical CSS: `mr-2` on Refresh button, `left-3` on search icon, `pl-9` on search Input, `ml-2` on dept name span
+
+**Fix**: Add `useTranslation` + `useIsRTL`, create ~18 new `opd.*` keys, fix RTL CSS.
+
+### Issue 3 — OPD Walk-in Page: 100% Hardcoded English (HIGH)
+
+`src/pages/app/opd/OPDWalkInPage.tsx` is 1074 lines with zero translations. This is the main receptionist walk-in registration flow. Has many multi-step UI strings, form labels, payment step, and token slip strings.
+
+**Fix**: Add `useTranslation`, create ~30 new `opd.walkIn.*` keys.
+
+### Issue 4 — Physical CSS Remaining in HR Dashboard (LOW)
+
+`src/pages/app/hr/HRDashboard.tsx` has two instances of physical CSS:
+- Line 145: `<ChevronRight className="h-4 w-4 ml-1" />` on "View All" button → needs `ms-1` + RTL-aware icon
+- Line 294: `<ChevronRight className="h-4 w-4 ml-1" />` same issue
+
+These are `ChevronRight` navigation icons at end of "View All" / "Pending Leave Requests" buttons. In RTL they should flip to `ChevronLeft` and `ml-1` → `ms-1`.
+
+### Issue 5 — Physical CSS in IPD Dashboard (LOW)
+
+`src/pages/app/ipd/IPDDashboard.tsx` has:
+- Line 90: `<RefreshCw className="h-4 w-4 mr-2" />` → `me-2`
+- Line 94: `<Plus className="h-4 w-4 mr-2" />` → `me-2`
+- Line 189: `<ArrowRight className="h-4 w-4 ml-1" />` → `ms-1` + flip in RTL
+- Line 423: `<ArrowRight className="h-4 w-4 ml-1" />` → `ms-1` + flip in RTL
+- Several `ml-2` on inline text spans (e.g., `ml-2` on bed number span, expected discharge)
+
+### Issue 6 — Missing Translation Keys for OPD Doctor/Nurse Strings
+
+Several key strings need new translation keys added to all three language files:
+
+**New keys needed (en.ts → ar.ts → ur.ts):**
+
 ```
-Walk-in Patient, Schedule Appointment, Today's Appointments, Walk-in Registration,
-Accounts Receivable, Activity Log, Admission History, AI Assistant, Ambulance Alerts,
-Appointment Reports, Attendance Reports, Bank & Cash, Bed Features, Bed Management,
-Bed Map, Bed Transfers, Bed Types, Billing Reports, Biometric Devices, Birth Records,
-Blood Requests, Budgets & Fiscal Years, Care Plans, Claims, Claims Report, Clinic,
-Clinic Reports, Clinical Config, Corrections, Cross Matching, Customize, Daily Closing,
-Daily Rounds, Death Records, Diet Management, Diet Types, Discharge, Discharge Summaries,
-Doctor Dashboard, Doctor Fees, Doctor Reports, eMAR, ER Dashboard, ER Display Setup,
-ER Queue, ER Reports, Fee Templates, Final Billing, Floors & Buildings, General,
-Goods Receipt, HR Config, HR Dashboard, HR Reports, HR Setup, Insurance & Claims,
-Insurance Companies, Insurance Plans, Inventory Reports, IPD Billing, IPD Charges,
-IPD Config, IPD Dashboard, IPD Reports, IPD Setup, Item Catalog, Kiosk Management,
-Kiosk Sessions, Lab Analyzers, Lab Dashboard, Lab Queue, Lab Reports, Lab Settings,
-Leave Calendar, Medical Licenses, New Registration, New Onboarding, Notifications,
-Nurse Station, Nursing Station, OPD Dashboard, Orders, OT Dashboard,
-OT Medication Charges, PACS Servers, PACS Settings, PACS Studies, Patient Config,
-Patient Directory, Patient Reports, Payroll Runs, Pending Approvals, Pending Discharge,
-Pharmacy Reports, Platform Stats, POS Sessions, Prescription Queue, Queue Control,
-Queue Displays, Records, Recovery (PACU), Register New, Reports Hub, Result Entry,
-Salary Components, Service Types, SMS Gateway, Stock Entry, Stock Movements,
-Super Admin, Surgeon Fee Templates, Surgery Schedule, System Settings, Tax Slabs,
-Technician Worklist, Test Categories, Token Counter, Token Display Setup, Token Kiosk,
-Token Kiosk Setup, Token Queue, Triage Station, Users & Roles, Vitals Chart,
-Ward Types
-```
-
-### Problem 2: AppointmentFormPage Has Zero Translations
-The form at `/app/appointments/new` (Walk-in mode) has 100% hardcoded English:
-- Card titles: "Patient", "Appointment Details", "Additional Information", "Select Time Slot"
-- Field labels: "Branch", "Doctor", "Appointment Type", "Date", "Chief Complaint", "Notes (Optional)"
-- Dropdown values: "Walk-in", "Scheduled", "Follow-up", "Emergency"
-- Payment step: "Collect Payment", "Payment Summary", "Payment Method", "Consultation Fee", "Back", "Processing...", "Collect Rs. X & Generate Token", "Skip Payment - Generate Token Only (Pay Later)"
-- Success screen: "Token Generated", "Token Number", "Paid", "Payment Pending", "Invoice:", "Amount Paid:", "Payment Method:", "Patient:", "Doctor:", "Print Token", "Back to Appointments", "New Appointment"
-- Placeholders: "Describe the main reason for visit...", "Any additional notes..."
-- Form validation messages hardcoded in zod schema
-
-**Note on dynamic data (branches, doctors):** These come from the database and display the actual branch/doctor name. These cannot be translated — they are user-entered data. The interface labels around them (field labels, placeholders) will be translated.
-
-### Problem 3: Sidebar is on the LEFT in RTL Mode
-The desktop `DynamicSidebar` renders as an `<aside>` on the left in the `DashboardLayout`. In RTL mode this must move to the right side. The layout needs `dir="rtl"` applied to the `<html>` element or the layout wrapper to trigger CSS logical properties, OR the sidebar needs to be explicitly placed on the right.
-
-## Solution Architecture
-
-### Fix 1: Add All 100+ Missing DB Names to SIDEBAR_NAME_TO_KEY
-
-Add ~110 new entries to the map in `DynamicSidebar.tsx`, plus matching translation keys in all three language files.
-
-**New translation keys needed (en.ts):**
-```
-nav.walkInPatient          → Walk-in Patient
-nav.scheduleAppointment    → Schedule Appointment
-nav.todaysAppointments     → Today's Appointments
-nav.walkInRegistration     → Walk-in Registration
-nav.accountsReceivable     → Accounts Receivable
-nav.activityLog            → Activity Log
-nav.admissionHistory       → Admission History
-nav.aiAssistant            → AI Assistant
-nav.ambulanceAlerts        → Ambulance Alerts
-nav.appointmentReports     → Appointment Reports
-nav.attendanceReports      → Attendance Reports
-nav.bankAndCash            → Bank & Cash
-nav.bedFeatures            → Bed Features
-nav.bedManagement          → Bed Management
-nav.bedMap                 → Bed Map
-nav.bedTransfers           → Bed Transfers
-nav.bedTypes               → Bed Types
-nav.billingReports         → Billing Reports
-nav.biometricDevices       → Biometric Devices
-nav.birthRecords           → Birth Records
-nav.bloodRequests          → Blood Requests
-nav.budgetsFiscalYears     → Budgets & Fiscal Years
-nav.carePlans              → Care Plans
-nav.claims                 → Claims
-nav.claimsReport           → Claims Report
-nav.clinic                 → Clinic
-nav.clinicReports          → Clinic Reports
-nav.clinicalConfig         → Clinical Config
-nav.corrections            → Corrections
-nav.crossMatching          → Cross Matching
-nav.customize              → Customize
-nav.dailyClosing           → Daily Closing
-nav.dailyRounds            → Daily Rounds
-nav.deathRecords           → Death Records
-nav.dietManagement         → Diet Management
-nav.dietTypes              → Diet Types
-nav.discharge              → Discharge
-nav.dischargeSummaries     → Discharge Summaries
-nav.doctorDashboard        → Doctor Dashboard
-nav.doctorFees             → Doctor Fees
-nav.doctorReports          → Doctor Reports
-nav.emar                   → eMAR
-nav.erDashboard            → ER Dashboard
-nav.erDisplaySetup         → ER Display Setup
-nav.erQueue                → ER Queue
-nav.erReports              → ER Reports
-nav.feeTemplates           → Fee Templates
-nav.finalBilling           → Final Billing
-nav.floorsBuildings        → Floors & Buildings
-nav.general                → General
-nav.goodsReceipt           → Goods Receipt
-nav.hrConfig               → HR Config
-nav.hrDashboard            → HR Dashboard
-nav.hrReports              → HR Reports
-nav.hrSetup                → HR Setup
-nav.insuranceClaims        → Insurance & Claims
-nav.insuranceCompanies     → Insurance Companies
-nav.insurancePlans         → Insurance Plans
-nav.inventoryReports       → Inventory Reports
-nav.ipdBilling             → IPD Billing
-nav.ipdCharges             → IPD Charges
-nav.ipdConfig              → IPD Config
-nav.ipdDashboard           → IPD Dashboard
-nav.ipdReports             → IPD Reports
-nav.ipdSetup               → IPD Setup
-nav.itemCatalog            → Item Catalog
-nav.kioskManagement        → Kiosk Management
-nav.kioskSessions          → Kiosk Sessions
-nav.labAnalyzers           → Lab Analyzers
-nav.labDashboard           → Lab Dashboard
-nav.labQueue               → Lab Queue
-nav.labReports             → Lab Reports
-nav.labSettings            → Lab Settings
-nav.leaveCalendar          → Leave Calendar
-nav.medicalLicenses        → Medical Licenses
-nav.newRegistration        → New Registration
-nav.newOnboarding          → New Onboarding
-nav.notifications          → Notifications
-nav.nurseStation           → Nurse Station
-nav.nursingStation         → Nursing Station
-nav.opdDashboard           → OPD Dashboard
-nav.orders                 → Orders
-nav.otDashboard            → OT Dashboard
-nav.otMedicationCharges    → OT Medication Charges
-nav.pacsServers            → PACS Servers
-nav.pacsSettings           → PACS Settings
-nav.pacsStudies            → PACS Studies
-nav.patientConfig          → Patient Config
-nav.patientDirectory       → Patient Directory
-nav.patientReports         → Patient Reports
-nav.payrollRuns            → Payroll Runs
-nav.pendingApprovals       → Pending Approvals
-nav.pendingDischarge       → Pending Discharge
-nav.pharmacyReports        → Pharmacy Reports
-nav.platformStats          → Platform Stats
-nav.posSessions            → POS Sessions
-nav.prescriptionQueue      → Prescription Queue
-nav.queueControl           → Queue Control
-nav.queueDisplays          → Queue Displays
-nav.records                → Records
-nav.recoveryPacu           → Recovery (PACU)
-nav.registerNew            → Register New
-nav.reportsHub             → Reports Hub
-nav.resultEntry            → Result Entry
-nav.salaryComponents       → Salary Components
-nav.serviceTypes           → Service Types
-nav.smsGateway             → SMS Gateway
-nav.stockEntry             → Stock Entry
-nav.stockMovements         → Stock Movements
-nav.superAdmin             → Super Admin
-nav.surgeonFeeTemplates    → Surgeon Fee Templates
-nav.surgerySchedule        → Surgery Schedule
-nav.systemSettings         → System Settings
-nav.taxSlabs               → Tax Slabs
-nav.technicianWorklist     → Technician Worklist
-nav.testCategories         → Test Categories
-nav.tokenCounter           → Token Counter
-nav.tokenDisplaySetup      → Token Display Setup
-nav.tokenKiosk             → Token Kiosk
-nav.tokenKioskSetup        → Token Kiosk Setup
-nav.tokenQueue             → Token Queue
-nav.triageStation          → Triage Station
-nav.usersRoles             → Users & Roles
-nav.vitalsChart            → Vitals Chart
-nav.wardTypes              → Ward Types
+"opd.doctorDashboard"          → Doctor Dashboard / لوحة تحكم الطبيب / ڈاکٹر ڈیشبورڈ
+"opd.welcomeDoctor"            → Welcome, Dr. / مرحباً يا دكتور / خوش آمدید، ڈاکٹر
+"opd.findPatient"              → Find Patient / البحث عن مريض / مریض تلاش کریں
+"opd.searchByMr"               → Search any patient by MR#, name, or phone... / ابحث بالرقم أو الاسم / MR# نام یا فون سے تلاش
+"opd.todaysPatients"           → Today's Patients / مرضى اليوم / آج کے مریض
+"opd.currentPatient"           → Current Patient / المريض الحالي / موجودہ مریض
+"opd.patientQueue"             → Patient Queue / قائمة المرضى / مریضوں کی قائمہ
+"opd.continueConsultation"     → Continue Consultation / متابعة الاستشارة / مشاورت جاری رکھیں
+"opd.startConsultation"        → Start Consultation / بدء الاستشارة / مشاورت شروع کریں
+"opd.noPatientsInQueue"        → No patients in queue / لا مرضى في القائمة / قائمہ میں کوئی مریض نہیں
+"opd.noPatientsWaiting"        → No patients waiting / لا مرضى في الانتظار / انتظار میں کوئی مریض نہیں
+"opd.noPatientInProgress"      → No patient in progress / لا يوجد مريض قيد العلاج / کوئی مریض زیر علاج نہیں
+"opd.viewHistory"              → View History / عرض السجل / تاریخ دیکھیں
+"opd.inProgress"               → In Progress / قيد التنفيذ / زیر عمل
+"opd.waiting"                  → Waiting / في الانتظار / انتظار میں
+"opd.emergency"                → Emergency / طارئ / ایمرجنسی
+"opd.urgent"                   → Urgent / عاجل / فوری
+"opd.normal"                   → Normal / عادي / عام
+"opd.chiefComplaintLabel"      → Chief Complaint: / الشكوى الرئيسية: / بنیادی شکایت:
+"opd.nurseStation"             → Nurse Station / محطة التمريض / نرس اسٹیشن
+"opd.allDepartments"           → All Departments / جميع الأقسام / تمام شعبے
+"opd.quickPatientSearch"       → Quick Patient Search / بحث سريع عن المرضى / فوری مریض تلاش
+"opd.searchByMrNamePhone"      → Search by MR#, name, or phone... / ابحث بالرقم أو الاسم أو الهاتف / MR# نام یا فون
+"opd.searching"                → Searching... / جارٍ البحث... / تلاش ہو رہی ہے...
+"opd.noPatientsFound"          → No patients found / لم يُعثر على مرضى / کوئی مریض نہیں ملا
+"opd.awaitingVitals"           → Awaiting Vitals / في انتظار العلامات الحيوية / وائٹلز کا انتظار
+"opd.vitalsComplete"           → Vitals Complete / العلامات الحيوية مكتملة / وائٹلز مکمل
+"opd.inConsultation"           → In Consultation / في الاستشارة / مشاورت میں
+"opd.totalToday"               → Total Today / الإجمالي اليوم / آج کا کل
+"opd.readyForDoctor"           → Ready for Doctor / جاهز للطبيب / ڈاکٹر کے لیے تیار
+"opd.quickActions"             → Quick Actions / إجراءات سريعة / فوری کارروائیاں
+"opd.activeConsultations"      → Active Consultations / الاستشارات النشطة / فعال مشاورتیں
+"opd.allVitalsRecorded"        → All patients have vitals recorded / تم تسجيل علامات جميع المرضى / تمام مریضوں کے وائٹلز ریکارڈ
+"opd.noPatientsReady"          → No patients ready yet / لا مرضى جاهزون بعد / ابھی کوئی مریض تیار نہیں
+"opd.viewFullQueue"            → View Full Queue / عرض القائمة الكاملة / مکمل قائمہ دیکھیں
 ```
 
-### Fix 2: Translate AppointmentFormPage
-
-Add `useTranslation` to `AppointmentFormPage.tsx`. Add the following translation keys to all three language files:
-
-**New keys for appointment form (en.ts):**
-```
-"apptForm.patient"              → Patient
-"apptForm.selectPatient"        → Select Patient
-"apptForm.appointmentDetails"   → Appointment Details
-"apptForm.branch"               → Branch
-"apptForm.selectBranch"         → Select branch
-"apptForm.doctor"               → Doctor
-"apptForm.selectDoctor"         → Select doctor
-"apptForm.appointmentType"      → Appointment Type
-"apptForm.walkIn"               → Walk-in
-"apptForm.scheduled"            → Scheduled
-"apptForm.followUp"             → Follow-up
-"apptForm.emergency"            → Emergency
-"apptForm.date"                 → Date
-"apptForm.selectTimeSlot"       → Select Time Slot
-"apptForm.additionalInfo"       → Additional Information
-"apptForm.chiefComplaint"       → Chief Complaint
-"apptForm.chiefComplaintPlaceholder" → Describe the main reason for visit...
-"apptForm.notesOptional"        → Notes (Optional)
-"apptForm.notesPlaceholder"     → Any additional notes...
-"apptForm.walkInTitle"          → Walk-in Appointment
-"apptForm.emergencyTitle"       → Emergency Appointment
-"apptForm.addedToQueue"         → Patient will be added to the queue
-"apptForm.prioritizedNow"       → Patient will be prioritized immediately
-"apptForm.paymentBeforeToken"   → Payment will be collected before generating token
-"apptForm.consultationFee"      → Consultation Fee
-"apptForm.collectPayment"       → Collect Payment
-"apptForm.collectDesc"          → Collect consultation fee before generating token
-"apptForm.paymentSummary"       → Payment Summary
-"apptForm.specialty"            → Specialty
-"apptForm.type"                 → Type
-"apptForm.paymentMethod"        → Payment Method
-"apptForm.selectPaymentMethod"  → Select Payment Method
-"apptForm.referenceNumber"      → Reference Number (Optional)
-"apptForm.referencePlaceholder" → Transaction ID or reference...
-"apptForm.collectAndGenerate"   → Collect Rs. {fee} & Generate Token
-"apptForm.skipPayment"          → Skip Payment - Generate Token Only (Pay Later)
-"apptForm.tokenGenerated"       → Token Generated
-"apptForm.appointmentCreatedPaid"  → Appointment created and payment recorded
-"apptForm.appointmentPending"      → Appointment created - Payment pending
-"apptForm.tokenNumber"          → Token Number
-"apptForm.paid"                 → Paid
-"apptForm.paymentPending"       → Payment Pending
-"apptForm.invoice"              → Invoice:
-"apptForm.amountPaid"           → Amount Paid:
-"apptForm.paymentMethodLabel"   → Payment Method:
-"apptForm.patientLabel"         → Patient:
-"apptForm.doctorLabel"          → Doctor:
-"apptForm.printToken"           → Print Token
-"apptForm.backToAppointments"   → Back to Appointments
-"apptForm.newAppointment"       → New Appointment
-"apptForm.editAppointment"      → Edit Appointment
-"apptForm.bookAppointment"      → Book Appointment
-"apptForm.updateAppointment"    → Update Appointment
-"apptForm.continueToPayment"    → Continue to Payment
-"apptForm.saving"               → Saving...
-"apptForm.processing"           → Processing...
-"apptForm.dueLabel"             → Due
-"apptForm.or"                   → or
-```
-
-### Fix 3: RTL — Sidebar Side (Desktop)
-
-The desktop layout renders the sidebar on the LEFT. In RTL, the convention is RIGHT. The fix is to apply `dir` attribute based on language:
-
-In `DashboardLayout.tsx`, add `dir={isRTL ? "rtl" : "ltr"}` to the root `<div>` wrapper. This single change causes ALL CSS logical properties (`ps-`, `pe-`, `ms-`, `me-`, `start-`, `end-`) to flip automatically — which means the sidebar naturally moves to the right since modern browsers handle `dir` on the containing element.
-
-This is the **most correct, most complete** solution — it fixes the sidebar position AND propagates RTL to every child component automatically without touching each component.
+---
 
 ## Files to Change
 
-| File | Changes |
-|------|---------|
-| `src/lib/i18n/translations/en.ts` | Add ~110 `nav.*` keys + ~45 `apptForm.*` keys |
-| `src/lib/i18n/translations/ar.ts` | All Arabic translations for new keys |
-| `src/lib/i18n/translations/ur.ts` | All Urdu translations for new keys |
-| `src/components/DynamicSidebar.tsx` | Add ~110 entries to `SIDEBAR_NAME_TO_KEY` |
-| `src/pages/app/appointments/AppointmentFormPage.tsx` | Add `useTranslation`, replace all hardcoded strings |
-| `src/components/DashboardLayout.tsx` | Add `dir={isRTL ? "rtl" : "ltr"}` to root wrapper |
+| File | Type | Specific Changes |
+|------|------|------------------|
+| `src/lib/i18n/translations/en.ts` | Add keys | ~35 new `opd.*` keys for Doctor/Nurse dashboards + Walk-in strings |
+| `src/lib/i18n/translations/ar.ts` | Add keys | Arabic for all new keys |
+| `src/lib/i18n/translations/ur.ts` | Add keys | Urdu for all new keys |
+| `src/pages/app/opd/DoctorDashboard.tsx` | RTL + i18n | Add `useTranslation` + `useIsRTL`, replace all hardcoded strings, fix `mr-2` → `me-2`, `"Emergency"/"Urgent"` status badge labels |
+| `src/pages/app/opd/NurseDashboard.tsx` | RTL + i18n | Add `useTranslation` + `useIsRTL`, replace all hardcoded strings, fix `left-3` → `isRTL ? "right-3" : "left-3"`, `pl-9` → `isRTL ? "pr-9" : "pl-9"`, `mr-2` → `me-2`, `ml-2` → `ms-2`, translate `priorityLabels` constant |
+| `src/pages/app/opd/OPDWalkInPage.tsx` | i18n | Add `useTranslation`, replace all hardcoded form labels, step titles, button text |
+| `src/pages/app/hr/HRDashboard.tsx` | RTL | Fix 2× `<ChevronRight>` → flip with `isRTL`, `ml-1` → `ms-1` |
+| `src/pages/app/ipd/IPDDashboard.tsx` | RTL | Fix `mr-2` → `me-2` on buttons, `ml-1` → `ms-1` + flip `ArrowRight` icons, `ml-2` → `ms-2` on inline spans |
 
-## Expected Result After Implementation
+---
 
-| Issue | Before | After |
-|-------|--------|-------|
-| "Walk-in Patient" in sidebar | Shows English in all languages | Translated |
-| "Schedule Appointment" in sidebar | Shows English in all languages | Translated |
-| 100+ other DB menu names | Fall through as English | Translated |
-| Appointment form labels | All hardcoded English | Translated |
-| Appointment type dropdown | "Walk-in", "Scheduled" etc hardcoded | Translated |
-| Payment step strings | All hardcoded English | Translated |
-| Token success screen | All hardcoded English | Translated |
-| Desktop sidebar position | Always on LEFT | Moves to RIGHT in Arabic/Urdu |
-| All logical property fixes (spacing, icons) | Already done in prev sessions | Continue working correctly |
+## Expected Outcome After These Fixes
 
-The `dir` approach for the layout root is the gold standard — it means future components built with Tailwind logical properties will automatically be RTL-correct without any additional code.
+| Page | Before | After |
+|------|--------|-------|
+| OPD Doctor Dashboard | 100% hardcoded English | Fully translated in Arabic/Urdu |
+| OPD Nurse Dashboard | 100% hardcoded English + physical CSS RTL bugs | Translated + RTL-correct |
+| OPD Walk-in Page | 100% hardcoded English | Fully translated |
+| HR Dashboard "View All" buttons | `ChevronRight` + `ml-1` wrong in RTL | Flipped + logical spacing |
+| IPD Dashboard buttons | `mr-2` physical (fine in LTR, wrong in RTL) | `me-2` logical, works both ways |
+| IPD "View all" / "Recent Admissions" `ArrowRight` | Points wrong direction in RTL | Flipped with `isRTL` |
+
+After this, every page accessible from the sidebar will have 100% translated strings and fully correct RTL layouts for Arabic and Urdu.
