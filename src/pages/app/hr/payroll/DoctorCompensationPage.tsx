@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "@/lib/i18n";
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,7 @@ const PLAN_TYPES = [
 ];
 
 export default function DoctorCompensationPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPlan, setEditingPlan] = useState<any>(null);
@@ -125,7 +127,7 @@ export default function DoctorCompensationPage() {
         title="Doctor Compensation Plans"
         description="Configure revenue share and salary models for doctors"
         breadcrumbs={[
-          { label: "HR", href: "/app/hr" },
+          { label: t('nav.hr' as any), href: "/app/hr" },
           { label: "Payroll", href: "/app/hr/payroll" },
           { label: "Doctor Compensation" },
         ]}

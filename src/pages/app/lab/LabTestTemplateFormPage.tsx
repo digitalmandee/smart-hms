@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "@/lib/i18n";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 const DEFAULT_CATEGORIES = ["Blood", "Urine", "Stool", "CSF", "Serology", "Biochemistry", "Hematology", "Microbiology"];
 
 export default function LabTestTemplateFormPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams();
   const [searchParams] = useSearchParams();
@@ -91,7 +93,7 @@ export default function LabTestTemplateFormPage() {
         <PageHeader
           title="Loading..."
           breadcrumbs={[
-            { label: "Lab", href: "/app/lab" },
+            { label: t('nav.lab' as any), href: "/app/lab" },
             { label: "Test Templates", href: "/app/lab/templates" },
             { label: "Loading..." },
           ]}
@@ -110,7 +112,7 @@ export default function LabTestTemplateFormPage() {
         title={isEdit ? "Edit Test Template" : "New Test Template"}
         description={isEdit ? "Modify test parameters and fields" : "Define test parameters and normal ranges"}
         breadcrumbs={[
-          { label: "Lab", href: "/app/lab" },
+          { label: t('nav.lab' as any), href: "/app/lab" },
           { label: "Test Templates", href: "/app/lab/templates" },
           { label: isEdit ? "Edit" : "New" },
         ]}

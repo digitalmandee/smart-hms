@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "@/lib/i18n";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,6 +37,7 @@ const REASON_OPTIONS = [
 ];
 
 export default function ResignationsPage() {
+  const { t } = useTranslation();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [formData, setFormData] = useState({
@@ -114,7 +116,7 @@ export default function ResignationsPage() {
         title="Resignations"
         description="Manage employee resignations and exit process"
         breadcrumbs={[
-          { label: "HR", href: "/app/hr" },
+          { label: t('nav.hr' as any), href: "/app/hr" },
           { label: "Exit Management", href: "/app/hr/exit" },
           { label: "Resignations" },
         ]}

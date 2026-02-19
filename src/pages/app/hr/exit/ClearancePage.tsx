@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "@/lib/i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -32,6 +33,7 @@ const DEFAULT_CLEARANCE_ITEMS = {
 };
 
 export default function ClearancePage() {
+  const { t } = useTranslation();
   const [selectedResignation, setSelectedResignation] = useState<string>("");
   const [isInitDialogOpen, setIsInitDialogOpen] = useState(false);
   
@@ -89,7 +91,7 @@ export default function ClearancePage() {
         title="Employee Clearance"
         description="Manage department-wise clearance for exiting employees"
         breadcrumbs={[
-          { label: "HR", href: "/app/hr" },
+          { label: t('nav.hr' as any), href: "/app/hr" },
           { label: "Exit Management" },
           { label: "Clearance" },
         ]}

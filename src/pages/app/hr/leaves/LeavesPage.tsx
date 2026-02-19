@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "@/lib/i18n";
 import { format, differenceInDays } from "date-fns";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -38,6 +39,7 @@ import { useToast } from "@/hooks/use-toast";
 import { toast } from "sonner";
 
 export default function LeavesPage() {
+  const { t } = useTranslation();
   const { user, profile } = useAuth();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -167,7 +169,7 @@ export default function LeavesPage() {
         title="Leave Requests"
         description="Manage employee leave applications"
         breadcrumbs={[
-          { label: "HR", href: "/app/hr" },
+          { label: t('nav.hr' as any), href: "/app/hr" },
           { label: "Leaves" },
         ]}
         actions={

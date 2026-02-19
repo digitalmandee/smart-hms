@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "@/lib/i18n";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ const statusColors: Record<string, string> = {
 };
 
 export default function SettlementsPage() {
+  const { t } = useTranslation();
   const { formatCurrency } = useCurrencyFormatter();
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -115,7 +117,7 @@ export default function SettlementsPage() {
         title="Final Settlements"
         description="Calculate and process full & final settlements for exiting employees"
         breadcrumbs={[
-          { label: "HR", href: "/app/hr" },
+          { label: t('nav.hr' as any), href: "/app/hr" },
           { label: "Exit Management" },
           { label: "Settlements" },
         ]}

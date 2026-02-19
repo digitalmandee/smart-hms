@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "@/lib/i18n";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,7 @@ const sourceTypeLabels: Record<string, string> = {
 };
 
 export default function DailyCommissionReport() {
+  const { t } = useTranslation();
   const [date, setDate] = useState<Date>(new Date());
   const { data: earnings, isLoading } = useDailyEarningsReport(date);
 
@@ -152,7 +154,7 @@ export default function DailyCommissionReport() {
         title="Daily Commission Report"
         description="View doctor earnings for a specific date"
         breadcrumbs={[
-          { label: "HR", href: "/app/hr" },
+          { label: t('nav.hr' as any), href: "/app/hr" },
           { label: "Payroll", href: "/app/hr/payroll" },
           { label: "Daily Commissions" },
         ]}

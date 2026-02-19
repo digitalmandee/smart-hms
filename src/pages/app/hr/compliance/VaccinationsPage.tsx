@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "@/lib/i18n";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +22,7 @@ const VACCINE_TYPES = [
 ];
 
 export default function VaccinationsPage() {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState<string>("all");
   const [selectedVaccine, setSelectedVaccine] = useState<string>("all");
@@ -91,7 +93,7 @@ export default function VaccinationsPage() {
       <PageHeader
         title="Staff Vaccinations"
         breadcrumbs={[
-          { label: "HR", href: "/app/hr" },
+          { label: t('nav.hr' as any), href: "/app/hr" },
           { label: "Compliance", href: "/app/hr/compliance" },
           { label: "Vaccinations" }
         ]}

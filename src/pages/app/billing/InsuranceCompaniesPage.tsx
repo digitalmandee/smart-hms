@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "@/lib/i18n";
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -33,6 +34,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 
 export default function InsuranceCompaniesPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [editCompany, setEditCompany] = useState<InsuranceCompany | null>(null);
@@ -109,7 +111,7 @@ export default function InsuranceCompaniesPage() {
         title="Insurance Companies"
         description="Manage insurance providers and their details"
         breadcrumbs={[
-          { label: "Billing", href: "/app/billing" },
+          { label: t('nav.billing' as any), href: "/app/billing" },
           { label: "Insurance Companies" },
         ]}
         actions={

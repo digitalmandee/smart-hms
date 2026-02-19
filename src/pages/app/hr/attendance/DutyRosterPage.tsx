@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "@/lib/i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -19,6 +20,7 @@ import { Calendar, ChevronLeft, ChevronRight, Users, Clock, Building2, Plus, Loa
 import { format, startOfWeek, addDays, addWeeks, subWeeks } from "date-fns";
 
 export default function DutyRosterPage() {
+  const { t } = useTranslation();
   const { profile } = useAuth();
   const [selectedDepartment, setSelectedDepartment] = useState<string>("all");
   const [currentWeekStart, setCurrentWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
@@ -106,7 +108,7 @@ export default function DutyRosterPage() {
       <PageHeader
         title="Duty Roster"
         breadcrumbs={[
-          { label: "HR", href: "/app/hr" },
+          { label: t('nav.hr' as any), href: "/app/hr" },
           { label: "Attendance", href: "/app/hr/attendance" },
           { label: "Duty Roster" }
         ]}

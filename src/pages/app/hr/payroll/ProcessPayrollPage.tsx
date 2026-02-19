@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useTranslation } from "@/lib/i18n";
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -89,6 +90,7 @@ function useAllUnpaidEarnings(employeeIds: string[], organizationId: string | un
 }
 
 export default function ProcessPayrollPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { profile } = useAuth();
   const currentDate = new Date();
@@ -279,7 +281,7 @@ export default function ProcessPayrollPage() {
         title="Process Payroll"
         description="Run monthly payroll for employees"
         breadcrumbs={[
-          { label: "HR", href: "/app/hr" },
+          { label: t('nav.hr' as any), href: "/app/hr" },
           { label: "Payroll", href: "/app/hr/payroll" },
           { label: "Process" },
         ]}

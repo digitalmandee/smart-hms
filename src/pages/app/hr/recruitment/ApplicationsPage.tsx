@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "@/lib/i18n";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,6 +25,7 @@ const STATUS_OPTIONS = [
 ];
 
 export default function ApplicationsPage() {
+  const { t } = useTranslation();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedApplication, setSelectedApplication] = useState<any>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -122,7 +124,7 @@ export default function ApplicationsPage() {
         title="Job Applications"
         description="Review and manage candidate applications"
         breadcrumbs={[
-          { label: "HR", href: "/app/hr" },
+          { label: t('nav.hr' as any), href: "/app/hr" },
           { label: "Recruitment", href: "/app/hr/recruitment" },
           { label: "Applications" },
         ]}

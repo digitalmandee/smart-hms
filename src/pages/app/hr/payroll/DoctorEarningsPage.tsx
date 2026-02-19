@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "@/lib/i18n";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,6 +29,7 @@ const SOURCE_TYPES = [
 ];
 
 export default function DoctorEarningsPage() {
+  const { t } = useTranslation();
   const { formatCurrency, currencySymbol } = useCurrencyFormatter();
   const [selectedDoctor, setSelectedDoctor] = useState<string>("all");
   const [isPaidFilter, setIsPaidFilter] = useState<string>("all");
@@ -157,7 +159,7 @@ export default function DoctorEarningsPage() {
         title="Doctor Earnings"
         description="Track and manage doctor revenue share earnings"
         breadcrumbs={[
-          { label: "HR", href: "/app/hr" },
+          { label: t('nav.hr' as any), href: "/app/hr" },
           { label: "Payroll", href: "/app/hr/payroll" },
           { label: "Doctor Earnings" },
         ]}
