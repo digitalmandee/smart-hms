@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Clock, Pill, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { PrescriptionQueueItem } from "@/hooks/usePharmacy";
+import { useTranslation } from "@/lib/i18n";
 
 interface PrescriptionQueueCardProps {
   prescription: PrescriptionQueueItem;
@@ -12,6 +13,7 @@ interface PrescriptionQueueCardProps {
 
 export function PrescriptionQueueCard({ prescription }: PrescriptionQueueCardProps) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const patientName = [prescription.patient?.first_name, prescription.patient?.last_name]
     .filter(Boolean)
@@ -29,7 +31,7 @@ export function PrescriptionQueueCard({ prescription }: PrescriptionQueueCardPro
             </div>
           </div>
           <Badge variant={prescription.status === "partially_dispensed" ? "secondary" : "outline"}>
-            {prescription.status === "partially_dispensed" ? "Partial" : "Pending"}
+            {prescription.status === "partially_dispensed" ? t('pharmacy.partial' as any) : t('pharmacy.pending' as any)}
           </Badge>
         </div>
       </CardHeader>
@@ -41,20 +43,17 @@ export function PrescriptionQueueCard({ prescription }: PrescriptionQueueCardPro
             <p className="text-xs text-muted-foreground">{prescription.patient?.patient_number}</p>
           </div>
         </div>
-
         <div className="flex items-center gap-2">
           <Pill className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm">{prescription.itemCount} item(s)</span>
+          <span className="text-sm">{prescription.itemCount} {t('pharmacy.items' as any)}</span>
         </div>
-
         <div className="pt-2">
           <p className="text-xs text-muted-foreground">
-            Prescribed by: {prescription.doctor?.profile?.full_name}
+            {t('pharmacy.prescribedBy' as any)}: {prescription.doctor?.profile?.full_name}
           </p>
         </div>
-
         <Button className="w-full mt-2" size="sm">
-          Dispense
+          {t('pharmacy.dispense' as any)}
         </Button>
       </CardContent>
     </Card>

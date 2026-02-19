@@ -8,16 +8,18 @@ import { useMedicines } from "@/hooks/useMedicines";
 import { ArrowLeft, Plus } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import { MedicineWithCategory } from "@/hooks/useMedicines";
+import { useTranslation } from "@/lib/i18n";
 
 export default function MedicinesListPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [search, setSearch] = useState("");
   const { data: medicines, isLoading } = useMedicines(search);
 
   const columns: ColumnDef<MedicineWithCategory>[] = [
     {
       accessorKey: "name",
-      header: "Name",
+      header: t('common.name' as any),
       cell: ({ row }) => (
         <div>
           <p className="font-medium">{row.original.name}</p>
@@ -29,17 +31,17 @@ export default function MedicinesListPage() {
     },
     {
       accessorKey: "category",
-      header: "Category",
+      header: t('pharmacy.category' as any),
       cell: ({ row }) => row.original.category?.name || "-",
     },
     {
       accessorKey: "strength",
-      header: "Strength",
+      header: t('pharmacy.strength' as any),
       cell: ({ row }) => row.original.strength || "-",
     },
     {
       accessorKey: "unit",
-      header: "Unit",
+      header: t('pharmacy.unit' as any),
       cell: ({ row }) => (
         <Badge variant="outline" className="capitalize">
           {row.original.unit || "-"}
@@ -48,15 +50,15 @@ export default function MedicinesListPage() {
     },
     {
       accessorKey: "manufacturer",
-      header: "Manufacturer",
+      header: t('pharmacy.manufacturer' as any),
       cell: ({ row }) => row.original.manufacturer || "-",
     },
     {
       accessorKey: "is_active",
-      header: "Status",
+      header: t('common.status' as any),
       cell: ({ row }) => (
         <Badge variant={row.original.is_active ? "default" : "secondary"}>
-          {row.original.is_active ? "Active" : "Inactive"}
+          {row.original.is_active ? t('common.active' as any) : t('common.inactive' as any)}
         </Badge>
       ),
     },
@@ -71,7 +73,7 @@ export default function MedicinesListPage() {
             navigate(`/app/pharmacy/medicines/${row.original.id}/edit`);
           }}
         >
-          Edit
+          {t('common.edit' as any)}
         </Button>
       ),
     },
@@ -80,17 +82,17 @@ export default function MedicinesListPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Medicine Catalog"
-        description="Manage your medicine inventory catalog"
+        title={t('pharmacy.medicineCatalog' as any)}
+        description={t('pharmacy.manageMedicines' as any)}
         actions={
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => navigate("/app/pharmacy")}>
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back
+              {t('common.back' as any)}
             </Button>
             <Button onClick={() => navigate("/app/pharmacy/medicines/new")}>
               <Plus className="mr-2 h-4 w-4" />
-              Add Medicine
+              {t('pharmacy.addMedicine' as any)}
             </Button>
           </div>
         }
@@ -101,7 +103,7 @@ export default function MedicinesListPage() {
         data={medicines || []}
         isLoading={isLoading}
         searchKey="name"
-        searchPlaceholder="Search medicines..."
+        searchPlaceholder={t('pharmacy.searchMedicines' as any)}
         onRowClick={(row) => navigate(`/app/pharmacy/medicines/${row.id}/edit`)}
       />
     </div>
