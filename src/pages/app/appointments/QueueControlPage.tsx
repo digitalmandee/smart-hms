@@ -26,6 +26,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useDoctors } from "@/hooks/useDoctors";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslation } from "@/lib/i18n";
+
 
 interface QueuePatient {
   id: string;
@@ -58,6 +60,7 @@ export default function QueueControlPage() {
   const { profile } = useAuth();
   const { toast } = useToast();
   const { data: doctors } = useDoctors();
+  const { t, language } = useTranslation();
   
   const [selectedDoctor, setSelectedDoctor] = useState<string>("all");
   const [queue, setQueue] = useState<QueuePatient[]>([]);
@@ -277,12 +280,12 @@ export default function QueueControlPage() {
       />
 
       <div className="flex items-center gap-4">
-        <Select value={selectedDoctor} onValueChange={setSelectedDoctor}>
+        <Select key={`doctor-${language}`} value={selectedDoctor} onValueChange={setSelectedDoctor}>
           <SelectTrigger className="w-64">
-            <SelectValue placeholder="Select Doctor" />
+            <SelectValue placeholder={t('apptCal.allDoctors')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Doctors</SelectItem>
+            <SelectItem value="all">{t('apptCal.allDoctors')}</SelectItem>
             {doctors?.map((doctor) => (
               <SelectItem key={doctor.id} value={doctor.id}>
                 Dr. {doctor.employee?.first_name} {doctor.employee?.last_name}

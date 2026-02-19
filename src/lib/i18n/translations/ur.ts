@@ -1169,6 +1169,66 @@ export const ur: Record<TranslationKey, string> = {
   "opd.walkIn.printReceipt": "رسید پرنٹ کریں",
   "opd.walkIn.printBoth": "دونوں پرنٹ کریں",
   "opd.walkIn.registerNextPatient": "اگلا مریض رجسٹر کریں",
+
+  // Reception sub-components
+  "reception.surgeriesToProcess": "آپریشن پروسیس کرنے کے لیے",
+  "reception.noSurgeriesNeeded": "کوئی آپریشن پروسیس نہیں",
+  "reception.noAppointmentsToday": "آج کوئی ملاقات شیڈول نہیں",
+  "apptForm.updateDesc": "ملاقات کی تفصیلات اپ ڈیٹ کریں",
+  "apptForm.bookDesc": "نئی ملاقات بک کریں",
+
+
+  // Appointment Calendar
+
+  "apptCal.title": "ملاقاتوں کا کیلنڈر",
+  "apptCal.description": "ملاقاتیں دیکھیں اور منظم کریں - بک کرنے کے لیے کلک کریں",
+  "apptCal.allDoctors": "تمام ڈاکٹر",
+  "apptCal.allBranches": "تمام شاخیں",
+  "apptCal.today": "آج",
+  "apptCal.month": "مہینہ",
+  "apptCal.day": "دن",
+  "apptCal.time": "وقت",
+  "apptCal.newAppointment": "نئی ملاقات",
+
+  // Patient Form additional labels
+  "patient.registerNew": "نیا مریض رجسٹر کریں",
+  "patient.fillDetails": "مریض کی تفصیلات درج کریں",
+  "patient.editPatientDesc": "مریض کا ریکارڈ ترمیم کریں",
+  "patient.patientInformation": "مریض کی معلومات",
+  "patient.showMore": "مزید فیلڈز دکھائیں",
+  "patient.showLess": "کم دکھائیں",
+  "patient.personalDetails": "ذاتی تفصیلات",
+  "patient.contactInformation": "رابطہ معلومات",
+  "patient.fatherHusbandNameLabel": "والد/شوہر کا نام",
+  "patient.maritalStatusLabel": "ازدواجی حیثیت",
+  "patient.single": "غیر شادی شدہ",
+  "patient.married": "شادی شدہ",
+  "patient.divorced": "طلاق یافتہ",
+  "patient.widowed": "بیوہ",
+  "patient.numberOfChildren": "بچوں کی تعداد",
+  "patient.nationalityLabel": "قومیت",
+  "patient.religion": "مذہب",
+  "patient.occupationLabel": "پیشہ",
+  "patient.preferredLanguage": "پسندیدہ زبان",
+  "patient.passportNumber": "پاسپورٹ نمبر",
+  "patient.secondaryPhone": "ثانوی فون",
+  "patient.streetAddress": "گلی کا پتہ",
+  "patient.postalCode": "پوسٹل کوڈ",
+  "patient.emergencyContactName": "ہنگامی رابطے کا نام",
+  "patient.emergencyRelation": "رشتہ",
+  "patient.emergencyPhone": "ہنگامی فون",
+  "patient.insuranceSection": "انشورنس",
+  "patient.insuranceProvider": "انشورنس فراہم کنندہ",
+  "patient.insuranceId": "انشورنس ID",
+  "patient.referral": "ریفرل",
+  "patient.referredBy": "کس نے بھیجا",
+  "patient.referralDetails": "ریفرل تفصیلات",
+  "patient.additionalNotes": "اضافی نوٹس",
+  "patient.branch": "شاخ",
+  "patient.edit": "ترمیم",
+  "patient.new": "نئی",
+  "patient.completionLabel": "مکمل",
 };
+
 
 

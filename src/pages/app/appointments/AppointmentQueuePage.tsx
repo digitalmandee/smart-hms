@@ -32,12 +32,15 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { MobileQueueView } from '@/components/mobile/MobileQueueView';
+import { useTranslation } from '@/lib/i18n';
+
 
 export default function AppointmentQueuePage() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { roles } = useAuth();
+  const { t, language } = useTranslation();
   const [selectedDoctor, setSelectedDoctor] = useState<string>('all');
   
   // Mobile detection
@@ -201,12 +204,12 @@ export default function AppointmentQueuePage() {
 
       {/* Doctor Filter */}
       <div className="flex items-center gap-4">
-        <Select value={selectedDoctor} onValueChange={setSelectedDoctor}>
+        <Select key={`doctor-${language}`} value={selectedDoctor} onValueChange={setSelectedDoctor}>
           <SelectTrigger className="w-64">
-            <SelectValue placeholder="All Doctors" />
+            <SelectValue placeholder={t('apptCal.allDoctors')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Doctors</SelectItem>
+            <SelectItem value="all">{t('apptCal.allDoctors')}</SelectItem>
             {doctors?.map((doctor) => (
               <SelectItem key={doctor.id} value={doctor.id}>
                 Dr. {doctor.profile?.full_name}

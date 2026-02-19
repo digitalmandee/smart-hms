@@ -1169,6 +1169,65 @@ export const en = {
   "opd.walkIn.printBoth": "Print Both",
   "opd.walkIn.registerNextPatient": "Register Next Patient",
 
+  // Reception sub-components
+  "reception.surgeriesToProcess": "Surgeries to Process",
+  "reception.noSurgeriesNeeded": "No surgeries need processing",
+  "reception.noAppointmentsToday": "No appointments scheduled for today",
+  "apptForm.updateDesc": "Update appointment details",
+  "apptForm.bookDesc": "Book a new appointment",
+
+
+
+  // Appointment Calendar
+  "apptCal.title": "Appointment Calendar",
+  "apptCal.description": "View and manage appointments - click on any slot to book",
+  "apptCal.allDoctors": "All Doctors",
+  "apptCal.allBranches": "All Branches",
+  "apptCal.today": "Today",
+  "apptCal.month": "Month",
+  "apptCal.day": "Day",
+  "apptCal.time": "Time",
+  "apptCal.newAppointment": "New Appointment",
+
+  // Patient Form additional labels
+  "patient.registerNew": "Register New Patient",
+  "patient.fillDetails": "Fill in the patient details",
+  "patient.editPatientDesc": "Editing patient record",
+  "patient.patientInformation": "Patient Information",
+  "patient.showMore": "Show More Fields",
+  "patient.showLess": "Show Less",
+  "patient.personalDetails": "Personal Details",
+  "patient.contactInformation": "Contact Information",
+  "patient.fatherHusbandNameLabel": "Father/Husband Name",
+  "patient.maritalStatusLabel": "Marital Status",
+  "patient.single": "Single",
+  "patient.married": "Married",
+  "patient.divorced": "Divorced",
+  "patient.widowed": "Widowed",
+  "patient.numberOfChildren": "Number of Children",
+  "patient.nationalityLabel": "Nationality",
+  "patient.religion": "Religion",
+  "patient.occupationLabel": "Occupation",
+  "patient.preferredLanguage": "Preferred Language",
+  "patient.passportNumber": "Passport Number",
+  "patient.secondaryPhone": "Secondary Phone",
+  "patient.streetAddress": "Street Address",
+  "patient.postalCode": "Postal Code",
+  "patient.emergencyContactName": "Emergency Contact Name",
+  "patient.emergencyRelation": "Relation",
+  "patient.emergencyPhone": "Emergency Phone",
+  "patient.insuranceSection": "Insurance",
+  "patient.insuranceProvider": "Insurance Provider",
+  "patient.insuranceId": "Insurance ID",
+  "patient.referral": "Referral",
+  "patient.referredBy": "Referred By",
+  "patient.referralDetails": "Referral Details",
+  "patient.additionalNotes": "Additional Notes",
+  "patient.branch": "Branch",
+  "patient.edit": "Edit",
+  "patient.new": "New",
+  "patient.completionLabel": "Complete",
+
 } as const;
 
 export type TranslationKey = keyof typeof en;

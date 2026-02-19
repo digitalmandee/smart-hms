@@ -32,6 +32,8 @@ import {
 import { useDoctors } from '@/hooks/useDoctors';
 import { useToast } from '@/hooks/use-toast';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { useTranslation } from '@/lib/i18n';
+
 
 interface ScheduleFormData {
   doctor_id: string;
@@ -55,6 +57,8 @@ const defaultFormData: ScheduleFormData = {
 
 export default function DoctorSchedulePage() {
   const { toast } = useToast();
+  const { t, language } = useTranslation();
+
   const [selectedDoctor, setSelectedDoctor] = useState<string>('all');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -166,12 +170,12 @@ export default function DoctorSchedulePage() {
 
       {/* Doctor Filter */}
       <div className="flex items-center gap-4">
-        <Select value={selectedDoctor} onValueChange={setSelectedDoctor}>
+        <Select key={`doctor-${language}`} value={selectedDoctor} onValueChange={setSelectedDoctor}>
           <SelectTrigger className="w-64">
-            <SelectValue placeholder="All Doctors" />
+            <SelectValue placeholder={t('apptCal.allDoctors')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Doctors</SelectItem>
+            <SelectItem value="all">{t('apptCal.allDoctors')}</SelectItem>
             {doctors?.map((doctor) => (
               <SelectItem key={doctor.id} value={doctor.id}>
                 Dr. {doctor.profile?.full_name}
