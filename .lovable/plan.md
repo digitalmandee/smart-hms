@@ -1,213 +1,143 @@
 
-# Complete RTL Fix & 100% Translation Coverage
 
-## Root Cause Analysis
+# Deep RTL & Translation Fix — Sidebar, Global Direction, and Full Coverage
 
-### Problem 1: Mobile Layout Missing `dir` Attribute (CRITICAL)
-The screenshot is taken on an **iPad in mobile/browser mode** — the `DashboardLayout` renders the mobile branch (lines 27-48), which is:
-```tsx
-<div className="flex flex-col h-screen bg-background overflow-hidden">
-```
-This wrapper has **no `dir` attribute at all**. So when the user is in Urdu/Arabic on mobile, the entire mobile UI renders as LTR. The sidebar on desktop correctly gets `dir="rtl"` from the parent wrapper (line 53), but the **mobile layout completely lacks it**.
+## Problem Summary
 
-Additionally, looking at the sidebar `<aside>` element in the screenshot: icon is on LEFT, chevron on RIGHT — this is LTR behavior. This confirms `dir="rtl"` is NOT propagating to the sidebar in the mobile view.
+Looking at the screenshot, three core issues are visible:
 
-### Problem 2: Sidebar Internal RTL Layout
-Even when `dir="rtl"` is properly inherited, the sidebar has two sub-problems:
-1. **`justify-start` on buttons** — in RTL this correctly puts items from the right edge, but the icon ORDER should be: `[chevron] [text] [icon]` from left-to-right in RTL. Currently it's `[icon] [text] [chevron]` which renders as icon on right, chevron on left — actually this IS correct in RTL when dir is applied.
-2. **`PanelLeftClose` / `PanelLeft` icons** — hardcoded physical icons, not flipped for RTL.
-3. **`ChevronDown` expand indicator** — currently always on the trailing end of the flex, which is correct logically but the `rotate-180` animation when open needs no fix.
-4. **Level indentation using `ps-3`, `ps-8`, `ps-12`** — these ARE logical properties ✓. When `dir="rtl"`, `ps-*` becomes padding-right (START in RTL) = correct.
-
-### Problem 3: PatientFormPage — 100% Hardcoded English (972 lines)
-No `useTranslation` hook at all. All labels, placeholders, accordion titles, button text are English.
-
-### Problem 4: `dir` Not Applied at HTML Level
-For true native RTL behavior (input text direction, browser scrollbars on correct side, etc.), `dir` must be set on the `<html>` element. Currently it's only set on a sub-div in the desktop layout. This causes issues with:
-- Portal-rendered components (Select dropdowns, Modals, Tooltips) that escape the `dir` context
-- Input text alignment
-- Browser scrollbar position
-
-### Problem 5: Remaining Pages Without Full Translation
-After the audit, pages that still have hardcoded English strings:
-- `PatientFormPage.tsx` — ~80 hardcoded labels
-- `src/pages/app/hr/EmployeeDetailPage.tsx` — breadcrumb `"HR"` label
-- `src/pages/app/hr/payroll/PayrollPage.tsx` — breadcrumb `"HR"` label
-- `src/pages/app/hr/attendance/AttendanceSheetPage.tsx` — breadcrumb `"HR"` label
-- `src/pages/app/billing/ClaimsListPage.tsx` — breadcrumb `"Billing"` label
-- Lab sub-pages — breadcrumb `"Lab"` labels
-- `ProfilePage.tsx`, `NotificationsPage.tsx` — not yet audited
+1. **Sidebar icons are on the LEFT, text in the middle, chevrons on the RIGHT** -- this is LTR layout forced into Arabic text. In a proper RTL sidebar, icons should start from the RIGHT edge, with chevrons on the LEFT.
+2. **The `dir` attribute is only set on wrapper `<div>` elements**, not on the `<html>` root. This means all portal-based components (dropdowns, modals, tooltips) render in LTR even in Arabic/Urdu.
+3. **The MobileSideMenu does NOT translate menu items at all** -- it renders raw English `item.name` values without using the `SIDEBAR_NAME_TO_KEY` translation map. Role labels (e.g., "Receptionist") are also hardcoded English.
 
 ---
 
-## Solution Architecture
+## Root Causes
 
-### Fix 1: Apply `dir` to `<html>` Element Globally (MOST IMPORTANT)
+### 1. No global `dir` on `<html>` element
+The planned `useDocumentDirection` hook was never created. Without `document.documentElement.dir = "rtl"`, the browser treats the entire page as LTR. Only the wrapper div inside DashboardLayout has `dir="rtl"`, which does NOT affect:
+- Radix UI portals (Select, Dialog, Popover, Toast)
+- Browser scrollbar position
+- Input text direction by default
 
-Instead of applying `dir` only to sub-divs, we apply it to the HTML root element. This is the standard web approach and fixes ALL portal-rendered components (dropdowns, modals), scrollbar position, and input text direction simultaneously.
+### 2. Desktop layout uses `flex-row-reverse` hack
+Line 53 of `DashboardLayout.tsx`:
+```
+className={cn("flex h-screen ...", isRTL && "flex-row-reverse")}
+```
+This is a hack. When `dir="rtl"` is properly applied at the HTML level, flexbox automatically reverses -- no `flex-row-reverse` needed. The hack causes double-reversal issues in some nested components.
 
-In a new `useDocumentDirection` hook (or directly in `CountryConfigContext`/`App.tsx`), use a `useEffect` to set `document.documentElement.dir` whenever the language changes:
+### 3. MobileSideMenu renders untranslated names
+`MobileSideMenu.tsx` line 324: `<span>{item.name}</span>` -- renders raw English sidebar item names. The `SIDEBAR_NAME_TO_KEY` translation map from `DynamicSidebar.tsx` is not imported or used here.
 
-```ts
-// src/hooks/useDocumentDirection.ts
-import { useEffect } from "react";
-import { useIsRTL } from "@/lib/i18n";
+### 4. Role labels are hardcoded English
+`ROLE_LABELS` in `src/constants/roles.ts` has entries like `receptionist: "Receptionist"`. The MobileSideMenu shows this directly at line 421: `const roleLabel = ROLE_LABELS[primaryRole]`.
 
-export function useDocumentDirection() {
-  const isRTL = useIsRTL();
-  useEffect(() => {
-    document.documentElement.dir = isRTL ? "rtl" : "ltr";
-    document.documentElement.lang = isRTL ? "ar" : "en"; // or "ur"
-  }, [isRTL]);
-}
+---
+
+## Implementation Plan
+
+### Step 1: Create `useDocumentDirection` hook (NEW FILE)
+
+Create `src/hooks/useDocumentDirection.ts` that sets `document.documentElement.dir` and `document.documentElement.lang` based on the current language. This is the W3C standard approach.
+
+### Step 2: Wire the hook in App.tsx
+
+Add a small wrapper component inside `CountryConfigProvider` that calls `useDocumentDirection()` once at the app root. This ensures ALL components (including portals) inherit RTL direction.
+
+### Step 3: Clean up DashboardLayout.tsx
+
+- Remove the `flex-row-reverse` hack from desktop layout (line 53) -- `dir="rtl"` on `<html>` handles this automatically
+- Keep the `dir` attributes on wrappers as a safety net but they become redundant
+
+### Step 4: Add translation to MobileSideMenu
+
+Import `SIDEBAR_NAME_TO_KEY` from `DynamicSidebar.tsx` (export it first), then wrap all `item.name` renders with the translation lookup:
+```
+const displayName = SIDEBAR_NAME_TO_KEY[item.name] 
+  ? t(SIDEBAR_NAME_TO_KEY[item.name]) 
+  : item.name;
 ```
 
-This hook is called once in `App.tsx` (or the top-level layout). Then the `dir` attribute on the sub-div wrappers in `DashboardLayout` can be removed since `<html>` now handles it globally.
+This needs to be done in the `MobileMenuItem` component (lines 293-373) for both parent and leaf items.
 
-### Fix 2: Add `dir` to Mobile Layout Wrapper
+### Step 5: Translate role labels
 
-In `DashboardLayout.tsx`, the mobile branch needs `dir` too:
-```tsx
-<div dir={isRTL ? "rtl" : "ltr"} className="flex flex-col h-screen bg-background overflow-hidden">
-```
+Add translation keys for all role labels (`role.receptionist`, `role.doctor`, `role.nurse`, etc.) to all three language files, and use `t()` in `MobileSideMenu` instead of raw `ROLE_LABELS`.
 
-### Fix 3: Fix Sidebar Toggle Icons for RTL
+### Step 6: Fix user profile name display
 
-The `PanelLeft`/`PanelLeftClose` icons indicate "collapse left sidebar". In RTL, the sidebar is on the right, so these icons should flip:
-
-```tsx
-{isCollapsed ? (
-  isRTL ? <PanelRight className="h-5 w-5" /> : <PanelLeft className="h-5 w-5" />
-) : (
-  isRTL ? <PanelRightClose className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />
-)}
-```
-
-The sidebar needs to import `useIsRTL` and `PanelRight`, `PanelRightClose` from lucide-react.
-
-### Fix 4: Translate PatientFormPage.tsx (100% Coverage)
-
-Add `useTranslation` and replace all hardcoded English strings:
-
-| Hardcoded | Translation Key |
-|---|---|
-| "Patient Information" | `patient.patientInformation` |
-| "Show More Fields" / "Show Less" | `patient.showMore` / `patient.showLess` |
-| "First Name *" | `patient.firstName` |
-| "Last Name" | `patient.lastName` |
-| "Phone Number" | `patient.phone` |
-| "Gender" / "Select gender" | `patient.gender` |
-| "Male" / "Female" / "Other" | `patient.male` / `patient.female` / `patient.other` |
-| "Date of Birth" | `patient.dateOfBirth` |
-| "Blood Group" | `patient.bloodGroup` |
-| "City" / "Select city" | `patient.city` |
-| "Personal Details" | `patient.personalDetails` |
-| "Father/Husband Name" | `patient.fatherHusbandNameLabel` |
-| "Marital Status" | `patient.maritalStatusLabel` |
-| "Single"/"Married"/"Divorced"/"Widowed" | `patient.single`/etc. |
-| "Number of Children" | `patient.numberOfChildren` |
-| "Nationality" | `patient.nationalityLabel` |
-| "Religion" | `patient.religion` |
-| "Occupation" | `patient.occupationLabel` |
-| "Preferred Language" | `patient.preferredLanguage` |
-| "Passport Number" | `patient.passportNumber` |
-| "Secondary Phone" | `patient.secondaryPhone` |
-| "Contact Information" | `patient.contactInformation` |
-| "Street Address" | `patient.streetAddress` |
-| "Postal Code" | `patient.postalCode` |
-| "Emergency Contact" section title | `patient.emergencyContact` |
-| "Emergency Contact Name" | `patient.emergencyContactName` |
-| "Relation" | `patient.emergencyRelation` |
-| "Emergency Phone" | `patient.emergencyPhone` |
-| "Insurance" section | `patient.insuranceSection` |
-| "Insurance Provider" | `patient.insuranceProvider` |
-| "Insurance ID" | `patient.insuranceId` |
-| "Referral" section | `patient.referral` |
-| "Referred By" | `patient.referredBy` |
-| "Referral Details" | `patient.referralDetails` |
-| "Additional Notes" | `patient.additionalNotes` |
-| "Branch" | `patient.branch` |
-| "Register New Patient" button | `patient.registerNew` |
-| "Edit" breadcrumb | `patient.edit` |
-| "New" breadcrumb | `patient.new` |
-| Page title "New Patient" / "Edit Patient" | already have `patient.newPatient` / `patient.editPatient` |
-
-The `ml-1` on ChevronDown inside PatientFormPage also needs to be `ms-1`.
-
-### Fix 5: Fix Breadcrumbs in HR, Billing, Lab Sub-Pages
-
-These pages have `useTranslation` imported but breadcrumbs still use raw English strings:
-
-**EmployeeDetailPage.tsx:**
-```tsx
-// Before
-{ label: "HR", href: "/app/hr" }
-// After
-{ label: t('nav.hr'), href: "/app/hr" }
-```
-
-**PayrollPage.tsx:**
-```tsx
-{ label: t('nav.hr'), href: "/app/hr" }
-```
-
-**AttendanceSheetPage.tsx:**
-```tsx
-{ label: t('nav.hr'), href: "/app/hr" }
-```
-
-**ClaimsListPage.tsx:**
-```tsx
-{ label: t('nav.billing'), href: "/app/billing" }
-```
-
-**Lab sub-pages** (need to find which files have `label: "Lab"`):
-```tsx
-{ label: t('nav.lab'), href: "/app/lab" }
-```
-
-### Fix 6: Fix `ChevronDown` `ml-1` → `ms-1` in PatientFormPage
-
-Line 311: `className="h-4 w-4 ml-1 transition-transform"` → `"h-4 w-4 ms-1 transition-transform"`
+The username "Usman Ali Shah" and email shown in the sidebar are database values (not translatable), but the role label beneath it needs translation.
 
 ---
 
 ## Files to Change
 
-| File | Changes |
-|---|---|
-| `src/hooks/useDocumentDirection.ts` | NEW: global `dir` setter on `document.documentElement` |
-| `src/App.tsx` | Call `useDocumentDirection()` at app root |
-| `src/layouts/DashboardLayout.tsx` | Add `dir` to mobile layout wrapper; clean up redundant `dir` on desktop wrapper since HTML handles it now |
-| `src/components/DynamicSidebar.tsx` | Import `useIsRTL`, flip `PanelLeft`/`PanelLeftClose` icons in RTL |
-| `src/pages/app/patients/PatientFormPage.tsx` | Add `useTranslation`, replace ~35 hardcoded strings, fix `ml-1→ms-1` |
-| `src/pages/app/hr/EmployeeDetailPage.tsx` | Wire `t('nav.hr')` in breadcrumb (import already added) |
-| `src/pages/app/hr/payroll/PayrollPage.tsx` | Wire `t('nav.hr')` in breadcrumb |
-| `src/pages/app/hr/attendance/AttendanceSheetPage.tsx` | Wire `t('nav.hr')` in breadcrumb |
-| `src/pages/app/billing/ClaimsListPage.tsx` | Wire `t('nav.billing')` in breadcrumb |
-| Lab sub-pages with `label: "Lab"` | Wire `t('nav.lab')` in breadcrumbs |
+| File | Action | Details |
+|------|--------|---------|
+| `src/hooks/useDocumentDirection.ts` | NEW | Sets `document.documentElement.dir` and `.lang` reactively |
+| `src/App.tsx` | EDIT | Add `useDocumentDirection()` call inside a wrapper component |
+| `src/layouts/DashboardLayout.tsx` | EDIT | Remove `flex-row-reverse` hack, keep `dir` on wrappers |
+| `src/components/DynamicSidebar.tsx` | EDIT | Export `SIDEBAR_NAME_TO_KEY` so MobileSideMenu can use it |
+| `src/components/mobile/MobileSideMenu.tsx` | EDIT | Import and use `SIDEBAR_NAME_TO_KEY` + `useTranslation` for all menu items; translate role label |
+| `src/lib/i18n/translations/en.ts` | EDIT | Add ~20 role label keys (`role.superAdmin`, `role.doctor`, etc.) |
+| `src/lib/i18n/translations/ar.ts` | EDIT | Arabic role labels |
+| `src/lib/i18n/translations/ur.ts` | EDIT | Urdu role labels |
 
 ---
 
-## Translation Completeness After This Plan
+## New Translation Keys
 
-All translation keys already exist in `en.ts`, `ar.ts`, and `ur.ts` from previous sessions. No new keys need to be added. The only work is **wiring** the existing keys into the components that still use hardcoded strings.
-
-### Why `useDocumentDirection` at HTML Level Is the Right Approach
-
-When `dir="rtl"` is only set on a child `<div>`, React portals (Radix UI Select, Dialog, Tooltip, Popover — all rendered via `document.body`) **escape** that `div`'s dir context. This means dropdown menus and modals render in LTR even in Arabic/Urdu. Setting `dir` on `<html>` fixes ALL of these simultaneously without any component-level changes. It is the standard W3C recommendation for RTL web applications.
+```
+"role.superAdmin"         -> Super Admin / مدير النظام / سپر ایڈمن
+"role.orgAdmin"           -> Organization Admin / مدير المنظمة / تنظیم ایڈمن
+"role.branchAdmin"        -> Branch Admin / مدير الفرع / برانچ ایڈمن
+"role.doctor"             -> Doctor / طبيب / ڈاکٹر
+"role.surgeon"            -> Surgeon / جراح / سرجن
+"role.anesthetist"        -> Anesthetist / طبيب تخدير / اینستھیٹسٹ
+"role.nurse"              -> Nurse / ممرضة / نرس
+"role.opdNurse"           -> OPD Nurse / ممرضة العيادات / او پی ڈی نرس
+"role.ipdNurse"           -> IPD Nurse / ممرضة الداخلي / آئی پی ڈی نرس
+"role.otNurse"            -> OT Nurse / ممرضة العمليات / او ٹی نرس
+"role.receptionist"       -> Receptionist / موظف الاستقبال / ریسپشنسٹ
+"role.pharmacist"         -> Pharmacist / صيدلي / فارماسسٹ
+"role.otPharmacist"       -> OT Pharmacist / صيدلي العمليات / او ٹی فارماسسٹ
+"role.labTechnician"      -> Lab Technician / فني المختبر / لیب ٹیکنیشن
+"role.radiologist"        -> Radiologist / أخصائي أشعة / ریڈیالوجسٹ
+"role.radiologyTechnician"-> Radiology Technician / فني الأشعة / ریڈیالوجی ٹیکنیشن
+"role.bloodBankTechnician"-> Blood Bank Technician / فني بنك الدم / بلڈ بینک ٹیکنیشن
+"role.accountant"         -> Accountant / محاسب / اکاؤنٹنٹ
+"role.financeManager"     -> Finance Manager / مدير المالية / فنانس مینیجر
+"role.hrManager"          -> HR Manager / مدير الموارد البشرية / ایچ آر مینیجر
+"role.hrOfficer"          -> HR Officer / مسؤول الموارد البشرية / ایچ آر آفیسر
+"role.storeManager"       -> Store Manager / مدير المخزن / اسٹور مینیجر
+"role.otTechnician"       -> OT Technician / فني العمليات / او ٹی ٹیکنیشن
+```
 
 ---
 
-## Expected Outcome
+## How the Sidebar Will Work After Fix
 
-| Area | Before | After |
-|---|---|---|
-| Mobile layout direction | LTR always (no `dir` on mobile wrapper) | RTL in Arabic/Urdu |
-| Sidebar on mobile | Icons on left, text LTR, chevron on right | Correct RTL layout |
-| Select/Dialog/Popover portals | Always LTR (escape div context) | RTL via `<html dir>` |
-| Sidebar toggle icons | PanelLeft/PanelLeftClose (always left) | Flipped to PanelRight in RTL |
-| PatientFormPage all labels | English only | Fully translated |
-| HR/Lab/Billing breadcrumbs | "HR", "Lab", "Billing" hardcoded | Translated |
-| Input text direction | LTR even in Arabic | RTL natively |
-| Browser scrollbar | Always on right | Left side in RTL |
+1. `<html dir="rtl">` is set globally when Arabic/Urdu is active
+2. The sidebar `<aside>` naturally flows from RIGHT edge because of inherited `dir="rtl"`
+3. `justify-start` on buttons means items start from the RIGHT (start edge in RTL)
+4. Icon appears on RIGHT, then text, then chevron on LEFT -- proper native RTL
+5. `ps-3`, `ps-8`, `ps-12` indentation automatically becomes right-padding in RTL
+6. No `flex-row-reverse` hack needed -- flexbox handles it natively
+7. All portal-based dropdowns (Select, Dialog) render RTL because `<html>` has `dir="rtl"`
+
+---
+
+## Expected Visual Outcome
+
+| Element | Before (broken) | After (fixed) |
+|---------|-----------------|---------------|
+| Sidebar icons | Left side (LTR) | Right side (RTL native) |
+| Sidebar chevrons | Right side | Left side |
+| Menu item text | Left-aligned | Right-aligned (native) |
+| Dropdown portals | LTR always | RTL when Arabic/Urdu |
+| Role label "Receptionist" | English always | Arabic/Urdu translated |
+| Mobile sidebar items | English always | Fully translated |
+| Input text direction | LTR | RTL native |
+| Browser scrollbar | Right side | Left side in RTL |
+
