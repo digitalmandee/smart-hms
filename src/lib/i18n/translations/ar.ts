@@ -1228,6 +1228,7 @@ export const ar: Record<TranslationKey, string> = {
   "patient.edit": "تعديل",
   "patient.new": "جديد",
   "patient.completionLabel": "مكتمل",
+  "patient.saveChanges": "حفظ التغييرات",
 };
 
 

@@ -58,14 +58,16 @@ export default function ClaimsListPage() {
     }).format(amount);
   };
 
+  const { t } = useTranslation();
+
   return (
     <div>
       <PageHeader
         title="Insurance Claims"
         description="Manage and track insurance claims"
         breadcrumbs={[
-          { label: "Billing", href: "/app/billing" },
-          { label: "Claims" },
+          { label: t('nav.billing'), href: "/app/billing" },
+          { label: t('nav.claims') },
         ]}
         actions={
           <Button onClick={() => navigate("/app/billing/claims/new")}>

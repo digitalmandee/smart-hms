@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "@/lib/i18n";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -83,14 +84,16 @@ export default function LabTestCategoriesPage() {
     }
   };
 
+  const { t } = useTranslation();
+
   return (
     <div>
       <PageHeader
         title="Lab Test Categories"
         description="Organize tests into categories"
         breadcrumbs={[
-          { label: "Lab", href: "/app/lab" },
-          { label: "Categories" },
+          { label: t('nav.lab'), href: "/app/lab" },
+          { label: t('nav.categories') },
         ]}
         actions={
           <Button onClick={openCreateDialog}>

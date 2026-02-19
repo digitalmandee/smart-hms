@@ -46,6 +46,7 @@ import { useOrganization } from "@/hooks/useOrganizations";
 import { useAuth } from "@/contexts/AuthContext";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useCountryConfig } from "@/contexts/CountryConfigContext";
+import { useTranslation } from "@/lib/i18n";
 
 const patientSchema = z.object({
   // Personal Information
@@ -102,6 +103,7 @@ export function PatientFormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { profile } = useAuth();
+  const { t } = useTranslation();
   const isEditing = !!id;
   const [showAllFields, setShowAllFields] = useState(false);
   const [printCardAfterSave, setPrintCardAfterSave] = useState(false);
@@ -249,10 +251,10 @@ export function PatientFormPage() {
     return (
       <div>
         <PageHeader
-          title="Edit Patient"
+          title={t('patient.editPatient')}
           breadcrumbs={[
-            { label: "Patients", href: "/app/patients" },
-            { label: "Edit" },
+            { label: t('nav.patients'), href: "/app/patients" },
+            { label: t('patient.edit') },
           ]}
         />
         <Card>
@@ -276,11 +278,11 @@ export function PatientFormPage() {
   return (
     <div>
       <PageHeader
-        title={isEditing ? "Edit Patient" : "Register New Patient"}
-        description={isEditing ? `Editing ${patient?.first_name} ${patient?.last_name || ""}` : "Fill in the patient details"}
+        title={isEditing ? t('patient.editPatient') : t('patient.newPatient')}
+        description={isEditing ? `${t('patient.editPatient')}: ${patient?.first_name} ${patient?.last_name || ""}` : t('patient.fillDetails')}
         breadcrumbs={[
-          { label: "Patients", href: "/app/patients" },
-          { label: isEditing ? "Edit" : "New" },
+          { label: t('nav.patients'), href: "/app/patients" },
+          { label: isEditing ? t('patient.edit') : t('patient.new') },
         ]}
         actions={
           <Badge variant="secondary" className="text-sm">
@@ -297,7 +299,7 @@ export function PatientFormPage() {
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
                   <User className="h-5 w-5 text-primary" />
-                  Patient Information
+                  {t('patient.patientInformation')}
                 </CardTitle>
                 <Button
                   type="button"
@@ -306,9 +308,9 @@ export function PatientFormPage() {
                   onClick={() => setShowAllFields(!showAllFields)}
                   className="text-muted-foreground"
                 >
-                  {showAllFields ? "Show Less" : "Show More Fields"}
+                  {showAllFields ? t('patient.showLess') : t('patient.showMore')}
                   <ChevronDown className={cn(
-                    "h-4 w-4 ml-1 transition-transform",
+                    "h-4 w-4 ms-1 transition-transform",
                     showAllFields && "rotate-180"
                   )} />
                 </Button>
@@ -322,9 +324,9 @@ export function PatientFormPage() {
                   name="first_name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>First Name <span className="text-destructive">*</span></FormLabel>
+                      <FormLabel>{t('patient.firstName')} <span className="text-destructive">*</span></FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="First name" className="h-11" />
+                        <Input {...field} placeholder={t('patient.firstName')} className="h-11" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -336,9 +338,9 @@ export function PatientFormPage() {
                   name="last_name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Last Name</FormLabel>
+                      <FormLabel>{t('patient.lastName')}</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="Last name" className="h-11" />
+                        <Input {...field} placeholder={t('patient.lastName')} className="h-11" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -350,7 +352,7 @@ export function PatientFormPage() {
                   name="phone"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Phone Number</FormLabel>
+                      <FormLabel>{t('patient.phone')}</FormLabel>
                       <FormControl>
                         <Input {...field} placeholder="03XX-XXXXXXX" className="h-11" />
                       </FormControl>
@@ -381,17 +383,17 @@ export function PatientFormPage() {
                   name="gender"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Gender</FormLabel>
+                      <FormLabel>{t('patient.gender')}</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger className="h-11">
-                            <SelectValue placeholder="Select gender" />
+                            <SelectValue placeholder={t('patient.gender')} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="male">Male</SelectItem>
-                          <SelectItem value="female">Female</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
+                          <SelectItem value="male">{t('patient.male')}</SelectItem>
+                          <SelectItem value="female">{t('patient.female')}</SelectItem>
+                          <SelectItem value="other">{t('patient.other')}</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -404,7 +406,7 @@ export function PatientFormPage() {
                   name="date_of_birth"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Date of Birth</FormLabel>
+                      <FormLabel>{t('patient.dateOfBirth')}</FormLabel>
                       <FormControl>
                         <Input {...field} type="date" className="h-11" />
                       </FormControl>
@@ -418,11 +420,11 @@ export function PatientFormPage() {
                   name="blood_group"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Blood Group</FormLabel>
+                      <FormLabel>{t('patient.bloodGroup')}</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger className="h-11">
-                            <SelectValue placeholder="Select blood group" />
+                            <SelectValue placeholder={t('patient.bloodGroup')} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -441,11 +443,11 @@ export function PatientFormPage() {
                   name="city"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>City</FormLabel>
+                      <FormLabel>{t('patient.city')}</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger className="h-11">
-                            <SelectValue placeholder="Select city" />
+                            <SelectValue placeholder={t('patient.city')} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -470,7 +472,7 @@ export function PatientFormPage() {
                 <AccordionTrigger className="px-6 hover:no-underline">
                   <div className="flex items-center gap-2">
                     <Users className="h-5 w-5 text-primary" />
-                    <span className="font-semibold">Personal Details</span>
+                    <span className="font-semibold">{t('patient.personalDetails')}</span>
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="px-6 pb-6">
@@ -480,9 +482,9 @@ export function PatientFormPage() {
                       name="father_husband_name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Father/Husband Name</FormLabel>
+                          <FormLabel>{t('patient.fatherHusbandName')}</FormLabel>
                           <FormControl>
-                            <Input {...field} placeholder="Father or husband name" />
+                            <Input {...field} placeholder={t('patient.fatherHusbandName')} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -494,19 +496,19 @@ export function PatientFormPage() {
                       name="marital_status"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Marital Status</FormLabel>
+                          <FormLabel>{t('patient.maritalStatus')}</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Select status" />
+                                <SelectValue placeholder={t('patient.maritalStatus')} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="single">Single</SelectItem>
-                              <SelectItem value="married">Married</SelectItem>
-                              <SelectItem value="divorced">Divorced</SelectItem>
-                              <SelectItem value="widowed">Widowed</SelectItem>
-                              <SelectItem value="other">Other</SelectItem>
+                              <SelectItem value="single">{t('patient.single')}</SelectItem>
+                              <SelectItem value="married">{t('patient.married')}</SelectItem>
+                              <SelectItem value="divorced">{t('patient.divorced')}</SelectItem>
+                              <SelectItem value="widowed">{t('patient.widowed')}</SelectItem>
+                              <SelectItem value="other">{t('patient.other')}</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -519,8 +521,8 @@ export function PatientFormPage() {
                         control={form.control}
                         name="number_of_children"
                         render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Number of Children</FormLabel>
+                        <FormItem>
+                          <FormLabel>{t('patient.numberOfChildren')}</FormLabel>
                             <FormControl>
                               <Input {...field} type="number" min="0" max="20" placeholder="0" />
                             </FormControl>
@@ -535,7 +537,7 @@ export function PatientFormPage() {
                       name="nationality"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Nationality</FormLabel>
+                          <FormLabel>{t('patient.nationality')}</FormLabel>
                           <FormControl>
                             <Input {...field} placeholder="Pakistan" />
                           </FormControl>
@@ -549,7 +551,7 @@ export function PatientFormPage() {
                       name="religion"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Religion</FormLabel>
+                          <FormLabel>{t('patient.religion')}</FormLabel>
                           <FormControl>
                             <Input {...field} placeholder="Optional" />
                           </FormControl>
@@ -563,11 +565,11 @@ export function PatientFormPage() {
                       name="occupation"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Occupation</FormLabel>
+                          <FormLabel>{t('patient.occupation')}</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Select occupation" />
+                                <SelectValue placeholder={t('patient.occupation')} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -586,11 +588,11 @@ export function PatientFormPage() {
                       name="preferred_language"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Preferred Language</FormLabel>
+                          <FormLabel>{t('patient.language')}</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Select language" />
+                                <SelectValue placeholder={t('patient.language')} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -609,7 +611,7 @@ export function PatientFormPage() {
                       name="passport_number"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Passport Number</FormLabel>
+                          <FormLabel>{t('patient.passportNumber')}</FormLabel>
                           <FormControl>
                             <Input {...field} placeholder="Optional" />
                           </FormControl>
@@ -626,7 +628,7 @@ export function PatientFormPage() {
                 <AccordionTrigger className="px-6 hover:no-underline">
                   <div className="flex items-center gap-2">
                     <Phone className="h-5 w-5 text-primary" />
-                    <span className="font-semibold">Contact Information</span>
+                    <span className="font-semibold">{t('patient.contactInformation')}</span>
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="px-6 pb-6">
@@ -636,7 +638,7 @@ export function PatientFormPage() {
                       name="secondary_phone"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Secondary Phone</FormLabel>
+                          <FormLabel>{t('patient.secondaryPhone')}</FormLabel>
                           <FormControl>
                             <Input {...field} placeholder="Alternative number" />
                           </FormControl>
@@ -667,7 +669,7 @@ export function PatientFormPage() {
                 <AccordionTrigger className="px-6 hover:no-underline">
                   <div className="flex items-center gap-2">
                     <MapPin className="h-5 w-5 text-primary" />
-                    <span className="font-semibold">Address</span>
+                    <span className="font-semibold">{t('patient.address')}</span>
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="px-6 pb-6">
@@ -677,7 +679,7 @@ export function PatientFormPage() {
                       name="address"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Street Address</FormLabel>
+                          <FormLabel>{t('patient.streetAddress')}</FormLabel>
                           <FormControl>
                             <Textarea {...field} placeholder="House/Street address" rows={2} />
                           </FormControl>
@@ -691,10 +693,10 @@ export function PatientFormPage() {
                         control={form.control}
                         name="postal_code"
                         render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Postal Code</FormLabel>
-                            <FormControl>
-                              <Input {...field} placeholder="54000" />
+                        <FormItem>
+                          <FormLabel>{t('patient.postalCode')}</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="54000" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -710,7 +712,7 @@ export function PatientFormPage() {
                 <AccordionTrigger className="px-6 hover:no-underline">
                   <div className="flex items-center gap-2">
                     <AlertCircle className="h-5 w-5 text-destructive" />
-                    <span className="font-semibold">Emergency Contact</span>
+                    <span className="font-semibold">{t('patient.emergencyContact')}</span>
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="px-6 pb-6">
@@ -720,7 +722,7 @@ export function PatientFormPage() {
                       name="emergency_contact_name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Contact Name</FormLabel>
+                          <FormLabel>{t('patient.emergencyContactName')}</FormLabel>
                           <FormControl>
                             <Input {...field} placeholder="Emergency contact name" />
                           </FormControl>
@@ -734,11 +736,11 @@ export function PatientFormPage() {
                       name="emergency_contact_relation"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Relationship</FormLabel>
+                          <FormLabel>{t('patient.emergencyRelation')}</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Select relation" />
+                                <SelectValue placeholder={t('patient.emergencyRelation')} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -757,7 +759,7 @@ export function PatientFormPage() {
                       name="emergency_contact_phone"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Contact Phone</FormLabel>
+                          <FormLabel>{t('patient.emergencyPhone')}</FormLabel>
                           <FormControl>
                             <Input {...field} placeholder="03XX-XXXXXXX" />
                           </FormControl>
@@ -774,7 +776,7 @@ export function PatientFormPage() {
                 <AccordionTrigger className="px-6 hover:no-underline">
                   <div className="flex items-center gap-2">
                     <Shield className="h-5 w-5 text-primary" />
-                    <span className="font-semibold">Insurance Information</span>
+                    <span className="font-semibold">{t('patient.insuranceSection')}</span>
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="px-6 pb-6">
@@ -784,11 +786,11 @@ export function PatientFormPage() {
                       name="insurance_provider"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Insurance Provider</FormLabel>
+                          <FormLabel>{t('patient.insuranceProvider')}</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Select provider" />
+                                <SelectValue placeholder={t('patient.insuranceProvider')} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -807,7 +809,7 @@ export function PatientFormPage() {
                       name="insurance_id"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Policy / Member ID</FormLabel>
+                          <FormLabel>{t('patient.insuranceId')}</FormLabel>
                           <FormControl>
                             <Input {...field} placeholder="Insurance ID number" />
                           </FormControl>
@@ -824,7 +826,7 @@ export function PatientFormPage() {
                 <AccordionTrigger className="px-6 hover:no-underline">
                   <div className="flex items-center gap-2">
                     <Briefcase className="h-5 w-5 text-primary" />
-                    <span className="font-semibold">Referral Information</span>
+                    <span className="font-semibold">{t('patient.referral')}</span>
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="px-6 pb-6">
@@ -834,11 +836,11 @@ export function PatientFormPage() {
                       name="referred_by"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Referred By</FormLabel>
+                          <FormLabel>{t('patient.referredBy')}</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="How did they find us?" />
+                                <SelectValue placeholder={t('patient.referredBy')} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -857,7 +859,7 @@ export function PatientFormPage() {
                       name="referral_details"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Referral Details</FormLabel>
+                          <FormLabel>{t('patient.referralDetails')}</FormLabel>
                           <FormControl>
                             <Input {...field} placeholder="Doctor/Hospital name if applicable" />
                           </FormControl>
@@ -874,7 +876,7 @@ export function PatientFormPage() {
                 <AccordionTrigger className="px-6 hover:no-underline">
                   <div className="flex items-center gap-2">
                     <Heart className="h-5 w-5 text-primary" />
-                    <span className="font-semibold">Additional Information</span>
+                    <span className="font-semibold">{t('patient.additionalNotes')}</span>
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="px-6 pb-6">
@@ -884,7 +886,7 @@ export function PatientFormPage() {
                       name="branch_id"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Primary Branch</FormLabel>
+                          <FormLabel>{t('patient.branch')}</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger>
@@ -909,7 +911,7 @@ export function PatientFormPage() {
                       name="notes"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Notes</FormLabel>
+                          <FormLabel>{t('common.notes')}</FormLabel>
                           <FormControl>
                             <Textarea {...field} placeholder="Any additional notes about the patient..." rows={3} />
                           </FormControl>
@@ -943,11 +945,11 @@ export function PatientFormPage() {
                 onClick={() => navigate("/app/patients")}
                 className="flex-1 md:flex-none h-12 md:h-10"
               >
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button type="submit" disabled={isPending} className="flex-1 md:flex-none min-w-[140px] h-12 md:h-10">
-                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isEditing ? "Save Changes" : "Register Patient"}
+                {isPending && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
+                {isEditing ? t('patient.saveChanges') : t('patient.registerNew')}
               </Button>
             </div>
           </div>

@@ -27,7 +27,7 @@ export const DashboardLayout = () => {
   if (showMobileUI) {
     return (
       <MobileProvider>
-        <div className="flex flex-col h-screen bg-background overflow-hidden">
+        <div dir={isRTL ? "rtl" : "ltr"} className="flex flex-col h-screen bg-background overflow-hidden">
           {/* Mobile Header with safe area */}
           <MobileHeader />
           

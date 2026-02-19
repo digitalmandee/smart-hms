@@ -77,14 +77,16 @@ export default function AttendanceSheetPage() {
     return emp.department_id === departmentFilter;
   });
 
+  const { t } = useTranslation();
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Attendance Sheet"
         description={`Monthly attendance overview for ${months[month]} ${year}`}
         breadcrumbs={[
-          { label: "HR", href: "/app/hr" },
-          { label: "Attendance", href: "/app/hr/attendance" },
+          { label: t('nav.hr'), href: "/app/hr" },
+          { label: t('nav.attendance'), href: "/app/hr/attendance" },
           { label: "Sheet" },
         ]}
         actions={

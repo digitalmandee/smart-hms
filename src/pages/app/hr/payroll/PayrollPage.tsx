@@ -60,14 +60,16 @@ export default function PayrollPage() {
   // Calculate stats from filtered runs
   const completedRuns = filteredRuns?.filter((r) => r.status === "completed").length || 0;
 
+  const { t } = useTranslation();
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Payroll Management"
         description="Process and manage employee payroll"
         breadcrumbs={[
-          { label: "HR", href: "/app/hr" },
-          { label: "Payroll" },
+          { label: t('nav.hr'), href: "/app/hr" },
+          { label: t('nav.payroll') },
         ]}
         actions={
           <Button onClick={() => navigate("/app/hr/payroll/process")}>

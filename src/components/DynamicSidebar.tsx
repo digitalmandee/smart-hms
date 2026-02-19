@@ -126,6 +126,8 @@ import {
   LogOut,
   PanelLeft,
   PanelLeftClose,
+  PanelRight,
+  PanelRightClose,
   // Added missing icons
   ArrowRightLeft,
   Banknote,
@@ -154,7 +156,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { ROLE_SIDEBAR_CONFIG, getPrimaryRole } from "@/config/role-sidebars";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useTranslation } from "@/lib/i18n";
+import { useTranslation, useIsRTL } from "@/lib/i18n";
 import type { TranslationKey } from "@/lib/i18n";
 
 // Maps hardcoded sidebar names → translation keys
@@ -845,6 +847,7 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle, showDesktopToggl
   const { menuItems: dbMenuItems, isLoading: menuLoading } = useMenuItems();
   const { profile, roles, signOut, isSuperAdmin, isLoading: authLoading } = useAuth();
   const { t } = useTranslation();
+  const isRTL = useIsRTL();
   const location = useLocation();
   const navigate = useNavigate();
   const [openMenus, setOpenMenus] = useState<string[]>([]);
@@ -1020,9 +1023,9 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle, showDesktopToggl
             title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
             {isCollapsed ? (
-              <PanelLeft className="h-5 w-5" />
+              isRTL ? <PanelRight className="h-5 w-5" /> : <PanelLeft className="h-5 w-5" />
             ) : (
-              <PanelLeftClose className="h-5 w-5" />
+              isRTL ? <PanelRightClose className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />
             )}
           </Button>
         )}
