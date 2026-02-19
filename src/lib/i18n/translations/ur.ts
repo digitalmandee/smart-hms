@@ -1229,6 +1229,31 @@ export const ur: Record<TranslationKey, string> = {
   "patient.new": "نئی",
   "patient.completionLabel": "مکمل",
   "patient.saveChanges": "تبدیلیاں محفوظ کریں",
+
+  // Role labels
+  "role.superAdmin": "سپر ایڈمن",
+  "role.orgAdmin": "تنظیم ایڈمن",
+  "role.branchAdmin": "برانچ ایڈمن",
+  "role.doctor": "ڈاکٹر",
+  "role.surgeon": "سرجن",
+  "role.anesthetist": "اینستھیٹسٹ",
+  "role.nurse": "نرس",
+  "role.opdNurse": "او پی ڈی نرس",
+  "role.ipdNurse": "آئی پی ڈی نرس",
+  "role.otNurse": "او ٹی نرس",
+  "role.receptionist": "ریسپشنسٹ",
+  "role.pharmacist": "فارماسسٹ",
+  "role.otPharmacist": "او ٹی فارماسسٹ",
+  "role.labTechnician": "لیب ٹیکنیشن",
+  "role.radiologist": "ریڈیالوجسٹ",
+  "role.radiologyTechnician": "ریڈیالوجی ٹیکنیشن",
+  "role.bloodBankTechnician": "بلڈ بینک ٹیکنیشن",
+  "role.accountant": "اکاؤنٹنٹ",
+  "role.financeManager": "فنانس مینیجر",
+  "role.hrManager": "ایچ آر مینیجر",
+  "role.hrOfficer": "ایچ آر آفیسر",
+  "role.storeManager": "اسٹور مینیجر",
+  "role.otTechnician": "او ٹی ٹیکنیشن",
 };
 
 

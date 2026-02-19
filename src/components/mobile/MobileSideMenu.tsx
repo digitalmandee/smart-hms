@@ -151,6 +151,8 @@ import { ROLE_LABELS } from "@/constants/roles";
 import { ROLE_SIDEBAR_CONFIG, ADMIN_ROLES, getPrimaryRole, type SidebarMenuItem } from "@/config/role-sidebars";
 import { useMenuItems } from "@/hooks/useMenuItems";
 import { cn } from "@/lib/utils";
+import { SIDEBAR_NAME_TO_KEY } from "@/components/DynamicSidebar";
+import type { TranslationKey } from "@/lib/i18n";
 
 // Icon map matching DynamicSidebar
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -293,6 +295,12 @@ interface MobileMenuItemProps {
 function MobileMenuItem({ item, level = 0, onClose, isActive }: MobileMenuItemProps) {
   const [isOpen, setIsOpen] = useState(false);
   const haptics = useHaptics();
+  const { t } = useTranslation();
+  
+  // Translate menu item name using the same map as DynamicSidebar
+  const displayName = SIDEBAR_NAME_TO_KEY[item.name] 
+    ? t(SIDEBAR_NAME_TO_KEY[item.name] as TranslationKey) 
+    : item.name;
   
   const hasChildren = item.children && item.children.length > 0;
   const Icon = iconMap[item.icon] || LayoutDashboard;
@@ -321,7 +329,7 @@ function MobileMenuItem({ item, level = 0, onClose, isActive }: MobileMenuItemPr
           )}>
             <div className="flex items-center gap-3">
               <Icon className="h-5 w-5 text-muted-foreground shrink-0" />
-              <span className="font-medium text-sm">{item.name}</span>
+              <span className="font-medium text-sm">{displayName}</span>
             </div>
             <ChevronDown className={cn(
               "h-4 w-4 text-muted-foreground transition-transform duration-200",
@@ -367,7 +375,7 @@ function MobileMenuItem({ item, level = 0, onClose, isActive }: MobileMenuItemPr
         "text-sm",
         active ? "font-semibold" : "font-medium"
       )}>
-        {item.name}
+        {displayName}
       </span>
     </Link>
   );
@@ -418,7 +426,34 @@ export function MobileSideMenu({ open, onOpenChange }: MobileSideMenuProps) {
       }))
     : (ROLE_SIDEBAR_CONFIG[primaryRole]?.items || ROLE_SIDEBAR_CONFIG.default?.items || []);
   
-  const roleLabel = primaryRole ? ROLE_LABELS[primaryRole as keyof typeof ROLE_LABELS] : "User";
+  // Translate role label
+  const ROLE_TO_TRANSLATION_KEY: Record<string, TranslationKey> = {
+    super_admin: "role.superAdmin",
+    org_admin: "role.orgAdmin",
+    branch_admin: "role.branchAdmin",
+    doctor: "role.doctor",
+    surgeon: "role.surgeon",
+    anesthetist: "role.anesthetist",
+    nurse: "role.nurse",
+    opd_nurse: "role.opdNurse",
+    ipd_nurse: "role.ipdNurse",
+    ot_nurse: "role.otNurse",
+    receptionist: "role.receptionist",
+    pharmacist: "role.pharmacist",
+    ot_pharmacist: "role.otPharmacist",
+    lab_technician: "role.labTechnician",
+    radiologist: "role.radiologist",
+    radiology_technician: "role.radiologyTechnician",
+    blood_bank_technician: "role.bloodBankTechnician",
+    accountant: "role.accountant",
+    finance_manager: "role.financeManager",
+    hr_manager: "role.hrManager",
+    hr_officer: "role.hrOfficer",
+    store_manager: "role.storeManager",
+    ot_technician: "role.otTechnician",
+  };
+  const roleTranslationKey = primaryRole ? ROLE_TO_TRANSLATION_KEY[primaryRole] : undefined;
+  const roleLabel = roleTranslationKey ? t(roleTranslationKey) : (primaryRole ? ROLE_LABELS[primaryRole as keyof typeof ROLE_LABELS] : "User");
 
   const isActive = (path: string) => {
     if (!path) return false;
