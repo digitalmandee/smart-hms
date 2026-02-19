@@ -72,7 +72,7 @@ export const DashboardLayout = () => {
             <Menu className="h-5 w-5" />
           </Button>
         </SheetTrigger>
-        <SheetContent side={isRTL ? "right" : "left"} className="p-0 w-64" hideCloseButton>
+        <SheetContent side={isRTL ? "right" : "left"} className="p-0 w-64" hideCloseButton dir={isRTL ? "rtl" : "ltr"}>
           <DynamicSidebar onToggle={() => setIsMobileOpen(false)} />
         </SheetContent>
       </Sheet>
