@@ -337,7 +337,12 @@ export function OrganizationSettingsPage() {
                   {((org as any).facility_type || "hospital").replace("_", " ")}
                 </p>
                 <Badge variant="outline" className="mt-2">
-                  {(org as any).facility_type === "hospital" ? "Full Modules" : "Limited Modules"}
+                  {(org as any).facility_type === "hospital" ? "Full Clinical Modules" 
+                    : (org as any).facility_type === "warehouse" ? "Warehouse & Logistics Modules"
+                    : (org as any).facility_type === "pharmacy" ? "Pharmacy & Retail Modules"
+                    : (org as any).facility_type === "clinic" ? "Clinic Modules"
+                    : (org as any).facility_type === "diagnostic_center" ? "Diagnostic Modules"
+                    : "Limited Modules"}
                 </Badge>
               </div>
               <div className="p-4 rounded-lg bg-muted/50">
