@@ -398,6 +398,24 @@ import TransfersListPage from "./pages/app/inventory/TransfersListPage";
 import TransferFormPage from "./pages/app/inventory/TransferFormPage";
 import TransferDetailPage from "./pages/app/inventory/TransferDetailPage";
 
+// Warehouse Management pages
+import WarehouseZonesPage from "./pages/app/inventory/warehouse/WarehouseZonesPage";
+import WarehouseBinsPage from "./pages/app/inventory/warehouse/WarehouseBinsPage";
+import BinAssignmentsPage from "./pages/app/inventory/warehouse/BinAssignmentsPage";
+import StorageMapPage from "./pages/app/inventory/warehouse/StorageMapPage";
+import PutAwayWorklistPage from "./pages/app/inventory/PutAwayWorklistPage";
+import PutAwayTaskPage from "./pages/app/inventory/PutAwayTaskPage";
+import PickListsPage from "./pages/app/inventory/PickListsPage";
+import PickListDetailPage from "./pages/app/inventory/PickListDetailPage";
+import PackingSlipsPage from "./pages/app/inventory/PackingSlipsPage";
+import PackingSlipDetailPage from "./pages/app/inventory/PackingSlipDetailPage";
+import PickingDashboardPage from "./pages/app/inventory/PickingDashboardPage";
+import ShipmentsPage from "./pages/app/inventory/shipping/ShipmentsPage";
+import ShipmentFormPage from "./pages/app/inventory/shipping/ShipmentFormPage";
+import ShipmentDetailPage from "./pages/app/inventory/shipping/ShipmentDetailPage";
+import DispatchDashboardPage from "./pages/app/inventory/shipping/DispatchDashboardPage";
+import WarehouseIntegrationsPage from "./pages/app/inventory/WarehouseIntegrationsPage";
+
 // Accounts pages
 import AccountsDashboard from "./pages/app/accounts/AccountsDashboard";
 import ChartOfAccountsPage from "./pages/app/accounts/ChartOfAccountsPage";
@@ -839,6 +857,24 @@ function App() {
                <Route path="inventory/transfers" element={<TransfersListPage />} />
                <Route path="inventory/transfers/new" element={<TransferFormPage />} />
                <Route path="inventory/transfers/:id" element={<TransferDetailPage />} />
+              
+              {/* Warehouse Management routes */}
+              <Route path="inventory/warehouse/zones" element={<WarehouseZonesPage />} />
+              <Route path="inventory/warehouse/bins" element={<WarehouseBinsPage />} />
+              <Route path="inventory/warehouse/assignments" element={<BinAssignmentsPage />} />
+              <Route path="inventory/warehouse/map" element={<StorageMapPage />} />
+              <Route path="inventory/putaway" element={<PutAwayWorklistPage />} />
+              <Route path="inventory/putaway/:id" element={<PutAwayTaskPage />} />
+              <Route path="inventory/picking" element={<PickListsPage />} />
+              <Route path="inventory/picking/dashboard" element={<PickingDashboardPage />} />
+              <Route path="inventory/picking/:id" element={<PickListDetailPage />} />
+              <Route path="inventory/packing" element={<PackingSlipsPage />} />
+              <Route path="inventory/packing/:id" element={<PackingSlipDetailPage />} />
+              <Route path="inventory/shipping" element={<ShipmentsPage />} />
+              <Route path="inventory/shipping/dashboard" element={<DispatchDashboardPage />} />
+              <Route path="inventory/shipping/new" element={<ShipmentFormPage />} />
+              <Route path="inventory/shipping/:id" element={<ShipmentDetailPage />} />
+              <Route path="inventory/integrations" element={<WarehouseIntegrationsPage />} />
               
               {/* Billing routes */}
               <Route path="billing" element={<BillingDashboard />} />
