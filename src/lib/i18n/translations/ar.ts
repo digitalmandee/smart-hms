@@ -798,6 +798,8 @@ export const ar: Record<TranslationKey, string> = {
   "ot.surgerySchedule": "جدول الجراحة",
   "ot.surgeryScheduleDesc": "عرض وإدارة الجراحات المجدولة",
   "ot.newSurgery": "جراحة جديدة",
+  "ot.surgeryCompleted": "تمت الجراحة بنجاح",
+  "ot.surgeryScheduled": "تمت جدولة الجراحة بنجاح",
   "ot.surgeryForm": "نموذج الجراحة",
   "ot.surgeryFormDesc": "إنشاء أو تعديل تفاصيل الجراحة",
   "ot.surgeryDetail": "تفاصيل الجراحة",

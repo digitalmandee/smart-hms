@@ -796,6 +796,8 @@ export const en = {
   "ot.surgerySchedule": "Surgery Schedule",
   "ot.surgeryScheduleDesc": "View and manage scheduled surgeries",
   "ot.newSurgery": "New Surgery",
+  "ot.surgeryCompleted": "Surgery completed successfully",
+  "ot.surgeryScheduled": "Surgery scheduled successfully",
   "ot.surgeryForm": "Surgery Form",
   "ot.surgeryFormDesc": "Create or edit surgery details",
   "ot.surgeryDetail": "Surgery Detail",

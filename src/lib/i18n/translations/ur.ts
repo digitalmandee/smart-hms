@@ -798,6 +798,8 @@ export const ur: Record<TranslationKey, string> = {
   "ot.surgerySchedule": "سرجری شیڈول",
   "ot.surgeryScheduleDesc": "مقررہ سرجریز دیکھیں اور منظم کریں",
   "ot.newSurgery": "نئی سرجری",
+  "ot.surgeryCompleted": "سرجری کامیابی سے مکمل ہوئی",
+  "ot.surgeryScheduled": "سرجری کامیابی سے شیڈول ہوئی",
   "ot.surgeryForm": "سرجری فارم",
   "ot.surgeryFormDesc": "سرجری کی تفصیلات بنائیں یا ترمیم کریں",
   "ot.surgeryDetail": "سرجری کی تفصیل",
