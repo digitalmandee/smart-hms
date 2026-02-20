@@ -32,6 +32,8 @@ const ROLE_ICONS: Record<AppRole, React.ComponentType<{ className?: string }>> =
   hr_officer: Users,
   store_manager: Warehouse,
   ot_technician: HeartPulse,
+  warehouse_admin: Warehouse,
+  warehouse_user: Warehouse,
 };
 
 // Color mapping for role categories
@@ -59,6 +61,8 @@ const ROLE_COLORS: Record<string, string> = {
   hr_officer: "bg-sky-500/10 text-sky-600 border-sky-500/30",
   store_manager: "bg-emerald-500/10 text-emerald-600 border-emerald-500/30",
   ot_technician: "bg-lime-500/10 text-lime-600 border-lime-500/30",
+  warehouse_admin: "bg-emerald-500/10 text-emerald-600 border-emerald-500/30",
+  warehouse_user: "bg-emerald-500/10 text-emerald-600 border-emerald-500/30",
 };
 
 interface UserRolesBadgeProps {

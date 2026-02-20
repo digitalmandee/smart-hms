@@ -66,6 +66,13 @@ export const ROLE_CATEGORIES: Record<string, RoleCategory> = {
       { value: "ot_technician", label: "OT Technician", description: "OT equipment and support" },
     ],
   },
+  warehouse: {
+    label: "Warehouse",
+    roles: [
+      { value: "warehouse_admin", label: "Warehouse Admin", description: "Full warehouse management access" },
+      { value: "warehouse_user", label: "Warehouse User", description: "Operational warehouse tasks" },
+    ],
+  },
 };
 
 // Flat list of all roles for dropdown/select components
@@ -98,6 +105,8 @@ export const ROLE_LABELS: Record<AppRole, string> = {
   hr_officer: "HR Officer",
   store_manager: "Store Manager",
   ot_technician: "OT Technician",
+  warehouse_admin: "Warehouse Admin",
+  warehouse_user: "Warehouse User",
 };
 
 // Roles that indicate clinical staff (doctor/nurse/etc.)

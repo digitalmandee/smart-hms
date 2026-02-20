@@ -16,6 +16,7 @@ export const FINANCE_ROLES: AppRole[] = [
   "accountant",
   "finance_manager",
   "receptionist",
+  "warehouse_admin",
 ];
 
 /**
