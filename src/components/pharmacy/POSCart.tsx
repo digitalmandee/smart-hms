@@ -7,6 +7,7 @@ import { CartItem } from "@/hooks/usePOS";
 import { cn } from "@/lib/utils";
 import { useMemo } from "react";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
+import { useTranslation } from "@/lib/i18n";
 
 interface POSCartProps {
   items: CartItem[];
@@ -37,6 +38,7 @@ export function POSCart({
   onCheckout,
   disabled,
 }: POSCartProps) {
+  const { t } = useTranslation();
   const { formatCurrency } = useCurrencyFormatter();
   // Check for stock issues
   const stockIssues = useMemo(() => {
@@ -54,9 +56,9 @@ export function POSCart({
               <ShoppingCart className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h3 className="font-semibold text-base">Shopping Cart</h3>
+              <h3 className="font-semibold text-base">{t("pos.shoppingCart" as any)}</h3>
               <p className="text-xs text-muted-foreground">
-                {items.length} {items.length === 1 ? "item" : "items"}
+                {items.length} {t("common.items" as any)}
               </p>
             </div>
           </div>
@@ -67,7 +69,7 @@ export function POSCart({
               className="text-destructive hover:text-destructive hover:bg-destructive/10"
               onClick={() => items.forEach(item => onRemoveItem(item.id))}
             >
-              Clear All
+              {t("pos.clearAll" as any)}
             </Button>
           )}
         </div>
@@ -81,8 +83,8 @@ export function POSCart({
               <div className="p-3 rounded-full bg-muted/50 mb-3">
                 <ShoppingCart className="h-8 w-8 opacity-50" />
               </div>
-              <p className="font-medium">Cart is empty</p>
-              <p className="text-xs mt-1">Search products to add items</p>
+              <p className="font-medium">{t("pos.cartEmpty" as any)}</p>
+              <p className="text-xs mt-1">{t("pos.searchToAdd" as any)}</p>
             </div>
           ) : (
             items.map((item) => {
@@ -117,12 +119,12 @@ export function POSCart({
                         )}
                         {isOutOfStock && (
                           <Badge variant="destructive" className="text-xs h-5">
-                            Out of Stock
+                            {t("pos.outOfStock" as any)}
                           </Badge>
                         )}
                         {!isOutOfStock && isLowStock && (
                           <Badge variant="outline" className="text-xs h-5 border-amber-500 text-amber-600">
-                            Low: {item.available_quantity}
+                            {t("pharmacy.lowStock" as any)}: {item.available_quantity}
                           </Badge>
                         )}
                       </div>
@@ -178,7 +180,7 @@ export function POSCart({
                   {item.quantity >= item.available_quantity && !isOutOfStock && (
                     <p className="text-xs text-amber-600 mt-1.5 flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                      Maximum stock reached
+                      {t("pos.maxStockReached" as any)}
                     </p>
                   )}
                 </div>
@@ -194,7 +196,7 @@ export function POSCart({
         <div className="p-3 border-b">
           <div className="flex items-center gap-2 mb-2">
             <Percent className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium">Quick Discount</span>
+            <span className="text-sm font-medium">{t("pos.quickDiscount" as any)}</span>
           </div>
           <div className="flex items-center gap-2">
             {QUICK_DISCOUNTS.map((percent) => (
@@ -216,7 +218,7 @@ export function POSCart({
                 type="number"
                 value={discountPercent || ""}
                 onChange={(e) => onDiscountChange(Math.max(0, Math.min(100, parseFloat(e.target.value) || 0)))}
-                placeholder="Custom"
+                placeholder={t("pos.custom" as any)}
                 className="h-9 text-center pr-6"
                 min={0}
                 max={100}
@@ -229,20 +231,20 @@ export function POSCart({
         {/* Totals */}
         <div className="p-3 space-y-2">
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Subtotal</span>
+            <span className="text-muted-foreground">{t("common.subtotal" as any)}</span>
             <span className="font-medium">{formatCurrency(subtotal)}</span>
           </div>
 
           {discountAmount > 0 && (
             <div className="flex justify-between text-sm">
-              <span className="text-green-600 dark:text-green-400">Discount ({discountPercent}%)</span>
+              <span className="text-green-600 dark:text-green-400">{t("common.discount" as any)} ({discountPercent}%)</span>
               <span className="text-green-600 dark:text-green-400 font-medium">- {formatCurrency(discountAmount)}</span>
             </div>
           )}
 
           {taxAmount > 0 && (
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Tax</span>
+              <span className="text-muted-foreground">{t("common.tax" as any)}</span>
               <span className="font-medium">{formatCurrency(taxAmount)}</span>
             </div>
           )}
@@ -250,7 +252,7 @@ export function POSCart({
           {/* Grand Total */}
           <div className="pt-3 mt-2 border-t border-dashed">
             <div className="flex justify-between items-center">
-              <span className="text-lg font-semibold">Total</span>
+              <span className="text-lg font-semibold">{t("common.total" as any)}</span>
               <span className="text-2xl font-bold text-primary">{formatCurrency(total)}</span>
             </div>
           </div>
@@ -261,7 +263,7 @@ export function POSCart({
           <div className="px-3 pb-2">
             <div className="flex items-center gap-2 p-2 rounded-lg bg-destructive/10 text-destructive text-sm">
               <AlertTriangle className="h-4 w-4 shrink-0" />
-              <span>{stockIssues.length} item(s) exceed available stock</span>
+              <span>{stockIssues.length} {t("pos.exceedStock" as any)}</span>
             </div>
           </div>
         )}
@@ -274,7 +276,7 @@ export function POSCart({
             disabled={disabled || items.length === 0 || hasStockIssues}
           >
             <ShoppingCart className="h-5 w-5 mr-2" />
-            {hasStockIssues ? "Fix Stock Issues" : `Checkout — ${formatCurrency(total)}`}
+            {hasStockIssues ? t("pos.fixStockIssues" as any) : `${t("pos.checkout" as any)} — ${formatCurrency(total)}`}
           </Button>
         </div>
       </div>

@@ -29,6 +29,7 @@ import { CartItem } from "@/hooks/usePOS";
 import { useInventory } from "@/hooks/usePharmacy";
 import { format, differenceInYears } from "date-fns";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n";
 
 interface POSPatientSearchProps {
   onAddToCart: (item: CartItem) => void;
@@ -43,6 +44,7 @@ export function POSPatientSearch({
   selectedPatient,
   onAdmissionStatusChange 
 }: POSPatientSearchProps) {
+  const { t } = useTranslation();
   const [search, setSearch] = useState("");
   const [showResults, setShowResults] = useState(false);
   const lastAdmissionIdRef = useRef<string | null>(null);
@@ -152,7 +154,7 @@ export function POSPatientSearch({
       <CardHeader className="py-3">
         <CardTitle className="text-sm font-medium flex items-center gap-2">
           <User className="h-4 w-4" />
-          Patient Lookup (Optional)
+          {t("pos.patientLookup" as any)}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3 pt-0">
@@ -170,13 +172,13 @@ export function POSPatientSearch({
                   </Badge>
                   {selectedPatient.token_number && (
                     <Badge variant="default" className="text-xs bg-green-600 hover:bg-green-700">
-                      Today Token #{selectedPatient.token_number}
+                      Token #{selectedPatient.token_number}
                     </Badge>
                   )}
                   {admissionStatus && (
                     <Badge variant="default" className="text-xs bg-blue-600 hover:bg-blue-700">
                       <BedDouble className="h-3 w-3 mr-1" />
-                      Admitted - {admissionStatus.ward?.name || "Ward"} 
+                      {t("pharmacy.admittedPatient" as any)} - {admissionStatus.ward?.name || "Ward"} 
                       {admissionStatus.bed?.bed_number && ` / Bed ${admissionStatus.bed.bed_number}`}
                     </Badge>
                   )}
@@ -229,7 +231,7 @@ export function POSPatientSearch({
                             onClick={() => handleAddAllFromPrescription(rx)}
                           >
                             <Plus className="h-3 w-3 mr-1" />
-                            Add All
+                            {t("pos.addAll" as any)}
                           </Button>
                         </div>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
@@ -271,7 +273,7 @@ export function POSPatientSearch({
                           ))}
                           {rx.items.length > 3 && (
                             <p className="text-xs text-muted-foreground text-center">
-                              +{rx.items.length - 3} more items
+                              +{rx.items.length - 3} {t("pos.moreItems" as any)}
                             </p>
                           )}
                         </div>
@@ -281,7 +283,7 @@ export function POSPatientSearch({
                 </ScrollArea>
               ) : (
                 <p className="text-xs text-muted-foreground text-center py-2">
-                  No pending prescriptions
+                  {t("pos.noPrescriptions" as any)}
                 </p>
               )}
             </div>
@@ -291,7 +293,7 @@ export function POSPatientSearch({
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search by Token#, MR#, phone, or name..."
+              placeholder={t("pos.searchPatient" as any)}
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value);
@@ -308,7 +310,7 @@ export function POSPatientSearch({
                 <CardContent className="p-2">
                   {searchLoading ? (
                     <div className="p-2 text-center text-sm text-muted-foreground">
-                      Searching...
+                      {t("pharmacy.searching" as any)}
                     </div>
                   ) : patients && patients.length > 0 ? (
                     <div className="space-y-1">
@@ -333,14 +335,14 @@ export function POSPatientSearch({
                             </div>
                           </div>
                           <Badge variant="outline" className="text-xs">
-                            Select
+                            {t("common.select" as any)}
                           </Badge>
                         </div>
                       ))}
                     </div>
                   ) : (
                     <div className="p-2 text-center text-sm text-muted-foreground">
-                      No patients found
+                      {t("pos.noPatients" as any)}
                     </div>
                   )}
                 </CardContent>
