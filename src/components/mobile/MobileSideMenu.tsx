@@ -137,6 +137,13 @@ import {
   ShoppingCart,
   RotateCcw,
   Send,
+  ArrowDownToLine,
+  MapPin,
+  Map as MapIcon,
+  Grid3x3,
+  Truck,
+  Webhook,
+  Users2,
   LogOut,
   Moon,
   ChevronDown,
@@ -281,6 +288,13 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   ShoppingCart,
   RotateCcw,
   Send,
+  ArrowDownToLine,
+  MapPin,
+  Map: MapIcon,
+  Grid3x3,
+  Truck,
+  Webhook,
+  Users2,
 };
 
 interface MobileSideMenuProps {
