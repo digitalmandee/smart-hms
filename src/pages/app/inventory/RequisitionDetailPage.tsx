@@ -21,6 +21,7 @@ import {
   Send,
   Truck,
   Clock,
+  Printer,
 } from "lucide-react";
 import {
   useRequisition,
@@ -34,6 +35,8 @@ import { toast } from "sonner";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { usePrint } from "@/hooks/usePrint";
+import { PrintableRequisition } from "@/components/inventory/PrintableRequisition";
 
 export default function RequisitionDetailPage() {
   const navigate = useNavigate();
@@ -48,6 +51,7 @@ export default function RequisitionDetailPage() {
   const [rejectReason, setRejectReason] = useState("");
   const [showRejectForm, setShowRejectForm] = useState(false);
   const [approvedQuantities, setApprovedQuantities] = useState<Record<string, number>>({});
+  const { printRef: reqPrintRef, handlePrint: reqPrintHandle } = usePrint();
 
   const handleSubmit = async () => {
     if (!requisition) return;
@@ -159,6 +163,10 @@ export default function RequisitionDetailPage() {
         <Button variant="outline" onClick={() => navigate("/app/inventory/requisitions")}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back
+        </Button>
+        <Button variant="outline" onClick={() => reqPrintHandle({ title: requisition.requisition_number })}>
+          <Printer className="mr-2 h-4 w-4" />
+          Print
         </Button>
         {canSubmit && (
           <Button onClick={handleSubmit} disabled={submitMutation.isPending}>
@@ -409,6 +417,13 @@ export default function RequisitionDetailPage() {
             <p className="whitespace-pre-wrap">{requisition.notes}</p>
           </CardContent>
         </Card>
+      )}
+
+      {/* Hidden Printable */}
+      {requisition && (
+        <div className="hidden">
+          <PrintableRequisition ref={reqPrintRef} requisition={requisition} />
+        </div>
       )}
     </div>
   );

@@ -26,6 +26,7 @@ import { ArrowLeft, Loader2 } from "lucide-react";
 import { useVendors } from "@/hooks/useVendors";
 import { useBranches } from "@/hooks/useBranches";
 import { useCreatePurchaseOrder, type PurchaseOrderItem } from "@/hooks/usePurchaseOrders";
+import { usePurchaseRequest } from "@/hooks/usePurchaseRequests";
 import { UnifiedPOItemsBuilder } from "@/components/inventory/UnifiedPOItemsBuilder";
 import { StoreSelector } from "@/components/inventory/StoreSelector";
 import { PageHeader } from "@/components/PageHeader";
@@ -46,6 +47,7 @@ export default function POFormPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const vendorIdParam = searchParams.get("vendor_id");
+  const fromPrId = searchParams.get("from_pr");
   const { profile } = useAuth();
 
   const [items, setItems] = useState<PurchaseOrderItem[]>([]);
@@ -54,6 +56,7 @@ export default function POFormPage() {
   const { data: vendors } = useVendors();
   const { data: branches } = useBranches();
   const createPO = useCreatePurchaseOrder();
+  const { data: sourcePR } = usePurchaseRequest(fromPrId || "");
 
   const isSingleBranch = branches && branches.length === 1;
   const autoSelectedBranchId = profile?.branch_id || (isSingleBranch ? branches[0]?.id : "") || "";
@@ -77,6 +80,34 @@ export default function POFormPage() {
       setSelectedBranch(autoSelectedBranchId);
     }
   }, [autoSelectedBranchId, form]);
+
+  // Pre-fill from PR
+  useEffect(() => {
+    if (sourcePR && sourcePR.items && items.length === 0) {
+      // Set branch from PR
+      if (sourcePR.branch_id) {
+        form.setValue("branch_id", sourcePR.branch_id);
+        setSelectedBranch(sourcePR.branch_id);
+      }
+      // Set store from PR
+      if (sourcePR.store_id) {
+        form.setValue("store_id", sourcePR.store_id);
+      }
+      // Set notes referencing PR
+      form.setValue("notes", `From PR: ${sourcePR.pr_number}`);
+      // Pre-fill items
+      const prItems: PurchaseOrderItem[] = sourcePR.items.map((prItem) => ({
+        item_id: prItem.item_id || "",
+        item_type: "inventory" as const,
+        quantity: prItem.quantity_requested,
+        unit_price: prItem.estimated_unit_cost,
+        tax_percent: 0,
+        discount_percent: 0,
+        total_price: prItem.quantity_requested * prItem.estimated_unit_cost,
+      }));
+      setItems(prItems);
+    }
+  }, [sourcePR, form, items.length]);
   const onSubmit = async (data: POFormData) => {
     if (items.length === 0) {
       return;

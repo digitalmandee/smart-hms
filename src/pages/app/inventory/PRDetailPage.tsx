@@ -1,4 +1,7 @@
 import { useNavigate, useParams } from "react-router-dom";
+import { usePrint } from "@/hooks/usePrint";
+import { PrintablePR } from "@/components/inventory/PrintablePR";
+import { Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -29,6 +32,7 @@ import {
   FileText,
   AlertCircle,
 } from "lucide-react";
+// Printer already imported above
 import {
   usePurchaseRequest,
   useSubmitPurchaseRequest,
@@ -63,6 +67,8 @@ export default function PRDetailPage() {
   const { formatCurrency } = useCurrencyFormatter();
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
+
+  const { printRef: prPrintRef, handlePrint: prPrintHandle } = usePrint();
 
   const { data: pr, isLoading } = usePurchaseRequest(id || "");
   const submitMutation = useSubmitPurchaseRequest();
@@ -132,6 +138,10 @@ export default function PRDetailPage() {
         <Button variant="outline" onClick={() => navigate("/app/inventory/purchase-requests")}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back
+        </Button>
+        <Button variant="outline" onClick={() => prPrintHandle({ title: pr.pr_number })}>
+          <Printer className="mr-2 h-4 w-4" />
+          Print
         </Button>
         {pr.status === "draft" && (
           <Button onClick={handleSubmit} disabled={submitMutation.isPending}>
@@ -324,6 +334,13 @@ export default function PRDetailPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Hidden Printable */}
+      {pr && (
+        <div className="hidden">
+          <PrintablePR ref={prPrintRef} pr={pr} />
+        </div>
+      )}
     </div>
   );
 }
