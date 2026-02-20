@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { usePickLists } from "@/hooks/usePickingPacking";
 import { useNavigate } from "react-router-dom";
-import { Eye } from "lucide-react";
+import { Eye, Plus } from "lucide-react";
 
 const STATUS_OPTIONS = ["all", "draft", "assigned", "in_progress", "completed", "cancelled"];
 
@@ -24,6 +24,7 @@ export default function PickListsPage() {
         breadcrumbs={[{ label: "Inventory", href: "/app/inventory" }, { label: "Pick Lists" }]}
         actions={
           <div className="flex items-center gap-3">
+            <Button onClick={() => navigate("/app/inventory/picking/new")}><Plus className="h-4 w-4 mr-2" />New Pick List</Button>
             <StoreSelector value={storeId} onChange={setStoreId} showAll className="w-[220px]" />
             <Select value={status} onValueChange={setStatus}><SelectTrigger className="w-[150px]"><SelectValue /></SelectTrigger><SelectContent>{STATUS_OPTIONS.map((s) => <SelectItem key={s} value={s}>{s === "all" ? "All Status" : s.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase())}</SelectItem>)}</SelectContent></Select>
           </div>

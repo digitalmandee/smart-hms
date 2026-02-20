@@ -1257,7 +1257,9 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         path: "", 
         icon: "ClipboardList",
         children: [
+          { name: "New Pick List", path: "/app/inventory/picking/new", icon: "Plus" },
           { name: "Pick Lists", path: "/app/inventory/picking", icon: "ClipboardCheck" },
+          { name: "New Packing Slip", path: "/app/inventory/packing/new", icon: "Plus" },
           { name: "Packing Slips", path: "/app/inventory/packing", icon: "Package" },
           { name: "Picking Dashboard", path: "/app/inventory/picking/dashboard", icon: "BarChart3" },
         ]

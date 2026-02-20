@@ -30,42 +30,18 @@ export default function InventoryReportsPage() {
   );
 
   const generalReports: ReportCard[] = [
-    {
-      title: "Stock Valuation",
-      description: "Current inventory value by FIFO method",
-      icon: DollarSign,
-      href: "/app/inventory/reports/valuation",
-    },
-    {
-      title: "Stock Movement",
-      description: "Track stock ins and outs over time",
-      icon: ArrowUpDown,
-      href: "/app/inventory/reports/movement",
-    },
-    {
-      title: "Low Stock Report",
-      description: "Items below reorder level",
-      icon: Package,
-      href: "/app/inventory/stock?lowStock=true",
-    },
-    {
-      title: "Procurement Summary",
-      description: "Purchase analysis by vendor and category",
-      icon: ShoppingCart,
-      href: "/app/inventory/reports/procurement",
-    },
-    {
-      title: "Expiry Report",
-      description: "Items expiring soon",
-      icon: TrendingUp,
-      href: "/app/inventory/reports/expiry",
-    },
-    {
-      title: "Consumption Report",
-      description: "Stock usage by department",
-      icon: BarChart3,
-      href: "/app/inventory/reports/consumption",
-    },
+    { title: "Stock Valuation", description: "Current inventory value by FIFO method", icon: DollarSign, href: "/app/inventory/reports/valuation" },
+    { title: "Stock Movement", description: "Track stock ins and outs over time", icon: ArrowUpDown, href: "/app/inventory/reports/movement" },
+    { title: "Low Stock Report", description: "Items below reorder level", icon: Package, href: "/app/inventory/stock?lowStock=true" },
+    { title: "Procurement Summary", description: "Purchase analysis by vendor and category", icon: ShoppingCart, href: "/app/inventory/reports/procurement" },
+    { title: "Expiry Report", description: "Items expiring soon", icon: TrendingUp, href: "/app/inventory/reports/expiry" },
+    { title: "Consumption Report", description: "Stock usage by department", icon: BarChart3, href: "/app/inventory/reports/consumption" },
+  ];
+
+  const warehouseReports: ReportCard[] = [
+    { title: "Warehouse Operations", description: "Put-away rates, bin utilization metrics", icon: FileBarChart, href: "/app/inventory/reports/operations" },
+    { title: "Picking & Shipping", description: "Pick list and shipment performance", icon: TrendingUp, href: "/app/inventory/reports/picking-shipping" },
+    { title: "ABC Analysis", description: "Pareto analysis of inventory value", icon: BarChart3, href: "/app/inventory/reports/abc-analysis" },
   ];
 
   const pharmacyReports: ReportCard[] = [
@@ -211,6 +187,33 @@ export default function InventoryReportsPage() {
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {generalReports.map((report) => (
+            <Link key={report.title} to={report.href}>
+              <Card className="hover:bg-accent/50 transition-colors h-full">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <report.icon className="h-5 w-5 text-primary" />
+                    </div>
+                    <CardTitle className="text-base">{report.title}</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">{report.description}</p>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      {/* Warehouse Operations Reports */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <FileBarChart className="h-5 w-5 text-primary" />
+          <h2 className="text-lg font-semibold">Warehouse Operations Reports</h2>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {warehouseReports.map((report) => (
             <Link key={report.title} to={report.href}>
               <Card className="hover:bg-accent/50 transition-colors h-full">
                 <CardHeader className="pb-2">
