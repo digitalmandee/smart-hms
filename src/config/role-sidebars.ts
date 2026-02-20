@@ -1300,6 +1300,55 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
           { name: "Create Warehouse", path: "/app/inventory/stores/new", icon: "Plus" },
         ]
       },
+      { 
+        name: "HR & Staff",
+        path: "", 
+        icon: "Users2",
+        children: [
+          { name: "Dashboard", path: "/app/hr", icon: "LayoutDashboard" },
+          { name: "Employees", path: "/app/hr/employees", icon: "Users" },
+          { name: "Add Employee", path: "/app/hr/employees/new", icon: "UserPlus" },
+          { name: "Attendance", path: "/app/hr/attendance", icon: "Clock" },
+          { name: "Leaves", path: "/app/hr/leaves", icon: "CalendarDays" },
+          { name: "Payroll", path: "/app/hr/payroll", icon: "DollarSign" },
+          { name: "Shifts", path: "/app/hr/setup/shifts", icon: "CalendarClock" },
+          { name: "Reports", path: "/app/hr/reports", icon: "BarChart3" },
+        ]
+      },
+      { 
+        name: "Finance",
+        path: "", 
+        icon: "Landmark",
+        children: [
+          { name: "Dashboard", path: "/app/accounts", icon: "LayoutDashboard" },
+          { name: "Chart of Accounts", path: "/app/accounts/chart-of-accounts", icon: "ListTree" },
+          { name: "Journal Entries", path: "/app/accounts/journal-entries", icon: "BookOpen" },
+          { name: "Vendor Payments", path: "/app/accounts/vendor-payments", icon: "CreditCard" },
+          { name: "Bank Accounts", path: "/app/accounts/bank-accounts", icon: "Building" },
+          { name: "Reports", path: "/app/accounts/reports", icon: "PieChart" },
+        ]
+      },
+      { 
+        name: "My Work",
+        path: "", 
+        icon: "Briefcase",
+        children: [
+          { name: "My Schedule", path: "/app/my-schedule", icon: "Calendar" },
+          { name: "My Attendance", path: "/app/my-attendance", icon: "Clock" },
+          { name: "My Leaves", path: "/app/my-leaves", icon: "CalendarOff" },
+          { name: "My Payslips", path: "/app/my-payslips", icon: "FileText" },
+        ]
+      },
+      { 
+        name: "Settings",
+        path: "", 
+        icon: "Settings",
+        children: [
+          { name: "Organization", path: "/app/settings/organization", icon: "Building2" },
+          { name: "Users", path: "/app/settings/users", icon: "Users" },
+          { name: "Roles & Permissions", path: "/app/settings/roles", icon: "Shield" },
+        ]
+      },
     ]
   },
 
@@ -1358,6 +1407,17 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         children: [
           { name: "Requisitions", path: "/app/inventory/requisitions", icon: "FileText" },
           { name: "Store Transfers", path: "/app/inventory/transfers", icon: "ArrowLeftRight" },
+        ]
+      },
+      { 
+        name: "My Work",
+        path: "", 
+        icon: "Briefcase",
+        children: [
+          { name: "My Schedule", path: "/app/my-schedule", icon: "Calendar" },
+          { name: "My Attendance", path: "/app/my-attendance", icon: "Clock" },
+          { name: "My Leaves", path: "/app/my-leaves", icon: "CalendarOff" },
+          { name: "My Payslips", path: "/app/my-payslips", icon: "FileText" },
         ]
       },
     ]

@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useTranslation, useIsRTL } from "@/lib/i18n";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Sheet,
   SheetContent,
@@ -149,6 +151,7 @@ import { useTheme } from "next-themes";
 import { useHaptics } from "@/hooks/useHaptics";
 import { ROLE_LABELS } from "@/constants/roles";
 import { ROLE_SIDEBAR_CONFIG, ADMIN_ROLES, getPrimaryRole, type SidebarMenuItem } from "@/config/role-sidebars";
+import { filterSidebarByFacilityType } from "@/lib/facility-type-filter";
 import { useMenuItems } from "@/hooks/useMenuItems";
 import { cn } from "@/lib/utils";
 import { SIDEBAR_NAME_TO_KEY } from "@/components/DynamicSidebar";
@@ -407,7 +410,28 @@ export function MobileSideMenu({ open, onOpenChange }: MobileSideMenuProps) {
   const usesStaticSidebar = isSuperAdmin || primaryRole === 'super_admin' || primaryRole === 'org_admin';
   const usesDatabaseMenus = ADMIN_ROLES.includes(primaryRole) && !usesStaticSidebar;
 
-  // Get menu items from appropriate source
+  // Fetch organization facility_type for sidebar filtering
+  const { data: orgFacilityType } = useQuery({
+    queryKey: ["org-facility-type", profile?.organization_id],
+    queryFn: async () => {
+      if (!profile?.organization_id) return null;
+      const { data } = await supabase
+        .from("organizations")
+        .select("facility_type")
+        .eq("id", profile.organization_id)
+        .single();
+      return (data as any)?.facility_type as string | null;
+    },
+    enabled: !!profile?.organization_id,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Get menu items from appropriate source, then filter by facility type
+  const rawStaticItems = ROLE_SIDEBAR_CONFIG[primaryRole]?.items || ROLE_SIDEBAR_CONFIG.default?.items || [];
+  const filteredStaticItems = orgFacilityType 
+    ? filterSidebarByFacilityType(rawStaticItems, orgFacilityType) 
+    : rawStaticItems;
+
   const menuItems = usesDatabaseMenus 
     ? dbMenuItems.map(item => ({
         name: item.name,
@@ -424,7 +448,7 @@ export function MobileSideMenu({ open, onOpenChange }: MobileSideMenuProps) {
           })),
         })),
       }))
-    : (ROLE_SIDEBAR_CONFIG[primaryRole]?.items || ROLE_SIDEBAR_CONFIG.default?.items || []);
+    : filteredStaticItems;
   
   // Translate role label
   const ROLE_TO_TRANSLATION_KEY: Record<string, TranslationKey> = {

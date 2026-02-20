@@ -154,6 +154,7 @@ import { Badge } from "@/components/ui/badge";
 import { useMenuItems } from "@/hooks/useMenuItems";
 import { useAuth } from "@/contexts/AuthContext";
 import { ROLE_SIDEBAR_CONFIG, getPrimaryRole } from "@/config/role-sidebars";
+import { filterSidebarByFacilityType } from "@/lib/facility-type-filter";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation, useIsRTL } from "@/lib/i18n";
@@ -881,10 +882,30 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle, showDesktopToggl
     "/app/ipd/nursing": pendingAdmissionsCount,
   };
 
-  // Get sidebar config based on role
-  const sidebarConfig = usesDatabaseMenus 
-    ? null // Only branch_admin uses database menu items
+  // Fetch organization facility_type for sidebar filtering
+  const { data: orgFacilityType } = useQuery({
+    queryKey: ["org-facility-type", profile?.organization_id],
+    queryFn: async () => {
+      if (!profile?.organization_id) return null;
+      const { data } = await supabase
+        .from("organizations")
+        .select("facility_type")
+        .eq("id", profile.organization_id)
+        .single();
+      return (data as any)?.facility_type as string | null;
+    },
+    enabled: !!profile?.organization_id,
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+  });
+
+  // Get sidebar config based on role, then filter by facility type
+  const rawSidebarConfig = usesDatabaseMenus 
+    ? null
     : (ROLE_SIDEBAR_CONFIG[primaryRole] || ROLE_SIDEBAR_CONFIG.default);
+  
+  const sidebarConfig = rawSidebarConfig && orgFacilityType
+    ? { items: filterSidebarByFacilityType(rawSidebarConfig.items, orgFacilityType) }
+    : rawSidebarConfig;
 
   // Convert static config to menu items format for rendering
   const menuItems = usesDatabaseMenus 
