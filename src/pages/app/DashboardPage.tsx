@@ -4,10 +4,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Users, Calendar, Stethoscope, Receipt, AlertTriangle, RefreshCw, Loader2, Sun, Moon, Sunrise, Sunset, TrendingUp } from "lucide-react";
+import { Users, Calendar, Stethoscope, Receipt, AlertTriangle, RefreshCw, Loader2, Sun, Moon, Sunrise, Sunset, TrendingUp, Package, PackageCheck, ArrowLeftRight, Warehouse, ClipboardPen, BarChart3, FileInput, Truck } from "lucide-react";
 import { CollectionsWidget } from "@/components/billing/CollectionsWidget";
 import { PharmacyAlertsWidget } from "@/components/pharmacy/PharmacyAlertsWidget";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
+import { useInventoryDashboardStats } from "@/hooks/useInventory";
 import { ModernStatsCard } from "@/components/ModernStatsCard";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
@@ -16,6 +17,8 @@ import { formatCurrency } from "@/lib/currency";
 import { canViewFinancials } from "@/lib/permissions";
 import { Database } from "@/integrations/supabase/types";
 import { useTranslation } from "@/lib/i18n";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 // Role-based dashboard redirect mapping
 const ROLE_DASHBOARD_MAP: Record<string, string> = {
@@ -34,6 +37,8 @@ const ROLE_DASHBOARD_MAP: Record<string, string> = {
   radiology_technician: "/app/radiology/worklist",
   ipd_nurse: "/app/ipd/nursing",
   ot_technician: "/app/ot",
+  warehouse_admin: "/app/inventory",
+  warehouse_user: "/app/inventory",
 };
 
 // Roles that should stay on the generic dashboard
@@ -48,6 +53,21 @@ const getGreeting = () => {
   return { key: "dashboard.goodNight" as const, icon: Moon };
 };
 
+// Facility-specific quick actions
+const warehouseQuickActions = [
+  { label: "New GRN", icon: PackageCheck, href: "/app/inventory/grn/new", color: "bg-primary/10 text-primary" },
+  { label: "Stock Levels", icon: Package, href: "/app/inventory/items", color: "bg-info/10 text-info" },
+  { label: "Put-Away Tasks", icon: FileInput, href: "/app/inventory/putaway", color: "bg-success/10 text-success" },
+  { label: "Shipping", icon: Truck, href: "/app/inventory/shipping", color: "bg-accent/10 text-accent" },
+];
+
+const pharmacyQuickActions = [
+  { label: "POS Terminal", icon: Receipt, href: "/app/pharmacy/pos", color: "bg-primary/10 text-primary" },
+  { label: "Stock Alerts", icon: AlertTriangle, href: "/app/pharmacy/alerts", color: "bg-info/10 text-info" },
+  { label: "Purchase Orders", icon: ClipboardPen, href: "/app/inventory/purchase-orders", color: "bg-success/10 text-success" },
+  { label: "Stock Transfers", icon: ArrowLeftRight, href: "/app/inventory/transfers", color: "bg-accent/10 text-accent" },
+];
+
 export const DashboardPage = () => {
   const navigate = useNavigate();
   const { profile, roles, permissions, isLoading: authLoading } = useAuth();
@@ -55,6 +75,28 @@ export const DashboardPage = () => {
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [waitingForRoles, setWaitingForRoles] = useState(true);
   const { data: stats, isLoading, isError, refetch, isFetching } = useDashboardStats();
+
+  // Fetch facility type for admin roles
+  const { data: facilityType } = useQuery({
+    queryKey: ["org-facility-type-dashboard", profile?.organization_id],
+    queryFn: async () => {
+      if (!profile?.organization_id) return null;
+      const { data } = await supabase
+        .from("organizations")
+        .select("facility_type")
+        .eq("id", profile.organization_id)
+        .single();
+      return (data as any)?.facility_type as string | null;
+    },
+    enabled: !!profile?.organization_id,
+  });
+
+  const isWarehouse = facilityType === "warehouse";
+  const isPharmacyFacility = facilityType === "pharmacy";
+  const isClinical = !isWarehouse && !isPharmacyFacility;
+
+  // Inventory stats for warehouse/pharmacy dashboards
+  const { data: inventoryStats, isLoading: invLoading } = useInventoryDashboardStats(undefined);
 
   const greeting = getGreeting();
   const GreetingIcon = greeting.icon;
@@ -123,12 +165,14 @@ export const DashboardPage = () => {
     return parts[0];
   })();
 
-  const quickActions = [
+  const clinicalQuickActions = [
     { label: t("dashboard.newPatient"), icon: Users, href: "/app/patients/new", color: "bg-primary/10 text-primary" },
     { label: t("dashboard.scheduleAppointment"), icon: Calendar, href: "/app/appointments/new", color: "bg-info/10 text-info" },
     { label: t("dashboard.todaysQueue"), icon: Stethoscope, href: "/app/appointments/queue", color: "bg-success/10 text-success" },
     { label: t("dashboard.createInvoice"), icon: Receipt, href: "/app/billing/invoices/new", color: "bg-accent/10 text-accent" },
   ];
+
+  const quickActions = isWarehouse ? warehouseQuickActions : isPharmacyFacility ? pharmacyQuickActions : clinicalQuickActions;
 
   return (
     <div className="space-y-6">
@@ -178,45 +222,63 @@ export const DashboardPage = () => {
         </Card>
       )}
 
-      {/* Stats Grid with Modern Cards */}
+      {/* Stats Grid - Facility-type aware */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <ModernStatsCard
-          title={t("dashboard.totalPatients")}
-          value={stats?.totalPatients || 0}
-          change={stats?.newPatientsToday ? `+${stats.newPatientsToday} ${t("common.newToday")}` : undefined}
-          icon={Users}
-          variant="primary"
-          loading={isLoading}
-          onClick={() => navigate("/app/patients")}
-        />
-        <ModernStatsCard
-          title={t("dashboard.todayAppointments")}
-          value={stats?.todayAppointments || 0}
-          change={stats?.pendingAppointments ? `${stats.pendingAppointments} ${t("common.pending")}` : undefined}
-          icon={Calendar}
-          variant="info"
-          loading={isLoading}
-          onClick={() => navigate("/app/appointments")}
-        />
-        <ModernStatsCard
-          title={t("dashboard.activeConsultations")}
-          value={stats?.activeConsultations || 0}
-          change={stats?.queueCount ? `${stats.queueCount} ${t("common.inQueue")}` : undefined}
-          icon={Stethoscope}
-          variant="success"
-          loading={isLoading}
-          onClick={() => navigate("/app/appointments/queue")}
-        />
-        {showFinancials && (
-          <ModernStatsCard
-            title={t("dashboard.todayRevenue")}
-            value={formatAmount(stats?.todayRevenue || 0)}
-            change={t("dashboard.liveUpdates")}
-            icon={TrendingUp}
-            variant="accent"
-            loading={isLoading}
-            onClick={() => navigate("/app/billing")}
-          />
+        {isWarehouse ? (
+          <>
+            <ModernStatsCard title="Total Items" value={inventoryStats?.totalItems || 0} icon={Package} variant="primary" loading={invLoading} onClick={() => navigate("/app/inventory/items")} />
+            <ModernStatsCard title="Low Stock" value={inventoryStats?.lowStockCount || 0} icon={AlertTriangle} variant="info" loading={invLoading} onClick={() => navigate("/app/inventory/items")} />
+            <ModernStatsCard title="Pending POs" value={inventoryStats?.pendingPOs || 0} icon={ClipboardPen} variant="success" loading={invLoading} onClick={() => navigate("/app/inventory/purchase-orders")} />
+            <ModernStatsCard title="Inventory Value" value={formatAmount(inventoryStats?.totalValue || 0)} icon={BarChart3} variant="accent" loading={invLoading} onClick={() => navigate("/app/inventory/reports")} />
+          </>
+        ) : isPharmacyFacility ? (
+          <>
+            <ModernStatsCard title="Total Items" value={inventoryStats?.totalItems || 0} icon={Package} variant="primary" loading={invLoading} onClick={() => navigate("/app/inventory/items")} />
+            <ModernStatsCard title="Low Stock" value={inventoryStats?.lowStockCount || 0} icon={AlertTriangle} variant="info" loading={invLoading} onClick={() => navigate("/app/pharmacy/alerts")} />
+            <ModernStatsCard title="Pending POs" value={inventoryStats?.pendingPOs || 0} icon={ClipboardPen} variant="success" loading={invLoading} onClick={() => navigate("/app/inventory/purchase-orders")} />
+            <ModernStatsCard title="Stock Value" value={formatAmount(inventoryStats?.totalValue || 0)} icon={BarChart3} variant="accent" loading={invLoading} onClick={() => navigate("/app/inventory/reports")} />
+          </>
+        ) : (
+          <>
+            <ModernStatsCard
+              title={t("dashboard.totalPatients")}
+              value={stats?.totalPatients || 0}
+              change={stats?.newPatientsToday ? `+${stats.newPatientsToday} ${t("common.newToday")}` : undefined}
+              icon={Users}
+              variant="primary"
+              loading={isLoading}
+              onClick={() => navigate("/app/patients")}
+            />
+            <ModernStatsCard
+              title={t("dashboard.todayAppointments")}
+              value={stats?.todayAppointments || 0}
+              change={stats?.pendingAppointments ? `${stats.pendingAppointments} ${t("common.pending")}` : undefined}
+              icon={Calendar}
+              variant="info"
+              loading={isLoading}
+              onClick={() => navigate("/app/appointments")}
+            />
+            <ModernStatsCard
+              title={t("dashboard.activeConsultations")}
+              value={stats?.activeConsultations || 0}
+              change={stats?.queueCount ? `${stats.queueCount} ${t("common.inQueue")}` : undefined}
+              icon={Stethoscope}
+              variant="success"
+              loading={isLoading}
+              onClick={() => navigate("/app/appointments/queue")}
+            />
+            {showFinancials && (
+              <ModernStatsCard
+                title={t("dashboard.todayRevenue")}
+                value={formatAmount(stats?.todayRevenue || 0)}
+                change={t("dashboard.liveUpdates")}
+                icon={TrendingUp}
+                variant="accent"
+                loading={isLoading}
+                onClick={() => navigate("/app/billing")}
+              />
+            )}
+          </>
         )}
       </div>
 
@@ -226,7 +288,7 @@ export const DashboardPage = () => {
         <Card className="shadow-soft overflow-hidden">
           <CardHeader className="bg-gradient-to-r from-muted/50 to-transparent">
             <CardTitle className="text-lg">{t("dashboard.quickActions")}</CardTitle>
-            <CardDescription>{t("dashboard.commonTasks")}</CardDescription>
+            <CardDescription>{isWarehouse ? "Warehouse operations" : isPharmacyFacility ? "Pharmacy operations" : t("dashboard.commonTasks")}</CardDescription>
           </CardHeader>
           <CardContent className="pt-4">
             <div className="grid grid-cols-2 gap-3">
@@ -247,10 +309,10 @@ export const DashboardPage = () => {
           </CardContent>
         </Card>
 
-        {/* Collections Widget - Only visible to finance roles */}
-        {showFinancials ? (
+        {/* Collections Widget - Only for clinical facility types */}
+        {isClinical && showFinancials ? (
           <CollectionsWidget />
-        ) : (
+        ) : isClinical ? (
           <Card className="shadow-soft">
             <CardHeader className="bg-gradient-to-r from-muted/50 to-transparent">
               <CardTitle className="text-lg">{t("dashboard.clinicalSummary")}</CardTitle>
@@ -270,36 +332,61 @@ export const DashboardPage = () => {
               </div>
             </CardContent>
           </Card>
+        ) : (
+          <Card className="shadow-soft">
+            <CardHeader className="bg-gradient-to-r from-muted/50 to-transparent">
+              <CardTitle className="text-lg">{isWarehouse ? "Warehouse Overview" : "Store Overview"}</CardTitle>
+              <CardDescription>{isWarehouse ? "Logistics & fulfillment status" : "Retail & inventory status"}</CardDescription>
+            </CardHeader>
+            <CardContent className="pt-4">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border border-border">
+                  <div className="flex items-center gap-2">
+                    <Warehouse className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-medium">Active Vendors</span>
+                  </div>
+                  <span className="text-sm font-semibold">{inventoryStats?.vendorCount || 0}</span>
+                </div>
+                <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border border-border">
+                  <div className="flex items-center gap-2">
+                    <FileInput className="h-4 w-4 text-info" />
+                    <span className="text-sm font-medium">Pending Requisitions</span>
+                  </div>
+                  <span className="text-sm font-semibold">{inventoryStats?.pendingRequisitions || 0}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         )}
       </div>
 
-      {/* Pharmacy Alerts */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        <PharmacyAlertsWidget />
-
-        {/* Alerts */}
-        <Card className="shadow-soft">
-          <CardHeader className="bg-gradient-to-r from-muted/50 to-transparent">
-            <CardTitle className="text-lg">{t("dashboard.alertsNotifications")}</CardTitle>
-            <CardDescription>{t("dashboard.importantUpdates")}</CardDescription>
-          </CardHeader>
-          <CardContent className="pt-4">
-            <div className="space-y-3">
-              <div className="flex items-center gap-3 p-4 rounded-xl bg-muted/50 border border-border">
-                <div className="p-2 rounded-lg bg-success/10">
-                  <AlertTriangle className="h-4 w-4 text-success" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">{t("dashboard.allCaughtUp")}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {t("dashboard.noPendingAlerts")}
-                  </p>
+      {/* Pharmacy Alerts - Only for clinical/pharmacy facility types */}
+      {isClinical && (
+        <div className="grid gap-6 lg:grid-cols-2">
+          <PharmacyAlertsWidget />
+          <Card className="shadow-soft">
+            <CardHeader className="bg-gradient-to-r from-muted/50 to-transparent">
+              <CardTitle className="text-lg">{t("dashboard.alertsNotifications")}</CardTitle>
+              <CardDescription>{t("dashboard.importantUpdates")}</CardDescription>
+            </CardHeader>
+            <CardContent className="pt-4">
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 p-4 rounded-xl bg-muted/50 border border-border">
+                  <div className="p-2 rounded-lg bg-success/10">
+                    <AlertTriangle className="h-4 w-4 text-success" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">{t("dashboard.allCaughtUp")}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {t("dashboard.noPendingAlerts")}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
       
       {/* User Access Card */}
       <Card className="shadow-soft overflow-hidden">
