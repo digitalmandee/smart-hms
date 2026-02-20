@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from '@/lib/i18n';
 import { format } from 'date-fns';
 import { PageHeader } from '@/components/PageHeader';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -80,6 +81,7 @@ interface ArchiveOrder {
 
 export default function RadiologyArchivePage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [modalityFilter, setModalityFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
@@ -139,8 +141,8 @@ export default function RadiologyArchivePage() {
   return (
     <div className="space-y-6">
       <PageHeader 
-        title="Radiology Archive"
-        description="All verified and finalized radiology reports"
+        title={t('radiology.radiologyArchive' as any)}
+        description={t('radiology.radiologyArchiveDesc' as any)}
       />
 
       <Card>

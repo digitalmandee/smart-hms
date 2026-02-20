@@ -1,4 +1,5 @@
 import { useParams, useNavigate, Link } from "react-router-dom";
+import { useTranslation, getTranslatedString } from '@/lib/i18n';
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,7 @@ export default function PreOpAssessmentPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { profile } = useAuth();
+  const { t } = useTranslation();
   
   const { data: surgery, isLoading } = useSurgery(id!);
   const { data: labOrders } = useLabOrders({ patientId: surgery?.patient_id });
@@ -167,7 +169,7 @@ export default function PreOpAssessmentPage() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold">Pre-Operative Assessment</h1>
+            <h1 className="text-2xl font-bold">{t('ot.preOpAssessment' as any)}</h1>
             <p className="text-muted-foreground">{surgery.surgery_number} - {surgery.procedure_name}</p>
           </div>
         </div>

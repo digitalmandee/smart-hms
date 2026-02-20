@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from '@/lib/i18n';
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,7 @@ import { Badge } from "@/components/ui/badge";
 
 export default function SurgeriesListPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { profile } = useAuth();
   
   const [searchQuery, setSearchQuery] = useState("");
@@ -148,17 +150,17 @@ export default function SurgeriesListPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <PageHeader
-          title="Surgeries"
-          description="View all scheduled and completed surgical procedures"
+          title={t('ot.surgeries' as any)}
+          description={t('ot.surgeriesDesc' as any)}
         />
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => navigate("/app/ot/schedule")}>
             <CalendarDays className="h-4 w-4 mr-2" />
-            OT Schedule
+            {t('ot.otSchedule' as any)}
           </Button>
           <Button onClick={() => navigate("/app/ot/surgeries/new")}>
             <Plus className="h-4 w-4 mr-2" />
-            Schedule Surgery
+            {t('ot.scheduleSurgery' as any)}
           </Button>
         </div>
       </div>

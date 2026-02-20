@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from '@/lib/i18n';
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,7 @@ import { useBranches } from "@/hooks/useBranches";
 
 export default function OTRoomsPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { profile } = useAuth();
   
   const [selectedBranch, setSelectedBranch] = useState<string>(profile?.branch_id || "");
@@ -106,12 +108,12 @@ export default function OTRoomsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <PageHeader
-          title="OT Rooms"
-          description="Manage operating theatre rooms"
+          title={t('ot.otRooms' as any)}
+          description={t('ot.otRoomsDesc' as any)}
         />
         <Button onClick={handleOpenAdd} disabled={!selectedBranch}>
           <Plus className="h-4 w-4 mr-2" />
-          Add Room
+          {t('ot.addRoom' as any)}
         </Button>
       </div>
 
@@ -158,7 +160,7 @@ export default function OTRoomsPage() {
             <p className="text-muted-foreground mb-4">Add your first OT room to get started</p>
             <Button onClick={handleOpenAdd}>
               <Plus className="h-4 w-4 mr-2" />
-              Add Room
+              {t('ot.addRoom' as any)}
             </Button>
           </CardContent>
         </Card>

@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation, getTranslatedString } from '@/lib/i18n';
 import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,6 +28,7 @@ type ImageSource = 'pacs' | 'upload';
 export default function ImageCapturePage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { data: order, isLoading } = useImagingOrder(id);
   const { mutate: updateOrder, isPending: isUpdating } = useUpdateImagingOrder();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -107,7 +109,7 @@ export default function ImageCapturePage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Image Capture"
+        title={t('radiology.imageCapture' as any)}
         description={`Order: ${order.order_number}`}
         actions={
           <Button variant="outline" onClick={() => navigate('/app/radiology/worklist')}>

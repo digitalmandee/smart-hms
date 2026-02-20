@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useTranslation, getTranslatedString } from '@/lib/i18n';
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -30,6 +31,7 @@ import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 
 export default function SurgeryFormPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const { profile } = useAuth();
   const { formatCurrency } = useCurrencyFormatter();
@@ -225,7 +227,7 @@ export default function SurgeryFormPage() {
           }
         }
 
-        toast.success(`Surgery scheduled with ${formatCurrency(totalOTCharges)} added to admission bill`);
+        toast.success(`${getTranslatedString('ot.surgeryScheduled')} ${formatCurrency(totalOTCharges)}`);
       }
 
       navigate("/app/ot/schedule");
@@ -241,8 +243,8 @@ export default function SurgeryFormPage() {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <PageHeader
-          title="Schedule Surgery"
-          description="Book a new surgical procedure"
+          title={t('ot.scheduleSurgery' as any)}
+          description={t('ot.scheduleSurgeryDesc' as any)}
         />
       </div>
 

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from '@/lib/i18n';
 import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -12,6 +13,7 @@ import { FileText, RefreshCw, Clock } from 'lucide-react';
 
 export default function ReportingWorklistPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { data: orders, isLoading, refetch } = useImagingOrders();
   const [modalityFilter, setModalityFilter] = useState<string>('all');
   const [view, setView] = useState<'pending' | 'verification'>('pending');
@@ -40,8 +42,8 @@ export default function ReportingWorklistPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Reporting Worklist"
-        description="Studies awaiting radiologist interpretation"
+        title={t('radiology.reportingWorklist' as any)}
+        description={t('radiology.reportingWorklistDesc' as any)}
         actions={
           <div className="flex gap-2">
             <Select value={modalityFilter} onValueChange={setModalityFilter}>

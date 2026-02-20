@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from '@/lib/i18n';
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -47,6 +48,7 @@ import {
 const COLORS = ["#3b82f6", "#22c55e", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4"];
 
 const RadiologyReportsPage = () => {
+  const { t } = useTranslation();
   const [dateRange, setDateRange] = useState({
     start: format(startOfMonth(new Date()), "yyyy-MM-dd"),
     end: format(endOfMonth(new Date()), "yyyy-MM-dd"),
@@ -76,8 +78,8 @@ const RadiologyReportsPage = () => {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Radiology Reports"
-        description="Imaging department analytics and performance metrics"
+        title={t('radiology.radiologyReports' as any)}
+        description={t('radiology.radiologyReportsDesc' as any)}
         actions={
           <ReportExportButton
             data={imagingStats?.byModality || []}

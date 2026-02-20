@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from '@/lib/i18n';
 import { format, isToday } from "date-fns";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,6 +36,7 @@ interface CountStatus {
 export default function OTInstrumentCountPage() {
   const navigate = useNavigate();
   const { profile } = useAuth();
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"active" | "pending" | "completed">("active");
 
@@ -142,8 +144,8 @@ export default function OTInstrumentCountPage() {
   return (
     <div className="container mx-auto p-6 space-y-6">
       <PageHeader
-        title="Surgical Instrument Counts"
-        description="Verify sponge, instrument, and needle counts for patient safety"
+        title={t('ot.instrumentCounts' as any)}
+        description={t('ot.instrumentCountsDesc' as any)}
       />
 
       <div className="flex flex-col sm:flex-row gap-4 justify-between">

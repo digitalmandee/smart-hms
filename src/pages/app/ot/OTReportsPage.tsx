@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from '@/lib/i18n';
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -47,6 +48,7 @@ import {
 const COLORS = ["#22c55e", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4"];
 
 const OTReportsPage = () => {
+  const { t } = useTranslation();
   const [dateRange, setDateRange] = useState({
     start: format(startOfMonth(new Date()), "yyyy-MM-dd"),
     end: format(endOfMonth(new Date()), "yyyy-MM-dd"),
@@ -76,8 +78,8 @@ const OTReportsPage = () => {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="OT/Surgery Reports"
-        description="Operating theater analytics and surgery performance metrics"
+        title={t('ot.otReports' as any)}
+        description={t('ot.otReportsDesc' as any)}
         actions={
           <ReportExportButton
             data={surgeryStats?.bySurgeon || []}

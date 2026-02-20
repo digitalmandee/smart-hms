@@ -1,3 +1,4 @@
+import { useTranslation, getTranslatedString } from '@/lib/i18n';
 import { ModernPageHeader } from '@/components/ModernPageHeader';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -29,6 +30,7 @@ import { useNavigate } from 'react-router-dom';
 
 export default function PACSSetupGuidePage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
@@ -54,8 +56,8 @@ export default function PACSSetupGuidePage() {
   return (
     <div className="space-y-6">
       <ModernPageHeader
-        title="PACS Setup Guide"
-        subtitle="Complete guide to deploying and configuring PACS with your HMS"
+        title={t('radiology.pacsSetupGuide' as any)}
+        subtitle={t('radiology.pacsSetupGuideDesc' as any)}
         icon={BookOpen}
         iconColor="text-primary"
         actions={

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useTranslation, getTranslatedString } from '@/lib/i18n';
 import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,6 +16,7 @@ import { ArrowLeft, Save } from 'lucide-react';
 
 export default function ImagingOrderFormPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const { mutate: createOrder, isPending: isCreating } = useCreateImagingOrder();
   const { data: patients } = usePatients();
@@ -73,8 +75,8 @@ export default function ImagingOrderFormPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="New Imaging Order"
-        description="Create a new radiology order"
+        title={t('radiology.newImagingOrder' as any)}
+        description={t('radiology.newImagingOrderDesc' as any)}
         actions={
           <Button variant="outline" onClick={() => navigate(-1)}>
             <ArrowLeft className="h-4 w-4 mr-2" />

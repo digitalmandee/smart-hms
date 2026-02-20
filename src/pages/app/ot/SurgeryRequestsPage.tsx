@@ -1,6 +1,7 @@
 // Surgery Requests & Scheduled Surgeries Page
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from '@/lib/i18n';
 import { format } from "date-fns";
 import { 
   Scissors, 
@@ -70,6 +71,7 @@ const priorityConfig: Record<SurgeryRequestPriority, { label: string; variant: "
 
 export default function SurgeryRequestsPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { profile } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -144,8 +146,8 @@ export default function SurgeryRequestsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Surgery Requests & Schedule"
-        description="View pending surgery recommendations and all scheduled surgeries"
+        title={t('ot.surgeryRequests' as any)}
+        description={t('ot.surgeryRequestsDesc' as any)}
         breadcrumbs={[
           { label: "Dashboard", href: "/app" },
           { label: "Operation Theatre", href: "/app/ot" },
@@ -154,7 +156,7 @@ export default function SurgeryRequestsPage() {
         actions={
           <Button onClick={() => navigate("/app/ot/surgeries/new")}>
             <Scissors className="h-4 w-4 mr-2" />
-            Schedule Surgery
+            {t('ot.scheduleSurgery' as any)}
           </Button>
         }
       />

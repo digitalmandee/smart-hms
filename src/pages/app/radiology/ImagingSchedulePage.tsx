@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from '@/lib/i18n';
 import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,6 +13,7 @@ import { Plus, CalendarDays } from 'lucide-react';
 
 export default function ImagingSchedulePage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { data: orders, isLoading } = useImagingOrders();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [modalityFilter, setModalityFilter] = useState<string>('all');
@@ -32,8 +34,8 @@ export default function ImagingSchedulePage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Imaging Schedule"
-        description="View and manage scheduled imaging appointments"
+        title={t('radiology.imagingSchedule' as any)}
+        description={t('radiology.imagingScheduleDesc' as any)}
         actions={
           <Button onClick={() => navigate('/app/radiology/orders/new')}>
             <Plus className="h-4 w-4 mr-2" />

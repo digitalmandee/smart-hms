@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from '@/lib/i18n';
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -30,6 +31,7 @@ import { cn } from "@/lib/utils";
 
 export default function OTSchedulePage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { profile } = useAuth();
   
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -121,8 +123,8 @@ export default function OTSchedulePage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <PageHeader
-            title="Surgery Schedule"
-            description="View and manage scheduled surgeries"
+            title={t('ot.surgerySchedule' as any)}
+            description={t('ot.surgeryScheduleDesc' as any)}
           />
           {surgeries && surgeries.length > 0 && (
             <Badge 
@@ -143,7 +145,7 @@ export default function OTSchedulePage() {
           )}
           <Button onClick={() => navigate("/app/ot/surgeries/new")}>
             <Plus className="h-4 w-4 mr-2" />
-            Schedule Surgery
+            {t('ot.scheduleSurgery' as any)}
           </Button>
         </div>
       </div>

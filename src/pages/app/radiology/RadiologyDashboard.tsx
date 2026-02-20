@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from '@/lib/i18n';
 import { ModernPageHeader } from '@/components/ModernPageHeader';
 import { ModernStatsCard } from '@/components/ModernStatsCard';
 import { Button } from '@/components/ui/button';
@@ -22,6 +23,7 @@ import { format } from 'date-fns';
 
 export default function RadiologyDashboard() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { data: orders, isLoading } = useImagingOrders();
   const [activeTab, setActiveTab] = useState('pending');
 
@@ -53,14 +55,14 @@ export default function RadiologyDashboard() {
   return (
     <div className="space-y-6">
       <ModernPageHeader
-        title="Radiology & Imaging"
-        subtitle="Manage imaging orders, reports, and workflows"
+        title={t('radiology.radiologyImaging' as any)}
+        subtitle={t('radiology.radiologyImagingDesc' as any)}
         icon={Scan}
         iconColor="text-primary"
         actions={
           <Button onClick={() => navigate('/app/radiology/orders/new')} className="gap-2">
             <Plus className="h-4 w-4" />
-            New Order
+            {t('radiology.newOrder' as any)}
           </Button>
         }
       />

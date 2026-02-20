@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from '@/lib/i18n';
 import { ModernPageHeader } from "@/components/ModernPageHeader";
 import { ModernStatsCard } from "@/components/ModernStatsCard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,6 +25,7 @@ import { useAuth } from "@/contexts/AuthContext";
 
 export default function AnesthesiaDashboard() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { profile } = useAuth();
   const { data: todaySurgeries, isLoading } = useTodaySurgeries(profile?.branch_id);
   
@@ -103,8 +105,8 @@ export default function AnesthesiaDashboard() {
   return (
     <div className="space-y-6">
       <ModernPageHeader
-        title="Anesthesia Dashboard"
-        subtitle="Today's surgical cases and pre-anesthesia workflow"
+        title={t('ot.anesthesiaDashboard' as any)}
+        subtitle={t('ot.anesthesiaDashboardDesc' as any)}
         actions={
           <Button onClick={() => navigate("/app/ot/schedule")}>
             <Calendar className="h-4 w-4 mr-2" />

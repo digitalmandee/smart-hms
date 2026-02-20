@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { ModernPageHeader } from '@/components/ModernPageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -9,6 +10,7 @@ import { Radio, Search, AlertTriangle, CheckCircle, XCircle, RefreshCw } from 'l
 import { usePatients } from '@/hooks/usePatients';
 
 export default function PACSStudiesPage() {
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
   const { data: health, isLoading: healthLoading, refetch: refetchHealth } = usePACSHealth();
@@ -40,8 +42,8 @@ export default function PACSStudiesPage() {
   return (
     <div className="space-y-6">
       <ModernPageHeader
-        title="PACS Studies"
-        subtitle="Browse and view DICOM imaging studies"
+        title={t('radiology.pacsStudies' as any)}
+        subtitle={t('radiology.pacsStudiesDesc' as any)}
         icon={Radio}
         iconColor="text-primary"
         actions={
