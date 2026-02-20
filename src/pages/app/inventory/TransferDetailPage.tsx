@@ -5,9 +5,11 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PageHeader } from "@/components/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, CheckCircle, Truck, PackageCheck, Send } from "lucide-react";
+import { ArrowLeft, CheckCircle, Truck, PackageCheck, Send, Printer } from "lucide-react";
 import { useStoreTransfer, useSubmitTransfer, useApproveTransfer, useDispatchTransfer, useReceiveTransfer } from "@/hooks/useStoreTransfers";
 import { format } from "date-fns";
+import { usePrint } from "@/hooks/usePrint";
+import { PrintableTransfer } from "@/components/inventory/PrintableTransfer";
 
 const statusColors: Record<string, string> = {
   draft: "bg-muted text-muted-foreground",
@@ -26,6 +28,7 @@ export default function TransferDetailPage() {
   const approve = useApproveTransfer();
   const dispatch = useDispatchTransfer();
   const receive = useReceiveTransfer();
+  const { printRef, handlePrint } = usePrint();
 
   if (isLoading) return <div className="space-y-4"><Skeleton className="h-8 w-64" /><Skeleton className="h-64 w-full" /></div>;
   if (!transfer) return <p>Transfer not found</p>;
@@ -48,6 +51,9 @@ export default function TransferDetailPage() {
         description={`${transfer.from_store?.name} → ${transfer.to_store?.name}`}
         actions={
           <div className="flex gap-2">
+            <Button variant="outline" onClick={() => handlePrint({ title: transfer.transfer_number })}>
+              <Printer className="mr-2 h-4 w-4" /> Print
+            </Button>
             {transfer.status === "draft" && (
               <Button onClick={handleSubmit} disabled={submit.isPending}>
                 <Send className="mr-2 h-4 w-4" /> Submit for Approval
@@ -123,6 +129,11 @@ export default function TransferDetailPage() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Hidden Printable */}
+      <div className="hidden">
+        <PrintableTransfer ref={printRef} transfer={transfer} />
+      </div>
     </div>
   );
 }

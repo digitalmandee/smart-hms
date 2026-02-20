@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { usePackingSlip, usePackingSlipItems, useUpdatePackingSlip } from "@/hooks/usePickingPacking";
 import { ArrowLeft, CheckCircle, Printer, Package } from "lucide-react";
+import { usePrint } from "@/hooks/usePrint";
+import { PrintablePackingSlip } from "@/components/inventory/PrintablePackingSlip";
 
 export default function PackingSlipDetailPage() {
   const { id } = useParams();
@@ -18,6 +20,7 @@ export default function PackingSlipDetailPage() {
   const updateSlip = useUpdatePackingSlip();
   const [weight, setWeight] = useState("");
   const [boxCount, setBoxCount] = useState("");
+  const { printRef, handlePrint } = usePrint();
 
   const handleVerify = async () => {
     if (!id) return;
@@ -32,8 +35,6 @@ export default function PackingSlipDetailPage() {
     await updateSlip.mutateAsync(updates as Parameters<typeof updateSlip.mutateAsync>[0]);
   };
 
-  const handlePrint = () => window.print();
-
   return (
     <div className="p-6">
       <PageHeader title={`Packing Slip ${slip?.packing_slip_number || ""}`}
@@ -41,7 +42,7 @@ export default function PackingSlipDetailPage() {
         actions={
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => navigate("/app/inventory/packing")}><ArrowLeft className="h-4 w-4 mr-2" />Back</Button>
-            <Button variant="outline" onClick={handlePrint}><Printer className="h-4 w-4 mr-2" />Print</Button>
+            <Button variant="outline" onClick={() => handlePrint({ title: slip?.packing_slip_number || "Packing Slip" })}><Printer className="h-4 w-4 mr-2" />Print</Button>
             {slip?.status === "draft" && <Button variant="outline" onClick={handlePack}><Package className="h-4 w-4 mr-2" />Mark Packed</Button>}
             {slip?.status === "packed" && <Button onClick={handleVerify}><CheckCircle className="h-4 w-4 mr-2" />Verify</Button>}
           </div>
@@ -88,6 +89,13 @@ export default function PackingSlipDetailPage() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Hidden Printable */}
+      {slip && items && (
+        <div className="hidden">
+          <PrintablePackingSlip ref={printRef} slip={slip} items={items} />
+        </div>
+      )}
     </div>
   );
 }

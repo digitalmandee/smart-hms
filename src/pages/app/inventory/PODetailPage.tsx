@@ -148,7 +148,7 @@ export default function PODetailPage() {
             )}
             {canReceive && (
               <Button asChild>
-                <Link to={`/app/inventory/grn/new?po_id=${po.id}`}>
+                <Link to={`/app/inventory/grn/new?poId=${po.id}`}>
                   <PackageCheck className="mr-2 h-4 w-4" />
                   Receive Goods
                 </Link>

@@ -5,10 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useShipment, useTrackingEvents, useAddTrackingEvent, useUpdateShipment } from "@/hooks/useShipments";
-import { ArrowLeft, Plus, MapPin } from "lucide-react";
+import { ArrowLeft, Plus, MapPin, Printer } from "lucide-react";
+import { usePrint } from "@/hooks/usePrint";
+import { PrintableShipment } from "@/components/inventory/PrintableShipment";
 
 const EVENT_TYPES = ["picked_up", "in_transit", "out_for_delivery", "delivered", "exception"];
 
@@ -19,6 +20,7 @@ export default function ShipmentDetailPage() {
   const { data: events } = useTrackingEvents(id);
   const addEvent = useAddTrackingEvent();
   const updateShipment = useUpdateShipment();
+  const { printRef, handlePrint } = usePrint();
 
   const [eventForm, setEventForm] = useState({ event_type: "in_transit", event_description: "", location: "" });
   const [showEventForm, setShowEventForm] = useState(false);
@@ -28,7 +30,6 @@ export default function ShipmentDetailPage() {
     await addEvent.mutateAsync({ shipment_id: id, ...eventForm });
     setEventForm({ event_type: "in_transit", event_description: "", location: "" });
     setShowEventForm(false);
-    // Also update shipment status based on event type
     const statusMap: Record<string, string> = { picked_up: "picked_up", in_transit: "in_transit", delivered: "delivered" };
     if (statusMap[eventForm.event_type]) {
       await updateShipment.mutateAsync({ id, status: statusMap[eventForm.event_type] } as any);
@@ -39,7 +40,12 @@ export default function ShipmentDetailPage() {
     <div className="p-6">
       <PageHeader title={`Shipment ${shipment?.shipment_number || ""}`}
         breadcrumbs={[{ label: "Inventory", href: "/app/inventory" }, { label: "Shipping", href: "/app/inventory/shipping" }, { label: shipment?.shipment_number || "Detail" }]}
-        actions={<Button variant="outline" onClick={() => navigate("/app/inventory/shipping")}><ArrowLeft className="h-4 w-4 mr-2" />Back</Button>}
+        actions={
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => navigate("/app/inventory/shipping")}><ArrowLeft className="h-4 w-4 mr-2" />Back</Button>
+            <Button variant="outline" onClick={() => handlePrint({ title: shipment?.shipment_number || "Shipment" })}><Printer className="h-4 w-4 mr-2" />Print</Button>
+          </div>
+        }
       />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {shipment && (
@@ -87,6 +93,13 @@ export default function ShipmentDetailPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Hidden Printable */}
+      {shipment && (
+        <div className="hidden">
+          <PrintableShipment ref={printRef} shipment={shipment} events={events} />
+        </div>
+      )}
     </div>
   );
 }

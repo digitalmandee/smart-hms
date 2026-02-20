@@ -7,7 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { usePickList, usePickListItems, useUpdatePickListItem, useUpdatePickList } from "@/hooks/usePickingPacking";
-import { ArrowLeft, Check, Play, SkipForward } from "lucide-react";
+import { ArrowLeft, Check, Play, SkipForward, Printer } from "lucide-react";
+import { usePrint } from "@/hooks/usePrint";
+import { PrintablePickList } from "@/components/inventory/PrintablePickList";
 
 export default function PickListDetailPage() {
   const { id } = useParams();
@@ -17,6 +19,7 @@ export default function PickListDetailPage() {
   const updateItem = useUpdatePickListItem();
   const updateList = useUpdatePickList();
   const [partialQty, setPartialQty] = useState<Record<string, number>>({});
+  const { printRef, handlePrint } = usePrint();
 
   const handlePickItem = async (itemId: string, qty: number) => {
     const actualQty = partialQty[itemId] ?? qty;
@@ -47,6 +50,7 @@ export default function PickListDetailPage() {
         actions={
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => navigate("/app/inventory/picking")}><ArrowLeft className="h-4 w-4 mr-2" />Back</Button>
+            <Button variant="outline" onClick={() => handlePrint({ title: list?.pick_list_number || "Pick List" })}><Printer className="h-4 w-4 mr-2" />Print</Button>
             {canStart && <Button variant="outline" onClick={handleStartPicking}><Play className="h-4 w-4 mr-2" />Start Picking</Button>}
             {allPicked && list?.status !== "completed" && <Button onClick={handleComplete}>Complete Pick List</Button>}
           </div>
@@ -115,6 +119,13 @@ export default function PickListDetailPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Hidden Printable */}
+      {list && items && (
+        <div className="hidden">
+          <PrintablePickList ref={printRef} pickList={list} items={items} />
+        </div>
+      )}
     </div>
   );
 }
