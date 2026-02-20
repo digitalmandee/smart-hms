@@ -120,7 +120,6 @@ export default function StockAdjustmentFormPage() {
             quantity: qty,
             unit_cost: 0,
             received_date: new Date().toISOString().split("T")[0],
-            organization_id: profile!.organization_id!,
           });
         if (insertError) throw insertError;
       }
