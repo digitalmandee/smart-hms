@@ -1,94 +1,99 @@
 
-# Audit Results and Fix Plan: Warehouse Inventory Connectivity
 
-## Audit Summary
+# Warehouse Module: Final Connectivity Fixes and Missing Print Documents
 
-After checking every form and data record, here is the status:
+## Re-Audit Results (Warehouse Only -- No Discharge Summaries!)
 
-### What is WORKING correctly
+This audit covers ONLY the warehouse/inventory module. Here is the complete status:
 
-| Component | Status | Details |
-|-----------|--------|---------|
-| Pick List Form | OK | Has item selector dropdown, fetches inventory items, passes item_id |
-| Packing Slip Form | OK | Has item selector dropdown, fetches inventory items, passes item_id |
-| Purchase Request Form | OK | Has item selector, accepts reorder alert pre-fill via navigation state |
-| Purchase Order Form | OK | Has vendor, branch, warehouse selectors plus item builder |
-| GRN Form | OK | Loads items from selected PO, has batch/expiry fields |
-| Reorder Alerts | OK | Passes selected items to PR form via navigation state |
-| Item Form | OK | Has barcode and SKU fields in the schema and UI |
-| Barcode Label Page | OK | Route registered, sidebar entry present, item selection and print working |
-| Barcode Label Printer | OK | Generates Code128 barcodes using jsbarcode |
-| Stock Adjustment Form | Partial | Has store selector and item selector, but has a critical bug (see below) |
+### Working Correctly (No Changes Needed)
 
-### Issues Found
+| Page | Item Linked | Print | Cross-Link |
+|------|------------|-------|------------|
+| Item Form | N/A | N/A | Has barcode + SKU fields |
+| PO Detail | Yes (items table) | Yes (PrintablePO) | Has Receive Goods button |
+| GRN Detail | Yes (from PO) | Yes (PrintableGRN) | Links back to PO |
+| Stock Adjustment | Yes (item + store selector) | N/A | Updates inventory_stock |
+| Barcode Labels | Yes (item selector) | Yes (Code128 labels) | N/A |
+| Reorder Alerts | Yes | N/A | Passes items to PR form |
+| Pick List Form | Yes (item selector) | N/A | N/A |
+| Packing Slip Form | Yes (item selector) | N/A | N/A |
 
-**Bug 1: Stock Adjustment inserts `organization_id` into `inventory_stock` -- column does not exist**
+### Bugs Found
 
-In `StockAdjustmentFormPage.tsx` line 123, when creating a new stock record (increase on an item with no existing stock), the code inserts `organization_id` into `inventory_stock`. However, the `inventory_stock` table does NOT have an `organization_id` column. This will cause an error.
+**Bug 1: PO "Receive Goods" link is broken**
+- `PODetailPage.tsx` line 151 sends `?po_id=...`
+- `GRNFormPage.tsx` line 70 reads `searchParams.get("poId")`
+- The parameter names don't match, so the GRN form opens blank instead of pre-selecting the PO
 
-**Fix:** Remove `organization_id` from the insert payload on that table.
+**Bug 2: PR "Convert to PO" does nothing**
+- `PRDetailPage.tsx` line 95 navigates to `/app/inventory/purchase-orders/new?from_pr=${pr.id}`
+- `POFormPage.tsx` only reads `vendor_id` from search params -- it completely ignores `from_pr`
+- Converting a PR to PO just opens a blank PO form
 
-**Data Gap 1: All 15 inventory items have NULL barcode and NULL SKU**
+### Missing Print/PDF Documents
 
-The barcode and SKU columns were added to the schema, and the form supports them, but none of the 15 seeded demo items have barcode or SKU values populated. This means the Barcode Label page will only generate labels using item_code as fallback -- not realistic demo data.
-
-**Fix:** Populate barcode (EAN-13 style) and SKU values for all 15 items.
+| Detail Page | Has Print Button | Has Printable Component |
+|-------------|-----------------|------------------------|
+| PR Detail | No | No |
+| Pick List Detail | No | No |
+| Packing Slip Detail | Yes (broken -- uses `window.print()`) | No |
+| Shipment Detail | No | No |
+| Transfer Detail | No | No |
+| Requisition Detail | No | No |
 
 ---
 
 ## Implementation Steps
 
-### Step 1: Fix Stock Adjustment Bug
+### Step 1: Fix PO to GRN Link
+Change one character in `PODetailPage.tsx` line 151: `?po_id=` to `?poId=` so it matches what `GRNFormPage.tsx` expects.
 
-Remove the `organization_id` field from the `inventory_stock` insert in `StockAdjustmentFormPage.tsx` (line 123).
+**File:** `src/pages/app/inventory/PODetailPage.tsx`
 
-**File:** `src/pages/app/inventory/StockAdjustmentFormPage.tsx`
+### Step 2: Fix PR to PO Pre-fill
+Add `from_pr` handling to `POFormPage.tsx`:
+- Read `from_pr` param from URL
+- Fetch the PR data and its items
+- Auto-set vendor from PR
+- Pre-populate PO items from PR items
 
-### Step 2: Populate Barcode and SKU Data for All Items
+**File:** `src/pages/app/inventory/POFormPage.tsx`
 
-Update all 15 inventory items with realistic barcode numbers and SKU codes:
+### Step 3: Create 6 Printable Components
+Each follows the same pattern as the existing `PrintablePO` and `PrintableGRN` -- a `forwardRef` component with formatted layout for printing.
 
-| Item | Barcode | SKU |
-|------|---------|-----|
-| Paracetamol 500mg | 8901234500001 | PHAR-PCM-500 |
-| Amoxicillin 250mg | 8901234500002 | PHAR-AMX-250 |
-| Omeprazole 20mg | 8901234500003 | PHAR-OMP-020 |
-| Normal Saline 0.9% | 8901234500004 | CONS-NS-1000 |
-| Surgical Gloves | 8901234500005 | SURG-GLV-STR |
-| Disposable Syringes | 8901234500006 | CONS-SYR-005 |
-| Suture Silk 3-0 | 8901234500007 | SURG-SUT-3-0 |
-| Surgical Masks N95 | 8901234500008 | SURG-MSK-N95 |
-| Blood Glucose Strips | 8901234500009 | LAB-BGS-050 |
-| CBC Reagent Kit | 8901234500010 | LAB-CBC-KIT |
-| Digital Thermometer | 8901234500011 | EQUP-THR-DIG |
-| Pulse Oximeter | 8901234500012 | EQUP-POX-001 |
-| Bandage Roll 4in | 8901234500013 | CONS-BND-4IN |
-| IV Cannula 20G | 8901234500014 | SURG-IVC-20G |
-| Urine Test Strips | 8901234500015 | LAB-UTS-100 |
+| New File | Content |
+|----------|---------|
+| `src/components/inventory/PrintablePR.tsx` | PR number, requester, items table, estimated totals |
+| `src/components/inventory/PrintablePickList.tsx` | Pick list number, items with bin locations and quantities |
+| `src/components/inventory/PrintablePackingSlip.tsx` | Packing slip number, box details, item quantities |
+| `src/components/inventory/PrintableShipment.tsx` | Shipment details, carrier, tracking, event history |
+| `src/components/inventory/PrintableTransfer.tsx` | Transfer between stores, items, approval info |
+| `src/components/inventory/PrintableRequisition.tsx` | Requisition details, requested items, approval status |
 
-**Method:** SQL UPDATE via the data insert tool (not a migration).
-
-### Step 3: Verification
-
-After fixes, all warehouse forms will be properly connected:
-- Procurement: PR (with item selector and reorder pre-fill) -> PO (with item builder) -> GRN (auto-loads from PO)
-- Storage: Stock Adjustments (with store + item selector, real stock update)
-- Outbound: Pick Lists (with item selector) -> Packing Slips (with item selector)
-- Labels: Barcode page with real barcode data for all items
-
----
-
-## Technical Details
-
-### File Changes
+### Step 4: Add Print Buttons to 6 Detail Pages
+Update each detail page to import `usePrint`, add a hidden printable component, and add a Print button.
 
 | File | Change |
 |------|--------|
-| `src/pages/app/inventory/StockAdjustmentFormPage.tsx` | Remove `organization_id` from inventory_stock insert (line 123) |
+| `PRDetailPage.tsx` | Add Printer button + PrintablePR |
+| `PickListDetailPage.tsx` | Add Printer button + PrintablePickList |
+| `PackingSlipDetailPage.tsx` | Replace `window.print()` with `usePrint` + PrintablePackingSlip |
+| `ShipmentDetailPage.tsx` | Add Printer button + PrintableShipment |
+| `TransferDetailPage.tsx` | Add Printer button + PrintableTransfer |
+| `RequisitionDetailPage.tsx` | Add Printer button + PrintableRequisition |
 
-### Data Changes (via insert tool)
+---
 
-```sql
-UPDATE inventory_items SET barcode = '8901234500001', sku = 'PHAR-PCM-500' WHERE id = 'e0000001-1111-4000-a000-000000000001';
--- ... (all 15 items)
-```
+## Summary
+
+| Category | Count | Details |
+|----------|-------|---------|
+| Bug fixes | 2 | PO-to-GRN param mismatch, PR-to-PO pre-fill |
+| New printable components | 6 | PR, Pick List, Packing Slip, Shipment, Transfer, Requisition |
+| Detail page updates | 6 | Add print buttons with proper `usePrint` hook |
+| Total files changed | 8 | 2 bug fixes + 6 detail page updates |
+| Total new files | 6 | Printable components |
+
+After these changes, every warehouse document will be printable, and every cross-module link (Reorder -> PR -> PO -> GRN, Pick -> Pack -> Ship) will work end-to-end.
