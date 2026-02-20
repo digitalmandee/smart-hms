@@ -38,3 +38,6 @@ verify_jwt = false
 
 [functions.heygen-token]
 verify_jwt = false
+
+[functions.setup-warehouse-demo]
+verify_jwt = false
