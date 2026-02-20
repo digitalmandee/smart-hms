@@ -9177,6 +9177,88 @@ export type Database = {
           },
         ]
       }
+      inventory_bin_assignments: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          bin_id: string
+          id: string
+          item_id: string | null
+          medicine_id: string | null
+          organization_id: string
+          quantity: number
+          stock_id: string | null
+          store_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          bin_id: string
+          id?: string
+          item_id?: string | null
+          medicine_id?: string | null
+          organization_id: string
+          quantity?: number
+          stock_id?: string | null
+          store_id: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          bin_id?: string
+          id?: string
+          item_id?: string | null
+          medicine_id?: string | null
+          organization_id?: string
+          quantity?: number
+          stock_id?: string | null
+          store_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_bin_assignments_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_bin_assignments_bin_id_fkey"
+            columns: ["bin_id"]
+            isOneToOne: false
+            referencedRelation: "warehouse_bins"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_bin_assignments_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_bin_assignments_medicine_id_fkey"
+            columns: ["medicine_id"]
+            isOneToOne: false
+            referencedRelation: "medicines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_bin_assignments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_bin_assignments_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inventory_categories: {
         Row: {
           created_at: string
@@ -13761,6 +13843,160 @@ export type Database = {
           },
         ]
       }
+      packing_slip_items: {
+        Row: {
+          batch_number: string | null
+          box_number: number | null
+          id: string
+          item_id: string | null
+          medicine_id: string | null
+          notes: string | null
+          packing_slip_id: string
+          quantity: number
+        }
+        Insert: {
+          batch_number?: string | null
+          box_number?: number | null
+          id?: string
+          item_id?: string | null
+          medicine_id?: string | null
+          notes?: string | null
+          packing_slip_id: string
+          quantity?: number
+        }
+        Update: {
+          batch_number?: string | null
+          box_number?: number | null
+          id?: string
+          item_id?: string | null
+          medicine_id?: string | null
+          notes?: string | null
+          packing_slip_id?: string
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "packing_slip_items_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "packing_slip_items_medicine_id_fkey"
+            columns: ["medicine_id"]
+            isOneToOne: false
+            referencedRelation: "medicines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "packing_slip_items_packing_slip_id_fkey"
+            columns: ["packing_slip_id"]
+            isOneToOne: false
+            referencedRelation: "packing_slips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      packing_slips: {
+        Row: {
+          box_count: number
+          created_at: string
+          id: string
+          notes: string | null
+          organization_id: string
+          packed_at: string | null
+          packed_by: string | null
+          packing_slip_number: string
+          pick_list_id: string | null
+          source_id: string | null
+          source_type: string | null
+          status: string
+          store_id: string
+          total_items: number
+          total_weight: number | null
+          updated_at: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          box_count?: number
+          created_at?: string
+          id?: string
+          notes?: string | null
+          organization_id: string
+          packed_at?: string | null
+          packed_by?: string | null
+          packing_slip_number?: string
+          pick_list_id?: string | null
+          source_id?: string | null
+          source_type?: string | null
+          status?: string
+          store_id: string
+          total_items?: number
+          total_weight?: number | null
+          updated_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          box_count?: number
+          created_at?: string
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          packed_at?: string | null
+          packed_by?: string | null
+          packing_slip_number?: string
+          pick_list_id?: string | null
+          source_id?: string | null
+          source_type?: string | null
+          status?: string
+          store_id?: string
+          total_items?: number
+          total_weight?: number | null
+          updated_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "packing_slips_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "packing_slips_packed_by_fkey"
+            columns: ["packed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "packing_slips_pick_list_id_fkey"
+            columns: ["pick_list_id"]
+            isOneToOne: false
+            referencedRelation: "pick_lists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "packing_slips_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "packing_slips_verified_by_fkey"
+            columns: ["verified_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pacs_servers: {
         Row: {
           ae_title: string | null
@@ -15409,6 +15645,159 @@ export type Database = {
           },
         ]
       }
+      pick_list_items: {
+        Row: {
+          batch_number: string | null
+          bin_id: string | null
+          expiry_date: string | null
+          id: string
+          item_id: string | null
+          medicine_id: string | null
+          notes: string | null
+          pick_list_id: string
+          pick_sequence: number
+          picked_at: string | null
+          quantity_picked: number
+          quantity_required: number
+          status: string
+        }
+        Insert: {
+          batch_number?: string | null
+          bin_id?: string | null
+          expiry_date?: string | null
+          id?: string
+          item_id?: string | null
+          medicine_id?: string | null
+          notes?: string | null
+          pick_list_id: string
+          pick_sequence?: number
+          picked_at?: string | null
+          quantity_picked?: number
+          quantity_required?: number
+          status?: string
+        }
+        Update: {
+          batch_number?: string | null
+          bin_id?: string | null
+          expiry_date?: string | null
+          id?: string
+          item_id?: string | null
+          medicine_id?: string | null
+          notes?: string | null
+          pick_list_id?: string
+          pick_sequence?: number
+          picked_at?: string | null
+          quantity_picked?: number
+          quantity_required?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pick_list_items_bin_id_fkey"
+            columns: ["bin_id"]
+            isOneToOne: false
+            referencedRelation: "warehouse_bins"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pick_list_items_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pick_list_items_medicine_id_fkey"
+            columns: ["medicine_id"]
+            isOneToOne: false
+            referencedRelation: "medicines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pick_list_items_pick_list_id_fkey"
+            columns: ["pick_list_id"]
+            isOneToOne: false
+            referencedRelation: "pick_lists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pick_lists: {
+        Row: {
+          assigned_to: string | null
+          completed_at: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          organization_id: string
+          pick_list_number: string
+          pick_strategy: string
+          priority: number
+          source_id: string | null
+          source_type: string
+          started_at: string | null
+          status: string
+          store_id: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          organization_id: string
+          pick_list_number?: string
+          pick_strategy?: string
+          priority?: number
+          source_id?: string | null
+          source_type?: string
+          started_at?: string | null
+          status?: string
+          store_id: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          pick_list_number?: string
+          pick_strategy?: string
+          priority?: number
+          source_id?: string | null
+          source_type?: string
+          started_at?: string | null
+          status?: string
+          store_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pick_lists_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pick_lists_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pick_lists_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       post_op_orders: {
         Row: {
           activity_level: string | null
@@ -16480,6 +16869,126 @@ export type Database = {
           },
         ]
       }
+      putaway_tasks: {
+        Row: {
+          actual_bin_id: string | null
+          assigned_to: string | null
+          completed_at: string | null
+          created_at: string
+          grn_id: string | null
+          id: string
+          item_id: string | null
+          medicine_id: string | null
+          notes: string | null
+          organization_id: string
+          priority: number
+          quantity: number
+          started_at: string | null
+          status: string
+          stock_id: string | null
+          store_id: string
+          suggested_bin_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          actual_bin_id?: string | null
+          assigned_to?: string | null
+          completed_at?: string | null
+          created_at?: string
+          grn_id?: string | null
+          id?: string
+          item_id?: string | null
+          medicine_id?: string | null
+          notes?: string | null
+          organization_id: string
+          priority?: number
+          quantity?: number
+          started_at?: string | null
+          status?: string
+          stock_id?: string | null
+          store_id: string
+          suggested_bin_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          actual_bin_id?: string | null
+          assigned_to?: string | null
+          completed_at?: string | null
+          created_at?: string
+          grn_id?: string | null
+          id?: string
+          item_id?: string | null
+          medicine_id?: string | null
+          notes?: string | null
+          organization_id?: string
+          priority?: number
+          quantity?: number
+          started_at?: string | null
+          status?: string
+          stock_id?: string | null
+          store_id?: string
+          suggested_bin_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "putaway_tasks_actual_bin_id_fkey"
+            columns: ["actual_bin_id"]
+            isOneToOne: false
+            referencedRelation: "warehouse_bins"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "putaway_tasks_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "putaway_tasks_grn_id_fkey"
+            columns: ["grn_id"]
+            isOneToOne: false
+            referencedRelation: "goods_received_notes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "putaway_tasks_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "putaway_tasks_medicine_id_fkey"
+            columns: ["medicine_id"]
+            isOneToOne: false
+            referencedRelation: "medicines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "putaway_tasks_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "putaway_tasks_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "putaway_tasks_suggested_bin_id_fkey"
+            columns: ["suggested_bin_id"]
+            isOneToOne: false
+            referencedRelation: "warehouse_bins"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       qualifications: {
         Row: {
           abbreviation: string | null
@@ -17335,6 +17844,177 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shipment_tracking_events: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          event_description: string | null
+          event_time: string
+          event_type: string
+          id: string
+          location: string | null
+          shipment_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          event_description?: string | null
+          event_time?: string
+          event_type: string
+          id?: string
+          location?: string | null
+          shipment_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          event_description?: string | null
+          event_time?: string
+          event_type?: string
+          id?: string
+          location?: string | null
+          shipment_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shipment_tracking_events_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipment_tracking_events_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shipments: {
+        Row: {
+          actual_delivery: string | null
+          carrier_name: string | null
+          created_at: string
+          destination_address: Json | null
+          destination_id: string | null
+          destination_type: string
+          dispatched_at: string | null
+          dispatched_by: string | null
+          estimated_delivery: string | null
+          id: string
+          notes: string | null
+          organization_id: string
+          packing_slip_id: string | null
+          proof_of_delivery: string | null
+          received_at: string | null
+          received_by_name: string | null
+          shipment_number: string
+          shipping_cost: number | null
+          shipping_method: string
+          status: string
+          store_id: string
+          total_boxes: number | null
+          total_weight: number | null
+          tracking_number: string | null
+          transfer_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          actual_delivery?: string | null
+          carrier_name?: string | null
+          created_at?: string
+          destination_address?: Json | null
+          destination_id?: string | null
+          destination_type?: string
+          dispatched_at?: string | null
+          dispatched_by?: string | null
+          estimated_delivery?: string | null
+          id?: string
+          notes?: string | null
+          organization_id: string
+          packing_slip_id?: string | null
+          proof_of_delivery?: string | null
+          received_at?: string | null
+          received_by_name?: string | null
+          shipment_number?: string
+          shipping_cost?: number | null
+          shipping_method?: string
+          status?: string
+          store_id: string
+          total_boxes?: number | null
+          total_weight?: number | null
+          tracking_number?: string | null
+          transfer_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          actual_delivery?: string | null
+          carrier_name?: string | null
+          created_at?: string
+          destination_address?: Json | null
+          destination_id?: string | null
+          destination_type?: string
+          dispatched_at?: string | null
+          dispatched_by?: string | null
+          estimated_delivery?: string | null
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          packing_slip_id?: string | null
+          proof_of_delivery?: string | null
+          received_at?: string | null
+          received_by_name?: string | null
+          shipment_number?: string
+          shipping_cost?: number | null
+          shipping_method?: string
+          status?: string
+          store_id?: string
+          total_boxes?: number | null
+          total_weight?: number | null
+          tracking_number?: string | null
+          transfer_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shipments_dispatched_by_fkey"
+            columns: ["dispatched_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipments_packing_slip_id_fkey"
+            columns: ["packing_slip_id"]
+            isOneToOne: false
+            referencedRelation: "packing_slips"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipments_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipments_transfer_id_fkey"
+            columns: ["transfer_id"]
+            isOneToOne: false
+            referencedRelation: "store_stock_transfers"
             referencedColumns: ["id"]
           },
         ]
@@ -19635,6 +20315,146 @@ export type Database = {
           },
         ]
       }
+      warehouse_bins: {
+        Row: {
+          bin_code: string
+          bin_type: string
+          created_at: string
+          current_volume: number | null
+          current_weight: number | null
+          id: string
+          is_active: boolean
+          is_occupied: boolean
+          max_volume: number | null
+          max_weight: number | null
+          organization_id: string
+          rack_id: string | null
+          store_id: string
+          updated_at: string
+          zone_id: string | null
+        }
+        Insert: {
+          bin_code: string
+          bin_type?: string
+          created_at?: string
+          current_volume?: number | null
+          current_weight?: number | null
+          id?: string
+          is_active?: boolean
+          is_occupied?: boolean
+          max_volume?: number | null
+          max_weight?: number | null
+          organization_id: string
+          rack_id?: string | null
+          store_id: string
+          updated_at?: string
+          zone_id?: string | null
+        }
+        Update: {
+          bin_code?: string
+          bin_type?: string
+          created_at?: string
+          current_volume?: number | null
+          current_weight?: number | null
+          id?: string
+          is_active?: boolean
+          is_occupied?: boolean
+          max_volume?: number | null
+          max_weight?: number | null
+          organization_id?: string
+          rack_id?: string | null
+          store_id?: string
+          updated_at?: string
+          zone_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "warehouse_bins_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "warehouse_bins_rack_id_fkey"
+            columns: ["rack_id"]
+            isOneToOne: false
+            referencedRelation: "store_racks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "warehouse_bins_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "warehouse_bins_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "warehouse_zones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      warehouse_zones: {
+        Row: {
+          capacity_info: Json | null
+          created_at: string
+          id: string
+          is_active: boolean
+          organization_id: string
+          store_id: string
+          temperature_range: string | null
+          updated_at: string
+          zone_code: string
+          zone_name: string
+          zone_type: string
+        }
+        Insert: {
+          capacity_info?: Json | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          organization_id: string
+          store_id: string
+          temperature_range?: string | null
+          updated_at?: string
+          zone_code: string
+          zone_name: string
+          zone_type?: string
+        }
+        Update: {
+          capacity_info?: Json | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          organization_id?: string
+          store_id?: string
+          temperature_range?: string | null
+          updated_at?: string
+          zone_code?: string
+          zone_name?: string
+          zone_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "warehouse_zones_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "warehouse_zones_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       weekly_offs: {
         Row: {
           created_at: string | null
@@ -19825,6 +20645,8 @@ export type Database = {
         | "anesthetist"
         | "ot_pharmacist"
         | "opd_nurse"
+        | "warehouse_admin"
+        | "warehouse_user"
       appointment_status:
         | "scheduled"
         | "checked_in"
@@ -20334,6 +21156,8 @@ export const Constants = {
         "anesthetist",
         "ot_pharmacist",
         "opd_nurse",
+        "warehouse_admin",
+        "warehouse_user",
       ],
       appointment_status: [
         "scheduled",
