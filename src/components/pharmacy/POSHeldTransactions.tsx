@@ -29,12 +29,14 @@ import {
 } from "@/hooks/useHeldTransactions";
 import { CartItem } from "@/hooks/usePOS";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
+import { useTranslation } from "@/lib/i18n";
 
 interface POSHeldTransactionsProps {
   onRecall: (items: CartItem[], customerName?: string, customerPhone?: string, patientId?: string) => void;
 }
 
 export function POSHeldTransactionsDialog({ onRecall }: POSHeldTransactionsProps) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const { data: heldTransactions, isLoading } = useHeldTransactions();
   const recallMutation = useRecallTransaction();
@@ -75,7 +77,7 @@ export function POSHeldTransactionsDialog({ onRecall }: POSHeldTransactionsProps
         className="gap-2"
       >
         <Pause className="h-4 w-4" />
-        Held
+        {t("pos.held" as any)}
         {activeCount > 0 && (
           <Badge variant="secondary" className="ml-1">
             {activeCount}
@@ -88,10 +90,10 @@ export function POSHeldTransactionsDialog({ onRecall }: POSHeldTransactionsProps
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Pause className="h-5 w-5" />
-              Held Transactions
+              {t("pos.heldTransactions" as any)}
             </DialogTitle>
             <DialogDescription>
-              Select a held transaction to recall and continue
+              {t("pos.heldDesc" as any)}
             </DialogDescription>
           </DialogHeader>
 
@@ -122,7 +124,7 @@ export function POSHeldTransactionsDialog({ onRecall }: POSHeldTransactionsProps
                               </span>
                               {held.holder?.full_name && (
                                 <span className="text-xs text-muted-foreground">
-                                  by {held.holder.full_name}
+                                  {t("common.by" as any)} {held.holder.full_name}
                                 </span>
                               )}
                             </div>
@@ -140,7 +142,7 @@ export function POSHeldTransactionsDialog({ onRecall }: POSHeldTransactionsProps
                             <div className="flex items-center gap-2">
                               <Badge variant="secondary" className="text-xs">
                                 <ShoppingCart className="h-3 w-3 mr-1" />
-                                {itemCount} items
+                                {itemCount} {t("common.items" as any)}
                               </Badge>
                               <span className="font-semibold text-sm">
                                 {formatCurrency(total)}
@@ -183,14 +185,14 @@ export function POSHeldTransactionsDialog({ onRecall }: POSHeldTransactionsProps
             ) : (
               <div className="text-center py-8 text-muted-foreground">
                 <Pause className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                <p>No held transactions</p>
+                <p>{t("pos.noHeldTransactions" as any)}</p>
               </div>
             )}
           </ScrollArea>
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>
-              Close
+              {t("common.close" as any)}
             </Button>
           </DialogFooter>
         </DialogContent>

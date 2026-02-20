@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { POSPayment } from "@/hooks/usePOS";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
+import { useTranslation } from "@/lib/i18n";
 
 interface POSPaymentModalProps {
   open: boolean;
@@ -35,15 +36,6 @@ interface POSPaymentModalProps {
   isProcessing?: boolean;
   selectedPatientId?: string | null;
 }
-
-const PAYMENT_METHODS = [
-  { value: "cash", label: "Cash", icon: Banknote },
-  { value: "card", label: "Card", icon: CreditCard },
-  { value: "jazzcash", label: "JazzCash", icon: Smartphone },
-  { value: "easypaisa", label: "EasyPaisa", icon: Smartphone },
-  { value: "bank_transfer", label: "Bank", icon: Building2 },
-  { value: "credit", label: "Pay Later", icon: Clock },
-] as const;
 
 const QUICK_CASH_AMOUNTS = [100, 500, 1000, 2000, 5000];
 
@@ -62,12 +54,22 @@ export function POSPaymentModal({
   isProcessing,
   selectedPatientId,
 }: POSPaymentModalProps) {
+  const { t } = useTranslation();
   const { formatCurrency, currencySymbol } = useCurrencyFormatter();
   const [selectedMethod, setSelectedMethod] = useState<string>("cash");
   const [cashReceived, setCashReceived] = useState<number>(total);
   const [cardReference, setCardReference] = useState("");
   const [mobileReference, setMobileReference] = useState("");
   const [creditDueDate, setCreditDueDate] = useState<string>("");
+
+  const PAYMENT_METHODS = [
+    { value: "cash", label: t("pos.cash" as any), icon: Banknote },
+    { value: "card", label: t("pos.card" as any), icon: CreditCard },
+    { value: "jazzcash", label: "JazzCash", icon: Smartphone },
+    { value: "easypaisa", label: "EasyPaisa", icon: Smartphone },
+    { value: "bank_transfer", label: "Bank", icon: Building2 },
+    { value: "credit", label: t("pos.payLater" as any), icon: Clock },
+  ] as const;
 
   const changeAmount = Math.max(0, cashReceived - total);
   const isCredit = selectedMethod === "credit";
@@ -100,7 +102,7 @@ export function POSPaymentModal({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Calculator className="h-5 w-5" />
-            Payment
+            {t("pos.payment" as any)}
           </DialogTitle>
         </DialogHeader>
 
@@ -108,24 +110,24 @@ export function POSPaymentModal({
           {/* Order Summary */}
           <div className="p-4 bg-muted rounded-lg space-y-2">
             <div className="flex justify-between text-sm">
-              <span>Subtotal</span>
+              <span>{t("common.subtotal" as any)}</span>
               <span>{formatCurrency(subtotal)}</span>
             </div>
             {discountAmount > 0 && (
               <div className="flex justify-between text-sm text-green-600">
-                <span>Discount</span>
+                <span>{t("common.discount" as any)}</span>
                 <span>- {formatCurrency(discountAmount)}</span>
               </div>
             )}
             {taxAmount > 0 && (
               <div className="flex justify-between text-sm">
-                <span>Tax</span>
+                <span>{t("common.tax" as any)}</span>
                 <span>{formatCurrency(taxAmount)}</span>
               </div>
             )}
             <Separator />
             <div className="flex justify-between font-semibold text-lg">
-              <span>Total</span>
+              <span>{t("common.total" as any)}</span>
               <span>{formatCurrency(total)}</span>
             </div>
           </div>
@@ -135,10 +137,10 @@ export function POSPaymentModal({
             <div className="space-y-1">
               <Label className="text-xs flex items-center gap-1">
                 <User className="h-3 w-3" />
-                Customer Name (Optional)
+                {t("pos.customerName" as any)} ({t("common.optional" as any)})
               </Label>
               <Input
-                placeholder="Walk-in"
+                placeholder={t("pos.walkIn" as any)}
                 value={customerName}
                 onChange={(e) => onCustomerNameChange(e.target.value)}
                 className="h-9"
@@ -147,7 +149,7 @@ export function POSPaymentModal({
             <div className="space-y-1">
               <Label className="text-xs flex items-center gap-1">
                 <Phone className="h-3 w-3" />
-                Phone (Optional)
+                {t("common.phone" as any)} ({t("common.optional" as any)})
               </Label>
               <Input
                 placeholder="03XX-XXXXXXX"
@@ -175,7 +177,7 @@ export function POSPaymentModal({
 
             <TabsContent value="cash" className="space-y-3 mt-4">
               <div className="space-y-2">
-                <Label>Cash Received</Label>
+                <Label>{t("pos.cashReceived" as any)}</Label>
                 <Input
                   type="number"
                   value={cashReceived}
@@ -200,13 +202,13 @@ export function POSPaymentModal({
                   size="sm"
                   onClick={() => handleQuickCash(total)}
                 >
-                  Exact
+                  {t("pos.exact" as any)}
                 </Button>
               </div>
 
               {cashReceived >= total && (
                 <div className="flex justify-between items-center p-3 bg-success/10 rounded-lg border border-success/20">
-                  <span className="font-medium text-success">Change</span>
+                  <span className="font-medium text-success">{t("common.change" as any)}</span>
                   <Badge variant="default" className="text-lg bg-success">
                     {formatCurrency(changeAmount)}
                   </Badge>
@@ -216,7 +218,7 @@ export function POSPaymentModal({
 
             <TabsContent value="card" className="space-y-3 mt-4">
               <div className="space-y-2">
-                <Label>Card Reference / Last 4 Digits</Label>
+                <Label>{t("pos.cardReference" as any)}</Label>
                 <Input
                   placeholder="XXXX"
                   value={cardReference}
@@ -225,13 +227,13 @@ export function POSPaymentModal({
                 />
               </div>
               <p className="text-sm text-muted-foreground">
-                Amount: {formatCurrency(total)} will be charged
+                {t("common.amount" as any)}: {formatCurrency(total)} {t("pos.amountCharged" as any)}
               </p>
             </TabsContent>
 
             <TabsContent value="jazzcash" className="space-y-3 mt-4">
               <div className="space-y-2">
-                <Label>JazzCash Transaction ID</Label>
+                <Label>JazzCash {t("pos.transactionId" as any)}</Label>
                 <Input
                   placeholder="Transaction ID"
                   value={mobileReference}
@@ -239,13 +241,13 @@ export function POSPaymentModal({
                 />
               </div>
               <p className="text-sm text-muted-foreground">
-                Amount: {formatCurrency(total)}
+                {t("common.amount" as any)}: {formatCurrency(total)}
               </p>
             </TabsContent>
 
             <TabsContent value="easypaisa" className="space-y-3 mt-4">
               <div className="space-y-2">
-                <Label>EasyPaisa Transaction ID</Label>
+                <Label>EasyPaisa {t("pos.transactionId" as any)}</Label>
                 <Input
                   placeholder="Transaction ID"
                   value={mobileReference}
@@ -253,13 +255,13 @@ export function POSPaymentModal({
                 />
               </div>
               <p className="text-sm text-muted-foreground">
-                Amount: {formatCurrency(total)}
+                {t("common.amount" as any)}: {formatCurrency(total)}
               </p>
             </TabsContent>
 
             <TabsContent value="bank_transfer" className="space-y-3 mt-4">
               <div className="space-y-2">
-                <Label>Bank Reference Number</Label>
+                <Label>{t("pos.bankReference" as any)}</Label>
                 <Input
                   placeholder="Reference"
                   value={cardReference}
@@ -267,28 +269,28 @@ export function POSPaymentModal({
                 />
               </div>
               <p className="text-sm text-muted-foreground">
-                Amount: {formatCurrency(total)}
+                {t("common.amount" as any)}: {formatCurrency(total)}
               </p>
             </TabsContent>
 
             <TabsContent value="credit" className="space-y-3 mt-4">
               {!selectedPatientId ? (
                 <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
-                  <p className="text-sm text-destructive font-medium">Patient Required</p>
+                  <p className="text-sm text-destructive font-medium">{t("pos.patientRequired" as any)}</p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    "Pay Later" requires a registered patient. Please select a patient before proceeding.
+                    {t("pos.patientRequiredDesc" as any)}
                   </p>
                 </div>
               ) : (
                 <>
                   <div className="p-3 bg-warning/10 border border-warning/20 rounded-lg">
-                    <p className="text-sm font-medium text-warning">Credit Sale</p>
+                    <p className="text-sm font-medium text-warning">{t("pos.creditSale" as any)}</p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      This sale will be recorded as credit. Amount: {formatCurrency(total)}
+                      {t("pos.creditSaleDesc" as any)} {t("common.amount" as any)}: {formatCurrency(total)}
                     </p>
                   </div>
                   <div className="space-y-2">
-                    <Label>Due Date (Optional)</Label>
+                    <Label>{t("pos.dueDate" as any)}</Label>
                     <Input
                       type="date"
                       value={creditDueDate}
@@ -304,7 +306,7 @@ export function POSPaymentModal({
 
         <DialogFooter className="gap-2">
           <Button variant="outline" onClick={onClose} disabled={isProcessing}>
-            Cancel
+            {t("common.cancel" as any)}
           </Button>
           <Button
             onClick={handleConfirm}
@@ -312,16 +314,16 @@ export function POSPaymentModal({
             className={`min-w-32 ${isCredit ? "bg-warning hover:bg-warning/90" : ""}`}
           >
             {isProcessing ? (
-              "Processing..."
+              t("common.processing" as any)
             ) : isCredit ? (
               <>
                 <Clock className="mr-2 h-4 w-4" />
-                Record Credit Sale
+                {t("pos.recordCreditSale" as any)}
               </>
             ) : (
               <>
                 <CheckCircle className="mr-2 h-4 w-4" />
-                Complete Sale
+                {t("pos.completeSale" as any)}
               </>
             )}
           </Button>

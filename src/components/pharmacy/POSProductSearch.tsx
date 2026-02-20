@@ -10,6 +10,7 @@ import { RackLocationBadge } from "@/components/pharmacy/RackLocationBadge";
 import { CartItem } from "@/hooks/usePOS";
 import { cn } from "@/lib/utils";
 import { POSCategoryFilter } from "./POSCategoryFilter";
+import { useTranslation } from "@/lib/i18n";
 
 interface POSProductSearchProps {
   onAddToCart: (item: CartItem) => void;
@@ -17,6 +18,7 @@ interface POSProductSearchProps {
 }
 
 export function POSProductSearch({ onAddToCart, disabled }: POSProductSearchProps) {
+  const { t } = useTranslation();
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isFocused, setIsFocused] = useState(false);
@@ -124,7 +126,7 @@ export function POSProductSearch({ onAddToCart, disabled }: POSProductSearchProp
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           <Input
             ref={inputRef}
-            placeholder="Search medicine or scan barcode..."
+            placeholder={t("pos.searchMedicine" as any)}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             onFocus={handleFocus}
@@ -141,11 +143,11 @@ export function POSProductSearch({ onAddToCart, disabled }: POSProductSearchProp
             <ScrollArea className="max-h-80">
               <CardContent className="p-2">
                 {isLoading ? (
-                  <div className="p-4 text-center text-muted-foreground">Searching...</div>
+                  <div className="p-4 text-center text-muted-foreground">{t("pharmacy.searching" as any)}</div>
                 ) : availableItems.length === 0 ? (
                   <div className="p-4 text-center text-muted-foreground">
                     <AlertCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p>No products found</p>
+                    <p>{t("pos.noProducts" as any)}</p>
                   </div>
                 ) : (
                   <div className="space-y-1">
@@ -170,7 +172,7 @@ export function POSProductSearch({ onAddToCart, disabled }: POSProductSearchProp
                                 <span>{item.medicine.strength}</span>
                               )}
                               {item.batch_number && (
-                                <span>• Batch: {item.batch_number}</span>
+                                <span>• {t("common.batch" as any)}: {item.batch_number}</span>
                               )}
                               {(() => {
                                 const assignment = rackAssignments?.find(a => a.medicine_id === item.medicine_id);
@@ -195,7 +197,7 @@ export function POSProductSearch({ onAddToCart, disabled }: POSProductSearchProp
                             variant={item.quantity <= (item.reorder_level || 10) ? "destructive" : "secondary"}
                             className="text-xs"
                           >
-                            Stock: {item.quantity}
+                            {t("pos.stock" as any)}: {item.quantity}
                           </Badge>
                         </div>
                       </div>
