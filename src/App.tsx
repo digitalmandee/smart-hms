@@ -407,14 +407,26 @@ import PutAwayWorklistPage from "./pages/app/inventory/PutAwayWorklistPage";
 import PutAwayTaskPage from "./pages/app/inventory/PutAwayTaskPage";
 import PickListsPage from "./pages/app/inventory/PickListsPage";
 import PickListDetailPage from "./pages/app/inventory/PickListDetailPage";
+import PickListFormPage from "./pages/app/inventory/PickListFormPage";
 import PackingSlipsPage from "./pages/app/inventory/PackingSlipsPage";
 import PackingSlipDetailPage from "./pages/app/inventory/PackingSlipDetailPage";
+import PackingSlipFormPage from "./pages/app/inventory/PackingSlipFormPage";
 import PickingDashboardPage from "./pages/app/inventory/PickingDashboardPage";
 import ShipmentsPage from "./pages/app/inventory/shipping/ShipmentsPage";
 import ShipmentFormPage from "./pages/app/inventory/shipping/ShipmentFormPage";
 import ShipmentDetailPage from "./pages/app/inventory/shipping/ShipmentDetailPage";
 import DispatchDashboardPage from "./pages/app/inventory/shipping/DispatchDashboardPage";
 import WarehouseIntegrationsPage from "./pages/app/inventory/WarehouseIntegrationsPage";
+
+// Report sub-pages
+import StockValuationReport from "./pages/app/inventory/reports/StockValuationReport";
+import StockMovementReport from "./pages/app/inventory/reports/StockMovementReport";
+import ProcurementReport from "./pages/app/inventory/reports/ProcurementReport";
+import ExpiryReport from "./pages/app/inventory/reports/ExpiryReport";
+import ConsumptionReport from "./pages/app/inventory/reports/ConsumptionReport";
+import WarehouseOperationsReport from "./pages/app/inventory/reports/WarehouseOperationsReport";
+import PickingShippingReport from "./pages/app/inventory/reports/PickingShippingReport";
+import ABCAnalysisReport from "./pages/app/inventory/reports/ABCAnalysisReport";
 
 // Accounts pages
 import AccountsDashboard from "./pages/app/accounts/AccountsDashboard";
@@ -866,15 +878,27 @@ function App() {
               <Route path="inventory/putaway" element={<PutAwayWorklistPage />} />
               <Route path="inventory/putaway/:id" element={<PutAwayTaskPage />} />
               <Route path="inventory/picking" element={<PickListsPage />} />
+              <Route path="inventory/picking/new" element={<PickListFormPage />} />
               <Route path="inventory/picking/dashboard" element={<PickingDashboardPage />} />
               <Route path="inventory/picking/:id" element={<PickListDetailPage />} />
               <Route path="inventory/packing" element={<PackingSlipsPage />} />
+              <Route path="inventory/packing/new" element={<PackingSlipFormPage />} />
               <Route path="inventory/packing/:id" element={<PackingSlipDetailPage />} />
               <Route path="inventory/shipping" element={<ShipmentsPage />} />
               <Route path="inventory/shipping/dashboard" element={<DispatchDashboardPage />} />
               <Route path="inventory/shipping/new" element={<ShipmentFormPage />} />
               <Route path="inventory/shipping/:id" element={<ShipmentDetailPage />} />
               <Route path="inventory/integrations" element={<WarehouseIntegrationsPage />} />
+              
+              {/* Inventory Report sub-pages */}
+              <Route path="inventory/reports/valuation" element={<StockValuationReport />} />
+              <Route path="inventory/reports/movement" element={<StockMovementReport />} />
+              <Route path="inventory/reports/procurement" element={<ProcurementReport />} />
+              <Route path="inventory/reports/expiry" element={<ExpiryReport />} />
+              <Route path="inventory/reports/consumption" element={<ConsumptionReport />} />
+              <Route path="inventory/reports/operations" element={<WarehouseOperationsReport />} />
+              <Route path="inventory/reports/picking-shipping" element={<PickingShippingReport />} />
+              <Route path="inventory/reports/abc-analysis" element={<ABCAnalysisReport />} />
               
               {/* Billing routes */}
               <Route path="billing" element={<BillingDashboard />} />

@@ -1,11 +1,13 @@
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { usePickList, usePickListItems, useUpdatePickListItem, useUpdatePickList } from "@/hooks/usePickingPacking";
-import { ArrowLeft, Check } from "lucide-react";
+import { ArrowLeft, Check, Play, SkipForward } from "lucide-react";
 
 export default function PickListDetailPage() {
   const { id } = useParams();
@@ -14,9 +16,20 @@ export default function PickListDetailPage() {
   const { data: items } = usePickListItems(id);
   const updateItem = useUpdatePickListItem();
   const updateList = useUpdatePickList();
+  const [partialQty, setPartialQty] = useState<Record<string, number>>({});
 
-  const handlePickItem = async (itemId: string, qtyRequired: number) => {
-    await updateItem.mutateAsync({ id: itemId, quantity_picked: qtyRequired, status: "picked", picked_at: new Date().toISOString() });
+  const handlePickItem = async (itemId: string, qty: number) => {
+    const actualQty = partialQty[itemId] ?? qty;
+    await updateItem.mutateAsync({ id: itemId, quantity_picked: actualQty, status: "picked", picked_at: new Date().toISOString() });
+  };
+
+  const handleSkipItem = async (itemId: string) => {
+    await updateItem.mutateAsync({ id: itemId, status: "picked", quantity_picked: 0, picked_at: new Date().toISOString() });
+  };
+
+  const handleStartPicking = async () => {
+    if (!id) return;
+    await updateList.mutateAsync({ id, status: "in_progress", started_at: new Date().toISOString() });
   };
 
   const handleComplete = async () => {
@@ -25,6 +38,7 @@ export default function PickListDetailPage() {
   };
 
   const allPicked = items?.every((i) => i.status === "picked");
+  const canStart = list?.status === "draft" || list?.status === "assigned";
 
   return (
     <div className="p-6">
@@ -33,6 +47,7 @@ export default function PickListDetailPage() {
         actions={
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => navigate("/app/inventory/picking")}><ArrowLeft className="h-4 w-4 mr-2" />Back</Button>
+            {canStart && <Button variant="outline" onClick={handleStartPicking}><Play className="h-4 w-4 mr-2" />Start Picking</Button>}
             {allPicked && list?.status !== "completed" && <Button onClick={handleComplete}>Complete Pick List</Button>}
           </div>
         }
@@ -44,14 +59,22 @@ export default function PickListDetailPage() {
               <div><span className="text-muted-foreground text-sm">Status</span><div><Badge>{list.status}</Badge></div></div>
               <div><span className="text-muted-foreground text-sm">Strategy</span><div><Badge variant="outline">{list.pick_strategy}</Badge></div></div>
               <div><span className="text-muted-foreground text-sm">Priority</span><div>{list.priority}</div></div>
+              {list.started_at && <div><span className="text-muted-foreground text-sm">Started</span><div>{new Date(list.started_at).toLocaleString()}</div></div>}
+              {list.completed_at && <div><span className="text-muted-foreground text-sm">Completed</span><div>{new Date(list.completed_at).toLocaleString()}</div></div>}
             </CardContent>
           </Card>
         )}
         <Card>
-          <CardHeader><CardTitle>Items to Pick</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Items to Pick ({items?.filter(i => i.status === "picked").length || 0}/{items?.length || 0} picked)</CardTitle></CardHeader>
           <CardContent>
             <Table>
-              <TableHeader><TableRow><TableHead>#</TableHead><TableHead>Bin</TableHead><TableHead>Batch</TableHead><TableHead>Required</TableHead><TableHead>Picked</TableHead><TableHead>Status</TableHead><TableHead className="w-[80px]">Action</TableHead></TableRow></TableHeader>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>#</TableHead><TableHead>Bin</TableHead><TableHead>Batch</TableHead>
+                  <TableHead>Required</TableHead><TableHead>Pick Qty</TableHead><TableHead>Status</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
               <TableBody>
                 {items?.map((item) => (
                   <TableRow key={item.id}>
@@ -59,9 +82,31 @@ export default function PickListDetailPage() {
                     <TableCell className="font-mono">{item.bin?.bin_code || "—"}</TableCell>
                     <TableCell>{item.batch_number || "—"}</TableCell>
                     <TableCell>{item.quantity_required}</TableCell>
-                    <TableCell>{item.quantity_picked}</TableCell>
+                    <TableCell>
+                      {item.status !== "picked" ? (
+                        <Input
+                          type="number" min={0} max={item.quantity_required}
+                          value={partialQty[item.id] ?? item.quantity_required}
+                          onChange={(e) => setPartialQty({ ...partialQty, [item.id]: Number(e.target.value) })}
+                          className="w-20"
+                        />
+                      ) : (
+                        item.quantity_picked
+                      )}
+                    </TableCell>
                     <TableCell><Badge variant={item.status === "picked" ? "default" : "outline"}>{item.status}</Badge></TableCell>
-                    <TableCell>{item.status !== "picked" && <Button size="sm" variant="outline" onClick={() => handlePickItem(item.id, item.quantity_required)}><Check className="h-3 w-3 mr-1" />Pick</Button>}</TableCell>
+                    <TableCell>
+                      {item.status !== "picked" && (
+                        <div className="flex gap-1">
+                          <Button size="sm" variant="outline" onClick={() => handlePickItem(item.id, item.quantity_required)}>
+                            <Check className="h-3 w-3 mr-1" />Pick
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={() => handleSkipItem(item.id)} title="Skip">
+                            <SkipForward className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      )}
+                    </TableCell>
                   </TableRow>
                 ))}
                 {!items?.length && <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground">No items</TableCell></TableRow>}

@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { usePackingSlips } from "@/hooks/usePickingPacking";
 import { useNavigate } from "react-router-dom";
-import { Eye } from "lucide-react";
+import { Eye, Plus } from "lucide-react";
 
 const STATUS_OPTIONS = ["all", "draft", "packed", "verified", "shipped"];
 
@@ -24,6 +24,7 @@ export default function PackingSlipsPage() {
         breadcrumbs={[{ label: "Inventory", href: "/app/inventory" }, { label: "Packing Slips" }]}
         actions={
           <div className="flex items-center gap-3">
+            <Button onClick={() => navigate("/app/inventory/packing/new")}><Plus className="h-4 w-4 mr-2" />New Packing Slip</Button>
             <StoreSelector value={storeId} onChange={setStoreId} showAll className="w-[220px]" />
             <Select value={status} onValueChange={setStatus}><SelectTrigger className="w-[150px]"><SelectValue /></SelectTrigger><SelectContent>{STATUS_OPTIONS.map((s) => <SelectItem key={s} value={s}>{s === "all" ? "All Status" : s.charAt(0).toUpperCase() + s.slice(1)}</SelectItem>)}</SelectContent></Select>
           </div>
