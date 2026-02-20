@@ -1129,6 +1129,25 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
     items: [
       { name: "Dashboard", path: "/app/inventory", icon: "LayoutDashboard" },
       { 
+        name: "Receiving", 
+        path: "", 
+        icon: "PackageCheck",
+        children: [
+          { name: "GRN", path: "/app/inventory/grn", icon: "PackageCheck" },
+          { name: "Put-Away Tasks", path: "/app/inventory/putaway", icon: "ArrowDownToLine" },
+        ]
+      },
+      { 
+        name: "Storage", 
+        path: "", 
+        icon: "MapPin",
+        children: [
+          { name: "Zones", path: "/app/inventory/warehouse/zones", icon: "Map" },
+          { name: "Bins", path: "/app/inventory/warehouse/bins", icon: "Grid3x3" },
+          { name: "Storage Map", path: "/app/inventory/warehouse/map", icon: "LayoutGrid" },
+        ]
+      },
+      { 
         name: "Stock", 
         path: "", 
         icon: "Package",
@@ -1139,32 +1158,50 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         ]
       },
       { 
+        name: "Picking & Packing", 
+        path: "", 
+        icon: "ClipboardList",
+        children: [
+          { name: "Pick Lists", path: "/app/inventory/picking", icon: "ClipboardCheck" },
+          { name: "Packing Slips", path: "/app/inventory/packing", icon: "Package" },
+          { name: "Picking Dashboard", path: "/app/inventory/picking/dashboard", icon: "BarChart3" },
+        ]
+      },
+      { 
+        name: "Shipping", 
+        path: "", 
+        icon: "Truck",
+        children: [
+          { name: "Shipments", path: "/app/inventory/shipping", icon: "Truck" },
+          { name: "Dispatch Dashboard", path: "/app/inventory/shipping/dashboard", icon: "BarChart3" },
+        ]
+      },
+      { 
         name: "Procurement", 
         path: "", 
         icon: "Boxes",
         children: [
           { name: "Purchase Orders", path: "/app/inventory/purchase-orders", icon: "FileEdit" },
-          { name: "GRN", path: "/app/inventory/grn", icon: "PackageCheck" },
           { name: "Vendors", path: "/app/inventory/vendors", icon: "Store" },
         ]
       },
       { 
-        name: "Requests", 
+        name: "Transfers", 
         path: "", 
-        icon: "ClipboardList",
+        icon: "ArrowLeftRight",
         children: [
           { name: "Requisitions", path: "/app/inventory/requisitions", icon: "FileText" },
+          { name: "Store Transfers", path: "/app/inventory/transfers", icon: "ArrowLeftRight" },
         ]
       },
       { name: "Reports", path: "/app/inventory/reports", icon: "BarChart3" },
       {
-        name: "Warehouse Management",
+        name: "Warehouse Settings",
         path: "",
         icon: "Warehouse",
         children: [
           { name: "All Warehouses", path: "/app/inventory/stores", icon: "List" },
           { name: "Create Warehouse", path: "/app/inventory/stores/new", icon: "Plus" },
-          { name: "Store Transfers", path: "/app/inventory/transfers", icon: "ArrowLeftRight" },
         ]
       },
       { 
@@ -1176,6 +1213,151 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
           { name: "My Attendance", path: "/app/my-attendance", icon: "Clock" },
           { name: "My Leaves", path: "/app/my-leaves", icon: "CalendarOff" },
           { name: "My Payslips", path: "/app/my-payslips", icon: "FileText" },
+        ]
+      },
+    ]
+  },
+
+  // ==================== WAREHOUSE ====================
+
+  warehouse_admin: {
+    items: [
+      { name: "Dashboard", path: "/app/inventory", icon: "LayoutDashboard" },
+      { 
+        name: "Receiving", 
+        path: "", 
+        icon: "PackageCheck",
+        children: [
+          { name: "GRN", path: "/app/inventory/grn", icon: "PackageCheck" },
+          { name: "Put-Away Tasks", path: "/app/inventory/putaway", icon: "ArrowDownToLine" },
+        ]
+      },
+      { 
+        name: "Storage", 
+        path: "", 
+        icon: "MapPin",
+        children: [
+          { name: "Zones", path: "/app/inventory/warehouse/zones", icon: "Map" },
+          { name: "Bins", path: "/app/inventory/warehouse/bins", icon: "Grid3x3" },
+          { name: "Storage Map", path: "/app/inventory/warehouse/map", icon: "LayoutGrid" },
+        ]
+      },
+      { 
+        name: "Stock", 
+        path: "", 
+        icon: "Package",
+        children: [
+          { name: "Items", path: "/app/inventory/items", icon: "Box" },
+          { name: "Stock Levels", path: "/app/inventory/stock", icon: "ListTree" },
+          { name: "Categories", path: "/app/inventory/categories", icon: "FolderTree" },
+        ]
+      },
+      { 
+        name: "Picking & Packing", 
+        path: "", 
+        icon: "ClipboardList",
+        children: [
+          { name: "Pick Lists", path: "/app/inventory/picking", icon: "ClipboardCheck" },
+          { name: "Packing Slips", path: "/app/inventory/packing", icon: "Package" },
+          { name: "Picking Dashboard", path: "/app/inventory/picking/dashboard", icon: "BarChart3" },
+        ]
+      },
+      { 
+        name: "Shipping", 
+        path: "", 
+        icon: "Truck",
+        children: [
+          { name: "Shipments", path: "/app/inventory/shipping", icon: "Truck" },
+          { name: "Dispatch Dashboard", path: "/app/inventory/shipping/dashboard", icon: "BarChart3" },
+        ]
+      },
+      { 
+        name: "Procurement", 
+        path: "", 
+        icon: "Boxes",
+        children: [
+          { name: "Purchase Orders", path: "/app/inventory/purchase-orders", icon: "FileEdit" },
+          { name: "Vendors", path: "/app/inventory/vendors", icon: "Store" },
+        ]
+      },
+      { 
+        name: "Transfers", 
+        path: "", 
+        icon: "ArrowLeftRight",
+        children: [
+          { name: "Requisitions", path: "/app/inventory/requisitions", icon: "FileText" },
+          { name: "Store Transfers", path: "/app/inventory/transfers", icon: "ArrowLeftRight" },
+        ]
+      },
+      { name: "Reports", path: "/app/inventory/reports", icon: "BarChart3" },
+      { name: "Integrations", path: "/app/inventory/integrations", icon: "Webhook" },
+      {
+        name: "Warehouse Settings",
+        path: "",
+        icon: "Settings",
+        children: [
+          { name: "Warehouses", path: "/app/inventory/stores", icon: "Warehouse" },
+          { name: "Create Warehouse", path: "/app/inventory/stores/new", icon: "Plus" },
+        ]
+      },
+    ]
+  },
+
+  warehouse_user: {
+    items: [
+      { name: "Dashboard", path: "/app/inventory", icon: "LayoutDashboard" },
+      { 
+        name: "Receiving", 
+        path: "", 
+        icon: "PackageCheck",
+        children: [
+          { name: "GRN", path: "/app/inventory/grn", icon: "PackageCheck" },
+          { name: "Put-Away Tasks", path: "/app/inventory/putaway", icon: "ArrowDownToLine" },
+        ]
+      },
+      { 
+        name: "Storage", 
+        path: "", 
+        icon: "MapPin",
+        children: [
+          { name: "Zones", path: "/app/inventory/warehouse/zones", icon: "Map" },
+          { name: "Bins", path: "/app/inventory/warehouse/bins", icon: "Grid3x3" },
+          { name: "Storage Map", path: "/app/inventory/warehouse/map", icon: "LayoutGrid" },
+        ]
+      },
+      { 
+        name: "Stock", 
+        path: "", 
+        icon: "Package",
+        children: [
+          { name: "Items", path: "/app/inventory/items", icon: "Box" },
+          { name: "Stock Levels", path: "/app/inventory/stock", icon: "ListTree" },
+        ]
+      },
+      { 
+        name: "Picking & Packing", 
+        path: "", 
+        icon: "ClipboardList",
+        children: [
+          { name: "Pick Lists", path: "/app/inventory/picking", icon: "ClipboardCheck" },
+          { name: "Packing Slips", path: "/app/inventory/packing", icon: "Package" },
+        ]
+      },
+      { 
+        name: "Shipping", 
+        path: "", 
+        icon: "Truck",
+        children: [
+          { name: "Shipments", path: "/app/inventory/shipping", icon: "Truck" },
+        ]
+      },
+      { 
+        name: "Transfers", 
+        path: "", 
+        icon: "ArrowLeftRight",
+        children: [
+          { name: "Requisitions", path: "/app/inventory/requisitions", icon: "FileText" },
+          { name: "Store Transfers", path: "/app/inventory/transfers", icon: "ArrowLeftRight" },
         ]
       },
     ]
@@ -1215,6 +1397,8 @@ export const getPrimaryRole = (roles: string[]): string => {
     'finance_manager',
     'accountant',
     'store_manager',
+    'warehouse_admin',
+    'warehouse_user',
   ];
 
   for (const role of rolePriority) {
