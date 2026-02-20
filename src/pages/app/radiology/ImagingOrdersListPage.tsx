@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from '@/lib/i18n';
 import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +12,7 @@ import { Plus, Search, Filter } from 'lucide-react';
 
 export default function ImagingOrdersListPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { data: orders, isLoading } = useImagingOrders();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -32,12 +34,12 @@ export default function ImagingOrdersListPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Imaging Orders"
-        description="View and manage all radiology orders"
+        title={t('radiology.imagingOrders' as any)}
+        description={t('radiology.imagingOrdersDesc' as any)}
         actions={
           <Button onClick={() => navigate('/app/radiology/orders/new')}>
             <Plus className="h-4 w-4 mr-2" />
-            New Order
+            {t('radiology.newOrder' as any)}
           </Button>
         }
       />

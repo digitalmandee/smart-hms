@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation, getTranslatedString } from '@/lib/i18n';
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,7 @@ import { toast } from "sonner";
 
 export default function PACUPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   
   const { data: patients, isLoading, refetch } = usePACUPatients();
   const dischargeFromPACU = useDischargeFromPACU();
@@ -53,12 +55,12 @@ export default function PACUPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <PageHeader
-          title="PACU - Post-Anesthesia Care Unit"
-          description="Monitor and manage post-operative recovery patients"
+          title={t('ot.pacu' as any)}
+          description={t('ot.pacuDesc' as any)}
         />
         <Button variant="outline" onClick={handleRefresh}>
           <RefreshCw className="h-4 w-4 mr-2" />
-          Refresh
+          {t('common.refresh' as any)}
         </Button>
       </div>
 

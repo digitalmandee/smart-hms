@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from '@/lib/i18n';
 import { PageHeader } from '@/components/PageHeader';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +12,7 @@ import { AlertTriangle, Radio, RefreshCw } from 'lucide-react';
 
 export default function TechnicianWorklistPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { data: orders, isLoading, refetch } = useImagingOrders();
   const [modalityFilter, setModalityFilter] = useState<string>('all');
 
@@ -39,8 +41,8 @@ export default function TechnicianWorklistPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Technician Worklist"
-        description="Priority-sorted imaging studies to perform"
+        title={t('radiology.technicianWorklist' as any)}
+        description={t('radiology.technicianWorklistDesc' as any)}
         actions={
           <div className="flex gap-2">
             <Select value={modalityFilter} onValueChange={setModalityFilter}>

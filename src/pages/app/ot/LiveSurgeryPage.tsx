@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useTranslation, getTranslatedString } from '@/lib/i18n';
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -50,6 +51,7 @@ interface DrugEntry {
 export default function LiveSurgeryPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { profile, hasRole } = useAuth();
   
@@ -205,7 +207,7 @@ export default function LiveSurgeryPage() {
       await completeSurgery.mutateAsync(id!);
       setCompleteModalOpen(false);
       setShowOutcomeForm(true);
-      toast.success("Surgery completed successfully");
+      toast.success(getTranslatedString('ot.surgeryCompleted'));
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Failed to complete surgery";
       toast.error(errorMessage);

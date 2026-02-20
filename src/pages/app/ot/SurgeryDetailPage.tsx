@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useTranslation, getTranslatedString } from '@/lib/i18n';
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -59,6 +60,7 @@ import { useAuth } from "@/contexts/AuthContext";
 export default function SurgeryDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { profile, hasRole } = useAuth();
   
   const { data: surgery, isLoading, isError } = useSurgery(id!);
@@ -302,7 +304,7 @@ export default function SurgeryDetailPage() {
           {/* Patient & Procedure Info */}
           <Card>
             <CardHeader>
-              <CardTitle>Surgery Details</CardTitle>
+              <CardTitle>{t('ot.surgeryDetails' as any)}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">

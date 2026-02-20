@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation, getTranslatedString } from '@/lib/i18n';
 import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,6 +27,7 @@ import {
 export default function ReportVerificationPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { data: order, isLoading } = useImagingOrder(id);
   const { data: result } = useImagingResult(id);
   const { mutate: updateOrder, isPending: isUpdating } = useUpdateImagingOrder();
@@ -100,7 +102,7 @@ export default function ReportVerificationPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Report Verification"
+        title={t('radiology.reportVerification' as any)}
         description={`Order: ${order.order_number}`}
         actions={
           <div className="flex gap-2">

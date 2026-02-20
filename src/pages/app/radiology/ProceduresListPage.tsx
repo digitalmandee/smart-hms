@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -29,6 +30,7 @@ import { toast } from 'sonner';
 import { Plus, Edit, Search, FileImage } from 'lucide-react';
 
 export default function ProceduresListPage() {
+  const { t } = useTranslation();
   const { data: procedures, isLoading } = useImagingProcedures();
   const { mutate: createProcedure, isPending: isCreating } = useCreateImagingProcedure();
   const { mutate: updateProcedure, isPending: isUpdating } = useUpdateImagingProcedure();
@@ -129,8 +131,8 @@ export default function ProceduresListPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Imaging Procedures"
-        description="Manage procedure catalog with pricing and preparation"
+        title={t('radiology.imagingProcedures' as any)}
+        description={t('radiology.imagingProceduresDesc' as any)}
         actions={
           <Button onClick={() => handleOpenDialog()}>
             <Plus className="h-4 w-4 mr-2" />

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { ModernPageHeader } from '@/components/ModernPageHeader';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -37,6 +38,7 @@ import {
 import { toast } from 'sonner';
 
 export default function PACSServersPage() {
+  const { t } = useTranslation();
   const { data: servers, isLoading, refetch } = usePACSServers();
   const deleteServer = useDeletePACSServer();
   const testConnection = useTestPACSServerConnection();
@@ -129,8 +131,8 @@ export default function PACSServersPage() {
   return (
     <div className="space-y-6">
       <ModernPageHeader
-        title="PACS Servers"
-        subtitle="Manage multiple PACS server connections"
+        title={t('radiology.pacsServers' as any)}
+        subtitle={t('radiology.pacsServersDesc' as any)}
         icon={Server}
         iconColor="text-primary"
         actions={

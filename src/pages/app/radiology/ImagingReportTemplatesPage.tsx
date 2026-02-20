@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -46,6 +47,7 @@ const defaultFormData: TemplateFormData = {
 };
 
 export default function ImagingReportTemplatesPage() {
+  const { t } = useTranslation();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<TemplateFormData>(defaultFormData);
@@ -153,8 +155,8 @@ export default function ImagingReportTemplatesPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Imaging Report Templates"
-        description="Manage standardized report templates for radiology procedures"
+        title={t('radiology.reportTemplates' as any)}
+        description={t('radiology.reportTemplatesDesc' as any)}
         actions={
           <Button onClick={() => handleOpenDialog()}>
             <Plus className="h-4 w-4 mr-2" />

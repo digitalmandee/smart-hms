@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
+import { useTranslation, getTranslatedString } from '@/lib/i18n';
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,7 @@ import { supabase } from "@/integrations/supabase/client";
 export default function AnesthesiaRecordPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { profile } = useAuth();
   
   const { data: surgery, isLoading } = useSurgery(id!);
@@ -100,7 +102,7 @@ export default function AnesthesiaRecordPage() {
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
               <HeartPulse className="h-6 w-6" />
-              Anesthesia Record
+              {t('ot.anesthesiaRecord' as any)}
             </h1>
             <p className="text-muted-foreground">{surgery.surgery_number} - {surgery.procedure_name}</p>
           </div>

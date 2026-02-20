@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -28,6 +29,7 @@ import { toast } from 'sonner';
 import { Plus, Edit, Radio } from 'lucide-react';
 
 export default function ModalitiesListPage() {
+  const { t } = useTranslation();
   const { data: modalities, isLoading } = useImagingModalities();
   const { mutate: createModality, isPending: isCreating } = useCreateImagingModality();
   const { mutate: updateModality, isPending: isUpdating } = useUpdateImagingModality();
@@ -110,8 +112,8 @@ export default function ModalitiesListPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Imaging Modalities"
-        description="Manage available imaging modalities and equipment"
+        title={t('radiology.imagingModalities' as any)}
+        description={t('radiology.imagingModalitiesDesc' as any)}
         actions={
           <Button onClick={() => handleOpenDialog()}>
             <Plus className="h-4 w-4 mr-2" />

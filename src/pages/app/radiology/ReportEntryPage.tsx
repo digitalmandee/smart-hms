@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation, getTranslatedString } from '@/lib/i18n';
 import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,6 +14,7 @@ import { ArrowLeft, Save, FileText, AlertTriangle } from 'lucide-react';
 export default function ReportEntryPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { data: order, isLoading } = useImagingOrder(id);
   const { mutate: updateOrder } = useUpdateImagingOrder();
   const { mutate: saveResult, isPending: isSaving } = useSaveImagingResult();
@@ -83,7 +85,7 @@ export default function ReportEntryPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Report Entry"
+        title={t('radiology.reportEntry' as any)}
         description={`Order: ${order.order_number}`}
         actions={
           <Button variant="outline" onClick={() => navigate('/app/radiology/reporting')}>

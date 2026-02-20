@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useTranslation, getTranslatedString } from '@/lib/i18n';
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -46,6 +47,7 @@ const NECK_MOBILITY_OPTIONS = ['Normal', 'Limited', 'Severely limited', 'Immobil
 export default function PreAnesthesiaAssessmentPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { profile } = useAuth();
   
   const { data: surgery, isLoading } = useSurgery(id!);
@@ -298,7 +300,7 @@ export default function PreAnesthesiaAssessmentPage() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold">Pre-Anesthesia Assessment</h1>
+            <h1 className="text-2xl font-bold">{t('ot.preAnesthesiaAssessment' as any)}</h1>
             <p className="text-muted-foreground">{surgery.surgery_number} - {surgery.procedure_name}</p>
           </div>
         </div>

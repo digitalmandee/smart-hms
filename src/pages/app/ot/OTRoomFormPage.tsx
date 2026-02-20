@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useTranslation } from '@/lib/i18n';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -51,6 +52,7 @@ type OTRoomFormValues = z.infer<typeof otRoomSchema>;
 
 export default function OTRoomFormPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { id } = useParams();
   const isEditing = Boolean(id);
   const { profile } = useAuth();
@@ -150,8 +152,8 @@ export default function OTRoomFormPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title={isEditing ? "Edit OT Room" : "Add OT Room"}
-        description={isEditing ? "Update operating room details" : "Create a new operating room"}
+        title={isEditing ? t('ot.editRoom' as any) : t('ot.addRoom' as any)}
+        description={isEditing ? t('ot.editRoomDesc' as any) : t('ot.addRoomDesc' as any)}
       />
 
       <Form {...form}>

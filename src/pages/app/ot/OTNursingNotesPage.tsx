@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from '@/lib/i18n';
 import { format, isToday, isThisWeek, subDays } from "date-fns";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,6 +27,7 @@ import { OTStatusBadge } from "@/components/ot/OTStatusBadge";
 export default function OTNursingNotesPage() {
   const navigate = useNavigate();
   const { profile } = useAuth();
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const [dateFilter, setDateFilter] = useState<"today" | "week" | "all">("today");
 
@@ -91,8 +93,8 @@ export default function OTNursingNotesPage() {
   return (
     <div className="container mx-auto p-6 space-y-6">
       <PageHeader
-        title="Intra-Operative Nursing Notes"
-        description="Document procedure details and nursing observations for surgeries"
+        title={t('ot.nursingNotes' as any)}
+        description={t('ot.nursingNotesDesc' as any)}
       />
 
       <div className="flex flex-col sm:flex-row gap-4 justify-between">

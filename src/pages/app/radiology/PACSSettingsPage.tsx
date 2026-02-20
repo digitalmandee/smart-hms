@@ -1,3 +1,4 @@
+import { useTranslation } from '@/lib/i18n';
 import { ModernPageHeader } from '@/components/ModernPageHeader';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,6 +14,7 @@ import {
 } from 'lucide-react';
 
 export default function PACSSettingsPage() {
+  const { t } = useTranslation();
   const { data: health, isLoading, refetch } = usePACSHealth();
 
   const getStatusBadge = () => {
@@ -54,8 +56,8 @@ export default function PACSSettingsPage() {
   return (
     <div className="space-y-6">
       <ModernPageHeader
-        title="PACS Settings"
-        subtitle="Configure PACS/DICOM integration"
+        title={t('radiology.pacsSettings' as any)}
+        subtitle={t('radiology.pacsSettingsDesc' as any)}
         icon={Server}
         iconColor="text-primary"
         actions={
