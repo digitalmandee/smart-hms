@@ -392,6 +392,12 @@ import RequisitionsListPage from "./pages/app/inventory/RequisitionsListPage";
 import RequisitionFormPage from "./pages/app/inventory/RequisitionFormPage";
 import RequisitionDetailPage from "./pages/app/inventory/RequisitionDetailPage";
 import InventoryReportsPage from "./pages/app/inventory/InventoryReportsPage";
+import PRListPage from "./pages/app/inventory/PRListPage";
+import PRFormPage from "./pages/app/inventory/PRFormPage";
+import PRDetailPage from "./pages/app/inventory/PRDetailPage";
+import StockAdjustmentsPage from "./pages/app/inventory/StockAdjustmentsPage";
+import StockAdjustmentFormPage from "./pages/app/inventory/StockAdjustmentFormPage";
+import ReorderAlertsPage from "./pages/app/inventory/ReorderAlertsPage";
 import StoresListPage from "./pages/app/inventory/StoresListPage";
 import StoreFormPage from "./pages/app/inventory/StoreFormPage";
 import TransfersListPage from "./pages/app/inventory/TransfersListPage";
@@ -862,6 +868,12 @@ function App() {
               <Route path="inventory/requisitions" element={<RequisitionsListPage />} />
               <Route path="inventory/requisitions/new" element={<RequisitionFormPage />} />
               <Route path="inventory/requisitions/:id" element={<RequisitionDetailPage />} />
+              <Route path="inventory/purchase-requests" element={<PRListPage />} />
+              <Route path="inventory/purchase-requests/new" element={<PRFormPage />} />
+              <Route path="inventory/purchase-requests/:id" element={<PRDetailPage />} />
+              <Route path="inventory/stock-adjustments" element={<StockAdjustmentsPage />} />
+              <Route path="inventory/stock-adjustments/new" element={<StockAdjustmentFormPage />} />
+              <Route path="inventory/reorder-alerts" element={<ReorderAlertsPage />} />
               <Route path="inventory/reports" element={<InventoryReportsPage />} />
               <Route path="inventory/stores" element={<StoresListPage />} />
                <Route path="inventory/stores/new" element={<StoreFormPage />} />
