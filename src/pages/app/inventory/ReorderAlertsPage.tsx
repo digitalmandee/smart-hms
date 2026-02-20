@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Checkbox } from "@/components/ui/checkbox";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -13,15 +15,50 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { AlertTriangle, ShoppingCart, Package } from "lucide-react";
-import { useReorderAlerts } from "@/hooks/useReorderAlerts";
+import { useReorderAlerts, type ReorderAlert } from "@/hooks/useReorderAlerts";
 
 export default function ReorderAlertsPage() {
   const navigate = useNavigate();
   const { data: alerts, isLoading } = useReorderAlerts();
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleAll = () => {
+    if (!alerts) return;
+    if (selectedIds.size === alerts.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(alerts.map((a) => a.id)));
+    }
+  };
 
   const handleCreatePR = () => {
-    // Navigate to PR form - user can select items there
-    navigate("/app/inventory/purchase-requests/new");
+    // Pass selected (or all) low-stock items to the PR form via navigation state
+    const itemsToPass = alerts?.filter((a) =>
+      selectedIds.size === 0 || selectedIds.has(a.id)
+    ) || [];
+
+    navigate("/app/inventory/purchase-requests/new", {
+      state: {
+        reorderItems: itemsToPass.map((a) => ({
+          item_id: a.id,
+          item_code: a.item_code,
+          name: a.name,
+          unit_of_measure: a.unit_of_measure,
+          deficit: a.deficit,
+          reorder_level: a.reorder_level,
+          current_stock: a.current_stock,
+        })),
+      },
+    });
   };
 
   return (
@@ -62,6 +99,7 @@ export default function ReorderAlertsPage() {
             <Button onClick={handleCreatePR} className="w-full h-full py-4">
               <ShoppingCart className="mr-2 h-5 w-5" />
               Create Purchase Request
+              {selectedIds.size > 0 && ` (${selectedIds.size})`}
             </Button>
           </CardContent>
         </Card>
@@ -82,6 +120,12 @@ export default function ReorderAlertsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-[40px]">
+                    <Checkbox
+                      checked={alerts?.length ? selectedIds.size === alerts.length : false}
+                      onCheckedChange={toggleAll}
+                    />
+                  </TableHead>
                   <TableHead>Item Code</TableHead>
                   <TableHead>Item Name</TableHead>
                   <TableHead>Category</TableHead>
@@ -94,7 +138,7 @@ export default function ReorderAlertsPage() {
               <TableBody>
                 {alerts?.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                       <Package className="h-8 w-8 mx-auto mb-2" />
                       All items are above reorder levels
                     </TableCell>
@@ -102,6 +146,12 @@ export default function ReorderAlertsPage() {
                 ) : (
                   alerts?.map((alert) => (
                     <TableRow key={alert.id}>
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedIds.has(alert.id)}
+                          onCheckedChange={() => toggleSelect(alert.id)}
+                        />
+                      </TableCell>
                       <TableCell className="font-mono text-sm">{alert.item_code}</TableCell>
                       <TableCell className="font-medium">{alert.name}</TableCell>
                       <TableCell>{alert.category?.name || "—"}</TableCell>

@@ -5,14 +5,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { StoreSelector } from "@/components/inventory/StoreSelector";
 import { useCreatePackingSlip } from "@/hooks/usePickingPackingMutations";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, Trash2, ArrowLeft } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/contexts/AuthContext";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PackItem {
   key: string;
+  item_id: string;
   quantity: number;
   batch_number: string;
   box_number: number;
@@ -21,16 +26,31 @@ interface PackItem {
 
 export default function PackingSlipFormPage() {
   const navigate = useNavigate();
+  const { profile } = useAuth();
   const createSlip = useCreatePackingSlip();
   const [storeId, setStoreId] = useState("");
   const [notes, setNotes] = useState("");
   const [items, setItems] = useState<PackItem[]>([
-    { key: crypto.randomUUID(), quantity: 1, batch_number: "", box_number: 1, notes: "" },
+    { key: crypto.randomUUID(), item_id: "", quantity: 1, batch_number: "", box_number: 1, notes: "" },
   ]);
+
+  const { data: inventoryItems } = useQuery({
+    queryKey: ["inventory-items-for-pack", profile?.organization_id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("inventory_items")
+        .select("id, item_code, name, unit_of_measure")
+        .eq("organization_id", profile!.organization_id!)
+        .eq("is_active", true)
+        .order("name");
+      return data || [];
+    },
+    enabled: !!profile?.organization_id,
+  });
 
   const addItem = () => {
     setItems([...items, {
-      key: crypto.randomUUID(), quantity: 1, batch_number: "", box_number: 1, notes: "",
+      key: crypto.randomUUID(), item_id: "", quantity: 1, batch_number: "", box_number: 1, notes: "",
     }]);
   };
 
@@ -46,6 +66,7 @@ export default function PackingSlipFormPage() {
       store_id: storeId,
       notes: notes || undefined,
       items: items.map((i) => ({
+        item_id: i.item_id || undefined,
         quantity: i.quantity,
         batch_number: i.batch_number || undefined,
         box_number: i.box_number,
@@ -93,6 +114,7 @@ export default function PackingSlipFormPage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="min-w-[200px]">Item *</TableHead>
                   <TableHead>Box #</TableHead>
                   <TableHead>Qty</TableHead>
                   <TableHead>Batch</TableHead>
@@ -103,6 +125,20 @@ export default function PackingSlipFormPage() {
               <TableBody>
                 {items.map((item) => (
                   <TableRow key={item.key}>
+                    <TableCell>
+                      <Select value={item.item_id} onValueChange={(v) => updateItem(item.key, "item_id", v)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select item" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {inventoryItems?.map((inv) => (
+                            <SelectItem key={inv.id} value={inv.id}>
+                              {inv.item_code} - {inv.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
                     <TableCell>
                       <Input type="number" min={1} value={item.box_number} className="w-20"
                         onChange={(e) => updateItem(item.key, "box_number", Number(e.target.value))} />

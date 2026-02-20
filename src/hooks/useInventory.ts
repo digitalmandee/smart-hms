@@ -33,9 +33,11 @@ export interface InventoryItem {
   standard_cost: number;
   is_consumable: boolean;
   is_active: boolean;
+  barcode: string | null;
+  sku: string | null;
   created_at: string;
   updated_at: string;
-  category?: InventoryCategory;
+  category?: { id: string; name: string } | InventoryCategory | null;
   total_stock?: number;
 }
 
@@ -313,7 +315,7 @@ export function useInventoryItems(filters?: { categoryId?: string; search?: stri
       let items = data.map(item => ({
         ...item,
         total_stock: stockMap.get(item.id) || 0,
-      })) as InventoryItem[];
+      })) as unknown as InventoryItem[];
       
       if (filters?.lowStock) {
         items = items.filter(i => i.total_stock <= i.reorder_level);
@@ -348,7 +350,7 @@ export function useInventoryItem(id: string) {
       
       const totalStock = stockData?.reduce((sum, s) => sum + s.quantity, 0) || 0;
       
-      return { ...data, total_stock: totalStock } as InventoryItem;
+      return { ...data, total_stock: totalStock } as unknown as InventoryItem;
     },
     enabled: !!id,
   });
@@ -373,6 +375,8 @@ export function useCreateInventoryItem() {
           reorder_level: data.reorder_level || 10,
           standard_cost: data.standard_cost || 0,
           is_consumable: data.is_consumable ?? true,
+          barcode: data.barcode || null,
+          sku: data.sku || null,
         })
         .select()
         .single();

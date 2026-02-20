@@ -11,9 +11,13 @@ import { useCreatePickList } from "@/hooks/usePickingPackingMutations";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, Trash2, ArrowLeft } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/contexts/AuthContext";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PickItem {
   key: string;
+  item_id: string;
   quantity_required: number;
   batch_number: string;
   pick_sequence: number;
@@ -21,18 +25,34 @@ interface PickItem {
 
 export default function PickListFormPage() {
   const navigate = useNavigate();
+  const { profile } = useAuth();
   const createPickList = useCreatePickList();
   const [storeId, setStoreId] = useState("");
   const [strategy, setStrategy] = useState("fifo");
   const [priority, setPriority] = useState(1);
   const [notes, setNotes] = useState("");
   const [items, setItems] = useState<PickItem[]>([
-    { key: crypto.randomUUID(), quantity_required: 1, batch_number: "", pick_sequence: 1 },
+    { key: crypto.randomUUID(), item_id: "", quantity_required: 1, batch_number: "", pick_sequence: 1 },
   ]);
+
+  const { data: inventoryItems } = useQuery({
+    queryKey: ["inventory-items-for-pick", profile?.organization_id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("inventory_items")
+        .select("id, item_code, name, unit_of_measure")
+        .eq("organization_id", profile!.organization_id!)
+        .eq("is_active", true)
+        .order("name");
+      return data || [];
+    },
+    enabled: !!profile?.organization_id,
+  });
 
   const addItem = () => {
     setItems([...items, {
       key: crypto.randomUUID(),
+      item_id: "",
       quantity_required: 1,
       batch_number: "",
       pick_sequence: items.length + 1,
@@ -55,6 +75,7 @@ export default function PickListFormPage() {
       priority,
       notes: notes || undefined,
       items: items.map((i) => ({
+        item_id: i.item_id || undefined,
         quantity_required: i.quantity_required,
         batch_number: i.batch_number || undefined,
         pick_sequence: i.pick_sequence,
@@ -129,6 +150,7 @@ export default function PickListFormPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Seq</TableHead>
+                  <TableHead className="min-w-[200px]">Item *</TableHead>
                   <TableHead>Qty Required</TableHead>
                   <TableHead>Batch</TableHead>
                   <TableHead className="w-[60px]" />
@@ -141,6 +163,20 @@ export default function PickListFormPage() {
                       <Input type="number" min={1} value={item.pick_sequence}
                         onChange={(e) => updateItem(item.key, "pick_sequence", Number(e.target.value))}
                         className="w-20" />
+                    </TableCell>
+                    <TableCell>
+                      <Select value={item.item_id} onValueChange={(v) => updateItem(item.key, "item_id", v)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select item" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {inventoryItems?.map((inv) => (
+                            <SelectItem key={inv.id} value={inv.id}>
+                              {inv.item_code} - {inv.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </TableCell>
                     <TableCell>
                       <Input type="number" min={1} value={item.quantity_required}

@@ -38,6 +38,8 @@ const itemSchema = z.object({
   reorder_level: z.coerce.number().min(0),
   standard_cost: z.coerce.number().min(0),
   is_consumable: z.boolean(),
+  barcode: z.string().optional(),
+  sku: z.string().optional(),
 });
 
 type ItemFormData = z.infer<typeof itemSchema>;
@@ -64,6 +66,8 @@ export default function ItemFormPage() {
       reorder_level: 10,
       standard_cost: 0,
       is_consumable: true,
+      barcode: "",
+      sku: "",
     },
     values: item ? {
       name: item.name,
@@ -74,6 +78,8 @@ export default function ItemFormPage() {
       reorder_level: item.reorder_level,
       standard_cost: item.standard_cost,
       is_consumable: item.is_consumable,
+      barcode: item.barcode || "",
+      sku: item.sku || "",
     } : undefined,
   });
 
@@ -157,6 +163,36 @@ export default function ItemFormPage() {
                           ))}
                         </SelectContent>
                       </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="barcode"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Barcode</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="e.g., 8901234567890" />
+                      </FormControl>
+                      <FormDescription>Scannable barcode number</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="sku"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>SKU</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="e.g., SGL-MED-001" />
+                      </FormControl>
+                      <FormDescription>Stock Keeping Unit</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
