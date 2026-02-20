@@ -1,184 +1,199 @@
 
+# Warehouse Demo Seed Data & Test Cases Plan
 
-# Complete Warehouse End-to-End Workflow Enhancement
+## Overview
 
-## Current State vs Required State
-
-After thorough audit, here is what EXISTS and what is MISSING:
-
-### What Already Works
-
-| Module | Status | Details |
-|--------|--------|---------|
-| Items, Categories, Vendors | DONE | Full CRUD |
-| Purchase Orders | DONE | Create from vendor, items builder, status tracking |
-| GRN (Goods Receipt) | DONE | Create from PO, batch/expiry, verify, post, journal entry |
-| Put-Away | DONE | Auto-generated from GRN, bin selection, task completion |
-| Storage (Zones, Bins, Map) | DONE | Full hierarchy |
-| Requisitions (Issue Requests) | DONE | Department requests with approval |
-| Store Transfers (Move Out/In) | DONE | Create, dispatch, receive |
-| Pick Lists | DONE | Create, pick items, partial pick, complete |
-| Packing Slips | DONE | Create, verify, link to pick list |
-| Shipping & Dispatch | DONE | Shipments, tracking events, dispatch dashboard |
-| Stock Adjustments | PARTIAL | Hook exists, but NO dedicated page -- only shown in Item Detail |
-| HR & Workforce | DONE | Linked, org-scoped |
-| Reports | DONE | 8 report pages created |
-
-### What is MISSING (Gaps in the End-to-End Flow)
-
-| # | Gap | Impact |
-|---|-----|--------|
-| 1 | **Purchase Request (PR) Module** | No way to raise a purchase request before PO. Currently POs are created directly. Missing: PR form, PR list, PR approval, PR-to-PO conversion |
-| 2 | **Stock Adjustments Page** | Adjustments exist as a hook but no standalone list/form page. Users can't do write-offs, expired stock removal, or damage adjustments from the menu |
-| 3 | **QC / Quality Check on GRN** | GRN goes Draft -> Verified -> Posted. No explicit QC step with accept/reject per item with reasons |
-| 4 | **Approval Workflow UI** | Requisitions and POs have `approved_by` columns but no approval UI (approve/reject buttons with notes) |
-| 5 | **Reorder Alerts / Auto PR** | No low-stock alert system that suggests or auto-creates purchase requests |
-| 6 | **Invoice Verification Step** | GRN has invoice_number and invoice_amount fields, but no separate invoice verification workflow (price variance check, tax verification) |
+The warehouse organization (`a1111111-1111-1111-1111-111111111111`) currently has 3 stores but **zero** data across all operational tables. This plan seeds comprehensive demo data covering the full end-to-end workflow and creates a detailed test case document.
 
 ---
 
-## Implementation Plan (6 Steps)
+## Seed Data Summary
 
-### Step 1: Purchase Request Module (NEW)
-
-Create the full PR workflow: the upstream trigger for procurement.
-
-**Database:** Create `purchase_requests` and `purchase_request_items` tables.
-
-```text
-purchase_requests:
-  id, organization_id, branch_id, store_id,
-  pr_number (auto-generated trigger),
-  requested_by, department, priority,
-  status (draft / pending_approval / approved / rejected / converted),
-  approved_by, approved_at, rejection_reason,
-  notes, created_at, updated_at
-
-purchase_request_items:
-  id, purchase_request_id, item_id, medicine_id,
-  quantity_requested, current_stock, reorder_level,
-  estimated_unit_cost, notes
-```
-
-**New Files:**
-- `src/hooks/usePurchaseRequests.ts` -- CRUD hooks
-- `src/pages/app/inventory/PRListPage.tsx` -- List with status filters
-- `src/pages/app/inventory/PRFormPage.tsx` -- Create PR form with item selection, shows current stock vs reorder level
-- `src/pages/app/inventory/PRDetailPage.tsx` -- Detail with Approve/Reject buttons, Convert to PO button
-
-**Flow:** Department user creates PR -> Admin/Manager approves -> "Convert to PO" button pre-fills PO form with PR items and suggested vendor.
-
-### Step 2: Stock Adjustments Page (NEW)
-
-Create a dedicated page for stock adjustments (write-offs, expired, damaged, consumption).
-
-**New Files:**
-- `src/pages/app/inventory/StockAdjustmentsPage.tsx` -- List of all adjustments with filters (type, date range)
-- `src/pages/app/inventory/StockAdjustmentFormPage.tsx` -- Form to create adjustment: select item, type (expired/damaged/write_off/increase/decrease), quantity, reason, approval
-
-**Adjustment Types:** expired, damaged, write_off, internal_usage, increase, decrease, transfer_in, transfer_out
-
-### Step 3: Approval Workflow on Requisitions and POs
-
-Enhance existing detail pages with approve/reject UI:
-
-**Updated Files:**
-- `src/pages/app/inventory/RequisitionDetailPage.tsx` -- Add Approve/Reject buttons for admin, show approval status banner
-- `src/pages/app/inventory/PODetailPage.tsx` -- Add Approve button, approved_by tracking
-- `src/hooks/useRequisitions.ts` -- Add `useApproveRequisition`, `useRejectRequisition` mutations
-- `src/hooks/usePurchaseOrders.ts` -- Add `useApprovePO` mutation
-
-### Step 4: GRN Quality Check Enhancement
-
-Add QC step between GRN creation and verification:
-
-**Database:** Add `qc_status`, `qc_notes`, `qc_checked_by`, `qc_checked_at` columns to `goods_received_notes`. Add `qc_status`, `rejection_reason` to `grn_items`.
-
-**Updated Files:**
-- `src/pages/app/inventory/GRNDetailPage.tsx` -- Add QC section: per-item accept/reject with reason, QC notes, QC approval button
-- `src/hooks/useGRN.ts` -- Add `useQCApproveGRN` mutation
-
-**Flow:** GRN Created (draft) -> QC Check (per item accept/reject) -> QC Approved -> Verify & Update Stock -> Post
-
-### Step 5: Reorder Alert System
-
-Auto-detect items below reorder level and suggest PRs:
-
-**New Files:**
-- `src/pages/app/inventory/ReorderAlertsPage.tsx` -- Dashboard showing all items below reorder level, with "Create PR" button that pre-fills a PR with the deficit quantities
-- `src/hooks/useReorderAlerts.ts` -- Query comparing current stock vs reorder_level
-
-### Step 6: Sidebar & Route Registration
-
-**Updated Files:**
-- `src/App.tsx` -- Register ~8 new routes (PR list/form/detail, adjustments list/form, reorder alerts)
-- `src/config/role-sidebars.ts` -- Add new menu items under warehouse_admin and warehouse_user:
-  - Procurement section: add "Purchase Requests" and "Reorder Alerts"
-  - Stock section: add "Stock Adjustments"
+| Entity | Count | Details |
+|--------|-------|---------|
+| Inventory Categories | 5 | Pharmaceuticals, Surgical, Consumables, Equipment, Lab Reagents |
+| Vendors | 4 | Pakistani pharma/medical suppliers |
+| Inventory Items | 15 | Medicines, surgical items, consumables with reorder levels |
+| Warehouse Zones | 4 | General, Cold Storage, Controlled, Bulk |
+| Warehouse Bins | 12 | 3 bins per zone across stores |
+| Purchase Requests | 3 | 1 draft, 1 approved, 1 converted |
+| Purchase Request Items | 8 | Multi-item PRs |
+| Purchase Orders | 4 | 1 draft, 1 approved, 1 partially received, 1 received |
+| Purchase Order Items | 12 | Multi-item POs |
+| Goods Received Notes | 3 | 1 draft, 1 verified, 1 posted |
+| GRN Items | 9 | With batch numbers and expiry dates |
+| Inventory Stock | 15 | Current stock levels from received GRNs |
+| Put-Away Tasks | 4 | 2 completed, 1 in-progress, 1 pending |
+| Stock Requisitions | 3 | 1 pending, 1 approved, 1 issued |
+| Requisition Items | 8 | Multi-item requisitions |
+| Store Stock Transfers | 2 | 1 in-transit, 1 received |
+| Transfer Items | 5 | Multi-item transfers |
+| Pick Lists | 3 | 1 pending, 1 in-progress, 1 completed |
+| Pick List Items | 8 | With bin locations and batch numbers |
+| Packing Slips | 2 | 1 pending, 1 verified |
+| Packing Slip Items | 5 | With box assignments |
+| Shipments | 2 | 1 dispatched, 1 delivered |
+| Tracking Events | 4 | Pickup, in-transit, delivered events |
+| Stock Adjustments | 2 | 1 expired write-off, 1 damage |
 
 ---
 
-## Updated End-to-End Flow After Implementation
+## Implementation Steps
+
+### Step 1: Insert Categories, Vendors, Items
+
+Insert 5 inventory categories, 4 vendors (with Pakistani names/addresses), and 15 inventory items with proper reorder levels (some items will be below reorder level to trigger alerts).
+
+### Step 2: Insert Zones, Bins
+
+Insert 4 warehouse zones across the Main Distribution Center store, and 12 bins (3 per zone) with varying capacities.
+
+### Step 3: Insert Purchase Requests
+
+Insert 3 PRs in different statuses (draft, approved, converted) with 2-3 items each. The "converted" PR links to a PO.
+
+### Step 4: Insert Purchase Orders
+
+Insert 4 POs in different statuses with items. The "received" PO links to completed GRNs.
+
+### Step 5: Insert GRNs and Inventory Stock
+
+Insert 3 GRNs with items including batch numbers and expiry dates. For verified/posted GRNs, insert corresponding inventory_stock records. Some items will have stock below reorder level for alert testing.
+
+### Step 6: Insert Put-Away Tasks
+
+Insert 4 put-away tasks linked to GRN items and bins in various statuses.
+
+### Step 7: Insert Requisitions, Transfers, Pick Lists, Packing, Shipments
+
+Insert the outbound workflow chain:
+- Requisitions with items
+- Transfers with items
+- Pick lists with items (linked to requisitions)
+- Packing slips with items (linked to pick lists)
+- Shipments with tracking events (linked to packing slips)
+
+### Step 8: Insert Stock Adjustments
+
+Insert 2 stock adjustments (expired, damaged) for audit trail testing.
+
+### Step 9: Create Test Cases Document
+
+Create `docs/WAREHOUSE_TEST_CASES.md` with detailed manual QA test cases covering:
+- Login as warehouse.admin@healthos.demo / Demo@123
+- Each module workflow step-by-step
+- Expected results for every action
+
+---
+
+## Test Cases Preview
+
+### Test Case Categories
+
+**TC-1: Dashboard & Navigation**
+- Login, verify sidebar shows warehouse modules only
+- Verify dashboard metrics display
+
+**TC-2: Purchase Request Flow**
+- View PR list (3 PRs visible)
+- Create new PR, add items, submit for approval
+- Approve/Reject PR
+- Convert approved PR to PO
+
+**TC-3: Purchase Order Flow**
+- View PO list (4 POs visible)
+- Create new PO from vendor
+- Approve PO
+- Track PO status changes
+
+**TC-4: Receiving (GRN) Flow**
+- View GRN list (3 GRNs visible)
+- Create GRN from PO
+- Enter batch numbers, expiry dates
+- QC check per item (accept/reject)
+- Verify GRN (updates stock)
+- Post GRN (creates journal entry)
+
+**TC-5: Put-Away Flow**
+- View put-away worklist
+- Assign bin location
+- Complete put-away task
+
+**TC-6: Storage & Zones**
+- View zones and bins
+- Check bin utilization
+- View storage map
+
+**TC-7: Requisition & Issue Flow**
+- View requisitions
+- Create requisition from department
+- Approve requisition
+- Issue stock
+
+**TC-8: Transfer (Move Out/In)**
+- View transfers
+- Create transfer between stores
+- Dispatch transfer
+- Receive transfer at destination
+
+**TC-9: Picking & Packing**
+- View pick lists
+- Create pick list (FEFO strategy)
+- Start picking, scan items
+- Partial pick, skip item
+- Complete pick list
+- Create packing slip from pick list
+- Assign items to boxes
+- Verify packing slip
+
+**TC-10: Shipping & Dispatch**
+- Create shipment from packing slip
+- Add carrier and tracking info
+- Dispatch shipment
+- Add tracking events
+- Mark delivered
+
+**TC-11: Stock Adjustments**
+- View adjustment history
+- Create expired stock write-off
+- Create damage adjustment
+- Verify stock reduced
+
+**TC-12: Reorder Alerts**
+- View reorder alerts page
+- Verify items below reorder level shown
+- Create PR from alert
+
+**TC-13: Reports**
+- Stock Valuation Report
+- Stock Movement Report
+- ABC Analysis
+- Expiry Report
+- All 8 report pages render with data
+
+---
+
+## Technical Details
+
+### Data Insertion Method
+
+All data will be inserted via the Supabase insert tool (not migrations) since this is data, not schema changes. UUIDs will be pre-generated for cross-referencing between tables.
+
+### Key Relationships
 
 ```text
-Reorder Alert / Manual Request
-       |
-  Purchase Request (PR)
-       |
-  Approval (Admin)
-       |
-  Convert to Purchase Order (PO)
-       |
-  Vendor ships goods
-       |
-  GRN (Goods Receipt)
-       |
-  Quality Check (Accept/Reject per item)
-       |
-  Verify & Update Stock
-       |
-  Post to Accounts (Auto journal entry)
-       |
-  Put-Away (System suggests bin location)
-       |
-  Storage (Zones / Racks / Bins)
-       |
-  Requisition / Issue Request (Department)
-       |
-  Approval (Admin)
-       |
-  Pick List Generated (FEFO strategy)
-       |
-  Picker picks items, confirms batch
-       |
-  Packing (Assign to boxes, weight)
-       |
-  Shipment / Dispatch
-       |
-  Stock Adjustment (Expired / Damaged / Write-off)
-       |
-  Reports & Analytics
+PR (converted) --> PO (received) --> GRN (posted) --> Inventory Stock
+                                                   --> Put-Away Tasks --> Bins
+Requisition (issued) --> Pick List (completed) --> Packing Slip (verified) --> Shipment (delivered)
+Transfer (received) --> Transfer Items
 ```
 
-## Files Summary
+### Files Created
 
 | File | Action |
 |------|--------|
-| SQL Migration | NEW tables: purchase_requests, purchase_request_items; ALTER goods_received_notes (QC columns), ALTER grn_items (QC columns) |
-| `src/hooks/usePurchaseRequests.ts` | NEW |
-| `src/hooks/useReorderAlerts.ts` | NEW |
-| `src/pages/app/inventory/PRListPage.tsx` | NEW |
-| `src/pages/app/inventory/PRFormPage.tsx` | NEW |
-| `src/pages/app/inventory/PRDetailPage.tsx` | NEW |
-| `src/pages/app/inventory/StockAdjustmentsPage.tsx` | NEW |
-| `src/pages/app/inventory/StockAdjustmentFormPage.tsx` | NEW |
-| `src/pages/app/inventory/ReorderAlertsPage.tsx` | NEW |
-| `src/pages/app/inventory/RequisitionDetailPage.tsx` | ENHANCED (approval UI) |
-| `src/pages/app/inventory/PODetailPage.tsx` | ENHANCED (approval UI) |
-| `src/pages/app/inventory/GRNDetailPage.tsx` | ENHANCED (QC section) |
-| `src/hooks/useRequisitions.ts` | ENHANCED (approve/reject) |
-| `src/hooks/usePurchaseOrders.ts` | ENHANCED (approve) |
-| `src/hooks/useGRN.ts` | ENHANCED (QC approve) |
-| `src/App.tsx` | Add ~8 new routes |
-| `src/config/role-sidebars.ts` | Add PR, Adjustments, Reorder Alerts to warehouse sidebar |
+| `docs/WAREHOUSE_TEST_CASES.md` | NEW -- Complete manual QA test cases |
 
+### No Code Changes Required
+
+All seed data is inserted directly into existing tables. No schema or code modifications needed.
