@@ -1,0 +1,2 @@
+ALTER TABLE public.organizations DROP CONSTRAINT organizations_facility_type_check;
+ALTER TABLE public.organizations ADD CONSTRAINT organizations_facility_type_check CHECK (facility_type = ANY (ARRAY['hospital'::text, 'clinic'::text, 'diagnostic_center'::text, 'pharmacy'::text, 'warehouse'::text]));
