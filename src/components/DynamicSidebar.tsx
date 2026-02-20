@@ -148,6 +148,13 @@ import {
   Tv,
   ShoppingCart,
   RotateCcw,
+  ArrowDownToLine,
+  MapPin,
+  Map as MapIcon,
+  Grid3x3,
+  Truck,
+  Webhook,
+  Users2,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -679,6 +686,13 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Tv,
   ShoppingCart,
   RotateCcw,
+  ArrowDownToLine,
+  MapPin,
+  Map: MapIcon,
+  Grid3x3,
+  Truck,
+  Webhook,
+  Users2,
 };
 
 interface DynamicSidebarProps {
