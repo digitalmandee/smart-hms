@@ -1,199 +1,69 @@
 
-# Warehouse Demo Seed Data & Test Cases Plan
 
-## Overview
+# Seed Inventory Data for All Warehouses
 
-The warehouse organization (`a1111111-1111-1111-1111-111111111111`) currently has 3 stores but **zero** data across all operational tables. This plan seeds comprehensive demo data covering the full end-to-end workflow and creates a detailed test case document.
+## Current State
 
----
+| Store | Stock Records | Zones | Bins |
+|-------|--------------|-------|------|
+| Main Distribution Center (central) | 15 items | 4 zones | 12 bins |
+| Medical Supplies Store (medical) | 0 | 0 | 0 |
+| General Storage Area (general) | 0 | 0 | 0 |
 
-## Seed Data Summary
+All 15 inventory items and 4 vendors already exist in the system. The two non-central stores are completely empty.
 
-| Entity | Count | Details |
-|--------|-------|---------|
-| Inventory Categories | 5 | Pharmaceuticals, Surgical, Consumables, Equipment, Lab Reagents |
-| Vendors | 4 | Pakistani pharma/medical suppliers |
-| Inventory Items | 15 | Medicines, surgical items, consumables with reorder levels |
-| Warehouse Zones | 4 | General, Cold Storage, Controlled, Bulk |
-| Warehouse Bins | 12 | 3 bins per zone across stores |
-| Purchase Requests | 3 | 1 draft, 1 approved, 1 converted |
-| Purchase Request Items | 8 | Multi-item PRs |
-| Purchase Orders | 4 | 1 draft, 1 approved, 1 partially received, 1 received |
-| Purchase Order Items | 12 | Multi-item POs |
-| Goods Received Notes | 3 | 1 draft, 1 verified, 1 posted |
-| GRN Items | 9 | With batch numbers and expiry dates |
-| Inventory Stock | 15 | Current stock levels from received GRNs |
-| Put-Away Tasks | 4 | 2 completed, 1 in-progress, 1 pending |
-| Stock Requisitions | 3 | 1 pending, 1 approved, 1 issued |
-| Requisition Items | 8 | Multi-item requisitions |
-| Store Stock Transfers | 2 | 1 in-transit, 1 received |
-| Transfer Items | 5 | Multi-item transfers |
-| Pick Lists | 3 | 1 pending, 1 in-progress, 1 completed |
-| Pick List Items | 8 | With bin locations and batch numbers |
-| Packing Slips | 2 | 1 pending, 1 verified |
-| Packing Slip Items | 5 | With box assignments |
-| Shipments | 2 | 1 dispatched, 1 delivered |
-| Tracking Events | 4 | Pickup, in-transit, delivered events |
-| Stock Adjustments | 2 | 1 expired write-off, 1 damage |
+## What Will Be Seeded
 
----
+### Medical Supplies Store (`4a00c015-5150-4325-956a-6c9124b97682`)
 
-## Implementation Steps
+**Zones (3):**
+- `MED-GEN` - General Medical Storage (storage type)
+- `MED-COLD` - Medical Cold Storage (cold type)
+- `MED-SURG` - Surgical Supplies (storage type)
 
-### Step 1: Insert Categories, Vendors, Items
+**Bins (9):** 3 bins per zone (e.g., `MG-A01`, `MG-A02`, `MG-A03`, etc.)
 
-Insert 5 inventory categories, 4 vendors (with Pakistani names/addresses), and 15 inventory items with proper reorder levels (some items will be below reorder level to trigger alerts).
+**Inventory Stock (10 records):** A subset of the 15 items relevant to a medical store:
+- Medicines: Paracetamol, Amoxicillin, Omeprazole (with batch/expiry)
+- Surgical: Gloves, Sutures, Masks, IV Cannula
+- Equipment: Thermometer, Pulse Oximeter
+- Consumables: Syringes
 
-### Step 2: Insert Zones, Bins
+Some items will be below reorder level to trigger alerts.
 
-Insert 4 warehouse zones across the Main Distribution Center store, and 12 bins (3 per zone) with varying capacities.
+### General Storage Area (`99ca171e-dadc-45d5-be1b-2d32a258829b`)
 
-### Step 3: Insert Purchase Requests
+**Zones (2):**
+- `GSA-GEN` - General Bulk Storage (storage type)
+- `GSA-RECV` - Receiving Area (receiving type)
 
-Insert 3 PRs in different statuses (draft, approved, converted) with 2-3 items each. The "converted" PR links to a PO.
+**Bins (6):** 3 bins per zone
 
-### Step 4: Insert Purchase Orders
+**Inventory Stock (8 records):** Bulk consumables and non-medical items:
+- Normal Saline, Bandage Rolls, Disposable Syringes, Surgical Masks
+- Blood Glucose Test Strips, CBC Reagent, Urine Test Strips, Surgical Gloves
 
-Insert 4 POs in different statuses with items. The "received" PO links to completed GRNs.
+Some items at low stock levels.
 
-### Step 5: Insert GRNs and Inventory Stock
+## Data Summary
 
-Insert 3 GRNs with items including batch numbers and expiry dates. For verified/posted GRNs, insert corresponding inventory_stock records. Some items will have stock below reorder level for alert testing.
+| Entity | Medical Supplies Store | General Storage Area | Total New |
+|--------|----------------------|---------------------|-----------|
+| Zones | 3 | 2 | 5 |
+| Bins | 9 | 6 | 15 |
+| Stock Records | 10 | 8 | 18 |
 
-### Step 6: Insert Put-Away Tasks
+## Implementation
 
-Insert 4 put-away tasks linked to GRN items and bins in various statuses.
+All data will be inserted directly via SQL INSERT statements (no migrations needed -- this is data, not schema). The inserts will use:
+- Existing item IDs (`e0000001-...`)
+- Existing vendor IDs (`d0000001-...`)
+- Existing store IDs
+- Different batch numbers from those in Main Distribution Center
+- Realistic expiry dates (2027-2029)
+- Varied stock levels (some below reorder for alert testing)
 
-### Step 7: Insert Requisitions, Transfers, Pick Lists, Packing, Shipments
+## No Code Changes Required
 
-Insert the outbound workflow chain:
-- Requisitions with items
-- Transfers with items
-- Pick lists with items (linked to requisitions)
-- Packing slips with items (linked to pick lists)
-- Shipments with tracking events (linked to packing slips)
+This is purely a data seeding operation using existing tables and schema.
 
-### Step 8: Insert Stock Adjustments
-
-Insert 2 stock adjustments (expired, damaged) for audit trail testing.
-
-### Step 9: Create Test Cases Document
-
-Create `docs/WAREHOUSE_TEST_CASES.md` with detailed manual QA test cases covering:
-- Login as warehouse.admin@healthos.demo / Demo@123
-- Each module workflow step-by-step
-- Expected results for every action
-
----
-
-## Test Cases Preview
-
-### Test Case Categories
-
-**TC-1: Dashboard & Navigation**
-- Login, verify sidebar shows warehouse modules only
-- Verify dashboard metrics display
-
-**TC-2: Purchase Request Flow**
-- View PR list (3 PRs visible)
-- Create new PR, add items, submit for approval
-- Approve/Reject PR
-- Convert approved PR to PO
-
-**TC-3: Purchase Order Flow**
-- View PO list (4 POs visible)
-- Create new PO from vendor
-- Approve PO
-- Track PO status changes
-
-**TC-4: Receiving (GRN) Flow**
-- View GRN list (3 GRNs visible)
-- Create GRN from PO
-- Enter batch numbers, expiry dates
-- QC check per item (accept/reject)
-- Verify GRN (updates stock)
-- Post GRN (creates journal entry)
-
-**TC-5: Put-Away Flow**
-- View put-away worklist
-- Assign bin location
-- Complete put-away task
-
-**TC-6: Storage & Zones**
-- View zones and bins
-- Check bin utilization
-- View storage map
-
-**TC-7: Requisition & Issue Flow**
-- View requisitions
-- Create requisition from department
-- Approve requisition
-- Issue stock
-
-**TC-8: Transfer (Move Out/In)**
-- View transfers
-- Create transfer between stores
-- Dispatch transfer
-- Receive transfer at destination
-
-**TC-9: Picking & Packing**
-- View pick lists
-- Create pick list (FEFO strategy)
-- Start picking, scan items
-- Partial pick, skip item
-- Complete pick list
-- Create packing slip from pick list
-- Assign items to boxes
-- Verify packing slip
-
-**TC-10: Shipping & Dispatch**
-- Create shipment from packing slip
-- Add carrier and tracking info
-- Dispatch shipment
-- Add tracking events
-- Mark delivered
-
-**TC-11: Stock Adjustments**
-- View adjustment history
-- Create expired stock write-off
-- Create damage adjustment
-- Verify stock reduced
-
-**TC-12: Reorder Alerts**
-- View reorder alerts page
-- Verify items below reorder level shown
-- Create PR from alert
-
-**TC-13: Reports**
-- Stock Valuation Report
-- Stock Movement Report
-- ABC Analysis
-- Expiry Report
-- All 8 report pages render with data
-
----
-
-## Technical Details
-
-### Data Insertion Method
-
-All data will be inserted via the Supabase insert tool (not migrations) since this is data, not schema changes. UUIDs will be pre-generated for cross-referencing between tables.
-
-### Key Relationships
-
-```text
-PR (converted) --> PO (received) --> GRN (posted) --> Inventory Stock
-                                                   --> Put-Away Tasks --> Bins
-Requisition (issued) --> Pick List (completed) --> Packing Slip (verified) --> Shipment (delivered)
-Transfer (received) --> Transfer Items
-```
-
-### Files Created
-
-| File | Action |
-|------|--------|
-| `docs/WAREHOUSE_TEST_CASES.md` | NEW -- Complete manual QA test cases |
-
-### No Code Changes Required
-
-All seed data is inserted directly into existing tables. No schema or code modifications needed.
