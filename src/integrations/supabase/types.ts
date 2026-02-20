@@ -9324,6 +9324,7 @@ export type Database = {
       }
       inventory_items: {
         Row: {
+          barcode: string | null
           category_id: string | null
           created_at: string
           description: string | null
@@ -9335,11 +9336,13 @@ export type Database = {
           name: string
           organization_id: string
           reorder_level: number
+          sku: string | null
           standard_cost: number | null
           unit_of_measure: string
           updated_at: string
         }
         Insert: {
+          barcode?: string | null
           category_id?: string | null
           created_at?: string
           description?: string | null
@@ -9351,11 +9354,13 @@ export type Database = {
           name: string
           organization_id: string
           reorder_level?: number
+          sku?: string | null
           standard_cost?: number | null
           unit_of_measure?: string
           updated_at?: string
         }
         Update: {
+          barcode?: string | null
           category_id?: string | null
           created_at?: string
           description?: string | null
@@ -9367,6 +9372,7 @@ export type Database = {
           name?: string
           organization_id?: string
           reorder_level?: number
+          sku?: string | null
           standard_cost?: number | null
           unit_of_measure?: string
           updated_at?: string

@@ -1195,6 +1195,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         ]
       },
       { name: "Reports", path: "/app/inventory/reports", icon: "BarChart3" },
+      { name: "Barcode Labels", path: "/app/inventory/barcode-labels", icon: "Tag" },
       {
         name: "Warehouse Settings",
         path: "",
@@ -1295,6 +1296,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         ]
       },
       { name: "Reports", path: "/app/inventory/reports", icon: "BarChart3" },
+      { name: "Barcode Labels", path: "/app/inventory/barcode-labels", icon: "Tag" },
       { name: "Integrations", path: "/app/inventory/integrations", icon: "Webhook" },
       {
         name: "Warehouse Settings",

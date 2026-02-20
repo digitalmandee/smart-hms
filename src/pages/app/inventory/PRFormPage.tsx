@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -28,8 +28,19 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+interface ReorderItem {
+  item_id: string;
+  item_code: string;
+  name: string;
+  unit_of_measure: string;
+  deficit: number;
+  reorder_level: number;
+  current_stock: number;
+}
+
 export default function PRFormPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { profile } = useAuth();
   const createMutation = useCreatePurchaseRequest();
 
@@ -66,6 +77,29 @@ export default function PRFormPage() {
     },
     enabled: !!profile?.organization_id,
   });
+
+  // Pre-fill items from reorder alerts navigation state
+  useEffect(() => {
+    const reorderItems = (location.state as { reorderItems?: ReorderItem[] })?.reorderItems;
+    if (reorderItems && reorderItems.length > 0 && items.length === 0) {
+      const prefilled: PurchaseRequestItem[] = reorderItems.map((ri) => ({
+        item_id: ri.item_id,
+        quantity_requested: ri.deficit,
+        current_stock: ri.current_stock,
+        reorder_level: ri.reorder_level,
+        estimated_unit_cost: 0,
+        item: {
+          id: ri.item_id,
+          item_code: ri.item_code,
+          name: ri.name,
+          unit_of_measure: ri.unit_of_measure,
+        },
+      }));
+      setItems(prefilled);
+      setPriority("2"); // High priority for reorder
+      setNotes("Auto-generated from reorder alerts");
+    }
+  }, [location.state]);
 
   const addItem = () => {
     if (!selectedItemId) return;

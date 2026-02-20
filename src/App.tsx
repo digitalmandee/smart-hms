@@ -418,6 +418,7 @@ import PackingSlipsPage from "./pages/app/inventory/PackingSlipsPage";
 import PackingSlipDetailPage from "./pages/app/inventory/PackingSlipDetailPage";
 import PackingSlipFormPage from "./pages/app/inventory/PackingSlipFormPage";
 import PickingDashboardPage from "./pages/app/inventory/PickingDashboardPage";
+import BarcodeLabelPage from "./pages/app/inventory/BarcodeLabelPage";
 import ShipmentsPage from "./pages/app/inventory/shipping/ShipmentsPage";
 import ShipmentFormPage from "./pages/app/inventory/shipping/ShipmentFormPage";
 import ShipmentDetailPage from "./pages/app/inventory/shipping/ShipmentDetailPage";
@@ -901,6 +902,7 @@ function App() {
               <Route path="inventory/shipping/new" element={<ShipmentFormPage />} />
               <Route path="inventory/shipping/:id" element={<ShipmentDetailPage />} />
               <Route path="inventory/integrations" element={<WarehouseIntegrationsPage />} />
+              <Route path="inventory/barcode-labels" element={<BarcodeLabelPage />} />
               
               {/* Inventory Report sub-pages */}
               <Route path="inventory/reports/valuation" element={<StockValuationReport />} />

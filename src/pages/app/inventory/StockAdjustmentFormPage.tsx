@@ -18,6 +18,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { StoreSelector } from "@/components/inventory/StoreSelector";
 
 export default function StockAdjustmentFormPage() {
   const navigate = useNavigate();
@@ -25,6 +26,7 @@ export default function StockAdjustmentFormPage() {
   const queryClient = useQueryClient();
 
   const [itemId, setItemId] = useState("");
+  const [storeId, setStoreId] = useState("");
   const [adjustmentType, setAdjustmentType] = useState("decrease");
   const [quantity, setQuantity] = useState("");
   const [reason, setReason] = useState("");
@@ -56,8 +58,29 @@ export default function StockAdjustmentFormPage() {
     enabled: !!profile?.organization_id,
   });
 
+  // Fetch current stock for selected item + store
+  const { data: currentStockData } = useQuery({
+    queryKey: ["current-stock-for-adj", itemId, storeId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("inventory_stock")
+        .select("id, quantity")
+        .eq("item_id", itemId)
+        .eq("store_id", storeId);
+      return data || [];
+    },
+    enabled: !!itemId && !!storeId,
+  });
+
+  const currentStock = currentStockData?.reduce((sum, s) => sum + (s.quantity || 0), 0) || 0;
+
   const createMutation = useMutation({
     mutationFn: async () => {
+      const qty = parseFloat(quantity);
+      const isIncrease = adjustmentType === "increase";
+      const newQuantity = isIncrease ? currentStock + qty : Math.max(0, currentStock - qty);
+
+      // Insert adjustment record with real values
       const { error } = await supabase
         .from("stock_adjustments")
         .insert({
@@ -65,18 +88,48 @@ export default function StockAdjustmentFormPage() {
           branch_id: branchId,
           item_id: itemId,
           adjustment_type: adjustmentType,
-          quantity: parseFloat(quantity),
-          previous_quantity: 0,
-          new_quantity: 0,
+          quantity: qty,
+          previous_quantity: currentStock,
+          new_quantity: newQuantity,
           reason,
           adjusted_by: user?.id,
         });
       if (error) throw error;
+
+      // Update actual inventory_stock
+      if (currentStockData && currentStockData.length > 0) {
+        // Update the first stock record (simple approach)
+        const stockRecord = currentStockData[0];
+        const adjustedQty = isIncrease
+          ? stockRecord.quantity + qty
+          : Math.max(0, stockRecord.quantity - qty);
+
+        const { error: stockError } = await supabase
+          .from("inventory_stock")
+          .update({ quantity: adjustedQty })
+          .eq("id", stockRecord.id);
+        if (stockError) throw stockError;
+      } else if (isIncrease) {
+        // No existing stock record, create one
+        const { error: insertError } = await supabase
+          .from("inventory_stock")
+          .insert({
+            item_id: itemId,
+            branch_id: branchId,
+            store_id: storeId,
+            quantity: qty,
+            unit_cost: 0,
+            received_date: new Date().toISOString().split("T")[0],
+            organization_id: profile!.organization_id!,
+          });
+        if (insertError) throw insertError;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["stock-adjustments-page"] });
       queryClient.invalidateQueries({ queryKey: ["inventory-stock"] });
-      toast.success("Stock adjustment created");
+      queryClient.invalidateQueries({ queryKey: ["current-stock-for-adj"] });
+      toast.success("Stock adjustment created and stock updated");
       navigate("/app/inventory/stock-adjustments");
     },
     onError: (error: Error) => {
@@ -85,7 +138,7 @@ export default function StockAdjustmentFormPage() {
   });
 
   const handleSubmit = () => {
-    if (!branchId || !itemId || !quantity || !reason) {
+    if (!branchId || !itemId || !storeId || !quantity || !reason) {
       toast.error("Please fill all required fields");
       return;
     }
@@ -123,6 +176,10 @@ export default function StockAdjustmentFormPage() {
             </Select>
           </div>
           <div>
+            <Label>Warehouse/Store *</Label>
+            <StoreSelector value={storeId} onChange={setStoreId} className="w-full" />
+          </div>
+          <div>
             <Label>Item *</Label>
             <Select value={itemId} onValueChange={setItemId}>
               <SelectTrigger>
@@ -137,6 +194,14 @@ export default function StockAdjustmentFormPage() {
               </SelectContent>
             </Select>
           </div>
+
+          {itemId && storeId && (
+            <div className="rounded-md border p-3 bg-muted/50">
+              <p className="text-sm text-muted-foreground">Current Stock in Selected Warehouse</p>
+              <p className="text-lg font-bold">{currentStock}</p>
+            </div>
+          )}
+
           <div>
             <Label>Adjustment Type *</Label>
             <Select value={adjustmentType} onValueChange={setAdjustmentType}>
