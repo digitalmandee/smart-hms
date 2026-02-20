@@ -7828,6 +7828,10 @@ export type Database = {
           notes: string | null
           organization_id: string
           purchase_order_id: string | null
+          qc_checked_at: string | null
+          qc_checked_by: string | null
+          qc_notes: string | null
+          qc_status: string | null
           received_by: string | null
           received_date: string
           status: Database["public"]["Enums"]["grn_status"]
@@ -7848,6 +7852,10 @@ export type Database = {
           notes?: string | null
           organization_id: string
           purchase_order_id?: string | null
+          qc_checked_at?: string | null
+          qc_checked_by?: string | null
+          qc_notes?: string | null
+          qc_status?: string | null
           received_by?: string | null
           received_date?: string
           status?: Database["public"]["Enums"]["grn_status"]
@@ -7868,6 +7876,10 @@ export type Database = {
           notes?: string | null
           organization_id?: string
           purchase_order_id?: string | null
+          qc_checked_at?: string | null
+          qc_checked_by?: string | null
+          qc_notes?: string | null
+          qc_status?: string | null
           received_by?: string | null
           received_date?: string
           status?: Database["public"]["Enums"]["grn_status"]
@@ -7940,6 +7952,7 @@ export type Database = {
           item_type: string | null
           medicine_id: string | null
           po_item_id: string | null
+          qc_status: string | null
           quantity_accepted: number
           quantity_received: number
           quantity_rejected: number
@@ -7957,6 +7970,7 @@ export type Database = {
           item_type?: string | null
           medicine_id?: string | null
           po_item_id?: string | null
+          qc_status?: string | null
           quantity_accepted?: number
           quantity_received?: number
           quantity_rejected?: number
@@ -7974,6 +7988,7 @@ export type Database = {
           item_type?: string | null
           medicine_id?: string | null
           po_item_id?: string | null
+          qc_status?: string | null
           quantity_accepted?: number
           quantity_received?: number
           quantity_rejected?: number
@@ -16825,6 +16840,143 @@ export type Database = {
           },
         ]
       }
+      purchase_request_items: {
+        Row: {
+          created_at: string
+          current_stock: number | null
+          estimated_unit_cost: number | null
+          id: string
+          item_id: string | null
+          medicine_id: string | null
+          notes: string | null
+          purchase_request_id: string
+          quantity_requested: number
+          reorder_level: number | null
+        }
+        Insert: {
+          created_at?: string
+          current_stock?: number | null
+          estimated_unit_cost?: number | null
+          id?: string
+          item_id?: string | null
+          medicine_id?: string | null
+          notes?: string | null
+          purchase_request_id: string
+          quantity_requested?: number
+          reorder_level?: number | null
+        }
+        Update: {
+          created_at?: string
+          current_stock?: number | null
+          estimated_unit_cost?: number | null
+          id?: string
+          item_id?: string | null
+          medicine_id?: string | null
+          notes?: string | null
+          purchase_request_id?: string
+          quantity_requested?: number
+          reorder_level?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_request_items_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_request_items_medicine_id_fkey"
+            columns: ["medicine_id"]
+            isOneToOne: false
+            referencedRelation: "medicines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_request_items_purchase_request_id_fkey"
+            columns: ["purchase_request_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      purchase_requests: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          branch_id: string
+          created_at: string
+          department: string | null
+          id: string
+          notes: string | null
+          organization_id: string
+          pr_number: string
+          priority: number | null
+          rejection_reason: string | null
+          requested_by: string | null
+          status: Database["public"]["Enums"]["pr_status"]
+          store_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          branch_id: string
+          created_at?: string
+          department?: string | null
+          id?: string
+          notes?: string | null
+          organization_id: string
+          pr_number?: string
+          priority?: number | null
+          rejection_reason?: string | null
+          requested_by?: string | null
+          status?: Database["public"]["Enums"]["pr_status"]
+          store_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          branch_id?: string
+          created_at?: string
+          department?: string | null
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          pr_number?: string
+          priority?: number | null
+          rejection_reason?: string | null
+          requested_by?: string | null
+          status?: Database["public"]["Enums"]["pr_status"]
+          store_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_requests_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_requests_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_requests_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       push_device_tokens: {
         Row: {
           created_at: string | null
@@ -20882,6 +21034,12 @@ export type Database = {
         | "partially_received"
         | "received"
         | "cancelled"
+      pr_status:
+        | "draft"
+        | "pending_approval"
+        | "approved"
+        | "rejected"
+        | "converted"
       prescription_status:
         | "created"
         | "dispensed"
@@ -21420,6 +21578,13 @@ export const Constants = {
         "partially_received",
         "received",
         "cancelled",
+      ],
+      pr_status: [
+        "draft",
+        "pending_approval",
+        "approved",
+        "rejected",
+        "converted",
       ],
       prescription_status: [
         "created",

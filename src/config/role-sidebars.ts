@@ -1249,6 +1249,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         children: [
           { name: "Items", path: "/app/inventory/items", icon: "Box" },
           { name: "Stock Levels", path: "/app/inventory/stock", icon: "ListTree" },
+          { name: "Stock Adjustments", path: "/app/inventory/stock-adjustments", icon: "Sliders" },
           { name: "Categories", path: "/app/inventory/categories", icon: "FolderTree" },
         ]
       },
@@ -1278,8 +1279,10 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         path: "", 
         icon: "Boxes",
         children: [
+          { name: "Purchase Requests", path: "/app/inventory/purchase-requests", icon: "FileText" },
           { name: "Purchase Orders", path: "/app/inventory/purchase-orders", icon: "FileEdit" },
           { name: "Vendors", path: "/app/inventory/vendors", icon: "Store" },
+          { name: "Reorder Alerts", path: "/app/inventory/reorder-alerts", icon: "AlertTriangle" },
         ]
       },
       { 
