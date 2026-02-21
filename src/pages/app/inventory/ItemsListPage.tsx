@@ -114,14 +114,15 @@ export default function ItemsListPage() {
                   <TableHead>Item Code</TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Category</TableHead>
+                  <TableHead>Warehouse</TableHead>
                   <TableHead>Unit</TableHead>
                   <TableHead>Stock Level</TableHead>
                   <TableHead className="text-right">Standard Cost</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {items?.map((item) => (
-                  <TableRow key={item.id}>
+                {items?.map((item, index) => (
+                  <TableRow key={`${item.id}-${item.store_id || index}`}>
                     <TableCell>
                       <Link
                         to={`/app/inventory/items/${item.id}`}
@@ -141,6 +142,9 @@ export default function ItemsListPage() {
                       </div>
                     </TableCell>
                     <TableCell>{item.category?.name || "-"}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {item.store_name || "—"}
+                    </TableCell>
                     <TableCell>{item.unit_of_measure}</TableCell>
                     <TableCell>
                       <StockLevelIndicator

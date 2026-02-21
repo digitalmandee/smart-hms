@@ -39,6 +39,8 @@ export interface InventoryItem {
   updated_at: string;
   category?: { id: string; name: string } | InventoryCategory | null;
   total_stock?: number;
+  store_id?: string | null;
+  store_name?: string | null;
 }
 
 export interface InventoryStock {
@@ -293,11 +295,13 @@ export function useInventoryItems(filters?: { categoryId?: string; search?: stri
       const { data, error } = await query;
       if (error) throw error;
       
-      // Get stock totals for each item, optionally filtered by store
+      // Get stock with store info for per-warehouse breakdown
       const itemIds = data.map(i => i.id);
+      if (itemIds.length === 0) return [] as InventoryItem[];
+
       let stockQuery = supabase
         .from("inventory_stock")
-        .select("item_id, quantity")
+        .select("item_id, quantity, store_id, store:stores(id, name)")
         .in("item_id", itemIds);
       
       if (filters?.storeId) {
@@ -305,21 +309,51 @@ export function useInventoryItems(filters?: { categoryId?: string; search?: stri
       }
       
       const { data: stockData, error: stockError } = await stockQuery;
-      
       if (stockError) throw stockError;
       
-      const stockMap = new Map<string, number>();
-      stockData?.forEach(s => {
-        stockMap.set(s.item_id, (stockMap.get(s.item_id) || 0) + s.quantity);
+      // Group stock by item_id + store_id for per-warehouse rows
+      const storeStockMap = new Map<string, { quantity: number; store_id: string | null; store_name: string | null }>();
+      stockData?.forEach((s: any) => {
+        const key = `${s.item_id}__${s.store_id || 'no-store'}`;
+        const existing = storeStockMap.get(key);
+        if (existing) {
+          existing.quantity += s.quantity;
+        } else {
+          storeStockMap.set(key, {
+            quantity: s.quantity,
+            store_id: s.store_id,
+            store_name: s.store?.name || null,
+          });
+        }
       });
       
-      let items = data.map(item => ({
-        ...item,
-        total_stock: stockMap.get(item.id) || 0,
-      })) as unknown as InventoryItem[];
+      // Build result: one row per item per store
+      let items: InventoryItem[] = [];
+      data.forEach((item: any) => {
+        const itemStoreEntries = Array.from(storeStockMap.entries()).filter(([key]) => key.startsWith(`${item.id}__`));
+        
+        if (itemStoreEntries.length === 0) {
+          // Item has no stock records at all
+          items.push({
+            ...item,
+            total_stock: 0,
+            store_id: null,
+            store_name: null,
+          } as unknown as InventoryItem);
+        } else {
+          itemStoreEntries.forEach(([, stockInfo]) => {
+            items.push({
+              ...item,
+              total_stock: stockInfo.quantity,
+              store_id: stockInfo.store_id,
+              store_name: stockInfo.store_name,
+            } as unknown as InventoryItem);
+          });
+        }
+      });
       
       if (filters?.lowStock) {
-        items = items.filter(i => i.total_stock <= i.reorder_level);
+        items = items.filter(i => (i.total_stock || 0) <= i.reorder_level);
       }
       
       return items;

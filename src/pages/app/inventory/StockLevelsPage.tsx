@@ -176,39 +176,43 @@ export default function StockLevelsPage() {
             <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Item Code</TableHead>
-                  <TableHead>Item Name</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead className="text-center">Current Stock</TableHead>
-                  <TableHead className="text-center">Reorder Level</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Standard Cost</TableHead>
-                  <TableHead className="text-right">Stock Value</TableHead>
-                  <TableHead></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {items.map((item) => {
-                  const stock = item.total_stock || 0;
-                  const reorder = item.reorder_level || 0;
-                  const minimum = item.minimum_stock || 0;
-                  const isLow = stock <= reorder;
-                  const isCritical = stock <= minimum;
+                 <TableRow>
+                   <TableHead>Item Code</TableHead>
+                   <TableHead>Item Name</TableHead>
+                   <TableHead>Category</TableHead>
+                   <TableHead>Warehouse</TableHead>
+                   <TableHead className="text-center">Current Stock</TableHead>
+                   <TableHead className="text-center">Reorder Level</TableHead>
+                   <TableHead>Status</TableHead>
+                   <TableHead className="text-right">Standard Cost</TableHead>
+                   <TableHead className="text-right">Stock Value</TableHead>
+                   <TableHead></TableHead>
+                 </TableRow>
+               </TableHeader>
+               <TableBody>
+                 {items.map((item, index) => {
+                   const stock = item.total_stock || 0;
+                   const reorder = item.reorder_level || 0;
+                   const minimum = item.minimum_stock || 0;
+                   const isLow = stock <= reorder;
+                   const isCritical = stock <= minimum;
 
-                  return (
-                    <TableRow
-                      key={item.id}
-                      className="cursor-pointer hover:bg-muted/50"
-                      onClick={() => navigate(`/app/inventory/items/${item.id}`)}
-                    >
-                      <TableCell className="font-mono text-sm">
-                        {item.item_code}
-                      </TableCell>
-                      <TableCell className="font-medium">{item.name}</TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {item.category?.name || "—"}
-                      </TableCell>
+                   return (
+                     <TableRow
+                       key={`${item.id}-${item.store_id || index}`}
+                       className="cursor-pointer hover:bg-muted/50"
+                       onClick={() => navigate(`/app/inventory/items/${item.id}`)}
+                     >
+                       <TableCell className="font-mono text-sm">
+                         {item.item_code}
+                       </TableCell>
+                       <TableCell className="font-medium">{item.name}</TableCell>
+                       <TableCell className="text-muted-foreground">
+                         {item.category?.name || "—"}
+                       </TableCell>
+                       <TableCell className="text-muted-foreground">
+                         {item.store_name || "—"}
+                       </TableCell>
                       <TableCell className="text-center">
                         <StockLevelIndicator
                           currentStock={stock}
