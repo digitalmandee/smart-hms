@@ -1,105 +1,129 @@
 
-
-# Reorganize Warehouse/Inventory Menu Structure
+# Add Filters, Search, and Date Ranges Across All Warehouse List Pages
 
 ## Problem
 
-The current menu under **Inventory** has only 9 flat items with no logical grouping:
+Many list pages are missing filters that users need to find specific records quickly. The inconsistency is:
 
-```text
-Current Order (sort_order):
-1. Dashboard
-2. Item Catalog
-3. Categories
-4. Stock Levels
-5. Vendors
-6. Purchase Orders
-7. Goods Receipt (GRN)
-8. Requisitions
-9. Reports          <-- Reports stuck in middle, before warehouse/shipping pages
-```
+| Page | Has Search | Has Status Filter | Has Store Filter | Has Date Filter |
+|------|-----------|-------------------|-----------------|-----------------|
+| Zones | No | No | Yes | No |
+| Bins | No | No | Yes | No |
+| Bin Assignments | No | No | Yes | No |
+| Put-Away Worklist | No | Yes | Yes | No |
+| Pick Lists | No | Yes | Yes | No |
+| Packing Slips | No | Yes | Yes | No |
+| Shipments | No | Yes | Yes | No |
+| Dispatch Dashboard | No | No | Yes | No |
+| PO List | No | Yes | No | No |
+| GRN List | No | Yes | No | No |
+| PR List | No | Yes | No | No |
+| Vendors | Yes | No | No | No |
+| Transfers | No | Yes | No | No |
+| Stock Adjustments | No | Yes (type) | No | No |
+| Items | Yes | No (category) | No | No |
 
-**Missing from menu entirely:**
-- Picking Dashboard, Pick Lists, Packing Slips
-- Shipping / Dispatch
-- Warehouse Zones, Bins, Storage Map, Bin Assignments
-- Put-Away Worklist
-- Barcode Labels, Barcode Scanner
-- Stock Adjustments, Reorder Alerts
-- Integrations / API Keys
+## Plan
 
-## Proposed Menu Structure
+### 1. Create a Reusable Filter Bar Component
 
-Reorganize into logical **sub-groups** using parent menu items:
+Create `src/components/inventory/ListFilterBar.tsx` -- a standardized horizontal filter bar that accepts optional slots for:
+- Search input (text search with search icon)
+- Store selector (warehouse filter)
+- Status dropdown
+- Date range picker (from/to date inputs)
+- Type/category dropdown
 
-```text
-Inventory (or "Warehouse" when facility_type=warehouse)
-|
-+-- Dashboard                          (sort: 1)
-+-- Item Catalog                       (sort: 2)
-+-- Categories                         (sort: 3)
-|
-+-- Procurement (sub-group)            (sort: 10)
-|   +-- Purchase Requisitions          (sort: 11)
-|   +-- Purchase Orders                (sort: 12)
-|   +-- Goods Receipt (GRN)            (sort: 13)
-|   +-- Vendors                        (sort: 14)
-|
-+-- Stock Management (sub-group)       (sort: 20)
-|   +-- Stock Levels                   (sort: 21)
-|   +-- Stock Adjustments              (sort: 22)
-|   +-- Reorder Alerts                 (sort: 23)
-|   +-- Store Transfers                (sort: 24)
-|   +-- Warehouses / Stores            (sort: 25)
-|
-+-- Warehouse Operations (sub-group)   (sort: 30)
-|   +-- Storage Map                    (sort: 31)
-|   +-- Zones                          (sort: 32)
-|   +-- Bins                           (sort: 33)
-|   +-- Bin Assignments                (sort: 34)
-|   +-- Put-Away Worklist              (sort: 35)
-|
-+-- Picking & Packing (sub-group)      (sort: 40)
-|   +-- Picking Dashboard              (sort: 41)
-|   +-- Pick Lists                     (sort: 42)
-|   +-- Packing Slips                  (sort: 43)
-|
-+-- Shipping (sub-group)               (sort: 50)
-|   +-- Dispatch Dashboard             (sort: 51)
-|   +-- Shipments                      (sort: 52)
-|
-+-- Barcode & Integrations (sub-group) (sort: 60)
-|   +-- Barcode Labels                 (sort: 61)
-|   +-- Barcode Scanner                (sort: 62)
-|   +-- API Keys                       (sort: 63)
-|
-+-- Reports                           (sort: 70)
-```
+This ensures visual consistency across all list pages.
 
-## Implementation
+### 2. Add Missing Filters to Each Page
 
-### 1. Database: Insert Missing Menu Items
+**Zones Page** (`WarehouseZonesPage.tsx`)
+- Add: Search (by zone code/name), Zone Type filter, Active/Inactive status filter
 
-Run SQL to:
-- Create 6 new **parent sub-group** menu items (Procurement, Stock Management, Warehouse Operations, Picking and Packing, Shipping, Barcode and Integrations) under the Inventory parent
-- Insert ~15 missing leaf menu items (Stock Adjustments, Reorder Alerts, Storage Map, Zones, Bins, Bin Assignments, Put-Away, Picking Dashboard, Pick Lists, Packing Slips, Dispatch Dashboard, Shipments, Barcode Labels, Barcode Scanner, API Keys)
-- Update existing items to move under correct sub-group parents (move Vendors under Procurement, move Requisitions under Procurement, etc.)
-- Fix sort_order for all items to match the structure above
-- Move "Warehouses" and "Store Transfers" from under Dashboard to Stock Management sub-group
+**Bins Page** (`WarehouseBinsPage.tsx`)
+- Add: Search (by bin code), Bin Type filter, Status filter (active/occupied/available)
 
-### 2. Update DynamicSidebar Icon Mapping
+**Bin Assignments Page** (`BinAssignmentsPage.tsx`)
+- Add: Search (by item name or bin code)
 
-Add icon mappings in `DynamicSidebar.tsx` for new menu item codes so each sub-group and leaf item gets a proper icon (e.g., `Map` for Storage Map, `ScanLine` for Barcode Scanner, `Truck` for Shipping).
+**Put-Away Worklist** (`PutAwayWorklistPage.tsx`)
+- Add: Search (by bin code), Date range filter
 
-### 3. No Translation Changes Needed
+**Pick Lists** (`PickListsPage.tsx`)
+- Add: Search (by pick list number), Date range filter
 
-Menu item names come from the database `menu_items.name` field, not from translation files. The menu rendering already handles nested parent-child relationships.
+**Packing Slips** (`PackingSlipsPage.tsx`)
+- Add: Search (by packing slip number), Date range filter
+
+**Shipments** (`ShipmentsPage.tsx`)
+- Add: Search (by shipment number or tracking number), Date range filter
+
+**Dispatch Dashboard** (`DispatchDashboardPage.tsx`)
+- Add: Date range filter, recent shipments table with links (fix dead-end)
+- Add: Quick action buttons (New Shipment, View All Shipments)
+
+**PO List** (`POListPage.tsx`)
+- Add: Search (by PO number or vendor name), Store filter, Date range filter
+
+**GRN List** (`GRNListPage.tsx`)
+- Add: Search (by GRN number or vendor name), Store filter, Date range filter
+
+**PR List** (`PRListPage.tsx`)
+- Add: Search (by PR number), Date range filter
+
+**Vendors** (`VendorsListPage.tsx`)
+- Add: Vendor Type filter, City filter
+
+**Transfers** (`TransfersListPage.tsx`)
+- Add: Search (by transfer number), Date range filter
+
+**Stock Adjustments** (`StockAdjustmentsPage.tsx`)
+- Add: Search (by item name), Date range filter, Store filter
+
+**Items** (`ItemsListPage.tsx`)
+- Add: Store filter (to see stock per store)
+
+### 3. Auto-Select Logged-In User's Warehouse
+
+For pages that require a store selection (Zones, Bins, Bin Assignments, etc.):
+- Use `useMyStores()` to check if the logged-in user is a store manager
+- If they manage exactly one store, auto-select it as default
+- If they manage multiple, show a selector pre-filled with their first store
+- If they are an admin (not assigned to a specific store), show "All" by default
+- This eliminates the "Select a warehouse first" dead state
+
+### 4. Fix Dispatch Dashboard Dead End
+
+Add a recent shipments table below the stat cards with View links, plus quick action buttons for "New Shipment" and "View All Shipments."
+
+### 5. Multi-Language Support
+
+Add all new filter labels (Search, Date From, Date To, All Types, All Statuses, etc.) to English, Urdu, and Arabic translation files.
 
 ## Technical Details
 
-| Change | Details |
-|--------|---------|
-| Database SQL | Insert ~6 parent groups + ~15 leaf items, update ~5 existing items (re-parent + re-sort) |
-| `src/components/DynamicSidebar.tsx` | Add icon mappings for ~20 new menu codes |
-| No new files | All pages already exist, just not linked in the menu |
+| File | Changes |
+|------|---------|
+| `src/components/inventory/ListFilterBar.tsx` | **New** -- reusable filter bar component |
+| `src/hooks/useDefaultStore.ts` | **New** -- hook to auto-select user's assigned store |
+| `src/pages/app/inventory/warehouse/WarehouseZonesPage.tsx` | Add search, type filter, status filter, auto-store |
+| `src/pages/app/inventory/warehouse/WarehouseBinsPage.tsx` | Add search, type filter, status filter, auto-store |
+| `src/pages/app/inventory/warehouse/BinAssignmentsPage.tsx` | Add search, auto-store |
+| `src/pages/app/inventory/PutAwayWorklistPage.tsx` | Add search, date range, auto-store |
+| `src/pages/app/inventory/PickListsPage.tsx` | Add search, date range |
+| `src/pages/app/inventory/PackingSlipsPage.tsx` | Add search, date range |
+| `src/pages/app/inventory/shipping/ShipmentsPage.tsx` | Add search, date range |
+| `src/pages/app/inventory/shipping/DispatchDashboardPage.tsx` | Add date filter, shipments table, quick actions |
+| `src/pages/app/inventory/POListPage.tsx` | Add search, store filter, date range |
+| `src/pages/app/inventory/GRNListPage.tsx` | Add search, store filter, date range |
+| `src/pages/app/inventory/PRListPage.tsx` | Add search, date range |
+| `src/pages/app/inventory/VendorsListPage.tsx` | Add vendor type filter |
+| `src/pages/app/inventory/TransfersListPage.tsx` | Add search, date range |
+| `src/pages/app/inventory/StockAdjustmentsPage.tsx` | Add search, date range, store filter |
+| `src/pages/app/inventory/ItemsListPage.tsx` | Add store filter |
+| `src/lib/i18n/translations/en.ts` | New filter label keys |
+| `src/lib/i18n/translations/ur.ts` | Urdu translations |
+| `src/lib/i18n/translations/ar.ts` | Arabic translations |
 
+All filtering will be done client-side on the already-fetched data (search, type, date range) to keep things fast. Store filtering uses the existing query parameter pattern already in the hooks.
