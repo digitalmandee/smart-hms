@@ -1,38 +1,32 @@
 
-# Fix: Warehouses Not Showing for Warehouse Organizations
 
-## Root Cause
+# Fix Stock Module: Missing Icon, Truncated Columns, and Organization Filter
 
-The `StoresListPage.tsx` (Warehouse Management page) hardcodes `useAllStores("hospital")` as the context filter. However, the "Central Distribution Warehouse" organization has `facility_type: "warehouse"`, and its stores are stored with `context: "warehouse"`. Since the filter looks for `context = "hospital"`, all warehouse-org stores are hidden.
+## Issues Found
 
-**Your data IS in the database** -- 3 stores (Main Distribution Center, Medical Supplies Store, General Storage Area), 9 zones, 20 stock records with real inventory quantities, all with barcodes and SKUs. It's just being filtered out by the hardcoded "hospital" context.
+### 1. Stock Adjustments menu icon is missing
+The sidebar config uses `icon: "Sliders"` for Stock Adjustments, but the `Sliders` icon is not imported in `DynamicSidebar.tsx`'s `iconMap`. This causes the menu item to render without an icon.
 
-## What Will Be Fixed
+### 2. Stock Levels table columns are cut off
+The Stock Levels page has 9 columns (Item Code, Item Name, Category, Current Stock, Reorder Level, Status, Standard Cost, Stock Value, Adjust button) but the table overflows on the right side. The "Standard Cost", "Stock Value", and "Adjust" columns are hidden/clipped because the table is not wrapped in a horizontally scrollable container.
 
-### 1. StoresListPage -- Remove hardcoded "hospital" context
-Instead of `useAllStores("hospital")`, derive the correct context from the current organization's `facility_type`:
-- If org is `warehouse` -> use context `"warehouse"`
-- If org is `pharmacy` -> use context `"pharmacy"` 
-- Otherwise -> use context `"hospital"`
+### 3. Items query missing organization_id filter
+`useInventoryItems` in `useInventory.ts` does not filter by `organization_id`. While RLS handles security, adding an explicit filter is best practice and prevents unnecessary data transfer.
 
-This ensures each organization type sees its own stores.
-
-### 2. StoreSelector -- Make context auto-detect from org
-Same logic: when no explicit `context` is passed, auto-detect from the organization's facility type. This ensures all warehouse pages (Zones, Bins, Storage Map, Pick Lists, etc.) show the correct stores.
+---
 
 ## Technical Changes
 
-| File | Change |
-|------|--------|
-| `src/pages/app/inventory/StoresListPage.tsx` | Replace `useAllStores("hospital")` with facility-type-aware context using `useOrganization` hook |
-| `src/hooks/useStores.ts` | Add a new `useStoreContext()` helper hook that returns the right context string based on the org's `facility_type` |
-| `src/components/inventory/StoreSelector.tsx` | Use `useStoreContext()` as default when no explicit `context` prop is provided |
+### File 1: `src/components/DynamicSidebar.tsx`
+- Import `Sliders` from `lucide-react`
+- Add `Sliders` to the `iconMap` object
 
-## After Fix
+### File 2: `src/pages/app/inventory/StockLevelsPage.tsx`
+- Wrap the `<Table>` in a `<div className="overflow-x-auto">` so all columns are accessible via horizontal scroll on smaller screens
+- Add a "Warehouse" column to show which store holds the stock (requires fetching store info alongside stock data)
 
-All 3 warehouse stores will appear:
-- Main Distribution Center (central)
-- Medical Supplies Store (medical)
-- General Storage Area (general)
+### File 3: `src/hooks/useInventory.ts` (useInventoryItems function)
+- Add `.eq("organization_id", profile!.organization_id)` to the inventory_items query so only the current organization's items are returned
 
-Plus all 15 inventory items with stock, zones, and bins will be accessible through the warehouse UI.
+These 3 targeted fixes will resolve the missing icon, hidden columns, and data isolation issues in the Stock module.
+
