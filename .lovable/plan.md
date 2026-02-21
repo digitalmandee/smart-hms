@@ -1,43 +1,58 @@
 
 
-# Warehouse Inventory Visibility - Add Warehouse Column and Per-Store Breakdown
+# Make Warehouse Module Fully Independent from Hospital Context
 
-## What's the Problem?
+## Problem
+When logged in as a standalone warehouse organization (`facility_type: 'warehouse'`), the inventory module still shows hospital/clinical-specific options:
 
-Right now, when you open Stock Levels or Items, all warehouse inventories are mixed together. You can't tell if 300 syringes are in Main Distribution Center or General Storage Area. The filter dropdown exists but the table doesn't show **which warehouse** each stock row belongs to.
+1. **Store Types** include hospital-specific options: "Medical Store", "Surgical Store", "Dental Store", "Pharmacy Store"
+2. **Vendor Types** show clinical terms: "Pharmaceutical", "Medical Equipment", "Surgical Supplies"
+3. **Reports Page** shows a "Pharmacy Inventory Reports" section (conditional but still checks for it)
+4. **Category placeholder** says "e.g., Medical Supplies"
 
-## What Will Change
+For a standalone warehouse, these should be replaced with general warehouse/logistics terminology.
 
-### 1. Stock Levels Page - Add Warehouse Column
-The Stock Levels table will get a new "Warehouse" column between "Category" and "Current Stock". When "All Warehouses" is selected, you'll see **separate rows per warehouse** for the same item:
+## Solution
 
-```text
-| Item Code | Item Name         | Category | Warehouse               | Stock | Reorder | Status |
-|-----------|-------------------|----------|-------------------------|-------|---------|--------|
-| ITM-001   | Disposable Syringe| Medical  | Main Distribution Center| 300   | 100     | OK     |
-| ITM-001   | Disposable Syringe| Medical  | General Storage Area    | 150   | 100     | OK     |
-```
-
-When a specific warehouse is selected, only that warehouse's rows appear.
-
-### 2. Items List Page - Add Warehouse Column
-Same treatment for the Items Catalog page - add a Warehouse column so you can see stock distribution across warehouses.
-
-### 3. Data Layer Update
-The `useInventoryItems` hook will be updated to fetch per-store stock records by joining `inventory_stock` with `stores` to get the store name. When no store filter is applied, it returns one row per item per warehouse instead of aggregating.
+Make the inventory pages facility-type-aware so that warehouse organizations see warehouse-relevant options, while hospital/clinic organizations continue seeing the current options.
 
 ---
 
-## Technical Details
+## Technical Changes
 
-| File | Change |
-|------|--------|
-| `src/hooks/useInventory.ts` | Update `useInventoryItems` to join `inventory_stock` with `stores` table to get store names. Return per-store rows when storeId filter is "all". Each row will include `store_name` and `store_id` fields. |
-| `src/pages/app/inventory/StockLevelsPage.tsx` | Add "Warehouse" column header and cell showing `store_name`. Display between Category and Current Stock columns. |
-| `src/pages/app/inventory/ItemsListPage.tsx` | Add "Warehouse" column showing which store holds the stock, same pattern as Stock Levels. |
+### File 1: `src/pages/app/inventory/StoreFormPage.tsx`
+- Make the `storeTypes` array dynamic based on `facility_type`
+- For warehouse: show "Central Warehouse", "Distribution Center", "Cold Storage", "Bulk Storage", "Equipment Store", "General Store"
+- For hospital/clinic: keep existing types (Medical, Surgical, Dental, Pharmacy, etc.)
 
-### Data Flow
-- `inventory_stock` already has a `store_id` column linking to `stores`
-- Currently the hook aggregates all store quantities into `total_stock` via a computed field
-- Updated approach: query `inventory_stock` directly with item details joined, grouped by store
-- Each table row = one item in one warehouse (not aggregated across all warehouses)
+### File 2: `src/pages/app/inventory/StoresListPage.tsx`
+- Add warehouse-specific store type labels to the `storeTypeLabels` mapping (e.g., "distribution" -> "Distribution", "cold_storage" -> "Cold Storage", "bulk" -> "Bulk Storage")
+
+### File 3: `src/pages/app/inventory/VendorFormPage.tsx`
+- Make vendor types dynamic based on facility_type
+- For warehouse: show "Manufacturer", "Distributor", "Wholesaler", "Raw Materials", "Packaging", "Logistics", "General"
+- For hospital/clinic: keep existing types (Pharmaceutical, Medical Equipment, Surgical, etc.)
+
+### File 4: `src/pages/app/inventory/CategoriesPage.tsx`
+- Change placeholder from "e.g., Medical Supplies" to a facility-aware placeholder
+- Warehouse: "e.g., Electronics, Raw Materials"
+- Hospital: "e.g., Medical Supplies"
+
+### File 5: `src/pages/app/inventory/InventoryReportsPage.tsx`
+- The pharmacy section is already conditionally shown (`showPharmacySection`), which is correct
+- No changes needed here as the condition `stats?.isHospital && stats?.hasPharmacyModule` already handles it
+
+### Data Access
+- All pages already use `useAuth()` to get the profile
+- `useOrganization(profile?.organization_id)` is already available in some pages and will be added where needed to access `facility_type`
+- HR and Finance modules are already scoped by `organization_id` so warehouse employees and finances are isolated
+
+### Summary of Changes
+
+| File | What Changes |
+|------|-------------|
+| `StoreFormPage.tsx` | Dynamic store types based on facility_type |
+| `StoresListPage.tsx` | Add warehouse store type labels |
+| `VendorFormPage.tsx` | Dynamic vendor types based on facility_type |
+| `CategoriesPage.tsx` | Context-aware placeholder text |
+
