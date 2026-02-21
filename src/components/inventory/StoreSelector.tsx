@@ -5,7 +5,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useStores } from "@/hooks/useStores";
+import { useStores, useStoreContext } from "@/hooks/useStores";
 import { Warehouse } from "lucide-react";
 
 interface StoreSelectorProps {
@@ -29,7 +29,8 @@ export function StoreSelector({
   className,
   context,
 }: StoreSelectorProps) {
-  const { data: stores, isLoading } = useStores(branchId, context);
+  const autoContext = useStoreContext();
+  const { data: stores, isLoading } = useStores(branchId, context || autoContext);
 
   return (
     <Select value={showAll ? (value || "all") : (value || undefined)} onValueChange={onChange} disabled={disabled || isLoading}>
