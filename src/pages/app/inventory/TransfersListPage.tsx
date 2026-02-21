@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -9,6 +9,7 @@ import { Plus, ArrowLeftRight } from "lucide-react";
 import { useStoreTransfers } from "@/hooks/useStoreTransfers";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/PageHeader";
+import { ListFilterBar } from "@/components/inventory/ListFilterBar";
 import { format } from "date-fns";
 
 const statusColors: Record<string, string> = {
@@ -22,9 +23,20 @@ const statusColors: Record<string, string> = {
 
 export default function TransfersListPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [search, setSearch] = useState("");
   const { data: transfers, isLoading } = useStoreTransfers(
     statusFilter !== "all" ? { status: statusFilter } : undefined
   );
+
+  const filteredTransfers = useMemo(() => {
+    if (!transfers || !search) return transfers || [];
+    const q = search.toLowerCase();
+    return transfers.filter((t) =>
+      t.transfer_number.toLowerCase().includes(q) ||
+      (t.from_store?.name || "").toLowerCase().includes(q) ||
+      (t.to_store?.name || "").toLowerCase().includes(q)
+    );
+  }, [transfers, search]);
 
   return (
     <div className="space-y-6">
@@ -43,7 +55,7 @@ export default function TransfersListPage() {
 
       <Card>
         <CardHeader>
-          <div className="flex gap-4">
+          <ListFilterBar search={search} onSearchChange={setSearch} searchPlaceholder="Search by transfer number or store...">
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder="All Statuses" />
@@ -58,14 +70,14 @@ export default function TransfersListPage() {
                 <SelectItem value="cancelled">Cancelled</SelectItem>
               </SelectContent>
             </Select>
-          </div>
+          </ListFilterBar>
         </CardHeader>
         <CardContent>
           {isLoading ? (
             <div className="space-y-2">
               {[1, 2, 3].map((i) => <Skeleton key={i} className="h-12 w-full" />)}
             </div>
-          ) : transfers?.length === 0 ? (
+          ) : filteredTransfers.length === 0 ? (
             <div className="text-center py-12">
               <ArrowLeftRight className="mx-auto h-12 w-12 text-muted-foreground" />
               <h3 className="mt-4 text-lg font-semibold">No transfers found</h3>
@@ -89,7 +101,7 @@ export default function TransfersListPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {transfers?.map((t) => (
+                {filteredTransfers.map((t) => (
                   <TableRow key={t.id}>
                     <TableCell>
                       <Link to={`/app/inventory/transfers/${t.id}`} className="font-medium text-primary hover:underline">

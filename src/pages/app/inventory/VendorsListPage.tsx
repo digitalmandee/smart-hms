@@ -1,21 +1,15 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Plus, Search, Building, Star } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, Building, Star } from "lucide-react";
 import { useVendors } from "@/hooks/useVendors";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/PageHeader";
+import { ListFilterBar } from "@/components/inventory/ListFilterBar";
 
 const VENDOR_TYPE_LABELS: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "destructive" }> = {
   pharmaceutical: { label: "Pharmaceutical", variant: "default" },
@@ -26,9 +20,17 @@ const VENDOR_TYPE_LABELS: Record<string, { label: string; variant: "default" | "
   general: { label: "General", variant: "outline" },
 };
 
+const VENDOR_TYPES = Object.keys(VENDOR_TYPE_LABELS);
+
 export default function VendorsListPage() {
   const [search, setSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useState("all");
   const { data: vendors, isLoading } = useVendors(search);
+
+  const filteredVendors = useMemo(() => {
+    if (!vendors || typeFilter === "all") return vendors || [];
+    return vendors.filter((v) => (v as any).vendor_type === typeFilter);
+  }, [vendors, typeFilter]);
 
   const renderRating = (rating: number) => {
     return (
@@ -62,15 +64,19 @@ export default function VendorsListPage() {
 
       <Card>
         <CardHeader>
-          <div className="relative max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search vendors..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9"
-            />
-          </div>
+          <ListFilterBar search={search} onSearchChange={setSearch} searchPlaceholder="Search vendors...">
+            <Select value={typeFilter} onValueChange={setTypeFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="All Types" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Types</SelectItem>
+                {VENDOR_TYPES.map((t) => (
+                  <SelectItem key={t} value={t}>{VENDOR_TYPE_LABELS[t].label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </ListFilterBar>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -79,12 +85,12 @@ export default function VendorsListPage() {
                 <Skeleton key={i} className="h-12 w-full" />
               ))}
             </div>
-          ) : vendors?.length === 0 ? (
+          ) : filteredVendors?.length === 0 ? (
             <div className="text-center py-12">
               <Building className="mx-auto h-12 w-12 text-muted-foreground" />
               <h3 className="mt-4 text-lg font-semibold">No vendors found</h3>
               <p className="text-muted-foreground">
-                {search ? "Try a different search term" : "Add your first vendor"}
+                {search || typeFilter !== "all" ? "Try a different search term" : "Add your first vendor"}
               </p>
               <Button asChild className="mt-4">
                 <Link to="/app/inventory/vendors/new">
@@ -107,13 +113,10 @@ export default function VendorsListPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {vendors?.map((vendor) => (
+                {filteredVendors?.map((vendor) => (
                   <TableRow key={vendor.id}>
                     <TableCell>
-                      <Link
-                        to={`/app/inventory/vendors/${vendor.id}`}
-                        className="font-medium text-primary hover:underline"
-                      >
+                      <Link to={`/app/inventory/vendors/${vendor.id}`} className="font-medium text-primary hover:underline">
                         {vendor.vendor_code}
                       </Link>
                     </TableCell>
@@ -122,9 +125,7 @@ export default function VendorsListPage() {
                         <div>
                           <p className="font-medium">{vendor.name}</p>
                           {vendor.contact_person && (
-                            <p className="text-xs text-muted-foreground">
-                              {vendor.contact_person}
-                            </p>
+                            <p className="text-xs text-muted-foreground">{vendor.contact_person}</p>
                           )}
                         </div>
                         {(vendor as any).is_preferred && (
@@ -145,15 +146,11 @@ export default function VendorsListPage() {
                     <TableCell>
                       <div className="text-sm">
                         {vendor.phone && <p>{vendor.phone}</p>}
-                        {vendor.email && (
-                          <p className="text-muted-foreground">{vendor.email}</p>
-                        )}
+                        {vendor.email && <p className="text-muted-foreground">{vendor.email}</p>}
                       </div>
                     </TableCell>
                     <TableCell>{vendor.city || "-"}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{vendor.payment_terms}</Badge>
-                    </TableCell>
+                    <TableCell><Badge variant="outline">{vendor.payment_terms}</Badge></TableCell>
                     <TableCell>{renderRating(vendor.rating)}</TableCell>
                   </TableRow>
                 ))}

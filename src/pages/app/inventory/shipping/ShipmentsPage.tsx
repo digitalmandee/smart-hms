@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { StoreSelector } from "@/components/inventory/StoreSelector";
+import { ListFilterBar } from "@/components/inventory/ListFilterBar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -15,8 +16,19 @@ const STATUS_OPTIONS = ["all", "pending", "picked_up", "in_transit", "delivered"
 export default function ShipmentsPage() {
   const [storeId, setStoreId] = useState("");
   const [status, setStatus] = useState("all");
+  const [search, setSearch] = useState("");
   const navigate = useNavigate();
   const { data: shipments, isLoading } = useShipments(storeId, status);
+
+  const filteredShipments = useMemo(() => {
+    if (!shipments || !search) return shipments || [];
+    const q = search.toLowerCase();
+    return shipments.filter((s) =>
+      s.shipment_number.toLowerCase().includes(q) ||
+      (s.tracking_number || "").toLowerCase().includes(q) ||
+      (s.carrier_name || "").toLowerCase().includes(q)
+    );
+  }, [shipments, search]);
 
   return (
     <div className="p-6">
@@ -31,13 +43,18 @@ export default function ShipmentsPage() {
         }
       />
       <Card>
-        <CardHeader><CardTitle>Shipments {shipments?.length ? `(${shipments.length})` : ""}</CardTitle></CardHeader>
+        <CardHeader>
+          <div className="flex flex-col gap-3">
+            <CardTitle>Shipments {filteredShipments.length ? `(${filteredShipments.length})` : ""}</CardTitle>
+            <ListFilterBar search={search} onSearchChange={setSearch} searchPlaceholder="Search by number, tracking, or carrier..." />
+          </div>
+        </CardHeader>
         <CardContent>
           {isLoading ? <p className="text-muted-foreground text-sm">Loading...</p> : (
             <Table>
               <TableHeader><TableRow><TableHead>Number</TableHead><TableHead>Carrier</TableHead><TableHead>Method</TableHead><TableHead>Tracking</TableHead><TableHead>Status</TableHead><TableHead>Created</TableHead><TableHead className="w-[80px]">View</TableHead></TableRow></TableHeader>
               <TableBody>
-                {shipments?.map((s) => (
+                {filteredShipments.map((s) => (
                   <TableRow key={s.id}>
                     <TableCell className="font-mono">{s.shipment_number}</TableCell>
                     <TableCell>{s.carrier_name || "—"}</TableCell>
@@ -48,7 +65,7 @@ export default function ShipmentsPage() {
                     <TableCell><Button variant="ghost" size="icon" onClick={() => navigate(`/app/inventory/shipping/${s.id}`)}><Eye className="h-4 w-4" /></Button></TableCell>
                   </TableRow>
                 ))}
-                {!shipments?.length && <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground">No shipments found</TableCell></TableRow>}
+                {!filteredShipments.length && <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground">No shipments found</TableCell></TableRow>}
               </TableBody>
             </Table>
           )}

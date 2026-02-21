@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { StoreSelector } from "@/components/inventory/StoreSelector";
+import { ListFilterBar } from "@/components/inventory/ListFilterBar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -15,8 +16,15 @@ const STATUS_OPTIONS = ["all", "draft", "assigned", "in_progress", "completed", 
 export default function PickListsPage() {
   const [storeId, setStoreId] = useState("");
   const [status, setStatus] = useState("all");
+  const [search, setSearch] = useState("");
   const navigate = useNavigate();
   const { data: lists, isLoading } = usePickLists(storeId, status);
+
+  const filteredLists = useMemo(() => {
+    if (!lists || !search) return lists || [];
+    const q = search.toLowerCase();
+    return lists.filter((l) => l.pick_list_number.toLowerCase().includes(q));
+  }, [lists, search]);
 
   return (
     <div className="p-6">
@@ -31,13 +39,18 @@ export default function PickListsPage() {
         }
       />
       <Card>
-        <CardHeader><CardTitle>Pick Lists {lists?.length ? `(${lists.length})` : ""}</CardTitle></CardHeader>
+        <CardHeader>
+          <div className="flex flex-col gap-3">
+            <CardTitle>Pick Lists {filteredLists.length ? `(${filteredLists.length})` : ""}</CardTitle>
+            <ListFilterBar search={search} onSearchChange={setSearch} searchPlaceholder="Search by pick list number..." />
+          </div>
+        </CardHeader>
         <CardContent>
           {isLoading ? <p className="text-muted-foreground text-sm">Loading...</p> : (
             <Table>
               <TableHeader><TableRow><TableHead>Number</TableHead><TableHead>Strategy</TableHead><TableHead>Priority</TableHead><TableHead>Status</TableHead><TableHead>Created</TableHead><TableHead className="w-[80px]">View</TableHead></TableRow></TableHeader>
               <TableBody>
-                {lists?.map((l) => (
+                {filteredLists.map((l) => (
                   <TableRow key={l.id}>
                     <TableCell className="font-mono">{l.pick_list_number}</TableCell>
                     <TableCell><Badge variant="outline">{l.pick_strategy}</Badge></TableCell>
@@ -47,7 +60,7 @@ export default function PickListsPage() {
                     <TableCell><Button variant="ghost" size="icon" onClick={() => navigate(`/app/inventory/picking/${l.id}`)}><Eye className="h-4 w-4" /></Button></TableCell>
                   </TableRow>
                 ))}
-                {!lists?.length && <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground">No pick lists found</TableCell></TableRow>}
+                {!filteredLists.length && <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground">No pick lists found</TableCell></TableRow>}
               </TableBody>
             </Table>
           )}

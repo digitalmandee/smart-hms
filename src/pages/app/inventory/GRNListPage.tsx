@@ -1,27 +1,15 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Plus, PackageCheck } from "lucide-react";
 import { useGRNs } from "@/hooks/useGRN";
 import { GRNStatusBadge } from "@/components/inventory/GRNStatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/PageHeader";
+import { ListFilterBar } from "@/components/inventory/ListFilterBar";
 import { format } from "date-fns";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -29,9 +17,21 @@ type GRNStatus = Database["public"]["Enums"]["grn_status"];
 
 export default function GRNListPage() {
   const [statusFilter, setStatusFilter] = useState<GRNStatus | "all">("all");
+  const [search, setSearch] = useState("");
   const { data: grns, isLoading } = useGRNs(
     statusFilter !== "all" ? { status: statusFilter } : undefined
   );
+
+  const filteredGRNs = useMemo(() => {
+    if (!grns || !search) return grns || [];
+    const q = search.toLowerCase();
+    return grns.filter((grn) =>
+      grn.grn_number.toLowerCase().includes(q) ||
+      (grn.vendor?.name || "").toLowerCase().includes(q) ||
+      (grn.vendor?.vendor_code || "").toLowerCase().includes(q) ||
+      (grn.invoice_number || "").toLowerCase().includes(q)
+    );
+  }, [grns, search]);
 
   return (
     <div className="space-y-6">
@@ -50,19 +50,21 @@ export default function GRNListPage() {
 
       <Card>
         <CardHeader>
-          <div className="flex gap-4">
-            <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as GRNStatus | "all")}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="All Statuses" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="draft">Draft</SelectItem>
-                <SelectItem value="pending_verification">Pending Verification</SelectItem>
-                <SelectItem value="verified">Verified</SelectItem>
-                <SelectItem value="posted">Posted</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="flex flex-col gap-3">
+            <ListFilterBar search={search} onSearchChange={setSearch} searchPlaceholder="Search by GRN number, vendor, or invoice...">
+              <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as GRNStatus | "all")}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="All Statuses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="draft">Draft</SelectItem>
+                  <SelectItem value="pending_verification">Pending Verification</SelectItem>
+                  <SelectItem value="verified">Verified</SelectItem>
+                  <SelectItem value="posted">Posted</SelectItem>
+                </SelectContent>
+              </Select>
+            </ListFilterBar>
           </div>
         </CardHeader>
         <CardContent>
@@ -72,12 +74,12 @@ export default function GRNListPage() {
                 <Skeleton key={i} className="h-12 w-full" />
               ))}
             </div>
-          ) : grns?.length === 0 ? (
+          ) : filteredGRNs.length === 0 ? (
             <div className="text-center py-12">
               <PackageCheck className="mx-auto h-12 w-12 text-muted-foreground" />
               <h3 className="mt-4 text-lg font-semibold">No GRNs found</h3>
               <p className="text-muted-foreground">
-                {statusFilter !== "all" ? "Try a different filter" : "Create your first goods received note"}
+                {statusFilter !== "all" || search ? "Try a different filter" : "Create your first goods received note"}
               </p>
               <Button asChild className="mt-4">
                 <Link to="/app/inventory/grn/new">
@@ -100,27 +102,19 @@ export default function GRNListPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {grns?.map((grn) => (
+                {filteredGRNs.map((grn) => (
                   <TableRow key={grn.id}>
                     <TableCell>
-                      <Link
-                        to={`/app/inventory/grn/${grn.id}`}
-                        className="font-medium text-primary hover:underline"
-                      >
+                      <Link to={`/app/inventory/grn/${grn.id}`} className="font-medium text-primary hover:underline">
                         {grn.grn_number}
                       </Link>
                     </TableCell>
                     <TableCell>
                       {grn.purchase_order ? (
-                        <Link
-                          to={`/app/inventory/purchase-orders/${grn.purchase_order_id}`}
-                          className="text-primary hover:underline"
-                        >
+                        <Link to={`/app/inventory/purchase-orders/${grn.purchase_order_id}`} className="text-primary hover:underline">
                           {grn.purchase_order.po_number}
                         </Link>
-                      ) : (
-                        "-"
-                      )}
+                      ) : "-"}
                     </TableCell>
                     <TableCell>
                        <div>

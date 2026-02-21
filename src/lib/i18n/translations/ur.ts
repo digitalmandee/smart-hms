@@ -2304,5 +2304,23 @@ export const ur: Record<TranslationKey, string> = {
   "picking.noPickListsYet": "ابھی تک کوئی پک لسٹ نہیں",
   "picking.noPackingSlipsYet": "ابھی تک کوئی پیکنگ سلپ نہیں",
 
+
+  // Filters
+  "filter.search": "تلاش",
+  "filter.allTypes": "تمام اقسام",
+  "filter.allStatuses": "تمام حالات",
+  "filter.allStatus": "تمام حالات",
+  "filter.active": "فعال",
+  "filter.inactive": "غیر فعال",
+  "filter.available": "دستیاب",
+  "filter.occupied": "مصروف",
+  "filter.searchByCode": "...کوڈ سے تلاش",
+  "filter.searchByName": "...نام سے تلاش",
+  "filter.searchVendors": "...وینڈرز تلاش کریں",
+  "filter.searchByNumber": "...نمبر سے تلاش",
+  "filter.recentShipments": "حالیہ شپمنٹس",
+  "filter.viewAll": "سب دیکھیں",
+  "filter.newShipment": "نئی شپمنٹ",
+
 };
 

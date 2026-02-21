@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { StoreSelector } from "@/components/inventory/StoreSelector";
+import { ListFilterBar } from "@/components/inventory/ListFilterBar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { usePutAwayTasks } from "@/hooks/usePutAwayTasks";
 import { useNavigate } from "react-router-dom";
+import { useDefaultStore } from "@/hooks/useDefaultStore";
 import { Eye } from "lucide-react";
 
 const STATUS_OPTIONS = ["all", "pending", "in_progress", "completed", "skipped"];
@@ -18,8 +20,20 @@ const statusColors: Record<string, "default" | "secondary" | "destructive" | "ou
 export default function PutAwayWorklistPage() {
   const [storeId, setStoreId] = useState("");
   const [status, setStatus] = useState("all");
+  const [search, setSearch] = useState("");
   const navigate = useNavigate();
   const { data: tasks, isLoading } = usePutAwayTasks(storeId, status);
+
+  useDefaultStore(storeId, setStoreId, true);
+
+  const filteredTasks = useMemo(() => {
+    if (!tasks || !search) return tasks || [];
+    const q = search.toLowerCase();
+    return tasks.filter((t) =>
+      (t.suggested_bin?.bin_code || "").toLowerCase().includes(q) ||
+      (t.actual_bin?.bin_code || "").toLowerCase().includes(q)
+    );
+  }, [tasks, search]);
 
   return (
     <div className="p-6">
@@ -33,13 +47,18 @@ export default function PutAwayWorklistPage() {
         }
       />
       <Card>
-        <CardHeader><CardTitle>Tasks {tasks?.length ? `(${tasks.length})` : ""}</CardTitle></CardHeader>
+        <CardHeader>
+          <div className="flex flex-col gap-3">
+            <CardTitle>Tasks {filteredTasks.length ? `(${filteredTasks.length})` : ""}</CardTitle>
+            <ListFilterBar search={search} onSearchChange={setSearch} searchPlaceholder="Search by bin code..." />
+          </div>
+        </CardHeader>
         <CardContent>
           {isLoading ? <p className="text-muted-foreground text-sm">Loading...</p> : (
             <Table>
               <TableHeader><TableRow><TableHead>Priority</TableHead><TableHead>Quantity</TableHead><TableHead>Suggested Bin</TableHead><TableHead>Actual Bin</TableHead><TableHead>Status</TableHead><TableHead>Created</TableHead><TableHead className="w-[80px]">Action</TableHead></TableRow></TableHeader>
               <TableBody>
-                {tasks?.map((t) => (
+                {filteredTasks.map((t) => (
                   <TableRow key={t.id}>
                     <TableCell><Badge variant={t.priority >= 3 ? "destructive" : "outline"}>{t.priority}</Badge></TableCell>
                     <TableCell>{t.quantity}</TableCell>
@@ -50,7 +69,7 @@ export default function PutAwayWorklistPage() {
                     <TableCell><Button variant="ghost" size="icon" onClick={() => navigate(`/app/inventory/putaway/${t.id}`)}><Eye className="h-4 w-4" /></Button></TableCell>
                   </TableRow>
                 ))}
-                {!tasks?.length && <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground">No put-away tasks found</TableCell></TableRow>}
+                {!filteredTasks.length && <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground">No put-away tasks found</TableCell></TableRow>}
               </TableBody>
             </Table>
           )}

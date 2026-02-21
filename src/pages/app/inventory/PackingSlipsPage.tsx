@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { StoreSelector } from "@/components/inventory/StoreSelector";
+import { ListFilterBar } from "@/components/inventory/ListFilterBar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -15,8 +16,15 @@ const STATUS_OPTIONS = ["all", "draft", "packed", "verified", "shipped"];
 export default function PackingSlipsPage() {
   const [storeId, setStoreId] = useState("");
   const [status, setStatus] = useState("all");
+  const [search, setSearch] = useState("");
   const navigate = useNavigate();
   const { data: slips, isLoading } = usePackingSlips(storeId, status);
+
+  const filteredSlips = useMemo(() => {
+    if (!slips || !search) return slips || [];
+    const q = search.toLowerCase();
+    return slips.filter((s) => s.packing_slip_number.toLowerCase().includes(q));
+  }, [slips, search]);
 
   return (
     <div className="p-6">
@@ -31,13 +39,18 @@ export default function PackingSlipsPage() {
         }
       />
       <Card>
-        <CardHeader><CardTitle>Packing Slips {slips?.length ? `(${slips.length})` : ""}</CardTitle></CardHeader>
+        <CardHeader>
+          <div className="flex flex-col gap-3">
+            <CardTitle>Packing Slips {filteredSlips.length ? `(${filteredSlips.length})` : ""}</CardTitle>
+            <ListFilterBar search={search} onSearchChange={setSearch} searchPlaceholder="Search by packing slip number..." />
+          </div>
+        </CardHeader>
         <CardContent>
           {isLoading ? <p className="text-muted-foreground text-sm">Loading...</p> : (
             <Table>
               <TableHeader><TableRow><TableHead>Number</TableHead><TableHead>Items</TableHead><TableHead>Boxes</TableHead><TableHead>Weight</TableHead><TableHead>Status</TableHead><TableHead>Created</TableHead><TableHead className="w-[80px]">View</TableHead></TableRow></TableHeader>
               <TableBody>
-                {slips?.map((s) => (
+                {filteredSlips.map((s) => (
                   <TableRow key={s.id}>
                     <TableCell className="font-mono">{s.packing_slip_number}</TableCell>
                     <TableCell>{s.total_items}</TableCell>
@@ -48,7 +61,7 @@ export default function PackingSlipsPage() {
                     <TableCell><Button variant="ghost" size="icon" onClick={() => navigate(`/app/inventory/packing/${s.id}`)}><Eye className="h-4 w-4" /></Button></TableCell>
                   </TableRow>
                 ))}
-                {!slips?.length && <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground">No packing slips found</TableCell></TableRow>}
+                {!filteredSlips.length && <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground">No packing slips found</TableCell></TableRow>}
               </TableBody>
             </Table>
           )}

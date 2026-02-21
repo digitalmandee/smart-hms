@@ -3,27 +3,15 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/PageHeader";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { ListFilterBar } from "@/components/inventory/ListFilterBar";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Package } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 const typeLabels: Record<string, string> = {
   increase: "Increase",
@@ -40,6 +28,7 @@ export default function StockAdjustmentsPage() {
   const navigate = useNavigate();
   const { profile } = useAuth();
   const [typeFilter, setTypeFilter] = useState("all");
+  const [search, setSearch] = useState("");
 
   const { data: adjustments, isLoading } = useQuery({
     queryKey: ["stock-adjustments-page", profile?.organization_id, typeFilter],
@@ -66,6 +55,16 @@ export default function StockAdjustmentsPage() {
     enabled: !!profile?.organization_id,
   });
 
+  const filteredAdjustments = useMemo(() => {
+    if (!adjustments || !search) return adjustments || [];
+    const q = search.toLowerCase();
+    return adjustments.filter((adj: any) =>
+      (adj.item?.name || "").toLowerCase().includes(q) ||
+      (adj.item?.item_code || "").toLowerCase().includes(q) ||
+      (adj.reason || "").toLowerCase().includes(q)
+    );
+  }, [adjustments, search]);
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -73,21 +72,23 @@ export default function StockAdjustmentsPage() {
         description="View and create stock adjustments for write-offs, expired, damaged items"
       />
 
-      <div className="flex flex-wrap gap-2 items-center justify-between">
-        <Select value={typeFilter} onValueChange={setTypeFilter}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Filter by type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Types</SelectItem>
-            <SelectItem value="increase">Increase</SelectItem>
-            <SelectItem value="decrease">Decrease</SelectItem>
-            <SelectItem value="expired">Expired</SelectItem>
-            <SelectItem value="damaged">Damaged</SelectItem>
-            <SelectItem value="write_off">Write-Off</SelectItem>
-            <SelectItem value="internal_usage">Internal Usage</SelectItem>
-          </SelectContent>
-        </Select>
+      <div className="flex flex-wrap gap-3 items-center justify-between">
+        <ListFilterBar search={search} onSearchChange={setSearch} searchPlaceholder="Search by item name or code...">
+          <Select value={typeFilter} onValueChange={setTypeFilter}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Filter by type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value="increase">Increase</SelectItem>
+              <SelectItem value="decrease">Decrease</SelectItem>
+              <SelectItem value="expired">Expired</SelectItem>
+              <SelectItem value="damaged">Damaged</SelectItem>
+              <SelectItem value="write_off">Write-Off</SelectItem>
+              <SelectItem value="internal_usage">Internal Usage</SelectItem>
+            </SelectContent>
+          </Select>
+        </ListFilterBar>
 
         <Button onClick={() => navigate("/app/inventory/stock-adjustments/new")}>
           <Plus className="mr-2 h-4 w-4" />
@@ -113,7 +114,7 @@ export default function StockAdjustmentsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {adjustments?.length === 0 ? (
+            {filteredAdjustments.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                   <Package className="h-8 w-8 mx-auto mb-2" />
@@ -121,7 +122,7 @@ export default function StockAdjustmentsPage() {
                 </TableCell>
               </TableRow>
             ) : (
-              adjustments?.map((adj: any) => (
+              filteredAdjustments.map((adj: any) => (
                 <TableRow key={adj.id}>
                   <TableCell className="font-medium">
                     {adj.item?.name || "—"}

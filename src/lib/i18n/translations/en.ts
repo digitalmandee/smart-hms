@@ -2370,6 +2370,24 @@ export const en = {
   "picking.noPickListsYet": "No pick lists yet",
   "picking.noPackingSlipsYet": "No packing slips yet",
 
+
+  // Filters
+  "filter.search": "Search",
+  "filter.allTypes": "All Types",
+  "filter.allStatuses": "All Statuses",
+  "filter.allStatus": "All Status",
+  "filter.active": "Active",
+  "filter.inactive": "Inactive",
+  "filter.available": "Available",
+  "filter.occupied": "Occupied",
+  "filter.searchByCode": "Search by code...",
+  "filter.searchByName": "Search by name...",
+  "filter.searchVendors": "Search vendors...",
+  "filter.searchByNumber": "Search by number...",
+  "filter.recentShipments": "Recent Shipments",
+  "filter.viewAll": "View All",
+  "filter.newShipment": "New Shipment",
+
 } as const;
 
 export type TranslationKey = keyof typeof en;
