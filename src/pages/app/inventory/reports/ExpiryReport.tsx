@@ -21,9 +21,9 @@ export default function ExpiryReport() {
   const { data: stocks, isLoading } = useQuery({
     queryKey: ["expiry-report", profile?.organization_id, days],
     queryFn: async () => {
-      const { data, error } = await queryTable("store_stock")
-        .select("*, item:inventory_items(name, item_code), store:stores(name)")
-        .eq("organization_id", profile!.organization_id)
+      const { data, error } = await queryTable("inventory_stock")
+        .select("*, item:inventory_items!inner(name, item_code, organization_id), store:stores(name)")
+        .eq("item.organization_id", profile!.organization_id)
         .gt("quantity", 0)
         .not("expiry_date", "is", null)
         .lte("expiry_date", cutoff)
@@ -31,7 +31,7 @@ export default function ExpiryReport() {
       if (error) throw error;
       return data as Array<{
         id: string; quantity: number; batch_number: string | null; expiry_date: string;
-        item: { name: string; item_code: string } | null;
+        item: { name: string; item_code: string; organization_id: string } | null;
         store: { name: string } | null;
       }>;
     },

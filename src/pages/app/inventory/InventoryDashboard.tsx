@@ -18,6 +18,8 @@ import { StoreSelector } from "@/components/inventory/StoreSelector";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function InventoryDashboard() {
   const { profile } = useAuth();
@@ -29,12 +31,24 @@ export default function InventoryDashboard() {
   const { data: recentPOs, isLoading: posLoading } = usePurchaseOrders();
   const { data: pendingReqs, isLoading: reqsLoading } = useRequisitions({ status: "pending" });
 
+  const { data: facilityType } = useQuery({
+    queryKey: ["org-facility-type-inv", profile?.organization_id],
+    queryFn: async () => {
+      if (!profile?.organization_id) return null;
+      const { data } = await (supabase as any).from("organizations").select("facility_type").eq("id", profile.organization_id).single();
+      return (data as any)?.facility_type as string | null;
+    },
+    enabled: !!profile?.organization_id,
+  });
+
+  const isWarehouse = facilityType === "warehouse";
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Inventory & Procurement</h1>
-          <p className="text-muted-foreground">Manage stock, vendors, and purchase orders</p>
+          <h1 className="text-3xl font-bold">{isWarehouse ? "Warehouse Dashboard" : "Inventory & Procurement"}</h1>
+          <p className="text-muted-foreground">{isWarehouse ? "Manage stock, vendors, and logistics" : "Manage stock, vendors, and purchase orders"}</p>
         </div>
         <div className="flex gap-2 items-center">
           <StoreSelector

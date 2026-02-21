@@ -17,14 +17,14 @@ export default function ConsumptionReport() {
     queryKey: ["consumption-report", profile?.organization_id],
     queryFn: async () => {
       const { data, error } = await queryTable("stock_requisitions")
-        .select("requisition_number, status, department, created_at")
+        .select("requisition_number, status, department:departments(name), created_at")
         .eq("organization_id", profile!.organization_id)
         .in("status", ["approved", "fulfilled", "completed"])
         .order("created_at", { ascending: false })
         .limit(200);
       if (error) throw error;
       return data as Array<{
-        requisition_number: string; status: string; department: string | null; created_at: string;
+        requisition_number: string; status: string; department: { name: string } | null; created_at: string;
       }>;
     },
     enabled: !!profile?.organization_id,
@@ -33,7 +33,7 @@ export default function ConsumptionReport() {
   const deptData = (() => {
     const map: Record<string, number> = {};
     requisitions?.forEach((r) => {
-      const dept = r.department || "Unassigned";
+      const dept = r.department?.name || "Unassigned";
       map[dept] = (map[dept] || 0) + 1;
     });
     return Object.entries(map).map(([name, count]) => ({ name: name.slice(0, 20), count })).sort((a, b) => b.count - a.count);
@@ -66,7 +66,7 @@ export default function ConsumptionReport() {
               {requisitions?.slice(0, 30).map((r) => (
                 <TableRow key={r.requisition_number}>
                   <TableCell className="font-mono">{r.requisition_number}</TableCell>
-                  <TableCell>{r.department || "—"}</TableCell>
+                  <TableCell>{r.department?.name || "—"}</TableCell>
                   <TableCell><Badge variant="outline">{r.status}</Badge></TableCell>
                   <TableCell>{new Date(r.created_at).toLocaleDateString()}</TableCell>
                 </TableRow>

@@ -217,14 +217,17 @@
 
 | # | Test | Steps | Expected Result |
 |---|------|-------|-----------------|
-| 13.1 | Stock Valuation | Navigate to Stock Valuation Report | Shows total value of all stock (qty × unit_cost) |
-| 13.2 | Stock Movement | Navigate to Stock Movement Report | Shows inbound (GRNs), outbound (issues, transfers), adjustments |
-| 13.3 | ABC Analysis | Navigate to ABC Analysis | Items classified A/B/C by value |
-| 13.4 | Expiry Report | Navigate to Expiry Report | Shows items with expiry dates, highlights near-expiry |
-| 13.5 | Vendor Performance | Navigate to Vendor Performance | Shows vendor delivery metrics |
-| 13.6 | Fast Moving Items | Check which items have highest movement | Syringes, bandages likely highest |
-| 13.7 | Dead Stock | Navigate to Dead Stock report | Items with zero movement in period |
-| 13.8 | Department Usage | Navigate to Department Usage | Consumption by department (Pharmacy, Emergency, General Ward) |
+| 13.1 | Stock Valuation | Navigate to Stock Valuation Report | Shows total value of all stock (qty × unit_cost) from `inventory_stock` table, formatted as currency |
+| 13.2 | Stock Valuation CSV | Click "Export CSV" on Stock Valuation | CSV downloads with properly escaped fields (item code, name, batch, qty, unit cost, total value) |
+| 13.3 | ABC Analysis | Navigate to ABC Analysis | Items classified A/B/C by value with Pareto chart (bars + cumulative % line) |
+| 13.4 | ABC Summary Cards | View ABC summary | 3 cards show count of A (80% value), B (15%), C (5%) items |
+| 13.5 | Expiry Report | Navigate to Expiry Report | Shows items with expiry dates within selected window (30/60/90/180 days) |
+| 13.6 | Expiry Urgency | Check urgency badges | Expired = red "Expired", ≤30d = red, ≤60d = default, >60d = outline |
+| 13.7 | Expiry Filter | Change days filter (30→90) | More items appear as window widens |
+| 13.8 | Consumption Report | Navigate to Consumption Report | Shows department names (not IDs) from requisitions with bar chart |
+| 13.9 | Consumption Departments | Check department column | Shows actual department names (e.g., "Pharmacy", "Emergency") not "Unassigned" |
+
+> **Note:** Vendor Performance, Dead Stock, and Fast Moving reports are planned enhancements and do not have dedicated pages yet.
 
 ---
 
