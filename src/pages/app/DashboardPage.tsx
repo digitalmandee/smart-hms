@@ -229,7 +229,7 @@ export const DashboardPage = () => {
             <ModernStatsCard title="Total Items" value={inventoryStats?.totalItems || 0} icon={Package} variant="primary" loading={invLoading} onClick={() => navigate("/app/inventory/items")} />
             <ModernStatsCard title="Low Stock" value={inventoryStats?.lowStockCount || 0} icon={AlertTriangle} variant="info" loading={invLoading} onClick={() => navigate("/app/inventory/items")} />
             <ModernStatsCard title="Pending POs" value={inventoryStats?.pendingPOs || 0} icon={ClipboardPen} variant="success" loading={invLoading} onClick={() => navigate("/app/inventory/purchase-orders")} />
-            <ModernStatsCard title="Inventory Value" value={formatAmount(inventoryStats?.totalValue || 0)} icon={BarChart3} variant="accent" loading={invLoading} onClick={() => navigate("/app/inventory/reports")} />
+            <ModernStatsCard title="Stock Value" value={formatAmount(inventoryStats?.totalValue || 0)} icon={BarChart3} variant="accent" loading={invLoading} onClick={() => navigate("/app/inventory/reports")} />
           </>
         ) : isPharmacyFacility ? (
           <>

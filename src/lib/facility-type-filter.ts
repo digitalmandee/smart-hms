@@ -29,12 +29,19 @@ const BLOCKED_PREFIXES: Record<string, string[]> = {
   pharmacy: [...CLINICAL_PATH_PREFIXES], // pharmacy keeps its own paths
 };
 
+// Label overrides per facility type (code -> new name)
+const LABEL_OVERRIDES: Record<string, Record<string, string>> = {
+  warehouse: {
+    inventory: "Warehouse",
+  },
+};
+
 function isPathBlocked(path: string | null, blockedPrefixes: string[]): boolean {
   if (!path) return false;
   return blockedPrefixes.some(prefix => path.startsWith(prefix));
 }
 
-function filterItems(items: SidebarMenuItem[], blockedPrefixes: string[]): SidebarMenuItem[] {
+function filterItems(items: SidebarMenuItem[], blockedPrefixes: string[], labelOverrides?: Record<string, string>): SidebarMenuItem[] {
   return items
     .map(item => {
       // If this item's own path is blocked, skip it
@@ -42,17 +49,22 @@ function filterItems(items: SidebarMenuItem[], blockedPrefixes: string[]): Sideb
         return null;
       }
 
+      // Apply label override if applicable
+      const overriddenName = labelOverrides && item.name && labelOverrides[item.name.toLowerCase()]
+        ? labelOverrides[item.name.toLowerCase()]
+        : item.name;
+
       // If item has children, filter them
       if (item.children && item.children.length > 0) {
-        const filteredChildren = filterItems(item.children, blockedPrefixes);
+        const filteredChildren = filterItems(item.children, blockedPrefixes, labelOverrides);
         // If all children were filtered out, skip the parent too
         if (filteredChildren.length === 0) {
           return null;
         }
-        return { ...item, children: filteredChildren };
+        return { ...item, name: overriddenName, children: filteredChildren };
       }
 
-      return item;
+      return { ...item, name: overriddenName };
     })
     .filter(Boolean) as SidebarMenuItem[];
 }
@@ -72,5 +84,6 @@ export function filterSidebarByFacilityType(
   const blockedPrefixes = BLOCKED_PREFIXES[facilityType];
   if (!blockedPrefixes) return items; // hospital, clinic, diagnostic_center = no filtering
   
-  return filterItems(items, blockedPrefixes);
+  const labelOverrides = LABEL_OVERRIDES[facilityType];
+  return filterItems(items, blockedPrefixes, labelOverrides);
 }
