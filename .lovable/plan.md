@@ -1,32 +1,43 @@
 
 
-# Fix Stock Module: Missing Icon, Truncated Columns, and Organization Filter
+# Warehouse Inventory Visibility - Add Warehouse Column and Per-Store Breakdown
 
-## Issues Found
+## What's the Problem?
 
-### 1. Stock Adjustments menu icon is missing
-The sidebar config uses `icon: "Sliders"` for Stock Adjustments, but the `Sliders` icon is not imported in `DynamicSidebar.tsx`'s `iconMap`. This causes the menu item to render without an icon.
+Right now, when you open Stock Levels or Items, all warehouse inventories are mixed together. You can't tell if 300 syringes are in Main Distribution Center or General Storage Area. The filter dropdown exists but the table doesn't show **which warehouse** each stock row belongs to.
 
-### 2. Stock Levels table columns are cut off
-The Stock Levels page has 9 columns (Item Code, Item Name, Category, Current Stock, Reorder Level, Status, Standard Cost, Stock Value, Adjust button) but the table overflows on the right side. The "Standard Cost", "Stock Value", and "Adjust" columns are hidden/clipped because the table is not wrapped in a horizontally scrollable container.
+## What Will Change
 
-### 3. Items query missing organization_id filter
-`useInventoryItems` in `useInventory.ts` does not filter by `organization_id`. While RLS handles security, adding an explicit filter is best practice and prevents unnecessary data transfer.
+### 1. Stock Levels Page - Add Warehouse Column
+The Stock Levels table will get a new "Warehouse" column between "Category" and "Current Stock". When "All Warehouses" is selected, you'll see **separate rows per warehouse** for the same item:
+
+```text
+| Item Code | Item Name         | Category | Warehouse               | Stock | Reorder | Status |
+|-----------|-------------------|----------|-------------------------|-------|---------|--------|
+| ITM-001   | Disposable Syringe| Medical  | Main Distribution Center| 300   | 100     | OK     |
+| ITM-001   | Disposable Syringe| Medical  | General Storage Area    | 150   | 100     | OK     |
+```
+
+When a specific warehouse is selected, only that warehouse's rows appear.
+
+### 2. Items List Page - Add Warehouse Column
+Same treatment for the Items Catalog page - add a Warehouse column so you can see stock distribution across warehouses.
+
+### 3. Data Layer Update
+The `useInventoryItems` hook will be updated to fetch per-store stock records by joining `inventory_stock` with `stores` to get the store name. When no store filter is applied, it returns one row per item per warehouse instead of aggregating.
 
 ---
 
-## Technical Changes
+## Technical Details
 
-### File 1: `src/components/DynamicSidebar.tsx`
-- Import `Sliders` from `lucide-react`
-- Add `Sliders` to the `iconMap` object
+| File | Change |
+|------|--------|
+| `src/hooks/useInventory.ts` | Update `useInventoryItems` to join `inventory_stock` with `stores` table to get store names. Return per-store rows when storeId filter is "all". Each row will include `store_name` and `store_id` fields. |
+| `src/pages/app/inventory/StockLevelsPage.tsx` | Add "Warehouse" column header and cell showing `store_name`. Display between Category and Current Stock columns. |
+| `src/pages/app/inventory/ItemsListPage.tsx` | Add "Warehouse" column showing which store holds the stock, same pattern as Stock Levels. |
 
-### File 2: `src/pages/app/inventory/StockLevelsPage.tsx`
-- Wrap the `<Table>` in a `<div className="overflow-x-auto">` so all columns are accessible via horizontal scroll on smaller screens
-- Add a "Warehouse" column to show which store holds the stock (requires fetching store info alongside stock data)
-
-### File 3: `src/hooks/useInventory.ts` (useInventoryItems function)
-- Add `.eq("organization_id", profile!.organization_id)` to the inventory_items query so only the current organization's items are returned
-
-These 3 targeted fixes will resolve the missing icon, hidden columns, and data isolation issues in the Stock module.
-
+### Data Flow
+- `inventory_stock` already has a `store_id` column linking to `stores`
+- Currently the hook aggregates all store quantities into `total_stock` via a computed field
+- Updated approach: query `inventory_stock` directly with item details joined, grouped by store
+- Each table row = one item in one warehouse (not aggregated across all warehouses)
