@@ -1,98 +1,109 @@
 
 
-# Fix Barcode Features and Build Integration Pages
+# Integrate Barcode Scanner into Pick, Pack, and GRN Workflows
 
-## Problems Identified
+## Current Situation
 
-1. **Barcode Label Page** (`/app/inventory/barcode-labels`) exists but only supports browser print -- no download as PDF or image
-2. **Item Form** shows a barcode text field but no visual barcode preview or download on individual items
-3. **Integrations Page** has "Barcode/QR Scanning" and "API Keys" marked as "Coming Soon" with disabled buttons -- these should be functional
+- A standalone barcode scanner page exists at `/app/inventory/integrations/barcode-scanner` -- it only does item lookup
+- The **Pick List Detail** page requires manual clicking of "Pick" buttons for each item -- no scan-to-pick
+- The **Packing Slip Detail** page has no scanning at all -- items are verified manually
+- The **GRN Detail** page has no scanning for receiving items
+- On mobile (Capacitor app), warehouse staff should be able to scan barcodes hands-free while walking through aisles
 
-## Changes
+## Where Scanners Are Needed
 
-### 1. Enhance Barcode Label Page -- Add Download Options
+```text
++---------------------------+------------------------------------------+
+| Workflow                  | Scanner Use Case                         |
++---------------------------+------------------------------------------+
+| Pick List (Picking)       | Scan item barcode to auto-pick that row  |
+| Packing Slip (Packing)    | Scan item to confirm it is packed        |
+| GRN (Receiving)           | Scan item to match against PO line       |
+| Bin Assignment (Put-Away) | Scan bin code + item to assign location  |
++---------------------------+------------------------------------------+
+```
 
-**File: `src/pages/app/inventory/BarcodeLabelPage.tsx`**
+## Plan
 
-- Add "Download PDF" button next to Print button (using jsPDF + html-to-image to capture the label grid as a downloadable PDF)
-- Add "Download PNG" button to download labels as an image file
-- Add per-label download: each BarcodeLabel gets a small download icon to save a single label as PNG
+### 1. Create Reusable Scanner Component
 
-**File: `src/components/inventory/BarcodeLabelPrinter.tsx`**
+**New file: `src/components/inventory/InlineBarcodeScannerInput.tsx`**
 
-- Add a download button on each individual BarcodeLabel card
-- Use `html-to-image` (already installed) to convert the label div to a PNG blob and trigger browser download
-- Add quantity selector per label (how many copies of each label to print)
+A compact, inline barcode input component that can be dropped into any page:
+- Text input field with a camera icon button
+- Clicking the camera icon opens a small camera viewfinder overlay (not full page)
+- On mobile: uses rear camera via `getUserMedia`
+- Manual entry always available (type or paste barcode)
+- Fires an `onScan(code: string)` callback when a barcode is entered/scanned
+- Includes haptic feedback on successful scan (Capacitor Haptics)
+- Small footprint -- designed to sit at the top of a table or card
 
-### 2. Add Barcode Preview to Item Detail
+### 2. Integrate into Pick List Detail Page
 
-**File: `src/pages/app/inventory/ItemFormPage.tsx`**
+**File: `src/pages/app/inventory/PickListDetailPage.tsx`**
 
-- Below the barcode text input field, render a live barcode preview using JsBarcode (same as the label component)
-- Add a "Download Barcode" button next to the preview
-- If no barcode value is entered, show the item_code as fallback with a note
+- Add `InlineBarcodeScannerInput` above the items table
+- When a barcode is scanned:
+  - Match against `item_code` or `barcode` of pending pick items
+  - If found, auto-fill the quantity and mark as "picked" with a success toast
+  - If not found in this pick list, show an error toast
+  - Haptic feedback on match/mismatch
+- Visual: scanned row briefly highlights green
+- Focus stays on scanner input for continuous scanning
 
-### 3. Build Barcode/QR Scanning Integration Page
+### 3. Integrate into Packing Slip Detail Page
 
-**File: `src/pages/app/inventory/integrations/BarcodeScannerSetup.tsx`** (NEW)
+**File: `src/pages/app/inventory/PackingSlipDetailPage.tsx`**
 
-- Camera-based barcode scanning using the device camera (no external hardware needed)
-- Scan a barcode to look up the item in inventory_items by barcode or item_code
-- Display the found item details (name, stock, location)
-- Quick actions after scan: View Item, Adjust Stock, Print Label
-- Works on mobile and desktop (uses navigator.mediaDevices.getUserMedia)
-- Note: Uses a lightweight approach -- capture frames from camera and decode using a JS barcode reader library or manual lookup
+- Add `InlineBarcodeScannerInput` above the packed items table
+- When scanned:
+  - Match against items in the packing slip
+  - Show a checkmark confirmation next to the matched item
+  - Track scan count vs expected quantity
+  - Toast: "Item confirmed: [name] (3/5 scanned)"
+- Add a "Scanned" column to the items table showing scan progress
 
-### 4. Build API Keys Management Page
+### 4. Integrate into GRN Detail Page
 
-**File: `src/pages/app/inventory/integrations/ApiKeysPage.tsx`** (NEW)
+**File: `src/pages/app/inventory/GRNDetailPage.tsx`**
 
-- Display existing API keys (masked) with created date and last used
-- "Generate New Key" button that creates a UUID-based key
-- Store keys in a new approach: use Supabase table or local display-once pattern
-- Copy to clipboard functionality
-- Revoke/delete keys
-- Note: Since this is a demo/MVP, keys will be generated client-side and shown for reference; actual API gateway integration is out of scope
+- Add `InlineBarcodeScannerInput` in the items section
+- When scanned:
+  - Match barcode against PO line items
+  - Highlight the matched row
+  - Auto-focus the received quantity input for that item
+  - Toast showing item name and expected quantity
 
-### 5. Update Integrations Page -- Remove "Coming Soon"
+### 5. Update Translations
 
-**File: `src/pages/app/inventory/WarehouseIntegrationsPage.tsx`**
-
-- Change "Barcode/QR Scanning" status from "Coming Soon" to "Available"
-- Change "API Keys" status from "Coming Soon" to "Available"  
-- Add navigation: clicking "Setup" goes to `/app/inventory/integrations/barcode-scanner`
-- Add navigation: clicking "Manage Keys" goes to `/app/inventory/integrations/api-keys`
-- All 4 integration cards now show "Available" with working buttons
-
-### 6. Add Routes
-
-**File: `src/App.tsx`**
-
-- Add route `/app/inventory/integrations/barcode-scanner` for BarcodeScannerSetup
-- Add route `/app/inventory/integrations/api-keys` for ApiKeysPage
-
-### 7. Multi-language Support
-
-All new UI text will use the translation system (`useTranslation`) with keys added for English, Urdu, and Arabic in the respective translation files.
+Add scanner-related text in all 3 languages (English, Urdu, Arabic):
+- "Scan barcode to pick item"
+- "Scan barcode to verify packed item"
+- "Scan barcode to receive item"
+- "Item matched", "Item not found in this list"
+- "Scanned successfully"
 
 ## Technical Details
 
 | File | Action |
 |------|--------|
-| `src/pages/app/inventory/BarcodeLabelPage.tsx` | Update -- add PDF/PNG download buttons |
-| `src/components/inventory/BarcodeLabelPrinter.tsx` | Update -- add per-label download button, quantity selector |
-| `src/pages/app/inventory/ItemFormPage.tsx` | Update -- add barcode preview below input |
-| `src/pages/app/inventory/integrations/BarcodeScannerSetup.tsx` | Create -- camera-based barcode scanner with item lookup |
-| `src/pages/app/inventory/integrations/ApiKeysPage.tsx` | Create -- API key generation and management |
-| `src/pages/app/inventory/WarehouseIntegrationsPage.tsx` | Update -- remove Coming Soon, add navigation |
-| `src/App.tsx` | Update -- add 2 new routes |
-| `src/lib/i18n/translations/en.ts` | Update -- add new translation keys |
+| `src/components/inventory/InlineBarcodeScannerInput.tsx` | Create -- reusable scan input with camera toggle |
+| `src/pages/app/inventory/PickListDetailPage.tsx` | Update -- add scanner, auto-pick on scan |
+| `src/pages/app/inventory/PackingSlipDetailPage.tsx` | Update -- add scanner, scan-to-verify items |
+| `src/pages/app/inventory/GRNDetailPage.tsx` | Update -- add scanner, scan-to-match PO items |
+| `src/lib/i18n/translations/en.ts` | Update -- add scanner integration keys |
 | `src/lib/i18n/translations/ur.ts` | Update -- add Urdu translations |
 | `src/lib/i18n/translations/ar.ts` | Update -- add Arabic translations |
 
-### Libraries Used (all already installed)
-- `html-to-image` -- convert DOM to PNG for download
-- `jspdf` -- generate PDF from labels
-- `jsbarcode` -- render barcodes in SVG
-- `react-to-print` -- existing print functionality
+### Scanner Component Props
+- `onScan: (code: string) => void` -- callback with scanned/entered code
+- `placeholder?: string` -- input placeholder text
+- `autoFocus?: boolean` -- focus on mount for continuous scanning
+- `disabled?: boolean` -- disable during processing
+
+### Mobile Considerations
+- Camera uses `facingMode: "environment"` (rear camera)
+- Touch targets are 48px minimum
+- Haptic feedback via `@capacitor/haptics` (already installed)
+- Input font size 16px+ to prevent iOS zoom
 
