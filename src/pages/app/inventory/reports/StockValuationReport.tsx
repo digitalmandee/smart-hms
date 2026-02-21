@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Download } from "lucide-react";
+import { exportToCSV, formatCurrency } from "@/lib/exportUtils";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const queryTable = (table: string): any => (supabase as any).from(table);
@@ -16,46 +17,54 @@ export default function StockValuationReport() {
   const { data: stocks, isLoading } = useQuery({
     queryKey: ["stock-valuation", profile?.organization_id],
     queryFn: async () => {
-      const { data, error } = await queryTable("store_stock")
-        .select("*, item:inventory_items(name, item_code, category_id)")
-        .eq("organization_id", profile!.organization_id)
+      const { data, error } = await queryTable("inventory_stock")
+        .select("*, item:inventory_items!inner(name, item_code, category_id, organization_id)")
+        .eq("item.organization_id", profile!.organization_id)
         .gt("quantity", 0)
         .order("quantity", { ascending: false });
       if (error) throw error;
       return data as Array<{
-        id: string; quantity: number; unit_cost: number; total_value: number;
+        id: string; quantity: number; unit_cost: number;
         batch_number: string | null;
-        item: { name: string; item_code: string; category_id: string | null } | null;
+        item: { name: string; item_code: string; category_id: string | null; organization_id: string } | null;
       }>;
     },
     enabled: !!profile?.organization_id,
   });
 
-  const totalValue = stocks?.reduce((sum, s) => sum + (s.total_value || s.quantity * (s.unit_cost || 0)), 0) || 0;
+  const totalValue = stocks?.reduce((sum, s) => sum + s.quantity * (s.unit_cost || 0), 0) || 0;
 
-  const exportCSV = () => {
+  const handleExport = () => {
     if (!stocks) return;
-    const rows = [["Item Code", "Item Name", "Batch", "Qty", "Unit Cost", "Total Value"]];
-    stocks.forEach((s) => {
-      rows.push([
-        s.item?.item_code || "", s.item?.name || "", s.batch_number || "",
-        String(s.quantity), String(s.unit_cost || 0), String(s.total_value || s.quantity * (s.unit_cost || 0)),
-      ]);
-    });
-    const csv = rows.map((r) => r.join(",")).join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a"); a.href = url; a.download = "stock-valuation.csv"; a.click();
+    exportToCSV(
+      stocks.map((s) => ({
+        item_code: s.item?.item_code || "",
+        item_name: s.item?.name || "",
+        batch: s.batch_number || "",
+        quantity: s.quantity,
+        unit_cost: s.unit_cost || 0,
+        total_value: s.quantity * (s.unit_cost || 0),
+      })),
+      "stock-valuation",
+      [
+        { key: "item_code", header: "Item Code" },
+        { key: "item_name", header: "Item Name" },
+        { key: "batch", header: "Batch" },
+        { key: "quantity", header: "Qty" },
+        { key: "unit_cost", header: "Unit Cost", format: (v) => formatCurrency(v) },
+        { key: "total_value", header: "Total Value", format: (v) => formatCurrency(v) },
+      ]
+    );
   };
 
   return (
     <div className="p-6 space-y-4">
       <PageHeader title="Stock Valuation Report" description="Current inventory value by FIFO method"
         breadcrumbs={[{ label: "Inventory", href: "/app/inventory" }, { label: "Reports", href: "/app/inventory/reports" }, { label: "Valuation" }]}
-        actions={<Button variant="outline" onClick={exportCSV}><Download className="h-4 w-4 mr-2" />Export CSV</Button>}
+        actions={<Button variant="outline" onClick={handleExport}><Download className="h-4 w-4 mr-2" />Export CSV</Button>}
       />
       <Card>
-        <CardHeader><CardTitle>Total Inventory Value: Rs. {totalValue.toLocaleString()}</CardTitle></CardHeader>
+        <CardHeader><CardTitle>Total Inventory Value: {formatCurrency(totalValue)}</CardTitle></CardHeader>
         <CardContent>
           {isLoading ? <p className="text-muted-foreground">Loading...</p> : (
             <Table>
@@ -67,16 +76,19 @@ export default function StockValuationReport() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {stocks?.map((s) => (
-                  <TableRow key={s.id}>
-                    <TableCell className="font-mono">{s.item?.item_code || "—"}</TableCell>
-                    <TableCell>{s.item?.name || "—"}</TableCell>
-                    <TableCell>{s.batch_number || "—"}</TableCell>
-                    <TableCell className="text-right">{s.quantity}</TableCell>
-                    <TableCell className="text-right">Rs. {(s.unit_cost || 0).toFixed(2)}</TableCell>
-                    <TableCell className="text-right font-semibold">Rs. {(s.total_value || s.quantity * (s.unit_cost || 0)).toLocaleString()}</TableCell>
-                  </TableRow>
-                ))}
+                {stocks?.map((s) => {
+                  const value = s.quantity * (s.unit_cost || 0);
+                  return (
+                    <TableRow key={s.id}>
+                      <TableCell className="font-mono">{s.item?.item_code || "—"}</TableCell>
+                      <TableCell>{s.item?.name || "—"}</TableCell>
+                      <TableCell>{s.batch_number || "—"}</TableCell>
+                      <TableCell className="text-right">{s.quantity}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(s.unit_cost || 0)}</TableCell>
+                      <TableCell className="text-right font-semibold">{formatCurrency(value)}</TableCell>
+                    </TableRow>
+                  );
+                })}
                 {!stocks?.length && <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground">No stock data</TableCell></TableRow>}
               </TableBody>
             </Table>

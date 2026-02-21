@@ -5,7 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Line, ComposedChart } from "recharts";
+import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Line, ComposedChart, Bar } from "recharts";
+import { formatCurrency } from "@/lib/exportUtils";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const queryTable = (table: string): any => (supabase as any).from(table);
@@ -16,15 +17,15 @@ export default function ABCAnalysisReport() {
   const { data: stocks } = useQuery({
     queryKey: ["abc-analysis", profile?.organization_id],
     queryFn: async () => {
-      const { data, error } = await queryTable("store_stock")
-        .select("quantity, unit_cost, total_value, item:inventory_items(name, item_code)")
-        .eq("organization_id", profile!.organization_id)
+      const { data, error } = await queryTable("inventory_stock")
+        .select("quantity, unit_cost, item:inventory_items!inner(name, item_code, organization_id)")
+        .eq("item.organization_id", profile!.organization_id)
         .gt("quantity", 0)
-        .order("total_value", { ascending: false });
+        .order("unit_cost", { ascending: false });
       if (error) throw error;
       return data as Array<{
-        quantity: number; unit_cost: number; total_value: number;
-        item: { name: string; item_code: string } | null;
+        quantity: number; unit_cost: number;
+        item: { name: string; item_code: string; organization_id: string } | null;
       }>;
     },
     enabled: !!profile?.organization_id,
@@ -32,10 +33,12 @@ export default function ABCAnalysisReport() {
 
   const analysis = (() => {
     if (!stocks?.length) return { items: [], chartData: [], summary: { A: 0, B: 0, C: 0 } };
-    const totalValue = stocks.reduce((sum, s) => sum + (s.total_value || s.quantity * (s.unit_cost || 0)), 0);
+    // Sort by value descending for ABC
+    const sorted = [...stocks].sort((a, b) => (b.quantity * (b.unit_cost || 0)) - (a.quantity * (a.unit_cost || 0)));
+    const totalValue = sorted.reduce((sum, s) => sum + s.quantity * (s.unit_cost || 0), 0);
     let cumulative = 0;
-    const items = stocks.map((s) => {
-      const value = s.total_value || s.quantity * (s.unit_cost || 0);
+    const items = sorted.map((s) => {
+      const value = s.quantity * (s.unit_cost || 0);
       cumulative += value;
       const pct = totalValue > 0 ? (cumulative / totalValue) * 100 : 0;
       const category = pct <= 80 ? "A" : pct <= 95 ? "B" : "C";
@@ -105,7 +108,7 @@ export default function ABCAnalysisReport() {
                   <TableCell className="font-mono">{i.item?.item_code || "—"}</TableCell>
                   <TableCell>{i.item?.name || "—"}</TableCell>
                   <TableCell className="text-right">{i.quantity}</TableCell>
-                  <TableCell className="text-right">Rs. {i.value.toLocaleString()}</TableCell>
+                  <TableCell className="text-right">{formatCurrency(i.value)}</TableCell>
                   <TableCell className="text-right">{i.cumulativePct}%</TableCell>
                   <TableCell><Badge variant={getCategoryColor(i.category)}>{i.category}</Badge></TableCell>
                 </TableRow>
