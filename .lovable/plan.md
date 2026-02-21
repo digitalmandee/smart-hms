@@ -1,83 +1,47 @@
 
 
-# Create Dedicated Warehouse Test Cases Page
+# Update Warehouse Test Cases Page
 
-## Overview
+## Changes
 
-Create a standalone `/warehouse-test-cases` page that presents all warehouse QA test cases from the documentation in a clean, structured format. No emojis. Clear flows with step-by-step progression. Professional layout matching the existing test cases page pattern but focused entirely on warehouse operations.
+### 1. Remove Gate Password
+- Delete `GATE_PASSWORD` constant (line 20)
+- Remove the Gate Password badge from the Login Credentials card header (line 317)
 
-## New File: `src/pages/WarehouseTestCasesPage.tsx`
+### 2. Rename Page Title
+- Change from "Warehouse Module - Manual QA Test Cases" to "Warehouse Management System - Test Cases & Validation Guide"
+- Update all references: header, print header, document title, footer
 
-A dedicated page with the following sections:
+### 3. Expand End-to-End Flows with Complete Detail
+Replace the current 2 basic E2E flows with 4 comprehensive journeys, each with detailed sub-steps:
 
-### Header
-- Title: "Warehouse Module - Manual QA Test Cases"
-- Subtitle showing total test count and section count
-- Download PDF button (using `useReactToPrint`)
+**Flow 1: Full Procurement Cycle (Inbound)** - 11 steps with detailed expected results
+- Reorder Alert detection -> PR creation -> PR approval -> Convert to PO -> PO approval -> GRN creation -> QC inspection -> GRN verification (stock updated) -> GRN posting (journal entry) -> Put-away to bins -> Verify alerts cleared
 
-### Section 1: Login Credentials
-- Card with Warehouse Admin and Warehouse User emails and passwords
-- Gate password displayed
+**Flow 2: Full Outbound Cycle (Dispatch)** - 10 steps
+- Requisition from department -> Approve with quantities -> Generate FEFO pick list -> Pick items from bins -> Create packing slip -> Verify packing -> Create shipment with carrier -> Dispatch -> Add tracking events -> Mark delivered
 
-### Section 2: Seed Data Summary
-- Table showing all entity counts (Categories, Vendors, Items, Zones, Bins, PRs, POs, GRNs, Stock, etc.)
-- Separate sub-table for "Items Below Reorder Level" with Item, Current Stock, Reorder Level, Deficit columns
+**Flow 3: Stock Adjustment & Reconciliation** (NEW) - 7 steps
+- Identify expired/damaged stock -> Create adjustment (expired type) -> Create adjustment (damaged type) -> Verify stock quantities reduced -> Check stock valuation report reflects changes -> Run ABC analysis to see reclassification -> Verify adjustment history in reports
 
-### Sections 3-15: Test Case Modules (TC-1 through TC-13)
-Each as an accordion section with:
-- TC-1: Dashboard and Navigation (3 tests)
-- TC-2: Purchase Request Flow (8 tests)
-- TC-3: Purchase Order Flow (7 tests)
-- TC-4: Receiving / GRN Flow (8 tests)
-- TC-5: Put-Away Flow (5 tests)
-- TC-6: Storage and Zones (7 tests)
-- TC-7: Requisition and Issue Flow (7 tests)
-- TC-8: Transfer (Move Out/In) (6 tests)
-- TC-9: Picking and Packing (11 tests)
-- TC-10: Shipping and Dispatch (7 tests)
-- TC-11: Stock Adjustments (7 tests)
-- TC-12: Reorder Alerts (6 tests)
-- TC-13: Reports (14 tests)
+**Flow 4: Inter-Store Transfer** (NEW) - 8 steps
+- Identify surplus at source store -> Create transfer request -> Select destination store -> Add items with batch/qty -> Dispatch transfer (status = in_transit) -> Receive at destination -> Verify source stock decreased -> Verify destination stock increased
 
-Each test displayed as a row with columns: #, Test Name, Steps, Expected Result — using the grid layout pattern from the existing page.
+Each step will include:
+- Step number
+- Action (what to do)
+- Route/navigation path where applicable
+- Expected result with specific data values
+- Role performing the action
 
-### Section 16: End-to-End Flow Tests
-Two journey flows rendered as step timelines (same visual pattern as the main test cases page):
-- **Full Procurement Cycle** (11 steps): Reorder Alerts to Verify alerts reduced
-- **Full Outbound Cycle** (10 steps): Create Requisition to Mark Delivered
+### 4. Update Documentation (WAREHOUSE_TEST_CASES.md)
+- Remove "Gate Password: 1212" line
+- Add the 2 new E2E flows (Stock Adjustment and Inter-Store Transfer)
 
-### Section 17: Quick Validation Checklist
-A card with all 21 checklist items displayed as a list with checkbox-style indicators.
+### Technical Details
 
-### Design Principles
-- No emojis anywhere — use Lucide icons (Package, Truck, ClipboardList, BarChart3, etc.)
-- Clean table/grid layouts for test rows
-- Accordion sections for each TC module
-- Timeline/step visualization for end-to-end flows
-- Print-friendly layout with `print:` CSS classes
-- Consistent with existing TestCasesPage styling
-
-## Route Registration
-
-Add route in `src/App.tsx`:
-- `/warehouse-test-cases` pointing to `WarehouseTestCasesPage`
-
-## Technical Details
-
-| File | Action |
-|------|--------|
-| `src/pages/WarehouseTestCasesPage.tsx` | Create — full page with all TC-1 to TC-13, E2E flows, checklist |
-| `src/App.tsx` | Update — add route for `/warehouse-test-cases` |
-
-### Components Used (all existing)
-- Card, CardHeader, CardTitle, CardContent
-- Accordion, AccordionItem, AccordionTrigger, AccordionContent
-- Badge
-- ScrollArea
-- Separator
-- Button
-- useReactToPrint for PDF export
-
-### Icons (Lucide, no emojis)
-- Package (Procurement), Truck (Outbound), ClipboardCheck (QC), BarChart3 (Reports), Warehouse (Storage), ArrowRightLeft (Transfers), AlertTriangle (Reorder), FileDown (Exports), CheckSquare (Checklist)
+| File | Changes |
+|------|---------|
+| `src/pages/WarehouseTestCasesPage.tsx` | Remove gate password, rename title, expand E2E flows from 2 to 4 with richer detail |
+| `docs/WAREHOUSE_TEST_CASES.md` | Remove gate password line, add 2 new E2E flow tables |
 
