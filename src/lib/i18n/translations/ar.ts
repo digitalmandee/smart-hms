@@ -2222,5 +2222,18 @@ export const ar: Record<TranslationKey, string> = {
   "integration.copyKey": "نسخ مفتاح API",
   "integration.activeKeys": "مفاتيح API النشطة",
 
+  // Inline Scanner Integration
+  "scanner.scanToPick": "مسح للالتقاط",
+  "scanner.scanToVerify": "مسح للتحقق من العناصر المعبأة",
+  "scanner.scanToReceive": "مسح لاستلام العناصر",
+  "scanner.scanPlaceholderPick": "امسح الباركود لالتقاط العنصر تلقائياً...",
+  "scanner.scanPlaceholderPack": "امسح الباركود للتحقق من العنصر المعبأ...",
+  "scanner.scanPlaceholderGrn": "امسح الباركود لمطابقة عناصر أمر الشراء...",
+  "scanner.itemMatched": "تم العثور على العنصر",
+  "scanner.itemNotFound": "لم يتم العثور على عنصر لهذا الباركود",
+  "scanner.notInList": "ليس في هذه القائمة",
+  "scanner.scannedSuccessfully": "تم المسح بنجاح",
+  "scanner.cameraAccessDenied": "تم رفض الوصول إلى الكاميرا",
+
 };
 
