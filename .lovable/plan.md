@@ -1,56 +1,83 @@
 
 
-# Update Warehouse Test Cases (Page + Documentation)
+# Create Dedicated Warehouse Test Cases Page
 
-## Problem
-1. The `/test-cases` page (TestCasesPage.tsx) has only 4 generic inventory tests (INV-001 to INV-004) and zero warehouse-specific tests
-2. The `docs/WAREHOUSE_TEST_CASES.md` still says Vendor Performance, Dead Stock, and Fast Moving reports "don't have dedicated pages yet" even though they were just built
-3. The new Executive Dashboard report is not mentioned anywhere in test cases
+## Overview
 
-## Changes
+Create a standalone `/warehouse-test-cases` page that presents all warehouse QA test cases from the documentation in a clean, structured format. No emojis. Clear flows with step-by-step progression. Professional layout matching the existing test cases page pattern but focused entirely on warehouse operations.
 
-### 1. Update `src/pages/TestCasesPage.tsx`
+## New File: `src/pages/WarehouseTestCasesPage.tsx`
 
-Replace the minimal "Inventory" module (4 tests) with a comprehensive **"Warehouse & Inventory"** module section containing test cases for:
+A dedicated page with the following sections:
 
-- **Procurement** (PR create/approve, PO create/approve/receive) - 6 tests
-- **Receiving** (GRN create, QC, verify, post) - 4 tests
-- **Stock Management** (view items, adjustments, reorder alerts) - 4 tests
-- **Outbound** (requisitions, transfers, pick lists, packing, shipping) - 5 tests
-- **Reports** (Executive Dashboard, Stock Valuation, ABC, Expiry, Consumption, Vendor Performance, Dead Stock, Fast Moving) - 8 tests
-- **Export/Download** (CSV exports from reports) - 2 tests
+### Header
+- Title: "Warehouse Module - Manual QA Test Cases"
+- Subtitle showing total test count and section count
+- Download PDF button (using `useReactToPrint`)
 
-Add a new **end-to-end warehouse journey** to JOURNEY_TEST_CASES:
-- "Full Warehouse Procurement to Dispatch" journey covering PR -> PO -> GRN -> Put-Away -> Requisition -> Pick -> Pack -> Ship
-- Roles: Warehouse Admin, Warehouse User
-- ~15 steps
+### Section 1: Login Credentials
+- Card with Warehouse Admin and Warehouse User emails and passwords
+- Gate password displayed
 
-Add warehouse demo accounts to the demo accounts list:
-- Warehouse Admin: `warehouse.admin@healthos.demo`
-- Warehouse User: `warehouse.user@healthos.demo`
+### Section 2: Seed Data Summary
+- Table showing all entity counts (Categories, Vendors, Items, Zones, Bins, PRs, POs, GRNs, Stock, etc.)
+- Separate sub-table for "Items Below Reorder Level" with Item, Current Stock, Reorder Level, Deficit columns
 
-### 2. Update `docs/WAREHOUSE_TEST_CASES.md`
+### Sections 3-15: Test Case Modules (TC-1 through TC-13)
+Each as an accordion section with:
+- TC-1: Dashboard and Navigation (3 tests)
+- TC-2: Purchase Request Flow (8 tests)
+- TC-3: Purchase Order Flow (7 tests)
+- TC-4: Receiving / GRN Flow (8 tests)
+- TC-5: Put-Away Flow (5 tests)
+- TC-6: Storage and Zones (7 tests)
+- TC-7: Requisition and Issue Flow (7 tests)
+- TC-8: Transfer (Move Out/In) (6 tests)
+- TC-9: Picking and Packing (11 tests)
+- TC-10: Shipping and Dispatch (7 tests)
+- TC-11: Stock Adjustments (7 tests)
+- TC-12: Reorder Alerts (6 tests)
+- TC-13: Reports (14 tests)
 
-- Remove the note saying "Vendor Performance, Dead Stock, and Fast Moving reports are planned enhancements and do not have dedicated pages yet"
-- Add test cases for:
-  - TC-13.10: Executive Dashboard loads with KPI cards and charts
-  - TC-13.11: Vendor Performance report shows vendor spend and PO counts
-  - TC-13.12: Dead Stock report shows items with no movement (configurable days)
-  - TC-13.13: Fast Moving report shows top items by movement
-  - TC-13.14: All report exports (CSV) download correctly
-- Update Quick Validation Checklist to include new report pages
+Each test displayed as a row with columns: #, Test Name, Steps, Expected Result — using the grid layout pattern from the existing page.
 
-### Technical Details
+### Section 16: End-to-End Flow Tests
+Two journey flows rendered as step timelines (same visual pattern as the main test cases page):
+- **Full Procurement Cycle** (11 steps): Reorder Alerts to Verify alerts reduced
+- **Full Outbound Cycle** (10 steps): Create Requisition to Mark Delivered
 
-**TestCasesPage.tsx changes:**
-- Add 2 warehouse accounts to `demoAccounts` array
-- Replace "Inventory" module (lines 816-821) with expanded "Warehouse & Inventory" module (~29 tests)
-- Add warehouse journey to `JOURNEY_TEST_CASES` array
-- Add "Warehouse Admin" and "Warehouse User" to `getRoleBadgeColor` map
-- Update header count text to reflect new totals
+### Section 17: Quick Validation Checklist
+A card with all 21 checklist items displayed as a list with checkbox-style indicators.
 
-**WAREHOUSE_TEST_CASES.md changes:**
-- Remove outdated note on line 230
-- Add 5 new test rows to TC-13 table
-- Add 2 items to Quick Validation Checklist
+### Design Principles
+- No emojis anywhere — use Lucide icons (Package, Truck, ClipboardList, BarChart3, etc.)
+- Clean table/grid layouts for test rows
+- Accordion sections for each TC module
+- Timeline/step visualization for end-to-end flows
+- Print-friendly layout with `print:` CSS classes
+- Consistent with existing TestCasesPage styling
+
+## Route Registration
+
+Add route in `src/App.tsx`:
+- `/warehouse-test-cases` pointing to `WarehouseTestCasesPage`
+
+## Technical Details
+
+| File | Action |
+|------|--------|
+| `src/pages/WarehouseTestCasesPage.tsx` | Create — full page with all TC-1 to TC-13, E2E flows, checklist |
+| `src/App.tsx` | Update — add route for `/warehouse-test-cases` |
+
+### Components Used (all existing)
+- Card, CardHeader, CardTitle, CardContent
+- Accordion, AccordionItem, AccordionTrigger, AccordionContent
+- Badge
+- ScrollArea
+- Separator
+- Button
+- useReactToPrint for PDF export
+
+### Icons (Lucide, no emojis)
+- Package (Procurement), Truck (Outbound), ClipboardCheck (QC), BarChart3 (Reports), Warehouse (Storage), ArrowRightLeft (Transfers), AlertTriangle (Reorder), FileDown (Exports), CheckSquare (Checklist)
 
