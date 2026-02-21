@@ -37,6 +37,8 @@ import { useCreateGRN, GRNItem } from "@/hooks/useGRN";
 import { useBranches } from "@/hooks/useBranches";
 import { StoreSelector } from "@/components/inventory/StoreSelector";
 import { useAuth } from "@/contexts/AuthContext";
+import { useOrganization } from "@/hooks/useOrganizations";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
@@ -70,6 +72,9 @@ export default function GRNFormPage() {
   const preselectedPOId = searchParams.get("poId");
   
   const { profile } = useAuth();
+  const { data: organization } = useOrganization(profile?.organization_id);
+  const isWarehouse = organization?.facility_type === "warehouse";
+  const { formatCurrency } = useCurrencyFormatter();
   const { data: branches } = useBranches();
   const { data: purchaseOrders } = usePurchaseOrders({ status: "ordered" });
   const createGRN = useCreateGRN();
@@ -323,33 +328,35 @@ export default function GRNFormPage() {
               {grnItems.length > 0 ? (
                 <Table>
                   <TableHeader>
-                    <TableRow>
-                      <TableHead>Item</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead className="w-24">Ordered</TableHead>
-                      <TableHead className="w-32">Received Qty *</TableHead>
-                      <TableHead className="w-32">Batch No.</TableHead>
-                      <TableHead className="w-36">Expiry Date</TableHead>
-                      <TableHead className="w-24 text-right">Unit Cost</TableHead>
-                      <TableHead className="w-28 text-right">Sell Price</TableHead>
-                      <TableHead className="w-28 text-right">Total</TableHead>
-                    </TableRow>
+                     <TableRow>
+                       <TableHead>Item</TableHead>
+                       {!isWarehouse && <TableHead>Type</TableHead>}
+                       <TableHead className="w-24">Ordered</TableHead>
+                       <TableHead className="w-32">Received Qty *</TableHead>
+                       <TableHead className="w-32">Batch No.</TableHead>
+                       <TableHead className="w-36">Expiry Date</TableHead>
+                       <TableHead className="w-24 text-right">Unit Cost</TableHead>
+                       {!isWarehouse && <TableHead className="w-28 text-right">Sell Price</TableHead>}
+                       <TableHead className="w-28 text-right">Total</TableHead>
+                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {grnItems.map((item, index) => (
                       <TableRow key={item.po_item_id}>
-                        <TableCell className="font-medium">
-                          {item.item_name}
-                        </TableCell>
-                        <TableCell>
-                          <span className={`text-xs px-2 py-0.5 rounded ${
-                            item.item_type === 'medicine' 
-                              ? 'bg-primary/10 text-primary' 
-                              : 'bg-muted text-muted-foreground'
-                          }`}>
-                            {item.item_type === 'medicine' ? 'Medicine' : 'Inventory'}
-                          </span>
-                        </TableCell>
+                         <TableCell className="font-medium">
+                           {item.item_name}
+                         </TableCell>
+                         {!isWarehouse && (
+                           <TableCell>
+                             <span className={`text-xs px-2 py-0.5 rounded ${
+                               item.item_type === 'medicine' 
+                                 ? 'bg-primary/10 text-primary' 
+                                 : 'bg-muted text-muted-foreground'
+                             }`}>
+                               {item.item_type === 'medicine' ? 'Medicine' : 'Inventory'}
+                             </span>
+                           </TableCell>
+                         )}
                         <TableCell>{item.ordered_quantity}</TableCell>
                         <TableCell>
                           <Input
@@ -382,28 +389,30 @@ export default function GRNFormPage() {
                             }
                           />
                         </TableCell>
-                        <TableCell className="text-right">
-                          Rs. {item.unit_cost.toLocaleString()}
-                        </TableCell>
-                        <TableCell>
-                          {item.item_type === 'medicine' ? (
-                            <Input
-                              type="number"
-                              min={0}
-                              step={0.01}
-                              value={item.selling_price}
-                              onChange={(e) =>
-                                updateItem(index, "selling_price", Number(e.target.value))
-                              }
-                              className="w-24"
-                            />
-                          ) : (
-                            <span className="text-muted-foreground">N/A</span>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-right font-medium">
-                          Rs. {(item.quantity_received * item.unit_cost).toLocaleString()}
-                        </TableCell>
+                         <TableCell className="text-right">
+                           {formatCurrency(item.unit_cost)}
+                         </TableCell>
+                         {!isWarehouse && (
+                           <TableCell>
+                             {item.item_type === 'medicine' ? (
+                               <Input
+                                 type="number"
+                                 min={0}
+                                 step={0.01}
+                                 value={item.selling_price}
+                                 onChange={(e) =>
+                                   updateItem(index, "selling_price", Number(e.target.value))
+                                 }
+                                 className="w-24"
+                               />
+                             ) : (
+                               <span className="text-muted-foreground">N/A</span>
+                             )}
+                           </TableCell>
+                         )}
+                         <TableCell className="text-right font-medium">
+                           {formatCurrency(item.quantity_received * item.unit_cost)}
+                         </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -417,10 +426,10 @@ export default function GRNFormPage() {
 
               {grnItems.length > 0 && (
                 <div className="mt-4 flex justify-end">
-                  <div className="text-right">
-                    <p className="text-sm text-muted-foreground">Total Amount</p>
-                    <p className="text-2xl font-bold">
-                      Rs. {totalAmount.toLocaleString()}
+                   <div className="text-right">
+                     <p className="text-sm text-muted-foreground">Total Amount</p>
+                     <p className="text-2xl font-bold">
+                       {formatCurrency(totalAmount)}
                     </p>
                   </div>
                 </div>

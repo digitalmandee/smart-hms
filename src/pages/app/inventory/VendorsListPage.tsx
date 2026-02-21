@@ -10,8 +10,10 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/PageHeader";
 import { ListFilterBar } from "@/components/inventory/ListFilterBar";
+import { useAuth } from "@/contexts/AuthContext";
+import { useOrganization } from "@/hooks/useOrganizations";
 
-const VENDOR_TYPE_LABELS: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "destructive" }> = {
+const HOSPITAL_VENDOR_TYPE_LABELS: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "destructive" }> = {
   pharmaceutical: { label: "Pharmaceutical", variant: "default" },
   equipment: { label: "Equipment", variant: "secondary" },
   consumables: { label: "Consumables", variant: "outline" },
@@ -20,9 +22,23 @@ const VENDOR_TYPE_LABELS: Record<string, { label: string; variant: "default" | "
   general: { label: "General", variant: "outline" },
 };
 
-const VENDOR_TYPES = Object.keys(VENDOR_TYPE_LABELS);
+const WAREHOUSE_VENDOR_TYPE_LABELS: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "destructive" }> = {
+  manufacturer: { label: "Manufacturer", variant: "default" },
+  distributor: { label: "Distributor", variant: "secondary" },
+  wholesaler: { label: "Wholesaler", variant: "outline" },
+  raw_materials: { label: "Raw Materials", variant: "default" },
+  packaging: { label: "Packaging", variant: "secondary" },
+  logistics: { label: "Logistics", variant: "outline" },
+  general: { label: "General", variant: "outline" },
+};
 
 export default function VendorsListPage() {
+  const { profile } = useAuth();
+  const { data: organization } = useOrganization(profile?.organization_id);
+  const isWarehouse = organization?.facility_type === "warehouse";
+  const VENDOR_TYPE_LABELS = isWarehouse ? WAREHOUSE_VENDOR_TYPE_LABELS : HOSPITAL_VENDOR_TYPE_LABELS;
+  const VENDOR_TYPES = Object.keys(VENDOR_TYPE_LABELS);
+
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const { data: vendors, isLoading } = useVendors(search);

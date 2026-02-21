@@ -5156,6 +5156,157 @@ export type Database = {
           },
         ]
       }
+      cycle_count_items: {
+        Row: {
+          batch_number: string | null
+          bin_id: string | null
+          counted_at: string | null
+          counted_quantity: number | null
+          created_at: string
+          cycle_count_id: string
+          expected_quantity: number
+          id: string
+          item_id: string
+          notes: string | null
+          variance: number | null
+        }
+        Insert: {
+          batch_number?: string | null
+          bin_id?: string | null
+          counted_at?: string | null
+          counted_quantity?: number | null
+          created_at?: string
+          cycle_count_id: string
+          expected_quantity?: number
+          id?: string
+          item_id: string
+          notes?: string | null
+          variance?: number | null
+        }
+        Update: {
+          batch_number?: string | null
+          bin_id?: string | null
+          counted_at?: string | null
+          counted_quantity?: number | null
+          created_at?: string
+          cycle_count_id?: string
+          expected_quantity?: number
+          id?: string
+          item_id?: string
+          notes?: string | null
+          variance?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cycle_count_items_bin_id_fkey"
+            columns: ["bin_id"]
+            isOneToOne: false
+            referencedRelation: "warehouse_bins"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cycle_count_items_cycle_count_id_fkey"
+            columns: ["cycle_count_id"]
+            isOneToOne: false
+            referencedRelation: "cycle_counts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cycle_count_items_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cycle_counts: {
+        Row: {
+          assigned_to: string | null
+          completed_at: string | null
+          count_number: string
+          count_type: string
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          organization_id: string
+          started_at: string | null
+          status: string
+          store_id: string
+          updated_at: string
+          zone_id: string | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          completed_at?: string | null
+          count_number: string
+          count_type?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          organization_id: string
+          started_at?: string | null
+          status?: string
+          store_id: string
+          updated_at?: string
+          zone_id?: string | null
+        }
+        Update: {
+          assigned_to?: string | null
+          completed_at?: string | null
+          count_number?: string
+          count_type?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          started_at?: string | null
+          status?: string
+          store_id?: string
+          updated_at?: string
+          zone_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cycle_counts_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cycle_counts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cycle_counts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cycle_counts_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cycle_counts_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "warehouse_zones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       daily_closings: {
         Row: {
           actual_cash: number | null
@@ -17514,6 +17665,109 @@ export type Database = {
           },
         ]
       }
+      return_to_vendor: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          grn_id: string | null
+          id: string
+          notes: string | null
+          organization_id: string
+          reason: string | null
+          return_date: string
+          rtv_number: string
+          shipped_at: string | null
+          status: string
+          store_id: string | null
+          updated_at: string
+          vendor_id: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          grn_id?: string | null
+          id?: string
+          notes?: string | null
+          organization_id: string
+          reason?: string | null
+          return_date?: string
+          rtv_number: string
+          shipped_at?: string | null
+          status?: string
+          store_id?: string | null
+          updated_at?: string
+          vendor_id: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          grn_id?: string | null
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          reason?: string | null
+          return_date?: string
+          rtv_number?: string
+          shipped_at?: string | null
+          status?: string
+          store_id?: string | null
+          updated_at?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "return_to_vendor_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "return_to_vendor_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "return_to_vendor_grn_id_fkey"
+            columns: ["grn_id"]
+            isOneToOne: false
+            referencedRelation: "goods_received_notes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "return_to_vendor_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "return_to_vendor_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "return_to_vendor_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       role_permissions: {
         Row: {
           created_at: string
@@ -17639,6 +17893,54 @@ export type Database = {
             columns: ["submitted_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rtv_items: {
+        Row: {
+          batch_number: string | null
+          created_at: string
+          id: string
+          item_id: string
+          quantity: number
+          reason: string | null
+          rtv_id: string
+          unit_cost: number
+        }
+        Insert: {
+          batch_number?: string | null
+          created_at?: string
+          id?: string
+          item_id: string
+          quantity: number
+          reason?: string | null
+          rtv_id: string
+          unit_cost?: number
+        }
+        Update: {
+          batch_number?: string | null
+          created_at?: string
+          id?: string
+          item_id?: string
+          quantity?: number
+          reason?: string | null
+          rtv_id?: string
+          unit_cost?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rtv_items_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rtv_items_rtv_id_fkey"
+            columns: ["rtv_id"]
+            isOneToOne: false
+            referencedRelation: "return_to_vendor"
             referencedColumns: ["id"]
           },
         ]

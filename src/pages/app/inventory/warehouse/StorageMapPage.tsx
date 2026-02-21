@@ -143,7 +143,7 @@ export default function StorageMapPage() {
                                       <p className="text-xs font-medium">Stored Items:</p>
                                       {binItems.map((item) => (
                                         <div key={item.id} className="flex justify-between text-xs bg-background rounded px-2 py-1 border">
-                                          <span className="flex items-center gap-1"><Package className="h-3 w-3" />{item.item_id || item.medicine_id || "Unknown"}</span>
+                                          <span className="flex items-center gap-1"><Package className="h-3 w-3" />{(item as any).item?.name || (item as any).medicine?.name || item.item_id || "Unknown"}</span>
                                           <span className="font-medium">Qty: {item.quantity}</span>
                                         </div>
                                       ))}

@@ -1,5 +1,7 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
+import { useAuth } from "@/contexts/AuthContext";
+import { useOrganization } from "@/hooks/useOrganizations";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -45,6 +47,8 @@ export default function PODetailPage() {
   const navigate = useNavigate();
   const { id } = useParams();
   const { formatCurrency } = useCurrencyFormatter();
+  const { profile } = useAuth();
+  const { data: organization } = useOrganization(profile?.organization_id);
 
   const { data: po, isLoading } = usePurchaseOrder(id || "");
   const approveMutation = useApprovePurchaseOrder();
@@ -344,7 +348,7 @@ export default function PODetailPage() {
 
       {/* Hidden Printable */}
       <div className="hidden">
-        <PrintablePO ref={printRef} po={po} />
+        <PrintablePO ref={printRef} po={po} organizationName={organization?.name || "Organization"} />
       </div>
     </div>
   );
