@@ -432,6 +432,29 @@ export const SIDEBAR_NAME_TO_KEY: Record<string, TranslationKey> = {
   // Misc
   "Search": "nav.searchNav",
 
+  // Warehouse / Inventory sub-groups & items
+  "Stock Management": "nav.stockManagement",
+  "Warehouse Operations": "nav.warehouseOperations",
+  "Picking & Packing": "nav.pickingPacking",
+  "Shipping": "nav.shipping",
+  "Barcode & Integrations": "nav.barcodeIntegrations",
+  "Storage Map": "nav.storageMap",
+  "Zones": "nav.zones",
+  "Bins": "nav.bins",
+  "Bin Assignments": "nav.binAssignments",
+  "Put-Away Worklist": "nav.putAwayWorklist",
+  "Picking Dashboard": "nav.pickingDashboard",
+  "Pick Lists": "nav.pickLists",
+  "Packing Slips": "nav.packingSlips",
+  "Dispatch Dashboard": "nav.dispatchDashboard",
+  "Shipments": "nav.shipments",
+  "Barcode Labels": "nav.barcodeLabels",
+  "Barcode Scanner": "nav.barcodeScanner",
+  "API Keys": "nav.apiKeys",
+  "Stock Adjustments": "nav.stockAdjustments",
+  "Reorder Alerts": "nav.reorderAlerts",
+  "Purchase Requisitions": "nav.purchaseRequisitions",
+
   // Missing DB menu item names
   "Walk-in Patient": "nav.walkInPatient",
   "Schedule Appointment": "nav.scheduleAppointment",

@@ -390,6 +390,29 @@ export const en = {
   // Misc
   "nav.searchNav": "Search",
 
+  // Warehouse / Inventory sub-groups
+  "nav.stockManagement": "Stock Management",
+  "nav.warehouseOperations": "Warehouse Operations",
+  "nav.pickingPacking": "Picking & Packing",
+  "nav.shipping": "Shipping",
+  "nav.barcodeIntegrations": "Barcode & Integrations",
+  "nav.storageMap": "Storage Map",
+  "nav.zones": "Zones",
+  "nav.bins": "Bins",
+  "nav.binAssignments": "Bin Assignments",
+  "nav.putAwayWorklist": "Put-Away Worklist",
+  "nav.pickingDashboard": "Picking Dashboard",
+  "nav.pickLists": "Pick Lists",
+  "nav.packingSlips": "Packing Slips",
+  "nav.dispatchDashboard": "Dispatch Dashboard",
+  "nav.shipments": "Shipments",
+  "nav.barcodeLabels": "Barcode Labels",
+  "nav.barcodeScanner": "Barcode Scanner",
+  "nav.apiKeys": "API Keys",
+  "nav.stockAdjustments": "Stock Adjustments",
+  "nav.reorderAlerts": "Reorder Alerts",
+  "nav.purchaseRequisitions": "Purchase Requisitions",
+
   // IPD Module
   "ipd.dashboard": "IPD Dashboard",
   "ipd.subtitle": "Inpatient department overview and management",
