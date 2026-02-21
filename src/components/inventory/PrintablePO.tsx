@@ -9,7 +9,7 @@ interface PrintablePOProps {
 }
 
 export const PrintablePO = forwardRef<HTMLDivElement, PrintablePOProps>(
-  ({ po, organizationName = "Hospital", currencySymbol = "Rs." }, ref) => {
+  ({ po, organizationName = "Organization", currencySymbol = "Rs." }, ref) => {
     const fc = (amount: number) => `${currencySymbol} ${amount.toLocaleString()}`;
     const subtotal = po.items?.reduce((sum, item) => {
       const itemSubtotal = item.quantity * item.unit_price;

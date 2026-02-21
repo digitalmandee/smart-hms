@@ -23,9 +23,23 @@ const PHARMACY_PATH_PREFIXES = [
   "/app/pharmacy",
 ];
 
+// Billing paths - irrelevant for warehouse
+const BILLING_PATH_PREFIXES = [
+  "/app/billing",
+];
+
+// Clinical HR sub-paths that are hospital-specific
+const CLINICAL_HR_PATH_PREFIXES = [
+  "/app/hr/doctor-compensation",
+  "/app/hr/doctor-earnings",
+  "/app/hr/visiting-doctors",
+  "/app/hr/ot-roster",
+  "/app/hr/emergency-roster",
+];
+
 // Paths blocked per facility type
 const BLOCKED_PREFIXES: Record<string, string[]> = {
-  warehouse: [...CLINICAL_PATH_PREFIXES, ...PHARMACY_PATH_PREFIXES],
+  warehouse: [...CLINICAL_PATH_PREFIXES, ...PHARMACY_PATH_PREFIXES, ...BILLING_PATH_PREFIXES, ...CLINICAL_HR_PATH_PREFIXES],
   pharmacy: [...CLINICAL_PATH_PREFIXES], // pharmacy keeps its own paths
 };
 
@@ -36,16 +50,30 @@ const LABEL_OVERRIDES: Record<string, Record<string, string>> = {
   },
 };
 
+// Names of sidebar items to hide entirely for specific facility types
+const HIDDEN_ITEM_NAMES: Record<string, string[]> = {
+  warehouse: [
+    "doctors", "nurses", "paramedical staff",
+    "doctor compensation", "doctor earnings", "visiting doctors",
+    "ot roster", "emergency roster",
+  ],
+};
+
 function isPathBlocked(path: string | null, blockedPrefixes: string[]): boolean {
   if (!path) return false;
   return blockedPrefixes.some(prefix => path.startsWith(prefix));
 }
 
-function filterItems(items: SidebarMenuItem[], blockedPrefixes: string[], labelOverrides?: Record<string, string>): SidebarMenuItem[] {
+function filterItems(items: SidebarMenuItem[], blockedPrefixes: string[], labelOverrides?: Record<string, string>, hiddenNames?: string[]): SidebarMenuItem[] {
   return items
     .map(item => {
       // If this item's own path is blocked, skip it
       if (item.path && isPathBlocked(item.path, blockedPrefixes)) {
+        return null;
+      }
+
+      // If this item's name is in the hidden list, skip it
+      if (hiddenNames && item.name && hiddenNames.includes(item.name.toLowerCase())) {
         return null;
       }
 
@@ -56,7 +84,7 @@ function filterItems(items: SidebarMenuItem[], blockedPrefixes: string[], labelO
 
       // If item has children, filter them
       if (item.children && item.children.length > 0) {
-        const filteredChildren = filterItems(item.children, blockedPrefixes, labelOverrides);
+        const filteredChildren = filterItems(item.children, blockedPrefixes, labelOverrides, hiddenNames);
         // If all children were filtered out, skip the parent too
         if (filteredChildren.length === 0) {
           return null;
@@ -85,5 +113,6 @@ export function filterSidebarByFacilityType(
   if (!blockedPrefixes) return items; // hospital, clinic, diagnostic_center = no filtering
   
   const labelOverrides = LABEL_OVERRIDES[facilityType];
-  return filterItems(items, blockedPrefixes, labelOverrides);
+  const hiddenNames = HIDDEN_ITEM_NAMES[facilityType];
+  return filterItems(items, blockedPrefixes, labelOverrides, hiddenNames);
 }

@@ -19,6 +19,8 @@ import { usePrint } from "@/hooks/usePrint";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
+import { useAuth } from "@/contexts/AuthContext";
+import { useOrganization } from "@/hooks/useOrganizations";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -26,6 +28,8 @@ export default function GRNDetailPage() {
   const navigate = useNavigate();
   const { id } = useParams();
   const { formatCurrency } = useCurrencyFormatter();
+  const { profile } = useAuth();
+  const { data: organization } = useOrganization(profile?.organization_id);
   const [highlightedItem, setHighlightedItem] = useState<string | null>(null);
 
   const { data: grn, isLoading } = useGRN(id || "");
@@ -110,7 +114,7 @@ export default function GRNDetailPage() {
     <div className="space-y-6">
       {/* Hidden printable component */}
       <div className="hidden">
-        <PrintableGRN ref={printRef} grn={grn} />
+        <PrintableGRN ref={printRef} grn={grn} organizationName={organization?.name || "Organization"} />
       </div>
 
       <PageHeader

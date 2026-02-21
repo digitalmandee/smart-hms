@@ -9,7 +9,7 @@ interface PrintableGRNProps {
 }
 
 export const PrintableGRN = forwardRef<HTMLDivElement, PrintableGRNProps>(
-  ({ grn, organizationName = "Hospital", currencySymbol = "Rs." }, ref) => {
+  ({ grn, organizationName = "Organization", currencySymbol = "Rs." }, ref) => {
     const totalValue = grn.items?.reduce((sum, item) => 
       sum + (item.quantity_accepted * item.unit_cost), 0
     ) || 0;

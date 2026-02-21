@@ -70,7 +70,7 @@ export default function InventoryReportsPage() {
     { title: "Sales Report", description: "Pharmacy sales and revenue analysis", icon: BarChart3, href: "/app/pharmacy/reports" },
   ];
 
-  const showPharmacySection = stats?.isHospital && stats?.hasPharmacyModule;
+  const showPharmacySection = !isWarehouse && stats?.isHospital && stats?.hasPharmacyModule;
 
   const filterReports = (reports: ReportCard[]) => {
     if (!searchFilter) return reports;
