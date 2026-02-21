@@ -278,6 +278,7 @@ export function useInventoryItems(filters?: { categoryId?: string; search?: stri
           *,
           category:inventory_categories(id, name)
         `)
+        .eq("organization_id", profile!.organization_id!)
         .eq("is_active", true)
         .order("name");
       

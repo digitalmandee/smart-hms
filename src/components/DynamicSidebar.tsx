@@ -155,6 +155,7 @@ import {
   Truck,
   Webhook,
   Users2,
+  Sliders,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -693,6 +694,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Truck,
   Webhook,
   Users2,
+  Sliders,
 };
 
 interface DynamicSidebarProps {
