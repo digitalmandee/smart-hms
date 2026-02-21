@@ -923,9 +923,27 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle, showDesktopToggl
     ? { items: filterSidebarByFacilityType(rawSidebarConfig.items, orgFacilityType) }
     : rawSidebarConfig;
 
+  // Label overrides for DB menu items based on facility type
+  const DB_LABEL_OVERRIDES: Record<string, Record<string, string>> = {
+    warehouse: { inventory: "Warehouse" },
+  };
+
+  const applyDbLabelOverrides = (items: typeof dbMenuItems): typeof dbMenuItems => {
+    const overrides = orgFacilityType ? DB_LABEL_OVERRIDES[orgFacilityType] : null;
+    if (!overrides) return items;
+    return items.map(item => {
+      const override = overrides[item.code?.toLowerCase() || ""];
+      const newItem = override ? { ...item, name: override } : item;
+      if (newItem.children && newItem.children.length > 0) {
+        return { ...newItem, children: applyDbLabelOverrides(newItem.children) };
+      }
+      return newItem;
+    });
+  };
+
   // Convert static config to menu items format for rendering
   const menuItems = usesDatabaseMenus 
-    ? dbMenuItems 
+    ? applyDbLabelOverrides(dbMenuItems)
     : (sidebarConfig?.items.map((item, index) => ({
         id: `role-menu-${index}`,
         code: item.path || `menu-${index}`,
