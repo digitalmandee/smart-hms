@@ -392,6 +392,29 @@ export const ar: Record<TranslationKey, string> = {
   // Misc
   "nav.searchNav": "بحث",
 
+  // Warehouse / Inventory sub-groups
+  "nav.stockManagement": "إدارة المخزون",
+  "nav.warehouseOperations": "عمليات المستودع",
+  "nav.pickingPacking": "الانتقاء والتعبئة",
+  "nav.shipping": "الشحن",
+  "nav.barcodeIntegrations": "الباركود والتكاملات",
+  "nav.storageMap": "خريطة التخزين",
+  "nav.zones": "المناطق",
+  "nav.bins": "الصناديق",
+  "nav.binAssignments": "تعيينات الصناديق",
+  "nav.putAwayWorklist": "قائمة التخزين",
+  "nav.pickingDashboard": "لوحة الانتقاء",
+  "nav.pickLists": "قوائم الانتقاء",
+  "nav.packingSlips": "إيصالات التعبئة",
+  "nav.dispatchDashboard": "لوحة الإرسال",
+  "nav.shipments": "الشحنات",
+  "nav.barcodeLabels": "ملصقات الباركود",
+  "nav.barcodeScanner": "ماسح الباركود",
+  "nav.apiKeys": "مفاتيح API",
+  "nav.stockAdjustments": "تعديلات المخزون",
+  "nav.reorderAlerts": "تنبيهات إعادة الطلب",
+  "nav.purchaseRequisitions": "طلبات الشراء",
+
   // IPD Module
   "ipd.dashboard": "لوحة تحكم التنويم",
   "ipd.subtitle": "نظرة عامة على قسم المرضى الداخليين وإدارته",

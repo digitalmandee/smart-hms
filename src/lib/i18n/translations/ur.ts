@@ -317,6 +317,29 @@ export const ur: Record<TranslationKey, string> = {
   // Misc
   "nav.searchNav": "تلاش",
 
+  // Warehouse / Inventory sub-groups
+  "nav.stockManagement": "اسٹاک مینجمنٹ",
+  "nav.warehouseOperations": "گودام آپریشنز",
+  "nav.pickingPacking": "پکنگ اور پیکنگ",
+  "nav.shipping": "شپنگ",
+  "nav.barcodeIntegrations": "بارکوڈ اور انٹیگریشنز",
+  "nav.storageMap": "اسٹوریج میپ",
+  "nav.zones": "زونز",
+  "nav.bins": "بنز",
+  "nav.binAssignments": "بن اسائنمنٹس",
+  "nav.putAwayWorklist": "پٹ اوے ورک لسٹ",
+  "nav.pickingDashboard": "پکنگ ڈیش بورڈ",
+  "nav.pickLists": "پک لسٹس",
+  "nav.packingSlips": "پیکنگ سلپس",
+  "nav.dispatchDashboard": "ڈسپیچ ڈیش بورڈ",
+  "nav.shipments": "شپمنٹس",
+  "nav.barcodeLabels": "بارکوڈ لیبلز",
+  "nav.barcodeScanner": "بارکوڈ اسکینر",
+  "nav.apiKeys": "API کیز",
+  "nav.stockAdjustments": "اسٹاک ایڈجسٹمنٹس",
+  "nav.reorderAlerts": "ری آرڈر الرٹس",
+  "nav.purchaseRequisitions": "پرچیز ریکوزیشنز",
+
   // IPD Module
   "ipd.dashboard": "IPD ڈیش بورڈ",
   "ipd.subtitle": "داخلی محکمے کا جائزہ اور انتظام",
