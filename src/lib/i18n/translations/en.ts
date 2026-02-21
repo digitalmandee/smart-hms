@@ -2296,6 +2296,56 @@ export const en = {
   "scanner.notInList": "is not in this list",
   "scanner.scannedSuccessfully": "Scanned successfully",
   "scanner.cameraAccessDenied": "Camera access denied",
+  "scanner.scanBinPlaceholder": "Scan bin barcode to auto-select...",
+  "scanner.binMatched": "Bin matched",
+  "scanner.binNotFound": "No active bin found with this code",
+
+  // Warehouse & Storage
+  "warehouse.manageZones": "Manage Zones",
+  "warehouse.manageBins": "Manage Bins",
+  "warehouse.overallUtilization": "Overall Utilization",
+  "warehouse.totalZones": "Total Zones",
+  "warehouse.totalBins": "Total Bins",
+  "warehouse.createFirstZone": "Create Your First Zone",
+  "warehouse.noZonesConfigured": "No zones configured for this warehouse.",
+  "warehouse.selectWarehouse": "Select a warehouse to view the storage map.",
+  "warehouse.binsInZone": "Bins in",
+  "warehouse.noBinsInZone": "No bins in this zone.",
+  "warehouse.storedItems": "Stored Items",
+  "warehouse.noItemsInBin": "No items assigned to this bin",
+
+  // Shipment
+  "shipment.deliveryNote": "DELIVERY NOTE",
+  "shipment.destinationDates": "Destination & Dates",
+  "shipment.markDispatched": "Mark Dispatched",
+  "shipment.markDelivered": "Mark Delivered",
+  "shipment.shippingCost": "Shipping Cost",
+  "shipment.destinationType": "Destination Type",
+  "shipment.estDelivery": "Est. Delivery",
+  "shipment.actualDelivery": "Actual Delivery",
+  "shipment.dispatchedAt": "Dispatched At",
+  "shipment.receivedAt": "Received At",
+  "shipment.receivedBy": "Received By",
+  "shipment.viewPackingSlip": "View Packing Slip",
+  "shipment.viewTransfer": "View Transfer",
+
+  // Put-Away
+  "putaway.scanBin": "Scan Bin Barcode",
+  "putaway.selectBinManually": "Or Select Bin Manually",
+  "putaway.itemDetails": "Item Details",
+  "putaway.grnReference": "GRN Reference",
+  "putaway.viewGrn": "View GRN",
+
+  // Picking Dashboard
+  "picking.pendingPicks": "Pending Picks",
+  "picking.inProgress": "In Progress",
+  "picking.completedPicks": "Completed Picks",
+  "picking.pendingPacking": "Pending Packing",
+  "picking.recentPickLists": "Recent Pick Lists",
+  "picking.recentPackingSlips": "Recent Packing Slips",
+  "picking.viewAll": "View All",
+  "picking.noPickListsYet": "No pick lists yet",
+  "picking.noPackingSlipsYet": "No packing slips yet",
 
 } as const;
 
