@@ -434,6 +434,10 @@ import ConsumptionReport from "./pages/app/inventory/reports/ConsumptionReport";
 import WarehouseOperationsReport from "./pages/app/inventory/reports/WarehouseOperationsReport";
 import PickingShippingReport from "./pages/app/inventory/reports/PickingShippingReport";
 import ABCAnalysisReport from "./pages/app/inventory/reports/ABCAnalysisReport";
+import WarehouseExecutiveDashboard from "./pages/app/inventory/reports/WarehouseExecutiveDashboard";
+import VendorPerformanceReport from "./pages/app/inventory/reports/VendorPerformanceReport";
+import DeadStockReport from "./pages/app/inventory/reports/DeadStockReport";
+import FastMovingReport from "./pages/app/inventory/reports/FastMovingReport";
 
 // Accounts pages
 import AccountsDashboard from "./pages/app/accounts/AccountsDashboard";
@@ -913,6 +917,10 @@ function App() {
               <Route path="inventory/reports/operations" element={<WarehouseOperationsReport />} />
               <Route path="inventory/reports/picking-shipping" element={<PickingShippingReport />} />
               <Route path="inventory/reports/abc-analysis" element={<ABCAnalysisReport />} />
+              <Route path="inventory/reports/executive" element={<WarehouseExecutiveDashboard />} />
+              <Route path="inventory/reports/vendor-performance" element={<VendorPerformanceReport />} />
+              <Route path="inventory/reports/dead-stock" element={<DeadStockReport />} />
+              <Route path="inventory/reports/fast-moving" element={<FastMovingReport />} />
               
               {/* Billing routes */}
               <Route path="billing" element={<BillingDashboard />} />
