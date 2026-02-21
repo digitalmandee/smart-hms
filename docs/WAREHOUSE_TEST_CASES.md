@@ -226,8 +226,11 @@
 | 13.7 | Expiry Filter | Change days filter (30→90) | More items appear as window widens |
 | 13.8 | Consumption Report | Navigate to Consumption Report | Shows department names (not IDs) from requisitions with bar chart |
 | 13.9 | Consumption Departments | Check department column | Shows actual department names (e.g., "Pharmacy", "Emergency") not "Unassigned" |
-
-> **Note:** Vendor Performance, Dead Stock, and Fast Moving reports are planned enhancements and do not have dedicated pages yet.
+| 13.10 | Executive Dashboard | Navigate to Executive Dashboard | KPI cards (Stock Value, PO Spend, GRN Count) and trend charts render with data |
+| 13.11 | Vendor Performance | Navigate to Vendor Performance Report | Shows vendor names, total spend, PO count per vendor |
+| 13.12 | Dead Stock | Navigate to Dead Stock Report → Change days filter (30/60/90/180) | Items with no movement in selected period listed with value |
+| 13.13 | Fast Moving Items | Navigate to Fast Moving Report | Top items ranked by received + issued quantity |
+| 13.14 | Report CSV Export | Click "Export > CSV" on any report page | CSV file downloads with correct headers and data |
 
 ---
 
@@ -285,3 +288,8 @@
 - [ ] 2 stock adjustments (expired, damaged)
 - [ ] 8 items showing in reorder alerts
 - [ ] All report pages render with data
+- [ ] Executive Dashboard shows KPI cards and charts
+- [ ] Vendor Performance report loads with vendor data
+- [ ] Dead Stock report filters by days (30/60/90/180)
+- [ ] Fast Moving Items report shows ranked items
+- [ ] CSV/PDF export works on all report pages

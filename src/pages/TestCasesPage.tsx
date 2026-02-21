@@ -719,6 +719,34 @@ const JOURNEY_TEST_CASES = [
       { step: 14, role: "Receptionist", action: "Print Patient ID Card", location: "Print Card Button", expected: "Card with photo, MR#, QR code", data: "Printable patient identification" },
       { step: 15, role: "Doctor", action: "Add quick clinical note from profile", location: "Quick Action", expected: "Note saved to patient record", data: "Optional note without full consultation" }
     ]
+  },
+  {
+    id: "journey-warehouse",
+    name: "Full Warehouse Procurement to Dispatch",
+    icon: Package,
+    description: "Complete warehouse cycle from reorder alert through procurement, receiving, QC, put-away, requisition, picking, packing, and shipping",
+    roles: ["Warehouse Admin", "Warehouse User"],
+    estimatedTime: "30-40 minutes",
+    steps: [
+      { step: 1, role: "Warehouse Admin", action: "View reorder alerts for items below threshold", location: "/app/warehouse/reorder-alerts", expected: "Items below reorder level listed with deficit", data: "8 items should show alerts" },
+      { step: 2, role: "Warehouse Admin", action: "Select items and create Purchase Request", location: "Reorder Alerts", expected: "PR created pre-filled with deficit quantities", data: "Auto-generated PR number" },
+      { step: 3, role: "Warehouse Admin", action: "Submit and approve Purchase Request", location: "/app/warehouse/purchase-requests", expected: "PR status: approved", data: "Approved by warehouse admin" },
+      { step: 4, role: "Warehouse Admin", action: "Convert approved PR to Purchase Order", location: "PR Detail > Convert to PO", expected: "PO created with PR items and vendor", data: "Select vendor from list" },
+      { step: 5, role: "Warehouse Admin", action: "Approve Purchase Order", location: "/app/warehouse/purchase-orders", expected: "PO status: approved", data: "Ready to send to vendor" },
+      { step: 6, role: "Warehouse User", action: "Create GRN from approved PO", location: "PO Detail > Create GRN", expected: "GRN form pre-filled with PO items", data: "Enter received qty, batch, expiry" },
+      { step: 7, role: "Warehouse User", action: "Perform QC check on each received item", location: "GRN QC Section", expected: "Items marked accepted/rejected with reasons", data: "Per-item quality check" },
+      { step: 8, role: "Warehouse Admin", action: "Verify GRN after QC approval", location: "GRN Detail > Verify", expected: "Stock updated in inventory_stock", data: "Quantities reflect received amounts" },
+      { step: 9, role: "Warehouse Admin", action: "Post GRN to accounts", location: "GRN Detail > Post", expected: "Journal entry created", data: "Accounts payable updated" },
+      { step: 10, role: "Warehouse User", action: "Complete put-away tasks to assigned bins", location: "/app/warehouse/putaway", expected: "Items assigned to storage bins", data: "Bin occupancy updated" },
+      { step: 11, role: "Warehouse User", action: "Create stock requisition from department", location: "/app/warehouse/requisitions", expected: "Requisition created with requested items", data: "Department and priority set" },
+      { step: 12, role: "Warehouse Admin", action: "Approve requisition with quantities", location: "Requisition Detail > Approve", expected: "Status: approved, pick list generated", data: "qty_approved may differ from qty_requested" },
+      { step: 13, role: "Warehouse User", action: "Start and complete pick list (FEFO)", location: "/app/warehouse/pick-lists", expected: "Items picked from bins, earliest expiry first", data: "quantity_picked updated per item" },
+      { step: 14, role: "Warehouse User", action: "Create packing slip and pack items", location: "Packing > New from pick list", expected: "Items assigned to boxes with weight", data: "Box numbers and total weight recorded" },
+      { step: 15, role: "Warehouse Admin", action: "Verify packing slip", location: "Packing Slip > Verify", expected: "Status: verified, ready for shipment", data: "verified_by set" },
+      { step: 16, role: "Warehouse User", action: "Create shipment with carrier details", location: "/app/warehouse/shipping", expected: "Shipment created with tracking", data: "Carrier name, tracking number" },
+      { step: 17, role: "Warehouse User", action: "Dispatch shipment", location: "Shipment > Dispatch", expected: "Status: dispatched, dispatched_at set", data: "Items in transit to destination" },
+      { step: 18, role: "Warehouse User", action: "Mark shipment as delivered", location: "Shipment > Mark Delivered", expected: "Status: delivered, delivered_at set", data: "Delivery confirmed at destination" }
+    ]
   }
 ];
 
@@ -743,7 +771,9 @@ const TEST_CASES = {
     { role: "HR Manager", email: "hrmanager@healthos.demo", module: "HR Operations" },
     { role: "HR Officer", email: "hrofficer@healthos.demo", module: "Attendance & Leaves" },
     { role: "Store Manager", email: "storemanager@healthos.demo", module: "Inventory & Procurement" },
-    { role: "Blood Bank Tech", email: "bloodbank@healthos.demo", module: "Blood Bank Operations" }
+    { role: "Blood Bank Tech", email: "bloodbank@healthos.demo", module: "Blood Bank Operations" },
+    { role: "Warehouse Admin", email: "warehouse.admin@healthos.demo", module: "Warehouse Management" },
+    { role: "Warehouse User", email: "warehouse.user@healthos.demo", module: "Warehouse Operations" }
   ],
   modules: [
     { name: "Reception & Patient Registration", icon: "👤", tests: [
@@ -813,11 +843,46 @@ const TEST_CASES = {
       { id: "HR-003", test: "Approve leave", steps: "Leaves > Approve", expected: "Leave approved" },
       { id: "HR-004", test: "Process payroll", steps: "Payroll > Process", expected: "Salaries calculated" }
     ]},
-    { name: "Inventory", icon: "📦", tests: [
-      { id: "INV-001", test: "Create purchase order", steps: "PO > New", expected: "PO generated" },
-      { id: "INV-002", test: "Approve PO", steps: "PO > Approve", expected: "Status: approved" },
-      { id: "INV-003", test: "Receive goods (GRN)", steps: "GRN > Create from PO", expected: "GRN created" },
-      { id: "INV-004", test: "View stock levels", steps: "Stock Levels page", expected: "Current stock shown" }
+    { name: "Warehouse & Inventory — Procurement", icon: "📦", tests: [
+      { id: "WH-PR-001", test: "Create purchase request", steps: "Procurement > PRs > New PR", expected: "PR created with auto-number" },
+      { id: "WH-PR-002", test: "Submit PR for approval", steps: "Open draft PR > Submit", expected: "Status: pending_approval" },
+      { id: "WH-PR-003", test: "Approve purchase request", steps: "Open pending PR > Approve", expected: "Status: approved" },
+      { id: "WH-PO-001", test: "Create PO from PR", steps: "Approved PR > Convert to PO", expected: "PO pre-filled with PR items" },
+      { id: "WH-PO-002", test: "Approve purchase order", steps: "Draft PO > Approve", expected: "Status: approved" },
+      { id: "WH-PO-003", test: "Create GRN from PO", steps: "Approved PO > Create GRN", expected: "GRN form pre-filled" }
+    ]},
+    { name: "Warehouse & Inventory — Receiving", icon: "📥", tests: [
+      { id: "WH-GRN-001", test: "Create GRN with batch/expiry", steps: "GRN > New > Enter qty, batch, expiry", expected: "GRN created with auto-number" },
+      { id: "WH-GRN-002", test: "QC check per item", steps: "Draft GRN > QC section > Accept/Reject", expected: "Items marked accepted/rejected" },
+      { id: "WH-GRN-003", test: "Verify GRN", steps: "QC-approved GRN > Verify", expected: "Stock updated in inventory" },
+      { id: "WH-GRN-004", test: "Post GRN to accounts", steps: "Verified GRN > Post", expected: "Journal entry created" }
+    ]},
+    { name: "Warehouse & Inventory — Stock Management", icon: "🏗️", tests: [
+      { id: "WH-STK-001", test: "View inventory items", steps: "Stock > Items list", expected: "Items with SKU, barcode, category shown" },
+      { id: "WH-STK-002", test: "Create stock adjustment", steps: "Adjustments > New > Expired/Damaged", expected: "Adjustment created, stock reduced" },
+      { id: "WH-STK-003", test: "View reorder alerts", steps: "Procurement > Reorder Alerts", expected: "Items below reorder level listed" },
+      { id: "WH-STK-004", test: "Create PR from alerts", steps: "Select items > Create PR", expected: "PR pre-filled with deficit quantities" }
+    ]},
+    { name: "Warehouse & Inventory — Outbound", icon: "🚚", tests: [
+      { id: "WH-OUT-001", test: "Create stock requisition", steps: "Stock > Requisitions > New", expected: "Requisition created" },
+      { id: "WH-OUT-002", test: "Create store transfer", steps: "Outbound > Transfers > New", expected: "Transfer with source/dest stores" },
+      { id: "WH-OUT-003", test: "Start and complete pick list", steps: "Pick Lists > Start Picking > Pick items", expected: "FEFO-based picking completed" },
+      { id: "WH-OUT-004", test: "Create and verify packing slip", steps: "Packing > New > Assign boxes > Verify", expected: "Packing slip verified" },
+      { id: "WH-OUT-005", test: "Create shipment and dispatch", steps: "Shipping > New > Enter carrier > Dispatch", expected: "Shipment dispatched with tracking" }
+    ]},
+    { name: "Warehouse & Inventory — Reports", icon: "📊", tests: [
+      { id: "WH-RPT-001", test: "Executive Dashboard loads", steps: "Reports > Executive Dashboard", expected: "KPI cards and charts render" },
+      { id: "WH-RPT-002", test: "Stock Valuation report", steps: "Reports > Stock Valuation", expected: "Total value calculated (qty × cost)" },
+      { id: "WH-RPT-003", test: "ABC Analysis report", steps: "Reports > ABC Analysis", expected: "Items classified A/B/C with Pareto chart" },
+      { id: "WH-RPT-004", test: "Expiry report with filter", steps: "Reports > Expiry > Change days filter", expected: "Items within expiry window shown" },
+      { id: "WH-RPT-005", test: "Consumption report", steps: "Reports > Consumption", expected: "Department-wise consumption with chart" },
+      { id: "WH-RPT-006", test: "Vendor Performance report", steps: "Reports > Vendor Performance", expected: "Vendor spend and PO counts shown" },
+      { id: "WH-RPT-007", test: "Dead Stock report", steps: "Reports > Dead Stock > Change days", expected: "Items with no movement listed" },
+      { id: "WH-RPT-008", test: "Fast Moving Items report", steps: "Reports > Fast Moving", expected: "Top items by movement shown" }
+    ]},
+    { name: "Warehouse & Inventory — Exports", icon: "💾", tests: [
+      { id: "WH-EXP-001", test: "Export report to CSV", steps: "Any report > Export > CSV", expected: "CSV file downloads" },
+      { id: "WH-EXP-002", test: "Export report to PDF", steps: "Any report > Export > PDF", expected: "PDF file downloads" }
     ]},
     { name: "Kiosk Management", icon: "📱", tests: [
       { id: "KIOSK-001", test: "Create new kiosk", steps: "Settings > Kiosks > New", expected: "Kiosk created with credentials" },
@@ -883,6 +948,8 @@ const getRoleBadgeColor = (role: string) => {
     "Patient": "bg-sky-100 text-sky-800 dark:bg-sky-900 dark:text-sky-300",
     "Employee": "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300",
     "System": "bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-400",
+    "Warehouse Admin": "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300",
+    "Warehouse User": "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300",
   };
   return colors[role] || "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300";
 };
@@ -897,7 +964,7 @@ export default function TestCasesPage() {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold">HMS Comprehensive Test Cases</h1>
-            <p className="text-sm text-muted-foreground">18 End-to-End Journeys · 200+ Module Tests · 19 Demo Accounts</p>
+            <p className="text-sm text-muted-foreground">19 End-to-End Journeys · 200+ Module Tests · 21 Demo Accounts</p>
           </div>
           <Button onClick={() => handlePrint()}><Download className="h-4 w-4 mr-2" />Download PDF</Button>
         </div>
