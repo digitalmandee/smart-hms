@@ -21,6 +21,7 @@ import PricingProposal from "./pages/PricingProposal";
 import SocialMediaPosts from "./pages/SocialMediaPosts";
 import PharmacyDocumentation from "./pages/PharmacyDocumentation";
 import TestCasesPage from "./pages/TestCasesPage";
+import WarehouseTestCasesPage from "./pages/WarehouseTestCasesPage";
 import { LoginPage } from "./pages/auth/LoginPage";
 import { SignupPage } from "./pages/auth/SignupPage";
 import { DashboardPage } from "./pages/app/DashboardPage";
@@ -568,6 +569,7 @@ function App() {
             
             {/* Test Cases Documentation (hidden - not linked from landing page) */}
             <Route path="/test-cases" element={<TestCasesPage />} />
+            <Route path="/warehouse-test-cases" element={<WarehouseTestCasesPage />} />
             {/* Authenticated kiosk routes - separate login for kiosk devices */}
             <Route path="/kiosk/login" element={<KioskLoginPage />} />
             <Route path="/kiosk/terminal" element={<KioskTerminalPage />} />
