@@ -425,6 +425,8 @@ import ShipmentFormPage from "./pages/app/inventory/shipping/ShipmentFormPage";
 import ShipmentDetailPage from "./pages/app/inventory/shipping/ShipmentDetailPage";
 import DispatchDashboardPage from "./pages/app/inventory/shipping/DispatchDashboardPage";
 import WarehouseIntegrationsPage from "./pages/app/inventory/WarehouseIntegrationsPage";
+import BarcodeScannerSetup from "./pages/app/inventory/integrations/BarcodeScannerSetup";
+import ApiKeysPage from "./pages/app/inventory/integrations/ApiKeysPage";
 
 // Report sub-pages
 import StockValuationReport from "./pages/app/inventory/reports/StockValuationReport";
@@ -909,6 +911,8 @@ function App() {
               <Route path="inventory/shipping/:id" element={<ShipmentDetailPage />} />
               <Route path="inventory/integrations" element={<WarehouseIntegrationsPage />} />
               <Route path="inventory/barcode-labels" element={<BarcodeLabelPage />} />
+              <Route path="inventory/integrations/barcode-scanner" element={<BarcodeScannerSetup />} />
+              <Route path="inventory/integrations/api-keys" element={<ApiKeysPage />} />
               
               {/* Inventory Report sub-pages */}
               <Route path="inventory/reports/valuation" element={<StockValuationReport />} />
