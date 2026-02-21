@@ -2304,5 +2304,23 @@ export const ar: Record<TranslationKey, string> = {
   "picking.noPickListsYet": "لا توجد قوائم التقاط بعد",
   "picking.noPackingSlipsYet": "لا توجد قسائم تعبئة بعد",
 
+
+  // Filters
+  "filter.search": "بحث",
+  "filter.allTypes": "جميع الأنواع",
+  "filter.allStatuses": "جميع الحالات",
+  "filter.allStatus": "جميع الحالات",
+  "filter.active": "نشط",
+  "filter.inactive": "غير نشط",
+  "filter.available": "متاح",
+  "filter.occupied": "مشغول",
+  "filter.searchByCode": "...بحث بالرمز",
+  "filter.searchByName": "...بحث بالاسم",
+  "filter.searchVendors": "...بحث الموردين",
+  "filter.searchByNumber": "...بحث بالرقم",
+  "filter.recentShipments": "الشحنات الأخيرة",
+  "filter.viewAll": "عرض الكل",
+  "filter.newShipment": "شحنة جديدة",
+
 };
 

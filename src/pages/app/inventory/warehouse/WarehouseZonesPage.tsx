@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { StoreSelector } from "@/components/inventory/StoreSelector";
+import { ListFilterBar } from "@/components/inventory/ListFilterBar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Label } from "@/components/ui/label";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { useWarehouseZones, useCreateZone, useUpdateZone, useDeleteZone } from "@/hooks/useWarehouseZones";
+import { useDefaultStore } from "@/hooks/useDefaultStore";
 
 const ZONE_TYPES = ["receiving", "storage", "staging", "shipping", "cold", "hazardous"];
 
@@ -19,11 +21,26 @@ export default function WarehouseZonesPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingZone, setEditingZone] = useState<any>(null);
   const [form, setForm] = useState({ zone_code: "", zone_name: "", zone_type: "storage", temperature_range: "" });
+  const [search, setSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+
+  useDefaultStore(storeId, setStoreId, false);
 
   const { data: zones, isLoading } = useWarehouseZones(storeId);
   const createZone = useCreateZone();
   const updateZone = useUpdateZone();
   const deleteZone = useDeleteZone();
+
+  const filteredZones = useMemo(() => {
+    if (!zones) return [];
+    return zones.filter((z) => {
+      const matchesSearch = !search || z.zone_code.toLowerCase().includes(search.toLowerCase()) || z.zone_name.toLowerCase().includes(search.toLowerCase());
+      const matchesType = typeFilter === "all" || z.zone_type === typeFilter;
+      const matchesStatus = statusFilter === "all" || (statusFilter === "active" ? z.is_active : !z.is_active);
+      return matchesSearch && matchesType && matchesStatus;
+    });
+  }, [zones, search, typeFilter, statusFilter]);
 
   const openCreate = () => { setEditingZone(null); setForm({ zone_code: "", zone_name: "", zone_type: "storage", temperature_range: "" }); setDialogOpen(true); };
   const openEdit = (z: any) => { setEditingZone(z); setForm({ zone_code: z.zone_code, zone_name: z.zone_name, zone_type: z.zone_type, temperature_range: z.temperature_range || "" }); setDialogOpen(true); };
@@ -50,8 +67,30 @@ export default function WarehouseZonesPage() {
           </div>
         }
       />
+
       <Card>
-        <CardHeader><CardTitle>Zones {zones?.length ? `(${zones.length})` : ""}</CardTitle></CardHeader>
+        <CardHeader>
+          <div className="flex flex-col gap-3">
+            <CardTitle>Zones {filteredZones.length ? `(${filteredZones.length})` : ""}</CardTitle>
+            <ListFilterBar search={search} onSearchChange={setSearch} searchPlaceholder="Search by code or name...">
+              <Select value={typeFilter} onValueChange={setTypeFilter}>
+                <SelectTrigger className="w-[150px]"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Types</SelectItem>
+                  {ZONE_TYPES.map((t) => <SelectItem key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+            </ListFilterBar>
+          </div>
+        </CardHeader>
         <CardContent>
           {!storeId ? <p className="text-muted-foreground text-sm">Select a warehouse to view zones.</p> : isLoading ? <p className="text-muted-foreground text-sm">Loading...</p> : (
             <Table>
@@ -66,7 +105,7 @@ export default function WarehouseZonesPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {zones?.map((z) => (
+                {filteredZones.map((z) => (
                   <TableRow key={z.id}>
                     <TableCell className="font-mono">{z.zone_code}</TableCell>
                     <TableCell>{z.zone_name}</TableCell>
@@ -81,7 +120,7 @@ export default function WarehouseZonesPage() {
                     </TableCell>
                   </TableRow>
                 ))}
-                {!zones?.length && <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground">No zones found</TableCell></TableRow>}
+                {!filteredZones.length && <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground">No zones found</TableCell></TableRow>}
               </TableBody>
             </Table>
           )}
