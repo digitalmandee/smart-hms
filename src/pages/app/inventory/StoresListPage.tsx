@@ -19,7 +19,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useAllStores, useToggleStoreActive } from "@/hooks/useStores";
+import { useAllStores, useToggleStoreActive, useStoreContext } from "@/hooks/useStores";
 import { Plus, Search, MoreHorizontal, Edit, Power, ArrowLeft, Warehouse } from "lucide-react";
 import { format } from "date-fns";
 
@@ -46,7 +46,8 @@ const storeTypeVariants: Record<string, "default" | "secondary" | "outline" | "d
 export default function StoresListPage() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
-  const { data: stores, isLoading } = useAllStores("hospital");
+  const storeContext = useStoreContext();
+  const { data: stores, isLoading } = useAllStores(storeContext);
   const toggleActive = useToggleStoreActive();
 
   const filtered = stores?.filter(

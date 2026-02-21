@@ -3,6 +3,28 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
+// Returns the correct store context string based on the org's facility_type
+export function useStoreContext(): string {
+  const { profile } = useAuth();
+
+  const { data: facilityType } = useQuery({
+    queryKey: ["org-facility-type", profile?.organization_id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("organizations")
+        .select("facility_type")
+        .eq("id", profile!.organization_id)
+        .single();
+      return (data as any)?.facility_type as string | null;
+    },
+    enabled: !!profile?.organization_id,
+  });
+
+  if (facilityType === "warehouse") return "warehouse";
+  if (facilityType === "pharmacy") return "pharmacy";
+  return "hospital";
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const queryTable = (table: string): any => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
