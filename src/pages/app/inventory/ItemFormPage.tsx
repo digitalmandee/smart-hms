@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { useNavigate, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -25,7 +25,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, Download } from "lucide-react";
+import JsBarcode from "jsbarcode";
+import { toPng } from "html-to-image";
 import { useInventoryItem, useCreateInventoryItem, useUpdateInventoryItem, useAllCategories } from "@/hooks/useInventory";
 import { PageHeader } from "@/components/PageHeader";
 
@@ -43,6 +45,49 @@ const itemSchema = z.object({
 });
 
 type ItemFormData = z.infer<typeof itemSchema>;
+
+function BarcodePreview({ value, fallback }: { value?: string; fallback?: string }) {
+  const svgRef = useRef<SVGSVGElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const barcodeValue = value?.trim() || fallback || "";
+
+  useEffect(() => {
+    if (svgRef.current && barcodeValue) {
+      try {
+        JsBarcode(svgRef.current, barcodeValue, {
+          format: "CODE128", width: 1.5, height: 40, displayValue: true, fontSize: 10, margin: 2,
+        });
+      } catch { /* invalid */ }
+    }
+  }, [barcodeValue]);
+
+  const handleDownload = useCallback(async () => {
+    if (!containerRef.current) return;
+    try {
+      const dataUrl = await toPng(containerRef.current, { backgroundColor: "#ffffff" });
+      const link = document.createElement("a");
+      link.download = `barcode-${barcodeValue}.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch { /* ignore */ }
+  }, [barcodeValue]);
+
+  if (!barcodeValue) return null;
+
+  return (
+    <div className="mt-2 flex items-center gap-2">
+      <div ref={containerRef} className="border border-border rounded p-2 bg-background">
+        <svg ref={svgRef} />
+      </div>
+      <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={handleDownload} title="Download barcode">
+        <Download className="h-4 w-4" />
+      </Button>
+      {!value?.trim() && fallback && (
+        <span className="text-xs text-muted-foreground">Using item code as fallback</span>
+      )}
+    </div>
+  );
+}
 
 export default function ItemFormPage() {
   const navigate = useNavigate();
@@ -179,6 +224,7 @@ export default function ItemFormPage() {
                       </FormControl>
                       <FormDescription>Scannable barcode number</FormDescription>
                       <FormMessage />
+                      <BarcodePreview value={field.value} fallback={item?.item_code} />
                     </FormItem>
                   )}
                 />

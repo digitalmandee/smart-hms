@@ -2261,6 +2261,29 @@ export const en = {
   "radiology.bodyPartLabel": "Body Part",
   "radiology.est": "Est.",
 
+  // Barcode & Integrations
+  "barcode.labels": "Barcode Labels",
+  "barcode.downloadPng": "Download PNG",
+  "barcode.downloadPdf": "Download PDF",
+  "barcode.printLabels": "Print Labels",
+  "barcode.selectItems": "Select Items",
+  "barcode.labelPreview": "Label Preview",
+  "barcode.scanner": "Barcode / QR Scanner",
+  "barcode.scannerDesc": "Scan barcodes to look up inventory items instantly",
+  "barcode.startCamera": "Start Camera",
+  "barcode.stopCamera": "Stop Camera",
+  "barcode.manualEntry": "or enter code manually",
+  "barcode.scanResult": "Scan Result",
+  "barcode.viewItem": "View Item",
+  "barcode.adjustStock": "Adjust Stock",
+  "barcode.printLabel": "Print Label",
+  "integration.apiKeys": "API Keys",
+  "integration.apiKeysDesc": "Generate and manage API keys for external system integration",
+  "integration.generateKey": "Generate New API Key",
+  "integration.revokeKey": "Revoke API Key",
+  "integration.copyKey": "Copy API Key",
+  "integration.activeKeys": "Active API Keys",
+
 } as const;
 
 export type TranslationKey = keyof typeof en;

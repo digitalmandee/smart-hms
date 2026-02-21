@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +12,7 @@ const integrations = [
     icon: Webhook,
     status: "Available",
     action: "Configure",
+    route: null,
   },
   {
     title: "CSV Import/Export",
@@ -18,24 +20,29 @@ const integrations = [
     icon: FileSpreadsheet,
     status: "Available",
     action: "Import/Export",
+    route: null,
   },
   {
     title: "API Keys",
     description: "Generate API keys for external systems to integrate with your warehouse management.",
     icon: Key,
-    status: "Coming Soon",
+    status: "Available",
     action: "Manage Keys",
+    route: "/app/inventory/integrations/api-keys",
   },
   {
     title: "Barcode/QR Scanning",
     description: "Enable barcode and QR code scanning for item lookup, bin assignment, and picking operations.",
     icon: QrCode,
-    status: "Coming Soon",
+    status: "Available",
     action: "Setup",
+    route: "/app/inventory/integrations/barcode-scanner",
   },
 ];
 
 export default function WarehouseIntegrationsPage() {
+  const navigate = useNavigate();
+
   return (
     <div className="p-6">
       <PageHeader title="Integrations" description="Connect your warehouse with external services and tools"
@@ -50,14 +57,21 @@ export default function WarehouseIntegrationsPage() {
                   <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center"><int.icon className="h-5 w-5" /></div>
                   <div>
                     <CardTitle className="text-base">{int.title}</CardTitle>
-                    <Badge variant={int.status === "Available" ? "default" : "secondary"} className="mt-1">{int.status}</Badge>
+                    <Badge variant="default" className="mt-1">{int.status}</Badge>
                   </div>
                 </div>
               </div>
             </CardHeader>
             <CardContent>
               <CardDescription className="mb-4">{int.description}</CardDescription>
-              <Button variant="outline" size="sm" disabled={int.status !== "Available"}>{int.action}</Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => int.route && navigate(int.route)}
+                disabled={!int.route}
+              >
+                {int.action}
+              </Button>
             </CardContent>
           </Card>
         ))}

@@ -2199,5 +2199,28 @@ export const ar: Record<TranslationKey, string> = {
   "radiology.bodyPartLabel": "جزء الجسم",
   "radiology.est": "تقديري",
 
+  // Barcode & Integrations
+  "barcode.labels": "ملصقات الباركود",
+  "barcode.downloadPng": "تحميل PNG",
+  "barcode.downloadPdf": "تحميل PDF",
+  "barcode.printLabels": "طباعة الملصقات",
+  "barcode.selectItems": "اختيار العناصر",
+  "barcode.labelPreview": "معاينة الملصق",
+  "barcode.scanner": "ماسح الباركود / QR",
+  "barcode.scannerDesc": "امسح الباركود للبحث الفوري عن عناصر المخزون",
+  "barcode.startCamera": "تشغيل الكاميرا",
+  "barcode.stopCamera": "إيقاف الكاميرا",
+  "barcode.manualEntry": "أو أدخل الرمز يدوياً",
+  "barcode.scanResult": "نتيجة المسح",
+  "barcode.viewItem": "عرض العنصر",
+  "barcode.adjustStock": "تعديل المخزون",
+  "barcode.printLabel": "طباعة الملصق",
+  "integration.apiKeys": "مفاتيح API",
+  "integration.apiKeysDesc": "إنشاء وإدارة مفاتيح API لتكامل الأنظمة الخارجية",
+  "integration.generateKey": "إنشاء مفتاح API جديد",
+  "integration.revokeKey": "إلغاء مفتاح API",
+  "integration.copyKey": "نسخ مفتاح API",
+  "integration.activeKeys": "مفاتيح API النشطة",
+
 };
 

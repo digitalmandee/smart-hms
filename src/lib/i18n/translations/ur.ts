@@ -2199,5 +2199,28 @@ export const ur: Record<TranslationKey, string> = {
   "radiology.bodyPartLabel": "جسم کا حصہ",
   "radiology.est": "تخمینی",
 
+  // Barcode & Integrations
+  "barcode.labels": "بارکوڈ لیبلز",
+  "barcode.downloadPng": "PNG ڈاؤن لوڈ",
+  "barcode.downloadPdf": "PDF ڈاؤن لوڈ",
+  "barcode.printLabels": "لیبلز پرنٹ کریں",
+  "barcode.selectItems": "اشیاء منتخب کریں",
+  "barcode.labelPreview": "لیبل کا جائزہ",
+  "barcode.scanner": "بارکوڈ / QR سکینر",
+  "barcode.scannerDesc": "انوینٹری اشیاء فوری تلاش کے لیے بارکوڈ اسکین کریں",
+  "barcode.startCamera": "کیمرہ شروع کریں",
+  "barcode.stopCamera": "کیمرہ بند کریں",
+  "barcode.manualEntry": "یا دستی کوڈ درج کریں",
+  "barcode.scanResult": "اسکین نتیجہ",
+  "barcode.viewItem": "آئٹم دیکھیں",
+  "barcode.adjustStock": "اسٹاک ایڈجسٹ کریں",
+  "barcode.printLabel": "لیبل پرنٹ کریں",
+  "integration.apiKeys": "API کیز",
+  "integration.apiKeysDesc": "بیرونی نظام انضمام کے لیے API کیز بنائیں اور منظم کریں",
+  "integration.generateKey": "نئی API کی بنائیں",
+  "integration.revokeKey": "API کی منسوخ کریں",
+  "integration.copyKey": "API کی کاپی کریں",
+  "integration.activeKeys": "فعال API کیز",
+
 };
 
