@@ -17,7 +17,7 @@ const CREDENTIALS = [
   { role: "Warehouse Admin", email: "warehouse.admin@healthos.demo", password: "Demo@123" },
   { role: "Warehouse User", email: "warehouse.user@healthos.demo", password: "Demo@123" },
 ];
-const GATE_PASSWORD = "1212";
+
 
 // ============ SEED DATA ============
 const SEED_DATA = [
@@ -207,38 +207,71 @@ const TOTAL_TESTS = TC_MODULES.reduce((acc, m) => acc + m.tests.length, 0);
 // ============ E2E JOURNEY FLOWS ============
 const E2E_FLOWS = [
   {
-    name: "Full Procurement Cycle",
+    name: "Full Procurement Cycle (Inbound)",
     icon: Package,
+    description: "Complete inbound flow from identifying stock shortages through receiving, quality checks, and storage placement.",
     roles: ["Warehouse Admin", "Warehouse User"],
     steps: [
-      { step: 1, action: "View Reorder Alerts", expected: "See items below reorder level" },
-      { step: 2, action: "Create PR from alerts", expected: "PR created with deficit quantities" },
-      { step: 3, action: "Approve PR", expected: "Status = approved" },
-      { step: 4, action: "Convert PR to PO", expected: "PO created with PR items" },
-      { step: 5, action: "Approve PO", expected: "PO approved" },
-      { step: 6, action: "Create GRN from PO", expected: "GRN with received quantities" },
-      { step: 7, action: "QC Check items", expected: "Per-item accept/reject" },
-      { step: 8, action: "Verify GRN", expected: "Stock updated" },
-      { step: 9, action: "Post GRN", expected: "Journal entry created" },
-      { step: 10, action: "Put-Away", expected: "Items assigned to bins" },
-      { step: 11, action: "Verify reorder alerts reduced", expected: "Restocked items no longer in alerts" },
+      { step: 1, action: "Detect Reorder Alert", route: "/app/warehouse/reorder-alerts", expected: "8 items below reorder level visible. Normal Saline shows deficit of 150 (stock: 50, reorder: 200). Items sorted by deficit descending.", role: "Warehouse User" },
+      { step: 2, action: "Create Purchase Request from Alerts", route: "/app/warehouse/purchase-requests/new", expected: "PR form opens with selected items pre-filled. Quantities match deficit amounts. PR number auto-generated (e.g., PR-20260221-0001). Status = draft.", role: "Warehouse User" },
+      { step: 3, action: "Submit and Approve PR", route: "/app/warehouse/purchase-requests", expected: "After submit: status = pending_approval. After admin approval: status = approved, approved_by = warehouse admin, approved_at = current timestamp.", role: "Warehouse Admin" },
+      { step: 4, action: "Convert Approved PR to Purchase Order", route: "/app/warehouse/purchase-orders/new?from_pr=<pr_id>", expected: "PO form opens pre-filled with all PR line items. Vendor selection available. Quantities match PR. PO number auto-generated. Status = draft.", role: "Warehouse Admin" },
+      { step: 5, action: "Approve Purchase Order", route: "/app/warehouse/purchase-orders", expected: "Status changes from draft to approved. approved_by and approved_at populated. PO ready for GRN creation.", role: "Warehouse Admin" },
+      { step: 6, action: "Create GRN from Approved PO", route: "/app/warehouse/grn/new?poId=<po_id>", expected: "GRN form opens with PO items. Enter received quantities, batch numbers (e.g., PCM-2026-G01), and expiry dates. GRN number auto-generated. Status = draft.", role: "Warehouse User" },
+      { step: 7, action: "Perform QC Inspection on GRN Items", route: "/app/warehouse/grn/<grn_id>", expected: "QC section shows each item. Accept or reject per item with reasons. After all items checked: click 'Approve QC'. qc_status = approved, qc_checked_by = current user.", role: "Warehouse Admin" },
+      { step: 8, action: "Verify GRN (Stock Update)", route: "/app/warehouse/grn/<grn_id>", expected: "Click 'Verify'. Status = verified. inventory_stock table updated: quantities increased for accepted items. qty_accepted = qty_received - qty_rejected.", role: "Warehouse Admin" },
+      { step: 9, action: "Post GRN (Accounting Entry)", route: "/app/warehouse/grn/<grn_id>", expected: "Click 'Post'. Journal entry created in accounting module. Inventory account debited, payable account credited. GRN status = posted.", role: "Warehouse Admin" },
+      { step: 10, action: "Put-Away Items to Storage Bins", route: "/app/warehouse/putaway", expected: "Put-away tasks auto-generated for verified GRN items. Each task shows suggested bin (e.g., GEN-A1-01). Assign bins and mark completed. Status = completed, completed_at set.", role: "Warehouse User" },
+      { step: 11, action: "Verify Reorder Alerts Cleared", route: "/app/warehouse/reorder-alerts", expected: "Previously restocked items no longer appear in alerts. Alert count reduced. Items with stock >= reorder_level removed from list.", role: "Warehouse User" },
     ]
   },
   {
-    name: "Full Outbound Cycle",
+    name: "Full Outbound Cycle (Dispatch)",
     icon: Truck,
+    description: "Complete outbound flow from department requisition through FEFO picking, packing verification, and final delivery.",
     roles: ["Warehouse Admin", "Warehouse User"],
     steps: [
-      { step: 1, action: "Create Requisition", expected: "Request from department" },
-      { step: 2, action: "Approve Requisition", expected: "Quantities approved" },
-      { step: 3, action: "Generate Pick List", expected: "FEFO-based pick assignments" },
-      { step: 4, action: "Pick Items", expected: "Items picked from bins" },
-      { step: 5, action: "Create Packing Slip", expected: "Items packed in boxes" },
-      { step: 6, action: "Verify Packing", expected: "Admin verification" },
-      { step: 7, action: "Create Shipment", expected: "Shipment with carrier info" },
-      { step: 8, action: "Dispatch", expected: "Status = dispatched" },
-      { step: 9, action: "Track", expected: "Add tracking events" },
-      { step: 10, action: "Deliver", expected: "Status = delivered" },
+      { step: 1, action: "Create Stock Requisition from Department", route: "/app/warehouse/requisitions/new", expected: "Select requesting department (e.g., Emergency, Pharmacy). Add items with required quantities. Requisition number auto-generated (e.g., REQ-20260221-0001). Status = pending.", role: "Warehouse User" },
+      { step: 2, action: "Approve Requisition with Quantities", route: "/app/warehouse/requisitions/<req_id>", expected: "Review requested quantities. Approve full or partial amounts. qty_approved set per item. Status = approved. If partial: qty_approved < qty_requested.", role: "Warehouse Admin" },
+      { step: 3, action: "Generate FEFO-Based Pick List", route: "/app/warehouse/pick-lists", expected: "Pick list auto-generated from approved requisition. Items ordered by First Expiry First Out (FEFO). Each line shows: item, batch, bin location, quantity to pick. Pick list number auto-generated (e.g., PL-20260221-0001).", role: "Warehouse User" },
+      { step: 4, action: "Pick Items from Storage Bins", route: "/app/warehouse/pick-lists/<pl_id>", expected: "Click 'Start Picking'. For each item: confirm batch/bin, enter quantity_picked. Item status = picked. If quantity_picked < quantity_required: status = partial. started_at timestamp set.", role: "Warehouse User" },
+      { step: 5, action: "Create Packing Slip from Pick List", route: "/app/warehouse/packing", expected: "From completed pick list, click 'Create Packing Slip'. Packing slip created linked to pick list. Assign items to boxes with box_number. Enter total_weight per box.", role: "Warehouse User" },
+      { step: 6, action: "Verify Packing Slip", route: "/app/warehouse/packing/<slip_id>", expected: "Admin reviews packed items against pick list. Click 'Verify'. Status = verified, verified_by = admin user. Packing slip ready for shipment.", role: "Warehouse Admin" },
+      { step: 7, action: "Create Shipment with Carrier Details", route: "/app/warehouse/shipping/new", expected: "From verified packing slip, click 'Create Shipment'. Enter carrier name, tracking info. Destination auto-set from requisition department. Shipment number auto-generated (e.g., SHP-20260221-0001).", role: "Warehouse Admin" },
+      { step: 8, action: "Dispatch Shipment", route: "/app/warehouse/shipping/<shp_id>", expected: "Click 'Dispatch'. Status = dispatched. dispatched_at = current timestamp. Stock quantities reduced at source store.", role: "Warehouse Admin" },
+      { step: 9, action: "Add Tracking Events", route: "/app/warehouse/shipping/<shp_id>", expected: "Click 'Add Event'. Select event type (e.g., picked_up, in_transit, out_for_delivery). Enter description. Event saved with timestamp. Events display in chronological timeline.", role: "Warehouse User" },
+      { step: 10, action: "Mark Shipment as Delivered", route: "/app/warehouse/shipping/<shp_id>", expected: "Click 'Mark Delivered'. Status = delivered. delivered_at = current timestamp. Full tracking timeline visible from dispatch to delivery.", role: "Warehouse User" },
+    ]
+  },
+  {
+    name: "Stock Adjustment and Reconciliation",
+    icon: Package,
+    description: "Handle expired and damaged stock through adjustments, verify impact on valuation reports and ABC analysis.",
+    roles: ["Warehouse Admin"],
+    steps: [
+      { step: 1, action: "Identify Expired or Damaged Stock", route: "/app/warehouse/stock-adjustments", expected: "Review current adjustments: 1 expired (Blood Glucose Strips, qty -5, batch BGS-2025-Z01) and 1 damaged (Digital Thermometer, qty -2, batch DT-2025-V01).", role: "Warehouse Admin" },
+      { step: 2, action: "Create Expired Stock Adjustment", route: "/app/warehouse/stock-adjustments/new", expected: "Click 'New Adjustment'. Select type = expired. Choose item (e.g., CBC Reagent Kit). Enter quantity to write off and batch number. Add reason: 'Past expiry date'. Adjustment created, stock quantity reduced.", role: "Warehouse Admin" },
+      { step: 3, action: "Create Damaged Stock Adjustment", route: "/app/warehouse/stock-adjustments/new", expected: "Select type = damaged. Choose item (e.g., Pulse Oximeter). Enter quantity and batch. Add reason: 'Physical damage during handling'. Adjustment created, stock quantity reduced.", role: "Warehouse Admin" },
+      { step: 4, action: "Verify Stock Quantities Reduced", route: "/app/inventory/items", expected: "Check inventory_stock for adjusted items. Quantities reflect deductions from adjustments. Current stock = previous stock - adjustment quantity.", role: "Warehouse Admin" },
+      { step: 5, action: "Check Stock Valuation Report", route: "/app/inventory/reports/stock-valuation", expected: "Total inventory value decreased. Adjusted items show reduced quantities and corresponding lower total values (qty x unit_cost). Search for adjusted items to confirm.", role: "Warehouse Admin" },
+      { step: 6, action: "Run ABC Analysis for Reclassification", route: "/app/inventory/reports/abc-analysis", expected: "Items with reduced stock value may shift categories (e.g., A to B or B to C). Pareto chart reflects updated cumulative percentages. Summary cards show updated counts per category.", role: "Warehouse Admin" },
+      { step: 7, action: "Verify Adjustment History in Reports", route: "/app/warehouse/stock-adjustments", expected: "All adjustments listed with type filter (expired/damaged/write_off). Each shows: item name, batch, quantity, reason, created_at. Total adjustment count increased.", role: "Warehouse Admin" },
+    ]
+  },
+  {
+    name: "Inter-Store Transfer",
+    icon: ArrowRightLeft,
+    description: "Transfer surplus stock between warehouse stores, tracking from dispatch through receipt with stock verification at both ends.",
+    roles: ["Warehouse Admin", "Warehouse User"],
+    steps: [
+      { step: 1, action: "Identify Surplus Stock at Source Store", route: "/app/inventory/items", expected: "Review stock levels at Central Distribution Warehouse. Identify items with surplus quantities (stock well above reorder level). Note batch numbers for transfer.", role: "Warehouse User" },
+      { step: 2, action: "Create Transfer Request", route: "/app/warehouse/transfers/new", expected: "Click 'New Transfer'. Select source store: Central Distribution Warehouse. Transfer number auto-generated (e.g., TRF-20260221-0001). Status = draft.", role: "Warehouse User" },
+      { step: 3, action: "Select Destination Store", route: "/app/warehouse/transfers/new", expected: "Choose destination from available stores (e.g., Medical Supplies Store, Pharmacy Store). Destination store details displayed with current stock summary.", role: "Warehouse User" },
+      { step: 4, action: "Add Items with Batch and Quantity", route: "/app/warehouse/transfers/new", expected: "Add items to transfer: select item, choose batch number, enter quantity. Multiple items can be added. Validate quantity does not exceed available stock at source.", role: "Warehouse User" },
+      { step: 5, action: "Dispatch Transfer", route: "/app/warehouse/transfers/<trf_id>", expected: "Click 'Dispatch'. Status changes from draft to in_transit. dispatched_at = current timestamp. Stock reserved/deducted at source store.", role: "Warehouse Admin" },
+      { step: 6, action: "Receive Transfer at Destination", route: "/app/warehouse/transfers/<trf_id>", expected: "At destination store, click 'Receive'. Status = received. received_by and received_at populated. Stock added to destination store inventory.", role: "Warehouse User" },
+      { step: 7, action: "Verify Source Store Stock Decreased", route: "/app/inventory/items", expected: "Check source store (Central Distribution Warehouse). Transferred items show reduced quantities. Reduction matches transfer quantities exactly.", role: "Warehouse Admin" },
+      { step: 8, action: "Verify Destination Store Stock Increased", route: "/app/inventory/items", expected: "Switch to destination store context. Transferred items show increased quantities with correct batch numbers and expiry dates preserved.", role: "Warehouse Admin" },
     ]
   },
 ];
@@ -279,7 +312,7 @@ const getRoleBadgeColor = (role: string) => {
 
 export default function WarehouseTestCasesPage() {
   const printRef = useRef<HTMLDivElement>(null);
-  const handlePrint = useReactToPrint({ contentRef: printRef, documentTitle: 'Warehouse Module - Manual QA Test Cases' });
+  const handlePrint = useReactToPrint({ contentRef: printRef, documentTitle: 'Warehouse Management System - Test Cases & Validation Guide' });
 
   return (
     <div className="min-h-screen bg-background">
@@ -289,10 +322,10 @@ export default function WarehouseTestCasesPage() {
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
               <Warehouse className="h-6 w-6" />
-              Warehouse Module - Manual QA Test Cases
+              Warehouse Management System - Test Cases & Validation Guide
             </h1>
             <p className="text-sm text-muted-foreground">
-              {TC_MODULES.length} Sections / {TOTAL_TESTS} Tests / 2 E2E Journeys / {CHECKLIST.length} Checklist Items
+              {TC_MODULES.length} Sections / {TOTAL_TESTS} Tests / {E2E_FLOWS.length} E2E Journeys / {CHECKLIST.length} Checklist Items
             </p>
           </div>
           <Button onClick={() => handlePrint()}>
@@ -304,7 +337,7 @@ export default function WarehouseTestCasesPage() {
       <div ref={printRef} className="container mx-auto px-4 py-8 space-y-8 print:p-4">
         {/* Print header */}
         <div className="hidden print:block mb-8 text-center border-b pb-4">
-          <h1 className="text-3xl font-bold">Warehouse Module - Manual QA Test Cases</h1>
+          <h1 className="text-3xl font-bold">Warehouse Management System - Test Cases & Validation Guide</h1>
           <p className="text-sm text-muted-foreground mt-2">Generated: {new Date().toLocaleDateString()}</p>
         </div>
 
@@ -314,7 +347,6 @@ export default function WarehouseTestCasesPage() {
             <CardTitle className="flex items-center gap-2">
               <Users className="h-5 w-5" />
               Login Credentials
-              <Badge variant="secondary" className="ml-2">Gate Password: {GATE_PASSWORD}</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -452,7 +484,7 @@ export default function WarehouseTestCasesPage() {
               End-to-End Flow Tests
               <Badge className="ml-2">{E2E_FLOWS.length} Journeys</Badge>
             </CardTitle>
-            <p className="text-sm text-muted-foreground">Complete workflow testing across warehouse roles</p>
+            <p className="text-sm text-muted-foreground">Complete workflow testing across warehouse roles with navigation routes and detailed expected results</p>
           </CardHeader>
           <CardContent>
             <Accordion type="single" collapsible className="w-full">
@@ -470,6 +502,7 @@ export default function WarehouseTestCasesPage() {
                             <Clock className="h-3 w-3 mr-1" />{flow.steps.length} steps
                           </Badge>
                         </div>
+                        <p className="text-xs text-muted-foreground mt-1">{flow.description}</p>
                         <div className="flex flex-wrap gap-1 mt-1">
                           {flow.roles.map((role) => (
                             <Badge key={role} variant="secondary" className={`text-xs ${getRoleBadgeColor(role)}`}>{role}</Badge>
@@ -490,9 +523,15 @@ export default function WarehouseTestCasesPage() {
                               {step.step}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="font-medium">{step.action}</p>
-                              <div className="flex items-center gap-2 mt-1 text-sm">
-                                <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" />
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <p className="font-medium">{step.action}</p>
+                                <Badge variant="secondary" className="text-xs">{step.role}</Badge>
+                              </div>
+                              {step.route && (
+                                <code className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded mt-1 inline-block">{step.route}</code>
+                              )}
+                              <div className="flex items-start gap-2 mt-1.5 text-sm">
+                                <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
                                 <span className="text-muted-foreground">{step.expected}</span>
                               </div>
                             </div>
@@ -534,7 +573,7 @@ export default function WarehouseTestCasesPage() {
 
         {/* Print footer */}
         <div className="hidden print:block mt-8 pt-4 border-t text-center text-sm text-muted-foreground">
-          <p>Warehouse Module - Manual QA Test Cases / Smart HMS / {new Date().getFullYear()}</p>
+          <p>Warehouse Management System - Test Cases & Validation Guide / Smart HMS / {new Date().getFullYear()}</p>
         </div>
       </div>
     </div>

@@ -1,4 +1,4 @@
-# Warehouse Module - Manual QA Test Cases
+# Warehouse Management System - Test Cases & Validation Guide
 
 ## Login Credentials
 
@@ -6,8 +6,6 @@
 |------|-------|----------|
 | Warehouse Admin | `warehouse.admin@healthos.demo` | `Demo@123` |
 | Warehouse User | `warehouse.user@healthos.demo` | `Demo@123` |
-
-**Gate Password:** `1212`
 
 ---
 
@@ -234,38 +232,63 @@
 
 ---
 
-## End-to-End Flow Test
+## End-to-End Flow Tests
 
-### Full Procurement Cycle
+### Flow 1: Full Procurement Cycle (Inbound)
 
-| Step | Action | Expected |
-|------|--------|----------|
-| 1 | View Reorder Alerts | See items below reorder level |
-| 2 | Create PR from alerts | PR created with deficit quantities |
-| 3 | Approve PR | Status = approved |
-| 4 | Convert PR to PO | PO created with PR items |
-| 5 | Approve PO | PO approved |
-| 6 | Create GRN from PO | GRN with received quantities |
-| 7 | QC Check items | Per-item accept/reject |
-| 8 | Verify GRN | Stock updated |
-| 9 | Post GRN | Journal entry created |
-| 10 | Put-Away | Items assigned to bins |
-| 11 | Verify reorder alerts reduced | Restocked items no longer in alerts |
+| Step | Action | Route | Expected Result | Role |
+|------|--------|-------|-----------------|------|
+| 1 | Detect Reorder Alert | `/app/warehouse/reorder-alerts` | 8 items below reorder level visible. Normal Saline shows deficit of 150. Items sorted by deficit descending. | Warehouse User |
+| 2 | Create PR from Alerts | `/app/warehouse/purchase-requests/new` | PR form opens with selected items pre-filled. Quantities match deficit amounts. PR number auto-generated. Status = draft. | Warehouse User |
+| 3 | Submit and Approve PR | `/app/warehouse/purchase-requests` | After submit: status = pending_approval. After admin approval: status = approved, approved_by and approved_at set. | Warehouse Admin |
+| 4 | Convert Approved PR to PO | `/app/warehouse/purchase-orders/new?from_pr=<pr_id>` | PO form opens pre-filled with all PR line items. Vendor selection available. PO number auto-generated. Status = draft. | Warehouse Admin |
+| 5 | Approve Purchase Order | `/app/warehouse/purchase-orders` | Status changes from draft to approved. approved_by and approved_at populated. PO ready for GRN creation. | Warehouse Admin |
+| 6 | Create GRN from Approved PO | `/app/warehouse/grn/new?poId=<po_id>` | GRN form opens with PO items. Enter received quantities, batch numbers, and expiry dates. GRN number auto-generated. Status = draft. | Warehouse User |
+| 7 | Perform QC Inspection | `/app/warehouse/grn/<grn_id>` | QC section shows each item. Accept or reject per item with reasons. qc_status = approved, qc_checked_by set. | Warehouse Admin |
+| 8 | Verify GRN (Stock Update) | `/app/warehouse/grn/<grn_id>` | Status = verified. inventory_stock table updated: quantities increased for accepted items. | Warehouse Admin |
+| 9 | Post GRN (Accounting Entry) | `/app/warehouse/grn/<grn_id>` | Journal entry created. Inventory account debited, payable account credited. GRN status = posted. | Warehouse Admin |
+| 10 | Put-Away Items to Bins | `/app/warehouse/putaway` | Put-away tasks auto-generated. Each task shows suggested bin. Assign bins and mark completed. | Warehouse User |
+| 11 | Verify Reorder Alerts Cleared | `/app/warehouse/reorder-alerts` | Previously restocked items no longer appear in alerts. Alert count reduced. | Warehouse User |
 
-### Full Outbound Cycle
+### Flow 2: Full Outbound Cycle (Dispatch)
 
-| Step | Action | Expected |
-|------|--------|----------|
-| 1 | Create Requisition | Request from department |
-| 2 | Approve Requisition | Quantities approved |
-| 3 | Generate Pick List | FEFO-based pick assignments |
-| 4 | Pick Items | Items picked from bins |
-| 5 | Create Packing Slip | Items packed in boxes |
-| 6 | Verify Packing | Admin verification |
-| 7 | Create Shipment | Shipment with carrier info |
-| 8 | Dispatch | Status = dispatched |
-| 9 | Track | Add tracking events |
-| 10 | Deliver | Status = delivered |
+| Step | Action | Route | Expected Result | Role |
+|------|--------|-------|-----------------|------|
+| 1 | Create Stock Requisition | `/app/warehouse/requisitions/new` | Select requesting department. Add items with required quantities. Requisition number auto-generated. Status = pending. | Warehouse User |
+| 2 | Approve Requisition | `/app/warehouse/requisitions/<req_id>` | Review and approve full or partial amounts. qty_approved set per item. Status = approved. | Warehouse Admin |
+| 3 | Generate FEFO Pick List | `/app/warehouse/pick-lists` | Pick list auto-generated from approved requisition. Items ordered by First Expiry First Out (FEFO). | Warehouse User |
+| 4 | Pick Items from Bins | `/app/warehouse/pick-lists/<pl_id>` | Start picking. Confirm batch/bin per item. quantity_picked updated. started_at timestamp set. | Warehouse User |
+| 5 | Create Packing Slip | `/app/warehouse/packing` | From completed pick list, create packing slip. Assign items to boxes with box_number and total_weight. | Warehouse User |
+| 6 | Verify Packing Slip | `/app/warehouse/packing/<slip_id>` | Admin verifies packed items. Status = verified, verified_by = admin. | Warehouse Admin |
+| 7 | Create Shipment | `/app/warehouse/shipping/new` | From verified packing slip, create shipment. Enter carrier and tracking info. Shipment number auto-generated. | Warehouse Admin |
+| 8 | Dispatch Shipment | `/app/warehouse/shipping/<shp_id>` | Status = dispatched. dispatched_at set. Stock quantities reduced at source. | Warehouse Admin |
+| 9 | Add Tracking Events | `/app/warehouse/shipping/<shp_id>` | Add events (picked_up, in_transit, out_for_delivery). Events display in chronological timeline. | Warehouse User |
+| 10 | Mark Delivered | `/app/warehouse/shipping/<shp_id>` | Status = delivered. delivered_at set. Full tracking timeline visible. | Warehouse User |
+
+### Flow 3: Stock Adjustment & Reconciliation
+
+| Step | Action | Route | Expected Result | Role |
+|------|--------|-------|-----------------|------|
+| 1 | Identify Expired/Damaged Stock | `/app/warehouse/stock-adjustments` | Review current adjustments: 1 expired (Blood Glucose Strips, qty -5) and 1 damaged (Digital Thermometer, qty -2). | Warehouse Admin |
+| 2 | Create Expired Stock Adjustment | `/app/warehouse/stock-adjustments/new` | Select type = expired. Choose item, enter quantity, batch, and reason. Adjustment created, stock reduced. | Warehouse Admin |
+| 3 | Create Damaged Stock Adjustment | `/app/warehouse/stock-adjustments/new` | Select type = damaged. Choose item, enter quantity, batch, and reason. Adjustment created, stock reduced. | Warehouse Admin |
+| 4 | Verify Stock Quantities Reduced | `/app/inventory/items` | Check inventory_stock for adjusted items. Quantities reflect deductions. | Warehouse Admin |
+| 5 | Check Stock Valuation Report | `/app/inventory/reports/stock-valuation` | Total inventory value decreased. Adjusted items show reduced quantities and lower total values. | Warehouse Admin |
+| 6 | Run ABC Analysis | `/app/inventory/reports/abc-analysis` | Items with reduced value may shift categories (A→B or B→C). Pareto chart reflects updated percentages. | Warehouse Admin |
+| 7 | Verify Adjustment History | `/app/warehouse/stock-adjustments` | All adjustments listed with type filter. Each shows item name, batch, quantity, reason, created_at. | Warehouse Admin |
+
+### Flow 4: Inter-Store Transfer
+
+| Step | Action | Route | Expected Result | Role |
+|------|--------|-------|-----------------|------|
+| 1 | Identify Surplus Stock | `/app/inventory/items` | Review stock levels at Central Distribution Warehouse. Identify items with surplus quantities. | Warehouse User |
+| 2 | Create Transfer Request | `/app/warehouse/transfers/new` | Select source store. Transfer number auto-generated. Status = draft. | Warehouse User |
+| 3 | Select Destination Store | `/app/warehouse/transfers/new` | Choose destination from available stores (e.g., Medical Supplies Store). | Warehouse User |
+| 4 | Add Items with Batch/Qty | `/app/warehouse/transfers/new` | Add items: select item, choose batch, enter quantity. Validate qty does not exceed available stock. | Warehouse User |
+| 5 | Dispatch Transfer | `/app/warehouse/transfers/<trf_id>` | Status = in_transit. dispatched_at set. Stock reserved/deducted at source. | Warehouse Admin |
+| 6 | Receive at Destination | `/app/warehouse/transfers/<trf_id>` | Status = received. received_by and received_at populated. Stock added to destination. | Warehouse User |
+| 7 | Verify Source Stock Decreased | `/app/inventory/items` | Transferred items show reduced quantities at source. Reduction matches transfer quantities. | Warehouse Admin |
+| 8 | Verify Destination Stock Increased | `/app/inventory/items` | Destination store shows increased quantities with correct batch numbers and expiry dates. | Warehouse Admin |
 
 ---
 
