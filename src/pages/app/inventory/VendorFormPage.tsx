@@ -25,11 +25,13 @@ import {
 } from "@/components/ui/select";
 import { ArrowLeft, Loader2, Star } from "lucide-react";
 import { useVendor, useCreateVendor, useUpdateVendor } from "@/hooks/useVendors";
+import { useAuth } from "@/contexts/AuthContext";
+import { useOrganization } from "@/hooks/useOrganizations";
 import { PageHeader } from "@/components/PageHeader";
 
 const vendorSchema = z.object({
   name: z.string().min(1, "Name is required"),
-  vendor_type: z.enum(['pharmaceutical', 'equipment', 'consumables', 'surgical', 'services', 'general']).default('general'),
+  vendor_type: z.enum(['pharmaceutical', 'equipment', 'consumables', 'surgical', 'services', 'general', 'manufacturer', 'distributor', 'wholesaler', 'raw_materials', 'packaging', 'logistics']).default('general'),
   is_preferred: z.boolean().default(false),
   contact_person: z.string().optional(),
   email: z.string().email().optional().or(z.literal("")),
@@ -49,6 +51,9 @@ export default function VendorFormPage() {
   const navigate = useNavigate();
   const { id } = useParams();
   const isEdit = !!id;
+  const { profile } = useAuth();
+  const { data: organization } = useOrganization(profile?.organization_id);
+  const isWarehouse = organization?.facility_type === 'warehouse';
 
   const { data: vendor, isLoading: vendorLoading } = useVendor(id || "");
   const createVendor = useCreateVendor();
@@ -140,7 +145,7 @@ export default function VendorFormPage() {
                     <FormItem>
                       <FormLabel>Vendor Name *</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="e.g., ABC Pharmaceuticals" />
+                        <Input {...field} placeholder={isWarehouse ? "e.g., Global Logistics Co." : "e.g., ABC Pharmaceuticals"} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -160,12 +165,26 @@ export default function VendorFormPage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="pharmaceutical">Pharmaceutical</SelectItem>
-                          <SelectItem value="equipment">Medical Equipment</SelectItem>
-                          <SelectItem value="consumables">Consumables</SelectItem>
-                          <SelectItem value="surgical">Surgical Supplies</SelectItem>
-                          <SelectItem value="services">Services</SelectItem>
-                          <SelectItem value="general">General</SelectItem>
+                          {isWarehouse ? (
+                            <>
+                              <SelectItem value="manufacturer">Manufacturer</SelectItem>
+                              <SelectItem value="distributor">Distributor</SelectItem>
+                              <SelectItem value="wholesaler">Wholesaler</SelectItem>
+                              <SelectItem value="raw_materials">Raw Materials</SelectItem>
+                              <SelectItem value="packaging">Packaging</SelectItem>
+                              <SelectItem value="logistics">Logistics</SelectItem>
+                              <SelectItem value="general">General</SelectItem>
+                            </>
+                          ) : (
+                            <>
+                              <SelectItem value="pharmaceutical">Pharmaceutical</SelectItem>
+                              <SelectItem value="equipment">Medical Equipment</SelectItem>
+                              <SelectItem value="consumables">Consumables</SelectItem>
+                              <SelectItem value="surgical">Surgical Supplies</SelectItem>
+                              <SelectItem value="services">Services</SelectItem>
+                              <SelectItem value="general">General</SelectItem>
+                            </>
+                          )}
                         </SelectContent>
                       </Select>
                       <FormMessage />

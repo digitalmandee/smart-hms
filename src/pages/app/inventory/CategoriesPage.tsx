@@ -34,6 +34,8 @@ import {
   useUpdateCategory,
   UnifiedCategory,
 } from "@/hooks/useInventory";
+import { useAuth } from "@/contexts/AuthContext";
+import { useOrganization } from "@/hooks/useOrganizations";
 import { toast } from "sonner";
 
 interface CategoryFormData {
@@ -46,6 +48,9 @@ interface CategoryFormData {
 export default function CategoriesPage() {
   const { data: categoryTree, isLoading } = useUnifiedCategories();
   const { data: allCategories } = useAllCategories();
+  const { profile } = useAuth();
+  const { data: organization } = useOrganization(profile?.organization_id);
+  const isWarehouse = organization?.facility_type === 'warehouse';
   const createCategory = useCreateCategory();
   const updateCategory = useUpdateCategory();
 
@@ -283,7 +288,7 @@ export default function CategoriesPage() {
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, name: e.target.value }))
                 }
-                placeholder="e.g., Medical Supplies"
+                placeholder={isWarehouse ? "e.g., Electronics, Raw Materials" : "e.g., Medical Supplies"}
                 className="mt-1"
               />
             </div>
