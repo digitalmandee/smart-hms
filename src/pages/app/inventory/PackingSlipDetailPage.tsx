@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,9 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { usePackingSlip, usePackingSlipItems, useUpdatePackingSlip } from "@/hooks/usePickingPacking";
-import { ArrowLeft, CheckCircle, Printer, Package } from "lucide-react";
+import { ArrowLeft, CheckCircle, Printer, Package, Check } from "lucide-react";
 import { usePrint } from "@/hooks/usePrint";
 import { PrintablePackingSlip } from "@/components/inventory/PrintablePackingSlip";
+import { InlineBarcodeScannerInput } from "@/components/inventory/InlineBarcodeScannerInput";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 
 export default function PackingSlipDetailPage() {
   const { id } = useParams();
@@ -20,6 +24,8 @@ export default function PackingSlipDetailPage() {
   const updateSlip = useUpdatePackingSlip();
   const [weight, setWeight] = useState("");
   const [boxCount, setBoxCount] = useState("");
+  const [scannedItems, setScannedItems] = useState<Record<string, number>>({});
+  const [highlightedItem, setHighlightedItem] = useState<string | null>(null);
   const { printRef, handlePrint } = usePrint();
 
   const handleVerify = async () => {
@@ -34,6 +40,36 @@ export default function PackingSlipDetailPage() {
     if (boxCount) updates.box_count = Number(boxCount);
     await updateSlip.mutateAsync(updates as Parameters<typeof updateSlip.mutateAsync>[0]);
   };
+
+  const handleScan = useCallback(async (code: string) => {
+    if (!items) return;
+    // Lookup item
+    const { data: foundItem } = await (supabase as any)
+      .from("inventory_items")
+      .select("id, name, item_code, barcode")
+      .or(`barcode.eq.${code},item_code.eq.${code}`)
+      .limit(1)
+      .maybeSingle();
+
+    if (!foundItem) {
+      toast.error("Item not found for this barcode");
+      return;
+    }
+
+    // Find matching packing slip item
+    const match = items.find((i) => i.item_id === foundItem.id);
+    if (!match) {
+      toast.error(`"${foundItem.name}" is not in this packing slip`);
+      return;
+    }
+
+    const currentCount = scannedItems[match.id] || 0;
+    const newCount = currentCount + 1;
+    setScannedItems((prev) => ({ ...prev, [match.id]: newCount }));
+    setHighlightedItem(match.id);
+    toast.success(`Verified: ${foundItem.name} (${newCount}/${match.quantity})`);
+    setTimeout(() => setHighlightedItem(null), 2000);
+  }, [items, scannedItems]);
 
   return (
     <div className="p-6">
@@ -70,21 +106,59 @@ export default function PackingSlipDetailPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Scanner for packing verification */}
+      {(slip?.status === "draft" || slip?.status === "packed") && (
+        <Card className="mb-4">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Scan to Verify Packed Items</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <InlineBarcodeScannerInput
+              onScan={handleScan}
+              placeholder="Scan barcode to verify packed item..."
+              autoFocus
+            />
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
         <CardHeader><CardTitle>Packed Items</CardTitle></CardHeader>
         <CardContent>
           <Table>
-            <TableHeader><TableRow><TableHead>Box #</TableHead><TableHead>Batch</TableHead><TableHead>Quantity</TableHead><TableHead>Notes</TableHead></TableRow></TableHeader>
+            <TableHeader><TableRow>
+              <TableHead>Box #</TableHead>
+              <TableHead>Batch</TableHead>
+              <TableHead>Quantity</TableHead>
+              <TableHead>Scanned</TableHead>
+              <TableHead>Notes</TableHead>
+            </TableRow></TableHeader>
             <TableBody>
               {items?.map((item) => (
-                <TableRow key={item.id}>
+                <TableRow key={item.id} className={cn(
+                  highlightedItem === item.id && "bg-emerald-100 dark:bg-emerald-900/30 transition-colors duration-500"
+                )}>
                   <TableCell>{item.box_number || "—"}</TableCell>
                   <TableCell>{item.batch_number || "—"}</TableCell>
                   <TableCell>{item.quantity}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1">
+                      <span className={cn(
+                        "font-medium",
+                        (scannedItems[item.id] || 0) >= item.quantity && "text-emerald-600"
+                      )}>
+                        {scannedItems[item.id] || 0}/{item.quantity}
+                      </span>
+                      {(scannedItems[item.id] || 0) >= item.quantity && (
+                        <Check className="h-4 w-4 text-emerald-600" />
+                      )}
+                    </div>
+                  </TableCell>
                   <TableCell>{item.notes || "—"}</TableCell>
                 </TableRow>
               ))}
-              {!items?.length && <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground">No items</TableCell></TableRow>}
+              {!items?.length && <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground">No items</TableCell></TableRow>}
             </TableBody>
           </Table>
         </CardContent>

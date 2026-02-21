@@ -2284,6 +2284,19 @@ export const en = {
   "integration.copyKey": "Copy API Key",
   "integration.activeKeys": "Active API Keys",
 
+  // Inline Scanner Integration
+  "scanner.scanToPick": "Scan to Pick",
+  "scanner.scanToVerify": "Scan to Verify Packed Items",
+  "scanner.scanToReceive": "Scan to Receive Items",
+  "scanner.scanPlaceholderPick": "Scan barcode to auto-pick item...",
+  "scanner.scanPlaceholderPack": "Scan barcode to verify packed item...",
+  "scanner.scanPlaceholderGrn": "Scan barcode to match against PO items...",
+  "scanner.itemMatched": "Item matched",
+  "scanner.itemNotFound": "Item not found for this barcode",
+  "scanner.notInList": "is not in this list",
+  "scanner.scannedSuccessfully": "Scanned successfully",
+  "scanner.cameraAccessDenied": "Camera access denied",
+
 } as const;
 
 export type TranslationKey = keyof typeof en;

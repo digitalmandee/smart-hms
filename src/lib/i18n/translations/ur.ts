@@ -2222,5 +2222,18 @@ export const ur: Record<TranslationKey, string> = {
   "integration.copyKey": "API کی کاپی کریں",
   "integration.activeKeys": "فعال API کیز",
 
+  // Inline Scanner Integration
+  "scanner.scanToPick": "پکنگ کے لیے اسکین کریں",
+  "scanner.scanToVerify": "پیک شدہ اشیاء کی تصدیق کے لیے اسکین کریں",
+  "scanner.scanToReceive": "اشیاء وصول کرنے کے لیے اسکین کریں",
+  "scanner.scanPlaceholderPick": "آئٹم خودکار پک کے لیے بارکوڈ اسکین کریں...",
+  "scanner.scanPlaceholderPack": "پیک شدہ آئٹم کی تصدیق کے لیے بارکوڈ اسکین کریں...",
+  "scanner.scanPlaceholderGrn": "PO اشیاء سے ملان کے لیے بارکوڈ اسکین کریں...",
+  "scanner.itemMatched": "آئٹم ملا",
+  "scanner.itemNotFound": "اس بارکوڈ کے لیے آئٹم نہیں ملا",
+  "scanner.notInList": "اس فہرست میں نہیں ہے",
+  "scanner.scannedSuccessfully": "کامیابی سے اسکین ہوا",
+  "scanner.cameraAccessDenied": "کیمرہ تک رسائی مسترد",
+
 };
 

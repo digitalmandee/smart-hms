@@ -1,3 +1,4 @@
+import { useState, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,32 +7,26 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/PageHeader";
 import { GRNStatusBadge } from "@/components/inventory/GRNStatusBadge";
 import { PrintableGRN } from "@/components/inventory/PrintableGRN";
+import { InlineBarcodeScannerInput } from "@/components/inventory/InlineBarcodeScannerInput";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
-  ArrowLeft,
-  Printer,
-  Package,
-  CheckCircle2,
-  FileCheck,
-  AlertCircle,
+  ArrowLeft, Printer, Package, CheckCircle2, FileCheck, AlertCircle,
 } from "lucide-react";
 import { useGRN, useVerifyGRN, usePostGRN } from "@/hooks/useGRN";
 import { usePrint } from "@/hooks/usePrint";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
+import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 
 export default function GRNDetailPage() {
   const navigate = useNavigate();
   const { id } = useParams();
   const { formatCurrency } = useCurrencyFormatter();
+  const [highlightedItem, setHighlightedItem] = useState<string | null>(null);
 
   const { data: grn, isLoading } = useGRN(id || "");
   const verifyMutation = useVerifyGRN();
@@ -58,6 +53,32 @@ export default function GRNDetailPage() {
     }
   };
 
+  const handleScan = useCallback(async (code: string) => {
+    if (!grn?.items) return;
+    // Look up item by barcode/item_code
+    const { data: foundItem } = await (supabase as any)
+      .from("inventory_items")
+      .select("id, name, item_code, barcode")
+      .or(`barcode.eq.${code},item_code.eq.${code}`)
+      .limit(1)
+      .maybeSingle();
+
+    if (!foundItem) {
+      toast.error("Item not found for this barcode");
+      return;
+    }
+
+    const match = grn.items.find((i: any) => i.item_id === foundItem.id);
+    if (!match) {
+      toast.error(`"${foundItem.name}" is not in this GRN`);
+      return;
+    }
+
+    setHighlightedItem(match.id);
+    toast.success(`Found: ${foundItem.name} — Expected qty: ${match.quantity_received}`);
+    setTimeout(() => setHighlightedItem(null), 3000);
+  }, [grn]);
+
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -81,11 +102,8 @@ export default function GRNDetailPage() {
 
   const canVerify = grn.status === "draft";
   const canPost = grn.status === "verified";
-
-  // Calculate total from items
   const totalAmount = grn.items?.reduce(
-    (sum, item) => sum + (item.quantity_accepted * item.unit_cost),
-    0
+    (sum, item) => sum + (item.quantity_accepted * item.unit_cost), 0
   ) || 0;
 
   return (
@@ -102,40 +120,28 @@ export default function GRNDetailPage() {
 
       <div className="flex flex-wrap gap-2">
         <Button variant="outline" onClick={() => navigate("/app/inventory/grn")}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back
+          <ArrowLeft className="mr-2 h-4 w-4" />Back
         </Button>
-        <Button
-          variant="outline"
-          onClick={() => handlePrint({ title: grn.grn_number || "GRN" })}
-        >
-          <Printer className="mr-2 h-4 w-4" />
-          Print
+        <Button variant="outline" onClick={() => handlePrint({ title: grn.grn_number || "GRN" })}>
+          <Printer className="mr-2 h-4 w-4" />Print
         </Button>
         {canVerify && (
           <Button onClick={handleVerify} disabled={verifyMutation.isPending}>
-            <CheckCircle2 className="mr-2 h-4 w-4" />
-            Verify & Update Stock
+            <CheckCircle2 className="mr-2 h-4 w-4" />Verify & Update Stock
           </Button>
         )}
         {canPost && (
           <Button onClick={handlePost} disabled={postMutation.isPending}>
-            <FileCheck className="mr-2 h-4 w-4" />
-            Post GRN
+            <FileCheck className="mr-2 h-4 w-4" />Post GRN
           </Button>
         )}
       </div>
 
       {/* Status Banner */}
-      <Card
-        className={
-          grn.status === "posted"
-            ? "border-emerald-200 bg-emerald-50"
-            : grn.status === "verified"
-            ? "border-blue-200 bg-blue-50"
-            : ""
-        }
-      >
+      <Card className={
+        grn.status === "posted" ? "border-emerald-200 bg-emerald-50"
+          : grn.status === "verified" ? "border-blue-200 bg-blue-50" : ""
+      }>
         <CardContent className="py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -148,17 +154,13 @@ export default function GRNDetailPage() {
               )}
               <div>
                 <p className="font-semibold">
-                  {grn.status === "posted"
-                    ? "GRN Posted"
-                    : grn.status === "verified"
-                    ? "GRN Verified - Ready to Post"
+                  {grn.status === "posted" ? "GRN Posted"
+                    : grn.status === "verified" ? "GRN Verified - Ready to Post"
                     : "Draft GRN - Pending Verification"}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  {grn.status === "posted"
-                    ? "Stock has been updated and GRN is finalized"
-                    : grn.status === "verified"
-                    ? "Stock updated. Click Post to finalize"
+                  {grn.status === "posted" ? "Stock has been updated and GRN is finalized"
+                    : grn.status === "verified" ? "Stock updated. Click Post to finalize"
                     : "Review items and click Verify to update stock"}
                 </p>
               </div>
@@ -171,9 +173,7 @@ export default function GRNDetailPage() {
       {/* GRN Details */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
-          <CardHeader>
-            <CardTitle>GRN Information</CardTitle>
-          </CardHeader>
+          <CardHeader><CardTitle>GRN Information</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -182,23 +182,16 @@ export default function GRNDetailPage() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Received Date</p>
-                <p className="font-medium">
-                  {format(new Date(grn.received_date), "MMM dd, yyyy")}
-                </p>
+                <p className="font-medium">{format(new Date(grn.received_date), "MMM dd, yyyy")}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">PO Number</p>
                 {grn.purchase_order ? (
-                  <Button
-                    variant="link"
-                    className="p-0 h-auto"
-                    onClick={() => navigate(`/app/inventory/purchase-orders/${grn.purchase_order_id}`)}
-                  >
+                  <Button variant="link" className="p-0 h-auto"
+                    onClick={() => navigate(`/app/inventory/purchase-orders/${grn.purchase_order_id}`)}>
                     {grn.purchase_order.po_number}
                   </Button>
-                ) : (
-                  <p className="font-medium">—</p>
-                )}
+                ) : <p className="font-medium">—</p>}
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Branch</p>
@@ -209,9 +202,7 @@ export default function GRNDetailPage() {
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Vendor & Invoice</CardTitle>
-          </CardHeader>
+          <CardHeader><CardTitle>Vendor & Invoice</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -224,28 +215,36 @@ export default function GRNDetailPage() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Invoice Amount</p>
-                <p className="font-medium">
-                  {grn.invoice_amount
-                    ? formatCurrency(grn.invoice_amount)
-                    : "—"}
-                </p>
+                <p className="font-medium">{grn.invoice_amount ? formatCurrency(grn.invoice_amount) : "—"}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Total Value</p>
-                <p className="font-medium text-lg">
-                  {formatCurrency(totalAmount)}
-                </p>
+                <p className="font-medium text-lg">{formatCurrency(totalAmount)}</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
+      {/* Scanner for receiving */}
+      {grn.status === "draft" && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Scan to Receive Items</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <InlineBarcodeScannerInput
+              onScan={handleScan}
+              placeholder="Scan barcode to match against PO items..."
+              autoFocus
+            />
+          </CardContent>
+        </Card>
+      )}
+
       {/* Items */}
       <Card>
-        <CardHeader>
-          <CardTitle>Items Received</CardTitle>
-        </CardHeader>
+        <CardHeader><CardTitle>Items Received</CardTitle></CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
@@ -262,32 +261,20 @@ export default function GRNDetailPage() {
             </TableHeader>
             <TableBody>
               {grn.items?.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell className="font-medium">
-                    {item.item?.name}
-                  </TableCell>
-                  <TableCell className="text-center">
-                    {item.quantity_received}
-                  </TableCell>
-                  <TableCell className="text-center text-emerald-600">
-                    {item.quantity_accepted || 0}
-                  </TableCell>
+                <TableRow key={item.id} className={cn(
+                  highlightedItem === item.id && "bg-emerald-100 dark:bg-emerald-900/30 transition-colors duration-500"
+                )}>
+                  <TableCell className="font-medium">{item.item?.name}</TableCell>
+                  <TableCell className="text-center">{item.quantity_received}</TableCell>
+                  <TableCell className="text-center text-emerald-600">{item.quantity_accepted || 0}</TableCell>
                   <TableCell className="text-center">
                     {item.quantity_rejected > 0 ? (
                       <Badge variant="destructive">{item.quantity_rejected}</Badge>
-                    ) : (
-                      "0"
-                    )}
+                    ) : "0"}
                   </TableCell>
                   <TableCell>{item.batch_number || "—"}</TableCell>
-                  <TableCell>
-                    {item.expiry_date
-                      ? format(new Date(item.expiry_date), "MMM yyyy")
-                      : "—"}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {formatCurrency(item.unit_cost)}
-                  </TableCell>
+                  <TableCell>{item.expiry_date ? format(new Date(item.expiry_date), "MMM yyyy") : "—"}</TableCell>
+                  <TableCell className="text-right">{formatCurrency(item.unit_cost)}</TableCell>
                   <TableCell className="text-right font-medium">
                     {formatCurrency((item.quantity_accepted || 0) * (item.unit_cost || 0))}
                   </TableCell>
@@ -301,12 +288,8 @@ export default function GRNDetailPage() {
       {/* Notes */}
       {grn.notes && (
         <Card>
-          <CardHeader>
-            <CardTitle>Notes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="whitespace-pre-wrap">{grn.notes}</p>
-          </CardContent>
+          <CardHeader><CardTitle>Notes</CardTitle></CardHeader>
+          <CardContent><p className="whitespace-pre-wrap">{grn.notes}</p></CardContent>
         </Card>
       )}
     </div>
