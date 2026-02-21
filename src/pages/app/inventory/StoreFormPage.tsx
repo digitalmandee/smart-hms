@@ -24,18 +24,28 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
+import { useOrganization } from "@/hooks/useOrganizations";
 import { useStore, useCreateStore, useUpdateStore } from "@/hooks/useStores";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Save } from "lucide-react";
 
-const storeTypes = [
+const hospitalStoreTypes = [
   { value: "central", label: "Central Warehouse" },
   { value: "medical", label: "Medical Store" },
   { value: "surgical", label: "Surgical Store" },
   { value: "dental", label: "Dental Store" },
   { value: "equipment", label: "Equipment Store" },
   { value: "pharmacy", label: "Pharmacy Store" },
+  { value: "general", label: "General Store" },
+];
+
+const warehouseStoreTypes = [
+  { value: "central", label: "Central Warehouse" },
+  { value: "distribution", label: "Distribution Center" },
+  { value: "cold_storage", label: "Cold Storage" },
+  { value: "bulk", label: "Bulk Storage" },
+  { value: "equipment", label: "Equipment Store" },
   { value: "general", label: "General Store" },
 ];
 
@@ -55,6 +65,9 @@ export default function StoreFormPage() {
   const { id } = useParams();
   const isEdit = !!id;
   const { profile } = useAuth();
+  const { data: organization } = useOrganization(profile?.organization_id);
+  const isWarehouse = organization?.facility_type === 'warehouse';
+  const storeTypes = isWarehouse ? warehouseStoreTypes : hospitalStoreTypes;
 
   const { data: store, isLoading: storeLoading } = useStore(id || "");
   const createStore = useCreateStore();

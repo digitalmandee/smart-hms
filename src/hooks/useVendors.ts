@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
-export type VendorType = 'pharmaceutical' | 'equipment' | 'consumables' | 'surgical' | 'services' | 'general';
+export type VendorType = 'pharmaceutical' | 'equipment' | 'consumables' | 'surgical' | 'services' | 'general' | 'manufacturer' | 'distributor' | 'wholesaler' | 'raw_materials' | 'packaging' | 'logistics';
 
 export interface Vendor {
   id: string;

@@ -31,6 +31,9 @@ const storeTypeLabels: Record<string, string> = {
   equipment: "Equipment",
   pharmacy: "Pharmacy",
   general: "General",
+  distribution: "Distribution",
+  cold_storage: "Cold Storage",
+  bulk: "Bulk Storage",
 };
 
 const storeTypeVariants: Record<string, "default" | "secondary" | "outline" | "destructive"> = {
