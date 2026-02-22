@@ -27,14 +27,21 @@ import {
   Stethoscope,
   Heart,
   Building2,
+  Warehouse,
+  CalendarClock,
 } from "lucide-react";
 import { format } from "date-fns";
 import { useTranslation, useIsRTL } from "@/lib/i18n";
+import { useAuth } from "@/contexts/AuthContext";
+import { useOrganization } from "@/hooks/useOrganizations";
 
 export default function HRDashboard() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const isRTL = useIsRTL();
+  const { profile } = useAuth();
+  const { data: organization } = useOrganization(profile?.organization_id);
+  const isWarehouse = organization?.facility_type === "warehouse";
 
   const today = format(new Date(), "yyyy-MM-dd");
 
@@ -55,12 +62,19 @@ export default function HRDashboard() {
     await approveLeave.mutateAsync({ id, approved: false });
   };
 
-  const quickAccessItems = [
-    { title: t("hr.doctors"), subtitle: t("hr.managePhysicians"), icon: Stethoscope, color: "bg-blue-100 text-blue-600", path: "/app/hr/doctors" },
-    { title: t("hr.nurses"), subtitle: t("hr.nursingStaff"), icon: Heart, color: "bg-pink-100 text-pink-600", path: "/app/hr/nurses" },
-    { title: t("nav.attendance"), subtitle: t("hr.attendanceSubtitle"), icon: Clock, color: "bg-green-100 text-green-600", path: "/app/hr/attendance" },
-    { title: t("nav.payroll"), subtitle: t("hr.payrollSubtitle"), icon: DollarSign, color: "bg-purple-100 text-purple-600", path: "/app/hr/payroll" },
-  ];
+  const quickAccessItems = isWarehouse
+    ? [
+        { title: t("nav.warehouseStaff"), subtitle: t("nav.manageWarehouseStaff"), icon: Warehouse, color: "bg-blue-100 text-blue-600", path: "/app/hr/employees" },
+        { title: t("nav.shiftSchedule"), subtitle: t("nav.manageShiftSchedule"), icon: CalendarClock, color: "bg-pink-100 text-pink-600", path: "/app/hr/attendance/duty-roster" },
+        { title: t("nav.attendance"), subtitle: t("hr.attendanceSubtitle"), icon: Clock, color: "bg-green-100 text-green-600", path: "/app/hr/attendance" },
+        { title: t("nav.payroll"), subtitle: t("hr.payrollSubtitle"), icon: DollarSign, color: "bg-purple-100 text-purple-600", path: "/app/hr/payroll" },
+      ]
+    : [
+        { title: t("hr.doctors"), subtitle: t("hr.managePhysicians"), icon: Stethoscope, color: "bg-blue-100 text-blue-600", path: "/app/hr/doctors" },
+        { title: t("hr.nurses"), subtitle: t("hr.nursingStaff"), icon: Heart, color: "bg-pink-100 text-pink-600", path: "/app/hr/nurses" },
+        { title: t("nav.attendance"), subtitle: t("hr.attendanceSubtitle"), icon: Clock, color: "bg-green-100 text-green-600", path: "/app/hr/attendance" },
+        { title: t("nav.payroll"), subtitle: t("hr.payrollSubtitle"), icon: DollarSign, color: "bg-purple-100 text-purple-600", path: "/app/hr/payroll" },
+      ];
 
   return (
     <div className="space-y-6">
