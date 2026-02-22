@@ -433,6 +433,14 @@ import RTVFormPage from "./pages/app/inventory/RTVFormPage";
 import RTVDetailPage from "./pages/app/inventory/RTVDetailPage";
 import BarcodeScannerSetup from "./pages/app/inventory/integrations/BarcodeScannerSetup";
 import ApiKeysPage from "./pages/app/inventory/integrations/ApiKeysPage";
+import DockSchedulePage from "./pages/app/inventory/DockSchedulePage";
+import GateLogPage from "./pages/app/inventory/GateLogPage";
+import WarehouseOrdersListPage from "./pages/app/inventory/WarehouseOrdersListPage";
+import WarehouseOrderFormPage from "./pages/app/inventory/WarehouseOrderFormPage";
+import WarehouseOrderDetailPage from "./pages/app/inventory/WarehouseOrderDetailPage";
+import WarehouseKPIDashboard from "./pages/app/inventory/WarehouseKPIDashboard";
+import ShiftHandoverPage from "./pages/app/hr/attendance/ShiftHandoverPage";
+import SafetyIncidentsPage from "./pages/app/hr/SafetyIncidentsPage";
 
 // Report sub-pages
 import StockValuationReport from "./pages/app/inventory/reports/StockValuationReport";
@@ -925,6 +933,12 @@ function App() {
               <Route path="inventory/barcode-labels" element={<BarcodeLabelPage />} />
               <Route path="inventory/integrations/barcode-scanner" element={<BarcodeScannerSetup />} />
               <Route path="inventory/integrations/api-keys" element={<ApiKeysPage />} />
+              <Route path="inventory/dock-schedule" element={<DockSchedulePage />} />
+              <Route path="inventory/gate-log" element={<GateLogPage />} />
+              <Route path="inventory/warehouse-orders" element={<WarehouseOrdersListPage />} />
+              <Route path="inventory/warehouse-orders/new" element={<WarehouseOrderFormPage />} />
+              <Route path="inventory/warehouse-orders/:id" element={<WarehouseOrderDetailPage />} />
+              <Route path="inventory/warehouse-kpis" element={<WarehouseKPIDashboard />} />
               
               {/* Inventory Report sub-pages */}
               <Route path="inventory/reports/valuation" element={<StockValuationReport />} />
@@ -1061,6 +1075,8 @@ function App() {
               <Route path="hr/leaves/approvals" element={<LeaveApprovalsPage />} />
               <Route path="hr/employees/directory" element={<EmployeeDirectoryPage />} />
               <Route path="hr/attendance/corrections" element={<AttendanceCorrectionsPage />} />
+              <Route path="hr/attendance/shift-handover" element={<ShiftHandoverPage />} />
+              <Route path="hr/safety-incidents" element={<SafetyIncidentsPage />} />
               
               {/* Settings routes */}
               <Route path="settings/branches" element={<BranchesListPage />} />

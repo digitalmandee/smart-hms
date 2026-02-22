@@ -2390,6 +2390,30 @@ export const en = {
   "filter.viewAll": "View All",
   "filter.newShipment": "New Shipment",
 
+  // Warehouse-specific HR & Operations
+  "nav.warehouseStaff": "Warehouse Staff",
+  "nav.manageWarehouseStaff": "Manage warehouse employees",
+  "nav.shiftSchedule": "Shift Schedule",
+  "nav.manageShiftSchedule": "Manage shift schedules",
+  "nav.shiftHandover": "Shift Handover",
+  "nav.shiftHandoverDesc": "Log shift-to-shift handover details",
+  "nav.newHandover": "New Handover",
+  "nav.shiftType": "Shift Type",
+  "nav.pendingReceipts": "Pending Receipts",
+  "nav.pendingDispatches": "Pending Dispatches",
+  "nav.issuesNotes": "Issues / Notes",
+  "nav.safetyIncidents": "Safety Incidents",
+  "nav.safetyIncidentsDesc": "Report and track workplace safety incidents",
+  "nav.reportIncident": "Report Incident",
+  "nav.warehouseOrders": "Warehouse Orders",
+  "nav.warehouseOrdersDesc": "Manage customer and distribution orders",
+  "nav.dockSchedule": "Dock Schedule",
+  "nav.dockScheduleDesc": "Manage dock appointments and scheduling",
+  "nav.gateLog": "Gate Log",
+  "nav.gateLogDesc": "Track vehicle entry and exit",
+  "nav.warehouseKpis": "Warehouse KPIs",
+  "nav.warehouseKpisDesc": "Key performance indicators for warehouse operations",
+
 } as const;
 
 export type TranslationKey = keyof typeof en;
