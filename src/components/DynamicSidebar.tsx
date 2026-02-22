@@ -156,6 +156,8 @@ import {
   Webhook,
   Users2,
   Sliders,
+  Anchor,
+  ShieldAlert,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -583,6 +585,11 @@ export const SIDEBAR_NAME_TO_KEY: Record<string, TranslationKey> = {
   "Users & Roles": "nav.usersRoles",
   "Vitals Chart": "nav.vitalsChart",
   "Ward Types": "nav.wardTypes",
+  "Shift Handover": "nav.shiftHandover",
+  "Safety Incidents": "nav.safetyIncidents",
+  "Warehouse Orders": "nav.warehouseOrders",
+  "Dock Schedule": "nav.dockSchedule",
+  "Gate Log": "nav.gateLog",
 };
 
 
@@ -720,6 +727,8 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Webhook,
   Users2,
   Sliders,
+  Anchor,
+  ShieldAlert,
 };
 
 interface DynamicSidebarProps {

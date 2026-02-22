@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/table";
 import {
   ArrowLeft, Printer, Package, CheckCircle2, FileCheck, AlertCircle, RotateCcw,
+  ShieldCheck, ShieldX, ShieldAlert,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useGRN, useVerifyGRN, usePostGRN } from "@/hooks/useGRN";
@@ -24,6 +25,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useOrganization } from "@/hooks/useOrganizations";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export default function GRNDetailPage() {
   const navigate = useNavigate();
@@ -37,6 +39,33 @@ export default function GRNDetailPage() {
   const verifyMutation = useVerifyGRN();
   const postMutation = usePostGRN();
   const { printRef, handlePrint } = usePrint();
+  const queryClient = useQueryClient();
+
+  const qcMutation = useMutation({
+    mutationFn: async ({ itemId, status }: { itemId: string; status: string }) => {
+      const { error } = await (supabase as any)
+        .from("grn_items")
+        .update({ qc_status: status })
+        .eq("id", itemId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["grn", id] });
+      toast.success("QC status updated");
+    },
+    onError: (err: any) => toast.error(err.message || "Failed to update QC status"),
+  });
+
+  const getQcBadge = (status: string) => {
+    switch (status) {
+      case "passed": return <Badge className="bg-emerald-600 text-white">Passed</Badge>;
+      case "failed": return <Badge variant="destructive">Failed</Badge>;
+      case "quarantine": return <Badge className="bg-amber-500 text-white">Quarantine</Badge>;
+      default: return <Badge variant="secondary">Pending QC</Badge>;
+    }
+  };
+
+  const canQC = grn && ["draft", "pending_verification"].includes(grn.status);
 
   const handleVerify = async () => {
     if (!grn) return;
@@ -272,6 +301,8 @@ export default function GRNDetailPage() {
                 <TableHead>Expiry</TableHead>
                 <TableHead className="text-right">Unit Cost</TableHead>
                 <TableHead className="text-right">Total</TableHead>
+                <TableHead className="text-center">QC Status</TableHead>
+                {canQC && <TableHead className="text-center">QC Actions</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -293,6 +324,30 @@ export default function GRNDetailPage() {
                   <TableCell className="text-right font-medium">
                     {formatCurrency((item.quantity_accepted || 0) * (item.unit_cost || 0))}
                   </TableCell>
+                  <TableCell className="text-center">
+                    {getQcBadge((item as any).qc_status || "pending_qc")}
+                  </TableCell>
+                  {canQC && (
+                    <TableCell className="text-center">
+                      <div className="flex gap-1 justify-center">
+                        <Button size="sm" variant="outline" className="h-7 px-2 text-xs"
+                          onClick={() => qcMutation.mutate({ itemId: item.id, status: "passed" })}
+                          disabled={qcMutation.isPending}>
+                          <ShieldCheck className="h-3 w-3 mr-1" />Pass
+                        </Button>
+                        <Button size="sm" variant="outline" className="h-7 px-2 text-xs text-destructive"
+                          onClick={() => qcMutation.mutate({ itemId: item.id, status: "failed" })}
+                          disabled={qcMutation.isPending}>
+                          <ShieldX className="h-3 w-3 mr-1" />Fail
+                        </Button>
+                        <Button size="sm" variant="outline" className="h-7 px-2 text-xs"
+                          onClick={() => qcMutation.mutate({ itemId: item.id, status: "quarantine" })}
+                          disabled={qcMutation.isPending}>
+                          <ShieldAlert className="h-3 w-3 mr-1" />Quarantine
+                        </Button>
+                      </div>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))}
             </TableBody>

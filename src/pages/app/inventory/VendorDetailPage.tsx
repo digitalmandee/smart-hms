@@ -27,6 +27,7 @@ import {
   CreditCard,
 } from "lucide-react";
 import { useVendor, useVendorPurchaseHistory } from "@/hooks/useVendors";
+import { VendorDocuments } from "@/components/inventory/VendorDocuments";
 import { format } from "date-fns";
 
 export default function VendorDetailPage() {
@@ -289,6 +290,8 @@ export default function VendorDetailPage() {
           )}
         </CardContent>
       </Card>
+      {/* Vendor Documents */}
+      <VendorDocuments vendorId={id || ""} />
     </div>
   );
 }
