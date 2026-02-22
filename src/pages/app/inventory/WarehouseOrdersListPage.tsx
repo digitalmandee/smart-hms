@@ -30,7 +30,7 @@ export default function WarehouseOrdersListPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
-  const { data: orders, isLoading } = useQuery({
+  const { data: orders } = useQuery({
     queryKey: ["warehouse-orders", profile?.organization_id, search],
     queryFn: async () => {
       let q = (supabase as any).from("warehouse_orders")
@@ -79,7 +79,7 @@ export default function WarehouseOrdersListPage() {
                 <TableHead>Order Date</TableHead>
                 <TableHead>Required Date</TableHead>
                 <TableHead>Items</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>{t("common.status")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

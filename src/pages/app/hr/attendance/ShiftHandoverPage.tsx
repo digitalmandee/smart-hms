@@ -15,8 +15,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { useTranslation } from "@/lib/i18n";
 
 export default function ShiftHandoverPage() {
+  const { t } = useTranslation();
   const { profile } = useAuth();
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
@@ -25,7 +27,7 @@ export default function ShiftHandoverPage() {
   const [pendingDispatches, setPendingDispatches] = useState("");
   const [issuesNotes, setIssuesNotes] = useState("");
 
-  const { data: handovers, isLoading } = useQuery({
+  const { data: handovers } = useQuery({
     queryKey: ["shift-handovers", profile?.organization_id],
     queryFn: async () => {
       const { data, error } = await (supabase as any)
@@ -44,7 +46,6 @@ export default function ShiftHandoverPage() {
     mutationFn: async () => {
       const { error } = await (supabase as any).from("shift_handovers").insert({
         organization_id: profile!.organization_id,
-        store_id: defaultStoreId,
         shift_date: format(new Date(), "yyyy-MM-dd"),
         shift_type: shiftType,
         handed_over_by: profile!.id,

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -14,8 +14,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { useTranslation } from "@/lib/i18n";
 
 export default function DockSchedulePage() {
+  const { t } = useTranslation();
   const { profile } = useAuth();
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
@@ -44,7 +46,6 @@ export default function DockSchedulePage() {
     mutationFn: async () => {
       const { error } = await (supabase as any).from("dock_appointments").insert({
         organization_id: profile!.organization_id,
-        store_id: defaultStoreId,
         dock_number: dockNumber,
         vehicle_number: vehicleNumber,
         driver_name: driverName,
@@ -118,8 +119,8 @@ export default function DockSchedulePage() {
                 <TableHead>Vehicle</TableHead>
                 <TableHead>Driver</TableHead>
                 <TableHead>Scheduled</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead>{t("common.status")}</TableHead>
+                <TableHead>{t("common.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

@@ -14,8 +14,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { useTranslation } from "@/lib/i18n";
 
 export default function GateLogPage() {
+  const { t } = useTranslation();
   const { profile } = useAuth();
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
@@ -42,7 +44,6 @@ export default function GateLogPage() {
     mutationFn: async () => {
       const { error } = await (supabase as any).from("gate_logs").insert({
         organization_id: profile!.organization_id,
-        store_id: defaultStoreId,
         vehicle_number: vehicleNumber,
         driver_name: driverName,
         purpose,
@@ -114,7 +115,7 @@ export default function GateLogPage() {
                 <TableHead>Purpose</TableHead>
                 <TableHead>Entry</TableHead>
                 <TableHead>Exit</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead>{t("common.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

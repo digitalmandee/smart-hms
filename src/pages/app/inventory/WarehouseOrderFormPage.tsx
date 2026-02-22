@@ -10,7 +10,6 @@ import { ArrowLeft, Save } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useDefaultStore } from "@/hooks/useDefaultStore";
 import { toast } from "sonner";
 import { useTranslation } from "@/lib/i18n";
 
@@ -18,7 +17,6 @@ export default function WarehouseOrderFormPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { profile } = useAuth();
-  const { defaultStoreId } = useDefaultStore();
   const qc = useQueryClient();
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
@@ -30,7 +28,6 @@ export default function WarehouseOrderFormPage() {
     mutationFn: async () => {
       const { data, error } = await (supabase as any).from("warehouse_orders").insert({
         organization_id: profile!.organization_id,
-        store_id: defaultStoreId,
         order_number: "",
         customer_name: customerName,
         customer_phone: customerPhone,
@@ -55,7 +52,7 @@ export default function WarehouseOrderFormPage() {
     <div className="space-y-6">
       <PageHeader title="New Warehouse Order" />
       <Button variant="outline" onClick={() => navigate("/app/inventory/warehouse-orders")}>
-        <ArrowLeft className="mr-2 h-4 w-4" />Back
+        <ArrowLeft className="mr-2 h-4 w-4" />{t("common.back")}
       </Button>
       <Card>
         <CardHeader><CardTitle>Order Details</CardTitle></CardHeader>
@@ -79,7 +76,7 @@ export default function WarehouseOrderFormPage() {
             </div>
           </div>
           <div>
-            <Label>Notes</Label>
+            <Label>{t("common.notes")}</Label>
             <Textarea value={notes} onChange={e => setNotes(e.target.value)} />
           </div>
           <Button onClick={() => createMutation.mutate()} disabled={!customerName || createMutation.isPending}>

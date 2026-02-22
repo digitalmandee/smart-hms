@@ -2324,5 +2324,29 @@ export const ur: Record<TranslationKey, string> = {
   "filter.viewAll": "سب دیکھیں",
   "filter.newShipment": "نئی شپمنٹ",
 
+  // Warehouse-specific HR & Operations
+  "nav.warehouseStaff": "گودام کا عملہ",
+  "nav.manageWarehouseStaff": "گودام کے ملازمین کا انتظام",
+  "nav.shiftSchedule": "شفٹ شیڈول",
+  "nav.manageShiftSchedule": "شفٹ شیڈول کا انتظام",
+  "nav.shiftHandover": "شفٹ حوالگی",
+  "nav.shiftHandoverDesc": "شفٹ حوالگی کی تفصیلات درج کریں",
+  "nav.newHandover": "نئی حوالگی",
+  "nav.shiftType": "شفٹ کی قسم",
+  "nav.pendingReceipts": "زیر التواء رسیدیں",
+  "nav.pendingDispatches": "زیر التواء ترسیلات",
+  "nav.issuesNotes": "مسائل / نوٹس",
+  "nav.safetyIncidents": "حفاظتی واقعات",
+  "nav.safetyIncidentsDesc": "کام کی جگہ حفاظتی واقعات کی رپورٹ اور ٹریکنگ",
+  "nav.reportIncident": "واقعے کی رپورٹ",
+  "nav.warehouseOrders": "گودام کے آرڈرز",
+  "nav.warehouseOrdersDesc": "گاہکوں اور تقسیم کے آرڈرز کا انتظام",
+  "nav.dockSchedule": "ڈاک شیڈول",
+  "nav.dockScheduleDesc": "ڈاک اپائنٹمنٹس اور شیڈولنگ کا انتظام",
+  "nav.gateLog": "گیٹ لاگ",
+  "nav.gateLogDesc": "گاڑیوں کے داخلے اور خروج کی ٹریکنگ",
+  "nav.warehouseKpis": "گودام کے کارکردگی اشاریے",
+  "nav.warehouseKpisDesc": "گودام آپریشنز کے کلیدی کارکردگی اشاریے",
+
 };
 

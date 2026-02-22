@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { useTranslation } from "@/lib/i18n";
 
 const SEVERITY_COLORS: Record<string, string> = {
   minor: "bg-blue-100 text-blue-800",
@@ -24,6 +25,7 @@ const SEVERITY_COLORS: Record<string, string> = {
 };
 
 export default function SafetyIncidentsPage() {
+  const { t } = useTranslation();
   const { profile } = useAuth();
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
@@ -52,7 +54,6 @@ export default function SafetyIncidentsPage() {
     mutationFn: async () => {
       const { error } = await (supabase as any).from("safety_incidents").insert({
         organization_id: profile!.organization_id,
-        store_id: defaultStoreId,
         incident_date: format(new Date(), "yyyy-MM-dd"),
         incident_type: incidentType,
         severity,

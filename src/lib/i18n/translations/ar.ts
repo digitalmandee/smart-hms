@@ -2324,5 +2324,29 @@ export const ar: Record<TranslationKey, string> = {
   "filter.viewAll": "عرض الكل",
   "filter.newShipment": "شحنة جديدة",
 
+  // Warehouse-specific HR & Operations
+  "nav.warehouseStaff": "موظفو المستودع",
+  "nav.manageWarehouseStaff": "إدارة موظفي المستودع",
+  "nav.shiftSchedule": "جدول الورديات",
+  "nav.manageShiftSchedule": "إدارة جداول الورديات",
+  "nav.shiftHandover": "تسليم الوردية",
+  "nav.shiftHandoverDesc": "تسجيل تفاصيل تسليم الوردية",
+  "nav.newHandover": "تسليم جديد",
+  "nav.shiftType": "نوع الوردية",
+  "nav.pendingReceipts": "الاستلامات المعلقة",
+  "nav.pendingDispatches": "الإرساليات المعلقة",
+  "nav.issuesNotes": "المشاكل / الملاحظات",
+  "nav.safetyIncidents": "حوادث السلامة",
+  "nav.safetyIncidentsDesc": "الإبلاغ عن حوادث السلامة في مكان العمل وتتبعها",
+  "nav.reportIncident": "الإبلاغ عن حادث",
+  "nav.warehouseOrders": "أوامر المستودع",
+  "nav.warehouseOrdersDesc": "إدارة أوامر العملاء والتوزيع",
+  "nav.dockSchedule": "جدول الأرصفة",
+  "nav.dockScheduleDesc": "إدارة مواعيد الأرصفة والجدولة",
+  "nav.gateLog": "سجل البوابة",
+  "nav.gateLogDesc": "تتبع دخول وخروج المركبات",
+  "nav.warehouseKpis": "مؤشرات أداء المستودع",
+  "nav.warehouseKpisDesc": "مؤشرات الأداء الرئيسية لعمليات المستودع",
+
 };
 
