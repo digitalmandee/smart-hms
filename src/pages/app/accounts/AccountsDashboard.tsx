@@ -21,11 +21,16 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { useAccounts, useFiscalYears, useCurrentFiscalYear } from "@/hooks/useAccounts";
 import { format } from "date-fns";
 import { formatCurrency } from "@/lib/currency";
+import { useAuth } from "@/contexts/AuthContext";
+import { useOrganization } from "@/hooks/useOrganizations";
 
 export default function AccountsDashboard() {
   const navigate = useNavigate();
   const { data: accounts } = useAccounts({ isActive: true });
   const { data: currentFiscalYear } = useCurrentFiscalYear();
+  const { profile } = useAuth();
+  const { data: organization } = useOrganization(profile?.organization_id);
+  const isWarehouse = organization?.facility_type === "warehouse";
 
   // Calculate summary figures from accounts
   const summary = accounts?.reduce(
@@ -120,12 +125,12 @@ export default function AccountsDashboard() {
       icon: LayoutDashboard,
       href: "/app/accounts/general-ledger",
     },
-    {
+    ...(!isWarehouse ? [{
       title: "Accounts Receivable",
       description: "Track customer payments",
       icon: Receipt,
       href: "/app/accounts/receivables",
-    },
+    }] : []),
     {
       title: "Accounts Payable",
       description: "Manage vendor payments",
@@ -156,7 +161,7 @@ export default function AccountsDashboard() {
     <div className="space-y-6">
       <PageHeader
         title="Accounts & Finance"
-        description="Manage your organization's financial operations"
+        description={isWarehouse ? "Track warehouse financial operations" : "Manage your organization's financial operations"}
         breadcrumbs={[{ label: "Accounts" }]}
       />
 

@@ -26,6 +26,7 @@ const PHARMACY_PATH_PREFIXES = [
 // Billing paths - irrelevant for warehouse
 const BILLING_PATH_PREFIXES = [
   "/app/billing",
+  "/app/accounts/receivables",
 ];
 
 // Clinical HR sub-paths that are hospital-specific

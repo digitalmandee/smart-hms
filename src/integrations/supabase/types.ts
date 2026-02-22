@@ -6129,6 +6129,105 @@ export type Database = {
           },
         ]
       }
+      dock_appointments: {
+        Row: {
+          actual_arrival: string | null
+          actual_departure: string | null
+          appointment_type: string
+          created_at: string
+          created_by: string | null
+          dock_number: string | null
+          driver_name: string | null
+          driver_phone: string | null
+          id: string
+          notes: string | null
+          organization_id: string
+          po_id: string | null
+          scheduled_time: string | null
+          shipment_id: string | null
+          status: string
+          store_id: string | null
+          updated_at: string
+          vehicle_number: string | null
+        }
+        Insert: {
+          actual_arrival?: string | null
+          actual_departure?: string | null
+          appointment_type?: string
+          created_at?: string
+          created_by?: string | null
+          dock_number?: string | null
+          driver_name?: string | null
+          driver_phone?: string | null
+          id?: string
+          notes?: string | null
+          organization_id: string
+          po_id?: string | null
+          scheduled_time?: string | null
+          shipment_id?: string | null
+          status?: string
+          store_id?: string | null
+          updated_at?: string
+          vehicle_number?: string | null
+        }
+        Update: {
+          actual_arrival?: string | null
+          actual_departure?: string | null
+          appointment_type?: string
+          created_at?: string
+          created_by?: string | null
+          dock_number?: string | null
+          driver_name?: string | null
+          driver_phone?: string | null
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          po_id?: string | null
+          scheduled_time?: string | null
+          shipment_id?: string | null
+          status?: string
+          store_id?: string | null
+          updated_at?: string
+          vehicle_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dock_appointments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dock_appointments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dock_appointments_po_id_fkey"
+            columns: ["po_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dock_appointments_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dock_appointments_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       doctor_compensation_plans: {
         Row: {
           base_salary: number | null
@@ -7963,6 +8062,77 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gate_logs: {
+        Row: {
+          created_at: string
+          dock_appointment_id: string | null
+          driver_name: string | null
+          entry_time: string
+          exit_time: string | null
+          id: string
+          logged_by: string | null
+          organization_id: string
+          purpose: string
+          store_id: string | null
+          vehicle_number: string
+        }
+        Insert: {
+          created_at?: string
+          dock_appointment_id?: string | null
+          driver_name?: string | null
+          entry_time?: string
+          exit_time?: string | null
+          id?: string
+          logged_by?: string | null
+          organization_id: string
+          purpose?: string
+          store_id?: string | null
+          vehicle_number: string
+        }
+        Update: {
+          created_at?: string
+          dock_appointment_id?: string | null
+          driver_name?: string | null
+          entry_time?: string
+          exit_time?: string | null
+          id?: string
+          logged_by?: string | null
+          organization_id?: string
+          purpose?: string
+          store_id?: string | null
+          vehicle_number?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gate_logs_dock_appointment_id_fkey"
+            columns: ["dock_appointment_id"]
+            isOneToOne: false
+            referencedRelation: "dock_appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gate_logs_logged_by_fkey"
+            columns: ["logged_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gate_logs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gate_logs_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
             referencedColumns: ["id"]
           },
         ]
@@ -15901,6 +16071,7 @@ export type Database = {
           created_at: string
           id: string
           notes: string | null
+          order_id: string | null
           organization_id: string
           pick_list_number: string
           pick_strategy: string
@@ -15918,6 +16089,7 @@ export type Database = {
           created_at?: string
           id?: string
           notes?: string | null
+          order_id?: string | null
           organization_id: string
           pick_list_number?: string
           pick_strategy?: string
@@ -15935,6 +16107,7 @@ export type Database = {
           created_at?: string
           id?: string
           notes?: string | null
+          order_id?: string | null
           organization_id?: string
           pick_list_number?: string
           pick_strategy?: string
@@ -15952,6 +16125,13 @@ export type Database = {
             columns: ["assigned_to"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pick_lists_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "warehouse_orders"
             referencedColumns: ["id"]
           },
           {
@@ -17945,6 +18125,76 @@ export type Database = {
           },
         ]
       }
+      safety_incidents: {
+        Row: {
+          action_taken: string | null
+          created_at: string
+          description: string | null
+          id: string
+          incident_date: string
+          incident_type: string
+          location: string | null
+          organization_id: string
+          reported_by: string | null
+          severity: string
+          status: string
+          store_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          action_taken?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          incident_date: string
+          incident_type?: string
+          location?: string | null
+          organization_id: string
+          reported_by?: string | null
+          severity?: string
+          status?: string
+          store_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          action_taken?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          incident_date?: string
+          incident_type?: string
+          location?: string | null
+          organization_id?: string
+          reported_by?: string | null
+          severity?: string
+          status?: string
+          store_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "safety_incidents_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "safety_incidents_reported_by_fkey"
+            columns: ["reported_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "safety_incidents_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       salary_components: {
         Row: {
           affects_overtime: boolean | null
@@ -18245,6 +18495,83 @@ export type Database = {
             columns: ["shift_id"]
             isOneToOne: false
             referencedRelation: "shifts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shift_handovers: {
+        Row: {
+          created_at: string
+          handed_over_by: string | null
+          id: string
+          issues_notes: string | null
+          organization_id: string
+          pending_dispatches: string | null
+          pending_receipts: string | null
+          received_by: string | null
+          shift_date: string
+          shift_type: string
+          status: string
+          store_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          handed_over_by?: string | null
+          id?: string
+          issues_notes?: string | null
+          organization_id: string
+          pending_dispatches?: string | null
+          pending_receipts?: string | null
+          received_by?: string | null
+          shift_date: string
+          shift_type?: string
+          status?: string
+          store_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          handed_over_by?: string | null
+          id?: string
+          issues_notes?: string | null
+          organization_id?: string
+          pending_dispatches?: string | null
+          pending_receipts?: string | null
+          received_by?: string | null
+          shift_date?: string
+          shift_type?: string
+          status?: string
+          store_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shift_handovers_handed_over_by_fkey"
+            columns: ["handed_over_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_handovers_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_handovers_received_by_fkey"
+            columns: ["received_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_handovers_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
             referencedColumns: ["id"]
           },
         ]
@@ -20456,6 +20783,67 @@ export type Database = {
           },
         ]
       }
+      vendor_documents: {
+        Row: {
+          created_at: string
+          document_name: string
+          document_type: string
+          expiry_date: string | null
+          file_url: string | null
+          id: string
+          organization_id: string
+          status: string
+          uploaded_by: string | null
+          vendor_id: string
+        }
+        Insert: {
+          created_at?: string
+          document_name: string
+          document_type?: string
+          expiry_date?: string | null
+          file_url?: string | null
+          id?: string
+          organization_id: string
+          status?: string
+          uploaded_by?: string | null
+          vendor_id: string
+        }
+        Update: {
+          created_at?: string
+          document_name?: string
+          document_type?: string
+          expiry_date?: string | null
+          file_url?: string | null
+          id?: string
+          organization_id?: string
+          status?: string
+          uploaded_by?: string | null
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_documents_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_documents_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_documents_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vendor_payments: {
         Row: {
           amount: number
@@ -20854,6 +21242,124 @@ export type Database = {
             columns: ["zone_id"]
             isOneToOne: false
             referencedRelation: "warehouse_zones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      warehouse_order_items: {
+        Row: {
+          id: string
+          item_id: string | null
+          notes: string | null
+          order_id: string
+          packed_quantity: number
+          picked_quantity: number
+          quantity: number
+        }
+        Insert: {
+          id?: string
+          item_id?: string | null
+          notes?: string | null
+          order_id: string
+          packed_quantity?: number
+          picked_quantity?: number
+          quantity?: number
+        }
+        Update: {
+          id?: string
+          item_id?: string | null
+          notes?: string | null
+          order_id?: string
+          packed_quantity?: number
+          picked_quantity?: number
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "warehouse_order_items_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "warehouse_order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "warehouse_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      warehouse_orders: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          customer_address: string | null
+          customer_name: string
+          customer_phone: string | null
+          id: string
+          notes: string | null
+          order_date: string
+          order_number: string
+          organization_id: string
+          required_date: string | null
+          status: string
+          store_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          customer_address?: string | null
+          customer_name: string
+          customer_phone?: string | null
+          id?: string
+          notes?: string | null
+          order_date?: string
+          order_number: string
+          organization_id: string
+          required_date?: string | null
+          status?: string
+          store_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          customer_address?: string | null
+          customer_name?: string
+          customer_phone?: string | null
+          id?: string
+          notes?: string | null
+          order_date?: string
+          order_number?: string
+          organization_id?: string
+          required_date?: string | null
+          status?: string
+          store_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "warehouse_orders_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "warehouse_orders_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "warehouse_orders_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
             referencedColumns: ["id"]
           },
         ]
