@@ -412,6 +412,8 @@ export const en = {
   "nav.stockAdjustments": "Stock Adjustments",
   "nav.reorderAlerts": "Reorder Alerts",
   "nav.purchaseRequisitions": "Purchase Requisitions",
+  "nav.cycleCounts": "Cycle Counts",
+  "nav.returnToVendor": "Return to Vendor",
 
   // IPD Module
   "ipd.dashboard": "IPD Dashboard",

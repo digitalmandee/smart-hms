@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import { usePrint } from "@/hooks/usePrint";
 import { PrintablePR } from "@/components/inventory/PrintablePR";
 import { Printer } from "lucide-react";
@@ -165,6 +165,14 @@ export default function PRDetailPage() {
           <Button onClick={handleConvertToPO} disabled={convertMutation.isPending}>
             <ShoppingCart className="mr-2 h-4 w-4" />
             Convert to Purchase Order
+          </Button>
+        )}
+        {pr.status === "converted" && (
+          <Button variant="outline" asChild>
+            <Link to={`/app/inventory/purchase-orders?search=${pr.pr_number}`}>
+              <ShoppingCart className="mr-2 h-4 w-4" />
+              View Linked PO
+            </Link>
           </Button>
         )}
       </div>

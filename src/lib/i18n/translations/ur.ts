@@ -339,6 +339,8 @@ export const ur: Record<TranslationKey, string> = {
   "nav.stockAdjustments": "اسٹاک ایڈجسٹمنٹس",
   "nav.reorderAlerts": "ری آرڈر الرٹس",
   "nav.purchaseRequisitions": "پرچیز ریکوزیشنز",
+  "nav.cycleCounts": "سائیکل کاؤنٹس",
+  "nav.returnToVendor": "وینڈر کو واپسی",
 
   // IPD Module
   "ipd.dashboard": "IPD ڈیش بورڈ",
