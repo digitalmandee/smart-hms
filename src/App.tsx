@@ -425,6 +425,12 @@ import ShipmentFormPage from "./pages/app/inventory/shipping/ShipmentFormPage";
 import ShipmentDetailPage from "./pages/app/inventory/shipping/ShipmentDetailPage";
 import DispatchDashboardPage from "./pages/app/inventory/shipping/DispatchDashboardPage";
 import WarehouseIntegrationsPage from "./pages/app/inventory/WarehouseIntegrationsPage";
+import CycleCountListPage from "./pages/app/inventory/CycleCountListPage";
+import CycleCountFormPage from "./pages/app/inventory/CycleCountFormPage";
+import CycleCountDetailPage from "./pages/app/inventory/CycleCountDetailPage";
+import RTVListPage from "./pages/app/inventory/RTVListPage";
+import RTVFormPage from "./pages/app/inventory/RTVFormPage";
+import RTVDetailPage from "./pages/app/inventory/RTVDetailPage";
 import BarcodeScannerSetup from "./pages/app/inventory/integrations/BarcodeScannerSetup";
 import ApiKeysPage from "./pages/app/inventory/integrations/ApiKeysPage";
 
@@ -909,6 +915,12 @@ function App() {
               <Route path="inventory/shipping/dashboard" element={<DispatchDashboardPage />} />
               <Route path="inventory/shipping/new" element={<ShipmentFormPage />} />
               <Route path="inventory/shipping/:id" element={<ShipmentDetailPage />} />
+              <Route path="inventory/cycle-counts" element={<CycleCountListPage />} />
+              <Route path="inventory/cycle-counts/new" element={<CycleCountFormPage />} />
+              <Route path="inventory/cycle-counts/:id" element={<CycleCountDetailPage />} />
+              <Route path="inventory/rtv" element={<RTVListPage />} />
+              <Route path="inventory/rtv/new" element={<RTVFormPage />} />
+              <Route path="inventory/rtv/:id" element={<RTVDetailPage />} />
               <Route path="inventory/integrations" element={<WarehouseIntegrationsPage />} />
               <Route path="inventory/barcode-labels" element={<BarcodeLabelPage />} />
               <Route path="inventory/integrations/barcode-scanner" element={<BarcodeScannerSetup />} />

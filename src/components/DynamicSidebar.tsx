@@ -454,6 +454,8 @@ export const SIDEBAR_NAME_TO_KEY: Record<string, TranslationKey> = {
   "Stock Adjustments": "nav.stockAdjustments",
   "Reorder Alerts": "nav.reorderAlerts",
   "Purchase Requisitions": "nav.purchaseRequisitions",
+  "Cycle Counts": "nav.cycleCounts",
+  "Return to Vendor": "nav.returnToVendor",
 
   // Missing DB menu item names
   "Walk-in Patient": "nav.walkInPatient",

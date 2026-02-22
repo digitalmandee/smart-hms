@@ -12,8 +12,9 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
-  ArrowLeft, Printer, Package, CheckCircle2, FileCheck, AlertCircle,
+  ArrowLeft, Printer, Package, CheckCircle2, FileCheck, AlertCircle, RotateCcw,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useGRN, useVerifyGRN, usePostGRN } from "@/hooks/useGRN";
 import { usePrint } from "@/hooks/usePrint";
 import { format } from "date-fns";
@@ -109,6 +110,9 @@ export default function GRNDetailPage() {
   const totalAmount = grn.items?.reduce(
     (sum, item) => sum + (item.quantity_accepted * item.unit_cost), 0
   ) || 0;
+  const totalRejected = grn.items?.reduce(
+    (sum, item) => sum + (item.quantity_rejected || 0), 0
+  ) || 0;
 
   return (
     <div className="space-y-6">
@@ -137,6 +141,13 @@ export default function GRNDetailPage() {
         {canPost && (
           <Button onClick={handlePost} disabled={postMutation.isPending}>
             <FileCheck className="mr-2 h-4 w-4" />Post GRN
+          </Button>
+        )}
+        {totalRejected > 0 && grn.status !== "draft" && (
+          <Button variant="outline" asChild>
+            <Link to={`/app/inventory/rtv/new?grn_id=${grn.id}&vendor_id=${grn.vendor_id}`}>
+              <RotateCcw className="mr-2 h-4 w-4" />Create RTV ({totalRejected} rejected)
+            </Link>
           </Button>
         )}
       </div>

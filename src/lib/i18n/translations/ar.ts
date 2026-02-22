@@ -414,6 +414,8 @@ export const ar: Record<TranslationKey, string> = {
   "nav.stockAdjustments": "تعديلات المخزون",
   "nav.reorderAlerts": "تنبيهات إعادة الطلب",
   "nav.purchaseRequisitions": "طلبات الشراء",
+  "nav.cycleCounts": "الجرد الدوري",
+  "nav.returnToVendor": "إرجاع للمورد",
 
   // IPD Module
   "ipd.dashboard": "لوحة تحكم التنويم",
