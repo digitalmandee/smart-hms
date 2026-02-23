@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Download, Filter, RefreshCw, Users, Building2, Clock } from "lucide-react";
+import { Search, Download, RefreshCw, Users, Building2, Clock } from "lucide-react";
+import { exportToCSV, formatCurrency as exportFmtCurrency, formatDate } from "@/lib/exportUtils";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -108,7 +109,25 @@ export default function ReceivablesPage() {
               <RefreshCw className="h-4 w-4 mr-2" />
               Refresh
             </Button>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={() => {
+              exportToCSV(filteredReceivables.map((inv: any) => ({
+                invoice_number: inv.invoice_number,
+                patient: inv.patient ? `${inv.patient.first_name} ${inv.patient.last_name}` : "-",
+                invoice_date: inv.invoice_date,
+                total: inv.total_amount,
+                paid: inv.paid_amount || 0,
+                balance: inv.total_amount - (inv.paid_amount || 0),
+                aging: calculateAging(inv.invoice_date).label,
+              })), "receivables", [
+                { key: "invoice_number", header: "Invoice #" },
+                { key: "patient", header: "Patient" },
+                { key: "invoice_date", header: "Date", format: (v: string) => formatDate(v) },
+                { key: "total", header: "Total", format: (v: number) => exportFmtCurrency(v) },
+                { key: "paid", header: "Paid", format: (v: number) => exportFmtCurrency(v) },
+                { key: "balance", header: "Balance", format: (v: number) => exportFmtCurrency(v) },
+                { key: "aging", header: "Aging" },
+              ]);
+            }}>
               <Download className="h-4 w-4 mr-2" />
               Export
             </Button>

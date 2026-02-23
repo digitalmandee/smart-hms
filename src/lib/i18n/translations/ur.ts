@@ -2347,6 +2347,8 @@ export const ur: Record<TranslationKey, string> = {
   "nav.gateLogDesc": "گاڑیوں کے داخلے اور خروج کی ٹریکنگ",
   "nav.warehouseKpis": "گودام کے کارکردگی اشاریے",
   "nav.warehouseKpisDesc": "گودام آپریشنز کے کلیدی کارکردگی اشاریے",
+  "nav.expenseManagement": "اخراجات کا انتظام",
+  "nav.expenseManagementDesc": "تمام اخراجات کی ٹریکنگ اور انتظام",
 
 };
 

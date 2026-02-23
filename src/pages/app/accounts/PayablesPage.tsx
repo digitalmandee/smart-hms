@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Download, RefreshCw, Building2, Clock, CreditCard, Receipt } from "lucide-react";
+import { exportToCSV, formatCurrency as exportFmtCurrency, formatDate } from "@/lib/exportUtils";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -151,7 +152,27 @@ export default function PayablesPage() {
               <RefreshCw className="h-4 w-4 mr-2" />
               Refresh
             </Button>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={() => {
+              exportToCSV(filteredPayables.map((grn: any) => ({
+                grn_number: grn.grn_number,
+                po_number: grn.purchase_order?.po_number || "-",
+                vendor: grn.vendor?.name || "-",
+                date: grn.received_date,
+                invoice_amount: grn.invoice_amount || 0,
+                paid: grn.paid_amount || 0,
+                outstanding: grn.outstanding_amount || 0,
+                status: grn.payment_status,
+              })), "payables", [
+                { key: "grn_number", header: "GRN #" },
+                { key: "po_number", header: "PO #" },
+                { key: "vendor", header: "Vendor" },
+                { key: "date", header: "Date", format: (v: string) => formatDate(v) },
+                { key: "invoice_amount", header: "Invoice", format: (v: number) => exportFmtCurrency(v) },
+                { key: "paid", header: "Paid", format: (v: number) => exportFmtCurrency(v) },
+                { key: "outstanding", header: "Outstanding", format: (v: number) => exportFmtCurrency(v) },
+                { key: "status", header: "Status" },
+              ]);
+            }}>
               <Download className="h-4 w-4 mr-2" />
               Export
             </Button>

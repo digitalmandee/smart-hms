@@ -590,6 +590,7 @@ export const SIDEBAR_NAME_TO_KEY: Record<string, TranslationKey> = {
   "Warehouse Orders": "nav.warehouseOrders",
   "Dock Schedule": "nav.dockSchedule",
   "Gate Log": "nav.gateLog",
+  "Expense Management": "nav.expenseManagement",
 };
 
 

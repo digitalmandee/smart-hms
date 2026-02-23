@@ -2347,6 +2347,8 @@ export const ar: Record<TranslationKey, string> = {
   "nav.gateLogDesc": "تتبع دخول وخروج المركبات",
   "nav.warehouseKpis": "مؤشرات أداء المستودع",
   "nav.warehouseKpisDesc": "مؤشرات الأداء الرئيسية لعمليات المستودع",
+  "nav.expenseManagement": "إدارة المصروفات",
+  "nav.expenseManagementDesc": "تتبع وإدارة جميع المصروفات",
 
 };
 

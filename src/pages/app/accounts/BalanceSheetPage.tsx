@@ -10,6 +10,7 @@ import { useBalanceSheet } from "@/hooks/useFinancialReports";
 import { CalendarIcon, Download, Printer, Scale } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/currency";
+import { exportToCSV, formatCurrency as exportFmtCurrency } from "@/lib/exportUtils";
 
 export default function BalanceSheetPage() {
   const [asOfDate, setAsOfDate] = useState<Date>(new Date());
@@ -73,10 +74,22 @@ export default function BalanceSheetPage() {
                 />
               </PopoverContent>
             </Popover>
-            <Button variant="outline" size="icon">
+            <Button variant="outline" size="icon" onClick={() => window.print()}>
               <Printer className="h-4 w-4" />
             </Button>
-            <Button variant="outline" size="icon">
+            <Button variant="outline" size="icon" onClick={() => {
+              if (!balanceSheet) return;
+              const rows = [
+                ...(assetsArray as any[]).map((a: any) => ({ section: "Asset", name: a.name, balance: a.balance || 0 })),
+                ...(liabilitiesArray as any[]).map((a: any) => ({ section: "Liability", name: a.name, balance: a.balance || 0 })),
+                ...(equityArray as any[]).map((a: any) => ({ section: "Equity", name: a.name, balance: a.balance || 0 })),
+              ];
+              exportToCSV(rows, `balance-sheet-${format(asOfDate, "yyyy-MM-dd")}`, [
+                { key: "section", header: "Section" },
+                { key: "name", header: "Account" },
+                { key: "balance", header: "Balance", format: (v: number) => exportFmtCurrency(v) },
+              ]);
+            }}>
               <Download className="h-4 w-4" />
             </Button>
           </div>
