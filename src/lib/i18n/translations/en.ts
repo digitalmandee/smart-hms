@@ -2413,6 +2413,8 @@ export const en = {
   "nav.gateLogDesc": "Track vehicle entry and exit",
   "nav.warehouseKpis": "Warehouse KPIs",
   "nav.warehouseKpisDesc": "Key performance indicators for warehouse operations",
+  "nav.expenseManagement": "Expense Management",
+  "nav.expenseManagementDesc": "Track and manage all expenses",
 
 } as const;
 

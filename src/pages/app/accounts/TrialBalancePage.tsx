@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Printer, Download, CheckCircle, XCircle, Calendar } from "lucide-react";
 import { useTrialBalance } from "@/hooks/useFinancialReports";
+import { exportToCSV, formatCurrency as exportFmtCurrency } from "@/lib/exportUtils";
 import {
   Table,
   TableBody,
@@ -55,7 +56,16 @@ export default function TrialBalancePage() {
               <Printer className="mr-2 h-4 w-4" />
               Print
             </Button>
-            <Button variant="outline">
+            <Button variant="outline" onClick={() => {
+              if (!data) return;
+              exportToCSV(data.rows, `trial-balance-${startDate}-to-${endDate}`, [
+                { key: "account_number", header: "Account #" },
+                { key: "account_name", header: "Account Name" },
+                { key: "account_type", header: "Type" },
+                { key: "debit", header: "Debit", format: (v: number) => exportFmtCurrency(v) },
+                { key: "credit", header: "Credit", format: (v: number) => exportFmtCurrency(v) },
+              ]);
+            }}>
               <Download className="mr-2 h-4 w-4" />
               Export
             </Button>

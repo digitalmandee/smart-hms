@@ -10,6 +10,7 @@ import { useCashFlow } from "@/hooks/useFinancialReports";
 import { CalendarIcon, Download, Printer, ArrowUpRight, ArrowDownRight, Banknote } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/currency";
+import { exportToCSV, formatCurrency as exportFmtCurrency } from "@/lib/exportUtils";
 
 export default function CashFlowPage() {
   const [startDate, setStartDate] = useState<Date>(startOfMonth(new Date()));
@@ -101,10 +102,17 @@ export default function CashFlowPage() {
                 />
               </PopoverContent>
             </Popover>
-            <Button variant="outline" size="icon">
+            <Button variant="outline" size="icon" onClick={() => window.print()}>
               <Printer className="h-4 w-4" />
             </Button>
-            <Button variant="outline" size="icon">
+            <Button variant="outline" size="icon" onClick={() => {
+              const allItems = [...operatingItems.map(i => ({ ...i, section: "Operating" })), ...investingItems.map(i => ({ ...i, section: "Investing" })), ...financingItems.map(i => ({ ...i, section: "Financing" }))];
+              exportToCSV(allItems, `cash-flow-${format(startDate, "yyyy-MM-dd")}`, [
+                { key: "section", header: "Section" },
+                { key: "name", header: "Description" },
+                { key: "amount", header: "Amount", format: (v: number) => exportFmtCurrency(v) },
+              ]);
+            }}>
               <Download className="h-4 w-4" />
             </Button>
           </div>
