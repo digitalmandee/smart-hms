@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Download, RefreshCw, Users, Building2, Clock } from "lucide-react";
 import { exportToCSV, formatCurrency as exportFmtCurrency, formatDate } from "@/lib/exportUtils";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import { useTranslation } from "@/lib/i18n";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,6 +34,7 @@ import { formatCurrencyFull as formatCurrency } from "@/lib/currency";
 
 export default function ReceivablesPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { profile } = useAuth();
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
@@ -171,6 +174,47 @@ export default function ReceivablesPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Aging Summary Bar Chart */}
+      {receivables && receivables.length > 0 && (() => {
+        const agingBuckets = [
+          { name: "Current", min: -Infinity, max: 0, color: "#22c55e" },
+          { name: "1-30", min: 1, max: 30, color: "#eab308" },
+          { name: "31-60", min: 31, max: 60, color: "#f97316" },
+          { name: "61-90", min: 61, max: 90, color: "#ef4444" },
+          { name: "90+", min: 91, max: Infinity, color: "#991b1b" },
+        ];
+        const agingData = agingBuckets.map((bucket) => {
+          const total = receivables
+            .filter((inv: any) => {
+              const days = Math.floor((new Date().getTime() - new Date(inv.invoice_date).getTime()) / (1000 * 60 * 60 * 24));
+              return days >= bucket.min && days <= bucket.max;
+            })
+            .reduce((sum: number, inv: any) => sum + ((inv.total_amount || 0) - (inv.paid_amount || 0)), 0);
+          return { name: bucket.name, amount: total, fill: bucket.color };
+        });
+        return (
+          <Card>
+            <CardHeader><CardTitle className="text-base">{t("accounts.agingChart" as any, "Aging Summary")}</CardTitle></CardHeader>
+            <CardContent>
+              <div className="h-[200px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={agingData}>
+                    <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                    <YAxis tick={{ fontSize: 12 }} width={70} />
+                    <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                    <Bar dataKey="amount" radius={[4, 4, 0, 0]}>
+                      {agingData.map((entry, idx) => (
+                        <Cell key={idx} fill={entry.fill} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })()}
 
       {/* Filters */}
       <Card>

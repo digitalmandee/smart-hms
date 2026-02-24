@@ -2415,6 +2415,16 @@ export const en = {
   "nav.warehouseKpisDesc": "Key performance indicators for warehouse operations",
   "nav.expenseManagement": "Expense Management",
   "nav.expenseManagementDesc": "Track and manage all expenses",
+  "accounts.expensesMTD": "Expenses (MTD)",
+  "accounts.overdueReceivables": "Overdue Receivables",
+  "accounts.revenueTrend": "Revenue Trend (Last 7 Days)",
+  "accounts.pendingVendorPayments": "Pending Vendor Payments",
+  "accounts.budgetAllocation": "Budget Allocation",
+  "accounts.actualSpent": "Actual Spent",
+  "accounts.variance": "Variance",
+  "accounts.percentUsed": "% Used",
+  "accounts.revenueBySource": "Revenue by Source",
+  "accounts.agingChart": "Aging Summary",
 
 } as const;
 

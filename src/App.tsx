@@ -472,6 +472,7 @@ import VendorPaymentDetailPage from "./pages/app/accounts/VendorPaymentDetailPag
 import BankAccountsPage from "./pages/app/accounts/BankAccountsPage";
 import BudgetsPage from "./pages/app/accounts/BudgetsPage";
 const ExpenseManagementPage = React.lazy(() => import("./pages/app/accounts/ExpenseManagementPage"));
+const RevenueBySourcePage = React.lazy(() => import("./pages/app/accounts/RevenueBySourcePage"));
 import AccountSettingsPage from "./pages/app/accounts/AccountSettingsPage";
 import AccountTypesPage from "./pages/app/accounts/AccountTypesPage";
 import AccountTypeFormPage from "./pages/app/accounts/AccountTypeFormPage";
@@ -999,6 +1000,7 @@ function App() {
               <Route path="accounts/reports/profit-loss" element={<ProfitLossPage />} />
               <Route path="accounts/reports/balance-sheet" element={<BalanceSheetPage />} />
               <Route path="accounts/reports/cash-flow" element={<CashFlowPage />} />
+              <Route path="accounts/reports/revenue-by-source" element={<RevenueBySourcePage />} />
               
               {/* Additional IPD setup routes */}
               <Route path="ipd/setup/diet-types" element={<DietTypesPage />} />

@@ -2349,6 +2349,16 @@ export const ar: Record<TranslationKey, string> = {
   "nav.warehouseKpisDesc": "مؤشرات الأداء الرئيسية لعمليات المستودع",
   "nav.expenseManagement": "إدارة المصروفات",
   "nav.expenseManagementDesc": "تتبع وإدارة جميع المصروفات",
+  "accounts.expensesMTD": "المصروفات (الشهر الحالي)",
+  "accounts.overdueReceivables": "المستحقات المتأخرة",
+  "accounts.revenueTrend": "اتجاه الإيرادات (آخر 7 أيام)",
+  "accounts.pendingVendorPayments": "مدفوعات الموردين المعلقة",
+  "accounts.budgetAllocation": "تخصيص الميزانية",
+  "accounts.actualSpent": "الإنفاق الفعلي",
+  "accounts.variance": "الفرق",
+  "accounts.percentUsed": "% المستخدم",
+  "accounts.revenueBySource": "الإيرادات حسب المصدر",
+  "accounts.agingChart": "ملخص التقادم",
 
 };
 
