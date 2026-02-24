@@ -2349,6 +2349,16 @@ export const ur: Record<TranslationKey, string> = {
   "nav.warehouseKpisDesc": "گودام آپریشنز کے کلیدی کارکردگی اشاریے",
   "nav.expenseManagement": "اخراجات کا انتظام",
   "nav.expenseManagementDesc": "تمام اخراجات کی ٹریکنگ اور انتظام",
+  "accounts.expensesMTD": "اخراجات (موجودہ ماہ)",
+  "accounts.overdueReceivables": "واجب الادا وصولیاں",
+  "accounts.revenueTrend": "آمدنی کا رجحان (آخری 7 دن)",
+  "accounts.pendingVendorPayments": "زیر التوا وینڈر ادائیگیاں",
+  "accounts.budgetAllocation": "بجٹ مختص",
+  "accounts.actualSpent": "اصل خرچ",
+  "accounts.variance": "فرق",
+  "accounts.percentUsed": "% استعمال",
+  "accounts.revenueBySource": "ذریعے کے مطابق آمدنی",
+  "accounts.agingChart": "ایجنگ خلاصہ",
 
 };
 
