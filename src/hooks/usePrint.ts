@@ -1,4 +1,5 @@
 import { useRef, useCallback } from "react";
+import DOMPurify from "dompurify";
 
 interface PrintOptions {
   title?: string;
@@ -302,7 +303,7 @@ export function usePrint() {
           </style>
         </head>
         <body>
-          ${content.innerHTML}
+          ${DOMPurify.sanitize(content.innerHTML)}
         </body>
       </html>
     `);

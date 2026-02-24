@@ -5,6 +5,7 @@
 
 import { formatCurrency } from "@/lib/currency";
 import { format } from "date-fns";
+import DOMPurify from "dompurify";
 
 export interface PDFColumn {
   key: string;
@@ -346,7 +347,7 @@ export function generateSimplePDF(title: string, content: string): void {
   </style>
 </head>
 <body>
-  ${content}
+  ${DOMPurify.sanitize(content)}
   <script>window.print();</script>
 </body>
 </html>

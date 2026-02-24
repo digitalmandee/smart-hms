@@ -449,13 +449,24 @@ Deno.serve(async (req) => {
       systemPrompt = SYSTEM_PROMPTS[contextType]?.[lang] || SYSTEM_PROMPTS.general[lang];
     }
 
-    let contextMessage = "";
+    // Sanitize patient_context to prevent prompt injection
+    let sanitizedPatientContext: Record<string, string> | null = null;
     if (patient_context) {
       const { name, gender, voice_mode, ...medicalContext } = patient_context as Record<string, unknown>;
       if (Object.keys(medicalContext).length > 0) {
-        contextMessage = `\n\nAdditional Patient Context:\n${JSON.stringify(medicalContext, null, 2)}`;
+        sanitizedPatientContext = {};
+        for (const [key, val] of Object.entries(medicalContext)) {
+          // Cap each field to 200 chars and strip instruction-like patterns
+          const strVal = String(val ?? "").slice(0, 200)
+            .replace(/ignore\s+(all\s+)?(previous|above|prior)\s+(instructions?|prompts?)/gi, "[filtered]")
+            .replace(/you\s+are\s+now/gi, "[filtered]")
+            .replace(/system\s*:/gi, "[filtered]");
+          sanitizedPatientContext[key] = strVal;
+        }
       }
     }
+
+    let contextMessage = "";
 
     // Add country-specific medical context
     const countryContextMap: Record<string, string> = {
@@ -472,6 +483,8 @@ Deno.serve(async (req) => {
 
     const deepseekMessages = [
       { role: "system", content: systemPrompt + contextMessage },
+      // Inject sanitized patient context as a user-role message (not system) to limit injection surface
+      ...(sanitizedPatientContext ? [{ role: "user", content: `[Patient Medical Context - auto-provided, not typed by patient]\n${JSON.stringify(sanitizedPatientContext, null, 2)}` }] : []),
       ...trimmedMessages,
     ];
 

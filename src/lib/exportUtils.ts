@@ -1,6 +1,7 @@
 /**
  * Export utilities for CSV download and printing
  */
+import DOMPurify from "dompurify";
 
 interface ColumnConfig {
   key: string;
@@ -77,6 +78,9 @@ export const printElement = (element: HTMLElement, title: string): void => {
   const printWindow = window.open('', '_blank');
   if (!printWindow) return;
 
+  // Sanitize innerHTML to prevent XSS in print window
+  const sanitizedContent = DOMPurify.sanitize(element.innerHTML);
+
   printWindow.document.write(`
     <!DOCTYPE html>
     <html>
@@ -93,7 +97,7 @@ export const printElement = (element: HTMLElement, title: string): void => {
         </style>
       </head>
       <body>
-        ${element.innerHTML}
+        ${sanitizedContent}
       </body>
     </html>
   `);

@@ -44,6 +44,23 @@ serve(async (req) => {
       );
     }
 
+    // Validate phone number format to prevent toll fraud
+    const phoneRegex = /^\+[1-9]\d{6,14}$/;
+    if (!phoneRegex.test(to)) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid phone number format. Must be E.164 format (e.g., +923001234567)' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Cap message length to prevent cost abuse (480 chars = ~3 SMS segments)
+    if (message.length > 480) {
+      return new Response(
+        JSON.stringify({ error: 'Message too long. Maximum 480 characters allowed.' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Initialize Supabase service client
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
