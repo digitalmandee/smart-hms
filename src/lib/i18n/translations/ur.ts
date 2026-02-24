@@ -2378,6 +2378,17 @@ export const ur: Record<TranslationKey, string> = {
   "bb.searchDonations": "عطیہ نمبر، ڈونر سے تلاش کریں...",
   "bb.searchRequests": "درخواست نمبر، مریض سے تلاش کریں...",
   "bb.searchTransfusions": "ٹرانسفیوژن نمبر سے تلاش کریں...",
+  "bb.searchDonors": "ڈونرز تلاش کریں...",
+
+  // Blood Bank Donor Cards
+  "bb.donorCard": "ڈونر کارڈز",
+  "bb.donorIdCard": "بلڈ ڈونر کارڈ",
+  "bb.totalDonations": "کل عطیات",
+  "bb.lastDonation": "آخری عطیہ",
+  "bb.registeredDonor": "یہ کارڈ حامل کی رجسٹرڈ بلڈ ڈونر کی حیثیت کی تصدیق کرتا ہے",
+  "bb.selectDonors": "کارڈ پرنٹ کرنے کے لیے ڈونرز منتخب کریں",
+  "bb.cardPreview": "کارڈ پیش نظارہ",
+  "bb.downloadPng": "PNG ڈاؤن لوڈ",
 
 };
 

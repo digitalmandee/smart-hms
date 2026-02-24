@@ -2444,6 +2444,17 @@ export const en = {
   "bb.searchDonations": "Search by donation number, donor...",
   "bb.searchRequests": "Search by request number, patient...",
   "bb.searchTransfusions": "Search by transfusion number...",
+  "bb.searchDonors": "Search donors...",
+
+  // Blood Bank Donor Cards
+  "bb.donorCard": "Donor Cards",
+  "bb.donorIdCard": "BLOOD DONOR CARD",
+  "bb.totalDonations": "Total Donations",
+  "bb.lastDonation": "Last Donation",
+  "bb.registeredDonor": "This card certifies the holder as a registered blood donor",
+  "bb.selectDonors": "Select donors to print cards",
+  "bb.cardPreview": "Card Preview",
+  "bb.downloadPng": "Download PNG",
 
 } as const;
 

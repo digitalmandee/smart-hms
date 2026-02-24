@@ -18,3 +18,9 @@ export const getAppointmentVerificationUrl = (tokenNumber: number, orgSlug?: str
   const slug = orgSlug || 'verify';
   return `https://healthos24.com/token/${slug}/${tokenNumber}`;
 };
+
+// Generate donor verification URL
+export const getDonorVerificationUrl = (donorNumber: string, orgSlug?: string): string => {
+  const slug = orgSlug || 'verify';
+  return `https://healthos24.com/donor/${slug}/${donorNumber}`;
+};
