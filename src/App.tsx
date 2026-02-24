@@ -23,6 +23,7 @@ import PharmacyDocumentation from "./pages/PharmacyDocumentation";
 import TestCasesPage from "./pages/TestCasesPage";
 const WarehouseTestCasesPage = React.lazy(() => import("./pages/WarehouseTestCasesPage"));
 import { LoginPage } from "./pages/auth/LoginPage";
+import { ClientLoginPage } from "./pages/auth/ClientLoginPage";
 import { SignupPage } from "./pages/auth/SignupPage";
 import { DashboardPage } from "./pages/app/DashboardPage";
 
@@ -596,6 +597,7 @@ function App() {
             <Route path="/auth" element={<AuthLayout />}>
               <Route path="login" element={<LoginPage />} />
               <Route path="signup" element={<SignupPage />} />
+              <Route path="client-login" element={<ClientLoginPage />} />
             </Route>
 
             {/* Mobile routes - Native app experience */}
