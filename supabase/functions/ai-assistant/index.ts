@@ -1,10 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+import { getCorsHeaders } from "../_shared/cors.ts";
 
 const DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions";
 
@@ -356,6 +351,8 @@ function extractPrimaryComplaint(messages: Array<{ role: string; content: string
 }
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -395,6 +392,7 @@ Deno.serve(async (req) => {
       });
     }
 
+    const body = await req.json();
     const {
       mode = "general",
       messages = [],
@@ -403,7 +401,16 @@ Deno.serve(async (req) => {
       conversation_id,
       stream = true,
       country_code = "PK",
-    } = await req.json();
+    } = body;
+
+    // Input length validation to prevent abuse
+    const lastUserMsg = [...messages].reverse().find((m: { role: string; content: string }) => m.role === "user");
+    if (lastUserMsg && lastUserMsg.content && lastUserMsg.content.length > 5000) {
+      return new Response(JSON.stringify({ error: "Message too long. Please keep your message under 5000 characters." }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const lang = language === "ar" ? "ar" : language === "ur" ? "ur" : "en";
     
