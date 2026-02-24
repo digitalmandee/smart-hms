@@ -1,107 +1,96 @@
 
 
-# Blood Bank Label Printer + Search/Filter Enhancement
+# Donor ID Card Printing Feature
 
-## Part 1: Blood Bag Label Printer
+## Overview
+Add a dedicated page for printing donor ID cards (credit card sized, 85.6mm x 53.98mm) with photo placeholder, donor number, blood group, name, QR code, and full trilingual support (EN/UR/AR). Follows the exact same pattern as the existing `PrintablePatientCard` and `BloodBagLabelsPage`.
 
-### New Files
+---
 
-**`src/components/blood-bank/BloodBagLabel.tsx`**
-A specialized blood bag label component (similar pattern to `BarcodeLabelPrinter` but blood-specific) with:
-- Large blood group badge (color-coded, prominent)
-- Barcode generated from `unit_number` using JsBarcode (CODE128)
-- Fields: Unit Number, Component Type, Blood Group, Volume, Collection Date, Expiry Date, Donor Number, Storage Location, Bag Number
-- All field labels translated via `useTranslation()` (EN/UR/AR)
-- RTL-aware layout using `useDirection()`
-- Download-as-PNG button per label (using `html-to-image`)
-- Print-optimized CSS (`print:` classes)
+## New Files
 
-**`src/pages/app/blood-bank/BloodBagLabelsPage.tsx`**
+### 1. `src/components/blood-bank/PrintableDonorCard.tsx`
+A credit-card-sized printable donor ID card component:
+
+**Front of Card:**
+- Header bar with organization name + "BLOOD DONOR CARD" title (red gradient, matching blood bank theme)
+- Photo placeholder (18mm x 22mm)
+- Donor name (bold, large)
+- Donor number (mono font, prominent)
+- Blood group (large, color-coded, using `BloodGroupBadge`)
+- Info grid: Gender, Age, Phone, Total Donations
+- QR code (bottom-right) generated via existing `generateQRCodeUrl()` from `src/lib/qrcode.ts`, encoding a donor lookup URL
+
+**Back of Card:**
+- Blood group (large, prominent)
+- Donation history summary (total donations, last donation date)
+- Organization contact info (name, address, phone)
+- "This card certifies the holder as a registered blood donor" text
+
+All field labels use `useTranslation()` with RTL support via `useDirection()`.
+
+### 2. `src/pages/app/blood-bank/DonorCardPrintPage.tsx`
 Full page with:
-- Left panel: filterable table of blood inventory units (with search by unit number, blood group filter, component type filter, status filter)
-- Right panel: live label preview grid
-- Action buttons: Print selected, Download PNG, Download PDF
-- Uses `useBloodInventory` hook with filters
-- Checkbox multi-select (same pattern as `BarcodeLabelPage.tsx`)
-- All UI text translated (EN/UR/AR)
-
-### Modified Files
-
-| File | Change |
-|------|--------|
-| `src/App.tsx` | Add route: `blood-bank/labels` -> `BloodBagLabelsPage` |
-| `src/config/role-sidebars.ts` | Add "Bag Labels" under Blood Work children for `blood_bank_technician` |
-| `src/lib/i18n/translations/en.ts` | Add ~20 blood bank label keys |
-| `src/lib/i18n/translations/ur.ts` | Add corresponding Urdu translations |
-| `src/lib/i18n/translations/ar.ts` | Add corresponding Arabic translations |
-| `src/components/DynamicSidebar.tsx` | Add sidebar label mapping for "Bag Labels" |
+- Left panel: searchable/filterable donor list with checkboxes (reuses `useBloodDonors` hook with search, blood group, and status filters via `ListFilterBar`)
+- Right panel: live card preview of selected donors
+- Actions: Print (via `react-to-print`), Download PNG (via `html-to-image`), Download PDF (via `jsPDF`)
+- Same dual-panel layout pattern as `BloodBagLabelsPage`
 
 ---
 
-## Part 2: Search Filter Enhancement for Blood Bank Pages
-
-Currently, the blood bank pages (Donors, Inventory, Requests, Donations) have basic Select dropdowns but inconsistent search bars. I will add a proper unified search/filter bar using the existing `ListFilterBar` component pattern:
-
-### Modified Files
+## Modified Files
 
 | File | Change |
 |------|--------|
-| `src/pages/app/blood-bank/InventoryPage.tsx` | Add text search input (search by unit number, bag number, storage location) above the existing filters |
-| `src/pages/app/blood-bank/DonationsPage.tsx` | Add date range filter and text search |
-| `src/pages/app/blood-bank/RequestsListPage.tsx` | Add text search (by request number, patient name) |
-| `src/pages/app/blood-bank/TransfusionsPage.tsx` | Add text search |
+| `src/App.tsx` | Add route: `blood-bank/donor-cards` pointing to `DonorCardPrintPage` |
+| `src/config/role-sidebars.ts` | Add "Donor Cards" item under the "Donors" children group (line ~612) with `CreditCard` icon |
+| `src/lib/i18n/translations/en.ts` | Add ~10 keys: `bb.donorCard`, `bb.donorIdCard`, `bb.totalDonations`, `bb.lastDonation`, `bb.registeredDonor`, `bb.selectDonors`, `bb.cardPreview` |
+| `src/lib/i18n/translations/ur.ts` | Urdu equivalents |
+| `src/lib/i18n/translations/ar.ts` | Arabic equivalents |
+| `src/lib/qrcode.ts` | Add `getDonorVerificationUrl(donorNumber, orgSlug)` helper |
 
 ---
 
-## Translation Keys (Sample)
+## Translation Keys
 
 ```text
 English:
-  "bb.bagLabels": "Bag Labels"
-  "bb.unitNumber": "Unit Number"
-  "bb.bloodGroup": "Blood Group"
-  "bb.componentType": "Component Type"
-  "bb.collectionDate": "Collection Date"
-  "bb.expiryDate": "Expiry Date"
-  "bb.donorNumber": "Donor Number"
-  "bb.storageLocation": "Storage Location"
-  "bb.volume": "Volume"
-  "bb.bagNumber": "Bag Number"
-  "bb.selectUnits": "Select Units"
-  "bb.labelPreview": "Label Preview"
-  "bb.printLabels": "Print Labels"
-  "bb.searchUnits": "Search by unit number, bag number..."
+  "bb.donorCard": "Donor Cards"
+  "bb.donorIdCard": "BLOOD DONOR CARD"
+  "bb.totalDonations": "Total Donations"
+  "bb.lastDonation": "Last Donation"
+  "bb.registeredDonor": "This card certifies the holder as a registered blood donor"
+  "bb.selectDonors": "Select donors to print cards"
+  "bb.cardPreview": "Card Preview"
+  "bb.downloadPng": "Download PNG"
 
 Urdu:
-  "bb.bagLabels": "بیگ لیبل"
-  "bb.unitNumber": "یونٹ نمبر"
-  "bb.bloodGroup": "خون کا گروپ"
-  "bb.componentType": "جز کی قسم"
-  "bb.collectionDate": "جمع کرنے کی تاریخ"
-  "bb.expiryDate": "میعاد ختم ہونے کی تاریخ"
-  "bb.donorNumber": "ڈونر نمبر"
-  "bb.storageLocation": "ذخیرہ مقام"
+  "bb.donorCard": "ڈونر کارڈز"
+  "bb.donorIdCard": "بلڈ ڈونر کارڈ"
+  "bb.totalDonations": "کل عطیات"
+  "bb.lastDonation": "آخری عطیہ"
+  "bb.registeredDonor": "یہ کارڈ حامل کی رجسٹرڈ بلڈ ڈونر کی حیثیت کی تصدیق کرتا ہے"
+  "bb.selectDonors": "کارڈ پرنٹ کرنے کے لیے ڈونرز منتخب کریں"
+  "bb.cardPreview": "کارڈ پیش نظارہ"
 
 Arabic:
-  "bb.bagLabels": "ملصقات الأكياس"
-  "bb.unitNumber": "رقم الوحدة"
-  "bb.bloodGroup": "فصيلة الدم"
-  "bb.componentType": "نوع المكون"
-  "bb.collectionDate": "تاريخ الجمع"
-  "bb.expiryDate": "تاريخ الانتهاء"
-  "bb.donorNumber": "رقم المتبرع"
-  "bb.storageLocation": "موقع التخزين"
+  "bb.donorCard": "بطاقات المتبرعين"
+  "bb.donorIdCard": "بطاقة متبرع بالدم"
+  "bb.totalDonations": "إجمالي التبرعات"
+  "bb.lastDonation": "آخر تبرع"
+  "bb.registeredDonor": "تشهد هذه البطاقة بأن حاملها متبرع مسجل بالدم"
+  "bb.selectDonors": "اختر المتبرعين لطباعة البطاقات"
+  "bb.cardPreview": "معاينة البطاقة"
 ```
 
 ---
 
 ## Technical Details
 
-- The label uses JsBarcode (already installed) for barcode generation from `unit_number`
-- PNG download uses `html-to-image` (already installed), PDF uses `jsPDF` (already installed)
-- Print uses `react-to-print` (already installed)
-- RTL support via existing `useDirection()` hook -- labels flip layout for Urdu/Arabic
-- Blood group badge reuses existing `BloodGroupBadge` component
-- Inventory query reuses existing `useBloodInventory` hook with added search param
-- The `useBloodInventory` hook in `useBloodBank.ts` will be extended to accept an optional `search` string parameter for text filtering (`.or()` on unit_number, bag_number, storage_location)
+- QR code uses the existing `generateQRCodeUrl()` utility (QR Server API, no library needed)
+- Print uses `react-to-print`, PNG uses `html-to-image`, PDF uses `jsPDF` -- all already installed
+- Card dimensions: 85.6mm x 53.98mm (ISO/IEC 7810 ID-1, standard credit card size)
+- RTL layout flips photo/info positions and text alignment for Urdu/Arabic
+- Reuses `BloodGroupBadge` component for consistent blood group display
+- Follows exact patterns from `PrintablePatientCard` (card layout) and `BloodBagLabelsPage` (page structure)
 
