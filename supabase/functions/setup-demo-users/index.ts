@@ -1,10 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { createEdgeLogger } from "../_shared/logger.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { getCorsHeaders } from "../_shared/cors.ts";
 
 const DEMO_PASSWORD = Deno.env.get("DEMO_USER_PASSWORD") || "Demo@123";
 
@@ -59,6 +55,7 @@ const ORGANIZATION_ID = "b1111111-1111-1111-1111-111111111111";
 const BRANCH_ID = "c1111111-1111-1111-1111-111111111111";
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   const logger = createEdgeLogger("setup-demo-users");
   logger.invoked();
 

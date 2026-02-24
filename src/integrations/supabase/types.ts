@@ -21508,6 +21508,14 @@ export type Database = {
         }
         Returns: string
       }
+      get_patient_for_published_lab_order: {
+        Args: { p_patient_id: string }
+        Returns: {
+          first_name: string
+          id: string
+          last_name: string
+        }[]
+      }
       get_user_branch_id: { Args: never; Returns: string }
       get_user_organization_id: { Args: never; Returns: string }
       has_permission: { Args: { _permission_code: string }; Returns: boolean }

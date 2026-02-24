@@ -1,9 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { getCorsHeaders } from "../_shared/cors.ts";
 
 const DEMO_PASSWORD = "Demo@123";
 const ORG = "a1111111-1111-1111-1111-111111111111";
@@ -95,6 +91,8 @@ const SA: Record<string, string> = {};
 for (let i = 1; i <= 2; i++) SA[`sa${i}`] = `c2000001-1111-4000-a000-00000000000${i}`;
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
