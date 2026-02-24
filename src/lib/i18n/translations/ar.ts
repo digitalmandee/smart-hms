@@ -2360,5 +2360,24 @@ export const ar: Record<TranslationKey, string> = {
   "accounts.revenueBySource": "الإيرادات حسب المصدر",
   "accounts.agingChart": "ملخص التقادم",
 
+  // Blood Bank Labels
+  "bb.bagLabels": "ملصقات الأكياس",
+  "bb.unitNumber": "رقم الوحدة",
+  "bb.bloodGroup": "فصيلة الدم",
+  "bb.componentType": "نوع المكون",
+  "bb.collectionDate": "تاريخ الجمع",
+  "bb.expiryDate": "تاريخ الانتهاء",
+  "bb.donorNumber": "رقم المتبرع",
+  "bb.storageLocation": "موقع التخزين",
+  "bb.volume": "الحجم",
+  "bb.bagNumber": "رقم الكيس",
+  "bb.selectUnits": "اختر الوحدات لطباعة الملصقات",
+  "bb.labelPreview": "معاينة الملصق",
+  "bb.printLabels": "طباعة الملصقات",
+  "bb.searchUnits": "البحث برقم الوحدة، رقم الكيس...",
+  "bb.searchDonations": "البحث برقم التبرع، المتبرع...",
+  "bb.searchRequests": "البحث برقم الطلب، المريض...",
+  "bb.searchTransfusions": "البحث برقم نقل الدم...",
+
 };
 

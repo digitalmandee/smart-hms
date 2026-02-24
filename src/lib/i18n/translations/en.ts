@@ -2426,6 +2426,25 @@ export const en = {
   "accounts.revenueBySource": "Revenue by Source",
   "accounts.agingChart": "Aging Summary",
 
+  // Blood Bank Labels
+  "bb.bagLabels": "Bag Labels",
+  "bb.unitNumber": "Unit Number",
+  "bb.bloodGroup": "Blood Group",
+  "bb.componentType": "Component Type",
+  "bb.collectionDate": "Collection Date",
+  "bb.expiryDate": "Expiry Date",
+  "bb.donorNumber": "Donor Number",
+  "bb.storageLocation": "Storage Location",
+  "bb.volume": "Volume",
+  "bb.bagNumber": "Bag Number",
+  "bb.selectUnits": "Select units to print labels",
+  "bb.labelPreview": "Label Preview",
+  "bb.printLabels": "Print Labels",
+  "bb.searchUnits": "Search by unit number, bag number...",
+  "bb.searchDonations": "Search by donation number, donor...",
+  "bb.searchRequests": "Search by request number, patient...",
+  "bb.searchTransfusions": "Search by transfusion number...",
+
 } as const;
 
 export type TranslationKey = keyof typeof en;

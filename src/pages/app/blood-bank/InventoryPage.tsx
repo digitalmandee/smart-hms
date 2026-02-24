@@ -10,7 +10,6 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
   Package, Plus, AlertTriangle, Calendar, Droplets 
@@ -25,6 +24,8 @@ import {
 } from "@/hooks/useBloodBank";
 import { BloodGroupBadge } from "@/components/blood-bank/BloodGroupBadge";
 import { BloodStockWidget } from "@/components/blood-bank/BloodStockWidget";
+import { ListFilterBar } from "@/components/inventory/ListFilterBar";
+import { useTranslation } from "@/lib/i18n";
 
 const bloodGroups: BloodGroupType[] = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 const componentTypes: { value: BloodComponentType; label: string }[] = [
@@ -49,9 +50,11 @@ const statusConfig: Record<BloodUnitStatus, { label: string; color: string }> = 
 
 export default function InventoryPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const showExpiring = searchParams.get('expiring') === 'true';
 
+  const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<BloodUnitStatus | "all">(showExpiring ? "available" : "available");
   const [bloodGroupFilter, setBloodGroupFilter] = useState<BloodGroupType | "all">("all");
   const [componentFilter, setComponentFilter] = useState<BloodComponentType | "all">("all");
@@ -61,6 +64,7 @@ export default function InventoryPage() {
     bloodGroup: bloodGroupFilter === "all" ? undefined : bloodGroupFilter,
     componentType: componentFilter === "all" ? undefined : componentFilter,
     expiringWithinDays: showExpiring ? 7 : undefined,
+    search: search || undefined,
   });
 
   const getExpiryStatus = (expiryDate: string) => {
@@ -92,7 +96,11 @@ export default function InventoryPage() {
       <BloodStockWidget />
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4">
+      <ListFilterBar
+        search={search}
+        onSearchChange={setSearch}
+        searchPlaceholder={t("bb.searchUnits")}
+      >
         <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as BloodUnitStatus | "all")}>
           <SelectTrigger className="w-[160px]">
             <SelectValue placeholder="Status" />
@@ -132,7 +140,7 @@ export default function InventoryPage() {
             Showing units expiring within 7 days
           </Badge>
         )}
-      </div>
+      </ListFilterBar>
 
       {/* Inventory Table */}
       {isLoading ? (

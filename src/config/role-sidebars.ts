@@ -620,6 +620,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
           { name: "Cross Match", path: "/app/blood-bank/cross-match", icon: "Activity" },
           { name: "Requests", path: "/app/blood-bank/requests", icon: "FileText" },
           { name: "Transfusions", path: "/app/blood-bank/transfusions", icon: "HeartPulse" },
+          { name: "Bag Labels", path: "/app/blood-bank/labels", icon: "Tag" },
         ]
       },
       { 

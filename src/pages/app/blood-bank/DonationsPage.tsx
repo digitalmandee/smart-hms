@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,6 +20,8 @@ import {
 } from "@/hooks/useBloodBank";
 import { BloodGroupBadge } from "@/components/blood-bank/BloodGroupBadge";
 import { DonationStatusBadge } from "@/components/blood-bank/DonationStatusBadge";
+import { ListFilterBar } from "@/components/inventory/ListFilterBar";
+import { useTranslation } from "@/lib/i18n";
 
 const donationStatuses: { value: DonationStatus; label: string }[] = [
   { value: 'registered', label: 'Registered' },
@@ -33,18 +35,32 @@ const donationStatuses: { value: DonationStatus; label: string }[] = [
 
 export default function DonationsPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const preSelectedDonorId = searchParams.get('donorId');
 
+  const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<DonationStatus | "all">("all");
   const [dateFilter, setDateFilter] = useState<string>(new Date().toISOString().split('T')[0]);
 
-  const { data: donations, isLoading } = useBloodDonations({
+  const { data: donationsRaw, isLoading } = useBloodDonations({
     status: statusFilter === "all" ? undefined : statusFilter,
     date: dateFilter || undefined,
   });
 
   const { data: todaysDonations } = useTodaysDonations();
+
+  // Client-side text search
+  const donations = useMemo(() => {
+    if (!donationsRaw || !search) return donationsRaw;
+    const q = search.toLowerCase();
+    return donationsRaw.filter((d) =>
+      d.donation_number?.toLowerCase().includes(q) ||
+      (d.donor as any)?.first_name?.toLowerCase().includes(q) ||
+      (d.donor as any)?.last_name?.toLowerCase().includes(q) ||
+      (d.donor as any)?.donor_number?.toLowerCase().includes(q)
+    );
+  }, [donationsRaw, search]);
 
   // Count by status for today
   const statusCounts = todaysDonations?.reduce((acc, d) => {
@@ -94,7 +110,11 @@ export default function DonationsPage() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4">
+      <ListFilterBar
+        search={search}
+        onSearchChange={setSearch}
+        searchPlaceholder={t("bb.searchDonations")}
+      >
         <div className="flex items-center gap-2">
           <Calendar className="h-4 w-4 text-muted-foreground" />
           <input
@@ -115,7 +135,7 @@ export default function DonationsPage() {
             ))}
           </SelectContent>
         </Select>
-      </div>
+      </ListFilterBar>
 
       {/* Donations List */}
       {isLoading ? (
