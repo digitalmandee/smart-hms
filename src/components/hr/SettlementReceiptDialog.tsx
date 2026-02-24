@@ -6,6 +6,7 @@ import { Printer, Download, CheckCircle } from "lucide-react";
 import { formatCurrency } from "@/lib/currency";
 import { format } from "date-fns";
 import { useOrganizationBranding } from "@/hooks/useOrganizationBranding";
+import DOMPurify from "dompurify";
 
 interface SettlementReceiptDialogProps {
   open: boolean;
@@ -43,7 +44,8 @@ export function SettlementReceiptDialog({
     const printWindow = window.open("", "_blank");
     if (!printWindow) return;
 
-    printWindow.document.write(`
+    // Build HTML string then sanitize to prevent XSS from data fields
+    const rawHtml = `
       <!DOCTYPE html>
       <html>
       <head>
@@ -156,7 +158,10 @@ export function SettlementReceiptDialog({
         <script>window.print();</script>
       </body>
       </html>
-    `);
+    `;
+    // Sanitize the full HTML content (allow safe tags for receipt layout)
+    const sanitized = DOMPurify.sanitize(rawHtml, { WHOLE_DOCUMENT: true, ADD_TAGS: ['style', 'script'] });
+    printWindow.document.write(sanitized);
     printWindow.document.close();
   };
 

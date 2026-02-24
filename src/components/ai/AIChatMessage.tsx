@@ -131,7 +131,7 @@ export function AIChatMessage({ role, content, isStreaming, timestamp, isLatest,
     const rawHtml = formatMarkdown(questionText);
     return DOMPurify.sanitize(rawHtml, {
       ALLOWED_TAGS: ['strong', 'em', 'ul', 'ol', 'li', 'h3', 'h4', 'br'],
-      ALLOWED_ATTR: ['class', 'style'],
+      ALLOWED_ATTR: ['class'],
     });
   }, [questionText, isUser]);
 
