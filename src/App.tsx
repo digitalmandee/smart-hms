@@ -353,6 +353,7 @@ import CrossMatchFormPage from "./pages/app/blood-bank/CrossMatchFormPage";
 import TransfusionsPage from "./pages/app/blood-bank/TransfusionsPage";
 import TransfusionDetailPage from "./pages/app/blood-bank/TransfusionDetailPage";
 import TransfusionFormPage from "./pages/app/blood-bank/TransfusionFormPage";
+import BloodBagLabelsPage from "./pages/app/blood-bank/BloodBagLabelsPage";
 
 // Radiology pages
 import RadiologyDashboard from "./pages/app/radiology/RadiologyDashboard";
@@ -710,6 +711,7 @@ function App() {
               <Route path="blood-bank/transfusions" element={<TransfusionsPage />} />
               <Route path="blood-bank/transfusions/new" element={<TransfusionFormPage />} />
               <Route path="blood-bank/transfusions/:id" element={<TransfusionDetailPage />} />
+              <Route path="blood-bank/labels" element={<BloodBagLabelsPage />} />
 
               {/* OPD routes */}
               <Route path="opd" element={<DoctorDashboard />} />

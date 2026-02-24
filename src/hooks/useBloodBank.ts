@@ -388,6 +388,7 @@ export function useBloodInventory(filters?: {
   bloodGroup?: BloodGroupType; 
   componentType?: BloodComponentType;
   expiringWithinDays?: number;
+  search?: string;
 }) {
   const { profile } = useAuth();
 
@@ -413,6 +414,9 @@ export function useBloodInventory(filters?: {
         const futureDate = new Date();
         futureDate.setDate(futureDate.getDate() + filters.expiringWithinDays);
         query = query.lte("expiry_date", futureDate.toISOString().split('T')[0]);
+      }
+      if (filters?.search) {
+        query = query.or(`unit_number.ilike.%${filters.search}%,bag_number.ilike.%${filters.search}%,storage_location.ilike.%${filters.search}%`);
       }
 
       const { data, error } = await query;

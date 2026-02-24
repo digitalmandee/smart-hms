@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { 
@@ -17,6 +17,8 @@ import {
   type BloodRequestPriority 
 } from "@/hooks/useBloodBank";
 import { RequestCard } from "@/components/blood-bank/RequestCard";
+import { ListFilterBar } from "@/components/inventory/ListFilterBar";
+import { useTranslation } from "@/lib/i18n";
 
 const requestStatuses: { value: BloodRequestStatus; label: string }[] = [
   { value: 'pending', label: 'Pending' },
@@ -36,13 +38,25 @@ const priorities: { value: BloodRequestPriority; label: string }[] = [
 
 export default function RequestsListPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<BloodRequestStatus | "all">("all");
   const [priorityFilter, setPriorityFilter] = useState<BloodRequestPriority | "all">("all");
 
-  const { data: requests, isLoading } = useBloodRequests({
+  const { data: requestsRaw, isLoading } = useBloodRequests({
     status: statusFilter === "all" ? undefined : statusFilter,
     priority: priorityFilter === "all" ? undefined : priorityFilter,
   });
+
+  const requests = useMemo(() => {
+    if (!requestsRaw || !search) return requestsRaw;
+    const q = search.toLowerCase();
+    return requestsRaw.filter((r) =>
+      r.request_number?.toLowerCase().includes(q) ||
+      (r.patient as any)?.first_name?.toLowerCase().includes(q) ||
+      (r.patient as any)?.last_name?.toLowerCase().includes(q)
+    );
+  }, [requestsRaw, search]);
 
   return (
     <div className="space-y-6">
@@ -58,7 +72,11 @@ export default function RequestsListPage() {
       />
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4">
+      <ListFilterBar
+        search={search}
+        onSearchChange={setSearch}
+        searchPlaceholder={t("bb.searchRequests")}
+      >
         <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as BloodRequestStatus | "all")}>
           <SelectTrigger className="w-[160px]">
             <SelectValue placeholder="Status" />
@@ -81,7 +99,7 @@ export default function RequestsListPage() {
             ))}
           </SelectContent>
         </Select>
-      </div>
+      </ListFilterBar>
 
       {/* Requests Grid */}
       {isLoading ? (

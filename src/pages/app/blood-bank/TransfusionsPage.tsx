@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -20,6 +20,8 @@ import {
   type TransfusionStatus 
 } from "@/hooks/useBloodBank";
 import { BloodGroupBadge } from "@/components/blood-bank/BloodGroupBadge";
+import { ListFilterBar } from "@/components/inventory/ListFilterBar";
+import { useTranslation } from "@/lib/i18n";
 
 const transfusionStatuses: { value: TransfusionStatus; label: string }[] = [
   { value: 'scheduled', label: 'Scheduled' },
@@ -39,13 +41,26 @@ const statusConfig: Record<TransfusionStatus, { label: string; color: string; ic
 
 export default function TransfusionsPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<TransfusionStatus | "all">("all");
 
-  const { data: transfusions, isLoading } = useBloodTransfusions({
+  const { data: transfusionsRaw, isLoading } = useBloodTransfusions({
     status: statusFilter === "all" ? undefined : statusFilter,
   });
 
   const { data: activeTransfusions } = useActiveTransfusions();
+
+  const transfusions = useMemo(() => {
+    if (!transfusionsRaw || !search) return transfusionsRaw;
+    const q = search.toLowerCase();
+    return transfusionsRaw.filter((tf) =>
+      tf.transfusion_number?.toLowerCase().includes(q) ||
+      (tf.patient as any)?.first_name?.toLowerCase().includes(q) ||
+      (tf.patient as any)?.last_name?.toLowerCase().includes(q) ||
+      (tf.blood_unit as any)?.unit_number?.toLowerCase().includes(q)
+    );
+  }, [transfusionsRaw, search]);
 
   return (
     <div className="space-y-6">
@@ -80,7 +95,11 @@ export default function TransfusionsPage() {
       )}
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4">
+      <ListFilterBar
+        search={search}
+        onSearchChange={setSearch}
+        searchPlaceholder={t("bb.searchTransfusions")}
+      >
         <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as TransfusionStatus | "all")}>
           <SelectTrigger className="w-[160px]">
             <SelectValue placeholder="Status" />
@@ -92,7 +111,7 @@ export default function TransfusionsPage() {
             ))}
           </SelectContent>
         </Select>
-      </div>
+      </ListFilterBar>
 
       {/* Transfusions List */}
       {isLoading ? (

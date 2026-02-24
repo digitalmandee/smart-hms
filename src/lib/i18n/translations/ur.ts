@@ -2360,5 +2360,24 @@ export const ur: Record<TranslationKey, string> = {
   "accounts.revenueBySource": "ذریعے کے مطابق آمدنی",
   "accounts.agingChart": "ایجنگ خلاصہ",
 
+  // Blood Bank Labels
+  "bb.bagLabels": "بیگ لیبل",
+  "bb.unitNumber": "یونٹ نمبر",
+  "bb.bloodGroup": "خون کا گروپ",
+  "bb.componentType": "جز کی قسم",
+  "bb.collectionDate": "جمع کرنے کی تاریخ",
+  "bb.expiryDate": "میعاد ختم ہونے کی تاریخ",
+  "bb.donorNumber": "ڈونر نمبر",
+  "bb.storageLocation": "ذخیرہ مقام",
+  "bb.volume": "حجم",
+  "bb.bagNumber": "بیگ نمبر",
+  "bb.selectUnits": "لیبل پرنٹ کرنے کے لیے یونٹس منتخب کریں",
+  "bb.labelPreview": "لیبل پیش نظارہ",
+  "bb.printLabels": "لیبل پرنٹ کریں",
+  "bb.searchUnits": "یونٹ نمبر، بیگ نمبر سے تلاش کریں...",
+  "bb.searchDonations": "عطیہ نمبر، ڈونر سے تلاش کریں...",
+  "bb.searchRequests": "درخواست نمبر، مریض سے تلاش کریں...",
+  "bb.searchTransfusions": "ٹرانسفیوژن نمبر سے تلاش کریں...",
+
 };
 
