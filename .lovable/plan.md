@@ -1,13 +1,24 @@
 
-# Finance Module Enhancement Plan — COMPLETED ✅
 
-All 8 phases have been implemented:
+# Client Login Page (Clean Copy)
 
-1. ✅ Finance Dashboard UI Overhaul — Revenue trend chart, overdue alerts, MTD expenses, pending vendor payments
-2. ✅ Standalone Expense Management — `/app/accounts/expenses`
-3. ✅ Budget vs Actual Tracking — Budget allocations with progress bars and variance
-4. ✅ Journal Entries Enhancement — Date/reference filters, pagination
-5. ✅ Receivables Aging Chart — Color-coded bar chart (Current to 90+)
-6. ✅ Revenue by Source Report — `/app/accounts/reports/revenue-by-source` with pie chart
-7. ✅ P&L Comparative Mode — Compare with previous period toggle
-8. ✅ CSV Export — All financial reports export functionality
+## What
+Create an exact copy of the current login page at a new route `/client-login`, but with the following removed:
+- All demo account one-click buttons (Hospital, Clinic, Pharmacy, Warehouse sections)
+- The unlock/lock screen (no password gate -- direct access)
+- All demo account arrays and quick login logic
+
+Everything else stays identical: same form UI, same styling, same AuthLayout wrapper, same error handling.
+
+## Files
+
+### 1. Create `src/pages/auth/ClientLoginPage.tsx`
+- Copy of `LoginPage.tsx` keeping only the login form (lines 219-286 of original)
+- Remove: demo account arrays, `DEMO_PASSWORD`, `UNLOCK_PASSWORD`, lock screen state, `handleQuickLogin`, `isUnlocked` logic
+- Keep: `showPassword`, `isLoading`, form with email/password, forgot password link, sign in button, error handling, toast notifications, redirect logic
+
+### 2. Edit `src/App.tsx`
+- Import `ClientLoginPage`
+- Add route: `/auth/client-login` under the existing `<Route path="/auth" element={<AuthLayout />}>` group
+
+No translations needed -- reuses existing "Welcome back" / "Enter your credentials" text already in the component. No database changes.
