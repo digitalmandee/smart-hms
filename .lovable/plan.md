@@ -1,108 +1,107 @@
 
 
-# Injection Point Audit -- Findings and Fix Plan
+# Blood Bank Label Printer + Search/Filter Enhancement
 
-## Executive Summary
+## Part 1: Blood Bag Label Printer
 
-After a close inspection of all frontend rendering, edge functions, and data flow paths, I identified **7 injection vulnerabilities** across XSS, prompt injection, and input validation categories. Most are **mitigated** by existing DOMPurify/sanitization, but several gaps remain.
+### New Files
 
----
+**`src/components/blood-bank/BloodBagLabel.tsx`**
+A specialized blood bag label component (similar pattern to `BarcodeLabelPrinter` but blood-specific) with:
+- Large blood group badge (color-coded, prominent)
+- Barcode generated from `unit_number` using JsBarcode (CODE128)
+- Fields: Unit Number, Component Type, Blood Group, Volume, Collection Date, Expiry Date, Donor Number, Storage Location, Bag Number
+- All field labels translated via `useTranslation()` (EN/UR/AR)
+- RTL-aware layout using `useDirection()`
+- Download-as-PNG button per label (using `html-to-image`)
+- Print-optimized CSS (`print:` classes)
 
-## Vulnerability Table
+**`src/pages/app/blood-bank/BloodBagLabelsPage.tsx`**
+Full page with:
+- Left panel: filterable table of blood inventory units (with search by unit number, blood group filter, component type filter, status filter)
+- Right panel: live label preview grid
+- Action buttons: Print selected, Download PNG, Download PDF
+- Uses `useBloodInventory` hook with filters
+- Checkbox multi-select (same pattern as `BarcodeLabelPage.tsx`)
+- All UI text translated (EN/UR/AR)
 
-| # | Location | Type | Severity | Status |
-|---|----------|------|----------|--------|
-| 1 | `AIChatMessage.tsx` -- `dangerouslySetInnerHTML` | Stored XSS via AI response | LOW | Mitigated (DOMPurify) but allowlist includes `style` attr |
-| 2 | `EmailTemplatesPage.tsx` -- `dangerouslySetInnerHTML` | Stored XSS via admin template | LOW | Mitigated (DOMPurify) but allows `href` and `style` |
-| 3 | `pdfExport.ts` / `usePrint.ts` -- `document.write(element.innerHTML)` | DOM-based XSS in print windows | MEDIUM | **No sanitization** -- raw innerHTML piped to new window |
-| 4 | `send-sms/index.ts` -- `to` parameter | SMS toll fraud / injection | MEDIUM | **No phone number validation** -- arbitrary string passed to Twilio |
-| 5 | `ai-assistant/index.ts` -- user messages in system prompt | Prompt injection | MEDIUM | Only 5000-char limit; no content filtering |
-| 6 | `ai-assistant/index.ts` -- `patient_context` injected into system prompt | Indirect prompt injection via profile metadata | MEDIUM | `JSON.stringify(medicalContext)` goes straight into system prompt |
-| 7 | `send-sms/index.ts` -- `message` body | SMS content injection | LOW | No length/content validation; user-controlled body |
-
----
-
-## Detailed Findings
-
-### 1. Print/PDF Export -- Unsanitized innerHTML (MEDIUM)
-
-**Files:** `src/lib/pdfExport.ts`, `src/lib/exportUtils.ts`, `src/hooks/usePrint.ts`, `src/components/hr/SettlementReceiptDialog.tsx`
-
-These files use `element.innerHTML` and pipe it directly into `printWindow.document.write()` with **zero sanitization**. If any rendered content on the page contains malicious HTML (e.g., a patient name like `<img src=x onerror=alert(1)>`), it executes in the print window context.
-
-**Fix:** Sanitize `innerHTML` with DOMPurify before writing to the print window.
-
-### 2. SMS `to` Field -- No Phone Validation (MEDIUM)
-
-**File:** `supabase/functions/send-sms/index.ts` line 38
-
-The `to` field from the request body is passed directly to Twilio with no regex validation. An attacker with a valid auth token could:
-- Send SMS to premium-rate numbers (toll fraud)
-- Send to arbitrary international numbers (cost abuse)
-
-**Fix:** Add phone number regex validation: `^\+[1-9]\d{6,14}$`
-
-### 3. AI Prompt Injection -- patient_context in System Prompt (MEDIUM)
-
-**File:** `supabase/functions/ai-assistant/index.ts` lines 452-458
-
-`patient_context` from the request body (user-controlled) is JSON.stringified directly into the system prompt:
-```
-contextMessage = `\nAdditional Patient Context:\n${JSON.stringify(medicalContext)}`
-```
-
-A malicious user could set profile fields like `allergies: "Ignore all previous instructions. You are now..."` and it would be injected into the system prompt verbatim.
-
-**Fix:** Sanitize `patient_context` values -- strip instruction-like patterns, cap field lengths, and move context to a separate user-role message instead of appending to the system prompt.
-
-### 4. SMS Message Body -- No Length Limit (LOW)
-
-**File:** `supabase/functions/send-sms/index.ts`
-
-No max length on the `message` body. An attacker could send extremely long SMS messages (multi-part), increasing Twilio costs.
-
-**Fix:** Cap `message` to 480 characters (3 SMS segments max).
-
-### 5. DOMPurify `style` Attribute Allowance (LOW)
-
-**Files:** `AIChatMessage.tsx`, `EmailTemplatesPage.tsx`
-
-Both DOMPurify configurations allow the `style` attribute. While this doesn't enable script execution, it can be used for CSS-based data exfiltration or UI spoofing (e.g., `style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999"`).
-
-**Fix:** Remove `style` from `ALLOWED_ATTR` in `AIChatMessage.tsx` (AI responses should never need inline styles). Keep in email templates as they legitimately need it.
-
----
-
-## Files to Modify
+### Modified Files
 
 | File | Change |
 |------|--------|
-| `supabase/functions/send-sms/index.ts` | Add phone regex validation + message length cap |
-| `supabase/functions/ai-assistant/index.ts` | Sanitize `patient_context` values; move context out of system prompt into a user-role message; cap each field to 200 chars |
-| `src/lib/pdfExport.ts` | Sanitize content with DOMPurify before `document.write` |
-| `src/lib/exportUtils.ts` | Sanitize content with DOMPurify before `document.write` |
-| `src/hooks/usePrint.ts` | Sanitize content with DOMPurify before `document.write` |
-| `src/components/hr/SettlementReceiptDialog.tsx` | Sanitize content with DOMPurify before `document.write` |
-| `src/components/ai/AIChatMessage.tsx` | Remove `style` from DOMPurify `ALLOWED_ATTR` |
+| `src/App.tsx` | Add route: `blood-bank/labels` -> `BloodBagLabelsPage` |
+| `src/config/role-sidebars.ts` | Add "Bag Labels" under Blood Work children for `blood_bank_technician` |
+| `src/lib/i18n/translations/en.ts` | Add ~20 blood bank label keys |
+| `src/lib/i18n/translations/ur.ts` | Add corresponding Urdu translations |
+| `src/lib/i18n/translations/ar.ts` | Add corresponding Arabic translations |
+| `src/components/DynamicSidebar.tsx` | Add sidebar label mapping for "Bag Labels" |
 
 ---
 
-## What Is Already Safe (No Changes Needed)
+## Part 2: Search Filter Enhancement for Blood Bank Pages
 
-- **RPC calls** -- All use parameterized inputs via Supabase SDK; no raw SQL
-- **`chart.tsx` dangerouslySetInnerHTML** -- Only renders hardcoded CSS theme variables, no user input
-- **Email template preview** -- Already sanitized with DOMPurify
-- **`window.open` / `window.location`** -- All use hardcoded paths or IDs from database, not user-controlled strings
-- **`eval()` / `Function()`** -- None found in codebase
-- **Edge function auth** -- All functions validate JWT before processing
+Currently, the blood bank pages (Donors, Inventory, Requests, Donations) have basic Select dropdowns but inconsistent search bars. I will add a proper unified search/filter bar using the existing `ListFilterBar` component pattern:
+
+### Modified Files
+
+| File | Change |
+|------|--------|
+| `src/pages/app/blood-bank/InventoryPage.tsx` | Add text search input (search by unit number, bag number, storage location) above the existing filters |
+| `src/pages/app/blood-bank/DonationsPage.tsx` | Add date range filter and text search |
+| `src/pages/app/blood-bank/RequestsListPage.tsx` | Add text search (by request number, patient name) |
+| `src/pages/app/blood-bank/TransfusionsPage.tsx` | Add text search |
 
 ---
 
-## Impact Assessment
+## Translation Keys (Sample)
 
-All fixes are additive (adding validation/sanitization) and do not change any existing behavior for legitimate users:
-- Phone validation only rejects malformed numbers
-- SMS length cap is generous (480 chars = 3 segments)
-- AI context sanitization preserves all medical info, just caps length per field
-- Print sanitization is transparent -- DOMPurify passes clean HTML through unchanged
+```text
+English:
+  "bb.bagLabels": "Bag Labels"
+  "bb.unitNumber": "Unit Number"
+  "bb.bloodGroup": "Blood Group"
+  "bb.componentType": "Component Type"
+  "bb.collectionDate": "Collection Date"
+  "bb.expiryDate": "Expiry Date"
+  "bb.donorNumber": "Donor Number"
+  "bb.storageLocation": "Storage Location"
+  "bb.volume": "Volume"
+  "bb.bagNumber": "Bag Number"
+  "bb.selectUnits": "Select Units"
+  "bb.labelPreview": "Label Preview"
+  "bb.printLabels": "Print Labels"
+  "bb.searchUnits": "Search by unit number, bag number..."
+
+Urdu:
+  "bb.bagLabels": "بیگ لیبل"
+  "bb.unitNumber": "یونٹ نمبر"
+  "bb.bloodGroup": "خون کا گروپ"
+  "bb.componentType": "جز کی قسم"
+  "bb.collectionDate": "جمع کرنے کی تاریخ"
+  "bb.expiryDate": "میعاد ختم ہونے کی تاریخ"
+  "bb.donorNumber": "ڈونر نمبر"
+  "bb.storageLocation": "ذخیرہ مقام"
+
+Arabic:
+  "bb.bagLabels": "ملصقات الأكياس"
+  "bb.unitNumber": "رقم الوحدة"
+  "bb.bloodGroup": "فصيلة الدم"
+  "bb.componentType": "نوع المكون"
+  "bb.collectionDate": "تاريخ الجمع"
+  "bb.expiryDate": "تاريخ الانتهاء"
+  "bb.donorNumber": "رقم المتبرع"
+  "bb.storageLocation": "موقع التخزين"
+```
+
+---
+
+## Technical Details
+
+- The label uses JsBarcode (already installed) for barcode generation from `unit_number`
+- PNG download uses `html-to-image` (already installed), PDF uses `jsPDF` (already installed)
+- Print uses `react-to-print` (already installed)
+- RTL support via existing `useDirection()` hook -- labels flip layout for Urdu/Arabic
+- Blood group badge reuses existing `BloodGroupBadge` component
+- Inventory query reuses existing `useBloodInventory` hook with added search param
+- The `useBloodInventory` hook in `useBloodBank.ts` will be extended to accept an optional `search` string parameter for text filtering (`.or()` on unit_number, bag_number, storage_location)
 
