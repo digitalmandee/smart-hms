@@ -609,6 +609,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
           { name: "Donor List", path: "/app/blood-bank/donors", icon: "Users" },
           { name: "Register Donor", path: "/app/blood-bank/donors/new", icon: "UserPlus" },
           { name: "Donations", path: "/app/blood-bank/donations", icon: "Droplet" },
+          { name: "Donor Cards", path: "/app/blood-bank/donor-cards", icon: "CreditCard" },
         ]
       },
       { 

@@ -2378,6 +2378,17 @@ export const ar: Record<TranslationKey, string> = {
   "bb.searchDonations": "البحث برقم التبرع، المتبرع...",
   "bb.searchRequests": "البحث برقم الطلب، المريض...",
   "bb.searchTransfusions": "البحث برقم نقل الدم...",
+  "bb.searchDonors": "البحث عن المتبرعين...",
+
+  // Blood Bank Donor Cards
+  "bb.donorCard": "بطاقات المتبرعين",
+  "bb.donorIdCard": "بطاقة متبرع بالدم",
+  "bb.totalDonations": "إجمالي التبرعات",
+  "bb.lastDonation": "آخر تبرع",
+  "bb.registeredDonor": "تشهد هذه البطاقة بأن حاملها متبرع مسجل بالدم",
+  "bb.selectDonors": "اختر المتبرعين لطباعة البطاقات",
+  "bb.cardPreview": "معاينة البطاقة",
+  "bb.downloadPng": "تحميل PNG",
 
 };
 
