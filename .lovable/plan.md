@@ -1,231 +1,85 @@
 
 
-# Finance Module Deep Audit + OPD Linkage + Hospital Warehouse Connection
+# Remaining Finance Module Enhancements
 
-## Findings Summary
-
-### 1. Hospital Linked Warehouse
-
-Yes, hospital organizations already have access to the Inventory module which serves as their "linked warehouse." Hospital users can manage stock, purchase orders, GRNs, vendors, stock requisitions, and store transfers. The `facility_type` conditional rendering already hides warehouse-only columns (like "Sell Price" on GRN forms) and shows hospital-relevant ones (like "Medicine Type"). This is working correctly -- no changes needed here.
-
-### 2. OPD Module -- Finance Linkage Status
-
-The OPD module is **well-linked** to finance:
-- OPD Checkout (`OPDCheckoutPage.tsx`) collects consultation fees, lab charges, and creates invoices + payments via `useCreateInvoice` and `useRecordPayment`
-- Invoices auto-post journal entries to Accounts Receivable + Service Revenue via DB trigger `post_invoice_to_journal`
-- Doctor earnings are auto-posted via `post_consultation_earning` trigger when invoice is paid
-- Lab orders link back to invoices via `invoice_id` column
-- Appointment links to invoice via `invoice_id` for duplicate prevention
-
-**OPD Gaps Found:**
-- No imaging order billing integration (imaging orders exist but no invoice linking in checkout)
-- Prescription charges show Rs. 0 in checkout (pharmacy handles pricing) -- but no link back to confirm pharmacy dispensing revenue posts to journal
-- OPD checkout has no discount controls (line-item or overall discount)
-- No OPD-specific revenue reports (revenue by doctor, by department, by service type)
-
-### 3. Finance Module -- Comprehensive Audit
-
-**What works well:**
-- Chart of Accounts with account types
-- Journal Entries with posted/draft status
-- General Ledger with running balance
-- Trial Balance with balance check
-- Profit & Loss Statement
-- Balance Sheet with balance check
-- Cash Flow Statement
-- Accounts Receivable (patient invoices)
-- Accounts Payable (GRN-linked vendor payments)
-- Bank Accounts with recent transactions
-- Fiscal Year management
-- Invoice auto-posting to journal
-- Daily Closing with expenses step
-
-**Gaps and Enhancement Opportunities:**
-
-#### A. Budget Module is Placeholder
-`BudgetsPage.tsx` only manages fiscal years. The "Budget Overview" section says "Budget management coming soon." No actual budget allocation or budget-vs-actual tracking exists.
-
-#### B. No Expense Management Page
-Expenses can only be recorded through the Daily Closing wizard. There's no standalone Expense Management page where users can view all expenses, filter by category/date, or manage petty cash independently.
-
-#### C. Financial Reports -- Missing Comparative Analysis
-- P&L has no period comparison (current vs previous period)
-- No department-wise P&L breakdown
-- No revenue-by-source analysis (OPD, IPD, Lab, Pharmacy)
-- No aging summary chart on Receivables (just table)
-- Export buttons exist but don't actually export (placeholder)
-
-#### D. Dashboard UI Improvements
-- Summary cards use plain numbers -- no sparkline trends or percentage changes
-- No overdue alerts or aging breakdown visualization
-- No revenue trend chart (daily/weekly/monthly)
-- Quick actions section is static -- no context-aware suggestions
-- No pending approvals widget (pending vendor payments, unreconciled bank entries)
-
-#### E. Journal Entries -- Missing Features
-- No pagination (loads all entries)
-- No date filter
-- No bulk operations
-- No reference-type filter (invoice, shipment, stock_adjustment)
-- No debit/credit amount columns visible in list
-
-#### F. General Ledger -- No Export/Print
-- No export or print capability
-- Running balance calculation happens client-side -- could be slow with many entries
-
-#### G. Vendor Payments -- No Payment History Overview
-- Vendor payment list exists but no consolidated view of payment aging across all vendors
-- No payment scheduling/reminders
-
-#### H. No Tax/VAT Configuration
-- Invoices have tax_amount field but no tax rate configuration
-- No tax report generation
+## Status Check
+Phases 2, 4, 7, and 8 are complete. Four phases remain:
 
 ---
 
-## Implementation Plan
+## Phase 1: Finance Dashboard UI Overhaul
 
-### Phase 1: Finance Dashboard UI Overhaul
+**File:** `src/pages/app/accounts/AccountsDashboard.tsx`
 
-**File:** `AccountsDashboard.tsx`
+- Add a 6th summary card: "Expenses (MTD)" showing current month expenses
+- Add an "Overdue Receivables" alert card below fiscal year info, querying invoices older than 30 days with status pending/partially_paid -- shows count and total overdue amount with a red warning style
+- Add a "Revenue Trend (Last 7 Days)" mini line chart using Recharts, querying `journal_entry_lines` joined with revenue-type accounts grouped by date
+- Add "Pending Vendor Payments" count card showing unpaid GRN-linked payables
+- Add Expense Management to the module links grid
+- All new text will have translation keys in en/ur/ar
 
-Changes:
-- Add a Revenue Trend mini-chart (last 7 days) using Recharts -- query `journal_entry_lines` for revenue accounts
-- Add "Overdue Receivables" alert card showing count and amount of 30+ day outstanding invoices
-- Add "Pending Vendor Payments" card showing unpaid GRN count
-- Add percentage change indicators on summary cards (compare current month vs previous)
-- Add "Expenses (MTD)" as 6th summary card
-- Make description and module links translatable (en/ur/ar)
+---
 
-### Phase 2: Standalone Expense Management Page
+## Phase 3: Budget vs Actual Tracking
 
-**New file:** `src/pages/app/accounts/ExpenseManagementPage.tsx`
+**File:** `src/pages/app/accounts/BudgetsPage.tsx`
 
-Features:
-- Full-page expense list with date range, category, and amount filters
-- Summary cards: Total Expenses (MTD), by category breakdown (petty cash, utilities, salaries, supplies, etc.)
-- Add Expense button (reuses existing `RecordExpenseDialog`)
-- Category pie chart showing expense distribution
-- Export to CSV functionality
-- New route: `/app/accounts/expenses`
-- Add to Accounts Dashboard module links and sidebar navigation
+Replace the placeholder "Budget management coming soon" section with:
 
-### Phase 3: Budget vs Actual Tracking
+- A budget allocation form: select an expense account, enter allocated amount for current fiscal year, save to `budget_allocations` table
+- A table showing all budget allocations: Account Name | Budget Allocated | Actual Spent (sum of posted debit journal entry lines for that account in the fiscal year period) | Variance | % Used
+- Progress bars for each row (green < 80%, amber 80-100%, red > 100%)
+- An overall budget utilization summary card at top
+- Uses existing `budget_allocations` table (already created in prior migration)
 
-**Edit:** `BudgetsPage.tsx`
+---
 
-Changes:
-- Replace the placeholder "Budget Overview" with a real budget allocation table
-- New DB table: `budget_allocations` (account_id, fiscal_year_id, allocated_amount, organization_id)
-- For each expense account, show: Budget Allocated, Actual Spent (from journal entries), Variance, % Used
-- Progress bars for each category showing utilization
-- Alert badges when budget is >80% or >100% utilized
-- Overall budget utilization summary card
+## Phase 5: Receivables Aging Chart
 
-### Phase 4: Journal Entries List Enhancement
+**File:** `src/pages/app/accounts/ReceivablesPage.tsx`
 
-**Edit:** `JournalEntriesPage.tsx`
+- Add an aging summary bar chart between summary cards and filters, using Recharts BarChart
+- Buckets: Current, 1-30, 31-60, 61-90, 90+ days
+- Each bar shows total outstanding amount for that bucket
+- Color-coded bars (green to red gradient)
 
-Changes:
-- Add date range filter (from/to)
-- Add reference_type filter dropdown (All, Invoice, Shipment, Stock Adjustment, Manual)
-- Add status filter (Posted/Draft)
-- Add debit/credit total columns to the table
-- Add pagination (25 per page)
-- Show journal entry source (e.g., "Invoice: INV-20260223-0001" as clickable link)
+---
 
-### Phase 5: Receivables -- Aging Chart + Insurance Receivables
-
-**Edit:** `ReceivablesPage.tsx`
-
-Changes:
-- Add an aging summary bar chart (Current / 1-30 / 31-60 / 61-90 / 90+) using Recharts
-- Link insurance receivables to insurance claims from billing module (query `insurance_claims` table)
-- Make the Insurance Receivables card functional (currently hardcoded to 0)
-- Add "Send Reminder" action placeholder for overdue invoices
-- Add pagination
-
-### Phase 6: Revenue by Source Report
+## Phase 6: Revenue by Source Report
 
 **New file:** `src/pages/app/accounts/RevenueBySourcePage.tsx`
 
-Features:
-- Revenue breakdown by source: OPD Consultations, Lab Tests, Imaging, IPD, Pharmacy POS
-- Query `invoice_items` joined with `service_types` to categorize revenue
-- Date range filter
-- Pie chart + table view
-- Comparison with previous period
-- New route: `/app/accounts/reports/revenue-by-source`
-- Add to Financial Reports page cards
-
-### Phase 7: P&L Comparative + Department-wise
-
-**Edit:** `ProfitLossPage.tsx`
-
-Changes:
-- Add "Compare with Previous Period" toggle
-- When enabled, show side-by-side columns: Current Period | Previous Period | Change %
-- Add department-wise P&L breakdown tab (query journal entries by branch_id)
-
-### Phase 8: Export Functionality
-
-**Across multiple files:** `TrialBalancePage.tsx`, `ProfitLossPage.tsx`, `BalanceSheetPage.tsx`, `CashFlowPage.tsx`, `ReceivablesPage.tsx`, `PayablesPage.tsx`
-
-Changes:
-- Implement actual CSV export for all Export buttons (currently placeholder)
-- Use a shared `exportToCSV` utility function
-- Format numbers and dates properly for export
+- Revenue breakdown by source derived from `invoice_items` joined with `service_types` category
+- Categories: Consultation, Lab, Imaging, Pharmacy, IPD, Other
+- Date range filter (default: current month)
+- Pie chart (Recharts PieChart) showing distribution
+- Table below with: Source | Count | Amount | % of Total
+- Route: `/app/accounts/reports/revenue-by-source` (add to App.tsx)
+- Link from Financial Reports page or Accounts Dashboard
 
 ---
 
-## Database Changes
+## Translations
 
-**New table: `budget_allocations`**
-
-| Column | Type | Notes |
-|--------|------|-------|
-| id | uuid | PK |
-| organization_id | uuid | FK |
-| fiscal_year_id | uuid | FK to fiscal_years |
-| account_id | uuid | FK to accounts |
-| allocated_amount | numeric(15,2) | Budget amount |
-| notes | text | Optional |
-| created_at | timestamptz | |
-| updated_at | timestamptz | |
-
-**New menu_items inserts:**
-- Expense Management under Accounts parent (for both hospital and warehouse)
+New keys for all 3 languages (en/ur/ar):
+- `accounts.expensesMTD`, `accounts.overdueReceivables`, `accounts.revenueTrend`
+- `accounts.pendingVendorPayments`, `accounts.budgetAllocation`, `accounts.actualSpent`
+- `accounts.variance`, `accounts.percentUsed`, `accounts.revenueBySource`
+- `accounts.agingChart`
 
 ---
 
-## Navigation/Sidebar Updates
+## Files Modified/Created
 
-- Add "Expense Management" menu item under Accounts
-- Add "Revenue by Source" under Financial Reports sub-menu
-- Add icon mappings in DynamicSidebar
+| File | Action |
+|------|--------|
+| `AccountsDashboard.tsx` | Edit -- add charts, alert cards, MTD expenses |
+| `BudgetsPage.tsx` | Edit -- replace placeholder with budget-vs-actual UI |
+| `ReceivablesPage.tsx` | Edit -- add aging bar chart |
+| `RevenueBySourcePage.tsx` | Create -- new report page |
+| `App.tsx` | Edit -- add revenue-by-source route |
+| `en.ts` / `ar.ts` / `ur.ts` | Edit -- add translation keys |
+| `DynamicSidebar.tsx` | Edit -- add icon mapping if needed |
 
----
-
-## Translation Keys
-
-New keys for en.ts, ar.ts, ur.ts:
-- `accounts.expenseManagement`, `accounts.revenueBySource`, `accounts.budgetVsActual`
-- `accounts.overdue`, `accounts.pendingPayments`, `accounts.mtdExpenses`
-- `accounts.agingSummary`, `accounts.comparePeriod`, `accounts.exportCSV`
-
----
-
-## Summary of Changes
-
-| Item | Type | Impact |
-|------|------|--------|
-| Dashboard revenue trend chart + alerts | UI Enhancement | All orgs |
-| Expense Management page | New Page | All orgs |
-| Budget vs Actual tracking | New Feature + DB table | All orgs |
-| Journal Entries filters + pagination | UI Enhancement | All orgs |
-| Receivables aging chart + insurance link | UI Enhancement | Hospital only |
-| Revenue by Source report | New Page | Hospital only |
-| P&L comparative mode | UI Enhancement | All orgs |
-| CSV Export (all reports) | Feature Fix | All orgs |
-| Translations (en/ur/ar) | i18n | All |
+No database changes needed -- `budget_allocations` table already exists.
 
