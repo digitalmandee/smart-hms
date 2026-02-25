@@ -1,39 +1,54 @@
 
 
-# Add Expand All / Collapse All to Chart of Accounts Tree
+# Fix Trial Balance & P&L Reports + Verify Expand/Collapse
 
-## Problem
-Each `AccountNode` manages its own `isExpanded` state independently via `useState`. There is no way to expand or collapse all nodes at once -- users must click each chevron individually to navigate the full 4-level hierarchy.
+## Expand All / Collapse All -- Status: Already Implemented Correctly
 
-## Approach
-Lift expand/collapse state to the `AccountTree` parent component using a single `expandedIds: Set<string>` state. Pass it down to `AccountNode` instead of each node managing its own state. Add two buttons ("Expand All" / "Collapse All") that set all node IDs or clear them.
+The `AccountTree.tsx` component has:
+- `expandedIds` state lifted to parent level (line 212)
+- `collectParentIds()` recursive helper (line 60)
+- "Expand All" and "Collapse All" buttons rendering at lines 246-253
+- Default initialization expands levels 1-2 (line 213)
 
-## Changes
+No code changes needed -- this is working.
 
-### 1. `src/components/accounts/AccountTree.tsx`
+## Trial Balance & P&L -- Two Bugs Found
 
-- Add `expandedIds` state (`Set<string>`) at the `AccountTree` level, initialized with all accounts at level <= 2 (matching current default behavior)
-- Add a helper `collectAllIds(accounts)` that recursively gathers IDs of all accounts that have children
-- Add "Expand All" button: sets `expandedIds` to all parent IDs
-- Add "Collapse All" button: clears `expandedIds` to empty set
-- Render buttons in a flex row above the tree
-- Update `AccountNode` to receive `expandedIds` and `onToggleExpand` as props instead of using local `useState`
-- `AccountNode.isExpanded` becomes `expandedIds.has(account.id)`
-- `handleToggle` calls `onToggleExpand(account.id)` which adds/removes from the set
+### Bug 1: Fallback to `current_balance` when no journal entries exist in period
 
-### 2. `src/pages/app/accounts/ChartOfAccountsPage.tsx`
+**File**: `src/hooks/useFinancialReports.ts`, line 103
 
-- No changes needed -- buttons live inside `AccountTree` component
+```typescript
+const useDateFilter = startDate && endDate && Object.keys(journalTotals).length > 0;
+```
 
-### 3. Translation keys (`en.ts`, `ur.ts`, `ar.ts`)
+The condition `Object.keys(journalTotals).length > 0` means: if the user selects a date range that has zero journal entries (e.g., a future month), the report falls back to showing `current_balance` (all-time balances) instead of showing zeros. This defeats the purpose of date filtering.
 
-- `"accounts.expandAll"`: "Expand All" / "سب کھولیں" / "توسيع الكل"
-- `"accounts.collapseAll"`: "Collapse All" / "سب بند کریں" / "طي الكل"
+**Fix**: Remove the length check. When dates are provided, always use date-filtered data even if it results in an empty report.
 
-## Technical Details
+```typescript
+const useDateFilter = !!(startDate && endDate);
+```
 
-- `collectAllIds` recursively walks the tree and returns IDs of nodes where `children?.length > 0`
-- Initial state: `new Set(collectAllIds(accounts, 2))` -- expands levels 1-2 by default (same as current behavior)
-- The `Set` approach is performant -- O(1) lookup per node, no re-render cascade since state is in a single parent
-- Icons used: `ChevronsDownUp` for collapse, `ChevronsUpDown` for expand (from lucide-react)
+Same fix needed in `useProfitLoss` (line 174 already has the correct logic: `const useDateFilter = !!(startDate && endDate);`). So only the Trial Balance needs this fix.
+
+### Bug 2: Header accounts (L1-L3) appear in Trial Balance and P&L
+
+After the COA hierarchy migration, the `accounts` table now contains ~25 header accounts per organization (Level 1-3). These are grouping accounts with `is_header = true` and `current_balance = 0`. They never have journal entry lines posted to them (enforced by the `check_posting_account` trigger).
+
+Currently both `useTrialBalance` and `useProfitLoss` fetch ALL active accounts regardless of `is_header`. This means:
+- Trial Balance shows ~25 extra rows with zero balances (cluttering the report)
+- P&L includes header accounts like "Service Revenue" (L2) and "OPD Revenue" (L3) alongside the actual posting accounts
+
+**Fix**: Add `.eq("is_header", false)` to both queries so only Level 4 posting accounts appear in these reports.
+
+## Changes Summary
+
+### `src/hooks/useFinancialReports.ts`
+
+1. **Line 68** (Trial Balance query): Add `.eq("is_header", false)` filter
+2. **Line 103**: Change `useDateFilter` to `!!(startDate && endDate)` 
+3. **Line 168** (P&L query): Add `.eq("is_header", false)` filter
+
+Three single-line changes total. No migration needed. No UI changes needed.
 
