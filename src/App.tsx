@@ -355,6 +355,7 @@ import TransfusionDetailPage from "./pages/app/blood-bank/TransfusionDetailPage"
 import TransfusionFormPage from "./pages/app/blood-bank/TransfusionFormPage";
 import BloodBagLabelsPage from "./pages/app/blood-bank/BloodBagLabelsPage";
 const DonorCardPrintPage = React.lazy(() => import("./pages/app/blood-bank/DonorCardPrintPage"));
+const BloodBankAnalyticsPage = React.lazy(() => import("./pages/app/blood-bank/BloodBankAnalyticsPage"));
 import DonorDetailPage from "./pages/app/blood-bank/DonorDetailPage";
 import BloodUnitDetailPage from "./pages/app/blood-bank/BloodUnitDetailPage";
 import BloodUnitFormPage from "./pages/app/blood-bank/BloodUnitFormPage";
@@ -724,6 +725,7 @@ function App() {
               <Route path="blood-bank/transfusions/:id" element={<TransfusionDetailPage />} />
               <Route path="blood-bank/labels" element={<BloodBagLabelsPage />} />
               <Route path="blood-bank/donor-cards" element={<DonorCardPrintPage />} />
+              <Route path="blood-bank/analytics" element={<BloodBankAnalyticsPage />} />
 
               {/* OPD routes */}
               <Route path="opd" element={<DoctorDashboard />} />

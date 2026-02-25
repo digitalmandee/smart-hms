@@ -2501,6 +2501,21 @@ export const en = {
   "bb.weight": "Weight",
   "bb.hemoglobin": "Hemoglobin",
 
+  // Blood Bank Analytics
+  "bb.analytics": "Blood Bank Analytics",
+  "bb.monthlyCollectionVsConsumption": "Monthly Collection vs Consumption",
+  "bb.bloodGroupDistribution": "Blood Group Distribution",
+  "bb.donationTrends": "Donation Trends",
+  "bb.componentBreakdown": "Component Type Breakdown",
+  "bb.totalCollections": "Total Collections",
+  "bb.totalConsumed": "Total Consumed",
+  "bb.collectionRate": "Collection Rate",
+  "bb.wastageRate": "Wastage Rate",
+  "bb.collected": "Collected",
+  "bb.consumed": "Consumed",
+  "bb.completed": "Completed",
+  "bb.rejected": "Rejected",
+
 } as const;
 
 export type TranslationKey = keyof typeof en;
