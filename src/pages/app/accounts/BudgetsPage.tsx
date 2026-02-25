@@ -137,6 +137,47 @@ export default function BudgetsPage() {
     onError: (e: any) => toast.error(e.message),
   });
 
+  // Set fiscal year as current
+  const setAsCurrent = useMutation({
+    mutationFn: async (fyId: string) => {
+      // First unset all current flags for this org
+      const { error: unsetError } = await supabase
+        .from("fiscal_years")
+        .update({ is_current: false })
+        .eq("organization_id", profile!.organization_id!);
+      if (unsetError) throw unsetError;
+      // Set selected as current
+      const { error } = await supabase
+        .from("fiscal_years")
+        .update({ is_current: true })
+        .eq("id", fyId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Fiscal year set as current");
+      queryClient.invalidateQueries({ queryKey: ["fiscal-years"] });
+      queryClient.invalidateQueries({ queryKey: ["current-fiscal-year"] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  // Close fiscal year
+  const closeYear = useMutation({
+    mutationFn: async (fyId: string) => {
+      const { error } = await supabase
+        .from("fiscal_years")
+        .update({ is_closed: true })
+        .eq("id", fyId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Fiscal year closed successfully");
+      queryClient.invalidateQueries({ queryKey: ["fiscal-years"] });
+      queryClient.invalidateQueries({ queryKey: ["current-fiscal-year"] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
   const handleCreateFiscalYear = async () => {
     if (!newFiscalYear.name || !newFiscalYear.start_date || !newFiscalYear.end_date) {
       toast.error("Please fill in all required fields");
@@ -252,9 +293,9 @@ export default function BudgetsPage() {
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem>Set as Current</DropdownMenuItem>
-                          <DropdownMenuItem>View Reports</DropdownMenuItem>
-                          {!fy.is_closed && <DropdownMenuItem className="text-destructive">Close Year</DropdownMenuItem>}
+                          <DropdownMenuItem onClick={() => setAsCurrent.mutate(fy.id)}>Set as Current</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => navigate(`/app/accounts/reports/profit-loss`)}>View Reports</DropdownMenuItem>
+                          {!fy.is_closed && <DropdownMenuItem className="text-destructive" onClick={() => closeYear.mutate(fy.id)}>Close Year</DropdownMenuItem>}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
