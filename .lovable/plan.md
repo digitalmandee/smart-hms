@@ -1,54 +1,49 @@
 
 
-# Fix Trial Balance & P&L Reports + Verify Expand/Collapse
+# Fix Trial Balance Debit/Credit Column Assignment
 
-## Expand All / Collapse All -- Status: Already Implemented Correctly
+## Bug Found
 
-The `AccountTree.tsx` component has:
-- `expandedIds` state lifted to parent level (line 212)
-- `collectParentIds()` recursive helper (line 60)
-- "Expand All" and "Collapse All" buttons rendering at lines 246-253
-- Default initialization expands levels 1-2 (line 213)
+The Trial Balance page renders correctly with only Level 4 posting accounts, and the P&L report works properly. However, the Trial Balance has a **debit/credit column assignment bug** that causes all balances to appear in the Debit column regardless of account type.
 
-No code changes needed -- this is working.
-
-## Trial Balance & P&L -- Two Bugs Found
-
-### Bug 1: Fallback to `current_balance` when no journal entries exist in period
-
-**File**: `src/hooks/useFinancialReports.ts`, line 103
-
+**Current code** (lines 126-127 of `src/hooks/useFinancialReports.ts`):
 ```typescript
-const useDateFilter = startDate && endDate && Object.keys(journalTotals).length > 0;
+debit: balance >= 0 ? balance : 0,
+credit: balance < 0 ? Math.abs(balance) : 0,
 ```
 
-The condition `Object.keys(journalTotals).length > 0` means: if the user selects a date range that has zero journal entries (e.g., a future month), the report falls back to showing `current_balance` (all-time balances) instead of showing zeros. This defeats the purpose of date filtering.
+This assigns any positive balance to Debit. But for credit-normal accounts (Revenue, Liabilities, Equity), a positive balance means "more credits than debits" and should appear in the **Credit** column.
 
-**Fix**: Remove the length check. When dates are provided, always use date-filtered data even if it results in an empty report.
+**Result**: Revenue accounts like "Service Revenue - OPD" (Rs 2,106,021) appear in the Debit column. The report shows Rs 4,214,695 total debits and Rs 0 credits, flagged as "NOT Balanced" even though the underlying journal entries are perfectly balanced.
+
+## Fix
+
+**File**: `src/hooks/useFinancialReports.ts`, lines 120-128
+
+Replace the column assignment logic to consider the account's normal balance side:
 
 ```typescript
-const useDateFilter = !!(startDate && endDate);
+return {
+  account_id: account.id,
+  account_number: account.account_number,
+  account_name: account.name,
+  account_type: account.account_type?.name || "Unknown",
+  category: account.account_type?.category || "Unknown",
+  debit: isDebitNormal ? (balance >= 0 ? balance : 0) : (balance < 0 ? Math.abs(balance) : 0),
+  credit: isDebitNormal ? (balance < 0 ? Math.abs(balance) : 0) : (balance >= 0 ? balance : 0),
+};
 ```
 
-Same fix needed in `useProfitLoss` (line 174 already has the correct logic: `const useDateFilter = !!(startDate && endDate);`). So only the Trial Balance needs this fix.
+Logic:
+- **Debit-normal accounts** (Assets, Expenses): positive balance → Debit column; negative (unusual) → Credit column
+- **Credit-normal accounts** (Revenue, Liabilities, Equity): positive balance → Credit column; negative (unusual) → Debit column
 
-### Bug 2: Header accounts (L1-L3) appear in Trial Balance and P&L
+This is a single-line change in the return object. No other files need modification.
 
-After the COA hierarchy migration, the `accounts` table now contains ~25 header accounts per organization (Level 1-3). These are grouping accounts with `is_header = true` and `current_balance = 0`. They never have journal entry lines posted to them (enforced by the `check_posting_account` trigger).
+## Expected Result After Fix
 
-Currently both `useTrialBalance` and `useProfitLoss` fetch ALL active accounts regardless of `is_header`. This means:
-- Trial Balance shows ~25 extra rows with zero balances (cluttering the report)
-- P&L includes header accounts like "Service Revenue" (L2) and "OPD Revenue" (L3) alongside the actual posting accounts
-
-**Fix**: Add `.eq("is_header", false)` to both queries so only Level 4 posting accounts appear in these reports.
-
-## Changes Summary
-
-### `src/hooks/useFinancialReports.ts`
-
-1. **Line 68** (Trial Balance query): Add `.eq("is_header", false)` filter
-2. **Line 103**: Change `useDateFilter` to `!!(startDate && endDate)` 
-3. **Line 168** (P&L query): Add `.eq("is_header", false)` filter
-
-Three single-line changes total. No migration needed. No UI changes needed.
+The Trial Balance should show:
+- Assets (AR-001, CASH-001) in the Debit column
+- Revenue (REV-001, REV-PHARM-001) in the Credit column  
+- Total Debits ≈ Total Credits → "Trial Balance is Balanced" with green checkmark
 
