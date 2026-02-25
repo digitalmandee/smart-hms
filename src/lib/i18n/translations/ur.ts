@@ -363,6 +363,8 @@ export const ur: Record<TranslationKey, string> = {
   "ipd.newAdmission": "نئی داخلگی",
   "ipd.allRoundsComplete": "آج کے سب دورے مکمل",
   "ipd.noPendingDischarges": "کوئی زیر التواء خروج نہیں",
+  "ipd.newAdmissionAlert": "نیا داخلہ",
+  "ipd.pendingConfirmation": "تصدیق زیر التواء",
   "ipd.recentAdmissions": "حالیہ داخلگی",
   "ipd.bedMap": "بستر نقشہ",
   "ipd.admissions": "داخلگی",

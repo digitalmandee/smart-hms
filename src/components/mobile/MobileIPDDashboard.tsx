@@ -32,6 +32,7 @@ interface IPDStats {
 
 interface Admission {
   id: string;
+  status?: string;
   patient?: {
     first_name: string;
     last_name?: string;
@@ -289,9 +290,16 @@ export function MobileIPDDashboard({
                     onClick={() => { handleCardTap(); navigate(`/app/ipd/admissions/${adm.id}`); }}
                   >
                     <div className="flex-1">
-                      <p className="font-medium text-sm">
-                        {adm.patient?.first_name} {adm.patient?.last_name}
-                      </p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium text-sm">
+                          {adm.patient?.first_name} {adm.patient?.last_name}
+                        </p>
+                        {adm.status === "pending" && (
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-amber-500/10 text-amber-600 border-amber-500/20">
+                            NEW
+                          </Badge>
+                        )}
+                      </div>
                       <p className="text-xs text-muted-foreground">
                         Bed {adm.bed?.bed_number}
                       </p>

@@ -25,6 +25,43 @@ export const ADMISSION_STATUSES: AdmissionStatus[] = [
   "lama",
 ];
 
+export const useRecentAdmissions = (limit: number = 6) => {
+  const { profile } = useAuth();
+
+  return useQuery({
+    queryKey: ["admissions", "recent", profile?.organization_id, limit],
+    queryFn: async () => {
+      if (!profile?.organization_id) return [];
+
+      const { data, error } = await supabase
+        .from("admissions")
+        .select(`
+          *,
+          patient:patients(id, first_name, last_name, patient_number, date_of_birth, gender, phone),
+          ward:wards!admissions_ward_id_fkey(id, name, code),
+          bed:beds!admissions_bed_id_fkey(id, bed_number),
+          admitting_doctor:doctors!admissions_admitting_doctor_id_fkey(
+            id,
+            profile:profiles(full_name)
+          ),
+          attending_doctor:doctors!admissions_attending_doctor_id_fkey(
+            id,
+            profile:profiles(full_name)
+          ),
+          branch:branches(id, name)
+        `)
+        .eq("organization_id", profile.organization_id)
+        .in("status", ["pending", "admitted"])
+        .order("created_at", { ascending: false })
+        .limit(limit);
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!profile?.organization_id,
+  });
+};
+
 export const useAdmissions = (status?: AdmissionStatus) => {
   const { profile } = useAuth();
 

@@ -438,6 +438,8 @@ export const ar: Record<TranslationKey, string> = {
   "ipd.newAdmission": "قبول جديد",
   "ipd.allRoundsComplete": "اكتملت جميع الجولات لليوم",
   "ipd.noPendingDischarges": "لا يوجد خروج معلق",
+  "ipd.newAdmissionAlert": "قبول جديد",
+  "ipd.pendingConfirmation": "في انتظار التأكيد",
   "ipd.recentAdmissions": "القبول الأخير",
   "ipd.bedMap": "خريطة الأسرة",
   "ipd.admissions": "القبول",
