@@ -436,6 +436,8 @@ export const en = {
   "ipd.newAdmission": "New Admission",
   "ipd.allRoundsComplete": "All rounds completed for today",
   "ipd.noPendingDischarges": "No pending discharges",
+  "ipd.newAdmissionAlert": "New Admission",
+  "ipd.pendingConfirmation": "Pending Confirmation",
   "ipd.recentAdmissions": "Recent Admissions",
   "ipd.bedMap": "Bed Map",
   "ipd.admissions": "Admissions",

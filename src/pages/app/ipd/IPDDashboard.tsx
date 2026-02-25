@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ModernPageHeader } from "@/components/ModernPageHeader";
 import { ModernStatsCard } from "@/components/ModernStatsCard";
@@ -10,7 +11,7 @@ import {
   Plus, ArrowRight, ArrowLeft, Wallet, RefreshCw, Activity, Beaker, Calendar
 } from "lucide-react";
 import { useIPDStats } from "@/hooks/useIPD";
-import { useAdmissions } from "@/hooks/useAdmissions";
+import { useRecentAdmissions } from "@/hooks/useAdmissions";
 import { usePendingRounds } from "@/hooks/useDailyRounds";
 import { usePendingDischarges } from "@/hooks/useDischarge";
 import { usePostTodayRoomCharges } from "@/hooks/useRoomChargeSync";
@@ -26,6 +27,8 @@ import { MobileIPDDashboard } from "@/components/mobile/MobileIPDDashboard";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTranslation, useIsRTL } from "@/lib/i18n";
 import { useCountryConfig } from "@/contexts/CountryConfigContext";
+import { supabase } from "@/integrations/supabase/client";
+import { toast as sonnerToast } from "sonner";
 
 
 export default function IPDDashboard() {
@@ -43,13 +46,50 @@ export default function IPDDashboard() {
   const dateLocale = default_language === "ar" || default_language === "ur" ? arLocale : enUS;
 
   const { data: stats, isLoading: loadingStats } = useIPDStats();
-  const { data: recentAdmissions, isLoading: loadingAdmissions } = useAdmissions("admitted");
+  const { data: recentAdmissions, isLoading: loadingAdmissions } = useRecentAdmissions(6);
   const { data: pendingRounds, isLoading: loadingRounds } = usePendingRounds();
   const { data: pendingDischarges, isLoading: loadingDischarges } = usePendingDischarges();
   const { postCharges, isPosting } = usePostTodayRoomCharges();
   const { data: enhanced } = useIPDDashboardEnhancedStats();
 
   const firstName = profile?.full_name?.split(" ")[0] || "Doctor";
+
+  // Realtime subscription for admissions
+  useEffect(() => {
+    if (!profile?.organization_id) return;
+
+    const channel = supabase
+      .channel('ipd-dashboard-realtime')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'admissions',
+      }, (payload: any) => {
+        // Show toast for new admission
+        const newRecord = payload.new;
+        sonnerToast.info(t("ipd.newAdmissionAlert"), {
+          description: `${newRecord.admission_number}`,
+        });
+        queryClient.invalidateQueries({ queryKey: ['admissions'] });
+        queryClient.invalidateQueries({ queryKey: ['ipd-stats'] });
+        queryClient.invalidateQueries({ queryKey: ['pending-rounds'] });
+      })
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'admissions',
+      }, () => {
+        queryClient.invalidateQueries({ queryKey: ['admissions'] });
+        queryClient.invalidateQueries({ queryKey: ['ipd-stats'] });
+        queryClient.invalidateQueries({ queryKey: ['pending-rounds'] });
+        queryClient.invalidateQueries({ queryKey: ['pending-discharges'] });
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [profile?.organization_id, queryClient, t]);
 
   const handleRefresh = async () => {
     await Promise.all([

@@ -46,6 +46,7 @@ interface AdmissionCardProps {
 }
 
 const statusColors: Record<string, string> = {
+  pending: "bg-amber-500/10 text-amber-600 border-amber-500/20",
   admitted: "bg-success/10 text-success border-success/20",
   discharged: "bg-muted text-muted-foreground",
   transferred: "bg-blue-500/10 text-blue-600 border-blue-500/20",
@@ -81,14 +82,22 @@ export const AdmissionCard = ({
                 </Badge>
               )}
             </div>
-            <Badge
-              variant="outline"
-              className={cn(
-                statusColors[admission.status || "admitted"]
+            <div className="flex items-center gap-1.5">
+              {admission.status === "pending" && (
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500" />
+                </span>
               )}
-            >
-              {admission.status || "Admitted"}
-            </Badge>
+              <Badge
+                variant="outline"
+                className={cn(
+                  statusColors[admission.status || "admitted"]
+                )}
+              >
+                {admission.status === "pending" ? "NEW" : (admission.status || "Admitted")}
+              </Badge>
+            </div>
           </div>
         </CardHeader>
       )}
@@ -109,15 +118,22 @@ export const AdmissionCard = ({
               </p>
             </div>
             {compact && (
-              <Badge
-                variant="outline"
-                className={cn(
-                  "shrink-0",
-                  statusColors[admission.status || "admitted"]
+              <div className="flex items-center gap-1.5 shrink-0">
+                {admission.status === "pending" && (
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
+                  </span>
                 )}
-              >
-                {admission.status || "Admitted"}
-              </Badge>
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    statusColors[admission.status || "admitted"]
+                  )}
+                >
+                  {admission.status === "pending" ? "NEW" : (admission.status || "Admitted")}
+                </Badge>
+              </div>
             )}
           </div>
         )}
