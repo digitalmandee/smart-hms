@@ -45,6 +45,8 @@ const accountSchema = z.object({
   opening_balance: z.coerce.number().default(0),
   opening_balance_date: z.string().nullable().optional(),
   is_active: z.boolean().default(true),
+  account_level: z.coerce.number().min(1).max(4).default(4),
+  is_header: z.boolean().default(false),
 });
 
 type AccountFormData = z.infer<typeof accountSchema>;
@@ -72,6 +74,8 @@ export default function AccountFormPage() {
       opening_balance: 0,
       opening_balance_date: null,
       is_active: true,
+      account_level: 4,
+      is_header: false,
     },
   });
 
@@ -87,6 +91,8 @@ export default function AccountFormPage() {
         opening_balance: account.opening_balance,
         opening_balance_date: account.opening_balance_date,
         is_active: account.is_active,
+        account_level: account.account_level ?? 4,
+        is_header: account.is_header ?? false,
       });
     }
   }, [account, form]);
@@ -106,6 +112,8 @@ export default function AccountFormPage() {
           opening_balance: data.opening_balance,
           opening_balance_date: data.opening_balance_date ?? null,
           is_active: data.is_active,
+          account_level: data.account_level,
+          is_header: data.is_header,
         });
       }
       navigate("/app/accounts/chart-of-accounts");
@@ -305,6 +313,64 @@ export default function AccountFormPage() {
                           checked={field.value}
                           onCheckedChange={field.onChange}
                           disabled={account?.is_system}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="account_level"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Account Level</FormLabel>
+                      <Select
+                        onValueChange={(v) => {
+                          const level = Number(v);
+                          field.onChange(level);
+                          if (level <= 3) form.setValue("is_header", true);
+                          else form.setValue("is_header", false);
+                        }}
+                        value={String(field.value)}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select level" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="1">Level 1 - Category Header</SelectItem>
+                          <SelectItem value="2">Level 2 - Sub-group</SelectItem>
+                          <SelectItem value="3">Level 3 - Control Account</SelectItem>
+                          <SelectItem value="4">Level 4 - Detail / Posting</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        Levels 1-3 are headers; Level 4 accepts journal entries
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="is_header"
+                  render={({ field }) => (
+                    <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">Header Account</FormLabel>
+                        <FormDescription>
+                          Header accounts group sub-accounts and cannot receive journal entries
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
                         />
                       </FormControl>
                     </FormItem>

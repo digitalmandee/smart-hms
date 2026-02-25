@@ -34,6 +34,8 @@ export interface Account {
   created_at: string;
   updated_at: string;
   created_by: string | null;
+  account_level: number;
+  is_header: boolean;
   account_type?: AccountType;
   parent_account?: Account | null;
   children?: Account[];
@@ -261,6 +263,8 @@ export function useCreateAccount() {
       opening_balance?: number;
       opening_balance_date?: string | null;
       is_active?: boolean;
+      account_level?: number;
+      is_header?: boolean;
     }) => {
       const { data: result, error } = await supabase
         .from("accounts")
@@ -300,6 +304,8 @@ export function useUpdateAccount() {
       opening_balance?: number;
       opening_balance_date?: string | null;
       is_active?: boolean;
+      account_level?: number;
+      is_header?: boolean;
     }) => {
       const { data: result, error } = await supabase
         .from("accounts")

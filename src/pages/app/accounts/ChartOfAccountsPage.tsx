@@ -36,6 +36,7 @@ export default function ChartOfAccountsPage() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [levelFilter, setLevelFilter] = useState<string>("all");
   const [showInactive, setShowInactive] = useState(false);
 
   const { data: accountTypes } = useAccountTypes();
@@ -55,18 +56,32 @@ export default function ChartOfAccountsPage() {
     });
   }, [accountTypes]);
 
-  // Filter accounts based on search and category
-  const filteredAccounts = accountsTree?.filter((account) => {
-    const matchesSearch =
-      !search ||
-      account.name.toLowerCase().includes(search.toLowerCase()) ||
-      account.account_number.toLowerCase().includes(search.toLowerCase());
-    
-    const matchesCategory =
-      categoryFilter === "all" || account.account_type?.category === categoryFilter;
-    
-    return matchesSearch && matchesCategory;
-  }) || [];
+  // Recursive filter that keeps parents if any descendant matches
+  const filterTree = (accounts: Account[]): Account[] => {
+    return accounts.reduce<Account[]>((result, account) => {
+      const matchesSearch =
+        !search ||
+        account.name.toLowerCase().includes(search.toLowerCase()) ||
+        account.account_number.toLowerCase().includes(search.toLowerCase());
+      
+      const matchesCategory =
+        categoryFilter === "all" || account.account_type?.category === categoryFilter;
+
+      const matchesLevel =
+        levelFilter === "all" || account.account_level === Number(levelFilter);
+
+      const filteredChildren = account.children ? filterTree(account.children) : [];
+      
+      const selfMatches = matchesSearch && matchesCategory && matchesLevel;
+      
+      if (selfMatches || filteredChildren.length > 0) {
+        result.push({ ...account, children: filteredChildren });
+      }
+      return result;
+    }, []);
+  };
+
+  const filteredAccounts = accountsTree ? filterTree(accountsTree) : [];
 
   const handleSelectAccount = (account: Account) => {
     navigate(`/app/accounts/chart-of-accounts/${account.id}`);
@@ -176,6 +191,18 @@ export default function ChartOfAccountsPage() {
                     {categoryLabels[category] || category}
                   </SelectItem>
                 ))}
+              </SelectContent>
+            </Select>
+            <Select value={levelFilter} onValueChange={setLevelFilter}>
+              <SelectTrigger className="w-[150px]">
+                <SelectValue placeholder="All Levels" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Levels</SelectItem>
+                <SelectItem value="1">Level 1 - Category</SelectItem>
+                <SelectItem value="2">Level 2 - Sub-group</SelectItem>
+                <SelectItem value="3">Level 3 - Control</SelectItem>
+                <SelectItem value="4">Level 4 - Detail</SelectItem>
               </SelectContent>
             </Select>
             <Button
