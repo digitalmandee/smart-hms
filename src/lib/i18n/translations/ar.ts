@@ -2452,5 +2452,14 @@ export const ar: Record<TranslationKey, string> = {
   "bb.vsLastMonth": "مقارنة بالشهر الماضي",
   "bb.noAnalyticsData": "لا توجد بيانات لبنك الدم. قم بإضافة البيانات أولاً لرؤية التحليلات.",
 
+  // OPD Queue Display
+  "opd.nowServing": "يُخدم الآن",
+  "opd.nextUp": "التالي",
+  "opd.recentlyCompleted": "أُنجز مؤخراً",
+  "opd.waitingForDoctor": "بانتظار الطبيب",
+  "opd.consultationComplete": "اكتملت الاستشارة",
+  "opd.noPatientServing": "لا يوجد مريض يُخدم حالياً",
+  "opd.tokenDisplay": "عرض الرمز",
+
 };
 

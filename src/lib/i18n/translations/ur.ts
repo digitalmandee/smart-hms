@@ -2452,5 +2452,14 @@ export const ur: Record<TranslationKey, string> = {
   "bb.vsLastMonth": "پچھلے مہینے کے مقابلے",
   "bb.noAnalyticsData": "بلڈ بینک کا کوئی ڈیٹا دستیاب نہیں۔ تجزیات دیکھنے کے لیے پہلے ڈیٹا شامل کریں۔",
 
+  // OPD Queue Display
+  "opd.nowServing": "ابھی خدمت ہو رہی ہے",
+  "opd.nextUp": "اگلا نمبر",
+  "opd.recentlyCompleted": "حالیہ مکمل",
+  "opd.waitingForDoctor": "ڈاکٹر کا انتظار",
+  "opd.consultationComplete": "مشاورت مکمل",
+  "opd.noPatientServing": "ابھی کوئی مریض نہیں",
+  "opd.tokenDisplay": "ٹوکن ڈسپلے",
+
 };
 
