@@ -203,7 +203,7 @@ export default function QueueDisplayPage() {
                 <Card key={appointment.id} className="border-2 border-destructive bg-destructive/5">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-4">
-                      <div className="w-16 h-16 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center text-xl font-bold font-mono animate-pulse">
+                      <div className="min-w-[4rem] w-16 h-16 rounded-xl bg-destructive text-destructive-foreground flex items-center justify-center text-base font-bold font-mono animate-pulse px-1.5">
                         {getTokenDisplay(appointment)}
                       </div>
                       <div>
@@ -265,7 +265,7 @@ export default function QueueDisplayPage() {
                         <div className="flex items-center gap-4 lg:gap-6">
                           <div 
                             className={cn(
-                              "w-20 h-20 lg:w-24 lg:h-24 rounded-full flex items-center justify-center text-2xl lg:text-3xl font-bold font-mono shadow-md transition-transform",
+                              "min-w-[5rem] w-20 h-20 lg:min-w-[6rem] lg:w-24 lg:h-24 rounded-2xl flex items-center justify-center text-xl lg:text-2xl font-bold font-mono shadow-md transition-transform px-2",
                               tokenChanged && "animate-pulse scale-110"
                             )}
                             style={{ 
@@ -362,7 +362,7 @@ export default function QueueDisplayPage() {
                       <div className="flex items-center gap-4">
                         <div 
                           className={cn(
-                            'w-14 h-14 lg:w-16 lg:h-16 rounded-full flex items-center justify-center text-lg lg:text-xl font-bold font-mono transition-all',
+                            'min-w-[3.5rem] w-14 h-14 lg:min-w-[4rem] lg:w-16 lg:h-16 rounded-xl flex items-center justify-center text-base lg:text-lg font-bold font-mono transition-all px-1.5',
                             index === 0 ? 'scale-105' : ''
                           )}
                           style={{

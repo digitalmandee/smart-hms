@@ -1,6 +1,7 @@
 import { forwardRef } from "react";
 import { format } from "date-fns";
 import { generateVisitId } from "@/lib/visit-id";
+import { formatTokenDisplay } from "@/lib/opd-token";
 import React from "react";
 
 interface Patient {
@@ -40,6 +41,8 @@ interface PrintableTokenSlipProps {
   customFooter?: string;
   showQR?: boolean;
   primaryColor?: string;
+  departmentCode?: string | null;
+  departmentName?: string | null;
 }
 
 const priorityLabels: Record<number, string> = {
@@ -191,12 +194,15 @@ export const PrintableTokenSlip = forwardRef<HTMLDivElement, PrintableTokenSlipP
       customFooter,
       showQR = false,
       primaryColor,
+      departmentCode,
+      departmentName,
     },
     ref
   ) => {
     const priority = appointment.priority ?? 0;
     const fullName = `${patient.first_name} ${patient.last_name || ""}`.trim();
-    const tokenNumber = appointment.token_number || "-";
+    const tokenNumber = appointment.token_number || null;
+    const tokenDisplay = formatTokenDisplay(tokenNumber, departmentCode);
     
     // Generate Visit ID
     const visitId = generateVisitId({
@@ -231,10 +237,12 @@ export const PrintableTokenSlip = forwardRef<HTMLDivElement, PrintableTokenSlipP
           </div>
 
           {/* OPD Token Title */}
-          <div style={styles.tokenTitle}>OPD TOKEN</div>
+          <div style={styles.tokenTitle}>
+            OPD TOKEN{departmentName ? ` — ${departmentName}` : ''}
+          </div>
 
           {/* Large Token Number */}
-          <div style={styles.tokenNumber}>{tokenNumber}</div>
+          <div style={styles.tokenNumber}>{tokenDisplay}</div>
           
           {/* Visit ID */}
           <div style={{ textAlign: "center", marginBottom: "12px" }}>

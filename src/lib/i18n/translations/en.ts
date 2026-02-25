@@ -2518,6 +2518,15 @@ export const en = {
   "bb.vsLastMonth": "vs last month",
   "bb.noAnalyticsData": "No blood bank data available. Seed data first to see analytics.",
 
+  // OPD Queue Display
+  "opd.nowServing": "Now Serving",
+  "opd.nextUp": "Next Up",
+  "opd.recentlyCompleted": "Recently Completed",
+  "opd.waitingForDoctor": "Waiting for Doctor",
+  "opd.consultationComplete": "Consultation Complete",
+  "opd.noPatientServing": "No patient currently being served",
+  "opd.tokenDisplay": "Token Display",
+
 } as const;
 
 export type TranslationKey = keyof typeof en;
