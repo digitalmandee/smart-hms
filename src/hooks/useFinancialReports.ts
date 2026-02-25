@@ -65,6 +65,7 @@ export function useTrialBalance(startDate?: string, endDate?: string) {
           )
         `)
         .eq("is_active", true)
+        .eq("is_header", false)
         .order("account_number");
 
       if (accountsError) throw accountsError;
@@ -100,7 +101,7 @@ export function useTrialBalance(startDate?: string, endDate?: string) {
       }
 
       // Build trial balance
-      const useDateFilter = startDate && endDate && Object.keys(journalTotals).length > 0;
+      const useDateFilter = !!(startDate && endDate);
       
       const trialBalance: TrialBalanceRow[] = (accounts || []).map(account => {
         const isDebitNormal = account.account_type?.is_debit_normal ?? true;
@@ -165,6 +166,7 @@ export function useProfitLoss(startDate?: string, endDate?: string) {
           )
         `)
         .eq("is_active", true)
+        .eq("is_header", false)
         .order("account_number");
 
       if (error) throw error;
