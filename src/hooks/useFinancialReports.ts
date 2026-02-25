@@ -265,22 +265,67 @@ export function useBalanceSheet(asOfDate?: string) {
   return useQuery({
     queryKey: ["balance-sheet", profile?.organization_id, asOfDate],
     queryFn: async () => {
-      // Fetch asset, liability, and equity accounts
+      // Fetch asset, liability, and equity accounts (L4 posting only)
       const { data: accounts, error } = await supabase
         .from("accounts")
         .select(`
           id,
           name,
           current_balance,
+          opening_balance,
           account_type:account_types(
             name,
-            category
+            category,
+            is_debit_normal
           )
         `)
         .eq("is_active", true)
+        .eq("is_header", false)
         .order("account_number");
 
       if (error) throw error;
+
+      // If asOfDate provided, calculate balances from journal entries up to that date
+      let journalTotals: Record<string, { debit: number; credit: number }> = {};
+      const useDateFilter = !!asOfDate;
+
+      if (useDateFilter) {
+        const { data: lines, error: linesError } = await supabase
+          .from("journal_entry_lines")
+          .select(`
+            account_id,
+            debit_amount,
+            credit_amount,
+            journal_entry:journal_entries!inner(
+              entry_date,
+              is_posted
+            )
+          `)
+          .eq("journal_entry.is_posted", true)
+          .lte("journal_entry.entry_date", asOfDate);
+
+        if (linesError) throw linesError;
+
+        for (const line of lines || []) {
+          if (!journalTotals[line.account_id]) {
+            journalTotals[line.account_id] = { debit: 0, credit: 0 };
+          }
+          journalTotals[line.account_id].debit += Number(line.debit_amount) || 0;
+          journalTotals[line.account_id].credit += Number(line.credit_amount) || 0;
+        }
+      }
+
+      const getBalance = (account: any) => {
+        if (useDateFilter) {
+          const totals = journalTotals[account.id] || { debit: 0, credit: 0 };
+          const isDebitNormal = account.account_type?.is_debit_normal ?? true;
+          const opening = Number(account.opening_balance) || 0;
+          return isDebitNormal
+            ? opening + totals.debit - totals.credit
+            : opening + totals.credit - totals.debit;
+        }
+        return Number(account.current_balance) || 0;
+      };
 
       const assetAccounts = (accounts || []).filter(
         a => a.account_type?.category === "asset"
@@ -297,9 +342,9 @@ export function useBalanceSheet(asOfDate?: string) {
         items: assetAccounts.map(a => ({
           account_id: a.id,
           account_name: a.name,
-          amount: Number(a.current_balance) || 0,
-        })),
-        total: assetAccounts.reduce((sum, a) => sum + (Number(a.current_balance) || 0), 0),
+          amount: getBalance(a),
+        })).filter(i => i.amount !== 0),
+        total: assetAccounts.reduce((sum, a) => sum + getBalance(a), 0),
       };
 
       const liabilities: BalanceSheetSection = {
@@ -307,9 +352,9 @@ export function useBalanceSheet(asOfDate?: string) {
         items: liabilityAccounts.map(a => ({
           account_id: a.id,
           account_name: a.name,
-          amount: Math.abs(Number(a.current_balance) || 0),
-        })),
-        total: liabilityAccounts.reduce((sum, a) => sum + Math.abs(Number(a.current_balance) || 0), 0),
+          amount: getBalance(a),
+        })).filter(i => i.amount !== 0),
+        total: liabilityAccounts.reduce((sum, a) => sum + getBalance(a), 0),
       };
 
       const equity: BalanceSheetSection = {
@@ -317,9 +362,9 @@ export function useBalanceSheet(asOfDate?: string) {
         items: equityAccounts.map(a => ({
           account_id: a.id,
           account_name: a.name,
-          amount: Math.abs(Number(a.current_balance) || 0),
-        })),
-        total: equityAccounts.reduce((sum, a) => sum + Math.abs(Number(a.current_balance) || 0), 0),
+          amount: getBalance(a),
+        })).filter(i => i.amount !== 0),
+        total: equityAccounts.reduce((sum, a) => sum + getBalance(a), 0),
       };
 
       const totalLiabilitiesAndEquity = liabilities.total + equity.total;
@@ -436,14 +481,36 @@ export function useCashFlow(startDate?: string, endDate?: string) {
         { description: "Shipping Costs", amount: -shippingCosts, category: "operating" as const },
       ] as CashFlowItem[]).filter(i => i.amount !== 0);
 
-      const investing: CashFlowItem[] = [
-        { description: "Equipment Purchases", amount: 0, category: "investing" },
-      ];
+      // Investing: fixed asset account movements (debit = purchase, credit = disposal)
+      const investingLines = (lines || []).filter(l => {
+        const cat = l.account?.account_type?.category;
+        const name = (l.account?.account_type?.name || '').toLowerCase();
+        return cat === 'asset' && (name.includes('fixed') || name.includes('equipment'));
+      });
+      const equipmentPurchases = investingLines.reduce(
+        (sum, l) => sum + ((Number(l.debit_amount) || 0) - (Number(l.credit_amount) || 0)), 0
+      );
 
-      const financing: CashFlowItem[] = [
-        { description: "Loan Receipts", amount: 0, category: "financing" },
-        { description: "Loan Repayments", amount: 0, category: "financing" },
-      ];
+      const investing: CashFlowItem[] = ([
+        { description: "Equipment & Fixed Asset Purchases", amount: -equipmentPurchases, category: "investing" as const },
+      ] as CashFlowItem[]).filter(i => i.amount !== 0);
+
+      // Financing: liability and equity account movements
+      const financingLines = (lines || []).filter(l => {
+        const cat = l.account?.account_type?.category;
+        return cat === 'liability' || cat === 'equity';
+      });
+      const loanReceipts = financingLines.reduce(
+        (sum, l) => sum + (Number(l.credit_amount) || 0), 0
+      );
+      const loanRepayments = financingLines.reduce(
+        (sum, l) => sum + (Number(l.debit_amount) || 0), 0
+      );
+
+      const financing: CashFlowItem[] = ([
+        { description: "Loan / Equity Receipts", amount: loanReceipts, category: "financing" as const },
+        { description: "Loan / Liability Repayments", amount: -loanRepayments, category: "financing" as const },
+      ] as CashFlowItem[]).filter(i => i.amount !== 0);
 
       const operatingTotal = operating.reduce((sum, i) => sum + i.amount, 0);
       const investingTotal = investing.reduce((sum, i) => sum + i.amount, 0);

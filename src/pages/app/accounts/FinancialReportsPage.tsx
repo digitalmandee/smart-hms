@@ -50,6 +50,13 @@ export default function FinancialReportsPage() {
       path: "/app/accounts/reports/cash-flow",
       color: "text-orange-500",
     },
+    {
+      title: "Revenue by Source",
+      description: "Breakdown of revenue streams and sources",
+      icon: PieChart,
+      path: "/app/accounts/reports/revenue-by-source",
+      color: "text-cyan-500",
+    },
   ];
 
   return (
@@ -165,7 +172,7 @@ export default function FinancialReportsPage() {
               <Button variant="outline" onClick={() => navigate("/app/accounts/ledger")}>
                 General Ledger
               </Button>
-              <Button variant="outline" onClick={() => navigate("/app/accounts/chart")}>
+              <Button variant="outline" onClick={() => navigate("/app/accounts/chart-of-accounts")}>
                 Chart of Accounts
               </Button>
             </div>

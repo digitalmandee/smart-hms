@@ -148,15 +148,15 @@ export default function AccountsDashboard() {
 
   const quickActions = [
     { title: "New Journal Entry", description: "Record a manual journal entry", icon: Plus, href: "/app/accounts/journal-entries/new", color: "text-blue-600" },
-    { title: "Record Payment", description: "Record a vendor payment", icon: CreditCard, href: "/app/accounts/payables/payments/new", color: "text-green-600" },
+    { title: "Record Payment", description: "Record a vendor payment", icon: CreditCard, href: "/app/accounts/vendor-payments/new", color: "text-green-600" },
     { title: "Bank Reconciliation", description: "Reconcile bank statements", icon: Building2, href: "/app/accounts/bank-accounts", color: "text-purple-600" },
     { title: "View Reports", description: "Financial statements & reports", icon: BarChart3, href: "/app/accounts/reports", color: "text-orange-600" },
   ];
 
   const moduleLinks = [
-    { title: "Chart of Accounts", description: "Manage account structure", icon: BookOpen, href: "/app/accounts/chart-of-accounts", count: accounts?.length || 0 },
+    { title: "Chart of Accounts", description: "Manage account structure", icon: BookOpen, href: "/app/accounts/chart-of-accounts", count: accounts?.filter(a => !a.is_header).length || 0 },
     { title: "Journal Entries", description: "View and create entries", icon: FileText, href: "/app/accounts/journal-entries" },
-    { title: "General Ledger", description: "Account transaction history", icon: LayoutDashboard, href: "/app/accounts/general-ledger" },
+    { title: "General Ledger", description: "Account transaction history", icon: LayoutDashboard, href: "/app/accounts/ledger" },
     ...(!isWarehouse ? [{ title: "Accounts Receivable", description: "Track customer payments", icon: Receipt, href: "/app/accounts/receivables" }] : []),
     { title: "Accounts Payable", description: "Manage vendor payments", icon: CreditCard, href: "/app/accounts/payables" },
     { title: "Bank & Cash", description: "Bank account management", icon: Building2, href: "/app/accounts/bank-accounts" },
