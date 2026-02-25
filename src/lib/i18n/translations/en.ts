@@ -2515,6 +2515,8 @@ export const en = {
   "bb.consumed": "Consumed",
   "bb.completed": "Completed",
   "bb.rejected": "Rejected",
+  "bb.vsLastMonth": "vs last month",
+  "bb.noAnalyticsData": "No blood bank data available. Seed data first to see analytics.",
 
 } as const;
 
