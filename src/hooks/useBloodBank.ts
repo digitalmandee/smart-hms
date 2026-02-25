@@ -383,6 +383,39 @@ export function useUpdateDonation() {
 // BLOOD INVENTORY HOOKS
 // =============================================
 
+export function useExpiringUnits(withinDays: number = 3) {
+  const { profile } = useAuth();
+
+  return useQuery({
+    queryKey: ["blood-inventory", "expiring", profile?.organization_id, withinDays],
+    queryFn: async () => {
+      const futureDate = new Date();
+      futureDate.setDate(futureDate.getDate() + withinDays);
+
+      const { data, error } = await db
+        .from("blood_inventory")
+        .select("id, unit_number, blood_group, expiry_date, component_type, volume_ml")
+        .eq("organization_id", profile!.organization_id!)
+        .eq("status", "available")
+        .gte("expiry_date", new Date().toISOString().split("T")[0])
+        .lte("expiry_date", futureDate.toISOString().split("T")[0])
+        .order("expiry_date", { ascending: true });
+
+      if (error) throw error;
+      return data as Array<{
+        id: string;
+        unit_number: string;
+        blood_group: string;
+        expiry_date: string;
+        component_type: string;
+        volume_ml: number;
+      }>;
+    },
+    enabled: !!profile?.organization_id,
+    refetchInterval: 5 * 60 * 1000, // refresh every 5 min
+  });
+}
+
 export function useBloodInventory(filters?: { 
   status?: BloodUnitStatus; 
   bloodGroup?: BloodGroupType; 
