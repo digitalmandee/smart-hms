@@ -1,67 +1,85 @@
 
 
-# Blood Bank Enhancements: Expiry Alerts & Donor History Timeline
+# Blood Bank Analytics Page with Seeded Demo Data
 
 ## Overview
 
-Two enhancements:
-1. **Dashboard expiry alert banner** -- prominently flag units expiring within 3 days on the Blood Bank dashboard
-2. **Enhanced Donor Detail page** -- add visual donation timeline, eligibility progress bar, and days-since-last-donation tracking
-
-No database changes needed. All data already exists in `blood_inventory` (expiry_date) and `blood_donations` (donation history per donor).
+Create a dedicated analytics page at `/app/blood-bank/analytics` with interactive recharts visualizations and hardcoded seed data so charts render immediately without requiring database records.
 
 ---
 
-## Task 1: Dashboard Expiry Alert Banner
+## New File: `src/pages/app/blood-bank/BloodBankAnalyticsPage.tsx`
 
-### New File: `src/components/blood-bank/ExpiryAlertBanner.tsx`
+A full analytics page with 4 chart sections and summary stats, using **hardcoded seed data** (no DB queries needed for the charts to display):
 
-A prominent alert component that:
-- Queries `blood_inventory` for units with `status = 'available'` and `expiry_date` within 3 days
-- Shows a red/amber alert banner at the top of the dashboard with count and blood group breakdown
-- "View Expiring Units" button links to `/app/blood-bank/inventory?expiring=true`
-- Only renders when count > 0
-- Shows individual blood group counts (e.g., "2x A+, 1x O-")
+### Section 1: Summary Stats Row (4 cards)
+- Total Collections This Month: 147
+- Units Consumed This Month: 112
+- Collection Rate: +12% vs last month
+- Wastage Rate: 3.2%
 
-### New Hook: `useExpiringUnits` in `src/hooks/useBloodBank.ts`
+Uses `ModernStatsCard` component (already exists).
 
-```typescript
-export function useExpiringUnits(withinDays: number = 3) {
-  // Fetches blood_inventory where status='available' and expiry_date <= now + withinDays
-  // Returns array of units with blood_group, unit_number, expiry_date
-}
-```
+### Section 2: Monthly Collection vs Consumption (Bar Chart)
+- 12-month data (Mar 2025 -- Feb 2026)
+- Dual bars: Collections (green) vs Consumption (red)
+- Uses `ChartContainer`, `ChartTooltip`, recharts `BarChart`
+- Seed data example: `{ month: "Mar", collected: 120, consumed: 98 }`
 
-### Modified File: `src/pages/app/blood-bank/BloodBankDashboard.tsx`
+### Section 3: Blood Group Distribution (Pie Chart)
+- 8 blood groups with realistic distribution percentages
+- O+ largest (~35%), AB- smallest (~2%)
+- Uses recharts `PieChart` with custom colors matching blood group badges
+- Legend showing group + count
 
-- Import and render `<ExpiryAlertBanner />` between the page header and stats cards
-- The banner auto-hides when no units are expiring
+### Section 4: Donation Trends (Line Chart)
+- 12-month line showing donation count trend
+- Secondary line for completed vs rejected donations
+- Uses recharts `LineChart` with dual lines
+
+### Section 5: Component Type Breakdown (Horizontal Bar)
+- whole_blood, packed_rbc, FFP, platelet_concentrate, cryoprecipitate
+- Shows volume distribution across component types
+
+All charts use the existing `ChartContainer` and `ChartTooltip` from `src/components/ui/chart.tsx`.
 
 ---
 
-## Task 2: Enhanced Donor Detail Page
+## Route Registration: `src/App.tsx`
 
-### Modified File: `src/pages/app/blood-bank/DonorDetailPage.tsx`
+- Import `BloodBankAnalyticsPage`
+- Add route: `blood-bank/analytics` between existing blood-bank routes (after line 726)
 
-Add three new sections:
+---
 
-**A. Eligibility Progress Bar (in sidebar Eligibility card)**
-- Visual progress bar showing days elapsed since last donation out of 56-day minimum
-- Color-coded: red (0-28 days), amber (28-49 days), green (49-56+ days)
-- Text: "32 of 56 days completed" or "Eligible! 72 days since last donation"
+## Dashboard Link: `src/pages/app/blood-bank/BloodBankDashboard.tsx`
 
-**B. Donation Timeline (replaces simple list)**
-- Vertical timeline with connected dots and lines
-- Each donation shows: date, donation number, volume, status badge
-- Color-coded dots: green (completed), blue (processing), red (rejected)
-- Shows time gap between donations in the connecting line area
-- Most recent donation at top
+- Add an "Analytics" button in the header actions bar linking to `/app/blood-bank/analytics`
 
-**C. Donation Stats Summary (new card in sidebar)**
-- Average volume per donation
-- Most common donation type
-- Months since first donation (tenure)
-- Success rate (completed / total)
+---
+
+## Translations: `src/lib/i18n/translations/en.ts`, `ar.ts`, `ur.ts`
+
+New keys:
+- `bb.analytics`: "Blood Bank Analytics" / "تحليلات بنك الدم" / "بلڈ بینک تجزیات"
+- `bb.monthlyCollectionVsConsumption`: "Monthly Collection vs Consumption"
+- `bb.bloodGroupDistribution`: "Blood Group Distribution"
+- `bb.donationTrends`: "Donation Trends"
+- `bb.componentBreakdown`: "Component Type Breakdown"
+- `bb.totalCollections`: "Total Collections"
+- `bb.totalConsumed`: "Total Consumed"
+- `bb.collectionRate`: "Collection Rate"
+- `bb.wastageRate`: "Wastage Rate"
+- `bb.collected`: "Collected"
+- `bb.consumed`: "Consumed"
+- `bb.completed`: "Completed"
+- `bb.rejected`: "Rejected"
+
+---
+
+## Seed Data Approach
+
+All chart data is hardcoded directly in the page component as `const SEED_DATA = { ... }`. This ensures charts render visually rich content immediately. A comment notes these can later be replaced with real queries from `useBloodBank` hooks.
 
 ---
 
@@ -69,12 +87,10 @@ Add three new sections:
 
 | File | Action |
 |------|--------|
-| `src/components/blood-bank/ExpiryAlertBanner.tsx` | **NEW** -- Dashboard expiry alert with blood group breakdown |
-| `src/hooks/useBloodBank.ts` | **EDIT** -- Add `useExpiringUnits` hook |
-| `src/pages/app/blood-bank/BloodBankDashboard.tsx` | **EDIT** -- Add expiry alert banner |
-| `src/pages/app/blood-bank/DonorDetailPage.tsx` | **EDIT** -- Add timeline, progress bar, stats |
-
-## Trilingual Support
-
-All new UI strings will support English, Urdu, and Arabic using the existing `useTranslation()` pattern.
+| `src/pages/app/blood-bank/BloodBankAnalyticsPage.tsx` | **NEW** -- Full analytics page with 4 recharts charts + seed data |
+| `src/App.tsx` | **EDIT** -- Add `blood-bank/analytics` route |
+| `src/pages/app/blood-bank/BloodBankDashboard.tsx` | **EDIT** -- Add Analytics button to header |
+| `src/lib/i18n/translations/en.ts` | **EDIT** -- Add ~13 translation keys |
+| `src/lib/i18n/translations/ar.ts` | **EDIT** -- Add ~13 translation keys |
+| `src/lib/i18n/translations/ur.ts` | **EDIT** -- Add ~13 translation keys |
 
