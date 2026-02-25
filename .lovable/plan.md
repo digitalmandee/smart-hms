@@ -1,96 +1,82 @@
 
 
-# Donor ID Card Printing Feature
+# Fix IPD Dashboard: Auto-show Recent Admissions + Realtime Notifications
 
-## Overview
-Add a dedicated page for printing donor ID cards (credit card sized, 85.6mm x 53.98mm) with photo placeholder, donor number, blood group, name, QR code, and full trilingual support (EN/UR/AR). Follows the exact same pattern as the existing `PrintablePatientCard` and `BloodBagLabelsPage`.
+## Problem Summary
 
----
+1. **New admissions don't appear on IPD Dashboard** -- The dashboard queries `useAdmissions("admitted")` but new admissions start with `"pending"` status. They only appear after nurse confirmation. The dashboard should show ALL recent admissions (pending + admitted) automatically.
 
-## New Files
+2. **No realtime updates** -- The IPD dashboard has no Supabase Realtime subscription, so new admissions only appear after manual page refresh. Other modules (Lab Queue, Appointment Queue) already have realtime -- IPD should too.
 
-### 1. `src/components/blood-bank/PrintableDonorCard.tsx`
-A credit-card-sized printable donor ID card component:
+3. **No in-app push notification for new admissions** -- When a new admission is created, staff on the IPD dashboard should receive an in-app toast/notification immediately.
 
-**Front of Card:**
-- Header bar with organization name + "BLOOD DONOR CARD" title (red gradient, matching blood bank theme)
-- Photo placeholder (18mm x 22mm)
-- Donor name (bold, large)
-- Donor number (mono font, prominent)
-- Blood group (large, color-coded, using `BloodGroupBadge`)
-- Info grid: Gender, Age, Phone, Total Donations
-- QR code (bottom-right) generated via existing `generateQRCodeUrl()` from `src/lib/qrcode.ts`, encoding a donor lookup URL
-
-**Back of Card:**
-- Blood group (large, prominent)
-- Donation history summary (total donations, last donation date)
-- Organization contact info (name, address, phone)
-- "This card certifies the holder as a registered blood donor" text
-
-All field labels use `useTranslation()` with RTL support via `useDirection()`.
-
-### 2. `src/pages/app/blood-bank/DonorCardPrintPage.tsx`
-Full page with:
-- Left panel: searchable/filterable donor list with checkboxes (reuses `useBloodDonors` hook with search, blood group, and status filters via `ListFilterBar`)
-- Right panel: live card preview of selected donors
-- Actions: Print (via `react-to-print`), Download PNG (via `html-to-image`), Download PDF (via `jsPDF`)
-- Same dual-panel layout pattern as `BloodBagLabelsPage`
+4. **AdmissionCard missing "pending" status color** -- The status badge shows no color for pending admissions.
 
 ---
 
-## Modified Files
+## Changes
 
-| File | Change |
-|------|--------|
-| `src/App.tsx` | Add route: `blood-bank/donor-cards` pointing to `DonorCardPrintPage` |
-| `src/config/role-sidebars.ts` | Add "Donor Cards" item under the "Donors" children group (line ~612) with `CreditCard` icon |
-| `src/lib/i18n/translations/en.ts` | Add ~10 keys: `bb.donorCard`, `bb.donorIdCard`, `bb.totalDonations`, `bb.lastDonation`, `bb.registeredDonor`, `bb.selectDonors`, `bb.cardPreview` |
-| `src/lib/i18n/translations/ur.ts` | Urdu equivalents |
-| `src/lib/i18n/translations/ar.ts` | Arabic equivalents |
-| `src/lib/qrcode.ts` | Add `getDonorVerificationUrl(donorNumber, orgSlug)` helper |
+### 1. IPD Dashboard -- Show Recent Admissions (All Statuses)
 
----
+**File: `src/pages/app/ipd/IPDDashboard.tsx`**
 
-## Translation Keys
+- Change line 46 from `useAdmissions("admitted")` to a new hook call that fetches BOTH `pending` and `admitted` admissions, ordered by `created_at DESC`, limited to 6
+- Add Supabase Realtime subscription on the `admissions` table that auto-invalidates queries when INSERT/UPDATE events occur
+- Show a toast notification ("New admission: [Patient Name] - [Admission Number]") when a new admission INSERT is detected via realtime
+- Add `pending` admissions as a separate highlighted section above the "admitted" ones, or merge them with a visible "NEW" badge
 
-```text
-English:
-  "bb.donorCard": "Donor Cards"
-  "bb.donorIdCard": "BLOOD DONOR CARD"
-  "bb.totalDonations": "Total Donations"
-  "bb.lastDonation": "Last Donation"
-  "bb.registeredDonor": "This card certifies the holder as a registered blood donor"
-  "bb.selectDonors": "Select donors to print cards"
-  "bb.cardPreview": "Card Preview"
-  "bb.downloadPng": "Download PNG"
+### 2. New Hook: `useRecentAdmissions`
 
-Urdu:
-  "bb.donorCard": "ڈونر کارڈز"
-  "bb.donorIdCard": "بلڈ ڈونر کارڈ"
-  "bb.totalDonations": "کل عطیات"
-  "bb.lastDonation": "آخری عطیہ"
-  "bb.registeredDonor": "یہ کارڈ حامل کی رجسٹرڈ بلڈ ڈونر کی حیثیت کی تصدیق کرتا ہے"
-  "bb.selectDonors": "کارڈ پرنٹ کرنے کے لیے ڈونرز منتخب کریں"
-  "bb.cardPreview": "کارڈ پیش نظارہ"
+**File: `src/hooks/useAdmissions.ts`**
 
-Arabic:
-  "bb.donorCard": "بطاقات المتبرعين"
-  "bb.donorIdCard": "بطاقة متبرع بالدم"
-  "bb.totalDonations": "إجمالي التبرعات"
-  "bb.lastDonation": "آخر تبرع"
-  "bb.registeredDonor": "تشهد هذه البطاقة بأن حاملها متبرع مسجل بالدم"
-  "bb.selectDonors": "اختر المتبرعين لطباعة البطاقات"
-  "bb.cardPreview": "معاينة البطاقة"
-```
+- Add a new `useRecentAdmissions(limit?: number)` hook that fetches admissions with status IN (`pending`, `admitted`) ordered by `created_at DESC` with a limit (default 6)
+- This ensures the dashboard always shows the latest activity without requiring a specific status filter
+
+### 3. Realtime Subscription for IPD Dashboard
+
+**File: `src/pages/app/ipd/IPDDashboard.tsx`**
+
+- Add a `useEffect` with a Supabase channel subscribing to `postgres_changes` on the `admissions` table (same pattern as `LabQueuePage.tsx` and `AppointmentQueuePage.tsx`)
+- On INSERT: invalidate `admissions`, `ipd-stats`, `pending-rounds` queries + show toast notification
+- On UPDATE: invalidate same queries (covers status changes like pending to admitted)
+- Cleanup channel on unmount
+
+### 4. AdmissionCard -- Add Pending Status Color
+
+**File: `src/components/ipd/AdmissionCard.tsx`**
+
+- Add `pending: "bg-amber-500/10 text-amber-600 border-amber-500/20"` to the `statusColors` map
+- Add a pulsing "NEW" indicator for pending admissions to draw attention
+
+### 5. AdmissionsListPage -- Default to Showing All Active
+
+**File: `src/pages/app/ipd/AdmissionsListPage.tsx`**
+
+- No change needed -- already has "pending" and "admitted" tabs. The issue was specifically about the dashboard not showing new ones.
+
+### 6. Mobile IPD Dashboard -- Same Realtime
+
+**File: `src/components/mobile/MobileIPDDashboard.tsx`**
+
+- Update to show pending admissions with the "NEW" badge
+- The realtime subscription will be in the parent `IPDDashboard.tsx` which passes data down
+
+### 7. Translation Keys
+
+**Files: `en.ts`, `ur.ts`, `ar.ts`**
+
+Add:
+- `"ipd.newAdmissionAlert"`: "New Admission" / "نیا داخلہ" / "قبول جديد"
+- `"ipd.pendingConfirmation"`: "Pending Confirmation" / "تصدیق زیر التواء" / "في انتظار التأكيد"
 
 ---
 
 ## Technical Details
 
-- QR code uses the existing `generateQRCodeUrl()` utility (QR Server API, no library needed)
-- Print uses `react-to-print`, PNG uses `html-to-image`, PDF uses `jsPDF` -- all already installed
-- Card dimensions: 85.6mm x 53.98mm (ISO/IEC 7810 ID-1, standard credit card size)
-- RTL layout flips photo/info positions and text alignment for Urdu/Arabic
-- Reuses `BloodGroupBadge` component for consistent blood group display
-- Follows exact patterns from `PrintablePatientCard` (card layout) and `BloodBagLabelsPage` (page structure)
+- Realtime follows the exact pattern from `src/pages/app/appointments/AppointmentQueuePage.tsx` (lines 71-88)
+- The `useRecentAdmissions` hook queries with `.in("status", ["pending", "admitted"])` and `.order("created_at", { ascending: false }).limit(6)`
+- Toast notifications use the existing `usePushNotifications().showLocalNotification()` for native platforms and `sonner` toast for web
+- The realtime channel filters by `organization_id` where possible using the `filter` parameter to reduce noise
+- Bed management already has View, Edit, Transfer, Admit, Bulk Add, and Edit Layout buttons -- these are functioning correctly
+- OPD flow (appointments, queue, check-in) is confirmed working with existing realtime subscriptions
 
