@@ -2435,5 +2435,20 @@ export const ur: Record<TranslationKey, string> = {
   "bb.weight": "وزن",
   "bb.hemoglobin": "ہیموگلوبن",
 
+  // Blood Bank Analytics
+  "bb.analytics": "بلڈ بینک تجزیات",
+  "bb.monthlyCollectionVsConsumption": "ماہانہ جمع بمقابلہ استعمال",
+  "bb.bloodGroupDistribution": "بلڈ گروپ کی تقسیم",
+  "bb.donationTrends": "عطیہ کے رجحانات",
+  "bb.componentBreakdown": "اجزاء کی قسم کی تفصیل",
+  "bb.totalCollections": "کل جمع",
+  "bb.totalConsumed": "کل استعمال شدہ",
+  "bb.collectionRate": "جمع کی شرح",
+  "bb.wastageRate": "ضائع ہونے کی شرح",
+  "bb.collected": "جمع شدہ",
+  "bb.consumed": "استعمال شدہ",
+  "bb.completed": "مکمل",
+  "bb.rejected": "مسترد",
+
 };
 

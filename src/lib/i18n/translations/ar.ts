@@ -2435,5 +2435,20 @@ export const ar: Record<TranslationKey, string> = {
   "bb.weight": "الوزن",
   "bb.hemoglobin": "الهيموجلوبين",
 
+  // Blood Bank Analytics
+  "bb.analytics": "تحليلات بنك الدم",
+  "bb.monthlyCollectionVsConsumption": "التجميع الشهري مقابل الاستهلاك",
+  "bb.bloodGroupDistribution": "توزيع فصائل الدم",
+  "bb.donationTrends": "اتجاهات التبرع",
+  "bb.componentBreakdown": "تفصيل أنواع المكونات",
+  "bb.totalCollections": "إجمالي التجميع",
+  "bb.totalConsumed": "إجمالي المستهلك",
+  "bb.collectionRate": "معدل التجميع",
+  "bb.wastageRate": "معدل الهدر",
+  "bb.collected": "تم تجميعه",
+  "bb.consumed": "تم استهلاكه",
+  "bb.completed": "مكتمل",
+  "bb.rejected": "مرفوض",
+
 };
 

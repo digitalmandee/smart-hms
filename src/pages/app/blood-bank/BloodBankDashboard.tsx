@@ -6,7 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { 
   Users, Heart, Package, FileText, Activity, AlertTriangle,
-  Plus, ArrowRight, Droplets
+  Plus, ArrowRight, Droplets, BarChart3
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { 
@@ -44,6 +44,10 @@ export default function BloodBankDashboard() {
             <Button onClick={() => navigate('/app/blood-bank/donations')} className="gap-2 bg-destructive hover:bg-destructive/90">
               <Heart className="h-4 w-4" />
               Start Donation
+            </Button>
+            <Button variant="outline" onClick={() => navigate('/app/blood-bank/analytics')} className="gap-2">
+              <BarChart3 className="h-4 w-4" />
+              Analytics
             </Button>
           </div>
         }
