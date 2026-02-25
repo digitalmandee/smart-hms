@@ -1,5 +1,5 @@
-import { useState, useMemo } from "react";
-import { ChevronRight, ChevronDown, Folder, FolderTree, FileText, MoreHorizontal } from "lucide-react";
+import { useState, useMemo, useCallback } from "react";
+import { ChevronRight, ChevronDown, Folder, FolderTree, FileText, MoreHorizontal, ChevronsUpDown, ChevronsDownUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,6 +29,8 @@ interface AccountNodeProps {
   onToggleStatus?: (account: Account) => void;
   selectedId?: string;
   showActions?: boolean;
+  expandedIds: Set<string>;
+  onToggleExpand: (id: string) => void;
 }
 
 const categoryColors: Record<string, string> = {
@@ -54,6 +56,20 @@ function getAggregateBalance(account: Account): number {
   return account.children.reduce((sum, child) => sum + getAggregateBalance(child), 0);
 }
 
+/** Collect IDs of all accounts that have children, optionally limited to a max level */
+function collectParentIds(accounts: Account[], maxLevel?: number): string[] {
+  const ids: string[] = [];
+  for (const account of accounts) {
+    if (account.children?.length) {
+      if (maxLevel === undefined || account.account_level <= maxLevel) {
+        ids.push(account.id);
+      }
+      ids.push(...collectParentIds(account.children, maxLevel));
+    }
+  }
+  return ids;
+}
+
 function AccountNode({
   account,
   level,
@@ -62,18 +78,20 @@ function AccountNode({
   onToggleStatus,
   selectedId,
   showActions,
+  expandedIds,
+  onToggleExpand,
 }: AccountNodeProps) {
-  const [isExpanded, setIsExpanded] = useState(account.account_level <= 2);
   const hasChildren = account.children && account.children.length > 0;
   const isSelected = selectedId === account.id;
   const isL1 = account.account_level === 1;
   const isHeader = account.is_header;
+  const isExpanded = expandedIds.has(account.id);
 
   const aggregateBalance = useMemo(() => getAggregateBalance(account), [account]);
 
   const handleToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setIsExpanded(!isExpanded);
+    onToggleExpand(account.id);
   };
 
   const AccountIcon = isL1 ? FolderTree : hasChildren ? Folder : FileText;
@@ -90,13 +108,9 @@ function AccountNode({
         style={{ paddingLeft: `${level * 20 + 8}px` }}
         onClick={() => onSelect?.(account)}
       >
-        {/* Expand/Collapse */}
         <button
           onClick={handleToggle}
-          className={cn(
-            "p-0.5 rounded hover:bg-muted",
-            !hasChildren && "invisible"
-          )}
+          className={cn("p-0.5 rounded hover:bg-muted", !hasChildren && "invisible")}
         >
           {isExpanded ? (
             <ChevronDown className="h-4 w-4 text-muted-foreground" />
@@ -105,17 +119,14 @@ function AccountNode({
           )}
         </button>
 
-        {/* Icon */}
         <AccountIcon className={cn("h-4 w-4", isHeader ? "text-primary" : "text-muted-foreground")} />
 
-        {/* Account Number */}
         {!isL1 && (
           <span className="font-mono text-sm text-muted-foreground min-w-[80px]">
             {account.account_number}
           </span>
         )}
 
-        {/* Account Name */}
         <span className={cn(
           "flex-1 text-sm",
           isHeader && "font-semibold",
@@ -125,26 +136,22 @@ function AccountNode({
           {account.name}
         </span>
 
-        {/* Level Badge */}
         {isHeader && (
           <Badge variant="secondary" className="text-xs">
             L{account.account_level}
           </Badge>
         )}
 
-        {/* Category Badge */}
         {account.account_type && !isL1 && (
           <Badge variant="outline" className={cn("text-xs", categoryColors[account.account_type.category])}>
             {account.account_type.category}
           </Badge>
         )}
 
-        {/* Balance */}
         <span className={cn("font-mono text-sm min-w-[100px] text-right", isHeader && "font-semibold")}>
           {formatBalance(isHeader ? aggregateBalance : account.current_balance)}
         </span>
 
-        {/* Actions */}
         {showActions && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -171,7 +178,6 @@ function AccountNode({
         )}
       </div>
 
-      {/* Children */}
       {hasChildren && isExpanded && (
         <div>
           {account.children!.map((child) => (
@@ -184,6 +190,8 @@ function AccountNode({
               onToggleStatus={onToggleStatus}
               selectedId={selectedId}
               showActions={showActions}
+              expandedIds={expandedIds}
+              onToggleExpand={onToggleExpand}
             />
           ))}
         </div>
@@ -200,6 +208,30 @@ export function AccountTree({
   selectedId,
   showActions = true,
 }: AccountTreeProps) {
+  // Initialize with levels 1-2 expanded (matching previous default)
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(
+    () => new Set(collectParentIds(accounts, 2))
+  );
+
+  const allParentIds = useMemo(() => collectParentIds(accounts), [accounts]);
+
+  const handleToggleExpand = useCallback((id: string) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const handleExpandAll = useCallback(() => {
+    setExpandedIds(new Set(allParentIds));
+  }, [allParentIds]);
+
+  const handleCollapseAll = useCallback(() => {
+    setExpandedIds(new Set());
+  }, []);
+
   if (accounts.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground">
@@ -209,19 +241,33 @@ export function AccountTree({
   }
 
   return (
-    <div className="space-y-0.5">
-      {accounts.map((account) => (
-        <AccountNode
-          key={account.id}
-          account={account}
-          level={0}
-          onSelect={onSelect}
-          onEdit={onEdit}
-          onToggleStatus={onToggleStatus}
-          selectedId={selectedId}
-          showActions={showActions}
-        />
-      ))}
+    <div className="space-y-2">
+      <div className="flex gap-2 justify-end">
+        <Button variant="outline" size="sm" onClick={handleExpandAll}>
+          <ChevronsUpDown className="h-4 w-4 mr-1" />
+          Expand All
+        </Button>
+        <Button variant="outline" size="sm" onClick={handleCollapseAll}>
+          <ChevronsDownUp className="h-4 w-4 mr-1" />
+          Collapse All
+        </Button>
+      </div>
+      <div className="space-y-0.5">
+        {accounts.map((account) => (
+          <AccountNode
+            key={account.id}
+            account={account}
+            level={0}
+            onSelect={onSelect}
+            onEdit={onEdit}
+            onToggleStatus={onToggleStatus}
+            selectedId={selectedId}
+            showActions={showActions}
+            expandedIds={expandedIds}
+            onToggleExpand={handleToggleExpand}
+          />
+        ))}
+      </div>
     </div>
   );
 }

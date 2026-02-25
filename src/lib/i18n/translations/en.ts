@@ -2434,6 +2434,8 @@ export const en = {
   "accounts.level2": "Sub-group",
   "accounts.level3": "Control Account",
   "accounts.level4": "Detail / Posting",
+  "accounts.expandAll": "Expand All",
+  "accounts.collapseAll": "Collapse All",
 
   // Blood Bank Labels
   "bb.bagLabels": "Bag Labels",
