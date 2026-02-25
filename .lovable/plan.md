@@ -1,120 +1,67 @@
 
 
-# Blood Bank Module -- Complete Audit & Enhancement Plan
+# Blood Bank Enhancements: Expiry Alerts & Donor History Timeline
 
-## Current State Assessment
+## Overview
 
-### Routes & Pages (18 routes, 17 pages)
+Two enhancements:
+1. **Dashboard expiry alert banner** -- prominently flag units expiring within 3 days on the Blood Bank dashboard
+2. **Enhanced Donor Detail page** -- add visual donation timeline, eligibility progress bar, and days-since-last-donation tracking
 
-| Route | Page | Status |
-|-------|------|--------|
-| `/app/blood-bank` | Dashboard | Works |
-| `/blood-bank/donors` | DonorsListPage | Works |
-| `/blood-bank/donors/new` | DonorFormPage | Works |
-| `/blood-bank/donors/:id` | DonorFormPage (edit mode) | **Issue: No read-only detail/profile page** |
-| `/blood-bank/donations` | DonationsPage | Works |
-| `/blood-bank/donations/new` | DonationFormPage | Works |
-| `/blood-bank/donations/:id` | DonationDetailPage | Works |
-| `/blood-bank/inventory` | InventoryPage | Works |
-| `/blood-bank/inventory/add` | **MISSING** | **Dead link -- 404** |
-| `/blood-bank/inventory/:id` | **MISSING** | **Dead link -- clicking row hits 404** |
-| `/blood-bank/requests` | RequestsListPage | Works |
-| `/blood-bank/requests/new` | BloodRequestFormPage | Works |
-| `/blood-bank/requests/:id` | BloodRequestDetailPage | Works |
-| `/blood-bank/requests/:id/process` | **MISSING** | **Dead link from RequestCard "Process" button** |
-| `/blood-bank/cross-match` | CrossMatchPage | Works |
-| `/blood-bank/cross-match/new` | CrossMatchFormPage | Works |
-| `/blood-bank/cross-match/:id` | **MISSING** | **Dead link -- clicking row hits 404** |
-| `/blood-bank/transfusions` | TransfusionsPage | Works |
-| `/blood-bank/transfusions/new` | TransfusionFormPage | Works |
-| `/blood-bank/transfusions/:id` | TransfusionDetailPage | Works |
-| `/blood-bank/labels` | BloodBagLabelsPage | Works |
-| `/blood-bank/donor-cards` | DonorCardPrintPage | Works |
-
-### Broken Links Summary (5 dead routes)
-
-1. **`/blood-bank/inventory/add`** -- "Add Blood Unit" button on InventoryPage navigates here, no route exists
-2. **`/blood-bank/inventory/:id`** -- Clicking any inventory row navigates here, no route/page exists
-3. **`/blood-bank/requests/:id/process`** -- RequestCard "Process" button navigates here, no route exists
-4. **`/blood-bank/cross-match/:id`** -- Clicking any cross-match test row navigates here, no route/page exists
-5. **`/blood-bank/donors/:id`** -- Goes to edit form instead of a read-only donor profile/detail page (functional but UX issue)
+No database changes needed. All data already exists in `blood_inventory` (expiry_date) and `blood_donations` (donation history per donor).
 
 ---
 
-## Implementation Plan
+## Task 1: Dashboard Expiry Alert Banner
 
-### Task 1: Create Donor Detail/Profile Page
+### New File: `src/components/blood-bank/ExpiryAlertBanner.tsx`
 
-**New file:** `src/pages/app/accounts/../blood-bank/DonorDetailPage.tsx`
+A prominent alert component that:
+- Queries `blood_inventory` for units with `status = 'available'` and `expiry_date` within 3 days
+- Shows a red/amber alert banner at the top of the dashboard with count and blood group breakdown
+- "View Expiring Units" button links to `/app/blood-bank/inventory?expiring=true`
+- Only renders when count > 0
+- Shows individual blood group counts (e.g., "2x A+, 1x O-")
 
-Currently `donors/:id` loads the edit form. A proper donor profile page should show:
-- Donor info (name, blood group, contact, medical history) in read-only cards
-- Donation history timeline (all past donations with status)
-- Linked patient record (if any)
-- Status badge, eligibility indicator (days since last donation)
-- Action buttons: Edit, Start Donation, Print Donor Card
-- Trilingual support (EN/UR/AR)
+### New Hook: `useExpiringUnits` in `src/hooks/useBloodBank.ts`
 
-**Route change in App.tsx:**
-- Add `blood-bank/donors/:id/edit` for the edit form (DonorFormPage)
-- Change `blood-bank/donors/:id` to use the new DonorDetailPage
+```typescript
+export function useExpiringUnits(withinDays: number = 3) {
+  // Fetches blood_inventory where status='available' and expiry_date <= now + withinDays
+  // Returns array of units with blood_group, unit_number, expiry_date
+}
+```
 
-### Task 2: Create Blood Unit Detail Page
+### Modified File: `src/pages/app/blood-bank/BloodBankDashboard.tsx`
 
-**New file:** `src/pages/app/blood-bank/BloodUnitDetailPage.tsx`
+- Import and render `<ExpiryAlertBanner />` between the page header and stats cards
+- The banner auto-hides when no units are expiring
 
-Shows full unit information when clicking an inventory row:
-- Unit number, blood group, component type, volume
-- Collection date, expiry date with countdown
-- Status with workflow actions (quarantine -> available -> reserved -> issued -> transfused)
-- Linked donation record
-- Storage location, testing results
-- Action buttons: Reserve, Issue, Discard, Print Label
+---
 
-**Route:** `blood-bank/inventory/:id`
+## Task 2: Enhanced Donor Detail Page
 
-### Task 3: Create Add Blood Unit Form Page
+### Modified File: `src/pages/app/blood-bank/DonorDetailPage.tsx`
 
-**New file:** `src/pages/app/blood-bank/BloodUnitFormPage.tsx`
+Add three new sections:
 
-Form to manually add a blood unit to inventory (for units received from external sources or not linked to an in-house donation):
-- Blood group, component type, volume
-- Collection date, expiry date
-- Source (donation link or external source)
-- Storage location
-- Bag/unit number
+**A. Eligibility Progress Bar (in sidebar Eligibility card)**
+- Visual progress bar showing days elapsed since last donation out of 56-day minimum
+- Color-coded: red (0-28 days), amber (28-49 days), green (49-56+ days)
+- Text: "32 of 56 days completed" or "Eligible! 72 days since last donation"
 
-**Route:** `blood-bank/inventory/add`
+**B. Donation Timeline (replaces simple list)**
+- Vertical timeline with connected dots and lines
+- Each donation shows: date, donation number, volume, status badge
+- Color-coded dots: green (completed), blue (processing), red (rejected)
+- Shows time gap between donations in the connecting line area
+- Most recent donation at top
 
-### Task 4: Create Cross-Match Detail Page
-
-**New file:** `src/pages/app/blood-bank/CrossMatchDetailPage.tsx`
-
-Shows full cross-match test details when clicking a row:
-- Test number, date/time performed
-- Patient blood group vs donor blood group
-- Major cross-match result, minor cross-match result, overall result
-- Linked blood request, linked blood unit
-- Technician/performed by
-- Notes
-
-**Route:** `blood-bank/cross-match/:id`
-
-### Task 5: Fix Request Process Button
-
-The "Process" button in `RequestCard.tsx` navigates to `/app/blood-bank/requests/:id/process` which doesn't exist. Fix:
-- Change the `onProcess` handler in `RequestsListPage.tsx` to navigate to `/app/blood-bank/requests/${request.id}` (the detail page already has "Start Processing" workflow buttons)
-
-This is a one-line fix in `RequestsListPage.tsx` line 118.
-
-### Task 6: Register All New Routes in App.tsx
-
-Add imports and routes for:
-- `blood-bank/donors/:id` -> DonorDetailPage
-- `blood-bank/donors/:id/edit` -> DonorFormPage
-- `blood-bank/inventory/add` -> BloodUnitFormPage
-- `blood-bank/inventory/:id` -> BloodUnitDetailPage
-- `blood-bank/cross-match/:id` -> CrossMatchDetailPage
+**C. Donation Stats Summary (new card in sidebar)**
+- Average volume per donation
+- Most common donation type
+- Months since first donation (tenure)
+- Success rate (completed / total)
 
 ---
 
@@ -122,25 +69,12 @@ Add imports and routes for:
 
 | File | Action |
 |------|--------|
-| `src/pages/app/blood-bank/DonorDetailPage.tsx` | **NEW** -- Read-only donor profile with donation history |
-| `src/pages/app/blood-bank/BloodUnitDetailPage.tsx` | **NEW** -- Blood unit detail with status workflow |
-| `src/pages/app/blood-bank/BloodUnitFormPage.tsx` | **NEW** -- Add blood unit form |
-| `src/pages/app/blood-bank/CrossMatchDetailPage.tsx` | **NEW** -- Cross-match test detail view |
-| `src/pages/app/blood-bank/RequestsListPage.tsx` | **EDIT** -- Fix Process button to navigate to detail page |
-| `src/App.tsx` | **EDIT** -- Register 5 new routes, update donors/:id |
+| `src/components/blood-bank/ExpiryAlertBanner.tsx` | **NEW** -- Dashboard expiry alert with blood group breakdown |
+| `src/hooks/useBloodBank.ts` | **EDIT** -- Add `useExpiringUnits` hook |
+| `src/pages/app/blood-bank/BloodBankDashboard.tsx` | **EDIT** -- Add expiry alert banner |
+| `src/pages/app/blood-bank/DonorDetailPage.tsx` | **EDIT** -- Add timeline, progress bar, stats |
 
 ## Trilingual Support
 
-All new pages will use `useTranslation()` and support English, Urdu, and Arabic with RTL-aware layouts, consistent with existing blood bank pages.
-
-## Existing Strengths (No Changes Needed)
-
-- Dashboard: Well-designed with 6 stat cards, blood stock widget, donation queue, pending requests, active transfusions
-- DonorCard/PrintableDonorCard: Credit-card-sized with QR code, RTL support, front/back design
-- BloodBagLabel: Barcode-enabled labels with print/PDF export
-- ListFilterBar: Consistent search + filter pattern across all list pages
-- DonationDetailPage: Good workflow timeline with status progression
-- BloodRequestDetailPage: Proper cross-match integration and status workflow
-- TransfusionsPage: Active transfusion alert banner
-- All forms have proper donor/patient search with auto-selection
+All new UI strings will support English, Urdu, and Arabic using the existing `useTranslation()` pattern.
 
