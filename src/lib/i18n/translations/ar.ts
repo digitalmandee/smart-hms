@@ -2368,6 +2368,8 @@ export const ar: Record<TranslationKey, string> = {
   "accounts.level2": "مجموعة فرعية",
   "accounts.level3": "حساب تحكم",
   "accounts.level4": "تفصيل / ترحيل",
+  "accounts.expandAll": "توسيع الكل",
+  "accounts.collapseAll": "طي الكل",
 
   // Blood Bank Labels
   "bb.bagLabels": "ملصقات الأكياس",

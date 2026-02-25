@@ -2368,6 +2368,8 @@ export const ur: Record<TranslationKey, string> = {
   "accounts.level2": "ذیلی گروپ",
   "accounts.level3": "کنٹرول اکاؤنٹ",
   "accounts.level4": "تفصیل / پوسٹنگ",
+  "accounts.expandAll": "سب کھولیں",
+  "accounts.collapseAll": "سب بند کریں",
 
   // Blood Bank Labels
   "bb.bagLabels": "بیگ لیبل",
