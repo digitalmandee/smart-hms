@@ -484,6 +484,8 @@ import TrialBalancePage from "./pages/app/accounts/TrialBalancePage";
 import ProfitLossPage from "./pages/app/accounts/ProfitLossPage";
 import BalanceSheetPage from "./pages/app/accounts/BalanceSheetPage";
 import CashFlowPage from "./pages/app/accounts/CashFlowPage";
+import JournalEntryFormPage from "./pages/app/accounts/JournalEntryFormPage";
+import BankAccountFormPage from "./pages/app/accounts/BankAccountFormPage";
 
 // Additional IPD pages
 import AdmissionHistoryPage from "./pages/app/ipd/AdmissionHistoryPage";
@@ -988,6 +990,7 @@ function App() {
               <Route path="accounts/chart-of-accounts/:id" element={<AccountDetailPage />} />
               <Route path="accounts/chart-of-accounts/:id/edit" element={<AccountFormPage />} />
               <Route path="accounts/journal-entries" element={<JournalEntriesPage />} />
+              <Route path="accounts/journal-entries/new" element={<JournalEntryFormPage />} />
               <Route path="accounts/journal-entries/:id" element={<JournalEntryDetailPage />} />
               <Route path="accounts/ledger" element={<GeneralLedgerPage />} />
               <Route path="accounts/receivables" element={<ReceivablesPage />} />
@@ -996,6 +999,7 @@ function App() {
               <Route path="accounts/vendor-payments/new" element={<VendorPaymentFormPage />} />
               <Route path="accounts/vendor-payments/:id" element={<VendorPaymentDetailPage />} />
               <Route path="accounts/bank-accounts" element={<BankAccountsPage />} />
+              <Route path="accounts/bank-accounts/new" element={<BankAccountFormPage />} />
               <Route path="accounts/budgets" element={<BudgetsPage />} />
               <Route path="accounts/expenses" element={<ExpenseManagementPage />} />
               <Route path="accounts/types" element={<AccountTypesPage />} />

@@ -27,7 +27,8 @@ const GeneralLedgerPage = () => {
   const [selectedAccountId, setSelectedAccountId] = useState<string>("");
   const [dateRange, setDateRange] = useState<{ from: string; to: string }>({ from: "", to: "" });
 
-  const { data: accounts = [], isLoading: accountsLoading } = useAccounts();
+  const { data: allAccounts = [], isLoading: accountsLoading } = useAccounts({ isActive: true });
+  const accounts = allAccounts.filter((a) => !a.is_header);
   
   const hasValidDateRange = dateRange.from && dateRange.to;
   const { data: ledgerEntries = [], isLoading: ledgerLoading } = useAccountLedger(
