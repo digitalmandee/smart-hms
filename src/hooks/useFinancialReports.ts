@@ -123,8 +123,8 @@ export function useTrialBalance(startDate?: string, endDate?: string) {
           account_name: account.name,
           account_type: account.account_type?.name || "Unknown",
           category: account.account_type?.category || "Unknown",
-          debit: balance >= 0 ? balance : 0,
-          credit: balance < 0 ? Math.abs(balance) : 0,
+          debit: isDebitNormal ? (balance >= 0 ? balance : 0) : (balance < 0 ? Math.abs(balance) : 0),
+          credit: isDebitNormal ? (balance < 0 ? Math.abs(balance) : 0) : (balance >= 0 ? balance : 0),
         };
       }).filter(row => row.debit !== 0 || row.credit !== 0 || !useDateFilter);
 
