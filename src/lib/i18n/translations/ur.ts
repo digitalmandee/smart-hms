@@ -2361,6 +2361,13 @@ export const ur: Record<TranslationKey, string> = {
   "accounts.percentUsed": "% استعمال",
   "accounts.revenueBySource": "ذریعے کے مطابق آمدنی",
   "accounts.agingChart": "ایجنگ خلاصہ",
+  "accounts.level": "سطح",
+  "accounts.headerAccount": "ہیڈر اکاؤنٹ",
+  "accounts.postingAccount": "پوسٹنگ اکاؤنٹ",
+  "accounts.level1": "زمرہ ہیڈر",
+  "accounts.level2": "ذیلی گروپ",
+  "accounts.level3": "کنٹرول اکاؤنٹ",
+  "accounts.level4": "تفصیل / پوسٹنگ",
 
   // Blood Bank Labels
   "bb.bagLabels": "بیگ لیبل",

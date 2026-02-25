@@ -70,6 +70,7 @@ export type Database = {
       }
       accounts: {
         Row: {
+          account_level: number
           account_number: string
           account_type_id: string
           branch_id: string | null
@@ -79,6 +80,7 @@ export type Database = {
           description: string | null
           id: string
           is_active: boolean
+          is_header: boolean
           is_system: boolean
           name: string
           opening_balance: number
@@ -88,6 +90,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          account_level?: number
           account_number: string
           account_type_id: string
           branch_id?: string | null
@@ -97,6 +100,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean
+          is_header?: boolean
           is_system?: boolean
           name: string
           opening_balance?: number
@@ -106,6 +110,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          account_level?: number
           account_number?: string
           account_type_id?: string
           branch_id?: string | null
@@ -115,6 +120,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean
+          is_header?: boolean
           is_system?: boolean
           name?: string
           opening_balance?: number
@@ -21458,6 +21464,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_coa_hierarchy: { Args: { p_org_id: string }; Returns: undefined }
       create_kiosk_session: {
         Args: {
           p_device_info?: Json

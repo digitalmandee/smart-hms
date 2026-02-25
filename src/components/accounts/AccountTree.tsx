@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { ChevronRight, ChevronDown, Folder, FileText, MoreHorizontal } from "lucide-react";
+import { useState, useMemo } from "react";
+import { ChevronRight, ChevronDown, Folder, FolderTree, FileText, MoreHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -39,6 +39,21 @@ const categoryColors: Record<string, string> = {
   expense: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
 };
 
+const l1CategoryBg: Record<string, string> = {
+  asset: "bg-blue-50 dark:bg-blue-950/30 border-l-4 border-blue-500",
+  liability: "bg-red-50 dark:bg-red-950/30 border-l-4 border-red-500",
+  equity: "bg-purple-50 dark:bg-purple-950/30 border-l-4 border-purple-500",
+  revenue: "bg-green-50 dark:bg-green-950/30 border-l-4 border-green-500",
+  expense: "bg-orange-50 dark:bg-orange-950/30 border-l-4 border-orange-500",
+};
+
+/** Recursively sum current_balance of all leaf (non-header) descendants */
+function getAggregateBalance(account: Account): number {
+  if (!account.is_header) return account.current_balance;
+  if (!account.children?.length) return 0;
+  return account.children.reduce((sum, child) => sum + getAggregateBalance(child), 0);
+}
+
 function AccountNode({
   account,
   level,
@@ -48,21 +63,29 @@ function AccountNode({
   selectedId,
   showActions,
 }: AccountNodeProps) {
-  const [isExpanded, setIsExpanded] = useState(level < 2);
+  const [isExpanded, setIsExpanded] = useState(account.account_level <= 2);
   const hasChildren = account.children && account.children.length > 0;
   const isSelected = selectedId === account.id;
+  const isL1 = account.account_level === 1;
+  const isHeader = account.is_header;
+
+  const aggregateBalance = useMemo(() => getAggregateBalance(account), [account]);
 
   const handleToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsExpanded(!isExpanded);
   };
 
+  const AccountIcon = isL1 ? FolderTree : hasChildren ? Folder : FileText;
+
   return (
     <div>
       <div
         className={cn(
           "flex items-center gap-2 py-2 px-2 rounded-md cursor-pointer hover:bg-muted/50 transition-colors group",
-          isSelected && "bg-primary/10 border-l-2 border-primary"
+          isSelected && "bg-primary/10 border-l-2 border-primary",
+          isL1 && l1CategoryBg[account.account_type?.category || ""],
+          isHeader && !isL1 && "bg-muted/30"
         )}
         style={{ paddingLeft: `${level * 20 + 8}px` }}
         onClick={() => onSelect?.(account)}
@@ -83,32 +106,42 @@ function AccountNode({
         </button>
 
         {/* Icon */}
-        {hasChildren ? (
-          <Folder className="h-4 w-4 text-muted-foreground" />
-        ) : (
-          <FileText className="h-4 w-4 text-muted-foreground" />
-        )}
+        <AccountIcon className={cn("h-4 w-4", isHeader ? "text-primary" : "text-muted-foreground")} />
 
         {/* Account Number */}
-        <span className="font-mono text-sm text-muted-foreground min-w-[80px]">
-          {account.account_number}
-        </span>
+        {!isL1 && (
+          <span className="font-mono text-sm text-muted-foreground min-w-[80px]">
+            {account.account_number}
+          </span>
+        )}
 
         {/* Account Name */}
-        <span className={cn("flex-1 text-sm", !account.is_active && "text-muted-foreground line-through")}>
+        <span className={cn(
+          "flex-1 text-sm",
+          isHeader && "font-semibold",
+          isL1 && "text-base font-bold",
+          !account.is_active && "text-muted-foreground line-through"
+        )}>
           {account.name}
         </span>
 
+        {/* Level Badge */}
+        {isHeader && (
+          <Badge variant="secondary" className="text-xs">
+            L{account.account_level}
+          </Badge>
+        )}
+
         {/* Category Badge */}
-        {account.account_type && (
+        {account.account_type && !isL1 && (
           <Badge variant="outline" className={cn("text-xs", categoryColors[account.account_type.category])}>
             {account.account_type.category}
           </Badge>
         )}
 
         {/* Balance */}
-        <span className="font-mono text-sm min-w-[100px] text-right">
-          {formatBalance(account.current_balance)}
+        <span className={cn("font-mono text-sm min-w-[100px] text-right", isHeader && "font-semibold")}>
+          {formatBalance(isHeader ? aggregateBalance : account.current_balance)}
         </span>
 
         {/* Actions */}

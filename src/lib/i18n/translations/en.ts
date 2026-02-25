@@ -2427,6 +2427,13 @@ export const en = {
   "accounts.percentUsed": "% Used",
   "accounts.revenueBySource": "Revenue by Source",
   "accounts.agingChart": "Aging Summary",
+  "accounts.level": "Level",
+  "accounts.headerAccount": "Header Account",
+  "accounts.postingAccount": "Posting Account",
+  "accounts.level1": "Category Header",
+  "accounts.level2": "Sub-group",
+  "accounts.level3": "Control Account",
+  "accounts.level4": "Detail / Posting",
 
   // Blood Bank Labels
   "bb.bagLabels": "Bag Labels",

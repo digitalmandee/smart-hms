@@ -2361,6 +2361,13 @@ export const ar: Record<TranslationKey, string> = {
   "accounts.percentUsed": "% المستخدم",
   "accounts.revenueBySource": "الإيرادات حسب المصدر",
   "accounts.agingChart": "ملخص التقادم",
+  "accounts.level": "المستوى",
+  "accounts.headerAccount": "حساب رئيسي",
+  "accounts.postingAccount": "حساب ترحيل",
+  "accounts.level1": "رأس الفئة",
+  "accounts.level2": "مجموعة فرعية",
+  "accounts.level3": "حساب تحكم",
+  "accounts.level4": "تفصيل / ترحيل",
 
   // Blood Bank Labels
   "bb.bagLabels": "ملصقات الأكياس",
