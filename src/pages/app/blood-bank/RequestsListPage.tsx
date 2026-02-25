@@ -115,7 +115,7 @@ export default function RequestsListPage() {
               key={request.id}
               request={request}
               onView={() => navigate(`/app/blood-bank/requests/${request.id}`)}
-              onProcess={() => navigate(`/app/blood-bank/requests/${request.id}/process`)}
+              onProcess={() => navigate(`/app/blood-bank/requests/${request.id}`)}
             />
           ))}
         </div>

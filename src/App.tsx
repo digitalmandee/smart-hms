@@ -355,6 +355,10 @@ import TransfusionDetailPage from "./pages/app/blood-bank/TransfusionDetailPage"
 import TransfusionFormPage from "./pages/app/blood-bank/TransfusionFormPage";
 import BloodBagLabelsPage from "./pages/app/blood-bank/BloodBagLabelsPage";
 const DonorCardPrintPage = React.lazy(() => import("./pages/app/blood-bank/DonorCardPrintPage"));
+import DonorDetailPage from "./pages/app/blood-bank/DonorDetailPage";
+import BloodUnitDetailPage from "./pages/app/blood-bank/BloodUnitDetailPage";
+import BloodUnitFormPage from "./pages/app/blood-bank/BloodUnitFormPage";
+import CrossMatchDetailPage from "./pages/app/blood-bank/CrossMatchDetailPage";
 
 // Radiology pages
 import RadiologyDashboard from "./pages/app/radiology/RadiologyDashboard";
@@ -701,16 +705,20 @@ function App() {
               <Route path="blood-bank" element={<BloodBankDashboard />} />
               <Route path="blood-bank/donors" element={<DonorsListPage />} />
               <Route path="blood-bank/donors/new" element={<DonorFormPage />} />
-              <Route path="blood-bank/donors/:id" element={<DonorFormPage />} />
+              <Route path="blood-bank/donors/:id" element={<DonorDetailPage />} />
+              <Route path="blood-bank/donors/:id/edit" element={<DonorFormPage />} />
               <Route path="blood-bank/donations" element={<DonationsPage />} />
               <Route path="blood-bank/donations/new" element={<DonationFormPage />} />
               <Route path="blood-bank/donations/:id" element={<DonationDetailPage />} />
               <Route path="blood-bank/inventory" element={<BloodInventoryPage />} />
+              <Route path="blood-bank/inventory/add" element={<BloodUnitFormPage />} />
+              <Route path="blood-bank/inventory/:id" element={<BloodUnitDetailPage />} />
               <Route path="blood-bank/requests" element={<BloodRequestsListPage />} />
               <Route path="blood-bank/requests/new" element={<BloodRequestFormPage />} />
               <Route path="blood-bank/requests/:id" element={<BloodRequestDetailPage />} />
               <Route path="blood-bank/cross-match" element={<CrossMatchPage />} />
               <Route path="blood-bank/cross-match/new" element={<CrossMatchFormPage />} />
+              <Route path="blood-bank/cross-match/:id" element={<CrossMatchDetailPage />} />
               <Route path="blood-bank/transfusions" element={<TransfusionsPage />} />
               <Route path="blood-bank/transfusions/new" element={<TransfusionFormPage />} />
               <Route path="blood-bank/transfusions/:id" element={<TransfusionDetailPage />} />
