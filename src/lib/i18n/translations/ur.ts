@@ -2449,6 +2449,8 @@ export const ur: Record<TranslationKey, string> = {
   "bb.consumed": "استعمال شدہ",
   "bb.completed": "مکمل",
   "bb.rejected": "مسترد",
+  "bb.vsLastMonth": "پچھلے مہینے کے مقابلے",
+  "bb.noAnalyticsData": "بلڈ بینک کا کوئی ڈیٹا دستیاب نہیں۔ تجزیات دیکھنے کے لیے پہلے ڈیٹا شامل کریں۔",
 
 };
 

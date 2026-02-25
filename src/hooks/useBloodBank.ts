@@ -899,3 +899,149 @@ export function useBloodBankStats() {
     enabled: !!profile?.organization_id,
   });
 }
+
+// =============================================
+// BLOOD BANK ANALYTICS HOOK
+// =============================================
+
+export interface BloodBankAnalyticsData {
+  monthly: { month: string; collected: number; consumed: number }[];
+  bloodGroups: { name: string; value: number; color: string }[];
+  trends: { month: string; completed: number; rejected: number }[];
+  components: { name: string; volume: number }[];
+  stats: {
+    totalCollections: number;
+    totalConsumed: number;
+    collectionTrend: number;
+    wastageRate: number;
+  };
+}
+
+const BLOOD_GROUP_COLORS: Record<string, string> = {
+  "O+": "hsl(0, 72%, 51%)",
+  "A+": "hsl(217, 91%, 60%)",
+  "B+": "hsl(142, 71%, 45%)",
+  "AB+": "hsl(270, 70%, 60%)",
+  "O-": "hsl(0, 84%, 60%)",
+  "A-": "hsl(217, 70%, 50%)",
+  "B-": "hsl(142, 50%, 40%)",
+  "AB-": "hsl(270, 50%, 50%)",
+};
+
+const COMPONENT_LABELS: Record<string, string> = {
+  whole_blood: "Whole Blood",
+  packed_rbc: "Packed RBC",
+  fresh_frozen_plasma: "FFP",
+  platelet_concentrate: "Platelets",
+  cryoprecipitate: "Cryo",
+  granulocytes: "Granulocytes",
+};
+
+export function useBloodBankAnalytics() {
+  const { profile } = useAuth();
+
+  return useQuery({
+    queryKey: ["blood-bank-analytics", profile?.organization_id],
+    queryFn: async (): Promise<BloodBankAnalyticsData> => {
+      const orgId = profile!.organization_id!;
+
+      // Fetch all needed data in parallel
+      const [donationsRes, inventoryRes] = await Promise.all([
+        db.from("blood_donations").select("donation_date, status").eq("organization_id", orgId),
+        db.from("blood_inventory").select("blood_group, component_type, status, collection_date").eq("organization_id", orgId),
+      ]);
+
+      if (donationsRes.error) throw donationsRes.error;
+      if (inventoryRes.error) throw inventoryRes.error;
+
+      const donations = donationsRes.data as { donation_date: string; status: string }[];
+      const inventoryItems = inventoryRes.data as { blood_group: string; component_type: string; status: string; collection_date: string }[];
+
+      // Build month labels for last 12 months
+      const monthLabels: string[] = [];
+      const monthKeys: string[] = [];
+      for (let i = 11; i >= 0; i--) {
+        const d = new Date();
+        d.setMonth(d.getMonth() - i);
+        monthLabels.push(d.toLocaleString("en", { month: "short" }));
+        monthKeys.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
+      }
+
+      // Monthly collection vs consumption
+      const monthlyCollected: Record<string, number> = {};
+      const monthlyConsumed: Record<string, number> = {};
+      monthKeys.forEach((k) => { monthlyCollected[k] = 0; monthlyConsumed[k] = 0; });
+
+      donations.forEach((d) => {
+        if (d.status === "completed") {
+          const key = d.donation_date.substring(0, 7);
+          if (monthlyCollected[key] !== undefined) monthlyCollected[key]++;
+        }
+      });
+
+      inventoryItems.forEach((u) => {
+        if (u.status === "issued" || u.status === "transfused") {
+          const key = u.collection_date.substring(0, 7);
+          if (monthlyConsumed[key] !== undefined) monthlyConsumed[key]++;
+        }
+      });
+
+      const monthly = monthKeys.map((k, i) => ({
+        month: monthLabels[i],
+        collected: monthlyCollected[k],
+        consumed: monthlyConsumed[k],
+      }));
+
+      // Blood group distribution
+      const bgCounts: Record<string, number> = {};
+      inventoryItems.forEach((u) => {
+        bgCounts[u.blood_group] = (bgCounts[u.blood_group] || 0) + 1;
+      });
+      const bloodGroups = Object.entries(bgCounts)
+        .map(([name, value]) => ({ name, value, color: BLOOD_GROUP_COLORS[name] || "hsl(0,0%,50%)" }))
+        .sort((a, b) => b.value - a.value);
+
+      // Donation trends (completed vs rejected by month)
+      const monthlyCompleted: Record<string, number> = {};
+      const monthlyRejected: Record<string, number> = {};
+      monthKeys.forEach((k) => { monthlyCompleted[k] = 0; monthlyRejected[k] = 0; });
+
+      donations.forEach((d) => {
+        const key = d.donation_date.substring(0, 7);
+        if (d.status === "completed" && monthlyCompleted[key] !== undefined) monthlyCompleted[key]++;
+        if (d.status === "rejected" && monthlyRejected[key] !== undefined) monthlyRejected[key]++;
+      });
+
+      const trends = monthKeys.map((k, i) => ({
+        month: monthLabels[i],
+        completed: monthlyCompleted[k],
+        rejected: monthlyRejected[k],
+      }));
+
+      // Component breakdown
+      const compCounts: Record<string, number> = {};
+      inventoryItems.forEach((u) => {
+        compCounts[u.component_type] = (compCounts[u.component_type] || 0) + 1;
+      });
+      const components = Object.entries(compCounts)
+        .map(([key, volume]) => ({ name: COMPONENT_LABELS[key] || key, volume }))
+        .sort((a, b) => b.volume - a.volume);
+
+      // Summary stats
+      const currentMonthKey = monthKeys[monthKeys.length - 1];
+      const prevMonthKey = monthKeys[monthKeys.length - 2];
+      const totalCollections = monthlyCollected[currentMonthKey] || 0;
+      const totalConsumed = monthlyConsumed[currentMonthKey] || 0;
+      const prevCollections = monthlyCollected[prevMonthKey] || 0;
+      const collectionTrend = prevCollections > 0
+        ? Math.round(((totalCollections - prevCollections) / prevCollections) * 100)
+        : 0;
+      const expiredCount = inventoryItems.filter((u) => u.status === "expired" || u.status === "discarded").length;
+      const totalUnits = inventoryItems.length;
+      const wastageRate = totalUnits > 0 ? +((expiredCount / totalUnits) * 100).toFixed(1) : 0;
+
+      return { monthly, bloodGroups, trends, components, stats: { totalCollections, totalConsumed, collectionTrend, wastageRate } };
+    },
+    enabled: !!profile?.organization_id,
+  });
+}

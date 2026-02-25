@@ -2449,6 +2449,8 @@ export const ar: Record<TranslationKey, string> = {
   "bb.consumed": "تم استهلاكه",
   "bb.completed": "مكتمل",
   "bb.rejected": "مرفوض",
+  "bb.vsLastMonth": "مقارنة بالشهر الماضي",
+  "bb.noAnalyticsData": "لا توجد بيانات لبنك الدم. قم بإضافة البيانات أولاً لرؤية التحليلات.",
 
 };
 
