@@ -19,6 +19,7 @@ import { BloodStockWidget } from "@/components/blood-bank/BloodStockWidget";
 import { RequestCard } from "@/components/blood-bank/RequestCard";
 import { DonationStatusBadge } from "@/components/blood-bank/DonationStatusBadge";
 import { BloodGroupBadge } from "@/components/blood-bank/BloodGroupBadge";
+import { ExpiryAlertBanner } from "@/components/blood-bank/ExpiryAlertBanner";
 
 export default function BloodBankDashboard() {
   const navigate = useNavigate();
@@ -47,6 +48,9 @@ export default function BloodBankDashboard() {
           </div>
         }
       />
+
+      {/* Expiry Alert Banner */}
+      <ExpiryAlertBanner />
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
