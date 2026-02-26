@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { PatientCurrentVisit as CurrentVisitType } from "@/hooks/usePatientCurrentVisit";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   Ticket,
   Stethoscope,
@@ -12,6 +13,7 @@ import {
   Play,
   Activity,
   AlertCircle,
+  Eye,
 } from "lucide-react";
 
 interface PatientCurrentVisitProps {
@@ -19,6 +21,8 @@ interface PatientCurrentVisitProps {
 }
 
 export function PatientCurrentVisit({ visit }: PatientCurrentVisitProps) {
+  const { hasRole } = useAuth();
+  const isDoctor = hasRole('doctor') || hasRole('surgeon');
   const doctorName = visit.doctor?.profile?.full_name || "Unknown Doctor";
   const specialization = visit.doctor?.specialization;
 
@@ -108,19 +112,35 @@ export function PatientCurrentVisit({ visit }: PatientCurrentVisitProps) {
           {/* Action Buttons */}
           <div className="flex items-center gap-2">
             {visit.status === "in_progress" ? (
-              <Button asChild>
-                <Link to={`/app/opd/consultation/${visit.id}`}>
-                  <Play className="h-4 w-4 mr-2" />
-                  Continue Consultation
-                </Link>
-              </Button>
+              isDoctor ? (
+                <Button asChild>
+                  <Link to={`/app/opd/consultation/${visit.id}`}>
+                    <Play className="h-4 w-4 mr-2" />
+                    Continue Consultation
+                  </Link>
+                </Button>
+              ) : (
+                <Badge variant="secondary" className="gap-1">
+                  <Eye className="h-3 w-3" />
+                  In Consultation
+                </Badge>
+              )
             ) : visit.status === "checked_in" ? (
-              <Button asChild>
-                <Link to={`/app/opd/consultation/${visit.id}`}>
-                  <Stethoscope className="h-4 w-4 mr-2" />
-                  Start Consultation
-                </Link>
-              </Button>
+              isDoctor ? (
+                <Button asChild>
+                  <Link to={`/app/opd/consultation/${visit.id}`}>
+                    <Stethoscope className="h-4 w-4 mr-2" />
+                    Start Consultation
+                  </Link>
+                </Button>
+              ) : (
+                <Button asChild>
+                  <Link to={`/app/opd/vitals?appointmentId=${visit.id}`}>
+                    <Activity className="h-4 w-4 mr-2" />
+                    Record Vitals
+                  </Link>
+                </Button>
+              )
             ) : (
               <Button variant="outline" asChild>
                 <Link to={`/app/opd/vitals?appointmentId=${visit.id}`}>

@@ -1266,6 +1266,10 @@ export const ur: Record<TranslationKey, string> = {
   "opd.viewFullQueue": "مکمل قائمہ دیکھیں",
   "opd.refresh": "تازہ کریں",
   "opd.bookAppointment": "ملاقات بک کریں",
+  "opd.recordVitals": "وائٹلز ریکارڈ کریں",
+  "opd.addComplaint": "شکایت درج کریں",
+  "opd.viewStatus": "حالت دیکھیں",
+  "opd.nurseActions": "نرس ایکشنز",
 
   // OPD Walk-in
   "opd.walkIn.title": "واک ان مریض رجسٹریشن",

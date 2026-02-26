@@ -1266,6 +1266,10 @@ export const ar: Record<TranslationKey, string> = {
   "opd.viewFullQueue": "عرض القائمة الكاملة",
   "opd.refresh": "تحديث",
   "opd.bookAppointment": "حجز موعد",
+  "opd.recordVitals": "تسجيل العلامات الحيوية",
+  "opd.addComplaint": "إضافة الشكوى",
+  "opd.viewStatus": "عرض الحالة",
+  "opd.nurseActions": "إجراءات التمريض",
 
   // OPD Walk-in
   "opd.walkIn.title": "تسجيل مريض حضوري",
