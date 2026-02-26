@@ -2690,6 +2690,19 @@ export const en = {
   "donations.activeCampaigns": "Active Campaigns",
   "donations.campaignLabel": "Campaign (Optional)",
   "donations.selectCampaign": "Select a campaign...",
+  "donations.shareCampaign": "Share Campaign",
+  "donations.publicLink": "Public Link",
+  "donations.copyLink": "Copy Link",
+  "donations.linkCopied": "Link copied!",
+  "donations.downloadQR": "Download QR Code",
+  "donations.shareViaWhatsApp": "Share via WhatsApp",
+  "donations.shareViaEmail": "Share via Email",
+  "donations.publicCampaignTitle": "Support This Campaign",
+  "donations.campaignBy": "Campaign by",
+  "donations.raisedOf": "raised of",
+  "donations.campaignNotFound": "Campaign not found",
+  "donations.campaignEnded": "This campaign has ended",
+  "donations.supportMessage": "Your contribution makes a difference",
 
 } as const;
 
