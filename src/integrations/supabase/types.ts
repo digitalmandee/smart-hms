@@ -8272,6 +8272,7 @@ export type Database = {
           country: string | null
           created_at: string
           donor_number: string
+          donor_photo_url: string | null
           donor_type: string
           email: string | null
           id: string
@@ -8294,6 +8295,7 @@ export type Database = {
           country?: string | null
           created_at?: string
           donor_number: string
+          donor_photo_url?: string | null
           donor_type?: string
           email?: string | null
           id?: string
@@ -8316,6 +8318,7 @@ export type Database = {
           country?: string | null
           created_at?: string
           donor_number?: string
+          donor_photo_url?: string | null
           donor_type?: string
           email?: string | null
           id?: string

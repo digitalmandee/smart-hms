@@ -1036,8 +1036,9 @@ function App() {
                <Route path="donations" element={<FinDonationDashboard />} />
                <Route path="donations/donors" element={<FinDonorsListPage />} />
                <Route path="donations/donors/new" element={<FinDonorFormPage />} />
-               <Route path="donations/donors/:id" element={<FinDonorDetailPage />} />
-               <Route path="donations/record" element={<RecordDonationPage />} />
+                <Route path="donations/donors/:id" element={<FinDonorDetailPage />} />
+                <Route path="donations/donors/:id/edit" element={<FinDonorFormPage />} />
+                <Route path="donations/record" element={<RecordDonationPage />} />
                <Route path="donations/receipt/:id" element={<DonationReceiptPage />} />
                <Route path="donations/recurring" element={<RecurringSchedulesPage />} />
 
