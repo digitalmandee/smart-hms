@@ -22,15 +22,15 @@ interface QueuePatient {
   } | null;
 }
 
-export function usePublicOPDQueue(organizationId: string | undefined) {
+export function usePublicOPDQueue(organizationId: string | undefined, opdDepartmentId?: string) {
   const today = new Date().toISOString().split("T")[0];
 
   return useQuery({
-    queryKey: ["public-opd-queue", organizationId, today],
+    queryKey: ["public-opd-queue", organizationId, today, opdDepartmentId],
     queryFn: async (): Promise<QueuePatient[]> => {
       if (!organizationId) return [];
 
-      const { data, error } = await client
+      let query = client
         .from("appointments")
         .select(`
           id,
@@ -38,7 +38,8 @@ export function usePublicOPDQueue(organizationId: string | undefined) {
           priority,
           status,
           patient:patients(first_name, last_name),
-          doctor:doctors(specialization, profile:profiles(full_name))
+          doctor:doctors(specialization, profile:profiles(full_name)),
+          opd_department:opd_departments(id, name, code, color)
         `)
         .eq("organization_id", organizationId)
         .eq("appointment_date", today)
@@ -46,11 +47,68 @@ export function usePublicOPDQueue(organizationId: string | undefined) {
         .order("priority", { ascending: false })
         .order("token_number", { ascending: true });
 
+      if (opdDepartmentId) {
+        query = query.eq("opd_department_id", opdDepartmentId);
+      }
+
+      const { data, error } = await query;
+
       if (error) throw error;
       return (data || []) as QueuePatient[];
     },
     enabled: !!organizationId,
     refetchInterval: 5000,
+  });
+}
+
+interface PublicOPDDepartment {
+  id: string;
+  name: string;
+  code: string;
+  color: string | null;
+  is_active: boolean;
+}
+
+export function usePublicOPDDepartments(organizationId: string | undefined) {
+  return useQuery({
+    queryKey: ["public-opd-departments", organizationId],
+    queryFn: async (): Promise<PublicOPDDepartment[]> => {
+      if (!organizationId) return [];
+
+      const { data, error } = await client
+        .from("opd_departments")
+        .select("id, name, code, color, is_active")
+        .eq("organization_id", organizationId)
+        .eq("is_active", true)
+        .order("sort_order", { ascending: true });
+
+      if (error) throw error;
+      return (data || []) as PublicOPDDepartment[];
+    },
+    enabled: !!organizationId,
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function usePublicOPDDepartmentByCode(organizationId: string | undefined, deptCode: string | undefined) {
+  return useQuery({
+    queryKey: ["public-opd-department-code", organizationId, deptCode],
+    queryFn: async (): Promise<PublicOPDDepartment | null> => {
+      if (!organizationId || !deptCode) return null;
+
+      const { data, error } = await client
+        .from("opd_departments")
+        .select("id, name, code, color, is_active")
+        .eq("organization_id", organizationId)
+        .eq("code", deptCode.toUpperCase())
+        .eq("is_active", true)
+        .single();
+
+      if (error) throw error;
+      return data as PublicOPDDepartment;
+    },
+    enabled: !!organizationId && !!deptCode,
+    staleTime: 5 * 60 * 1000,
   });
 }
 

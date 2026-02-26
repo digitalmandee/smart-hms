@@ -582,6 +582,7 @@ function App() {
               <Route path="/pharmacy-documentation" element={<PharmacyDocumentation />} />
             {/* Public display routes - NO AUTH REQUIRED for TV displays and kiosks */}
             <Route path="/display/queue/:organizationId" element={<PublicQueueDisplay />} />
+            <Route path="/display/queue/:organizationId/:deptCode" element={<PublicQueueDisplay />} />
             <Route path="/display/er/:organizationId" element={<PublicERDisplay />} />
             <Route path="/display/:displayId" element={<FilteredQueueDisplayPage />} />
             <Route path="/kiosk/:organizationId" element={<PublicTokenKiosk />} />

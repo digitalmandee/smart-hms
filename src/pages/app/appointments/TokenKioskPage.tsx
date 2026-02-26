@@ -10,6 +10,7 @@ import { Clock, Users, Volume2, VolumeX, RefreshCw, Stethoscope, Sun, Moon, Chec
 import { cn } from "@/lib/utils";
 import { formatTokenDisplay } from "@/lib/opd-token";
 import { supabase } from "@/integrations/supabase/client";
+import { OPDDepartmentSelector } from "@/components/opd/OPDDepartmentSelector";
 
 interface QueuePatient {
   id: string;
@@ -39,7 +40,8 @@ interface QueuePatient {
 
 const TokenKioskPage = () => {
   const { profile } = useAuth();
-  const { data: queue, refetch } = useTodayQueue();
+  const [selectedDepartmentId, setSelectedDepartmentId] = useState<string | undefined>();
+  const { data: queue, refetch } = useTodayQueue(selectedDepartmentId);
   const { data: organization } = useOrganization(profile?.organization_id ?? undefined);
   const { t } = useTranslation();
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -155,6 +157,15 @@ const TokenKioskPage = () => {
               {format(currentTime, 'EEEE, MMMM d, yyyy')}
             </p>
           </div>
+          <OPDDepartmentSelector
+            value={selectedDepartmentId}
+            onChange={setSelectedDepartmentId}
+            showAllOption
+            allOptionLabel={t("opd.allDepartments" as any, "All Departments")}
+            placeholder={t("opd.allDepartments" as any, "All Departments")}
+            showLabel={false}
+            className="w-[180px]"
+          />
           <Badge className={cn(
             "text-lg px-3 py-1.5 ml-4",
             isDarkMode 
