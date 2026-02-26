@@ -67,19 +67,33 @@ const TokenKioskPage = () => {
         schema: 'public',
         table: 'appointments',
         filter: `appointment_date=eq.${today}`,
-      }, (payload) => {
+      }, async (payload) => {
         refetch();
-        // Track recently completed
+        // Track recently completed — re-fetch with joins for full data
         if (payload.eventType === 'UPDATE' && (payload.new as any).status === 'completed') {
-          const completed = payload.new as any;
-          setRecentlyCompleted(prev => {
-            const updated = [completed, ...prev.filter(p => p.id !== completed.id)].slice(0, 3);
-            return updated;
-          });
-          // Auto-remove after 2 minutes
-          setTimeout(() => {
-            setRecentlyCompleted(prev => prev.filter(p => p.id !== completed.id));
-          }, 120000);
+          const completedId = (payload.new as any).id;
+          try {
+            const { data } = await supabase
+              .from('appointments')
+              .select(`
+                id, token_number, priority, status, appointment_time, check_in_at,
+                opd_department:opd_departments(code, name, color),
+                patient:patients(first_name, last_name, patient_number),
+                doctor:doctors(specialization, profile:profiles(full_name))
+              `)
+              .eq('id', completedId)
+              .single();
+
+            if (data) {
+              setRecentlyCompleted(prev => {
+                const updated = [data as any, ...prev.filter(p => p.id !== completedId)].slice(0, 3);
+                return updated;
+              });
+              setTimeout(() => {
+                setRecentlyCompleted(prev => prev.filter(p => p.id !== completedId));
+              }, 120000);
+            }
+          } catch { /* ignore fetch errors */ }
         }
       })
       .subscribe();

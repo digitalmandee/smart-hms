@@ -23,8 +23,8 @@ export default function KioskSetupPage() {
   const publicUrls = [
     {
       id: "opd-display",
-      title: "OPD Queue Display (TV)",
-      description: "Large screen display for waiting room TVs showing current token and queue",
+      title: t("opd.opdQueueDisplayTv" as any, "OPD Queue Display (TV)"),
+      description: t("opd.opdQueueDisplayDesc" as any, "Large screen display for waiting room TVs showing current token and queue"),
       url: `${baseUrl}/display/queue/${organizationId}`,
       icon: Monitor,
       color: "text-emerald-500",
@@ -32,8 +32,8 @@ export default function KioskSetupPage() {
     },
     {
       id: "er-display",
-      title: "ER Queue Display (TV)",
-      description: "Emergency department display showing triage zones and incoming ambulances",
+      title: t("opd.erQueueDisplayTv" as any, "ER Queue Display (TV)"),
+      description: t("opd.erQueueDisplayDesc" as any, "Emergency department display showing triage zones and incoming ambulances"),
       url: `${baseUrl}/display/er/${organizationId}`,
       icon: AlertTriangle,
       color: "text-red-500",
@@ -41,8 +41,8 @@ export default function KioskSetupPage() {
     },
     {
       id: "kiosk",
-      title: "Self-Service Token Kiosk",
-      description: "Patient-facing kiosk for self-service token generation and printing",
+      title: t("opd.selfServiceKiosk" as any, "Self-Service Token Kiosk"),
+      description: t("opd.selfServiceKioskDesc" as any, "Patient-facing kiosk for self-service token generation and printing"),
       url: `${baseUrl}/kiosk/${organizationId}`,
       icon: Ticket,
       color: "text-blue-500",
@@ -54,7 +54,7 @@ export default function KioskSetupPage() {
     try {
       await navigator.clipboard.writeText(url);
       setCopiedUrl(id);
-      toast({ title: "URL copied to clipboard!" });
+      toast({ title: t("opd.copied" as any, "Copied!") });
       setTimeout(() => setCopiedUrl(null), 2000);
     } catch {
       toast({ title: "Failed to copy", variant: "destructive" });
@@ -69,8 +69,8 @@ export default function KioskSetupPage() {
     return (
       <div className="p-6">
         <PageHeader
-          title="Token & Display Setup"
-          description="Configure public displays and kiosks"
+          title={t("opd.tokenAndDisplaySetup" as any, "Token & Display Setup")}
+          description={t("opd.configureDisplays" as any, "Configure public displays and kiosks")}
         />
         <Card>
           <CardContent className="p-6">
@@ -86,20 +86,18 @@ export default function KioskSetupPage() {
   return (
     <div className="p-6 space-y-6">
       <PageHeader
-        title="Token & Display Setup"
-        description="Configure public TV displays and self-service kiosks for your organization"
+        title={t("opd.tokenAndDisplaySetup" as any, "Token & Display Setup")}
+        description={t("opd.configureDisplays" as any, "Configure public TV displays and self-service kiosks for your organization")}
       />
 
       <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4 flex items-start gap-3">
         <AlertTriangle className="h-5 w-5 text-amber-500 mt-0.5 flex-shrink-0" />
         <div>
           <p className="font-medium text-amber-700 dark:text-amber-400">
-            These are public URLs - no login required
+            {t("opd.publicUrlsWarning" as any, "These are public URLs - no login required")}
           </p>
           <p className="text-sm text-muted-foreground mt-1">
-            Copy the appropriate URL and open it in a browser on your waiting room TV, 
-            reception monitor, or kiosk tablet. The displays will auto-refresh and show 
-            live queue information.
+            {t("opd.publicUrlsDescription" as any, "Copy the appropriate URL and open it in a browser on your waiting room TV, reception monitor, or kiosk tablet. The displays will auto-refresh and show live queue information.")}
           </p>
         </div>
       </div>
@@ -125,7 +123,7 @@ export default function KioskSetupPage() {
                 <CardDescription>{item.description}</CardDescription>
                 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Public URL</label>
+                  <label className="text-sm font-medium">{t("opd.publicUrl" as any, "Public URL")}</label>
                   <div className="flex gap-2">
                     <Input
                       value={item.url}
@@ -144,12 +142,12 @@ export default function KioskSetupPage() {
                     {isCopied ? (
                       <>
                         <Check className="h-4 w-4 mr-2 text-emerald-500" />
-                        Copied!
+                        {t("opd.copied" as any, "Copied!")}
                       </>
                     ) : (
                       <>
                         <Copy className="h-4 w-4 mr-2" />
-                        Copy URL
+                        {t("opd.copyUrl" as any, "Copy URL")}
                       </>
                     )}
                   </Button>
@@ -158,7 +156,7 @@ export default function KioskSetupPage() {
                     onClick={() => handleOpen(item.url)}
                   >
                     <ExternalLink className="h-4 w-4 mr-2" />
-                    Preview
+                    {t("common.preview" as any, "Preview")}
                   </Button>
                 </div>
               </CardContent>
@@ -175,12 +173,12 @@ export default function KioskSetupPage() {
             <CardTitle className="text-lg">{t("opd.departmentSpecificDisplays" as any, "Department-Specific Displays")}</CardTitle>
           </div>
           <CardDescription>
-            Each OPD department can have its own waiting room TV display showing only that department's queue.
+            {t("opd.deptSpecificDesc" as any, "Each OPD department can have its own waiting room TV display showing only that department's queue.")}
           </CardDescription>
         </CardHeader>
         <CardContent>
           {deptsLoading ? (
-            <p className="text-sm text-muted-foreground">Loading departments...</p>
+            <p className="text-sm text-muted-foreground">{t("common.loading")}</p>
           ) : !departments || departments.length === 0 ? (
             <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/50 border border-border">
               <Info className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
@@ -229,12 +227,12 @@ export default function KioskSetupPage() {
                         {isCopied ? (
                           <>
                             <Check className="h-3.5 w-3.5 mr-1.5 text-emerald-500" />
-                            Copied!
+                            {t("opd.copied" as any, "Copied!")}
                           </>
                         ) : (
                           <>
                             <Copy className="h-3.5 w-3.5 mr-1.5" />
-                            Copy
+                            {t("common.copy" as any, "Copy")}
                           </>
                         )}
                       </Button>
@@ -244,7 +242,7 @@ export default function KioskSetupPage() {
                         onClick={() => handleOpen(deptUrl)}
                       >
                         <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
-                        Preview
+                        {t("common.preview" as any, "Preview")}
                       </Button>
                     </div>
                   </div>
@@ -257,12 +255,12 @@ export default function KioskSetupPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Setup Instructions</CardTitle>
+          <CardTitle className="text-lg">{t("opd.setupInstructions" as any, "Setup Instructions")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <h4 className="font-medium mb-2">For Waiting Room TVs</h4>
+              <h4 className="font-medium mb-2">{t("opd.forWaitingRoomTvs" as any, "For Waiting Room TVs")}</h4>
               <ol className="list-decimal list-inside text-sm text-muted-foreground space-y-1">
                 <li>Copy the "OPD Queue Display" or department-specific URL</li>
                 <li>Open Chrome/Firefox on the TV computer</li>
@@ -272,7 +270,7 @@ export default function KioskSetupPage() {
               </ol>
             </div>
             <div>
-              <h4 className="font-medium mb-2">For Self-Service Kiosks</h4>
+              <h4 className="font-medium mb-2">{t("opd.forSelfServiceKiosks" as any, "For Self-Service Kiosks")}</h4>
               <ol className="list-decimal list-inside text-sm text-muted-foreground space-y-1">
                 <li>Copy the "Self-Service Token Kiosk" URL</li>
                 <li>Open on a touch-screen tablet or kiosk</li>
