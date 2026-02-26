@@ -1,66 +1,65 @@
 
 
-# Fix Nurse vs Doctor Actions — Role-Based Button Visibility
+# Seed Donors Data and Chief Complaints
 
-## Problem
-Several components show "Start Consultation" to nurses, but only doctors should see that action. Nurses should see "Record Vitals" and "Add Chief Complaint" instead. The issue exists in three places:
+## Current State
+- **Financial Donors**: 12 exist already
+- **Financial Donations**: 25 exist already
+- **Donation Campaigns**: 3 active campaigns exist
+- **Recurring Schedules**: 3 exist
+- **Chief Complaints**: Most appointments have `chief_complaint = NULL` -- needs seeding
+- **No separate complaints table** -- complaints are stored as `chief_complaint` text field on `appointments` and `consultations` tables
 
-1. **`AppointmentDetailPage.tsx`** (line 170): Shows "Start Consultation" button for any user when status is `checked_in` — no role check
-2. **`PatientCurrentVisit.tsx`** (line 117-123): Shows "Start Consultation" link for any user when status is `checked_in` — no role check  
-3. **`AppointmentCard.tsx`** dropdown (line 160-163): Shows "Start Consultation" in the menu whenever `onStart` is passed — callers need to control this
+## What Will Be Seeded
 
-The `AppointmentQueuePage` already has `isDoctor` logic and `showConsultButton`, so that part works. The fix targets the remaining unguarded locations.
+### 1. Additional Financial Donors (8 new donors)
+Add variety with Pakistani/Arab names, different donor types (individual, corporate, trust), cities, and contact info. Names in English + Arabic.
 
-## Changes
+### 2. Additional Donations (15 new donations)
+Spread across existing + new donors, various purposes (general, zakat, sadaqah, building_fund), payment methods (cash, bank_transfer, online), linked to existing campaigns where relevant.
 
-### 1. `src/pages/app/appointments/AppointmentDetailPage.tsx`
-- Import `useAuth` and check `hasRole('doctor')`
-- For `checked_in` status:
-  - **Doctor**: Show "Start Consultation" button (existing behavior)
-  - **Nurse**: Show "Record Vitals" button (links to `/app/opd/vitals?appointmentId=...`) and "Add Complaint" text area
+### 3. Chief Complaints on Appointments
+Update all appointments that currently have `chief_complaint = NULL` with realistic medical complaints:
+- Scheduled: "Fever and body aches for 3 days", "Follow-up for diabetes management"
+- Checked-in: "Persistent headache and dizziness", "Chest pain on exertion"
+- In-progress: "Chronic lower back pain", "Shortness of breath"
+- Completed: "Abdominal pain and nausea", "Skin rash and itching"
 
-### 2. `src/components/patients/PatientCurrentVisit.tsx`
-- Accept a `userRole` or use `useAuth().hasRole()` to check
-- For `checked_in` status:
-  - **Doctor**: Show "Start Consultation" (existing)
-  - **Nurse/Other**: Show "Record Vitals" link to `/app/opd/vitals?appointmentId=...`
-- For `in_progress` status:
-  - **Doctor**: Show "Continue Consultation" (existing)
-  - **Nurse**: Show "View Status" or simply hide the consultation link
+## Implementation
 
-### 3. `src/components/appointments/AppointmentCard.tsx`
-- Add `showConsultButton` guard to the dropdown "Start Consultation" menu item (line 160-163) so it only appears when `showConsultButton` is true — matching the inline button logic already on line 138
+All changes are **data inserts/updates** using the Supabase insert tool (no schema migrations needed).
 
-### 4. Translations (~4 new keys)
-Add to `en.ts`, `ar.ts`, `ur.ts`:
-- `opd.recordVitals` — "Record Vitals" / "تسجيل العلامات الحيوية" / "وائٹلز ریکارڈ کریں"
-- `opd.addComplaint` — "Add Complaint" / "إضافة الشكوى" / "شکایت درج کریں"
-- `opd.viewStatus` — "View Status" / "عرض الحالة" / "حالت دیکھیں"
-- `opd.nurseActions` — "Nurse Actions" / "إجراءات التمريض" / "نرس ایکشنز"
+### SQL Operations
 
-## Files to Edit
+**Step 1**: Insert 8 new financial donors with Pakistani names, Arabic names, CNIC numbers, phone numbers, cities across Pakistan
 
-| File | Change |
-|------|--------|
-| `src/pages/app/appointments/AppointmentDetailPage.tsx` | Add `hasRole` check; nurse sees "Record Vitals" instead of "Start Consultation" |
-| `src/components/patients/PatientCurrentVisit.tsx` | Add `hasRole` check; nurse sees "Record Vitals" instead of "Start/Continue Consultation" |
-| `src/components/appointments/AppointmentCard.tsx` | Guard dropdown "Start Consultation" with `showConsultButton` |
-| `src/lib/i18n/translations/en.ts` | 4 new keys |
-| `src/lib/i18n/translations/ar.ts` | 4 new keys |
-| `src/lib/i18n/translations/ur.ts` | 4 new keys |
+**Step 2**: Insert 15 new donations linked to donors, with various amounts (PKR 5,000 to PKR 500,000), dates spread over the last 2 months, various purposes and payment methods
 
-## Summary of Role Behavior
+**Step 3**: Update ~15 appointments to add realistic chief complaints covering common OPD presentations (fever, pain, diabetes follow-up, hypertension, respiratory issues, etc.)
 
-```text
-Status: checked_in
-  Doctor  → "Start Consultation" → /app/opd/consultation/:id
-  Nurse   → "Record Vitals"      → /app/opd/vitals?appointmentId=:id
+## Data Details
 
-Status: in_progress
-  Doctor  → "Continue Consultation" → /app/opd/consultation/:id
-  Nurse   → (no action / view only)
+### New Donors
+| Name | Type | City | 
+|------|------|------|
+| Haji Muhammad Tariq | individual | Lahore |
+| Al-Noor Foundation | trust | Karachi |
+| Fatima Bibi | individual | Islamabad |
+| Pak-Med Industries | corporate | Faisalabad |
+| Sheikh Abdullah Al-Rashidi | individual | Riyadh |
+| Crescent Welfare Society | trust | Multan |
+| Bilal Ahmed Khan | individual | Rawalpindi |
+| Gulf Medical Supplies | corporate | Dubai |
 
-Status: scheduled
-  Both    → "Record Vitals" → /app/opd/vitals?appointmentId=:id (existing)
-```
+### Chief Complaints (sample)
+- "Fever and body aches for 3 days"
+- "Persistent headache and dizziness for 1 week"
+- "Chest tightness and shortness of breath"
+- "Follow-up for hypertension management"
+- "Abdominal pain and nausea since yesterday"
+- "Joint pain in both knees, worsening"
+- "Chronic cough with sputum for 2 weeks"
+- "Skin rash on arms and legs"
+- "Lower back pain radiating to left leg"
+- "Diabetic follow-up, blood sugar uncontrolled"
 
