@@ -62,7 +62,7 @@ export default function CheckInPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { profile } = useAuth();
+  const { profile, hasRole } = useAuth();
   const haptics = useHaptics();
 
   // Mobile detection
@@ -114,6 +114,9 @@ export default function CheckInPage() {
   const paymentStatus = (appointment as any).payment_status || 'pending';
   const consultationFee = doctor?.consultation_fee || 500;
   
+  // Nurse roles bypass payment entirely
+  const isNurse = hasRole('nurse') || hasRole('opd_nurse') || hasRole('ipd_nurse');
+  
   // Generate Visit ID
   const visitId = generateVisitId({
     appointment_date: appointment.appointment_date,
@@ -123,8 +126,49 @@ export default function CheckInPage() {
   const handleCheckIn = async () => {
     if (!id) return;
     
-    // Check payment status before proceeding
+    // Nurses skip payment check — they only record vitals
+    if (isNurse) {
+      await performCheckIn();
+      return;
+    }
+    
+    // Runtime check: verify actual payment status from invoices/payments
     if (paymentStatus === 'pending') {
+      // Check if there's a paid invoice linked to this appointment
+      const { data: apptData } = await supabase
+        .from('appointments')
+        .select('invoice_id, payment_status')
+        .eq('id', id)
+        .single();
+      
+      if (apptData?.payment_status === 'paid' || apptData?.payment_status === 'waived') {
+        // Status was updated (e.g. by trigger), proceed directly
+        await refetch();
+        await performCheckIn();
+        return;
+      }
+      
+      if (apptData?.invoice_id) {
+        // Check if the linked invoice is actually paid
+        const { data: invoice } = await supabase
+          .from('invoices')
+          .select('status')
+          .eq('id', apptData.invoice_id)
+          .single();
+        
+        if (invoice?.status === 'paid') {
+          // Sync the stale status and proceed
+          await supabase
+            .from('appointments')
+            .update({ payment_status: 'paid' })
+            .eq('id', id);
+          await refetch();
+          await performCheckIn();
+          return;
+        }
+      }
+      
+      // Still pending — show payment dialog
       setShowPaymentRequiredDialog(true);
       return;
     }
@@ -293,7 +337,7 @@ export default function CheckInPage() {
           </Card>
 
           {/* Payment Alert */}
-          {paymentStatus === 'pending' && (
+          {paymentStatus === 'pending' && !isNurse && (
             <Card className="border-warning bg-warning/10">
               <CardContent className="py-3">
                 <div className="flex items-center justify-between">
@@ -556,7 +600,7 @@ export default function CheckInPage() {
           </Card>
 
           {/* Payment Status Alert */}
-          {paymentStatus === 'pending' && (
+          {paymentStatus === 'pending' && !isNurse && (
             <Card className="border-warning bg-warning/10">
               <CardContent className="py-4">
                 <div className="flex items-center justify-between">
