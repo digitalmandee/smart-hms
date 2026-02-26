@@ -6653,6 +6653,149 @@ export type Database = {
           },
         ]
       }
+      donation_recurring_schedules: {
+        Row: {
+          amount: number
+          created_at: string
+          donor_id: string
+          end_date: string | null
+          frequency: string
+          id: string
+          installments_paid: number
+          is_active: boolean
+          last_donation_id: string | null
+          next_due_date: string
+          notes: string | null
+          organization_id: string
+          purpose: string | null
+          reminder_days_before: number
+          start_date: string
+          total_collected: number
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          donor_id: string
+          end_date?: string | null
+          frequency?: string
+          id?: string
+          installments_paid?: number
+          is_active?: boolean
+          last_donation_id?: string | null
+          next_due_date?: string
+          notes?: string | null
+          organization_id: string
+          purpose?: string | null
+          reminder_days_before?: number
+          start_date?: string
+          total_collected?: number
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          donor_id?: string
+          end_date?: string | null
+          frequency?: string
+          id?: string
+          installments_paid?: number
+          is_active?: boolean
+          last_donation_id?: string | null
+          next_due_date?: string
+          notes?: string | null
+          organization_id?: string
+          purpose?: string | null
+          reminder_days_before?: number
+          start_date?: string
+          total_collected?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "donation_recurring_schedules_donor_id_fkey"
+            columns: ["donor_id"]
+            isOneToOne: false
+            referencedRelation: "financial_donors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "donation_recurring_schedules_last_donation_id_fkey"
+            columns: ["last_donation_id"]
+            isOneToOne: false
+            referencedRelation: "financial_donations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "donation_recurring_schedules_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      donation_reminders: {
+        Row: {
+          created_at: string
+          donor_id: string
+          id: string
+          notes: string | null
+          organization_id: string
+          reminder_date: string
+          reminder_type: string
+          schedule_id: string
+          sent_at: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          donor_id: string
+          id?: string
+          notes?: string | null
+          organization_id: string
+          reminder_date: string
+          reminder_type?: string
+          schedule_id: string
+          sent_at?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          donor_id?: string
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          reminder_date?: string
+          reminder_type?: string
+          schedule_id?: string
+          sent_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "donation_reminders_donor_id_fkey"
+            columns: ["donor_id"]
+            isOneToOne: false
+            referencedRelation: "financial_donors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "donation_reminders_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "donation_reminders_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: false
+            referencedRelation: "donation_recurring_schedules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       emergency_registrations: {
         Row: {
           admission_id: string | null
@@ -8014,6 +8157,191 @@ export type Database = {
             columns: ["resignation_id"]
             isOneToOne: false
             referencedRelation: "resignations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      financial_donations: {
+        Row: {
+          amount: number
+          branch_id: string | null
+          created_at: string
+          created_by: string | null
+          currency: string
+          donation_date: string
+          donation_number: string
+          donation_type: string
+          donor_id: string
+          id: string
+          notes: string | null
+          organization_id: string
+          payment_method: string
+          payment_reference: string | null
+          purpose: string
+          purpose_detail: string | null
+          receipt_issued: boolean
+          receipt_issued_at: string | null
+          receipt_number: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          donation_date?: string
+          donation_number: string
+          donation_type?: string
+          donor_id: string
+          id?: string
+          notes?: string | null
+          organization_id: string
+          payment_method?: string
+          payment_reference?: string | null
+          purpose?: string
+          purpose_detail?: string | null
+          receipt_issued?: boolean
+          receipt_issued_at?: string | null
+          receipt_number?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          donation_date?: string
+          donation_number?: string
+          donation_type?: string
+          donor_id?: string
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          payment_method?: string
+          payment_reference?: string | null
+          purpose?: string
+          purpose_detail?: string | null
+          receipt_issued?: boolean
+          receipt_issued_at?: string | null
+          receipt_number?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_donations_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_donations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_donations_donor_id_fkey"
+            columns: ["donor_id"]
+            isOneToOne: false
+            referencedRelation: "financial_donors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_donations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      financial_donors: {
+        Row: {
+          address: string | null
+          branch_id: string | null
+          city: string | null
+          cnic_passport: string | null
+          contact_person: string | null
+          country: string | null
+          created_at: string
+          donor_number: string
+          donor_type: string
+          email: string | null
+          id: string
+          is_active: boolean
+          name: string
+          name_ar: string | null
+          notes: string | null
+          organization_id: string
+          phone: string | null
+          total_donated: number
+          total_donations_count: number
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          branch_id?: string | null
+          city?: string | null
+          cnic_passport?: string | null
+          contact_person?: string | null
+          country?: string | null
+          created_at?: string
+          donor_number: string
+          donor_type?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          name_ar?: string | null
+          notes?: string | null
+          organization_id: string
+          phone?: string | null
+          total_donated?: number
+          total_donations_count?: number
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          branch_id?: string | null
+          city?: string | null
+          cnic_passport?: string | null
+          contact_person?: string | null
+          country?: string | null
+          created_at?: string
+          donor_number?: string
+          donor_type?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          name_ar?: string | null
+          notes?: string | null
+          organization_id?: string
+          phone?: string | null
+          total_donated?: number
+          total_donations_count?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_donors_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_donors_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
