@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Heart, Users, TrendingUp, CalendarDays, Edit, Pause, CheckCircle } from "lucide-react";
+import { Heart, Users, TrendingUp, CalendarDays, Edit, Pause, CheckCircle, Share2 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useState } from "react";
+import { CampaignShareDialog } from "@/components/donations/CampaignShareDialog";
 import { useDonationCampaign, useCampaignDonations, useUpdateCampaign } from "@/hooks/useCampaigns";
 import { useTranslation } from "@/lib/i18n";
 import { format, differenceInDays } from "date-fns";
@@ -17,6 +19,7 @@ export default function CampaignDetailPage() {
   const { data: campaign, isLoading } = useDonationCampaign(id!);
   const { data: donations, isLoading: donationsLoading } = useCampaignDonations(id!);
   const updateCampaign = useUpdateCampaign();
+  const [shareOpen, setShareOpen] = useState(false);
 
   if (isLoading) return <div className="space-y-4 p-6">{[...Array(4)].map((_, i) => <Skeleton key={i} className="h-24 w-full" />)}</div>;
   if (!campaign) return <p className="p-6 text-muted-foreground">Campaign not found</p>;
@@ -56,6 +59,9 @@ export default function CampaignDetailPage() {
                 <CheckCircle className="h-4 w-4 mr-1" /> {t("donations.campaignStatus.completed")}
               </Button>
             )}
+            <Button variant="outline" size="sm" onClick={() => setShareOpen(true)}>
+              <Share2 className="h-4 w-4 mr-1" /> {t("donations.shareCampaign")}
+            </Button>
             <Button size="sm" onClick={() => navigate(`/app/donations/campaigns/${id}/edit`)}>
               <Edit className="h-4 w-4 mr-1" /> {t("common.edit")}
             </Button>
@@ -149,6 +155,14 @@ export default function CampaignDetailPage() {
           )}
         </CardContent>
       </Card>
+
+      {campaign && (
+        <CampaignShareDialog
+          open={shareOpen}
+          onOpenChange={setShareOpen}
+          campaign={campaign}
+        />
+      )}
     </div>
   );
 }

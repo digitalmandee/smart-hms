@@ -2624,6 +2624,19 @@ export const ar: Record<TranslationKey, string> = {
   "donations.activeCampaigns": "الحملات النشطة",
   "donations.campaignLabel": "الحملة (اختياري)",
   "donations.selectCampaign": "اختر حملة...",
+  "donations.shareCampaign": "مشاركة الحملة",
+  "donations.publicLink": "الرابط العام",
+  "donations.copyLink": "نسخ الرابط",
+  "donations.linkCopied": "تم نسخ الرابط!",
+  "donations.downloadQR": "تحميل رمز QR",
+  "donations.shareViaWhatsApp": "مشاركة عبر واتساب",
+  "donations.shareViaEmail": "مشاركة عبر البريد",
+  "donations.publicCampaignTitle": "ادعم هذه الحملة",
+  "donations.campaignBy": "حملة من",
+  "donations.raisedOf": "تم جمع من",
+  "donations.campaignNotFound": "الحملة غير موجودة",
+  "donations.campaignEnded": "انتهت هذه الحملة",
+  "donations.supportMessage": "مساهمتك تحدث فرقاً",
 
 };
 

@@ -475,6 +475,7 @@ const RecurringSchedulesPage = React.lazy(() => import("./pages/app/donations/Re
 const CampaignsListPage = React.lazy(() => import("./pages/app/donations/CampaignsListPage"));
 const CampaignDetailPage = React.lazy(() => import("./pages/app/donations/CampaignDetailPage"));
 const CampaignFormPage = React.lazy(() => import("./pages/app/donations/CampaignFormPage"));
+const PublicCampaignPage = React.lazy(() => import("./pages/public/PublicCampaignPage"));
 
 // Accounts pages
 import AccountsDashboard from "./pages/app/accounts/AccountsDashboard";
@@ -602,6 +603,9 @@ function App() {
             
             {/* Public Lab Report Portal */}
             <Route path="/lab-reports" element={<PublicLabReportPage />} />
+            
+            {/* Public Campaign Page */}
+            <Route path="/campaign/:orgSlug/:campaignNumber" element={<React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><PublicCampaignPage /></React.Suspense>} />
             
             {/* Tabeebi AI Doctor */}
             <Route path="/tabeebi" element={<TabeebiLandingPage />} />

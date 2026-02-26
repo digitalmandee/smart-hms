@@ -2624,6 +2624,19 @@ export const ur: Record<TranslationKey, string> = {
   "donations.activeCampaigns": "فعال مہمات",
   "donations.campaignLabel": "مہم (اختیاری)",
   "donations.selectCampaign": "مہم منتخب کریں...",
+  "donations.shareCampaign": "مہم شیئر کریں",
+  "donations.publicLink": "عوامی لنک",
+  "donations.copyLink": "لنک کاپی کریں",
+  "donations.linkCopied": "لنک کاپی ہو گیا!",
+  "donations.downloadQR": "QR کوڈ ڈاؤن لوڈ کریں",
+  "donations.shareViaWhatsApp": "واٹس ایپ پر شیئر کریں",
+  "donations.shareViaEmail": "ای میل پر شیئر کریں",
+  "donations.publicCampaignTitle": "اس مہم کی حمایت کریں",
+  "donations.campaignBy": "مہم از",
+  "donations.raisedOf": "جمع ہوئے از",
+  "donations.campaignNotFound": "مہم نہیں ملی",
+  "donations.campaignEnded": "یہ مہم ختم ہو چکی ہے",
+  "donations.supportMessage": "آپ کا تعاون فرق ڈالتا ہے",
 
 };
 

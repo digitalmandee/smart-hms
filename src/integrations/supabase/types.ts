@@ -6668,6 +6668,7 @@ export type Database = {
           goal_amount: number
           id: string
           organization_id: string
+          share_token: string | null
           start_date: string
           status: string
           title: string
@@ -6688,6 +6689,7 @@ export type Database = {
           goal_amount?: number
           id?: string
           organization_id: string
+          share_token?: string | null
           start_date: string
           status?: string
           title: string
@@ -6708,6 +6710,7 @@ export type Database = {
           goal_amount?: number
           id?: string
           organization_id?: string
+          share_token?: string | null
           start_date?: string
           status?: string
           title?: string

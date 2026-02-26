@@ -24,3 +24,9 @@ export const getDonorVerificationUrl = (donorNumber: string, orgSlug?: string): 
   const slug = orgSlug || 'verify';
   return `https://healthos24.com/donor/${slug}/${donorNumber}`;
 };
+
+// Generate public campaign URL
+export const getCampaignPublicUrl = (orgSlug: string, campaignNumber: string): string => {
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://healthos24.com';
+  return `${baseUrl}/campaign/${orgSlug}/${campaignNumber}`;
+};
