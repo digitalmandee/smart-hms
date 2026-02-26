@@ -431,6 +431,11 @@ export const SIDEBAR_NAME_TO_KEY: Record<string, TranslationKey> = {
   "Branch Comparison": "nav.branchComparison",
   "Day-End Summary": "nav.dayEndSummary",
 
+  // Donation Management
+  "Donation Management": "nav.donationManagement",
+  "Record Donation": "nav.recordDonation",
+  "Recurring Schedules": "nav.recurringSchedules",
+
   // Misc
   "Search": "nav.searchNav",
 

@@ -464,6 +464,15 @@ import VendorPerformanceReport from "./pages/app/inventory/reports/VendorPerform
 import DeadStockReport from "./pages/app/inventory/reports/DeadStockReport";
 import FastMovingReport from "./pages/app/inventory/reports/FastMovingReport";
 
+// Donation Management pages (aliased to avoid conflict with blood-bank imports)
+const FinDonationDashboard = React.lazy(() => import("./pages/app/donations/DonationDashboard"));
+const FinDonorsListPage = React.lazy(() => import("./pages/app/donations/DonorsListPage"));
+const FinDonorFormPage = React.lazy(() => import("./pages/app/donations/DonorFormPage"));
+const FinDonorDetailPage = React.lazy(() => import("./pages/app/donations/DonorDetailPage"));
+const RecordDonationPage = React.lazy(() => import("./pages/app/donations/RecordDonationPage"));
+const DonationReceiptPage = React.lazy(() => import("./pages/app/donations/DonationReceiptPage"));
+const RecurringSchedulesPage = React.lazy(() => import("./pages/app/donations/RecurringSchedulesPage"));
+
 // Accounts pages
 import AccountsDashboard from "./pages/app/accounts/AccountsDashboard";
 import ChartOfAccountsPage from "./pages/app/accounts/ChartOfAccountsPage";
@@ -1021,9 +1030,18 @@ function App() {
               <Route path="accounts/reports/profit-loss" element={<ProfitLossPage />} />
               <Route path="accounts/reports/balance-sheet" element={<BalanceSheetPage />} />
               <Route path="accounts/reports/cash-flow" element={<CashFlowPage />} />
-              <Route path="accounts/reports/revenue-by-source" element={<RevenueBySourcePage />} />
-              
-              {/* Additional IPD setup routes */}
+               <Route path="accounts/reports/revenue-by-source" element={<RevenueBySourcePage />} />
+               
+               {/* Donation Management routes */}
+               <Route path="donations" element={<FinDonationDashboard />} />
+               <Route path="donations/donors" element={<FinDonorsListPage />} />
+               <Route path="donations/donors/new" element={<FinDonorFormPage />} />
+               <Route path="donations/donors/:id" element={<FinDonorDetailPage />} />
+               <Route path="donations/record" element={<RecordDonationPage />} />
+               <Route path="donations/receipt/:id" element={<DonationReceiptPage />} />
+               <Route path="donations/recurring" element={<RecurringSchedulesPage />} />
+
+               {/* Additional IPD setup routes */}
               <Route path="ipd/setup/diet-types" element={<DietTypesPage />} />
               <Route path="ipd/setup/ward-types" element={<WardTypesPage />} />
               <Route path="ipd/setup/bed-types" element={<BedTypesPage />} />

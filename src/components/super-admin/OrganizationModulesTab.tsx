@@ -7,7 +7,7 @@ import { useOrganizationModulesWithStatus, useToggleOrganizationModule } from "@
 import { 
   Users, Calendar, Stethoscope, Bed, Pill, ShoppingCart, 
   FlaskConical, Scan, CreditCard, Calculator, Siren, 
-  Scissors, Droplet, BarChart, Settings, LucideIcon
+  Scissors, Droplet, BarChart, Settings, Heart, LucideIcon
 } from "lucide-react";
 
 interface OrganizationModulesTabProps {
@@ -31,6 +31,7 @@ const iconMap: Record<string, LucideIcon> = {
   Droplet,
   BarChart,
   Settings,
+  Heart,
 };
 
 const categoryLabels: Record<string, string> = {

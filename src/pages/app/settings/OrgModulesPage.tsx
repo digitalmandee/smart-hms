@@ -24,6 +24,7 @@ import {
   Wallet,
   Building2,
   UserCog,
+  Heart,
   type LucideIcon,
 } from "lucide-react";
 
@@ -46,6 +47,7 @@ const iconMap: Record<string, LucideIcon> = {
   Wallet,
   Building2,
   UserCog,
+  Heart,
 };
 
 export default function OrgModulesPage() {
