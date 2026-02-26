@@ -51,7 +51,7 @@ export function DonationReceiptPrint({ donation }: Props) {
     queryFn: async () => {
       const { data } = await supabase
         .from("organizations")
-        .select("name, address, phone, email, logo_url, tax_id")
+        .select("name, address, phone, email, logo_url")
         .eq("id", profile?.organization_id!)
         .single();
       return data;
@@ -74,7 +74,7 @@ export function DonationReceiptPrint({ donation }: Props) {
           {org?.phone && <span>Tel: {org.phone}</span>}
           {org?.email && <span>Email: {org.email}</span>}
         </div>
-        {(org as any)?.tax_id && <p className="text-sm">Tax No: {(org as any).tax_id}</p>}
+        {(org as any)?.tax_id && <p className="text-sm">Tax No: {(org as any)?.tax_id}</p>}
       </div>
 
       {/* Title trilingual */}

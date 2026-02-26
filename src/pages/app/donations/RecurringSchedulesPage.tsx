@@ -8,7 +8,7 @@ import { useTranslation } from "@/lib/i18n";
 import { format, isPast, isToday, addDays } from "date-fns";
 
 export default function RecurringSchedulesPage() {
-  const t = useTranslation();
+  const { t } = useTranslation();
   const { data: schedules, isLoading } = useRecurringSchedules();
 
   const getStatus = (nextDue: string, isActive: boolean) => {

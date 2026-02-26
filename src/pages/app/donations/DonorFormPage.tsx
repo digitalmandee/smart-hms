@@ -17,7 +17,7 @@ export default function DonorFormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { profile } = useAuth();
-  const t = useTranslation();
+  const { t } = useTranslation();
   const isEdit = !!id;
   const { data: existing } = useFinancialDonor(id || "");
   const createDonor = useCreateDonor();

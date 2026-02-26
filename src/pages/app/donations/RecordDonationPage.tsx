@@ -18,7 +18,7 @@ const DONATION_TYPES = ["one_time", "recurring", "pledge", "in_kind"];
 export default function RecordDonationPage() {
   const navigate = useNavigate();
   const { profile } = useAuth();
-  const t = useTranslation();
+  const { t } = useTranslation();
   const { data: donors } = useFinancialDonors();
   const createDonation = useCreateDonation();
 

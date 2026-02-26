@@ -12,7 +12,7 @@ import { format } from "date-fns";
 export default function DonorDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const t = useTranslation();
+  const { t } = useTranslation();
   const { data: donor, isLoading } = useFinancialDonor(id!);
   const { data: donations } = useFinancialDonations(id);
   const { data: schedules } = useRecurringSchedules();
@@ -31,11 +31,12 @@ export default function DonorDetailPage() {
           { label: t("donations.donors"), href: "/app/donations/donors" },
           { label: donor.name },
         ]}
-      >
-        <Button onClick={() => navigate(`/app/donations/donors/${id}/edit`)} variant="outline">
-          <Edit className="h-4 w-4 mr-2" /> {t("common.edit")}
-        </Button>
-      </PageHeader>
+        actions={
+          <Button onClick={() => navigate(`/app/donations/donors/${id}/edit`)} variant="outline">
+            <Edit className="h-4 w-4 mr-2" /> {t("common.edit")}
+          </Button>
+        }
+      />
 
       <div className="grid gap-6 md:grid-cols-3">
         {/* Donor Info */}
