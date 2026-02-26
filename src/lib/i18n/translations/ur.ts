@@ -1089,6 +1089,8 @@ export const ur: Record<TranslationKey, string> = {
   "nav.nurseStation": "نرس اسٹیشن",
   "nav.nursingStation": "نرسنگ اسٹیشن",
   "nav.opdDashboard": "OPD ڈیش بورڈ",
+  "nav.pendingCheckout": "زیر التواء چیک آؤٹ",
+  "nav.gynecology": "امراض نسواں",
   "nav.orders": "آرڈرز",
   "nav.otDashboard": "OT ڈیش بورڈ",
   "nav.otMedicationCharges": "OT دوا چارجز",

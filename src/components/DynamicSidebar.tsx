@@ -541,6 +541,8 @@ export const SIDEBAR_NAME_TO_KEY: Record<string, TranslationKey> = {
   "Nurse Station": "nav.nurseStation",
   "Nursing Station": "nav.nursingStation",
   "OPD Dashboard": "nav.opdDashboard",
+  "Pending Checkout": "nav.pendingCheckout",
+  "Gynecology": "nav.gynecology",
   "Orders": "nav.orders",
   "OT Dashboard": "nav.otDashboard",
   "OT Medication Charges": "nav.otMedicationCharges",
