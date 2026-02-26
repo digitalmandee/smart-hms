@@ -1265,6 +1265,10 @@ export const en = {
   "opd.viewFullQueue": "View Full Queue",
   "opd.refresh": "Refresh",
   "opd.bookAppointment": "Book Appointment",
+  "opd.recordVitals": "Record Vitals",
+  "opd.addComplaint": "Add Complaint",
+  "opd.viewStatus": "View Status",
+  "opd.nurseActions": "Nurse Actions",
 
   // OPD Walk-in
   "opd.walkIn.title": "Walk-in Patient Registration",

@@ -12,7 +12,9 @@ import {
   CheckCircle,
   XCircle,
   AlertCircle,
+  Activity,
 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -52,6 +54,8 @@ export default function AppointmentDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { hasRole } = useAuth();
+  const isDoctor = hasRole('doctor') || hasRole('surgeon');
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
 
   const { data: appointment, isLoading } = useAppointment(id || '');
@@ -167,10 +171,17 @@ export default function AppointmentDetailPage() {
       case 'checked_in':
         return (
           <>
-            <Button onClick={() => handleAction('start')}>
-              <Play className="h-4 w-4 mr-2" />
-              Start Consultation
-            </Button>
+            {isDoctor ? (
+              <Button onClick={() => handleAction('start')}>
+                <Play className="h-4 w-4 mr-2" />
+                Start Consultation
+              </Button>
+            ) : (
+              <Button onClick={() => navigate(`/app/opd/vitals?appointmentId=${id}`)}>
+                <Activity className="h-4 w-4 mr-2" />
+                Record Vitals
+              </Button>
+            )}
             <Button variant="outline" onClick={() => handleAction('noShow')}>
               <AlertCircle className="h-4 w-4 mr-2" />
               No Show

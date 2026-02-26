@@ -157,7 +157,7 @@ export function AppointmentCard({
                     Check In
                   </DropdownMenuItem>
                 )}
-                {status === 'checked_in' && onStart && (
+                {status === 'checked_in' && onStart && showConsultButton && (
                   <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onStart(); }}>
                     Start Consultation
                   </DropdownMenuItem>
