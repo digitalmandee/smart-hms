@@ -1,87 +1,93 @@
 
 
-# Verify & Improve OPD Token Flow, Display UI, and Status Updates
+# Add Per-Department OPD Token Display Filtering
 
-## Current State Analysis
+## Problem
 
-After thorough exploration of the codebase, here is what exists and what needs attention:
+Currently, all three display screens (TokenKioskPage, PublicQueueDisplay, QueueDisplayPage) show tokens from ALL OPD departments in a single view. In a hospital with multiple OPD departments (e.g., Medicine, Surgery, Pediatrics), each waiting room TV needs to show only its department's queue.
 
-### Token Generation (Walk-In Page)
-- **Works**: `OPDWalkInPage.tsx` has a 4-step wizard (Patient → Doctor → Payment → Complete) that creates appointments with auto-generated `token_number` via DB trigger `generate_opd_token`
-- **Works**: Token display shows `tokenDisplay` (e.g., `MED-001`) when OPD department is linked, falls back to raw number
-- **Works**: Print token slip and receipt supported via `PrintableTokenSlip` component
-- **Issue**: No appointments exist today (DB query returned empty), so token screens show empty states
+## Current State
 
-### Token Display Screens
-Three separate display pages exist:
-1. **`QueueDisplayPage.tsx`** (internal, at `/app/appointments/queue-display`) -- Uses `useTodayQueue` with real-time Supabase subscriptions, shows "Now Serving" / "Next Up" split, supports OPD department filtering and fullscreen
-2. **`TokenKioskPage.tsx`** (at `/app/appointments/token-display`) -- Simpler TV display with dark/light mode, audio toggle, priority coloring
-3. **`PublicQueueDisplay.tsx`** -- Public-facing, no auth required
-
-### Status Flow Issues Found
-- **ConsultationPage.tsx** (line 91-98): Auto-updates appointment to `in_progress` when doctor opens it -- this is correct
-- **ConsultationPage.tsx** (line 182-186): Updates to `completed` when consultation is finished -- correct
-- **DoctorDashboard.tsx** (line 78-86): Clicking a `checked_in` patient sets it to `in_progress` and navigates to consultation -- correct
-- **Token Display** (`QueueDisplayPage`): Filters `checked_in` and `in_progress` from `useTodayQueue`, shows `in_progress` as "Now Serving" and `checked_in` as "Next Up" -- correct
-- **Gap**: The `TokenKioskPage` and `QueueDisplayPage` don't show `completed` status at all -- once done, patients just disappear from the display. No "completed" flash or transition feedback.
-
-### UI/Branding Issues
-1. **TokenKioskPage** uses hardcoded "OPD Token Display" title instead of organization name
-2. **TokenKioskPage** doesn't use OPD department codes in token display (just raw `token_number`)
-3. **TokenKioskPage** doesn't use the `OPDTokenBadge` component or `formatTokenDisplay` helper
-4. **QueueDisplayPage** is well-designed but token numbers inside circles can overflow for department-prefixed tokens (e.g., `SURG-015` in a `w-24 h-24` circle)
-5. Neither display page shows payment status or any branding colors from the organization
-6. **PrintableTokenSlip** (appointments version) doesn't use department-prefixed display format
-
----
+- `useTodayQueue` already accepts an `opdDepartmentId` parameter and filters correctly
+- `QueueDisplayPage` has an `OPDDepartmentSelector` dropdown for manual filtering (internal use)
+- `TokenKioskPage` does NOT accept any department filter -- shows everything
+- `PublicQueueDisplay` does NOT filter by department -- shows everything
+- `KioskSetupPage` generates 3 static URLs (OPD display, ER display, Kiosk) with no department awareness
+- `usePublicOPDQueue` in `usePublicQueue.ts` does not filter by department or include department data in the select
+- No OPD departments currently exist in the database (tables are empty), but the schema and code fully support them
 
 ## Proposed Changes
 
-### 1. Simplify & Brand the Token Display (`TokenKioskPage.tsx`)
-- Replace hardcoded "OPD Token Display" with organization name from `useOrganization`
-- Show organization logo in header
-- Use `formatTokenDisplay` for department-prefixed tokens instead of raw `token_number`
-- Add OPD department badge/name next to doctor info
-- Add a "Just Completed" row that shows the last 3 completed patients for 2 minutes (flash effect) so patients see their consultation ended
-- Use branded primary color from organization theme
-- Add real-time subscription (like QueueDisplayPage has) for instant updates
+### 1. Add Public Route with Department Code (`App.tsx`)
 
-### 2. Improve QueueDisplayPage Token Circles
-- Make token circles wider for department-prefixed codes (use `min-w` instead of fixed `w-24`)
-- Add status badge ("In Consultation" / "Waiting") next to patient name
-- Add a "Recently Completed" section at the bottom showing last 3 completed tokens with checkmark
-- Add organization logo to header
+Add a new route:
+```
+/display/queue/:organizationId/:deptCode
+```
+This sits alongside the existing `/display/queue/:organizationId` (all departments). The `deptCode` is the short code like `MED`, `SURG`, `PED` -- human-readable and easy to set up on a TV.
 
-### 3. Fix PrintableTokenSlip (Appointments Version)
-- Use `formatTokenDisplay` to show department-prefixed token (currently just shows raw number)
-- Add department name below "OPD TOKEN" title
+### 2. Update `PublicQueueDisplay.tsx` -- Accept Optional `deptCode` Param
 
-### 4. Add Completed Status Flash on Displays
-- When consultation ends (status changes to `completed`), show the token briefly in a "Completed" section with green checkmark for ~60 seconds before removing
-- This gives visual feedback to the patient and waiting area that the consultation has ended
+- Read `deptCode` from `useParams` (optional)
+- If present, look up the `opd_departments` row by `code` + `organization_id` to get the department ID
+- Pass `opd_department_id` filter to the appointments query
+- Include `opd_department` in the select for token formatting
+- Show department name/color in the header (e.g., "Medicine OPD" with the department's color accent)
+- Use `formatTokenDisplay` for department-prefixed tokens
 
-### 5. Trilingual Translation Keys
-Add new keys for:
-- `opd.nowServing`, `opd.nextUp`, `opd.recentlyCompleted`, `opd.inConsultation`, `opd.waitingForDoctor`, `opd.consultationComplete`
+### 3. Update `usePublicQueue.ts` -- Add Department Filter
 
----
+- Add optional `opdDepartmentId` parameter to `usePublicOPDQueue`
+- Add `opd_department:opd_departments(id, name, code, color)` to the select
+- When `opdDepartmentId` is provided, add `.eq("opd_department_id", opdDepartmentId)` filter
+- Add new `usePublicOPDDepartments(organizationId)` hook to fetch active departments for an org (used by KioskSetupPage)
+
+### 4. Update `TokenKioskPage.tsx` -- Add Department Selector
+
+- Add `OPDDepartmentSelector` dropdown in the header (like QueueDisplayPage already has)
+- Pass selected `opdDepartmentId` to `useTodayQueue`
+- Show department name and color accent in the header when filtered
+- When filtered, the "waiting" count and queue only show that department's patients
+
+### 5. Update `KioskSetupPage.tsx` -- Generate Per-Department URLs
+
+- Fetch active OPD departments using `useOPDDepartments`
+- Under the existing "OPD Queue Display (TV)" card, add a new section: **"Department-Specific Displays"**
+- For each active department, show a card with:
+  - Department name, code, color badge
+  - URL: `/display/queue/:orgId/:deptCode`
+  - Copy and Preview buttons
+- If no departments are configured, show a note: "No OPD departments configured. Go to Settings > OPD Departments to add them. Without departments, the main OPD display URL shows all tokens."
+- Keep the "All Departments" URL as the first option
+
+### 6. Trilingual Translation Keys
+
+Add keys:
+- `opd.allDepartments` -- "All Departments" / "تمام شعبے" / "جميع الأقسام"
+- `opd.departmentDisplay` -- "Department Display" / "شعبہ ڈسپلے" / "عرض القسم"  
+- `opd.noDepartmentsConfigured` -- "No OPD departments configured" / etc.
 
 ## Files Summary
 
 | File | Action |
 |------|--------|
-| `src/pages/app/appointments/TokenKioskPage.tsx` | **EDIT** -- Add org branding, department-prefixed tokens, completed flash, real-time subscription |
-| `src/pages/app/appointments/QueueDisplayPage.tsx` | **EDIT** -- Fix token circle sizing, add org logo, add "Recently Completed" section |
-| `src/components/appointments/PrintableTokenSlip.tsx` | **EDIT** -- Use `formatTokenDisplay` for department-prefixed token display |
-| `src/lib/i18n/translations/en.ts` | **EDIT** -- Add ~6 new translation keys |
-| `src/lib/i18n/translations/ar.ts` | **EDIT** -- Add ~6 new translation keys |
-| `src/lib/i18n/translations/ur.ts` | **EDIT** -- Add ~6 new translation keys |
+| `src/App.tsx` | **EDIT** -- Add route `/display/queue/:organizationId/:deptCode` |
+| `src/pages/public/PublicQueueDisplay.tsx` | **EDIT** -- Read `deptCode` param, resolve to department ID, filter query, show dept branding, use `formatTokenDisplay` |
+| `src/hooks/usePublicQueue.ts` | **EDIT** -- Add `opdDepartmentId` filter to `usePublicOPDQueue`, add `opd_department` to select, add `usePublicOPDDepartments` hook |
+| `src/pages/app/appointments/TokenKioskPage.tsx` | **EDIT** -- Add `OPDDepartmentSelector` in header, pass to `useTodayQueue` |
+| `src/pages/app/appointments/KioskSetupPage.tsx` | **EDIT** -- Fetch departments, generate per-department URLs with copy/preview |
+| `src/lib/i18n/translations/en.ts` | **EDIT** -- Add 3 keys |
+| `src/lib/i18n/translations/ar.ts` | **EDIT** -- Add 3 keys |
+| `src/lib/i18n/translations/ur.ts` | **EDIT** -- Add 3 keys |
 
-### Technical Details
+## Technical Details
 
-**Recently Completed Feature**: Both display pages will query appointments with `status = 'completed'` and `updated_at > NOW() - 2 minutes` to show a brief "completed" flash. This uses the existing `useTodayQueue` pattern but with a separate query for completed appointments.
+**Department Code Lookup** (in PublicQueueDisplay): Since the public route uses `deptCode` (e.g., `MED`) rather than UUID, the component will do a one-time lookup:
+```sql
+SELECT id, name, code, color FROM opd_departments 
+WHERE code = :deptCode AND organization_id = :orgId AND is_active = true
+```
+This result is cached with `staleTime: 5min` since department config rarely changes.
 
-**Real-time on TokenKioskPage**: Currently uses polling (`setInterval` every 10s). Will add Supabase `postgres_changes` subscription like `QueueDisplayPage` already has for instant updates.
-
-**Token Circle Overflow Fix**: Change from fixed `w-24 h-24 rounded-full` to `min-w-[6rem] h-24 rounded-2xl px-3` for the "Now Serving" token display to accommodate longer department-prefixed codes.
+**No Migration Needed**: The `opd_departments` table and `opd_department_id` column on `appointments` already exist. This is purely a frontend routing and filtering change.
 
