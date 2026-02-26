@@ -1,35 +1,15 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Maximize, RefreshCw, Volume2, VolumeX } from "lucide-react";
 import { format } from "date-fns";
-import { usePublicOPDDepartmentByCode } from "@/hooks/usePublicQueue";
+import {
+  usePublicOPDDepartmentByCode,
+  usePublicOPDQueue,
+  useOrganizationPublic,
+} from "@/hooks/usePublicQueue";
 import { formatTokenDisplay } from "@/lib/opd-token";
-
-interface QueuePatient {
-  id: string;
-  token_number: number | null;
-  priority: number | null;
-  status: string | null;
-  patient: {
-    first_name: string;
-    last_name: string | null;
-  } | null;
-  doctor: {
-    profile: {
-      full_name: string;
-    };
-    specialization: string | null;
-  } | null;
-  opd_department: {
-    id: string;
-    name: string;
-    code: string;
-    color: string | null;
-  } | null;
-}
 
 const priorityConfig: Record<number, { bg: string; text: string; label: string }> = {
   0: { bg: "bg-green-500", text: "text-green-50", label: "Normal" },
@@ -39,10 +19,7 @@ const priorityConfig: Record<number, { bg: string; text: string; label: string }
 
 export default function PublicQueueDisplay() {
   const { organizationId, deptCode } = useParams<{ organizationId: string; deptCode?: string }>();
-  const [queue, setQueue] = useState<QueuePatient[]>([]);
-  const [orgName, setOrgName] = useState<string>("");
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [isLoading, setIsLoading] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [audioEnabled, setAudioEnabled] = useState(false);
   const [lastToken, setLastToken] = useState<number | null>(null);
@@ -50,99 +27,29 @@ export default function PublicQueueDisplay() {
   // Resolve deptCode to department
   const { data: department } = usePublicOPDDepartmentByCode(organizationId, deptCode);
 
-  // Fetch organization name
-  useEffect(() => {
-    if (!organizationId) return;
+  // Fetch org name
+  const { data: org } = useOrganizationPublic(organizationId);
 
-    const fetchOrg = async () => {
-      const { data } = await supabase
-        .from("organizations")
-        .select("name")
-        .eq("id", organizationId)
-        .single();
-      
-      if (data) setOrgName(data.name);
-    };
-
-    fetchOrg();
-  }, [organizationId]);
-
-  // Fetch queue data
-  const fetchQueue = async () => {
-    if (!organizationId) return;
-    // If deptCode is provided but department hasn't resolved yet, wait
-    if (deptCode && !department) return;
-
-    const today = new Date().toISOString().split("T")[0];
-    
-    let query = supabase
-      .from("appointments")
-      .select(`
-        id,
-        token_number,
-        priority,
-        status,
-        patient:patients(first_name, last_name),
-        doctor:doctors(specialization, profile:profiles(full_name)),
-        opd_department:opd_departments(id, name, code, color)
-      `)
-      .eq("organization_id", organizationId)
-      .eq("appointment_date", today)
-      .in("status", ["checked_in", "in_progress"])
-      .order("priority", { ascending: false })
-      .order("token_number", { ascending: true });
-
-    if (department) {
-      query = query.eq("opd_department_id", department.id);
-    }
-
-    const { data, error } = await query;
-
-    if (!error && data) {
-      setQueue(data as unknown as QueuePatient[]);
-      setIsLoading(false);
-
-      // Audio announcement for new "in_progress" token
-      const inProgress = data.find((d: any) => d.status === "in_progress");
-      if (inProgress && audioEnabled && (inProgress as any).token_number !== lastToken) {
-        speakToken((inProgress as any).token_number || 0);
-        setLastToken((inProgress as any).token_number);
-      }
-    }
-  };
-
-  // Initial fetch and real-time subscription
-  useEffect(() => {
-    fetchQueue();
-
-    const channel = supabase
-      .channel("public-queue-realtime")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "appointments",
-        },
-        () => {
-          fetchQueue();
-        }
-      )
-      .subscribe();
-
-    const interval = setInterval(fetchQueue, 10000);
-
-    return () => {
-      supabase.removeChannel(channel);
-      clearInterval(interval);
-    };
-  }, [organizationId, department]);
+  // Use the shared hook — auto-polls every 5s, no manual interval needed
+  const { data: queue = [], isLoading } = usePublicOPDQueue(
+    organizationId,
+    deptCode ? department?.id : undefined
+  );
 
   // Clock update
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  // Audio announcement on new in_progress token
+  useEffect(() => {
+    const inProgress = queue.find((q: any) => q.status === "in_progress");
+    if (inProgress && audioEnabled && (inProgress as any).token_number !== lastToken) {
+      speakToken((inProgress as any).token_number || 0);
+      setLastToken((inProgress as any).token_number);
+    }
+  }, [queue, audioEnabled, lastToken]);
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -165,15 +72,16 @@ export default function PublicQueueDisplay() {
     }
   };
 
-  const getTokenStr = (patient: QueuePatient) => {
-    const deptCode = patient.opd_department?.code || department?.code;
-    return formatTokenDisplay(patient.token_number || 0, deptCode);
+  const getTokenStr = (patient: any) => {
+    const code = patient.opd_department?.code || department?.code;
+    return formatTokenDisplay(patient.token_number || 0, code);
   };
 
-  const nowServing = queue.filter((q) => q.status === "in_progress");
-  const waiting = queue.filter((q) => q.status === "checked_in").slice(0, 8);
+  const nowServing = queue.filter((q: any) => q.status === "in_progress");
+  const waiting = queue.filter((q: any) => q.status === "checked_in").slice(0, 8);
 
   const deptColor = department?.color;
+  const orgName = org?.name || "";
   const headerTitle = department
     ? `${orgName || "Hospital"} — ${department.name}`
     : orgName || "Hospital";
@@ -231,14 +139,6 @@ export default function PublicQueueDisplay() {
             <Button
               variant="outline"
               size="icon"
-              onClick={fetchQueue}
-              className="border-slate-600 bg-slate-800 hover:bg-slate-700"
-            >
-              <RefreshCw className="h-5 w-5 text-slate-400" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
               onClick={toggleFullscreen}
               className="border-slate-600 bg-slate-800 hover:bg-slate-700"
             >
@@ -260,7 +160,7 @@ export default function PublicQueueDisplay() {
 
           {nowServing.length > 0 ? (
             <div className="space-y-6">
-              {nowServing.map((patient) => {
+              {nowServing.map((patient: any) => {
                 const priority = patient.priority || 0;
                 const config = priorityConfig[priority] || priorityConfig[0];
                 const patientDeptColor = patient.opd_department?.color || deptColor;
@@ -310,7 +210,7 @@ export default function PublicQueueDisplay() {
 
           {waiting.length > 0 ? (
             <div className="space-y-3 overflow-y-auto max-h-[calc(100vh-300px)]">
-              {waiting.map((patient, index) => {
+              {waiting.map((patient: any, index: number) => {
                 const priority = patient.priority || 0;
                 const config = priorityConfig[priority] || priorityConfig[0];
 

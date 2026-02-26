@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { format } from 'date-fns';
-import { Users, Clock, RefreshCw, Maximize, Minimize, ArrowLeft, AlertTriangle, Volume2 } from 'lucide-react';
+import { Users, Clock, RefreshCw, Maximize, Minimize, ArrowLeft, AlertTriangle, Volume2, CheckCircle2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,8 +10,10 @@ import { useOPDDepartments } from '@/hooks/useOPDDepartments';
 import { OPDDepartmentSelector } from '@/components/opd/OPDDepartmentSelector';
 import { OPDTokenBadge } from '@/components/opd/OPDDepartmentBadge';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTranslation } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
+import { formatTokenDisplay } from '@/lib/opd-token';
 
 const priorityConfig: Record<number, { bg: string; text: string; label: string; borderColor: string }> = {
   0: { bg: 'bg-success/10', text: 'text-success', label: 'Normal', borderColor: 'border-success/30' },
@@ -21,6 +23,7 @@ const priorityConfig: Record<number, { bg: string; text: string; label: string; 
 
 export default function QueueDisplayPage() {
   const { profile } = useAuth();
+  const { t } = useTranslation();
   const [selectedDepartmentId, setSelectedDepartmentId] = useState<string | undefined>();
   const { data: queue, refetch } = useTodayQueue(undefined, undefined, selectedDepartmentId);
   const { data: organization } = useOrganization(profile?.organization_id ?? undefined);
@@ -29,6 +32,7 @@ export default function QueueDisplayPage() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const prevServingRef = useRef<string | null>(null);
   const [tokenChanged, setTokenChanged] = useState(false);
+  const [recentlyCompleted, setRecentlyCompleted] = useState<any[]>([]);
 
   // Get selected department info
   const selectedDepartment = departments?.find(d => d.id === selectedDepartmentId);
@@ -47,20 +51,38 @@ export default function QueueDisplayPage() {
     const channel = supabase
       .channel('queue-display-updates')
       .on('postgres_changes', {
-        event: 'UPDATE',
+        event: '*',
         schema: 'public',
         table: 'appointments',
         filter: `appointment_date=eq.${today}`,
-      }, () => {
+      }, async (payload) => {
         refetch();
-      })
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'appointments',
-        filter: `appointment_date=eq.${today}`,
-      }, () => {
-        refetch();
+        // Track recently completed with full joins
+        if (payload.eventType === 'UPDATE' && (payload.new as any).status === 'completed') {
+          const completedId = (payload.new as any).id;
+          try {
+            const { data } = await supabase
+              .from('appointments')
+              .select(`
+                id, token_number, status,
+                opd_department:opd_departments(code, name, color),
+                patient:patients(first_name, last_name, patient_number),
+                doctor:doctors(specialization, profile:profiles(full_name))
+              `)
+              .eq('id', completedId)
+              .single();
+
+            if (data) {
+              setRecentlyCompleted(prev => {
+                const updated = [data as any, ...prev.filter((p: any) => p.id !== completedId)].slice(0, 3);
+                return updated;
+              });
+              setTimeout(() => {
+                setRecentlyCompleted(prev => prev.filter((p: any) => p.id !== completedId));
+              }, 120000);
+            }
+          } catch { /* ignore */ }
+        }
       })
       .subscribe();
 
@@ -194,7 +216,7 @@ export default function QueueDisplayPage() {
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-3">
             <AlertTriangle className="h-5 w-5 text-destructive animate-pulse" />
-            <h2 className="text-xl font-semibold text-destructive">Emergency Patients</h2>
+            <h2 className="text-xl font-semibold text-destructive">{t("opd.emergencyPatients" as any, "Emergency Patients")}</h2>
           </div>
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
             {emergencies.map((appointment) => {
@@ -229,7 +251,7 @@ export default function QueueDisplayPage() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
               <span className="relative inline-flex rounded-full h-4 w-4 bg-primary"></span>
             </span>
-            <h2 className="text-xl lg:text-2xl font-semibold">Now Serving</h2>
+            <h2 className="text-xl lg:text-2xl font-semibold">{t("opd.nowServing")}</h2>
           </div>
 
           {nowServing.length === 0 ? (
@@ -318,15 +340,37 @@ export default function QueueDisplayPage() {
           )}
         </div>
 
-        {/* Next Up Section */}
+        {/* Recently Completed */}
+        {recentlyCompleted.length > 0 && (
+          <div className="lg:col-span-2 mt-2">
+            <div className="flex items-center gap-2 mb-3 text-sm font-semibold uppercase tracking-wide text-primary">
+              <CheckCircle2 className="h-4 w-4" />
+              {t("opd.recentlyCompleted")}
+            </div>
+            <div className="flex gap-3">
+              {recentlyCompleted.map((patient: any) => (
+                <div key={patient.id} className="rounded-xl border bg-success/5 border-success/20 px-4 py-3 flex items-center gap-3 animate-in fade-in duration-500">
+                  <CheckCircle2 className="h-5 w-5 text-success" />
+                  <span className="font-mono font-bold text-lg">
+                    {formatTokenDisplay(patient.token_number, patient.opd_department?.code)}
+                  </span>
+                  <span className="text-sm text-muted-foreground">
+                    {t("opd.consultationComplete")}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Users className="h-5 w-5 text-muted-foreground" />
-              <h2 className="text-xl lg:text-2xl font-semibold">Next Up</h2>
+              <h2 className="text-xl lg:text-2xl font-semibold">{t("opd.nextUp")}</h2>
             </div>
             <Badge variant="secondary" className="text-base">
-              {waiting.length} waiting
+              {waiting.length} {t("opd.waiting")}
             </Badge>
           </div>
 
@@ -335,8 +379,8 @@ export default function QueueDisplayPage() {
               <CardContent className="py-12 lg:py-16 text-center">
                 <div className="text-muted-foreground">
                   <Users className="h-12 w-12 mx-auto mb-3 opacity-30" />
-                  <p className="text-lg lg:text-xl">No patients waiting</p>
-                  <p className="text-sm mt-1">Queue is clear</p>
+                  <p className="text-lg lg:text-xl">{t("opd.noPatientsWaitingQueue" as any, "No patients waiting")}</p>
+                  <p className="text-sm mt-1">{t("opd.queueIsClear" as any, "Queue is clear")}</p>
                 </div>
               </CardContent>
             </Card>
@@ -407,7 +451,7 @@ export default function QueueDisplayPage() {
                         )}
                         {index === 0 && (
                           <Badge variant="default" className="shrink-0">
-                            Next
+                            {t("common.next")}
                           </Badge>
                         )}
                       </div>
@@ -419,7 +463,7 @@ export default function QueueDisplayPage() {
               {waiting.length > 5 && (
                 <div className="text-center py-3">
                   <Badge variant="outline" className="text-base px-4 py-1">
-                    +{waiting.length - 5} more in queue
+                    +{waiting.length - 5} {t("opd.moreInQueue" as any, "more in queue")}
                   </Badge>
                 </div>
               )}
