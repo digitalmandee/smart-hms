@@ -1,54 +1,30 @@
 
 
-# Complete Remaining Donation Management Module
+# Enable Donations Module and Test End-to-End
 
-## What's Done
-- Database: 4 tables, triggers, RLS, journal integration -- all deployed
-- Module + menu items registered in DB
-- Hooks: `useDonations.ts` -- complete
-- All 7 pages created and working (build errors fixed)
-- Translations: ~80 keys in en/ar/ur -- done
-- `DonationReceiptPrint.tsx` component -- done
+## Current State
+- The `donations` module exists in `available_modules` (id: `a2113e0c-48f3-40d1-8393-2404c4acc383`)
+- No record exists in `organization_modules` for org `b1111111-1111-1111-1111-111111111111` with `module_code = 'donations'`
+- This is why the sidebar items are hidden -- the module filter correctly excludes them
 
-## What's Missing
+## Implementation Steps
 
-### 1. Routes in `App.tsx`
-No donation routes exist. Need to add 7 routes and their lazy imports:
-
-```
-donations                → DonationDashboard
-donations/donors         → DonorsListPage
-donations/donors/new     → DonorFormPage
-donations/donors/:id     → DonorDetailPage
-donations/record         → RecordDonationPage
-donations/receipt/:id    → DonationReceiptPage
-donations/recurring      → RecurringSchedulesPage
+### 1. Enable the Module (Data Insert)
+Insert a row into `organization_modules`:
+```sql
+INSERT INTO organization_modules (organization_id, module_code, is_enabled, enabled_at)
+VALUES ('b1111111-1111-1111-1111-111111111111', 'donations', true, now());
 ```
 
-### 2. Sidebar Name Mappings in `DynamicSidebar.tsx`
-The menu items in the DB have names "Dashboard", "Donors", "Record Donation", "Recurring Schedules" under the "Donation Management" parent. Need to add mappings so the sidebar renders translated labels:
+### 2. Manual End-to-End Testing
+After enabling, log in as `branch_admin` and verify:
 
-- "Donation Management" → `nav.donationManagement` (parent)
-- "Record Donation" → `nav.recordDonation`
-- "Recurring Schedules" → `nav.recurringSchedules`
+1. **Sidebar visibility** -- "Donation Management" parent with 4 children (Dashboard, Donors, Record Donation, Recurring Schedules) should appear
+2. **Donation Dashboard** (`/app/donations`) -- Cards showing 0 totals initially
+3. **Register a Donor** (`/app/donations/donors/new`) -- Fill in name, type, phone, etc. and submit
+4. **Record a Donation** (`/app/donations/record`) -- Select the new donor, enter amount, purpose (e.g. Zakat), payment method, submit
+5. **View Receipt** -- Navigate to receipt page for the created donation, verify trilingual print layout
+6. **Dashboard Stats** -- Return to dashboard, confirm total received and this month stats updated
 
-Note: "Dashboard" and "Donors" may already have generic mappings.
-
-### 3. Heart Icon in OrgModulesPage + ModuleCatalogPage
-The module was registered with icon `Heart`, but neither `OrgModulesPage.tsx` nor `ModuleCatalogPage.tsx` have `Heart` in their icon maps. Need to add `Heart` import and mapping in both files.
-
-### 4. Navigation Translation Keys
-Need to add `nav.donationManagement`, `nav.recordDonation`, `nav.recurringSchedules` to en/ar/ur translation files.
-
-## Files to Edit
-
-| File | Changes |
-|------|---------|
-| `src/App.tsx` | Add 7 imports + 7 routes for `/app/donations/*` |
-| `src/components/DynamicSidebar.tsx` | Add 3 sidebar name-to-key mappings |
-| `src/pages/app/settings/OrgModulesPage.tsx` | Import `Heart`, add to `iconMap` |
-| `src/pages/super-admin/ModuleCatalogPage.tsx` | Import `Heart`, add to `iconMap` |
-| `src/lib/i18n/translations/en.ts` | Add 3 nav keys |
-| `src/lib/i18n/translations/ar.ts` | Add 3 nav keys |
-| `src/lib/i18n/translations/ur.ts` | Add 3 nav keys |
+No code changes are needed -- only the data insert to enable the module.
 
