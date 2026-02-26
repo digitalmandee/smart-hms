@@ -1087,6 +1087,8 @@ export const en = {
   "nav.nurseStation": "Nurse Station",
   "nav.nursingStation": "Nursing Station",
   "nav.opdDashboard": "OPD Dashboard",
+  "nav.pendingCheckout": "Pending Checkout",
+  "nav.gynecology": "Gynecology",
   "nav.orders": "Orders",
   "nav.otDashboard": "OT Dashboard",
   "nav.otMedicationCharges": "OT Medication Charges",

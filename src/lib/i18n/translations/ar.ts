@@ -1089,6 +1089,8 @@ export const ar: Record<TranslationKey, string> = {
   "nav.nurseStation": "محطة التمريض",
   "nav.nursingStation": "محطة التمريض",
   "nav.opdDashboard": "لوحة العيادات الخارجية",
+  "nav.pendingCheckout": "الخروج المعلق",
+  "nav.gynecology": "أمراض النساء",
   "nav.orders": "الطلبات",
   "nav.otDashboard": "لوحة غرفة العمليات",
   "nav.otMedicationCharges": "رسوم أدوية العمليات",
