@@ -9,7 +9,7 @@ import {
   Stethoscope, Pill, FlaskConical, Scan, Building2,
   HeartPulse, Droplet, Scissors, Users, Receipt,
   Package, Calculator, LayoutDashboard, Settings,
-  ClipboardList, Ambulance, Baby, Shield, Calendar
+  ClipboardList, Ambulance, Baby, Shield, Calendar, Heart
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -33,6 +33,7 @@ const iconMap: Record<string, LucideIcon> = {
   Baby,
   Shield,
   Calendar,
+  Heart,
 };
 
 export function ModuleCatalogPage() {
