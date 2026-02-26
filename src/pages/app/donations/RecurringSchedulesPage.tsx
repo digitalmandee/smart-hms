@@ -1,15 +1,33 @@
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CalendarClock, AlertTriangle } from "lucide-react";
-import { useRecurringSchedules } from "@/hooks/useDonations";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { CalendarClock, AlertTriangle, Plus } from "lucide-react";
+import { useRecurringSchedules, useCreateRecurringSchedule, useFinancialDonors } from "@/hooks/useDonations";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslation } from "@/lib/i18n";
+import { useAuth } from "@/contexts/AuthContext";
 import { format, isPast, isToday, addDays } from "date-fns";
+import { useState } from "react";
+
+const FREQUENCIES = ["weekly", "monthly", "quarterly", "semi_annual", "annually"];
+const PURPOSES = ["general", "building_fund", "equipment", "patient_welfare", "zakat", "sadaqah", "fitrana", "other"];
 
 export default function RecurringSchedulesPage() {
   const { t } = useTranslation();
+  const { profile } = useAuth();
   const { data: schedules, isLoading } = useRecurringSchedules();
+  const { data: donors } = useFinancialDonors();
+  const createSchedule = useCreateRecurringSchedule();
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState({
+    donor_id: "", amount: "", frequency: "monthly", purpose: "general",
+    start_date: new Date().toISOString().split("T")[0],
+  });
 
   const getStatus = (nextDue: string, isActive: boolean) => {
     if (!isActive) return "inactive";
@@ -22,11 +40,26 @@ export default function RecurringSchedulesPage() {
   };
 
   const statusColor: Record<string, string> = {
-    overdue: "destructive",
-    due_today: "default",
-    upcoming: "secondary",
-    active: "outline",
-    inactive: "secondary",
+    overdue: "destructive", due_today: "default", upcoming: "secondary", active: "outline", inactive: "secondary",
+  };
+
+  const handleCreate = async () => {
+    if (!form.donor_id || !form.amount) return;
+    await createSchedule.mutateAsync({
+      organization_id: profile?.organization_id,
+      donor_id: form.donor_id,
+      amount: Number(form.amount),
+      frequency: form.frequency,
+      purpose: form.purpose,
+      start_date: form.start_date,
+      next_due_date: form.start_date,
+      is_active: true,
+      total_collected: 0,
+      installments_paid: 0,
+      reminder_days_before: 3,
+    });
+    setOpen(false);
+    setForm({ donor_id: "", amount: "", frequency: "monthly", purpose: "general", start_date: new Date().toISOString().split("T")[0] });
   };
 
   return (
@@ -38,6 +71,60 @@ export default function RecurringSchedulesPage() {
           { label: t("donations.title"), href: "/app/donations" },
           { label: t("donations.recurringSchedules") },
         ]}
+        actions={
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button><Plus className="h-4 w-4 mr-2" />{t("donations.addSchedule")}</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader><DialogTitle>{t("donations.createSchedule")}</DialogTitle></DialogHeader>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>{t("donations.selectDonor")} *</Label>
+                  <Select value={form.donor_id} onValueChange={(v) => setForm({ ...form, donor_id: v })}>
+                    <SelectTrigger><SelectValue placeholder={t("donations.selectDonor")} /></SelectTrigger>
+                    <SelectContent>
+                      {donors?.map((d) => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>{t("donations.amount")} *</Label>
+                    <Input type="number" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>{t("donations.frequency.monthly")}</Label>
+                    <Select value={form.frequency} onValueChange={(v) => setForm({ ...form, frequency: v })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {FREQUENCIES.map((f) => <SelectItem key={f} value={f}>{t(`donations.frequency.${f}` as any)}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>{t("donations.purposeLabel")}</Label>
+                    <Select value={form.purpose} onValueChange={(v) => setForm({ ...form, purpose: v })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {PURPOSES.map((p) => <SelectItem key={p} value={p}>{t(`donations.purpose.${p}` as any)}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>{t("donations.startDate")}</Label>
+                    <Input type="date" value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value })} />
+                  </div>
+                </div>
+                <Button onClick={handleCreate} disabled={createSchedule.isPending} className="w-full">
+                  {t("common.save")}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        }
       />
 
       {isLoading ? (
