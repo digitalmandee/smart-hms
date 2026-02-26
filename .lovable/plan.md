@@ -1,103 +1,60 @@
 
 
-# Evaluation: OPD Token Flow, Display UI, and Multi-Department Filtering
+# OPD Menu Assessment
 
-## Overall Assessment
+## Current OPD Menu Items (Active)
 
-The implementation is **well-structured and complete** from a code perspective. All the planned features have been implemented correctly. However, there are several issues that prevent real verification and a few code-level improvements needed.
+| # | Menu Item | Path | Status |
+|---|-----------|------|--------|
+| 1 | OPD Dashboard | `/app/opd/admin-dashboard` | Active |
+| 2 | Walk-in Registration | `/app/opd/walk-in` | Active |
+| 3 | Doctor Dashboard | `/app/opd` | Active |
+| 4 | Nurse Station | `/app/opd/nursing` | Active |
+| 5 | History | `/app/opd/history` | Active |
+| 6 | OPD Orders | `/app/opd/orders` | Active |
+| 7 | OPD Checkout | `/app/opd/checkout` | Active |
+| 8 | Doctor Reports | `/app/opd/reports` | Active |
+| 9 | AI Assistant | `/app/ai-chat` | Active |
 
----
+## Pages That Exist But Have No Menu Entry
 
-## What Works Well
+| Page | Route | Notes |
+|------|-------|-------|
+| **OPD Vitals** | `/app/opd/vitals` | Nurses record vitals -- accessed from queue, but no direct menu link |
+| **Pending Checkout** | `/app/opd/pending-checkout` | Lists patients needing checkout after consultation -- no menu shortcut |
+| **Gynecology Dashboard** | `/app/opd/gynecology` | Specialized OPD view -- no menu entry at all |
 
-1. **Token Generation Flow** -- `OPDWalkInPage` wizard with 4-step flow (Patient, Doctor, Payment, Complete) is fully wired. Token numbers auto-generate via DB trigger `generate_opd_token`. Department-prefixed tokens (e.g., `MED-001`) are supported via `formatTokenDisplay`.
+## Disabled Menu Items (in DB but `is_active = false`)
 
-2. **Three Display Screens** -- All three display pages exist and are functional:
-   - `TokenKioskPage` (internal, auth-required) -- has real-time Supabase subscription, dark/light mode, audio chime, department selector, recently completed section
-   - `QueueDisplayPage` (internal) -- has department selector, priority indicators, fullscreen, real-time subscription
-   - `PublicQueueDisplay` (public, no auth) -- supports `deptCode` URL param, resolves to department ID, department branding
+| Item | Path | Notes |
+|------|------|-------|
+| Token Queue | `/app/appointments/queue` | Old token display, replaced by kiosk setup |
+| Nurse Station (duplicate) | `/app/opd/nursing` | Duplicate entry, correctly disabled |
 
-3. **Routing** -- Both routes exist in `App.tsx`:
-   - `/display/queue/:organizationId` (all departments)
-   - `/display/queue/:organizationId/:deptCode` (specific department)
+## Token Display Items (Under Appointments, Not OPD)
 
-4. **KioskSetupPage** -- Generates per-department URLs with copy/preview buttons. Shows "no departments configured" message when empty.
+These exist under the **Appointments** parent menu, not OPD:
+- **Token Display Setup** → `/app/appointments/token-display`
+- **Token Kiosk** → `/app/appointments/kiosk-setup`
 
-5. **Hooks** -- `usePublicOPDQueue` supports optional `opdDepartmentId` filter. `usePublicOPDDepartmentByCode` resolves code to ID. All hooks include `opd_department` in their select queries.
+## Proposed Changes
 
-6. **Translations** -- All 8+ keys exist in en/ar/ur for `opd.nowServing`, `opd.nextUp`, `opd.recentlyCompleted`, `opd.inConsultation`, `opd.consultationComplete`, `opd.allDepartments`, `opd.departmentDisplay`, `opd.noDepartmentsConfigured`, `opd.departmentSpecificDisplays`.
+Add 3 missing menu items to the `menu_items` table:
 
-7. **PrintableTokenSlip** -- Accepts `departmentCode` and `departmentName` props. Uses `formatTokenDisplay` for prefixed tokens.
+1. **Vitals** → `/app/opd/vitals` (sort_order: 3.5, between Nurse Station and History) -- useful for nurses to jump directly to vitals recording
+2. **Pending Checkout** → `/app/opd/pending-checkout` (sort_order: 7.5, before OPD Checkout) -- staff need quick access to see who is waiting for checkout
+3. **Gynecology** → `/app/opd/gynecology` (sort_order: 6, between History and Orders) -- specialized department dashboard deserves its own entry
 
----
+Also add the corresponding trilingual translation keys for these 3 items and insert the rows into the `menu_items` table via SQL.
 
-## Issues Found
+### Files to Edit
 
-### Critical: No Test Data
-- **0 appointments today** in the database (39 total, all historical)
-- **0 OPD departments** configured
-- Without data, none of the display screens can be visually verified
-- This is the single biggest blocker for end-to-end testing
+| File | Action |
+|------|--------|
+| Database (`menu_items` table) | **INSERT** 3 new rows for Vitals, Pending Checkout, Gynecology |
+| `src/lib/i18n/translations/en.ts` | **EDIT** -- Add keys if not already present |
+| `src/lib/i18n/translations/ar.ts` | **EDIT** -- Add keys |
+| `src/lib/i18n/translations/ur.ts` | **EDIT** -- Add keys |
 
-### Code Issues
-
-1. **PublicQueueDisplay duplicates query logic** -- Lines 71-112 manually construct a Supabase query instead of using the already-existing `usePublicOPDQueue` hook. This means:
-   - Double maintenance burden
-   - The hook has `refetchInterval: 5000` but the component also has `setInterval(fetchQueue, 10000)` plus a real-time subscription -- triple polling
-   - Fix: Replace the manual query with `usePublicOPDQueue(organizationId, department?.id)`
-
-2. **Recently Completed in TokenKioskPage relies on raw payload** -- Line 73-82: When an appointment completes, the `payload.new` object from Supabase real-time does NOT include joined relations (`patient`, `doctor`, `opd_department`). So `recentlyCompleted` entries will have no `opd_department.code`, and `formatTokenDisplay` on line 300 will fall back to raw numbers. The display will show `001` instead of `MED-001` for completed tokens.
-
-3. **QueueDisplayPage has no "Recently Completed" section** -- The plan mentioned adding it, and `TokenKioskPage` has it, but `QueueDisplayPage` does not. This is an inconsistency.
-
-4. **TokenKioskPage `OPDDepartmentSelector` has no `branchId`** -- Line 160-168: The selector is rendered without a `branchId` prop. The `useOPDDepartments` hook filters by `branchId` when provided. If the organization has multiple branches, this may show departments from all branches or none, depending on the hook's default behavior.
-
-5. **PublicQueueDisplay `fetchQueue` has a closure issue** -- Line 139: The `useEffect` dependency array includes `department` (an object), which will cause infinite re-renders if the reference changes on each render. Should use `department?.id` instead.
-
-6. **Audio chime plays only for first `nowServing` change** -- Both `TokenKioskPage` (line 109) and `QueueDisplayPage` (line 94) only track `nowServing[0]`. If multiple doctors are serving simultaneously and a second doctor starts serving, no chime plays.
-
-### Minor Issues
-
-7. **Hardcoded English strings in QueueDisplayPage** -- Lines 197, 232, 258, 309, 328, 339 use hardcoded English ("Emergency Patients", "Now Serving", "UP NEXT", "waiting") instead of translation keys.
-
-8. **Hardcoded English in PublicQueueDisplay** -- Lines 196, 258, 301, 309, 347 use hardcoded English ("OPD Queue Display", "NOW SERVING", "UP NEXT", "No patients waiting").
-
-9. **KioskSetupPage hardcoded English** -- All card titles, descriptions, and instructions are hardcoded English instead of using translation keys.
-
----
-
-## Recommended Next Steps
-
-### Priority 1: Seed Test Data
-Create OPD departments and today's appointments so the displays can be verified visually. This could be done via:
-- An edge function that seeds departments (Medicine/MED, Surgery/SURG, Pediatrics/PED) and 10-15 appointments with various statuses
-- Or manual SQL inserts
-
-### Priority 2: Fix PublicQueueDisplay
-Refactor to use `usePublicOPDQueue` hook instead of duplicating query logic. Remove the triple-polling (hook interval + manual interval + real-time subscription).
-
-### Priority 3: Fix Recently Completed Data
-The `payload.new` from real-time subscriptions does not contain joined data. Either:
-- Re-fetch the full appointment with joins when a completion event fires
-- Or query recently completed appointments separately (WHERE status = 'completed' AND updated_at > NOW() - 2 minutes)
-
-### Priority 4: Translate Hardcoded Strings
-Add translation key usage to `QueueDisplayPage`, `PublicQueueDisplay`, and `KioskSetupPage` for all hardcoded English strings.
-
----
-
-## Summary Table
-
-| Area | Status | Notes |
-|------|--------|-------|
-| Token Generation (Walk-In) | Code complete | Untestable without data |
-| TokenKioskPage | Code complete | Recently completed dept codes broken |
-| QueueDisplayPage | Code complete | No recently completed section |
-| PublicQueueDisplay | Code complete | Duplicates hook logic, triple polling |
-| Per-Dept Routing | Code complete | Route and URL generation working |
-| KioskSetupPage | Code complete | All English hardcoded |
-| usePublicQueue hooks | Code complete | All 3 hooks correct |
-| PrintableTokenSlip | Code complete | Dept code/name props wired |
-| Translations | Partial | Keys exist but many screens still hardcoded |
-| Test Data | Missing | 0 departments, 0 today appointments |
+No routing changes needed -- all 3 routes already exist in `App.tsx`.
 
