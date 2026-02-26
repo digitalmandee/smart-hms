@@ -472,6 +472,9 @@ const FinDonorDetailPage = React.lazy(() => import("./pages/app/donations/DonorD
 const RecordDonationPage = React.lazy(() => import("./pages/app/donations/RecordDonationPage"));
 const DonationReceiptPage = React.lazy(() => import("./pages/app/donations/DonationReceiptPage"));
 const RecurringSchedulesPage = React.lazy(() => import("./pages/app/donations/RecurringSchedulesPage"));
+const CampaignsListPage = React.lazy(() => import("./pages/app/donations/CampaignsListPage"));
+const CampaignDetailPage = React.lazy(() => import("./pages/app/donations/CampaignDetailPage"));
+const CampaignFormPage = React.lazy(() => import("./pages/app/donations/CampaignFormPage"));
 
 // Accounts pages
 import AccountsDashboard from "./pages/app/accounts/AccountsDashboard";
@@ -1040,7 +1043,11 @@ function App() {
                 <Route path="donations/donors/:id/edit" element={<FinDonorFormPage />} />
                 <Route path="donations/record" element={<RecordDonationPage />} />
                <Route path="donations/receipt/:id" element={<DonationReceiptPage />} />
-               <Route path="donations/recurring" element={<RecurringSchedulesPage />} />
+                <Route path="donations/recurring" element={<RecurringSchedulesPage />} />
+                <Route path="donations/campaigns" element={<CampaignsListPage />} />
+                <Route path="donations/campaigns/new" element={<CampaignFormPage />} />
+                <Route path="donations/campaigns/:id" element={<CampaignDetailPage />} />
+                <Route path="donations/campaigns/:id/edit" element={<CampaignFormPage />} />
 
                {/* Additional IPD setup routes */}
               <Route path="ipd/setup/diet-types" element={<DietTypesPage />} />

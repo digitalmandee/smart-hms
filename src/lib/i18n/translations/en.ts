@@ -2662,6 +2662,35 @@ export const en = {
   "donations.viewProfile": "View Profile",
   "donations.recordForDonor": "Record Donation for this Donor",
 
+  // Campaigns
+  "donations.campaigns": "Campaigns",
+  "donations.campaignsDesc": "Manage fundraising campaigns with goal tracking",
+  "donations.createCampaign": "Create Campaign",
+  "donations.editCampaign": "Edit Campaign",
+  "donations.noCampaigns": "No campaigns yet",
+  "donations.noCampaignsDesc": "Create your first fundraising campaign to start tracking goals",
+  "donations.campaignFormDesc": "Set up a fundraising campaign with a target goal",
+  "donations.campaignTitle": "Campaign Title",
+  "donations.campaignTitleAr": "Campaign Title (Arabic/Urdu)",
+  "donations.campaignDescription": "Description",
+  "donations.campaignGoal": "Goal Amount",
+  "donations.campaignProgress": "Progress",
+  "donations.campaignDaysLeft": "Days Remaining",
+  "donations.campaignCategoryLabel": "Category",
+  "donations.campaignCategory.general": "General",
+  "donations.campaignCategory.building": "Building",
+  "donations.campaignCategory.equipment": "Equipment",
+  "donations.campaignCategory.patient_welfare": "Patient Welfare",
+  "donations.campaignCategory.zakat": "Zakat",
+  "donations.campaignCategory.emergency": "Emergency",
+  "donations.campaignStatus.active": "Active",
+  "donations.campaignStatus.completed": "Completed",
+  "donations.campaignStatus.paused": "Paused",
+  "donations.campaignStatus.cancelled": "Cancelled",
+  "donations.activeCampaigns": "Active Campaigns",
+  "donations.campaignLabel": "Campaign (Optional)",
+  "donations.selectCampaign": "Select a campaign...",
+
 } as const;
 
 export type TranslationKey = keyof typeof en;

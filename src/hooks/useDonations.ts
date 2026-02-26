@@ -46,6 +46,7 @@ export interface FinancialDonation {
   receipt_issued_at: string | null;
   notes: string | null;
   status: string;
+  campaign_id: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;

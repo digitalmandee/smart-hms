@@ -6653,6 +6653,91 @@ export type Database = {
           },
         ]
       }
+      donation_campaigns: {
+        Row: {
+          branch_id: string | null
+          campaign_number: string
+          category: string
+          collected_amount: number
+          cover_image_url: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          donor_count: number
+          end_date: string | null
+          goal_amount: number
+          id: string
+          organization_id: string
+          start_date: string
+          status: string
+          title: string
+          title_ar: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          branch_id?: string | null
+          campaign_number: string
+          category?: string
+          collected_amount?: number
+          cover_image_url?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          donor_count?: number
+          end_date?: string | null
+          goal_amount?: number
+          id?: string
+          organization_id: string
+          start_date: string
+          status?: string
+          title: string
+          title_ar?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          branch_id?: string | null
+          campaign_number?: string
+          category?: string
+          collected_amount?: number
+          cover_image_url?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          donor_count?: number
+          end_date?: string | null
+          goal_amount?: number
+          id?: string
+          organization_id?: string
+          start_date?: string
+          status?: string
+          title?: string
+          title_ar?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "donation_campaigns_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "donation_campaigns_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "donation_campaigns_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       donation_recurring_schedules: {
         Row: {
           amount: number
@@ -8165,6 +8250,7 @@ export type Database = {
         Row: {
           amount: number
           branch_id: string | null
+          campaign_id: string | null
           created_at: string
           created_by: string | null
           currency: string
@@ -8188,6 +8274,7 @@ export type Database = {
         Insert: {
           amount: number
           branch_id?: string | null
+          campaign_id?: string | null
           created_at?: string
           created_by?: string | null
           currency?: string
@@ -8211,6 +8298,7 @@ export type Database = {
         Update: {
           amount?: number
           branch_id?: string | null
+          campaign_id?: string | null
           created_at?: string
           created_by?: string | null
           currency?: string
@@ -8237,6 +8325,13 @@ export type Database = {
             columns: ["branch_id"]
             isOneToOne: false
             referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_donations_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "donation_campaigns"
             referencedColumns: ["id"]
           },
           {

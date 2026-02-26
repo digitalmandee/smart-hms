@@ -1,10 +1,12 @@
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Heart, Users, CalendarClock, TrendingUp, FilePlus } from "lucide-react";
+import { Heart, Users, CalendarClock, TrendingUp, FilePlus, Target } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useDonationStats, useFinancialDonations } from "@/hooks/useDonations";
+import { useDonationCampaigns } from "@/hooks/useCampaigns";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Progress } from "@/components/ui/progress";
 import { useTranslation } from "@/lib/i18n";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
@@ -16,6 +18,7 @@ export default function DonationDashboard() {
   const { t } = useTranslation();
   const { data: stats, isLoading: statsLoading } = useDonationStats();
   const { data: recentDonations, isLoading: donationsLoading } = useFinancialDonations();
+  const { data: campaigns } = useDonationCampaigns();
 
   // Purpose breakdown chart data
   const purposeData = useMemo(() => {
@@ -130,6 +133,47 @@ export default function DonationDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Active Campaigns */}
+      {campaigns && campaigns.filter(c => c.status === "active").length > 0 && (
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Target className="h-5 w-5" />
+              {t("donations.activeCampaigns")}
+            </CardTitle>
+            <Button variant="outline" size="sm" onClick={() => navigate("/app/donations/campaigns")}>
+              {t("common.all")}
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-3">
+              {campaigns.filter(c => c.status === "active").slice(0, 3).map((c) => {
+                const pct = c.goal_amount > 0 ? Math.min(100, (Number(c.collected_amount) / Number(c.goal_amount)) * 100) : 0;
+                return (
+                  <div key={c.id} className="p-4 rounded-lg border hover:bg-muted/50 cursor-pointer space-y-3"
+                    onClick={() => navigate(`/app/donations/campaigns/${c.id}`)}>
+                    <div className="flex items-start justify-between">
+                      <h4 className="font-semibold text-sm leading-tight">{c.title}</h4>
+                      <Badge variant="outline" className="text-xs shrink-0 ml-2">
+                        {t(`donations.campaignCategory.${c.category}` as any)}
+                      </Badge>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>PKR {Number(c.collected_amount).toLocaleString()}</span>
+                        <span>{pct.toFixed(0)}%</span>
+                      </div>
+                      <Progress value={pct} className="h-2" />
+                      <p className="text-xs text-muted-foreground">{t("donations.campaignGoal")}: PKR {Number(c.goal_amount).toLocaleString()}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Recent Donations */}
       <Card>

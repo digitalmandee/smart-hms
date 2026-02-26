@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFinancialDonors, useCreateDonation } from "@/hooks/useDonations";
+import { useDonationCampaigns } from "@/hooks/useCampaigns";
 import { useTranslation } from "@/lib/i18n";
 import { useState } from "react";
 
@@ -20,12 +21,14 @@ export default function RecordDonationPage() {
   const { profile } = useAuth();
   const { t } = useTranslation();
   const { data: donors } = useFinancialDonors();
+  const { data: campaigns } = useDonationCampaigns();
   const createDonation = useCreateDonation();
 
   const [form, setForm] = useState({
     donor_id: "", amount: "", donation_date: new Date().toISOString().split("T")[0],
     donation_type: "one_time", payment_method: "cash", payment_reference: "",
     purpose: "general", purpose_detail: "", notes: "", status: "received",
+    campaign_id: "",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -34,6 +37,7 @@ export default function RecordDonationPage() {
     const donation = await createDonation.mutateAsync({
       ...form,
       amount: parseFloat(form.amount),
+      campaign_id: form.campaign_id || null,
       organization_id: profile?.organization_id,
       branch_id: profile?.branch_id || null,
       created_by: profile?.id,
@@ -107,6 +111,17 @@ export default function RecordDonationPage() {
                   <SelectContent>
                     {PURPOSES.map((p) => (
                       <SelectItem key={p} value={p}>{t(`donations.purpose.${p}` as any)}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>{t("donations.campaignLabel")}</Label>
+                <Select value={form.campaign_id} onValueChange={(v) => setForm({ ...form, campaign_id: v })}>
+                  <SelectTrigger><SelectValue placeholder={t("donations.selectCampaign")} /></SelectTrigger>
+                  <SelectContent>
+                    {campaigns?.filter(c => c.status === "active").map((c) => (
+                      <SelectItem key={c.id} value={c.id}>{c.title} ({Math.round((Number(c.collected_amount)/Number(c.goal_amount))*100)}%)</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
