@@ -1,12 +1,12 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { useTodayQueue } from "@/hooks/useAppointments";
 import { useOrganization } from "@/hooks/useOrganizations";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTranslation } from "@/lib/i18n";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { differenceInMinutes, format } from "date-fns";
-import { Clock, Users, Volume2, VolumeX, RefreshCw, Stethoscope, Sun, Moon, CheckCircle2 } from "lucide-react";
+import { format } from "date-fns";
+import { Clock, Users, Volume2, VolumeX, RefreshCw, Sun, Moon, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatTokenDisplay } from "@/lib/opd-token";
 import { supabase } from "@/integrations/supabase/client";
@@ -38,6 +38,8 @@ interface QueuePatient {
   } | null;
 }
 
+const TOKENS_PER_PAGE = 12; // 4 cols x 3 rows
+
 const TokenKioskPage = () => {
   const { profile } = useAuth();
   const [selectedDepartmentId, setSelectedDepartmentId] = useState<string | undefined>();
@@ -48,6 +50,7 @@ const TokenKioskPage = () => {
   const [audioEnabled, setAudioEnabled] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [recentlyCompleted, setRecentlyCompleted] = useState<QueuePatient[]>([]);
+  const [currentPage, setCurrentPage] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const prevServingRef = useRef<string | null>(null);
 
@@ -117,6 +120,30 @@ const TokenKioskPage = () => {
 
   const nowServing = sortedQueue.filter((p) => p.status === "in_progress");
   const upNext = sortedQueue.filter((p) => p.status === "checked_in");
+
+  // Auto-pagination for Up Next grid
+  const totalPages = Math.max(1, Math.ceil(upNext.length / TOKENS_PER_PAGE));
+
+  // Reset page when queue changes
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [upNext.length]);
+
+  // Auto-cycle pages every 8 seconds
+  useEffect(() => {
+    if (totalPages <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentPage((prev) => (prev + 1) % totalPages);
+    }, 8000);
+    return () => clearInterval(interval);
+  }, [totalPages]);
+
+  const visibleUpNext = useMemo(() => {
+    const start = currentPage * TOKENS_PER_PAGE;
+    return upNext.slice(start, start + TOKENS_PER_PAGE);
+  }, [upNext, currentPage]);
+
+  const remainingCount = Math.max(0, upNext.length - (currentPage + 1) * TOKENS_PER_PAGE);
 
   // Play chime on token change
   useEffect(() => {
@@ -213,10 +240,10 @@ const TokenKioskPage = () => {
       </div>
 
       <div className="grid grid-cols-3 gap-6 h-[calc(100vh-200px)]">
-        {/* Now Serving - Large Section */}
-        <div className="col-span-2 space-y-4">
+        {/* Now Serving - Compact Left Column */}
+        <div className="col-span-1 space-y-3 overflow-y-auto">
           <div className={cn(
-            "text-xl font-semibold flex items-center gap-3 uppercase tracking-wide",
+            "text-lg font-semibold flex items-center gap-3 uppercase tracking-wide",
             isDarkMode ? "text-emerald-400" : "text-success"
           )}>
             <div className={cn(
@@ -228,65 +255,38 @@ const TokenKioskPage = () => {
           
           {nowServing.length === 0 ? (
             <div className={cn(
-              "flex items-center justify-center h-64 rounded-2xl border-2 border-dashed",
+              "flex items-center justify-center h-40 rounded-2xl border-2 border-dashed",
               isDarkMode ? "bg-slate-800/50 border-slate-700" : "bg-card border-border"
             )}>
-              <p className={cn("text-2xl", isDarkMode ? "text-slate-500" : "text-muted-foreground")}>
+              <p className={cn("text-lg", isDarkMode ? "text-slate-500" : "text-muted-foreground")}>
                 {t("opd.noPatientServing")}
               </p>
             </div>
           ) : (
-            <div className="grid gap-4">
+            <div className="space-y-3">
               {nowServing.map((patient) => {
                 const deptColor = patient.opd_department?.color;
                 return (
                   <div key={patient.id} className={cn(
-                    "rounded-2xl border-2 p-6 lg:p-8 shadow-lg",
+                    "rounded-2xl border-2 p-4 shadow-lg",
                     isDarkMode ? "bg-slate-800/80 border-emerald-500/60" : "bg-card"
                   )} style={{ borderColor: deptColor || undefined }}>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-6">
-                        <div className={cn(
-                          "min-w-[7rem] h-28 rounded-2xl flex items-center justify-center text-5xl font-bold font-mono shadow-md px-4"
-                        )} style={{
-                          backgroundColor: deptColor || 'hsl(var(--primary))',
-                          color: 'white'
-                        }}>
-                          {getTokenStr(patient)}
-                        </div>
-                        <div>
-                          <h2 className={cn(
-                            "text-3xl lg:text-4xl font-bold mb-1",
-                            isDarkMode ? "text-white" : "text-foreground"
-                          )}>
-                            {patient.patient?.first_name} {patient.patient?.last_name}
-                          </h2>
-                          <p className={cn("text-lg", isDarkMode ? "text-slate-400" : "text-muted-foreground")}>
-                            MR# {patient.patient?.patient_number}
-                          </p>
-                          {patient.opd_department && (
-                            <Badge variant="outline" className="mt-2 font-mono text-sm"
-                              style={{ borderColor: deptColor || undefined, color: deptColor || undefined }}>
-                              {patient.opd_department.name}
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        {patient.doctor && (
-                          <div className={cn("flex items-center gap-2 text-xl", isDarkMode ? "text-slate-300" : "text-foreground")}>
-                            <Stethoscope className="h-5 w-5" />
-                            <span>Dr. {patient.doctor.profile?.full_name}</span>
-                          </div>
-                        )}
-                        {patient.doctor?.specialization && (
-                          <p className={cn("text-base mt-1", isDarkMode ? "text-slate-500" : "text-muted-foreground")}>
-                            {patient.doctor.specialization}
-                          </p>
-                        )}
-                        <Badge className="mt-2 bg-success text-success-foreground">{t("opd.inConsultation")}</Badge>
-                      </div>
+                    <div className={cn(
+                      "w-full h-20 rounded-xl flex items-center justify-center text-4xl font-bold font-mono shadow-md mb-2"
+                    )} style={{
+                      backgroundColor: deptColor || 'hsl(var(--primary))',
+                      color: 'white'
+                    }}>
+                      {getTokenStr(patient)}
                     </div>
+                    {patient.doctor && (
+                      <p className={cn(
+                        "text-sm text-center truncate",
+                        isDarkMode ? "text-slate-400" : "text-muted-foreground"
+                      )}>
+                        Dr. {patient.doctor.profile?.full_name}
+                      </p>
+                    )}
                   </div>
                 );
               })}
@@ -297,24 +297,21 @@ const TokenKioskPage = () => {
           {recentlyCompleted.length > 0 && (
             <div className="mt-4">
               <div className={cn(
-                "text-base font-semibold flex items-center gap-2 mb-3 uppercase tracking-wide",
+                "text-sm font-semibold flex items-center gap-2 mb-2 uppercase tracking-wide",
                 isDarkMode ? "text-blue-400" : "text-primary"
               )}>
-                <CheckCircle2 className="h-4 w-4" />
+                <CheckCircle2 className="h-3.5 w-3.5" />
                 {t("opd.recentlyCompleted")}
               </div>
-              <div className="flex gap-3">
+              <div className="space-y-2">
                 {recentlyCompleted.map((patient) => (
                   <div key={patient.id} className={cn(
-                    "rounded-xl border px-4 py-3 flex items-center gap-3 animate-in fade-in duration-500",
+                    "rounded-xl border px-3 py-2 flex items-center gap-2 animate-in fade-in duration-500",
                     isDarkMode ? "bg-slate-800/50 border-slate-700" : "bg-success/5 border-success/20"
                   )}>
-                    <CheckCircle2 className={cn("h-5 w-5", isDarkMode ? "text-emerald-400" : "text-success")} />
-                    <span className="font-mono font-bold text-lg">
+                    <CheckCircle2 className={cn("h-4 w-4 shrink-0", isDarkMode ? "text-emerald-400" : "text-success")} />
+                    <span className="font-mono font-bold text-base">
                       {formatTokenDisplay(patient.token_number, (patient as any).opd_department?.code)}
-                    </span>
-                    <span className={cn("text-sm", isDarkMode ? "text-slate-400" : "text-muted-foreground")}>
-                      {t("opd.consultationComplete")}
                     </span>
                   </div>
                 ))}
@@ -323,91 +320,105 @@ const TokenKioskPage = () => {
           )}
         </div>
 
-        {/* Up Next - Sidebar */}
-        <div className="space-y-3">
+        {/* Up Next - Large Right Panel (4-col grid) */}
+        <div className="col-span-2 flex flex-col">
           <div className={cn(
-            "text-lg font-semibold flex items-center gap-2 uppercase tracking-wide",
+            "text-lg font-semibold flex items-center gap-2 uppercase tracking-wide mb-3",
             isDarkMode ? "text-blue-400" : "text-primary"
           )}>
             <Clock className="h-4 w-4" />
             {t("opd.nextUp")}
+            {upNext.length > 0 && (
+              <span className={cn("text-sm font-normal ml-2", isDarkMode ? "text-slate-500" : "text-muted-foreground")}>
+                ({upNext.length})
+              </span>
+            )}
           </div>
           
           <div className={cn(
-            "rounded-2xl border h-[calc(100%-36px)] overflow-hidden",
+            "rounded-2xl border flex-1 overflow-hidden flex flex-col",
             isDarkMode ? "bg-slate-800/50 border-slate-700" : "bg-card border-border shadow-sm"
           )}>
-            <div className={cn(
-              "divide-y h-full overflow-y-auto",
-              isDarkMode ? "divide-slate-700" : "divide-border"
-            )}>
-              {upNext.length === 0 ? (
-                <div className="flex items-center justify-center h-full">
-                  <p className={cn("text-lg", isDarkMode ? "text-slate-500" : "text-muted-foreground")}>
-                    {t("opd.noPatientsWaiting")}
-                  </p>
-                </div>
-              ) : (
-                upNext.slice(0, 10).map((patient, index) => {
-                  const priority = getPriorityColor(patient.priority);
-                  const waitMinutes = patient.check_in_at 
-                    ? differenceInMinutes(new Date(), new Date(patient.check_in_at))
-                    : 0;
-                  const deptColor = patient.opd_department?.color;
-
-                  return (
-                    <div key={patient.id} className={cn(
-                      "p-3.5 flex items-center gap-3 transition-colors",
-                      index === 0 && (isDarkMode ? "bg-blue-900/20" : "bg-primary/5")
-                    )}>
-                      <div className={cn(
-                        "min-w-[3.5rem] h-14 rounded-xl flex items-center justify-center text-lg font-bold font-mono px-2"
-                      )} style={{
-                        backgroundColor: deptColor || (patient.priority > 0 ? undefined : 'hsl(var(--muted))'),
-                        color: deptColor ? 'white' : undefined,
-                      }}>
-                        <span className={patient.priority > 0 && !deptColor ? cn(priority.bg, priority.text, "w-full h-full rounded-xl flex items-center justify-center") : ""}>
-                          {getTokenStr(patient)}
-                        </span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className={cn(
-                          "text-base font-medium truncate",
+            {upNext.length === 0 ? (
+              <div className="flex items-center justify-center flex-1">
+                <p className={cn("text-lg", isDarkMode ? "text-slate-500" : "text-muted-foreground")}>
+                  {t("opd.noPatientsWaiting")}
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-4 gap-3 p-4 flex-1 content-start">
+                  {visibleUpNext.map((patient, index) => {
+                    const deptColor = patient.opd_department?.color;
+                    const isFirst = currentPage === 0 && index === 0;
+                    return (
+                      <div
+                        key={patient.id}
+                        className={cn(
+                          "relative rounded-xl flex items-center justify-center h-20 transition-all",
+                          isFirst
+                            ? isDarkMode
+                              ? "ring-2 ring-blue-400 shadow-lg"
+                              : "ring-2 ring-primary shadow-lg"
+                            : "",
+                          isDarkMode ? "bg-slate-700/60" : "bg-muted/60"
+                        )}
+                        style={deptColor ? {
+                          backgroundColor: `${deptColor}20`,
+                          borderLeft: `4px solid ${deptColor}`,
+                        } : undefined}
+                      >
+                        <span className={cn(
+                          "text-2xl font-bold font-mono",
                           isDarkMode ? "text-white" : "text-foreground"
                         )}>
-                          {patient.patient?.first_name} {patient.patient?.last_name}
-                        </p>
-                        <div className={cn("flex items-center gap-2 text-xs", isDarkMode ? "text-slate-400" : "text-muted-foreground")}>
-                          <Clock className="h-3 w-3" />
-                          <span className={cn(
-                            waitMinutes > 30 && "text-warning",
-                            waitMinutes > 60 && "text-destructive"
-                          )}>
-                            {waitMinutes}m
-                          </span>
-                          {patient.opd_department && (
-                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-mono"
-                              style={{ borderColor: deptColor || undefined, color: deptColor || undefined }}>
-                              {patient.opd_department.code}
-                            </Badge>
-                          )}
-                        </div>
+                          {getTokenStr(patient)}
+                        </span>
+                        {/* Priority dot */}
+                        {patient.priority > 0 && (
+                          <div className={cn(
+                            "absolute top-1.5 right-1.5 w-3 h-3 rounded-full",
+                            patient.priority >= 2 ? "bg-destructive" : "bg-warning"
+                          )} />
+                        )}
                       </div>
-                      {patient.priority > 0 && (
-                        <Badge className={cn("text-xs", priority.bg, priority.text)}>
-                          {priority.label}
-                        </Badge>
-                      )}
+                    );
+                  })}
+                </div>
+
+                {/* Footer: overflow count + page dots */}
+                <div className={cn(
+                  "px-4 py-3 border-t flex items-center justify-between",
+                  isDarkMode ? "border-slate-700 bg-slate-800/80" : "border-border bg-muted/30"
+                )}>
+                  <div className={cn("text-sm font-medium", isDarkMode ? "text-slate-400" : "text-muted-foreground")}>
+                    {remainingCount > 0 && (
+                      <span>+{remainingCount} {t("opd.moreInQueue" as any, "more in queue")}</span>
+                    )}
+                  </div>
+                  {totalPages > 1 && (
+                    <div className="flex items-center gap-1.5">
+                      {Array.from({ length: totalPages }).map((_, i) => (
+                        <div
+                          key={i}
+                          className={cn(
+                            "w-2 h-2 rounded-full transition-all",
+                            i === currentPage
+                              ? isDarkMode ? "bg-blue-400 w-4" : "bg-primary w-4"
+                              : isDarkMode ? "bg-slate-600" : "bg-muted-foreground/30"
+                          )}
+                        />
+                      ))}
                     </div>
-                  );
-                })
-              )}
-            </div>
+                  )}
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Footer */}
+      {/* Footer legend */}
       <div className={cn(
         "absolute bottom-4 left-6 right-6 flex items-center justify-center gap-8 text-sm",
         isDarkMode ? "text-slate-500" : "text-muted-foreground"
