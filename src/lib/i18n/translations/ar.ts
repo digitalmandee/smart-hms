@@ -2460,6 +2460,9 @@ export const ar: Record<TranslationKey, string> = {
   "opd.consultationComplete": "اكتملت الاستشارة",
   "opd.noPatientServing": "لا يوجد مريض يُخدم حالياً",
   "opd.tokenDisplay": "عرض الرمز",
+  "opd.departmentDisplay": "عرض القسم",
+  "opd.noDepartmentsConfigured": "لم يتم تكوين أقسام العيادات الخارجية. اذهب إلى الإعدادات > أقسام العيادات الخارجية لإضافتها.",
+  "opd.departmentSpecificDisplays": "شاشات خاصة بالأقسام",
 
 };
 

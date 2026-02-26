@@ -2526,6 +2526,9 @@ export const en = {
   "opd.consultationComplete": "Consultation Complete",
   "opd.noPatientServing": "No patient currently being served",
   "opd.tokenDisplay": "Token Display",
+  "opd.departmentDisplay": "Department Display",
+  "opd.noDepartmentsConfigured": "No OPD departments configured. Go to Settings > OPD Departments to add them.",
+  "opd.departmentSpecificDisplays": "Department-Specific Displays",
 
 } as const;
 

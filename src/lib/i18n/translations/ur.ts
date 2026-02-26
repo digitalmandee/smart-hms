@@ -2460,6 +2460,9 @@ export const ur: Record<TranslationKey, string> = {
   "opd.consultationComplete": "مشاورت مکمل",
   "opd.noPatientServing": "ابھی کوئی مریض نہیں",
   "opd.tokenDisplay": "ٹوکن ڈسپلے",
+  "opd.departmentDisplay": "شعبہ ڈسپلے",
+  "opd.noDepartmentsConfigured": "کوئی OPD شعبہ ترتیب نہیں دیا گیا۔ ترتیبات > OPD شعبے پر جائیں اور شامل کریں۔",
+  "opd.departmentSpecificDisplays": "شعبہ مخصوص ڈسپلے",
 
 };
 

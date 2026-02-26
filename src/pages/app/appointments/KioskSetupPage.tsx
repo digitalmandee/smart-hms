@@ -3,16 +3,22 @@ import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
-import { Copy, Check, Monitor, Ticket, AlertTriangle, ExternalLink } from "lucide-react";
+import { useOPDDepartments } from "@/hooks/useOPDDepartments";
+import { useTranslation } from "@/lib/i18n";
+import { Copy, Check, Monitor, Ticket, AlertTriangle, ExternalLink, Building2, Info } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 export default function KioskSetupPage() {
   const { profile } = useAuth();
+  const { t } = useTranslation();
   const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
 
   const organizationId = profile?.organization_id;
   const baseUrl = window.location.origin;
+
+  const { data: departments, isLoading: deptsLoading } = useOPDDepartments();
 
   const publicUrls = [
     {
@@ -161,6 +167,94 @@ export default function KioskSetupPage() {
         })}
       </div>
 
+      {/* Department-Specific Displays */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <Building2 className="h-5 w-5 text-primary" />
+            <CardTitle className="text-lg">{t("opd.departmentSpecificDisplays" as any, "Department-Specific Displays")}</CardTitle>
+          </div>
+          <CardDescription>
+            Each OPD department can have its own waiting room TV display showing only that department's queue.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {deptsLoading ? (
+            <p className="text-sm text-muted-foreground">Loading departments...</p>
+          ) : !departments || departments.length === 0 ? (
+            <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/50 border border-border">
+              <Info className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-muted-foreground">
+                {t("opd.noDepartmentsConfigured" as any, "No OPD departments configured. Go to Settings > OPD Departments to add them. Without departments, the main OPD display URL shows all tokens.")}
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {departments.map((dept) => {
+                const deptUrl = `${baseUrl}/display/queue/${organizationId}/${dept.code}`;
+                const copyId = `dept-${dept.id}`;
+                const isCopied = copiedUrl === copyId;
+
+                return (
+                  <div
+                    key={dept.id}
+                    className="rounded-lg border p-4 space-y-3"
+                    style={{ borderColor: `${dept.color || "#3b82f6"}40` }}
+                  >
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-3 h-3 rounded-full"
+                        style={{ backgroundColor: dept.color || "#3b82f6" }}
+                      />
+                      <span className="font-medium">{dept.name}</span>
+                      <Badge variant="outline" className="ml-auto font-mono text-xs"
+                        style={{ borderColor: dept.color || "#3b82f6", color: dept.color || "#3b82f6" }}>
+                        {dept.code}
+                      </Badge>
+                    </div>
+
+                    <Input
+                      value={deptUrl}
+                      readOnly
+                      className="text-xs font-mono bg-muted"
+                    />
+
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => handleCopy(deptUrl, copyId)}
+                      >
+                        {isCopied ? (
+                          <>
+                            <Check className="h-3.5 w-3.5 mr-1.5 text-emerald-500" />
+                            Copied!
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="h-3.5 w-3.5 mr-1.5" />
+                            Copy
+                          </>
+                        )}
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => handleOpen(deptUrl)}
+                      >
+                        <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
+                        Preview
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Setup Instructions</CardTitle>
@@ -170,7 +264,7 @@ export default function KioskSetupPage() {
             <div>
               <h4 className="font-medium mb-2">For Waiting Room TVs</h4>
               <ol className="list-decimal list-inside text-sm text-muted-foreground space-y-1">
-                <li>Copy the "OPD Queue Display" or "ER Queue Display" URL</li>
+                <li>Copy the "OPD Queue Display" or department-specific URL</li>
                 <li>Open Chrome/Firefox on the TV computer</li>
                 <li>Paste the URL and press Enter</li>
                 <li>Press F11 for fullscreen mode</li>
