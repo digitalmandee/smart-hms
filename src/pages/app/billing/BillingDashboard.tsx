@@ -18,6 +18,7 @@ import {
   ArrowRight,
   CalendarCheck,
   Monitor,
+  BarChart3,
 } from "lucide-react";
 import { format } from "date-fns";
 import { InvoiceStatusBadge } from "@/components/billing/InvoiceStatusBadge";
@@ -127,6 +128,14 @@ export default function BillingDashboard() {
             >
               <CalendarCheck className="mr-2 h-4 w-4" />
               {t("billing.dailyClosing")}
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              onClick={() => navigate("/app/reports/day-end-summary")}
+            >
+              <BarChart3 className="mr-2 h-4 w-4" />
+              {t("billing.dayEndSummary")}
             </Button>
           </CardContent>
         </Card>

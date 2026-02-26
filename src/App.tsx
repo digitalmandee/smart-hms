@@ -185,6 +185,7 @@ import ClaimsListPage from "./pages/app/billing/ClaimsListPage";
 import ClaimFormPage from "./pages/app/billing/ClaimFormPage";
 import ClaimDetailPage from "./pages/app/billing/ClaimDetailPage";
 import DailyClosingPage from "./pages/app/billing/DailyClosingPage";
+const DailyClosingHistoryPage = React.lazy(() => import("./pages/app/billing/DailyClosingHistoryPage"));
 
 // Settings management pages
 import ServiceTypesListPage from "./pages/app/settings/ServiceTypesListPage";
@@ -1000,6 +1001,7 @@ function App() {
               <Route path="billing/invoices/:id/pay" element={<PaymentCollectionPage />} />
               <Route path="billing/payments" element={<PaymentHistoryPage />} />
               <Route path="billing/daily-closing" element={<DailyClosingPage />} />
+              <Route path="billing/daily-closing/history" element={<React.Suspense fallback={<div>Loading...</div>}><DailyClosingHistoryPage /></React.Suspense>} />
               <Route path="reports/day-end-summary" element={<DayEndSummaryReport />} />
               <Route path="reports/opd-departments" element={<OPDDepartmentReport />} />
               <Route path="billing/reports" element={<BillingReportsPage />} />

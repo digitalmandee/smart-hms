@@ -113,10 +113,27 @@ async function fetchSessionsForDate(branchId: string, startOfDay: string, endOfD
 async function fetchPaymentsForDate(branchId: string, startOfDay: string, endOfDay: string) {
   const result = await (supabase as any)
     .from('payments')
-    .select('amount, payment_method_id, created_at')
+    .select('amount, payment_method_id, created_at, invoice_id')
     .eq('branch_id', branchId)
     .gte('created_at', startOfDay)
     .lte('created_at', endOfDay);
+  
+  return result.data || [];
+}
+
+async function fetchInvoiceItemsForDate(branchId: string, startOfDay: string, endOfDay: string) {
+  const result = await (supabase as any)
+    .from('invoice_items')
+    .select('invoice_id, total_price, service_type:service_types(category)')
+    .in('invoice_id', 
+      (await (supabase as any)
+        .from('invoices')
+        .select('id')
+        .eq('branch_id', branchId)
+        .gte('created_at', startOfDay)
+        .lte('created_at', endOfDay)
+      ).data?.map((i: any) => i.id) || []
+    );
   
   return result.data || [];
 }
@@ -155,11 +172,12 @@ export function useDailyClosingSummary(date?: string) {
       const endOfDay = `${targetDate}T23:59:59`;
 
       // Fetch all data in parallel
-      const [sessions, paymentsRaw, invoices, paymentMethods] = await Promise.all([
+      const [sessions, paymentsRaw, invoices, paymentMethods, invoiceItems] = await Promise.all([
         fetchSessionsForDate(branchId, startOfDay, endOfDay),
         fetchPaymentsForDate(branchId, startOfDay, endOfDay),
         fetchInvoicesForDate(branchId, startOfDay, endOfDay),
         fetchPaymentMethods(),
+        fetchInvoiceItemsForDate(branchId, startOfDay, endOfDay),
       ]);
       
       const methodMap = new Map(paymentMethods.map((m: any) => [m.id, m.name?.toLowerCase() || '']));
@@ -172,29 +190,39 @@ export function useDailyClosingSummary(date?: string) {
         closed: sessions?.filter(s => s.status !== 'open').length || 0,
       };
 
-      // Calculate payment totals by method
+      // Calculate payment totals by method using methodMap
       let cashTotal = 0, cardTotal = 0, upiTotal = 0, otherTotal = 0;
 
       payments?.forEach((p: any) => {
         const amount = Number(p.amount);
-        const methodName = p.payment_method?.name?.toLowerCase() || '';
+        const methodName = (methodMap.get(p.payment_method_id) || '') as string;
 
-        // By payment method
         if (methodName.includes('cash')) cashTotal += amount;
         else if (methodName.includes('card') || methodName.includes('credit') || methodName.includes('debit')) cardTotal += amount;
         else if (methodName.includes('upi') || methodName.includes('online')) upiTotal += amount;
         else otherTotal += amount;
       });
 
-      // Department totals - we'll aggregate all as "other" for now since invoice_type doesn't exist
-      // This can be enhanced later when invoice_type or similar field is added
-      const opdTotal = 0;
-      const ipdTotal = 0;
-      const pharmacyTotal = 0;
-      const labTotal = 0;
-      const radiologyTotal = 0;
-      const erTotal = 0;
-      const otherDeptTotal = cashTotal + cardTotal + upiTotal + otherTotal;
+      // Department totals from invoice items via service_types.category
+      let opdTotal = 0, ipdTotal = 0, pharmacyTotal = 0, labTotal = 0, radiologyTotal = 0, erTotal = 0, otherDeptTotal = 0;
+      
+      invoiceItems?.forEach((item: any) => {
+        const amount = Number(item.total_price) || 0;
+        const category = item.service_type?.category?.toLowerCase() || '';
+        
+        if (category.includes('opd') || category.includes('consultation')) opdTotal += amount;
+        else if (category.includes('ipd') || category.includes('inpatient')) ipdTotal += amount;
+        else if (category.includes('pharm')) pharmacyTotal += amount;
+        else if (category.includes('lab') || category.includes('pathology')) labTotal += amount;
+        else if (category.includes('radiology') || category.includes('imaging')) radiologyTotal += amount;
+        else if (category.includes('emergency') || category.includes('er')) erTotal += amount;
+        else otherDeptTotal += amount;
+      });
+      
+      // If no items categorized, put grand total in other
+      if (opdTotal + ipdTotal + pharmacyTotal + labTotal + radiologyTotal + erTotal + otherDeptTotal === 0) {
+        otherDeptTotal = cashTotal + cardTotal + upiTotal + otherTotal;
+      }
 
       // Calculate invoice stats
       const invoiceStats = {
