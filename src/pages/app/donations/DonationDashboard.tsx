@@ -11,7 +11,7 @@ import { format } from "date-fns";
 
 export default function DonationDashboard() {
   const navigate = useNavigate();
-  const t = useTranslation();
+  const { t } = useTranslation();
   const { data: stats, isLoading: statsLoading } = useDonationStats();
   const { data: recentDonations, isLoading: donationsLoading } = useFinancialDonations();
 
@@ -28,18 +28,19 @@ export default function DonationDashboard() {
         title={t("donations.dashboard")}
         description={t("donations.dashboardDesc")}
         breadcrumbs={[{ label: t("donations.title") }, { label: t("nav.dashboard") }]}
-      >
-        <div className="flex gap-2">
-          <Button onClick={() => navigate("/app/donations/donors/new")} variant="outline">
-            <Users className="h-4 w-4 mr-2" />
-            {t("donations.addDonor")}
-          </Button>
-          <Button onClick={() => navigate("/app/donations/record")}>
-            <FilePlus className="h-4 w-4 mr-2" />
-            {t("donations.recordDonation")}
-          </Button>
-        </div>
-      </PageHeader>
+        actions={
+          <div className="flex gap-2">
+            <Button onClick={() => navigate("/app/donations/donors/new")} variant="outline">
+              <Users className="h-4 w-4 mr-2" />
+              {t("donations.addDonor")}
+            </Button>
+            <Button onClick={() => navigate("/app/donations/record")}>
+              <FilePlus className="h-4 w-4 mr-2" />
+              {t("donations.recordDonation")}
+            </Button>
+          </div>
+        }
+      />
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

@@ -15,7 +15,7 @@ const DONOR_TYPES = ["all", "individual", "corporate", "foundation", "government
 
 export default function DonorsListPage() {
   const navigate = useNavigate();
-  const t = useTranslation();
+  const { t } = useTranslation();
   const { data: donors, isLoading } = useFinancialDonors();
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
@@ -34,12 +34,13 @@ export default function DonorsListPage() {
         title={t("donations.donorsList")}
         description={t("donations.donorsListDesc")}
         breadcrumbs={[{ label: t("donations.title"), href: "/app/donations" }, { label: t("donations.donors") }]}
-      >
-        <Button onClick={() => navigate("/app/donations/donors/new")}>
-          <Plus className="h-4 w-4 mr-2" />
-          {t("donations.addDonor")}
-        </Button>
-      </PageHeader>
+        actions={
+          <Button onClick={() => navigate("/app/donations/donors/new")}>
+            <Plus className="h-4 w-4 mr-2" />
+            {t("donations.addDonor")}
+          </Button>
+        }
+      />
 
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">

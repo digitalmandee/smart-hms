@@ -11,7 +11,7 @@ import { useReactToPrint } from "react-to-print";
 
 export default function DonationReceiptPage() {
   const { id } = useParams<{ id: string }>();
-  const t = useTranslation();
+  const { t } = useTranslation();
   const { data: donation, isLoading } = useFinancialDonation(id!);
   const updateDonation = useUpdateDonation();
   const printRef = useRef<HTMLDivElement>(null);
@@ -42,12 +42,13 @@ export default function DonationReceiptPage() {
           { label: t("donations.title"), href: "/app/donations" },
           { label: t("donations.donationReceipt") },
         ]}
-      >
-        <Button onClick={() => handlePrint()}>
-          <Printer className="h-4 w-4 mr-2" />
-          {t("common.print")}
-        </Button>
-      </PageHeader>
+        actions={
+          <Button onClick={() => handlePrint()}>
+            <Printer className="h-4 w-4 mr-2" />
+            {t("common.print")}
+          </Button>
+        }
+      />
 
       <div ref={printRef}>
         <DonationReceiptPrint donation={donation} />
