@@ -9,12 +9,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useDailyClosingSummary, useDailyClosing, useCreateDailyClosing } from "@/hooks/useDailyClosing";
 import { useBranchSessions, useOpenSessionsCount, CashDenominations } from "@/hooks/useBillingSessions";
 import { useBranchExpenses } from "@/hooks/useExpenses";
+import { useDoctorSettlements } from "@/hooks/useDoctorSettlements";
 import { DailyClosingSummaryCard } from "@/components/billing/DailyClosingSummary";
 import { CashDenominationInput } from "@/components/billing/CashDenominationInput";
 import { SessionStatusBadge } from "@/components/billing/SessionStatusBadge";
 import { ExpenseEntryCard } from "@/components/billing/ExpenseEntryCard";
 import { formatCurrency } from "@/lib/currency";
 import { format } from "date-fns";
+import { useTranslation } from "@/lib/i18n";
 import {
   Calendar,
   CheckCircle,
@@ -24,12 +26,18 @@ import {
   Save,
   Send,
   Receipt,
+  History,
+  FileText,
+  Banknote,
+  CreditCard,
+  Users,
 } from "lucide-react";
 
 type Step = 'sessions' | 'expenses' | 'reconciliation' | 'summary';
 
 export default function DailyClosingPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const today = new Date().toISOString().split('T')[0];
   
   const [currentStep, setCurrentStep] = useState<Step>('sessions');
@@ -42,7 +50,11 @@ export default function DailyClosingPage() {
   const { data: existingClosing } = useDailyClosing(today);
   const { data: openCount } = useOpenSessionsCount();
   const { data: expenses } = useBranchExpenses(undefined, today);
+  const { data: settlements } = useDoctorSettlements();
   const createClosingMutation = useCreateDailyClosing();
+
+  const todaySettlements = settlements?.filter(s => s.settlement_date === today) || [];
+  const totalSettlements = todaySettlements.reduce((sum, s) => sum + Number(s.total_amount), 0);
 
   const totalExpenses = expenses?.reduce((sum, e) => sum + Number(e.amount), 0) || 0;
 
@@ -90,13 +102,19 @@ export default function DailyClosingPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Daily Closing"
-        description={`End of day reconciliation for ${format(new Date(today), 'MMMM dd, yyyy')}`}
+        title={t("billing.dailyClosing")}
+        description={`${t("billing.dailyClosingDesc")} ${format(new Date(today), 'MMMM dd, yyyy')}`}
         actions={
-          <Button variant="outline" onClick={() => navigate("/app/billing")}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => navigate("/app/billing/daily-closing/history")}>
+              <History className="mr-2 h-4 w-4" />
+              {t("billing.closingHistory")}
+            </Button>
+            <Button variant="outline" onClick={() => navigate("/app/billing")}>
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              {t("common.back")}
+            </Button>
+          </div>
         }
       />
 
@@ -264,14 +282,84 @@ export default function DailyClosingPage() {
         <div className="space-y-4">
           <DailyClosingSummaryCard summary={summary} />
 
+          {/* Payouts Summary */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                {t("billing.payoutsSummary")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-center justify-between p-3 rounded-lg border">
+                <div className="flex items-center gap-2">
+                  <CreditCard className="h-4 w-4 text-muted-foreground" />
+                  <span>{t("billing.doctorSettlements")}</span>
+                </div>
+                <span className="font-semibold text-destructive">
+                  {formatCurrency(totalSettlements)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between p-3 rounded-lg border">
+                <div className="flex items-center gap-2">
+                  <Receipt className="h-4 w-4 text-muted-foreground" />
+                  <span>{t("billing.expensesPettyCash")}</span>
+                </div>
+                <span className="font-semibold text-destructive">
+                  {formatCurrency(totalExpenses)}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Net Cash Calculation */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Banknote className="h-5 w-5" />
+                {t("billing.netCashCalculation")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <div className="flex justify-between p-2">
+                  <span>{t("billing.totalCashCollected")}</span>
+                  <span className="font-semibold">{formatCurrency(summary.collections.cash)}</span>
+                </div>
+                <div className="flex justify-between p-2 text-destructive">
+                  <span>− {t("billing.doctorSettlements")}</span>
+                  <span>{formatCurrency(totalSettlements)}</span>
+                </div>
+                <div className="flex justify-between p-2 text-destructive">
+                  <span>− {t("billing.expensesPettyCash")}</span>
+                  <span>{formatCurrency(totalExpenses)}</span>
+                </div>
+                <div className="flex justify-between p-3 rounded-lg bg-primary/10 border border-primary/20 font-bold text-lg">
+                  <span>{t("billing.netCashToSubmit")}</span>
+                  <span>{formatCurrency(summary.collections.cash - totalSettlements - totalExpenses)}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* View Full Report Link */}
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => navigate("/app/reports/day-end-summary")}
+          >
+            <FileText className="mr-2 h-4 w-4" />
+            {t("billing.viewFullReport")}
+          </Button>
+
           <Card>
             <CardContent className="pt-4 space-y-4">
               <div>
-                <Label>Notes (Optional)</Label>
+                <Label>{t("common.notes")} ({t("billing.optional")})</Label>
                 <Textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Any closing remarks..."
+                  placeholder={t("billing.closingRemarks")}
                   rows={3}
                 />
               </div>
@@ -279,7 +367,7 @@ export default function DailyClosingPage() {
               <div className="flex flex-col sm:flex-row gap-2">
                 <Button variant="outline" onClick={() => setCurrentStep('reconciliation')}>
                   <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back
+                  {t("common.back")}
                 </Button>
                 <Button
                   variant="secondary"
@@ -288,14 +376,14 @@ export default function DailyClosingPage() {
                   className="sm:ml-auto"
                 >
                   <Save className="mr-2 h-4 w-4" />
-                  Save Draft
+                  {t("billing.saveDraft")}
                 </Button>
                 <Button
                   onClick={handleSubmit}
                   disabled={createClosingMutation.isPending || existingClosing?.status === 'approved'}
                 >
                   <Send className="mr-2 h-4 w-4" />
-                  Submit for Approval
+                  {t("billing.submitForApproval")}
                 </Button>
               </div>
             </CardContent>
