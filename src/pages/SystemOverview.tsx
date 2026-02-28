@@ -1,4 +1,33 @@
+import { useRef, useState } from "react";
+import { toPng } from "html-to-image";
+import { Download, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { HealthOS24Logo } from "@/components/brand/HealthOS24Logo";
+
 export default function SystemOverview() {
+  const logoRef = useRef<HTMLDivElement>(null);
+  const [downloading, setDownloading] = useState(false);
+
+  const handleDownload = async () => {
+    if (!logoRef.current) return;
+    setDownloading(true);
+    try {
+      const dataUrl = await toPng(logoRef.current, {
+        backgroundColor: "#ffffff",
+        pixelRatio: 3,
+        cacheBust: true,
+      });
+      const link = document.createElement("a");
+      link.download = "healthos24-logo.png";
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error("Download failed:", err);
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="max-w-4xl mx-auto px-6 py-12 space-y-10">
@@ -9,6 +38,17 @@ export default function SystemOverview() {
             A comprehensive Hospital Management System covering clinical, administrative, financial, and ancillary operations — built for hospitals, clinics, and multi-branch healthcare organizations.
           </p>
         </header>
+
+        {/* Downloadable Logo */}
+        <section className="flex flex-col items-center gap-6 rounded-xl border border-border bg-card p-10">
+          <div ref={logoRef} className="bg-white p-8 rounded-xl">
+            <HealthOS24Logo size="xl" showTagline />
+          </div>
+          <Button onClick={handleDownload} disabled={downloading} className="gap-2">
+            {downloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+            {downloading ? "Generating..." : "Download Logo as PNG"}
+          </Button>
+        </section>
 
         {/* 1. CORE */}
         <section className="space-y-6">
