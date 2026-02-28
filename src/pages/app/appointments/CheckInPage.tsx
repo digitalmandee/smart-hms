@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Capacitor } from '@capacitor/core';
 import { Loader2, ArrowLeft, UserCheck, AlertTriangle, Printer, Clock, Stethoscope, Hash, CreditCard, ChevronDown } from 'lucide-react';
@@ -89,6 +89,55 @@ export default function CheckInPage() {
   const [showPaymentRequiredDialog, setShowPaymentRequiredDialog] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [showWaiverDialog, setShowWaiverDialog] = useState(false);
+  const [verifiedPaymentStatus, setVerifiedPaymentStatus] = useState<string | null>(null);
+
+  // Derive patient/doctor safely before hooks (may be null)
+  const patient = appointment?.patient as any;
+  const doctor = appointment?.doctor as any;
+  const rawPaymentStatus = (appointment as any)?.payment_status || 'pending';
+
+  // Verify payment status on load by checking real invoice data
+  useEffect(() => {
+    if (!id || !appointment || !patient?.id) return;
+    if (rawPaymentStatus !== 'pending') {
+      setVerifiedPaymentStatus(rawPaymentStatus);
+      return;
+    }
+    
+    const verifyPayment = async () => {
+      const invoiceId = (appointment as any).invoice_id;
+      if (invoiceId) {
+        const { data: invoice } = await supabase
+          .from('invoices')
+          .select('status')
+          .eq('id', invoiceId)
+          .single();
+        if (invoice?.status === 'paid') {
+          await supabase.from('appointments').update({ payment_status: 'paid' }).eq('id', id);
+          setVerifiedPaymentStatus('paid');
+          return;
+        }
+      }
+      
+      // Fallback: check any paid invoice for this patient on this date
+      const { data: existingInvoice } = await supabase
+        .from('invoices')
+        .select('id')
+        .eq('patient_id', patient.id)
+        .eq('invoice_date', appointment.appointment_date)
+        .eq('status', 'paid')
+        .limit(1)
+        .maybeSingle();
+      
+      if (existingInvoice) {
+        await supabase.from('appointments').update({ payment_status: 'paid', invoice_id: existingInvoice.id }).eq('id', id);
+        setVerifiedPaymentStatus('paid');
+        refetch();
+      }
+    };
+    
+    verifyPayment();
+  }, [id, patient?.id, appointment?.appointment_date, rawPaymentStatus]);
 
   if (isLoading) {
     return (
@@ -109,9 +158,7 @@ export default function CheckInPage() {
     );
   }
 
-  const patient = appointment.patient as any;
-  const doctor = appointment.doctor as any;
-  const paymentStatus = (appointment as any).payment_status || 'pending';
+  const paymentStatus = verifiedPaymentStatus || rawPaymentStatus;
   const consultationFee = doctor?.consultation_fee || 500;
   
   // Nurse roles bypass payment entirely
@@ -133,23 +180,21 @@ export default function CheckInPage() {
     }
     
     // Runtime check: verify actual payment status from invoices/payments
-    if (paymentStatus === 'pending') {
+    if (paymentStatus === 'pending' && verifiedPaymentStatus !== 'paid' && verifiedPaymentStatus !== 'waived') {
       // Check if there's a paid invoice linked to this appointment
       const { data: apptData } = await supabase
         .from('appointments')
-        .select('invoice_id, payment_status')
+        .select('invoice_id, payment_status, patient_id, appointment_date')
         .eq('id', id)
         .single();
       
       if (apptData?.payment_status === 'paid' || apptData?.payment_status === 'waived') {
-        // Status was updated (e.g. by trigger), proceed directly
         await refetch();
         await performCheckIn();
         return;
       }
       
       if (apptData?.invoice_id) {
-        // Check if the linked invoice is actually paid
         const { data: invoice } = await supabase
           .from('invoices')
           .select('status')
@@ -157,10 +202,31 @@ export default function CheckInPage() {
           .single();
         
         if (invoice?.status === 'paid') {
-          // Sync the stale status and proceed
           await supabase
             .from('appointments')
             .update({ payment_status: 'paid' })
+            .eq('id', id);
+          await refetch();
+          await performCheckIn();
+          return;
+        }
+      }
+      
+      // Fallback: no invoice_id linked — check if any paid invoice exists for this patient today
+      if (!apptData?.invoice_id && apptData?.patient_id) {
+        const { data: existingInvoice } = await supabase
+          .from('invoices')
+          .select('id')
+          .eq('patient_id', apptData.patient_id)
+          .eq('invoice_date', apptData.appointment_date)
+          .eq('status', 'paid')
+          .limit(1)
+          .maybeSingle();
+        
+        if (existingInvoice) {
+          await supabase
+            .from('appointments')
+            .update({ payment_status: 'paid', invoice_id: existingInvoice.id })
             .eq('id', id);
           await refetch();
           await performCheckIn();
