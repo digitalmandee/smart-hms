@@ -18,6 +18,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Presentation from "./pages/Presentation";
 import PricingProposal from "./pages/PricingProposal";
+import ContractPage from "./pages/ContractPage";
 import SocialMediaPosts from "./pages/SocialMediaPosts";
 import PharmacyDocumentation from "./pages/PharmacyDocumentation";
 import SystemOverview from "./pages/SystemOverview";
@@ -593,6 +594,7 @@ function App() {
               <Route path="/" element={<Index />} />
               <Route path="/presentation" element={<Presentation />} />
               <Route path="/pricing-proposal" element={<PricingProposal />} />
+              <Route path="/contract" element={<ContractPage />} />
               <Route path="/social-media-posts" element={<SocialMediaPosts />} />
               <Route path="/pharmacy-documentation" element={<PharmacyDocumentation />} />
               <Route path="/system-overview" element={<SystemOverview />} />
