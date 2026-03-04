@@ -171,7 +171,7 @@ export const ContractCommercial = () => (
       <div className="bg-primary/5 border border-primary/20 rounded-xl p-5 my-4">
         <div className="flex justify-between items-center mb-4">
           <span className="font-semibold text-sm">Monthly Subscription</span>
-          <span className="text-2xl font-bold text-primary">PKR 315,000/month</span>
+          <span className="text-2xl font-bold text-primary">PKR 325,000/month</span>
         </div>
         <div className="border-t border-primary/10 pt-3 space-y-2 text-[10px]">
           <p>The monthly subscription fee includes:</p>
