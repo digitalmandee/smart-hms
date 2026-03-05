@@ -43,10 +43,10 @@ const ExecutivePresentation = () => {
 
         const originalStyle = el.style.cssText;
         el.style.width = "1200px";
-        el.style.minHeight = "675px";
-        el.style.height = "675px";
         el.style.maxWidth = "1200px";
-        el.style.overflow = "hidden";
+        el.style.overflow = "visible";
+        el.style.height = "auto";
+        el.style.minHeight = "675px";
         el.style.margin = "0";
         el.style.borderRadius = "0";
         el.style.border = "none";
@@ -54,16 +54,29 @@ const ExecutivePresentation = () => {
 
         await new Promise(r => setTimeout(r, 300));
 
+        const captureHeight = Math.max(el.scrollHeight, 675);
+
         const dataUrl = await toPng(el, {
           quality: 0.95,
           pixelRatio: 2,
           backgroundColor: "#ffffff",
           width: 1200,
-          height: 675,
+          height: captureHeight,
         });
 
         el.style.cssText = originalStyle;
-        pdf.addImage(dataUrl, "PNG", 0, 0, 297, 210);
+
+        const pageWidth = 297;
+        const pageHeight = (captureHeight / 1200) * pageWidth;
+
+        if (pageHeight > 210) {
+          const scaledWidth = (210 / pageHeight) * pageWidth;
+          const xOffset = (297 - scaledWidth) / 2;
+          pdf.addImage(dataUrl, "PNG", xOffset, 0, scaledWidth, 210);
+        } else {
+          const yOffset = (210 - pageHeight) / 2;
+          pdf.addImage(dataUrl, "PNG", 0, yOffset, pageWidth, pageHeight);
+        }
       }
 
       const pdfBlob = pdf.output("blob");
