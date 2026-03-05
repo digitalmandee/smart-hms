@@ -18,6 +18,8 @@ export interface InsuranceCompany {
   notes: string | null;
   is_active: boolean;
   created_at: string;
+  cchi_payer_code: string | null;
+  nphies_payer_id: string | null;
 }
 
 export interface InsurancePlan {

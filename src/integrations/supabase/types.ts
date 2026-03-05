@@ -9613,6 +9613,7 @@ export type Database = {
       insurance_companies: {
         Row: {
           address: string | null
+          cchi_payer_code: string | null
           city: string | null
           code: string | null
           contact_person: string | null
@@ -9623,6 +9624,7 @@ export type Database = {
           is_active: boolean | null
           name: string
           notes: string | null
+          nphies_payer_id: string | null
           organization_id: string
           phone: string | null
           updated_at: string | null
@@ -9630,6 +9632,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          cchi_payer_code?: string | null
           city?: string | null
           code?: string | null
           contact_person?: string | null
@@ -9640,6 +9643,7 @@ export type Database = {
           is_active?: boolean | null
           name: string
           notes?: string | null
+          nphies_payer_id?: string | null
           organization_id: string
           phone?: string | null
           updated_at?: string | null
@@ -9647,6 +9651,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          cchi_payer_code?: string | null
           city?: string | null
           code?: string | null
           contact_person?: string | null
@@ -9657,6 +9662,7 @@ export type Database = {
           is_active?: boolean | null
           name?: string
           notes?: string | null
+          nphies_payer_id?: string | null
           organization_id?: string
           phone?: string | null
           updated_at?: string | null

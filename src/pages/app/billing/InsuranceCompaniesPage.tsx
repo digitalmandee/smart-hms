@@ -50,6 +50,8 @@ export default function InsuranceCompaniesPage() {
     city: "",
     website: "",
     notes: "",
+    cchi_payer_code: "",
+    nphies_payer_id: "",
   });
   
   const { data: companies, isLoading } = useAllInsuranceCompanies();
@@ -66,6 +68,7 @@ export default function InsuranceCompaniesPage() {
     setFormData({
       name: "", code: "", contact_person: "", email: "", phone: "",
       address: "", city: "", website: "", notes: "",
+      cchi_payer_code: "", nphies_payer_id: "",
     });
     setIsDialogOpen(true);
   };
@@ -82,6 +85,8 @@ export default function InsuranceCompaniesPage() {
       city: company.city || "",
       website: company.website || "",
       notes: company.notes || "",
+      cchi_payer_code: company.cchi_payer_code || "",
+      nphies_payer_id: company.nphies_payer_id || "",
     });
     setIsDialogOpen(true);
   };
@@ -321,6 +326,24 @@ export default function InsuranceCompaniesPage() {
                 id="address"
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="cchi_payer_code">CCHI Payer Code</Label>
+              <Input
+                id="cchi_payer_code"
+                value={formData.cchi_payer_code}
+                onChange={(e) => setFormData({ ...formData, cchi_payer_code: e.target.value })}
+                placeholder="e.g., 301"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="nphies_payer_id">NPHIES Payer ID</Label>
+              <Input
+                id="nphies_payer_id"
+                value={formData.nphies_payer_id}
+                onChange={(e) => setFormData({ ...formData, nphies_payer_id: e.target.value })}
+                placeholder="NPHIES identifier"
               />
             </div>
             <div className="space-y-2 md:col-span-2">

@@ -2735,6 +2735,35 @@ export const en = {
   "donations.campaignEnded": "This campaign has ended",
   "donations.supportMessage": "Your contribution makes a difference",
 
+  // NPHIES Integration
+  "nphies.configTitle": "NPHIES Integration",
+  "nphies.configDescription": "Configure your organization's NPHIES credentials for electronic insurance transactions",
+  "nphies.settingsTitle": "NPHIES Settings",
+  "nphies.settingsDescription": "Manage your organization's NPHIES integration for Saudi Arabia insurance compliance",
+  "nphies.enabled": "Enabled",
+  "nphies.disabled": "Disabled",
+  "nphies.environment": "Environment",
+  "nphies.sandbox": "Sandbox (Testing)",
+  "nphies.production": "Production",
+  "nphies.baseUrl": "Base URL",
+  "nphies.facilityCredentials": "Facility Credentials",
+  "nphies.facilityId": "NPHIES Facility ID",
+  "nphies.cchiLicense": "CCHI License Number",
+  "nphies.apiCredentials": "API Credentials",
+  "nphies.clientId": "Client ID",
+  "nphies.clientSecret": "Client Secret",
+  "nphies.testConnection": "Test Connection",
+  "nphies.checkEligibility": "Check Eligibility",
+  "nphies.eligibilityResult": "Eligibility Result",
+  "nphies.eligible": "Eligible",
+  "nphies.notEligible": "Not Eligible",
+  "nphies.planName": "Plan",
+  "nphies.coverageStart": "Coverage Start",
+  "nphies.coverageEnd": "Coverage End",
+  "nphies.copay": "Copay",
+  "nphies.deductible": "Deductible",
+  "nphies.benefits": "Benefits",
+
 } as const;
 
 export type TranslationKey = keyof typeof en;

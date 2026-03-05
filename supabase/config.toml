@@ -44,3 +44,6 @@ verify_jwt = false
 
 [functions.seed-blood-bank]
 verify_jwt = false
+
+[functions.nphies-gateway]
+verify_jwt = false
