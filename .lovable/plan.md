@@ -1,73 +1,104 @@
 
 
-# Lab Templates Evaluation — Diagnosis & Fix Plan
+# NPHIES Integration — SaaS Multi-Tenant Architecture
 
-## Current State
+## Yes, NPHIES is Per-Hospital
 
-**Templates exist in the system.** There is a full template management UI at `/app/lab/templates` where you can create/edit templates with fields, units, and reference ranges. The `lab_test_templates` table stores them.
+Each hospital/facility registers separately with CCHI and receives its own:
+- **NPHIES Facility ID** (licensed healthcare provider ID)
+- **API credentials** (client ID, client secret, digital certificate)
+- **CCHI License Number**
 
-## Why Templates Don't Show During Result Entry
+Since you are running as SaaS, each organization in your system needs its own NPHIES configuration stored in the database — not as global secrets.
 
-The `TestResultForm` component fetches all active templates via `useLabTestTemplates()` and tries to match them to each lab order item using two strategies:
+## Architecture
 
-1. **By `service_type_id`** — exact match between order item and template
-2. **By name** — fuzzy substring match on `test_name`
+```text
+┌──────────────────────────────────────────────┐
+│  Frontend (per-org settings page)            │
+│  ┌────────────────────────────────────────┐  │
+│  │ NPHIES Configuration Panel             │  │
+│  │ - Facility ID                          │  │
+│  │ - CCHI License Number                  │  │
+│  │ - NPHIES Client ID / Secret            │  │
+│  │ - Base URL (sandbox vs production)     │  │
+│  │ - Enable/Disable toggle                │  │
+│  └────────────────────────────────────────┘  │
+└──────────────┬───────────────────────────────┘
+               │ stored per organization
+               ▼
+┌──────────────────────────────────────────────┐
+│  organization_settings table                 │
+│  key: nphies_facility_id, nphies_client_id,  │
+│       nphies_client_secret (encrypted),      │
+│       nphies_enabled, nphies_environment     │
+└──────────────┬───────────────────────────────┘
+               │ read by edge function
+               ▼
+┌──────────────────────────────────────────────┐
+│  Edge Function: nphies-gateway               │
+│  - Reads org credentials from DB             │
+│  - Authenticates with NPHIES OAuth           │
+│  - Sends FHIR requests (eligibility, claims) │
+│  - Returns response to frontend              │
+└──────────────────────────────────────────────┘
+```
 
-**The likely problem:** Templates in the database either:
-- Have **no `service_type_id` linked** to the service type used when ordering the test, AND
-- The **template name doesn't substring-match** the order item's test name
+## Implementation Plan
 
-So the matching fails silently and the form falls back to a plain free-text textarea.
+### 1. Database: Add NPHIES config columns to `insurance_companies`
+Each insurance company record already belongs to an organization. Add NPHIES-specific fields:
+- `cchi_payer_code` — the CCHI code for this payer (e.g., Bupa = specific code)
+- `nphies_payer_id` — NPHIES identifier for this payer
 
-Additionally, the query in `useLabTestTemplates` has **no `organization_id` filter**, which means it fetches templates from ALL organizations — but if there are simply no templates created yet for your tests, nothing will match.
+### 2. Database: Store org-level NPHIES credentials in `organization_settings`
+Using the existing `organization_settings` key-value table:
+- `nphies_enabled` (true/false)
+- `nphies_environment` (sandbox/production)
+- `nphies_facility_id`
+- `nphies_cchi_license`
+- `nphies_client_id`
+- `nphies_client_secret` (sensitive — stored encrypted or via Vault)
+- `nphies_base_url`
 
-## Fix Plan
+### 3. Frontend: NPHIES Configuration Panel
+New component in the Insurance settings area where org admins can:
+- Toggle NPHIES integration on/off
+- Enter their facility credentials
+- Select sandbox vs production environment
+- Test connectivity
+- View integration status
 
-### 1. Auto-link templates when creating lab orders
-When a lab order is created with a `service_type_id`, and a template exists with that same `service_type_id`, the match should work. The issue is templates may not have `service_type_id` set.
+### 4. Frontend: Eligibility Check Component
+Add an "Eligibility Check" button on:
+- Patient registration (when insurance is selected)
+- Appointment booking
+- Admission form
+Shows real-time eligibility status from NPHIES.
 
-### 2. Add organization_id filter to useLabTestTemplates
-The hook used by `TestResultForm` should filter by the user's organization to avoid cross-org data leaks and improve query performance.
+### 5. Edge Function: `nphies-gateway`
+Single gateway function that:
+- Receives org_id + action (eligibility/claim/preauth)
+- Reads that org's NPHIES credentials from `organization_settings`
+- Authenticates with NPHIES OAuth2
+- Converts data to HL7 FHIR format
+- Sends request and returns response
 
-### 3. Improve template matching logic
-Make the matching more robust:
-- First: exact `service_type_id` match
-- Second: exact name match (case-insensitive)
-- Third: substring match
-- Add a debug indicator when no template is found so lab techs know they need to create one
-
-### 4. Auto-create templates from Unified Services
-When a lab service is added in Settings, optionally auto-create a blank template stub linked via `service_type_id`, so the link is always there.
-
-## Files to Change
+### Files to Create/Change
 
 | File | Change |
 |------|--------|
-| `src/hooks/useLabTestTemplates.ts` | Add `organization_id` filter using `useAuth` |
-| `src/components/lab/TestResultForm.tsx` | Improve matching logic, add "no template" indicator with link to create one |
-| `src/hooks/useUnifiedServices.ts` | Auto-create template stub when adding lab service (optional enhancement) |
+| DB migration | Add `cchi_payer_code` to `insurance_companies` |
+| `src/components/insurance/NphiesConfigPanel.tsx` | New — org-level NPHIES settings UI (3 languages) |
+| `src/components/insurance/EligibilityCheckButton.tsx` | New — real-time eligibility check UI |
+| `src/hooks/useNphiesConfig.ts` | New — read/write NPHIES org settings |
+| `src/pages/app/insurance/InsuranceSettingsPage.tsx` | Add NPHIES configuration tab |
+| `supabase/functions/nphies-gateway/index.ts` | New — NPHIES API gateway edge function |
 
-## Technical Details
+### Security Note
+The `nphies_client_secret` is sensitive. Two options:
+- **Option A**: Store in `organization_settings` with a flag marking it sensitive (simpler, credentials in DB)
+- **Option B**: Use Supabase Vault for encryption (more secure, but Vault stores per-project not per-org)
 
-**`useLabTestTemplates.ts`** — Add org filter:
-```typescript
-const { profile } = useAuth();
-// ...
-.eq("organization_id", profile?.organization_id)
-.eq("is_active", true)
-```
-
-**`TestResultForm.tsx`** — Better matching + indicator:
-```typescript
-const template = templates?.find((t) =>
-  (item.service_type_id && t.service_type_id === item.service_type_id)
-) || templates?.find((t) =>
-  t.test_name.toLowerCase() === item.test_name.toLowerCase()
-) || templates?.find((t) =>
-  item.test_name.toLowerCase().includes(t.test_name.toLowerCase()) ||
-  t.test_name.toLowerCase().includes(item.test_name.toLowerCase())
-);
-```
-
-When no template found, show an info banner: "No template configured for this test. Results will be entered as free text." with a link to `/app/lab/templates/new`.
+For SaaS multi-tenant, Option A with DB-level encryption is more practical since each org has different credentials.
 
