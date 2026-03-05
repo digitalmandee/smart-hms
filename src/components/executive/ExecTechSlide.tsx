@@ -9,6 +9,7 @@ const techFeatures = [
   { icon: RefreshCw, title: "Continuous Updates", desc: "New features and security patches deployed automatically with zero downtime." },
   { icon: Globe, title: "Multi-Branch Ready", desc: "Single deployment serves multiple branches with branch-level data isolation and central reporting." },
   { icon: Server, title: "API-First Architecture", desc: "RESTful APIs for integration with lab equipment, biometrics, SMS gateways, and third-party tools." },
+  { icon: Globe, title: "Trilingual Interface", desc: "Full system available in English, Arabic & Urdu with complete RTL support for seamless regional use." },
 ];
 
 export function ExecTechSlide() {

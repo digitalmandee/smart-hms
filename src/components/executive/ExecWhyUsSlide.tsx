@@ -5,7 +5,7 @@ const reasons = [
   { icon: Bot, title: "AI-Powered (Tabeebi)", desc: "The only HMS with a built-in medical AI that pre-screens patients, generates summaries, and assists prescriptions." },
   { icon: Rocket, title: "4-Week Deployment", desc: "Go live in weeks, not months. Includes data migration, training, and parallel-run support." },
   { icon: HeadphonesIcon, title: "Dedicated Support", desc: "Assigned account manager, on-site training, and 24/7 technical support with <2 hour response SLA." },
-  { icon: Globe, title: "Multi-Branch & Multi-Language", desc: "Central admin with branch-level isolation. Full support for English, Urdu, and Arabic." },
+  { icon: Globe, title: "Trilingual — EN · عربي · اردو", desc: "Full interface in English, Arabic & Urdu with RTL support. Multi-branch with central admin and branch-level isolation." },
   { icon: RefreshCw, title: "Continuous Innovation", desc: "Monthly feature releases, security patches, and compliance updates — all included, zero extra cost." },
 ];
 
