@@ -2723,6 +2723,24 @@ export const ur: Record<TranslationKey, string> = {
   "nphies.preAuthDetails": "پیشگی اجازت",
   "nphies.preAuthNumber": "پیشگی اجازت نمبر",
 
+  // NPHIES Analytics
+  "nphiesAnalytics.title": "NPHIES تجزیات",
+  "nphiesAnalytics.description": "انشورنس کلیمز کے تفصیلی تجزیات اور رپورٹس",
+  "nphiesAnalytics.viewAnalytics": "تجزیات",
+  "nphiesAnalytics.totalClaims": "کل کلیمز",
+  "nphiesAnalytics.submitted": "جمع شدہ",
+  "nphiesAnalytics.avgProcessing": "اوسط پروسیسنگ",
+  "nphiesAnalytics.days": "دن",
+  "nphiesAnalytics.totalSubmitted": "کل جمع شدہ",
+  "nphiesAnalytics.dateRange": "تاریخ کی حد",
+  "nphiesAnalytics.claimsHistory": "کلیمز کی تاریخ",
+  "nphiesAnalytics.monthlyTrends": "ماہانہ رجحانات",
+  "nphiesAnalytics.payerBreakdown": "ادائیگی کنندگان کی تفصیل",
+  "nphiesAnalytics.payer": "ادائیگی کنندہ",
+  "nphiesAnalytics.approvalRate": "منظوری کی شرح",
+  "nphiesAnalytics.claimsByPayer": "ادائیگی کنندہ کے مطابق کلیمز",
+  "nphiesAnalytics.searchPatient": "مریض کے نام سے تلاش...",
+
   // Insurance Tab (Patient Profile)
   "insurance.noInsurance": "کوئی انشورنس پالیسی نہیں",
   "insurance.noInsuranceDesc": "اس مریض کی کوئی فعال انشورنس پالیسی نہیں ہے۔ مریض کی ترمیم کے صفحے سے انشورنس شامل کریں۔",
