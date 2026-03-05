@@ -83,6 +83,7 @@ export interface InsuranceClaim {
   status: string;
   pre_auth_number: string | null;
   pre_auth_date: string | null;
+  pre_auth_status: string | null;
   drg_code: string | null;
   icd_codes: string[];
   approval_date: string | null;

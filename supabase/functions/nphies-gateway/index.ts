@@ -354,6 +354,278 @@ Deno.serve(async (req) => {
         );
       }
 
+      case "submit_preauth": {
+        const { claim_id } = params;
+        if (!claim_id) {
+          return new Response(JSON.stringify({ error: "claim_id required" }), {
+            status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
+        const { data: claim, error: claimError } = await supabase
+          .from("insurance_claims")
+          .select(`
+            *,
+            patient_insurance:patient_insurance_id (
+              *,
+              insurance_plan:insurance_plan_id (
+                *,
+                insurance_company:insurance_company_id (*)
+              ),
+              patient:patient_id (id, first_name, last_name, date_of_birth, gender, national_id)
+            )
+          `)
+          .eq("id", claim_id)
+          .single();
+
+        if (claimError || !claim) {
+          return new Response(JSON.stringify({ error: "Claim not found" }), {
+            status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
+        const { data: claimItems } = await supabase
+          .from("insurance_claim_items")
+          .select("*")
+          .eq("claim_id", claim_id);
+
+        const accessToken = await getNphiesToken(baseUrl, config.nphies_client_id, config.nphies_client_secret);
+        const facilityId = config.nphies_facility_id;
+        const patient = claim.patient_insurance?.patient;
+        const insuranceCompany = claim.patient_insurance?.insurance_plan?.insurance_company;
+
+        const preAuthBundle = {
+          resourceType: "Bundle",
+          type: "message",
+          entry: [
+            {
+              resource: {
+                resourceType: "MessageHeader",
+                eventCoding: {
+                  system: "http://nphies.sa/terminology/CodeSystem/ksa-message-events",
+                  code: "priorauth-request",
+                },
+                source: { endpoint: `http://provider.sa/${facilityId}` },
+                destination: [{ endpoint: `${baseUrl}/nphies/fhir` }],
+              },
+            },
+            {
+              resource: {
+                resourceType: "Claim",
+                status: "active",
+                type: {
+                  coding: [{
+                    system: "http://terminology.hl7.org/CodeSystem/claim-type",
+                    code: "institutional",
+                  }],
+                },
+                use: "preauthorization",
+                patient: {
+                  reference: `Patient/${patient?.id || "unknown"}`,
+                  display: patient ? `${patient.first_name} ${patient.last_name}` : undefined,
+                },
+                created: new Date().toISOString(),
+                insurer: {
+                  reference: `Organization/${insuranceCompany?.nphies_payer_id || insuranceCompany?.id || "unknown"}`,
+                  display: insuranceCompany?.name,
+                },
+                provider: {
+                  reference: `Organization/${facilityId}`,
+                },
+                priority: { coding: [{ code: "normal" }] },
+                insurance: [{
+                  sequence: 1,
+                  focal: true,
+                  coverage: {
+                    reference: `Coverage/${claim.patient_insurance?.policy_number || "unknown"}`,
+                  },
+                }],
+                diagnosis: (claim.icd_codes || []).map((code: string, idx: number) => ({
+                  sequence: idx + 1,
+                  diagnosisCodeableConcept: {
+                    coding: [{
+                      system: "http://hl7.org/fhir/sid/icd-10",
+                      code: code,
+                    }],
+                  },
+                })),
+                item: (claimItems || []).map((item: any, idx: number) => ({
+                  sequence: idx + 1,
+                  productOrService: {
+                    coding: [{
+                      system: "http://nphies.sa/terminology/CodeSystem/services",
+                      code: item.service_code || "99999",
+                      display: item.service_name,
+                    }],
+                  },
+                  quantity: { value: item.quantity || 1 },
+                  unitPrice: { value: item.unit_price || 0, currency: "SAR" },
+                  net: { value: item.total_price || item.unit_price || 0, currency: "SAR" },
+                })),
+                total: {
+                  value: claim.total_amount || 0,
+                  currency: "SAR",
+                },
+              },
+            },
+          ],
+        };
+
+        const preAuthRes = await fetch(`${baseUrl}/nphies/fhir`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/fhir+json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify(preAuthBundle),
+        });
+
+        const preAuthData = await preAuthRes.json();
+        const preAuthResponse = preAuthData?.entry?.find(
+          (e: any) => e.resource?.resourceType === "ClaimResponse"
+        )?.resource;
+
+        const preAuthNumber = preAuthResponse?.preAuthRef || 
+          preAuthResponse?.identifier?.[0]?.value || 
+          `PA-${Date.now()}`;
+        const outcome = preAuthResponse?.outcome || (preAuthRes.ok ? "queued" : "error");
+
+        const statusMap: Record<string, string> = {
+          complete: "approved",
+          partial: "partially_approved",
+          error: "denied",
+          queued: "pending",
+        };
+        const preAuthStatus = statusMap[outcome] || "pending";
+
+        await supabase
+          .from("insurance_claims")
+          .update({
+            pre_auth_number: preAuthNumber,
+            pre_auth_status: preAuthStatus,
+            pre_auth_date: new Date().toISOString().split("T")[0],
+            nphies_response: preAuthData,
+          })
+          .eq("id", claim_id);
+
+        return new Response(
+          JSON.stringify({
+            success: preAuthRes.ok,
+            pre_auth_number: preAuthNumber,
+            pre_auth_status: preAuthStatus,
+            outcome,
+            raw_response: preAuthData,
+          }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      case "check_claim_status": {
+        const { claim_id } = params;
+        if (!claim_id) {
+          return new Response(JSON.stringify({ error: "claim_id required" }), {
+            status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
+        const { data: claim, error: claimError } = await supabase
+          .from("insurance_claims")
+          .select("nphies_claim_id, nphies_status")
+          .eq("id", claim_id)
+          .single();
+
+        if (claimError || !claim?.nphies_claim_id) {
+          return new Response(JSON.stringify({ error: "No NPHIES claim ID found" }), {
+            status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
+        const accessToken = await getNphiesToken(baseUrl, config.nphies_client_id, config.nphies_client_secret);
+        const facilityId = config.nphies_facility_id;
+
+        const pollBundle = {
+          resourceType: "Bundle",
+          type: "message",
+          entry: [
+            {
+              resource: {
+                resourceType: "MessageHeader",
+                eventCoding: {
+                  system: "http://nphies.sa/terminology/CodeSystem/ksa-message-events",
+                  code: "poll-request",
+                },
+                source: { endpoint: `http://provider.sa/${facilityId}` },
+                destination: [{ endpoint: `${baseUrl}/nphies/fhir` }],
+              },
+            },
+            {
+              resource: {
+                resourceType: "Parameters",
+                parameter: [
+                  { name: "claim-id", valueString: claim.nphies_claim_id },
+                ],
+              },
+            },
+          ],
+        };
+
+        const pollRes = await fetch(`${baseUrl}/nphies/fhir`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/fhir+json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify(pollBundle),
+        });
+
+        const pollData = await pollRes.json();
+        const claimResponse = pollData?.entry?.find(
+          (e: any) => e.resource?.resourceType === "ClaimResponse"
+        )?.resource;
+
+        if (claimResponse) {
+          const outcome = claimResponse.outcome || "queued";
+          const statusMap: Record<string, string> = {
+            complete: "approved",
+            partial: "partially_approved",
+            error: "rejected",
+            queued: "pending",
+          };
+          const nphiesStatus = statusMap[outcome] || "pending";
+
+          await supabase
+            .from("insurance_claims")
+            .update({
+              nphies_status: nphiesStatus,
+              nphies_response: pollData,
+              status: nphiesStatus === "approved" ? "approved" :
+                     nphiesStatus === "rejected" ? "rejected" : undefined,
+            })
+            .eq("id", claim_id);
+
+          return new Response(
+            JSON.stringify({
+              success: true,
+              nphies_status: nphiesStatus,
+              outcome,
+              adjudication: claimResponse.adjudication,
+              raw_response: pollData,
+            }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            nphies_status: claim.nphies_status,
+            message: "No status update available",
+            raw_response: pollData,
+          }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
       default:
         return new Response(
           JSON.stringify({ error: `Unknown action: ${action}` }),

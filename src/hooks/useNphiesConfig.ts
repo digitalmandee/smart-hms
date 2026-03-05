@@ -153,6 +153,78 @@ export function useSubmitClaimToNphies() {
   });
 }
 
+export function useSubmitPreAuth() {
+  const queryClient = useQueryClient();
+  const { profile } = useAuth();
+
+  return useMutation({
+    mutationFn: async (claimId: string) => {
+      if (!profile?.organization_id) throw new Error("No organization");
+
+      const { data, error } = await supabase.functions.invoke("nphies-gateway", {
+        body: {
+          action: "submit_preauth",
+          organization_id: profile.organization_id,
+          claim_id: claimId,
+        },
+      });
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["insurance-claim"] });
+      queryClient.invalidateQueries({ queryKey: ["insurance-claims"] });
+      if (data?.pre_auth_status === "approved") {
+        toast.success("Pre-authorization approved by NPHIES");
+      } else if (data?.pre_auth_status === "denied") {
+        toast.error("Pre-authorization denied by NPHIES");
+      } else {
+        toast.info("Pre-authorization submitted — pending review");
+      }
+    },
+    onError: (error: Error) => {
+      toast.error(`Pre-auth request failed: ${error.message}`);
+    },
+  });
+}
+
+export function useCheckClaimStatus() {
+  const queryClient = useQueryClient();
+  const { profile } = useAuth();
+
+  return useMutation({
+    mutationFn: async (claimId: string) => {
+      if (!profile?.organization_id) throw new Error("No organization");
+
+      const { data, error } = await supabase.functions.invoke("nphies-gateway", {
+        body: {
+          action: "check_claim_status",
+          organization_id: profile.organization_id,
+          claim_id: claimId,
+        },
+      });
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["insurance-claim"] });
+      queryClient.invalidateQueries({ queryKey: ["insurance-claims"] });
+      if (data?.nphies_status === "approved") {
+        toast.success("Claim has been approved by NPHIES");
+      } else if (data?.nphies_status === "rejected") {
+        toast.error("Claim has been rejected by NPHIES");
+      } else {
+        toast.info(data?.message || "Status checked — no update yet");
+      }
+    },
+    onError: (error: Error) => {
+      toast.error(`Status check failed: ${error.message}`);
+    },
+  });
+}
+
 export function useTestNphiesConnection() {
   const { profile } = useAuth();
 
@@ -176,5 +248,58 @@ export function useTestNphiesConnection() {
     onError: (error: Error) => {
       toast.error(`Connection test failed: ${error.message}`);
     },
+  });
+}
+
+export function useNphiesStats(organizationId?: string) {
+  return useQuery({
+    queryKey: ["nphies-stats", organizationId],
+    queryFn: async () => {
+      if (!organizationId) return null;
+
+      const { data: claims, error } = await supabase
+        .from("insurance_claims")
+        .select("nphies_status, total_amount, approved_amount")
+        .eq("organization_id", organizationId)
+        .not("nphies_claim_id", "is", null);
+
+      if (error) throw error;
+
+      const stats = {
+        total: claims?.length || 0,
+        approved: 0,
+        rejected: 0,
+        pending: 0,
+        partiallyApproved: 0,
+        totalApprovedAmount: 0,
+      };
+
+      claims?.forEach((c) => {
+        if (c.nphies_status === "approved") {
+          stats.approved++;
+          stats.totalApprovedAmount += Number(c.approved_amount || c.total_amount || 0);
+        } else if (c.nphies_status === "rejected") {
+          stats.rejected++;
+        } else if (c.nphies_status === "pending") {
+          stats.pending++;
+        } else if (c.nphies_status === "partially_approved") {
+          stats.partiallyApproved++;
+          stats.totalApprovedAmount += Number(c.approved_amount || 0);
+        }
+      });
+
+      // Get eligibility check count (last 30 days)
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      
+      const { count: eligibilityCount } = await supabase
+        .from("nphies_eligibility_logs")
+        .select("id", { count: "exact", head: true })
+        .eq("organization_id", organizationId)
+        .gte("checked_at", thirtyDaysAgo.toISOString());
+
+      return { ...stats, eligibilityChecks: eligibilityCount || 0 };
+    },
+    enabled: !!organizationId,
   });
 }
