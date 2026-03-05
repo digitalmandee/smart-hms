@@ -1,38 +1,18 @@
 
 
-# NPHIES Analytics Page
+# Fix: Add NPHIES Dashboard Widget to Main Dashboard
 
-## What We're Building
-A dedicated full-page NPHIES analytics page at `/app/billing/nphies-analytics` with:
-1. **Summary KPI cards** — Total NPHIES claims, approved/rejected/pending counts, total approved SAR, average processing time
-2. **Claims history table** — All NPHIES-submitted claims with claim number, patient, payer, amount, NPHIES status, submission date, filterable and sortable
-3. **Monthly trends chart** — Bar/line chart showing claims submitted vs approved vs rejected per month
-4. **Payer breakdown table + chart** — Per-insurance company: claims count, approval rate, amounts
-5. **Exportable** — CSV and PDF export via existing `ReportExportButton`
+## Problem
+The `NphiesDashboardCard` is only rendered on the **Billing Dashboard** (`/app/billing`), but branch_admin users land on `/app/dashboard` which renders `DashboardPage.tsx` — this page has no NPHIES widget.
 
-## Files to Create/Change
+## Solution
+Add the `NphiesDashboardCard` to `DashboardPage.tsx` for clinical facility types. It will appear alongside the existing Pharmacy Alerts section, only when NPHIES is enabled (the component already handles this check internally with `if (!nphiesConfig?.nphies_enabled) return null`).
 
-| File | Action |
+## Changes
+
+| File | Change |
 |------|--------|
-| `src/pages/app/billing/NphiesAnalyticsPage.tsx` | **New** — Full analytics page |
-| `src/hooks/useNphiesAnalytics.ts` | **New** — Hook querying `insurance_claims` where `nphies_claim_id IS NOT NULL`, with date filtering, monthly aggregation, payer breakdown |
-| `src/App.tsx` | Add route `billing/nphies-analytics` |
-| `src/components/insurance/NphiesDashboardCard.tsx` | Add "View Analytics" link to the new page |
-| `src/lib/i18n/translations/en.ts` | Add analytics page translations |
-| `src/lib/i18n/translations/ar.ts` | Add Arabic translations |
-| `src/lib/i18n/translations/ur.ts` | Add Urdu translations |
+| `src/pages/app/DashboardPage.tsx` | Import `NphiesDashboardCard` and render it in the bottom grid section alongside `PharmacyAlertsWidget` for clinical facilities |
 
-## Hook Design (`useNphiesAnalytics`)
-- Queries `insurance_claims` joined with `insurance_companies`, `patients`, filtering by `nphies_claim_id IS NOT NULL` and date range
-- Computes: summary stats, monthly trend (group by month), payer breakdown (group by company), and returns raw claims list for the table
-- Reuses existing patterns from `useClaimsReports.ts`
-
-## Page Layout
-- `PageHeader` with title + `ReportExportButton`
-- Date range filter card
-- 4 KPI `StatsCard`s in a grid
-- Tabs: "Claims History" | "Monthly Trends" | "Payer Breakdown"
-  - Claims History: filterable table with NPHIES status badges, export
-  - Monthly Trends: `BarChart` from recharts (submitted/approved/rejected per month)
-  - Payer Breakdown: table + pie chart showing per-company approval rates and amounts
+The widget self-hides when NPHIES is not enabled, so no extra role/permission checks are needed. The RLS on `organization_settings` already allows any org member to read settings.
 
