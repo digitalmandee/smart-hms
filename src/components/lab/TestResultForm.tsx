@@ -5,10 +5,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, Loader2 } from "lucide-react";
+import { Check, Loader2, Info } from "lucide-react";
 import { LabOrderItem } from "@/hooks/useLabOrders";
 import { TemplateField, useLabTestTemplates } from "@/hooks/useLabTestTemplates";
 import { cn } from "@/lib/utils";
+import { Link } from "react-router-dom";
 
 interface PatientInfo {
   name: string;
@@ -41,6 +42,34 @@ const statusConfig = {
   completed: { label: "Completed", className: "bg-green-100 text-green-800" },
 };
 
+function findMatchingTemplate(
+  templates: ReturnType<typeof useLabTestTemplates>["data"],
+  item: LabOrderItem
+) {
+  if (!templates?.length) return undefined;
+
+  // 1. Exact service_type_id match
+  if (item.service_type_id) {
+    const byServiceType = templates.find(
+      (t) => t.service_type_id === item.service_type_id
+    );
+    if (byServiceType) return byServiceType;
+  }
+
+  // 2. Exact name match (case-insensitive)
+  const byExactName = templates.find(
+    (t) => t.test_name.toLowerCase() === item.test_name.toLowerCase()
+  );
+  if (byExactName) return byExactName;
+
+  // 3. Substring match
+  return templates.find(
+    (t) =>
+      item.test_name.toLowerCase().includes(t.test_name.toLowerCase()) ||
+      t.test_name.toLowerCase().includes(item.test_name.toLowerCase())
+  );
+}
+
 export function TestResultForm({ 
   item, 
   onSave, 
@@ -54,14 +83,7 @@ export function TestResultForm({
   const [results, setResults] = useState<Record<string, string | number>>({});
   const [notes, setNotes] = useState("");
 
-  // Find matching template - prioritize service_type_id match for reliability
-  const template = templates?.find((t) =>
-    // First try exact match by service_type_id (most reliable)
-    (item.service_type_id && t.service_type_id === item.service_type_id) ||
-    // Fallback to name matching
-    item.test_name.toLowerCase().includes(t.test_name.toLowerCase()) ||
-    t.test_name.toLowerCase().includes(item.test_name.toLowerCase())
-  );
+  const template = findMatchingTemplate(templates, item);
 
   // Initialize from existing values
   useEffect(() => {
@@ -92,7 +114,6 @@ export function TestResultForm({
 
   const status = statusConfig[item.status] || statusConfig.pending;
   const isCompleted = item.status === "completed";
-  // Allow editing if editable prop is true (even for completed items)
   const canEdit = isEditable;
 
   return (
@@ -178,15 +199,29 @@ export function TestResultForm({
             })}
           </div>
         ) : (
-          /* Free-text result if no template */
-          <div className="space-y-2">
-            <Label>Result</Label>
-            <Textarea
-              value={results["result"] as string || ""}
-              onChange={(e) => handleResultChange("result", e.target.value)}
-              placeholder="Enter test result..."
-              disabled={!canEdit}
-            />
+          /* No template — show info banner + free-text */
+          <div className="space-y-3">
+            <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
+              <Info className="h-4 w-4 mt-0.5 shrink-0" />
+              <div>
+                <p>No template configured for this test. Results will be entered as free text.</p>
+                <Link 
+                  to="/app/lab/templates" 
+                  className="text-blue-600 underline hover:text-blue-800 text-xs"
+                >
+                  Configure lab templates →
+                </Link>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Result</Label>
+              <Textarea
+                value={results["result"] as string || ""}
+                onChange={(e) => handleResultChange("result", e.target.value)}
+                placeholder="Enter test result..."
+                disabled={!canEdit}
+              />
+            </div>
           </div>
         )}
 
