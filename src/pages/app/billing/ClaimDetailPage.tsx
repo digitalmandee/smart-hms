@@ -13,8 +13,8 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useInsuranceClaim, useUpdateInsuranceClaim } from "@/hooks/useInsurance";
-import { useNphiesConfig, useSubmitClaimToNphies } from "@/hooks/useNphiesConfig";
-import { ArrowLeft, Send, CheckCircle, XCircle, DollarSign, Building2, FileText, Loader2, CloudUpload, Clock, AlertCircle } from "lucide-react";
+import { useNphiesConfig, useSubmitClaimToNphies, useSubmitPreAuth, useCheckClaimStatus } from "@/hooks/useNphiesConfig";
+import { ArrowLeft, Send, CheckCircle, XCircle, DollarSign, Building2, FileText, Loader2, CloudUpload, Clock, AlertCircle, RefreshCw, ShieldCheck, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { formatCurrency } from "@/lib/currency";
 import { useTranslation } from "@/lib/i18n";
@@ -36,6 +36,55 @@ const nphiesStatusConfig: Record<string, { color: string; icon: any; label: stri
   partially_approved: { color: "text-orange-500", icon: AlertCircle, label: "nphies.partiallyApproved" },
 };
 
+const preAuthStatusConfig: Record<string, { color: string; icon: any }> = {
+  approved: { color: "text-green-600", icon: CheckCircle },
+  denied: { color: "text-destructive", icon: XCircle },
+  pending: { color: "text-yellow-600", icon: Clock },
+};
+
+function NphiesRejectionDetails({ nphiesResponse }: { nphiesResponse: any }) {
+  const { t } = useTranslation();
+  if (!nphiesResponse) return null;
+
+  const claimResponse = nphiesResponse?.entry?.find(
+    (e: any) => e.resource?.resourceType === "ClaimResponse"
+  )?.resource;
+
+  const errors = claimResponse?.error || [];
+  const adjudication = claimResponse?.adjudication || [];
+  const processNotes = claimResponse?.processNote || [];
+
+  if (errors.length === 0 && adjudication.length === 0 && processNotes.length === 0) return null;
+
+  return (
+    <div className="space-y-3">
+      {errors.length > 0 && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>{t("nphies.rejectionReasons" as any, "Rejection Reasons")}</AlertTitle>
+          <AlertDescription>
+            <ul className="list-disc list-inside mt-2 space-y-1">
+              {errors.map((err: any, idx: number) => (
+                <li key={idx} className="text-sm">
+                  {err.code?.coding?.[0]?.display || err.code?.text || `Error code: ${err.code?.coding?.[0]?.code || "unknown"}`}
+                </li>
+              ))}
+            </ul>
+          </AlertDescription>
+        </Alert>
+      )}
+      {processNotes.length > 0 && (
+        <div className="p-3 rounded-lg bg-muted">
+          <Label className="text-muted-foreground text-xs">{t("nphies.processNotes" as any, "Process Notes")}</Label>
+          {processNotes.map((note: any, idx: number) => (
+            <p key={idx} className="text-sm mt-1">{note.text}</p>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function ClaimDetailPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -49,9 +98,14 @@ export default function ClaimDetailPage() {
   const updateClaim = useUpdateInsuranceClaim();
   const { data: nphiesConfig } = useNphiesConfig();
   const submitToNphies = useSubmitClaimToNphies();
+  const submitPreAuth = useSubmitPreAuth();
+  const checkStatus = useCheckClaimStatus();
 
   const isNphiesEnabled = nphiesConfig?.nphies_enabled === true;
   const canSubmitToNphies = isNphiesEnabled && claim && ['draft', 'submitted'].includes(claim.status) && !claim.nphies_claim_id;
+  const canResubmit = isNphiesEnabled && claim?.nphies_status === "rejected";
+  const canRefreshStatus = isNphiesEnabled && claim?.nphies_claim_id && claim?.nphies_status === "pending";
+  const canRequestPreAuth = isNphiesEnabled && claim && !claim.pre_auth_number && ['draft', 'submitted'].includes(claim.status);
 
   const handleSubmitClaim = async () => {
     try {
@@ -65,6 +119,29 @@ export default function ClaimDetailPage() {
   const handleSubmitToNphies = async () => {
     if (!id) return;
     submitToNphies.mutate(id);
+  };
+
+  const handleResubmitToNphies = async () => {
+    if (!id) return;
+    // Clear old NPHIES data before resubmitting
+    await updateClaim.mutateAsync({
+      id: id!,
+      nphies_claim_id: null,
+      nphies_status: null,
+      nphies_response: null,
+      status: 'submitted',
+    } as any);
+    submitToNphies.mutate(id);
+  };
+
+  const handleRefreshStatus = async () => {
+    if (!id) return;
+    checkStatus.mutate(id);
+  };
+
+  const handleRequestPreAuth = async () => {
+    if (!id) return;
+    submitPreAuth.mutate(id);
   };
 
   const handleApproveClaim = async () => {
@@ -115,6 +192,7 @@ export default function ClaimDetailPage() {
   }
 
   const nphiesStatus = claim.nphies_status ? nphiesStatusConfig[claim.nphies_status] : null;
+  const preAuthBadge = claim.pre_auth_status ? preAuthStatusConfig[claim.pre_auth_status] : null;
 
   return (
     <div className="space-y-6">
@@ -122,7 +200,7 @@ export default function ClaimDetailPage() {
         title={`Claim ${claim.claim_number}`}
         description="Insurance claim details"
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <Button variant="outline" onClick={() => navigate('/app/billing/claims')}>
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back
@@ -132,6 +210,21 @@ export default function ClaimDetailPage() {
               <Button onClick={handleSubmitClaim}>
                 <Send className="h-4 w-4 mr-2" />
                 Submit Claim
+              </Button>
+            )}
+
+            {canRequestPreAuth && (
+              <Button
+                variant="outline"
+                onClick={handleRequestPreAuth}
+                disabled={submitPreAuth.isPending}
+              >
+                {submitPreAuth.isPending ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <ShieldCheck className="h-4 w-4 mr-2" />
+                )}
+                {t("nphies.requestPreAuth" as any, "Request Pre-Auth")}
               </Button>
             )}
 
@@ -147,6 +240,37 @@ export default function ClaimDetailPage() {
                   <CloudUpload className="h-4 w-4 mr-2" />
                 )}
                 {t("nphies.submitToNphies" as any, "Submit to NPHIES")}
+              </Button>
+            )}
+
+            {canResubmit && (
+              <Button
+                onClick={handleResubmitToNphies}
+                disabled={submitToNphies.isPending}
+                variant="outline"
+                className="border-destructive text-destructive hover:bg-destructive/10"
+              >
+                {submitToNphies.isPending ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                )}
+                {t("nphies.resubmitToNphies" as any, "Resubmit to NPHIES")}
+              </Button>
+            )}
+
+            {canRefreshStatus && (
+              <Button
+                variant="outline"
+                onClick={handleRefreshStatus}
+                disabled={checkStatus.isPending}
+              >
+                {checkStatus.isPending ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                )}
+                {t("nphies.refreshStatus" as any, "Refresh Status")}
               </Button>
             )}
 
@@ -238,6 +362,15 @@ export default function ClaimDetailPage() {
                 Created on {format(new Date(claim.created_at), 'PPP')}
               </span>
             </div>
+            {/* Pre-Auth Badge */}
+            {claim.pre_auth_number && preAuthBadge && (
+              <div className={`flex items-center gap-1.5 ${preAuthBadge.color}`}>
+                <preAuthBadge.icon className="h-4 w-4" />
+                <span className="text-sm font-medium">
+                  {t("nphies.preAuth" as any, "Pre-Auth")}: {claim.pre_auth_status}
+                </span>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -270,6 +403,46 @@ export default function ClaimDetailPage() {
                 <div>
                   <Label className="text-muted-foreground">{t("nphies.submissionDate" as any, "Submitted")}</Label>
                   <p className="font-medium">{format(new Date(claim.submission_date), 'PPp')}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Rejection details from NPHIES response */}
+            {claim.nphies_status === "rejected" && (
+              <NphiesRejectionDetails nphiesResponse={claim.nphies_response} />
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Pre-Auth Card */}
+      {claim.pre_auth_number && (
+        <Card className="border-l-4 border-l-accent">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ShieldCheck className="h-5 w-5" />
+              {t("nphies.preAuthDetails" as any, "Pre-Authorization")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <div>
+                <Label className="text-muted-foreground">{t("nphies.preAuthNumber" as any, "Pre-Auth Number")}</Label>
+                <p className="font-mono font-medium text-sm">{claim.pre_auth_number}</p>
+              </div>
+              <div>
+                <Label className="text-muted-foreground">{t("common.status")}</Label>
+                {preAuthBadge && (
+                  <div className={`flex items-center gap-1.5 font-medium ${preAuthBadge.color}`}>
+                    <preAuthBadge.icon className="h-4 w-4" />
+                    {claim.pre_auth_status}
+                  </div>
+                )}
+              </div>
+              {claim.pre_auth_date && (
+                <div>
+                  <Label className="text-muted-foreground">{t("common.date")}</Label>
+                  <p className="font-medium">{format(new Date(claim.pre_auth_date), 'PPP')}</p>
                 </div>
               )}
             </div>

@@ -8,6 +8,7 @@ import { useBillingStats, useInvoices } from "@/hooks/useBilling";
 import { useActiveSession } from "@/hooks/useBillingSessions";
 import { useAuth } from "@/contexts/AuthContext";
 import { ActiveSessionBanner } from "@/components/billing/ActiveSessionBanner";
+import { NphiesDashboardCard } from "@/components/insurance/NphiesDashboardCard";
 import { OpenSessionDialog } from "@/components/billing/OpenSessionDialog";
 import {
   DollarSign,
@@ -87,58 +88,63 @@ export default function BillingDashboard() {
       {/* Session Banner */}
       {activeSession && <ActiveSessionBanner />}
 
-      {/* Quick Actions & Recent Invoices */}
+      {/* Quick Actions, NPHIES Widget & Recent Invoices */}
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Quick Actions */}
-        <Card>
-          <CardHeader>
-            <CardTitle>{t("billing.quickActions")}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {!activeSession ? (
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>{t("billing.quickActions")}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {!activeSession ? (
+                <Button
+                  variant="default"
+                  className="w-full justify-start"
+                  onClick={() => setShowOpenSession(true)}
+                >
+                  <Monitor className="mr-2 h-4 w-4" />
+                  {t("billing.openSession")}
+                </Button>
+              ) : null}
               <Button
-                variant="default"
+                variant="outline"
                 className="w-full justify-start"
-                onClick={() => setShowOpenSession(true)}
+                onClick={() => navigate("/app/billing/invoices/new")}
               >
-                <Monitor className="mr-2 h-4 w-4" />
-                {t("billing.openSession")}
+                <Plus className="mr-2 h-4 w-4" />
+                {t("billing.createNewInvoice")}
               </Button>
-            ) : null}
-            <Button
-              variant="outline"
-              className="w-full justify-start"
-              onClick={() => navigate("/app/billing/invoices/new")}
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              {t("billing.createNewInvoice")}
-            </Button>
-            <Button
-              variant="outline"
-              className="w-full justify-start"
-              onClick={() => navigate("/app/billing/invoices?status=pending")}
-            >
-              <Clock className="mr-2 h-4 w-4" />
-              {t("billing.viewPendingInvoices")}
-            </Button>
-            <Button
-              variant="outline"
-              className="w-full justify-start"
-              onClick={() => navigate("/app/billing/daily-closing")}
-            >
-              <CalendarCheck className="mr-2 h-4 w-4" />
-              {t("billing.dailyClosing")}
-            </Button>
-            <Button
-              variant="outline"
-              className="w-full justify-start"
-              onClick={() => navigate("/app/reports/day-end-summary")}
-            >
-              <BarChart3 className="mr-2 h-4 w-4" />
-              {t("billing.dayEndSummary")}
-            </Button>
-          </CardContent>
-        </Card>
+              <Button
+                variant="outline"
+                className="w-full justify-start"
+                onClick={() => navigate("/app/billing/invoices?status=pending")}
+              >
+                <Clock className="mr-2 h-4 w-4" />
+                {t("billing.viewPendingInvoices")}
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full justify-start"
+                onClick={() => navigate("/app/billing/daily-closing")}
+              >
+                <CalendarCheck className="mr-2 h-4 w-4" />
+                {t("billing.dailyClosing")}
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full justify-start"
+                onClick={() => navigate("/app/reports/day-end-summary")}
+              >
+                <BarChart3 className="mr-2 h-4 w-4" />
+                {t("billing.dayEndSummary")}
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* NPHIES Dashboard Widget */}
+          <NphiesDashboardCard />
+        </div>
 
         {/* Recent Invoices */}
         <Card className="lg:col-span-2">
