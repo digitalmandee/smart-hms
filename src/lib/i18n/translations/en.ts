@@ -2789,6 +2789,24 @@ export const en = {
   "nphies.preAuthDetails": "Pre-Authorization",
   "nphies.preAuthNumber": "Pre-Auth Number",
 
+  // NPHIES Analytics
+  "nphiesAnalytics.title": "NPHIES Analytics",
+  "nphiesAnalytics.description": "Detailed insurance claims analytics and reporting",
+  "nphiesAnalytics.viewAnalytics": "Analytics",
+  "nphiesAnalytics.totalClaims": "Total Claims",
+  "nphiesAnalytics.submitted": "Submitted",
+  "nphiesAnalytics.avgProcessing": "Avg Processing",
+  "nphiesAnalytics.days": "days",
+  "nphiesAnalytics.totalSubmitted": "Total Submitted",
+  "nphiesAnalytics.dateRange": "Date Range",
+  "nphiesAnalytics.claimsHistory": "Claims History",
+  "nphiesAnalytics.monthlyTrends": "Monthly Trends",
+  "nphiesAnalytics.payerBreakdown": "Payer Breakdown",
+  "nphiesAnalytics.payer": "Payer",
+  "nphiesAnalytics.approvalRate": "Approval %",
+  "nphiesAnalytics.claimsByPayer": "Claims by Payer",
+  "nphiesAnalytics.searchPatient": "Search by patient...",
+
   // Insurance Tab (Patient Profile)
   "insurance.noInsurance": "No Insurance Policies",
   "insurance.noInsuranceDesc": "This patient has no active insurance policies. Add insurance from the patient edit page.",

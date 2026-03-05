@@ -2723,6 +2723,24 @@ export const ar: Record<TranslationKey, string> = {
   "nphies.preAuthDetails": "الإذن المسبق",
   "nphies.preAuthNumber": "رقم الإذن المسبق",
 
+  // NPHIES Analytics
+  "nphiesAnalytics.title": "تحليلات NPHIES",
+  "nphiesAnalytics.description": "تحليلات وتقارير مطالبات التأمين التفصيلية",
+  "nphiesAnalytics.viewAnalytics": "التحليلات",
+  "nphiesAnalytics.totalClaims": "إجمالي المطالبات",
+  "nphiesAnalytics.submitted": "مقدمة",
+  "nphiesAnalytics.avgProcessing": "متوسط المعالجة",
+  "nphiesAnalytics.days": "أيام",
+  "nphiesAnalytics.totalSubmitted": "إجمالي المقدم",
+  "nphiesAnalytics.dateRange": "نطاق التاريخ",
+  "nphiesAnalytics.claimsHistory": "سجل المطالبات",
+  "nphiesAnalytics.monthlyTrends": "الاتجاهات الشهرية",
+  "nphiesAnalytics.payerBreakdown": "تفصيل الدافعين",
+  "nphiesAnalytics.payer": "الدافع",
+  "nphiesAnalytics.approvalRate": "نسبة الموافقة",
+  "nphiesAnalytics.claimsByPayer": "المطالبات حسب الدافع",
+  "nphiesAnalytics.searchPatient": "البحث عن مريض...",
+
   // Insurance Tab (Patient Profile)
   "insurance.noInsurance": "لا توجد وثائق تأمين",
   "insurance.noInsuranceDesc": "لا يوجد لدى هذا المريض وثائق تأمين نشطة. أضف التأمين من صفحة تعديل المريض.",

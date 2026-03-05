@@ -157,6 +157,15 @@ export function NphiesDashboardCard() {
             {t("nphies.viewClaims" as any, "View Claims")}
             <ArrowRight className="ml-1 h-3 w-3" />
           </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1"
+            onClick={() => navigate("/app/billing/nphies-analytics")}
+          >
+            {t("nphiesAnalytics.viewAnalytics" as any, "Analytics")}
+            <ArrowRight className="ml-1 h-3 w-3" />
+          </Button>
         </div>
       </CardContent>
     </Card>
