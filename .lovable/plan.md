@@ -1,101 +1,66 @@
 
 
-# Phase 4: NPHIES Electronic Claim Submission + Saudi Payer Codes
+# Phase 5: NPHIES Enhancements — Pre-Authorization, Dashboard, and Claim Resubmission
 
-## Part A: NPHIES Claim Submission
+## What's Already Done (Phases 1-4)
+- NPHIES config panel + edge function (test, eligibility, submit_claim)
+- Patient profile insurance tab with eligibility checks + history
+- Appointment booking insurance auto-check
+- Claim submission to NPHIES with FHIR bundle + status tracking
+- Saudi payer seeding (10 companies)
 
-### What This Does
-When a user clicks "Submit Claim" on the ClaimDetailPage, the system will automatically build an HL7 FHIR `Claim` bundle and submit it to NPHIES via the existing `nphies-gateway` edge function. The response (approval/rejection/pending) is stored on the `insurance_claims` record using the existing `nphies_claim_id`, `nphies_status`, and `nphies_response` columns.
+## Enhancement Areas
 
-### Flow
-```text
-User clicks "Submit to NPHIES" on ClaimDetailPage
-  → Frontend calls nphies-gateway with action: "submit_claim"
-  → Edge function:
-      1. OAuth2 authenticate with NPHIES
-      2. Fetch claim + items + patient + insurance data
-      3. Build FHIR Claim Bundle (MessageHeader + Claim resource)
-      4. POST to NPHIES /nphies/fhir
-      5. Parse ClaimResponse from FHIR response
-      6. Update insurance_claims with nphies_claim_id, nphies_status, nphies_response
-      7. Return result to frontend
-  → Frontend shows result (accepted/rejected/pending) + updates UI
-```
+### 1. NPHIES Pre-Authorization Workflow
+The DB already has `pre_auth_number`, `pre_auth_date`, `pre_auth_status` columns on `insurance_claims`. The claim form has pre-auth fields. But there's no **automated NPHIES pre-auth request** — it's all manual entry.
 
-### Changes
+**Add:**
+- New `submit_preauth` action in `nphies-gateway` edge function — builds a FHIR `Claim` with `use: "preauthorization"` and submits to NPHIES
+- `useSubmitPreAuth` hook in `useNphiesConfig.ts`
+- "Request Pre-Auth" button on `ClaimFormPage` and `ClaimDetailPage` — submits pre-auth to NPHIES, stores response in `pre_auth_number`, `pre_auth_status`
+- Pre-auth status badges (approved/pending/denied) on claim cards
 
-**1. Edge Function: `nphies-gateway/index.ts`** — Add `submit_claim` action
-- Fetches full claim data (claim + items + patient + insurance company CCHI code)
-- Builds FHIR `Claim` Bundle with proper NPHIES coding (diagnosis, items, totals)
-- Submits to NPHIES and parses `ClaimResponse`
-- Updates `insurance_claims` row with `nphies_claim_id`, `nphies_status`, `nphies_response`
+### 2. NPHIES Insurance Dashboard Widget
+The Billing Dashboard exists but has zero NPHIES/insurance metrics.
 
-**2. New hook: `useSubmitClaimToNphies`** in `src/hooks/useNphiesConfig.ts`
-- Mutation that calls `nphies-gateway` with `action: "submit_claim"` and `claim_id`
-- On success, invalidates claim queries and shows toast
+**Add a new `NphiesDashboardCard` component** rendered on `BillingDashboard.tsx`:
+- Claims submitted to NPHIES (total count)
+- Approved / Rejected / Pending breakdown (pie or bar chart using recharts)
+- Eligibility checks performed (last 30 days)
+- Total approved amount from NPHIES
+- Quick-action links to Claims List, NPHIES Settings
 
-**3. Update `ClaimDetailPage.tsx`**
-- Add "Submit to NPHIES" button (shown when claim status is `draft` or `submitted` and NPHIES is enabled)
-- Show NPHIES status card when `nphies_status` is set (with claim ID, status, timestamp)
-- Display NPHIES response details (adjudication outcome)
+### 3. Claim Resubmission + Error Details
+Currently if a claim is rejected, there's no way to fix and resubmit.
 
-**4. Update `InsuranceClaim` type** in `useInsurance.ts`
-- Add `nphies_claim_id`, `nphies_status`, `nphies_response` fields to the interface
+**Add:**
+- "Resubmit to NPHIES" button on rejected claims in `ClaimDetailPage`
+- Display NPHIES rejection reasons from `nphies_response` JSON (adjudication notes, error codes)
+- Clear `nphies_claim_id` on resubmission to allow fresh tracking
 
----
+### 4. NPHIES Claim Status Polling
+Claims submitted as "pending" have no follow-up mechanism.
 
-## Part B: Pre-populate Saudi Insurance Payer Codes
+**Add:**
+- New `check_claim_status` action in `nphies-gateway` — queries NPHIES for claim status update
+- "Refresh Status" button on pending claims in `ClaimDetailPage`
 
-### What This Does
-Seed the system with major Saudi insurance companies and their CCHI payer codes so organizations don't have to manually enter them. This will be a **data insert** (not migration) using a utility or edge function approach.
-
-Since insurance companies are per-organization, we'll create a **"Populate Saudi Payers"** button in the Insurance Companies page that inserts the standard Saudi payers for the current organization.
-
-### Saudi Payers to Include
-| Company | CCHI Code | NPHIES Payer ID |
-|---------|-----------|-----------------|
-| Bupa Arabia | 801 | INS-BUPA |
-| Tawuniya | 802 | INS-TAWUNIYA |
-| MedGulf | 803 | INS-MEDGULF |
-| ACIG | 804 | INS-ACIG |
-| Malath Insurance | 805 | INS-MALATH |
-| Walaa Insurance | 806 | INS-WALAA |
-| Al Rajhi Takaful | 807 | INS-ALRAJHI |
-| GlobeMed Saudi | 808 | INS-GLOBEMED |
-| SAICO | 809 | INS-SAICO |
-| Arabian Shield | 810 | INS-ARABSHIELD |
-
-### Changes
-
-**5. New component: `PopulateSaudiPayersButton.tsx`**
-- Button component that inserts the Saudi payer list for the current org
-- Checks for duplicates (by `cchi_payer_code`) before inserting
-- Shows count of added vs skipped
-
-**6. Update `InsuranceCompaniesPage.tsx`**
-- Add the populate button in the page header actions
-
----
-
-## Part C: Translations (EN/AR/UR)
-
-Add keys for:
-- NPHIES claim submission labels ("Submit to NPHIES", "NPHIES Status", "Claim Accepted", "Claim Rejected", "Pending Review")
-- Saudi payer population ("Populate Saudi Payers", "X payers added", "Already exists")
+### 5. Translations (EN/AR/UR)
+Add all new keys for pre-auth, dashboard widget, resubmission, and status polling labels.
 
 ## Files to Create/Change
 
 | File | Action |
 |------|--------|
-| `supabase/functions/nphies-gateway/index.ts` | Add `submit_claim` action with FHIR Claim bundle |
-| `src/hooks/useNphiesConfig.ts` | Add `useSubmitClaimToNphies` mutation |
-| `src/hooks/useInsurance.ts` | Add NPHIES fields to `InsuranceClaim` interface |
-| `src/pages/app/billing/ClaimDetailPage.tsx` | Add NPHIES submit button + status display |
-| `src/components/insurance/PopulateSaudiPayersButton.tsx` | **New** — Saudi payer seeding button |
-| `src/pages/app/billing/InsuranceCompaniesPage.tsx` | Add populate button |
-| `src/lib/i18n/translations/en.ts` | Add claim submission + payer translations |
+| `supabase/functions/nphies-gateway/index.ts` | Add `submit_preauth` and `check_claim_status` actions |
+| `src/hooks/useNphiesConfig.ts` | Add `useSubmitPreAuth` and `useCheckClaimStatus` hooks |
+| `src/components/insurance/NphiesDashboardCard.tsx` | **New** — Dashboard widget with NPHIES stats + charts |
+| `src/pages/app/billing/BillingDashboard.tsx` | Render `NphiesDashboardCard` |
+| `src/pages/app/billing/ClaimDetailPage.tsx` | Add pre-auth button, resubmit button, rejection details, refresh status |
+| `src/pages/app/billing/ClaimFormPage.tsx` | Add "Request Pre-Auth via NPHIES" option |
+| `src/lib/i18n/translations/en.ts` | Add new keys |
 | `src/lib/i18n/translations/ar.ts` | Add Arabic translations |
 | `src/lib/i18n/translations/ur.ts` | Add Urdu translations |
 
-No database schema changes needed — `nphies_claim_id`, `nphies_status`, `nphies_response` already exist on `insurance_claims`.
+No database schema changes needed — `pre_auth_number`, `pre_auth_status`, `pre_auth_date` and `nphies_response` columns already exist.
 
