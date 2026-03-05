@@ -1,52 +1,38 @@
 
 
-# Fix PDF Download Issues
+# Fix Squeezed PDF Download
 
-## Problem
-The PDF download has issues:
-1. **Slides render at screen width** — when captured, content may overflow or be cut off because the slides use responsive CSS (`width: 100%`) but get forced to `1200px` inline, which may not match the actual rendered layout
-2. **`window.open(url, "_blank")` on line 69** opens the PDF in a new tab after download — this is likely blocked by popup blockers and causes confusion
-3. **Slides with `position: absolute` elements** (like `ExecAllInOneSlide`'s hub-spoke diagram and bottom badges) may not render correctly when `html-to-image` captures them, because forced width/height changes shift absolute positioning
+## Root Cause
+The slides use `min-height: 675px` with responsive `width: 100%` on screen. During PDF capture, forcing `width: 1200px` and `height: 675px` directly on the live DOM element compresses content (especially slides with absolute-positioned elements, grids, and hub-spoke diagrams).
 
-## Fix
+## Fix — Clone-based capture in `ExecutivePresentation.tsx`
 
-### `src/pages/ExecutivePresentation.tsx`
-1. **Remove the `window.open()` call** (line 69) — just download, don't open in a new tab
-2. **Add `await` delay between slides** to let DOM reflow after style changes before capturing
-3. **Set `overflow: hidden`** on slides during capture to prevent content spill
-4. **Use `height: 675px`** (not just `minHeight`) to ensure consistent aspect ratio for capture
-5. **Wrap capture in `requestAnimationFrame`** or add a small delay so the DOM fully repaints after style changes before `toPng` runs
+Instead of mutating the live slide element, **clone each slide** into a hidden off-screen container with fixed dimensions, capture the clone, then remove it.
 
-### Updated capture logic
 ```typescript
-for (let i = 0; i < slides.length; i++) {
-  if (i > 0) pdf.addPage();
-  const el = slides[i] as HTMLElement;
-  const originalCss = el.style.cssText;
+// For each slide:
+const clone = el.cloneNode(true) as HTMLElement;
+clone.style.cssText = `
+  position: fixed; left: -9999px; top: 0;
+  width: 1200px; height: 675px; max-width: 1200px;
+  overflow: hidden; box-sizing: border-box;
+  padding: 2rem; background: white;
+`;
+document.body.appendChild(clone);
+await new Promise(r => setTimeout(r, 200));
 
-  try {
-    el.style.width = "1200px";
-    el.style.height = "675px";
-    el.style.maxWidth = "1200px";
-    el.style.overflow = "hidden";
-    
-    // Wait for DOM repaint
-    await new Promise(r => setTimeout(r, 100));
+const dataUrl = await toPng(clone, {
+  quality: 0.95, pixelRatio: 2,
+  backgroundColor: "#ffffff",
+  width: 1200, height: 675,
+});
 
-    const dataUrl = await toPng(el, {
-      quality: 0.95,
-      pixelRatio: 2,
-      backgroundColor: "#ffffff",
-      width: 1200,
-      height: 675,
-    });
-
-    pdf.addImage(dataUrl, "PNG", 0, 0, 297, 210);
-  } finally {
-    el.style.cssText = originalCss;
-  }
-}
+document.body.removeChild(clone);
+pdf.addImage(dataUrl, "PNG", 0, 0, 297, 210);
 ```
 
-Remove the `window.open` line and just keep the clean download flow.
+This prevents any visual glitch on the live page and ensures the clone renders at exact 16:9 dimensions without squeezing the original.
+
+### File to edit
+- `src/pages/ExecutivePresentation.tsx` — Replace the capture loop (lines 38-63) with clone-based approach
 
