@@ -42,13 +42,19 @@ const ExecutivePresentation = () => {
 
         try {
           el.style.width = "1200px";
-          el.style.minHeight = "675px";
+          el.style.height = "675px";
           el.style.maxWidth = "1200px";
+          el.style.overflow = "hidden";
+
+          // Wait for DOM repaint
+          await new Promise(r => setTimeout(r, 100));
 
           const dataUrl = await toPng(el, {
             quality: 0.95,
             pixelRatio: 2,
             backgroundColor: "#ffffff",
+            width: 1200,
+            height: 675,
           });
 
           pdf.addImage(dataUrl, "PNG", 0, 0, 297, 210);
@@ -66,7 +72,6 @@ const ExecutivePresentation = () => {
       document.body.appendChild(link);
       link.click();
 
-      setTimeout(() => { window.open(url, "_blank"); }, 500);
       setTimeout(() => { document.body.removeChild(link); URL.revokeObjectURL(url); }, 5000);
     } catch (error) {
       console.error("PDF generation failed:", error);
