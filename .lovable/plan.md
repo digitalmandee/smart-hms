@@ -1,34 +1,52 @@
 
 
-# Highlight Multilingual Support (No Switcher)
+# Fix PDF Download Issues
 
-## What the User Wants
-Simply highlight/badge that HealthOS 24 supports 3 languages (English, Urdu, Arabic) as a feature — no actual language switching or translations needed.
+## Problem
+The PDF download has issues:
+1. **Slides render at screen width** — when captured, content may overflow or be cut off because the slides use responsive CSS (`width: 100%`) but get forced to `1200px` inline, which may not match the actual rendered layout
+2. **`window.open(url, "_blank")` on line 69** opens the PDF in a new tab after download — this is likely blocked by popup blockers and causes confusion
+3. **Slides with `position: absolute` elements** (like `ExecAllInOneSlide`'s hub-spoke diagram and bottom badges) may not render correctly when `html-to-image` captures them, because forced width/height changes shift absolute positioning
 
-## Changes
+## Fix
 
-### Where to Add Language Highlights
+### `src/pages/ExecutivePresentation.tsx`
+1. **Remove the `window.open()` call** (line 69) — just download, don't open in a new tab
+2. **Add `await` delay between slides** to let DOM reflow after style changes before capturing
+3. **Set `overflow: hidden`** on slides during capture to prevent content spill
+4. **Use `height: 675px`** (not just `minHeight`) to ensure consistent aspect ratio for capture
+5. **Wrap capture in `requestAnimationFrame`** or add a small delay so the DOM fully repaints after style changes before `toPng` runs
 
-1. **`ExecTabeebiSlide.tsx`** — Already mentions trilingual AI. Add a visual badge row showing 🇬🇧 English · 🇸🇦 عربي · 🇵🇰 اردو with flag-style chips to emphasize multilingual capability.
+### Updated capture logic
+```typescript
+for (let i = 0; i < slides.length; i++) {
+  if (i > 0) pdf.addPage();
+  const el = slides[i] as HTMLElement;
+  const originalCss = el.style.cssText;
 
-2. **`ExecTechSlide.tsx`** — Add a 9th tech feature card: `{ icon: Globe, title: "Trilingual Interface", desc: "Full system available in English, Arabic & Urdu with RTL support." }` (or replace an existing one to keep the 4×2 grid).
+  try {
+    el.style.width = "1200px";
+    el.style.height = "675px";
+    el.style.maxWidth = "1200px";
+    el.style.overflow = "hidden";
+    
+    // Wait for DOM repaint
+    await new Promise(r => setTimeout(r, 100));
 
-3. **`ExecAllInOneSlide.tsx`** — Add a small "Available in 3 Languages" badge near the bottom or alongside the hub diagram.
+    const dataUrl = await toPng(el, {
+      quality: 0.95,
+      pixelRatio: 2,
+      backgroundColor: "#ffffff",
+      width: 1200,
+      height: 675,
+    });
 
-4. **`ExecWhyUsSlide.tsx`** — Add "Trilingual Support" as one of the differentiator cards showing EN/AR/UR language support.
+    pdf.addImage(dataUrl, "PNG", 0, 0, 297, 210);
+  } finally {
+    el.style.cssText = originalCss;
+  }
+}
+```
 
-5. **`ExecTitleSlide.tsx`** — Add a subtle language badge row (EN | عربي | اردو) near the stats bar or tagline area.
-
-### No Changes Needed
-- No translation files
-- No language context
-- No switcher UI
-- No RTL layout logic
-
-### Files to Edit (5)
-- `src/components/executive/ExecTitleSlide.tsx` — Add language badge
-- `src/components/executive/ExecTabeebiSlide.tsx` — Enhance trilingual visual
-- `src/components/executive/ExecTechSlide.tsx` — Add/update multilingual card
-- `src/components/executive/ExecAllInOneSlide.tsx` — Add language badge
-- `src/components/executive/ExecWhyUsSlide.tsx` — Add trilingual differentiator
+Remove the `window.open` line and just keep the clean download flow.
 
