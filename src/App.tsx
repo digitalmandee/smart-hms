@@ -187,6 +187,7 @@ import InsurancePlansPage from "./pages/app/billing/InsurancePlansPage";
 import ClaimsListPage from "./pages/app/billing/ClaimsListPage";
 import ClaimFormPage from "./pages/app/billing/ClaimFormPage";
 import ClaimDetailPage from "./pages/app/billing/ClaimDetailPage";
+import NphiesSettingsPage from "./pages/app/billing/NphiesSettingsPage";
 import DailyClosingPage from "./pages/app/billing/DailyClosingPage";
 const DailyClosingHistoryPage = React.lazy(() => import("./pages/app/billing/DailyClosingHistoryPage"));
 
@@ -1014,6 +1015,7 @@ function App() {
               <Route path="billing/claims-report" element={<ClaimsReportPage />} />
               <Route path="billing/insurance/companies" element={<InsuranceCompaniesPage />} />
               <Route path="billing/insurance/plans" element={<InsurancePlansPage />} />
+              <Route path="billing/insurance/nphies" element={<NphiesSettingsPage />} />
               <Route path="billing/claims" element={<ClaimsListPage />} />
               <Route path="billing/claims/new" element={<ClaimFormPage />} />
               <Route path="billing/claims/:id" element={<ClaimDetailPage />} />
