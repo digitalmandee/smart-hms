@@ -18,7 +18,9 @@ interface EligibilityCheckButtonProps {
   insurancePolicyNumber?: string;
   insuranceCompanyId?: string;
   memberId?: string;
+  patientInsuranceId?: string;
   compact?: boolean;
+  onResult?: (result: EligibilityResult) => void;
 }
 
 interface EligibilityResult {
@@ -42,13 +44,52 @@ export function EligibilityCheckButton({
   insurancePolicyNumber,
   insuranceCompanyId,
   memberId,
+  patientInsuranceId,
   compact = false,
+  onResult,
 }: EligibilityCheckButtonProps) {
   const { t } = useTranslation();
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<EligibilityResult | null>(null);
   const [showDialog, setShowDialog] = useState(false);
+
+  const saveEligibilityResult = async (data: EligibilityResult) => {
+    if (!profile?.organization_id || !user?.id) return;
+
+    try {
+      // Save to eligibility logs
+      await supabase.from("nphies_eligibility_logs" as any).insert({
+        organization_id: profile.organization_id,
+        patient_id: patientId,
+        patient_insurance_id: patientInsuranceId || null,
+        checked_by: user.id,
+        eligible: data.eligible,
+        status: data.status,
+        coverage_start: data.coverage_start || null,
+        coverage_end: data.coverage_end || null,
+        plan_name: data.plan_name || null,
+        copay: data.copay ?? null,
+        deductible: data.deductible ?? null,
+        benefits: data.benefits || null,
+        raw_response: data.raw_response || null,
+      });
+
+      // Update patient_insurance record
+      if (patientInsuranceId) {
+        await supabase
+          .from("patient_insurance")
+          .update({
+            nphies_eligible: data.eligible,
+            nphies_last_checked: new Date().toISOString(),
+            nphies_coverage_end: data.coverage_end || null,
+          } as any)
+          .eq("id", patientInsuranceId);
+      }
+    } catch (err) {
+      console.error("Failed to save eligibility result:", err);
+    }
+  };
 
   const handleCheck = async () => {
     if (!profile?.organization_id) {
@@ -71,8 +112,15 @@ export function EligibilityCheckButton({
 
       if (error) throw error;
 
-      setResult(data as EligibilityResult);
+      const eligibilityResult = data as EligibilityResult;
+      setResult(eligibilityResult);
       setShowDialog(true);
+
+      // Save result to DB
+      await saveEligibilityResult(eligibilityResult);
+
+      // Notify parent
+      onResult?.(eligibilityResult);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Eligibility check failed";
       toast.error(message);

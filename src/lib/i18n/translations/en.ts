@@ -2764,6 +2764,16 @@ export const en = {
   "nphies.deductible": "Deductible",
   "nphies.benefits": "Benefits",
 
+  // Insurance Tab (Patient Profile)
+  "insurance.noInsurance": "No Insurance Policies",
+  "insurance.noInsuranceDesc": "This patient has no active insurance policies. Add insurance from the patient edit page.",
+  "insurance.activePolicies": "Active Policies",
+  "insurance.primary": "Primary",
+  "insurance.policyNumber": "Policy",
+  "insurance.memberId": "Member ID",
+  "insurance.eligibilityHistory": "Eligibility Verification History",
+  "insurance.tab": "Insurance",
+
 } as const;
 
 export type TranslationKey = keyof typeof en;

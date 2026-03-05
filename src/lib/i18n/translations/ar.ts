@@ -2698,5 +2698,15 @@ export const ar: Record<TranslationKey, string> = {
   "nphies.deductible": "المبلغ المخصوم",
   "nphies.benefits": "المنافع",
 
+  // Insurance Tab (Patient Profile)
+  "insurance.noInsurance": "لا توجد وثائق تأمين",
+  "insurance.noInsuranceDesc": "لا يوجد لدى هذا المريض وثائق تأمين نشطة. أضف التأمين من صفحة تعديل المريض.",
+  "insurance.activePolicies": "الوثائق النشطة",
+  "insurance.primary": "أساسي",
+  "insurance.policyNumber": "رقم الوثيقة",
+  "insurance.memberId": "رقم العضوية",
+  "insurance.eligibilityHistory": "سجل التحقق من الأهلية",
+  "insurance.tab": "التأمين",
+
 };
 

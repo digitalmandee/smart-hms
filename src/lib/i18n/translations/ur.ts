@@ -2698,5 +2698,15 @@ export const ur: Record<TranslationKey, string> = {
   "nphies.deductible": "کٹوتی",
   "nphies.benefits": "فوائد",
 
+  // Insurance Tab (Patient Profile)
+  "insurance.noInsurance": "کوئی انشورنس پالیسی نہیں",
+  "insurance.noInsuranceDesc": "اس مریض کی کوئی فعال انشورنس پالیسی نہیں ہے۔ مریض کی ترمیم کے صفحے سے انشورنس شامل کریں۔",
+  "insurance.activePolicies": "فعال پالیسیاں",
+  "insurance.primary": "بنیادی",
+  "insurance.policyNumber": "پالیسی",
+  "insurance.memberId": "ممبر آئی ڈی",
+  "insurance.eligibilityHistory": "اہلیت کی تصدیق کی تاریخ",
+  "insurance.tab": "انشورنس",
+
 };
 
