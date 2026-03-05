@@ -38,6 +38,7 @@ import { PrintableTokenSlip } from '@/components/clinic/PrintableTokenSlip';
 import { usePrint } from '@/hooks/usePrint';
 import { Clock, Users, CheckCircle, Printer, Banknote } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
+import { AppointmentInsuranceCheck } from '@/components/appointments/AppointmentInsuranceCheck';
 
 
 const appointmentSchema = z.object({
@@ -632,6 +633,9 @@ export default function AppointmentFormPage() {
                   />
                 </CardContent>
               </Card>
+
+              {/* Insurance Check */}
+              <AppointmentInsuranceCheck patientId={selectedPatient?.id} />
 
               {/* Appointment Details */}
               <Card>

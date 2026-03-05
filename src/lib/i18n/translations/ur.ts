@@ -2708,5 +2708,17 @@ export const ur: Record<TranslationKey, string> = {
   "insurance.eligibilityHistory": "اہلیت کی تصدیق کی تاریخ",
   "insurance.tab": "انشورنس",
 
+  // Appointment Insurance Check
+  "apptInsurance.patientInsurance": "مریض کی انشورنس",
+  "apptInsurance.selfPay": "خود ادائیگی",
+  "apptInsurance.noInsurance": "کوئی فعال انشورنس نہیں ملی",
+  "apptInsurance.verified": "تصدیق شدہ",
+  "apptInsurance.notVerified": "تصدیق نہیں ہوئی",
+  "apptInsurance.company": "کمپنی",
+  "apptInsurance.plan": "منصوبہ",
+  "apptInsurance.lastChecked": "آخری جانچ",
+  "apptInsurance.coverageWarning": "مریض کی انشورنس اہل نہیں ہے۔ آپ پھر بھی اپائنٹمنٹ جاری رکھ سکتے ہیں۔",
+  "apptInsurance.verifyBeforeBooking": "بکنگ سے پہلے تصدیق کریں",
+
 };
 

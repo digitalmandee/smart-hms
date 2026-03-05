@@ -2774,6 +2774,18 @@ export const en = {
   "insurance.eligibilityHistory": "Eligibility Verification History",
   "insurance.tab": "Insurance",
 
+  // Appointment Insurance Check
+  "apptInsurance.patientInsurance": "Patient Insurance",
+  "apptInsurance.selfPay": "Self-Pay",
+  "apptInsurance.noInsurance": "No active insurance found",
+  "apptInsurance.verified": "Verified",
+  "apptInsurance.notVerified": "Not Verified",
+  "apptInsurance.company": "Company",
+  "apptInsurance.plan": "Plan",
+  "apptInsurance.lastChecked": "Last checked",
+  "apptInsurance.coverageWarning": "Patient insurance is not eligible. You may still proceed with the appointment.",
+  "apptInsurance.verifyBeforeBooking": "Verify Before Booking",
+
 } as const;
 
 export type TranslationKey = keyof typeof en;

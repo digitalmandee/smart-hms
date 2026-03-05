@@ -2708,5 +2708,17 @@ export const ar: Record<TranslationKey, string> = {
   "insurance.eligibilityHistory": "سجل التحقق من الأهلية",
   "insurance.tab": "التأمين",
 
+  // Appointment Insurance Check
+  "apptInsurance.patientInsurance": "تأمين المريض",
+  "apptInsurance.selfPay": "دفع ذاتي",
+  "apptInsurance.noInsurance": "لا يوجد تأمين نشط",
+  "apptInsurance.verified": "تم التحقق",
+  "apptInsurance.notVerified": "لم يتم التحقق",
+  "apptInsurance.company": "الشركة",
+  "apptInsurance.plan": "الخطة",
+  "apptInsurance.lastChecked": "آخر فحص",
+  "apptInsurance.coverageWarning": "تأمين المريض غير مؤهل. يمكنك المتابعة مع الموعد.",
+  "apptInsurance.verifyBeforeBooking": "تحقق قبل الحجز",
+
 };
 
