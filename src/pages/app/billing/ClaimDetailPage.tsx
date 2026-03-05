@@ -11,10 +11,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useInsuranceClaim, useUpdateInsuranceClaim } from "@/hooks/useInsurance";
-import { ArrowLeft, Send, CheckCircle, XCircle, DollarSign, Building2, FileText } from "lucide-react";
+import { useNphiesConfig, useSubmitClaimToNphies } from "@/hooks/useNphiesConfig";
+import { ArrowLeft, Send, CheckCircle, XCircle, DollarSign, Building2, FileText, Loader2, CloudUpload, Clock, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { formatCurrency } from "@/lib/currency";
+import { useTranslation } from "@/lib/i18n";
 
 const statusColors: Record<string, string> = {
   draft: "bg-gray-500",
@@ -26,7 +29,15 @@ const statusColors: Record<string, string> = {
   paid: "bg-emerald-600",
 };
 
+const nphiesStatusConfig: Record<string, { color: string; icon: any; label: string }> = {
+  approved: { color: "text-green-600", icon: CheckCircle, label: "nphies.claimAccepted" },
+  rejected: { color: "text-destructive", icon: XCircle, label: "nphies.claimRejected" },
+  pending: { color: "text-yellow-600", icon: Clock, label: "nphies.pendingReview" },
+  partially_approved: { color: "text-orange-500", icon: AlertCircle, label: "nphies.partiallyApproved" },
+};
+
 export default function ClaimDetailPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const [isApproveDialogOpen, setIsApproveDialogOpen] = useState(false);
@@ -36,18 +47,24 @@ export default function ClaimDetailPage() {
 
   const { data: claim, isLoading } = useInsuranceClaim(id!);
   const updateClaim = useUpdateInsuranceClaim();
+  const { data: nphiesConfig } = useNphiesConfig();
+  const submitToNphies = useSubmitClaimToNphies();
 
+  const isNphiesEnabled = nphiesConfig?.nphies_enabled === true;
+  const canSubmitToNphies = isNphiesEnabled && claim && ['draft', 'submitted'].includes(claim.status) && !claim.nphies_claim_id;
 
   const handleSubmitClaim = async () => {
     try {
-      await updateClaim.mutateAsync({
-        id: id!,
-        status: 'submitted',
-      } as any);
+      await updateClaim.mutateAsync({ id: id!, status: 'submitted' } as any);
       toast.success('Claim submitted successfully');
     } catch (error) {
       toast.error('Failed to submit claim');
     }
+  };
+
+  const handleSubmitToNphies = async () => {
+    if (!id) return;
+    submitToNphies.mutate(id);
   };
 
   const handleApproveClaim = async () => {
@@ -67,11 +84,7 @@ export default function ClaimDetailPage() {
 
   const handleRejectClaim = async () => {
     try {
-      await updateClaim.mutateAsync({
-        id: id!,
-        status: 'rejected',
-        rejection_reason: rejectionReason,
-      });
+      await updateClaim.mutateAsync({ id: id!, status: 'rejected', rejection_reason: rejectionReason });
       toast.success('Claim rejected');
       setIsRejectDialogOpen(false);
     } catch (error) {
@@ -81,10 +94,7 @@ export default function ClaimDetailPage() {
 
   const handleMarkPaid = async () => {
     try {
-      await updateClaim.mutateAsync({
-        id: id!,
-        status: 'paid',
-      });
+      await updateClaim.mutateAsync({ id: id!, status: 'paid' });
       toast.success('Claim marked as paid');
     } catch (error) {
       toast.error('Failed to update claim');
@@ -104,6 +114,8 @@ export default function ClaimDetailPage() {
     return <div>Claim not found</div>;
   }
 
+  const nphiesStatus = claim.nphies_status ? nphiesStatusConfig[claim.nphies_status] : null;
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -115,14 +127,29 @@ export default function ClaimDetailPage() {
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back
             </Button>
-            
+
             {claim.status === 'draft' && (
               <Button onClick={handleSubmitClaim}>
                 <Send className="h-4 w-4 mr-2" />
                 Submit Claim
               </Button>
             )}
-            
+
+            {canSubmitToNphies && (
+              <Button
+                onClick={handleSubmitToNphies}
+                disabled={submitToNphies.isPending}
+                className="bg-emerald-600 hover:bg-emerald-700"
+              >
+                {submitToNphies.isPending ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <CloudUpload className="h-4 w-4 mr-2" />
+                )}
+                {t("nphies.submitToNphies" as any, "Submit to NPHIES")}
+              </Button>
+            )}
+
             {claim.status === 'submitted' && (
               <>
                 <Dialog open={isApproveDialogOpen} onOpenChange={setIsApproveDialogOpen}>
@@ -151,12 +178,8 @@ export default function ClaimDetailPage() {
                         />
                       </div>
                       <div className="flex justify-end gap-2">
-                        <Button variant="outline" onClick={() => setIsApproveDialogOpen(false)}>
-                          Cancel
-                        </Button>
-                        <Button onClick={handleApproveClaim} className="bg-green-600 hover:bg-green-700">
-                          Confirm Approval
-                        </Button>
+                        <Button variant="outline" onClick={() => setIsApproveDialogOpen(false)}>Cancel</Button>
+                        <Button onClick={handleApproveClaim} className="bg-green-600 hover:bg-green-700">Confirm Approval</Button>
                       </div>
                     </div>
                   </DialogContent>
@@ -184,19 +207,15 @@ export default function ClaimDetailPage() {
                         />
                       </div>
                       <div className="flex justify-end gap-2">
-                        <Button variant="outline" onClick={() => setIsRejectDialogOpen(false)}>
-                          Cancel
-                        </Button>
-                        <Button variant="destructive" onClick={handleRejectClaim}>
-                          Confirm Rejection
-                        </Button>
+                        <Button variant="outline" onClick={() => setIsRejectDialogOpen(false)}>Cancel</Button>
+                        <Button variant="destructive" onClick={handleRejectClaim}>Confirm Rejection</Button>
                       </div>
                     </div>
                   </DialogContent>
                 </Dialog>
               </>
             )}
-            
+
             {(claim.status === 'approved' || claim.status === 'partially_approved') && (
               <Button onClick={handleMarkPaid} className="bg-emerald-600 hover:bg-emerald-700">
                 <DollarSign className="h-4 w-4 mr-2" />
@@ -223,6 +242,41 @@ export default function ClaimDetailPage() {
         </CardContent>
       </Card>
 
+      {/* NPHIES Status Card */}
+      {claim.nphies_claim_id && (
+        <Card className="border-l-4 border-l-primary">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CloudUpload className="h-5 w-5" />
+              {t("nphies.nphiesStatus" as any, "NPHIES Status")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <div>
+                <Label className="text-muted-foreground">{t("nphies.nphiesClaimId" as any, "NPHIES Claim ID")}</Label>
+                <p className="font-mono font-medium text-sm">{claim.nphies_claim_id}</p>
+              </div>
+              <div>
+                <Label className="text-muted-foreground">{t("nphies.nphiesStatus" as any, "Status")}</Label>
+                {nphiesStatus && (
+                  <div className={`flex items-center gap-1.5 font-medium ${nphiesStatus.color}`}>
+                    <nphiesStatus.icon className="h-4 w-4" />
+                    {t(nphiesStatus.label as any, claim.nphies_status || "")}
+                  </div>
+                )}
+              </div>
+              {claim.submission_date && (
+                <div>
+                  <Label className="text-muted-foreground">{t("nphies.submissionDate" as any, "Submitted")}</Label>
+                  <p className="font-medium">{format(new Date(claim.submission_date), 'PPp')}</p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="grid gap-6 md:grid-cols-2">
         {/* Claim Details */}
         <Card>
@@ -243,9 +297,7 @@ export default function ClaimDetailPage() {
                 <p className="font-medium">{format(new Date(claim.claim_date), 'PPP')}</p>
               </div>
             </div>
-            
             <Separator />
-            
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Total Amount</span>

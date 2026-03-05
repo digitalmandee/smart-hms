@@ -17,6 +17,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Plus, Edit, Trash2, Building2, Phone, Mail, Globe, Search } from "lucide-react";
+import { PopulateSaudiPayersButton } from "@/components/insurance/PopulateSaudiPayersButton";
 import { 
   useAllInsuranceCompanies, 
   useCreateInsuranceCompany, 
@@ -121,6 +122,7 @@ export default function InsuranceCompaniesPage() {
         ]}
         actions={
           <div className="flex gap-2">
+            <PopulateSaudiPayersButton />
             <Button variant="outline" onClick={() => navigate("/app/billing/insurance/plans")}>
               View Plans
             </Button>

@@ -2697,6 +2697,18 @@ export const ar: Record<TranslationKey, string> = {
   "nphies.copay": "المشاركة في الدفع",
   "nphies.deductible": "المبلغ المخصوم",
   "nphies.benefits": "المنافع",
+  "nphies.submitToNphies": "إرسال إلى NPHIES",
+  "nphies.nphiesStatus": "حالة NPHIES",
+  "nphies.nphiesClaimId": "رقم المطالبة في NPHIES",
+  "nphies.claimAccepted": "تم قبول المطالبة",
+  "nphies.claimRejected": "تم رفض المطالبة",
+  "nphies.pendingReview": "قيد المراجعة",
+  "nphies.partiallyApproved": "موافقة جزئية",
+  "nphies.submissionDate": "تاريخ الإرسال",
+  "nphies.populateSaudiPayers": "إضافة شركات التأمين السعودية",
+  "nphies.payersAdded": "شركات تأمين مضافة",
+  "nphies.alreadyExist": "موجودة بالفعل",
+  "nphies.allPayersExist": "جميع شركات التأمين السعودية موجودة بالفعل",
 
   // Insurance Tab (Patient Profile)
   "insurance.noInsurance": "لا توجد وثائق تأمين",

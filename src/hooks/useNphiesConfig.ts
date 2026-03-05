@@ -117,6 +117,42 @@ export function useUpdateNphiesConfig() {
   });
 }
 
+export function useSubmitClaimToNphies() {
+  const queryClient = useQueryClient();
+  const { profile } = useAuth();
+
+  return useMutation({
+    mutationFn: async (claimId: string) => {
+      if (!profile?.organization_id) throw new Error("No organization");
+
+      const { data, error } = await supabase.functions.invoke("nphies-gateway", {
+        body: {
+          action: "submit_claim",
+          organization_id: profile.organization_id,
+          claim_id: claimId,
+        },
+      });
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["insurance-claim"] });
+      queryClient.invalidateQueries({ queryKey: ["insurance-claims"] });
+      if (data?.nphies_status === "approved") {
+        toast.success("Claim accepted by NPHIES");
+      } else if (data?.nphies_status === "rejected") {
+        toast.error("Claim rejected by NPHIES");
+      } else {
+        toast.info("Claim submitted to NPHIES — pending review");
+      }
+    },
+    onError: (error: Error) => {
+      toast.error(`NPHIES submission failed: ${error.message}`);
+    },
+  });
+}
+
 export function useTestNphiesConnection() {
   const { profile } = useAuth();
 

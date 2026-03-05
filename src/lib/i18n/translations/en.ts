@@ -2763,6 +2763,18 @@ export const en = {
   "nphies.copay": "Copay",
   "nphies.deductible": "Deductible",
   "nphies.benefits": "Benefits",
+  "nphies.submitToNphies": "Submit to NPHIES",
+  "nphies.nphiesStatus": "NPHIES Status",
+  "nphies.nphiesClaimId": "NPHIES Claim ID",
+  "nphies.claimAccepted": "Claim Accepted",
+  "nphies.claimRejected": "Claim Rejected",
+  "nphies.pendingReview": "Pending Review",
+  "nphies.partiallyApproved": "Partially Approved",
+  "nphies.submissionDate": "Submitted",
+  "nphies.populateSaudiPayers": "Populate Saudi Payers",
+  "nphies.payersAdded": "payers added",
+  "nphies.alreadyExist": "already exist",
+  "nphies.allPayersExist": "All Saudi payers already exist",
 
   // Insurance Tab (Patient Profile)
   "insurance.noInsurance": "No Insurance Policies",

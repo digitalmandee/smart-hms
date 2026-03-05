@@ -2697,6 +2697,18 @@ export const ur: Record<TranslationKey, string> = {
   "nphies.copay": "شریک ادائیگی",
   "nphies.deductible": "کٹوتی",
   "nphies.benefits": "فوائد",
+  "nphies.submitToNphies": "NPHIES کو بھیجیں",
+  "nphies.nphiesStatus": "NPHIES کی حالت",
+  "nphies.nphiesClaimId": "NPHIES کلیم آئی ڈی",
+  "nphies.claimAccepted": "کلیم منظور",
+  "nphies.claimRejected": "کلیم مسترد",
+  "nphies.pendingReview": "زیر جائزہ",
+  "nphies.partiallyApproved": "جزوی منظوری",
+  "nphies.submissionDate": "جمع کرانے کی تاریخ",
+  "nphies.populateSaudiPayers": "سعودی انشورنس کمپنیاں شامل کریں",
+  "nphies.payersAdded": "ادائیگی کنندگان شامل",
+  "nphies.alreadyExist": "پہلے سے موجود",
+  "nphies.allPayersExist": "تمام سعودی ادائیگی کنندگان پہلے سے موجود ہیں",
 
   // Insurance Tab (Patient Profile)
   "insurance.noInsurance": "کوئی انشورنس پالیسی نہیں",
