@@ -1,70 +1,45 @@
 
 
-# Legal Contract Page — HealthOS 24 × Capital Care International Hospital
+# Executive Pitch Deck — HealthOS 24 (No Pricing, Module & Automation Focus)
 
 ## Overview
-Create a new printable/downloadable legal contract page following the same proposal page architecture. The contract will be a multi-page document covering the SaaS agreement between **HealthOS 24** (provider) and **Capital Care International Hospital** (client) at **PKR 315,000/month** with **PKR 50,000/new OPD** expansion pricing.
+Create a concise 12-slide executive presentation at `/executive-presentation` emphasizing HealthOS 24 as an **all-in-one centralized system** with heavy focus on modules, automation, and visual diagrams. No pricing mentioned.
 
 ## New Files
 
-### 1. `src/components/contract/ContractPage.tsx`
-A comprehensive legal contract with the following sections rendered as styled pages (same `proposal-page` pattern):
+### Slide Components (`src/components/executive/`)
 
-**Page 1 — Cover**: "Service Agreement" title, both party names, date, confidential marking.
+| # | Component | Content |
+|---|-----------|---------|
+| 1 | `ExecTitleSlide.tsx` | Bold opening — logo, "AI-Powered Hospital Management System", tagline "One Platform. Every Department.", stats bar (500+ clinics, 50+ labs, 50K+ patients), date, confidential. |
+| 2 | `ExecAboutUsSlide.tsx` | "Who We Are" — Company introduction, mission statement, Pakistan-based health-tech company, years of experience, team strength, vision for digital healthcare transformation. |
+| 3 | `ExecProblemSlide.tsx` | "The Problem" — Visual showing 10 fragmented systems (separate OPD software, lab system, pharmacy, HR, accounts, etc.) with chaos arrows. Pain points: data silos, duplicate entry, revenue leakage, no real-time visibility. |
+| 4 | `ExecAllInOneSlide.tsx` | **THE USP SLIDE** — Hub-spoke diagram: HealthOS logo center, 9 department spokes radiating out (OPD, IPD, Surgery/OT, Emergency, Lab, Radiology, Pharmacy, HR & Payroll, Finance & Accounts). Big headline: "Replace 10 Systems With 1." Visual contrast to the chaos on slide 3. |
+| 5 | `ExecModulesSlide.tsx` | "20+ Integrated Modules" — Compact 6-category grid (Clinical 7, Diagnostics 3, Pharmacy 2, Finance 4, Operations 4, AI 1) with color-coded icons showing every module. Breadth at a glance. |
+| 6 | `ExecAutomationSlide.tsx` | "Built-in Automation" — 6-8 automation highlights with before/after: auto-billing triggers, auto drug interaction alerts, auto lab result flags, auto payroll from biometric, auto inventory reorder, auto insurance claim routing. Each with "Manual → Automated" visual. |
+| 7 | `ExecWorkflowSlide.tsx` | "Seamless Patient Journey" — Visual flow diagram: Register → Queue → Vitals → Consult → Orders → Lab/Pharmacy → Billing → Discharge. All within ONE system, zero re-entry. Time-saving stats. |
+| 8 | `ExecTabeebiSlide.tsx` | "Built-in Medical AI — Tabeebi" — Trilingual (EN/AR/UR), 24/7 pre-screening, clinical summaries, prescription generation. Chat mockup visual. Competitive differentiator. |
+| 9 | `ExecTechSlide.tsx` | "Enterprise-Grade Infrastructure" — AWS cloud, 99.9% uptime, HIPAA-aligned, role-based access (25+ roles), AES-256 encryption, daily backups, multi-branch ready. Trust badges visual. |
+| 10 | `ExecROISlide.tsx` | "Business Impact" — 4 big metrics with visual gauges/cards: 30% revenue leakage reduction, 60% wait time reduction, 40% staff efficiency gain, 4-week go-live. Before/after comparison bars. |
+| 11 | `ExecWhyUsSlide.tsx` | "Why HealthOS 24" — 6 differentiators: All-in-one (not piecemeal), AI-powered (Tabeebi built-in), 4-week deployment, dedicated support, multi-branch, continuous updates. Icon cards. |
+| 12 | `ExecCTASlide.tsx` | "Let's Transform Your Hospital" — Book a demo, contact info (phone, email, website), QR placeholder, closing tagline. |
 
-**Page 2 — Parties & Recitals**: Full legal identification of both parties, whereas clauses.
+### Page: `src/pages/ExecutivePresentation.tsx`
+Same toolbar pattern as existing `Presentation.tsx` — back button, print, PDF download via jsPDF + html-to-image. Renders all 12 slides with `.slide` CSS class (defined inline like existing presentation).
 
-**Page 3 — Scope of Services**: Complete HealthOS 24 system (all 50 modules), cloud hosting, support, maintenance — referencing the proposal.
+### Route: Add `/executive-presentation` to `src/App.tsx`
 
-**Page 4 — Commercial Terms**:
-- Monthly subscription: **PKR 315,000/month**
-- Includes: all current modules, up to 50 users, up to 500 patient profiles, AWS hosting, backups, support
-- Future expansion: **PKR 50,000 per new OPD** added
-- Payment due within 7 days of invoice
-- Late payment penalties
+## Design Approach
+- Reuse `.slide` CSS class pattern (inline styles in the page component, same as `Presentation.tsx`)
+- Bolder typography, more whitespace than the detailed 33-slide deck
+- Heavy use of visual diagrams: hub-spoke, flow arrows, before/after comparisons, gauge-style metrics
+- Gradient backgrounds with HealthOS brand colors
+- Footer on every slide: "HealthOS 24 | healthos24.com | Confidential"
+- No pricing anywhere — pure product and value pitch
 
-**Page 5 — Term & Termination**:
-- 12-month initial term, auto-renewal
-- 90-day notice for non-renewal
-- Termination for cause clauses
-- Data handover obligations
-
-**Page 6 — SLA & Support**:
-- 99.9% uptime guarantee
-- Response times (critical: 1hr, standard: 4hrs)
-- Maintenance windows
-
-**Page 7 — Data, Security & Confidentiality**:
-- Data ownership (hospital owns all data)
-- Encryption standards
-- Confidentiality obligations
-- HIPAA-aligned practices
-
-**Page 8 — General Clauses**:
-- Force majeure, governing law (Pakistan), dispute resolution, amendments, entire agreement, severability
-
-**Page 9 — Signature Block**:
-- Two columns: HealthOS 24 representative + Hospital representative
-- Name, title, date, signature lines
-
-### 2. `src/pages/ContractPage.tsx`
-Route page with PDF download capability (same pattern as `PricingProposal.tsx`), rendering all contract sections with page navigation and export.
-
-### 3. Route Registration in `src/App.tsx`
-Add `/contract` route.
-
-## Styling
-- Reuse `proposal-page` CSS class and the same header/footer pattern
-- Professional legal document typography — smaller text, justified, numbered clauses
-- HealthOS24Logo in headers
-
-## Key Contract Values
-| Item | Value |
-|------|-------|
-| Provider | HealthOS 24 |
-| Client | Capital Care International Hospital |
-| Monthly Fee | PKR 315,000 |
-| New OPD Expansion | PKR 50,000 per OPD |
-| Contract Term | 12 months, auto-renew |
-| Notice Period | 90 days |
+## Key Emphasis
+- **Modules**: Slides 4 and 5 showcase the all-in-one nature with every department and module visible
+- **Automation**: Slide 6 dedicated entirely to automation capabilities with manual-vs-automated comparisons
+- **Centralized System**: Slides 3-4 create a visual before/after (fragmented chaos → unified hub)
+- **Visuals**: Every slide uses diagrams, icons, flow charts, or metric visualizations — minimal text walls
 
