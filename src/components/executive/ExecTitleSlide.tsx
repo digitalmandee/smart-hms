@@ -35,6 +35,14 @@ export function ExecTitleSlide() {
           </p>
         </div>
 
+        {/* Language badge */}
+        <div className="flex items-center gap-2 mt-4">
+          <span className="text-xs font-semibold text-muted-foreground">Available in:</span>
+          <span className="px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">🇬🇧 English</span>
+          <span className="px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">🇸🇦 عربي</span>
+          <span className="px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">🇵🇰 اردو</span>
+        </div>
+
         {/* Stats bar */}
         <div className="flex items-center gap-6 mt-6">
           {stats.map((s) => (

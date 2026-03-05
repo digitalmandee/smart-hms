@@ -1,4 +1,4 @@
-import { Stethoscope, Hotel, Scissors, Siren, FlaskConical, ScanLine, Pill, UserCog, Calculator, Truck, Warehouse, BarChart3 } from "lucide-react";
+import { Stethoscope, Hotel, Scissors, Siren, FlaskConical, ScanLine, Pill, UserCog, Calculator, Truck, Warehouse, BarChart3, Globe } from "lucide-react";
 
 const departments = [
   { icon: Stethoscope, name: "OPD", color: "bg-blue-500" },
@@ -79,6 +79,14 @@ export function ExecAllInOneSlide() {
               );
             })}
           </svg>
+        </div>
+      </div>
+
+      <div className="absolute bottom-12 left-0 right-0 flex justify-center">
+        <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-muted/80 border">
+          <Globe className="h-3.5 w-3.5 text-primary" />
+          <span className="text-[11px] font-semibold text-foreground">Available in 3 Languages:</span>
+          <span className="text-[11px] text-muted-foreground font-medium">English · عربي · اردو</span>
         </div>
       </div>
 

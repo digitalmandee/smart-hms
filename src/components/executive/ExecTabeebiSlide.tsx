@@ -51,7 +51,11 @@ export function ExecTabeebiSlide() {
             <Bot className="h-4 w-4 text-primary" />
             <span className="text-xs font-semibold text-foreground">Dr. Tabeebi</span>
             <span className="w-1.5 h-1.5 rounded-full bg-primary ml-1" />
-            <span className="text-xs text-muted-foreground">EN / AR / UR</span>
+            <div className="flex items-center gap-1 ml-1">
+              <span className="px-1.5 py-0.5 rounded bg-primary/10 text-primary text-[10px] font-bold">EN</span>
+              <span className="px-1.5 py-0.5 rounded bg-primary/10 text-primary text-[10px] font-bold">عربي</span>
+              <span className="px-1.5 py-0.5 rounded bg-primary/10 text-primary text-[10px] font-bold">اردو</span>
+            </div>
           </div>
           <div className="space-y-2">
             <div className="flex justify-end">
