@@ -1,104 +1,111 @@
 
 
-# NPHIES Integration — SaaS Multi-Tenant Architecture
+# Phase 2: NPHIES Integration with Patient Profile & Clinical Workflows
 
-## Yes, NPHIES is Per-Hospital
+## Current Gaps
 
-Each hospital/facility registers separately with CCHI and receives its own:
-- **NPHIES Facility ID** (licensed healthcare provider ID)
-- **API credentials** (client ID, client secret, digital certificate)
-- **CCHI License Number**
+Phase 1 delivered the **NPHIES config panel**, **edge function**, and **EligibilityCheckButton** — but none of these are wired into the actual patient or clinical workflows:
 
-Since you are running as SaaS, each organization in your system needs its own NPHIES configuration stored in the database — not as global secrets.
+1. **Patient Profile** has no Insurance tab — no way to see/manage patient insurance or check NPHIES eligibility from the profile
+2. **EligibilityCheckButton** exists but is imported nowhere — it's an orphan component
+3. **Claims table** has no NPHIES tracking fields (`nphies_claim_id`, `nphies_status`, `nphies_response`)
+4. **Appointment booking** doesn't trigger eligibility checks
+5. **No eligibility history** — results are shown in a dialog and lost
 
-## Architecture
+## Plan
 
-```text
-┌──────────────────────────────────────────────┐
-│  Frontend (per-org settings page)            │
-│  ┌────────────────────────────────────────┐  │
-│  │ NPHIES Configuration Panel             │  │
-│  │ - Facility ID                          │  │
-│  │ - CCHI License Number                  │  │
-│  │ - NPHIES Client ID / Secret            │  │
-│  │ - Base URL (sandbox vs production)     │  │
-│  │ - Enable/Disable toggle                │  │
-│  └────────────────────────────────────────┘  │
-└──────────────┬───────────────────────────────┘
-               │ stored per organization
-               ▼
-┌──────────────────────────────────────────────┐
-│  organization_settings table                 │
-│  key: nphies_facility_id, nphies_client_id,  │
-│       nphies_client_secret (encrypted),      │
-│       nphies_enabled, nphies_environment     │
-└──────────────┬───────────────────────────────┘
-               │ read by edge function
-               ▼
-┌──────────────────────────────────────────────┐
-│  Edge Function: nphies-gateway               │
-│  - Reads org credentials from DB             │
-│  - Authenticates with NPHIES OAuth           │
-│  - Sends FHIR requests (eligibility, claims) │
-│  - Returns response to frontend              │
-└──────────────────────────────────────────────┘
+### 1. Database: Add NPHIES tracking to claims + eligibility log table
+
+**Migration:**
+```sql
+-- Add NPHIES fields to insurance_claims
+ALTER TABLE insurance_claims 
+  ADD COLUMN IF NOT EXISTS nphies_claim_id TEXT,
+  ADD COLUMN IF NOT EXISTS nphies_status TEXT,
+  ADD COLUMN IF NOT EXISTS nphies_response JSONB;
+
+-- Eligibility verification log
+CREATE TABLE IF NOT EXISTS nphies_eligibility_logs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id UUID REFERENCES organizations(id),
+  patient_id UUID REFERENCES patients(id) ON DELETE CASCADE,
+  patient_insurance_id UUID REFERENCES patient_insurance(id),
+  checked_at TIMESTAMPTZ DEFAULT now(),
+  checked_by UUID REFERENCES auth.users(id),
+  eligible BOOLEAN,
+  status TEXT,
+  coverage_start DATE,
+  coverage_end DATE,
+  plan_name TEXT,
+  copay NUMERIC,
+  deductible NUMERIC,
+  benefits JSONB,
+  raw_response JSONB,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE nphies_eligibility_logs ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own org eligibility logs"
+  ON nphies_eligibility_logs FOR SELECT TO authenticated
+  USING (organization_id = (SELECT organization_id FROM profiles WHERE id = auth.uid()));
+
+CREATE POLICY "Users can insert own org eligibility logs"
+  ON nphies_eligibility_logs FOR INSERT TO authenticated
+  WITH CHECK (organization_id = (SELECT organization_id FROM profiles WHERE id = auth.uid()));
+
+-- Add verification fields to patient_insurance
+ALTER TABLE patient_insurance
+  ADD COLUMN IF NOT EXISTS nphies_eligible BOOLEAN,
+  ADD COLUMN IF NOT EXISTS nphies_last_checked TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS nphies_coverage_end DATE;
 ```
 
-## Implementation Plan
+### 2. New Component: `PatientInsuranceTab`
 
-### 1. Database: Add NPHIES config columns to `insurance_companies`
-Each insurance company record already belongs to an organization. Add NPHIES-specific fields:
-- `cchi_payer_code` — the CCHI code for this payer (e.g., Bupa = specific code)
-- `nphies_payer_id` — NPHIES identifier for this payer
+Create `src/components/patients/PatientInsuranceTab.tsx` — a new tab for the Patient Profile that shows:
+- List of patient's insurance policies (from `patient_insurance`)
+- Each policy card shows: company, plan, policy number, member ID, CCHI number, status
+- **"Check Eligibility" button** per policy (uses existing `EligibilityCheckButton`)
+- Last eligibility check result & timestamp
+- Eligibility verification history (from `nphies_eligibility_logs`)
+- Link to add new insurance
 
-### 2. Database: Store org-level NPHIES credentials in `organization_settings`
-Using the existing `organization_settings` key-value table:
-- `nphies_enabled` (true/false)
-- `nphies_environment` (sandbox/production)
-- `nphies_facility_id`
-- `nphies_cchi_license`
-- `nphies_client_id`
-- `nphies_client_secret` (sensitive — stored encrypted or via Vault)
-- `nphies_base_url`
+### 3. Wire Insurance Tab into Patient Profile
 
-### 3. Frontend: NPHIES Configuration Panel
-New component in the Insurance settings area where org admins can:
-- Toggle NPHIES integration on/off
-- Enter their facility credentials
-- Select sandbox vs production environment
-- Test connectivity
-- View integration status
+**`src/pages/app/patients/PatientDetailPage.tsx`:**
+- Add `Shield` icon import
+- Add new `TabsTrigger value="insurance"` between Billing and Certificates tabs
+- Add `TabsContent value="insurance"` rendering `<PatientInsuranceTab patientId={patient.id} />`
+- Also add to mobile view's `tabContent` map
 
-### 4. Frontend: Eligibility Check Component
-Add an "Eligibility Check" button on:
-- Patient registration (when insurance is selected)
-- Appointment booking
-- Admission form
-Shows real-time eligibility status from NPHIES.
+### 4. Update EligibilityCheckButton to Save Results
 
-### 5. Edge Function: `nphies-gateway`
-Single gateway function that:
-- Receives org_id + action (eligibility/claim/preauth)
-- Reads that org's NPHIES credentials from `organization_settings`
-- Authenticates with NPHIES OAuth2
-- Converts data to HL7 FHIR format
-- Sends request and returns response
+**`src/components/insurance/EligibilityCheckButton.tsx`:**
+- After successful eligibility check, save result to `nphies_eligibility_logs`
+- Update `patient_insurance` record with `nphies_eligible`, `nphies_last_checked`, `nphies_coverage_end`
+- Accept optional `onResult` callback so parent components can react
 
-### Files to Create/Change
+### 5. Update Edge Function to Return Richer Data
 
-| File | Change |
+**`supabase/functions/nphies-gateway/index.ts`:**
+- In the eligibility response, also save the log server-side for audit trail
+- No major changes needed — the current FHIR parsing is already structured correctly
+
+### 6. Translations (EN/AR/UR)
+
+Add keys for the new Insurance tab and eligibility history labels.
+
+## Files to Create/Change
+
+| File | Action |
 |------|--------|
-| DB migration | Add `cchi_payer_code` to `insurance_companies` |
-| `src/components/insurance/NphiesConfigPanel.tsx` | New — org-level NPHIES settings UI (3 languages) |
-| `src/components/insurance/EligibilityCheckButton.tsx` | New — real-time eligibility check UI |
-| `src/hooks/useNphiesConfig.ts` | New — read/write NPHIES org settings |
-| `src/pages/app/insurance/InsuranceSettingsPage.tsx` | Add NPHIES configuration tab |
-| `supabase/functions/nphies-gateway/index.ts` | New — NPHIES API gateway edge function |
-
-### Security Note
-The `nphies_client_secret` is sensitive. Two options:
-- **Option A**: Store in `organization_settings` with a flag marking it sensitive (simpler, credentials in DB)
-- **Option B**: Use Supabase Vault for encryption (more secure, but Vault stores per-project not per-org)
-
-For SaaS multi-tenant, Option A with DB-level encryption is more practical since each org has different credentials.
+| DB migration | Add NPHIES fields to claims, create eligibility logs table, add fields to patient_insurance |
+| `src/components/patients/PatientInsuranceTab.tsx` | **New** — Insurance tab with eligibility checks & history |
+| `src/pages/app/patients/PatientDetailPage.tsx` | Add Insurance tab trigger + content |
+| `src/components/insurance/EligibilityCheckButton.tsx` | Save results to DB, add onResult callback |
+| `src/hooks/useInsurance.ts` | Add `useEligibilityLogs` hook |
+| `src/lib/i18n/translations/en.ts` | Add insurance tab translations |
+| `src/lib/i18n/translations/ar.ts` | Add Arabic translations |
+| `src/lib/i18n/translations/ur.ts` | Add Urdu translations |
 
