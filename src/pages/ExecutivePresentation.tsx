@@ -39,17 +39,22 @@ const ExecutivePresentation = () => {
         if (i > 0) pdf.addPage();
         const el = slides[i] as HTMLElement;
 
-        const clone = el.cloneNode(true) as HTMLElement;
-        clone.style.cssText = `
-          position: fixed; left: -9999px; top: 0;
-          width: 1200px; height: 675px; max-width: 1200px;
-          overflow: hidden; box-sizing: border-box;
-          padding: 2rem; background: white;
-        `;
-        document.body.appendChild(clone);
-        await new Promise(r => setTimeout(r, 200));
+        el.scrollIntoView();
 
-        const dataUrl = await toPng(clone, {
+        const originalStyle = el.style.cssText;
+        el.style.width = "1200px";
+        el.style.minHeight = "675px";
+        el.style.height = "675px";
+        el.style.maxWidth = "1200px";
+        el.style.overflow = "hidden";
+        el.style.margin = "0";
+        el.style.borderRadius = "0";
+        el.style.border = "none";
+        el.style.boxShadow = "none";
+
+        await new Promise(r => setTimeout(r, 300));
+
+        const dataUrl = await toPng(el, {
           quality: 0.95,
           pixelRatio: 2,
           backgroundColor: "#ffffff",
@@ -57,7 +62,7 @@ const ExecutivePresentation = () => {
           height: 675,
         });
 
-        document.body.removeChild(clone);
+        el.style.cssText = originalStyle;
         pdf.addImage(dataUrl, "PNG", 0, 0, 297, 210);
       }
 
