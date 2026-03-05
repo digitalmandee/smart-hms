@@ -33,7 +33,7 @@ const ExecutivePresentation = () => {
 
     try {
       const slides = printContainerRef.current.querySelectorAll(".slide");
-      const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+      const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: [297, 167.0625] });
 
       for (let i = 0; i < slides.length; i++) {
         if (i > 0) pdf.addPage();
@@ -63,7 +63,7 @@ const ExecutivePresentation = () => {
         });
 
         el.style.cssText = originalStyle;
-        pdf.addImage(dataUrl, "PNG", 0, 0, 297, 210);
+        pdf.addImage(dataUrl, "PNG", 0, 0, 297, 167.0625);
       }
 
       const pdfBlob = pdf.output("blob");
