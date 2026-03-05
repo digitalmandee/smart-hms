@@ -9474,6 +9474,9 @@ export type Database = {
           id: string
           invoice_id: string | null
           notes: string | null
+          nphies_claim_id: string | null
+          nphies_response: Json | null
+          nphies_status: string | null
           organization_id: string
           paid_amount: number | null
           patient_insurance_id: string
@@ -9508,6 +9511,9 @@ export type Database = {
           id?: string
           invoice_id?: string | null
           notes?: string | null
+          nphies_claim_id?: string | null
+          nphies_response?: Json | null
+          nphies_status?: string | null
           organization_id: string
           paid_amount?: number | null
           patient_insurance_id: string
@@ -9542,6 +9548,9 @@ export type Database = {
           id?: string
           invoice_id?: string | null
           notes?: string | null
+          nphies_claim_id?: string | null
+          nphies_response?: Json | null
+          nphies_status?: string | null
           organization_id?: string
           paid_amount?: number | null
           patient_insurance_id?: string
@@ -13674,6 +13683,85 @@ export type Database = {
           },
         ]
       }
+      nphies_eligibility_logs: {
+        Row: {
+          benefits: Json | null
+          checked_at: string | null
+          checked_by: string | null
+          copay: number | null
+          coverage_end: string | null
+          coverage_start: string | null
+          created_at: string | null
+          deductible: number | null
+          eligible: boolean | null
+          id: string
+          organization_id: string | null
+          patient_id: string | null
+          patient_insurance_id: string | null
+          plan_name: string | null
+          raw_response: Json | null
+          status: string | null
+        }
+        Insert: {
+          benefits?: Json | null
+          checked_at?: string | null
+          checked_by?: string | null
+          copay?: number | null
+          coverage_end?: string | null
+          coverage_start?: string | null
+          created_at?: string | null
+          deductible?: number | null
+          eligible?: boolean | null
+          id?: string
+          organization_id?: string | null
+          patient_id?: string | null
+          patient_insurance_id?: string | null
+          plan_name?: string | null
+          raw_response?: Json | null
+          status?: string | null
+        }
+        Update: {
+          benefits?: Json | null
+          checked_at?: string | null
+          checked_by?: string | null
+          copay?: number | null
+          coverage_end?: string | null
+          coverage_start?: string | null
+          created_at?: string | null
+          deductible?: number | null
+          eligible?: boolean | null
+          id?: string
+          organization_id?: string | null
+          patient_id?: string | null
+          patient_insurance_id?: string | null
+          plan_name?: string | null
+          raw_response?: Json | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nphies_eligibility_logs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nphies_eligibility_logs_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nphies_eligibility_logs_patient_insurance_id_fkey"
+            columns: ["patient_insurance_id"]
+            isOneToOne: false
+            referencedRelation: "patient_insurance"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       nurses: {
         Row: {
           assigned_ward_id: string | null
@@ -14917,6 +15005,9 @@ export type Database = {
           is_primary: boolean | null
           member_id: string | null
           notes: string | null
+          nphies_coverage_end: string | null
+          nphies_eligible: boolean | null
+          nphies_last_checked: string | null
           patient_id: string
           policy_number: string
           start_date: string
@@ -14937,6 +15028,9 @@ export type Database = {
           is_primary?: boolean | null
           member_id?: string | null
           notes?: string | null
+          nphies_coverage_end?: string | null
+          nphies_eligible?: boolean | null
+          nphies_last_checked?: string | null
           patient_id: string
           policy_number: string
           start_date: string
@@ -14957,6 +15051,9 @@ export type Database = {
           is_primary?: boolean | null
           member_id?: string | null
           notes?: string | null
+          nphies_coverage_end?: string | null
+          nphies_eligible?: boolean | null
+          nphies_last_checked?: string | null
           patient_id?: string
           policy_number?: string
           start_date?: string

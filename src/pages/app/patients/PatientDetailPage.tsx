@@ -64,7 +64,8 @@ import { PatientPregnanciesHistory } from "@/components/patients/PatientPregnanc
 import { PatientCertificatesHistory } from "@/components/patients/PatientCertificatesHistory";
 import { LabResultsPreview } from "@/components/lab/LabResultsPreview";
 import { PatientVitalsHistory } from "@/components/patients/PatientVitalsHistory";
-import { Baby, Award, Thermometer, Ticket } from "lucide-react";
+import { Baby, Award, Thermometer, Ticket, Shield } from "lucide-react";
+import { PatientInsuranceTab } from "@/components/patients/PatientInsuranceTab";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Capacitor } from "@capacitor/core";
 import { MobilePatientProfile } from "@/components/mobile/MobilePatientProfile";
@@ -247,6 +248,7 @@ export function PatientDetailPage() {
           <PatientAdmissionHistory patientId={patient.id} />
         </div>
       ),
+      insurance: <PatientInsuranceTab patientId={patient.id} />,
     };
 
     return (
@@ -546,6 +548,10 @@ export function PatientDetailPage() {
                 <Receipt className="h-4 w-4" />
                 Billing
               </TabsTrigger>
+              <TabsTrigger value="insurance" className="gap-2">
+                <Shield className="h-4 w-4" />
+                Insurance
+              </TabsTrigger>
               {patient.gender === 'female' && (
                 <TabsTrigger value="pregnancies" className="gap-2">
                   <Baby className="h-4 w-4" />
@@ -706,6 +712,10 @@ export function PatientDetailPage() {
 
             <TabsContent value="billing">
               <PatientBillingHistory patientId={patient.id} />
+            </TabsContent>
+
+            <TabsContent value="insurance">
+              <PatientInsuranceTab patientId={patient.id} />
             </TabsContent>
 
             {patient.gender === 'female' && (
