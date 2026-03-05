@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Users, Calendar, Stethoscope, Receipt, AlertTriangle, RefreshCw, Loader2, Sun, Moon, Sunrise, Sunset, TrendingUp, Package, PackageCheck, ArrowLeftRight, Warehouse, ClipboardPen, BarChart3, FileInput, Truck } from "lucide-react";
 import { CollectionsWidget } from "@/components/billing/CollectionsWidget";
 import { PharmacyAlertsWidget } from "@/components/pharmacy/PharmacyAlertsWidget";
+import { NphiesDashboardCard } from "@/components/insurance/NphiesDashboardCard";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { useInventoryDashboardStats } from "@/hooks/useInventory";
 import { ModernStatsCard } from "@/components/ModernStatsCard";
@@ -364,6 +365,11 @@ export const DashboardPage = () => {
       {isClinical && (
         <div className="grid gap-6 lg:grid-cols-2">
           <PharmacyAlertsWidget />
+          <NphiesDashboardCard />
+        </div>
+      )}
+      {isClinical && (
+        <div className="grid gap-6 lg:grid-cols-2">
           <Card className="shadow-soft">
             <CardHeader className="bg-gradient-to-r from-muted/50 to-transparent">
               <CardTitle className="text-lg">{t("dashboard.alertsNotifications")}</CardTitle>
