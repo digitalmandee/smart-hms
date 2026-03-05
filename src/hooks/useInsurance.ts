@@ -92,6 +92,9 @@ export interface InsuranceClaim {
   payment_date: string | null;
   notes: string | null;
   attachments: string[];
+  nphies_claim_id: string | null;
+  nphies_status: string | null;
+  nphies_response: any | null;
   created_at: string;
   patient_insurance?: PatientInsurance & {
     insurance_plan?: InsurancePlan & {
