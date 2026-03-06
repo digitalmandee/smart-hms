@@ -43,6 +43,36 @@ function validateConfig(config: Record<string, string>) {
   }
 }
 
+// Transaction logging helper
+async function logTransaction(
+  supabase: any,
+  organizationId: string,
+  action: string,
+  requestPayload: any,
+  responsePayload: any,
+  responseStatus: string,
+  errorMessage: string | null,
+  claimId: string | null,
+  patientId: string | null,
+  userId: string | null,
+) {
+  try {
+    await supabase.from("nphies_transaction_logs").insert({
+      organization_id: organizationId,
+      action,
+      request_payload: requestPayload,
+      response_payload: responsePayload,
+      response_status: responseStatus,
+      error_message: errorMessage,
+      claim_id: claimId,
+      patient_id: patientId,
+      user_id: userId,
+    });
+  } catch (logErr) {
+    console.error("Failed to log NPHIES transaction:", logErr);
+  }
+}
+
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
 
@@ -55,7 +85,7 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { action, organization_id, ...params } = await req.json();
+    const { action, organization_id, user_id, ...params } = await req.json();
 
     if (!organization_id) {
       return new Response(JSON.stringify({ error: "organization_id required" }), {
@@ -84,19 +114,29 @@ Deno.serve(async (req) => {
               client_secret: config.nphies_client_secret,
             }),
           });
-          if (tokenResponse.ok) {
+          const success = tokenResponse.ok;
+          const responseText = success ? "Connection successful" : await tokenResponse.text();
+
+          await logTransaction(supabase, organization_id, "test_connection",
+            { base_url: baseUrl }, { success, message: responseText },
+            success ? "success" : "error", success ? null : responseText,
+            null, null, user_id || null);
+
+          if (success) {
             return new Response(
               JSON.stringify({ success: true, message: "Connection successful" }),
               { headers: { ...corsHeaders, "Content-Type": "application/json" } }
             );
           } else {
-            const errorText = await tokenResponse.text();
             return new Response(
-              JSON.stringify({ success: false, message: `Authentication failed: ${errorText}` }),
+              JSON.stringify({ success: false, message: `Authentication failed: ${responseText}` }),
               { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
             );
           }
         } catch (fetchErr) {
+          await logTransaction(supabase, organization_id, "test_connection",
+            { base_url: baseUrl }, null, "error", (fetchErr as Error).message,
+            null, null, user_id || null);
           return new Response(
             JSON.stringify({ success: false, message: `Connection error: ${(fetchErr as Error).message}` }),
             { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -160,6 +200,11 @@ Deno.serve(async (req) => {
 
         const isEligible = eligibilityResponse?.insurance?.[0]?.inforce === true;
 
+        await logTransaction(supabase, organization_id, "eligibility",
+          eligibilityRequest, eligibilityData,
+          isEligible ? "eligible" : "not_eligible", null,
+          null, patient_id || null, user_id || null);
+
         return new Response(
           JSON.stringify({
             eligible: isEligible,
@@ -181,7 +226,6 @@ Deno.serve(async (req) => {
           });
         }
 
-        // Fetch claim with related data
         const { data: claim, error: claimError } = await supabase
           .from("insurance_claims")
           .select(`
@@ -204,7 +248,6 @@ Deno.serve(async (req) => {
           });
         }
 
-        // Fetch claim items
         const { data: claimItems } = await supabase
           .from("insurance_claim_items")
           .select("*")
@@ -215,7 +258,6 @@ Deno.serve(async (req) => {
         const patient = claim.patient_insurance?.patient;
         const insuranceCompany = claim.patient_insurance?.insurance_plan?.insurance_company;
 
-        // Build FHIR Claim Bundle
         const claimBundle = {
           resourceType: "Bundle",
           type: "message",
@@ -294,7 +336,6 @@ Deno.serve(async (req) => {
           ],
         };
 
-        // Submit to NPHIES
         const claimRes = await fetch(`${baseUrl}/nphies/fhir`, {
           method: "POST",
           headers: {
@@ -305,8 +346,6 @@ Deno.serve(async (req) => {
         });
 
         const claimResponseData = await claimRes.json();
-
-        // Parse ClaimResponse
         const claimResponse = claimResponseData?.entry?.find(
           (e: any) => e.resource?.resourceType === "ClaimResponse"
         )?.resource;
@@ -324,7 +363,6 @@ Deno.serve(async (req) => {
         };
         const nphiesStatus = statusMap[outcome] || "pending";
 
-        // Update claim record
         const { error: updateError } = await supabase
           .from("insurance_claims")
           .update({
@@ -340,6 +378,11 @@ Deno.serve(async (req) => {
         if (updateError) {
           console.error("Failed to update claim:", updateError);
         }
+
+        await logTransaction(supabase, organization_id, "submit_claim",
+          claimBundle, claimResponseData, nphiesStatus,
+          nphiesStatus === "rejected" ? (claimResponse?.error?.[0]?.code?.coding?.[0]?.display || "Rejected") : null,
+          claim_id, patient?.id || null, user_id || null);
 
         return new Response(
           JSON.stringify({
@@ -508,6 +551,11 @@ Deno.serve(async (req) => {
           })
           .eq("id", claim_id);
 
+        await logTransaction(supabase, organization_id, "submit_preauth",
+          preAuthBundle, preAuthData, preAuthStatus,
+          preAuthStatus === "denied" ? (preAuthResponse?.error?.[0]?.code?.coding?.[0]?.display || "Denied") : null,
+          claim_id, patient?.id || null, user_id || null);
+
         return new Response(
           JSON.stringify({
             success: preAuthRes.ok,
@@ -603,6 +651,10 @@ Deno.serve(async (req) => {
             })
             .eq("id", claim_id);
 
+          await logTransaction(supabase, organization_id, "check_claim_status",
+            pollBundle, pollData, nphiesStatus, null,
+            claim_id, null, user_id || null);
+
           return new Response(
             JSON.stringify({
               success: true,
@@ -614,6 +666,10 @@ Deno.serve(async (req) => {
             { headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
         }
+
+        await logTransaction(supabase, organization_id, "check_claim_status",
+          pollBundle, pollData, "no_update", null,
+          claim_id, null, user_id || null);
 
         return new Response(
           JSON.stringify({

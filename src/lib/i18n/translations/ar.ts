@@ -2791,5 +2791,20 @@ export const ar: Record<TranslationKey, string> = {
   "apptInsurance.coverageWarning": "تأمين المريض غير مؤهل. يمكنك المتابعة مع الموعد.",
   "apptInsurance.verifyBeforeBooking": "تحقق قبل الحجز",
 
+  // NPHIES Transaction Logs
+  "nphiesTxLogs.title": "سجلات معاملات NPHIES",
+  "nphiesTxLogs.description": "سجل تدقيق لجميع معاملات بوابة NPHIES لمراقبة الامتثال",
+  "nphiesTxLogs.searchPlaceholder": "البحث بالإجراء، الحالة، رقم المطالبة...",
+  "nphiesTxLogs.filterAction": "تصفية حسب الإجراء",
+  "nphiesTxLogs.filterStatus": "تصفية حسب الحالة",
+  "nphiesTxLogs.logsTitle": "سجلات المعاملات",
+  "nphiesTxLogs.noLogs": "لا توجد سجلات معاملات",
+  "nphiesTxLogs.action": "الإجراء",
+  "nphiesTxLogs.claimId": "رقم المطالبة",
+  "nphiesTxLogs.errorMessage": "رسالة الخطأ",
+  "nphiesTxLogs.detailTitle": "تفاصيل المعاملة",
+  "nphiesTxLogs.requestPayload": "بيانات الطلب",
+  "nphiesTxLogs.responsePayload": "بيانات الاستجابة",
+
 };
 

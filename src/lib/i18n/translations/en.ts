@@ -2857,6 +2857,21 @@ export const en = {
   "apptInsurance.coverageWarning": "Patient insurance is not eligible. You may still proceed with the appointment.",
   "apptInsurance.verifyBeforeBooking": "Verify Before Booking",
 
+  // NPHIES Transaction Logs
+  "nphiesTxLogs.title": "NPHIES Transaction Logs",
+  "nphiesTxLogs.description": "Audit trail of all NPHIES gateway transactions for compliance monitoring",
+  "nphiesTxLogs.searchPlaceholder": "Search by action, status, claim ID...",
+  "nphiesTxLogs.filterAction": "Filter by Action",
+  "nphiesTxLogs.filterStatus": "Filter by Status",
+  "nphiesTxLogs.logsTitle": "Transaction Logs",
+  "nphiesTxLogs.noLogs": "No transaction logs found",
+  "nphiesTxLogs.action": "Action",
+  "nphiesTxLogs.claimId": "Claim ID",
+  "nphiesTxLogs.errorMessage": "Error Message",
+  "nphiesTxLogs.detailTitle": "Transaction Detail",
+  "nphiesTxLogs.requestPayload": "Request Payload",
+  "nphiesTxLogs.responsePayload": "Response Payload",
+
 } as const;
 
 export type TranslationKey = keyof typeof en;
