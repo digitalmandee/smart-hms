@@ -1,75 +1,58 @@
 
 
-# Separate Insurance Module from Billing
+# Fix: Missing Icons + Add NPHIES Pre-Approvals & Eligibility Pages
 
-## Problem
-All insurance pages (companies, plans, claims, NPHIES settings, NPHIES analytics) are nested under **Billing** in the sidebar. The NPHIES pages were never added to `menu_items` at all. The user wants:
-1. Insurance as its own top-level sidebar module — separate from Billing
-2. Within Insurance, two clear sections: **Manual Insurance** (companies, plans, claims) and **NPHIES** (settings, analytics)
+## Problems Identified
 
-## Current State
-- `menu_items` has `billing.insurance` as a child of `billing` with children: companies, plans, claims, claims-report
-- NPHIES Settings and NPHIES Analytics have **no menu_items** entries — they're invisible in navigation
-- `available_modules` has no `insurance` module — insurance visibility is not independently controllable
-- There are also duplicate legacy entries (`insurance_companies`, `insurance_plans`, `insurance_claims`) still in the table
-- Routes are all under `/app/billing/insurance/*` and `/app/billing/claims/*`
+1. **Missing icons in sidebar icon maps** — The migration uses `CloudUpload` and `FileCheck` icons for menu items, but neither is imported or registered in `DynamicSidebar.tsx` or `MobileSideMenu.tsx`. This causes those menu items to fall back to a default icon or not render properly.
 
-## Solution
+2. **Missing NPHIES pages in navigation** — The insurance module currently only has Claims, Companies, Plans, Claims Report, NPHIES Settings, and NPHIES Analytics. It's missing dedicated pages for:
+   - **Eligibility Checks** (currently only accessible inline from patient profiles)
+   - **Pre-Authorizations** (currently only accessible from within a claim detail page)
 
-### 1. Add `insurance` to `available_modules` table
-New module with code `insurance`, name `Insurance`, category `clinical`, so organizations can enable/disable it independently from billing.
+## Changes
 
-### 2. Create new top-level `insurance` menu item with two sub-groups
+### 1. Add missing icons to both sidebar components
+Add `CloudUpload` and `FileCheck` to the lucide-react imports and `iconMap` in:
+- `src/components/DynamicSidebar.tsx`
+- `src/components/mobile/MobileSideMenu.tsx`
 
-```text
-Insurance (top-level, icon: ShieldCheck)
-├── Manual Insurance (group header)
-│   ├── Insurance Companies → /app/insurance/companies
-│   ├── Insurance Plans     → /app/insurance/plans
-│   ├── Claims              → /app/insurance/claims
-│   └── Claims Report       → /app/insurance/claims-report
-└── NPHIES (group header)
-    ├── NPHIES Settings     → /app/insurance/nphies/settings
-    └── NPHIES Analytics    → /app/insurance/nphies/analytics
-```
+### 2. Create Eligibility Checks page
+**New file**: `src/pages/app/insurance/EligibilityChecksPage.tsx`
+- Table listing all eligibility checks from `nphies_eligibility_logs` for the organization
+- Columns: Patient, Insurance Company, Policy Number, Status (eligible/ineligible), Checked At
+- Filter by date range and status
+- "New Check" button linking to patient search
 
-### 3. Database migration (SQL)
-- Insert `insurance` into `available_modules`
-- Insert new top-level `insurance` menu item
-- Insert two sub-group headers: `insurance.manual` and `insurance.nphies`
-- Insert 6 child menu items under the appropriate groups
-- Set `required_module = 'insurance'` on the top-level item
-- Deactivate old `billing.insurance.*` and legacy `insurance_*` menu items
-- Enable `insurance` module for all existing organizations
+### 3. Create Pre-Authorizations page
+**New file**: `src/pages/app/insurance/PreAuthorizationsPage.tsx`
+- Table listing all claims that have pre-auth data (`pre_auth_number IS NOT NULL` or `pre_auth_status IS NOT NULL`)
+- Columns: Claim #, Patient, Insurance, Pre-Auth Number, Pre-Auth Status, Amount
+- Filter by status (approved/denied/pending)
 
-### 4. New routes in App.tsx
-Add new route paths under `/app/insurance/*`:
-- `/app/insurance/companies` → InsuranceCompaniesPage
-- `/app/insurance/plans` → InsurancePlansPage  
-- `/app/insurance/claims` → ClaimsListPage
-- `/app/insurance/claims/new` → ClaimFormPage
-- `/app/insurance/claims/:id` → ClaimDetailPage
-- `/app/insurance/claims-report` → ClaimsReportPage
-- `/app/insurance/nphies/settings` → NphiesSettingsPage
-- `/app/insurance/nphies/analytics` → NphiesAnalyticsPage
+### 4. Add routes in App.tsx
+- `/app/insurance/nphies/eligibility` → EligibilityChecksPage
+- `/app/insurance/nphies/pre-authorizations` → PreAuthorizationsPage
 
-Keep old `/app/billing/insurance/*` routes as redirects for backward compatibility.
+### 5. Add menu items via SQL (data insert)
+Add two new children under `insurance.nphies`:
+- `insurance.nphies.eligibility` → "Eligibility Checks" → `/app/insurance/nphies/eligibility` (icon: `ShieldCheck`)
+- `insurance.nphies.pre-auth` → "Pre-Authorizations" → `/app/insurance/nphies/pre-authorizations` (icon: `FileCheck`)
 
-### 5. Translation updates
-Add insurance module translations in EN, AR, UR for the new menu labels.
+### 6. Add translations (EN, AR, UR)
+New keys for eligibility checks page and pre-authorizations page labels.
 
-### 6. Facility type filter update
-Add `/app/insurance` to the clinical path prefixes in `facility-type-filter.ts` so warehouse/pharmacy types don't see insurance.
-
-## Files to Change
+## Files Summary
 
 | File | Action |
 |------|--------|
-| SQL migration | New module, menu items, deactivate old entries |
-| `src/App.tsx` | Add `/app/insurance/*` routes, keep old routes as redirects |
-| `src/lib/facility-type-filter.ts` | Add `/app/insurance` to clinical paths |
-| `src/lib/i18n/translations/en.ts` | Insurance module translations |
-| `src/lib/i18n/translations/ar.ts` | Arabic translations |
-| `src/lib/i18n/translations/ur.ts` | Urdu translations |
-| `src/components/insurance/NphiesDashboardCard.tsx` | Update "View Analytics" link to new path |
+| `src/components/DynamicSidebar.tsx` | Add `CloudUpload`, `FileCheck` to imports + iconMap |
+| `src/components/mobile/MobileSideMenu.tsx` | Add `CloudUpload`, `FileCheck` to imports + iconMap |
+| `src/pages/app/insurance/EligibilityChecksPage.tsx` | **New** — Eligibility checks list page |
+| `src/pages/app/insurance/PreAuthorizationsPage.tsx` | **New** — Pre-authorizations list page |
+| `src/App.tsx` | Add 2 new routes |
+| `src/lib/i18n/translations/en.ts` | Add page translations |
+| `src/lib/i18n/translations/ar.ts` | Add Arabic translations |
+| `src/lib/i18n/translations/ur.ts` | Add Urdu translations |
+| SQL data insert | Add 2 new menu_items under `insurance.nphies` |
 
