@@ -147,6 +147,8 @@ import {
   LogOut,
   Moon,
   ChevronDown,
+  CloudUpload,
+  FileCheck,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
@@ -295,6 +297,8 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Truck,
   Webhook,
   Users2,
+  CloudUpload,
+  FileCheck,
 };
 
 interface MobileSideMenuProps {

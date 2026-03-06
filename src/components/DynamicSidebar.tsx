@@ -158,6 +158,8 @@ import {
   Sliders,
   Anchor,
   ShieldAlert,
+  CloudUpload,
+  FileCheck,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -598,6 +600,13 @@ export const SIDEBAR_NAME_TO_KEY: Record<string, TranslationKey> = {
   "Dock Schedule": "nav.dockSchedule",
   "Gate Log": "nav.gateLog",
   "Expense Management": "nav.expenseManagement",
+  "Insurance": "nav.insurance",
+  "Manual Insurance": "nav.manualInsurance",
+  "NPHIES": "nav.nphies",
+  "NPHIES Settings": "nav.nphiesSettings",
+  "NPHIES Analytics": "nav.nphiesAnalytics",
+  "Eligibility Checks": "nav.eligibilityChecks",
+  "Pre-Authorizations": "nav.preAuthorizations",
 };
 
 
@@ -737,6 +746,8 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Sliders,
   Anchor,
   ShieldAlert,
+  CloudUpload,
+  FileCheck,
 };
 
 interface DynamicSidebarProps {

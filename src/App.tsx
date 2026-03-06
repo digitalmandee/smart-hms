@@ -189,6 +189,8 @@ import ClaimFormPage from "./pages/app/billing/ClaimFormPage";
 import ClaimDetailPage from "./pages/app/billing/ClaimDetailPage";
 import NphiesSettingsPage from "./pages/app/billing/NphiesSettingsPage";
 import NphiesAnalyticsPage from "./pages/app/billing/NphiesAnalyticsPage";
+const EligibilityChecksPage = React.lazy(() => import("./pages/app/insurance/EligibilityChecksPage"));
+const PreAuthorizationsPage = React.lazy(() => import("./pages/app/insurance/PreAuthorizationsPage"));
 import DailyClosingPage from "./pages/app/billing/DailyClosingPage";
 const DailyClosingHistoryPage = React.lazy(() => import("./pages/app/billing/DailyClosingHistoryPage"));
 
@@ -1031,6 +1033,8 @@ function App() {
               <Route path="insurance/claims-report" element={<ClaimsReportPage />} />
               <Route path="insurance/nphies/settings" element={<NphiesSettingsPage />} />
               <Route path="insurance/nphies/analytics" element={<NphiesAnalyticsPage />} />
+              <Route path="insurance/nphies/eligibility" element={<EligibilityChecksPage />} />
+              <Route path="insurance/nphies/pre-authorizations" element={<PreAuthorizationsPage />} />
               
               {/* Accounts routes */}
               <Route path="accounts" element={<AccountsDashboard />} />
