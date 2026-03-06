@@ -1033,8 +1033,8 @@ function App() {
               <Route path="insurance/claims-report" element={<ClaimsReportPage />} />
               <Route path="insurance/nphies/settings" element={<NphiesSettingsPage />} />
               <Route path="insurance/nphies/analytics" element={<NphiesAnalyticsPage />} />
-              <Route path="insurance/nphies/eligibility" element={<EligibilityChecksPage />} />
-              <Route path="insurance/nphies/pre-authorizations" element={<PreAuthorizationsPage />} />
+               <Route path="insurance/nphies/eligibility" element={<React.Suspense fallback={<div>Loading...</div>}><EligibilityChecksPage /></React.Suspense>} />
+               <Route path="insurance/nphies/pre-authorizations" element={<React.Suspense fallback={<div>Loading...</div>}><PreAuthorizationsPage /></React.Suspense>} />
               
               {/* Accounts routes */}
               <Route path="accounts" element={<AccountsDashboard />} />
