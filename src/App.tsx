@@ -1013,14 +1013,24 @@ function App() {
               <Route path="reports/day-end-summary" element={<DayEndSummaryReport />} />
               <Route path="reports/opd-departments" element={<OPDDepartmentReport />} />
               <Route path="billing/reports" element={<BillingReportsPage />} />
-              <Route path="billing/claims-report" element={<ClaimsReportPage />} />
-              <Route path="billing/insurance/companies" element={<InsuranceCompaniesPage />} />
-              <Route path="billing/insurance/plans" element={<InsurancePlansPage />} />
-              <Route path="billing/insurance/nphies" element={<NphiesSettingsPage />} />
-              <Route path="billing/nphies-analytics" element={<NphiesAnalyticsPage />} />
-              <Route path="billing/claims" element={<ClaimsListPage />} />
-              <Route path="billing/claims/new" element={<ClaimFormPage />} />
-              <Route path="billing/claims/:id" element={<ClaimDetailPage />} />
+              <Route path="billing/claims-report" element={<Navigate to="/app/insurance/claims-report" replace />} />
+              <Route path="billing/insurance/companies" element={<Navigate to="/app/insurance/companies" replace />} />
+              <Route path="billing/insurance/plans" element={<Navigate to="/app/insurance/plans" replace />} />
+              <Route path="billing/insurance/nphies" element={<Navigate to="/app/insurance/nphies/settings" replace />} />
+              <Route path="billing/nphies-analytics" element={<Navigate to="/app/insurance/nphies/analytics" replace />} />
+              <Route path="billing/claims" element={<Navigate to="/app/insurance/claims" replace />} />
+              <Route path="billing/claims/new" element={<Navigate to="/app/insurance/claims/new" replace />} />
+              <Route path="billing/claims/:id" element={<Navigate to="/app/insurance/claims/:id" replace />} />
+
+              {/* Insurance module (standalone) */}
+              <Route path="insurance/companies" element={<InsuranceCompaniesPage />} />
+              <Route path="insurance/plans" element={<InsurancePlansPage />} />
+              <Route path="insurance/claims" element={<ClaimsListPage />} />
+              <Route path="insurance/claims/new" element={<ClaimFormPage />} />
+              <Route path="insurance/claims/:id" element={<ClaimDetailPage />} />
+              <Route path="insurance/claims-report" element={<ClaimsReportPage />} />
+              <Route path="insurance/nphies/settings" element={<NphiesSettingsPage />} />
+              <Route path="insurance/nphies/analytics" element={<NphiesAnalyticsPage />} />
               
               {/* Accounts routes */}
               <Route path="accounts" element={<AccountsDashboard />} />

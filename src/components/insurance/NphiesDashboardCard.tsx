@@ -63,7 +63,7 @@ export function NphiesDashboardCard() {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => navigate("/app/settings/nphies")}
+          onClick={() => navigate("/app/insurance/nphies/settings")}
         >
           <Settings className="h-4 w-4" />
         </Button>
@@ -152,7 +152,7 @@ export function NphiesDashboardCard() {
             variant="outline"
             size="sm"
             className="flex-1"
-            onClick={() => navigate("/app/billing/claims")}
+            onClick={() => navigate("/app/insurance/claims")}
           >
             {t("nphies.viewClaims" as any, "View Claims")}
             <ArrowRight className="ml-1 h-3 w-3" />
@@ -161,7 +161,7 @@ export function NphiesDashboardCard() {
             variant="outline"
             size="sm"
             className="flex-1"
-            onClick={() => navigate("/app/billing/nphies-analytics")}
+            onClick={() => navigate("/app/insurance/nphies/analytics")}
           >
             {t("nphiesAnalytics.viewAnalytics" as any, "Analytics")}
             <ArrowRight className="ml-1 h-3 w-3" />

@@ -16,6 +16,7 @@ const CLINICAL_PATH_PREFIXES = [
   "/app/appointments",
   "/app/patients",
   "/app/reception",
+  "/app/insurance",
 ];
 
 // Pharmacy paths - kept for pharmacy facility type, hidden for warehouse
