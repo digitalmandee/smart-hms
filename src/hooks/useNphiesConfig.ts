@@ -130,6 +130,7 @@ export function useSubmitClaimToNphies() {
           action: "submit_claim",
           organization_id: profile.organization_id,
           claim_id: claimId,
+          user_id: profile.id,
         },
       });
 
@@ -166,6 +167,7 @@ export function useSubmitPreAuth() {
           action: "submit_preauth",
           organization_id: profile.organization_id,
           claim_id: claimId,
+          user_id: profile.id,
         },
       });
 
@@ -202,6 +204,7 @@ export function useCheckClaimStatus() {
           action: "check_claim_status",
           organization_id: profile.organization_id,
           claim_id: claimId,
+          user_id: profile.id,
         },
       });
 
@@ -236,6 +239,7 @@ export function useTestNphiesConnection() {
         body: {
           action: "test_connection",
           organization_id: profile.organization_id,
+          user_id: profile.id,
         },
       });
 

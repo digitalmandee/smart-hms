@@ -2791,5 +2791,20 @@ export const ur: Record<TranslationKey, string> = {
   "apptInsurance.coverageWarning": "مریض کی انشورنس اہل نہیں ہے۔ آپ پھر بھی اپائنٹمنٹ جاری رکھ سکتے ہیں۔",
   "apptInsurance.verifyBeforeBooking": "بکنگ سے پہلے تصدیق کریں",
 
+  // NPHIES Transaction Logs
+  "nphiesTxLogs.title": "NPHIES ٹرانزیکشن لاگز",
+  "nphiesTxLogs.description": "تعمیل کی نگرانی کے لیے تمام NPHIES گیٹ وے ٹرانزیکشنز کا آڈٹ ٹریل",
+  "nphiesTxLogs.searchPlaceholder": "عمل، حالت، کلیم آئی ڈی سے تلاش کریں...",
+  "nphiesTxLogs.filterAction": "عمل کے مطابق فلٹر",
+  "nphiesTxLogs.filterStatus": "حالت کے مطابق فلٹر",
+  "nphiesTxLogs.logsTitle": "ٹرانزیکشن لاگز",
+  "nphiesTxLogs.noLogs": "کوئی ٹرانزیکشن لاگ نہیں ملے",
+  "nphiesTxLogs.action": "عمل",
+  "nphiesTxLogs.claimId": "کلیم آئی ڈی",
+  "nphiesTxLogs.errorMessage": "خرابی کا پیغام",
+  "nphiesTxLogs.detailTitle": "ٹرانزیکشن کی تفصیل",
+  "nphiesTxLogs.requestPayload": "درخواست کا ڈیٹا",
+  "nphiesTxLogs.responsePayload": "جواب کا ڈیٹا",
+
 };
 

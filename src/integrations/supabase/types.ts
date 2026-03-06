@@ -13762,6 +13762,77 @@ export type Database = {
           },
         ]
       }
+      nphies_transaction_logs: {
+        Row: {
+          action: string
+          claim_id: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          organization_id: string
+          patient_id: string | null
+          request_payload: Json | null
+          response_payload: Json | null
+          response_status: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          claim_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          organization_id: string
+          patient_id?: string | null
+          request_payload?: Json | null
+          response_payload?: Json | null
+          response_status?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          claim_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          organization_id?: string
+          patient_id?: string | null
+          request_payload?: Json | null
+          response_payload?: Json | null
+          response_status?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nphies_transaction_logs_claim_id_fkey"
+            columns: ["claim_id"]
+            isOneToOne: false
+            referencedRelation: "insurance_claims"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nphies_transaction_logs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nphies_transaction_logs_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nphies_transaction_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       nurses: {
         Row: {
           assigned_ward_id: string | null

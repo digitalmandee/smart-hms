@@ -191,6 +191,7 @@ import NphiesSettingsPage from "./pages/app/billing/NphiesSettingsPage";
 import NphiesAnalyticsPage from "./pages/app/billing/NphiesAnalyticsPage";
 const EligibilityChecksPage = React.lazy(() => import("./pages/app/insurance/EligibilityChecksPage"));
 const PreAuthorizationsPage = React.lazy(() => import("./pages/app/insurance/PreAuthorizationsPage"));
+const NphiesTransactionLogsPage = React.lazy(() => import("./pages/app/insurance/NphiesTransactionLogsPage"));
 import DailyClosingPage from "./pages/app/billing/DailyClosingPage";
 const DailyClosingHistoryPage = React.lazy(() => import("./pages/app/billing/DailyClosingHistoryPage"));
 
@@ -1035,6 +1036,7 @@ function App() {
               <Route path="insurance/nphies/analytics" element={<NphiesAnalyticsPage />} />
                <Route path="insurance/nphies/eligibility" element={<React.Suspense fallback={<div>Loading...</div>}><EligibilityChecksPage /></React.Suspense>} />
                <Route path="insurance/nphies/pre-authorizations" element={<React.Suspense fallback={<div>Loading...</div>}><PreAuthorizationsPage /></React.Suspense>} />
+               <Route path="insurance/nphies/transaction-logs" element={<React.Suspense fallback={<div>Loading...</div>}><NphiesTransactionLogsPage /></React.Suspense>} />
               
               {/* Accounts routes */}
               <Route path="accounts" element={<AccountsDashboard />} />
