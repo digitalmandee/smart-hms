@@ -279,13 +279,14 @@ export default function ClaimFormPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>ICD-10 Diagnosis Codes</Label>
-                  <Input
-                    {...register('icd_codes')}
-                    placeholder="e.g. J18.9, I10 (comma-separated)"
-                  />
-                  <p className="text-xs text-muted-foreground">Required for KSA insurance claims</p>
-                </div>
+                   <Label>ICD-10 Diagnosis Codes</Label>
+                   <MedicalCodeSearch
+                     codeType="icd10"
+                     selectedCodes={icdCodes}
+                     onCodesChange={setIcdCodes}
+                   />
+                   <p className="text-xs text-muted-foreground">Required for KSA insurance claims</p>
+                 </div>
                 <div className="space-y-2">
                   <Label>DRG Code</Label>
                   <Input
