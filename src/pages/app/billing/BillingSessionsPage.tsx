@@ -137,7 +137,7 @@ export default function BillingSessionsPage() {
         actions={
           <div className="flex items-center gap-2">
             <ReportExportButton
-              data={sessions || []}
+              data={(sessions || []).map(s => ({ ...s, opened_by_name: s.opened_by_profile?.full_name || "—" }))}
               filename={`billing-sessions-${dateFrom}`}
               columns={exportColumns}
               title={t("billing.sessionsPage")}
