@@ -12849,6 +12849,50 @@ export type Database = {
           },
         ]
       }
+      medical_codes: {
+        Row: {
+          category: string | null
+          code: string
+          code_type: Database["public"]["Enums"]["medical_code_type"]
+          created_at: string
+          description: string
+          description_ar: string | null
+          id: string
+          is_active: boolean
+          organization_id: string | null
+        }
+        Insert: {
+          category?: string | null
+          code: string
+          code_type: Database["public"]["Enums"]["medical_code_type"]
+          created_at?: string
+          description: string
+          description_ar?: string | null
+          id?: string
+          is_active?: boolean
+          organization_id?: string | null
+        }
+        Update: {
+          category?: string | null
+          code?: string
+          code_type?: Database["public"]["Enums"]["medical_code_type"]
+          created_at?: string
+          description?: string
+          description_ar?: string | null
+          id?: string
+          is_active?: boolean
+          organization_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medical_codes_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       medical_fitness_records: {
         Row: {
           conditions_noted: string | null
@@ -22410,6 +22454,7 @@ export type Database = {
       leave_request_status: "pending" | "approved" | "rejected" | "cancelled"
       loan_status: "active" | "completed" | "cancelled" | "defaulted"
       marital_status: "single" | "married" | "divorced" | "widowed" | "other"
+      medical_code_type: "icd10" | "cpt" | "drg"
       medical_history_type:
         | "allergy"
         | "chronic_disease"
@@ -22948,6 +22993,7 @@ export const Constants = {
       leave_request_status: ["pending", "approved", "rejected", "cancelled"],
       loan_status: ["active", "completed", "cancelled", "defaulted"],
       marital_status: ["single", "married", "divorced", "widowed", "other"],
+      medical_code_type: ["icd10", "cpt", "drg"],
       medical_history_type: [
         "allergy",
         "chronic_disease",
