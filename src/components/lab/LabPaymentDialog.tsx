@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useRecordPayment, usePaymentMethods } from "@/hooks/useBilling";
-import { useRequireSession } from "@/hooks/useRequireSession";
+import { useUpdateLabOrderPayment } from "@/hooks/useLabOrders";
 import { useUpdateLabOrderPayment } from "@/hooks/useLabOrders";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
