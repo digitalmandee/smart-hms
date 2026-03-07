@@ -83,11 +83,11 @@ export default function BillingSessionsPage() {
     return <Badge variant={variants[status]}>{labels[status]}</Badge>;
   };
 
-  // User-wise cash summary from sessions
+  // User-wise cash summary from sessions — composite key to avoid merging shifts
   const cashSummary = sessions?.reduce<
     Record<string, { user: string; counter: string; shift: string; opening: number; collections: number; expected: number; actual: number | null; difference: number | null }>
   >((acc, s) => {
-    const key = s.opened_by;
+    const key = `${s.opened_by}_${s.counter_type}_${s.shift || "none"}`;
     if (!acc[key]) {
       acc[key] = {
         user: s.opened_by_profile?.full_name || "—",
@@ -111,6 +111,19 @@ export default function BillingSessionsPage() {
     }
     return acc;
   }, {});
+
+  // Export data for CSV/PDF
+  const exportColumns = [
+    { key: "session_number", header: t("billing.sessionNumber") },
+    { key: "user", header: t("billing.user"), format: (_: any, row: any) => row?.opened_by_profile?.full_name || "—" },
+    { key: "counter_type", header: t("billing.counter"), format: (v: any) => t(COUNTER_LABELS[v as CounterType] || "billing.counterReception") },
+    { key: "shift", header: t("billing.shift"), format: (v: any) => v ? t(SHIFT_LABELS[v] || "billing.shiftMorning") : "—" },
+    { key: "opening_cash", header: t("billing.openingCash"), format: (v: any) => String(v ?? 0) },
+    { key: "total_collections", header: t("billing.collections"), format: (v: any) => String(v ?? 0) },
+    { key: "status", header: t("common.status") },
+    { key: "opened_at", header: t("billing.openedAt"), format: (v: any) => v ? format(new Date(v), "dd MMM yyyy hh:mm a") : "—" },
+    { key: "closed_at", header: t("billing.closedAt"), format: (v: any) => v ? format(new Date(v), "dd MMM yyyy hh:mm a") : "—" },
+  ];
 
   return (
     <div className="space-y-6">
