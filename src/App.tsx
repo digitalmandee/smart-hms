@@ -195,6 +195,8 @@ const NphiesTransactionLogsPage = React.lazy(() => import("./pages/app/insurance
 import DailyClosingPage from "./pages/app/billing/DailyClosingPage";
 const DailyClosingHistoryPage = React.lazy(() => import("./pages/app/billing/DailyClosingHistoryPage"));
 const PaymentReconciliationPage = React.lazy(() => import("./pages/app/billing/PaymentReconciliationPage"));
+const BillingSessionsPage = React.lazy(() => import("./pages/app/billing/BillingSessionsPage"));
+const SessionDetailPage = React.lazy(() => import("./pages/app/billing/SessionDetailPage"));
 
 // Kitchen pages
 const KitchenDashboard = React.lazy(() => import("./pages/app/kitchen/KitchenDashboard"));
