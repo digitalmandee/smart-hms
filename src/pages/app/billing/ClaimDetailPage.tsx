@@ -18,6 +18,7 @@ import { ArrowLeft, Send, CheckCircle, XCircle, DollarSign, Building2, FileText,
 import { toast } from "sonner";
 import { formatCurrency } from "@/lib/currency";
 import { useTranslation } from "@/lib/i18n";
+import { DenialManagementPanel } from "@/components/insurance/DenialManagementPanel";
 
 const statusColors: Record<string, string> = {
   draft: "bg-gray-500",
