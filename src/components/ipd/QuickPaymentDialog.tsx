@@ -91,16 +91,7 @@ export function QuickPaymentDialog({
           </DialogTitle>
         </DialogHeader>
 
-        {!hasActiveSession ? (
-          <div className="py-6 text-center">
-            <AlertCircle className="h-12 w-12 text-warning mx-auto mb-4" />
-            <p className="font-medium mb-2">Session Required</p>
-            <p className="text-sm text-muted-foreground">
-              Please open a billing session from the Billing Dashboard before collecting payments.
-            </p>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
             <div className="p-3 bg-muted rounded-lg text-sm">
               <p className="text-muted-foreground">Invoice: {invoiceNumber}</p>
               <p className="font-semibold">Balance Due: {formatCurrency(balanceAmount)}</p>
