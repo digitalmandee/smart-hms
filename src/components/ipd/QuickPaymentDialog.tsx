@@ -44,12 +44,6 @@ export function QuickPaymentDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Check for active session
-    if (!hasActiveSession) {
-      toast.error("Please open a billing session first to collect payments");
-      return;
-    }
-
     const paymentAmount = parseFloat(amount);
     if (isNaN(paymentAmount) || paymentAmount <= 0) {
       toast.error("Please enter a valid amount");
