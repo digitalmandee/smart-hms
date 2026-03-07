@@ -185,7 +185,6 @@ export function QuickPaymentDialog({
               </Button>
             </DialogFooter>
           </form>
-        )}
       </DialogContent>
     </Dialog>
   );
