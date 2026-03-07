@@ -12,7 +12,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Monitor, Clock, DollarSign, CreditCard } from "lucide-react";
+import { ArrowLeft, Monitor, Clock, DollarSign, CreditCard, Layers } from "lucide-react";
+import type { TranslationKey } from "@/lib/i18n/translations/en";
 import { useTranslation } from "@/lib/i18n";
 import { formatCurrency } from "@/lib/currency";
 import { format } from "date-fns";
