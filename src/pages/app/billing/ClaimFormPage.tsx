@@ -129,7 +129,31 @@ export default function ClaimFormPage() {
     ? (totalClaimAmount * (selectedInsurance.insurance_plan.coverage_percentage || 0)) / 100
     : 0;
 
+  const runScrub = (data: ClaimFormData) => {
+    const results = scrubClaim({
+      patient_insurance_id: data.patient_insurance_id,
+      invoice_id: invoiceId || undefined,
+      claim_date: data.claim_date,
+      total_amount: totalClaimAmount,
+      icd_codes: icdCodes,
+      pre_auth_number: data.pre_auth_number,
+      pre_auth_required: selectedInsurance?.insurance_plan?.pre_auth_required,
+      drg_code: data.drg_code,
+      items: claimItems,
+    });
+    setScrubResults(results);
+    setScrubRan(true);
+    return results;
+  };
+
   const onSubmit = async (data: ClaimFormData) => {
+    // Run scrub validation first
+    const results = runScrub(data);
+    if (hasErrors(results)) {
+      toast.error("Please fix validation errors before submitting");
+      return;
+    }
+
     try {
       const icdCodesArray = icdCodes;
 
