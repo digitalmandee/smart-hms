@@ -1,115 +1,138 @@
 
 
-# Plan: Insurance Claim Flow Integration for OPD & IPD
+# Comprehensive NPHIES Revenue Cycle Gap Coverage Plan
 
-## Problem
-Currently, OPD Checkout and IPD Discharge pages have zero insurance awareness. When a patient has active insurance (especially NPHIES), the system should:
-1. Show insurance details and verify eligibility
-2. Calculate the insurance-covered portion vs patient copay/deductible
-3. Split the bill accordingly (insurance claim + patient responsibility)
-4. Prompt to create an insurance claim after invoicing
-5. Follow KSA operational standard: verify first, bill split, claim auto-generate
+## Workflow Assessment (15-Step Saudi HMIS Standard)
 
-## Current State
-- **OPD Checkout**: Shows flat total, no insurance detection, no copay split, no claim prompt
-- **IPD Admission**: Has `payment_mode: insurance` field + policy/auth number fields, but no NPHIES eligibility check
-- **IPD Discharge**: Shows billing summary with balance due, no insurance split, no claim creation
-- **InsurancePlan** model already has: `coverage_percentage`, `copay_percentage`, `copay_amount`, `deductible_amount`, `max_coverage_amount`, `annual_limit`
-- `AppointmentInsuranceCheck` component exists but is not used in checkout/discharge
-- `EligibilityCheckButton` exists with `onResult` callback returning copay/deductible
+| # | Step | Current Status | Gap Level |
+|---|------|---------------|-----------|
+| 1 | Patient Registration | ✅ Done — demographics, national_id, insurance capture | None |
+| 2 | Eligibility Check | ✅ Done — real-time NPHIES FHIR CoverageEligibilityRequest | None |
+| 3 | Encounter Creation | ✅ Done — OPD/ER/IPD with encounter IDs | None |
+| 4 | Pre-Authorization | ✅ Done — submit_preauth gateway action, tracking | None |
+| 5 | Treatment/Clinical Docs | ✅ Done — EMR, diagnosis, procedures, labs, radiology | None |
+| 6 | Charge Capture | ✅ Partial — IPD auto-charges exist, OPD checkout captures charges, but no auto-linking of all services to insurance claims | **LOW** |
+| 7 | Medical Coding | ⚠️ Partial — ICD-10 field on claims, but no coding engine/lookup, no CPT codes, no DRG grouping | **HIGH** |
+| 8 | Claim Scrubbing/Validation | ❌ Missing — no pre-submission validation, no duplicate detection, no coding checks | **HIGH** |
+| 9 | Claim Generation | ✅ Done — ClaimFormPage with SBS-compatible FHIR bundles | None |
+| 10 | NPHIES Submission | ✅ Done — real-time + claim response parsing | None |
+| 11 | Payer Processing | ✅ Done — status polling, outcome tracking | None |
+| 12 | Denial Management | ⚠️ Partial — rejection reasons displayed, resubmit button exists, but no structured denial tracking or denial analytics | **MEDIUM** |
+| 13 | Payment & Remittance | ❌ Missing — no ERA/RemittanceAdvice handling | **HIGH** |
+| 14 | Payment Posting | ❌ Missing — no auto-posting of insurance payments to financial ledger | **HIGH** |
+| 15 | Financial Reporting | ⚠️ Partial — ClaimsReportPage exists but no AR aging, no insurance company performance, no revenue leakage analytics | **MEDIUM** |
 
-## Implementation
+**Additional infrastructure gaps:**
+- No NPHIES transaction audit logs (compliance requirement)
+- No Saudi ID (Iqama) format validation
+- No batch claims submission
+- No NPHIES attachment/CommunicationRequest support
 
-### 1. New Component: `InsuranceBillingSplit.tsx`
-Reusable component for both OPD and IPD billing contexts:
-- Props: `patientId`, `totalAmount`, `onSplitCalculated`
-- Fetches patient's primary insurance via `usePatientInsurance`
-- Shows insurance card (company, plan, policy, eligibility status)
-- Inline `EligibilityCheckButton` for NPHIES verification
-- Calculates split using plan rules:
-  - `insuranceAmount = totalAmount * (coverage_percentage / 100)` capped at `max_coverage_amount`
-  - `patientCopay = totalAmount * (copay_percentage / 100)` or flat `copay_amount`
-  - `deductible` applied if not yet met
-  - `patientResponsibility = totalAmount - insuranceAmount`
-- Shows clear breakdown: Insurance Covers / Patient Pays / Deductible
-- Toggle: "Bill as Self-Pay" override for when patient declines insurance
+---
 
-### 2. New Component: `InsuranceClaimPrompt.tsx`
-Post-invoice prompt shown for insured patients:
-- Props: `patientId`, `invoiceId`, `totalAmount`, `insuranceAmount`, `icdCodes?`, `preAuthNumber?`
-- Shows summary: "Insurance claim of SAR X can be submitted"
-- "Create Insurance Claim" button → navigates to `/app/insurance/claims/new?invoice={id}&patient={patientId}`
-- "Skip" option
+## Implementation Plan (Priority Order)
 
-### 3. OPD Checkout Integration
-Modify `OPDCheckoutPage.tsx`:
-- After charges are selected, if patient has active insurance:
-  - Show `InsuranceBillingSplit` in the Payment sidebar
-  - Split total into insurance portion + patient copay
-  - "Pay Now" only collects patient responsibility amount
-  - "Generate Invoice" creates invoice for full amount with insurance metadata
-- After invoice generation, show `InsuranceClaimPrompt`
+### Phase 1: Transaction Audit Logs (Foundation)
 
-### 4. IPD Admission Insurance Check
-Modify `AdmissionFormPage.tsx`:
-- When `payment_mode` is set to "insurance":
-  - Show `AppointmentInsuranceCheck` component below insurance fields
-  - Run NPHIES eligibility verification
-  - Show coverage limits and pre-auth requirement warning
-  - Block admission confirmation if not eligible (with override option)
+**Database**: New `nphies_transaction_logs` table with columns: `id`, `organization_id`, `action`, `claim_id`, `patient_id`, `request_payload` (jsonb), `response_payload` (jsonb), `response_status`, `error_message`, `user_id`, `created_at`. RLS: org-scoped.
 
-### 5. IPD Discharge Insurance Integration
-Modify `DischargeFormPage.tsx`:
-- Add insurance awareness to the Billing tab:
-  - If admission `payment_mode === "insurance"`, show `InsuranceBillingSplit`
-  - Calculate insurance vs patient split for total charges
-  - Show: "Insurance: SAR X | Patient: SAR Y | Deposit Paid: SAR Z"
-  - Balance due = patient responsibility - deposit
-- After invoice generation, show `InsuranceClaimPrompt` with auto-populated ICD codes from discharge summary
+**Edge Function**: Wrap every action in `nphies-gateway/index.ts` with a log insert (request + response + status).
 
-### 6. ClaimFormPage Auto-Fill Enhancement
-Modify `ClaimFormPage.tsx`:
-- Accept query params: `preauth`, `icd_codes`, `admission_id`
-- Auto-populate pre-auth number and ICD codes when provided
-- Auto-select patient insurance based on `patient` query param
+**UI**: New `NphiesTransactionLogsPage.tsx` — filterable table by action type, date range, status. Route: `/app/insurance/nphies/transaction-logs`. Add menu item.
 
-### 7. Translations
-Add EN/AR/UR keys for:
-- Insurance billing split labels (coverage, copay, deductible, patient responsibility)
-- Claim prompt messages
-- Admission eligibility warnings
+### Phase 2: Claim Scrubbing / Validation Engine
 
-## Files
+**New component**: `src/components/insurance/ClaimScrubber.tsx`
+- Pre-submission validation rules:
+  - Required fields check (ICD codes, patient insurance, invoice)
+  - ICD-10 format validation (letter + 2-7 characters)
+  - Duplicate claim detection (same patient + same date + same insurance)
+  - Missing documentation flags
+  - Insurance rule validation (coverage dates, policy active)
+- Shows validation results with severity (error/warning)
+- Block submission on errors, allow with warnings
 
-| File | Action |
-|------|--------|
-| `src/components/insurance/InsuranceBillingSplit.tsx` | **New** — copay/coverage split calculator with eligibility check |
-| `src/components/insurance/InsuranceClaimPrompt.tsx` | **New** — post-invoice claim creation prompt |
-| `src/pages/app/opd/OPDCheckoutPage.tsx` | Add insurance split to payment sidebar + claim prompt after invoice |
-| `src/pages/app/ipd/AdmissionFormPage.tsx` | Add eligibility check when payment_mode=insurance |
-| `src/pages/app/ipd/DischargeFormPage.tsx` | Add insurance split to billing tab + claim prompt |
-| `src/pages/app/billing/ClaimFormPage.tsx` | Accept preauth/icd_codes/admission_id params for auto-fill |
-| `src/lib/i18n/translations/{en,ar,ur}.ts` | Insurance billing flow translations |
+**Integration**: Add scrubber to `ClaimFormPage.tsx` before submission and to `ClaimDetailPage.tsx` before NPHIES submit.
 
-## KSA Operational Flow (What This Enables)
+### Phase 3: Medical Coding Support (ICD-10 + CPT Lookup)
 
-```text
-Patient Arrives → Check Insurance → Verify NPHIES Eligibility
-       ↓
-Treatment (OPD/IPD)
-       ↓
-Checkout/Discharge → System Shows:
-  ┌──────────────────────────────┐
-  │ Total Bill:      SAR 1,000   │
-  │ Insurance Covers: SAR 800    │
-  │ Patient Copay:    SAR 200    │
-  │ Deductible:       SAR 0      │
-  │ ─────────────────────────── │
-  │ Patient Pays:     SAR 200    │
-  └──────────────────────────────┘
-       ↓
-Patient pays copay → Invoice generated
-       ↓
-"Create Insurance Claim?" → Auto-filled claim → Submit to NPHIES
-```
+**Database**: New `medical_codes` table: `id`, `code_type` (enum: icd10, cpt, drg), `code`, `description`, `description_ar`, `category`, `is_active`. Seed with common Saudi healthcare ICD-10 and CPT codes.
+
+**New component**: `src/components/insurance/MedicalCodeSearch.tsx`
+- Searchable dropdown for ICD-10 and CPT codes
+- Search by code or description
+- Shows code + description in results
+
+**Integration**: Replace free-text ICD code input in `ClaimFormPage.tsx` with `MedicalCodeSearch`. Add CPT code field for procedures.
+
+### Phase 4: Saudi ID Validation
+
+**Patient forms**: In `PatientFormPage.tsx` and `QuickPatientModal.tsx`:
+- When org country is SA: validate national_id is 10 digits, starts with 1 (Saudi) or 2 (Iqama)
+- Show validation error message in all 3 languages
+
+**FHIR**: In `nphies-gateway`, add proper identifier system URI: `http://nphies.sa/identifier/nationalid`
+
+### Phase 5: Denial Management Enhancement
+
+**Database**: Add columns to `insurance_claims`: `denial_reasons` (jsonb), `resubmission_count` (integer default 0).
+
+**Edge Function**: Parse `ClaimResponse.error[]` codes and `adjudication[].reason` — store structured denial reasons.
+
+**UI**: Enhance `ClaimDetailPage.tsx` with a `DenialManagementPanel` component showing:
+- Structured denial codes with descriptions
+- Suggested corrective actions per denial code
+- Edit & resubmit workflow (increment resubmission_count)
+
+**Analytics**: Add denial analytics to `NphiesAnalyticsPage` — top denial reasons, denial rate by insurance company.
+
+### Phase 6: Payment Reconciliation & Posting
+
+**Database**: New `nphies_remittance_records` table: `id`, `organization_id`, `claim_id` (FK), `remittance_number`, `payment_amount`, `payment_date`, `reconciliation_status` (matched/unmatched/partial), `nphies_response` (jsonb), `created_at`.
+
+**Edge Function**: Add `poll_remittance` action — FHIR `poll-request` for `PaymentReconciliation`, parse and store results, update `insurance_claims.paid_amount`.
+
+**Auto-posting**: Trigger that posts insurance payments to the journal via `get_or_create_default_account` (debit: Cash/Bank, credit: Insurance Receivable).
+
+**UI**: New `RemittanceReconciliationPage.tsx` with reconciliation dashboard. Route: `/app/insurance/nphies/remittance`.
+
+### Phase 7: Enhanced Financial Reporting
+
+**Enhance** `ClaimsReportPage.tsx` with:
+- AR Aging buckets (0-30, 31-60, 61-90, 90+ days)
+- Insurance company performance (approval rate, avg payment time)
+- Revenue leakage analysis (rejected amount, write-offs)
+- Denial rate trends over time
+
+### Phase 8: Batch Claims Submission
+
+**Edge Function**: Add `batch_submit` action — accepts array of claim_ids, processes sequentially, logs each transaction.
+
+**UI**: Add checkbox selection + "Submit Selected to NPHIES" button to `ClaimsListPage.tsx` with progress indicator.
+
+### Phase 9: NPHIES Attachment Support
+
+**Database**: New `nphies_attachments` table: `id`, `organization_id`, `claim_id`, `attachment_type`, `file_url`, `status`, `created_at`.
+
+**Edge Function**: Add `send_communication` action — builds FHIR CommunicationRequest with base64 attachments.
+
+**UI**: Add attachments section to `ClaimDetailPage.tsx` with upload + send to NPHIES.
+
+---
+
+## Files Summary
+
+| Phase | New Tables | New/Modified Pages | Edge Function | Other |
+|-------|-----------|-------------------|---------------|-------|
+| 1 | `nphies_transaction_logs` | `NphiesTransactionLogsPage.tsx` (new) | Add logging wrapper | Route, menu, i18n |
+| 2 | — | `ClaimScrubber.tsx` (new), modify `ClaimFormPage` | — | Validation logic |
+| 3 | `medical_codes` | `MedicalCodeSearch.tsx` (new), modify `ClaimFormPage` | — | Seed data SQL |
+| 4 | — | Modify patient forms | Add FHIR identifiers | Validation utils |
+| 5 | `insurance_claims` +2 cols | `DenialManagementPanel.tsx` (new) | Parse error codes | Analytics |
+| 6 | `nphies_remittance_records` | `RemittanceReconciliationPage.tsx` (new) | `poll_remittance` action | Journal trigger |
+| 7 | — | Modify `ClaimsReportPage` | — | AR aging queries |
+| 8 | — | Modify `ClaimsListPage` | `batch_submit` action | Progress UI |
+| 9 | `nphies_attachments` | Modify `ClaimDetailPage` | `send_communication` action | Storage bucket |
+
+All new pages and components will include EN, AR, UR translations.
 

@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format, differenceInDays } from "date-fns";
 import { useReactToPrint } from "react-to-print";
@@ -49,9 +49,12 @@ import { useBackfillRoomCharges } from "@/hooks/useRoomChargeSync";
 import { InvoiceItemsBuilder } from "@/components/billing/InvoiceItemsBuilder";
 import { InvoiceItemInput } from "@/hooks/useBilling";
 import { useOrganizationBranding } from "@/hooks/useOrganizationBranding";
+import { InsuranceBillingSplit, BillingSplit } from "@/components/insurance/InsuranceBillingSplit";
+import { InsuranceClaimPrompt } from "@/components/insurance/InsuranceClaimPrompt";
 import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
+import { Shield } from "lucide-react";
 import {
   User,
   Calendar,
@@ -95,6 +98,7 @@ export default function DischargeFormPage() {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [additionalCharges, setAdditionalCharges] = useState<InvoiceItemInput[]>([]);
   const [showAddCharges, setShowAddCharges] = useState(false);
+  const [dischargeBillingSplit, setDischargeBillingSplit] = useState<BillingSplit | null>(null);
 
   const { data: admission, isLoading: loadingAdmission, refetch: refetchAdmission } = useAdmission(id);
   const { data: dischargeSummary, isLoading: loadingSummary, refetch: refetchSummary } = useDischargeSummary(id);
@@ -468,6 +472,25 @@ export default function DischargeFormPage() {
 
         {/* Billing Tab */}
         <TabsContent value="billing" className="mt-6 space-y-4">
+          {/* Insurance Billing Split for insured patients */}
+          {admission?.payment_mode === "insurance" && admission?.patient_id && totalCharges > 0 && (
+            <InsuranceBillingSplit
+              patientId={admission.patient_id}
+              totalAmount={totalCharges}
+              onSplitCalculated={setDischargeBillingSplit}
+            />
+          )}
+
+          {/* Insurance Claim Prompt after invoice */}
+          {invoiceGenerated && dischargeBillingSplit && !dischargeBillingSplit.isSelfPay && dischargeBillingSplit.insuranceAmount > 0 && (
+            <InsuranceClaimPrompt
+              patientId={admission.patient_id}
+              invoiceId={invoiceId!}
+              totalAmount={dischargeBillingSplit.totalAmount}
+              insuranceAmount={dischargeBillingSplit.insuranceAmount}
+              admissionId={id}
+            />
+          )}
           {unbilledCount > 0 && !invoiceGenerated && (
             <Alert className="border-warning/50 bg-warning/10">
               <AlertTriangle className="h-4 w-4 text-warning" />

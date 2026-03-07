@@ -42,6 +42,9 @@ export default function ClaimFormPage() {
   const [searchParams] = useSearchParams();
   const invoiceId = searchParams.get('invoice');
   const patientId = searchParams.get('patient');
+  const preAuthFromUrl = searchParams.get('preauth');
+  const icdCodesFromUrl = searchParams.get('icd_codes');
+  const admissionIdFromUrl = searchParams.get('admission_id');
   
   const [invoice, setInvoice] = useState<any>(null);
   const [patient, setPatient] = useState<any>(null);
@@ -54,6 +57,8 @@ export default function ClaimFormPage() {
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<ClaimFormData>({
     defaultValues: {
       claim_date: format(new Date(), 'yyyy-MM-dd'),
+      pre_auth_number: preAuthFromUrl || '',
+      icd_codes: icdCodesFromUrl || '',
     }
   });
 
@@ -62,6 +67,16 @@ export default function ClaimFormPage() {
       fetchInvoice(invoiceId);
     }
   }, [invoiceId]);
+
+  // Auto-select primary insurance when patient insurances load
+  useEffect(() => {
+    if (patientInsurances?.length && !watch('patient_insurance_id')) {
+      const primary = patientInsurances.find(ins => ins.is_primary) || patientInsurances[0];
+      if (primary) {
+        setValue('patient_insurance_id', primary.id);
+      }
+    }
+  }, [patientInsurances]);
 
   const fetchInvoice = async (id: string) => {
     setIsLoadingInvoice(true);

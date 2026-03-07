@@ -2817,5 +2817,25 @@ export const ar: Record<TranslationKey, string> = {
   "nphiesTxLogs.requestPayload": "بيانات الطلب",
   "nphiesTxLogs.responsePayload": "بيانات الاستجابة",
 
+  // Insurance Billing Split
+  "insBilling.noInsurance": "لا يوجد تأمين نشط — دفع ذاتي",
+  "insBilling.insuranceSplit": "تقسيم فاتورة التأمين",
+  "insBilling.coverage": "التغطية",
+  "insBilling.billAsSelfPay": "فوترة كدفع ذاتي",
+  "insBilling.totalBill": "إجمالي الفاتورة",
+  "insBilling.insuranceCovers": "يغطي التأمين",
+  "insBilling.patientPays": "يدفع المريض",
+  "insBilling.selfPayOverride": "التأمين متاح لكن يتم الفوترة كدفع ذاتي",
+  "insBilling.insuranceDetected": "تم اكتشاف تأمين لهذا المريض",
+  "insBilling.admissionEligibilityWarning": "يرجى التحقق من أهلية التأمين قبل الإدخال",
+  "insBilling.preAuthRequired": "قد تكون الموافقة المسبقة مطلوبة لهذا النوع من الإدخال",
+
+  // Insurance Claim Prompt
+  "insPrompt.title": "مطالبة تأمين متاحة",
+  "insPrompt.description": "يمكن تقديم مطالبة تأمين لهذه الزيارة.",
+  "insPrompt.claimable": "قابل للمطالبة",
+  "insPrompt.createClaim": "إنشاء مطالبة تأمين",
+  "insPrompt.skip": "تخطي",
+
 };
 

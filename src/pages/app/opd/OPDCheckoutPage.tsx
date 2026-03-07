@@ -27,6 +27,8 @@ import { useRequireSession } from "@/hooks/useRequireSession";
 import { PaymentMethodSelector } from "@/components/billing/PaymentMethodSelector";
 import { SessionRequiredGuard } from "@/components/billing/SessionRequiredGuard";
 import { SessionStatusBanner } from "@/components/billing/SessionStatusBanner";
+import { InsuranceBillingSplit, BillingSplit } from "@/components/insurance/InsuranceBillingSplit";
+import { InsuranceClaimPrompt } from "@/components/insurance/InsuranceClaimPrompt";
 import { toast } from "sonner";
 
 interface ChargeItem {
@@ -49,6 +51,8 @@ export default function OPDCheckoutPage() {
   const [selectedCharges, setSelectedCharges] = useState<string[]>([]);
   const [paymentMethodId, setPaymentMethodId] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [billingSplit, setBillingSplit] = useState<BillingSplit | null>(null);
+  const [createdInvoiceId, setCreatedInvoiceId] = useState<string | null>(null);
   
   // Session requirement for payment collection
   const { hasActiveSession, session, isLoading: sessionLoading } = useRequireSession("reception");
@@ -249,8 +253,15 @@ export default function OPDCheckoutPage() {
         .update({ invoice_id: invoiceData.id })
         .eq("id", appointment.id);
 
-      toast.success("Invoice generated successfully");
-      navigate(`/app/billing/invoices/${invoiceData.id}`);
+      setCreatedInvoiceId(invoiceData.id);
+
+      // If insured, stay on page to show claim prompt; otherwise navigate
+      if (billingSplit && !billingSplit.isSelfPay && billingSplit.insuranceAmount > 0) {
+        toast.success("Invoice generated. You can now create an insurance claim.");
+      } else {
+        toast.success("Invoice generated successfully");
+        navigate(`/app/billing/invoices/${invoiceData.id}`);
+      }
     } catch (error: any) {
       toast.error(error.message || "Failed to generate invoice");
     } finally {
@@ -299,8 +310,15 @@ export default function OPDCheckoutPage() {
         })
         .eq("id", appointment.id);
 
-      toast.success("Payment recorded successfully");
-      navigate(`/app/billing/invoices/${invoiceData.id}`);
+      setCreatedInvoiceId(invoiceData.id);
+
+      // If insured, stay to show claim prompt
+      if (billingSplit && !billingSplit.isSelfPay && billingSplit.insuranceAmount > 0) {
+        toast.success("Payment recorded. You can now create an insurance claim.");
+      } else {
+        toast.success("Payment recorded successfully");
+        navigate(`/app/billing/invoices/${invoiceData.id}`);
+      }
     } catch (error: any) {
       toast.error(error.message || "Failed to process payment");
     } finally {
@@ -501,6 +519,27 @@ export default function OPDCheckoutPage() {
 
         {/* Payment Summary */}
         <div className="space-y-4">
+          {/* Insurance Claim Prompt (shown after invoice is created for insured patients) */}
+          {createdInvoiceId && billingSplit && !billingSplit.isSelfPay && billingSplit.insuranceAmount > 0 && (
+            <InsuranceClaimPrompt
+              patientId={appointment.patient_id}
+              invoiceId={createdInvoiceId}
+              totalAmount={billingSplit.totalAmount}
+              insuranceAmount={billingSplit.insuranceAmount}
+              onDismiss={() => navigate(`/app/billing/invoices/${createdInvoiceId}`)}
+            />
+          )}
+
+          {/* Insurance Billing Split */}
+          {appointment.patient_id && selectedTotal > 0 && (
+            <InsuranceBillingSplit
+              patientId={appointment.patient_id}
+              totalAmount={selectedTotal}
+              onSplitCalculated={setBillingSplit}
+              showHeader
+            />
+          )}
+
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
@@ -515,10 +554,28 @@ export default function OPDCheckoutPage() {
                   <span>{selectedCharges.length}</span>
                 </div>
                 <Separator />
-                <div className="flex justify-between font-bold text-lg">
-                  <span>Total</span>
-                  <span>Rs. {selectedTotal.toLocaleString()}</span>
-                </div>
+                {billingSplit && !billingSplit.isSelfPay && billingSplit.insuranceAmount > 0 ? (
+                  <>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Total Bill</span>
+                      <span>SAR {selectedTotal.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between text-sm text-green-600 dark:text-green-400">
+                      <span>Insurance Covers</span>
+                      <span>- SAR {billingSplit.insuranceAmount.toLocaleString()}</span>
+                    </div>
+                    <Separator />
+                    <div className="flex justify-between font-bold text-lg">
+                      <span>Patient Pays</span>
+                      <span>SAR {billingSplit.patientResponsibility.toLocaleString()}</span>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex justify-between font-bold text-lg">
+                    <span>Total</span>
+                    <span>SAR {selectedTotal.toLocaleString()}</span>
+                  </div>
+                )}
               </div>
 
               {selectedCharges.length > 0 && (
