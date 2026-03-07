@@ -5,11 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { AlertCircle, AlertTriangle, Lightbulb, RotateCcw, Pencil, Hash } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
+import { MedicalCodeSearch } from "@/components/insurance/MedicalCodeSearch";
 import {
   ParsedDenialReason,
   parseDenialReasonsFromResponse,
@@ -44,7 +44,7 @@ export function DenialManagementPanel({
   const { t, language } = useTranslation();
   const lang = (language || 'en') as 'en' | 'ar' | 'ur';
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [editIcdCodes, setEditIcdCodes] = useState<string>(currentIcdCodes?.join(", ") || "");
+  const [editIcdCodes, setEditIcdCodes] = useState<string[]>(currentIcdCodes || []);
   const [editNotes, setEditNotes] = useState(currentNotes || "");
 
   // Use stored denial_reasons if available, otherwise parse from response
@@ -58,12 +58,8 @@ export function DenialManagementPanel({
   const warnings = reasons.filter(r => r.severity === 'warning');
 
   const handleSubmitEdits = () => {
-    const icdArray = editIcdCodes
-      .split(",")
-      .map(c => c.trim())
-      .filter(Boolean);
     onEditAndResubmit({
-      icd_codes: icdArray.length > 0 ? icdArray : undefined,
+      icd_codes: editIcdCodes.length > 0 ? editIcdCodes : undefined,
       notes: editNotes || undefined,
     });
     setIsEditDialogOpen(false);
@@ -167,14 +163,11 @@ export function DenialManagementPanel({
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label>{t("nphies.icdCodes" as any, "ICD-10 Diagnosis Codes")}</Label>
-                <Input
-                  value={editIcdCodes}
-                  onChange={(e) => setEditIcdCodes(e.target.value)}
-                  placeholder="A01.0, J18.9, E11.9"
+                <MedicalCodeSearch
+                  codeType="icd10"
+                  selectedCodes={editIcdCodes}
+                  onCodesChange={setEditIcdCodes}
                 />
-                <p className="text-xs text-muted-foreground">
-                  {t("nphies.icdCodesHelp" as any, "Comma-separated ICD-10 codes")}
-                </p>
               </div>
               <div className="space-y-2">
                 <Label>{t("common.notes")}</Label>

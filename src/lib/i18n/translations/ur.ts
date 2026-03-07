@@ -2762,6 +2762,12 @@ export const ur: Record<TranslationKey, string> = {
   "nphies.suggestedCorrections": "تجویز کردہ اصلاحات",
   "nphies.noStructuredDenialInfo": "ساختی انکار کی معلومات دستیاب نہیں۔ NPHIES کا اصل جواب چیک کریں۔",
 
+  // Medical Coding
+  "medicalCoding.searchIcd": "ICD-10 کوڈز تلاش کریں...",
+  "medicalCoding.searchCpt": "CPT کوڈز تلاش کریں...",
+  "medicalCoding.addCustomCode": "حسب ضرورت کوڈ شامل کریں...",
+  "medicalCoding.noCodesFound": "کوئی کوڈ نہیں ملا",
+
   // NPHIES Analytics
   "nphiesAnalytics.title": "NPHIES تجزیات",
   "nphiesAnalytics.description": "انشورنس کلیمز کے تفصیلی تجزیات اور رپورٹس",

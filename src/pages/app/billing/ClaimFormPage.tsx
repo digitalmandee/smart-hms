@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { formatCurrency } from "@/lib/currency";
+import { MedicalCodeSearch } from "@/components/insurance/MedicalCodeSearch";
 
 interface ClaimFormData {
   patient_insurance_id: string;
@@ -24,7 +25,6 @@ interface ClaimFormData {
   pre_auth_number: string;
   pre_auth_date: string;
   drg_code: string;
-  icd_codes: string;
   notes: string;
 }
 
@@ -49,6 +49,7 @@ export default function ClaimFormPage() {
   const [invoice, setInvoice] = useState<any>(null);
   const [patient, setPatient] = useState<any>(null);
   const [claimItems, setClaimItems] = useState<ClaimItem[]>([]);
+  const [icdCodes, setIcdCodes] = useState<string[]>(icdCodesFromUrl ? icdCodesFromUrl.split(',').map(c => c.trim()).filter(Boolean) : []);
   const [isLoadingInvoice, setIsLoadingInvoice] = useState(false);
 
   const { data: patientInsurances } = usePatientInsurance(patientId || undefined);
@@ -58,7 +59,6 @@ export default function ClaimFormPage() {
     defaultValues: {
       claim_date: format(new Date(), 'yyyy-MM-dd'),
       pre_auth_number: preAuthFromUrl || '',
-      icd_codes: icdCodesFromUrl || '',
     }
   });
 
@@ -127,9 +127,7 @@ export default function ClaimFormPage() {
 
   const onSubmit = async (data: ClaimFormData) => {
     try {
-      const icdCodesArray = data.icd_codes
-        ? data.icd_codes.split(',').map((c) => c.trim()).filter(Boolean)
-        : [];
+      const icdCodesArray = icdCodes;
 
       await createClaim.mutateAsync({
         patient_insurance_id: data.patient_insurance_id,
@@ -281,13 +279,14 @@ export default function ClaimFormPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>ICD-10 Diagnosis Codes</Label>
-                  <Input
-                    {...register('icd_codes')}
-                    placeholder="e.g. J18.9, I10 (comma-separated)"
-                  />
-                  <p className="text-xs text-muted-foreground">Required for KSA insurance claims</p>
-                </div>
+                   <Label>ICD-10 Diagnosis Codes</Label>
+                   <MedicalCodeSearch
+                     codeType="icd10"
+                     selectedCodes={icdCodes}
+                     onCodesChange={setIcdCodes}
+                   />
+                   <p className="text-xs text-muted-foreground">Required for KSA insurance claims</p>
+                 </div>
                 <div className="space-y-2">
                   <Label>DRG Code</Label>
                   <Input
@@ -346,12 +345,14 @@ export default function ClaimFormPage() {
                       value={item.description}
                       onChange={(e) => updateItem(index, 'description', e.target.value)}
                     />
-                    <Input
-                      className="col-span-2"
-                      placeholder="Code"
-                      value={item.service_code}
-                      onChange={(e) => updateItem(index, 'service_code', e.target.value)}
-                    />
+                    <div className="col-span-2">
+                      <MedicalCodeSearch
+                        codeType="cpt"
+                        selectedCodes={item.service_code ? [item.service_code] : []}
+                        onCodesChange={(codes) => updateItem(index, 'service_code', codes[codes.length - 1] || '')}
+                        placeholder="CPT Code"
+                      />
+                    </div>
                     <Input
                       className="col-span-1"
                       type="number"
