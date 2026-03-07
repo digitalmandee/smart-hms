@@ -3035,6 +3035,8 @@ export const en = {
   "billing.noTransactions": "No transactions in this session",
   "billing.discrepancy": "Discrepancy",
   "billing.viewDetail": "View",
+  "billing.closedAt": "Closed At",
+  "billing.departmentBreakdown": "Department Breakdown",
 
 } as const;
 
