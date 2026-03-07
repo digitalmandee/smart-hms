@@ -35,7 +35,7 @@ import {
 import { OpenSessionDialog } from "@/components/billing/OpenSessionDialog";
 import { CloseSessionDialog } from "@/components/billing/CloseSessionDialog";
 
-const COUNTER_LABELS: Record<CounterType, string> = {
+const COUNTER_LABELS: Record<CounterType, TranslationKey> = {
   reception: "billing.counterReception",
   opd: "billing.counterOpd",
   ipd: "billing.counterIpd",
@@ -43,7 +43,7 @@ const COUNTER_LABELS: Record<CounterType, string> = {
   er: "billing.counterEr",
 };
 
-const SHIFT_LABELS: Record<string, string> = {
+const SHIFT_LABELS: Record<string, TranslationKey> = {
   morning: "billing.shiftMorning",
   evening: "billing.shiftEvening",
   night: "billing.shiftNight",
