@@ -11,7 +11,7 @@ import { InvoiceItemsBuilder } from "@/components/billing/InvoiceItemsBuilder";
 import { InvoiceTotals } from "@/components/billing/InvoiceTotals";
 import { PatientBalanceCard } from "@/components/billing/PatientBalanceCard";
 import { useCreateInvoice, useInvoice, useUpdateInvoice, InvoiceItemInput } from "@/hooks/useBilling";
-import { useRequireSession } from "@/hooks/useRequireSession";
+
 import { useSurgery, useUpdateSurgeryInvoice } from "@/hooks/useOT";
 import { useAuth } from "@/contexts/AuthContext";
 import { ArrowLeft, Save, FileText, Scissors, AlertTriangle } from "lucide-react";
