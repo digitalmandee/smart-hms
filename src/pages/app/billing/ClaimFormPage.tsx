@@ -127,9 +127,7 @@ export default function ClaimFormPage() {
 
   const onSubmit = async (data: ClaimFormData) => {
     try {
-      const icdCodesArray = data.icd_codes
-        ? data.icd_codes.split(',').map((c) => c.trim()).filter(Boolean)
-        : [];
+      const icdCodesArray = icdCodes;
 
       await createClaim.mutateAsync({
         patient_insurance_id: data.patient_insurance_id,
