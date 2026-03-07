@@ -88,7 +88,7 @@ export function LabPaymentDialog({
         invoiceId,
         amount: paymentAmount,
         paymentMethodId,
-        billingSessionId: session?.id,
+        billingSessionId: undefined,
         referenceNumber: referenceNumber || undefined,
         notes: notes || undefined,
       });
