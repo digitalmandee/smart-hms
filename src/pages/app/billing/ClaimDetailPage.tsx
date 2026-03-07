@@ -19,6 +19,8 @@ import { toast } from "sonner";
 import { formatCurrency } from "@/lib/currency";
 import { useTranslation } from "@/lib/i18n";
 import { DenialManagementPanel } from "@/components/insurance/DenialManagementPanel";
+import { ClaimScrubResults } from "@/components/insurance/ClaimScrubResults";
+import { scrubClaim, hasErrors, ScrubResult } from "@/lib/claimScrubber";
 
 const statusColors: Record<string, string> = {
   draft: "bg-gray-500",
