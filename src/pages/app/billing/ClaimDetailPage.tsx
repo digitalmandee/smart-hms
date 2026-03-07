@@ -122,16 +122,20 @@ export default function ClaimDetailPage() {
     submitToNphies.mutate(id);
   };
 
-  const handleResubmitToNphies = async () => {
+  const handleResubmitToNphies = async (updates?: { icd_codes?: string[]; notes?: string }) => {
     if (!id) return;
-    // Clear old NPHIES data before resubmitting
-    await updateClaim.mutateAsync({
+    // Clear old NPHIES data and apply edits before resubmitting
+    const updateData: any = {
       id: id!,
       nphies_claim_id: null,
       nphies_status: null,
       nphies_response: null,
+      denial_reasons: null,
       status: 'submitted',
-    } as any);
+    };
+    if (updates?.icd_codes) updateData.icd_codes = updates.icd_codes;
+    if (updates?.notes) updateData.notes = updates.notes;
+    await updateClaim.mutateAsync(updateData);
     submitToNphies.mutate(id);
   };
 
