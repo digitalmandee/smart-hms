@@ -135,10 +135,22 @@ export default function BillingSessionsPage() {
           { label: t("billing.sessionsPage") },
         ]}
         actions={
-          <Button onClick={() => setShowOpenDialog(true)}>
-            <Plus className="h-4 w-4" />
-            {t("billing.openBillingSession")}
-          </Button>
+          <div className="flex items-center gap-2">
+            <ReportExportButton
+              data={sessions || []}
+              filename={`billing-sessions-${dateFrom}`}
+              columns={exportColumns}
+              title={t("billing.sessionsPage")}
+              pdfOptions={{
+                title: t("billing.sessionsPage"),
+                subtitle: `${dateFrom} — ${dateTo}`,
+              }}
+            />
+            <Button onClick={() => setShowOpenDialog(true)}>
+              <Plus className="h-4 w-4" />
+              {t("billing.openBillingSession")}
+            </Button>
+          </div>
         }
       />
 
