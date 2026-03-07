@@ -49,6 +49,8 @@ import { useBackfillRoomCharges } from "@/hooks/useRoomChargeSync";
 import { InvoiceItemsBuilder } from "@/components/billing/InvoiceItemsBuilder";
 import { InvoiceItemInput } from "@/hooks/useBilling";
 import { useOrganizationBranding } from "@/hooks/useOrganizationBranding";
+import { InsuranceBillingSplit, BillingSplit } from "@/components/insurance/InsuranceBillingSplit";
+import { InsuranceClaimPrompt } from "@/components/insurance/InsuranceClaimPrompt";
 import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
