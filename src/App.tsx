@@ -194,6 +194,24 @@ const PreAuthorizationsPage = React.lazy(() => import("./pages/app/insurance/Pre
 const NphiesTransactionLogsPage = React.lazy(() => import("./pages/app/insurance/NphiesTransactionLogsPage"));
 import DailyClosingPage from "./pages/app/billing/DailyClosingPage";
 const DailyClosingHistoryPage = React.lazy(() => import("./pages/app/billing/DailyClosingHistoryPage"));
+const PaymentReconciliationPage = React.lazy(() => import("./pages/app/billing/PaymentReconciliationPage"));
+
+// Kitchen pages
+const KitchenDashboard = React.lazy(() => import("./pages/app/kitchen/KitchenDashboard"));
+const MealOrdersPage = React.lazy(() => import("./pages/app/kitchen/MealOrdersPage"));
+const MealPlanningPage = React.lazy(() => import("./pages/app/kitchen/MealPlanningPage"));
+
+// Asset Management pages
+const AssetDashboard = React.lazy(() => import("./pages/app/assets/AssetDashboard"));
+const AssetRegistryPage = React.lazy(() => import("./pages/app/assets/AssetRegistryPage"));
+const MaintenanceSchedulePage = React.lazy(() => import("./pages/app/assets/MaintenanceSchedulePage"));
+const AMCTrackingPage = React.lazy(() => import("./pages/app/assets/AMCTrackingPage"));
+
+// Housekeeping pages
+const HousekeepingDashboardPage = React.lazy(() => import("./pages/app/housekeeping/HousekeepingDashboard"));
+const TaskAssignmentsPage = React.lazy(() => import("./pages/app/housekeeping/TaskAssignmentsPage"));
+const InspectionChecklistPage = React.lazy(() => import("./pages/app/housekeeping/InspectionChecklistPage"));
+const IssueReportingPage = React.lazy(() => import("./pages/app/housekeeping/IssueReportingPage"));
 
 // Settings management pages
 import ServiceTypesListPage from "./pages/app/settings/ServiceTypesListPage";
