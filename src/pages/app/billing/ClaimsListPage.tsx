@@ -8,11 +8,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Plus, Search, Eye, ClipboardList, 
-  Clock, CheckCircle, XCircle, DollarSign
+  Clock, CheckCircle, XCircle, DollarSign, Send
 } from "lucide-react";
 import { useInsuranceClaims, useInsuranceStats } from "@/hooks/useInsurance";
+import { useSubmitClaimToNphies } from "@/hooks/useNphiesConfig";
+import { BatchSubmitDialog } from "@/components/insurance/BatchSubmitDialog";
 import {
   Table,
   TableBody,
