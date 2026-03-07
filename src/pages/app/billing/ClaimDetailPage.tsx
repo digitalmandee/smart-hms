@@ -20,6 +20,7 @@ import { formatCurrency } from "@/lib/currency";
 import { useTranslation } from "@/lib/i18n";
 import { DenialManagementPanel } from "@/components/insurance/DenialManagementPanel";
 import { ClaimScrubResults } from "@/components/insurance/ClaimScrubResults";
+import { ClaimAttachments } from "@/components/insurance/ClaimAttachments";
 import { scrubClaim, hasErrors, ScrubResult } from "@/lib/claimScrubber";
 
 const statusColors: Record<string, string> = {
@@ -135,7 +136,22 @@ export default function ClaimDetailPage() {
   };
 
   const handleSubmitToNphies = async () => {
-    if (!id) return;
+    if (!id || !claim) return;
+    // Auto-validate before NPHIES submission
+    const results = scrubClaim({
+      patient_insurance_id: claim.patient_insurance_id,
+      claim_date: claim.claim_date,
+      total_amount: claim.total_amount,
+      icd_codes: claim.icd_codes || [],
+      pre_auth_number: claim.pre_auth_number || undefined,
+      pre_auth_required: claim.patient_insurance?.insurance_plan?.pre_auth_required,
+      items: (claim as any).items || [],
+    });
+    setScrubResults(results);
+    if (hasErrors(results)) {
+      toast.error("Please fix validation errors before submitting to NPHIES");
+      return;
+    }
     submitToNphies.mutate(id);
   };
 
@@ -587,6 +603,9 @@ export default function ClaimDetailPage() {
       {scrubResults.length > 0 && (
         <ClaimScrubResults results={scrubResults} />
       )}
+
+      {/* Attachments */}
+      <ClaimAttachments claimId={claim.id} readOnly={claim.status === 'paid'} />
 
       {/* Notes & Rejection Reason */}
       {(claim.notes || claim.rejection_reason) && (
