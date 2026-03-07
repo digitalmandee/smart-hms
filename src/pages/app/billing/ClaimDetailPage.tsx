@@ -19,6 +19,8 @@ import { toast } from "sonner";
 import { formatCurrency } from "@/lib/currency";
 import { useTranslation } from "@/lib/i18n";
 import { DenialManagementPanel } from "@/components/insurance/DenialManagementPanel";
+import { ClaimScrubResults } from "@/components/insurance/ClaimScrubResults";
+import { scrubClaim, hasErrors, ScrubResult } from "@/lib/claimScrubber";
 
 const statusColors: Record<string, string> = {
   draft: "bg-gray-500",
@@ -94,6 +96,21 @@ export default function ClaimDetailPage() {
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
   const [approvedAmount, setApprovedAmount] = useState(0);
   const [rejectionReason, setRejectionReason] = useState("");
+  const [scrubResults, setScrubResults] = useState<ScrubResult[]>([]);
+
+  const handleRunValidation = () => {
+    if (!claim) return;
+    const results = scrubClaim({
+      patient_insurance_id: claim.patient_insurance_id,
+      claim_date: claim.claim_date,
+      total_amount: claim.total_amount,
+      icd_codes: claim.icd_codes || [],
+      pre_auth_number: claim.pre_auth_number || undefined,
+      pre_auth_required: claim.patient_insurance?.insurance_plan?.pre_auth_required,
+      items: (claim as any).items || [],
+    });
+    setScrubResults(results);
+  };
 
   const { data: claim, isLoading } = useInsuranceClaim(id!);
   const updateClaim = useUpdateInsuranceClaim();
@@ -230,6 +247,13 @@ export default function ClaimDetailPage() {
                   <ShieldCheck className="h-4 w-4 mr-2" />
                 )}
                 {t("nphies.requestPreAuth" as any, "Request Pre-Auth")}
+              </Button>
+            )}
+
+            {claim.status === 'draft' && (
+              <Button variant="outline" onClick={handleRunValidation}>
+                <ShieldCheck className="h-4 w-4 mr-2" />
+                Run Validation
               </Button>
             )}
 
@@ -558,6 +582,11 @@ export default function ClaimDetailPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Validation Results */}
+      {scrubResults.length > 0 && (
+        <ClaimScrubResults results={scrubResults} />
+      )}
 
       {/* Notes & Rejection Reason */}
       {(claim.notes || claim.rejection_reason) && (

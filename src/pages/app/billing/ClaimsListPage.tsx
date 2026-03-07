@@ -8,11 +8,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Plus, Search, Eye, ClipboardList, 
-  Clock, CheckCircle, XCircle, DollarSign
+  Clock, CheckCircle, XCircle, DollarSign, Send
 } from "lucide-react";
 import { useInsuranceClaims, useInsuranceStats } from "@/hooks/useInsurance";
+import { useSubmitClaimToNphies } from "@/hooks/useNphiesConfig";
+import { BatchSubmitDialog } from "@/components/insurance/BatchSubmitDialog";
 import {
   Table,
   TableBody,
@@ -38,11 +41,14 @@ export default function ClaimsListPage() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [batchDialogOpen, setBatchDialogOpen] = useState(false);
   
   const { data: claims, isLoading } = useInsuranceClaims({ 
     status: statusFilter !== "all" ? statusFilter : undefined 
   });
   const { data: stats } = useInsuranceStats();
+  const submitToNphies = useSubmitClaimToNphies();
 
   const filteredClaims = claims?.filter(c => 
     c.claim_number.toLowerCase().includes(search.toLowerCase()) ||
@@ -60,6 +66,37 @@ export default function ClaimsListPage() {
 
   const { t } = useTranslation();
 
+  const draftClaims = filteredClaims.filter(c => c.status === 'draft' || c.status === 'submitted');
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+  const toggleSelectAll = () => {
+    if (selectedIds.size === draftClaims.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(draftClaims.map(c => c.id)));
+    }
+  };
+  const selectedClaims = filteredClaims.filter(c => selectedIds.has(c.id));
+
+  const handleBatchSubmit = async (claimIds: string[]): Promise<{ success: string[]; failed: { id: string; error: string }[] }> => {
+    const success: string[] = [];
+    const failed: { id: string; error: string }[] = [];
+    for (const cid of claimIds) {
+      try {
+        await submitToNphies.mutateAsync(cid);
+        success.push(cid);
+      } catch (e: any) {
+        failed.push({ id: cid, error: e?.message || "Submission failed" });
+      }
+    }
+    return { success, failed };
+  };
+
   return (
     <div>
       <PageHeader
@@ -70,10 +107,18 @@ export default function ClaimsListPage() {
           { label: t('nav.claims') },
         ]}
         actions={
-          <Button onClick={() => navigate("/app/billing/claims/new")}>
-            <Plus className="mr-2 h-4 w-4" />
-            New Claim
-          </Button>
+          <div className="flex items-center gap-2">
+            {selectedIds.size > 0 && (
+              <Button variant="outline" onClick={() => setBatchDialogOpen(true)}>
+                <Send className="mr-2 h-4 w-4" />
+                Submit {selectedIds.size} to NPHIES
+              </Button>
+            )}
+            <Button onClick={() => navigate("/app/billing/claims/new")}>
+              <Plus className="mr-2 h-4 w-4" />
+              New Claim
+            </Button>
+          </div>
         }
       />
 
@@ -170,6 +215,12 @@ export default function ClaimsListPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-10">
+                      <Checkbox
+                        checked={draftClaims.length > 0 && selectedIds.size === draftClaims.length}
+                        onCheckedChange={toggleSelectAll}
+                      />
+                    </TableHead>
                     <TableHead>Claim #</TableHead>
                     <TableHead>Patient</TableHead>
                     <TableHead>Insurance</TableHead>
@@ -183,13 +234,21 @@ export default function ClaimsListPage() {
                 <TableBody>
                   {filteredClaims.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                         No claims found.
                       </TableCell>
                     </TableRow>
                   ) : (
                     filteredClaims.map((claim) => (
                       <TableRow key={claim.id}>
+                        <TableCell>
+                          {(claim.status === 'draft' || claim.status === 'submitted') && (
+                            <Checkbox
+                              checked={selectedIds.has(claim.id)}
+                              onCheckedChange={() => toggleSelect(claim.id)}
+                            />
+                          )}
+                        </TableCell>
                         <TableCell className="font-medium">{claim.claim_number}</TableCell>
                         <TableCell>
                           {claim.patient_insurance?.patient ? (
@@ -236,6 +295,13 @@ export default function ClaimsListPage() {
           </CardContent>
         </Card>
       </div>
+
+      <BatchSubmitDialog
+        open={batchDialogOpen}
+        onOpenChange={setBatchDialogOpen}
+        claims={selectedClaims}
+        onSubmit={handleBatchSubmit}
+      />
     </div>
   );
 }

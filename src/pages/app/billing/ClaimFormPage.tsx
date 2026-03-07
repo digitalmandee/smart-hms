@@ -13,10 +13,12 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePatientInsurance, useCreateInsuranceClaim } from "@/hooks/useInsurance";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { formatCurrency } from "@/lib/currency";
 import { MedicalCodeSearch } from "@/components/insurance/MedicalCodeSearch";
+import { ClaimScrubResults } from "@/components/insurance/ClaimScrubResults";
+import { scrubClaim, hasErrors, ScrubResult } from "@/lib/claimScrubber";
 
 interface ClaimFormData {
   patient_insurance_id: string;
@@ -51,6 +53,8 @@ export default function ClaimFormPage() {
   const [claimItems, setClaimItems] = useState<ClaimItem[]>([]);
   const [icdCodes, setIcdCodes] = useState<string[]>(icdCodesFromUrl ? icdCodesFromUrl.split(',').map(c => c.trim()).filter(Boolean) : []);
   const [isLoadingInvoice, setIsLoadingInvoice] = useState(false);
+  const [scrubResults, setScrubResults] = useState<ScrubResult[]>([]);
+  const [scrubRan, setScrubRan] = useState(false);
 
   const { data: patientInsurances } = usePatientInsurance(patientId || undefined);
   const createClaim = useCreateInsuranceClaim();
@@ -125,7 +129,31 @@ export default function ClaimFormPage() {
     ? (totalClaimAmount * (selectedInsurance.insurance_plan.coverage_percentage || 0)) / 100
     : 0;
 
+  const runScrub = (data: ClaimFormData) => {
+    const results = scrubClaim({
+      patient_insurance_id: data.patient_insurance_id,
+      invoice_id: invoiceId || undefined,
+      claim_date: data.claim_date,
+      total_amount: totalClaimAmount,
+      icd_codes: icdCodes,
+      pre_auth_number: data.pre_auth_number,
+      pre_auth_required: selectedInsurance?.insurance_plan?.pre_auth_required,
+      drg_code: data.drg_code,
+      items: claimItems,
+    });
+    setScrubResults(results);
+    setScrubRan(true);
+    return results;
+  };
+
   const onSubmit = async (data: ClaimFormData) => {
+    // Run scrub validation first
+    const results = runScrub(data);
+    if (hasErrors(results)) {
+      toast.error("Please fix validation errors before submitting");
+      return;
+    }
+
     try {
       const icdCodesArray = icdCodes;
 
@@ -418,10 +446,23 @@ export default function ClaimFormPage() {
             </CardContent>
           </Card>
 
+          {/* Scrub Results */}
+          {scrubRan && (
+            <ClaimScrubResults results={scrubResults} />
+          )}
+
           {/* Actions */}
           <div className="flex justify-end gap-4">
             <Button type="button" variant="outline" onClick={() => navigate('/app/billing/claims')}>
               Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => runScrub(watch() as ClaimFormData)}
+            >
+              <ShieldCheck className="h-4 w-4 mr-2" />
+              Validate
             </Button>
             <Button type="submit" disabled={createClaim.isPending}>
               {createClaim.isPending ? "Creating..." : "Create Claim"}
