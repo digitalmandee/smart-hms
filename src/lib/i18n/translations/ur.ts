@@ -2843,5 +2843,11 @@ export const ur: Record<TranslationKey, string> = {
   "insPrompt.createClaim": "انشورنس کلیم بنائیں",
   "insPrompt.skip": "چھوڑ دیں",
 
+  // Saudi ID Validation
+  "saudiId.invalidFormat": "10 ہندسے ہونے چاہئیں جو 1 (سعودی) یا 2 (اقامہ) سے شروع ہوں",
+  "saudiId.saudiNational": "سعودی قومی شناختی کارڈ",
+  "saudiId.iqamaResident": "اقامہ (رہائشی شناخت)",
+  "saudiId.placeholder": "10 ہندسوں کا شناختی نمبر",
+
 };
 

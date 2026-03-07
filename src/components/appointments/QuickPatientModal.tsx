@@ -33,6 +33,9 @@ import { useCreatePatient } from '@/hooks/usePatients';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { useCountryConfig } from '@/contexts/CountryConfigContext';
+import { useTranslation } from '@/lib/i18n';
+import { isValidSaudiId } from '@/lib/validations/saudiId';
 
 const quickPatientSchema = z.object({
   first_name: z.string().min(1, 'First name is required'),
@@ -59,6 +62,8 @@ export function QuickPatientModal({ onPatientCreated, trigger }: QuickPatientMod
   const [printCard, setPrintCard] = useState(false);
   const { toast } = useToast();
   const createPatient = useCreatePatient();
+  const countryConfig = useCountryConfig();
+  const { t } = useTranslation();
 
   const form = useForm<QuickPatientData>({
     resolver: zodResolver(quickPatientSchema),
@@ -245,15 +250,28 @@ export function QuickPatientModal({ onPatientCreated, trigger }: QuickPatientMod
               <FormField
                 control={form.control}
                 name="national_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>CNIC / National ID</FormLabel>
-                    <FormControl>
-                      <Input placeholder="XXXXX-XXXXXXX-X" {...field} className="h-10" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  const val = field.value || '';
+                  const isSA = countryConfig.country_code === 'SA';
+                  const showError = isSA && val.length > 0 && !isValidSaudiId(val);
+                  return (
+                    <FormItem>
+                      <FormLabel>{countryConfig.national_id_label}</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder={isSA ? t('saudiId.placeholder') : countryConfig.national_id_format}
+                          {...field}
+                          className="h-10"
+                          maxLength={isSA ? 10 : undefined}
+                        />
+                      </FormControl>
+                      {showError && (
+                        <p className="text-sm text-destructive">{t('saudiId.invalidFormat')}</p>
+                      )}
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
               />
 
               <div className="grid grid-cols-2 gap-4">

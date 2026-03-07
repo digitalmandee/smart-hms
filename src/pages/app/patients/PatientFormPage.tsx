@@ -47,6 +47,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useCountryConfig } from "@/contexts/CountryConfigContext";
 import { useTranslation } from "@/lib/i18n";
+import { isValidSaudiId, getSaudiIdType } from "@/lib/validations/saudiId";
 
 const patientSchema = z.object({
   // Personal Information
@@ -63,7 +64,7 @@ const patientSchema = z.object({
   occupation: z.string().optional(),
   preferred_language: z.string().optional(),
   
-  // Identity Documents
+  // Identity Documents — Saudi ID validated dynamically via superRefine
   national_id: z.string().optional(),
   passport_number: z.string().optional(),
   
@@ -110,6 +111,7 @@ export function PatientFormPage() {
   const [savedPatient, setSavedPatient] = useState<any>(null);
 
   // Dynamic configuration data
+  const countryConfig = useCountryConfig();
   const { cities, languages, occupations, relations, referralSources, insuranceProviders } = usePatientConfig();
 
   const { data: patient, isLoading: patientLoading } = usePatient(id);
@@ -365,13 +367,31 @@ export function PatientFormPage() {
                   control={form.control}
                   name="national_id"
                   render={({ field }) => {
-                    const countryConfig = useCountryConfig();
+                    const cc = countryConfig;
+                    const isSA = cc.country_code === 'SA';
+                    const val = field.value || '';
+                    const showError = isSA && val.length > 0 && !isValidSaudiId(val);
+                    const idType = isSA && val.length === 10 ? getSaudiIdType(val) : null;
                     return (
                       <FormItem>
-                        <FormLabel>{countryConfig.national_id_label}</FormLabel>
+                        <FormLabel>{cc.national_id_label}</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder={countryConfig.national_id_format} className="h-11" />
+                          <Input
+                            {...field}
+                            placeholder={isSA ? t('saudiId.placeholder') : cc.national_id_format}
+                            className="h-11"
+                            maxLength={isSA ? 10 : undefined}
+                          />
                         </FormControl>
+                        {showError && (
+                          <p className="text-sm text-destructive">{t('saudiId.invalidFormat')}</p>
+                        )}
+                        {idType === 'saudi' && (
+                          <p className="text-xs text-muted-foreground">{t('saudiId.saudiNational')}</p>
+                        )}
+                        {idType === 'iqama' && (
+                          <p className="text-xs text-muted-foreground">{t('saudiId.iqamaResident')}</p>
+                        )}
                         <FormMessage />
                       </FormItem>
                     );

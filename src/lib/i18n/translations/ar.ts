@@ -2843,5 +2843,11 @@ export const ar: Record<TranslationKey, string> = {
   "insPrompt.createClaim": "إنشاء مطالبة تأمين",
   "insPrompt.skip": "تخطي",
 
+  // Saudi ID Validation
+  "saudiId.invalidFormat": "يجب أن يكون 10 أرقام يبدأ بـ 1 (سعودي) أو 2 (إقامة)",
+  "saudiId.saudiNational": "الهوية الوطنية السعودية",
+  "saudiId.iqamaResident": "الإقامة (هوية المقيم)",
+  "saudiId.placeholder": "رقم هوية من 10 أرقام",
+
 };
 

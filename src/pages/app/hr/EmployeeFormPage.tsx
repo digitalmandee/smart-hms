@@ -48,6 +48,8 @@ import { useCreateStaffUser } from "@/hooks/useStaffManagement";
 import { useCreateEmployeeDocument } from "@/hooks/useEmployeeDocuments";
 import { supabase } from "@/integrations/supabase/client";
 import { type AppRole } from "@/constants/roles";
+import { useCountryConfig } from "@/contexts/CountryConfigContext";
+import { isValidSaudiId } from "@/lib/validations/saudiId";
 import { Loader2, Save, ArrowLeft, Stethoscope, Heart, FileText, Wallet } from "lucide-react";
 
 const employeeSchema = z.object({
@@ -130,6 +132,7 @@ export default function EmployeeFormPage() {
   const { data: designations } = useDesignations();
   const { data: categories } = useEmployeeCategories();
   const { data: shifts } = useShifts();
+  const countryConfig = useCountryConfig();
 
   const createEmployee = useCreateEmployee();
   const updateEmployee = useUpdateEmployee();
@@ -599,15 +602,27 @@ export default function EmployeeFormPage() {
                   <FormField
                     control={form.control}
                     name="national_id"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>National ID / CNIC</FormLabel>
-                        <FormControl>
-                          <Input placeholder="12345-1234567-1" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    render={({ field }) => {
+                      const val = field.value || '';
+                      const isSA = countryConfig.country_code === 'SA';
+                      const showError = isSA && val.length > 0 && !isValidSaudiId(val);
+                      return (
+                        <FormItem>
+                          <FormLabel>{countryConfig.national_id_label}</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder={isSA ? t('saudiId.placeholder') : countryConfig.national_id_format}
+                              {...field}
+                              maxLength={isSA ? 10 : undefined}
+                            />
+                          </FormControl>
+                          {showError && (
+                            <p className="text-sm text-destructive">{t('saudiId.invalidFormat')}</p>
+                          )}
+                          <FormMessage />
+                        </FormItem>
+                      );
+                    }}
                   />
                 </CardContent>
               </Card>
