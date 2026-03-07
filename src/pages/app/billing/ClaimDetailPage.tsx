@@ -412,9 +412,18 @@ export default function ClaimDetailPage() {
               )}
             </div>
 
-            {/* Rejection details from NPHIES response */}
-            {claim.nphies_status === "rejected" && (
-              <NphiesRejectionDetails nphiesResponse={claim.nphies_response} />
+            {/* Denial Management Panel - replaces simple NphiesRejectionDetails */}
+            {(claim.nphies_status === "rejected" || claim.nphies_status === "partially_approved") && (
+              <DenialManagementPanel
+                nphiesResponse={claim.nphies_response}
+                denialReasons={claim.denial_reasons as any}
+                resubmissionCount={claim.resubmission_count || 0}
+                claimId={claim.id}
+                currentIcdCodes={claim.icd_codes || []}
+                currentNotes={claim.notes || ""}
+                onEditAndResubmit={handleResubmitToNphies}
+                isResubmitting={submitToNphies.isPending}
+              />
             )}
           </CardContent>
         </Card>
