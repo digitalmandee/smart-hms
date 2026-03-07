@@ -253,8 +253,15 @@ export default function OPDCheckoutPage() {
         .update({ invoice_id: invoiceData.id })
         .eq("id", appointment.id);
 
-      toast.success("Invoice generated successfully");
-      navigate(`/app/billing/invoices/${invoiceData.id}`);
+      setCreatedInvoiceId(invoiceData.id);
+
+      // If insured, stay on page to show claim prompt; otherwise navigate
+      if (billingSplit && !billingSplit.isSelfPay && billingSplit.insuranceAmount > 0) {
+        toast.success("Invoice generated. You can now create an insurance claim.");
+      } else {
+        toast.success("Invoice generated successfully");
+        navigate(`/app/billing/invoices/${invoiceData.id}`);
+      }
     } catch (error: any) {
       toast.error(error.message || "Failed to generate invoice");
     } finally {
