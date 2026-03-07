@@ -2817,7 +2817,17 @@ export const en = {
   "nphies.preAuthDetails": "Pre-Authorization",
   "nphies.preAuthNumber": "Pre-Auth Number",
 
-  // NPHIES Analytics
+  // NPHIES Denial Management
+  "nphies.denialManagement": "Denial Management",
+  "nphies.resubmissionCount": "Resubmissions",
+  "nphies.editAndResubmit": "Edit & Resubmit",
+  "nphies.editBeforeResubmit": "Edit Claim Before Resubmission",
+  "nphies.icdCodes": "ICD-10 Diagnosis Codes",
+  "nphies.icdCodesHelp": "Comma-separated ICD-10 codes",
+  "nphies.resubmissionNotesPlaceholder": "Add notes about corrections made...",
+  "nphies.suggestedCorrections": "Suggested Corrections",
+  "nphies.noStructuredDenialInfo": "No structured denial information available. Check raw NPHIES response.",
+
   "nphiesAnalytics.title": "NPHIES Analytics",
   "nphiesAnalytics.description": "Detailed insurance claims analytics and reporting",
   "nphiesAnalytics.viewAnalytics": "Analytics",
