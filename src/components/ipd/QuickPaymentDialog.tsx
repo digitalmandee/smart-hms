@@ -13,9 +13,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { PaymentMethodSelector } from "@/components/billing/PaymentMethodSelector";
 import { useRecordPayment } from "@/hooks/useBilling";
-import { useRequireSession } from "@/hooks/useRequireSession";
 import { toast } from "sonner";
-import { Loader2, CreditCard, AlertCircle } from "lucide-react";
+import { Loader2, CreditCard } from "lucide-react";
 
 interface QuickPaymentDialogProps {
   open: boolean;
