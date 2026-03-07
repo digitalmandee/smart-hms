@@ -73,6 +73,70 @@ async function logTransaction(
   }
 }
 
+// Parse denial reasons from FHIR ClaimResponse
+function parseDenialReasonsFromFhir(claimResponse: any): any[] {
+  if (!claimResponse) return [];
+  const reasons: any[] = [];
+  
+  const errors = claimResponse.error || [];
+  for (const err of errors) {
+    const rawCode = err.code?.coding?.[0]?.code || "";
+    const rawDisplay = err.code?.coding?.[0]?.display || err.code?.text || "";
+    reasons.push({
+      code: rawCode || "unknown",
+      display: rawDisplay || "Unknown rejection reason",
+      category: inferCategory(rawCode, rawDisplay),
+      severity: "error",
+      suggested_action: "Review and correct the claim details",
+      raw_code: rawCode,
+      raw_display: rawDisplay,
+    });
+  }
+  
+  const adjudication = claimResponse.adjudication || [];
+  for (const adj of adjudication) {
+    if (adj.reason) {
+      const rawCode = adj.reason.coding?.[0]?.code || "";
+      const rawDisplay = adj.reason.coding?.[0]?.display || adj.reason.text || "";
+      if (rawCode && !reasons.find((r: any) => r.raw_code === rawCode)) {
+        reasons.push({
+          code: rawCode,
+          display: rawDisplay,
+          category: inferCategory(rawCode, rawDisplay),
+          severity: "error",
+          suggested_action: "Review adjudication reason",
+          raw_code: rawCode,
+          raw_display: rawDisplay,
+        });
+      }
+    }
+  }
+
+  const processNotes = claimResponse.processNote || [];
+  for (const note of processNotes) {
+    if (note.text) {
+      reasons.push({
+        code: "process-note",
+        display: note.text,
+        category: "administrative",
+        severity: "warning",
+        suggested_action: "Review the process note",
+        raw_display: note.text,
+      });
+    }
+  }
+
+  return reasons;
+}
+
+function inferCategory(code: string, display: string): string {
+  const lower = (code + " " + display).toLowerCase();
+  if (lower.includes("diagnosis") || lower.includes("clinical") || lower.includes("medical")) return "clinical";
+  if (lower.includes("eligib") || lower.includes("member") || lower.includes("coverage") || lower.includes("policy")) return "eligibility";
+  if (lower.includes("code") || lower.includes("procedure") || lower.includes("modifier")) return "coding";
+  return "administrative";
+}
+
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
 
