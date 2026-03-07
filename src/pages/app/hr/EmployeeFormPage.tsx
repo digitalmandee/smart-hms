@@ -132,6 +132,7 @@ export default function EmployeeFormPage() {
   const { data: designations } = useDesignations();
   const { data: categories } = useEmployeeCategories();
   const { data: shifts } = useShifts();
+  const countryConfig = useCountryConfig();
 
   const createEmployee = useCreateEmployee();
   const updateEmployee = useUpdateEmployee();

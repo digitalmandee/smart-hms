@@ -62,6 +62,8 @@ export function QuickPatientModal({ onPatientCreated, trigger }: QuickPatientMod
   const [printCard, setPrintCard] = useState(false);
   const { toast } = useToast();
   const createPatient = useCreatePatient();
+  const countryConfig = useCountryConfig();
+  const { t } = useTranslation();
 
   const form = useForm<QuickPatientData>({
     resolver: zodResolver(quickPatientSchema),
