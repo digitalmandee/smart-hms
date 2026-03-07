@@ -22,7 +22,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Monitor, Plus, Eye, Calendar } from "lucide-react";
+import { Monitor, Plus, Eye, Calendar, Download, Printer } from "lucide-react";
+import { ReportExportButton } from "@/components/reports/ReportExportButton";
 import { useTranslation } from "@/lib/i18n";
 import { formatCurrency } from "@/lib/currency";
 import { format } from "date-fns";
