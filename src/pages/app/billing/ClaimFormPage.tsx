@@ -42,6 +42,9 @@ export default function ClaimFormPage() {
   const [searchParams] = useSearchParams();
   const invoiceId = searchParams.get('invoice');
   const patientId = searchParams.get('patient');
+  const preAuthFromUrl = searchParams.get('preauth');
+  const icdCodesFromUrl = searchParams.get('icd_codes');
+  const admissionIdFromUrl = searchParams.get('admission_id');
   
   const [invoice, setInvoice] = useState<any>(null);
   const [patient, setPatient] = useState<any>(null);
