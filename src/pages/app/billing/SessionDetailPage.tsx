@@ -111,7 +111,7 @@ export default function SessionDetailPage() {
               <Clock className="h-5 w-5 text-muted-foreground" />
               <div>
                 <p className="text-sm text-muted-foreground">{t("billing.shift")}</p>
-                <p className="font-medium">{session.shift || "—"}</p>
+                <p className="font-medium">{session.shift ? t(SHIFT_LABELS[session.shift] ?? "billing.shiftMorning") : "—"}</p>
               </div>
             </div>
           </CardContent>
