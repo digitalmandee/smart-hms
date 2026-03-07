@@ -2751,6 +2751,17 @@ export const ar: Record<TranslationKey, string> = {
   "nphies.preAuthDetails": "الإذن المسبق",
   "nphies.preAuthNumber": "رقم الإذن المسبق",
 
+  // NPHIES Denial Management
+  "nphies.denialManagement": "إدارة الرفض",
+  "nphies.resubmissionCount": "إعادة التقديم",
+  "nphies.editAndResubmit": "تعديل وإعادة تقديم",
+  "nphies.editBeforeResubmit": "تعديل المطالبة قبل إعادة التقديم",
+  "nphies.icdCodes": "رموز تشخيص ICD-10",
+  "nphies.icdCodesHelp": "رموز ICD-10 مفصولة بفواصل",
+  "nphies.resubmissionNotesPlaceholder": "أضف ملاحظات حول التصحيحات...",
+  "nphies.suggestedCorrections": "التصحيحات المقترحة",
+  "nphies.noStructuredDenialInfo": "لا تتوفر معلومات رفض منظمة. تحقق من استجابة NPHIES الأصلية.",
+
   // NPHIES Analytics
   "nphiesAnalytics.title": "تحليلات NPHIES",
   "nphiesAnalytics.description": "تحليلات وتقارير مطالبات التأمين التفصيلية",
