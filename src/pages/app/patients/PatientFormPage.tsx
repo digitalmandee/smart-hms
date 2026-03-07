@@ -365,13 +365,31 @@ export function PatientFormPage() {
                   control={form.control}
                   name="national_id"
                   render={({ field }) => {
-                    const countryConfig = useCountryConfig();
+                    const cc = countryConfig;
+                    const isSA = cc.country_code === 'SA';
+                    const val = field.value || '';
+                    const showError = isSA && val.length > 0 && !isValidSaudiId(val);
+                    const idType = isSA && val.length === 10 ? getSaudiIdType(val) : null;
                     return (
                       <FormItem>
-                        <FormLabel>{countryConfig.national_id_label}</FormLabel>
+                        <FormLabel>{cc.national_id_label}</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder={countryConfig.national_id_format} className="h-11" />
+                          <Input
+                            {...field}
+                            placeholder={isSA ? t('saudiId.placeholder') : cc.national_id_format}
+                            className="h-11"
+                            maxLength={isSA ? 10 : undefined}
+                          />
                         </FormControl>
+                        {showError && (
+                          <p className="text-sm text-destructive">{t('saudiId.invalidFormat')}</p>
+                        )}
+                        {idType === 'saudi' && (
+                          <p className="text-xs text-muted-foreground">{t('saudiId.saudiNational')}</p>
+                        )}
+                        {idType === 'iqama' && (
+                          <p className="text-xs text-muted-foreground">{t('saudiId.iqamaResident')}</p>
+                        )}
                         <FormMessage />
                       </FormItem>
                     );
