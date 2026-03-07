@@ -51,6 +51,8 @@ export default function OPDCheckoutPage() {
   const [selectedCharges, setSelectedCharges] = useState<string[]>([]);
   const [paymentMethodId, setPaymentMethodId] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [billingSplit, setBillingSplit] = useState<BillingSplit | null>(null);
+  const [createdInvoiceId, setCreatedInvoiceId] = useState<string | null>(null);
   
   // Session requirement for payment collection
   const { hasActiveSession, session, isLoading: sessionLoading } = useRequireSession("reception");
