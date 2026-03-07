@@ -68,6 +68,16 @@ export default function ClaimFormPage() {
     }
   }, [invoiceId]);
 
+  // Auto-select primary insurance when patient insurances load
+  useEffect(() => {
+    if (patientInsurances?.length && !watch('patient_insurance_id')) {
+      const primary = patientInsurances.find(ins => ins.is_primary) || patientInsurances[0];
+      if (primary) {
+        setValue('patient_insurance_id', primary.id);
+      }
+    }
+  }, [patientInsurances]);
+
   const fetchInvoice = async (id: string) => {
     setIsLoadingInvoice(true);
     try {
