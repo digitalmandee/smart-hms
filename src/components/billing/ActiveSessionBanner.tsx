@@ -5,26 +5,28 @@ import { formatCurrency } from "@/lib/currency";
 import { Button } from "@/components/ui/button";
 import { Monitor, Clock, X } from "lucide-react";
 import { format } from "date-fns";
+import { useTranslation } from "@/lib/i18n";
 
 interface ActiveSessionBannerProps {
   counterType?: 'reception' | 'ipd' | 'pharmacy' | 'opd' | 'er';
   compact?: boolean;
 }
 
-const COUNTER_LABELS = {
-  reception: 'Reception',
-  opd: 'OPD',
-  ipd: 'IPD',
-  pharmacy: 'Pharmacy',
-  er: 'Emergency',
-};
-
 export function ActiveSessionBanner({
   counterType,
   compact = false,
 }: ActiveSessionBannerProps) {
+  const { t } = useTranslation();
   const { data: session } = useActiveSession(counterType);
   const [showCloseDialog, setShowCloseDialog] = useState(false);
+
+  const COUNTER_LABELS: Record<string, string> = {
+    reception: t('billing.counterReception'),
+    opd: t('billing.counterOpd'),
+    ipd: t('billing.counterIpd'),
+    pharmacy: t('billing.counterPharmacy'),
+    er: t('billing.counterEr'),
+  };
 
   if (!session) return null;
 
@@ -43,7 +45,7 @@ export function ActiveSessionBanner({
             onClick={() => setShowCloseDialog(true)}
           >
             <X className="h-3 w-3 mr-1" />
-            Close
+            {t('common.close')}
           </Button>
         </div>
 
@@ -67,7 +69,7 @@ export function ActiveSessionBanner({
             <div className="flex items-center gap-2">
               <span className="font-semibold">{session.session_number}</span>
               <span className="text-sm px-2 py-0.5 rounded bg-success/20 text-success">
-                Active
+                {t('billing.activeSession')}
               </span>
             </div>
             <div className="flex items-center gap-3 text-sm text-muted-foreground">
@@ -75,7 +77,7 @@ export function ActiveSessionBanner({
               <span>•</span>
               <span className="flex items-center gap-1">
                 <Clock className="h-3 w-3" />
-                Opened {format(new Date(session.opened_at), 'hh:mm a')}
+                {t('billing.opened')} {format(new Date(session.opened_at), 'hh:mm a')}
               </span>
             </div>
           </div>
@@ -83,11 +85,11 @@ export function ActiveSessionBanner({
 
         <div className="flex items-center gap-4">
           <div className="text-right">
-            <p className="text-sm text-muted-foreground">Collections</p>
+            <p className="text-sm text-muted-foreground">{t('billing.collections')}</p>
             <p className="text-lg font-bold">{formatCurrency(session.total_collections)}</p>
           </div>
           <div className="text-right">
-            <p className="text-sm text-muted-foreground">Transactions</p>
+            <p className="text-sm text-muted-foreground">{t('billing.transactions')}</p>
             <p className="text-lg font-bold">{session.transaction_count}</p>
           </div>
           <Button
@@ -95,7 +97,7 @@ export function ActiveSessionBanner({
             size="sm"
             onClick={() => setShowCloseDialog(true)}
           >
-            Close Session
+            {t('billing.closeSession')}
           </Button>
         </div>
       </div>

@@ -58,6 +58,9 @@ export default function ReceptionistDashboard() {
         ]}
       />
 
+      {/* Billing Session Status */}
+      <SessionStatusBanner counterType="reception" />
+
       {/* Stats Overview */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <ModernStatsCard

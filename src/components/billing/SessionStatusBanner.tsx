@@ -6,25 +6,23 @@ import { AlertTriangle, CheckCircle2, Monitor, Clock } from "lucide-react";
 import { useRequireSession } from "@/hooks/useRequireSession";
 import { CounterType, getCurrentShift } from "@/hooks/useBillingSessions";
 import { OpenSessionDialog } from "./OpenSessionDialog";
+import { useTranslation } from "@/lib/i18n";
 
 interface SessionStatusBannerProps {
   counterType?: CounterType;
   showTransactionCount?: boolean;
 }
 
-/**
- * A persistent banner showing the current billing session status.
- * Shows session details if active, or a warning with "Open Session" button if not.
- */
 export function SessionStatusBanner({
   counterType = "reception",
   showTransactionCount = true,
 }: SessionStatusBannerProps) {
+  const { t } = useTranslation();
   const [showOpenDialog, setShowOpenDialog] = useState(false);
   const { hasActiveSession, session, isLoading } = useRequireSession(counterType);
 
   if (isLoading) {
-    return null; // Don't show anything while loading
+    return null;
   }
 
   if (!hasActiveSession) {
@@ -34,9 +32,9 @@ export function SessionStatusBanner({
           <div className="flex items-center gap-3">
             <AlertTriangle className="h-5 w-5 text-warning flex-shrink-0" />
             <div>
-              <p className="font-medium text-sm">No Active Session</p>
+              <p className="font-medium text-sm">{t('billing.noActiveSession')}</p>
               <p className="text-xs text-muted-foreground">
-                You must open a billing session to collect payments
+                {t('billing.mustOpenSession')}
               </p>
             </div>
           </div>
@@ -47,7 +45,7 @@ export function SessionStatusBanner({
             className="gap-2 flex-shrink-0"
           >
             <Monitor className="h-4 w-4" />
-            Open Session
+            {t('billing.openBillingSession')}
           </Button>
         </div>
 
@@ -71,11 +69,11 @@ export function SessionStatusBanner({
         <div className="flex items-center gap-3 flex-wrap">
           <div>
             <p className="font-medium text-sm">
-              Session {session?.session_number}
+              {session?.session_number}
             </p>
             <p className="text-xs text-muted-foreground flex items-center gap-2">
               <Clock className="h-3 w-3" />
-              Opened {session?.opened_at
+              {t('billing.opened')} {session?.opened_at
                 ? format(new Date(session.opened_at), "h:mm a")
                 : "—"}
             </p>
@@ -85,7 +83,7 @@ export function SessionStatusBanner({
               {session?.counter_type || counterType}
             </Badge>
             <Badge variant="outline" className="text-xs">
-              {shiftLabel} Shift
+              {shiftLabel}
             </Badge>
           </div>
         </div>
@@ -97,7 +95,7 @@ export function SessionStatusBanner({
             Rs. {(session?.total_collections || 0).toLocaleString()}
           </p>
           <p className="text-xs text-muted-foreground">
-            {session?.transaction_count || 0} transactions
+            {session?.transaction_count || 0} {t('billing.transactions').toLowerCase()}
           </p>
         </div>
       )}

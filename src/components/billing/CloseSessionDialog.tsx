@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -16,7 +16,6 @@ import {
   useCloseSession,
   useSessionTransactions,
   CashDenominations,
-  calculateDenominationTotal,
 } from "@/hooks/useBillingSessions";
 import { CashDenominationInput } from "./CashDenominationInput";
 import { formatCurrency } from "@/lib/currency";
@@ -29,6 +28,7 @@ import {
   Receipt,
 } from "lucide-react";
 import { format } from "date-fns";
+import { useTranslation } from "@/lib/i18n";
 
 interface CloseSessionDialogProps {
   open: boolean;
@@ -43,6 +43,7 @@ export function CloseSessionDialog({
   sessionId,
   onSuccess,
 }: CloseSessionDialogProps) {
+  const { t } = useTranslation();
   const [denominations, setDenominations] = useState<CashDenominations>({});
   const [actualCash, setActualCash] = useState<number>(0);
   const [discrepancyReason, setDiscrepancyReason] = useState("");
@@ -52,7 +53,6 @@ export function CloseSessionDialog({
   const { data: transactions } = useSessionTransactions(sessionId);
   const closeSessionMutation = useCloseSession();
 
-  // Calculate expected cash from session data
   const expectedCash = (session?.opening_cash || 0) + 
     (transactions?.reduce((sum, t: any) => {
       const methodName = t.payment_method?.name?.toLowerCase() || '';
@@ -72,7 +72,7 @@ export function CloseSessionDialog({
 
   const handleSubmit = async () => {
     if (hasDiscrepancy && !discrepancyReason.trim()) {
-      return; // Require explanation for discrepancy
+      return;
     }
 
     await closeSessionMutation.mutateAsync({
@@ -91,7 +91,6 @@ export function CloseSessionDialog({
     return null;
   }
 
-  // Calculate payment method totals from transactions
   const paymentTotals = transactions?.reduce(
     (acc: any, t: any) => {
       const methodName = t.payment_method?.name?.toLowerCase() || '';
@@ -114,33 +113,32 @@ export function CloseSessionDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Clock className="h-5 w-5" />
-            Close Session: {session.session_number}
+            {t('billing.closeSessionTitle')}: {session.session_number}
           </DialogTitle>
           <DialogDescription>
-            Count your cash drawer and close this billing session.
+            {t('billing.closeSessionDesc')}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Session Summary */}
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-base flex items-center gap-2">
                 <Receipt className="h-4 w-4" />
-                Session Summary
+                {t('billing.sessionSummary')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <span className="text-muted-foreground">Opened At:</span>
+                  <span className="text-muted-foreground">{t('billing.openedAt')}:</span>
                   <p className="font-medium">
                     {format(new Date(session.opened_at), 'MMM dd, yyyy hh:mm a')}
                   </p>
                 </div>
                 <div>
-                  <span className="text-muted-foreground">Transactions:</span>
-                  <p className="font-medium">{transactions?.length || 0} payments</p>
+                  <span className="text-muted-foreground">{t('billing.transactions')}:</span>
+                  <p className="font-medium">{transactions?.length || 0} {t('billing.payments')}</p>
                 </div>
               </div>
 
@@ -148,52 +146,50 @@ export function CloseSessionDialog({
                 <div className="flex justify-between items-center">
                   <span className="flex items-center gap-2">
                     <DollarSign className="h-4 w-4 text-success" />
-                    Opening Cash:
+                    {t('billing.openingCash')}:
                   </span>
                   <span>{formatCurrency(session.opening_cash)}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="flex items-center gap-2">
                     <DollarSign className="h-4 w-4" />
-                    Cash Collected:
+                    {t('billing.cashCollectedSession')}:
                   </span>
                   <span>{formatCurrency(paymentTotals.cash)}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="flex items-center gap-2">
                     <CreditCard className="h-4 w-4" />
-                    Card Payments:
+                    {t('billing.cardPayments')}:
                   </span>
                   <span>{formatCurrency(paymentTotals.card)}</span>
                 </div>
                 {paymentTotals.upi > 0 && (
                   <div className="flex justify-between items-center">
-                    <span>UPI/Online:</span>
+                    <span>{t('billing.upiOnline')}:</span>
                     <span>{formatCurrency(paymentTotals.upi)}</span>
                   </div>
                 )}
                 {paymentTotals.other > 0 && (
                   <div className="flex justify-between items-center">
-                    <span>Other:</span>
+                    <span>{t('billing.other')}:</span>
                     <span>{formatCurrency(paymentTotals.other)}</span>
                   </div>
                 )}
                 <div className="flex justify-between items-center font-semibold border-t pt-2">
-                  <span>Expected Cash in Drawer:</span>
+                  <span>{t('billing.expectedCashInDrawer')}:</span>
                   <span className="text-lg">{formatCurrency(expectedCash)}</span>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Cash Denomination Input */}
           <CashDenominationInput
             value={denominations}
             onChange={handleDenominationChange}
             expectedCash={expectedCash}
           />
 
-          {/* Discrepancy Warning */}
           {hasDiscrepancy && (
             <Card className={difference > 0 ? 'border-warning' : 'border-destructive'}>
               <CardContent className="pt-4">
@@ -206,18 +202,18 @@ export function CloseSessionDialog({
                   <div className="flex-1 space-y-2">
                     <p className="font-medium">
                       {difference > 0
-                        ? `Cash Excess: +${formatCurrency(difference)}`
-                        : `Cash Short: ${formatCurrency(difference)}`}
+                        ? `${t('billing.cashExcess')}: +${formatCurrency(difference)}`
+                        : `${t('billing.cashShort')}: ${formatCurrency(difference)}`}
                     </p>
                     <div>
                       <Label htmlFor="discrepancyReason">
-                        Explain this discrepancy *
+                        {t('billing.explainDiscrepancy')} *
                       </Label>
                       <Textarea
                         id="discrepancyReason"
                         value={discrepancyReason}
                         onChange={(e) => setDiscrepancyReason(e.target.value)}
-                        placeholder="Please explain why the cash count doesn't match..."
+                        placeholder={t('billing.discrepancyPlaceholder')}
                         rows={2}
                         required
                       />
@@ -228,22 +224,20 @@ export function CloseSessionDialog({
             </Card>
           )}
 
-          {/* Perfect Match */}
           {!hasDiscrepancy && actualCash > 0 && (
             <div className="flex items-center gap-2 p-3 rounded-lg bg-success/10 text-success">
               <CheckCircle className="h-5 w-5" />
-              <span className="font-medium">Cash count matches exactly!</span>
+              <span className="font-medium">{t('billing.cashCountMatches')}</span>
             </div>
           )}
 
-          {/* Closing Notes */}
           <div className="space-y-2">
-            <Label htmlFor="notes">Closing Notes (Optional)</Label>
+            <Label htmlFor="notes">{t('billing.closingNotes')}</Label>
             <Textarea
               id="notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Any remarks about this session..."
+              placeholder={t('billing.closingRemarksPlaceholder')}
               rows={2}
             />
           </div>
@@ -255,7 +249,7 @@ export function CloseSessionDialog({
             variant="outline"
             onClick={() => onOpenChange(false)}
           >
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button
             onClick={handleSubmit}
@@ -265,7 +259,7 @@ export function CloseSessionDialog({
               (hasDiscrepancy && !discrepancyReason.trim())
             }
           >
-            {closeSessionMutation.isPending ? 'Closing...' : 'Close Session'}
+            {closeSessionMutation.isPending ? t('billing.closing') : t('billing.closeSession')}
           </Button>
         </DialogFooter>
       </DialogContent>
