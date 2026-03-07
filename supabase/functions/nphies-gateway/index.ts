@@ -363,16 +363,38 @@ Deno.serve(async (req) => {
         };
         const nphiesStatus = statusMap[outcome] || "pending";
 
+        // Parse denial reasons from response
+        const denialReasons = parseDenialReasonsFromFhir(claimResponse);
+
+        // Check if this is a resubmission (existing claim had nphies data)
+        const { data: existingClaim } = await supabase
+          .from("insurance_claims")
+          .select("resubmission_count, nphies_claim_id")
+          .eq("id", claim_id)
+          .single();
+        const isResubmission = !!existingClaim?.nphies_claim_id;
+        const newResubmissionCount = isResubmission 
+          ? (existingClaim?.resubmission_count || 0) + 1 
+          : (existingClaim?.resubmission_count || 0);
+
+        const updateData: Record<string, any> = {
+          nphies_claim_id: nphiesClaimId,
+          nphies_status: nphiesStatus,
+          nphies_response: claimResponseData,
+          submission_date: new Date().toISOString(),
+          status: nphiesStatus === "approved" ? "approved" : 
+                 nphiesStatus === "rejected" ? "rejected" : "submitted",
+          resubmission_count: newResubmissionCount,
+        };
+        if (denialReasons.length > 0) {
+          updateData.denial_reasons = denialReasons;
+        } else {
+          updateData.denial_reasons = null;
+        }
+
         const { error: updateError } = await supabase
           .from("insurance_claims")
-          .update({
-            nphies_claim_id: nphiesClaimId,
-            nphies_status: nphiesStatus,
-            nphies_response: claimResponseData,
-            submission_date: new Date().toISOString(),
-            status: nphiesStatus === "approved" ? "approved" : 
-                   nphiesStatus === "rejected" ? "rejected" : "submitted",
-          })
+          .update(updateData)
           .eq("id", claim_id);
 
         if (updateError) {
@@ -390,6 +412,7 @@ Deno.serve(async (req) => {
             nphies_claim_id: nphiesClaimId,
             nphies_status: nphiesStatus,
             outcome,
+            denial_reasons: denialReasons,
             adjudication: claimResponse?.adjudication,
             raw_response: claimResponseData,
           }),
