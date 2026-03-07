@@ -39,8 +39,6 @@ export function QuickPaymentDialog({
   const [referenceNumber, setReferenceNumber] = useState("");
   const [notes, setNotes] = useState("");
 
-  // Session requirement for payment
-  const { hasActiveSession, session } = useRequireSession("reception");
   const { mutateAsync: recordPayment, isPending } = useRecordPayment();
 
   const handleSubmit = async (e: React.FormEvent) => {
