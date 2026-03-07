@@ -472,6 +472,25 @@ export default function DischargeFormPage() {
 
         {/* Billing Tab */}
         <TabsContent value="billing" className="mt-6 space-y-4">
+          {/* Insurance Billing Split for insured patients */}
+          {admission?.payment_mode === "insurance" && admission?.patient_id && totalCharges > 0 && (
+            <InsuranceBillingSplit
+              patientId={admission.patient_id}
+              totalAmount={totalCharges}
+              onSplitCalculated={setDischargeBillingSplit}
+            />
+          )}
+
+          {/* Insurance Claim Prompt after invoice */}
+          {invoiceGenerated && dischargeBillingSplit && !dischargeBillingSplit.isSelfPay && dischargeBillingSplit.insuranceAmount > 0 && (
+            <InsuranceClaimPrompt
+              patientId={admission.patient_id}
+              invoiceId={invoiceId!}
+              totalAmount={dischargeBillingSplit.totalAmount}
+              insuranceAmount={dischargeBillingSplit.insuranceAmount}
+              admissionId={id}
+            />
+          )}
           {unbilledCount > 0 && !invoiceGenerated && (
             <Alert className="border-warning/50 bg-warning/10">
               <AlertTriangle className="h-4 w-4 text-warning" />

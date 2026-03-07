@@ -57,6 +57,8 @@ export default function ClaimFormPage() {
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<ClaimFormData>({
     defaultValues: {
       claim_date: format(new Date(), 'yyyy-MM-dd'),
+      pre_auth_number: preAuthFromUrl || '',
+      icd_codes: icdCodesFromUrl || '',
     }
   });
 
