@@ -58,12 +58,8 @@ export function DenialManagementPanel({
   const warnings = reasons.filter(r => r.severity === 'warning');
 
   const handleSubmitEdits = () => {
-    const icdArray = editIcdCodes
-      .split(",")
-      .map(c => c.trim())
-      .filter(Boolean);
     onEditAndResubmit({
-      icd_codes: icdArray.length > 0 ? icdArray : undefined,
+      icd_codes: editIcdCodes.length > 0 ? editIcdCodes : undefined,
       notes: editNotes || undefined,
     });
     setIsEditDialogOpen(false);
