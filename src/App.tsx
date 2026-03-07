@@ -195,6 +195,8 @@ const NphiesTransactionLogsPage = React.lazy(() => import("./pages/app/insurance
 import DailyClosingPage from "./pages/app/billing/DailyClosingPage";
 const DailyClosingHistoryPage = React.lazy(() => import("./pages/app/billing/DailyClosingHistoryPage"));
 const PaymentReconciliationPage = React.lazy(() => import("./pages/app/billing/PaymentReconciliationPage"));
+const BillingSessionsPage = React.lazy(() => import("./pages/app/billing/BillingSessionsPage"));
+const SessionDetailPage = React.lazy(() => import("./pages/app/billing/SessionDetailPage"));
 
 // Kitchen pages
 const KitchenDashboard = React.lazy(() => import("./pages/app/kitchen/KitchenDashboard"));
@@ -1023,6 +1025,8 @@ function App() {
               
               {/* Billing routes */}
               <Route path="billing" element={<BillingDashboard />} />
+              <Route path="billing/sessions" element={<React.Suspense fallback={<div>Loading...</div>}><BillingSessionsPage /></React.Suspense>} />
+              <Route path="billing/sessions/:id" element={<React.Suspense fallback={<div>Loading...</div>}><SessionDetailPage /></React.Suspense>} />
               <Route path="billing/invoices" element={<InvoicesListPage />} />
               <Route path="billing/invoices/new" element={<InvoiceFormPage />} />
               <Route path="billing/invoices/:id" element={<InvoiceDetailPage />} />

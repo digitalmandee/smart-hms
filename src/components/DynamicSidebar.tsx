@@ -498,6 +498,7 @@ export const SIDEBAR_NAME_TO_KEY: Record<string, TranslationKey> = {
   "Clinical Config": "nav.clinicalConfig",
   "Corrections": "nav.corrections",
   "Cross Matching": "nav.crossMatching",
+  "Closing History": "billing.closingHistory",
   "Customize": "nav.customize",
   "Daily Closing": "nav.dailyClosing",
   "Daily Rounds": "nav.dailyRounds",
