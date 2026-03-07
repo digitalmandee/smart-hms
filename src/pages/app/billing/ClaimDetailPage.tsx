@@ -250,7 +250,7 @@ export default function ClaimDetailPage() {
 
             {canResubmit && (
               <Button
-                onClick={handleResubmitToNphies}
+                onClick={() => handleResubmitToNphies()}
                 disabled={submitToNphies.isPending}
                 variant="outline"
                 className="border-destructive text-destructive hover:bg-destructive/10"
