@@ -2817,5 +2817,25 @@ export const ur: Record<TranslationKey, string> = {
   "nphiesTxLogs.requestPayload": "درخواست کا ڈیٹا",
   "nphiesTxLogs.responsePayload": "جواب کا ڈیٹا",
 
+  // Insurance Billing Split
+  "insBilling.noInsurance": "کوئی فعال انشورنس نہیں — خود ادائیگی",
+  "insBilling.insuranceSplit": "انشورنس بلنگ تقسیم",
+  "insBilling.coverage": "کوریج",
+  "insBilling.billAsSelfPay": "خود ادائیگی کے طور پر بل کریں",
+  "insBilling.totalBill": "کل بل",
+  "insBilling.insuranceCovers": "انشورنس کوریج",
+  "insBilling.patientPays": "مریض ادا کرے گا",
+  "insBilling.selfPayOverride": "انشورنس دستیاب ہے لیکن خود ادائیگی کے طور پر بل کیا جا رہا ہے",
+  "insBilling.insuranceDetected": "اس مریض کے لیے انشورنس کا پتہ چلا",
+  "insBilling.admissionEligibilityWarning": "داخلے سے پہلے انشورنس کی اہلیت کی تصدیق کریں",
+  "insBilling.preAuthRequired": "اس قسم کے داخلے کے لیے پیشگی اجازت درکار ہو سکتی ہے",
+
+  // Insurance Claim Prompt
+  "insPrompt.title": "انشورنس کلیم دستیاب",
+  "insPrompt.description": "اس وزٹ کے لیے انشورنس کلیم جمع کرایا جا سکتا ہے۔",
+  "insPrompt.claimable": "قابل دعویٰ",
+  "insPrompt.createClaim": "انشورنس کلیم بنائیں",
+  "insPrompt.skip": "چھوڑ دیں",
+
 };
 

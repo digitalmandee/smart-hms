@@ -2882,6 +2882,26 @@ export const en = {
   "nphiesTxLogs.requestPayload": "Request Payload",
   "nphiesTxLogs.responsePayload": "Response Payload",
 
+  // Insurance Billing Split
+  "insBilling.noInsurance": "No active insurance — Self-Pay",
+  "insBilling.insuranceSplit": "Insurance Billing Split",
+  "insBilling.coverage": "Coverage",
+  "insBilling.billAsSelfPay": "Bill as Self-Pay",
+  "insBilling.totalBill": "Total Bill",
+  "insBilling.insuranceCovers": "Insurance Covers",
+  "insBilling.patientPays": "Patient Pays",
+  "insBilling.selfPayOverride": "Insurance available but billing as self-pay",
+  "insBilling.insuranceDetected": "Insurance detected for this patient",
+  "insBilling.admissionEligibilityWarning": "Please verify insurance eligibility before admission",
+  "insBilling.preAuthRequired": "Pre-authorization may be required for this admission type",
+
+  // Insurance Claim Prompt
+  "insPrompt.title": "Insurance Claim Available",
+  "insPrompt.description": "An insurance claim can be submitted for this visit.",
+  "insPrompt.claimable": "Claimable",
+  "insPrompt.createClaim": "Create Insurance Claim",
+  "insPrompt.skip": "Skip",
+
 } as const;
 
 export type TranslationKey = keyof typeof en;
