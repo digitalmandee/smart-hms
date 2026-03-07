@@ -25,7 +25,6 @@ interface ClaimFormData {
   pre_auth_number: string;
   pre_auth_date: string;
   drg_code: string;
-  icd_codes: string;
   notes: string;
 }
 
