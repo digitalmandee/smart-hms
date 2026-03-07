@@ -136,7 +136,22 @@ export default function ClaimDetailPage() {
   };
 
   const handleSubmitToNphies = async () => {
-    if (!id) return;
+    if (!id || !claim) return;
+    // Auto-validate before NPHIES submission
+    const results = scrubClaim({
+      patient_insurance_id: claim.patient_insurance_id,
+      claim_date: claim.claim_date,
+      total_amount: claim.total_amount,
+      icd_codes: claim.icd_codes || [],
+      pre_auth_number: claim.pre_auth_number || undefined,
+      pre_auth_required: claim.patient_insurance?.insurance_plan?.pre_auth_required,
+      items: (claim as any).items || [],
+    });
+    setScrubResults(results);
+    if (hasErrors(results)) {
+      toast.error("Please fix validation errors before submitting to NPHIES");
+      return;
+    }
     submitToNphies.mutate(id);
   };
 
