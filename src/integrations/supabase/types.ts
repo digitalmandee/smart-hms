@@ -1127,6 +1127,75 @@ export type Database = {
           },
         ]
       }
+      assets: {
+        Row: {
+          category: string | null
+          created_at: string
+          department: string | null
+          id: string
+          location: string | null
+          name: string
+          notes: string | null
+          organization_id: string
+          purchase_cost: number | null
+          purchase_date: string | null
+          serial_number: string | null
+          status: string
+          updated_at: string
+          vendor_id: string | null
+          warranty_expiry: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          department?: string | null
+          id?: string
+          location?: string | null
+          name: string
+          notes?: string | null
+          organization_id: string
+          purchase_cost?: number | null
+          purchase_date?: string | null
+          serial_number?: string | null
+          status?: string
+          updated_at?: string
+          vendor_id?: string | null
+          warranty_expiry?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          department?: string | null
+          id?: string
+          location?: string | null
+          name?: string
+          notes?: string | null
+          organization_id?: string
+          purchase_cost?: number | null
+          purchase_date?: string | null
+          serial_number?: string | null
+          status?: string
+          updated_at?: string
+          vendor_id?: string | null
+          warranty_expiry?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assets_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assets_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       attendance_corrections: {
         Row: {
           approved_at: string | null
@@ -3229,6 +3298,44 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      claim_attachments: {
+        Row: {
+          attachment_type: string
+          claim_id: string
+          created_at: string
+          file_name: string
+          file_type: string
+          file_url: string
+          id: string
+        }
+        Insert: {
+          attachment_type?: string
+          claim_id: string
+          created_at?: string
+          file_name: string
+          file_type: string
+          file_url: string
+          id?: string
+        }
+        Update: {
+          attachment_type?: string
+          claim_id?: string
+          created_at?: string
+          file_name?: string
+          file_type?: string
+          file_url?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "claim_attachments_claim_id_fkey"
+            columns: ["claim_id"]
+            isOneToOne: false
+            referencedRelation: "insurance_claims"
             referencedColumns: ["id"]
           },
         ]
@@ -8824,6 +8931,156 @@ export type Database = {
           },
         ]
       }
+      housekeeping_inspections: {
+        Row: {
+          area: string
+          checklist: Json | null
+          created_at: string
+          id: string
+          inspected_at: string
+          inspector_id: string | null
+          notes: string | null
+          organization_id: string
+          passed: boolean | null
+          photo_urls: string[] | null
+          score: number | null
+          task_id: string | null
+        }
+        Insert: {
+          area: string
+          checklist?: Json | null
+          created_at?: string
+          id?: string
+          inspected_at?: string
+          inspector_id?: string | null
+          notes?: string | null
+          organization_id: string
+          passed?: boolean | null
+          photo_urls?: string[] | null
+          score?: number | null
+          task_id?: string | null
+        }
+        Update: {
+          area?: string
+          checklist?: Json | null
+          created_at?: string
+          id?: string
+          inspected_at?: string
+          inspector_id?: string | null
+          notes?: string | null
+          organization_id?: string
+          passed?: boolean | null
+          photo_urls?: string[] | null
+          score?: number | null
+          task_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "housekeeping_inspections_inspector_id_fkey"
+            columns: ["inspector_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "housekeeping_inspections_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "housekeeping_inspections_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "housekeeping_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      housekeeping_tasks: {
+        Row: {
+          area: string
+          assigned_to: string | null
+          branch_id: string | null
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          due_at: string | null
+          id: string
+          notes: string | null
+          organization_id: string
+          priority: string
+          room_id: string | null
+          status: string
+          task_type: string
+          updated_at: string
+        }
+        Insert: {
+          area: string
+          assigned_to?: string | null
+          branch_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          due_at?: string | null
+          id?: string
+          notes?: string | null
+          organization_id: string
+          priority?: string
+          room_id?: string | null
+          status?: string
+          task_type?: string
+          updated_at?: string
+        }
+        Update: {
+          area?: string
+          assigned_to?: string | null
+          branch_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          due_at?: string | null
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          priority?: string
+          room_id?: string | null
+          status?: string
+          task_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "housekeeping_tasks_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "housekeeping_tasks_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "housekeeping_tasks_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "housekeeping_tasks_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       imaging_modalities: {
         Row: {
           branch_id: string
@@ -12723,6 +12980,66 @@ export type Database = {
             columns: ["payroll_entry_id"]
             isOneToOne: false
             referencedRelation: "payroll_entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      maintenance_records: {
+        Row: {
+          asset_id: string
+          completed_date: string | null
+          cost: number | null
+          created_at: string
+          description: string | null
+          id: string
+          maintenance_type: string
+          notes: string | null
+          organization_id: string
+          scheduled_date: string | null
+          status: string
+          technician_name: string | null
+        }
+        Insert: {
+          asset_id: string
+          completed_date?: string | null
+          cost?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          maintenance_type?: string
+          notes?: string | null
+          organization_id: string
+          scheduled_date?: string | null
+          status?: string
+          technician_name?: string | null
+        }
+        Update: {
+          asset_id?: string
+          completed_date?: string | null
+          cost?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          maintenance_type?: string
+          notes?: string | null
+          organization_id?: string
+          scheduled_date?: string | null
+          status?: string
+          technician_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_records_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_records_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
