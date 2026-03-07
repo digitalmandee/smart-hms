@@ -227,7 +227,7 @@ export function LabPaymentDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
             Cancel
           </Button>
-          {hasActiveSession && (
+          {(
             <Button onClick={handleSubmit} disabled={isPending}>
               {isPending ? (
                 <>

@@ -191,17 +191,6 @@ export default function InvoiceFormPage() {
         }
       />
 
-      {/* Session Warning Banner (soft enforcement) */}
-      {!sessionLoading && !hasActiveSession && (
-        <Alert variant="destructive" className="border-warning bg-warning/5">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>No Active Billing Session</AlertTitle>
-          <AlertDescription>
-            You can create this invoice, but you won't be able to collect payment until you open a billing session from the Billing Dashboard.
-          </AlertDescription>
-        </Alert>
-      )}
-
       {/* Surgery Context Banner */}
       {surgeryId && surgery && (
         <Card className="border-primary/20 bg-primary/5">
