@@ -212,6 +212,12 @@ export default function ClaimsListPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-10">
+                      <Checkbox
+                        checked={draftClaims.length > 0 && selectedIds.size === draftClaims.length}
+                        onCheckedChange={toggleSelectAll}
+                      />
+                    </TableHead>
                     <TableHead>Claim #</TableHead>
                     <TableHead>Patient</TableHead>
                     <TableHead>Insurance</TableHead>
