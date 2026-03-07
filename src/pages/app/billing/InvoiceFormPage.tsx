@@ -14,7 +14,7 @@ import { useCreateInvoice, useInvoice, useUpdateInvoice, InvoiceItemInput } from
 
 import { useSurgery, useUpdateSurgeryInvoice } from "@/hooks/useOT";
 import { useAuth } from "@/contexts/AuthContext";
-import { ArrowLeft, Save, FileText, Scissors, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Save, FileText, Scissors } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface Patient {
