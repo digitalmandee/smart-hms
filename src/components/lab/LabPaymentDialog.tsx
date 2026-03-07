@@ -238,8 +238,7 @@ export function LabPaymentDialog({
               ) : (
                 `Pay Rs. ${parseFloat(amount || "0").toLocaleString()}`
               )}
-            </Button>
-          )}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
