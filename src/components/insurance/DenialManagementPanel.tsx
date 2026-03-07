@@ -163,14 +163,11 @@ export function DenialManagementPanel({
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label>{t("nphies.icdCodes" as any, "ICD-10 Diagnosis Codes")}</Label>
-                <Input
-                  value={editIcdCodes}
-                  onChange={(e) => setEditIcdCodes(e.target.value)}
-                  placeholder="A01.0, J18.9, E11.9"
+                <MedicalCodeSearch
+                  codeType="icd10"
+                  selectedCodes={editIcdCodes}
+                  onCodesChange={setEditIcdCodes}
                 />
-                <p className="text-xs text-muted-foreground">
-                  {t("nphies.icdCodesHelp" as any, "Comma-separated ICD-10 codes")}
-                </p>
               </div>
               <div className="space-y-2">
                 <Label>{t("common.notes")}</Label>
