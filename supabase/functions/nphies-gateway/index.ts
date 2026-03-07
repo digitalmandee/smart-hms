@@ -73,6 +73,70 @@ async function logTransaction(
   }
 }
 
+// Parse denial reasons from FHIR ClaimResponse
+function parseDenialReasonsFromFhir(claimResponse: any): any[] {
+  if (!claimResponse) return [];
+  const reasons: any[] = [];
+  
+  const errors = claimResponse.error || [];
+  for (const err of errors) {
+    const rawCode = err.code?.coding?.[0]?.code || "";
+    const rawDisplay = err.code?.coding?.[0]?.display || err.code?.text || "";
+    reasons.push({
+      code: rawCode || "unknown",
+      display: rawDisplay || "Unknown rejection reason",
+      category: inferCategory(rawCode, rawDisplay),
+      severity: "error",
+      suggested_action: "Review and correct the claim details",
+      raw_code: rawCode,
+      raw_display: rawDisplay,
+    });
+  }
+  
+  const adjudication = claimResponse.adjudication || [];
+  for (const adj of adjudication) {
+    if (adj.reason) {
+      const rawCode = adj.reason.coding?.[0]?.code || "";
+      const rawDisplay = adj.reason.coding?.[0]?.display || adj.reason.text || "";
+      if (rawCode && !reasons.find((r: any) => r.raw_code === rawCode)) {
+        reasons.push({
+          code: rawCode,
+          display: rawDisplay,
+          category: inferCategory(rawCode, rawDisplay),
+          severity: "error",
+          suggested_action: "Review adjudication reason",
+          raw_code: rawCode,
+          raw_display: rawDisplay,
+        });
+      }
+    }
+  }
+
+  const processNotes = claimResponse.processNote || [];
+  for (const note of processNotes) {
+    if (note.text) {
+      reasons.push({
+        code: "process-note",
+        display: note.text,
+        category: "administrative",
+        severity: "warning",
+        suggested_action: "Review the process note",
+        raw_display: note.text,
+      });
+    }
+  }
+
+  return reasons;
+}
+
+function inferCategory(code: string, display: string): string {
+  const lower = (code + " " + display).toLowerCase();
+  if (lower.includes("diagnosis") || lower.includes("clinical") || lower.includes("medical")) return "clinical";
+  if (lower.includes("eligib") || lower.includes("member") || lower.includes("coverage") || lower.includes("policy")) return "eligibility";
+  if (lower.includes("code") || lower.includes("procedure") || lower.includes("modifier")) return "coding";
+  return "administrative";
+}
+
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
 
@@ -363,16 +427,38 @@ Deno.serve(async (req) => {
         };
         const nphiesStatus = statusMap[outcome] || "pending";
 
+        // Parse denial reasons from response
+        const denialReasons = parseDenialReasonsFromFhir(claimResponse);
+
+        // Check if this is a resubmission (existing claim had nphies data)
+        const { data: existingClaim } = await supabase
+          .from("insurance_claims")
+          .select("resubmission_count, nphies_claim_id")
+          .eq("id", claim_id)
+          .single();
+        const isResubmission = !!existingClaim?.nphies_claim_id;
+        const newResubmissionCount = isResubmission 
+          ? (existingClaim?.resubmission_count || 0) + 1 
+          : (existingClaim?.resubmission_count || 0);
+
+        const updateData: Record<string, any> = {
+          nphies_claim_id: nphiesClaimId,
+          nphies_status: nphiesStatus,
+          nphies_response: claimResponseData,
+          submission_date: new Date().toISOString(),
+          status: nphiesStatus === "approved" ? "approved" : 
+                 nphiesStatus === "rejected" ? "rejected" : "submitted",
+          resubmission_count: newResubmissionCount,
+        };
+        if (denialReasons.length > 0) {
+          updateData.denial_reasons = denialReasons;
+        } else {
+          updateData.denial_reasons = null;
+        }
+
         const { error: updateError } = await supabase
           .from("insurance_claims")
-          .update({
-            nphies_claim_id: nphiesClaimId,
-            nphies_status: nphiesStatus,
-            nphies_response: claimResponseData,
-            submission_date: new Date().toISOString(),
-            status: nphiesStatus === "approved" ? "approved" : 
-                   nphiesStatus === "rejected" ? "rejected" : "submitted",
-          })
+          .update(updateData)
           .eq("id", claim_id);
 
         if (updateError) {
@@ -390,6 +476,7 @@ Deno.serve(async (req) => {
             nphies_claim_id: nphiesClaimId,
             nphies_status: nphiesStatus,
             outcome,
+            denial_reasons: denialReasons,
             adjudication: claimResponse?.adjudication,
             raw_response: claimResponseData,
           }),
@@ -641,14 +728,22 @@ Deno.serve(async (req) => {
           };
           const nphiesStatus = statusMap[outcome] || "pending";
 
+          // Parse denial reasons on status check too
+          const denialReasons = parseDenialReasonsFromFhir(claimResponse);
+
+          const updateData: Record<string, any> = {
+            nphies_status: nphiesStatus,
+            nphies_response: pollData,
+            status: nphiesStatus === "approved" ? "approved" :
+                   nphiesStatus === "rejected" ? "rejected" : undefined,
+          };
+          if (denialReasons.length > 0) {
+            updateData.denial_reasons = denialReasons;
+          }
+
           await supabase
             .from("insurance_claims")
-            .update({
-              nphies_status: nphiesStatus,
-              nphies_response: pollData,
-              status: nphiesStatus === "approved" ? "approved" :
-                     nphiesStatus === "rejected" ? "rejected" : undefined,
-            })
+            .update(updateData)
             .eq("id", claim_id);
 
           await logTransaction(supabase, organization_id, "check_claim_status",
@@ -660,6 +755,7 @@ Deno.serve(async (req) => {
               success: true,
               nphies_status: nphiesStatus,
               outcome,
+              denial_reasons: denialReasons,
               adjudication: claimResponse.adjudication,
               raw_response: pollData,
             }),

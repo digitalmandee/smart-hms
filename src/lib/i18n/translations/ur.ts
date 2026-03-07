@@ -2751,6 +2751,17 @@ export const ur: Record<TranslationKey, string> = {
   "nphies.preAuthDetails": "پیشگی اجازت",
   "nphies.preAuthNumber": "پیشگی اجازت نمبر",
 
+  // NPHIES Denial Management
+  "nphies.denialManagement": "انکار کا انتظام",
+  "nphies.resubmissionCount": "دوبارہ جمع",
+  "nphies.editAndResubmit": "ترمیم اور دوبارہ جمع کرائیں",
+  "nphies.editBeforeResubmit": "دوبارہ جمع کرانے سے پہلے کلیم میں ترمیم کریں",
+  "nphies.icdCodes": "ICD-10 تشخیص کوڈز",
+  "nphies.icdCodesHelp": "کوما سے الگ ICD-10 کوڈز",
+  "nphies.resubmissionNotesPlaceholder": "کی گئی اصلاحات کے بارے میں نوٹس شامل کریں...",
+  "nphies.suggestedCorrections": "تجویز کردہ اصلاحات",
+  "nphies.noStructuredDenialInfo": "ساختی انکار کی معلومات دستیاب نہیں۔ NPHIES کا اصل جواب چیک کریں۔",
+
   // NPHIES Analytics
   "nphiesAnalytics.title": "NPHIES تجزیات",
   "nphiesAnalytics.description": "انشورنس کلیمز کے تفصیلی تجزیات اور رپورٹس",

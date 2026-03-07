@@ -18,6 +18,7 @@ import { ArrowLeft, Send, CheckCircle, XCircle, DollarSign, Building2, FileText,
 import { toast } from "sonner";
 import { formatCurrency } from "@/lib/currency";
 import { useTranslation } from "@/lib/i18n";
+import { DenialManagementPanel } from "@/components/insurance/DenialManagementPanel";
 
 const statusColors: Record<string, string> = {
   draft: "bg-gray-500",
@@ -121,16 +122,20 @@ export default function ClaimDetailPage() {
     submitToNphies.mutate(id);
   };
 
-  const handleResubmitToNphies = async () => {
+  const handleResubmitToNphies = async (updates?: { icd_codes?: string[]; notes?: string }) => {
     if (!id) return;
-    // Clear old NPHIES data before resubmitting
-    await updateClaim.mutateAsync({
+    // Clear old NPHIES data and apply edits before resubmitting
+    const updateData: any = {
       id: id!,
       nphies_claim_id: null,
       nphies_status: null,
       nphies_response: null,
+      denial_reasons: null,
       status: 'submitted',
-    } as any);
+    };
+    if (updates?.icd_codes) updateData.icd_codes = updates.icd_codes;
+    if (updates?.notes) updateData.notes = updates.notes;
+    await updateClaim.mutateAsync(updateData);
     submitToNphies.mutate(id);
   };
 
@@ -245,7 +250,7 @@ export default function ClaimDetailPage() {
 
             {canResubmit && (
               <Button
-                onClick={handleResubmitToNphies}
+                onClick={() => handleResubmitToNphies()}
                 disabled={submitToNphies.isPending}
                 variant="outline"
                 className="border-destructive text-destructive hover:bg-destructive/10"
@@ -407,9 +412,18 @@ export default function ClaimDetailPage() {
               )}
             </div>
 
-            {/* Rejection details from NPHIES response */}
-            {claim.nphies_status === "rejected" && (
-              <NphiesRejectionDetails nphiesResponse={claim.nphies_response} />
+            {/* Denial Management Panel - replaces simple NphiesRejectionDetails */}
+            {(claim.nphies_status === "rejected" || claim.nphies_status === "partially_approved") && (
+              <DenialManagementPanel
+                nphiesResponse={claim.nphies_response}
+                denialReasons={claim.denial_reasons as any}
+                resubmissionCount={claim.resubmission_count || 0}
+                claimId={claim.id}
+                currentIcdCodes={claim.icd_codes || []}
+                currentNotes={claim.notes || ""}
+                onEditAndResubmit={handleResubmitToNphies}
+                isResubmitting={submitToNphies.isPending}
+              />
             )}
           </CardContent>
         </Card>

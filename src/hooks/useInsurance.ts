@@ -96,6 +96,8 @@ export interface InsuranceClaim {
   nphies_claim_id: string | null;
   nphies_status: string | null;
   nphies_response: any | null;
+  denial_reasons: any[] | null;
+  resubmission_count: number;
   created_at: string;
   patient_insurance?: PatientInsurance & {
     insurance_plan?: InsurancePlan & {
