@@ -49,6 +49,7 @@ export default function ClaimFormPage() {
   const [invoice, setInvoice] = useState<any>(null);
   const [patient, setPatient] = useState<any>(null);
   const [claimItems, setClaimItems] = useState<ClaimItem[]>([]);
+  const [icdCodes, setIcdCodes] = useState<string[]>(icdCodesFromUrl ? icdCodesFromUrl.split(',').map(c => c.trim()).filter(Boolean) : []);
   const [isLoadingInvoice, setIsLoadingInvoice] = useState(false);
 
   const { data: patientInsurances } = usePatientInsurance(patientId || undefined);
