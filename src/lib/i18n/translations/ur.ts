@@ -2849,5 +2849,56 @@ export const ur: Record<TranslationKey, string> = {
   "saudiId.iqamaResident": "اقامہ (رہائشی شناخت)",
   "saudiId.placeholder": "10 ہندسوں کا شناختی نمبر",
 
+  // Claim Scrubbing
+  "scrub.validationFailed": "توثیق ناکام",
+  "scrub.validationPassed": "توثیق کامیاب مگر انتباہات کے ساتھ",
+
+  // Payment Reconciliation
+  "era.title": "ادائیگی کی مفاہمت (ERA)",
+  "era.description": "NPHIES کے جوابات کو دعووں سے ملائیں اور اکاؤنٹس میں پوسٹ کریں",
+  "nav.reconciliation": "ادائیگی کی مفاہمت",
+
+  // Batch Submission
+  "batch.title": "بیچ NPHIES جمع کرانا",
+  "batch.description": "منتخب دعوے NPHIES کو جمع کرائیں",
+  "batch.submitAll": "سب جمع کرائیں",
+  "batch.retryFailed": "ناکام دوبارہ کوشش",
+
+  // Attachments
+  "attach.title": "منسلکات",
+
+  // Kitchen
+  "kitchen.title": "باورچی خانہ",
+  "kitchen.dashboard": "باورچی خانہ ڈیش بورڈ",
+  "kitchen.dashboardDesc": "کھانے کے آرڈرز اور باورچی خانے کی کارروائیوں کا جائزہ",
+  "kitchen.mealOrders": "کھانے کے آرڈرز",
+  "kitchen.mealOrdersDesc": "IPD غذائی چارٹس سے باورچی خانے کے ورک آرڈرز",
+  "kitchen.mealPlanning": "کھانے کی منصوبہ بندی",
+  "kitchen.mealPlanningDesc": "ہفتہ وار کھانے کی منصوبہ بندی اور لاگت ٹریکنگ",
+  "nav.kitchen": "باورچی خانہ",
+
+  // Asset Management
+  "assets.title": "اثاثے",
+  "assets.dashboard": "اثاثہ جات کا انتظام",
+  "assets.dashboardDesc": "آلات کا رجسٹر، دیکھ بھال کے نظام الاوقات، اور معاہدوں کی ٹریکنگ",
+  "assets.registry": "اثاثہ رجسٹری",
+  "assets.registryDesc": "آلات اور طبی آلات کا انتظام",
+  "assets.maintenance": "دیکھ بھال کا شیڈول",
+  "assets.maintenanceDesc": "احتیاطی دیکھ بھال کا کیلنڈر اور ورک آرڈرز",
+  "assets.amc": "AMC ٹریکنگ",
+  "assets.amcDesc": "سالانہ دیکھ بھال کے معاہدوں کا انتظام",
+  "nav.assets": "اثاثہ جات کا انتظام",
+
+  // Housekeeping
+  "housekeeping.title": "صفائی ستھرائی",
+  "housekeeping.dashboard": "صفائی ستھرائی",
+  "housekeeping.dashboardDesc": "ٹاسک مینجمنٹ، معائنہ، اور مسائل کی رپورٹنگ",
+  "housekeeping.tasks": "ٹاسک تفویض",
+  "housekeeping.tasksDesc": "عملے کے لیے صفائی کے ٹاسک بنائیں اور تفویض کریں",
+  "housekeeping.inspections": "معائنہ چیک لسٹ",
+  "housekeeping.inspectionsDesc": "کمرے کی قسم کے مطابق قابل ترتیب چیک لسٹ",
+  "housekeeping.issues": "مسائل کی رپورٹنگ",
+  "housekeeping.issuesDesc": "دیکھ بھال اور صفائی کے مسائل کی رپورٹ",
+
 };
 

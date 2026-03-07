@@ -190,6 +190,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         children: [
           { name: "Invoices", path: "/app/billing/invoices", icon: "FileText" },
           { name: "Payments", path: "/app/billing/payments", icon: "CreditCard" },
+          { name: "Payment Reconciliation", path: "/app/billing/reconciliation", icon: "BookOpen" },
           { name: "Reports", path: "/app/billing/reports", icon: "PieChart" },
         ]
       },
@@ -203,6 +204,38 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
           { name: "Journal Entries", path: "/app/accounts/journal", icon: "BookOpen" },
           { name: "Accounts Payable", path: "/app/accounts/payable", icon: "Wallet" },
           { name: "Reports", path: "/app/accounts/reports", icon: "PieChart" },
+        ]
+      },
+      {
+        name: "Kitchen",
+        path: "",
+        icon: "UtensilsCrossed",
+        children: [
+          { name: "Dashboard", path: "/app/kitchen", icon: "LayoutDashboard" },
+          { name: "Meal Orders", path: "/app/kitchen/orders", icon: "ClipboardList" },
+          { name: "Meal Planning", path: "/app/kitchen/planning", icon: "Calendar" },
+        ]
+      },
+      {
+        name: "Asset Management",
+        path: "",
+        icon: "Wrench",
+        children: [
+          { name: "Dashboard", path: "/app/assets", icon: "LayoutDashboard" },
+          { name: "Registry", path: "/app/assets/registry", icon: "Package" },
+          { name: "Maintenance", path: "/app/assets/maintenance", icon: "Wrench" },
+          { name: "AMC Tracking", path: "/app/assets/amc", icon: "Shield" },
+        ]
+      },
+      {
+        name: "Housekeeping",
+        path: "",
+        icon: "Sparkles",
+        children: [
+          { name: "Dashboard", path: "/app/housekeeping", icon: "LayoutDashboard" },
+          { name: "Task Assignments", path: "/app/housekeeping/tasks", icon: "ClipboardList" },
+          { name: "Inspections", path: "/app/housekeeping/inspections", icon: "CheckSquare" },
+          { name: "Issue Reporting", path: "/app/housekeeping/issues", icon: "AlertTriangle" },
         ]
       },
       { 

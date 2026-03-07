@@ -2914,6 +2914,58 @@ export const en = {
   "saudiId.iqamaResident": "Iqama (Resident ID)",
   "saudiId.placeholder": "10-digit ID number",
 
+
+  // Claim Scrubbing
+  "scrub.validationFailed": "Validation Failed",
+  "scrub.validationPassed": "Validation Passed with Warnings",
+
+  // Payment Reconciliation (ERA)
+  "era.title": "Payment Reconciliation (ERA)",
+  "era.description": "Match NPHIES remittance responses to claims and post to accounts",
+  "nav.reconciliation": "Payment Reconciliation",
+
+  // Batch Submission
+  "batch.title": "Batch NPHIES Submission",
+  "batch.description": "Submit selected claims to NPHIES",
+  "batch.submitAll": "Submit All",
+  "batch.retryFailed": "Retry Failed",
+
+  // Attachments
+  "attach.title": "Attachments",
+
+  // Kitchen
+  "kitchen.title": "Kitchen",
+  "kitchen.dashboard": "Kitchen Dashboard",
+  "kitchen.dashboardDesc": "Overview of meal orders and kitchen operations",
+  "kitchen.mealOrders": "Meal Orders",
+  "kitchen.mealOrdersDesc": "Kitchen work orders from IPD diet charts",
+  "kitchen.mealPlanning": "Meal Planning",
+  "kitchen.mealPlanningDesc": "Weekly meal planning and cost tracking",
+  "nav.kitchen": "Kitchen",
+
+  // Asset Management
+  "assets.title": "Assets",
+  "assets.dashboard": "Asset Management",
+  "assets.dashboardDesc": "Equipment registry, maintenance schedules, and AMC tracking",
+  "assets.registry": "Asset Registry",
+  "assets.registryDesc": "Manage equipment and medical devices",
+  "assets.maintenance": "Maintenance Schedule",
+  "assets.maintenanceDesc": "Preventive maintenance calendar and work orders",
+  "assets.amc": "AMC Tracking",
+  "assets.amcDesc": "Annual Maintenance Contracts management",
+  "nav.assets": "Asset Management",
+
+  // Housekeeping
+  "housekeeping.title": "Housekeeping",
+  "housekeeping.dashboard": "Housekeeping",
+  "housekeeping.dashboardDesc": "Task management, inspections, and issue reporting",
+  "housekeeping.tasks": "Task Assignments",
+  "housekeeping.tasksDesc": "Create and assign cleaning tasks to staff",
+  "housekeeping.inspections": "Inspection Checklists",
+  "housekeeping.inspectionsDesc": "Configurable checklists per room type",
+  "housekeeping.issues": "Issue Reporting",
+  "housekeeping.issuesDesc": "Report maintenance and cleanliness issues",
+
 } as const;
 
 export type TranslationKey = keyof typeof en;

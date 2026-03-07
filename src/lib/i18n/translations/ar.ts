@@ -2849,5 +2849,56 @@ export const ar: Record<TranslationKey, string> = {
   "saudiId.iqamaResident": "الإقامة (هوية المقيم)",
   "saudiId.placeholder": "رقم هوية من 10 أرقام",
 
+  // Claim Scrubbing
+  "scrub.validationFailed": "فشل التحقق",
+  "scrub.validationPassed": "نجح التحقق مع تحذيرات",
+
+  // Payment Reconciliation
+  "era.title": "تسوية المدفوعات (ERA)",
+  "era.description": "مطابقة ردود NPHIES مع المطالبات وترحيلها للحسابات",
+  "nav.reconciliation": "تسوية المدفوعات",
+
+  // Batch Submission
+  "batch.title": "إرسال جماعي لـ NPHIES",
+  "batch.description": "إرسال المطالبات المحددة إلى NPHIES",
+  "batch.submitAll": "إرسال الكل",
+  "batch.retryFailed": "إعادة المحاولة للفاشلة",
+
+  // Attachments
+  "attach.title": "المرفقات",
+
+  // Kitchen
+  "kitchen.title": "المطبخ",
+  "kitchen.dashboard": "لوحة المطبخ",
+  "kitchen.dashboardDesc": "نظرة عامة على طلبات الوجبات وعمليات المطبخ",
+  "kitchen.mealOrders": "طلبات الوجبات",
+  "kitchen.mealOrdersDesc": "أوامر عمل المطبخ من جداول الحمية",
+  "kitchen.mealPlanning": "تخطيط الوجبات",
+  "kitchen.mealPlanningDesc": "تخطيط الوجبات الأسبوعي وتتبع التكاليف",
+  "nav.kitchen": "المطبخ",
+
+  // Asset Management
+  "assets.title": "الأصول",
+  "assets.dashboard": "إدارة الأصول",
+  "assets.dashboardDesc": "سجل المعدات وجداول الصيانة وتتبع العقود",
+  "assets.registry": "سجل الأصول",
+  "assets.registryDesc": "إدارة المعدات والأجهزة الطبية",
+  "assets.maintenance": "جدول الصيانة",
+  "assets.maintenanceDesc": "تقويم الصيانة الوقائية وأوامر العمل",
+  "assets.amc": "تتبع عقود الصيانة",
+  "assets.amcDesc": "إدارة عقود الصيانة السنوية",
+  "nav.assets": "إدارة الأصول",
+
+  // Housekeeping
+  "housekeeping.title": "التدبير المنزلي",
+  "housekeeping.dashboard": "التدبير المنزلي",
+  "housekeeping.dashboardDesc": "إدارة المهام والتفتيش والإبلاغ عن المشاكل",
+  "housekeeping.tasks": "تعيين المهام",
+  "housekeeping.tasksDesc": "إنشاء وتعيين مهام التنظيف للموظفين",
+  "housekeeping.inspections": "قوائم التفتيش",
+  "housekeeping.inspectionsDesc": "قوائم تفتيش قابلة للتخصيص حسب نوع الغرفة",
+  "housekeeping.issues": "الإبلاغ عن المشاكل",
+  "housekeeping.issuesDesc": "الإبلاغ عن مشاكل الصيانة والنظافة",
+
 };
 

@@ -194,6 +194,24 @@ const PreAuthorizationsPage = React.lazy(() => import("./pages/app/insurance/Pre
 const NphiesTransactionLogsPage = React.lazy(() => import("./pages/app/insurance/NphiesTransactionLogsPage"));
 import DailyClosingPage from "./pages/app/billing/DailyClosingPage";
 const DailyClosingHistoryPage = React.lazy(() => import("./pages/app/billing/DailyClosingHistoryPage"));
+const PaymentReconciliationPage = React.lazy(() => import("./pages/app/billing/PaymentReconciliationPage"));
+
+// Kitchen pages
+const KitchenDashboard = React.lazy(() => import("./pages/app/kitchen/KitchenDashboard"));
+const MealOrdersPage = React.lazy(() => import("./pages/app/kitchen/MealOrdersPage"));
+const MealPlanningPage = React.lazy(() => import("./pages/app/kitchen/MealPlanningPage"));
+
+// Asset Management pages
+const AssetDashboard = React.lazy(() => import("./pages/app/assets/AssetDashboard"));
+const AssetRegistryPage = React.lazy(() => import("./pages/app/assets/AssetRegistryPage"));
+const MaintenanceSchedulePage = React.lazy(() => import("./pages/app/assets/MaintenanceSchedulePage"));
+const AMCTrackingPage = React.lazy(() => import("./pages/app/assets/AMCTrackingPage"));
+
+// Housekeeping pages
+const HousekeepingDashboardPage = React.lazy(() => import("./pages/app/housekeeping/HousekeepingDashboard"));
+const TaskAssignmentsPage = React.lazy(() => import("./pages/app/housekeeping/TaskAssignmentsPage"));
+const InspectionChecklistPage = React.lazy(() => import("./pages/app/housekeeping/InspectionChecklistPage"));
+const IssueReportingPage = React.lazy(() => import("./pages/app/housekeeping/IssueReportingPage"));
 
 // Settings management pages
 import ServiceTypesListPage from "./pages/app/settings/ServiceTypesListPage";
@@ -1038,7 +1056,27 @@ function App() {
                <Route path="insurance/nphies/pre-authorizations" element={<React.Suspense fallback={<div>Loading...</div>}><PreAuthorizationsPage /></React.Suspense>} />
                <Route path="insurance/nphies/transaction-logs" element={<React.Suspense fallback={<div>Loading...</div>}><NphiesTransactionLogsPage /></React.Suspense>} />
               
-              {/* Accounts routes */}
+              {/* Payment Reconciliation */}
+              <Route path="billing/reconciliation" element={<React.Suspense fallback={<div>Loading...</div>}><PaymentReconciliationPage /></React.Suspense>} />
+
+              {/* Kitchen routes */}
+              <Route path="kitchen" element={<React.Suspense fallback={<div>Loading...</div>}><KitchenDashboard /></React.Suspense>} />
+              <Route path="kitchen/orders" element={<React.Suspense fallback={<div>Loading...</div>}><MealOrdersPage /></React.Suspense>} />
+              <Route path="kitchen/planning" element={<React.Suspense fallback={<div>Loading...</div>}><MealPlanningPage /></React.Suspense>} />
+
+              {/* Asset Management routes */}
+              <Route path="assets" element={<React.Suspense fallback={<div>Loading...</div>}><AssetDashboard /></React.Suspense>} />
+              <Route path="assets/registry" element={<React.Suspense fallback={<div>Loading...</div>}><AssetRegistryPage /></React.Suspense>} />
+              <Route path="assets/maintenance" element={<React.Suspense fallback={<div>Loading...</div>}><MaintenanceSchedulePage /></React.Suspense>} />
+              <Route path="assets/amc" element={<React.Suspense fallback={<div>Loading...</div>}><AMCTrackingPage /></React.Suspense>} />
+
+              {/* Housekeeping routes */}
+              <Route path="housekeeping" element={<React.Suspense fallback={<div>Loading...</div>}><HousekeepingDashboardPage /></React.Suspense>} />
+              <Route path="housekeeping/tasks" element={<React.Suspense fallback={<div>Loading...</div>}><TaskAssignmentsPage /></React.Suspense>} />
+              <Route path="housekeeping/inspections" element={<React.Suspense fallback={<div>Loading...</div>}><InspectionChecklistPage /></React.Suspense>} />
+              <Route path="housekeeping/issues" element={<React.Suspense fallback={<div>Loading...</div>}><IssueReportingPage /></React.Suspense>} />
+
+               {/* Accounts routes */}
               <Route path="accounts" element={<AccountsDashboard />} />
               <Route path="accounts/chart-of-accounts" element={<ChartOfAccountsPage />} />
               <Route path="accounts/chart-of-accounts/new" element={<AccountFormPage />} />
