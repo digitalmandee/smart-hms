@@ -131,16 +131,7 @@ export function LabPaymentDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {!hasActiveSession ? (
-          <div className="py-6 text-center">
-            <AlertCircle className="h-12 w-12 text-warning mx-auto mb-4" />
-            <p className="font-medium mb-2">Session Required</p>
-            <p className="text-sm text-muted-foreground">
-              Please open a billing session from the Billing Dashboard before collecting payments.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-4 py-4">
+        <div className="space-y-4 py-4">
             {/* Order Summary */}
             <div className="bg-muted/50 rounded-lg p-4 space-y-2">
               <div className="flex justify-between text-sm">
