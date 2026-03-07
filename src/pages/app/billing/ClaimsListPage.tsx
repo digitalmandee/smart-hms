@@ -41,11 +41,14 @@ export default function ClaimsListPage() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [batchDialogOpen, setBatchDialogOpen] = useState(false);
   
   const { data: claims, isLoading } = useInsuranceClaims({ 
     status: statusFilter !== "all" ? statusFilter : undefined 
   });
   const { data: stats } = useInsuranceStats();
+  const submitToNphies = useSubmitClaimToNphies();
 
   const filteredClaims = claims?.filter(c => 
     c.claim_number.toLowerCase().includes(search.toLowerCase()) ||
