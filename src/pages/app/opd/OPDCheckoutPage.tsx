@@ -1,5 +1,5 @@
 // OPD Checkout Page - handles billing and payment processing for OPD visits
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -27,6 +27,8 @@ import { useRequireSession } from "@/hooks/useRequireSession";
 import { PaymentMethodSelector } from "@/components/billing/PaymentMethodSelector";
 import { SessionRequiredGuard } from "@/components/billing/SessionRequiredGuard";
 import { SessionStatusBanner } from "@/components/billing/SessionStatusBanner";
+import { InsuranceBillingSplit, BillingSplit } from "@/components/insurance/InsuranceBillingSplit";
+import { InsuranceClaimPrompt } from "@/components/insurance/InsuranceClaimPrompt";
 import { toast } from "sonner";
 
 interface ChargeItem {
