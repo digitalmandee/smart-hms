@@ -9,15 +9,19 @@ import { ExecAboutUsSlide } from "@/components/executive/ExecAboutUsSlide";
 import { ExecProblemSlide } from "@/components/executive/ExecProblemSlide";
 import { ExecAllInOneSlide } from "@/components/executive/ExecAllInOneSlide";
 import { ExecModulesSlide } from "@/components/executive/ExecModulesSlide";
+import { ExecAIEverywhereSlide } from "@/components/executive/ExecAIEverywhereSlide";
+import { ExecTabeebiSlide } from "@/components/executive/ExecTabeebiSlide";
+import { ExecInsuranceSlide } from "@/components/executive/ExecInsuranceSlide";
+import { ExecClinicalSlide } from "@/components/executive/ExecClinicalSlide";
+import { ExecDiagnosticsSlide } from "@/components/executive/ExecDiagnosticsSlide";
 import { ExecAutomationSlide } from "@/components/executive/ExecAutomationSlide";
 import { ExecWorkflowSlide } from "@/components/executive/ExecWorkflowSlide";
-import { ExecTabeebiSlide } from "@/components/executive/ExecTabeebiSlide";
+import { ExecFinanceOpsSlide } from "@/components/executive/ExecFinanceOpsSlide";
 import { ExecTechSlide } from "@/components/executive/ExecTechSlide";
 import { ExecROISlide } from "@/components/executive/ExecROISlide";
-import { ExecWhyUsSlide } from "@/components/executive/ExecWhyUsSlide";
 import { ExecCTASlide } from "@/components/executive/ExecCTASlide";
 
-const TOTAL_SLIDES = 12;
+const TOTAL_SLIDES = 16;
 
 const ExecutivePresentation = () => {
   const [isDownloading, setIsDownloading] = useState(false);
@@ -70,7 +74,7 @@ const ExecutivePresentation = () => {
       const url = URL.createObjectURL(pdfBlob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = "HealthOS24-Executive-Deck.pdf";
+      link.download = "HealthOS24-Product-Deck.pdf";
       link.style.display = "none";
       document.body.appendChild(link);
       link.click();
@@ -119,8 +123,8 @@ const ExecutivePresentation = () => {
               </Button>
             </Link>
             <div>
-              <h1 className="font-semibold">Executive Pitch Deck</h1>
-              <p className="text-xs text-muted-foreground">{TOTAL_SLIDES} slides • Executive Edition</p>
+              <h1 className="font-semibold">HealthOS 24 — Product Pitch Deck</h1>
+              <p className="text-xs text-muted-foreground">{TOTAL_SLIDES} slides • Product Edition</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -154,12 +158,16 @@ const ExecutivePresentation = () => {
           <ExecProblemSlide />
           <ExecAllInOneSlide />
           <ExecModulesSlide />
+          <ExecAIEverywhereSlide />
+          <ExecTabeebiSlide />
+          <ExecInsuranceSlide />
+          <ExecClinicalSlide />
+          <ExecDiagnosticsSlide />
           <ExecAutomationSlide />
           <ExecWorkflowSlide />
-          <ExecTabeebiSlide />
+          <ExecFinanceOpsSlide />
           <ExecTechSlide />
           <ExecROISlide />
-          <ExecWhyUsSlide />
           <ExecCTASlide />
         </div>
       </div>
