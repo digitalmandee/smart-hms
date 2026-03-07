@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { formatCurrency } from "@/lib/currency";
+import { MedicalCodeSearch } from "@/components/insurance/MedicalCodeSearch";
 
 interface ClaimFormData {
   patient_insurance_id: string;
