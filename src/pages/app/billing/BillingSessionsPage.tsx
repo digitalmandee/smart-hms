@@ -115,7 +115,7 @@ export default function BillingSessionsPage() {
   // Export data for CSV/PDF
   const exportColumns = [
     { key: "session_number", header: t("billing.sessionNumber") },
-    { key: "user", header: t("billing.user"), format: (_: any, row: any) => row?.opened_by_profile?.full_name || "—" },
+    { key: "opened_by_name", header: t("billing.user"), format: (v: any) => v || "—" },
     { key: "counter_type", header: t("billing.counter"), format: (v: any) => t(COUNTER_LABELS[v as CounterType] || "billing.counterReception") },
     { key: "shift", header: t("billing.shift"), format: (v: any) => v ? t(SHIFT_LABELS[v] || "billing.shiftMorning") : "—" },
     { key: "opening_cash", header: t("billing.openingCash"), format: (v: any) => String(v ?? 0) },
