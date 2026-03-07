@@ -12,7 +12,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Monitor, Clock, DollarSign, CreditCard } from "lucide-react";
+import { ArrowLeft, Monitor, Clock, DollarSign, CreditCard, Layers } from "lucide-react";
+import type { TranslationKey } from "@/lib/i18n/translations/en";
 import { useTranslation } from "@/lib/i18n";
 import { formatCurrency } from "@/lib/currency";
 import { format } from "date-fns";
@@ -20,10 +21,25 @@ import {
   useSession,
   useSessionTransactions,
   SessionStatus,
+  CounterType,
   CashDenominations,
 } from "@/hooks/useBillingSessions";
 import { CloseSessionDialog } from "@/components/billing/CloseSessionDialog";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+
+const COUNTER_LABELS: Record<CounterType, TranslationKey> = {
+  reception: "billing.counterReception",
+  opd: "billing.counterOpd",
+  ipd: "billing.counterIpd",
+  pharmacy: "billing.counterPharmacy",
+  er: "billing.counterEr",
+};
+
+const SHIFT_LABELS: Record<string, TranslationKey> = {
+  morning: "billing.shiftMorning",
+  evening: "billing.shiftEvening",
+  night: "billing.shiftNight",
+};
 
 export default function SessionDetailPage() {
   const { t } = useTranslation();
@@ -84,7 +100,7 @@ export default function SessionDetailPage() {
               <Monitor className="h-5 w-5 text-muted-foreground" />
               <div>
                 <p className="text-sm text-muted-foreground">{t("billing.counter")}</p>
-                <p className="font-medium">{session.counter_type}</p>
+                <p className="font-medium">{t(COUNTER_LABELS[session.counter_type])}</p>
               </div>
             </div>
           </CardContent>
@@ -95,7 +111,7 @@ export default function SessionDetailPage() {
               <Clock className="h-5 w-5 text-muted-foreground" />
               <div>
                 <p className="text-sm text-muted-foreground">{t("billing.shift")}</p>
-                <p className="font-medium">{session.shift || "—"}</p>
+                <p className="font-medium">{session.shift ? t(SHIFT_LABELS[session.shift] ?? "billing.shiftMorning") : "—"}</p>
               </div>
             </div>
           </CardContent>
@@ -203,6 +219,39 @@ export default function SessionDetailPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Department Breakdown */}
+      {transactions && transactions.length > 0 && (() => {
+        const deptTotals = transactions.reduce<Record<string, { count: number; amount: number }>>((acc, tx: any) => {
+          const dept = tx.invoice?.department || t("billing.other");
+          if (!acc[dept]) acc[dept] = { count: 0, amount: 0 };
+          acc[dept].count += 1;
+          acc[dept].amount += Number(tx.amount);
+          return acc;
+        }, {});
+
+        return Object.keys(deptTotals).length > 1 ? (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Layers className="h-4 w-4" />
+                {t("billing.departmentBreakdown")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                {Object.entries(deptTotals).map(([dept, info]) => (
+                  <div key={dept} className="rounded-lg border p-3">
+                    <p className="text-sm text-muted-foreground capitalize">{dept}</p>
+                    <p className="text-lg font-bold">{formatCurrency(info.amount)}</p>
+                    <p className="text-xs text-muted-foreground">{info.count} {t("billing.transactions")}</p>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        ) : null;
+      })()}
 
       {/* Transactions */}
       <Card>

@@ -2969,6 +2969,8 @@ export const ur: Record<TranslationKey, string> = {
   "billing.noTransactions": "اس سیشن میں کوئی لین دین نہیں",
   "billing.discrepancy": "فرق",
   "billing.viewDetail": "دیکھیں",
+  "billing.closedAt": "بند ہونے کا وقت",
+  "billing.departmentBreakdown": "شعبہ وار تفصیل",
 
 };
 

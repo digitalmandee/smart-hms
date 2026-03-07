@@ -2969,6 +2969,8 @@ export const ar: Record<TranslationKey, string> = {
   "billing.noTransactions": "لا توجد معاملات في هذه الجلسة",
   "billing.discrepancy": "التناقض",
   "billing.viewDetail": "عرض",
+  "billing.closedAt": "أُغلقت في",
+  "billing.departmentBreakdown": "تفصيل حسب القسم",
 
 };
 

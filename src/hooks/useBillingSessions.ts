@@ -276,6 +276,8 @@ export function useCloseSession() {
       });
 
       const cashDifference = actualCash - cashTotal;
+      const totalCollections = (payments || []).reduce((sum: number, p: any) => sum + Number(p.amount), 0);
+      const transactionCount = payments?.length || 0;
 
       const { data, error } = await supabase
         .from('billing_sessions')
@@ -288,6 +290,8 @@ export function useCloseSession() {
           card_total: cardTotal,
           upi_total: upiTotal,
           other_total: otherTotal,
+          total_collections: totalCollections,
+          transaction_count: transactionCount,
           cash_denominations: cashDenominations,
           discrepancy_reason: discrepancyReason,
           status: 'closed',

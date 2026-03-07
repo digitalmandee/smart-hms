@@ -22,7 +22,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Monitor, Plus, Eye, Calendar } from "lucide-react";
+import { Monitor, Plus, Eye, Calendar, Download, Printer } from "lucide-react";
+import { ReportExportButton } from "@/components/reports/ReportExportButton";
 import { useTranslation } from "@/lib/i18n";
 import { formatCurrency } from "@/lib/currency";
 import { format } from "date-fns";
@@ -82,11 +83,11 @@ export default function BillingSessionsPage() {
     return <Badge variant={variants[status]}>{labels[status]}</Badge>;
   };
 
-  // User-wise cash summary from sessions
+  // User-wise cash summary from sessions — composite key to avoid merging shifts
   const cashSummary = sessions?.reduce<
     Record<string, { user: string; counter: string; shift: string; opening: number; collections: number; expected: number; actual: number | null; difference: number | null }>
   >((acc, s) => {
-    const key = s.opened_by;
+    const key = `${s.opened_by}_${s.counter_type}_${s.shift || "none"}`;
     if (!acc[key]) {
       acc[key] = {
         user: s.opened_by_profile?.full_name || "—",
@@ -111,6 +112,19 @@ export default function BillingSessionsPage() {
     return acc;
   }, {});
 
+  // Export data for CSV/PDF
+  const exportColumns = [
+    { key: "session_number", header: t("billing.sessionNumber") },
+    { key: "opened_by_name", header: t("billing.user"), format: (v: any) => v || "—" },
+    { key: "counter_type", header: t("billing.counter"), format: (v: any) => t(COUNTER_LABELS[v as CounterType] || "billing.counterReception") },
+    { key: "shift", header: t("billing.shift"), format: (v: any) => v ? t(SHIFT_LABELS[v] || "billing.shiftMorning") : "—" },
+    { key: "opening_cash", header: t("billing.openingCash"), format: (v: any) => String(v ?? 0) },
+    { key: "total_collections", header: t("billing.collections"), format: (v: any) => String(v ?? 0) },
+    { key: "status", header: t("common.status") },
+    { key: "opened_at", header: t("billing.openedAt"), format: (v: any) => v ? format(new Date(v), "dd MMM yyyy hh:mm a") : "—" },
+    { key: "closed_at", header: t("billing.closedAt"), format: (v: any) => v ? format(new Date(v), "dd MMM yyyy hh:mm a") : "—" },
+  ];
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -121,10 +135,22 @@ export default function BillingSessionsPage() {
           { label: t("billing.sessionsPage") },
         ]}
         actions={
-          <Button onClick={() => setShowOpenDialog(true)}>
-            <Plus className="h-4 w-4" />
-            {t("billing.openBillingSession")}
-          </Button>
+          <div className="flex items-center gap-2">
+            <ReportExportButton
+              data={(sessions || []).map(s => ({ ...s, opened_by_name: s.opened_by_profile?.full_name || "—" }))}
+              filename={`billing-sessions-${dateFrom}`}
+              columns={exportColumns}
+              title={t("billing.sessionsPage")}
+              pdfOptions={{
+                title: t("billing.sessionsPage"),
+                subtitle: `${dateFrom} — ${dateTo}`,
+              }}
+            />
+            <Button onClick={() => setShowOpenDialog(true)}>
+              <Plus className="h-4 w-4" />
+              {t("billing.openBillingSession")}
+            </Button>
+          </div>
         }
       />
 
@@ -232,6 +258,7 @@ export default function BillingSessionsPage() {
                     <TableHead className="text-right">{t("billing.collections")}</TableHead>
                     <TableHead>{t("common.status")}</TableHead>
                     <TableHead>{t("billing.openedAt")}</TableHead>
+                    <TableHead>{t("billing.closedAt")}</TableHead>
                     <TableHead>{t("common.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -248,6 +275,9 @@ export default function BillingSessionsPage() {
                         <TableCell>{statusBadge(s.status)}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">
                           {format(new Date(s.opened_at), "hh:mm a")}
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {s.closed_at ? format(new Date(s.closed_at), "hh:mm a") : "—"}
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1">
@@ -273,7 +303,7 @@ export default function BillingSessionsPage() {
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={9} className="h-24 text-center text-muted-foreground">
+                      <TableCell colSpan={10} className="h-24 text-center text-muted-foreground">
                         {t("common.noResults")}
                       </TableCell>
                     </TableRow>
