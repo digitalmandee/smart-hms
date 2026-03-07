@@ -179,6 +179,7 @@ export const SIDEBAR_NAME_TO_KEY: Record<string, TranslationKey> = {
   "Patients": "nav.patients",
   "Appointments": "nav.appointments",
   "Billing": "nav.billing",
+  "Billing Sessions": "billing.billingSessions",
   "Pharmacy": "nav.pharmacy",
   "Laboratory": "nav.lab",
   "IPD": "nav.ipd",
