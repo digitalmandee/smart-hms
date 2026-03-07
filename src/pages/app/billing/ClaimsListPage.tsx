@@ -292,6 +292,13 @@ export default function ClaimsListPage() {
           </CardContent>
         </Card>
       </div>
+
+      <BatchSubmitDialog
+        open={batchDialogOpen}
+        onOpenChange={setBatchDialogOpen}
+        claims={selectedClaims}
+        onSubmit={handleBatchSubmit}
+      />
     </div>
   );
 }

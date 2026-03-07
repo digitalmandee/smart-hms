@@ -446,10 +446,23 @@ export default function ClaimFormPage() {
             </CardContent>
           </Card>
 
+          {/* Scrub Results */}
+          {scrubRan && (
+            <ClaimScrubResults results={scrubResults} />
+          )}
+
           {/* Actions */}
           <div className="flex justify-end gap-4">
             <Button type="button" variant="outline" onClick={() => navigate('/app/billing/claims')}>
               Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => runScrub(watch() as ClaimFormData)}
+            >
+              <ShieldCheck className="h-4 w-4 mr-2" />
+              Validate
             </Button>
             <Button type="submit" disabled={createClaim.isPending}>
               {createClaim.isPending ? "Creating..." : "Create Claim"}

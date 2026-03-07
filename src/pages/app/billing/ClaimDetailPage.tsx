@@ -583,6 +583,11 @@ export default function ClaimDetailPage() {
         </Card>
       </div>
 
+      {/* Validation Results */}
+      {scrubResults.length > 0 && (
+        <ClaimScrubResults results={scrubResults} />
+      )}
+
       {/* Notes & Rejection Reason */}
       {(claim.notes || claim.rejection_reason) && (
         <Card>
