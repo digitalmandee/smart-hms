@@ -22,7 +22,7 @@ export function ExecAllInOneSlide() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-primary/5 blur-3xl" />
       </div>
 
-      <div className="absolute top-6 right-6 text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">4 / 12</div>
+      <div className="absolute top-6 right-6 text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">4 / 16</div>
 
       <div className="relative z-10 flex flex-col items-center w-full max-w-4xl">
         <p className="text-sm text-primary font-semibold mb-2">The Solution</p>

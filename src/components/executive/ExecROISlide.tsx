@@ -54,7 +54,7 @@ export function ExecROISlide() {
           <h2 className="text-3xl font-extrabold text-foreground">Measurable Results</h2>
           <p className="text-sm text-muted-foreground mt-1">Real impact from real deployments across 500+ facilities.</p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">10 / 12</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">15 / 16</span>
       </div>
 
       <div className="grid grid-cols-2 gap-5 flex-1">

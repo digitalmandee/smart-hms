@@ -24,7 +24,7 @@ export function ExecAboutUsSlide() {
             Pakistan's leading health-tech company building the future of hospital management.
           </p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">2 / 12</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">2 / 16</span>
       </div>
 
       <div className="grid grid-cols-3 gap-5 flex-1">

@@ -62,7 +62,7 @@ export function ExecAutomationSlide() {
           <h2 className="text-3xl font-extrabold text-foreground">Built-in Automation</h2>
           <p className="text-sm text-muted-foreground mt-1">Eliminate manual work. Let the system do the heavy lifting.</p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">6 / 12</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">11 / 16</span>
       </div>
 
       <div className="grid grid-cols-2 gap-3 flex-1">
