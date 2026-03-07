@@ -604,6 +604,9 @@ export default function ClaimDetailPage() {
         <ClaimScrubResults results={scrubResults} />
       )}
 
+      {/* Attachments */}
+      <ClaimAttachments claimId={claim.id} readOnly={claim.status === 'paid'} />
+
       {/* Notes & Rejection Reason */}
       {(claim.notes || claim.rejection_reason) && (
         <Card>
