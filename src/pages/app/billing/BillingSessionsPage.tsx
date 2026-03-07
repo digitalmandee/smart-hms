@@ -241,8 +241,8 @@ export default function BillingSessionsPage() {
                       <TableRow key={s.id}>
                         <TableCell className="font-mono text-sm">{s.session_number}</TableCell>
                         <TableCell>{s.opened_by_profile?.full_name || "—"}</TableCell>
-                        <TableCell>{t(COUNTER_LABELS[s.counter_type] || "")}</TableCell>
-                        <TableCell>{s.shift ? t(SHIFT_LABELS[s.shift] || "") : "—"}</TableCell>
+                        <TableCell>{t(COUNTER_LABELS[s.counter_type])}</TableCell>
+                        <TableCell>{s.shift ? t(SHIFT_LABELS[s.shift] ?? "billing.shiftMorning") : "—"}</TableCell>
                         <TableCell className="text-right">{formatCurrency(s.opening_cash)}</TableCell>
                         <TableCell className="text-right">{formatCurrency(s.total_collections)}</TableCell>
                         <TableCell>{statusBadge(s.status)}</TableCell>
