@@ -21,6 +21,7 @@ import {
 import { useOpenSession, CounterType, getCurrentShift } from "@/hooks/useBillingSessions";
 import { formatCurrency } from "@/lib/currency";
 import { Clock, DollarSign, Monitor } from "lucide-react";
+import { useTranslation } from "@/lib/i18n";
 
 interface OpenSessionDialogProps {
   open: boolean;
@@ -29,32 +30,33 @@ interface OpenSessionDialogProps {
   onSuccess?: () => void;
 }
 
-const COUNTER_TYPES: { value: CounterType; label: string }[] = [
-  { value: 'reception', label: 'Reception / Front Desk' },
-  { value: 'opd', label: 'OPD Counter' },
-  { value: 'ipd', label: 'IPD Billing' },
-  { value: 'pharmacy', label: 'Pharmacy' },
-  { value: 'er', label: 'Emergency' },
-];
-
-const SHIFT_LABELS = {
-  morning: 'Morning (6 AM - 2 PM)',
-  evening: 'Evening (2 PM - 10 PM)',
-  night: 'Night (10 PM - 6 AM)',
-};
-
 export function OpenSessionDialog({
   open,
   onOpenChange,
   defaultCounterType = 'reception',
   onSuccess,
 }: OpenSessionDialogProps) {
+  const { t } = useTranslation();
   const [counterType, setCounterType] = useState<CounterType>(defaultCounterType);
   const [openingCash, setOpeningCash] = useState<number>(0);
   const [notes, setNotes] = useState("");
 
   const openSessionMutation = useOpenSession();
   const currentShift = getCurrentShift();
+
+  const COUNTER_TYPES: { value: CounterType; label: string }[] = [
+    { value: 'reception', label: t('billing.counterReception') },
+    { value: 'opd', label: t('billing.counterOpd') },
+    { value: 'ipd', label: t('billing.counterIpd') },
+    { value: 'pharmacy', label: t('billing.counterPharmacy') },
+    { value: 'er', label: t('billing.counterEr') },
+  ];
+
+  const SHIFT_LABELS: Record<string, string> = {
+    morning: t('billing.shiftMorning'),
+    evening: t('billing.shiftEvening'),
+    night: t('billing.shiftNight'),
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,11 +79,10 @@ export function OpenSessionDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Monitor className="h-5 w-5" />
-            Open Billing Session
+            {t('billing.openBillingSession')}
           </DialogTitle>
           <DialogDescription>
-            Start a new billing session to collect payments. You must close this session
-            at the end of your shift.
+            {t('billing.openSessionDesc')}
           </DialogDescription>
         </DialogHeader>
 
@@ -89,7 +90,7 @@ export function OpenSessionDialog({
           <div className="rounded-lg bg-muted/50 p-3 flex items-center gap-3">
             <Clock className="h-5 w-5 text-muted-foreground" />
             <div>
-              <p className="text-sm font-medium">Current Shift</p>
+              <p className="text-sm font-medium">{t('billing.currentShift')}</p>
               <p className="text-sm text-muted-foreground">
                 {SHIFT_LABELS[currentShift]}
               </p>
@@ -97,13 +98,13 @@ export function OpenSessionDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="counterType">Counter Type *</Label>
+            <Label htmlFor="counterType">{t('billing.counterType')} *</Label>
             <Select
               value={counterType}
               onValueChange={(v) => setCounterType(v as CounterType)}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select counter type" />
+                <SelectValue placeholder={t('billing.counterType')} />
               </SelectTrigger>
               <SelectContent>
                 {COUNTER_TYPES.map((type) => (
@@ -118,7 +119,7 @@ export function OpenSessionDialog({
           <div className="space-y-2">
             <Label htmlFor="openingCash" className="flex items-center gap-2">
               <DollarSign className="h-4 w-4" />
-              Opening Cash Balance *
+              {t('billing.openingCashBalance')} *
             </Label>
             <Input
               id="openingCash"
@@ -127,28 +128,28 @@ export function OpenSessionDialog({
               step="1"
               value={openingCash || ''}
               onChange={(e) => setOpeningCash(parseFloat(e.target.value) || 0)}
-              placeholder="Enter cash in drawer"
+              placeholder={t('billing.enterCashInDrawer')}
               required
             />
             <p className="text-xs text-muted-foreground">
-              Count all cash in your drawer before starting (float + any previous balance)
+              {t('billing.cashInDrawer')}
             </p>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="notes">Notes (Optional)</Label>
+            <Label htmlFor="notes">{t('billing.notesOptional')}</Label>
             <Textarea
               id="notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Any opening remarks..."
+              placeholder={t('billing.openingRemarks')}
               rows={2}
             />
           </div>
 
           <div className="rounded-lg border p-3 bg-primary/5">
             <p className="text-sm">
-              <strong>Starting with:</strong> {formatCurrency(openingCash)}
+              <strong>{t('billing.startingWith')}:</strong> {formatCurrency(openingCash)}
             </p>
           </div>
 
@@ -158,10 +159,10 @@ export function OpenSessionDialog({
               variant="outline"
               onClick={() => onOpenChange(false)}
             >
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button type="submit" disabled={openSessionMutation.isPending}>
-              {openSessionMutation.isPending ? 'Opening...' : 'Open Session'}
+              {openSessionMutation.isPending ? t('billing.opening') : t('billing.openBillingSession')}
             </Button>
           </DialogFooter>
         </form>

@@ -6,6 +6,7 @@ import { AlertCircle, Monitor } from "lucide-react";
 import { useRequireSession } from "@/hooks/useRequireSession";
 import { CounterType } from "@/hooks/useBillingSessions";
 import { OpenSessionDialog } from "./OpenSessionDialog";
+import { useTranslation } from "@/lib/i18n";
 
 interface SessionRequiredGuardProps {
   children?: React.ReactNode;
@@ -14,20 +15,18 @@ interface SessionRequiredGuardProps {
   title?: string;
 }
 
-/**
- * A guard component that blocks content and shows an "Open Session" prompt
- * if no active billing session exists for the current user.
- * 
- * Use this to wrap payment collection pages/components.
- */
 export function SessionRequiredGuard({
   children,
   counterType = "reception",
-  message = "You must open a billing session to collect payments",
-  title = "Session Required",
+  message,
+  title,
 }: SessionRequiredGuardProps) {
+  const { t } = useTranslation();
   const [showOpenDialog, setShowOpenDialog] = useState(false);
   const { hasActiveSession, isLoading } = useRequireSession(counterType);
+
+  const displayTitle = title || t('billing.sessionRequired');
+  const displayMessage = message || t('billing.mustOpenSession');
 
   if (isLoading) {
     return (
@@ -49,9 +48,9 @@ export function SessionRequiredGuard({
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-warning/10 mb-4">
               <AlertCircle className="h-8 w-8 text-warning" />
             </div>
-            <h2 className="text-xl font-semibold mb-2">{title}</h2>
+            <h2 className="text-xl font-semibold mb-2">{displayTitle}</h2>
             <p className="text-muted-foreground mb-6 max-w-xs mx-auto">
-              {message}
+              {displayMessage}
             </p>
             <Button 
               onClick={() => setShowOpenDialog(true)}
@@ -59,7 +58,7 @@ export function SessionRequiredGuard({
               size="lg"
             >
               <Monitor className="h-4 w-4" />
-              Open Billing Session
+              {t('billing.openBillingSession')}
             </Button>
           </CardContent>
         </Card>

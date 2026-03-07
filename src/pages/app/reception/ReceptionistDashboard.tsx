@@ -13,6 +13,7 @@ import { ReceptionQuickActions } from "@/components/reception/ReceptionQuickActi
 import { RecentRegistrationCard } from "@/components/reception/RecentRegistrationCard";
 import { PendingSurgeryRequestsCard } from "@/components/reception/PendingSurgeryRequestsCard";
 import { UpcomingSurgeriesCard } from "@/components/reception/UpcomingSurgeriesCard";
+import { SessionStatusBanner } from "@/components/billing/SessionStatusBanner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTranslation } from "@/lib/i18n";
 
@@ -56,6 +57,9 @@ export default function ReceptionistDashboard() {
           { label: t("appointments.completed"), value: dashboardData?.statusCounts.completed || 0 },
         ]}
       />
+
+      {/* Billing Session Status */}
+      <SessionStatusBanner counterType="reception" />
 
       {/* Stats Overview */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
