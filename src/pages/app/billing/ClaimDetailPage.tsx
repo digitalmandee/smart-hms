@@ -250,6 +250,13 @@ export default function ClaimDetailPage() {
               </Button>
             )}
 
+            {claim.status === 'draft' && (
+              <Button variant="outline" onClick={handleRunValidation}>
+                <ShieldCheck className="h-4 w-4 mr-2" />
+                Run Validation
+              </Button>
+            )}
+
             {canSubmitToNphies && (
               <Button
                 onClick={handleSubmitToNphies}
