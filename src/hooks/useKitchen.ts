@@ -28,7 +28,6 @@ export function useKitchenOrders(mealType?: string) {
   return useQuery({
     queryKey: ["kitchen-orders", profile?.organization_id, mealType],
     queryFn: async () => {
-      // Aggregate from active admissions with diet charts
       const { data, error } = await supabase
         .from("admissions")
         .select(`
@@ -37,21 +36,20 @@ export function useKitchenOrders(mealType?: string) {
           ward:wards(name),
           bed:beds(bed_number)
         `)
-        .in("status", ["admitted", "confirmed"])
+        .eq("status", "admitted")
         .order("admission_date", { ascending: false });
 
       if (error) throw error;
 
-      // Transform admissions into kitchen orders
       const orders: KitchenOrder[] = (data || []).map((adm: any) => ({
         id: adm.id,
         patient_name: `${adm.patient?.first_name || ""} ${adm.patient?.last_name || ""}`.trim(),
         ward_name: adm.ward?.name || "Unassigned",
         bed_number: adm.bed?.bed_number || "-",
-        diet_type: "Regular", // Default, would come from diet_charts
+        diet_type: "Regular",
         meal_type: getMealTypeForCurrentTime(),
         special_instructions: null,
-        status: "pending",
+        status: "pending" as const,
         admission_id: adm.id,
       }));
 

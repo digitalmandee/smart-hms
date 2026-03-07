@@ -2,7 +2,6 @@ import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { Upload, FileText, Trash2, Download, Loader2, Paperclip } from "lucide-react";
@@ -43,12 +42,12 @@ export function ClaimAttachments({ claimId, readOnly = false }: ClaimAttachments
     queryKey: ["claim-attachments", claimId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("claim_attachments")
+        .from("claim_attachments" as any)
         .select("*")
         .eq("claim_id", claimId)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data as ClaimAttachment[];
+      return (data || []) as unknown as ClaimAttachment[];
     },
     enabled: !!claimId,
   });
@@ -61,7 +60,7 @@ export function ClaimAttachments({ claimId, readOnly = false }: ClaimAttachments
         await supabase.storage.from("claim-attachments").remove([path]);
       }
       // Delete from DB
-      const { error } = await supabase.from("claim_attachments").delete().eq("id", attachment.id);
+      const { error } = await supabase.from("claim_attachments" as any).delete().eq("id", attachment.id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -76,7 +75,7 @@ export function ClaimAttachments({ claimId, readOnly = false }: ClaimAttachments
       const file = e.target.files?.[0];
       if (!file) return;
 
-      const maxSize = 10 * 1024 * 1024; // 10MB
+      const maxSize = 10 * 1024 * 1024;
       if (file.size > maxSize) {
         toast.error("File too large. Maximum 10MB.");
         return;
@@ -97,13 +96,13 @@ export function ClaimAttachments({ claimId, readOnly = false }: ClaimAttachments
           .from("claim-attachments")
           .getPublicUrl(filePath);
 
-        const { error: dbError } = await supabase.from("claim_attachments").insert({
+        const { error: dbError } = await supabase.from("claim_attachments" as any).insert({
           claim_id: claimId,
           file_name: file.name,
           file_type: file.type,
           file_url: urlData.publicUrl,
           attachment_type: attachmentType,
-        });
+        } as any);
 
         if (dbError) throw dbError;
 
@@ -129,7 +128,6 @@ export function ClaimAttachments({ claimId, readOnly = false }: ClaimAttachments
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        {/* Upload area */}
         {!readOnly && (
           <div className="flex gap-2 items-end">
             <div className="flex-1">
@@ -166,7 +164,6 @@ export function ClaimAttachments({ claimId, readOnly = false }: ClaimAttachments
           </div>
         )}
 
-        {/* Files list */}
         {isLoading ? (
           <div className="text-sm text-muted-foreground">Loading...</div>
         ) : attachments.length === 0 ? (
