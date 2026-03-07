@@ -1,4 +1,4 @@
-import { Stethoscope, FlaskConical, Pill, Calculator, Settings, Bot, Hotel, Scissors, Siren, HeartPulse, ScanLine, Microscope, Store, Receipt, BarChart3, Wallet, UserCog, Clock, Truck, Warehouse, Shield, Brain } from "lucide-react";
+import { Stethoscope, FlaskConical, Pill, Calculator, Settings, Bot, Hotel, Scissors, Siren, HeartPulse, ScanLine, Microscope, Store, Receipt, BarChart3, Wallet, UserCog, Clock, Truck, Warehouse, Shield, Brain, ShieldCheck, FileText, Search, CreditCard } from "lucide-react";
 
 const categories = [
   {
@@ -50,6 +50,18 @@ const categories = [
     ],
   },
   {
+    name: "Insurance & RCM",
+    color: "bg-blue-600",
+    borderColor: "border-blue-600/20",
+    bgColor: "bg-blue-600/5",
+    modules: [
+      { icon: Search, name: "Eligibility Verification" },
+      { icon: ShieldCheck, name: "Pre-Authorization" },
+      { icon: FileText, name: "Claims & Submission" },
+      { icon: CreditCard, name: "ERA & Reconciliation" },
+    ],
+  },
+  {
     name: "Operations",
     color: "bg-amber-500",
     borderColor: "border-amber-500/20",
@@ -84,21 +96,21 @@ export function ExecModulesSlide() {
           <h2 className="text-3xl font-extrabold text-foreground">20+ Integrated Modules</h2>
           <p className="text-sm text-muted-foreground mt-1">Every department covered. Every workflow connected.</p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">5 / 12</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">5 / 16</span>
       </div>
 
-      <div className="grid grid-cols-3 gap-4 flex-1">
+      <div className="grid grid-cols-4 gap-3 flex-1">
         {categories.map((cat) => (
-          <div key={cat.name} className={`rounded-xl border ${cat.borderColor} ${cat.bgColor} p-4`}>
-            <div className="flex items-center gap-2 mb-3">
+          <div key={cat.name} className={`rounded-xl border ${cat.borderColor} ${cat.bgColor} p-3`}>
+            <div className="flex items-center gap-2 mb-2">
               <div className={`w-2.5 h-2.5 rounded-full ${cat.color}`} />
-              <h3 className="font-bold text-sm text-foreground">{cat.name}</h3>
-              <span className="text-[10px] text-muted-foreground ml-auto">{cat.modules.length} modules</span>
+              <h3 className="font-bold text-xs text-foreground">{cat.name}</h3>
+              <span className="text-[9px] text-muted-foreground ml-auto">{cat.modules.length}</span>
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-1">
               {cat.modules.map((m) => (
-                <div key={m.name} className="flex items-center gap-2 text-xs text-foreground">
-                  <m.icon className="h-3.5 w-3.5 text-muted-foreground" />
+                <div key={m.name} className="flex items-center gap-1.5 text-[10px] text-foreground">
+                  <m.icon className="h-3 w-3 text-muted-foreground" />
                   <span>{m.name}</span>
                 </div>
               ))}
@@ -109,7 +121,7 @@ export function ExecModulesSlide() {
 
       <div className="mt-auto pt-4 border-t border-border flex items-center justify-between text-[10px] text-muted-foreground">
         <span>HealthOS 24 | AI-Powered Hospital Management</span>
-        <span>healthos24.com | Confidential</span>
+        <span>healthos24.com</span>
       </div>
     </div>
   );

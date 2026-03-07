@@ -22,7 +22,7 @@ export function ExecProblemSlide() {
           <p className="text-sm text-destructive font-semibold mb-1">The Challenge</p>
           <h2 className="text-3xl font-extrabold text-foreground">The Problem: Fragmented Hospital IT</h2>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">3 / 12</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">3 / 16</span>
       </div>
 
       <div className="grid grid-cols-2 gap-6 flex-1">

@@ -1,5 +1,5 @@
 import { HealthOS24Logo } from "@/components/brand/HealthOS24Logo";
-import { Building2, FlaskConical, Users, Shield } from "lucide-react";
+import { Building2, FlaskConical, Users, Shield, Bot, Layers, Globe } from "lucide-react";
 
 const stats = [
   { icon: Building2, value: "500+", label: "Clinics & Hospitals" },
@@ -15,11 +15,6 @@ export function ExecTitleSlide() {
       <div className="absolute top-[-100px] right-[-100px] w-[400px] h-[400px] rounded-full bg-primary/5 blur-3xl" />
       <div className="absolute bottom-[-80px] left-[-80px] w-[300px] h-[300px] rounded-full bg-primary/8 blur-3xl" />
 
-      {/* Confidential badge */}
-      <div className="absolute top-6 right-6 px-3 py-1 rounded-full border border-destructive/30 bg-destructive/5 text-destructive text-[10px] font-semibold tracking-widest uppercase">
-        Confidential
-      </div>
-
       <div className="relative z-10 flex flex-col items-center gap-8">
         <HealthOS24Logo variant="full" size="xl" showTagline />
 
@@ -28,23 +23,35 @@ export function ExecTitleSlide() {
             AI-Powered Hospital<br />Management System
           </h1>
           <p className="text-xl text-primary font-semibold">
-            One Platform. Every Department. Zero Fragmentation.
+            One Platform. Every Department. AI Inside.
           </p>
           <p className="text-base text-muted-foreground max-w-lg mx-auto">
             Replace 10+ disconnected tools with a single, intelligent system that runs your entire hospital — from reception to accounts.
           </p>
         </div>
 
+        {/* Feature badges */}
+        <div className="flex items-center gap-3 mt-2">
+          <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-semibold">
+            <Layers className="h-3.5 w-3.5" />20+ Modules
+          </span>
+          <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-semibold">
+            <Globe className="h-3.5 w-3.5" />3 Languages
+          </span>
+          <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-semibold">
+            <Bot className="h-3.5 w-3.5" />Built-in AI
+          </span>
+        </div>
+
         {/* Language badge */}
-        <div className="flex items-center gap-2 mt-4">
-          <span className="text-xs font-semibold text-muted-foreground">Available in:</span>
+        <div className="flex items-center gap-2 mt-2">
           <span className="px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">🇬🇧 English</span>
           <span className="px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">🇸🇦 عربي</span>
           <span className="px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">🇵🇰 اردو</span>
         </div>
 
         {/* Stats bar */}
-        <div className="flex items-center gap-6 mt-6">
+        <div className="flex items-center gap-6 mt-4">
           {stats.map((s) => (
             <div key={s.label} className="flex items-center gap-3 px-5 py-3 rounded-xl bg-card border shadow-sm">
               <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -63,7 +70,7 @@ export function ExecTitleSlide() {
       <div className="absolute bottom-4 left-0 right-0 flex items-center justify-between px-8 text-[10px] text-muted-foreground">
         <span>HealthOS 24 | AI-Powered Hospital Management</span>
         <span>March 2026</span>
-        <span>healthos24.com | Confidential</span>
+        <span>healthos24.com</span>
       </div>
     </div>
   );

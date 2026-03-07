@@ -23,7 +23,7 @@ export function ExecTechSlide() {
           <h2 className="text-3xl font-extrabold text-foreground">Enterprise-Grade Technology</h2>
           <p className="text-sm text-muted-foreground mt-1">Built for hospitals that demand reliability, security, and scale.</p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">9 / 12</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">14 / 16</span>
       </div>
 
       <div className="grid grid-cols-4 gap-4 flex-1">
