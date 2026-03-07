@@ -21,10 +21,9 @@ import {
 } from "@/components/ui/select";
 import { useRecordPayment, usePaymentMethods } from "@/hooks/useBilling";
 import { useUpdateLabOrderPayment } from "@/hooks/useLabOrders";
-import { useUpdateLabOrderPayment } from "@/hooks/useLabOrders";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { Loader2, CreditCard, Banknote, Smartphone, AlertCircle } from "lucide-react";
+import { Loader2, CreditCard, Banknote, Smartphone } from "lucide-react";
 
 interface LabPaymentDialogProps {
   open: boolean;
