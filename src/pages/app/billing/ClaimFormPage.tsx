@@ -345,12 +345,14 @@ export default function ClaimFormPage() {
                       value={item.description}
                       onChange={(e) => updateItem(index, 'description', e.target.value)}
                     />
-                    <Input
-                      className="col-span-2"
-                      placeholder="Code"
-                      value={item.service_code}
-                      onChange={(e) => updateItem(index, 'service_code', e.target.value)}
-                    />
+                    <div className="col-span-2">
+                      <MedicalCodeSearch
+                        codeType="cpt"
+                        selectedCodes={item.service_code ? [item.service_code] : []}
+                        onCodesChange={(codes) => updateItem(index, 'service_code', codes[codes.length - 1] || '')}
+                        placeholder="CPT Code"
+                      />
+                    </div>
                     <Input
                       className="col-span-1"
                       type="number"
