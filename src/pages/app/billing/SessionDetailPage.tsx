@@ -21,10 +21,25 @@ import {
   useSession,
   useSessionTransactions,
   SessionStatus,
+  CounterType,
   CashDenominations,
 } from "@/hooks/useBillingSessions";
 import { CloseSessionDialog } from "@/components/billing/CloseSessionDialog";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+
+const COUNTER_LABELS: Record<CounterType, TranslationKey> = {
+  reception: "billing.counterReception",
+  opd: "billing.counterOpd",
+  ipd: "billing.counterIpd",
+  pharmacy: "billing.counterPharmacy",
+  er: "billing.counterEr",
+};
+
+const SHIFT_LABELS: Record<string, TranslationKey> = {
+  morning: "billing.shiftMorning",
+  evening: "billing.shiftEvening",
+  night: "billing.shiftNight",
+};
 
 export default function SessionDetailPage() {
   const { t } = useTranslation();
