@@ -36,8 +36,6 @@ export default function InvoiceFormPage() {
   const isEdit = !!id;
   const surgeryId = searchParams.get("surgeryId");
 
-  // Check for active session (soft enforcement - show warning but allow creation)
-  const { hasActiveSession, isLoading: sessionLoading } = useRequireSession("reception");
 
   const { data: existingInvoice, isLoading } = useInvoice(id);
   const { data: surgery, isLoading: surgeryLoading } = useSurgery(surgeryId || "");
