@@ -20,6 +20,7 @@ import { formatCurrency } from "@/lib/currency";
 import { useTranslation } from "@/lib/i18n";
 import { DenialManagementPanel } from "@/components/insurance/DenialManagementPanel";
 import { ClaimScrubResults } from "@/components/insurance/ClaimScrubResults";
+import { ClaimAttachments } from "@/components/insurance/ClaimAttachments";
 import { scrubClaim, hasErrors, ScrubResult } from "@/lib/claimScrubber";
 
 const statusColors: Record<string, string> = {
