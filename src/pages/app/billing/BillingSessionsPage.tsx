@@ -303,7 +303,7 @@ export default function BillingSessionsPage() {
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={9} className="h-24 text-center text-muted-foreground">
+                      <TableCell colSpan={10} className="h-24 text-center text-muted-foreground">
                         {t("common.noResults")}
                       </TableCell>
                     </TableRow>

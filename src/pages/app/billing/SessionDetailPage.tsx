@@ -220,6 +220,39 @@ export default function SessionDetailPage() {
         </CardContent>
       </Card>
 
+      {/* Department Breakdown */}
+      {transactions && transactions.length > 0 && (() => {
+        const deptTotals = transactions.reduce<Record<string, { count: number; amount: number }>>((acc, tx: any) => {
+          const dept = tx.invoice?.department || t("billing.other");
+          if (!acc[dept]) acc[dept] = { count: 0, amount: 0 };
+          acc[dept].count += 1;
+          acc[dept].amount += Number(tx.amount);
+          return acc;
+        }, {});
+
+        return Object.keys(deptTotals).length > 1 ? (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Layers className="h-4 w-4" />
+                {t("billing.departmentBreakdown")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                {Object.entries(deptTotals).map(([dept, info]) => (
+                  <div key={dept} className="rounded-lg border p-3">
+                    <p className="text-sm text-muted-foreground capitalize">{dept}</p>
+                    <p className="text-lg font-bold">{formatCurrency(info.amount)}</p>
+                    <p className="text-xs text-muted-foreground">{info.count} {t("billing.transactions")}</p>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        ) : null;
+      })()}
+
       {/* Transactions */}
       <Card>
         <CardHeader className="pb-3">
