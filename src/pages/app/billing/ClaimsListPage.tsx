@@ -238,6 +238,14 @@ export default function ClaimsListPage() {
                   ) : (
                     filteredClaims.map((claim) => (
                       <TableRow key={claim.id}>
+                        <TableCell>
+                          {(claim.status === 'draft' || claim.status === 'submitted') && (
+                            <Checkbox
+                              checked={selectedIds.has(claim.id)}
+                              onCheckedChange={() => toggleSelect(claim.id)}
+                            />
+                          )}
+                        </TableCell>
                         <TableCell className="font-medium">{claim.claim_number}</TableCell>
                         <TableCell>
                           {claim.patient_insurance?.patient ? (
