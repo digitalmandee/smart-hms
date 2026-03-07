@@ -664,14 +664,22 @@ Deno.serve(async (req) => {
           };
           const nphiesStatus = statusMap[outcome] || "pending";
 
+          // Parse denial reasons on status check too
+          const denialReasons = parseDenialReasonsFromFhir(claimResponse);
+
+          const updateData: Record<string, any> = {
+            nphies_status: nphiesStatus,
+            nphies_response: pollData,
+            status: nphiesStatus === "approved" ? "approved" :
+                   nphiesStatus === "rejected" ? "rejected" : undefined,
+          };
+          if (denialReasons.length > 0) {
+            updateData.denial_reasons = denialReasons;
+          }
+
           await supabase
             .from("insurance_claims")
-            .update({
-              nphies_status: nphiesStatus,
-              nphies_response: pollData,
-              status: nphiesStatus === "approved" ? "approved" :
-                     nphiesStatus === "rejected" ? "rejected" : undefined,
-            })
+            .update(updateData)
             .eq("id", claim_id);
 
           await logTransaction(supabase, organization_id, "check_claim_status",
@@ -683,6 +691,7 @@ Deno.serve(async (req) => {
               success: true,
               nphies_status: nphiesStatus,
               outcome,
+              denial_reasons: denialReasons,
               adjudication: claimResponse.adjudication,
               raw_response: pollData,
             }),
