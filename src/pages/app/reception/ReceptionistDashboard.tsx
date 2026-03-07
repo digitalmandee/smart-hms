@@ -13,6 +13,7 @@ import { ReceptionQuickActions } from "@/components/reception/ReceptionQuickActi
 import { RecentRegistrationCard } from "@/components/reception/RecentRegistrationCard";
 import { PendingSurgeryRequestsCard } from "@/components/reception/PendingSurgeryRequestsCard";
 import { UpcomingSurgeriesCard } from "@/components/reception/UpcomingSurgeriesCard";
+import { SessionStatusBanner } from "@/components/billing/SessionStatusBanner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTranslation } from "@/lib/i18n";
 
