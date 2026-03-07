@@ -65,7 +65,7 @@ export function QuickPaymentDialog({
         invoiceId,
         amount: paymentAmount,
         paymentMethodId,
-        billingSessionId: session?.id,
+        billingSessionId: undefined,
         referenceNumber: referenceNumber || undefined,
         notes: notes || `Payment for ${invoiceNumber}`,
       });
