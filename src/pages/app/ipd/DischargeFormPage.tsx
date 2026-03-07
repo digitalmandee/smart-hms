@@ -54,6 +54,7 @@ import { InsuranceClaimPrompt } from "@/components/insurance/InsuranceClaimPromp
 import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
+import { Shield } from "lucide-react";
 import {
   User,
   Calendar,
