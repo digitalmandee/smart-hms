@@ -221,9 +221,7 @@ export function LabPaymentDialog({
                   rows={2}
                 />
               </div>
-            </div>
-          </div>
-        )}
+        </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
