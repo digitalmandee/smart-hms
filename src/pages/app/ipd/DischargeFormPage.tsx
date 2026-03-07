@@ -98,6 +98,7 @@ export default function DischargeFormPage() {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [additionalCharges, setAdditionalCharges] = useState<InvoiceItemInput[]>([]);
   const [showAddCharges, setShowAddCharges] = useState(false);
+  const [dischargeBillingSplit, setDischargeBillingSplit] = useState<BillingSplit | null>(null);
 
   const { data: admission, isLoading: loadingAdmission, refetch: refetchAdmission } = useAdmission(id);
   const { data: dischargeSummary, isLoading: loadingSummary, refetch: refetchSummary } = useDischargeSummary(id);

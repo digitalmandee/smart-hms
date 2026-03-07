@@ -488,6 +488,19 @@ export default function AdmissionFormPage() {
                   onCorporateFieldsChange={setCorporateFields}
                 />
               </div>
+
+              {/* Insurance Eligibility Check - shown when payment_mode is insurance */}
+              {form.watch("payment_mode") === "insurance" && selectedPatient && (
+                <div className="md:col-span-2 space-y-3">
+                  <AppointmentInsuranceCheck patientId={selectedPatient.id} />
+                  <Alert className="border-warning/50 bg-warning/10">
+                    <ShieldAlert className="h-4 w-4 text-warning" />
+                    <AlertDescription className="text-sm">
+                      Please verify NPHIES eligibility before confirming admission. Pre-authorization may be required for elective admissions.
+                    </AlertDescription>
+                  </Alert>
+                </div>
+              )}
             </CardContent>
           </Card>
 

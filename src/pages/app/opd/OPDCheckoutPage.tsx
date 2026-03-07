@@ -519,6 +519,27 @@ export default function OPDCheckoutPage() {
 
         {/* Payment Summary */}
         <div className="space-y-4">
+          {/* Insurance Claim Prompt (shown after invoice is created for insured patients) */}
+          {createdInvoiceId && billingSplit && !billingSplit.isSelfPay && billingSplit.insuranceAmount > 0 && (
+            <InsuranceClaimPrompt
+              patientId={appointment.patient_id}
+              invoiceId={createdInvoiceId}
+              totalAmount={billingSplit.totalAmount}
+              insuranceAmount={billingSplit.insuranceAmount}
+              onDismiss={() => navigate(`/app/billing/invoices/${createdInvoiceId}`)}
+            />
+          )}
+
+          {/* Insurance Billing Split */}
+          {appointment.patient_id && selectedTotal > 0 && (
+            <InsuranceBillingSplit
+              patientId={appointment.patient_id}
+              totalAmount={selectedTotal}
+              onSplitCalculated={useCallback((split: BillingSplit) => setBillingSplit(split), [])}
+              showHeader
+            />
+          )}
+
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
@@ -533,10 +554,28 @@ export default function OPDCheckoutPage() {
                   <span>{selectedCharges.length}</span>
                 </div>
                 <Separator />
-                <div className="flex justify-between font-bold text-lg">
-                  <span>Total</span>
-                  <span>Rs. {selectedTotal.toLocaleString()}</span>
-                </div>
+                {billingSplit && !billingSplit.isSelfPay && billingSplit.insuranceAmount > 0 ? (
+                  <>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Total Bill</span>
+                      <span>SAR {selectedTotal.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between text-sm text-green-600 dark:text-green-400">
+                      <span>Insurance Covers</span>
+                      <span>- SAR {billingSplit.insuranceAmount.toLocaleString()}</span>
+                    </div>
+                    <Separator />
+                    <div className="flex justify-between font-bold text-lg">
+                      <span>Patient Pays</span>
+                      <span>SAR {billingSplit.patientResponsibility.toLocaleString()}</span>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex justify-between font-bold text-lg">
+                    <span>Total</span>
+                    <span>SAR {selectedTotal.toLocaleString()}</span>
+                  </div>
+                )}
               </div>
 
               {selectedCharges.length > 0 && (
