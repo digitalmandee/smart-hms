@@ -436,6 +436,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         path: "", 
         icon: "Receipt",
         children: [
+          { name: "Billing Sessions", path: "/app/billing", icon: "Monitor" },
           { name: "OPD Checkout", path: "/app/opd/checkout", icon: "Receipt" },
           { name: "New Invoice", path: "/app/billing/invoices/new", icon: "FilePlus" },
           { name: "Invoices", path: "/app/billing/invoices", icon: "FileText" },

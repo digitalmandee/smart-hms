@@ -2901,6 +2901,7 @@ export const ar: Record<TranslationKey, string> = {
   "housekeeping.issuesDesc": "الإبلاغ عن مشاكل الصيانة والنظافة",
 
   // Billing Sessions
+  "billing.billingSessions": "جلسات الفوترة",
   "billing.openBillingSession": "فتح جلسة الفوترة",
   "billing.openSessionDesc": "ابدأ جلسة فوترة جديدة لتحصيل المدفوعات. يجب إغلاق هذه الجلسة في نهاية نوبتك.",
   "billing.currentShift": "النوبة الحالية",

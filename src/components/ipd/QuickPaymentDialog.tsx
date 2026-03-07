@@ -13,9 +13,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { PaymentMethodSelector } from "@/components/billing/PaymentMethodSelector";
 import { useRecordPayment } from "@/hooks/useBilling";
-import { useRequireSession } from "@/hooks/useRequireSession";
 import { toast } from "sonner";
-import { Loader2, CreditCard, AlertCircle } from "lucide-react";
+import { Loader2, CreditCard } from "lucide-react";
 
 interface QuickPaymentDialogProps {
   open: boolean;
@@ -40,18 +39,10 @@ export function QuickPaymentDialog({
   const [referenceNumber, setReferenceNumber] = useState("");
   const [notes, setNotes] = useState("");
 
-  // Session requirement for payment
-  const { hasActiveSession, session } = useRequireSession("reception");
   const { mutateAsync: recordPayment, isPending } = useRecordPayment();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Check for active session
-    if (!hasActiveSession) {
-      toast.error("Please open a billing session first to collect payments");
-      return;
-    }
 
     const paymentAmount = parseFloat(amount);
     if (isNaN(paymentAmount) || paymentAmount <= 0) {
@@ -74,7 +65,7 @@ export function QuickPaymentDialog({
         invoiceId,
         amount: paymentAmount,
         paymentMethodId,
-        billingSessionId: session?.id,
+        billingSessionId: undefined,
         referenceNumber: referenceNumber || undefined,
         notes: notes || `Payment for ${invoiceNumber}`,
       });
@@ -100,16 +91,7 @@ export function QuickPaymentDialog({
           </DialogTitle>
         </DialogHeader>
 
-        {!hasActiveSession ? (
-          <div className="py-6 text-center">
-            <AlertCircle className="h-12 w-12 text-warning mx-auto mb-4" />
-            <p className="font-medium mb-2">Session Required</p>
-            <p className="text-sm text-muted-foreground">
-              Please open a billing session from the Billing Dashboard before collecting payments.
-            </p>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
             <div className="p-3 bg-muted rounded-lg text-sm">
               <p className="text-muted-foreground">Invoice: {invoiceNumber}</p>
               <p className="font-semibold">Balance Due: {formatCurrency(balanceAmount)}</p>
@@ -203,7 +185,6 @@ export function QuickPaymentDialog({
               </Button>
             </DialogFooter>
           </form>
-        )}
       </DialogContent>
     </Dialog>
   );

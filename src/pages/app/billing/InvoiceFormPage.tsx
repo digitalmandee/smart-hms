@@ -11,10 +11,10 @@ import { InvoiceItemsBuilder } from "@/components/billing/InvoiceItemsBuilder";
 import { InvoiceTotals } from "@/components/billing/InvoiceTotals";
 import { PatientBalanceCard } from "@/components/billing/PatientBalanceCard";
 import { useCreateInvoice, useInvoice, useUpdateInvoice, InvoiceItemInput } from "@/hooks/useBilling";
-import { useRequireSession } from "@/hooks/useRequireSession";
+
 import { useSurgery, useUpdateSurgeryInvoice } from "@/hooks/useOT";
 import { useAuth } from "@/contexts/AuthContext";
-import { ArrowLeft, Save, FileText, Scissors, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Save, FileText, Scissors } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface Patient {
@@ -36,8 +36,6 @@ export default function InvoiceFormPage() {
   const isEdit = !!id;
   const surgeryId = searchParams.get("surgeryId");
 
-  // Check for active session (soft enforcement - show warning but allow creation)
-  const { hasActiveSession, isLoading: sessionLoading } = useRequireSession("reception");
 
   const { data: existingInvoice, isLoading } = useInvoice(id);
   const { data: surgery, isLoading: surgeryLoading } = useSurgery(surgeryId || "");
@@ -192,17 +190,6 @@ export default function InvoiceFormPage() {
           </Button>
         }
       />
-
-      {/* Session Warning Banner (soft enforcement) */}
-      {!sessionLoading && !hasActiveSession && (
-        <Alert variant="destructive" className="border-warning bg-warning/5">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>No Active Billing Session</AlertTitle>
-          <AlertDescription>
-            You can create this invoice, but you won't be able to collect payment until you open a billing session from the Billing Dashboard.
-          </AlertDescription>
-        </Alert>
-      )}
 
       {/* Surgery Context Banner */}
       {surgeryId && surgery && (

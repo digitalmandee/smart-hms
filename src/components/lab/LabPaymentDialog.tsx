@@ -20,11 +20,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useRecordPayment, usePaymentMethods } from "@/hooks/useBilling";
-import { useRequireSession } from "@/hooks/useRequireSession";
 import { useUpdateLabOrderPayment } from "@/hooks/useLabOrders";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { Loader2, CreditCard, Banknote, Smartphone, AlertCircle } from "lucide-react";
+import { Loader2, CreditCard, Banknote, Smartphone } from "lucide-react";
 
 interface LabPaymentDialogProps {
   open: boolean;
@@ -59,20 +58,13 @@ export function LabPaymentDialog({
   const [referenceNumber, setReferenceNumber] = useState("");
   const [notes, setNotes] = useState("");
   
-  // Session requirement for payment
-  const { hasActiveSession, session } = useRequireSession("reception");
+  
   
   const { data: paymentMethods = [] } = usePaymentMethods();
   const recordPayment = useRecordPayment();
   const updateLabOrderPayment = useUpdateLabOrderPayment();
 
   const handleSubmit = async () => {
-    // Check for active session
-    if (!hasActiveSession) {
-      toast.error("Please open a billing session first to collect payments");
-      return;
-    }
-
     const paymentAmount = parseFloat(amount);
     
     if (isNaN(paymentAmount) || paymentAmount <= 0) {
@@ -96,7 +88,7 @@ export function LabPaymentDialog({
         invoiceId,
         amount: paymentAmount,
         paymentMethodId,
-        billingSessionId: session?.id,
+        billingSessionId: undefined,
         referenceNumber: referenceNumber || undefined,
         notes: notes || undefined,
       });
@@ -139,16 +131,7 @@ export function LabPaymentDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {!hasActiveSession ? (
-          <div className="py-6 text-center">
-            <AlertCircle className="h-12 w-12 text-warning mx-auto mb-4" />
-            <p className="font-medium mb-2">Session Required</p>
-            <p className="text-sm text-muted-foreground">
-              Please open a billing session from the Billing Dashboard before collecting payments.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-4 py-4">
+        <div className="space-y-4 py-4">
             {/* Order Summary */}
             <div className="bg-muted/50 rounded-lg p-4 space-y-2">
               <div className="flex justify-between text-sm">
@@ -239,15 +222,13 @@ export function LabPaymentDialog({
                 />
               </div>
             </div>
-          </div>
-        )}
+        </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
             Cancel
           </Button>
-          {hasActiveSession && (
-            <Button onClick={handleSubmit} disabled={isPending}>
+          <Button onClick={handleSubmit} disabled={isPending}>
               {isPending ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -256,8 +237,7 @@ export function LabPaymentDialog({
               ) : (
                 `Pay Rs. ${parseFloat(amount || "0").toLocaleString()}`
               )}
-            </Button>
-          )}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
