@@ -100,7 +100,7 @@ export default function SessionDetailPage() {
               <Monitor className="h-5 w-5 text-muted-foreground" />
               <div>
                 <p className="text-sm text-muted-foreground">{t("billing.counter")}</p>
-                <p className="font-medium">{session.counter_type}</p>
+                <p className="font-medium">{t(COUNTER_LABELS[session.counter_type])}</p>
               </div>
             </div>
           </CardContent>
