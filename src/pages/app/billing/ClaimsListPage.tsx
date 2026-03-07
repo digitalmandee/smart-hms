@@ -63,6 +63,37 @@ export default function ClaimsListPage() {
 
   const { t } = useTranslation();
 
+  const draftClaims = filteredClaims.filter(c => c.status === 'draft' || c.status === 'submitted');
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+  const toggleSelectAll = () => {
+    if (selectedIds.size === draftClaims.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(draftClaims.map(c => c.id)));
+    }
+  };
+  const selectedClaims = filteredClaims.filter(c => selectedIds.has(c.id));
+
+  const handleBatchSubmit = async (claimIds: string[]): Promise<{ success: string[]; failed: { id: string; error: string }[] }> => {
+    const success: string[] = [];
+    const failed: { id: string; error: string }[] = [];
+    for (const cid of claimIds) {
+      try {
+        await submitToNphies.mutateAsync(cid);
+        success.push(cid);
+      } catch (e: any) {
+        failed.push({ id: cid, error: e?.message || "Submission failed" });
+      }
+    }
+    return { success, failed };
+  };
+
   return (
     <div>
       <PageHeader
@@ -73,10 +104,18 @@ export default function ClaimsListPage() {
           { label: t('nav.claims') },
         ]}
         actions={
-          <Button onClick={() => navigate("/app/billing/claims/new")}>
-            <Plus className="mr-2 h-4 w-4" />
-            New Claim
-          </Button>
+          <div className="flex items-center gap-2">
+            {selectedIds.size > 0 && (
+              <Button variant="outline" onClick={() => setBatchDialogOpen(true)}>
+                <Send className="mr-2 h-4 w-4" />
+                Submit {selectedIds.size} to NPHIES
+              </Button>
+            )}
+            <Button onClick={() => navigate("/app/billing/claims/new")}>
+              <Plus className="mr-2 h-4 w-4" />
+              New Claim
+            </Button>
+          </div>
         }
       />
 
