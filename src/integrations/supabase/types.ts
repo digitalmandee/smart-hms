@@ -9469,6 +9469,7 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           deductible_amount: number | null
+          denial_reasons: Json | null
           drg_code: string | null
           icd_codes: string[] | null
           id: string
@@ -9487,6 +9488,7 @@ export type Database = {
           pre_auth_number: string | null
           pre_auth_status: string | null
           rejection_reason: string | null
+          resubmission_count: number | null
           status: string | null
           submission_date: string | null
           submitted_by: string | null
@@ -9506,6 +9508,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           deductible_amount?: number | null
+          denial_reasons?: Json | null
           drg_code?: string | null
           icd_codes?: string[] | null
           id?: string
@@ -9524,6 +9527,7 @@ export type Database = {
           pre_auth_number?: string | null
           pre_auth_status?: string | null
           rejection_reason?: string | null
+          resubmission_count?: number | null
           status?: string | null
           submission_date?: string | null
           submitted_by?: string | null
@@ -9543,6 +9547,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           deductible_amount?: number | null
+          denial_reasons?: Json | null
           drg_code?: string | null
           icd_codes?: string[] | null
           id?: string
@@ -9561,6 +9566,7 @@ export type Database = {
           pre_auth_number?: string | null
           pre_auth_status?: string | null
           rejection_reason?: string | null
+          resubmission_count?: number | null
           status?: string | null
           submission_date?: string | null
           submitted_by?: string | null
