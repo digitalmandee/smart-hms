@@ -58,8 +58,7 @@ export function LabPaymentDialog({
   const [referenceNumber, setReferenceNumber] = useState("");
   const [notes, setNotes] = useState("");
   
-  // Session requirement for payment
-  const { hasActiveSession, session } = useRequireSession("reception");
+  
   
   const { data: paymentMethods = [] } = usePaymentMethods();
   const recordPayment = useRecordPayment();
