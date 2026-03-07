@@ -5,11 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { AlertCircle, AlertTriangle, Lightbulb, RotateCcw, Pencil, Hash } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
+import { MedicalCodeSearch } from "@/components/insurance/MedicalCodeSearch";
 import {
   ParsedDenialReason,
   parseDenialReasonsFromResponse,
