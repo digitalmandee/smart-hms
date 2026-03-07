@@ -535,7 +535,7 @@ export default function OPDCheckoutPage() {
             <InsuranceBillingSplit
               patientId={appointment.patient_id}
               totalAmount={selectedTotal}
-              onSplitCalculated={useCallback((split: BillingSplit) => setBillingSplit(split), [])}
+              onSplitCalculated={setBillingSplit}
               showHeader
             />
           )}
