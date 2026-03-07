@@ -2762,6 +2762,12 @@ export const ar: Record<TranslationKey, string> = {
   "nphies.suggestedCorrections": "التصحيحات المقترحة",
   "nphies.noStructuredDenialInfo": "لا تتوفر معلومات رفض منظمة. تحقق من استجابة NPHIES الأصلية.",
 
+  // Medical Coding
+  "medicalCoding.searchIcd": "ابحث عن رموز ICD-10...",
+  "medicalCoding.searchCpt": "ابحث عن رموز CPT...",
+  "medicalCoding.addCustomCode": "أضف رمز مخصص...",
+  "medicalCoding.noCodesFound": "لم يتم العثور على رموز",
+
   // NPHIES Analytics
   "nphiesAnalytics.title": "تحليلات NPHIES",
   "nphiesAnalytics.description": "تحليلات وتقارير مطالبات التأمين التفصيلية",
