@@ -1025,6 +1025,8 @@ function App() {
               
               {/* Billing routes */}
               <Route path="billing" element={<BillingDashboard />} />
+              <Route path="billing/sessions" element={<React.Suspense fallback={<div>Loading...</div>}><BillingSessionsPage /></React.Suspense>} />
+              <Route path="billing/sessions/:id" element={<React.Suspense fallback={<div>Loading...</div>}><SessionDetailPage /></React.Suspense>} />
               <Route path="billing/invoices" element={<InvoicesListPage />} />
               <Route path="billing/invoices/new" element={<InvoiceFormPage />} />
               <Route path="billing/invoices/:id" element={<InvoiceDetailPage />} />
