@@ -33,6 +33,9 @@ import { useCreatePatient } from '@/hooks/usePatients';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { useCountryConfig } from '@/contexts/CountryConfigContext';
+import { useTranslation } from '@/lib/i18n';
+import { isValidSaudiId } from '@/lib/validations/saudiId';
 
 const quickPatientSchema = z.object({
   first_name: z.string().min(1, 'First name is required'),

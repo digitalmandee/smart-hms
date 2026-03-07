@@ -111,6 +111,7 @@ export function PatientFormPage() {
   const [savedPatient, setSavedPatient] = useState<any>(null);
 
   // Dynamic configuration data
+  const countryConfig = useCountryConfig();
   const { cities, languages, occupations, relations, referralSources, insuranceProviders } = usePatientConfig();
 
   const { data: patient, isLoading: patientLoading } = usePatient(id);

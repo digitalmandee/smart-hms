@@ -48,6 +48,8 @@ import { useCreateStaffUser } from "@/hooks/useStaffManagement";
 import { useCreateEmployeeDocument } from "@/hooks/useEmployeeDocuments";
 import { supabase } from "@/integrations/supabase/client";
 import { type AppRole } from "@/constants/roles";
+import { useCountryConfig } from "@/contexts/CountryConfigContext";
+import { isValidSaudiId } from "@/lib/validations/saudiId";
 import { Loader2, Save, ArrowLeft, Stethoscope, Heart, FileText, Wallet } from "lucide-react";
 
 const employeeSchema = z.object({
