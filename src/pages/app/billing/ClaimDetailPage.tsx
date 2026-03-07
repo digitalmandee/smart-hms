@@ -96,6 +96,21 @@ export default function ClaimDetailPage() {
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
   const [approvedAmount, setApprovedAmount] = useState(0);
   const [rejectionReason, setRejectionReason] = useState("");
+  const [scrubResults, setScrubResults] = useState<ScrubResult[]>([]);
+
+  const handleRunValidation = () => {
+    if (!claim) return;
+    const results = scrubClaim({
+      patient_insurance_id: claim.patient_insurance_id,
+      claim_date: claim.claim_date,
+      total_amount: claim.total_amount,
+      icd_codes: claim.icd_codes || [],
+      pre_auth_number: claim.pre_auth_number || undefined,
+      pre_auth_required: claim.patient_insurance?.insurance_plan?.pre_auth_required,
+      items: (claim as any).items || [],
+    });
+    setScrubResults(results);
+  };
 
   const { data: claim, isLoading } = useInsuranceClaim(id!);
   const updateClaim = useUpdateInsuranceClaim();
