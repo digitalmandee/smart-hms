@@ -63,7 +63,7 @@ const patientSchema = z.object({
   occupation: z.string().optional(),
   preferred_language: z.string().optional(),
   
-  // Identity Documents
+  // Identity Documents — Saudi ID validated dynamically via superRefine
   national_id: z.string().optional(),
   passport_number: z.string().optional(),
   
