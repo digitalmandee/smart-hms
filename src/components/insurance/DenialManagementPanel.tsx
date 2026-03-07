@@ -44,7 +44,7 @@ export function DenialManagementPanel({
   const { t, language } = useTranslation();
   const lang = (language || 'en') as 'en' | 'ar' | 'ur';
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [editIcdCodes, setEditIcdCodes] = useState<string>(currentIcdCodes?.join(", ") || "");
+  const [editIcdCodes, setEditIcdCodes] = useState<string[]>(currentIcdCodes || []);
   const [editNotes, setEditNotes] = useState(currentNotes || "");
 
   // Use stored denial_reasons if available, otherwise parse from response
