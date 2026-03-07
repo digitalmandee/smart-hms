@@ -2967,6 +2967,7 @@ export const en = {
   "housekeeping.issuesDesc": "Report maintenance and cleanliness issues",
 
   // Billing Sessions
+  "billing.billingSessions": "Billing Sessions",
   "billing.openBillingSession": "Open Billing Session",
   "billing.openSessionDesc": "Start a new billing session to collect payments. You must close this session at the end of your shift.",
   "billing.currentShift": "Current Shift",

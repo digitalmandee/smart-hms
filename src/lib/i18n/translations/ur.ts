@@ -2901,6 +2901,7 @@ export const ur: Record<TranslationKey, string> = {
   "housekeeping.issuesDesc": "دیکھ بھال اور صفائی کے مسائل کی رپورٹ",
 
   // Billing Sessions
+  "billing.billingSessions": "بلنگ سیشنز",
   "billing.openBillingSession": "بلنگ سیشن کھولیں",
   "billing.openSessionDesc": "ادائیگیاں وصول کرنے کے لیے نیا بلنگ سیشن شروع کریں۔ آپ کو اپنی شفٹ کے آخر میں یہ سیشن بند کرنا ہوگا۔",
   "billing.currentShift": "موجودہ شفٹ",
