@@ -1,138 +1,66 @@
 
 
-# Comprehensive NPHIES Revenue Cycle Gap Coverage Plan
+# Module Completion Audit — HealthOS 24
 
-## Workflow Assessment (15-Step Saudi HMIS Standard)
+## Summary
 
-| # | Step | Current Status | Gap Level |
-|---|------|---------------|-----------|
-| 1 | Patient Registration | ✅ Done — demographics, national_id, insurance capture | None |
-| 2 | Eligibility Check | ✅ Done — real-time NPHIES FHIR CoverageEligibilityRequest | None |
-| 3 | Encounter Creation | ✅ Done — OPD/ER/IPD with encounter IDs | None |
-| 4 | Pre-Authorization | ✅ Done — submit_preauth gateway action, tracking | None |
-| 5 | Treatment/Clinical Docs | ✅ Done — EMR, diagnosis, procedures, labs, radiology | None |
-| 6 | Charge Capture | ✅ Partial — IPD auto-charges exist, OPD checkout captures charges, but no auto-linking of all services to insurance claims | **LOW** |
-| 7 | Medical Coding | ⚠️ Partial — ICD-10 field on claims, but no coding engine/lookup, no CPT codes, no DRG grouping | **HIGH** |
-| 8 | Claim Scrubbing/Validation | ❌ Missing — no pre-submission validation, no duplicate detection, no coding checks | **HIGH** |
-| 9 | Claim Generation | ✅ Done — ClaimFormPage with SBS-compatible FHIR bundles | None |
-| 10 | NPHIES Submission | ✅ Done — real-time + claim response parsing | None |
-| 11 | Payer Processing | ✅ Done — status polling, outcome tracking | None |
-| 12 | Denial Management | ⚠️ Partial — rejection reasons displayed, resubmit button exists, but no structured denial tracking or denial analytics | **MEDIUM** |
-| 13 | Payment & Remittance | ❌ Missing — no ERA/RemittanceAdvice handling | **HIGH** |
-| 14 | Payment Posting | ❌ Missing — no auto-posting of insurance payments to financial ledger | **HIGH** |
-| 15 | Financial Reporting | ⚠️ Partial — ClaimsReportPage exists but no AR aging, no insurance company performance, no revenue leakage analytics | **MEDIUM** |
-
-**Additional infrastructure gaps:**
-- No NPHIES transaction audit logs (compliance requirement)
-- No Saudi ID (Iqama) format validation
-- No batch claims submission
-- No NPHIES attachment/CommunicationRequest support
+The system has **20+ major modules** with extensive page coverage. Here is the status of each:
 
 ---
 
-## Implementation Plan (Priority Order)
+## FULLY BUILT Modules (Pages + Components exist)
 
-### Phase 1: Transaction Audit Logs (Foundation)
-
-**Database**: New `nphies_transaction_logs` table with columns: `id`, `organization_id`, `action`, `claim_id`, `patient_id`, `request_payload` (jsonb), `response_payload` (jsonb), `response_status`, `error_message`, `user_id`, `created_at`. RLS: org-scoped.
-
-**Edge Function**: Wrap every action in `nphies-gateway/index.ts` with a log insert (request + response + status).
-
-**UI**: New `NphiesTransactionLogsPage.tsx` — filterable table by action type, date range, status. Route: `/app/insurance/nphies/transaction-logs`. Add menu item.
-
-### Phase 2: Claim Scrubbing / Validation Engine
-
-**New component**: `src/components/insurance/ClaimScrubber.tsx`
-- Pre-submission validation rules:
-  - Required fields check (ICD codes, patient insurance, invoice)
-  - ICD-10 format validation (letter + 2-7 characters)
-  - Duplicate claim detection (same patient + same date + same insurance)
-  - Missing documentation flags
-  - Insurance rule validation (coverage dates, policy active)
-- Shows validation results with severity (error/warning)
-- Block submission on errors, allow with warnings
-
-**Integration**: Add scrubber to `ClaimFormPage.tsx` before submission and to `ClaimDetailPage.tsx` before NPHIES submit.
-
-### Phase 3: Medical Coding Support (ICD-10 + CPT Lookup)
-
-**Database**: New `medical_codes` table: `id`, `code_type` (enum: icd10, cpt, drg), `code`, `description`, `description_ar`, `category`, `is_active`. Seed with common Saudi healthcare ICD-10 and CPT codes.
-
-**New component**: `src/components/insurance/MedicalCodeSearch.tsx`
-- Searchable dropdown for ICD-10 and CPT codes
-- Search by code or description
-- Shows code + description in results
-
-**Integration**: Replace free-text ICD code input in `ClaimFormPage.tsx` with `MedicalCodeSearch`. Add CPT code field for procedures.
-
-### Phase 4: Saudi ID Validation
-
-**Patient forms**: In `PatientFormPage.tsx` and `QuickPatientModal.tsx`:
-- When org country is SA: validate national_id is 10 digits, starts with 1 (Saudi) or 2 (Iqama)
-- Show validation error message in all 3 languages
-
-**FHIR**: In `nphies-gateway`, add proper identifier system URI: `http://nphies.sa/identifier/nationalid`
-
-### Phase 5: Denial Management Enhancement
-
-**Database**: Add columns to `insurance_claims`: `denial_reasons` (jsonb), `resubmission_count` (integer default 0).
-
-**Edge Function**: Parse `ClaimResponse.error[]` codes and `adjudication[].reason` — store structured denial reasons.
-
-**UI**: Enhance `ClaimDetailPage.tsx` with a `DenialManagementPanel` component showing:
-- Structured denial codes with descriptions
-- Suggested corrective actions per denial code
-- Edit & resubmit workflow (increment resubmission_count)
-
-**Analytics**: Add denial analytics to `NphiesAnalyticsPage` — top denial reasons, denial rate by insurance company.
-
-### Phase 6: Payment Reconciliation & Posting
-
-**Database**: New `nphies_remittance_records` table: `id`, `organization_id`, `claim_id` (FK), `remittance_number`, `payment_amount`, `payment_date`, `reconciliation_status` (matched/unmatched/partial), `nphies_response` (jsonb), `created_at`.
-
-**Edge Function**: Add `poll_remittance` action — FHIR `poll-request` for `PaymentReconciliation`, parse and store results, update `insurance_claims.paid_amount`.
-
-**Auto-posting**: Trigger that posts insurance payments to the journal via `get_or_create_default_account` (debit: Cash/Bank, credit: Insurance Receivable).
-
-**UI**: New `RemittanceReconciliationPage.tsx` with reconciliation dashboard. Route: `/app/insurance/nphies/remittance`.
-
-### Phase 7: Enhanced Financial Reporting
-
-**Enhance** `ClaimsReportPage.tsx` with:
-- AR Aging buckets (0-30, 31-60, 61-90, 90+ days)
-- Insurance company performance (approval rate, avg payment time)
-- Revenue leakage analysis (rejected amount, write-offs)
-- Denial rate trends over time
-
-### Phase 8: Batch Claims Submission
-
-**Edge Function**: Add `batch_submit` action — accepts array of claim_ids, processes sequentially, logs each transaction.
-
-**UI**: Add checkbox selection + "Submit Selected to NPHIES" button to `ClaimsListPage.tsx` with progress indicator.
-
-### Phase 9: NPHIES Attachment Support
-
-**Database**: New `nphies_attachments` table: `id`, `organization_id`, `claim_id`, `attachment_type`, `file_url`, `status`, `created_at`.
-
-**Edge Function**: Add `send_communication` action — builds FHIR CommunicationRequest with base64 attachments.
-
-**UI**: Add attachments section to `ClaimDetailPage.tsx` with upload + send to NPHIES.
+| Module | Pages | Status |
+|--------|-------|--------|
+| **Patient Management** | Registration, Detail, List, Reports | Complete |
+| **Appointments** | Calendar, Queue, Token Kiosk, Check-in, Doctor Schedule, Reports | Complete |
+| **OPD** | Consultation, Checkout, Vitals, Walk-in, Orders, Doctor/Nurse/Admin Dashboards | Complete |
+| **IPD** | Admission, Discharge, Beds, Wards, Rounds, Nursing Notes, Vitals, Medication Chart, Care Plans, Diet, Birth/Death Records, Housekeeping, Billing, Reports + Setup (Bed Types, Floors, Ward Types, Diet Types) | Complete |
+| **Emergency** | Triage, Queue, Registration, Discharge, MLC, Quick Admission, Ambulance Alerts, Reports | Complete |
+| **Laboratory** | Dashboard, Queue, Result Entry, Reports, Test Templates, Categories, Analyzers + Mapping | Complete |
+| **Radiology** | Dashboard, Orders, PACS, Modalities, Procedures, Technician/Reporting Worklists, Report Entry/Verification, Templates, Archive, Schedule | Complete |
+| **Operation Theatre** | Dashboard, Surgery CRUD, Anesthesia, Pre-Op, Intra-Op, PACU, Instrument Count, Nursing Notes, OT Rooms, Schedule, Reports | Complete |
+| **Pharmacy** | Dashboard, Dispensing, POS, Prescription Queue, Inventory, Stock Alerts, Returns, Medicines CRUD, Categories, Rack Management, Warehouses, Reports, Settings | Complete |
+| **Blood Bank** | Dashboard, Donors, Donations, Inventory, Cross-Match, Transfusions, Blood Requests, Analytics, Bag Labels, Donor Cards | Complete |
+| **Inventory/Warehouse** | Dashboard, Items, PO/PR/GRN, Requisitions, Transfers, Stock Adjustments, Stores, Vendors, Pick Lists, Packing Slips, Shipping, Dock/Gate, Put-Away, Cycle Count, RTV, Warehouse Orders, KPI Dashboard, Bins/Zones/Storage Map, Barcodes, Reports | Complete |
+| **Accounts/Finance** | Dashboard, Chart of Accounts, GL, Journal Entries, Trial Balance, P&L, Balance Sheet, Cash Flow, AR/AP, Budgets, Expense, Revenue, Bank Accounts, Vendor Payments, Financial Reports, Account Types | Complete |
+| **Billing** | Dashboard, Invoices, Payment Collection/History, Daily Closing, Reports | Complete |
+| **Insurance/NPHIES** | Claims CRUD, Eligibility Checks, Pre-Authorizations, Transaction Logs, NPHIES Settings/Analytics, Companies/Plans, Denial Management, Medical Code Search (ICD-10/CPT), Billing Split, Claim Prompt | Complete |
+| **HR** | Dashboard, Employee CRUD, Doctors/Nurses/Paramedical/Support/Visiting lists, Attendance + Biometric, Duty Roster + On-Call + Emergency + OT rosters, Leave Management, Payroll (full cycle), Recruitment, Compliance (Licenses, Documents, Vaccinations, Medical Fitness, Disciplinary), Exit (Resignations, Clearance, Settlements, Interviews), Reports, Setup (Departments, Designations, Categories, Holidays, Leave Types, Salary Components, Shifts, Tax Slabs) | Complete |
+| **Donations** | Dashboard, Campaigns, Donors, Receipt, Recurring Schedules | Complete |
+| **Certificates** | Certificates page | Complete |
+| **Settings** | Org settings, Branches, Modules, Roles, Users, Branding, Billing/Lab/OPD/IPD/OT/HR/Patient/Clinical/Email/SMS/Notification configs, Kiosks, Services, Qualifications, Specializations, Taxes, Payment Methods, Receipt/Report Templates, Audit Logs, Country/Region, Queue Displays | Complete |
+| **Reports** | Hub, Executive Dashboard, Day-End, Department Revenue, OPD Department, Branch Comparison, Shift-Wise Collection | Complete |
+| **Clinic** | Dashboard, Reports, Token | Complete |
+| **Reception** | Dashboard, OT Medication Charges | Complete |
+| **AI** | AI Chat page | Complete |
+| **Self-Service** | Profile, My Schedule, My Attendance, My Leaves, My Payslips, My Wallet, Notifications | Complete |
 
 ---
 
-## Files Summary
+## REMAINING GAPS (From RCM Roadmap + Missing Features)
 
-| Phase | New Tables | New/Modified Pages | Edge Function | Other |
-|-------|-----------|-------------------|---------------|-------|
-| 1 | `nphies_transaction_logs` | `NphiesTransactionLogsPage.tsx` (new) | Add logging wrapper | Route, menu, i18n |
-| 2 | — | `ClaimScrubber.tsx` (new), modify `ClaimFormPage` | — | Validation logic |
-| 3 | `medical_codes` | `MedicalCodeSearch.tsx` (new), modify `ClaimFormPage` | — | Seed data SQL |
-| 4 | — | Modify patient forms | Add FHIR identifiers | Validation utils |
-| 5 | `insurance_claims` +2 cols | `DenialManagementPanel.tsx` (new) | Parse error codes | Analytics |
-| 6 | `nphies_remittance_records` | `RemittanceReconciliationPage.tsx` (new) | `poll_remittance` action | Journal trigger |
-| 7 | — | Modify `ClaimsReportPage` | — | AR aging queries |
-| 8 | — | Modify `ClaimsListPage` | `batch_submit` action | Progress UI |
-| 9 | `nphies_attachments` | Modify `ClaimDetailPage` | `send_communication` action | Storage bucket |
+| # | Gap | Description | Priority |
+|---|-----|-------------|----------|
+| 1 | **Claim Scrubbing/Validation Engine** | Pre-submission rules: ICD-10 format validation, duplicate claim detection, missing documentation flags, auto-correction suggestions before NPHIES submission | High |
+| 2 | **Payment Reconciliation (ERA/Remittance Advice)** | Parse NPHIES remittance responses, match payments to claims, auto-post journal entries to Accounts module, settlement tracking | High |
+| 3 | **Batch Claim Submission** | Bulk select and submit multiple claims to NPHIES in one operation, with progress tracking and error reporting | Medium |
+| 4 | **NPHIES Attachment Support** | Upload and link medical reports/documents to claims via FHIR CommunicationRequest | Medium |
+| 5 | **Kitchen/Diet Management** (standalone) | Currently only IPD Diet Management page exists. No standalone meal planning, kitchen orders, or cost-per-patient tracking module | Low |
+| 6 | **Asset/Maintenance Management** (standalone) | No dedicated Equipment Registry, Maintenance Schedules, AMC Tracking, or Depreciation pages — referenced in proposal but not built | Low |
+| 7 | **Housekeeping** (standalone) | Only IPD Housekeeping Queue exists. No standalone task assignments, inspection checklists, or issue reporting | Low |
 
-All new pages and components will include EN, AR, UR translations.
+---
+
+## Verdict
+
+**All core clinical and operational modules are fully built** — OPD, IPD, ER, Lab, Radiology, OT, Pharmacy, Blood Bank, Inventory/Warehouse, Accounts, Billing, Insurance/NPHIES, HR (full lifecycle), Patients, Appointments, Donations, Settings, Reports.
+
+The **4 remaining high/medium-priority items** are all in the **NPHIES Revenue Cycle Management** pipeline:
+1. Claim Scrubbing Engine
+2. Payment Reconciliation (ERA)
+3. Batch Claim Submission
+4. NPHIES Attachments
+
+The **3 low-priority items** (Kitchen, Asset Management, Housekeeping as standalone modules) are operational nice-to-haves that are partially covered by existing IPD sub-pages.
 
