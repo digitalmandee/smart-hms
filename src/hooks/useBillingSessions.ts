@@ -390,6 +390,47 @@ export function useSessionTransactions(sessionId?: string) {
   });
 }
 
+// Hook: Get all sessions for branch with date range filtering
+export function useAllBranchSessions(filters?: {
+  dateFrom?: string;
+  dateTo?: string;
+  counterType?: CounterType;
+  status?: SessionStatus;
+}) {
+  const { profile } = useAuth();
+  const dateFrom = filters?.dateFrom || new Date().toISOString().split('T')[0];
+  const dateTo = filters?.dateTo || dateFrom;
+
+  return useQuery({
+    queryKey: ['billing-sessions', 'all', profile?.branch_id, dateFrom, dateTo, filters?.counterType, filters?.status],
+    queryFn: async () => {
+      let query = supabase
+        .from('billing_sessions')
+        .select(`
+          *,
+          opened_by_profile:profiles!billing_sessions_opened_by_fkey(full_name),
+          closed_by_profile:profiles!billing_sessions_closed_by_fkey(full_name)
+        `)
+        .eq('branch_id', profile?.branch_id)
+        .gte('opened_at', `${dateFrom}T00:00:00`)
+        .lte('opened_at', `${dateTo}T23:59:59`)
+        .order('opened_at', { ascending: false });
+
+      if (filters?.counterType) {
+        query = query.eq('counter_type', filters.counterType);
+      }
+      if (filters?.status) {
+        query = query.eq('status', filters.status);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data as BillingSession[];
+    },
+    enabled: !!profile?.branch_id,
+  });
+}
+
 // Hook: Get sessions with open status count
 export function useOpenSessionsCount(branchId?: string) {
   const { profile } = useAuth();
