@@ -310,8 +310,15 @@ export default function OPDCheckoutPage() {
         })
         .eq("id", appointment.id);
 
-      toast.success("Payment recorded successfully");
-      navigate(`/app/billing/invoices/${invoiceData.id}`);
+      setCreatedInvoiceId(invoiceData.id);
+
+      // If insured, stay to show claim prompt
+      if (billingSplit && !billingSplit.isSelfPay && billingSplit.insuranceAmount > 0) {
+        toast.success("Payment recorded. You can now create an insurance claim.");
+      } else {
+        toast.success("Payment recorded successfully");
+        navigate(`/app/billing/invoices/${invoiceData.id}`);
+      }
     } catch (error: any) {
       toast.error(error.message || "Failed to process payment");
     } finally {
