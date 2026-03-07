@@ -2965,7 +2965,6 @@ export const en = {
   "housekeeping.inspectionsDesc": "Configurable checklists per room type",
   "housekeeping.issues": "Issue Reporting",
   "housekeeping.issuesDesc": "Report maintenance and cleanliness issues",
-  "nav.housekeeping": "Housekeeping",
 
 } as const;
 
