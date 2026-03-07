@@ -2828,6 +2828,12 @@ export const en = {
   "nphies.suggestedCorrections": "Suggested Corrections",
   "nphies.noStructuredDenialInfo": "No structured denial information available. Check raw NPHIES response.",
 
+  // Medical Coding
+  "medicalCoding.searchIcd": "Search ICD-10 codes...",
+  "medicalCoding.searchCpt": "Search CPT codes...",
+  "medicalCoding.addCustomCode": "Add custom code...",
+  "medicalCoding.noCodesFound": "No codes found",
+
   "nphiesAnalytics.title": "NPHIES Analytics",
   "nphiesAnalytics.description": "Detailed insurance claims analytics and reporting",
   "nphiesAnalytics.viewAnalytics": "Analytics",
