@@ -276,6 +276,9 @@ export default function BillingSessionsPage() {
                         <TableCell className="text-sm text-muted-foreground">
                           {format(new Date(s.opened_at), "hh:mm a")}
                         </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {s.closed_at ? format(new Date(s.closed_at), "hh:mm a") : "—"}
+                        </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1">
                             <Button
