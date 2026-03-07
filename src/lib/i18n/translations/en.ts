@@ -2908,6 +2908,12 @@ export const en = {
   "insPrompt.createClaim": "Create Insurance Claim",
   "insPrompt.skip": "Skip",
 
+  // Saudi ID Validation
+  "saudiId.invalidFormat": "Must be 10 digits starting with 1 (Saudi) or 2 (Iqama)",
+  "saudiId.saudiNational": "Saudi National ID",
+  "saudiId.iqamaResident": "Iqama (Resident ID)",
+  "saudiId.placeholder": "10-digit ID number",
+
 } as const;
 
 export type TranslationKey = keyof typeof en;

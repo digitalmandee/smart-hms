@@ -599,15 +599,27 @@ export default function EmployeeFormPage() {
                   <FormField
                     control={form.control}
                     name="national_id"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>National ID / CNIC</FormLabel>
-                        <FormControl>
-                          <Input placeholder="12345-1234567-1" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    render={({ field }) => {
+                      const val = field.value || '';
+                      const isSA = countryConfig.country_code === 'SA';
+                      const showError = isSA && val.length > 0 && !isValidSaudiId(val);
+                      return (
+                        <FormItem>
+                          <FormLabel>{countryConfig.national_id_label}</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder={isSA ? t('saudiId.placeholder') : countryConfig.national_id_format}
+                              {...field}
+                              maxLength={isSA ? 10 : undefined}
+                            />
+                          </FormControl>
+                          {showError && (
+                            <p className="text-sm text-destructive">{t('saudiId.invalidFormat')}</p>
+                          )}
+                          <FormMessage />
+                        </FormItem>
+                      );
+                    }}
                   />
                 </CardContent>
               </Card>

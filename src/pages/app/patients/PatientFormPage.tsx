@@ -47,6 +47,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useCountryConfig } from "@/contexts/CountryConfigContext";
 import { useTranslation } from "@/lib/i18n";
+import { isValidSaudiId, getSaudiIdType } from "@/lib/validations/saudiId";
 
 const patientSchema = z.object({
   // Personal Information
