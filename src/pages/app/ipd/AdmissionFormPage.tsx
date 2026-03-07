@@ -38,7 +38,9 @@ import { AdmissionPaymentDialog } from "@/components/ipd/AdmissionPaymentDialog"
 import { BedRateDisplay } from "@/components/ipd/BedRateDisplay";
 import { PaymentModeSelector, PaymentMode } from "@/components/ipd/PaymentModeSelector";
 import { IPDBedPickerDialog, IPDBedSelection } from "@/components/ipd/IPDBedPickerDialog";
-import { Save, CalendarIcon, Search, Bed, Scissors } from "lucide-react";
+import { AppointmentInsuranceCheck } from "@/components/appointments/AppointmentInsuranceCheck";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Save, CalendarIcon, Search, Bed, Scissors, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
