@@ -258,6 +258,7 @@ export default function BillingSessionsPage() {
                     <TableHead className="text-right">{t("billing.collections")}</TableHead>
                     <TableHead>{t("common.status")}</TableHead>
                     <TableHead>{t("billing.openedAt")}</TableHead>
+                    <TableHead>{t("billing.closedAt")}</TableHead>
                     <TableHead>{t("common.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
