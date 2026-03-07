@@ -90,8 +90,8 @@ export default function BillingSessionsPage() {
     if (!acc[key]) {
       acc[key] = {
         user: s.opened_by_profile?.full_name || "—",
-        counter: t(COUNTER_LABELS[s.counter_type] || ""),
-        shift: s.shift ? t(SHIFT_LABELS[s.shift] || "") : "—",
+        counter: t(COUNTER_LABELS[s.counter_type]),
+        shift: s.shift ? t(SHIFT_LABELS[s.shift] ?? "billing.shiftMorning") : "—",
         opening: 0,
         collections: 0,
         expected: 0,
