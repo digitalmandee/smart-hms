@@ -10,6 +10,7 @@ import { DentDocFlow } from "@/components/dental-docs/DentDocFlow";
 import { DentDocChart } from "@/components/dental-docs/DentDocChart";
 import { DentDocTreatment } from "@/components/dental-docs/DentDocTreatment";
 import { DentDocProcedures } from "@/components/dental-docs/DentDocProcedures";
+import { DentDocSurgery } from "@/components/dental-docs/DentDocSurgery";
 import { DentDocImages } from "@/components/dental-docs/DentDocImages";
 
 const pages = [
@@ -19,6 +20,7 @@ const pages = [
   { id: "chart", label: "Tooth Chart", component: DentDocChart },
   { id: "treatment", label: "Treatment Plans", component: DentDocTreatment },
   { id: "procedures", label: "Procedures", component: DentDocProcedures },
+  { id: "surgery", label: "Oral Surgery", component: DentDocSurgery },
   { id: "images", label: "Imaging", component: DentDocImages },
 ];
 

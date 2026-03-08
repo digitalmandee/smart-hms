@@ -1,7 +1,7 @@
 import { DocPageWrapper, SectionTitle, ProcessFlow } from "@/components/shared-docs/DocPageWrapper";
 
 export const DentDocFlow = () => (
-  <DocPageWrapper pageNumber={3} totalPages={7} moduleTitle="Dental Module">
+  <DocPageWrapper pageNumber={3} totalPages={8} moduleTitle="Dental Module">
     <SectionTitle icon="🔄" title="Dental Patient Journey" subtitle="Registration to treatment completion" />
     <ProcessFlow steps={[
       { icon: "📋", title: "Patient Registration", desc: "New patient registered with dental history, allergies, medical conditions. Existing patients retrieved by MRN or phone number." },

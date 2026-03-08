@@ -1,6 +1,6 @@
 import { DocPageWrapper, SectionTitle, SubSection, FeatureList, MockupTable, StepList, TipBox } from "@/components/shared-docs/DocPageWrapper";
 export const DentDocChart = () => (
-  <DocPageWrapper pageNumber={4} totalPages={7} moduleTitle="Dental Module">
+  <DocPageWrapper pageNumber={4} totalPages={8} moduleTitle="Dental Module">
     <SectionTitle icon="🦷" title="3D Tooth Chart & Conditions" subtitle="Interactive FDI charting with per-surface condition mapping" />
     <SubSection title="Interactive Tooth Chart">
       <FeatureList items={["Full 3D interactive dental chart with adult (32) and pediatric (20) views","FDI two-digit notation (ISO 3950) — teeth numbered 11-48 (adult)","Click any tooth to expand 5-surface detail view","Color-coded conditions: red (decay), blue (restoration), gray (missing)","Supernumerary and impacted tooth annotations","Periodontal pocket depth recording per tooth"]} />
