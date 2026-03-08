@@ -7,6 +7,7 @@ import { AIFeaturesSection } from "@/components/landing/AIFeaturesSection";
 import { WorkflowDiagram } from "@/components/landing/WorkflowDiagram";
 import { ProcurementCycleDiagram } from "@/components/landing/ProcurementCycleDiagram";
 import { WarehouseSection } from "@/components/landing/WarehouseSection";
+import { KsaComplianceSection } from "@/components/landing/KsaComplianceSection";
 import { RoleSelector } from "@/components/landing/RoleSelector";
 import { ComparisonTable } from "@/components/landing/ComparisonTable";
 import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
