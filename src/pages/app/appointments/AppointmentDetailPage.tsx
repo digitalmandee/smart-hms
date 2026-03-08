@@ -15,6 +15,8 @@ import {
   Activity,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCountryConfig } from '@/contexts/CountryConfigContext';
+import { SehhatyPushButton } from '@/components/clinical/SehhatyPushButton';
 import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
