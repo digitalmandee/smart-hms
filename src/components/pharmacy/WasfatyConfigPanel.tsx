@@ -97,8 +97,8 @@ export function WasfatyConfigPanel() {
           </div>
           <Badge variant={config?.wasfaty_enabled ? "default" : "secondary"}>
             {config?.wasfaty_enabled 
-              ? t("common.enabled", "Enabled") 
-              : t("common.disabled", "Disabled")}
+              ? t("nphies.enabled" as any, "Enabled") 
+              : t("nphies.disabled" as any, "Disabled")}
           </Badge>
         </div>
       </CardHeader>
