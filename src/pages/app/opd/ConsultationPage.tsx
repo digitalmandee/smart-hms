@@ -30,6 +30,8 @@ import { RecommendSurgeryDialog } from "@/components/ot/RecommendSurgeryDialog";
 import { DoctorAIPanel } from "@/components/ai/DoctorAIPanel";
 import { usePatientSurgeryRequests } from "@/hooks/useSurgeryRequests";
 import { generateVisitId } from "@/lib/visit-id";
+import { HesnReportButton } from "@/components/clinical/HesnReportButton";
+import { useCountryConfig } from "@/contexts/CountryConfigContext";
 import { cn } from "@/lib/utils";
 
 export default function ConsultationPage() {
