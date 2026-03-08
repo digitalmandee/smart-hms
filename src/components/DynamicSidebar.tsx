@@ -160,6 +160,8 @@ import {
   ShieldAlert,
   CloudUpload,
   FileCheck,
+  ScanBarcode,
+  Smartphone,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
