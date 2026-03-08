@@ -1454,3 +1454,41 @@ export function useDashboardBilling() {
     enabled: !!profile?.organization_id,
   });
 }
+
+// ========== ZATCA E-INVOICING ==========
+
+export function useGenerateZatcaQR() {
+  const queryClient = useQueryClient();
+  const { profile } = useAuth();
+
+  return useMutation({
+    mutationFn: async ({
+      invoiceId,
+    }: {
+      invoiceId: string;
+    }) => {
+      if (!profile?.organization_id) throw new Error("No organization");
+
+      const { data, error } = await supabase.functions.invoke("zatca-phase2", {
+        body: {
+          action: "generate",
+          invoice_id: invoiceId,
+          organization_id: profile.organization_id,
+        },
+      });
+
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || "ZATCA generation failed");
+
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["invoice", variables.invoiceId] });
+      queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      toast.success("ZATCA QR code generated successfully");
+    },
+    onError: (error) => {
+      toast.error("Failed to generate ZATCA QR: " + error.message);
+    },
+  });
+}

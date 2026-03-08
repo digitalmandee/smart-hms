@@ -18,9 +18,12 @@ import { useTranslation } from "@/lib/i18n";
 export default function PrescriptionQueuePage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { country_code } = useCountryConfig();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const { data: queue, isLoading } = usePrescriptionQueue();
+  
+  const showWasfaty = country_code === 'SA';
 
   const filteredQueue = (queue || []).filter((p) => {
     const matchesSearch = !search || p.prescription_number.toLowerCase().includes(search.toLowerCase()) ||

@@ -424,6 +424,19 @@ export default function InvoiceDetailPage() {
             </CardContent>
           </Card>
 
+          {/* ZATCA E-Invoice (KSA Only) */}
+          {showZatca && (
+            <ZatcaQRDisplay
+              zatcaQrCode={(invoice as any).zatca_qr_code}
+              zatcaUuid={(invoice as any).zatca_uuid}
+              zatcaIcv={(invoice as any).zatca_icv}
+              zatcaClearanceStatus={(invoice as any).zatca_clearance_status}
+              zatcaInvoiceHash={(invoice as any).zatca_invoice_hash}
+              isGenerating={generateZatcaMutation.isPending}
+              onGenerate={() => generateZatcaMutation.mutate({ invoiceId: invoice.id })}
+            />
+          )}
+
           {/* Actions */}
           {canCancel && (
             <Card>
