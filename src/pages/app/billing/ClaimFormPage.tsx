@@ -59,6 +59,9 @@ export default function ClaimFormPage() {
 
   const { data: patientInsurances } = usePatientInsurance(patientId || undefined);
   const createClaim = useCreateInsuranceClaim();
+  const { country_code } = useCountryConfig();
+  const isKSA = country_code === 'SA';
+  const procedureCodeType = isKSA ? 'achi' : 'cpt' as const;
 
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<ClaimFormData>({
     defaultValues: {
