@@ -1,58 +1,62 @@
 
-# HealthOS 24 — KSA Compliance Implementation
 
-## Status: ✅ ALL 6 PHASES IMPLEMENTED
+# Plan: Wire KSA Integration Components Into Actual Workflows
 
-## Implemented Features
+## Problem Found
 
-| Feature | Priority | Status | Files |
-|---------|----------|--------|-------|
-| **NPHIES Insurance** | HIGH | ✅ DONE | Full RCM workflow, eligibility, claims, pre-auth |
-| **ZATCA Phase 2** | HIGH | ✅ DONE | `zatca-phase2/index.ts`, UBL 2.1, QR, clearance |
-| **Wasfaty e-Prescription** | MEDIUM | ✅ DONE | `wasfaty-gateway/index.ts`, config panel, submit button |
-| **Hijri Calendar** | LOW | ✅ DONE | `hijriCalendar.ts`, `HijriDateDisplay` component |
-| **ACHI/SBS/SNOMED/LOINC Codes** | HIGH | ✅ DONE | Enum expanded, `MedicalCodeSearch` supports all types |
-| **HESN Public Health Reporting** | HIGH | ✅ DONE | `hesn-gateway/index.ts`, `HesnReportButton`, `hesn_reports` table |
-| **RSD/Tatmeen Drug Track & Trace** | HIGH | ✅ DONE | `tatmeen-gateway/index.ts`, `TatmeenScanButton`, GS1 parser |
-| **Nafath Identity Verification** | MEDIUM | ✅ DONE | `nafath-gateway/index.ts`, `NafathVerifyButton`, patient fields |
-| **Sehhaty Patient Engagement** | MEDIUM | ✅ DONE | `sehhaty-gateway/index.ts`, `SehhatyPushButton` |
-| **PDPL Consent Management** | LOW | ✅ DONE | `patient_consents` table |
+All 5 KSA action components exist but **4 of them are orphaned** — never imported into any workflow page:
 
-## Phase 1: Terminology Standards
-- `medical_code_type` enum expanded: `achi`, `sbs`, `snomed`, `loinc`
-- `MedicalCodeSearch` supports all 6 code types
-- `ClaimFormPage` uses ACHI for KSA procedures, CPT for others
+| Component | Where It Should Be | Currently Used? |
+|---|---|---|
+| `WasfatySubmitButton` | DispensingPage | **Yes** — already wired |
+| `TatmeenScanButton` | DispensingPage (during dispensing) | **No** — orphaned |
+| `NafathVerifyButton` | PatientDetailPage, PatientFormPage | **No** — orphaned |
+| `SehhatyPushButton` | AppointmentDetailPage, LabResultEntryPage | **No** — orphaned |
+| `HesnReportButton` | ConsultationPage (after diagnosis) | **No** — orphaned |
 
-## Phase 2: HESN Public Health
-- Edge function: `hesn-gateway` (FHIR Communication resources)
-- `hesn_reports` table with RLS
-- `HesnReportButton` for clinical encounters
-- `HesnConfigPanel` in KSA compliance settings
+Additionally, patient profiles don't show Nafath verification status anywhere.
 
-## Phase 3: Tatmeen Drug Track & Trace
-- Edge function: `tatmeen-gateway` (EPCIS events)
-- `tatmeen_transactions` table with RLS
-- `TatmeenScanButton` with GS1 DataMatrix barcode parser
-- `TatmeenConfigPanel` in KSA compliance settings
+## Changes
 
-## Phase 4: Nafath Identity Verification
-- Edge function: `nafath-gateway` (MFA verification flow)
-- Patient fields: `nafath_verified`, `nafath_verified_at`, `nafath_request_id`
-- `NafathVerifyButton` with polling and random number display
+### 1. PatientDetailPage — Add Nafath Verify + Status Badge
+**File**: `src/pages/app/patients/PatientDetailPage.tsx`
+- Import `NafathVerifyButton` and `useCountryConfig`
+- Next to `national_id` display, show a "Nafath Verified" badge if `nafath_verified === true`, or a `NafathVerifyButton` if the patient has a `national_id` and country is SA
+- Show `nafath_verified_at` timestamp when verified
 
-## Phase 5: Sehhaty Patient Engagement
-- Edge function: `sehhaty-gateway` (FHIR resources)
-- `sehhaty_sync_log` table with RLS
-- `SehhatyPushButton` for appointments, lab results, sick leave (e-Jaza)
+### 2. DispensingPage — Add Tatmeen Scan Button
+**File**: `src/pages/app/pharmacy/DispensingPage.tsx`
+- Import `TatmeenScanButton`
+- Add it next to the Wasfaty card (conditionally for SA orgs), allowing pharmacists to scan GS1 DataMatrix barcodes during dispensing for drug track & trace compliance
 
-## Phase 6: Advanced Features
-- `patient_consents` table for PDPL compliance
-- KSA Compliance Settings page updated with Tatmeen + HESN tabs
+### 3. ConsultationPage — Add HESN Report Button
+**File**: `src/pages/app/opd/ConsultationPage.tsx`
+- Import `HesnReportButton` and `useCountryConfig`
+- After diagnosis is entered and consultation is being saved/completed, show `HesnReportButton` conditionally (SA only) so doctors can report communicable diseases to MOH
 
-## API Keys Required (Add via Supabase Secrets)
-- `HESN_API_KEY` / `HESN_API_URL` — MOH HESN platform
-- `TATMEEN_API_KEY` / `TATMEEN_API_URL` — SFDA Tatmeen
-- `NAFATH_API_KEY` / `NAFATH_APP_ID` / `NAFATH_API_URL` — Elm Nafath
-- `SEHHATY_API_KEY` / `SEHHATY_API_URL` — Sehhaty platform
+### 4. AppointmentDetailPage — Add Sehhaty Push Button
+**File**: `src/pages/app/appointments/AppointmentDetailPage.tsx`
+- Import `SehhatyPushButton` and `useCountryConfig`
+- When appointment status is `completed`, show a "Push to Sehhaty" button to sync the appointment to the patient's Sehhaty app
 
-All integrations run in **sandbox mode** until API keys are configured.
+### 5. LabResultEntryPage — Add Sehhaty Push for Lab Results
+**File**: `src/pages/app/lab/LabResultEntryPage.tsx`
+- Import `SehhatyPushButton` and `useCountryConfig`
+- When lab results are published (`is_published = true`), show "Push to Sehhaty" button to sync lab results
+
+### 6. PatientFormPage — Show Nafath verification status on edit
+**File**: `src/pages/app/patients/PatientFormPage.tsx`
+- For SA patients with a national ID, show an info note about Nafath verification availability after registration
+
+## Files Modified
+
+| File | Change |
+|---|---|
+| `src/pages/app/patients/PatientDetailPage.tsx` | Add NafathVerifyButton + verification badge |
+| `src/pages/app/pharmacy/DispensingPage.tsx` | Add TatmeenScanButton card |
+| `src/pages/app/opd/ConsultationPage.tsx` | Add HesnReportButton |
+| `src/pages/app/appointments/AppointmentDetailPage.tsx` | Add SehhatyPushButton |
+| `src/pages/app/lab/LabResultEntryPage.tsx` | Add SehhatyPushButton for published results |
+
+All additions are conditional on `country_code === 'SA'` so they only appear for Saudi organizations.
+
