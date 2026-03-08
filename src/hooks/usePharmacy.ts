@@ -64,7 +64,7 @@ export function usePrescriptionQueue(branchId?: string) {
           patient:patients(id, first_name, last_name, patient_number, phone),
           doctor:doctors(id, profile:profiles(full_name)),
           items:prescription_items(*),
-          wasfaty:wasfaty_prescriptions(id, wasfaty_reference_id, submission_status)
+          wasfaty:wasfaty_prescriptions(id, wasfaty_prescription_id, wasfaty_status)
         `)
         .in("status", ["created", "partially_dispensed"])
         .order("created_at", { ascending: true });

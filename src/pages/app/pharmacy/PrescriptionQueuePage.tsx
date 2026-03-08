@@ -52,7 +52,7 @@ export default function PrescriptionQueuePage() {
       if (!latestWasfaty) {
         return <Badge variant="outline">{t('wasfaty.notSubmitted' as any, "Not Submitted")}</Badge>;
       }
-      return <WasfatyStatusBadge status={latestWasfaty.submission_status || 'draft'} wasfatyId={latestWasfaty.wasfaty_reference_id || undefined} />;
+      return <WasfatyStatusBadge status={latestWasfaty.wasfaty_status || 'draft'} wasfatyId={latestWasfaty.wasfaty_prescription_id || undefined} />;
     },
   };
 
