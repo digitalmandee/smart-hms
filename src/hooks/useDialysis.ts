@@ -193,7 +193,7 @@ export function useDialysisSchedules() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("dialysis_schedules")
-        .select("*, dialysis_patients(*, patients(first_name, last_name, mrn_number)), dialysis_machines(machine_number, chair_number)")
+        .select("*, dialysis_patients(*, patients(first_name, last_name, patient_number)), dialysis_machines(machine_number, chair_number)")
         .eq("organization_id", profile!.organization_id!)
         .eq("is_active", true)
         .order("shift");

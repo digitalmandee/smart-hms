@@ -30,7 +30,7 @@ export default function DialysisSessionsPage() {
                       {s.dialysis_patients?.patients?.first_name} {s.dialysis_patients?.patients?.last_name}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      {s.session_number} • {s.session_date} • Chair {s.chair_number || "–"} • Machine {s.dialysis_machines?.machine_number || "–"}
+                      {(s as any).session_number} • {s.session_date} • Chair {s.chair_number || "–"} • Machine {s.dialysis_machines?.machine_number || "–"}
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
                       Pre: {s.pre_weight_kg ?? "–"}kg → Post: {s.post_weight_kg ?? "–"}kg • UF: {s.actual_uf_ml ?? s.target_uf_ml ?? "–"}ml • Duration: {s.duration_minutes ?? "–"}min

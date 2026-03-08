@@ -34,7 +34,7 @@ export default function DialysisPatientsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-semibold">{dp.patients?.first_name} {dp.patients?.last_name}</p>
-                    <p className="text-sm text-muted-foreground">MRN: {dp.patients?.mrn_number} • Dry Weight: {dp.dry_weight_kg ?? "–"} kg</p>
+                    <p className="text-sm text-muted-foreground">MRN: {dp.patients?.patient_number} • Dry Weight: {dp.dry_weight_kg ?? "–"} kg</p>
                     <div className="flex gap-2 mt-1">
                       {dp.vascular_access_type && <Badge variant="outline">{accessTypeLabels[dp.vascular_access_type] || dp.vascular_access_type}</Badge>}
                       {dp.schedule_pattern && <Badge variant="secondary">{dp.schedule_pattern?.toUpperCase()}</Badge>}

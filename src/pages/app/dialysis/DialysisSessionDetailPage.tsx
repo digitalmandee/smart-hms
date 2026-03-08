@@ -107,7 +107,7 @@ export default function DialysisSessionDetailPage() {
           <CardHeader><CardTitle className="text-sm">Patient</CardTitle></CardHeader>
           <CardContent>
             <p className="font-semibold">{patient?.first_name} {patient?.last_name}</p>
-            <p className="text-sm text-muted-foreground">MRN: {patient?.mrn_number}</p>
+            <p className="text-sm text-muted-foreground">MRN: {patient?.patient_number}</p>
           </CardContent>
         </Card>
         <Card>
