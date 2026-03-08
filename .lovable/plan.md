@@ -1,58 +1,57 @@
 
-# HealthOS 24 — KSA Compliance Implementation
 
-## Status: ✅ ALL 6 PHASES IMPLEMENTED
+# KSA Compliance Documentation — Downloadable PDF
 
-## Implemented Features
+## What We're Building
 
-| Feature | Priority | Status | Files |
-|---------|----------|--------|-------|
-| **NPHIES Insurance** | HIGH | ✅ DONE | Full RCM workflow, eligibility, claims, pre-auth |
-| **ZATCA Phase 2** | HIGH | ✅ DONE | `zatca-phase2/index.ts`, UBL 2.1, QR, clearance |
-| **Wasfaty e-Prescription** | MEDIUM | ✅ DONE | `wasfaty-gateway/index.ts`, config panel, submit button |
-| **Hijri Calendar** | LOW | ✅ DONE | `hijriCalendar.ts`, `HijriDateDisplay` component |
-| **ACHI/SBS/SNOMED/LOINC Codes** | HIGH | ✅ DONE | Enum expanded, `MedicalCodeSearch` supports all types |
-| **HESN Public Health Reporting** | HIGH | ✅ DONE | `hesn-gateway/index.ts`, `HesnReportButton`, `hesn_reports` table |
-| **RSD/Tatmeen Drug Track & Trace** | HIGH | ✅ DONE | `tatmeen-gateway/index.ts`, `TatmeenScanButton`, GS1 parser |
-| **Nafath Identity Verification** | MEDIUM | ✅ DONE | `nafath-gateway/index.ts`, `NafathVerifyButton`, patient fields |
-| **Sehhaty Patient Engagement** | MEDIUM | ✅ DONE | `sehhaty-gateway/index.ts`, `SehhatyPushButton` |
-| **PDPL Consent Management** | LOW | ✅ DONE | `patient_consents` table |
+A multi-page documentation site at `/ksa-documentation` (same pattern as `/pharmacy-documentation`) that covers all 7 KSA integrations and compliance features. Includes page-by-page navigation, print support, and **Download PDF** using jsPDF + html-to-image.
 
-## Phase 1: Terminology Standards
-- `medical_code_type` enum expanded: `achi`, `sbs`, `snomed`, `loinc`
-- `MedicalCodeSearch` supports all 6 code types
-- `ClaimFormPage` uses ACHI for KSA procedures, CPT for others
+## Pages (12 total)
 
-## Phase 2: HESN Public Health
-- Edge function: `hesn-gateway` (FHIR Communication resources)
-- `hesn_reports` table with RLS
-- `HesnReportButton` for clinical encounters
-- `HesnConfigPanel` in KSA compliance settings
+| # | Page | Content |
+|---|------|---------|
+| 1 | Cover | "KSA Compliance & Integrations Guide" branding page |
+| 2 | Table of Contents | Links to all sections |
+| 3 | Overview | Summary of all 7 integrations, compliance landscape |
+| 4 | NPHIES | Eligibility, claims, pre-auth, denial management, batch submission |
+| 5 | ZATCA Phase 2 | UBL 2.1, QR codes, clearance/reporting flow |
+| 6 | Wasfaty | E-prescription gateway, pharmacy workflow |
+| 7 | Tatmeen / RSD | GS1 barcode scanning, drug track & trace, SFDA reporting |
+| 8 | HESN | Communicable disease reporting, immunization, FHIR resources |
+| 9 | Nafath | National SSO identity verification, MFA flow |
+| 10 | Sehhaty | Patient app sync — appointments, lab results, e-Jaza |
+| 11 | PDPL & Consent | Data protection, consent management, patient rights |
+| 12 | Configuration | API keys, sandbox vs production, testing procedures |
 
-## Phase 3: Tatmeen Drug Track & Trace
-- Edge function: `tatmeen-gateway` (EPCIS events)
-- `tatmeen_transactions` table with RLS
-- `TatmeenScanButton` with GS1 DataMatrix barcode parser
-- `TatmeenConfigPanel` in KSA compliance settings
+## New Files
 
-## Phase 4: Nafath Identity Verification
-- Edge function: `nafath-gateway` (MFA verification flow)
-- Patient fields: `nafath_verified`, `nafath_verified_at`, `nafath_request_id`
-- `NafathVerifyButton` with polling and random number display
+| File | Purpose |
+|------|---------|
+| `src/pages/KsaDocumentation.tsx` | Main page with navigation, print, PDF download (cloned from PharmacyDocumentation pattern) |
+| `src/components/ksa-docs/KsaDocPageWrapper.tsx` | Page wrapper with KSA-themed header/footer (green + Saudi flag accent) |
+| `src/components/ksa-docs/KsaDocCover.tsx` | Cover page |
+| `src/components/ksa-docs/KsaDocToc.tsx` | Table of contents |
+| `src/components/ksa-docs/KsaDocOverview.tsx` | Integration landscape overview |
+| `src/components/ksa-docs/KsaDocNphies.tsx` | NPHIES deep-dive |
+| `src/components/ksa-docs/KsaDocZatca.tsx` | ZATCA Phase 2 |
+| `src/components/ksa-docs/KsaDocWasfaty.tsx` | Wasfaty e-Prescription |
+| `src/components/ksa-docs/KsaDocTatmeen.tsx` | Tatmeen / RSD |
+| `src/components/ksa-docs/KsaDocHesn.tsx` | HESN Public Health |
+| `src/components/ksa-docs/KsaDocNafath.tsx` | Nafath Identity |
+| `src/components/ksa-docs/KsaDocSehhaty.tsx` | Sehhaty Patient App |
+| `src/components/ksa-docs/KsaDocPdpl.tsx` | PDPL & Consent Management |
+| `src/components/ksa-docs/KsaDocConfig.tsx` | Configuration & Testing Guide |
 
-## Phase 5: Sehhaty Patient Engagement
-- Edge function: `sehhaty-gateway` (FHIR resources)
-- `sehhaty_sync_log` table with RLS
-- `SehhatyPushButton` for appointments, lab results, sick leave (e-Jaza)
+## Modified Files
 
-## Phase 6: Advanced Features
-- `patient_consents` table for PDPL compliance
-- KSA Compliance Settings page updated with Tatmeen + HESN tabs
+| File | Change |
+|------|--------|
+| `src/App.tsx` | Add route `/ksa-documentation` → `KsaDocumentation` |
 
-## API Keys Required (Add via Supabase Secrets)
-- `HESN_API_KEY` / `HESN_API_URL` — MOH HESN platform
-- `TATMEEN_API_KEY` / `TATMEEN_API_URL` — SFDA Tatmeen
-- `NAFATH_API_KEY` / `NAFATH_APP_ID` / `NAFATH_API_URL` — Elm Nafath
-- `SEHHATY_API_KEY` / `SEHHATY_API_URL` — Sehhaty platform
+## Design
 
-All integrations run in **sandbox mode** until API keys are configured.
+- Reuses the `DocPageWrapper` shared components (`SectionTitle`, `FeatureList`, `StepList`, `TipBox`, `ScreenMockup`, `MockupTable`, `InfoCard`, `SubSection`) but with a KSA-themed wrapper (green + gold accents, Saudi flag indicator)
+- Each page is A4-sized (210mm × 297mm) for clean PDF output
+- PDF generation uses exact same jsPDF + toPng pattern from PharmacyDocumentation
+- Total: 12 pages, downloadable as "HealthOS24-KSA-Compliance-Guide.pdf"
+
