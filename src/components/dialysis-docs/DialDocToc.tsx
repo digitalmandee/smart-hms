@@ -5,4 +5,4 @@ const items = [
   { num: 3, title: "Machine Management", page: 5 },
   { num: 4, title: "Scheduling & Reports", page: 6 },
 ];
-export const DialDocToc = () => <DocToc items={items} pageNumber={2} totalPages={6} module="Dialysis Center" />;
+export const DialDocToc = () => <DocToc items={items} moduleTitle="Dialysis Center" totalPages={6} />;

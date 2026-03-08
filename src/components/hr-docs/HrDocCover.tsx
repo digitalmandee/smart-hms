@@ -1,2 +1,2 @@
 import { DocCover } from "@/components/shared-docs/DocPageWrapper";
-export const HrDocCover = () => <DocCover module="HR & Payroll" icon="👥" tagline="Employee lifecycle, attendance, payroll & recruitment" totalPages={6} />;
+export const HrDocCover = () => <DocCover title="HR & Payroll" subtitle="Employee lifecycle, attendance, payroll & recruitment" features="Employee Management • Attendance & Leave • Payroll Processing • Recruitment & Onboarding" />;

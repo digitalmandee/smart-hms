@@ -5,4 +5,4 @@ const items = [
   { num: 3, title: "Payroll Processing", page: 5 },
   { num: 4, title: "Recruitment & Onboarding", page: 6 },
 ];
-export const HrDocToc = () => <DocToc items={items} pageNumber={2} totalPages={6} module="HR & Payroll" />;
+export const HrDocToc = () => <DocToc items={items} moduleTitle="HR & Payroll" totalPages={6} />;

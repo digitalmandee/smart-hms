@@ -676,6 +676,9 @@ function App() {
               <Route path="/radiology-documentation" element={<React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><RadiologyDocumentation /></React.Suspense>} />
               <Route path="/warehouse-documentation" element={<React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><WarehouseDocumentation /></React.Suspense>} />
               <Route path="/finance-documentation" element={<React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><FinanceDocumentation /></React.Suspense>} />
+              <Route path="/hr-documentation" element={<React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><HrDocumentation /></React.Suspense>} />
+              <Route path="/dialysis-documentation" element={<React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><DialysisDocumentation /></React.Suspense>} />
+              <Route path="/dental-documentation" element={<React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><DentalDocumentation /></React.Suspense>} />
             {/* Public display routes - NO AUTH REQUIRED for TV displays and kiosks */}
             <Route path="/display/queue/:organizationId" element={<PublicQueueDisplay />} />
             <Route path="/display/queue/:organizationId/:deptCode" element={<PublicQueueDisplay />} />

@@ -1,2 +1,2 @@
 import { DocCover } from "@/components/shared-docs/DocPageWrapper";
-export const DialDocCover = () => <DocCover module="Dialysis Center" icon="🫘" tagline="Hemodialysis sessions, vitals monitoring, machine management & scheduling" totalPages={6} />;
+export const DialDocCover = () => <DocCover title="Dialysis Center" subtitle="Hemodialysis sessions, vitals monitoring & machine management" features="Patient Enrollment • Session Workflow • Machine Management • Scheduling & Reports" />;
