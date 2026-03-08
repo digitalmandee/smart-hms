@@ -238,6 +238,31 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
           { name: "Issue Reporting", path: "/app/housekeeping/issues", icon: "AlertTriangle" },
         ]
       },
+      {
+        name: "Dialysis",
+        path: "",
+        icon: "Droplets",
+        children: [
+          { name: "Dashboard", path: "/app/dialysis", icon: "LayoutDashboard" },
+          { name: "Patients", path: "/app/dialysis/patients", icon: "Users" },
+          { name: "Sessions", path: "/app/dialysis/sessions", icon: "ClipboardList" },
+          { name: "Schedule", path: "/app/dialysis/schedule", icon: "Calendar" },
+          { name: "Machines", path: "/app/dialysis/machines", icon: "Monitor" },
+          { name: "Reports", path: "/app/dialysis/reports", icon: "BarChart3" },
+        ]
+      },
+      {
+        name: "Dental",
+        path: "",
+        icon: "Smile",
+        children: [
+          { name: "Dashboard", path: "/app/dental", icon: "LayoutDashboard" },
+          { name: "Tooth Chart", path: "/app/dental/chart", icon: "Smile" },
+          { name: "Treatments", path: "/app/dental/treatments", icon: "ClipboardList" },
+          { name: "Procedures", path: "/app/dental/procedures", icon: "BookOpen" },
+          { name: "Reports", path: "/app/dental/reports", icon: "BarChart3" },
+        ]
+      },
       { 
         name: "Reports", 
         path: "", 
