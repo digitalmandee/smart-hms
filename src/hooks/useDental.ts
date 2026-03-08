@@ -26,10 +26,10 @@ export function useCreateDentalProcedure() {
   const qc = useQueryClient();
   const { profile } = useAuth();
   return useMutation({
-    mutationFn: async (values: Record<string, any>) => {
+    mutationFn: async (values: { code: string; name: string; category?: string; description?: string; default_cost?: number; duration_minutes?: number }) => {
       const { data, error } = await supabase
         .from("dental_procedures")
-        .insert({ ...values, organization_id: profile!.organization_id! })
+        .insert([{ ...values, organization_id: profile!.organization_id! }])
         .select()
         .single();
       if (error) throw error;
@@ -106,10 +106,10 @@ export function useCreateDentalTreatment() {
   const qc = useQueryClient();
   const { profile } = useAuth();
   return useMutation({
-    mutationFn: async (values: Record<string, any>) => {
+    mutationFn: async (values: { patient_id: string; doctor_id?: string; tooth_number?: number; surface?: string; procedure_id?: string; procedure_name?: string; diagnosis?: string; cost?: number; status?: string; planned_date?: string }) => {
       const { data, error } = await supabase
         .from("dental_treatments")
-        .insert({ ...values, organization_id: profile!.organization_id!, branch_id: profile!.branch_id })
+        .insert([{ ...values, organization_id: profile!.organization_id!, branch_id: profile!.branch_id }])
         .select()
         .single();
       if (error) throw error;
@@ -123,7 +123,7 @@ export function useCreateDentalTreatment() {
 export function useUpdateDentalTreatment() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, ...values }: { id: string } & Record<string, any>) => {
+    mutationFn: async ({ id, ...values }: { id: string; status?: string; completed_date?: string; treatment_notes?: string; cost?: number }) => {
       const { data, error } = await supabase
         .from("dental_treatments")
         .update({ ...values, updated_at: new Date().toISOString() })

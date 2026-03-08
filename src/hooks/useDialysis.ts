@@ -26,10 +26,10 @@ export function useCreateDialysisPatient() {
   const qc = useQueryClient();
   const { profile } = useAuth();
   return useMutation({
-    mutationFn: async (values: Record<string, any>) => {
+    mutationFn: async (values: { patient_id: string; dry_weight_kg?: number; vascular_access_type?: string; hepatitis_b_status?: string; hepatitis_c_status?: string; schedule_pattern?: string; shift_preference?: string }) => {
       const { data, error } = await supabase
         .from("dialysis_patients")
-        .insert({ ...values, organization_id: profile!.organization_id! })
+        .insert([{ ...values, organization_id: profile!.organization_id! }])
         .select()
         .single();
       if (error) throw error;
@@ -63,10 +63,10 @@ export function useCreateDialysisMachine() {
   const qc = useQueryClient();
   const { profile } = useAuth();
   return useMutation({
-    mutationFn: async (values: Record<string, any>) => {
+    mutationFn: async (values: { machine_number: string; serial_number?: string; model?: string; manufacturer?: string; chair_number?: string }) => {
       const { data, error } = await supabase
         .from("dialysis_machines")
-        .insert({ ...values, organization_id: profile!.organization_id!, branch_id: profile!.branch_id })
+        .insert([{ ...values, organization_id: profile!.organization_id!, branch_id: profile!.branch_id }])
         .select()
         .single();
       if (error) throw error;
@@ -80,7 +80,7 @@ export function useCreateDialysisMachine() {
 export function useUpdateDialysisMachine() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, ...values }: { id: string } & Record<string, any>) => {
+    mutationFn: async ({ id, ...values }: { id: string; status?: string; notes?: string }) => {
       const { data, error } = await supabase
         .from("dialysis_machines")
         .update({ ...values, updated_at: new Date().toISOString() })
@@ -119,10 +119,10 @@ export function useCreateDialysisSession() {
   const qc = useQueryClient();
   const { profile } = useAuth();
   return useMutation({
-    mutationFn: async (values: Record<string, any>) => {
+    mutationFn: async (values: { dialysis_patient_id: string; machine_id?: string; session_date: string; shift?: string; chair_number?: string; target_uf_ml?: number; duration_minutes?: number }) => {
       const { data, error } = await supabase
         .from("dialysis_sessions")
-        .insert({ ...values, organization_id: profile!.organization_id!, branch_id: profile!.branch_id })
+        .insert([{ ...values, organization_id: profile!.organization_id!, branch_id: profile!.branch_id }])
         .select()
         .single();
       if (error) throw error;
@@ -136,7 +136,7 @@ export function useCreateDialysisSession() {
 export function useUpdateDialysisSession() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, ...values }: { id: string } & Record<string, any>) => {
+    mutationFn: async ({ id, ...values }: { id: string; status?: string; pre_weight_kg?: number; post_weight_kg?: number; actual_uf_ml?: number; complications?: string; nursing_notes?: string }) => {
       const { data, error } = await supabase
         .from("dialysis_sessions")
         .update({ ...values, updated_at: new Date().toISOString() })
@@ -171,10 +171,10 @@ export function useDialysisVitals(sessionId: string | undefined) {
 export function useAddDialysisVitals() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (values: Record<string, any>) => {
+    mutationFn: async (values: { session_id: string; minute_mark: number; bp_systolic?: number; bp_diastolic?: number; pulse?: number; blood_flow_rate?: number; uf_rate?: number; notes?: string }) => {
       const { data, error } = await supabase
         .from("dialysis_vitals")
-        .insert(values)
+        .insert([values])
         .select()
         .single();
       if (error) throw error;
@@ -208,10 +208,10 @@ export function useCreateDialysisSchedule() {
   const qc = useQueryClient();
   const { profile } = useAuth();
   return useMutation({
-    mutationFn: async (values: Record<string, any>) => {
+    mutationFn: async (values: { dialysis_patient_id: string; pattern: string; shift: string; start_date: string; machine_id?: string; chair_number?: string }) => {
       const { data, error } = await supabase
         .from("dialysis_schedules")
-        .insert({ ...values, organization_id: profile!.organization_id!, branch_id: profile!.branch_id })
+        .insert([{ ...values, organization_id: profile!.organization_id!, branch_id: profile!.branch_id }])
         .select()
         .single();
       if (error) throw error;
