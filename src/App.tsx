@@ -401,6 +401,21 @@ import BloodUnitDetailPage from "./pages/app/blood-bank/BloodUnitDetailPage";
 import BloodUnitFormPage from "./pages/app/blood-bank/BloodUnitFormPage";
 import CrossMatchDetailPage from "./pages/app/blood-bank/CrossMatchDetailPage";
 
+// Dialysis pages
+import DialysisDashboard from "./pages/app/dialysis/DialysisDashboard";
+import DialysisPatientsPage from "./pages/app/dialysis/DialysisPatientsPage";
+import DialysisMachinesPage from "./pages/app/dialysis/DialysisMachinesPage";
+import DialysisSessionsPage from "./pages/app/dialysis/DialysisSessionsPage";
+import DialysisSchedulePage from "./pages/app/dialysis/DialysisSchedulePage";
+import DialysisReportsPage from "./pages/app/dialysis/DialysisReportsPage";
+
+// Dental pages
+import DentalDashboard from "./pages/app/dental/DentalDashboard";
+import DentalChartPage from "./pages/app/dental/DentalChartPage";
+import DentalTreatmentsPage from "./pages/app/dental/DentalTreatmentsPage";
+import DentalProceduresPage from "./pages/app/dental/DentalProceduresPage";
+import DentalReportsPage from "./pages/app/dental/DentalReportsPage";
+
 // Radiology pages
 import RadiologyDashboard from "./pages/app/radiology/RadiologyDashboard";
 import ImagingOrdersListPage from "./pages/app/radiology/ImagingOrdersListPage";
@@ -932,6 +947,21 @@ function App() {
               <Route path="radiology/pacs/guide" element={<PACSSetupGuidePage />} />
               <Route path="radiology/templates" element={<ImagingReportTemplatesPage />} />
               <Route path="radiology/reports" element={<RadiologyReportsPage />} />
+              
+              {/* Dialysis routes */}
+              <Route path="dialysis" element={<DialysisDashboard />} />
+              <Route path="dialysis/patients" element={<DialysisPatientsPage />} />
+              <Route path="dialysis/machines" element={<DialysisMachinesPage />} />
+              <Route path="dialysis/sessions" element={<DialysisSessionsPage />} />
+              <Route path="dialysis/schedule" element={<DialysisSchedulePage />} />
+              <Route path="dialysis/reports" element={<DialysisReportsPage />} />
+              
+              {/* Dental routes */}
+              <Route path="dental" element={<DentalDashboard />} />
+              <Route path="dental/chart" element={<DentalChartPage />} />
+              <Route path="dental/treatments" element={<DentalTreatmentsPage />} />
+              <Route path="dental/procedures" element={<DentalProceduresPage />} />
+              <Route path="dental/reports" element={<DentalReportsPage />} />
               
               {/* Lab routes */}
               <Route path="lab" element={<LabDashboard />} />

@@ -5796,6 +5796,294 @@ export type Database = {
           },
         ]
       }
+      dental_charts: {
+        Row: {
+          condition: string | null
+          created_at: string | null
+          id: string
+          notes: string | null
+          organization_id: string
+          patient_id: string
+          surfaces: string | null
+          tooth_number: number
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          condition?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          organization_id: string
+          patient_id: string
+          surfaces?: string | null
+          tooth_number: number
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          condition?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          patient_id?: string
+          surfaces?: string | null
+          tooth_number?: number
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dental_charts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dental_charts_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dental_charts_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dental_images: {
+        Row: {
+          created_at: string | null
+          findings: string | null
+          id: string
+          image_type: string | null
+          image_url: string | null
+          organization_id: string
+          patient_id: string
+          taken_at: string | null
+          taken_by: string | null
+          tooth_number: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          findings?: string | null
+          id?: string
+          image_type?: string | null
+          image_url?: string | null
+          organization_id: string
+          patient_id: string
+          taken_at?: string | null
+          taken_by?: string | null
+          tooth_number?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          findings?: string | null
+          id?: string
+          image_type?: string | null
+          image_url?: string | null
+          organization_id?: string
+          patient_id?: string
+          taken_at?: string | null
+          taken_by?: string | null
+          tooth_number?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dental_images_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dental_images_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dental_images_taken_by_fkey"
+            columns: ["taken_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dental_procedures: {
+        Row: {
+          category: string | null
+          code: string
+          created_at: string | null
+          default_cost: number | null
+          description: string | null
+          duration_minutes: number | null
+          id: string
+          is_active: boolean | null
+          name: string
+          organization_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string | null
+          code: string
+          created_at?: string | null
+          default_cost?: number | null
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          organization_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string | null
+          code?: string
+          created_at?: string | null
+          default_cost?: number | null
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          organization_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dental_procedures_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dental_treatments: {
+        Row: {
+          appointment_id: string | null
+          branch_id: string | null
+          completed_date: string | null
+          cost: number | null
+          created_at: string | null
+          diagnosis: string | null
+          doctor_id: string | null
+          id: string
+          invoice_id: string | null
+          organization_id: string
+          patient_id: string
+          planned_date: string | null
+          procedure_id: string | null
+          procedure_name: string | null
+          status: string | null
+          surface: string | null
+          tooth_number: number | null
+          treatment_notes: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          appointment_id?: string | null
+          branch_id?: string | null
+          completed_date?: string | null
+          cost?: number | null
+          created_at?: string | null
+          diagnosis?: string | null
+          doctor_id?: string | null
+          id?: string
+          invoice_id?: string | null
+          organization_id: string
+          patient_id: string
+          planned_date?: string | null
+          procedure_id?: string | null
+          procedure_name?: string | null
+          status?: string | null
+          surface?: string | null
+          tooth_number?: number | null
+          treatment_notes?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          appointment_id?: string | null
+          branch_id?: string | null
+          completed_date?: string | null
+          cost?: number | null
+          created_at?: string | null
+          diagnosis?: string | null
+          doctor_id?: string | null
+          id?: string
+          invoice_id?: string | null
+          organization_id?: string
+          patient_id?: string
+          planned_date?: string | null
+          procedure_id?: string | null
+          procedure_name?: string | null
+          status?: string | null
+          surface?: string | null
+          tooth_number?: number | null
+          treatment_notes?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dental_treatments_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dental_treatments_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dental_treatments_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dental_treatments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dental_treatments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dental_treatments_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dental_treatments_procedure_id_fkey"
+            columns: ["procedure_id"]
+            isOneToOne: false
+            referencedRelation: "dental_procedures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       departments: {
         Row: {
           code: string
@@ -5916,6 +6204,511 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dialysis_machines: {
+        Row: {
+          branch_id: string | null
+          chair_number: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          last_disinfection_at: string | null
+          machine_number: string
+          manufacturer: string | null
+          model: string | null
+          next_maintenance_date: string | null
+          notes: string | null
+          organization_id: string
+          serial_number: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          branch_id?: string | null
+          chair_number?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_disinfection_at?: string | null
+          machine_number: string
+          manufacturer?: string | null
+          model?: string | null
+          next_maintenance_date?: string | null
+          notes?: string | null
+          organization_id: string
+          serial_number?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          branch_id?: string | null
+          chair_number?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_disinfection_at?: string | null
+          machine_number?: string
+          manufacturer?: string | null
+          model?: string | null
+          next_maintenance_date?: string | null
+          notes?: string | null
+          organization_id?: string
+          serial_number?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dialysis_machines_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dialysis_machines_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dialysis_patients: {
+        Row: {
+          access_date: string | null
+          access_location: string | null
+          created_at: string | null
+          dialysis_frequency: string | null
+          dry_weight_kg: number | null
+          epo_protocol: Json | null
+          hepatitis_b_status: string | null
+          hepatitis_c_status: string | null
+          hiv_status: string | null
+          id: string
+          iron_protocol: Json | null
+          is_active: boolean | null
+          notes: string | null
+          organization_id: string
+          patient_id: string
+          primary_nephrologist_id: string | null
+          schedule_pattern: string | null
+          shift_preference: string | null
+          updated_at: string | null
+          vascular_access_type: string | null
+        }
+        Insert: {
+          access_date?: string | null
+          access_location?: string | null
+          created_at?: string | null
+          dialysis_frequency?: string | null
+          dry_weight_kg?: number | null
+          epo_protocol?: Json | null
+          hepatitis_b_status?: string | null
+          hepatitis_c_status?: string | null
+          hiv_status?: string | null
+          id?: string
+          iron_protocol?: Json | null
+          is_active?: boolean | null
+          notes?: string | null
+          organization_id: string
+          patient_id: string
+          primary_nephrologist_id?: string | null
+          schedule_pattern?: string | null
+          shift_preference?: string | null
+          updated_at?: string | null
+          vascular_access_type?: string | null
+        }
+        Update: {
+          access_date?: string | null
+          access_location?: string | null
+          created_at?: string | null
+          dialysis_frequency?: string | null
+          dry_weight_kg?: number | null
+          epo_protocol?: Json | null
+          hepatitis_b_status?: string | null
+          hepatitis_c_status?: string | null
+          hiv_status?: string | null
+          id?: string
+          iron_protocol?: Json | null
+          is_active?: boolean | null
+          notes?: string | null
+          organization_id?: string
+          patient_id?: string
+          primary_nephrologist_id?: string | null
+          schedule_pattern?: string | null
+          shift_preference?: string | null
+          updated_at?: string | null
+          vascular_access_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dialysis_patients_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dialysis_patients_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dialysis_patients_primary_nephrologist_id_fkey"
+            columns: ["primary_nephrologist_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dialysis_schedules: {
+        Row: {
+          branch_id: string | null
+          chair_number: string | null
+          created_at: string | null
+          dialysis_patient_id: string
+          end_date: string | null
+          id: string
+          is_active: boolean | null
+          machine_id: string | null
+          notes: string | null
+          organization_id: string
+          pattern: string
+          shift: string
+          start_date: string
+          updated_at: string | null
+        }
+        Insert: {
+          branch_id?: string | null
+          chair_number?: string | null
+          created_at?: string | null
+          dialysis_patient_id: string
+          end_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          machine_id?: string | null
+          notes?: string | null
+          organization_id: string
+          pattern: string
+          shift: string
+          start_date: string
+          updated_at?: string | null
+        }
+        Update: {
+          branch_id?: string | null
+          chair_number?: string | null
+          created_at?: string | null
+          dialysis_patient_id?: string
+          end_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          machine_id?: string | null
+          notes?: string | null
+          organization_id?: string
+          pattern?: string
+          shift?: string
+          start_date?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dialysis_schedules_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dialysis_schedules_dialysis_patient_id_fkey"
+            columns: ["dialysis_patient_id"]
+            isOneToOne: false
+            referencedRelation: "dialysis_patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dialysis_schedules_machine_id_fkey"
+            columns: ["machine_id"]
+            isOneToOne: false
+            referencedRelation: "dialysis_machines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dialysis_schedules_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dialysis_sessions: {
+        Row: {
+          actual_end_time: string | null
+          actual_start_time: string | null
+          actual_uf_ml: number | null
+          admission_id: string | null
+          appointment_id: string | null
+          attended_by: string | null
+          blood_flow_ml_min: number | null
+          blood_loss_ml: number | null
+          branch_id: string | null
+          chair_number: string | null
+          complications: string | null
+          created_at: string | null
+          dialysate_flow_ml_min: number | null
+          dialysis_patient_id: string
+          dialyzer_type: string | null
+          doctor_notes: string | null
+          duration_minutes: number | null
+          heparin_dose: string | null
+          id: string
+          invoice_id: string | null
+          machine_id: string | null
+          nurse_id: string | null
+          nursing_notes: string | null
+          organization_id: string
+          post_bp_diastolic: number | null
+          post_bp_systolic: number | null
+          post_pulse: number | null
+          post_weight_kg: number | null
+          pre_bp_diastolic: number | null
+          pre_bp_systolic: number | null
+          pre_pulse: number | null
+          pre_temperature: number | null
+          pre_weight_kg: number | null
+          session_date: string
+          session_number: string | null
+          shift: string | null
+          status: string | null
+          target_uf_ml: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          actual_end_time?: string | null
+          actual_start_time?: string | null
+          actual_uf_ml?: number | null
+          admission_id?: string | null
+          appointment_id?: string | null
+          attended_by?: string | null
+          blood_flow_ml_min?: number | null
+          blood_loss_ml?: number | null
+          branch_id?: string | null
+          chair_number?: string | null
+          complications?: string | null
+          created_at?: string | null
+          dialysate_flow_ml_min?: number | null
+          dialysis_patient_id: string
+          dialyzer_type?: string | null
+          doctor_notes?: string | null
+          duration_minutes?: number | null
+          heparin_dose?: string | null
+          id?: string
+          invoice_id?: string | null
+          machine_id?: string | null
+          nurse_id?: string | null
+          nursing_notes?: string | null
+          organization_id: string
+          post_bp_diastolic?: number | null
+          post_bp_systolic?: number | null
+          post_pulse?: number | null
+          post_weight_kg?: number | null
+          pre_bp_diastolic?: number | null
+          pre_bp_systolic?: number | null
+          pre_pulse?: number | null
+          pre_temperature?: number | null
+          pre_weight_kg?: number | null
+          session_date?: string
+          session_number?: string | null
+          shift?: string | null
+          status?: string | null
+          target_uf_ml?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          actual_end_time?: string | null
+          actual_start_time?: string | null
+          actual_uf_ml?: number | null
+          admission_id?: string | null
+          appointment_id?: string | null
+          attended_by?: string | null
+          blood_flow_ml_min?: number | null
+          blood_loss_ml?: number | null
+          branch_id?: string | null
+          chair_number?: string | null
+          complications?: string | null
+          created_at?: string | null
+          dialysate_flow_ml_min?: number | null
+          dialysis_patient_id?: string
+          dialyzer_type?: string | null
+          doctor_notes?: string | null
+          duration_minutes?: number | null
+          heparin_dose?: string | null
+          id?: string
+          invoice_id?: string | null
+          machine_id?: string | null
+          nurse_id?: string | null
+          nursing_notes?: string | null
+          organization_id?: string
+          post_bp_diastolic?: number | null
+          post_bp_systolic?: number | null
+          post_pulse?: number | null
+          post_weight_kg?: number | null
+          pre_bp_diastolic?: number | null
+          pre_bp_systolic?: number | null
+          pre_pulse?: number | null
+          pre_temperature?: number | null
+          pre_weight_kg?: number | null
+          session_date?: string
+          session_number?: string | null
+          shift?: string | null
+          status?: string | null
+          target_uf_ml?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dialysis_sessions_admission_id_fkey"
+            columns: ["admission_id"]
+            isOneToOne: false
+            referencedRelation: "admissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dialysis_sessions_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dialysis_sessions_attended_by_fkey"
+            columns: ["attended_by"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dialysis_sessions_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dialysis_sessions_dialysis_patient_id_fkey"
+            columns: ["dialysis_patient_id"]
+            isOneToOne: false
+            referencedRelation: "dialysis_patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dialysis_sessions_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dialysis_sessions_machine_id_fkey"
+            columns: ["machine_id"]
+            isOneToOne: false
+            referencedRelation: "dialysis_machines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dialysis_sessions_nurse_id_fkey"
+            columns: ["nurse_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dialysis_sessions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dialysis_vitals: {
+        Row: {
+          arterial_pressure: number | null
+          blood_flow_rate: number | null
+          bp_diastolic: number | null
+          bp_systolic: number | null
+          conductivity: number | null
+          created_at: string | null
+          id: string
+          minute_mark: number | null
+          notes: string | null
+          pulse: number | null
+          recorded_at: string
+          recorded_by: string | null
+          session_id: string
+          temperature: number | null
+          tmp: number | null
+          uf_rate: number | null
+          venous_pressure: number | null
+        }
+        Insert: {
+          arterial_pressure?: number | null
+          blood_flow_rate?: number | null
+          bp_diastolic?: number | null
+          bp_systolic?: number | null
+          conductivity?: number | null
+          created_at?: string | null
+          id?: string
+          minute_mark?: number | null
+          notes?: string | null
+          pulse?: number | null
+          recorded_at?: string
+          recorded_by?: string | null
+          session_id: string
+          temperature?: number | null
+          tmp?: number | null
+          uf_rate?: number | null
+          venous_pressure?: number | null
+        }
+        Update: {
+          arterial_pressure?: number | null
+          blood_flow_rate?: number | null
+          bp_diastolic?: number | null
+          bp_systolic?: number | null
+          conductivity?: number | null
+          created_at?: string | null
+          id?: string
+          minute_mark?: number | null
+          notes?: string | null
+          pulse?: number | null
+          recorded_at?: string
+          recorded_by?: string | null
+          session_id?: string
+          temperature?: number | null
+          tmp?: number | null
+          uf_rate?: number | null
+          venous_pressure?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dialysis_vitals_recorded_by_fkey"
+            columns: ["recorded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dialysis_vitals_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "dialysis_sessions"
             referencedColumns: ["id"]
           },
         ]
