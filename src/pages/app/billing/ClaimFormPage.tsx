@@ -377,11 +377,11 @@ export default function ClaimFormPage() {
                       value={item.description}
                       onChange={(e) => updateItem(index, 'description', e.target.value)}
                     />
-                    <div className="col-span-2">
-                      <MedicalCodeSearch
-                        codeType="cpt"
-                        selectedCodes={item.service_code ? [item.service_code] : []}
-                        onCodesChange={(codes) => updateItem(index, 'service_code', codes[codes.length - 1] || '')}
+                     <div className="col-span-2">
+                       <MedicalCodeSearch
+                         codeType={procedureCodeType}
+                         selectedCodes={item.service_code ? [item.service_code] : []}
+                         onCodesChange={(codes) => updateItem(index, 'service_code', codes[codes.length - 1] || '')}
                         placeholder="CPT Code"
                       />
                     </div>
