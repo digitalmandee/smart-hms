@@ -19,6 +19,7 @@ import { formatCurrency } from "@/lib/currency";
 import { MedicalCodeSearch } from "@/components/insurance/MedicalCodeSearch";
 import { ClaimScrubResults } from "@/components/insurance/ClaimScrubResults";
 import { scrubClaim, hasErrors, ScrubResult } from "@/lib/claimScrubber";
+import { useCountryConfig } from "@/contexts/CountryConfigContext";
 
 interface ClaimFormData {
   patient_insurance_id: string;
@@ -58,6 +59,9 @@ export default function ClaimFormPage() {
 
   const { data: patientInsurances } = usePatientInsurance(patientId || undefined);
   const createClaim = useCreateInsuranceClaim();
+  const { country_code } = useCountryConfig();
+  const isKSA = country_code === 'SA';
+  const procedureCodeType = isKSA ? 'achi' : 'cpt' as const;
 
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<ClaimFormData>({
     defaultValues: {
@@ -373,11 +377,11 @@ export default function ClaimFormPage() {
                       value={item.description}
                       onChange={(e) => updateItem(index, 'description', e.target.value)}
                     />
-                    <div className="col-span-2">
-                      <MedicalCodeSearch
-                        codeType="cpt"
-                        selectedCodes={item.service_code ? [item.service_code] : []}
-                        onCodesChange={(codes) => updateItem(index, 'service_code', codes[codes.length - 1] || '')}
+                     <div className="col-span-2">
+                       <MedicalCodeSearch
+                         codeType={procedureCodeType}
+                         selectedCodes={item.service_code ? [item.service_code] : []}
+                         onCodesChange={(codes) => updateItem(index, 'service_code', codes[codes.length - 1] || '')}
                         placeholder="CPT Code"
                       />
                     </div>

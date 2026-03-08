@@ -8890,6 +8890,129 @@ export type Database = {
           },
         ]
       }
+      hesn_reports: {
+        Row: {
+          branch_id: string | null
+          created_at: string
+          created_by: string | null
+          diagnosis_date: string
+          disease_code: string | null
+          disease_name: string
+          hesn_reference_id: string | null
+          id: string
+          lab_confirmed: boolean | null
+          notes: string | null
+          organization_id: string
+          outcome: string | null
+          patient_id: string
+          report_date: string
+          report_type: string
+          severity: string | null
+          specimen_date: string | null
+          specimen_type: string | null
+          submission_response: Json | null
+          submission_status: string
+          submitted_at: string | null
+          submitted_by: string | null
+          updated_at: string
+          vaccination_date: string | null
+          vaccination_dose_number: number | null
+          vaccination_type: string | null
+        }
+        Insert: {
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          diagnosis_date: string
+          disease_code?: string | null
+          disease_name: string
+          hesn_reference_id?: string | null
+          id?: string
+          lab_confirmed?: boolean | null
+          notes?: string | null
+          organization_id: string
+          outcome?: string | null
+          patient_id: string
+          report_date?: string
+          report_type: string
+          severity?: string | null
+          specimen_date?: string | null
+          specimen_type?: string | null
+          submission_response?: Json | null
+          submission_status?: string
+          submitted_at?: string | null
+          submitted_by?: string | null
+          updated_at?: string
+          vaccination_date?: string | null
+          vaccination_dose_number?: number | null
+          vaccination_type?: string | null
+        }
+        Update: {
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          diagnosis_date?: string
+          disease_code?: string | null
+          disease_name?: string
+          hesn_reference_id?: string | null
+          id?: string
+          lab_confirmed?: boolean | null
+          notes?: string | null
+          organization_id?: string
+          outcome?: string | null
+          patient_id?: string
+          report_date?: string
+          report_type?: string
+          severity?: string | null
+          specimen_date?: string | null
+          specimen_type?: string | null
+          submission_response?: Json | null
+          submission_status?: string
+          submitted_at?: string | null
+          submitted_by?: string | null
+          updated_at?: string
+          vaccination_date?: string | null
+          vaccination_dose_number?: number | null
+          vaccination_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hesn_reports_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hesn_reports_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hesn_reports_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hesn_reports_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hesn_reports_submitted_by_fkey"
+            columns: ["submitted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       holidays: {
         Row: {
           applies_to_categories: string[] | null
@@ -15452,6 +15575,66 @@ export type Database = {
           },
         ]
       }
+      patient_consents: {
+        Row: {
+          consent_text: string | null
+          consent_type: string
+          created_at: string
+          expires_at: string | null
+          granted_at: string | null
+          id: string
+          ip_address: string | null
+          organization_id: string
+          patient_id: string
+          revoked_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          consent_text?: string | null
+          consent_type: string
+          created_at?: string
+          expires_at?: string | null
+          granted_at?: string | null
+          id?: string
+          ip_address?: string | null
+          organization_id: string
+          patient_id: string
+          revoked_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          consent_text?: string | null
+          consent_type?: string
+          created_at?: string
+          expires_at?: string | null
+          granted_at?: string | null
+          id?: string
+          ip_address?: string | null
+          organization_id?: string
+          patient_id?: string
+          revoked_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_consents_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_consents_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       patient_insurance: {
         Row: {
           cchi_number: string | null
@@ -15616,6 +15799,9 @@ export type Database = {
           is_active: boolean | null
           last_name: string | null
           marital_status: Database["public"]["Enums"]["marital_status"] | null
+          nafath_request_id: string | null
+          nafath_verified: boolean | null
+          nafath_verified_at: string | null
           national_id: string | null
           nationality: string | null
           notes: string | null
@@ -15656,6 +15842,9 @@ export type Database = {
           is_active?: boolean | null
           last_name?: string | null
           marital_status?: Database["public"]["Enums"]["marital_status"] | null
+          nafath_request_id?: string | null
+          nafath_verified?: boolean | null
+          nafath_verified_at?: string | null
           national_id?: string | null
           nationality?: string | null
           notes?: string | null
@@ -15696,6 +15885,9 @@ export type Database = {
           is_active?: boolean | null
           last_name?: string | null
           marital_status?: Database["public"]["Enums"]["marital_status"] | null
+          nafath_request_id?: string | null
+          nafath_verified?: boolean | null
+          nafath_verified_at?: string | null
           national_id?: string | null
           nationality?: string | null
           notes?: string | null
@@ -19295,6 +19487,73 @@ export type Database = {
           },
         ]
       }
+      sehhaty_sync_log: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          organization_id: string
+          patient_id: string
+          reference_id: string | null
+          reference_type: string | null
+          sehhaty_reference_id: string | null
+          submission_response: Json | null
+          submission_status: string
+          submitted_at: string | null
+          sync_type: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          organization_id: string
+          patient_id: string
+          reference_id?: string | null
+          reference_type?: string | null
+          sehhaty_reference_id?: string | null
+          submission_response?: Json | null
+          submission_status?: string
+          submitted_at?: string | null
+          sync_type: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          organization_id?: string
+          patient_id?: string
+          reference_id?: string | null
+          reference_type?: string | null
+          sehhaty_reference_id?: string | null
+          submission_response?: Json | null
+          submission_status?: string
+          submitted_at?: string | null
+          sync_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sehhaty_sync_log_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sehhaty_sync_log_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sehhaty_sync_log_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       service_categories: {
         Row: {
           code: string
@@ -21491,6 +21750,98 @@ export type Database = {
         }
         Relationships: []
       }
+      tatmeen_transactions: {
+        Row: {
+          batch_number: string | null
+          branch_id: string | null
+          created_at: string
+          created_by: string | null
+          expiry_date: string | null
+          gtin: string
+          id: string
+          organization_id: string
+          patient_id: string | null
+          pharmacy_item_id: string | null
+          prescription_id: string | null
+          quantity: number
+          serial_number: string | null
+          submission_response: Json | null
+          submission_status: string
+          submitted_at: string | null
+          tatmeen_reference_id: string | null
+          transaction_type: string
+        }
+        Insert: {
+          batch_number?: string | null
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          expiry_date?: string | null
+          gtin: string
+          id?: string
+          organization_id: string
+          patient_id?: string | null
+          pharmacy_item_id?: string | null
+          prescription_id?: string | null
+          quantity?: number
+          serial_number?: string | null
+          submission_response?: Json | null
+          submission_status?: string
+          submitted_at?: string | null
+          tatmeen_reference_id?: string | null
+          transaction_type: string
+        }
+        Update: {
+          batch_number?: string | null
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          expiry_date?: string | null
+          gtin?: string
+          id?: string
+          organization_id?: string
+          patient_id?: string | null
+          pharmacy_item_id?: string | null
+          prescription_id?: string | null
+          quantity?: number
+          serial_number?: string | null
+          submission_response?: Json | null
+          submission_status?: string
+          submitted_at?: string | null
+          tatmeen_reference_id?: string | null
+          transaction_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tatmeen_transactions_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tatmeen_transactions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tatmeen_transactions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tatmeen_transactions_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tax_slabs: {
         Row: {
           created_at: string | null
@@ -22908,7 +23259,14 @@ export type Database = {
       leave_request_status: "pending" | "approved" | "rejected" | "cancelled"
       loan_status: "active" | "completed" | "cancelled" | "defaulted"
       marital_status: "single" | "married" | "divorced" | "widowed" | "other"
-      medical_code_type: "icd10" | "cpt" | "drg"
+      medical_code_type:
+        | "icd10"
+        | "cpt"
+        | "drg"
+        | "achi"
+        | "sbs"
+        | "snomed"
+        | "loinc"
       medical_history_type:
         | "allergy"
         | "chronic_disease"
@@ -23447,7 +23805,15 @@ export const Constants = {
       leave_request_status: ["pending", "approved", "rejected", "cancelled"],
       loan_status: ["active", "completed", "cancelled", "defaulted"],
       marital_status: ["single", "married", "divorced", "widowed", "other"],
-      medical_code_type: ["icd10", "cpt", "drg"],
+      medical_code_type: [
+        "icd10",
+        "cpt",
+        "drg",
+        "achi",
+        "sbs",
+        "snomed",
+        "loinc",
+      ],
       medical_history_type: [
         "allergy",
         "chronic_disease",

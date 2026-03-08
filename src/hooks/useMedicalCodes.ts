@@ -12,7 +12,7 @@ export interface MedicalCode {
 
 export function useSearchMedicalCodes(
   query: string,
-  codeType: "icd10" | "cpt" | "drg"
+  codeType: "icd10" | "cpt" | "drg" | "achi" | "sbs" | "snomed" | "loinc"
 ) {
   const [results, setResults] = useState<MedicalCode[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -30,7 +30,7 @@ export function useSearchMedicalCodes(
         const { data, error } = await supabase
           .from("medical_codes")
           .select("id, code, code_type, description, description_ar, category")
-          .eq("code_type", codeType)
+          .eq("code_type", codeType as any)
           .eq("is_active", true)
           .or(`code.ilike.${searchTerm},description.ilike.${searchTerm},description_ar.ilike.${searchTerm}`)
           .limit(20);

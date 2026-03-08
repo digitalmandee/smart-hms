@@ -20,7 +20,7 @@ import { useSearchMedicalCodes, MedicalCode } from "@/hooks/useMedicalCodes";
 import { useTranslation } from "@/lib/i18n";
 
 interface MedicalCodeSearchProps {
-  codeType: "icd10" | "cpt";
+  codeType: "icd10" | "cpt" | "achi" | "sbs" | "snomed" | "loinc";
   selectedCodes: string[];
   onCodesChange: (codes: string[]) => void;
   placeholder?: string;
@@ -66,10 +66,15 @@ export function MedicalCodeSearch({
     return item.description;
   };
 
-  const defaultPlaceholder =
-    codeType === "icd10"
-      ? t("medicalCoding.searchIcd" as any, "Search ICD-10 codes...")
-      : t("medicalCoding.searchCpt" as any, "Search CPT codes...");
+  const placeholderMap: Record<string, string> = {
+    icd10: t("medicalCoding.searchIcd" as any, "Search ICD-10 codes..."),
+    cpt: t("medicalCoding.searchCpt" as any, "Search CPT codes..."),
+    achi: t("medicalCoding.searchAchi" as any, "Search ACHI procedure codes..."),
+    sbs: t("medicalCoding.searchSbs" as any, "Search SBS billing codes..."),
+    snomed: t("medicalCoding.searchSnomed" as any, "Search SNOMED CT codes..."),
+    loinc: t("medicalCoding.searchLoinc" as any, "Search LOINC codes..."),
+  };
+  const defaultPlaceholder = placeholderMap[codeType] || "Search codes...";
 
   return (
     <div className="space-y-2">
