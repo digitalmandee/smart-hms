@@ -22,6 +22,7 @@ import PricingProposal from "./pages/PricingProposal";
 import ContractPage from "./pages/ContractPage";
 import SocialMediaPosts from "./pages/SocialMediaPosts";
 import PharmacyDocumentation from "./pages/PharmacyDocumentation";
+import KsaDocumentation from "./pages/KsaDocumentation";
 import SystemOverview from "./pages/SystemOverview";
 import TestCasesPage from "./pages/TestCasesPage";
 const WarehouseTestCasesPage = React.lazy(() => import("./pages/WarehouseTestCasesPage"));
@@ -634,6 +635,7 @@ function App() {
               <Route path="/contract" element={<ContractPage />} />
               <Route path="/social-media-posts" element={<SocialMediaPosts />} />
               <Route path="/pharmacy-documentation" element={<PharmacyDocumentation />} />
+              <Route path="/ksa-documentation" element={<KsaDocumentation />} />
               <Route path="/system-overview" element={<SystemOverview />} />
             {/* Public display routes - NO AUTH REQUIRED for TV displays and kiosks */}
             <Route path="/display/queue/:organizationId" element={<PublicQueueDisplay />} />
