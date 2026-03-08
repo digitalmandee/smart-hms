@@ -21,7 +21,7 @@ export default function DialysisSchedulePage() {
         title="Dialysis Schedule"
         description="Recurring patient-chair-shift assignments"
         breadcrumbs={[{ label: "Dialysis", href: "/app/dialysis" }, { label: "Schedule" }]}
-      />
+        actions={<Button asChild><Link to="/app/dialysis/schedule/new"><Plus className="h-4 w-4 mr-2" />New Schedule</Link></Button>}
       {isLoading ? <p className="text-muted-foreground">Loading...</p> : !Object.keys(grouped).length ? (
         <Card><CardContent className="py-12 text-center text-muted-foreground">No schedules configured yet.</CardContent></Card>
       ) : (

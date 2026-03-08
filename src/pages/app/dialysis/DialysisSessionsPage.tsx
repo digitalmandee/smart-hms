@@ -22,7 +22,7 @@ export default function DialysisSessionsPage() {
       ) : (
         <div className="space-y-3">
           {sessions.map((s: any) => (
-            <Card key={s.id}>
+            <Card key={s.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => window.location.href = `/app/dialysis/sessions/${s.id}`}>
               <CardContent className="py-4">
                 <div className="flex items-center justify-between">
                   <div>
