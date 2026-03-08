@@ -19,6 +19,7 @@ import { formatCurrency } from "@/lib/currency";
 import { MedicalCodeSearch } from "@/components/insurance/MedicalCodeSearch";
 import { ClaimScrubResults } from "@/components/insurance/ClaimScrubResults";
 import { scrubClaim, hasErrors, ScrubResult } from "@/lib/claimScrubber";
+import { useCountryConfig } from "@/contexts/CountryConfigContext";
 
 interface ClaimFormData {
   patient_insurance_id: string;
