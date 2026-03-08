@@ -21,7 +21,7 @@ export default function DentalImagesPage() {
   const { data: patients } = useQuery({
     queryKey: ["patients-list-dental", profile?.organization_id],
     queryFn: async () => {
-      const { data, error } = await supabase.from("patients").select("id, first_name, last_name, mrn_number")
+      const { data, error } = await supabase.from("patients").select("id, first_name, last_name, patient_number")
         .eq("organization_id", profile!.organization_id!).order("first_name").limit(500);
       if (error) throw error;
       return data;
@@ -82,7 +82,7 @@ export default function DentalImagesPage() {
                 <SelectTrigger><SelectValue placeholder="Select patient..." /></SelectTrigger>
                 <SelectContent>
                   {(patients || []).map((p: any) => (
-                    <SelectItem key={p.id} value={p.id}>{p.first_name} {p.last_name} — {p.mrn_number}</SelectItem>
+                    <SelectItem key={p.id} value={p.id}>{p.first_name} {p.last_name} — {p.patient_number}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

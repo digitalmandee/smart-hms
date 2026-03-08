@@ -22,6 +22,10 @@ import PricingProposal from "./pages/PricingProposal";
 import ContractPage from "./pages/ContractPage";
 import SocialMediaPosts from "./pages/SocialMediaPosts";
 import PharmacyDocumentation from "./pages/PharmacyDocumentation";
+import DocumentationHub from "./pages/DocumentationHub";
+const OpdDocumentation = React.lazy(() => import("./pages/OpdDocumentation"));
+const IpdDocumentation = React.lazy(() => import("./pages/IpdDocumentation"));
+const OtDocumentation = React.lazy(() => import("./pages/OtDocumentation"));
 import KsaDocumentation from "./pages/KsaDocumentation";
 import SystemOverview from "./pages/SystemOverview";
 import TestCasesPage from "./pages/TestCasesPage";
@@ -657,6 +661,10 @@ function App() {
               <Route path="/pharmacy-documentation" element={<PharmacyDocumentation />} />
               <Route path="/ksa-documentation" element={<KsaDocumentation />} />
               <Route path="/system-overview" element={<SystemOverview />} />
+              <Route path="/documentation" element={<DocumentationHub />} />
+              <Route path="/opd-documentation" element={<React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><OpdDocumentation /></React.Suspense>} />
+              <Route path="/ipd-documentation" element={<React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><IpdDocumentation /></React.Suspense>} />
+              <Route path="/ot-documentation" element={<React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><OtDocumentation /></React.Suspense>} />
             {/* Public display routes - NO AUTH REQUIRED for TV displays and kiosks */}
             <Route path="/display/queue/:organizationId" element={<PublicQueueDisplay />} />
             <Route path="/display/queue/:organizationId/:deptCode" element={<PublicQueueDisplay />} />
