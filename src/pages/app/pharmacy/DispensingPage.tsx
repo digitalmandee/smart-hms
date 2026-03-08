@@ -112,6 +112,7 @@ export default function DispensingPage() {
   const { prescriptionId } = useParams();
   const navigate = useNavigate();
   const { profile } = useAuth();
+  const { country_code } = useCountryConfig();
   const { data: prescription, isLoading } = usePrescriptionForDispensing(prescriptionId);
   const dispenseMutation = useDispensePrescription();
   const { data: inventory } = useInventory();
@@ -119,6 +120,8 @@ export default function DispensingPage() {
   const { data: activeAdmission } = usePatientActiveAdmission(patientId);
   const [items, setItems] = useState<DispensingItem[]>([]);
   const [notes, setNotes] = useState("");
+  
+  const showWasfaty = country_code === 'SA';
 
   useEffect(() => {
     if (prescription?.items) {
