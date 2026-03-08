@@ -64,10 +64,12 @@ import { PatientPregnanciesHistory } from "@/components/patients/PatientPregnanc
 import { PatientCertificatesHistory } from "@/components/patients/PatientCertificatesHistory";
 import { LabResultsPreview } from "@/components/lab/LabResultsPreview";
 import { PatientVitalsHistory } from "@/components/patients/PatientVitalsHistory";
-import { Baby, Award, Thermometer, Ticket, Shield } from "lucide-react";
+import { Baby, Award, Thermometer, Ticket, Shield, Fingerprint } from "lucide-react";
 import { PatientInsuranceTab } from "@/components/patients/PatientInsuranceTab";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Capacitor } from "@capacitor/core";
+import { NafathVerifyButton } from "@/components/patients/NafathVerifyButton";
+import { useCountryConfig } from "@/contexts/CountryConfigContext";
 import { MobilePatientProfile } from "@/components/mobile/MobilePatientProfile";
 
 export function PatientDetailPage() {
