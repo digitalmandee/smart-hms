@@ -1,7 +1,7 @@
 
-# HealthOS 24 — KSA Compliance Implementation
+# HealthOS 24 — KSA Compliance + Full Module Implementation
 
-## Status: ✅ ALL 6 PHASES IMPLEMENTED
+## Status: ✅ ALL PHASES + DIALYSIS & DENTAL IMPLEMENTED
 
 ## Implemented Features
 
@@ -17,37 +17,35 @@
 | **Nafath Identity Verification** | MEDIUM | ✅ DONE | `nafath-gateway/index.ts`, `NafathVerifyButton`, patient fields |
 | **Sehhaty Patient Engagement** | MEDIUM | ✅ DONE | `sehhaty-gateway/index.ts`, `SehhatyPushButton` |
 | **PDPL Consent Management** | LOW | ✅ DONE | `patient_consents` table |
+| **Vendor Payment Journal** | HIGH | ✅ DONE | `post_vendor_payment_to_journal` trigger |
+| **Dialysis Module** | HIGH | ✅ DONE | 6 pages, 5 DB tables, full CRUD hooks |
+| **Dental Module** | HIGH | ✅ DONE | 5 pages, 4 DB tables, interactive tooth chart |
 
-## Phase 1: Terminology Standards
-- `medical_code_type` enum expanded: `achi`, `sbs`, `snomed`, `loinc`
-- `MedicalCodeSearch` supports all 6 code types
-- `ClaimFormPage` uses ACHI for KSA procedures, CPT for others
+## System Audit — Finance Journal Coverage
 
-## Phase 2: HESN Public Health
-- Edge function: `hesn-gateway` (FHIR Communication resources)
-- `hesn_reports` table with RLS
-- `HesnReportButton` for clinical encounters
-- `HesnConfigPanel` in KSA compliance settings
+| Trigger | Status |
+|---------|--------|
+| Invoice → Journal (AR ↑, Revenue ↑) | ✅ |
+| Payment → Journal (Cash ↑, AR ↓) | ✅ |
+| POS Sale → Journal | ✅ |
+| Payroll → Journal | ✅ |
+| Expense → Journal | ✅ |
+| Donation → Journal | ✅ |
+| Shipping → Journal | ✅ |
+| Stock Write-off → Journal | ✅ |
+| **Vendor Payment → Journal** | ✅ FIXED |
 
-## Phase 3: Tatmeen Drug Track & Trace
-- Edge function: `tatmeen-gateway` (EPCIS events)
-- `tatmeen_transactions` table with RLS
-- `TatmeenScanButton` with GS1 DataMatrix barcode parser
-- `TatmeenConfigPanel` in KSA compliance settings
+## Dialysis Module
+- **Tables**: `dialysis_patients`, `dialysis_sessions`, `dialysis_vitals`, `dialysis_machines`, `dialysis_schedules`
+- **Pages**: Dashboard, Patients, Sessions, Schedule, Machines, Reports
+- **Features**: FDI-mapped machine/chair tracking, intra-session vitals, recurring schedule (MWF/TTS), session number generator
+- **Linkage**: OPD (appointment_id) + IPD (admission_id) hybrid
 
-## Phase 4: Nafath Identity Verification
-- Edge function: `nafath-gateway` (MFA verification flow)
-- Patient fields: `nafath_verified`, `nafath_verified_at`, `nafath_request_id`
-- `NafathVerifyButton` with polling and random number display
-
-## Phase 5: Sehhaty Patient Engagement
-- Edge function: `sehhaty-gateway` (FHIR resources)
-- `sehhaty_sync_log` table with RLS
-- `SehhatyPushButton` for appointments, lab results, sick leave (e-Jaza)
-
-## Phase 6: Advanced Features
-- `patient_consents` table for PDPL compliance
-- KSA Compliance Settings page updated with Tatmeen + HESN tabs
+## Dental Module
+- **Tables**: `dental_charts`, `dental_treatments`, `dental_procedures`, `dental_images`
+- **Pages**: Dashboard, Tooth Chart (interactive FDI 32-tooth grid), Treatments, Procedures (CDT catalog), Reports
+- **Features**: Per-tooth condition tracking with upsert, surface mapping, procedure catalog with pricing
+- **Linkage**: OPD (appointment_id) + Invoice integration
 
 ## API Keys Required (Add via Supabase Secrets)
 - `HESN_API_KEY` / `HESN_API_URL` — MOH HESN platform
