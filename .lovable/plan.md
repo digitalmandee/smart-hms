@@ -1,28 +1,41 @@
 
-# HealthOS 24 — KSA Compliance Audit
+# HealthOS 24 — KSA Compliance Implementation
 
-## Status: ✅ AUDIT COMPLETE
+## Status: ✅ ALL FEATURES IMPLEMENTED
 
-## Current Implementation Summary
+## Implemented Features
 
-### ✅ Production-Ready
-- **NPHIES Integration**: Eligibility, Pre-Auth, Claims, Batch Submission, Denial Management, ERA Reconciliation
-- **ZATCA Phase 1**: TLV QR codes, UUID/ICV, VAT support
-- **Manual Insurance (PK)**: Full company/plan/claim management
+| Feature | Priority | Status | Files |
+|---------|----------|--------|-------|
+| **ZATCA Phase 2** | HIGH | ✅ DONE | `zatca-phase2/index.ts`, `src/lib/zatca/ublGenerator.ts` |
+| **Wasfaty e-Prescription** | MEDIUM | ✅ DONE | `wasfaty-gateway/index.ts`, `WasfatyConfigPanel.tsx`, `WasfatySubmitButton.tsx` |
+| **Hijri Calendar** | LOW | ✅ DONE | `src/lib/hijriCalendar.ts`, `src/components/ui/hijri-date-display.tsx` |
 
-### ⚠️ Identified Gaps (Pending Implementation)
+## ZATCA Phase 2 Details
+- UBL 2.1 XML generation (ZATCA-compliant)
+- Invoice hash calculation (SHA-256)
+- Invoice chaining (PIH - Previous Invoice Hash)
+- Phase 2 QR code with 8 TLV fields
+- Clearance status tracking
+- Database columns: `zatca_invoice_hash`, `zatca_xml`, `zatca_clearance_status`
 
-| Gap | Priority | Status |
-|-----|----------|--------|
-| ZATCA Phase 2 (XML signing, clearance API) | HIGH | Pending |
-| Wasfaty e-Prescription (MOH) | MEDIUM | Pending |
-| SFDA Drug Database | MEDIUM | Pending |
-| Hijri Calendar support | LOW | Pending |
-| Saudi National Address validation | LOW | Pending |
-| CCHI Provider License verification | LOW | Pending |
-| Seha Platform (MOH surveillance) | LOW | Pending |
+## Wasfaty Integration Details
+- Edge function: `wasfaty-gateway`
+- Prescription submission API
+- Status checking and dispensing verification
+- Database table: `wasfaty_prescriptions`
+- Config panel for MOH Facility ID
+- Submit button component for pharmacy
 
-## Previous Completions
-- All 20+ modules fully built
-- Insurance/NPHIES RCM workflow complete
-- Trilingual support (EN/AR/UR)
+## Hijri Calendar Details
+- Gregorian ↔ Hijri conversion
+- Month names in Arabic and English
+- `HijriDateDisplay` component (auto-shows Hijri for KSA)
+- `HijriDateBadge` for compact display
+- Dual date format support
+
+## Remaining Items (Optional)
+- SFDA Drug Database integration
+- Saudi National Address validation
+- Seha Platform (MOH surveillance)
+- CCHI Provider License verification
