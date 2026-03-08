@@ -1,5 +1,5 @@
 import { useDialysisSessions, useDialysisMachines, useDialysisPatients } from "@/hooks/useDialysis";
-import { PageHeader } from "@/components/ui/page-header";
+import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
