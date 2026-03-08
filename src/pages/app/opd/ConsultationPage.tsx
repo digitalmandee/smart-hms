@@ -38,6 +38,7 @@ export default function ConsultationPage() {
   const { appointmentId } = useParams<{ appointmentId: string }>();
   const navigate = useNavigate();
   const { profile } = useAuth();
+  const { country_code } = useCountryConfig();
 
   const { data: appointment, isLoading: loadingAppointment } = useAppointment(appointmentId);
   const { data: existingConsultation } = useConsultationByAppointment(appointmentId);
