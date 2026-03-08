@@ -249,6 +249,21 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
           { name: "OPD Departments", path: "/app/reports/opd-departments", icon: "Building2" },
         ]
       },
+      {
+        name: "KSA Integrations",
+        path: "",
+        icon: "ShieldAlert",
+        children: [
+          { name: "KSA Dashboard", path: "/app/settings/ksa-integrations", icon: "LayoutDashboard" },
+          { name: "NPHIES", path: "/app/settings/ksa/nphies", icon: "FileText" },
+          { name: "ZATCA Phase 2", path: "/app/settings/ksa/zatca", icon: "Receipt" },
+          { name: "Wasfaty", path: "/app/settings/ksa/wasfaty", icon: "Pill" },
+          { name: "Tatmeen / RSD", path: "/app/settings/ksa/tatmeen", icon: "ScanBarcode" },
+          { name: "HESN", path: "/app/settings/ksa/hesn", icon: "ShieldAlert" },
+          { name: "Nafath", path: "/app/settings/ksa/nafath", icon: "Fingerprint" },
+          { name: "Sehhaty", path: "/app/settings/ksa/sehhaty", icon: "Smartphone" },
+        ]
+      },
     ]
   },
 

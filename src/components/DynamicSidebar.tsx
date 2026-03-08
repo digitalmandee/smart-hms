@@ -769,6 +769,8 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   ShieldAlert,
   CloudUpload,
   FileCheck,
+  ScanBarcode,
+  Smartphone,
 };
 
 interface DynamicSidebarProps {
