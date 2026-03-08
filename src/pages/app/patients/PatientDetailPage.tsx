@@ -81,6 +81,7 @@ export function PatientDetailPage() {
   const { data: profileStats } = usePatientProfileStats(id);
   const { data: currentVisit } = usePatientCurrentVisit(id);
   const { data: organization } = useOrganization(profile?.organization_id);
+  const { country_code } = useCountryConfig();
   const { printRef, handlePrint } = usePrint();
   const [photoCaptureOpen, setPhotoCaptureOpen] = useState(false);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
