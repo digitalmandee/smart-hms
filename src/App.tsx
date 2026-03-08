@@ -22,6 +22,7 @@ import PricingProposal from "./pages/PricingProposal";
 import ContractPage from "./pages/ContractPage";
 import SocialMediaPosts from "./pages/SocialMediaPosts";
 import PharmacyDocumentation from "./pages/PharmacyDocumentation";
+import KsaDocumentation from "./pages/KsaDocumentation";
 import SystemOverview from "./pages/SystemOverview";
 import TestCasesPage from "./pages/TestCasesPage";
 const WarehouseTestCasesPage = React.lazy(() => import("./pages/WarehouseTestCasesPage"));
