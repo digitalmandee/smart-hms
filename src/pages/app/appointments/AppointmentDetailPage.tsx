@@ -15,6 +15,8 @@ import {
   Activity,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCountryConfig } from '@/contexts/CountryConfigContext';
+import { SehhatyPushButton } from '@/components/clinical/SehhatyPushButton';
 import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -55,6 +57,7 @@ export default function AppointmentDetailPage() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { hasRole } = useAuth();
+  const { country_code } = useCountryConfig();
   const isDoctor = hasRole('doctor') || hasRole('surgeon');
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
 
@@ -352,6 +355,32 @@ export default function AppointmentDetailPage() {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">{appointment.notes}</p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Sehhaty Push (KSA Only) - for completed appointments */}
+        {country_code === 'SA' && status === 'completed' && patient && (
+          <Card className="md:col-span-2">
+            <CardHeader>
+              <CardTitle>Sehhaty Integration</CardTitle>
+            </CardHeader>
+            <CardContent className="flex items-center gap-3">
+              <SehhatyPushButton
+                syncType="appointment"
+                patientId={patient.id}
+                patientNationalId={(patient as any).national_id}
+                referenceId={id}
+                referenceType="appointment"
+                syncData={{
+                  appointment_date: appointment.appointment_date,
+                  appointment_time: appointment.appointment_time,
+                  doctor_name: doctor?.profile?.full_name,
+                }}
+              />
+              <p className="text-sm text-muted-foreground">
+                Sync this appointment to the patient's Sehhaty app
+              </p>
             </CardContent>
           </Card>
         )}

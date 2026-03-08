@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { BatchSelector } from "@/components/pharmacy/BatchSelector";
 import { StockLevelBadge } from "@/components/pharmacy/StockLevelBadge";
 import { WasfatySubmitButton } from "@/components/pharmacy/WasfatySubmitButton";
+import { TatmeenScanButton } from "@/components/pharmacy/TatmeenScanButton";
 import { usePrescriptionForDispensing, useDispensePrescription, useMedicineBatches, useInventory } from "@/hooks/usePharmacy";
 import { usePatientActiveAdmission } from "@/hooks/useIPDBilling";
 import { useAuth } from "@/contexts/AuthContext";
@@ -433,6 +434,30 @@ export default function DispensingPage() {
                     instructions: item.instructions || undefined,
                   }))}
                 />
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Tatmeen Drug Track & Trace (KSA Only) */}
+          {showWasfaty && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Pill className="h-5 w-5" />
+                  Tatmeen
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <TatmeenScanButton
+                  patientId={patientId}
+                  prescriptionId={prescriptionId}
+                  onScanComplete={(data) => {
+                    toast.success(`Drug tracked: GTIN ${data.gtin}`);
+                  }}
+                />
+                <p className="text-xs text-muted-foreground mt-2">
+                  Scan GS1 barcode for SFDA drug track & trace
+                </p>
               </CardContent>
             </Card>
           )}

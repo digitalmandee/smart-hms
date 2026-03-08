@@ -64,10 +64,12 @@ import { PatientPregnanciesHistory } from "@/components/patients/PatientPregnanc
 import { PatientCertificatesHistory } from "@/components/patients/PatientCertificatesHistory";
 import { LabResultsPreview } from "@/components/lab/LabResultsPreview";
 import { PatientVitalsHistory } from "@/components/patients/PatientVitalsHistory";
-import { Baby, Award, Thermometer, Ticket, Shield } from "lucide-react";
+import { Baby, Award, Thermometer, Ticket, Shield, Fingerprint } from "lucide-react";
 import { PatientInsuranceTab } from "@/components/patients/PatientInsuranceTab";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Capacitor } from "@capacitor/core";
+import { NafathVerifyButton } from "@/components/patients/NafathVerifyButton";
+import { useCountryConfig } from "@/contexts/CountryConfigContext";
 import { MobilePatientProfile } from "@/components/mobile/MobilePatientProfile";
 
 export function PatientDetailPage() {
@@ -79,6 +81,7 @@ export function PatientDetailPage() {
   const { data: profileStats } = usePatientProfileStats(id);
   const { data: currentVisit } = usePatientCurrentVisit(id);
   const { data: organization } = useOrganization(profile?.organization_id);
+  const { country_code } = useCountryConfig();
   const { printRef, handlePrint } = usePrint();
   const [photoCaptureOpen, setPhotoCaptureOpen] = useState(false);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
@@ -465,7 +468,17 @@ export function PatientDetailPage() {
               {patient.national_id && (
                 <div className="flex items-center gap-3">
                   <FileText className="h-4 w-4 text-muted-foreground" />
-                  <span>{patient.national_id}</span>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span>{patient.national_id}</span>
+                    {country_code === 'SA' && (
+                      <NafathVerifyButton
+                        patientId={patient.id}
+                        nationalId={patient.national_id}
+                        isVerified={(patient as any).nafath_verified}
+                        onVerified={() => refetchPatient()}
+                      />
+                    )}
+                  </div>
                 </div>
               )}
             </div>
