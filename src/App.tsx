@@ -958,14 +958,19 @@ function App() {
               <Route path="dialysis/patients" element={<DialysisPatientsPage />} />
               <Route path="dialysis/machines" element={<DialysisMachinesPage />} />
               <Route path="dialysis/sessions" element={<DialysisSessionsPage />} />
+              <Route path="dialysis/sessions/new" element={<DialysisNewSessionPage />} />
+              <Route path="dialysis/sessions/:id" element={<DialysisSessionDetailPage />} />
               <Route path="dialysis/schedule" element={<DialysisSchedulePage />} />
+              <Route path="dialysis/schedule/new" element={<DialysisCreateSchedulePage />} />
               <Route path="dialysis/reports" element={<DialysisReportsPage />} />
               
               {/* Dental routes */}
               <Route path="dental" element={<DentalDashboard />} />
               <Route path="dental/chart" element={<DentalChartPage />} />
               <Route path="dental/treatments" element={<DentalTreatmentsPage />} />
+              <Route path="dental/treatments/new" element={<DentalNewTreatmentPage />} />
               <Route path="dental/procedures" element={<DentalProceduresPage />} />
+              <Route path="dental/images" element={<DentalImagesPage />} />
               <Route path="dental/reports" element={<DentalReportsPage />} />
               
               {/* Lab routes */}
