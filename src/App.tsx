@@ -189,6 +189,16 @@ import ClaimFormPage from "./pages/app/billing/ClaimFormPage";
 import ClaimDetailPage from "./pages/app/billing/ClaimDetailPage";
 import NphiesSettingsPage from "./pages/app/billing/NphiesSettingsPage";
 import NphiesAnalyticsPage from "./pages/app/billing/NphiesAnalyticsPage";
+
+// KSA Integration pages
+const KsaIntegrationsPage = React.lazy(() => import("./pages/app/settings/ksa/KsaIntegrationsPage"));
+const KsaNphiesSettingsPage = React.lazy(() => import("./pages/app/settings/ksa/NphiesSettingsPage"));
+const KsaWasfatySettingsPage = React.lazy(() => import("./pages/app/settings/ksa/WasfatySettingsPage"));
+const KsaTatmeenSettingsPage = React.lazy(() => import("./pages/app/settings/ksa/TatmeenSettingsPage"));
+const KsaHesnSettingsPage = React.lazy(() => import("./pages/app/settings/ksa/HesnSettingsPage"));
+const KsaNafathSettingsPage = React.lazy(() => import("./pages/app/settings/ksa/NafathSettingsPage"));
+const KsaSehhatySettingsPage = React.lazy(() => import("./pages/app/settings/ksa/SehhatySettingsPage"));
+const KsaZatcaSettingsPage = React.lazy(() => import("./pages/app/settings/ksa/ZatcaSettingsPage"));
 const EligibilityChecksPage = React.lazy(() => import("./pages/app/insurance/EligibilityChecksPage"));
 const PreAuthorizationsPage = React.lazy(() => import("./pages/app/insurance/PreAuthorizationsPage"));
 const NphiesTransactionLogsPage = React.lazy(() => import("./pages/app/insurance/NphiesTransactionLogsPage"));
