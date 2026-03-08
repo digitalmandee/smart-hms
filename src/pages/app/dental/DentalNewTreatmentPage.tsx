@@ -34,7 +34,7 @@ export default function DentalNewTreatmentPage() {
   const { data: doctors } = useQuery({
     queryKey: ["doctors-list", profile?.organization_id],
     queryFn: async () => {
-      const { data, error } = await supabase.from("doctors").select("id, profiles(full_name)")
+      const { data, error } = await (supabase.from("doctors").select("id, profiles(full_name)") as any)
         .eq("organization_id", profile!.organization_id!).eq("is_active", true);
       if (error) throw error;
       return data;
