@@ -47,3 +47,9 @@ verify_jwt = false
 
 [functions.nphies-gateway]
 verify_jwt = false
+
+[functions.zatca-phase2]
+verify_jwt = false
+
+[functions.wasfaty-gateway]
+verify_jwt = false
