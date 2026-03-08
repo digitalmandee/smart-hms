@@ -164,19 +164,19 @@ export function WasfatyConfigPanel() {
           <h4 className="font-medium">{t("wasfaty.features" as any, "Features")}</h4>
           <div className="grid gap-2 text-sm">
             <div className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4 text-green-500" />
+              <CheckCircle className="h-4 w-4 text-primary" />
               <span>{t("wasfaty.feature1" as any, "Electronic prescription submission")}</span>
             </div>
             <div className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4 text-green-500" />
+              <CheckCircle className="h-4 w-4 text-primary" />
               <span>{t("wasfaty.feature2" as any, "Real-time status tracking")}</span>
             </div>
             <div className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4 text-green-500" />
+              <CheckCircle className="h-4 w-4 text-primary" />
               <span>{t("wasfaty.feature3" as any, "Dispensing verification")}</span>
             </div>
             <div className="flex items-center gap-2">
-              <AlertCircle className="h-4 w-4 text-yellow-500" />
+              <AlertCircle className="h-4 w-4 text-muted-foreground" />
               <span>{t("wasfaty.feature4" as any, "SFDA drug database (coming soon)")}</span>
             </div>
           </div>
