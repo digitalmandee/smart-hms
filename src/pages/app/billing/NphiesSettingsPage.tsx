@@ -3,15 +3,16 @@ import { PageHeader } from "@/components/PageHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { NphiesConfigPanel } from "@/components/insurance/NphiesConfigPanel";
 import { WasfatyConfigPanel } from "@/components/pharmacy/WasfatyConfigPanel";
+import { TatmeenConfigPanel } from "@/components/pharmacy/TatmeenConfigPanel";
+import { HesnConfigPanel } from "@/components/clinical/HesnConfigPanel";
 import { useCountryConfig } from "@/contexts/CountryConfigContext";
-import { FileText, Pill } from "lucide-react";
+import { FileText, Pill, ScanBarcode, ShieldAlert } from "lucide-react";
 
 export default function NphiesSettingsPage() {
   const { t } = useTranslation();
   const { country_code } = useCountryConfig();
 
-  // Only show tabs for KSA, otherwise just show NPHIES
-  const showWasfaty = country_code === 'SA';
+  const showKsaTabs = country_code === 'SA';
 
   return (
     <div className="space-y-6">
@@ -20,9 +21,9 @@ export default function NphiesSettingsPage() {
         description={t("nphies.settingsDescription", "Manage your organization's Saudi Arabia compliance integrations")}
       />
       
-      {showWasfaty ? (
+      {showKsaTabs ? (
         <Tabs defaultValue="nphies" className="space-y-4">
-          <TabsList>
+          <TabsList className="flex-wrap">
             <TabsTrigger value="nphies" className="gap-2">
               <FileText className="h-4 w-4" />
               {t("nphies.title" as any, "NPHIES Insurance")}
@@ -30,6 +31,14 @@ export default function NphiesSettingsPage() {
             <TabsTrigger value="wasfaty" className="gap-2">
               <Pill className="h-4 w-4" />
               {t("wasfaty.title" as any, "Wasfaty E-Prescription")}
+            </TabsTrigger>
+            <TabsTrigger value="tatmeen" className="gap-2">
+              <ScanBarcode className="h-4 w-4" />
+              {t("tatmeen.title" as any, "Tatmeen / RSD")}
+            </TabsTrigger>
+            <TabsTrigger value="hesn" className="gap-2">
+              <ShieldAlert className="h-4 w-4" />
+              {t("hesn.title" as any, "HESN Public Health")}
             </TabsTrigger>
           </TabsList>
           
@@ -39,6 +48,14 @@ export default function NphiesSettingsPage() {
           
           <TabsContent value="wasfaty">
             <WasfatyConfigPanel />
+          </TabsContent>
+
+          <TabsContent value="tatmeen">
+            <TatmeenConfigPanel />
+          </TabsContent>
+
+          <TabsContent value="hesn">
+            <HesnConfigPanel />
           </TabsContent>
         </Tabs>
       ) : (

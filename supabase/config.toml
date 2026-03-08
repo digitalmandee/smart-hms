@@ -53,3 +53,15 @@ verify_jwt = false
 
 [functions.wasfaty-gateway]
 verify_jwt = false
+
+[functions.hesn-gateway]
+verify_jwt = false
+
+[functions.tatmeen-gateway]
+verify_jwt = false
+
+[functions.nafath-gateway]
+verify_jwt = false
+
+[functions.sehhaty-gateway]
+verify_jwt = false
