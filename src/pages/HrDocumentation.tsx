@@ -6,6 +6,7 @@ import jsPDF from "jspdf";
 import { toPng } from "html-to-image";
 import { HrDocCover } from "@/components/hr-docs/HrDocCover";
 import { HrDocToc } from "@/components/hr-docs/HrDocToc";
+import { HrDocFlow } from "@/components/hr-docs/HrDocFlow";
 import { HrDocEmployee } from "@/components/hr-docs/HrDocEmployee";
 import { HrDocAttendance } from "@/components/hr-docs/HrDocAttendance";
 import { HrDocPayroll } from "@/components/hr-docs/HrDocPayroll";
@@ -14,6 +15,7 @@ import { HrDocRecruitment } from "@/components/hr-docs/HrDocRecruitment";
 const pages = [
   { id: "cover", label: "Cover", component: HrDocCover },
   { id: "toc", label: "Contents", component: HrDocToc },
+  { id: "flow", label: "Process Flow", component: HrDocFlow },
   { id: "employee", label: "Employees", component: HrDocEmployee },
   { id: "attendance", label: "Attendance", component: HrDocAttendance },
   { id: "payroll", label: "Payroll", component: HrDocPayroll },

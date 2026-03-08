@@ -6,6 +6,7 @@ import jsPDF from "jspdf";
 import { toPng } from "html-to-image";
 import { LabDocCover } from "@/components/lab-docs/LabDocCover";
 import { LabDocToc } from "@/components/lab-docs/LabDocToc";
+import { LabDocFlow } from "@/components/lab-docs/LabDocFlow";
 import { LabDocOrders } from "@/components/lab-docs/LabDocOrders";
 import { LabDocResults } from "@/components/lab-docs/LabDocResults";
 import { LabDocTemplates } from "@/components/lab-docs/LabDocTemplates";
@@ -13,6 +14,7 @@ import { LabDocTemplates } from "@/components/lab-docs/LabDocTemplates";
 const pages = [
   { id: "cover", label: "Cover", component: LabDocCover },
   { id: "toc", label: "Contents", component: LabDocToc },
+  { id: "flow", label: "Process Flow", component: LabDocFlow },
   { id: "orders", label: "Orders & Collection", component: LabDocOrders },
   { id: "results", label: "Results & Validation", component: LabDocResults },
   { id: "templates", label: "Test Catalog", component: LabDocTemplates },

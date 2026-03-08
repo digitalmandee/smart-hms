@@ -6,6 +6,7 @@ import jsPDF from "jspdf";
 import { toPng } from "html-to-image";
 import { DialDocCover } from "@/components/dialysis-docs/DialDocCover";
 import { DialDocToc } from "@/components/dialysis-docs/DialDocToc";
+import { DialDocFlow } from "@/components/dialysis-docs/DialDocFlow";
 import { DialDocPatients } from "@/components/dialysis-docs/DialDocPatients";
 import { DialDocSessions } from "@/components/dialysis-docs/DialDocSessions";
 import { DialDocMachines } from "@/components/dialysis-docs/DialDocMachines";
@@ -14,6 +15,7 @@ import { DialDocSchedule } from "@/components/dialysis-docs/DialDocSchedule";
 const pages = [
   { id: "cover", label: "Cover", component: DialDocCover },
   { id: "toc", label: "Contents", component: DialDocToc },
+  { id: "flow", label: "Process Flow", component: DialDocFlow },
   { id: "patients", label: "Patients", component: DialDocPatients },
   { id: "sessions", label: "Sessions", component: DialDocSessions },
   { id: "machines", label: "Machines", component: DialDocMachines },

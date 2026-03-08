@@ -6,6 +6,7 @@ import jsPDF from "jspdf";
 import { toPng } from "html-to-image";
 import { DocCoverPage } from "@/components/pharmacy-docs/DocCoverPage";
 import { DocTableOfContents } from "@/components/pharmacy-docs/DocTableOfContents";
+import { PharmDocFlow } from "@/components/pharmacy-docs/PharmDocFlow";
 import { DocDashboard } from "@/components/pharmacy-docs/DocDashboard";
 import { DocMedicineCatalog } from "@/components/pharmacy-docs/DocMedicineCatalog";
 import { DocInventory } from "@/components/pharmacy-docs/DocInventory";
@@ -26,6 +27,7 @@ import { DocSettings } from "@/components/pharmacy-docs/DocSettings";
 const pages = [
   { id: "cover", label: "Cover", component: DocCoverPage },
   { id: "toc", label: "Table of Contents", component: DocTableOfContents },
+  { id: "flow", label: "Process Flow", component: PharmDocFlow },
   { id: "dashboard", label: "Dashboard", component: DocDashboard },
   { id: "catalog", label: "Medicine Catalog", component: DocMedicineCatalog },
   { id: "inventory", label: "Inventory", component: DocInventory },
