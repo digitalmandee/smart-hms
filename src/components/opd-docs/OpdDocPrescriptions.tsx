@@ -1,7 +1,7 @@
 import { DocPageWrapper, SectionTitle, FeatureList, SubSection, StepList, MockupTable, TipBox } from "@/components/shared-docs/DocPageWrapper";
 
 export const OpdDocPrescriptions = () => (
-  <DocPageWrapper pageNumber={7} totalPages={8} moduleTitle="OPD Module Guide">
+  <DocPageWrapper pageNumber={8} totalPages={9} moduleTitle="OPD Module Guide">
     <SectionTitle icon="💊" title="Prescriptions & Dispensing" subtitle="E-prescriptions with pharmacy queue integration and Wasfaty compliance" />
     <SubSection title="Prescribing Workflow">
       <StepList steps={[

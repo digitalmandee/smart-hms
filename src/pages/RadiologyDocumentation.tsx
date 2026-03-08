@@ -6,6 +6,7 @@ import jsPDF from "jspdf";
 import { toPng } from "html-to-image";
 import { RadDocCover } from "@/components/radiology-docs/RadDocCover";
 import { RadDocToc } from "@/components/radiology-docs/RadDocToc";
+import { RadDocFlow } from "@/components/radiology-docs/RadDocFlow";
 import { RadDocOrders } from "@/components/radiology-docs/RadDocOrders";
 import { RadDocReporting } from "@/components/radiology-docs/RadDocReporting";
 import { RadDocPacs } from "@/components/radiology-docs/RadDocPacs";
@@ -13,6 +14,7 @@ import { RadDocPacs } from "@/components/radiology-docs/RadDocPacs";
 const pages = [
   { id: "cover", label: "Cover", component: RadDocCover },
   { id: "toc", label: "Contents", component: RadDocToc },
+  { id: "flow", label: "Process Flow", component: RadDocFlow },
   { id: "orders", label: "Orders", component: RadDocOrders },
   { id: "reporting", label: "Reporting", component: RadDocReporting },
   { id: "pacs", label: "PACS", component: RadDocPacs },

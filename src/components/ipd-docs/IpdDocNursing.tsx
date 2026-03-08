@@ -1,7 +1,7 @@
 import { DocPageWrapper, SectionTitle, FeatureList, SubSection, MockupTable, TipBox } from "@/components/shared-docs/DocPageWrapper";
 
 export const IpdDocNursing = () => (
-  <DocPageWrapper pageNumber={6} totalPages={8} moduleTitle="IPD Module Guide">
+  <DocPageWrapper pageNumber={7} totalPages={9} moduleTitle="IPD Module Guide">
     <SectionTitle icon="👩‍⚕️" title="Nursing Station & Medication Chart" subtitle="Medication administration, care plans, and nursing documentation" />
     <SubSection title="Medication Chart">
       <MockupTable headers={["Time", "Medicine", "Dose", "Route", "Status"]} rows={[

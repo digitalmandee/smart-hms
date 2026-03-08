@@ -1,7 +1,7 @@
 import { DocPageWrapper, SectionTitle, FeatureList, SubSection, ScreenMockup, InfoCard, MockupTable, TipBox } from "@/components/shared-docs/DocPageWrapper";
 
 export const IpdDocBeds = () => (
-  <DocPageWrapper pageNumber={4} totalPages={8} moduleTitle="IPD Module Guide">
+  <DocPageWrapper pageNumber={5} totalPages={9} moduleTitle="IPD Module Guide">
     <SectionTitle icon="🛏️" title="Bed Management & Transfers" subtitle="Real-time bed occupancy, transfers, and housekeeping integration" />
     <ScreenMockup title="Bed Dashboard">
       <div className="grid grid-cols-4 gap-2">

@@ -1,7 +1,7 @@
 import { DocPageWrapper, SectionTitle, FeatureList, SubSection, StepList, TipBox } from "@/components/shared-docs/DocPageWrapper";
 
 export const IpdDocRounds = () => (
-  <DocPageWrapper pageNumber={5} totalPages={8} moduleTitle="IPD Module Guide">
+  <DocPageWrapper pageNumber={6} totalPages={9} moduleTitle="IPD Module Guide">
     <SectionTitle icon="📋" title="Daily Rounds & Vitals" subtitle="Structured doctor rounds with vitals trending and progress notes" />
     <SubSection title="Round Workflow">
       <StepList steps={[

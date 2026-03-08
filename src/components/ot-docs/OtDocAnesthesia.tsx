@@ -1,7 +1,7 @@
 import { DocPageWrapper, SectionTitle, FeatureList, SubSection, MockupTable, TipBox } from "@/components/shared-docs/DocPageWrapper";
 
 export const OtDocAnesthesia = () => (
-  <DocPageWrapper pageNumber={5} totalPages={7} moduleTitle="Surgery / OT Module Guide">
+  <DocPageWrapper pageNumber={6} totalPages={8} moduleTitle="Surgery / OT Module Guide">
     <SectionTitle icon="💉" title="Anesthesia Planning & Record" subtitle="Complete anesthesia documentation from induction to recovery" />
     <SubSection title="Anesthesia Types">
       <MockupTable headers={["Type", "Use Case", "Documentation"]} rows={[

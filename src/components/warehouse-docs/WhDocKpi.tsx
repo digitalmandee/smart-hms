@@ -1,7 +1,7 @@
 import { DocPageWrapper, SectionTitle, FeatureList, SubSection, ScreenMockup, InfoCard, MockupTable, TipBox } from "@/components/shared-docs/DocPageWrapper";
 
 export const WhDocKpi = () => (
-  <DocPageWrapper pageNumber={6} totalPages={6} moduleTitle="Warehouse Module Guide">
+  <DocPageWrapper pageNumber={7} totalPages={7} moduleTitle="Warehouse Module Guide">
     <SectionTitle icon="📊" title="KPI Dashboard & Reports" subtitle="Operational metrics, performance tracking, and executive reporting" />
     <ScreenMockup title="Warehouse KPI Dashboard">
       <div className="grid grid-cols-4 gap-2">

@@ -1,8 +1,9 @@
 import { DocToc } from "@/components/shared-docs/DocPageWrapper";
 const items = [
-  { num: 1, title: "Patient Enrollment", page: 3 },
-  { num: 2, title: "Session Workflow", page: 4 },
-  { num: 3, title: "Machine Management", page: 5 },
-  { num: 4, title: "Scheduling & Reports", page: 6 },
+  { num: 0, title: "Process Flow — Dialysis Session", page: 3 },
+  { num: 1, title: "Patient Enrollment", page: 4 },
+  { num: 2, title: "Session Workflow", page: 5 },
+  { num: 3, title: "Machine Management", page: 6 },
+  { num: 4, title: "Scheduling & Reports", page: 7 },
 ];
-export const DialDocToc = () => <DocToc items={items} moduleTitle="Dialysis Center" totalPages={6} />;
+export const DialDocToc = () => <DocToc items={items} moduleTitle="Dialysis Center" totalPages={7} />;

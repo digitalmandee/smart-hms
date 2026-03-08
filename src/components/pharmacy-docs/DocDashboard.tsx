@@ -1,7 +1,7 @@
 import { DocPageWrapper, SectionTitle, FeatureList, SubSection, TipBox, ScreenMockup, InfoCard } from "./DocPageWrapper";
 
 export const DocDashboard = () => (
-  <DocPageWrapper pageNumber={3} totalPages={18}>
+  <DocPageWrapper pageNumber={4} totalPages={19}>
     <SectionTitle
       icon="📊"
       title="Dashboard Overview"

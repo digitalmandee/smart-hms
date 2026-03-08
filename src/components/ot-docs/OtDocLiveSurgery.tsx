@@ -1,7 +1,7 @@
 import { DocPageWrapper, SectionTitle, FeatureList, SubSection, StepList, MockupTable, TipBox } from "@/components/shared-docs/DocPageWrapper";
 
 export const OtDocLiveSurgery = () => (
-  <DocPageWrapper pageNumber={6} totalPages={7} moduleTitle="Surgery / OT Module Guide">
+  <DocPageWrapper pageNumber={7} totalPages={8} moduleTitle="Surgery / OT Module Guide">
     <SectionTitle icon="🔬" title="Live Surgery — Monitoring & Instruments" subtitle="Intra-operative tracking, instrument counts, and consumable logging" />
     <SubSection title="Live Surgery Dashboard">
       <FeatureList items={[

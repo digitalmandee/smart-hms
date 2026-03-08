@@ -1,6 +1,6 @@
 import { DocPageWrapper, SectionTitle, SubSection, FeatureList, MockupTable, StepList, TipBox } from "@/components/shared-docs/DocPageWrapper";
 export const DialDocMachines = () => (
-  <DocPageWrapper pageNumber={5} totalPages={6} moduleTitle="Dialysis Center">
+  <DocPageWrapper pageNumber={6} totalPages={7} moduleTitle="Dialysis Center">
     <SectionTitle icon="⚙️" title="Machine Management" subtitle="Inventory, maintenance, disinfection & allocation" />
     <SubSection title="Machine Registry">
       <MockupTable headers={["Field", "Description"]} rows={[["Machine Number","Unique identifier (e.g., HD-001)"],["Model","Fresenius 5008S, Nipro Surdial X, etc."],["Serial Number","Manufacturer serial for warranty"],["Status","Available / In Use / Maintenance / Retired"],["Isolation","Dedicated for HBsAg+ patients (Yes/No)"],["Last Disinfection","Date/time of last disinfection"]]} />

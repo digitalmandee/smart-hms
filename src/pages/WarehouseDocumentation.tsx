@@ -6,6 +6,7 @@ import jsPDF from "jspdf";
 import { toPng } from "html-to-image";
 import { WhDocCover } from "@/components/warehouse-docs/WhDocCover";
 import { WhDocToc } from "@/components/warehouse-docs/WhDocToc";
+import { WhDocFlow } from "@/components/warehouse-docs/WhDocFlow";
 import { WhDocReceiving } from "@/components/warehouse-docs/WhDocReceiving";
 import { WhDocPicking } from "@/components/warehouse-docs/WhDocPicking";
 import { WhDocOps } from "@/components/warehouse-docs/WhDocOps";
@@ -14,6 +15,7 @@ import { WhDocKpi } from "@/components/warehouse-docs/WhDocKpi";
 const pages = [
   { id: "cover", label: "Cover", component: WhDocCover },
   { id: "toc", label: "Contents", component: WhDocToc },
+  { id: "flow", label: "Process Flow", component: WhDocFlow },
   { id: "receiving", label: "Receiving", component: WhDocReceiving },
   { id: "picking", label: "Picking & Shipping", component: WhDocPicking },
   { id: "ops", label: "Operations", component: WhDocOps },

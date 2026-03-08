@@ -1,7 +1,7 @@
 import { DocPageWrapper, SectionTitle, FeatureList, SubSection, StepList, TipBox } from "@/components/shared-docs/DocPageWrapper";
 
 export const IpdDocAdmission = () => (
-  <DocPageWrapper pageNumber={3} totalPages={8} moduleTitle="IPD Module Guide">
+  <DocPageWrapper pageNumber={4} totalPages={9} moduleTitle="IPD Module Guide">
     <SectionTitle icon="🏥" title="Admission — Bed Selection & Form" subtitle="Complete admission workflow from OPD/ER to ward" />
     <SubSection title="Admission Channels">
       <FeatureList items={[

@@ -1,7 +1,7 @@
 import { DocPageWrapper, SectionTitle, FeatureList, SubSection, TipBox, ScreenMockup } from "./DocPageWrapper";
 
 export const DocWarehouse = () => (
-  <DocPageWrapper pageNumber={14} totalPages={18}>
+  <DocPageWrapper pageNumber={15} totalPages={19}>
     <SectionTitle
       icon="🏭"
       title="Warehouse Management"

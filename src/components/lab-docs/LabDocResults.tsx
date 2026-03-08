@@ -1,7 +1,7 @@
 import { DocPageWrapper, SectionTitle, FeatureList, SubSection, StepList, MockupTable, TipBox } from "@/components/shared-docs/DocPageWrapper";
 
 export const LabDocResults = () => (
-  <DocPageWrapper pageNumber={4} totalPages={5} moduleTitle="Laboratory Module Guide">
+  <DocPageWrapper pageNumber={5} totalPages={6} moduleTitle="Laboratory Module Guide">
     <SectionTitle icon="📊" title="Result Entry & Validation" subtitle="Two-tier validation with abnormal flagging and critical value alerts" />
     <SubSection title="Result Entry">
       <StepList steps={[

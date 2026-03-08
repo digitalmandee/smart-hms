@@ -1,7 +1,7 @@
 import { DocPageWrapper, SectionTitle, FeatureList, SubSection, TipBox } from "./DocPageWrapper";
 
 export const DocPOSCart = () => (
-  <DocPageWrapper pageNumber={8} totalPages={18}>
+  <DocPageWrapper pageNumber={9} totalPages={19}>
     <SectionTitle
       icon="🛒"
       title="POS Terminal — Cart & Checkout"

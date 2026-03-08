@@ -1,7 +1,7 @@
 import { DocPageWrapper, SectionTitle, FeatureList, SubSection, StepList, MockupTable, TipBox } from "@/components/shared-docs/DocPageWrapper";
 
 export const WhDocPicking = () => (
-  <DocPageWrapper pageNumber={4} totalPages={6} moduleTitle="Warehouse Module Guide">
+  <DocPageWrapper pageNumber={5} totalPages={7} moduleTitle="Warehouse Module Guide">
     <SectionTitle icon="📋" title="Picking, Packing & Shipping" subtitle="Order fulfillment from pick list generation to dispatch" />
     <SubSection title="Picking Workflow">
       <StepList steps={[

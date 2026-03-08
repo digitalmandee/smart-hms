@@ -1,7 +1,7 @@
 import { DocPageWrapper, SectionTitle, FeatureList, SubSection, TipBox, MockupTable } from "./DocPageWrapper";
 
 export const DocInventory = () => (
-  <DocPageWrapper pageNumber={5} totalPages={18}>
+  <DocPageWrapper pageNumber={6} totalPages={19}>
     <SectionTitle
       icon="📦"
       title="Inventory Management"

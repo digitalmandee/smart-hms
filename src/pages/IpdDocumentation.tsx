@@ -6,6 +6,7 @@ import jsPDF from "jspdf";
 import { toPng } from "html-to-image";
 import { IpdDocCover } from "@/components/ipd-docs/IpdDocCover";
 import { IpdDocToc } from "@/components/ipd-docs/IpdDocToc";
+import { IpdDocFlow } from "@/components/ipd-docs/IpdDocFlow";
 import { IpdDocAdmission } from "@/components/ipd-docs/IpdDocAdmission";
 import { IpdDocBeds } from "@/components/ipd-docs/IpdDocBeds";
 import { IpdDocRounds } from "@/components/ipd-docs/IpdDocRounds";
@@ -16,6 +17,7 @@ import { IpdDocDischarge } from "@/components/ipd-docs/IpdDocDischarge";
 const pages = [
   { id: "cover", label: "Cover", component: IpdDocCover },
   { id: "toc", label: "Table of Contents", component: IpdDocToc },
+  { id: "flow", label: "Process Flow", component: IpdDocFlow },
   { id: "admission", label: "Admission", component: IpdDocAdmission },
   { id: "beds", label: "Bed Management", component: IpdDocBeds },
   { id: "rounds", label: "Daily Rounds", component: IpdDocRounds },

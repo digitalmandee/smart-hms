@@ -1,7 +1,7 @@
 import { DocPageWrapper, SectionTitle, FeatureList, SubSection, TipBox, ScreenMockup } from "./DocPageWrapper";
 
 export const DocPOSLayout = () => (
-  <DocPageWrapper pageNumber={7} totalPages={18}>
+  <DocPageWrapper pageNumber={8} totalPages={19}>
     <SectionTitle
       icon="🖥️"
       title="POS Terminal — Layout & Product Search"

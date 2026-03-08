@@ -1,6 +1,6 @@
 import { DocPageWrapper, SectionTitle, SubSection, FeatureList, MockupTable, StepList, TipBox } from "@/components/shared-docs/DocPageWrapper";
 export const HrDocPayroll = () => (
-  <DocPageWrapper pageNumber={5} totalPages={6} moduleTitle="HR & Payroll">
+  <DocPageWrapper pageNumber={6} totalPages={7} moduleTitle="HR & Payroll">
     <SectionTitle icon="💰" title="Payroll Processing" subtitle="Salary structure, runs, tax & compliance" />
     <SubSection title="Salary Structure">
       <FeatureList items={["Configurable salary components: basic, HRA, transport, medical","Percentage-based or fixed-amount allowances","Auto-calculation of GOSI (Saudi social insurance)","End-of-service benefit (ESB) accrual per Saudi labor law","Multi-currency support for expat employees"]} />

@@ -1,7 +1,7 @@
 import { DocPageWrapper, SectionTitle, SubSection, FeatureList, TipBox } from "./DocPageWrapper";
 
 export const DocReportsPage2 = () => (
-  <DocPageWrapper pageNumber={17} totalPages={18}>
+  <DocPageWrapper pageNumber={18} totalPages={19}>
     <SectionTitle
       icon="📊"
       title="Reports Hub — Detail Views"

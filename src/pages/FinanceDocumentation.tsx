@@ -6,6 +6,7 @@ import jsPDF from "jspdf";
 import { toPng } from "html-to-image";
 import { FinDocCover } from "@/components/finance-docs/FinDocCover";
 import { FinDocToc } from "@/components/finance-docs/FinDocToc";
+import { FinDocFlow } from "@/components/finance-docs/FinDocFlow";
 import { FinDocCoa } from "@/components/finance-docs/FinDocCoa";
 import { FinDocJournals } from "@/components/finance-docs/FinDocJournals";
 import { FinDocBilling } from "@/components/finance-docs/FinDocBilling";
@@ -14,6 +15,7 @@ import { FinDocReports } from "@/components/finance-docs/FinDocReports";
 const pages = [
   { id: "cover", label: "Cover", component: FinDocCover },
   { id: "toc", label: "Contents", component: FinDocToc },
+  { id: "flow", label: "Process Flow", component: FinDocFlow },
   { id: "coa", label: "Chart of Accounts", component: FinDocCoa },
   { id: "journals", label: "Journal Entries", component: FinDocJournals },
   { id: "billing", label: "Billing", component: FinDocBilling },

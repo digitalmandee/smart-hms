@@ -6,6 +6,7 @@ import jsPDF from "jspdf";
 import { toPng } from "html-to-image";
 import { DentDocCover } from "@/components/dental-docs/DentDocCover";
 import { DentDocToc } from "@/components/dental-docs/DentDocToc";
+import { DentDocFlow } from "@/components/dental-docs/DentDocFlow";
 import { DentDocChart } from "@/components/dental-docs/DentDocChart";
 import { DentDocTreatment } from "@/components/dental-docs/DentDocTreatment";
 import { DentDocProcedures } from "@/components/dental-docs/DentDocProcedures";
@@ -14,6 +15,7 @@ import { DentDocImages } from "@/components/dental-docs/DentDocImages";
 const pages = [
   { id: "cover", label: "Cover", component: DentDocCover },
   { id: "toc", label: "Contents", component: DentDocToc },
+  { id: "flow", label: "Process Flow", component: DentDocFlow },
   { id: "chart", label: "Tooth Chart", component: DentDocChart },
   { id: "treatment", label: "Treatment Plans", component: DentDocTreatment },
   { id: "procedures", label: "Procedures", component: DentDocProcedures },

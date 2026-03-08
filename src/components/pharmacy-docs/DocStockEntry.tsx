@@ -1,7 +1,7 @@
 import { DocPageWrapper, SectionTitle, StepList, SubSection, TipBox, FeatureList } from "./DocPageWrapper";
 
 export const DocStockEntry = () => (
-  <DocPageWrapper pageNumber={6} totalPages={18}>
+  <DocPageWrapper pageNumber={7} totalPages={19}>
     <SectionTitle
       icon="📥"
       title="Stock Entry (GRN)"

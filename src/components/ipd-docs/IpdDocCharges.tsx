@@ -1,7 +1,7 @@
 import { DocPageWrapper, SectionTitle, FeatureList, SubSection, MockupTable, TipBox } from "@/components/shared-docs/DocPageWrapper";
 
 export const IpdDocCharges = () => (
-  <DocPageWrapper pageNumber={7} totalPages={8} moduleTitle="IPD Module Guide">
+  <DocPageWrapper pageNumber={8} totalPages={9} moduleTitle="IPD Module Guide">
     <SectionTitle icon="💰" title="Room Charges & Consumables" subtitle="Automated daily charges, consumable tracking, and interim billing" />
     <SubSection title="Daily Room Charges">
       <MockupTable headers={["Charge Type", "Rate", "Frequency", "Auto"]} rows={[

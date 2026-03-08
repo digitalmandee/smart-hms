@@ -6,6 +6,7 @@ import jsPDF from "jspdf";
 import { toPng } from "html-to-image";
 import { OtDocCover } from "@/components/ot-docs/OtDocCover";
 import { OtDocToc } from "@/components/ot-docs/OtDocToc";
+import { OtDocFlow } from "@/components/ot-docs/OtDocFlow";
 import { OtDocScheduling } from "@/components/ot-docs/OtDocScheduling";
 import { OtDocPreOp } from "@/components/ot-docs/OtDocPreOp";
 import { OtDocAnesthesia } from "@/components/ot-docs/OtDocAnesthesia";
@@ -15,6 +16,7 @@ import { OtDocPostOp } from "@/components/ot-docs/OtDocPostOp";
 const pages = [
   { id: "cover", label: "Cover", component: OtDocCover },
   { id: "toc", label: "Contents", component: OtDocToc },
+  { id: "flow", label: "Process Flow", component: OtDocFlow },
   { id: "scheduling", label: "Scheduling", component: OtDocScheduling },
   { id: "preop", label: "Pre-Op", component: OtDocPreOp },
   { id: "anesthesia", label: "Anesthesia", component: OtDocAnesthesia },

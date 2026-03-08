@@ -6,6 +6,7 @@ import jsPDF from "jspdf";
 import { toPng } from "html-to-image";
 import { OpdDocCover } from "@/components/opd-docs/OpdDocCover";
 import { OpdDocToc } from "@/components/opd-docs/OpdDocToc";
+import { OpdDocFlow } from "@/components/opd-docs/OpdDocFlow";
 import { OpdDocAppointment } from "@/components/opd-docs/OpdDocAppointment";
 import { OpdDocQueue } from "@/components/opd-docs/OpdDocQueue";
 import { OpdDocConsultation } from "@/components/opd-docs/OpdDocConsultation";
@@ -16,6 +17,7 @@ import { OpdDocCheckout } from "@/components/opd-docs/OpdDocCheckout";
 const pages = [
   { id: "cover", label: "Cover", component: OpdDocCover },
   { id: "toc", label: "Table of Contents", component: OpdDocToc },
+  { id: "flow", label: "Process Flow", component: OpdDocFlow },
   { id: "appointment", label: "Appointments", component: OpdDocAppointment },
   { id: "queue", label: "Token Queue", component: OpdDocQueue },
   { id: "consultation", label: "Consultation", component: OpdDocConsultation },
