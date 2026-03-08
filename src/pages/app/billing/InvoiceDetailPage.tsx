@@ -13,12 +13,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useInvoice, useCancelInvoice } from "@/hooks/useBilling";
+import { useInvoice, useCancelInvoice, useGenerateZatcaQR } from "@/hooks/useBilling";
 import { useOrganizations } from "@/hooks/useOrganizations";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCountryConfig } from "@/contexts/CountryConfigContext";
 import { InvoiceStatusBadge } from "@/components/billing/InvoiceStatusBadge";
 import { InvoiceTotals } from "@/components/billing/InvoiceTotals";
 import { PrintableInvoice } from "@/components/billing/PrintableInvoice";
+import { ZatcaQRDisplay } from "@/components/billing/ZatcaQRDisplay";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import {
   ArrowLeft,
