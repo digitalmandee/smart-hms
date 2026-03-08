@@ -20,7 +20,7 @@ import { useSearchMedicalCodes, MedicalCode } from "@/hooks/useMedicalCodes";
 import { useTranslation } from "@/lib/i18n";
 
 interface MedicalCodeSearchProps {
-  codeType: "icd10" | "cpt";
+  codeType: "icd10" | "cpt" | "achi" | "sbs" | "snomed" | "loinc";
   selectedCodes: string[];
   onCodesChange: (codes: string[]) => void;
   placeholder?: string;
