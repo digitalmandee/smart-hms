@@ -614,7 +614,7 @@ export const SIDEBAR_NAME_TO_KEY: Record<string, TranslationKey> = {
   "KSA Integrations": "nav.ksaIntegrations" as any,
   "KSA Compliance": "nav.ksaCompliance" as any,
   "KSA Dashboard": "nav.ksaDashboard" as any,
-  "NPHIES": "nav.nphies" as any,
+  
   "NPHIES Config": "nav.nphiesConfig" as any,
   "Wasfaty": "nav.wasfaty" as any,
   "Wasfaty Config": "nav.wasfatyConfig" as any,
