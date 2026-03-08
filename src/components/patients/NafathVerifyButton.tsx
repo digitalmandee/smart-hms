@@ -37,11 +37,54 @@ export function NafathVerifyButton({
   const [requestId, setRequestId] = useState<string | null>(null);
   const [polling, setPolling] = useState(false);
 
+  // Poll for verification status
+  useEffect(() => {
+    if (!polling || !requestId) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke("nafath-gateway", {
+          body: {
+            action: "check_status",
+            request_id: requestId,
+            national_id: nationalId,
+            patient_id: patientId,
+          },
+        });
+
+        if (error) throw error;
+
+        if (data.verified) {
+          setStatus("verified");
+          setPolling(false);
+          onVerified?.();
+          toast.success(t("nafath.success" as any, "Identity verified via Nafath"));
+        }
+      } catch {
+        // Continue polling
+      }
+    }, 3000);
+
+    // Stop polling after 2 minutes
+    const timeout = setTimeout(() => {
+      setPolling(false);
+      setStatus((prev) => prev === "pending" ? "error" : prev);
+      if (status === "pending") {
+        toast.error(t("nafath.timeout" as any, "Verification timed out"));
+      }
+    }, 120000);
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timeout);
+    };
+  }, [polling, requestId, nationalId, patientId, onVerified, status, t]);
+
   if (country_code !== "SA") return null;
 
   if (isVerified) {
     return (
-      <Badge variant="outline" className="gap-1 text-green-600 border-green-300">
+      <Badge variant="outline" className="gap-1 border-green-300 text-green-600">
         <CheckCircle2 className="h-3 w-3" />
         {t("nafath.verified" as any, "Nafath Verified")}
       </Badge>
@@ -80,49 +123,6 @@ export function NafathVerifyButton({
       toast.error(t("nafath.error" as any, "Failed to initiate Nafath verification"));
     }
   };
-
-  // Poll for verification status
-  useEffect(() => {
-    if (!polling || !requestId) return;
-
-    const interval = setInterval(async () => {
-      try {
-        const { data, error } = await supabase.functions.invoke("nafath-gateway", {
-          body: {
-            action: "check_status",
-            request_id: requestId,
-            national_id: nationalId,
-            patient_id: patientId,
-          },
-        });
-
-        if (error) throw error;
-
-        if (data.verified) {
-          setStatus("verified");
-          setPolling(false);
-          onVerified?.();
-          toast.success(t("nafath.success" as any, "Identity verified via Nafath"));
-        }
-      } catch {
-        // Continue polling
-      }
-    }, 3000);
-
-    // Stop polling after 2 minutes
-    const timeout = setTimeout(() => {
-      setPolling(false);
-      if (status === "pending") {
-        setStatus("error");
-        toast.error(t("nafath.timeout" as any, "Verification timed out"));
-      }
-    }, 120000);
-
-    return () => {
-      clearInterval(interval);
-      clearTimeout(timeout);
-    };
-  }, [polling, requestId]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
