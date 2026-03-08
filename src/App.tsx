@@ -26,6 +26,10 @@ import DocumentationHub from "./pages/DocumentationHub";
 const OpdDocumentation = React.lazy(() => import("./pages/OpdDocumentation"));
 const IpdDocumentation = React.lazy(() => import("./pages/IpdDocumentation"));
 const OtDocumentation = React.lazy(() => import("./pages/OtDocumentation"));
+const LabDocumentation = React.lazy(() => import("./pages/LabDocumentation"));
+const RadiologyDocumentation = React.lazy(() => import("./pages/RadiologyDocumentation"));
+const WarehouseDocumentation = React.lazy(() => import("./pages/WarehouseDocumentation"));
+const FinanceDocumentation = React.lazy(() => import("./pages/FinanceDocumentation"));
 import KsaDocumentation from "./pages/KsaDocumentation";
 import SystemOverview from "./pages/SystemOverview";
 import TestCasesPage from "./pages/TestCasesPage";
@@ -665,6 +669,10 @@ function App() {
               <Route path="/opd-documentation" element={<React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><OpdDocumentation /></React.Suspense>} />
               <Route path="/ipd-documentation" element={<React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><IpdDocumentation /></React.Suspense>} />
               <Route path="/ot-documentation" element={<React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><OtDocumentation /></React.Suspense>} />
+              <Route path="/lab-documentation" element={<React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><LabDocumentation /></React.Suspense>} />
+              <Route path="/radiology-documentation" element={<React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><RadiologyDocumentation /></React.Suspense>} />
+              <Route path="/warehouse-documentation" element={<React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><WarehouseDocumentation /></React.Suspense>} />
+              <Route path="/finance-documentation" element={<React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><FinanceDocumentation /></React.Suspense>} />
             {/* Public display routes - NO AUTH REQUIRED for TV displays and kiosks */}
             <Route path="/display/queue/:organizationId" element={<PublicQueueDisplay />} />
             <Route path="/display/queue/:organizationId/:deptCode" element={<PublicQueueDisplay />} />
