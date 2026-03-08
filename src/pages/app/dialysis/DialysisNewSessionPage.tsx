@@ -50,7 +50,7 @@ export default function DialysisNewSessionPage() {
               <SelectTrigger><SelectValue placeholder="Select patient..." /></SelectTrigger>
               <SelectContent>
                 {(patients || []).map((p: any) => (
-                  <SelectItem key={p.id} value={p.id}>{p.patients?.first_name} {p.patients?.last_name} — MRN: {p.patients?.mrn_number}</SelectItem>
+                  <SelectItem key={p.id} value={p.id}>{p.patients?.first_name} {p.patients?.last_name} — {p.patients?.patient_number}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
