@@ -436,7 +436,6 @@ export default function DispensingPage() {
               </CardContent>
             </Card>
           )}
-          </Card>
 
           {/* Stock Issues Warning */}
           {hasStockIssues && !allDispensed && (
