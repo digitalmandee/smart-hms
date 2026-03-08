@@ -4,7 +4,10 @@ import { InvoiceWithDetails } from "@/hooks/useBilling";
 import { generateQRCodeUrl, getInvoiceVerificationUrl } from "@/lib/qrcode";
 
 interface PrintableInvoiceProps {
-  invoice: InvoiceWithDetails;
+  invoice: InvoiceWithDetails & {
+    zatca_qr_code?: string | null;
+    zatca_uuid?: string | null;
+  };
   organization?: {
     name: string;
     address?: string | null;
