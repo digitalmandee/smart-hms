@@ -10631,12 +10631,16 @@ export type Database = {
           tax_amount: number | null
           total_amount: number | null
           updated_at: string
+          zatca_clearance_response: Json | null
+          zatca_clearance_status: string | null
           zatca_icv: number | null
+          zatca_invoice_hash: string | null
           zatca_invoice_type: string | null
           zatca_pih: string | null
           zatca_qr_code: string | null
           zatca_status: string | null
           zatca_uuid: string | null
+          zatca_xml: string | null
         }
         Insert: {
           balance_amount?: number | null
@@ -10656,12 +10660,16 @@ export type Database = {
           tax_amount?: number | null
           total_amount?: number | null
           updated_at?: string
+          zatca_clearance_response?: Json | null
+          zatca_clearance_status?: string | null
           zatca_icv?: number | null
+          zatca_invoice_hash?: string | null
           zatca_invoice_type?: string | null
           zatca_pih?: string | null
           zatca_qr_code?: string | null
           zatca_status?: string | null
           zatca_uuid?: string | null
+          zatca_xml?: string | null
         }
         Update: {
           balance_amount?: number | null
@@ -10681,12 +10689,16 @@ export type Database = {
           tax_amount?: number | null
           total_amount?: number | null
           updated_at?: string
+          zatca_clearance_response?: Json | null
+          zatca_clearance_status?: string | null
           zatca_icv?: number | null
+          zatca_invoice_hash?: string | null
           zatca_invoice_type?: string | null
           zatca_pih?: string | null
           zatca_qr_code?: string | null
           zatca_status?: string | null
           zatca_uuid?: string | null
+          zatca_xml?: string | null
         }
         Relationships: [
           {
@@ -14911,6 +14923,9 @@ export type Database = {
           tax_registration_label: string | null
           trial_ends_at: string | null
           updated_at: string
+          wasfaty_api_key_encrypted: string | null
+          wasfaty_enabled: boolean | null
+          wasfaty_facility_id: string | null
           website: string | null
           working_days: string[] | null
           working_hours_end: string | null
@@ -14957,6 +14972,9 @@ export type Database = {
           tax_registration_label?: string | null
           trial_ends_at?: string | null
           updated_at?: string
+          wasfaty_api_key_encrypted?: string | null
+          wasfaty_enabled?: boolean | null
+          wasfaty_facility_id?: string | null
           website?: string | null
           working_days?: string[] | null
           working_hours_end?: string | null
@@ -15003,6 +15021,9 @@ export type Database = {
           tax_registration_label?: string | null
           trial_ends_at?: string | null
           updated_at?: string
+          wasfaty_api_key_encrypted?: string | null
+          wasfaty_enabled?: boolean | null
+          wasfaty_facility_id?: string | null
           website?: string | null
           working_days?: string[] | null
           working_hours_end?: string | null
@@ -22393,6 +22414,122 @@ export type Database = {
             columns: ["store_id"]
             isOneToOne: false
             referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wasfaty_prescriptions: {
+        Row: {
+          branch_id: string | null
+          consultation_id: string | null
+          created_at: string | null
+          diagnosis_codes: string[] | null
+          dispensed_at: string | null
+          dispensing_pharmacy: string | null
+          doctor_id: string | null
+          error_message: string | null
+          id: string
+          medications: Json
+          organization_id: string
+          patient_id: string
+          prescription_id: string | null
+          response_data: Json | null
+          submitted_at: string | null
+          submitted_by: string | null
+          updated_at: string | null
+          wasfaty_prescription_id: string | null
+          wasfaty_status: string | null
+        }
+        Insert: {
+          branch_id?: string | null
+          consultation_id?: string | null
+          created_at?: string | null
+          diagnosis_codes?: string[] | null
+          dispensed_at?: string | null
+          dispensing_pharmacy?: string | null
+          doctor_id?: string | null
+          error_message?: string | null
+          id?: string
+          medications?: Json
+          organization_id: string
+          patient_id: string
+          prescription_id?: string | null
+          response_data?: Json | null
+          submitted_at?: string | null
+          submitted_by?: string | null
+          updated_at?: string | null
+          wasfaty_prescription_id?: string | null
+          wasfaty_status?: string | null
+        }
+        Update: {
+          branch_id?: string | null
+          consultation_id?: string | null
+          created_at?: string | null
+          diagnosis_codes?: string[] | null
+          dispensed_at?: string | null
+          dispensing_pharmacy?: string | null
+          doctor_id?: string | null
+          error_message?: string | null
+          id?: string
+          medications?: Json
+          organization_id?: string
+          patient_id?: string
+          prescription_id?: string | null
+          response_data?: Json | null
+          submitted_at?: string | null
+          submitted_by?: string | null
+          updated_at?: string | null
+          wasfaty_prescription_id?: string | null
+          wasfaty_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wasfaty_prescriptions_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wasfaty_prescriptions_consultation_id_fkey"
+            columns: ["consultation_id"]
+            isOneToOne: false
+            referencedRelation: "consultations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wasfaty_prescriptions_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wasfaty_prescriptions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wasfaty_prescriptions_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wasfaty_prescriptions_prescription_id_fkey"
+            columns: ["prescription_id"]
+            isOneToOne: false
+            referencedRelation: "prescriptions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wasfaty_prescriptions_submitted_by_fkey"
+            columns: ["submitted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
