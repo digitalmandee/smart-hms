@@ -57,6 +57,7 @@ export default function AppointmentDetailPage() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { hasRole } = useAuth();
+  const { country_code } = useCountryConfig();
   const isDoctor = hasRole('doctor') || hasRole('surgeon');
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
 
