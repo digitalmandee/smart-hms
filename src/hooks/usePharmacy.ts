@@ -33,6 +33,11 @@ export interface PrescriptionQueueItem extends Prescription {
   };
   items: PrescriptionItem[];
   itemCount: number;
+  wasfaty?: {
+    id: string;
+    wasfaty_reference_id: string | null;
+    submission_status: string | null;
+  }[] | null;
 }
 
 interface InventoryFilters {
