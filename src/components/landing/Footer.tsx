@@ -20,6 +20,7 @@ const footerLinks = {
     { label: "Training", href: "#" },
     { label: "System Status", href: "#" },
     { label: "Release Notes", href: "#" },
+    { label: "KSA Compliance Guide", href: "/ksa-documentation" },
   ],
   Legal: [
     { label: "Privacy Policy", href: "#" },

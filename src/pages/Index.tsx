@@ -32,6 +32,7 @@ const Index = () => {
         <WorkflowDiagram />
         <ProcurementCycleDiagram />
         <WarehouseSection />
+        <KsaComplianceSection />
         <RoleSelector />
         <ComparisonTable />
         <TestimonialsSection />
