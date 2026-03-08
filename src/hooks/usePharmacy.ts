@@ -35,8 +35,8 @@ export interface PrescriptionQueueItem extends Prescription {
   itemCount: number;
   wasfaty?: {
     id: string;
-    wasfaty_reference_id: string | null;
-    submission_status: string | null;
+    wasfaty_prescription_id: string | null;
+    wasfaty_status: string | null;
   }[] | null;
 }
 
