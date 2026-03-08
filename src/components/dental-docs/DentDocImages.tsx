@@ -1,6 +1,6 @@
 import { DocPageWrapper, SectionTitle, SubSection, FeatureList, MockupTable, StepList, TipBox } from "@/components/shared-docs/DocPageWrapper";
 export const DentDocImages = () => (
-  <DocPageWrapper pageNumber={6} totalPages={6} moduleTitle="Dental Module">
+  <DocPageWrapper pageNumber={7} totalPages={7} moduleTitle="Dental Module">
     <SectionTitle icon="📸" title="Dental Imaging" subtitle="X-rays, OPG, CBCT upload and annotation" />
     <SubSection title="Image Types Supported">
       <MockupTable headers={["Type", "Use Case", "Format"]} rows={[["Periapical","Single tooth detail","DICOM / JPEG"],["Bitewing","Interproximal caries detection","DICOM / JPEG"],["OPG (Panoramic)","Full mouth overview","DICOM / JPEG"],["CBCT (3D)","Implant planning, impactions","DICOM"],["Intraoral Photo","Clinical documentation","JPEG / PNG"],["Cephalometric","Orthodontic analysis","DICOM / JPEG"]]} />

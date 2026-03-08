@@ -1,7 +1,7 @@
 import { DocPageWrapper, SectionTitle, FeatureList, SubSection, StepList, TipBox } from "@/components/shared-docs/DocPageWrapper";
 
 export const FinDocBilling = () => (
-  <DocPageWrapper pageNumber={5} totalPages={6} moduleTitle="Finance Module Guide">
+  <DocPageWrapper pageNumber={6} totalPages={7} moduleTitle="Finance Module Guide">
     <SectionTitle icon="💳" title="Billing — Invoice, Payment, Daily Closing" subtitle="End-to-end billing lifecycle from service delivery to cash reconciliation" />
     <SubSection title="Invoice Lifecycle">
       <StepList steps={[

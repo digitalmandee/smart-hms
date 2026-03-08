@@ -1,6 +1,6 @@
 import { DocPageWrapper, SectionTitle, SubSection, FeatureList, MockupTable, StepList, TipBox } from "@/components/shared-docs/DocPageWrapper";
 export const DialDocPatients = () => (
-  <DocPageWrapper pageNumber={3} totalPages={6} moduleTitle="Dialysis Center">
+  <DocPageWrapper pageNumber={4} totalPages={7} moduleTitle="Dialysis Center">
     <SectionTitle icon="🧑‍⚕️" title="Patient Enrollment" subtitle="Registration, dry weight, access type & hepatitis status" />
     <SubSection title="Dialysis Patient Registration">
       <StepList steps={["Select existing patient from master registry","Set dialysis-specific fields: dry weight, access type, hepatitis status","Choose vascular access: AV Fistula, AV Graft, or Catheter","Record referring nephrologist and diagnosis (CKD stage)","Assign to schedule group (MWF or TTS)"]} />

@@ -1,6 +1,6 @@
 import { DocPageWrapper, SectionTitle, SubSection, FeatureList, MockupTable, StepList, TipBox } from "@/components/shared-docs/DocPageWrapper";
 export const HrDocAttendance = () => (
-  <DocPageWrapper pageNumber={4} totalPages={6} moduleTitle="HR & Payroll">
+  <DocPageWrapper pageNumber={5} totalPages={7} moduleTitle="HR & Payroll">
     <SectionTitle icon="📅" title="Attendance & Leave" subtitle="Roster management, biometric, leave workflows" />
     <SubSection title="Attendance Tracking">
       <FeatureList items={["Biometric device integration (fingerprint, face recognition)","Mobile check-in with GPS geofencing","Automatic late/early-leave calculation based on shift","Overtime tracking with configurable thresholds","Half-day and split-shift support"]} />

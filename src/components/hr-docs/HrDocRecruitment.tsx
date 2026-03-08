@@ -1,6 +1,6 @@
 import { DocPageWrapper, SectionTitle, SubSection, FeatureList, MockupTable, StepList, TipBox } from "@/components/shared-docs/DocPageWrapper";
 export const HrDocRecruitment = () => (
-  <DocPageWrapper pageNumber={6} totalPages={6} moduleTitle="HR & Payroll">
+  <DocPageWrapper pageNumber={7} totalPages={7} moduleTitle="HR & Payroll">
     <SectionTitle icon="🎯" title="Recruitment & Onboarding" subtitle="Job postings, applications, hiring pipeline" />
     <SubSection title="Recruitment Pipeline">
       <StepList steps={["Create job opening with requirements, grade, department","Publish to internal portal and external job boards","Applications flow into Kanban pipeline: Applied → Screened → Interview → Offered → Hired","Schedule interviews with calendar integration","Generate and send offer letters from templates","Convert accepted offer to employee record"]} />

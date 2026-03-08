@@ -1,6 +1,6 @@
 import { DocPageWrapper, SectionTitle, SubSection, FeatureList, MockupTable, StepList, TipBox } from "@/components/shared-docs/DocPageWrapper";
 export const HrDocEmployee = () => (
-  <DocPageWrapper pageNumber={3} totalPages={6} moduleTitle="HR & Payroll">
+  <DocPageWrapper pageNumber={4} totalPages={7} moduleTitle="HR & Payroll">
     <SectionTitle icon="👤" title="Employee Management" subtitle="Profiles, departments & org chart" />
     <SubSection title="Employee Registration">
       <StepList steps={["Navigate to HR → Employees → Add Employee","Fill personal info: name, DOB, national ID, contact","Set employment details: department, designation, grade, joining date","Upload documents: ID copy, contract, certificates","Assign reporting manager and branch"]} />

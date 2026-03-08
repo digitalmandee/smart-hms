@@ -1,7 +1,7 @@
 import { DocPageWrapper, SectionTitle, FeatureList, SubSection, MockupTable, TipBox } from "@/components/shared-docs/DocPageWrapper";
 
 export const FinDocJournals = () => (
-  <DocPageWrapper pageNumber={4} totalPages={6} moduleTitle="Finance Module Guide">
+  <DocPageWrapper pageNumber={5} totalPages={7} moduleTitle="Finance Module Guide">
     <SectionTitle icon="📒" title="Journal Entries & Auto-Triggers" subtitle="Double-entry bookkeeping with automated journal posting from all modules" />
     <SubSection title="Auto-Generated Journals">
       <MockupTable headers={["Trigger Event", "Debit", "Credit", "Status"]} rows={[

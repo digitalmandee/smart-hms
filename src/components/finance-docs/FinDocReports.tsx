@@ -1,7 +1,7 @@
 import { DocPageWrapper, SectionTitle, FeatureList, SubSection, MockupTable, TipBox } from "@/components/shared-docs/DocPageWrapper";
 
 export const FinDocReports = () => (
-  <DocPageWrapper pageNumber={6} totalPages={6} moduleTitle="Finance Module Guide">
+  <DocPageWrapper pageNumber={7} totalPages={7} moduleTitle="Finance Module Guide">
     <SectionTitle icon="📊" title="Financial Reports — P&L, Balance Sheet, Cash Flow" subtitle="Real-time financial statements from general ledger data" />
     <SubSection title="Core Financial Statements">
       <MockupTable headers={["Report", "Purpose", "Period"]} rows={[

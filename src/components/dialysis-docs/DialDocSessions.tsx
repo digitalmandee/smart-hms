@@ -1,6 +1,6 @@
 import { DocPageWrapper, SectionTitle, SubSection, FeatureList, MockupTable, StepList, TipBox } from "@/components/shared-docs/DocPageWrapper";
 export const DialDocSessions = () => (
-  <DocPageWrapper pageNumber={4} totalPages={6} moduleTitle="Dialysis Center">
+  <DocPageWrapper pageNumber={5} totalPages={7} moduleTitle="Dialysis Center">
     <SectionTitle icon="💉" title="Session Workflow" subtitle="Pre-dialysis → intra-dialysis monitoring → post-dialysis" />
     <SubSection title="Pre-Dialysis">
       <StepList steps={["Nurse selects patient from today's schedule","Record pre-weight, sitting/standing BP, temperature, pulse","Verify vascular access — inspect for signs of infection","Set target UF based on weight gain","Assign machine and chair — system shows availability","Confirm dialyzer type and blood flow rate"]} />

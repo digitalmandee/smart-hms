@@ -1,7 +1,7 @@
 import { DocPageWrapper, SectionTitle, FeatureList, SubSection, MockupTable, TipBox } from "@/components/shared-docs/DocPageWrapper";
 
 export const FinDocCoa = () => (
-  <DocPageWrapper pageNumber={3} totalPages={6} moduleTitle="Finance Module Guide">
+  <DocPageWrapper pageNumber={4} totalPages={7} moduleTitle="Finance Module Guide">
     <SectionTitle icon="📂" title="Chart of Accounts — 4-Level Hierarchy" subtitle="Structured account tree with account types, sub-accounts, and balances" />
     <SubSection title="Account Type Categories">
       <MockupTable headers={["Category", "Normal Balance", "Examples"]} rows={[
