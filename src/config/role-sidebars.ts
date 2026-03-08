@@ -260,6 +260,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
           { name: "Tooth Chart", path: "/app/dental/chart", icon: "Smile" },
           { name: "Treatments", path: "/app/dental/treatments", icon: "ClipboardList" },
           { name: "Procedures", path: "/app/dental/procedures", icon: "BookOpen" },
+          { name: "Images", path: "/app/dental/images", icon: "Image" },
           { name: "Reports", path: "/app/dental/reports", icon: "BarChart3" },
         ]
       },

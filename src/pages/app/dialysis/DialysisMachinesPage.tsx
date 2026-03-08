@@ -1,4 +1,4 @@
-import { useDialysisMachines, useCreateDialysisMachine } from "@/hooks/useDialysis";
+import { useDialysisMachines, useCreateDialysisMachine, useUpdateDialysisMachine } from "@/hooks/useDialysis";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Monitor } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, Monitor, Shield } from "lucide-react";
 import { useState } from "react";
 
 const statusColors: Record<string, string> = {
@@ -19,6 +20,7 @@ const statusColors: Record<string, string> = {
 export default function DialysisMachinesPage() {
   const { data: machines, isLoading } = useDialysisMachines();
   const createMachine = useCreateDialysisMachine();
+  const updateMachine = useUpdateDialysisMachine();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ machine_number: "", serial_number: "", model: "", manufacturer: "", chair_number: "" });
 
@@ -27,11 +29,15 @@ export default function DialysisMachinesPage() {
     createMachine.mutate(form, { onSuccess: () => { setOpen(false); setForm({ machine_number: "", serial_number: "", model: "", manufacturer: "", chair_number: "" }); } });
   };
 
+  const handleStatusChange = (id: string, status: string) => {
+    updateMachine.mutate({ id, status });
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Dialysis Machines"
-        description="Machine inventory and status tracking"
+        description="Machine inventory, status, and disinfection tracking"
         breadcrumbs={[{ label: "Dialysis", href: "/app/dialysis" }, { label: "Machines" }]}
         actions={
           <Dialog open={open} onOpenChange={setOpen}>
@@ -69,6 +75,23 @@ export default function DialysisMachinesPage() {
                 </div>
                 <div className="mt-3 text-sm text-muted-foreground">
                   <p>Chair: {m.chair_number || "–"} • S/N: {m.serial_number || "–"}</p>
+                  {m.last_disinfected_at && (
+                    <p className="flex items-center gap-1 mt-1">
+                      <Shield className="h-3 w-3" />
+                      Disinfected: {new Date(m.last_disinfected_at).toLocaleString()}
+                    </p>
+                  )}
+                </div>
+                <div className="mt-3 flex gap-2 flex-wrap">
+                  <Select onValueChange={v => handleStatusChange(m.id, v)}>
+                    <SelectTrigger className="w-36 h-8 text-xs"><SelectValue placeholder="Change status" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="available">Available</SelectItem>
+                      <SelectItem value="in_use">In Use</SelectItem>
+                      <SelectItem value="maintenance">Maintenance</SelectItem>
+                      <SelectItem value="out_of_service">Out of Service</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </CardContent>
             </Card>

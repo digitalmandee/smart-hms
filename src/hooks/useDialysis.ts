@@ -11,7 +11,7 @@ export function useDialysisPatients() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("dialysis_patients")
-        .select("*, patients(id, first_name, last_name, mrn_number, phone, date_of_birth, gender)")
+        .select("*, patients(id, first_name, last_name, patient_number, phone, date_of_birth, gender)")
         .eq("organization_id", profile!.organization_id!)
         .eq("is_active", true)
         .order("created_at", { ascending: false });
@@ -103,7 +103,7 @@ export function useDialysisSessions(dateFilter?: string) {
     queryFn: async () => {
       let query = supabase
         .from("dialysis_sessions")
-        .select("*, dialysis_patients(*, patients(first_name, last_name, mrn_number)), dialysis_machines(machine_number, chair_number)")
+        .select("*, dialysis_patients(*, patients(first_name, last_name, patient_number)), dialysis_machines(machine_number, chair_number)")
         .eq("organization_id", profile!.organization_id!)
         .order("session_date", { ascending: false });
       if (dateFilter) query = query.eq("session_date", dateFilter);
@@ -193,7 +193,7 @@ export function useDialysisSchedules() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("dialysis_schedules")
-        .select("*, dialysis_patients(*, patients(first_name, last_name, mrn_number)), dialysis_machines(machine_number, chair_number)")
+        .select("*, dialysis_patients(*, patients(first_name, last_name, patient_number)), dialysis_machines(machine_number, chair_number)")
         .eq("organization_id", profile!.organization_id!)
         .eq("is_active", true)
         .order("shift");

@@ -406,14 +406,19 @@ import DialysisDashboard from "./pages/app/dialysis/DialysisDashboard";
 import DialysisPatientsPage from "./pages/app/dialysis/DialysisPatientsPage";
 import DialysisMachinesPage from "./pages/app/dialysis/DialysisMachinesPage";
 import DialysisSessionsPage from "./pages/app/dialysis/DialysisSessionsPage";
+import DialysisSessionDetailPage from "./pages/app/dialysis/DialysisSessionDetailPage";
+import DialysisNewSessionPage from "./pages/app/dialysis/DialysisNewSessionPage";
 import DialysisSchedulePage from "./pages/app/dialysis/DialysisSchedulePage";
+import DialysisCreateSchedulePage from "./pages/app/dialysis/DialysisCreateSchedulePage";
 import DialysisReportsPage from "./pages/app/dialysis/DialysisReportsPage";
 
 // Dental pages
 import DentalDashboard from "./pages/app/dental/DentalDashboard";
 import DentalChartPage from "./pages/app/dental/DentalChartPage";
 import DentalTreatmentsPage from "./pages/app/dental/DentalTreatmentsPage";
+import DentalNewTreatmentPage from "./pages/app/dental/DentalNewTreatmentPage";
 import DentalProceduresPage from "./pages/app/dental/DentalProceduresPage";
+import DentalImagesPage from "./pages/app/dental/DentalImagesPage";
 import DentalReportsPage from "./pages/app/dental/DentalReportsPage";
 
 // Radiology pages
@@ -953,14 +958,19 @@ function App() {
               <Route path="dialysis/patients" element={<DialysisPatientsPage />} />
               <Route path="dialysis/machines" element={<DialysisMachinesPage />} />
               <Route path="dialysis/sessions" element={<DialysisSessionsPage />} />
+              <Route path="dialysis/sessions/new" element={<DialysisNewSessionPage />} />
+              <Route path="dialysis/sessions/:id" element={<DialysisSessionDetailPage />} />
               <Route path="dialysis/schedule" element={<DialysisSchedulePage />} />
+              <Route path="dialysis/schedule/new" element={<DialysisCreateSchedulePage />} />
               <Route path="dialysis/reports" element={<DialysisReportsPage />} />
               
               {/* Dental routes */}
               <Route path="dental" element={<DentalDashboard />} />
               <Route path="dental/chart" element={<DentalChartPage />} />
               <Route path="dental/treatments" element={<DentalTreatmentsPage />} />
+              <Route path="dental/treatments/new" element={<DentalNewTreatmentPage />} />
               <Route path="dental/procedures" element={<DentalProceduresPage />} />
+              <Route path="dental/images" element={<DentalImagesPage />} />
               <Route path="dental/reports" element={<DentalReportsPage />} />
               
               {/* Lab routes */}

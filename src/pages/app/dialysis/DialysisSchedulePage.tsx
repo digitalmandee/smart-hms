@@ -2,6 +2,9 @@ import { useDialysisSchedules } from "@/hooks/useDialysis";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
+import { Plus } from "lucide-react";
 
 const patternLabels: Record<string, string> = { mwf: "Mon / Wed / Fri", tts: "Tue / Thu / Sat", custom: "Custom" };
 const shiftLabels: Record<string, string> = { morning: "Morning", afternoon: "Afternoon", evening: "Evening" };
@@ -21,6 +24,7 @@ export default function DialysisSchedulePage() {
         title="Dialysis Schedule"
         description="Recurring patient-chair-shift assignments"
         breadcrumbs={[{ label: "Dialysis", href: "/app/dialysis" }, { label: "Schedule" }]}
+        actions={<Button asChild><Link to="/app/dialysis/schedule/new"><Plus className="h-4 w-4 mr-2" />New Schedule</Link></Button>}
       />
       {isLoading ? <p className="text-muted-foreground">Loading...</p> : !Object.keys(grouped).length ? (
         <Card><CardContent className="py-12 text-center text-muted-foreground">No schedules configured yet.</CardContent></Card>

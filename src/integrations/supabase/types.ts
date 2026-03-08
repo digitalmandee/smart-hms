@@ -6215,10 +6215,12 @@ export type Database = {
           created_at: string | null
           id: string
           is_active: boolean | null
+          last_disinfected_at: string | null
           last_disinfection_at: string | null
           machine_number: string
           manufacturer: string | null
           model: string | null
+          next_disinfection_due: string | null
           next_maintenance_date: string | null
           notes: string | null
           organization_id: string
@@ -6232,10 +6234,12 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_active?: boolean | null
+          last_disinfected_at?: string | null
           last_disinfection_at?: string | null
           machine_number: string
           manufacturer?: string | null
           model?: string | null
+          next_disinfection_due?: string | null
           next_maintenance_date?: string | null
           notes?: string | null
           organization_id: string
@@ -6249,10 +6253,12 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_active?: boolean | null
+          last_disinfected_at?: string | null
           last_disinfection_at?: string | null
           machine_number?: string
           manufacturer?: string | null
           model?: string | null
+          next_disinfection_due?: string | null
           next_maintenance_date?: string | null
           notes?: string | null
           organization_id?: string
