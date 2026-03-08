@@ -21,7 +21,7 @@ export default function DentalImagesPage() {
   const { data: patients } = useQuery({
     queryKey: ["patients-list-dental", profile?.organization_id],
     queryFn: async () => {
-      const { data, error } = await supabase.from("patients").select("id, first_name, last_name, mrn_number")
+      const { data, error } = await supabase.from("patients").select("id, first_name, last_name, patient_number")
         .eq("organization_id", profile!.organization_id!).order("first_name").limit(500);
       if (error) throw error;
       return data;
