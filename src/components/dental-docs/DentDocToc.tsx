@@ -1,8 +1,9 @@
 import { DocToc } from "@/components/shared-docs/DocPageWrapper";
 const items = [
-  { num: 1, title: "3D Tooth Chart & Conditions", page: 3 },
-  { num: 2, title: "Treatment Plans", page: 4 },
-  { num: 3, title: "Procedures & Pricing", page: 5 },
-  { num: 4, title: "Dental Imaging", page: 6 },
+  { num: 0, title: "Process Flow — Dental Patient Journey", page: 3 },
+  { num: 1, title: "3D Tooth Chart & Conditions", page: 4 },
+  { num: 2, title: "Treatment Plans", page: 5 },
+  { num: 3, title: "Procedures & Pricing", page: 6 },
+  { num: 4, title: "Dental Imaging", page: 7 },
 ];
-export const DentDocToc = () => <DocToc items={items} moduleTitle="Dental Module" totalPages={6} />;
+export const DentDocToc = () => <DocToc items={items} moduleTitle="Dental Module" totalPages={7} />;
