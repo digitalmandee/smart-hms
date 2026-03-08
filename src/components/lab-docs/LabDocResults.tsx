@@ -32,6 +32,6 @@ export const LabDocResults = () => (
         "PDF download and SMS/email delivery options",
       ]} />
     </SubSection>
-    <TipBox title="Delta Check">System compares current results with previous values. Significant changes (e.g., Hb drop >2g/dL) trigger delta check alerts.</TipBox>
+    <TipBox title="Delta Check">System compares current results with previous values. Significant changes (e.g., Hb drop {'>'} 2g/dL) trigger delta check alerts.</TipBox>
   </DocPageWrapper>
 );
