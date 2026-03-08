@@ -406,14 +406,19 @@ import DialysisDashboard from "./pages/app/dialysis/DialysisDashboard";
 import DialysisPatientsPage from "./pages/app/dialysis/DialysisPatientsPage";
 import DialysisMachinesPage from "./pages/app/dialysis/DialysisMachinesPage";
 import DialysisSessionsPage from "./pages/app/dialysis/DialysisSessionsPage";
+import DialysisSessionDetailPage from "./pages/app/dialysis/DialysisSessionDetailPage";
+import DialysisNewSessionPage from "./pages/app/dialysis/DialysisNewSessionPage";
 import DialysisSchedulePage from "./pages/app/dialysis/DialysisSchedulePage";
+import DialysisCreateSchedulePage from "./pages/app/dialysis/DialysisCreateSchedulePage";
 import DialysisReportsPage from "./pages/app/dialysis/DialysisReportsPage";
 
 // Dental pages
 import DentalDashboard from "./pages/app/dental/DentalDashboard";
 import DentalChartPage from "./pages/app/dental/DentalChartPage";
 import DentalTreatmentsPage from "./pages/app/dental/DentalTreatmentsPage";
+import DentalNewTreatmentPage from "./pages/app/dental/DentalNewTreatmentPage";
 import DentalProceduresPage from "./pages/app/dental/DentalProceduresPage";
+import DentalImagesPage from "./pages/app/dental/DentalImagesPage";
 import DentalReportsPage from "./pages/app/dental/DentalReportsPage";
 
 // Radiology pages
