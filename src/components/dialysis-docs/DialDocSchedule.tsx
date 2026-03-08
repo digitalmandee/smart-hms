@@ -1,6 +1,6 @@
 import { DocPageWrapper, SectionTitle, SubSection, FeatureList, MockupTable, TipBox } from "@/components/shared-docs/DocPageWrapper";
 export const DialDocSchedule = () => (
-  <DocPageWrapper pageNumber={6} totalPages={6} moduleTitle="Dialysis Center">
+  <DocPageWrapper pageNumber={7} totalPages={7} moduleTitle="Dialysis Center">
     <SectionTitle icon="📆" title="Scheduling & Reports" subtitle="MWF/TTS groups, capacity planning & analytics" />
     <SubSection title="Schedule Management">
       <FeatureList items={["MWF (Mon-Wed-Fri) and TTS (Tue-Thu-Sat) schedule groups","Multiple shifts per day: Morning, Afternoon, Evening","Chair-based capacity view — visual calendar grid","Drag-and-drop rescheduling with conflict detection","Holiday and Ramadan schedule adjustments","Waitlist management for new patients"]} />

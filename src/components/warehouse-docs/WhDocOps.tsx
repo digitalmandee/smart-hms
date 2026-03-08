@@ -1,7 +1,7 @@
 import { DocPageWrapper, SectionTitle, FeatureList, SubSection, StepList, MockupTable, TipBox } from "@/components/shared-docs/DocPageWrapper";
 
 export const WhDocOps = () => (
-  <DocPageWrapper pageNumber={5} totalPages={6} moduleTitle="Warehouse Module Guide">
+  <DocPageWrapper pageNumber={6} totalPages={7} moduleTitle="Warehouse Module Guide">
     <SectionTitle icon="🔧" title="Operations — Cycle Count, RTV, Barcode" subtitle="Inventory accuracy, vendor returns, and barcode infrastructure" />
     <SubSection title="Cycle Count">
       <StepList steps={[

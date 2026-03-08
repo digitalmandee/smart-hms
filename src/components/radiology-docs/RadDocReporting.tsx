@@ -1,7 +1,7 @@
 import { DocPageWrapper, SectionTitle, FeatureList, SubSection, StepList, TipBox } from "@/components/shared-docs/DocPageWrapper";
 
 export const RadDocReporting = () => (
-  <DocPageWrapper pageNumber={4} totalPages={5} moduleTitle="Radiology Module Guide">
+  <DocPageWrapper pageNumber={5} totalPages={6} moduleTitle="Radiology Module Guide">
     <SectionTitle icon="📝" title="Report Writing & Templates" subtitle="Structured radiology reporting with templates and voice dictation" />
     <SubSection title="Reporting Workflow">
       <StepList steps={[

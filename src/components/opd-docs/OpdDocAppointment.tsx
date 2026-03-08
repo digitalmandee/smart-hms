@@ -1,7 +1,7 @@
 import { DocPageWrapper, SectionTitle, FeatureList, SubSection, StepList, TipBox } from "@/components/shared-docs/DocPageWrapper";
 
 export const OpdDocAppointment = () => (
-  <DocPageWrapper pageNumber={3} totalPages={8} moduleTitle="OPD Module Guide">
+  <DocPageWrapper pageNumber={4} totalPages={9} moduleTitle="OPD Module Guide">
     <SectionTitle icon="📅" title="Appointment Booking & Check-In" subtitle="Schedule, walk-in, and kiosk-based patient registration" />
     <SubSection title="Booking Channels">
       <FeatureList items={[
