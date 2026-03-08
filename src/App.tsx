@@ -635,6 +635,7 @@ function App() {
               <Route path="/contract" element={<ContractPage />} />
               <Route path="/social-media-posts" element={<SocialMediaPosts />} />
               <Route path="/pharmacy-documentation" element={<PharmacyDocumentation />} />
+              <Route path="/ksa-documentation" element={<KsaDocumentation />} />
               <Route path="/system-overview" element={<SystemOverview />} />
             {/* Public display routes - NO AUTH REQUIRED for TV displays and kiosks */}
             <Route path="/display/queue/:organizationId" element={<PublicQueueDisplay />} />
