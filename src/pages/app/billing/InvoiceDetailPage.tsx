@@ -45,12 +45,16 @@ export default function InvoiceDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { profile } = useAuth();
+  const { country_code, e_invoicing_enabled } = useCountryConfig();
   const { printRef, handlePrint } = usePrint();
 
   const { data: invoice, isLoading } = useInvoice(id);
   const { data: organizations } = useOrganizations();
   const cancelMutation = useCancelInvoice();
   const createLabOrderMutation = useCreateLabOrderFromInvoice();
+  const generateZatcaMutation = useGenerateZatcaQR();
+
+  const showZatca = country_code === 'SA' && e_invoicing_enabled;
 
   // Query for linked journal entry
   const { data: journalEntry } = useQuery({
