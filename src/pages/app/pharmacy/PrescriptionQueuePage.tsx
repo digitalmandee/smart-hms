@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { usePrescriptionQueue } from "@/hooks/usePharmacy";
+import { WasfatyStatusBadge } from "@/components/pharmacy/WasfatySubmitButton";
+import { useCountryConfig } from "@/contexts/CountryConfigContext";
 import { ArrowLeft, Search } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import { PrescriptionQueueItem } from "@/hooks/usePharmacy";
