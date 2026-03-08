@@ -13,12 +13,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useInvoice, useCancelInvoice } from "@/hooks/useBilling";
+import { useInvoice, useCancelInvoice, useGenerateZatcaQR } from "@/hooks/useBilling";
 import { useOrganizations } from "@/hooks/useOrganizations";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCountryConfig } from "@/contexts/CountryConfigContext";
 import { InvoiceStatusBadge } from "@/components/billing/InvoiceStatusBadge";
 import { InvoiceTotals } from "@/components/billing/InvoiceTotals";
 import { PrintableInvoice } from "@/components/billing/PrintableInvoice";
+import { ZatcaQRDisplay } from "@/components/billing/ZatcaQRDisplay";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import {
   ArrowLeft,
@@ -43,12 +45,16 @@ export default function InvoiceDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { profile } = useAuth();
+  const { country_code, e_invoicing_enabled } = useCountryConfig();
   const { printRef, handlePrint } = usePrint();
 
   const { data: invoice, isLoading } = useInvoice(id);
   const { data: organizations } = useOrganizations();
   const cancelMutation = useCancelInvoice();
   const createLabOrderMutation = useCreateLabOrderFromInvoice();
+  const generateZatcaMutation = useGenerateZatcaQR();
+
+  const showZatca = country_code === 'SA' && e_invoicing_enabled;
 
   // Query for linked journal entry
   const { data: journalEntry } = useQuery({
@@ -417,6 +423,19 @@ export default function InvoiceDetailPage() {
               )}
             </CardContent>
           </Card>
+
+          {/* ZATCA E-Invoice (KSA Only) */}
+          {showZatca && (
+            <ZatcaQRDisplay
+              zatcaQrCode={(invoice as any).zatca_qr_code}
+              zatcaUuid={(invoice as any).zatca_uuid}
+              zatcaIcv={(invoice as any).zatca_icv}
+              zatcaClearanceStatus={(invoice as any).zatca_clearance_status}
+              zatcaInvoiceHash={(invoice as any).zatca_invoice_hash}
+              isGenerating={generateZatcaMutation.isPending}
+              onGenerate={() => generateZatcaMutation.mutate({ invoiceId: invoice.id })}
+            />
+          )}
 
           {/* Actions */}
           {canCancel && (

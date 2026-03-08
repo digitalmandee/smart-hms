@@ -4,7 +4,10 @@ import { InvoiceWithDetails } from "@/hooks/useBilling";
 import { generateQRCodeUrl, getInvoiceVerificationUrl } from "@/lib/qrcode";
 
 interface PrintableInvoiceProps {
-  invoice: InvoiceWithDetails;
+  invoice: InvoiceWithDetails & {
+    zatca_qr_code?: string | null;
+    zatca_uuid?: string | null;
+  };
   organization?: {
     name: string;
     address?: string | null;
@@ -392,6 +395,35 @@ const styles = {
     fontFamily: "monospace",
     color: "#dc2626",
   },
+  zatcaQrBox: {
+    marginTop: "16px",
+    padding: "12px",
+    border: "2px solid #0d9488",
+    borderRadius: "8px",
+    backgroundColor: "#f0fdfa",
+  },
+  zatcaQrTitle: {
+    fontSize: "10px",
+    fontWeight: 600,
+    color: "#0d9488",
+    marginBottom: "8px",
+    textTransform: "uppercase" as const,
+    letterSpacing: "0.5px",
+  },
+  zatcaQrImage: {
+    width: "80px",
+    height: "80px",
+    margin: "0 auto",
+    display: "block",
+  },
+  zatcaUuid: {
+    fontSize: "8px",
+    color: "#6b7280",
+    textAlign: "center" as const,
+    marginTop: "4px",
+    fontFamily: "monospace",
+    wordBreak: "break-all" as const,
+  },
 };
 
 export const PrintableInvoice = forwardRef<HTMLDivElement, PrintableInvoiceProps>(
@@ -400,6 +432,10 @@ export const PrintableInvoice = forwardRef<HTMLDivElement, PrintableInvoiceProps
     const isPaid = invoice.status === "paid";
     const verificationUrl = getInvoiceVerificationUrl(invoice.invoice_number, organization?.slug);
     const qrCodeUrl = generateQRCodeUrl(verificationUrl, 80);
+    
+    // ZATCA QR code (for KSA compliance)
+    const zatcaQrCode = invoice.zatca_qr_code;
+    const zatcaQrImageUrl = zatcaQrCode ? generateQRCodeUrl(zatcaQrCode, 100) : null;
 
     const fc = (amount: number) => `${currencySymbol} ${amount.toLocaleString(currencyLocale, { minimumFractionDigits: 2 })}`;
 
@@ -636,6 +672,17 @@ export const PrintableInvoice = forwardRef<HTMLDivElement, PrintableInvoiceProps
           <p style={styles.footerNote}>This is a computer-generated invoice and is valid without a signature.</p>
           <p>Generated on {format(new Date(), "dd MMM yyyy 'at' hh:mm a")}</p>
         </div>
+
+        {/* ===== ZATCA QR CODE (KSA Compliance) ===== */}
+        {zatcaQrImageUrl && (
+          <div style={styles.zatcaQrBox}>
+            <p style={styles.zatcaQrTitle}>ZATCA E-Invoice</p>
+            <img src={zatcaQrImageUrl} alt="ZATCA QR" style={styles.zatcaQrImage} />
+            {invoice.zatca_uuid && (
+              <p style={styles.zatcaUuid}>UUID: {invoice.zatca_uuid}</p>
+            )}
+          </div>
+        )}
 
         {/* ===== PAID WATERMARK ===== */}
         {isPaid && (

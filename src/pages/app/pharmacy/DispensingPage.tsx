@@ -11,9 +11,11 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { BatchSelector } from "@/components/pharmacy/BatchSelector";
 import { StockLevelBadge } from "@/components/pharmacy/StockLevelBadge";
+import { WasfatySubmitButton } from "@/components/pharmacy/WasfatySubmitButton";
 import { usePrescriptionForDispensing, useDispensePrescription, useMedicineBatches, useInventory } from "@/hooks/usePharmacy";
 import { usePatientActiveAdmission } from "@/hooks/useIPDBilling";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCountryConfig } from "@/contexts/CountryConfigContext";
 import { ArrowLeft, User, Stethoscope, Pill, AlertTriangle, Bed, ShoppingCart } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -110,6 +112,7 @@ export default function DispensingPage() {
   const { prescriptionId } = useParams();
   const navigate = useNavigate();
   const { profile } = useAuth();
+  const { country_code } = useCountryConfig();
   const { data: prescription, isLoading } = usePrescriptionForDispensing(prescriptionId);
   const dispenseMutation = useDispensePrescription();
   const { data: inventory } = useInventory();
@@ -117,6 +120,8 @@ export default function DispensingPage() {
   const { data: activeAdmission } = usePatientActiveAdmission(patientId);
   const [items, setItems] = useState<DispensingItem[]>([]);
   const [notes, setNotes] = useState("");
+  
+  const showWasfaty = country_code === 'SA';
 
   useEffect(() => {
     if (prescription?.items) {
@@ -404,6 +409,33 @@ export default function DispensingPage() {
               <p className="text-sm text-muted-foreground">{doctor?.specialization}</p>
             </CardContent>
           </Card>
+
+          {/* Wasfaty E-Prescription (KSA Only) */}
+          {showWasfaty && prescription && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Pill className="h-5 w-5" />
+                  Wasfaty
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <WasfatySubmitButton
+                  prescriptionId={prescription.id}
+                  patientId={patientId}
+                  medications={items.map(item => ({
+                    drugName: item.medicineName,
+                    dosage: item.dosage || '',
+                    frequency: item.frequency || '',
+                    duration: parseInt(item.duration || '0') || 0,
+                    durationUnit: 'days' as const,
+                    quantity: item.quantity || 0,
+                    instructions: item.instructions || undefined,
+                  }))}
+                />
+              </CardContent>
+            </Card>
+          )}
 
           {/* Stock Issues Warning */}
           {hasStockIssues && !allDispensed && (
