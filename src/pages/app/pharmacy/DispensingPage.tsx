@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { BatchSelector } from "@/components/pharmacy/BatchSelector";
 import { StockLevelBadge } from "@/components/pharmacy/StockLevelBadge";
 import { WasfatySubmitButton } from "@/components/pharmacy/WasfatySubmitButton";
+import { TatmeenScanButton } from "@/components/pharmacy/TatmeenScanButton";
 import { usePrescriptionForDispensing, useDispensePrescription, useMedicineBatches, useInventory } from "@/hooks/usePharmacy";
 import { usePatientActiveAdmission } from "@/hooks/useIPDBilling";
 import { useAuth } from "@/contexts/AuthContext";
