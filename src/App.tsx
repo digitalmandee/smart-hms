@@ -948,6 +948,21 @@ function App() {
               <Route path="radiology/templates" element={<ImagingReportTemplatesPage />} />
               <Route path="radiology/reports" element={<RadiologyReportsPage />} />
               
+              {/* Dialysis routes */}
+              <Route path="dialysis" element={<DialysisDashboard />} />
+              <Route path="dialysis/patients" element={<DialysisPatientsPage />} />
+              <Route path="dialysis/machines" element={<DialysisMachinesPage />} />
+              <Route path="dialysis/sessions" element={<DialysisSessionsPage />} />
+              <Route path="dialysis/schedule" element={<DialysisSchedulePage />} />
+              <Route path="dialysis/reports" element={<DialysisReportsPage />} />
+              
+              {/* Dental routes */}
+              <Route path="dental" element={<DentalDashboard />} />
+              <Route path="dental/chart" element={<DentalChartPage />} />
+              <Route path="dental/treatments" element={<DentalTreatmentsPage />} />
+              <Route path="dental/procedures" element={<DentalProceduresPage />} />
+              <Route path="dental/reports" element={<DentalReportsPage />} />
+              
               {/* Lab routes */}
               <Route path="lab" element={<LabDashboard />} />
               <Route path="lab/queue" element={<LabQueuePage />} />
