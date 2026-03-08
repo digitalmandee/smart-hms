@@ -96,7 +96,7 @@ export default function DentalNewTreatmentPage() {
               <SelectTrigger><SelectValue placeholder="Select patient..." /></SelectTrigger>
               <SelectContent>
                 {(patients || []).map((p: any) => (
-                  <SelectItem key={p.id} value={p.id}>{p.first_name} {p.last_name} — {p.mrn_number}</SelectItem>
+                  <SelectItem key={p.id} value={p.id}>{p.first_name} {p.last_name} — {p.patient_number}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
