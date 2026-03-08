@@ -41,6 +41,7 @@ export default function LabResultEntryPage() {
   const { orderId } = useParams<{ orderId: string }>();
   const navigate = useNavigate();
   const { profile } = useAuth();
+  const { country_code } = useCountryConfig();
   const { data: labOrder, isLoading } = useLabOrder(orderId);
   const { data: labSettings } = useLabSettings();
   const { data: branding } = useOrganizationBranding();
