@@ -22908,7 +22908,14 @@ export type Database = {
       leave_request_status: "pending" | "approved" | "rejected" | "cancelled"
       loan_status: "active" | "completed" | "cancelled" | "defaulted"
       marital_status: "single" | "married" | "divorced" | "widowed" | "other"
-      medical_code_type: "icd10" | "cpt" | "drg"
+      medical_code_type:
+        | "icd10"
+        | "cpt"
+        | "drg"
+        | "achi"
+        | "sbs"
+        | "snomed"
+        | "loinc"
       medical_history_type:
         | "allergy"
         | "chronic_disease"
@@ -23447,7 +23454,15 @@ export const Constants = {
       leave_request_status: ["pending", "approved", "rejected", "cancelled"],
       loan_status: ["active", "completed", "cancelled", "defaulted"],
       marital_status: ["single", "married", "divorced", "widowed", "other"],
-      medical_code_type: ["icd10", "cpt", "drg"],
+      medical_code_type: [
+        "icd10",
+        "cpt",
+        "drg",
+        "achi",
+        "sbs",
+        "snomed",
+        "loinc",
+      ],
       medical_history_type: [
         "allergy",
         "chronic_disease",
