@@ -1,50 +1,58 @@
 
+# HealthOS 24 — KSA Compliance Implementation
 
-# Plan: Add KSA Integrations to Branch Admin + Org Admin Sidebars
+## Status: ✅ ALL 6 PHASES IMPLEMENTED
 
-## Problem
-KSA integration pages exist but aren't visible because:
-1. **branch_admin** uses **database-driven menus** — no KSA menu items exist in the `menu_items` table
-2. **org_admin** uses **static sidebar** in `role-sidebars.ts` — no KSA section defined there either
+## Implemented Features
 
-## Changes
+| Feature | Priority | Status | Files |
+|---------|----------|--------|-------|
+| **NPHIES Insurance** | HIGH | ✅ DONE | Full RCM workflow, eligibility, claims, pre-auth |
+| **ZATCA Phase 2** | HIGH | ✅ DONE | `zatca-phase2/index.ts`, UBL 2.1, QR, clearance |
+| **Wasfaty e-Prescription** | MEDIUM | ✅ DONE | `wasfaty-gateway/index.ts`, config panel, submit button |
+| **Hijri Calendar** | LOW | ✅ DONE | `hijriCalendar.ts`, `HijriDateDisplay` component |
+| **ACHI/SBS/SNOMED/LOINC Codes** | HIGH | ✅ DONE | Enum expanded, `MedicalCodeSearch` supports all types |
+| **HESN Public Health Reporting** | HIGH | ✅ DONE | `hesn-gateway/index.ts`, `HesnReportButton`, `hesn_reports` table |
+| **RSD/Tatmeen Drug Track & Trace** | HIGH | ✅ DONE | `tatmeen-gateway/index.ts`, `TatmeenScanButton`, GS1 parser |
+| **Nafath Identity Verification** | MEDIUM | ✅ DONE | `nafath-gateway/index.ts`, `NafathVerifyButton`, patient fields |
+| **Sehhaty Patient Engagement** | MEDIUM | ✅ DONE | `sehhaty-gateway/index.ts`, `SehhatyPushButton` |
+| **PDPL Consent Management** | LOW | ✅ DONE | `patient_consents` table |
 
-### 1. Insert KSA menu items into `menu_items` table (Migration)
+## Phase 1: Terminology Standards
+- `medical_code_type` enum expanded: `achi`, `sbs`, `snomed`, `loinc`
+- `MedicalCodeSearch` supports all 6 code types
+- `ClaimFormPage` uses ACHI for KSA procedures, CPT for others
 
-Add a top-level "KSA Integrations" parent and 8 children:
+## Phase 2: HESN Public Health
+- Edge function: `hesn-gateway` (FHIR Communication resources)
+- `hesn_reports` table with RLS
+- `HesnReportButton` for clinical encounters
+- `HesnConfigPanel` in KSA compliance settings
 
-| Name | Path | Icon | Sort |
-|------|------|------|------|
-| **KSA Integrations** (parent) | — | ShieldAlert | 57 |
-| Dashboard | /app/settings/ksa-integrations | LayoutDashboard | 1 |
-| NPHIES | /app/settings/ksa/nphies | FileText | 2 |
-| ZATCA Phase 2 | /app/settings/ksa/zatca | Receipt | 3 |
-| Wasfaty | /app/settings/ksa/wasfaty | Pill | 4 |
-| Tatmeen / RSD | /app/settings/ksa/tatmeen | ScanBarcode | 5 |
-| HESN | /app/settings/ksa/hesn | ShieldAlert | 6 |
-| Nafath | /app/settings/ksa/nafath | Fingerprint | 7 |
-| Sehhaty | /app/settings/ksa/sehhaty | Smartphone | 8 |
+## Phase 3: Tatmeen Drug Track & Trace
+- Edge function: `tatmeen-gateway` (EPCIS events)
+- `tatmeen_transactions` table with RLS
+- `TatmeenScanButton` with GS1 DataMatrix barcode parser
+- `TatmeenConfigPanel` in KSA compliance settings
 
-This makes them visible to **branch_admin** (DB-driven sidebar).
+## Phase 4: Nafath Identity Verification
+- Edge function: `nafath-gateway` (MFA verification flow)
+- Patient fields: `nafath_verified`, `nafath_verified_at`, `nafath_request_id`
+- `NafathVerifyButton` with polling and random number display
 
-### 2. Add KSA section to `org_admin` static sidebar (`src/config/role-sidebars.ts`)
+## Phase 5: Sehhaty Patient Engagement
+- Edge function: `sehhaty-gateway` (FHIR resources)
+- `sehhaty_sync_log` table with RLS
+- `SehhatyPushButton` for appointments, lab results, sick leave (e-Jaza)
 
-Add a "KSA Integrations" group after the existing "Configuration" section in the `org_admin` config with the same 8 children listed above.
+## Phase 6: Advanced Features
+- `patient_consents` table for PDPL compliance
+- KSA Compliance Settings page updated with Tatmeen + HESN tabs
 
-### 3. Add missing icon mappings (`src/components/DynamicSidebar.tsx`)
+## API Keys Required (Add via Supabase Secrets)
+- `HESN_API_KEY` / `HESN_API_URL` — MOH HESN platform
+- `TATMEEN_API_KEY` / `TATMEEN_API_URL` — SFDA Tatmeen
+- `NAFATH_API_KEY` / `NAFATH_APP_ID` / `NAFATH_API_URL` — Elm Nafath
+- `SEHHATY_API_KEY` / `SEHHATY_API_URL` — Sehhaty platform
 
-Add `ScanBarcode`, `Smartphone` to icon imports and `iconMap` entries (some like `Fingerprint`, `ShieldAlert`, `Pill`, `Receipt` are already imported).
-
-### 4. Add sidebar name-to-key mappings
-
-Add entries for "Dashboard" (under KSA context), "NPHIES", "ZATCA Phase 2", "Tatmeen / RSD", "HESN", "Nafath", "Sehhaty" to `SIDEBAR_NAME_TO_KEY` in both `DynamicSidebar.tsx` and `MobileSideMenu.tsx`.
-
-## Files
-
-| File | Action |
-|------|--------|
-| New migration SQL | INSERT 9 menu_items rows |
-| `src/config/role-sidebars.ts` | Add KSA section to `org_admin` |
-| `src/components/DynamicSidebar.tsx` | Add icons + name mappings |
-| `src/components/mobile/MobileSideMenu.tsx` | Add name mappings |
-
+All integrations run in **sandbox mode** until API keys are configured.

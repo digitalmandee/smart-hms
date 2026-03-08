@@ -149,6 +149,9 @@ import {
   ChevronDown,
   CloudUpload,
   FileCheck,
+  ScanBarcode,
+  Smartphone,
+  ShieldAlert,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
@@ -299,6 +302,9 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Users2,
   CloudUpload,
   FileCheck,
+  ScanBarcode,
+  Smartphone,
+  ShieldAlert,
 };
 
 interface MobileSideMenuProps {

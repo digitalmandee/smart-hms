@@ -160,6 +160,8 @@ import {
   ShieldAlert,
   CloudUpload,
   FileCheck,
+  ScanBarcode,
+  Smartphone,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -611,12 +613,20 @@ export const SIDEBAR_NAME_TO_KEY: Record<string, TranslationKey> = {
   "Pre-Authorizations": "nav.preAuthorizations",
   "KSA Integrations": "nav.ksaIntegrations" as any,
   "KSA Compliance": "nav.ksaCompliance" as any,
+  "KSA Dashboard": "nav.ksaDashboard" as any,
+  
   "NPHIES Config": "nav.nphiesConfig" as any,
+  "Wasfaty": "nav.wasfaty" as any,
   "Wasfaty Config": "nav.wasfatyConfig" as any,
+  "Tatmeen / RSD": "nav.tatmeenRsd" as any,
   "Tatmeen Config": "nav.tatmeenConfig" as any,
+  "HESN": "nav.hesn" as any,
   "HESN Config": "nav.hesnConfig" as any,
+  "Nafath": "nav.nafath" as any,
   "Nafath Config": "nav.nafathConfig" as any,
+  "Sehhaty": "nav.sehhaty" as any,
   "Sehhaty Config": "nav.sehhatyConfig" as any,
+  "ZATCA Phase 2": "nav.zatcaPhase2" as any,
   "ZATCA Config": "nav.zatcaConfig" as any,
 };
 
@@ -759,6 +769,8 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   ShieldAlert,
   CloudUpload,
   FileCheck,
+  ScanBarcode,
+  Smartphone,
 };
 
 interface DynamicSidebarProps {
