@@ -1,7 +1,7 @@
 import { DocPageWrapper, SectionTitle, FeatureList, SubSection, ScreenMockup, InfoCard, TipBox } from "@/components/shared-docs/DocPageWrapper";
 
 export const OpdDocQueue = () => (
-  <DocPageWrapper pageNumber={4} totalPages={8} moduleTitle="OPD Module Guide">
+  <DocPageWrapper pageNumber={5} totalPages={9} moduleTitle="OPD Module Guide">
     <SectionTitle icon="📟" title="Token Queue & Priority" subtitle="Real-time queue management with TV display and kiosk integration" />
     <ScreenMockup title="Queue Display — Department View">
       <div className="grid grid-cols-4 gap-2">

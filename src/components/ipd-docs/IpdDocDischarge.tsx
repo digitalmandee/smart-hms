@@ -1,7 +1,7 @@
 import { DocPageWrapper, SectionTitle, FeatureList, SubSection, StepList, TipBox } from "@/components/shared-docs/DocPageWrapper";
 
 export const IpdDocDischarge = () => (
-  <DocPageWrapper pageNumber={8} totalPages={8} moduleTitle="IPD Module Guide">
+  <DocPageWrapper pageNumber={9} totalPages={9} moduleTitle="IPD Module Guide">
     <SectionTitle icon="🚪" title="Discharge Workflow & Summary" subtitle="Clinical discharge, final billing, and post-discharge follow-up" />
     <SubSection title="Discharge Process">
       <StepList steps={[

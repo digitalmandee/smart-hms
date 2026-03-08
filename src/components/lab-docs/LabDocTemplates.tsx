@@ -1,7 +1,7 @@
 import { DocPageWrapper, SectionTitle, FeatureList, SubSection, MockupTable, TipBox } from "@/components/shared-docs/DocPageWrapper";
 
 export const LabDocTemplates = () => (
-  <DocPageWrapper pageNumber={5} totalPages={5} moduleTitle="Laboratory Module Guide">
+  <DocPageWrapper pageNumber={6} totalPages={6} moduleTitle="Laboratory Module Guide">
     <SectionTitle icon="📝" title="Test Catalog & Templates" subtitle="Configurable test definitions with parameters, ranges, and categories" />
     <SubSection title="Test Template Structure">
       <MockupTable headers={["Field", "Example", "Description"]} rows={[

@@ -1,7 +1,7 @@
 import { DocPageWrapper, SectionTitle, FeatureList, SubSection, StepList, MockupTable, TipBox } from "@/components/shared-docs/DocPageWrapper";
 
 export const OtDocScheduling = () => (
-  <DocPageWrapper pageNumber={3} totalPages={7} moduleTitle="Surgery / OT Module Guide">
+  <DocPageWrapper pageNumber={4} totalPages={8} moduleTitle="Surgery / OT Module Guide">
     <SectionTitle icon="📅" title="Surgery Request & Scheduling" subtitle="From surgery request to OT slot allocation and team assignment" />
     <SubSection title="Request Workflow">
       <StepList steps={[

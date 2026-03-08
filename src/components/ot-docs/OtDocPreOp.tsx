@@ -1,7 +1,7 @@
 import { DocPageWrapper, SectionTitle, FeatureList, SubSection, StepList, TipBox } from "@/components/shared-docs/DocPageWrapper";
 
 export const OtDocPreOp = () => (
-  <DocPageWrapper pageNumber={4} totalPages={7} moduleTitle="Surgery / OT Module Guide">
+  <DocPageWrapper pageNumber={5} totalPages={8} moduleTitle="Surgery / OT Module Guide">
     <SectionTitle icon="📝" title="Pre-Op Assessment & Consent" subtitle="Pre-operative evaluation, risk assessment, and informed consent" />
     <SubSection title="Pre-Op Checklist">
       <StepList steps={[

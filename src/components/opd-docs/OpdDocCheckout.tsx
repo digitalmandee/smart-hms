@@ -1,7 +1,7 @@
 import { DocPageWrapper, SectionTitle, FeatureList, SubSection, StepList, TipBox } from "@/components/shared-docs/DocPageWrapper";
 
 export const OpdDocCheckout = () => (
-  <DocPageWrapper pageNumber={8} totalPages={8} moduleTitle="OPD Module Guide">
+  <DocPageWrapper pageNumber={9} totalPages={9} moduleTitle="OPD Module Guide">
     <SectionTitle icon="💳" title="Checkout & Billing" subtitle="End-of-visit billing, payment collection, and follow-up scheduling" />
     <SubSection title="Checkout Workflow">
       <StepList steps={[
