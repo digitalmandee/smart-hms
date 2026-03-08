@@ -21,6 +21,7 @@ const footerLinks = {
     { label: "System Status", href: "#" },
     { label: "Release Notes", href: "#" },
     { label: "KSA Compliance Guide", href: "/ksa-documentation" },
+    { label: "Documentation Center", href: "/documentation" },
   ],
   Legal: [
     { label: "Privacy Policy", href: "#" },

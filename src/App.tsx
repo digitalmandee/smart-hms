@@ -661,6 +661,10 @@ function App() {
               <Route path="/pharmacy-documentation" element={<PharmacyDocumentation />} />
               <Route path="/ksa-documentation" element={<KsaDocumentation />} />
               <Route path="/system-overview" element={<SystemOverview />} />
+              <Route path="/documentation" element={<DocumentationHub />} />
+              <Route path="/opd-documentation" element={<React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><OpdDocumentation /></React.Suspense>} />
+              <Route path="/ipd-documentation" element={<React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><IpdDocumentation /></React.Suspense>} />
+              <Route path="/ot-documentation" element={<React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><OtDocumentation /></React.Suspense>} />
             {/* Public display routes - NO AUTH REQUIRED for TV displays and kiosks */}
             <Route path="/display/queue/:organizationId" element={<PublicQueueDisplay />} />
             <Route path="/display/queue/:organizationId/:deptCode" element={<PublicQueueDisplay />} />
