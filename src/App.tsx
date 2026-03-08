@@ -1274,6 +1274,16 @@ function App() {
               <Route path="settings/ot-config" element={<OTConfigPage />} />
               <Route path="settings/surgeon-fees" element={<SurgeonFeesPage />} />
               <Route path="settings/opd-departments" element={<OPDDepartmentsPage />} />
+
+              {/* KSA Integrations */}
+              <Route path="settings/ksa-integrations" element={<React.Suspense fallback={<div>Loading...</div>}><KsaIntegrationsPage /></React.Suspense>} />
+              <Route path="settings/ksa/nphies" element={<React.Suspense fallback={<div>Loading...</div>}><KsaNphiesSettingsPage /></React.Suspense>} />
+              <Route path="settings/ksa/wasfaty" element={<React.Suspense fallback={<div>Loading...</div>}><KsaWasfatySettingsPage /></React.Suspense>} />
+              <Route path="settings/ksa/tatmeen" element={<React.Suspense fallback={<div>Loading...</div>}><KsaTatmeenSettingsPage /></React.Suspense>} />
+              <Route path="settings/ksa/hesn" element={<React.Suspense fallback={<div>Loading...</div>}><KsaHesnSettingsPage /></React.Suspense>} />
+              <Route path="settings/ksa/nafath" element={<React.Suspense fallback={<div>Loading...</div>}><KsaNafathSettingsPage /></React.Suspense>} />
+              <Route path="settings/ksa/sehhaty" element={<React.Suspense fallback={<div>Loading...</div>}><KsaSehhatySettingsPage /></React.Suspense>} />
+              <Route path="settings/ksa/zatca" element={<React.Suspense fallback={<div>Loading...</div>}><KsaZatcaSettingsPage /></React.Suspense>} />
             </Route>
 
             {/* Super Admin routes */}

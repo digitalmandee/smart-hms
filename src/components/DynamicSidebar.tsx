@@ -609,6 +609,15 @@ export const SIDEBAR_NAME_TO_KEY: Record<string, TranslationKey> = {
   "NPHIES Analytics": "nav.nphiesAnalytics",
   "Eligibility Checks": "nav.eligibilityChecks",
   "Pre-Authorizations": "nav.preAuthorizations",
+  "KSA Integrations": "nav.ksaIntegrations" as any,
+  "KSA Compliance": "nav.ksaCompliance" as any,
+  "NPHIES Config": "nav.nphiesConfig" as any,
+  "Wasfaty Config": "nav.wasfatyConfig" as any,
+  "Tatmeen Config": "nav.tatmeenConfig" as any,
+  "HESN Config": "nav.hesnConfig" as any,
+  "Nafath Config": "nav.nafathConfig" as any,
+  "Sehhaty Config": "nav.sehhatyConfig" as any,
+  "ZATCA Config": "nav.zatcaConfig" as any,
 };
 
 
