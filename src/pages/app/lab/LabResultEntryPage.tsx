@@ -490,10 +490,25 @@ export default function LabResultEntryPage() {
                   </div>
                 </div>
 
-                <Button variant="outline" className="w-full sm:w-auto">
-                  <Mail className="h-4 w-4 mr-2" />
-                  Send to Patient Email
-                </Button>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Button variant="outline" className="sm:w-auto">
+                    <Mail className="h-4 w-4 mr-2" />
+                    Send to Patient Email
+                  </Button>
+                  {country_code === 'SA' && patient && (
+                    <SehhatyPushButton
+                      syncType="lab_result"
+                      patientId={patient.id}
+                      patientNationalId={(patient as any).national_id}
+                      referenceId={labOrder.id}
+                      referenceType="lab_order"
+                      syncData={{
+                        order_number: labOrder.order_number,
+                        tests: labOrder.items?.map(i => i.test_name).join(', '),
+                      }}
+                    />
+                  )}
+                </div>
               </>
             )}
           </CardContent>

@@ -421,6 +421,14 @@ export default function ConsultationPage() {
               <Scissors className="h-4 w-4 mr-2" />
               Recommend Surgery
             </Button>
+            {country_code === 'SA' && diagnosis && patient && (
+              <HesnReportButton
+                patientId={patient.id}
+                patientName={`${patient.first_name} ${patient.last_name || ""}`}
+                diagnosisCode={diagnosis}
+                diagnosisName={diagnosis}
+              />
+            )}
             <Button onClick={handleComplete} disabled={isCompleting}>
               {isCompleting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Check className="h-4 w-4 mr-2" />}
               Complete Consultation

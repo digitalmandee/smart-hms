@@ -438,6 +438,30 @@ export default function DispensingPage() {
             </Card>
           )}
 
+          {/* Tatmeen Drug Track & Trace (KSA Only) */}
+          {showWasfaty && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Pill className="h-5 w-5" />
+                  Tatmeen
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <TatmeenScanButton
+                  patientId={patientId}
+                  prescriptionId={prescriptionId}
+                  onScanComplete={(data) => {
+                    toast.success(`Drug tracked: GTIN ${data.gtin}`);
+                  }}
+                />
+                <p className="text-xs text-muted-foreground mt-2">
+                  Scan GS1 barcode for SFDA drug track & trace
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Stock Issues Warning */}
           {hasStockIssues && !allDispensed && (
             <Alert variant="destructive">

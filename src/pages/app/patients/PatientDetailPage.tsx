@@ -468,7 +468,17 @@ export function PatientDetailPage() {
               {patient.national_id && (
                 <div className="flex items-center gap-3">
                   <FileText className="h-4 w-4 text-muted-foreground" />
-                  <span>{patient.national_id}</span>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span>{patient.national_id}</span>
+                    {country_code === 'SA' && (
+                      <NafathVerifyButton
+                        patientId={patient.id}
+                        nationalId={patient.national_id}
+                        isVerified={(patient as any).nafath_verified}
+                        onVerified={() => refetchPatient()}
+                      />
+                    )}
+                  </div>
                 </div>
               )}
             </div>

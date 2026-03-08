@@ -358,6 +358,32 @@ export default function AppointmentDetailPage() {
             </CardContent>
           </Card>
         )}
+
+        {/* Sehhaty Push (KSA Only) - for completed appointments */}
+        {country_code === 'SA' && status === 'completed' && patient && (
+          <Card className="md:col-span-2">
+            <CardHeader>
+              <CardTitle>Sehhaty Integration</CardTitle>
+            </CardHeader>
+            <CardContent className="flex items-center gap-3">
+              <SehhatyPushButton
+                syncType="appointment"
+                patientId={patient.id}
+                patientNationalId={(patient as any).national_id}
+                referenceId={id}
+                referenceType="appointment"
+                syncData={{
+                  appointment_date: appointment.appointment_date,
+                  appointment_time: appointment.appointment_time,
+                  doctor_name: doctor?.profile?.full_name,
+                }}
+              />
+              <p className="text-sm text-muted-foreground">
+                Sync this appointment to the patient's Sehhaty app
+              </p>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       <ConfirmDialog
