@@ -52,7 +52,7 @@ export function ZatcaQRDisplay({
     switch (zatcaClearanceStatus) {
       case 'cleared':
         return (
-          <Badge variant="default" className="gap-1 bg-green-600">
+          <Badge variant="default" className="gap-1 bg-emerald-600 dark:bg-emerald-700">
             <CheckCircle className="h-3 w-3" />
             {t("zatca.cleared" as any, "Cleared")}
           </Badge>

@@ -410,6 +410,34 @@ export default function DispensingPage() {
             </CardContent>
           </Card>
 
+          {/* Wasfaty E-Prescription (KSA Only) */}
+          {showWasfaty && prescription && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Pill className="h-5 w-5" />
+                  Wasfaty
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <WasfatySubmitButton
+                  prescriptionId={prescription.id}
+                  patientId={patientId}
+                  medications={items.map(item => ({
+                    drugName: item.medicineName,
+                    dosage: item.dosage || '',
+                    frequency: item.frequency || '',
+                    duration: parseInt(item.duration || '0') || 0,
+                    durationUnit: 'days' as const,
+                    quantity: item.quantity || 0,
+                    instructions: item.instructions || undefined,
+                  }))}
+                />
+              </CardContent>
+            </Card>
+          )}
+          </Card>
+
           {/* Stock Issues Warning */}
           {hasStockIssues && !allDispensed && (
             <Alert variant="destructive">

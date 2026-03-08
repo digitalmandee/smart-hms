@@ -673,6 +673,17 @@ export const PrintableInvoice = forwardRef<HTMLDivElement, PrintableInvoiceProps
           <p>Generated on {format(new Date(), "dd MMM yyyy 'at' hh:mm a")}</p>
         </div>
 
+        {/* ===== ZATCA QR CODE (KSA Compliance) ===== */}
+        {zatcaQrImageUrl && (
+          <div style={styles.zatcaQrBox}>
+            <p style={styles.zatcaQrTitle}>ZATCA E-Invoice</p>
+            <img src={zatcaQrImageUrl} alt="ZATCA QR" style={styles.zatcaQrImage} />
+            {invoice.zatca_uuid && (
+              <p style={styles.zatcaUuid}>UUID: {invoice.zatca_uuid}</p>
+            )}
+          </div>
+        )}
+
         {/* ===== PAID WATERMARK ===== */}
         {isPaid && (
           <div style={styles.watermark}>PAID</div>
