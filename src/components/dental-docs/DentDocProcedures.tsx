@@ -1,6 +1,6 @@
 import { DocPageWrapper, SectionTitle, SubSection, FeatureList, MockupTable, TipBox } from "@/components/shared-docs/DocPageWrapper";
 export const DentDocProcedures = () => (
-  <DocPageWrapper pageNumber={6} totalPages={7} moduleTitle="Dental Module">
+  <DocPageWrapper pageNumber={6} totalPages={8} moduleTitle="Dental Module">
     <SectionTitle icon="🔧" title="Procedures & Pricing" subtitle="CDT catalog, procedure templates & fee schedules" />
     <SubSection title="Procedure Catalog">
       <FeatureList items={["Full CDT (Current Dental Terminology) code library","Custom procedure templates with default materials","Category grouping: Preventive, Restorative, Endodontic, Prosthodontic, Surgical, Orthodontic","Per-procedure time estimate for scheduling","Material and consumable linking for auto-deduction from inventory"]} />

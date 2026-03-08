@@ -1,6 +1,6 @@
 import { DocPageWrapper, SectionTitle, SubSection, FeatureList, MockupTable, StepList, TipBox } from "@/components/shared-docs/DocPageWrapper";
 export const DentDocTreatment = () => (
-  <DocPageWrapper pageNumber={5} totalPages={7} moduleTitle="Dental Module">
+  <DocPageWrapper pageNumber={5} totalPages={8} moduleTitle="Dental Module">
     <SectionTitle icon="📋" title="Treatment Plans" subtitle="Multi-visit treatment planning with cost estimation" />
     <SubSection title="Creating a Treatment Plan">
       <StepList steps={["From patient chart, click 'New Treatment Plan'","Select teeth and conditions requiring treatment","Choose procedures for each tooth","System auto-calculates cost per procedure and total","Set priority order and group into visits","Present plan to patient with printable estimate"]} />
