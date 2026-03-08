@@ -1,18 +1,41 @@
 
+# HealthOS 24 — KSA Compliance Implementation
 
-# Fix: Add WasfatyStatusBadge to PrescriptionQueuePage
+## Status: ✅ ALL FEATURES IMPLEMENTED
 
-## Problem
-`WasfatyStatusBadge` is imported but never rendered in the table columns. The query also doesn't fetch Wasfaty submission data.
+## Implemented Features
 
-## Changes
+| Feature | Priority | Status | Files |
+|---------|----------|--------|-------|
+| **ZATCA Phase 2** | HIGH | ✅ DONE | `zatca-phase2/index.ts`, `src/lib/zatca/ublGenerator.ts` |
+| **Wasfaty e-Prescription** | MEDIUM | ✅ DONE | `wasfaty-gateway/index.ts`, `WasfatyConfigPanel.tsx`, `WasfatySubmitButton.tsx` |
+| **Hijri Calendar** | LOW | ✅ DONE | `src/lib/hijriCalendar.ts`, `src/components/ui/hijri-date-display.tsx` |
 
-### 1. Update `usePrescriptionQueue` hook (`src/hooks/usePharmacy.ts`)
-- Join `wasfaty_prescriptions` table in the query: add `wasfaty:wasfaty_prescriptions(id, wasfaty_reference_id, submission_status)` to the select
-- Extend `PrescriptionQueueItem` interface with optional `wasfaty` field
+## ZATCA Phase 2 Details
+- UBL 2.1 XML generation (ZATCA-compliant)
+- Invoice hash calculation (SHA-256)
+- Invoice chaining (PIH - Previous Invoice Hash)
+- Phase 2 QR code with 8 TLV fields
+- Clearance status tracking
+- Database columns: `zatca_invoice_hash`, `zatca_xml`, `zatca_clearance_status`
 
-### 2. Update `PrescriptionQueuePage.tsx`
-- Add a conditional Wasfaty status column (only when `showWasfaty === true`) between the "status" and "actions" columns
-- The column renders `WasfatyStatusBadge` using the joined wasfaty data, or a "Not Submitted" outline badge when no wasfaty record exists
-- Build columns array dynamically: base columns + wasfaty column (if KSA) + actions column
+## Wasfaty Integration Details
+- Edge function: `wasfaty-gateway`
+- Prescription submission API
+- Status checking and dispensing verification
+- Database table: `wasfaty_prescriptions`
+- Config panel for MOH Facility ID
+- Submit button component for pharmacy
 
+## Hijri Calendar Details
+- Gregorian ↔ Hijri conversion
+- Month names in Arabic and English
+- `HijriDateDisplay` component (auto-shows Hijri for KSA)
+- `HijriDateBadge` for compact display
+- Dual date format support
+
+## Remaining Items (Optional)
+- SFDA Drug Database integration
+- Saudi National Address validation
+- Seha Platform (MOH surveillance)
+- CCHI Provider License verification

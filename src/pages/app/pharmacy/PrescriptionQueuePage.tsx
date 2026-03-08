@@ -34,14 +34,37 @@ export default function PrescriptionQueuePage() {
     return matchesSearch && matchesStatus;
   });
 
-  const columns: ColumnDef<PrescriptionQueueItem>[] = [
+  const baseColumns: ColumnDef<PrescriptionQueueItem>[] = [
     { accessorKey: "prescription_number", header: t('pharmacy.rxNumber' as any), cell: ({ row }) => <span className="font-mono font-medium">{row.original.prescription_number}</span> },
     { accessorKey: "patient", header: t('common.patient' as any), cell: ({ row }) => { const patient = row.original.patient; return (<div><p className="font-medium">{patient?.first_name} {patient?.last_name}</p><p className="text-xs text-muted-foreground">{patient?.patient_number}</p></div>); } },
     { accessorKey: "doctor", header: t('common.doctor' as any), cell: ({ row }) => row.original.doctor?.profile?.full_name || "-" },
     { accessorKey: "created_at", header: t('common.dateTime' as any), cell: ({ row }) => format(new Date(row.original.created_at), "MMM d, h:mm a") },
     { accessorKey: "itemCount", header: t('common.items' as any), cell: ({ row }) => `${row.original.itemCount} ${t('pharmacy.items' as any)}` },
     { accessorKey: "status", header: t('common.status' as any), cell: ({ row }) => (<Badge variant={row.original.status === "partially_dispensed" ? "secondary" : "outline"}>{row.original.status === "partially_dispensed" ? t('pharmacy.partial' as any) : t('pharmacy.pending' as any)}</Badge>) },
-    { id: "actions", cell: ({ row }) => (<Button size="sm" onClick={() => navigate(`/app/pharmacy/dispense/${row.original.id}`)}>{t('pharmacy.dispense' as any)}</Button>) },
+  ];
+
+  const wasfatyColumn: ColumnDef<PrescriptionQueueItem> = {
+    id: "wasfaty_status",
+    header: t('wasfaty.status' as any, "Wasfaty"),
+    cell: ({ row }) => {
+      const wasfatyRecords = row.original.wasfaty;
+      const latestWasfaty = wasfatyRecords && wasfatyRecords.length > 0 ? wasfatyRecords[0] : null;
+      if (!latestWasfaty) {
+        return <Badge variant="outline">{t('wasfaty.notSubmitted' as any, "Not Submitted")}</Badge>;
+      }
+      return <WasfatyStatusBadge status={latestWasfaty.wasfaty_status || 'draft'} wasfatyId={latestWasfaty.wasfaty_prescription_id || undefined} />;
+    },
+  };
+
+  const actionsColumn: ColumnDef<PrescriptionQueueItem> = {
+    id: "actions",
+    cell: ({ row }) => (<Button size="sm" onClick={() => navigate(`/app/pharmacy/dispense/${row.original.id}`)}>{t('pharmacy.dispense' as any)}</Button>),
+  };
+
+  const columns: ColumnDef<PrescriptionQueueItem>[] = [
+    ...baseColumns,
+    ...(showWasfaty ? [wasfatyColumn] : []),
+    actionsColumn,
   ];
 
   return (

@@ -33,6 +33,11 @@ export interface PrescriptionQueueItem extends Prescription {
   };
   items: PrescriptionItem[];
   itemCount: number;
+  wasfaty?: {
+    id: string;
+    wasfaty_prescription_id: string | null;
+    wasfaty_status: string | null;
+  }[] | null;
 }
 
 interface InventoryFilters {
@@ -58,7 +63,8 @@ export function usePrescriptionQueue(branchId?: string) {
           *,
           patient:patients(id, first_name, last_name, patient_number, phone),
           doctor:doctors(id, profile:profiles(full_name)),
-          items:prescription_items(*)
+          items:prescription_items(*),
+          wasfaty:wasfaty_prescriptions(id, wasfaty_prescription_id, wasfaty_status)
         `)
         .in("status", ["created", "partially_dispensed"])
         .order("created_at", { ascending: true });
