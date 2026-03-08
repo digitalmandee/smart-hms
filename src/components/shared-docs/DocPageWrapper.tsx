@@ -143,7 +143,45 @@ export const ScreenMockup = ({ title, children }: { title: string; children: Rea
   </div>
 );
 
+export const ProcessFlow = ({ steps }: { steps: { title: string; desc: string; icon: string }[] }) => (
+  <div style={{ display: 'flex', flexDirection: 'column', gap: 0, fontSize: 13 }}>
+    {steps.map((step, i) => (
+      <div key={i}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: '#d1fae5', fontSize: 15, lineHeight: '32px', textAlign: 'center', flexShrink: 0 }}>{step.icon}</div>
+          <div style={{ flex: 1, border: '1px solid #a7f3d0', borderRadius: 8, padding: '6px 10px', backgroundColor: '#f0fdf4' }}>
+            <div style={{ fontWeight: 600, color: '#111827', fontSize: 12 }}>{step.title}</div>
+            <div style={{ fontSize: 10, color: '#6b7280', marginTop: 1 }}>{step.desc}</div>
+          </div>
+          <div style={{ width: 24, height: 24, borderRadius: '50%', backgroundColor: '#059669', color: 'white', fontSize: 10, fontWeight: 700, lineHeight: '24px', textAlign: 'center' as const, flexShrink: 0 }}>{i + 1}</div>
+        </div>
+        {i < steps.length - 1 && (
+          <div style={{ marginLeft: 15, width: 0, height: 10, borderLeft: '2px dashed #a7f3d0' }} />
+        )}
+      </div>
+    ))}
+  </div>
+);
+
 export const DocToc = ({ items, moduleTitle, totalPages }: { items: { num: number; title: string; page: number }[]; moduleTitle: string; totalPages: number }) => (
+  <DocPageWrapper pageNumber={2} totalPages={totalPages} moduleTitle={moduleTitle}>
+    <div className="flex items-center gap-3 mb-8">
+      <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center text-xl">📖</div>
+      <h2 className="text-2xl font-bold text-gray-900">Table of Contents</h2>
+    </div>
+    <div className="space-y-0">
+      {items.map((item) => (
+        <div key={item.num} className="flex items-center py-2.5 border-b border-dashed border-gray-200">
+          <span className={`w-8 h-8 rounded-full text-sm font-semibold flex items-center justify-center shrink-0 ${item.num === 0 ? 'bg-emerald-600 text-white' : 'bg-emerald-100 text-emerald-700'}`}>
+            {item.num === 0 ? '↓' : item.num}
+          </span>
+          <span className={`ml-3 text-sm font-medium flex-1 ${item.num === 0 ? 'text-emerald-700' : 'text-gray-900'}`}>{item.title}</span>
+          <span className="text-sm text-gray-500 font-mono">{item.page}</span>
+        </div>
+      ))}
+    </div>
+  </DocPageWrapper>
+);
   <DocPageWrapper pageNumber={2} totalPages={totalPages} moduleTitle={moduleTitle}>
     <div className="flex items-center gap-3 mb-8">
       <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center text-xl">📖</div>
