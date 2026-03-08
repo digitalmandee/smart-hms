@@ -15,7 +15,7 @@ const ReportCategory = ({ title, color, reports }: { title: string; color: strin
 );
 
 export const DocReports = () => (
-  <DocPageWrapper pageNumber={16} totalPages={18}>
+  <DocPageWrapper pageNumber={17} totalPages={19}>
     <SectionTitle
       icon="📊"
       title="Reports Hub — 29 Reports"

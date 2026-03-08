@@ -1,7 +1,7 @@
 import { DocPageWrapper, SectionTitle, FeatureList, SubSection, TipBox, ScreenMockup } from "./DocPageWrapper";
 
 export const DocPOSPayment = () => (
-  <DocPageWrapper pageNumber={9} totalPages={18}>
+  <DocPageWrapper pageNumber={10} totalPages={19}>
     <SectionTitle
       icon="💳"
       title="POS Terminal — Payment & Receipt"

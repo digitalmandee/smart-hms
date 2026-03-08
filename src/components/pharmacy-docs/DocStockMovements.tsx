@@ -1,7 +1,7 @@
 import { DocPageWrapper, SectionTitle, FeatureList, SubSection, TipBox } from "./DocPageWrapper";
 
 export const DocStockMovements = () => (
-  <DocPageWrapper pageNumber={13} totalPages={18}>
+  <DocPageWrapper pageNumber={14} totalPages={19}>
     <SectionTitle
       icon="↔️"
       title="Stock Movements & Alerts"

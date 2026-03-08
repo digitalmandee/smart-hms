@@ -1,7 +1,7 @@
 import { DocPageWrapper, SectionTitle, FeatureList, SubSection, StepList, TipBox } from "./DocPageWrapper";
 
 export const DocDispensing = () => (
-  <DocPageWrapper pageNumber={11} totalPages={18}>
+  <DocPageWrapper pageNumber={12} totalPages={19}>
     <SectionTitle
       icon="📋"
       title="Prescription Queue & Dispensing"

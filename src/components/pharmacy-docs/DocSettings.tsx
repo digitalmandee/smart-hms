@@ -1,7 +1,7 @@
 import { DocPageWrapper, SectionTitle, SubSection, TipBox } from "./DocPageWrapper";
 
 export const DocSettings = () => (
-  <DocPageWrapper pageNumber={18} totalPages={18}>
+  <DocPageWrapper pageNumber={19} totalPages={19}>
     <SectionTitle
       icon="⚙️"
       title="Settings & Configuration"

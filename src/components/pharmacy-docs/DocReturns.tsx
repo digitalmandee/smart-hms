@@ -1,7 +1,7 @@
 import { DocPageWrapper, SectionTitle, FeatureList, SubSection, StepList, TipBox, ScreenMockup } from "./DocPageWrapper";
 
 export const DocReturns = () => (
-  <DocPageWrapper pageNumber={12} totalPages={18}>
+  <DocPageWrapper pageNumber={13} totalPages={19}>
     <SectionTitle
       icon="🔄"
       title="Returns & Refunds"

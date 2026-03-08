@@ -1,7 +1,7 @@
 import { DocPageWrapper, SectionTitle, FeatureList, SubSection, StepList, TipBox, ScreenMockup } from "./DocPageWrapper";
 
 export const DocSessions = () => (
-  <DocPageWrapper pageNumber={10} totalPages={18}>
+  <DocPageWrapper pageNumber={11} totalPages={19}>
     <SectionTitle
       icon="⏱️"
       title="POS Sessions & Transaction History"

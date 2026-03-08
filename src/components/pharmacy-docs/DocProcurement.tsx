@@ -1,7 +1,7 @@
 import { DocPageWrapper, SectionTitle, FeatureList, SubSection, StepList, TipBox } from "./DocPageWrapper";
 
 export const DocProcurement = () => (
-  <DocPageWrapper pageNumber={15} totalPages={18}>
+  <DocPageWrapper pageNumber={16} totalPages={19}>
     <SectionTitle
       icon="📄"
       title="Procurement — PO & Suppliers"

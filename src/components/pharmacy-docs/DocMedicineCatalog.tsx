@@ -1,7 +1,7 @@
 import { DocPageWrapper, SectionTitle, FeatureList, SubSection, TipBox, StepList } from "./DocPageWrapper";
 
 export const DocMedicineCatalog = () => (
-  <DocPageWrapper pageNumber={4} totalPages={18}>
+  <DocPageWrapper pageNumber={5} totalPages={19}>
     <SectionTitle
       icon="💊"
       title="Medicine Catalog & Categories"
