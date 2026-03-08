@@ -1,21 +1,21 @@
 
 # HealthOS 24 — Documentation Suite Implementation
 
-## Status: 🔄 Round 1 Complete — Round 2 Pending
+## Status: 🔄 Round 2 Complete — Round 3 Pending
 
 ## Round 1 ✅ DONE
 - [x] Bug fix: `mrn_number` → `patient_number` in DialysisNewSessionPage + DentalImagesPage
-- [x] DocumentationHub page (`/documentation`) — Grid of all module guides
-- [x] OPD Documentation (8 pages) — Appointments, queue, consultation, orders, prescriptions, checkout
-- [x] IPD Documentation (8 pages) — Admission, beds, rounds, nursing, charges, discharge
-- [x] Surgery/OT Documentation (7 pages) — Scheduling, pre-op, anesthesia, live surgery, post-op
-- [x] Routes wired in App.tsx + Footer link added
+- [x] DocumentationHub page (`/documentation`)
+- [x] OPD Documentation (8 pages)
+- [x] IPD Documentation (8 pages)
+- [x] Surgery/OT Documentation (7 pages)
 
-## Round 2 — TODO
-- [ ] Lab Documentation (5 pages)
-- [ ] Radiology Documentation (5 pages)
-- [ ] Warehouse Documentation (6 pages)
-- [ ] Finance Documentation (6 pages)
+## Round 2 ✅ DONE
+- [x] Lab Documentation (5 pages)
+- [x] Radiology Documentation (5 pages)
+- [x] Warehouse Documentation (6 pages)
+- [x] Finance Documentation (6 pages)
+- [x] All routes wired in App.tsx
 
 ## Round 3 — TODO
 - [ ] HR Documentation (6 pages)
