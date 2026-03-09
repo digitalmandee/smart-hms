@@ -464,6 +464,10 @@ export default function OPDCheckoutPage() {
 
       setCreatedInvoiceId(invoiceData.id);
 
+      // Invalidate caches to prevent stale data
+      queryClient.invalidateQueries({ queryKey: ["pending-checkout"] });
+      queryClient.invalidateQueries({ queryKey: ["opd-checkout-appointment", appointmentId] });
+
       // If insured, stay to show claim prompt
       if (billingSplit && !billingSplit.isSelfPay && billingSplit.insuranceAmount > 0) {
         toast.success("Payment recorded. You can now create an insurance claim.");
