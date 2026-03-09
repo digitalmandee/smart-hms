@@ -70,7 +70,7 @@ export default function LettersPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="HR Letters & Templates" subtitle="Create templates and issue letters to employees">
+      <PageHeader title="HR Letters & Templates" description="Create templates and issue letters to employees" actions={
         <div className="flex gap-2">
           <Dialog open={isTemplateDialogOpen} onOpenChange={setIsTemplateDialogOpen}>
             <DialogTrigger asChild><Button variant="outline"><Plus className="h-4 w-4 mr-2" />New Template</Button></DialogTrigger>
@@ -117,7 +117,7 @@ export default function LettersPage() {
             </DialogContent>
           </Dialog>
         </div>
-      </PageHeader>
+      } />
 
       <Tabs defaultValue="templates">
         <TabsList><TabsTrigger value="templates">Templates ({(templates || []).length})</TabsTrigger><TabsTrigger value="issued">Issued Letters ({(issuedLetters || []).length})</TabsTrigger></TabsList>

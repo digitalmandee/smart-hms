@@ -55,7 +55,7 @@ export default function TrainingPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Training & Development" subtitle="Manage training programs and employee enrollments">
+      <PageHeader title="Training & Development" description="Manage training programs and employee enrollments" actions={
         <div className="flex gap-2">
           <Dialog open={isProgramDialogOpen} onOpenChange={setIsProgramDialogOpen}>
             <DialogTrigger asChild><Button variant="outline"><Plus className="h-4 w-4 mr-2" />New Program</Button></DialogTrigger>
@@ -108,7 +108,7 @@ export default function TrainingPage() {
             </DialogContent>
           </Dialog>
         </div>
-      </PageHeader>
+      } />
 
       <div className="grid gap-4 md:grid-cols-4">
         <Card><CardContent className="pt-6"><div className="text-2xl font-bold">{totalPrograms}</div><p className="text-sm text-muted-foreground">Programs</p></CardContent></Card>

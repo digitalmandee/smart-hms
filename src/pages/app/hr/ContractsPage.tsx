@@ -54,7 +54,7 @@ export default function ContractsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Contract Management" subtitle="Track employee contracts, renewals, and probation periods">
+      <PageHeader title="Contract Management" description="Track employee contracts, renewals, and probation periods" actions={
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild><Button><Plus className="h-4 w-4 mr-2" />New Contract</Button></DialogTrigger>
           <DialogContent>
@@ -87,7 +87,7 @@ export default function ContractsPage() {
             </div>
           </DialogContent>
         </Dialog>
-      </PageHeader>
+      } />
 
       <div className="grid gap-4 md:grid-cols-4">
         <Card><CardContent className="pt-6"><div className="text-2xl font-bold">{(contracts || []).length}</div><p className="text-sm text-muted-foreground">Total Contracts</p></CardContent></Card>

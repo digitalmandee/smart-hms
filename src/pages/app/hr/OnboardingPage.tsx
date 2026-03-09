@@ -61,7 +61,7 @@ export default function OnboardingPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Employee Onboarding" subtitle="Track and manage new employee onboarding checklists">
+      <PageHeader title="Employee Onboarding" description="Track and manage new employee onboarding checklists" actions={
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button><UserPlus className="h-4 w-4 mr-2" />Start Onboarding</Button>
@@ -86,7 +86,7 @@ export default function OnboardingPage() {
             </div>
           </DialogContent>
         </Dialog>
-      </PageHeader>
+      } />
 
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-3">

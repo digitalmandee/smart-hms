@@ -126,9 +126,9 @@ export default function ExpiryTrackerPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Expiry Tracker" subtitle="Monitor all expiring licenses, contracts, and documents">
+      <PageHeader title="Expiry Tracker" description="Monitor all expiring licenses, contracts, and documents" actions={
         <Button variant="outline" onClick={handleExport}><Download className="h-4 w-4 mr-2" />Export CSV</Button>
-      </PageHeader>
+      } />
 
       {/* Summary Cards */}
       <div className="grid gap-4 md:grid-cols-4">
