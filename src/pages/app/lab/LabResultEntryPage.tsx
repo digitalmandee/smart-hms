@@ -430,7 +430,7 @@ export default function LabResultEntryPage() {
             item={item}
             onSave={isOrderCompleted ? handleUpdateTestResult : handleSaveTestResult}
             isSaving={savingItemId === item.id}
-            isEditable={labOrder.status !== "ordered" || (labOrder.status === "ordered" && canProcessUnpaid)}
+            isEditable={["collected", "processing", "completed"].includes(labOrder.status) || (labOrder.status === "ordered" && canProcessUnpaid)}
             showUpdateLabel={isOrderCompleted && item.status === "completed"}
             patientInfo={{
               name: `${patient?.first_name || ""} ${patient?.last_name || ""}`.trim(),

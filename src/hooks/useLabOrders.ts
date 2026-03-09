@@ -372,10 +372,24 @@ export function useUpdateLabOrderItem() {
         .from("lab_order_items")
         .update(updateData)
         .eq("id", id)
-        .select();
+        .select("*, lab_order:lab_orders(id, status)");
 
       if (error) throw error;
-      return data?.[0] ?? null;
+      
+      const item = data?.[0];
+      
+      // Auto-transition order from "collected" to "processing" on first result save
+      if (item && status === "completed") {
+        const orderStatus = (item as any).lab_order?.status;
+        if (orderStatus === "collected") {
+          await supabase
+            .from("lab_orders")
+            .update({ status: "processing" as const })
+            .eq("id", (item as any).lab_order.id);
+        }
+      }
+      
+      return item ?? null;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["lab-orders"] });
