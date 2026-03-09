@@ -211,7 +211,7 @@ export default function ConsultationPage() {
         });
         
         // Navigate to checkout if there are pending orders, otherwise back to OPD
-        const hasPendingOrders = prescriptionItems.length > 0 || labOrderItems.length > 0;
+        const hasPendingOrders = prescriptionItems.length > 0 || labOrderItems.length > 0 || imagingOrderItems.length > 0;
         if (hasPendingOrders) {
           navigate(`/app/opd/checkout?appointmentId=${appointmentId}`);
         } else {
