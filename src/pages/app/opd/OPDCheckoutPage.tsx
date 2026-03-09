@@ -53,6 +53,7 @@ export default function OPDCheckoutPage() {
 
 
   const { profile } = useAuth();
+  const { formatCurrency } = useCurrencyFormatter();
   const [selectedCharges, setSelectedCharges] = useState<string[]>([]);
   const [paymentMethodId, setPaymentMethodId] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState(false);

@@ -102,6 +102,7 @@ function AdmissionCard({ admission }: AdmissionCardProps) {
   const { data: unbilledData } = useAdmissionUnbilledCharges(
     admission.status === "admitted" || admission.status === "pending" ? admission.id : undefined
   );
+  const { formatCurrency } = useCurrencyFormatter();
 
   const stayDays = admission.actual_discharge_date
     ? differenceInDays(new Date(admission.actual_discharge_date), new Date(admission.admission_date))
