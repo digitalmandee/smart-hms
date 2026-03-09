@@ -181,7 +181,7 @@ export default function LabResultEntryPage() {
 
   const handleCompleteOrder = async () => {
     if (!allItemsCompleted) {
-      toast.error("Please complete all tests before finalizing the order");
+      toast.error("Please save all test results before submitting for approval");
       return;
     }
 
@@ -190,9 +190,9 @@ export default function LabResultEntryPage() {
         orderId: labOrder.id,
         result_notes: resultNotes,
       });
-      toast.success("Lab order completed successfully");
+      toast.success("Lab order submitted for approval. You can now review and publish the report.");
     } catch (error) {
-      toast.error("Failed to complete order");
+      toast.error("Failed to submit order for approval");
     }
   };
 
