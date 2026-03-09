@@ -520,10 +520,16 @@ export default function OPDCheckoutPage() {
                             {charge.status === "invoiced" && (
                               <Badge variant="secondary" className="text-xs">Invoiced</Badge>
                             )}
-                            {charge.status === "pending" && charge.amount === 0 && (
+                            {charge.status === "pending" && charge.amount === 0 && charge.type === "prescription" && (
                               <Badge variant="outline" className="text-xs">
                                 <Clock className="h-3 w-3 mr-1" />
                                 Pharmacy
+                              </Badge>
+                            )}
+                            {charge.status === "pending" && charge.amount === 0 && charge.type !== "prescription" && (
+                              <Badge variant="outline" className="text-xs">
+                                <Clock className="h-3 w-3 mr-1" />
+                                Pricing pending
                               </Badge>
                             )}
                           </div>
