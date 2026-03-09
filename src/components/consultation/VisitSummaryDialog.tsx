@@ -233,6 +233,29 @@ export function VisitSummaryDialog({
               </>
             )}
 
+            {/* Imaging Orders */}
+            {imagingOrderItems.length > 0 && (
+              <>
+                <div className="space-y-3">
+                  <h4 className="font-semibold flex items-center gap-2">
+                    <Scan className="h-4 w-4" />
+                    Imaging Orders ({imagingOrderItems.length} stud{imagingOrderItems.length > 1 ? "ies" : "y"})
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {imagingOrderItems.map((item, i) => (
+                      <Badge key={i} variant="outline">
+                        {item.procedure_name}
+                        <span className="ml-1 text-muted-foreground text-xs">
+                          ({IMAGING_MODALITIES.find(m => m.value === item.modality)?.label || item.modality})
+                        </span>
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+                <Separator />
+              </>
+            )}
+
             {/* Follow-up */}
             {consultation.followUpDate && (
               <div className="flex items-center gap-3 p-3 rounded-lg border border-primary/20 bg-primary/5">
