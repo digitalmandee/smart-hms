@@ -230,8 +230,16 @@ export function useOpenSession() {
       queryClient.invalidateQueries({ queryKey: ['billing-sessions'] });
       toast.success('Session opened successfully');
     },
-    onError: (error) => {
-      toast.error(error.message || 'Failed to open session');
+    onError: (error: any) => {
+      // Handle unique constraint violations from DB indexes
+      if (error?.code === '23505') {
+        const msg = error.message?.includes('unique_open_session_per_user')
+          ? 'You already have an open session. Close it before opening a new one.'
+          : 'This counter already has an active session. Close it first.';
+        toast.error(msg);
+      } else {
+        toast.error(error.message || 'Failed to open session');
+      }
     },
   });
 }
