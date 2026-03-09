@@ -207,12 +207,11 @@ export default function OPDCheckoutPage() {
   // Imaging order fees
   imagingOrders?.forEach((order) => {
     if (!order.invoice_id) {
-      const amount = order.estimated_cost || 0;
       charges.push({
         id: `imaging-${order.id}`,
         type: "imaging",
         description: `${order.modality?.toUpperCase() || "Imaging"}: ${order.procedure_name}`,
-        amount,
+        amount: 0, // Price determined by radiology/billing
         status: "pending",
         referenceId: order.id,
       });
