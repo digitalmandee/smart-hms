@@ -373,7 +373,7 @@ export default function LabResultEntryPage() {
         </Card>
       )}
 
-      {labOrder.status === "collected" && !isOrderCompleted && (
+      {(labOrder.status === "collected" || labOrder.status === "processing") && !isOrderCompleted && (
         <Card className="border-blue-200 bg-blue-50/50">
           <CardContent className="pt-6">
             <div className="space-y-4">
@@ -430,7 +430,7 @@ export default function LabResultEntryPage() {
             item={item}
             onSave={isOrderCompleted ? handleUpdateTestResult : handleSaveTestResult}
             isSaving={savingItemId === item.id}
-            isEditable={labOrder.status !== "ordered" || (labOrder.status === "ordered" && canProcessUnpaid)}
+            isEditable={["collected", "processing", "completed"].includes(labOrder.status) || (labOrder.status === "ordered" && canProcessUnpaid)}
             showUpdateLabel={isOrderCompleted && item.status === "completed"}
             patientInfo={{
               name: `${patient?.first_name || ""} ${patient?.last_name || ""}`.trim(),
@@ -479,7 +479,7 @@ export default function LabResultEntryPage() {
                 ) : (
                   <CheckCircle className="h-4 w-4 mr-2" />
                 )}
-                Complete & Finalize Report
+                Submit for Approval
               </Button>
             </div>
         </CardContent>
