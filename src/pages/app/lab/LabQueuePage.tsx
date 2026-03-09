@@ -30,7 +30,7 @@ export default function LabQueuePage() {
 
   // Fetch lab orders based on status filter
   const { data: labOrders, isLoading, refetch } = useLabOrders(
-    statusFilter !== "all" ? { status: statusFilter } : {}
+    statusFilter !== "all" && statusFilter !== "completed" ? { status: statusFilter } : {}
   );
 
   // Filter out completed/cancelled and apply search
