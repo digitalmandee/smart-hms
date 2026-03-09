@@ -862,34 +862,6 @@ export default function OPDWalkInPage() {
 
             {/* Payment Actions */}
             <div className="space-y-4">
-              {/* Alternative payment options */}
-              <div className="p-4 rounded-lg border border-dashed bg-muted/30 space-y-3">
-                <p className="text-sm font-medium text-muted-foreground">Alternative Options</p>
-                <div className="flex gap-3">
-                  <Button 
-                    variant="outline" 
-                    onClick={handlePayLater}
-                    disabled={isProcessing}
-                    className="flex-1"
-                  >
-                    <Clock className="h-4 w-4 mr-2" />
-                    Pay Later
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setShowWaiverDialog(true)}
-                    disabled={isProcessing}
-                    className="flex-1"
-                  >
-                    <ShieldOff className="h-4 w-4 mr-2" />
-                    Waive Fee
-                  </Button>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Pay Later: Fee of Rs. {selectedDoctor.fee.toLocaleString()} will be collected at checkout.
-                </p>
-              </div>
-
               {/* Main action buttons */}
               <div className="flex justify-between">
                 <Button variant="outline" onClick={() => setStep("doctor")}>
