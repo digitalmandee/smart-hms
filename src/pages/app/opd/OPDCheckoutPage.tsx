@@ -204,6 +204,21 @@ export default function OPDCheckoutPage() {
     }
   });
 
+  // Imaging order fees
+  imagingOrders?.forEach((order) => {
+    if (!order.invoice_id) {
+      const amount = order.price || 0;
+      charges.push({
+        id: `imaging-${order.id}`,
+        type: "imaging",
+        description: `${order.modality?.toUpperCase() || "Imaging"}: ${order.procedure_name}`,
+        amount,
+        status: "pending",
+        referenceId: order.id,
+      });
+    }
+  });
+
   // Prescription items (if not dispensed through pharmacy)
   prescriptions?.forEach((rx) => {
     if (rx.status === "created") {
