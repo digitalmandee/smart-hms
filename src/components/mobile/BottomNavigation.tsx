@@ -21,6 +21,13 @@ const navItems: NavItem[] = [
   { path: "/app/profile", labelKey: "nav.profile", icon: User },
 ];
 
+// Role-aware home path: lab techs go to /app/lab, pharmacists to /app/pharmacy
+const getHomePath = (roles: string[]): string => {
+  if (roles.includes("lab_technician")) return "/app/lab";
+  if (roles.includes("pharmacist") || roles.includes("ot_pharmacist")) return "/app/pharmacy";
+  return "/app/dashboard";
+};
+
 export function BottomNavigation() {
   const location = useLocation();
   const { roles } = useAuth();
