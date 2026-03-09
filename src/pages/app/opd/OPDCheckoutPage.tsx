@@ -381,7 +381,35 @@ export default function OPDCheckoutPage() {
         notes: `OPD Visit: ${generateVisitId(appointment)}`,
       });
 
-      // Record payment with session link
+      // Link invoice to lab orders BEFORE payment so DB trigger finds them
+      const labCharges = itemsToInvoice.filter(c => c.type === 'lab');
+      const labOrderIds: string[] = [];
+      for (const charge of labCharges) {
+        if (charge.referenceId) {
+          labOrderIds.push(charge.referenceId);
+          const { error: labLinkErr } = await supabase
+            .from('lab_orders')
+            .update({ invoice_id: invoiceData.id })
+            .eq('id', charge.referenceId);
+          if (labLinkErr) console.error('Failed to link invoice to lab order:', labLinkErr);
+        }
+      }
+
+      // Link invoice to imaging orders BEFORE payment
+      const imgCharges = itemsToInvoice.filter(c => c.type === 'imaging');
+      const imgOrderIds: string[] = [];
+      for (const charge of imgCharges) {
+        if (charge.referenceId) {
+          imgOrderIds.push(charge.referenceId);
+          const { error: imgLinkErr } = await supabase
+            .from('imaging_orders')
+            .update({ invoice_id: invoiceData.id })
+            .eq('id', charge.referenceId);
+          if (imgLinkErr) console.error('Failed to link invoice to imaging order:', imgLinkErr);
+        }
+      }
+
+      // Record payment with session link (trigger will now find linked orders)
       await recordPayment.mutateAsync({
         invoiceId: invoiceData.id,
         amount: selectedTotal,
@@ -399,28 +427,18 @@ export default function OPDCheckoutPage() {
         })
         .eq("id", appointment.id);
 
-      // Link invoice to lab orders so DB trigger can sync payment_status
-      const labCharges = itemsToInvoice.filter(c => c.type === 'lab');
-      for (const charge of labCharges) {
-        if (charge.referenceId) {
-          const { error: labLinkErr } = await supabase
-            .from('lab_orders')
-            .update({ invoice_id: invoiceData.id })
-            .eq('id', charge.referenceId);
-          if (labLinkErr) console.error('Failed to link invoice to lab order:', labLinkErr);
-        }
+      // Explicit payment_status sync (belt-and-suspenders)
+      if (labOrderIds.length > 0) {
+        await supabase
+          .from('lab_orders')
+          .update({ payment_status: 'paid' })
+          .in('id', labOrderIds);
       }
-
-      // Link invoice to imaging orders
-      const imgCharges = itemsToInvoice.filter(c => c.type === 'imaging');
-      for (const charge of imgCharges) {
-        if (charge.referenceId) {
-          const { error: imgLinkErr } = await supabase
-            .from('imaging_orders')
-            .update({ invoice_id: invoiceData.id })
-            .eq('id', charge.referenceId);
-          if (imgLinkErr) console.error('Failed to link invoice to imaging order:', imgLinkErr);
-        }
+      if (imgOrderIds.length > 0) {
+        await supabase
+          .from('imaging_orders')
+          .update({ payment_status: 'paid' })
+          .in('id', imgOrderIds);
       }
 
       setCreatedInvoiceId(invoiceData.id);
