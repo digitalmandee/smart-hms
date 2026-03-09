@@ -210,9 +210,9 @@ export default function LabResultEntryPage() {
           />
         </div>
 
-        <Button onClick={() => handlePrint()} disabled={!isOrderCompleted}>
+        <Button onClick={() => handlePrint()}>
           <Printer className="h-4 w-4 mr-2" />
-          Print Report
+          {isOrderCompleted ? "Print Report" : "Preview Report"}
         </Button>
       </div>
       {/* Order Info Card */}
