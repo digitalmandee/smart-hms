@@ -187,6 +187,22 @@ export default function ConsultationPage() {
         });
       }
 
+      // Create imaging orders if items exist
+      if (complete && imagingOrderItems.length > 0 && consultationId) {
+        for (const item of imagingOrderItems) {
+          await createImagingOrder.mutateAsync({
+            consultation_id: consultationId,
+            patient_id: patient.id,
+            modality: item.modality,
+            procedure_name: item.procedure_name,
+            clinical_indication: item.clinical_indication,
+            priority: imagingOrderPriority,
+            notes: imagingOrderNotes,
+            status: 'ordered',
+          });
+        }
+      }
+
       // Update appointment status
       if (complete) {
         await updateAppointment.mutateAsync({
