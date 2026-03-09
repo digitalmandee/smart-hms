@@ -248,7 +248,7 @@ export function TestResultForm({
             ) : (
               <>
                 <Check className="h-4 w-4 mr-2" />
-                {showUpdateLabel ? "Update Results" : "Save & Complete Test"}
+                {showUpdateLabel ? "Update Results" : "Save Results"}
               </>
             )}
           </Button>

@@ -450,19 +450,21 @@ export function useCompleteLabOrder() {
           result_notes,
         })
         .eq("id", orderId)
-        .select()
-        .single();
+        .select();
 
       if (error) {
         labLogger.error("Failed to complete lab order", error, { orderId });
         throw error;
       }
 
+      const order = data?.[0];
       labLogger.info("Lab order completed", { 
         orderId, 
-        orderNumber: data.order_number,
-        completedAt: data.completed_at
+        orderNumber: order?.order_number,
+        completedAt: order?.completed_at
       });
+
+      return order;
 
       return data;
     },

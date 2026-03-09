@@ -136,24 +136,6 @@ export default function LabResultEntryPage() {
         performed_by: profile?.id,
       });
       toast.success("Test result saved successfully");
-
-      // Check if all items are now completed (current saved + previously completed)
-      const otherCompletedCount = labOrder.items?.filter(
-        (i) => i.id !== itemId && i.status === "completed"
-      ).length || 0;
-      const allDone = otherCompletedCount + 1 === totalItemsCount && totalItemsCount > 0;
-
-      if (allDone && labOrder.status !== "completed") {
-        try {
-          await completeOrder.mutateAsync({
-            orderId: labOrder.id,
-            result_notes: resultNotes,
-          });
-          toast.success("All tests completed — report finalized and available in patient profile");
-        } catch {
-          toast.error("Failed to auto-complete order");
-        }
-      }
     } catch (error) {
       toast.error("Failed to save test result");
     } finally {
@@ -199,7 +181,7 @@ export default function LabResultEntryPage() {
 
   const handleCompleteOrder = async () => {
     if (!allItemsCompleted) {
-      toast.error("Please complete all tests before finalizing the order");
+      toast.error("Please save all test results before submitting for approval");
       return;
     }
 
@@ -208,9 +190,9 @@ export default function LabResultEntryPage() {
         orderId: labOrder.id,
         result_notes: resultNotes,
       });
-      toast.success("Lab order completed successfully");
+      toast.success("Lab order submitted for approval. You can now review and publish the report.");
     } catch (error) {
-      toast.error("Failed to complete order");
+      toast.error("Failed to submit order for approval");
     }
   };
 
