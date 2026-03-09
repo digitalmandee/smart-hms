@@ -1,2 +1,2 @@
 import { DocCover } from "@/components/shared-docs/DocPageWrapper";
-export const FinDocCover = () => <DocCover title="Finance / Accounts Module" subtitle="Complete Operations Guide" features="Chart of Accounts · Journal Entries · Billing · P&L · Balance Sheet" />;
+export const FinDocCover = () => <DocCover title="Finance / Accounts Module" subtitle="Complete Operations Guide" features="Chart of Accounts · Journal Entries · Billing Sessions · Daily Closing · Expense Management · AR & AP · Insurance & NPHIES · Budgets · Bank Reconciliation · P&L · Balance Sheet · Cash Flow · ZATCA Compliance · Vendor Payments" />;
