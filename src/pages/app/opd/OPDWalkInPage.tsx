@@ -43,7 +43,7 @@ import { SessionStatusBanner } from "@/components/billing/SessionStatusBanner";
 import { useTranslation, useIsRTL } from "@/lib/i18n";
 import { 
   UserPlus, Search, Stethoscope, CreditCard, Ticket, 
-  Printer, Check, Users, Phone, ArrowLeft, ArrowRight, Clock, ShieldOff
+  Printer, Check, Users, Phone, ArrowLeft, ArrowRight
 } from "lucide-react";
 import { format } from "date-fns";
 
