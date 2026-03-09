@@ -103,10 +103,10 @@ export default function ExpiryTrackerPage() {
 
   const handleExport = () => {
     const columns = [
-      { key: "Type", label: "Type" }, { key: "Name", label: "Name" },
-      { key: "Employee", label: "Employee" }, { key: "EmployeeNum", label: "Employee #" },
-      { key: "ExpiryDate", label: "Expiry Date" }, { key: "Days", label: "Days Until Expiry" },
-      { key: "Status", label: "Status" },
+      { key: "Type", header: "Type" }, { key: "Name", header: "Name" },
+      { key: "Employee", header: "Employee" }, { key: "EmployeeNum", header: "Employee #" },
+      { key: "ExpiryDate", header: "Expiry Date" }, { key: "Days", header: "Days Until Expiry" },
+      { key: "Status", header: "Status" },
     ];
     exportToCSV(filtered.map(i => ({
       Type: i.type, Name: i.name, Employee: i.employeeName,
