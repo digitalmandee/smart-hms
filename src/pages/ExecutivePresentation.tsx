@@ -162,6 +162,7 @@ const ExecutivePresentation = () => {
           <ExecAIEverywhereSlide />
           <ExecTabeebiSlide />
           <ExecInsuranceSlide />
+          <ExecKsaComplianceSlide />
           <ExecClinicalSlide />
           <ExecDiagnosticsSlide />
           <ExecAutomationSlide />
