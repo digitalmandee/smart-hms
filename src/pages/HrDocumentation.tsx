@@ -8,18 +8,32 @@ import { HrDocCover } from "@/components/hr-docs/HrDocCover";
 import { HrDocToc } from "@/components/hr-docs/HrDocToc";
 import { HrDocFlow } from "@/components/hr-docs/HrDocFlow";
 import { HrDocEmployee } from "@/components/hr-docs/HrDocEmployee";
+import { HrDocDoctorNurse } from "@/components/hr-docs/HrDocDoctorNurse";
 import { HrDocAttendance } from "@/components/hr-docs/HrDocAttendance";
 import { HrDocPayroll } from "@/components/hr-docs/HrDocPayroll";
 import { HrDocRecruitment } from "@/components/hr-docs/HrDocRecruitment";
+import { HrDocCompliance } from "@/components/hr-docs/HrDocCompliance";
+import { HrDocLettersContracts } from "@/components/hr-docs/HrDocLettersContracts";
+import { HrDocTraining } from "@/components/hr-docs/HrDocTraining";
+import { HrDocExit } from "@/components/hr-docs/HrDocExit";
+import { HrDocSafety } from "@/components/hr-docs/HrDocSafety";
+import { HrDocReports } from "@/components/hr-docs/HrDocReports";
 
 const pages = [
   { id: "cover", label: "Cover", component: HrDocCover },
   { id: "toc", label: "Contents", component: HrDocToc },
   { id: "flow", label: "Process Flow", component: HrDocFlow },
   { id: "employee", label: "Employees", component: HrDocEmployee },
+  { id: "doctor-nurse", label: "Doctor & Nurse", component: HrDocDoctorNurse },
   { id: "attendance", label: "Attendance", component: HrDocAttendance },
   { id: "payroll", label: "Payroll", component: HrDocPayroll },
   { id: "recruitment", label: "Recruitment", component: HrDocRecruitment },
+  { id: "compliance", label: "Compliance", component: HrDocCompliance },
+  { id: "letters", label: "Letters & Contracts", component: HrDocLettersContracts },
+  { id: "training", label: "Training", component: HrDocTraining },
+  { id: "exit", label: "Exit Management", component: HrDocExit },
+  { id: "safety", label: "Safety", component: HrDocSafety },
+  { id: "reports", label: "Reports", component: HrDocReports },
 ];
 
 const HrDocumentation = () => {

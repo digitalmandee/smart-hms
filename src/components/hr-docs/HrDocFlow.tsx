@@ -1,17 +1,19 @@
 import { DocPageWrapper, SectionTitle, ProcessFlow } from "@/components/shared-docs/DocPageWrapper";
 
 export const HrDocFlow = () => (
-  <DocPageWrapper pageNumber={3} totalPages={7} moduleTitle="HR & Payroll">
-    <SectionTitle icon="🔄" title="HR & Recruitment Process Flow" subtitle="Hire-to-retire employee lifecycle" />
+  <DocPageWrapper pageNumber={3} totalPages={14} moduleTitle="HR & Payroll">
+    <SectionTitle icon="🔄" title="HR & Recruitment Process Flow" subtitle="Complete hire-to-retire employee lifecycle" />
     <ProcessFlow steps={[
       { icon: "📢", title: "Job Posting", desc: "HR creates job requisition with role details, qualifications, salary band. Published to internal portal and external job boards." },
-      { icon: "📋", title: "Application Screening", desc: "Applications collected and screened against criteria. Shortlisted candidates move to interview pipeline with automated notifications." },
-      { icon: "🎤", title: "Interview Process", desc: "Multi-round interviews scheduled. Panel feedback recorded digitally. Scoring matrix applied for objective evaluation." },
-      { icon: "📨", title: "Offer & Contract", desc: "Offer letter generated with salary, benefits, probation terms. Digital acceptance workflow. Employment contract prepared." },
-      { icon: "🏢", title: "Onboarding", desc: "New hire setup: employee ID, biometric enrollment, system access, department assignment. Orientation checklist tracked." },
-      { icon: "⏰", title: "Attendance & Leave", desc: "Daily biometric/GPS check-in tracked. Leave requests, approvals, and balance management. Shift roster scheduling." },
-      { icon: "💰", title: "Payroll Processing", desc: "Monthly payroll with GOSI deductions, allowances, overtime. WPS file generated for KSA bank transfers. Pay slips distributed." },
-      { icon: "📊", title: "Performance Review", desc: "Annual/quarterly performance appraisals. KPI tracking, 360° feedback. Increment and promotion recommendations." },
+      { icon: "📋", title: "Screening & Interview", desc: "Applications screened against criteria. Multi-round interviews with scoring matrix. Panel feedback recorded digitally." },
+      { icon: "📨", title: "Offer & Contract", desc: "Offer letter generated with salary, benefits, probation terms. Digital acceptance. Employment contract prepared." },
+      { icon: "🏢", title: "Onboarding", desc: "Employee ID, biometric enrollment, system access, department assignment. Checklist-based orientation tracked." },
+      { icon: "🩺", title: "License & Compliance", desc: "Medical license verification, document upload, vaccination records. Expiry tracker with automated renewal alerts." },
+      { icon: "⏰", title: "Attendance & Roster", desc: "Biometric/GPS check-in, duty roster, on-call scheduling. Leave requests, approvals, balance management." },
+      { icon: "💰", title: "Payroll & Wallet", desc: "Monthly payroll with GOSI, allowances, overtime. Doctor wallet auto-credited on consultation payment. WPS file generated." },
+      { icon: "📊", title: "Performance & Training", desc: "KPI tracking, 360° feedback, CME credits. Mandatory training compliance enforced." },
+      { icon: "🎓", title: "Development", desc: "Clinical certifications, skill assessments, career progression tracking. Training budget management." },
+      { icon: "🚪", title: "Exit & Settlement", desc: "Resignation → clearance → final settlement with ESB calculation. Exit interview and rehire eligibility flag." },
     ]} />
   </DocPageWrapper>
 );

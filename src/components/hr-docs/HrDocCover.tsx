@@ -1,2 +1,2 @@
 import { DocCover } from "@/components/shared-docs/DocPageWrapper";
-export const HrDocCover = () => <DocCover title="HR & Payroll" subtitle="Employee lifecycle, attendance, payroll & recruitment" features="Employee Management • Attendance & Leave • Payroll Processing • Recruitment & Onboarding" />;
+export const HrDocCover = () => <DocCover title="HR & Payroll" subtitle="Complete employee lifecycle, clinical staff, compliance & analytics" features="Employee Management • Doctor & Nurse Management • Attendance & Leave • Payroll Processing • Recruitment & Onboarding • Compliance & Licenses • HR Letters & Contracts • Training & Development • Exit Management • Safety & Incidents • Reports & Analytics" />;
