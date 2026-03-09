@@ -44,7 +44,7 @@ export default function ContractsPage() {
   };
 
   if (isLoading) {
-    return <div className="space-y-6"><PageHeader title="Contract Management" /><Skeleton className="h-64" /></div>;
+    return <div className="space-y-6"><PageHeader title="Contract Management" description="Track employee contracts" /><Skeleton className="h-64" /></div>;
   }
 
   const today = new Date();
