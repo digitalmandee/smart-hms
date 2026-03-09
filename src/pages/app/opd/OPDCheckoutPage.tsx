@@ -82,6 +82,21 @@ export default function OPDCheckoutPage() {
     enabled: !!profile?.organization_id,
   });
 
+  // Fetch lab service types for fallback price resolution (legacy items without service_type_id)
+  const { data: labServiceTypes } = useQuery({
+    queryKey: ["lab-service-types-fallback", profile?.organization_id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("service_types")
+        .select("id, name, default_price")
+        .eq("category", "lab")
+        .eq("organization_id", profile!.organization_id!)
+        .eq("is_active", true);
+      return data || [];
+    },
+    enabled: !!profile?.organization_id,
+  });
+
   // Fetch appointment with related data
   const { data: appointment, isLoading: appointmentLoading } = useQuery({
     queryKey: ["opd-checkout-appointment", appointmentId],
