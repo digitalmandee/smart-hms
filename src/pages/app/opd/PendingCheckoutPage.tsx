@@ -116,12 +116,21 @@ export default function PendingCheckoutPage() {
     navigate(`/app/opd/checkout?appointmentId=${appointmentId}`);
   };
 
-  const totalCompleted = completedAppointments?.length || 0;
-  const withPendingOrders = completedAppointments?.filter(a => {
+  // Filter out appointments that are fully paid with no unpaid orders
+  const filteredAppointments = completedAppointments?.filter(a => {
+    const patientId = (a.patient as any)?.id;
+    const orders = pendingOrders?.[patientId];
+    const hasUnpaidOrders = orders && (orders.labOrders > 0);
+    // Show if not paid, OR if paid but has unpaid lab/imaging orders
+    return a.payment_status !== "paid" || hasUnpaidOrders;
+  }) || [];
+
+  const totalCompleted = filteredAppointments.length;
+  const withPendingOrders = filteredAppointments.filter(a => {
     const patientId = (a.patient as any)?.id;
     const orders = pendingOrders?.[patientId];
     return orders && (orders.labOrders > 0 || orders.prescriptions > 0);
-  }).length || 0;
+  }).length;
 
   return (
     <div className="space-y-6">
