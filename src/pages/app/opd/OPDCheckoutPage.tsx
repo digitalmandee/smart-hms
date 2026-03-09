@@ -65,6 +65,19 @@ export default function OPDCheckoutPage() {
   
   const createInvoice = useCreateInvoice();
   const recordPayment = useRecordPayment();
+  const queryClient = useQueryClient();
+
+  // Auto-redirect if appointment is already paid
+  useEffect(() => {
+    if (appointment && appointment.payment_status === "paid") {
+      toast.info("This appointment has already been checked out");
+      if (appointment.invoice_id) {
+        navigate(`/app/billing/invoices/${appointment.invoice_id}`, { replace: true });
+      } else {
+        navigate("/app/opd/pending-checkout", { replace: true });
+      }
+    }
+  }, [appointment, navigate]);
 
   // Fetch consultation service type for commission tracking
   const { data: consultationServiceType } = useQuery({
