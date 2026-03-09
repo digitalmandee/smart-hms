@@ -1,25 +1,24 @@
 
-Goal: run the full smoke E2E suite now and verify all configured modules pass.
+# HealthOS 24 — Documentation Suite Implementation
 
-What I verified in codebase:
-- `package.json` already has `test:e2e: playwright test`.
-- `playwright.config.ts` points to `tests/e2e`, base URL `http://localhost:8080`, and auto-starts Vite with `npm run dev`.
-- Smoke specs exist for all expected modules:
-  - `auth-redirect`, `documentation`
-  - `opd`, `ipd`, `lab`, `radiology`
-  - `pharmacy`, `warehouse`, `finance`
-- Role login helper exists at `tests/e2e/utils/demoLogin.ts` (includes unlock flow).
+## Status: ✅ All 3 Rounds Complete
 
-Execution plan (full suite):
-1. Install deps (if not already installed): `npm install`
-2. Run smoke tests: `npm run test:e2e`
-3. If failures occur, rerun in debug mode:
-   - headed: `npx playwright test --headed`
-   - single failing file: `npx playwright test tests/e2e/<failed-file>.spec.ts --headed`
-4. Open HTML report after run: `npx playwright show-report`
+## Round 1 ✅ DONE
+- [x] Bug fix: `mrn_number` → `patient_number` in DialysisNewSessionPage + DentalImagesPage
+- [x] DocumentationHub page (`/documentation`)
+- [x] OPD Documentation (8 pages)
+- [x] IPD Documentation (8 pages)
+- [x] Surgery/OT Documentation (7 pages)
 
-Pass criteria:
-- All smoke specs pass.
-- No module route smoke check fails for: OPD, IPD, Lab, Radiology, Pharmacy, Warehouse, Finance, Documentation, Auth redirect.
+## Round 2 ✅ DONE
+- [x] Lab Documentation (5 pages)
+- [x] Radiology Documentation (5 pages)
+- [x] Warehouse Documentation (6 pages)
+- [x] Finance Documentation (6 pages)
+- [x] All routes wired in App.tsx
 
-If you want, next step after this plan approval is I’ll proceed with a failure-triage plan template (fast isolate -> locator fix -> rerun impacted specs -> full rerun) so any red tests can be fixed quickly.
+## Round 3 ✅ DONE
+- [x] HR Documentation (6 pages)
+- [x] Dialysis Documentation (6 pages)
+- [x] Dental Documentation (6 pages)
+- [x] All routes wired in App.tsx
