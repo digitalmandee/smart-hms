@@ -102,17 +102,23 @@ export default function ExpiryTrackerPage() {
   };
 
   const handleExport = () => {
+    const columns = [
+      { key: "Type", label: "Type" }, { key: "Name", label: "Name" },
+      { key: "Employee", label: "Employee" }, { key: "EmployeeNum", label: "Employee #" },
+      { key: "ExpiryDate", label: "Expiry Date" }, { key: "Days", label: "Days Until Expiry" },
+      { key: "Status", label: "Status" },
+    ];
     exportToCSV(filtered.map(i => ({
       Type: i.type, Name: i.name, Employee: i.employeeName,
-      "Employee #": i.employeeNumber, "Expiry Date": i.expiryDate,
-      "Days Until Expiry": i.daysUntilExpiry, Status: i.status,
-    })), "expiry-tracker");
+      EmployeeNum: i.employeeNumber, ExpiryDate: i.expiryDate,
+      Days: i.daysUntilExpiry, Status: i.status,
+    })), "expiry-tracker", columns);
   };
 
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Expiry Tracker" subtitle="Unified document expiry dashboard" />
+        <PageHeader title="Expiry Tracker" description="Unified document expiry dashboard" />
         <Skeleton className="h-64" />
       </div>
     );
