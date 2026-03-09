@@ -1,6 +1,6 @@
 // OPD Checkout Page - handles billing and payment processing for OPD visits
 import { useState } from "react";
-import { useParams, useNavigate, useSearchParams } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams, Navigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
@@ -48,6 +48,9 @@ export default function OPDCheckoutPage() {
   const [searchParams] = useSearchParams();
   const appointmentId = routeAppointmentId || searchParams.get("appointmentId");
   const navigate = useNavigate();
+
+
+
   const { profile } = useAuth();
   const [selectedCharges, setSelectedCharges] = useState<string[]>([]);
   const [paymentMethodId, setPaymentMethodId] = useState<string>("");
@@ -164,6 +167,11 @@ export default function OPDCheckoutPage() {
     },
     enabled: !!consultation?.id,
   });
+
+  // Redirect to pending checkout if no appointmentId
+  if (!appointmentId) {
+    return <Navigate to="/app/opd/pending-checkout" replace />;
+  }
 
   // Build charge items
   const charges: ChargeItem[] = [];
