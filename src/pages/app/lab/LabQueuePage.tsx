@@ -186,6 +186,7 @@ export default function LabQueuePage() {
               <TabsTrigger value="ordered">Ordered</TabsTrigger>
               <TabsTrigger value="collected">Collected</TabsTrigger>
               <TabsTrigger value="processing">Processing</TabsTrigger>
+              <TabsTrigger value="completed">Completed</TabsTrigger>
             </TabsList>
           </Tabs>
 
