@@ -66,11 +66,39 @@ export function LabOrderBuilder({
   const [search, setSearch] = useState("");
   const [openSearch, setOpenSearch] = useState(false);
   const { data: labPanels = [] } = useConfigLabPanels();
+  const { data: serviceTypes = [] } = useServiceTypes();
+  const { formatCurrency } = useCurrencyFormatter();
 
-  // Convert lab panels to quick panels format
+  // Build test list from service_types (lab category)
+  const labServiceTypes = useMemo(() => 
+    serviceTypes.filter(st => st.category === "lab" || st.category_info?.code === "lab"),
+    [serviceTypes]
+  );
+
+  // Map service_types to LabOrderItemInput format
+  const availableTests: (LabOrderItemInput & { price?: number })[] = useMemo(() =>
+    labServiceTypes.map(st => ({
+      service_type_id: st.id,
+      test_name: st.name,
+      test_category: "blood", // default category, can be changed by user
+      price: st.default_price || 0,
+    })),
+    [labServiceTypes]
+  );
+
+  // Convert lab panels to quick panels format, mapping to service_type_id
   const quickPanels = labPanels.map(panel => ({
     name: panel.name,
-    tests: panel.tests
+    tests: panel.tests.map(t => {
+      const matchingSt = labServiceTypes.find(
+        st => st.name.toLowerCase() === t.test_name.toLowerCase()
+      );
+      return {
+        ...t,
+        service_type_id: matchingSt?.id,
+        price: matchingSt?.default_price || 0,
+      };
+    }),
   }));
 
   const addItem = (item: LabOrderItemInput) => {
@@ -90,40 +118,19 @@ export function LabOrderBuilder({
     onChange(items.filter((_, i) => i !== index));
   };
 
-  const addQuickPanel = (panel: { name: string; tests: Array<{ test_name: string; test_category: string }> }) => {
+  const addQuickPanel = (panel: { name: string; tests: Array<{ test_name: string; test_category: string; service_type_id?: string; price?: number }> }) => {
     const newItems = panel.tests.filter(
       (t) => !items.some((i) => i.test_name === t.test_name)
     );
-    onChange([...items, ...newItems.map((t) => ({ ...t, instructions: "" }))]);
+    onChange([...items, ...newItems.map((t) => ({ 
+      test_name: t.test_name, 
+      test_category: t.test_category, 
+      service_type_id: t.service_type_id, 
+      instructions: "" 
+    }))]);
   };
 
-  // Common tests for search
-  const commonTests: LabOrderItemInput[] = [
-    { test_name: "Complete Blood Count (CBC)", test_category: "blood" },
-    { test_name: "Hemoglobin", test_category: "blood" },
-    { test_name: "Blood Glucose (Fasting)", test_category: "blood" },
-    { test_name: "Blood Glucose (Random)", test_category: "blood" },
-    { test_name: "HbA1c", test_category: "blood" },
-    { test_name: "Liver Function Test", test_category: "blood" },
-    { test_name: "Renal Function Test", test_category: "blood" },
-    { test_name: "Lipid Profile", test_category: "blood" },
-    { test_name: "Thyroid Function Test (TSH, T3, T4)", test_category: "blood" },
-    { test_name: "Uric Acid", test_category: "blood" },
-    { test_name: "Vitamin D", test_category: "blood" },
-    { test_name: "Vitamin B12", test_category: "blood" },
-    { test_name: "Serum Electrolytes", test_category: "blood" },
-    { test_name: "ESR", test_category: "blood" },
-    { test_name: "CRP", test_category: "blood" },
-    { test_name: "Urine Routine & Microscopy", test_category: "pathology" },
-    { test_name: "Stool Routine", test_category: "pathology" },
-    { test_name: "Chest X-Ray", test_category: "imaging" },
-    { test_name: "X-Ray Spine", test_category: "imaging" },
-    { test_name: "USG Abdomen", test_category: "imaging" },
-    { test_name: "ECG", test_category: "other" },
-    { test_name: "Echo", test_category: "imaging" },
-  ];
-
-  const filteredTests = commonTests.filter((t) =>
+  const filteredTests = availableTests.filter((t) =>
     t.test_name.toLowerCase().includes(search.toLowerCase())
   );
 
