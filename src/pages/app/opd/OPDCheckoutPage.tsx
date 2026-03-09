@@ -466,9 +466,9 @@ export default function OPDCheckoutPage() {
                   <Receipt className="h-5 w-5" />
                   Pending Charges
                 </CardTitle>
-                {pendingCharges.length > 0 && (
+                {selectableCharges.length > 0 && (
                   <Button variant="outline" size="sm" onClick={handleSelectAll}>
-                    {selectedCharges.length === pendingCharges.length ? "Deselect All" : "Select All"}
+                    {selectedCharges.length === selectableCharges.length ? "Deselect All" : "Select All"}
                   </Button>
                 )}
               </div>
