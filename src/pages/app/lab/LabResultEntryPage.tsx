@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useLabOrder, useUpdateLabOrderItem, useMarkSampleCollected, useCompleteLabOrder } from "@/hooks/useLabOrders";
 import { usePublishLabReport } from "@/hooks/usePublicLabReport";
@@ -54,7 +54,32 @@ export default function LabResultEntryPage() {
   const [savingItemId, setSavingItemId] = useState<string | null>(null);
   const [resultNotes, setResultNotes] = useState("");
   const [sampleNumber, setSampleNumber] = useState("");
-  const [barcodeGenerated, setBarcodeGenerated] = useState(false);
+  const userEditedBarcode = useRef(false);
+
+  // Auto-generate barcode on initial load only, don't override user edits
+  useEffect(() => {
+    if (userEditedBarcode.current || !labOrder || labOrder.status !== "ordered") return;
+    
+    const categoryPrefixes: Record<string, string> = {
+      blood: "BLD",
+      urine: "URN",
+      stool: "STL",
+      imaging: "IMG",
+      microbiology: "MIC",
+      biochemistry: "BCH",
+      hematology: "HEM",
+      serology: "SER",
+      pathology: "PTH",
+      lab: "LAB",
+    };
+    const firstItem = labOrder.items?.[0];
+    const category = firstItem?.test_category?.toLowerCase() || "lab";
+    const prefix = categoryPrefixes[category] || "LAB";
+    const datePart = format(new Date(), "yyMMdd");
+    const seqMatch = labOrder.order_number.match(/(\d+)$/);
+    const seq = seqMatch ? seqMatch[1] : String(Math.floor(Math.random() * 10000)).padStart(4, "0");
+    setSampleNumber(`${prefix}-${datePart}-${seq}`);
+  }, [labOrder?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (isLoading) {
     return (
@@ -80,31 +105,6 @@ export default function LabResultEntryPage() {
   const doctor = labOrder.doctor as { profile?: { full_name: string }; specialization?: string } | undefined;
   const priority = priorityConfig[labOrder.priority] || priorityConfig.routine;
   const status = statusConfig[labOrder.status] || statusConfig.ordered;
-
-  // Auto-generate barcode based on test category prefix
-  if (!barcodeGenerated && labOrder && !sampleNumber && labOrder.status === "ordered") {
-    const categoryPrefixes: Record<string, string> = {
-      blood: "BLD",
-      urine: "URN",
-      stool: "STL",
-      imaging: "IMG",
-      microbiology: "MIC",
-      biochemistry: "BCH",
-      hematology: "HEM",
-      serology: "SER",
-      pathology: "PTH",
-      lab: "LAB",
-    };
-    const firstItem = labOrder.items?.[0];
-    const category = firstItem?.test_category?.toLowerCase() || "lab";
-    const prefix = categoryPrefixes[category] || "LAB";
-    const datePart = format(new Date(), "yyMMdd");
-    // Extract sequence from order number (e.g., LO-260309-0004 → 0004)
-    const seqMatch = labOrder.order_number.match(/(\d+)$/);
-    const seq = seqMatch ? seqMatch[1] : String(Math.floor(Math.random() * 10000)).padStart(4, "0");
-    setSampleNumber(`${prefix}-${datePart}-${seq}`);
-    setBarcodeGenerated(true);
-  }
 
   const patientAge = patient?.date_of_birth
     ? differenceInYears(new Date(), new Date(patient.date_of_birth))
@@ -331,8 +331,8 @@ export default function LabResultEntryPage() {
                     <Input
                       id="sample-number"
                       value={sampleNumber}
-                      onChange={(e) => setSampleNumber(e.target.value)}
-                      placeholder="e.g., LAB-2601170001"
+                      onChange={(e) => { userEditedBarcode.current = true; setSampleNumber(e.target.value); }}
+                      placeholder="Auto-generated — edit if needed"
                       className="pl-10"
                       required
                     />
