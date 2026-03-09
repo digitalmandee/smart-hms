@@ -454,3 +454,28 @@ export function useOpenSessionsCount(branchId?: string) {
     enabled: !!(branchId || profile?.branch_id),
   });
 }
+
+// Hook: Get all unclosed (open) sessions for the branch, regardless of date
+export function useUnclosedSessions() {
+  const { profile } = useAuth();
+
+  return useQuery({
+    queryKey: ['billing-sessions', 'unclosed', profile?.branch_id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('billing_sessions')
+        .select(`
+          *,
+          opened_by_profile:profiles!billing_sessions_opened_by_fkey(full_name),
+          closed_by_profile:profiles!billing_sessions_closed_by_fkey(full_name)
+        `)
+        .eq('branch_id', profile?.branch_id)
+        .eq('status', 'open')
+        .order('opened_at', { ascending: true });
+
+      if (error) throw error;
+      return data as BillingSession[];
+    },
+    enabled: !!profile?.branch_id,
+  });
+}
