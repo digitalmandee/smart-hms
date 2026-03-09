@@ -241,10 +241,10 @@ export default function OPDCheckoutPage() {
     .reduce((sum, c) => sum + c.amount, 0);
 
   const handleSelectAll = () => {
-    if (selectedCharges.length === pendingCharges.length) {
+    if (selectedCharges.length === selectableCharges.length) {
       setSelectedCharges([]);
     } else {
-      setSelectedCharges(pendingCharges.map(c => c.id));
+      setSelectedCharges(selectableCharges.map(c => c.id));
     }
   };
 
