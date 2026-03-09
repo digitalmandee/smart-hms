@@ -320,7 +320,7 @@ export function useCloseSession() {
         })
         .eq('id', sessionId)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return data;
