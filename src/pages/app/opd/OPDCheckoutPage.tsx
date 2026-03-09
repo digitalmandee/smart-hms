@@ -120,23 +120,6 @@ export default function OPDCheckoutPage() {
     enabled: !!appointmentId,
   });
 
-  // Auto-redirect if appointment is fully paid AND no unpaid lab/imaging orders
-  useEffect(() => {
-    if (appointment && appointment.payment_status === "paid" && labOrders !== undefined && imagingOrders !== undefined) {
-      const hasUnpaidLab = labOrders?.some(o => !o.invoice_id) || false;
-      const hasUnpaidImaging = imagingOrders?.some((o: any) => !o.invoice_id) || false;
-      
-      if (!hasUnpaidLab && !hasUnpaidImaging) {
-        toast.info("This appointment has already been checked out");
-        if (appointment.invoice_id) {
-          navigate(`/app/billing/invoices/${appointment.invoice_id}`, { replace: true });
-        } else {
-          navigate("/app/opd/pending-checkout", { replace: true });
-        }
-      }
-    }
-  }, [appointment, labOrders, imagingOrders, navigate]);
-
 
   const { data: consultation } = useQuery({
     queryKey: ["opd-checkout-consultation", appointmentId],
@@ -203,6 +186,23 @@ export default function OPDCheckoutPage() {
     },
     enabled: !!consultation?.id,
   });
+
+  // Auto-redirect if appointment is fully paid AND no unpaid lab/imaging orders
+  useEffect(() => {
+    if (appointment && appointment.payment_status === "paid" && labOrders !== undefined && imagingOrders !== undefined) {
+      const hasUnpaidLab = labOrders?.some(o => !o.invoice_id) || false;
+      const hasUnpaidImaging = imagingOrders?.some((o: any) => !o.invoice_id) || false;
+      
+      if (!hasUnpaidLab && !hasUnpaidImaging) {
+        toast.info("This appointment has already been checked out");
+        if (appointment.invoice_id) {
+          navigate(`/app/billing/invoices/${appointment.invoice_id}`, { replace: true });
+        } else {
+          navigate("/app/opd/pending-checkout", { replace: true });
+        }
+      }
+    }
+  }, [appointment, labOrders, imagingOrders, navigate]);
 
   // Redirect to pending checkout if no appointmentId
   if (!appointmentId) {
