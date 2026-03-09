@@ -48,6 +48,11 @@ export default function OPDCheckoutPage() {
   const [searchParams] = useSearchParams();
   const appointmentId = routeAppointmentId || searchParams.get("appointmentId");
   const navigate = useNavigate();
+
+  if (!appointmentId) {
+    navigate("/app/opd/pending-checkout", { replace: true });
+    return null;
+  }
   const { profile } = useAuth();
   const [selectedCharges, setSelectedCharges] = useState<string[]>([]);
   const [paymentMethodId, setPaymentMethodId] = useState<string>("");
