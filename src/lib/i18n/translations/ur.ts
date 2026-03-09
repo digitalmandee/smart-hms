@@ -2919,6 +2919,8 @@ export const ur: Record<TranslationKey, string> = {
   "billing.collections": "وصولیاں",
   "billing.transactions": "لین دین",
   "billing.closeSession": "سیشن بند کریں",
+  "billing.unclosedSessions": "غیر بند سیشنز",
+  "billing.unclosedSessionsDesc": "یہ سیشنز پچھلے دنوں سے کھلے ہیں اور نئے سیشن کھولنے سے پہلے انہیں بند کرنا ضروری ہے۔",
   "billing.closeSessionTitle": "سیشن بند کریں",
   "billing.closeSessionDesc": "اپنے نقد دراز کی گنتی کریں اور یہ بلنگ سیشن بند کریں۔",
   "billing.sessionSummary": "سیشن کا خلاصہ",

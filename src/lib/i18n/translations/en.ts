@@ -2985,6 +2985,8 @@ export const en = {
   "billing.collections": "Collections",
   "billing.transactions": "Transactions",
   "billing.closeSession": "Close Session",
+  "billing.unclosedSessions": "Unclosed Sessions",
+  "billing.unclosedSessionsDesc": "These sessions were left open from previous days and must be closed before opening new ones.",
   "billing.closeSessionTitle": "Close Session",
   "billing.closeSessionDesc": "Count your cash drawer and close this billing session.",
   "billing.sessionSummary": "Session Summary",

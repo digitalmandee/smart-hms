@@ -22,13 +22,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Monitor, Plus, Eye, Calendar, Download, Printer } from "lucide-react";
+import { Monitor, Plus, Eye, Calendar, Download, Printer, AlertTriangle } from "lucide-react";
 import { ReportExportButton } from "@/components/reports/ReportExportButton";
 import { useTranslation } from "@/lib/i18n";
 import { formatCurrency } from "@/lib/currency";
 import { format } from "date-fns";
 import {
   useAllBranchSessions,
+  useUnclosedSessions,
   CounterType,
   SessionStatus,
   BillingSession,
@@ -68,6 +69,13 @@ export default function BillingSessionsPage() {
     counterType: counterFilter !== "all" ? (counterFilter as CounterType) : undefined,
     status: statusFilter !== "all" ? (statusFilter as SessionStatus) : undefined,
   });
+
+  // Fetch all unclosed sessions regardless of date
+  const { data: unclosedSessions } = useUnclosedSessions();
+  const staleSessions = unclosedSessions?.filter(s => {
+    const openedDate = s.opened_at.split('T')[0];
+    return openedDate < today;
+  }) || [];
 
   const statusBadge = (status: SessionStatus) => {
     const variants: Record<SessionStatus, "default" | "secondary" | "outline"> = {
@@ -190,7 +198,68 @@ export default function BillingSessionsPage() {
         </div>
       </div>
 
-      {/* Cash Summary */}
+      {/* Stale Unclosed Sessions Warning */}
+      {staleSessions.length > 0 && (
+        <Card className="border-warning/50 bg-warning/5">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2 text-warning">
+              <AlertTriangle className="h-5 w-5" />
+              {t("billing.unclosedSessions")} ({staleSessions.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-3">
+              {t("billing.unclosedSessionsDesc")}
+            </p>
+            <div className="overflow-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t("billing.sessionNumber")}</TableHead>
+                    <TableHead>{t("billing.user")}</TableHead>
+                    <TableHead>{t("billing.counter")}</TableHead>
+                    <TableHead>{t("billing.openedAt")}</TableHead>
+                    <TableHead>{t("common.actions")}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {staleSessions.map((s) => (
+                    <TableRow key={s.id}>
+                      <TableCell className="font-mono text-sm">{s.session_number}</TableCell>
+                      <TableCell>{s.opened_by_profile?.full_name || "—"}</TableCell>
+                      <TableCell>{t(COUNTER_LABELS[s.counter_type])}</TableCell>
+                      <TableCell className="text-sm">
+                        {format(new Date(s.opened_at), "dd MMM yyyy hh:mm a")}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCloseSessionId(s.id)}
+                            className="border-warning/50 text-warning hover:bg-warning/10"
+                          >
+                            {t("billing.closeSession")}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => navigate(`/app/billing/sessions/${s.id}`)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+
       {cashSummary && Object.keys(cashSummary).length > 0 && (
         <Card>
           <CardHeader className="pb-3">

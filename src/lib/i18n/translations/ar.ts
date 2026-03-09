@@ -2919,6 +2919,8 @@ export const ar: Record<TranslationKey, string> = {
   "billing.collections": "التحصيلات",
   "billing.transactions": "المعاملات",
   "billing.closeSession": "إغلاق الجلسة",
+  "billing.unclosedSessions": "جلسات غير مغلقة",
+  "billing.unclosedSessionsDesc": "تُركت هذه الجلسات مفتوحة من أيام سابقة ويجب إغلاقها قبل فتح جلسات جديدة.",
   "billing.closeSessionTitle": "إغلاق الجلسة",
   "billing.closeSessionDesc": "عد نقود الدرج وأغلق جلسة الفوترة.",
   "billing.sessionSummary": "ملخص الجلسة",

@@ -1,26 +1,24 @@
 
+# HealthOS 24 — Documentation Suite Implementation
 
-# Fix: Previous Sessions Not Showing to Close
+## Status: ✅ All 3 Rounds Complete
 
-## Problem
-Two related issues on the Billing Sessions page:
+## Round 1 ✅ DONE
+- [x] Bug fix: `mrn_number` → `patient_number` in DialysisNewSessionPage + DentalImagesPage
+- [x] DocumentationHub page (`/documentation`)
+- [x] OPD Documentation (8 pages)
+- [x] IPD Documentation (8 pages)
+- [x] Surgery/OT Documentation (7 pages)
 
-1. **Cannot find old unclosed sessions**: The `BillingSessionsPage` date filter defaults to today. If a session was opened yesterday (or earlier) and never closed, it doesn't appear in the list — the user cannot close it. Meanwhile, `useOpenSession` blocks opening a new session because it detects the existing open one, creating a deadlock.
+## Round 2 ✅ DONE
+- [x] Lab Documentation (5 pages)
+- [x] Radiology Documentation (5 pages)
+- [x] Warehouse Documentation (6 pages)
+- [x] Finance Documentation (6 pages)
+- [x] All routes wired in App.tsx
 
-2. **No prominent warning**: There's no alert telling the user they have unclosed sessions from previous days that need attention.
-
-## Plan
-
-### 1. Add unclosed sessions query (`useBillingSessions.ts`)
-Add a new hook `useUnclosedSessions` that fetches all sessions with `status = 'open'` for the branch, regardless of date. This surfaces stale sessions.
-
-### 2. Show unclosed sessions banner on `BillingSessionsPage.tsx`
-At the top of the page, before the date-filtered table, show a warning card listing any open sessions from previous days with a "Close" button for each. This ensures users can always find and close orphaned sessions.
-
-### 3. Expand date range automatically when open sessions exist
-When the page loads and there are open sessions from outside the current date range, auto-expand the `dateFrom` to include those sessions in the main table as well.
-
-## Files to modify
-- `src/hooks/useBillingSessions.ts` — add `useUnclosedSessions` hook
-- `src/pages/app/billing/BillingSessionsPage.tsx` — add unclosed sessions warning banner with close buttons
-
+## Round 3 ✅ DONE
+- [x] HR Documentation (6 pages)
+- [x] Dialysis Documentation (6 pages)
+- [x] Dental Documentation (6 pages)
+- [x] All routes wired in App.tsx
