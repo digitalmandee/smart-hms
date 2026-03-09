@@ -127,8 +127,8 @@ export function LabOrderCard({ order, canCollectPayment, onPaymentComplete }: La
               )}
               <Button
                 onClick={() => navigate(`/app/lab/orders/${order.id}`)}
-                disabled={!canProceed || order.status === "completed" || order.status === "cancelled"}
-                variant={canProceed ? "default" : "secondary"}
+                disabled={!canProceed && order.status !== "completed" || order.status === "cancelled"}
+                variant={canProceed || order.status === "completed" ? "default" : "secondary"}
               >
                 <FileInput className="h-4 w-4 mr-2" />
                 {order.status === "completed" ? "View Results" : isPaid ? "Enter Results" : "View Order"}
