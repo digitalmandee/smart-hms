@@ -34,10 +34,14 @@ export function BottomNavigation() {
   const haptics = useHaptics();
   const { t } = useTranslation();
 
-  const filteredItems = navItems.filter(item => {
-    if (!item.roles) return true;
-    return item.roles.some(role => roles.includes(role as any));
-  });
+  const homePath = getHomePath(roles as string[]);
+
+  const filteredItems = navItems
+    .map(item => item.path === "/app/dashboard" ? { ...item, path: homePath } : item)
+    .filter(item => {
+      if (!item.roles) return true;
+      return item.roles.some(role => roles.includes(role as any));
+    });
 
   const displayItems = filteredItems.slice(0, 5);
 
