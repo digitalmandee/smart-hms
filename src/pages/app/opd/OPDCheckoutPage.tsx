@@ -234,7 +234,8 @@ export default function OPDCheckoutPage() {
     }
   });
 
-  const pendingCharges = charges.filter(c => c.status === "pending" && c.amount > 0);
+  const pendingCharges = charges.filter(c => c.status === "pending");
+  const selectableCharges = pendingCharges.filter(c => c.amount > 0);
   const selectedTotal = pendingCharges
     .filter(c => selectedCharges.includes(c.id))
     .reduce((sum, c) => sum + c.amount, 0);
