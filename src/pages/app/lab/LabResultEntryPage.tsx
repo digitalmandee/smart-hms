@@ -351,6 +351,23 @@ export default function LabResultEntryPage() {
                   Mark Sample Collected
                 </Button>
               </div>
+
+              {/* Barcode Sticker Preview & Print */}
+              {sampleNumber.trim() && (
+                <Separator className="my-3" />
+              )}
+              {sampleNumber.trim() && (
+                <BarcodeStickerPrint
+                  sampleNumber={sampleNumber}
+                  patientName={`${patient?.first_name || ""} ${patient?.last_name || ""}`.trim()}
+                  patientNumber={patient?.patient_number || ""}
+                  patientAge={patientAge}
+                  patientGender={patient?.gender}
+                  orderNumber={labOrder.order_number}
+                  testNames={labOrder.items?.map((i) => i.test_name) || []}
+                  orderDate={format(new Date(labOrder.created_at), "dd/MM/yy")}
+                />
+              )}
             </div>
           </CardContent>
         </Card>
