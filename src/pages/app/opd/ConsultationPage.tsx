@@ -328,18 +328,22 @@ export default function ConsultationPage() {
           </div>
 
           <Tabs defaultValue="clinical" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="clinical" className="text-xs gap-1">
                 <Stethoscope className="h-3.5 w-3.5" />
                 Clinical
               </TabsTrigger>
               <TabsTrigger value="prescription" className="text-xs gap-1">
                 <Pill className="h-3.5 w-3.5" />
-                Prescription
+                Rx
               </TabsTrigger>
               <TabsTrigger value="labs" className="text-xs gap-1">
                 <TestTube className="h-3.5 w-3.5" />
                 Labs
+              </TabsTrigger>
+              <TabsTrigger value="imaging" className="text-xs gap-1">
+                <Scan className="h-3.5 w-3.5" />
+                Imaging
               </TabsTrigger>
               <TabsTrigger value="ai" className="text-xs gap-1">
                 <DoctorAvatar size="xs" className="scale-50 -m-2" />
