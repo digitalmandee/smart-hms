@@ -51,7 +51,7 @@ export default function OnboardingPage() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Employee Onboarding" subtitle="Manage new employee onboarding pipeline" />
+        <PageHeader title="Employee Onboarding" description="Manage new employee onboarding pipeline" />
         <div className="grid gap-4 md:grid-cols-3">
           {[1, 2, 3].map(i => <Skeleton key={i} className="h-24" />)}
         </div>
