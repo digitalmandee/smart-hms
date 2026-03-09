@@ -318,6 +318,30 @@ export default function OPDCheckoutPage() {
         .update({ invoice_id: invoiceData.id })
         .eq("id", appointment.id);
 
+      // Link invoice to lab orders so DB trigger can sync payment_status
+      const labCharges = itemsToInvoice.filter(c => c.type === 'lab');
+      for (const charge of labCharges) {
+        if (charge.referenceId) {
+          const { error: labLinkErr } = await supabase
+            .from('lab_orders')
+            .update({ invoice_id: invoiceData.id })
+            .eq('id', charge.referenceId);
+          if (labLinkErr) console.error('Failed to link invoice to lab order:', labLinkErr);
+        }
+      }
+
+      // Link invoice to imaging orders
+      const imgCharges = itemsToInvoice.filter(c => c.type === 'imaging');
+      for (const charge of imgCharges) {
+        if (charge.referenceId) {
+          const { error: imgLinkErr } = await supabase
+            .from('imaging_orders')
+            .update({ invoice_id: invoiceData.id })
+            .eq('id', charge.referenceId);
+          if (imgLinkErr) console.error('Failed to link invoice to imaging order:', imgLinkErr);
+        }
+      }
+
       setCreatedInvoiceId(invoiceData.id);
 
       // If insured, stay on page to show claim prompt; otherwise navigate
