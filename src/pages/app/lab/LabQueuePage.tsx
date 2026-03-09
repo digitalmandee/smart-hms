@@ -36,8 +36,13 @@ export default function LabQueuePage() {
   // Filter out completed/cancelled and apply search
   const filteredOrders = labOrders
     ?.filter((order) => {
-      // Exclude completed/cancelled from queue
-      if (order.status === "completed" || order.status === "cancelled") return false;
+      // "Completed" tab: show only completed orders
+      if (statusFilter === "completed") {
+        if (order.status !== "completed") return false;
+      } else {
+        // Other tabs: exclude completed/cancelled from active queue
+        if (order.status === "completed" || order.status === "cancelled") return false;
+      }
 
       // Payment filter
       if (paymentFilter === "paid" && order.payment_status !== "paid") return false;
