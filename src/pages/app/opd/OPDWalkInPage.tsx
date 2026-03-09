@@ -347,7 +347,7 @@ export default function OPDWalkInPage() {
     if (receivedAmount < selectedDoctor.fee) {
       toast({
         title: "Insufficient Payment",
-        description: `Amount received (Rs. ${receivedAmount}) is less than fee (Rs. ${selectedDoctor.fee})`,
+        description: `Amount received (${formatCurrency(receivedAmount)}) is less than fee (${formatCurrency(selectedDoctor.fee)})`,
         variant: "destructive",
       });
       return;
