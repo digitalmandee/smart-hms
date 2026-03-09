@@ -122,7 +122,7 @@ export default function OPDCheckoutPage() {
         .from("lab_orders")
         .select(`
           *,
-          items:lab_order_items(*, test:lab_tests(name, price))
+          items:lab_order_items(*, service_type:service_types(name, default_price))
         `)
         .eq("consultation_id", consultation!.id);
       
@@ -138,7 +138,7 @@ export default function OPDCheckoutPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("imaging_orders")
-        .select("*")
+        .select("*, procedure:service_types(name, default_price)")
         .eq("consultation_id", consultation!.id);
       
       if (error) throw error;
