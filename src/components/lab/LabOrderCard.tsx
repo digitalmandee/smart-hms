@@ -55,8 +55,18 @@ export function LabOrderCard({ order, canCollectPayment, onPaymentComplete }: La
   const totalCount = order.items?.length || 0;
 
   const isPaid = order.payment_status === "paid" || order.payment_status === "waived";
+  const isPublished = (order as any).is_published === true;
   const allowUnpaid = labSettings?.allow_unpaid_processing ?? false;
   const canProceed = isPaid || allowUnpaid || order.status !== "ordered";
+
+  const getButtonLabel = () => {
+    if (order.status === "completed" && isPublished) return "View Report";
+    if (order.status === "completed") return "View Results";
+    if (order.status === "processing" || order.status === "collected") return "Enter Results";
+    if (order.status === "ordered" && isPaid) return "Enter Results";
+    if (order.status === "cancelled") return "View Order";
+    return "View Order";
+  };
 
   return (
     <>
