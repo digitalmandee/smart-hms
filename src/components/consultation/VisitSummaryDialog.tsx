@@ -55,6 +55,7 @@ interface VisitSummaryDialogProps {
   };
   prescriptionItems: PrescriptionItemInput[];
   labOrderItems: LabOrderItemInput[];
+  imagingOrderItems?: ImagingOrderItemInput[];
   onConfirm: () => void;
   onPrintPrescription?: () => void;
   onPrintSummary?: () => void;
