@@ -391,7 +391,7 @@ export default function OPDWalkInPage() {
         notes: `OPD Walk-in payment via ${paymentMethod}`,
       });
 
-      // 3. Create Appointment with scheduled status (so patient goes through nurse triage)
+      // 3. Create Appointment with invoice_id directly (atomic insert, no separate update needed)
       const appointment = await createAppointment.mutateAsync({
         patient_id: selectedPatientId,
         doctor_id: selectedDoctor.id,
@@ -402,17 +402,8 @@ export default function OPDWalkInPage() {
         status: "checked_in",
         chief_complaint: "OPD Consultation",
         payment_status: "paid",
+        invoice_id: invoice.id,
       });
-
-      // Link invoice to appointment AND reinforce payment_status
-      const { error: linkError } = await supabase
-        .from('appointments')
-        .update({ invoice_id: invoice.id, payment_status: 'paid' })
-        .eq('id', appointment.id);
-
-      if (linkError) {
-        console.error('Failed to link invoice to appointment:', linkError);
-      }
 
       setTokenNumber(appointment.token_number || 0);
       setTokenDisplay(appointment.token_display || null);
