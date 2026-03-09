@@ -488,6 +488,7 @@ export default function OPDCheckoutPage() {
                       : Pill;
                     const isSelected = selectedCharges.includes(charge.id);
                     const isPending = charge.status === "pending" && charge.amount > 0;
+                    const isZeroPrice = charge.status === "pending" && charge.amount === 0;
                     
                     return (
                       <div
