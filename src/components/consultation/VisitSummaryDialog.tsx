@@ -29,6 +29,8 @@ import { generateVisitId } from "@/lib/visit-id";
 import { Vitals } from "@/hooks/useConsultations";
 import { PrescriptionItemInput } from "@/hooks/usePrescriptions";
 import { LabOrderItemInput } from "@/hooks/useLabOrders";
+import { type ImagingOrderItemInput } from "@/components/consultation/RadiologyOrderBuilder";
+import { IMAGING_MODALITIES } from "@/hooks/useImaging";
 
 interface VisitSummaryDialogProps {
   open: boolean;
