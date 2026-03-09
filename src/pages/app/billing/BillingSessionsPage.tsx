@@ -70,6 +70,13 @@ export default function BillingSessionsPage() {
     status: statusFilter !== "all" ? (statusFilter as SessionStatus) : undefined,
   });
 
+  // Fetch all unclosed sessions regardless of date
+  const { data: unclosedSessions } = useUnclosedSessions();
+  const staleSessions = unclosedSessions?.filter(s => {
+    const openedDate = s.opened_at.split('T')[0];
+    return openedDate < today;
+  }) || [];
+
   const statusBadge = (status: SessionStatus) => {
     const variants: Record<SessionStatus, "default" | "secondary" | "outline"> = {
       open: "default",
