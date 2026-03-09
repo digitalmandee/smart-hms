@@ -31,6 +31,7 @@ import { SessionStatusBanner } from "@/components/billing/SessionStatusBanner";
 import { InsuranceBillingSplit, BillingSplit } from "@/components/insurance/InsuranceBillingSplit";
 import { InsuranceClaimPrompt } from "@/components/insurance/InsuranceClaimPrompt";
 import { toast } from "sonner";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 
 interface ChargeItem {
   id: string;
@@ -52,6 +53,7 @@ export default function OPDCheckoutPage() {
 
 
   const { profile } = useAuth();
+  const { formatCurrency } = useCurrencyFormatter();
   const [selectedCharges, setSelectedCharges] = useState<string[]>([]);
   const [paymentMethodId, setPaymentMethodId] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState(false);
@@ -177,7 +179,7 @@ export default function OPDCheckoutPage() {
   const charges: ChargeItem[] = [];
 
   // Consultation fee (if not already paid and not waived)
-  if (appointment && appointment.payment_status !== "paid" && appointment.payment_status !== "waived") {
+  if (appointment && !appointment.invoice_id && appointment.payment_status !== "paid" && appointment.payment_status !== "waived") {
     const fee = appointment.doctor?.consultation_fee || 0;
     if (fee > 0) {
       charges.push({
@@ -544,7 +546,7 @@ export default function OPDCheckoutPage() {
                         </div>
                         <div className="text-right">
                           {charge.amount > 0 ? (
-                            <p className="font-bold">Rs. {charge.amount.toLocaleString()}</p>
+                            <p className="font-bold">{formatCurrency(charge.amount)}</p>
                           ) : (
                             <p className="text-sm text-muted-foreground">—</p>
                           )}
@@ -606,22 +608,22 @@ export default function OPDCheckoutPage() {
                   <>
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Total Bill</span>
-                      <span>SAR {selectedTotal.toLocaleString()}</span>
+                      <span>{formatCurrency(selectedTotal)}</span>
                     </div>
                     <div className="flex justify-between text-sm text-green-600 dark:text-green-400">
                       <span>Insurance Covers</span>
-                      <span>- SAR {billingSplit.insuranceAmount.toLocaleString()}</span>
+                      <span>- {formatCurrency(billingSplit.insuranceAmount)}</span>
                     </div>
                     <Separator />
                     <div className="flex justify-between font-bold text-lg">
                       <span>Patient Pays</span>
-                      <span>SAR {billingSplit.patientResponsibility.toLocaleString()}</span>
+                      <span>{formatCurrency(billingSplit.patientResponsibility)}</span>
                     </div>
                   </>
                 ) : (
                   <div className="flex justify-between font-bold text-lg">
                     <span>Total</span>
-                    <span>SAR {selectedTotal.toLocaleString()}</span>
+                    <span>{formatCurrency(selectedTotal)}</span>
                   </div>
                 )}
               </div>

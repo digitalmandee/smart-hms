@@ -9,6 +9,7 @@ import { format, differenceInDays } from "date-fns";
 import { Bed, Calendar, ExternalLink, Clock, Pill } from "lucide-react";
 import { useAdmissionUnbilledCharges } from "@/hooks/usePatientIPDCharges";
 import { AdmissionDetailsSummary } from "./AdmissionDetailsSummary";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 
 interface PatientAdmissionHistoryProps {
   patientId: string;
@@ -101,6 +102,7 @@ function AdmissionCard({ admission }: AdmissionCardProps) {
   const { data: unbilledData } = useAdmissionUnbilledCharges(
     admission.status === "admitted" || admission.status === "pending" ? admission.id : undefined
   );
+  const { formatCurrency } = useCurrencyFormatter();
 
   const stayDays = admission.actual_discharge_date
     ? differenceInDays(new Date(admission.actual_discharge_date), new Date(admission.admission_date))
@@ -156,7 +158,7 @@ function AdmissionCard({ admission }: AdmissionCardProps) {
           )}
           {hasUnbilledCharges && (
             <p className="text-xs text-amber-600">
-              Rs. {unbilledData.total.toLocaleString()} in pending charges
+              {formatCurrency(unbilledData.total)} in pending charges
             </p>
           )}
           
