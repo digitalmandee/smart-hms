@@ -54,7 +54,7 @@ export default function LabResultEntryPage() {
   const [savingItemId, setSavingItemId] = useState<string | null>(null);
   const [resultNotes, setResultNotes] = useState("");
   const [sampleNumber, setSampleNumber] = useState("");
-  const [barcodeGenerated, setBarcodeGenerated] = useState(false);
+  const userEditedBarcode = useRef(false);
 
   if (isLoading) {
     return (
