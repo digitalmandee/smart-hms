@@ -82,6 +82,21 @@ export default function OPDCheckoutPage() {
     enabled: !!profile?.organization_id,
   });
 
+  // Fetch lab service types for fallback price resolution (legacy items without service_type_id)
+  const { data: labServiceTypes } = useQuery({
+    queryKey: ["lab-service-types-fallback", profile?.organization_id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("service_types")
+        .select("id, name, default_price")
+        .eq("category", "lab")
+        .eq("organization_id", profile!.organization_id!)
+        .eq("is_active", true);
+      return data || [];
+    },
+    enabled: !!profile?.organization_id,
+  });
+
   // Fetch appointment with related data
   const { data: appointment, isLoading: appointmentLoading } = useQuery({
     queryKey: ["opd-checkout-appointment", appointmentId],
@@ -198,8 +213,18 @@ export default function OPDCheckoutPage() {
   // Lab order fees
   labOrders?.forEach((order) => {
     if (!order.invoice_id) {
-      const totalAmount = order.items?.reduce((sum: number, item: any) => 
-        sum + (item.service_type?.default_price || 0), 0) || 0;
+      const totalAmount = order.items?.reduce((sum: number, item: any) => {
+        // Use linked service_type price first
+        if (item.service_type?.default_price) return sum + item.service_type.default_price;
+        // Fallback: match by test_name against lab service types
+        if (labServiceTypes && item.test_name) {
+          const match = labServiceTypes.find(
+            (st: any) => st.name.toLowerCase() === item.test_name.toLowerCase()
+          );
+          if (match?.default_price) return sum + match.default_price;
+        }
+        return sum;
+      }, 0) || 0;
       
       charges.push({
         id: `lab-${order.id}`,
