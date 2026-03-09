@@ -207,7 +207,7 @@ export default function OPDCheckoutPage() {
   // Imaging order fees
   imagingOrders?.forEach((order) => {
     if (!order.invoice_id) {
-      const amount = order.price || 0;
+      const amount = order.estimated_cost || 0;
       charges.push({
         id: `imaging-${order.id}`,
         type: "imaging",
