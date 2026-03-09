@@ -132,6 +132,21 @@ export default function OPDCheckoutPage() {
     enabled: !!consultation?.id,
   });
 
+  // Fetch imaging orders for this consultation
+  const { data: imagingOrders } = useQuery({
+    queryKey: ["opd-checkout-imaging-orders", consultation?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("imaging_orders")
+        .select("*")
+        .eq("consultation_id", consultation!.id);
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!consultation?.id,
+  });
+
   // Fetch prescriptions for this consultation
   const { data: prescriptions } = useQuery({
     queryKey: ["opd-checkout-prescriptions", consultation?.id],
