@@ -156,7 +156,7 @@ function AdmissionCard({ admission }: AdmissionCardProps) {
           )}
           {hasUnbilledCharges && (
             <p className="text-xs text-amber-600">
-              Rs. {unbilledData.total.toLocaleString()} in pending charges
+              {formatCurrency(unbilledData.total)} in pending charges
             </p>
           )}
           

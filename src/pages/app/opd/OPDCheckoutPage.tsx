@@ -622,7 +622,7 @@ export default function OPDCheckoutPage() {
                 ) : (
                   <div className="flex justify-between font-bold text-lg">
                     <span>Total</span>
-                    <span>SAR {selectedTotal.toLocaleString()}</span>
+                    <span>{formatCurrency(selectedTotal)}</span>
                   </div>
                 )}
               </div>
