@@ -24,6 +24,7 @@ import { SymptomsInput } from "@/components/consultation/SymptomsInput";
 import { DiagnosisInput } from "@/components/consultation/DiagnosisInput";
 import { PrescriptionBuilder } from "@/components/consultation/PrescriptionBuilder";
 import { LabOrderBuilder } from "@/components/consultation/LabOrderBuilder";
+import { RadiologyOrderBuilder, type ImagingOrderItemInput } from "@/components/consultation/RadiologyOrderBuilder";
 import { PatientQuickInfo } from "@/components/consultation/PatientQuickInfo";
 import { PreviousVisits } from "@/components/consultation/PreviousVisits";
 import { VisitSummaryDialog } from "@/components/consultation/VisitSummaryDialog";
