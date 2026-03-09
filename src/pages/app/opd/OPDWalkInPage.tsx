@@ -292,7 +292,7 @@ export default function OPDWalkInPage() {
         patient_id: selectedPatientId,
         doctor_id: selectedDoctor.id,
         branch_id: profile.branch_id,
-        appointment_date: format(new Date(), "yyyy-MM-dd"),
+        appointment_date: invoice.invoice_date || format(new Date(), "yyyy-MM-dd"),
         appointment_time: format(new Date(), "HH:mm"),
         appointment_type: "walk_in",
         status: "checked_in",
