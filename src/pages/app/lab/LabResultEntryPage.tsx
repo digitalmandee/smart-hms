@@ -21,6 +21,7 @@ import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { ArrowLeft, Printer, CheckCircle, Loader2, User, Calendar, Stethoscope, FlaskConical, AlertTriangle, Globe, Copy, Mail, Barcode, CreditCard } from "lucide-react";
+import { BarcodeStickerPrint } from "@/components/lab/BarcodeStickerPrint";
 import { format, differenceInYears } from "date-fns";
 
 const priorityConfig = {
