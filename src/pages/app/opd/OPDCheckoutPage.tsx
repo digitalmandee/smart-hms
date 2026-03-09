@@ -545,7 +545,7 @@ export default function OPDCheckoutPage() {
                         </div>
                         <div className="text-right">
                           {charge.amount > 0 ? (
-                            <p className="font-bold">Rs. {charge.amount.toLocaleString()}</p>
+                            <p className="font-bold">{formatCurrency(charge.amount)}</p>
                           ) : (
                             <p className="text-sm text-muted-foreground">—</p>
                           )}
