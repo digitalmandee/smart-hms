@@ -1,27 +1,33 @@
 
+# HealthOS 24 — Documentation Suite Implementation
 
-## Problem
+## Status: ✅ All 3 Rounds Complete
 
-Line 745 in `OPDCheckoutPage.tsx` checks `appointment?.payment_status === "paid"` to show "Already Paid" and hide the payment form. But when the appointment's consultation was already paid and the user returns for lab charges, the appointment is still `payment_status = "paid"` — so the payment UI is hidden and "Already Paid" is shown instead.
+## Round 1 ✅ DONE
+- [x] Bug fix: `mrn_number` → `patient_number` in DialysisNewSessionPage + DentalImagesPage
+- [x] DocumentationHub page (`/documentation`)
+- [x] OPD Documentation (8 pages)
+- [x] IPD Documentation (8 pages)
+- [x] Surgery/OT Documentation (7 pages)
 
-## Fix
+## Round 2 ✅ DONE
+- [x] Lab Documentation (5 pages)
+- [x] Radiology Documentation (5 pages)
+- [x] Warehouse Documentation (6 pages)
+- [x] Finance Documentation (6 pages)
+- [x] All routes wired in App.tsx
 
-**File:** `src/pages/app/opd/OPDCheckoutPage.tsx` (line 745-749)
+## Round 3 ✅ DONE
+- [x] HR Documentation (6 pages)
+- [x] Dialysis Documentation (6 pages)
+- [x] Dental Documentation (6 pages)
+- [x] All routes wired in App.tsx
 
-Change the "Already Paid" condition to only show when the appointment is paid **AND** there are no selectable pending charges:
-
-```tsx
-{appointment?.payment_status === "paid" && selectableCharges.length === 0 ? (
-  <div className="flex items-center justify-center gap-2 py-4">
-    <CheckCircle2 className="h-5 w-5 text-green-600" />
-    <span className="font-medium text-green-600">Already Paid</span>
-  </div>
-) : selectedCharges.length > 0 && (
-```
-
-This ensures:
-- If consultation is paid but lab charges exist → payment form is shown
-- If everything is paid → "Already Paid" is shown
-
-Single line change, no other files affected.
-
+## HR Module Expansion ✅ DONE
+- [x] Employee Onboarding Page (`/app/hr/onboarding`) — checklist-based pipeline
+- [x] Unified Expiry Tracker (`/app/hr/compliance/expiry-tracker`) — licenses + contracts
+- [x] HR Letters & Templates (`/app/hr/letters`) — create templates, issue letters, print
+- [x] Training & Development (`/app/hr/training`) — programs, enrollments, completion
+- [x] Contract Management (`/app/hr/contracts`) — contract tracking, probation, renewals
+- [x] DB tables: `hr_letter_templates`, `hr_issued_letters`, `training_programs`, `training_enrollments`, `employee_contracts`
+- [x] All routes + sidebar navigation added
