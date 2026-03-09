@@ -379,10 +379,6 @@ export default function OPDCheckoutPage() {
 
   const handlePayNow = async () => {
     if (!appointment || !profile?.organization_id || selectedCharges.length === 0 || !paymentMethodId) return;
-    if (appointment.payment_status === "paid") {
-      toast.info("This appointment has already been checked out");
-      return;
-    }
     
     setIsProcessing(true);
     try {
