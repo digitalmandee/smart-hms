@@ -895,23 +895,6 @@ export default function OPDWalkInPage() {
         </Card>
       )}
 
-      {/* Fee Waiver Dialog */}
-      {selectedDoctor && (
-        <FeeWaiverDialog
-          open={showWaiverDialog}
-          onOpenChange={setShowWaiverDialog}
-          patient={{
-            name: selectedPatientName,
-            mrNumber: selectedPatientMR,
-          }}
-          doctor={{
-            name: selectedDoctor.name,
-          }}
-          fee={selectedDoctor.fee}
-          onConfirm={handleWaiverConfirm}
-          isProcessing={isProcessing}
-        />
-      )}
 
       {/* Step 4: Complete */}
       {step === "complete" && tokenNumber !== null && selectedDoctor && (
