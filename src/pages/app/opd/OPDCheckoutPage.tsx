@@ -31,6 +31,7 @@ import { SessionStatusBanner } from "@/components/billing/SessionStatusBanner";
 import { InsuranceBillingSplit, BillingSplit } from "@/components/insurance/InsuranceBillingSplit";
 import { InsuranceClaimPrompt } from "@/components/insurance/InsuranceClaimPrompt";
 import { toast } from "sonner";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 
 interface ChargeItem {
   id: string;
