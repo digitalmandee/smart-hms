@@ -373,7 +373,7 @@ export default function LabResultEntryPage() {
         </Card>
       )}
 
-      {labOrder.status === "collected" && !isOrderCompleted && (
+      {(labOrder.status === "collected" || labOrder.status === "processing") && !isOrderCompleted && (
         <Card className="border-blue-200 bg-blue-50/50">
           <CardContent className="pt-6">
             <div className="space-y-4">
