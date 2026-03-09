@@ -607,16 +607,16 @@ export default function OPDCheckoutPage() {
                   <>
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Total Bill</span>
-                      <span>SAR {selectedTotal.toLocaleString()}</span>
+                      <span>{formatCurrency(selectedTotal)}</span>
                     </div>
                     <div className="flex justify-between text-sm text-green-600 dark:text-green-400">
                       <span>Insurance Covers</span>
-                      <span>- SAR {billingSplit.insuranceAmount.toLocaleString()}</span>
+                      <span>- {formatCurrency(billingSplit.insuranceAmount)}</span>
                     </div>
                     <Separator />
                     <div className="flex justify-between font-bold text-lg">
                       <span>Patient Pays</span>
-                      <span>SAR {billingSplit.patientResponsibility.toLocaleString()}</span>
+                      <span>{formatCurrency(billingSplit.patientResponsibility)}</span>
                     </div>
                   </>
                 ) : (
