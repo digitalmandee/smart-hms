@@ -189,29 +189,28 @@ export default function OPDCheckoutPage() {
   labOrders?.forEach((order) => {
     if (!order.invoice_id) {
       const totalAmount = order.items?.reduce((sum: number, item: any) => 
-        sum + (item.test?.price || 0), 0) || 0;
+        sum + (item.service_type?.default_price || 0), 0) || 0;
       
-      if (totalAmount > 0) {
-        charges.push({
-          id: `lab-${order.id}`,
-          type: "lab",
-          description: `Lab Tests: ${order.items?.map((i: any) => i.test?.name).join(", ") || "Various tests"}`,
-          amount: totalAmount,
-          status: "pending",
-          referenceId: order.id,
-        });
-      }
+      charges.push({
+        id: `lab-${order.id}`,
+        type: "lab",
+        description: `Lab Tests: ${order.items?.map((i: any) => i.test_name || i.service_type?.name || "Test").join(", ") || "Various tests"}`,
+        amount: totalAmount,
+        status: "pending",
+        referenceId: order.id,
+      });
     }
   });
 
   // Imaging order fees
-  imagingOrders?.forEach((order) => {
+  imagingOrders?.forEach((order: any) => {
     if (!order.invoice_id) {
+      const amount = order.procedure?.default_price || 0;
       charges.push({
         id: `imaging-${order.id}`,
         type: "imaging",
         description: `${order.modality?.toUpperCase() || "Imaging"}: ${order.procedure_name}`,
-        amount: 0, // Price determined by radiology/billing
+        amount,
         status: "pending",
         referenceId: order.id,
       });
