@@ -38,12 +38,12 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { PrintableTokenSlip } from "@/components/clinic/PrintableTokenSlip";
 import { PrintablePaymentReceipt } from "@/components/billing/PrintablePaymentReceipt";
-import { FeeWaiverDialog } from "@/components/appointments/FeeWaiverDialog";
+
 import { SessionStatusBanner } from "@/components/billing/SessionStatusBanner";
 import { useTranslation, useIsRTL } from "@/lib/i18n";
 import { 
   UserPlus, Search, Stethoscope, CreditCard, Ticket, 
-  Printer, Check, Users, Phone, ArrowLeft, ArrowRight, Clock, ShieldOff
+  Printer, Check, Users, Phone, ArrowLeft, ArrowRight
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -101,7 +101,7 @@ export default function OPDWalkInPage() {
   const [tokenDisplay, setTokenDisplay] = useState<string | null>(null);
   const [invoiceNumber, setInvoiceNumber] = useState<string | null>(null);
   const [showPrintDialog, setShowPrintDialog] = useState(false);
-  const [showWaiverDialog, setShowWaiverDialog] = useState(false);
+  
   const [paymentStatusResult, setPaymentStatusResult] = useState<"paid" | "pending" | "waived">("paid");
   const [isProcessing, setIsProcessing] = useState(false);
   
@@ -228,112 +228,8 @@ export default function OPDWalkInPage() {
     setStep("payment");
   };
 
-  // Generate token without payment (Pay Later)
-  const handlePayLater = async () => {
-    if (!selectedPatientId || !selectedDoctor || !profile?.branch_id) {
-      toast({
-        title: "Error",
-        description: "Missing required information",
-        variant: "destructive",
-      });
-      return;
-    }
 
-    setIsProcessing(true);
-    try {
-      // Create Appointment with pending payment status
-      const appointment = await createAppointment.mutateAsync({
-        patient_id: selectedPatientId,
-        doctor_id: selectedDoctor.id,
-        branch_id: profile.branch_id,
-        appointment_date: format(new Date(), "yyyy-MM-dd"),
-        appointment_time: format(new Date(), "HH:mm"),
-        appointment_type: "walk_in",
-        status: "scheduled",
-        chief_complaint: "OPD Consultation",
-        payment_status: "pending",
-      });
 
-      setTokenNumber(appointment.token_number || 0);
-      setTokenDisplay(appointment.token_display || null);
-      setInvoiceNumber(null);
-      setPaymentStatusResult("pending");
-      setStep("complete");
-      setShowPrintDialog(true);
-      
-      toast({
-        title: "Token Generated",
-        description: `Token #${appointment.token_number} created. Fee will be collected at checkout.`,
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to generate token. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  // Handle fee waiver confirmation
-  const handleWaiverConfirm = async (reason: string, notes: string) => {
-    if (!selectedPatientId || !selectedDoctor || !profile?.branch_id || !profile?.id) {
-      toast({
-        title: "Error",
-        description: "Missing required information",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsProcessing(true);
-    try {
-      // Create Appointment with waived payment status
-      const appointment = await createAppointment.mutateAsync({
-        patient_id: selectedPatientId,
-        doctor_id: selectedDoctor.id,
-        branch_id: profile.branch_id,
-        appointment_date: format(new Date(), "yyyy-MM-dd"),
-        appointment_time: format(new Date(), "HH:mm"),
-        appointment_type: "walk_in",
-        status: "scheduled",
-        chief_complaint: "OPD Consultation",
-        payment_status: "waived",
-      });
-
-      // Update appointment with waiver details
-      await supabase
-        .from('appointments')
-        .update({
-          waived_by: profile.id,
-          waiver_reason: reason,
-          waived_at: new Date().toISOString(),
-        })
-        .eq('id', appointment.id);
-
-      setTokenNumber(appointment.token_number || 0);
-      setTokenDisplay(appointment.token_display || null);
-      setInvoiceNumber(null);
-      setPaymentStatusResult("waived");
-      setStep("complete");
-      setShowPrintDialog(true);
-      setShowWaiverDialog(false);
-      
-      toast({
-        title: "Token Generated",
-        description: `Token #${appointment.token_number} created. Fee has been waived.`,
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to generate token. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsProcessing(false);
-    }
-  };
 
   const handlePaymentComplete = async () => {
     if (!selectedPatientId || !selectedDoctor || !profile?.branch_id) {
@@ -391,7 +287,7 @@ export default function OPDWalkInPage() {
         notes: `OPD Walk-in payment via ${paymentMethod}`,
       });
 
-      // 3. Create Appointment with scheduled status (so patient goes through nurse triage)
+      // 3. Create Appointment with invoice_id directly (atomic insert, no separate update needed)
       const appointment = await createAppointment.mutateAsync({
         patient_id: selectedPatientId,
         doctor_id: selectedDoctor.id,
@@ -402,17 +298,8 @@ export default function OPDWalkInPage() {
         status: "checked_in",
         chief_complaint: "OPD Consultation",
         payment_status: "paid",
+        invoice_id: invoice.id,
       });
-
-      // Link invoice to appointment AND reinforce payment_status
-      const { error: linkError } = await supabase
-        .from('appointments')
-        .update({ invoice_id: invoice.id, payment_status: 'paid' })
-        .eq('id', appointment.id);
-
-      if (linkError) {
-        console.error('Failed to link invoice to appointment:', linkError);
-      }
 
       setTokenNumber(appointment.token_number || 0);
       setTokenDisplay(appointment.token_display || null);
@@ -871,34 +758,6 @@ export default function OPDWalkInPage() {
 
             {/* Payment Actions */}
             <div className="space-y-4">
-              {/* Alternative payment options */}
-              <div className="p-4 rounded-lg border border-dashed bg-muted/30 space-y-3">
-                <p className="text-sm font-medium text-muted-foreground">Alternative Options</p>
-                <div className="flex gap-3">
-                  <Button 
-                    variant="outline" 
-                    onClick={handlePayLater}
-                    disabled={isProcessing}
-                    className="flex-1"
-                  >
-                    <Clock className="h-4 w-4 mr-2" />
-                    Pay Later
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setShowWaiverDialog(true)}
-                    disabled={isProcessing}
-                    className="flex-1"
-                  >
-                    <ShieldOff className="h-4 w-4 mr-2" />
-                    Waive Fee
-                  </Button>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Pay Later: Fee of Rs. {selectedDoctor.fee.toLocaleString()} will be collected at checkout.
-                </p>
-              </div>
-
               {/* Main action buttons */}
               <div className="flex justify-between">
                 <Button variant="outline" onClick={() => setStep("doctor")}>
@@ -932,23 +791,6 @@ export default function OPDWalkInPage() {
         </Card>
       )}
 
-      {/* Fee Waiver Dialog */}
-      {selectedDoctor && (
-        <FeeWaiverDialog
-          open={showWaiverDialog}
-          onOpenChange={setShowWaiverDialog}
-          patient={{
-            name: selectedPatientName,
-            mrNumber: selectedPatientMR,
-          }}
-          doctor={{
-            name: selectedDoctor.name,
-          }}
-          fee={selectedDoctor.fee}
-          onConfirm={handleWaiverConfirm}
-          isProcessing={isProcessing}
-        />
-      )}
 
       {/* Step 4: Complete */}
       {step === "complete" && tokenNumber !== null && selectedDoctor && (
