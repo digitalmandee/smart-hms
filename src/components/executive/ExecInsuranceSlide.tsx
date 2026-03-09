@@ -36,7 +36,7 @@ export function ExecInsuranceSlide() {
           <h2 className="text-3xl font-extrabold text-foreground">Insurance & NPHIES Integration</h2>
           <p className="text-sm text-muted-foreground mt-1">Full RCM lifecycle — from eligibility to reconciliation. KSA & Pakistan markets covered.</p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">8 / 16</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">8 / 17</span>
       </div>
 
       {/* NPHIES Pipeline */}
