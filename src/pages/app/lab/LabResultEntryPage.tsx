@@ -21,6 +21,7 @@ import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { ArrowLeft, Printer, CheckCircle, Loader2, User, Calendar, Stethoscope, FlaskConical, AlertTriangle, Globe, Copy, Mail, Barcode, CreditCard } from "lucide-react";
+import { BarcodeStickerPrint } from "@/components/lab/BarcodeStickerPrint";
 import { format, differenceInYears } from "date-fns";
 
 const priorityConfig = {
@@ -350,6 +351,23 @@ export default function LabResultEntryPage() {
                   Mark Sample Collected
                 </Button>
               </div>
+
+              {/* Barcode Sticker Preview & Print */}
+              {sampleNumber.trim() && (
+                <Separator className="my-3" />
+              )}
+              {sampleNumber.trim() && (
+                <BarcodeStickerPrint
+                  sampleNumber={sampleNumber}
+                  patientName={`${patient?.first_name || ""} ${patient?.last_name || ""}`.trim()}
+                  patientNumber={patient?.patient_number || ""}
+                  patientAge={patientAge}
+                  patientGender={patient?.gender}
+                  orderNumber={labOrder.order_number}
+                  testNames={labOrder.items?.map((i) => i.test_name) || []}
+                  orderDate={format(new Date(labOrder.created_at), "dd/MM/yy")}
+                />
+              )}
             </div>
           </CardContent>
         </Card>
@@ -358,19 +376,38 @@ export default function LabResultEntryPage() {
       {labOrder.status === "collected" && !isOrderCompleted && (
         <Card className="border-blue-200 bg-blue-50/50">
           <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <CheckCircle className="h-5 w-5 text-blue-600" />
-                <div>
-                  <p className="font-medium text-blue-800">Sample Collected</p>
-                  <p className="text-sm text-blue-600">Enter results for each test below, then finalize the report</p>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <CheckCircle className="h-5 w-5 text-blue-600" />
+                  <div>
+                    <p className="font-medium text-blue-800">Sample Collected</p>
+                    <p className="text-sm text-blue-600">Enter results for each test below, then finalize the report</p>
+                  </div>
                 </div>
+                {(labOrder as unknown as { sample_number?: string }).sample_number && (
+                  <Badge variant="outline" className="text-blue-600 border-blue-300">
+                    <Barcode className="h-3 w-3 mr-1" />
+                    {(labOrder as unknown as { sample_number: string }).sample_number}
+                  </Badge>
+                )}
               </div>
+
+              {/* Print barcode sticker after collection */}
               {(labOrder as unknown as { sample_number?: string }).sample_number && (
-                <Badge variant="outline" className="text-blue-600 border-blue-300">
-                  <Barcode className="h-3 w-3 mr-1" />
-                  {(labOrder as unknown as { sample_number: string }).sample_number}
-                </Badge>
+                <>
+                  <Separator />
+                  <BarcodeStickerPrint
+                    sampleNumber={(labOrder as unknown as { sample_number: string }).sample_number}
+                    patientName={`${patient?.first_name || ""} ${patient?.last_name || ""}`.trim()}
+                    patientNumber={patient?.patient_number || ""}
+                    patientAge={patientAge}
+                    patientGender={patient?.gender}
+                    orderNumber={labOrder.order_number}
+                    testNames={labOrder.items?.map((i) => i.test_name) || []}
+                    orderDate={format(new Date(labOrder.created_at), "dd/MM/yy")}
+                  />
+                </>
               )}
             </div>
           </CardContent>
