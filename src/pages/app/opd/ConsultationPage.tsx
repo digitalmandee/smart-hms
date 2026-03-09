@@ -16,6 +16,7 @@ import { useAppointment, useUpdateAppointment } from "@/hooks/useAppointments";
 import { useConsultationByAppointment, useCreateConsultation, useUpdateConsultation, Vitals } from "@/hooks/useConsultations";
 import { useCreatePrescription, PrescriptionItemInput } from "@/hooks/usePrescriptions";
 import { useCreateLabOrder, LabOrderItemInput } from "@/hooks/useLabOrders";
+import { useCreateImagingOrder, type ImagingModality } from "@/hooks/useImaging";
 import { useDoctors } from "@/hooks/useDoctors";
 import { useAuth } from "@/contexts/AuthContext";
 import { CompactVitals } from "@/components/consultation/CompactVitals";
