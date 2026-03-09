@@ -77,12 +77,12 @@ export default function PendingCheckoutPage() {
       
       const patientIds = completedAppointments.map(a => (a.patient as any)?.id).filter(Boolean);
       
-      // Get pending lab orders
+      // Get unpaid lab orders (no invoice_id linked)
       const { data: labOrders } = await supabase
         .from("lab_orders")
-        .select("id, patient_id, order_number, payment_status")
+        .select("id, patient_id, order_number, payment_status, invoice_id")
         .in("patient_id", patientIds)
-        .eq("payment_status", "pending");
+        .is("invoice_id", null);
       
       // Get pending prescriptions
       const { data: prescriptions } = await supabase
