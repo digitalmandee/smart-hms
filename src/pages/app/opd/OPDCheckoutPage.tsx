@@ -120,7 +120,19 @@ export default function OPDCheckoutPage() {
     enabled: !!appointmentId,
   });
 
-  // Fetch consultation for this appointment
+  // Auto-redirect if appointment is already paid
+  useEffect(() => {
+    if (appointment && appointment.payment_status === "paid") {
+      toast.info("This appointment has already been checked out");
+      if (appointment.invoice_id) {
+        navigate(`/app/billing/invoices/${appointment.invoice_id}`, { replace: true });
+      } else {
+        navigate("/app/opd/pending-checkout", { replace: true });
+      }
+    }
+  }, [appointment, navigate]);
+
+
   const { data: consultation } = useQuery({
     queryKey: ["opd-checkout-consultation", appointmentId],
     queryFn: async () => {
