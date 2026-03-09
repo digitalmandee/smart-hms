@@ -13,7 +13,7 @@ import { MobileLabQueue } from "@/components/mobile/MobileLabQueue";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Capacitor } from "@capacitor/core";
 
-type StatusFilter = "all" | "ordered" | "collected" | "processing";
+type StatusFilter = "all" | "ordered" | "collected" | "processing" | "completed";
 type PaymentFilter = "all" | "paid" | "pending";
 
 export default function LabQueuePage() {
@@ -30,14 +30,19 @@ export default function LabQueuePage() {
 
   // Fetch lab orders based on status filter
   const { data: labOrders, isLoading, refetch } = useLabOrders(
-    statusFilter !== "all" ? { status: statusFilter } : {}
+    statusFilter !== "all" && statusFilter !== "completed" ? { status: statusFilter } : {}
   );
 
   // Filter out completed/cancelled and apply search
   const filteredOrders = labOrders
     ?.filter((order) => {
-      // Exclude completed/cancelled from queue
-      if (order.status === "completed" || order.status === "cancelled") return false;
+      // "Completed" tab: show only completed orders
+      if (statusFilter === "completed") {
+        if (order.status !== "completed") return false;
+      } else {
+        // Other tabs: exclude completed/cancelled from active queue
+        if (order.status === "completed" || order.status === "cancelled") return false;
+      }
 
       // Payment filter
       if (paymentFilter === "paid" && order.payment_status !== "paid") return false;
@@ -181,6 +186,7 @@ export default function LabQueuePage() {
               <TabsTrigger value="ordered">Ordered</TabsTrigger>
               <TabsTrigger value="collected">Collected</TabsTrigger>
               <TabsTrigger value="processing">Processing</TabsTrigger>
+              <TabsTrigger value="completed">Completed</TabsTrigger>
             </TabsList>
           </Tabs>
 
