@@ -9,6 +9,7 @@ import { format, differenceInDays } from "date-fns";
 import { Bed, Calendar, ExternalLink, Clock, Pill } from "lucide-react";
 import { useAdmissionUnbilledCharges } from "@/hooks/usePatientIPDCharges";
 import { AdmissionDetailsSummary } from "./AdmissionDetailsSummary";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 
 interface PatientAdmissionHistoryProps {
   patientId: string;
