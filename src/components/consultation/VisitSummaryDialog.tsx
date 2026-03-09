@@ -71,6 +71,7 @@ export function VisitSummaryDialog({
   consultation,
   prescriptionItems,
   labOrderItems,
+  imagingOrderItems = [],
   onConfirm,
   onPrintPrescription,
   onPrintSummary,
