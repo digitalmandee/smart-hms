@@ -122,7 +122,7 @@ export default function OPDCheckoutPage() {
         .from("lab_orders")
         .select(`
           *,
-          items:lab_order_items(*, test:lab_tests(name, price))
+          items:lab_order_items(*, service_type:service_types(name, default_price))
         `)
         .eq("consultation_id", consultation!.id);
       
@@ -138,7 +138,7 @@ export default function OPDCheckoutPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("imaging_orders")
-        .select("*")
+        .select("*, procedure:service_types(name, default_price)")
         .eq("consultation_id", consultation!.id);
       
       if (error) throw error;
@@ -189,29 +189,28 @@ export default function OPDCheckoutPage() {
   labOrders?.forEach((order) => {
     if (!order.invoice_id) {
       const totalAmount = order.items?.reduce((sum: number, item: any) => 
-        sum + (item.test?.price || 0), 0) || 0;
+        sum + (item.service_type?.default_price || 0), 0) || 0;
       
-      if (totalAmount > 0) {
-        charges.push({
-          id: `lab-${order.id}`,
-          type: "lab",
-          description: `Lab Tests: ${order.items?.map((i: any) => i.test?.name).join(", ") || "Various tests"}`,
-          amount: totalAmount,
-          status: "pending",
-          referenceId: order.id,
-        });
-      }
+      charges.push({
+        id: `lab-${order.id}`,
+        type: "lab",
+        description: `Lab Tests: ${order.items?.map((i: any) => i.test_name || i.service_type?.name || "Test").join(", ") || "Various tests"}`,
+        amount: totalAmount,
+        status: "pending",
+        referenceId: order.id,
+      });
     }
   });
 
   // Imaging order fees
-  imagingOrders?.forEach((order) => {
+  imagingOrders?.forEach((order: any) => {
     if (!order.invoice_id) {
+      const amount = order.procedure?.default_price || 0;
       charges.push({
         id: `imaging-${order.id}`,
         type: "imaging",
         description: `${order.modality?.toUpperCase() || "Imaging"}: ${order.procedure_name}`,
-        amount: 0, // Price determined by radiology/billing
+        amount,
         status: "pending",
         referenceId: order.id,
       });
@@ -235,16 +234,17 @@ export default function OPDCheckoutPage() {
     }
   });
 
-  const pendingCharges = charges.filter(c => c.status === "pending" && c.amount > 0);
+  const pendingCharges = charges.filter(c => c.status === "pending");
+  const selectableCharges = pendingCharges.filter(c => c.amount > 0);
   const selectedTotal = pendingCharges
     .filter(c => selectedCharges.includes(c.id))
     .reduce((sum, c) => sum + c.amount, 0);
 
   const handleSelectAll = () => {
-    if (selectedCharges.length === pendingCharges.length) {
+    if (selectedCharges.length === selectableCharges.length) {
       setSelectedCharges([]);
     } else {
-      setSelectedCharges(pendingCharges.map(c => c.id));
+      setSelectedCharges(selectableCharges.map(c => c.id));
     }
   };
 
@@ -466,9 +466,9 @@ export default function OPDCheckoutPage() {
                   <Receipt className="h-5 w-5" />
                   Pending Charges
                 </CardTitle>
-                {pendingCharges.length > 0 && (
+                {selectableCharges.length > 0 && (
                   <Button variant="outline" size="sm" onClick={handleSelectAll}>
-                    {selectedCharges.length === pendingCharges.length ? "Deselect All" : "Select All"}
+                    {selectedCharges.length === selectableCharges.length ? "Deselect All" : "Select All"}
                   </Button>
                 )}
               </div>
@@ -488,6 +488,7 @@ export default function OPDCheckoutPage() {
                       : Pill;
                     const isSelected = selectedCharges.includes(charge.id);
                     const isPending = charge.status === "pending" && charge.amount > 0;
+                    const isZeroPrice = charge.status === "pending" && charge.amount === 0;
                     
                     return (
                       <div
@@ -497,7 +498,9 @@ export default function OPDCheckoutPage() {
                             ? isSelected 
                               ? "border-primary bg-primary/5 cursor-pointer" 
                               : "border-border hover:border-primary/50 cursor-pointer"
-                            : "border-border bg-muted/30 opacity-60"
+                            : isZeroPrice
+                              ? "border-border bg-muted/20 opacity-70"
+                              : "border-border bg-muted/30 opacity-60"
                         }`}
                         onClick={() => isPending && handleToggleCharge(charge.id)}
                       >
@@ -517,10 +520,16 @@ export default function OPDCheckoutPage() {
                             {charge.status === "invoiced" && (
                               <Badge variant="secondary" className="text-xs">Invoiced</Badge>
                             )}
-                            {charge.status === "pending" && charge.amount === 0 && (
+                            {charge.status === "pending" && charge.amount === 0 && charge.type === "prescription" && (
                               <Badge variant="outline" className="text-xs">
                                 <Clock className="h-3 w-3 mr-1" />
                                 Pharmacy
+                              </Badge>
+                            )}
+                            {charge.status === "pending" && charge.amount === 0 && charge.type !== "prescription" && (
+                              <Badge variant="outline" className="text-xs">
+                                <Clock className="h-3 w-3 mr-1" />
+                                Pricing pending
                               </Badge>
                             )}
                           </div>
