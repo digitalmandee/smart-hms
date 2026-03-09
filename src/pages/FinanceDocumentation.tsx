@@ -11,6 +11,13 @@ import { FinDocCoa } from "@/components/finance-docs/FinDocCoa";
 import { FinDocJournals } from "@/components/finance-docs/FinDocJournals";
 import { FinDocBilling } from "@/components/finance-docs/FinDocBilling";
 import { FinDocReports } from "@/components/finance-docs/FinDocReports";
+import { FinDocSessions } from "@/components/finance-docs/FinDocSessions";
+import { FinDocDailyClosing } from "@/components/finance-docs/FinDocDailyClosing";
+import { FinDocExpenses } from "@/components/finance-docs/FinDocExpenses";
+import { FinDocArAp } from "@/components/finance-docs/FinDocArAp";
+import { FinDocInsurance } from "@/components/finance-docs/FinDocInsurance";
+import { FinDocBudgets } from "@/components/finance-docs/FinDocBudgets";
+import { FinDocBankVendor } from "@/components/finance-docs/FinDocBankVendor";
 
 const pages = [
   { id: "cover", label: "Cover", component: FinDocCover },
@@ -20,6 +27,13 @@ const pages = [
   { id: "journals", label: "Journal Entries", component: FinDocJournals },
   { id: "billing", label: "Billing", component: FinDocBilling },
   { id: "reports", label: "Reports", component: FinDocReports },
+  { id: "sessions", label: "Billing Sessions", component: FinDocSessions },
+  { id: "closing", label: "Daily Closing", component: FinDocDailyClosing },
+  { id: "expenses", label: "Expenses", component: FinDocExpenses },
+  { id: "arap", label: "AR & AP", component: FinDocArAp },
+  { id: "insurance", label: "Insurance", component: FinDocInsurance },
+  { id: "budgets", label: "Budgets", component: FinDocBudgets },
+  { id: "bankvendor", label: "Bank & Vendor", component: FinDocBankVendor },
 ];
 
 const FinanceDocumentation = () => {
