@@ -416,6 +416,18 @@ export default function ConsultationPage() {
               />
             </TabsContent>
 
+            {/* Imaging Tab */}
+            <TabsContent value="imaging" className="space-y-4 mt-4">
+              <RadiologyOrderBuilder
+                items={imagingOrderItems}
+                onChange={setImagingOrderItems}
+                priority={imagingOrderPriority}
+                onPriorityChange={setImagingOrderPriority}
+                notes={imagingOrderNotes}
+                onNotesChange={setImagingOrderNotes}
+              />
+            </TabsContent>
+
             {/* Tabeebi Tab */}
             <TabsContent value="ai" className="mt-4">
               <DoctorAIPanel
