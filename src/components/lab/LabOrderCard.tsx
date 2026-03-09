@@ -55,8 +55,18 @@ export function LabOrderCard({ order, canCollectPayment, onPaymentComplete }: La
   const totalCount = order.items?.length || 0;
 
   const isPaid = order.payment_status === "paid" || order.payment_status === "waived";
+  const isPublished = (order as any).is_published === true;
   const allowUnpaid = labSettings?.allow_unpaid_processing ?? false;
   const canProceed = isPaid || allowUnpaid || order.status !== "ordered";
+
+  const getButtonLabel = () => {
+    if (order.status === "completed" && isPublished) return "View Report";
+    if (order.status === "completed") return "View Results";
+    if (order.status === "processing" || order.status === "collected") return "Enter Results";
+    if (order.status === "ordered" && isPaid) return "Enter Results";
+    if (order.status === "cancelled") return "View Order";
+    return "View Order";
+  };
 
   return (
     <>
@@ -78,6 +88,12 @@ export function LabOrderCard({ order, canCollectPayment, onPaymentComplete }: La
                   <PaymentIcon className="h-3 w-3" />
                   {paymentStatus.label}
                 </Badge>
+                {isPublished && (
+                  <Badge className="bg-green-100 text-green-800 flex items-center gap-1">
+                    <CheckCircle className="h-3 w-3" />
+                    Published
+                  </Badge>
+                )}
                 {totalCount > 0 && (
                   <Badge variant="outline" className="text-xs">
                     {completedCount}/{totalCount} done
@@ -131,7 +147,7 @@ export function LabOrderCard({ order, canCollectPayment, onPaymentComplete }: La
                 variant={canProceed || order.status === "completed" ? "default" : "secondary"}
               >
                 <FileInput className="h-4 w-4 mr-2" />
-                {order.status === "completed" ? "View Results" : isPaid ? "Enter Results" : "View Order"}
+                {getButtonLabel()}
               </Button>
             </div>
           </div>
