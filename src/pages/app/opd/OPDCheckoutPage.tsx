@@ -498,7 +498,9 @@ export default function OPDCheckoutPage() {
                             ? isSelected 
                               ? "border-primary bg-primary/5 cursor-pointer" 
                               : "border-border hover:border-primary/50 cursor-pointer"
-                            : "border-border bg-muted/30 opacity-60"
+                            : isZeroPrice
+                              ? "border-border bg-muted/20 opacity-70"
+                              : "border-border bg-muted/30 opacity-60"
                         }`}
                         onClick={() => isPending && handleToggleCharge(charge.id)}
                       >
