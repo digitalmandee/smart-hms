@@ -78,7 +78,7 @@ export default function LabQueuePage() {
 
   // Real-time subscription for instant updates
   useEffect(() => {
-    const channel = supabase
+    const labChannel = supabase
       .channel('lab_orders_realtime')
       .on('postgres_changes', { 
         event: '*', 
@@ -89,8 +89,24 @@ export default function LabQueuePage() {
       })
       .subscribe();
 
+    // Listen for invoice payment changes to refresh lab queue
+    const invoiceChannel = supabase
+      .channel('invoices_realtime_for_lab')
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'invoices',
+      }, (payload) => {
+        // Refetch when any invoice status changes (especially to 'paid')
+        if (payload.new && (payload.new as any).status === 'paid') {
+          refetch();
+        }
+      })
+      .subscribe();
+
     return () => { 
-      supabase.removeChannel(channel); 
+      supabase.removeChannel(labChannel);
+      supabase.removeChannel(invoiceChannel);
     };
   }, [refetch]);
 
