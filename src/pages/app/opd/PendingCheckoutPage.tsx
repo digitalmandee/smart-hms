@@ -258,9 +258,9 @@ export default function PendingCheckoutPage() {
                           
                           <Badge 
                             variant={apt.payment_status === "paid" ? "default" : "outline"}
-                            className={apt.payment_status === "paid" ? "bg-success" : ""}
+                            className={apt.payment_status === "paid" ? "bg-warning text-warning-foreground" : ""}
                           >
-                            {apt.payment_status === "paid" ? "Paid" : "Pending Payment"}
+                            {apt.payment_status === "paid" ? "Additional Charges" : "Pending Payment"}
                           </Badge>
                           
                           <Button 
