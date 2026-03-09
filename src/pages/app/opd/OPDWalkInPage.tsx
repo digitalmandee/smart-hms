@@ -38,7 +38,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { PrintableTokenSlip } from "@/components/clinic/PrintableTokenSlip";
 import { PrintablePaymentReceipt } from "@/components/billing/PrintablePaymentReceipt";
-import { FeeWaiverDialog } from "@/components/appointments/FeeWaiverDialog";
+
 import { SessionStatusBanner } from "@/components/billing/SessionStatusBanner";
 import { useTranslation, useIsRTL } from "@/lib/i18n";
 import { 
