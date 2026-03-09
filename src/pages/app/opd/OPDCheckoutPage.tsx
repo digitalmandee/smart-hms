@@ -213,8 +213,18 @@ export default function OPDCheckoutPage() {
   // Lab order fees
   labOrders?.forEach((order) => {
     if (!order.invoice_id) {
-      const totalAmount = order.items?.reduce((sum: number, item: any) => 
-        sum + (item.service_type?.default_price || 0), 0) || 0;
+      const totalAmount = order.items?.reduce((sum: number, item: any) => {
+        // Use linked service_type price first
+        if (item.service_type?.default_price) return sum + item.service_type.default_price;
+        // Fallback: match by test_name against lab service types
+        if (labServiceTypes && item.test_name) {
+          const match = labServiceTypes.find(
+            (st: any) => st.name.toLowerCase() === item.test_name.toLowerCase()
+          );
+          if (match?.default_price) return sum + match.default_price;
+        }
+        return sum;
+      }, 0) || 0;
       
       charges.push({
         id: `lab-${order.id}`,
