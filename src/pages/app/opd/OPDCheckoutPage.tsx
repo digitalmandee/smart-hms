@@ -291,6 +291,10 @@ export default function OPDCheckoutPage() {
 
   const handleGenerateInvoice = async () => {
     if (!appointment || !profile?.organization_id || selectedCharges.length === 0) return;
+    if (appointment.payment_status === "paid") {
+      toast.info("This appointment has already been checked out");
+      return;
+    }
     
     setIsProcessing(true);
     try {
@@ -360,6 +364,10 @@ export default function OPDCheckoutPage() {
 
   const handlePayNow = async () => {
     if (!appointment || !profile?.organization_id || selectedCharges.length === 0 || !paymentMethodId) return;
+    if (appointment.payment_status === "paid") {
+      toast.info("This appointment has already been checked out");
+      return;
+    }
     
     setIsProcessing(true);
     try {
@@ -719,7 +727,12 @@ export default function OPDCheckoutPage() {
                 )}
               </div>
 
-              {selectedCharges.length > 0 && (
+              {appointment?.payment_status === "paid" ? (
+                <div className="flex items-center justify-center gap-2 py-4">
+                  <CheckCircle2 className="h-5 w-5 text-green-600" />
+                  <span className="font-medium text-green-600">Already Paid</span>
+                </div>
+              ) : selectedCharges.length > 0 && (
                 <>
                   <Separator />
                   <div className="space-y-3">

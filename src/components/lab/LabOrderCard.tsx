@@ -131,7 +131,7 @@ export function LabOrderCard({ order, canCollectPayment, onPaymentComplete }: La
 
             {/* Action buttons */}
             <div className="flex flex-col sm:flex-row gap-2 flex-shrink-0">
-              {!isPaid && canCollectPayment && order.status === "ordered" && (
+              {!isPaid && !order.invoice_id && canCollectPayment && order.status === "ordered" && (
                 <Button
                   variant="outline"
                   onClick={() => setPaymentDialogOpen(true)}

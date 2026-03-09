@@ -61,6 +61,7 @@ export default function PendingCheckoutPage() {
         .eq("branch_id", profile.branch_id)
         .eq("appointment_date", today)
         .eq("status", "completed")
+        .neq("payment_status", "paid")
         .order("updated_at", { ascending: false });
 
       if (error) throw error;
