@@ -45,7 +45,7 @@ export default function TrainingPage() {
   };
 
   if (loadingPrograms || loadingEnrollments) {
-    return <div className="space-y-6"><PageHeader title="Training & Development" /><Skeleton className="h-64" /></div>;
+    return <div className="space-y-6"><PageHeader title="Training & Development" description="Manage training programs and enrollments" /><Skeleton className="h-64" /></div>;
   }
 
   const totalPrograms = (programs || []).length;
