@@ -65,7 +65,7 @@ export default function LettersPage() {
   };
 
   if (loadingTemplates || loadingIssued) {
-    return <div className="space-y-6"><PageHeader title="HR Letters" subtitle="Manage letter templates and issued letters" /><Skeleton className="h-64" /></div>;
+    return <div className="space-y-6"><PageHeader title="HR Letters" description="Manage letter templates and issued letters" /><Skeleton className="h-64" /></div>;
   }
 
   return (
