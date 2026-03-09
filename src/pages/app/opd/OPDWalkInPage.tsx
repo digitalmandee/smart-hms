@@ -101,7 +101,7 @@ export default function OPDWalkInPage() {
   const [tokenDisplay, setTokenDisplay] = useState<string | null>(null);
   const [invoiceNumber, setInvoiceNumber] = useState<string | null>(null);
   const [showPrintDialog, setShowPrintDialog] = useState(false);
-  const [showWaiverDialog, setShowWaiverDialog] = useState(false);
+  
   const [paymentStatusResult, setPaymentStatusResult] = useState<"paid" | "pending" | "waived">("paid");
   const [isProcessing, setIsProcessing] = useState(false);
   
