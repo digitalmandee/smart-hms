@@ -210,13 +210,22 @@ export default function ConsultationPage() {
           status: "completed",
         });
         
-        // Navigate to checkout if there are pending orders, otherwise back to OPD
-        const hasPendingOrders = prescriptionItems.length > 0 || labOrderItems.length > 0 || imagingOrderItems.length > 0;
-        if (hasPendingOrders) {
-          navigate(`/app/opd/checkout?appointmentId=${appointmentId}`);
-        } else {
-          navigate("/app/opd");
-        }
+        // Build summary of created orders
+        const orderSummary: string[] = [];
+        if (prescriptionItems.length > 0) orderSummary.push(`${prescriptionItems.length} prescription(s)`);
+        if (labOrderItems.length > 0) orderSummary.push(`${labOrderItems.length} lab test(s)`);
+        if (imagingOrderItems.length > 0) orderSummary.push(`${imagingOrderItems.length} imaging order(s)`);
+        
+        const summaryText = orderSummary.length > 0
+          ? `Orders sent: ${orderSummary.join(", ")}. Patient can proceed to billing counter.`
+          : "No additional orders.";
+        
+        const { toast } = await import("sonner");
+        toast.success("Consultation completed", {
+          description: summaryText,
+        });
+        
+        navigate("/app/opd");
       }
     } catch (error) {
       console.error("Error saving consultation:", error);
