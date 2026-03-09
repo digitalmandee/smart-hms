@@ -372,11 +372,10 @@ export function useUpdateLabOrderItem() {
         .from("lab_order_items")
         .update(updateData)
         .eq("id", id)
-        .select()
-        .single();
+        .select();
 
       if (error) throw error;
-      return data;
+      return data?.[0] ?? null;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["lab-orders"] });
