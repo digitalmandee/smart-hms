@@ -8050,6 +8050,72 @@ export type Database = {
           },
         ]
       }
+      employee_contracts: {
+        Row: {
+          contract_type: string
+          created_at: string
+          document_url: string | null
+          employee_id: string
+          end_date: string | null
+          id: string
+          is_probation_completed: boolean
+          notes: string | null
+          organization_id: string
+          probation_end_date: string | null
+          salary_amount: number | null
+          start_date: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          contract_type?: string
+          created_at?: string
+          document_url?: string | null
+          employee_id: string
+          end_date?: string | null
+          id?: string
+          is_probation_completed?: boolean
+          notes?: string | null
+          organization_id: string
+          probation_end_date?: string | null
+          salary_amount?: number | null
+          start_date: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          contract_type?: string
+          created_at?: string
+          document_url?: string | null
+          employee_id?: string
+          end_date?: string | null
+          id?: string
+          is_probation_completed?: boolean
+          notes?: string | null
+          organization_id?: string
+          probation_end_date?: string | null
+          salary_amount?: number | null
+          start_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_contracts_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_contracts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employee_dependents: {
         Row: {
           created_at: string | null
@@ -9996,6 +10062,117 @@ export type Database = {
           },
           {
             foreignKeyName: "housekeeping_tasks_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hr_issued_letters: {
+        Row: {
+          body: string
+          created_at: string
+          employee_id: string
+          id: string
+          issued_by: string | null
+          issued_date: string
+          letter_type: string
+          organization_id: string
+          status: string
+          subject: string
+          template_id: string | null
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          employee_id: string
+          id?: string
+          issued_by?: string | null
+          issued_date?: string
+          letter_type: string
+          organization_id: string
+          status?: string
+          subject: string
+          template_id?: string | null
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          employee_id?: string
+          id?: string
+          issued_by?: string | null
+          issued_date?: string
+          letter_type?: string
+          organization_id?: string
+          status?: string
+          subject?: string
+          template_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hr_issued_letters_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hr_issued_letters_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hr_issued_letters_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "hr_letter_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hr_letter_templates: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          letter_type: string
+          name: string
+          organization_id: string
+          template_body: string
+          updated_at: string
+          variables: string[] | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          letter_type: string
+          name: string
+          organization_id: string
+          template_body: string
+          updated_at?: string
+          variables?: string[] | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          letter_type?: string
+          name?: string
+          organization_id?: string
+          template_body?: string
+          updated_at?: string
+          variables?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hr_letter_templates_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -22678,6 +22855,123 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "tax_slabs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_enrollments: {
+        Row: {
+          certificate_expiry: string | null
+          certificate_url: string | null
+          completed_at: string | null
+          created_at: string
+          employee_id: string
+          enrolled_at: string
+          id: string
+          notes: string | null
+          organization_id: string
+          program_id: string
+          score: number | null
+          status: string
+        }
+        Insert: {
+          certificate_expiry?: string | null
+          certificate_url?: string | null
+          completed_at?: string | null
+          created_at?: string
+          employee_id: string
+          enrolled_at?: string
+          id?: string
+          notes?: string | null
+          organization_id: string
+          program_id: string
+          score?: number | null
+          status?: string
+        }
+        Update: {
+          certificate_expiry?: string | null
+          certificate_url?: string | null
+          completed_at?: string | null
+          created_at?: string
+          employee_id?: string
+          enrolled_at?: string
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          program_id?: string
+          score?: number | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_enrollments_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_enrollments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_enrollments_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "training_programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_programs: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          duration_hours: number | null
+          id: string
+          instructor: string | null
+          is_active: boolean
+          is_mandatory: boolean
+          name: string
+          organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          duration_hours?: number | null
+          id?: string
+          instructor?: string | null
+          is_active?: boolean
+          is_mandatory?: boolean
+          name: string
+          organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          duration_hours?: number | null
+          id?: string
+          instructor?: string | null
+          is_active?: boolean
+          is_mandatory?: boolean
+          name?: string
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_programs_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
