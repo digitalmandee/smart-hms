@@ -5,20 +5,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PageHeader } from "@/components/PageHeader";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { useEmployees, useDepartments } from "@/hooks/useHR";
-import { Syringe, Search, Users, AlertTriangle, CheckCircle, Clock, Plus } from "lucide-react";
-import { differenceInDays, addMonths, format, subMonths } from "date-fns";
+import { useVaccinationRecords, useCreateVaccinationRecord } from "@/hooks/useCompliance";
+import { Syringe, Search, Users, CheckCircle, Clock, Plus } from "lucide-react";
+import { differenceInDays, format } from "date-fns";
 
 const VACCINE_TYPES = [
-  { name: "Hepatitis B", doses: 3, interval: "0, 1, 6 months" },
-  { name: "Influenza", doses: 1, interval: "Annual" },
-  { name: "Tetanus (Td/Tdap)", doses: 1, interval: "Every 10 years" },
-  { name: "MMR", doses: 2, interval: "4 weeks apart" },
-  { name: "COVID-19", doses: 2, interval: "As recommended" },
+  "Hepatitis B", "Influenza", "Tetanus (Td/Tdap)", "MMR", "COVID-19",
+  "Varicella", "Meningococcal", "Other"
 ];
 
 export default function VaccinationsPage() {
@@ -26,66 +26,86 @@ export default function VaccinationsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState<string>("all");
   const [selectedVaccine, setSelectedVaccine] = useState<string>("all");
-  
+  const [showAddDialog, setShowAddDialog] = useState(false);
+
   const { data: employees, isLoading: loadingEmployees } = useEmployees();
   const { data: departments, isLoading: loadingDepts } = useDepartments();
+  const { data: vaccinations, isLoading: loadingVax } = useVaccinationRecords();
+  const createRecord = useCreateVaccinationRecord();
 
-  // Mock vaccination data (in production, this would come from a dedicated table)
-  const employeeVaccinationData = employees?.map((emp, index) => {
-    const vaccines = VACCINE_TYPES.map((vaccine, vIndex) => {
-      const isComplete = (index + vIndex) % 3 !== 0;
-      const dosesGiven = isComplete ? vaccine.doses : Math.floor(vaccine.doses / 2);
-      const lastDoseDate = subMonths(new Date(), (index + vIndex) % 12);
-      const nextDueDate = vaccine.name === "Influenza" 
-        ? addMonths(lastDoseDate, 12) 
-        : vaccine.name === "Tetanus (Td/Tdap)" 
-          ? addMonths(lastDoseDate, 120)
-          : null;
-      
-      return {
-        name: vaccine.name,
-        totalDoses: vaccine.doses,
-        dosesGiven,
-        isComplete,
-        lastDoseDate,
-        nextDueDate,
-        isDue: nextDueDate ? differenceInDays(nextDueDate, new Date()) <= 30 : false,
-      };
-    });
-    
-    const completedCount = vaccines.filter(v => v.isComplete).length;
-    const dueCount = vaccines.filter(v => v.isDue).length;
-    
-    return {
-      ...emp,
-      vaccines,
-      completedCount,
-      dueCount,
-      compliancePercentage: Math.round((completedCount / VACCINE_TYPES.length) * 100),
-    };
-  }) || [];
-
-  const filteredEmployees = employeeVaccinationData.filter(emp => {
-    const matchesSearch = `${emp.first_name} ${emp.last_name}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         emp.employee_number?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesDept = selectedDepartment === "all" || emp.department_id === selectedDepartment;
-    const matchesVaccine = selectedVaccine === "all" || 
-                          emp.vaccines.some(v => v.name === selectedVaccine && !v.isComplete);
-    return matchesSearch && matchesDept && matchesVaccine;
+  const [form, setForm] = useState({
+    employee_id: "",
+    vaccine_name: "",
+    dose_number: 1,
+    administered_date: "",
+    administered_by: "",
+    batch_number: "",
+    next_due_date: "",
+    notes: "",
   });
 
-  const totalEmployees = employees?.length || 0;
-  const fullyVaccinated = employeeVaccinationData.filter(e => e.compliancePercentage === 100).length;
-  const pendingVaccinations = employeeVaccinationData.filter(e => e.dueCount > 0).length;
-  const overallCompliance = totalEmployees > 0 
-    ? Math.round(employeeVaccinationData.reduce((sum, e) => sum + e.compliancePercentage, 0) / totalEmployees)
-    : 0;
+  const getEmployeeName = (empId: string) => {
+    const emp = employees?.find(e => e.id === empId);
+    return emp ? `${emp.first_name} ${emp.last_name}` : "Unknown";
+  };
 
-  const isLoading = loadingEmployees || loadingDepts;
+  const getEmployeeNumber = (empId: string) => {
+    return employees?.find(e => e.id === empId)?.employee_number || "";
+  };
+
+  const getEmployeeDept = (empId: string) => {
+    return employees?.find(e => e.id === empId)?.department_id || null;
+  };
 
   const getDepartmentName = (deptId: string | null) => {
     if (!deptId) return "N/A";
     return departments?.find(d => d.id === deptId)?.name || "Unknown";
+  };
+
+  const records = vaccinations || [];
+
+  const filteredRecords = records.filter(record => {
+    const empName = getEmployeeName(record.employee_id).toLowerCase();
+    const empNum = getEmployeeNumber(record.employee_id).toLowerCase();
+    const matchesSearch = empName.includes(searchQuery.toLowerCase()) || empNum.includes(searchQuery.toLowerCase());
+    const deptId = getEmployeeDept(record.employee_id);
+    const matchesDept = selectedDepartment === "all" || deptId === selectedDepartment;
+    const matchesVaccine = selectedVaccine === "all" || record.vaccine_name === selectedVaccine;
+    return matchesSearch && matchesDept && matchesVaccine;
+  });
+
+  const totalRecords = records.length;
+  const uniqueEmployees = new Set(records.map(r => r.employee_id)).size;
+  const dueRecords = records.filter(r => r.next_due_date && differenceInDays(new Date(r.next_due_date), new Date()) <= 30 && differenceInDays(new Date(r.next_due_date), new Date()) >= 0).length;
+  const overdueRecords = records.filter(r => r.next_due_date && differenceInDays(new Date(r.next_due_date), new Date()) < 0).length;
+
+  const isLoading = loadingEmployees || loadingDepts || loadingVax;
+
+  const handleSubmit = () => {
+    if (!form.employee_id || !form.vaccine_name || !form.administered_date) return;
+    createRecord.mutate({
+      employee_id: form.employee_id,
+      vaccine_name: form.vaccine_name,
+      dose_number: form.dose_number,
+      administered_date: form.administered_date,
+      administered_by: form.administered_by || null,
+      batch_number: form.batch_number || null,
+      next_due_date: form.next_due_date || null,
+      notes: form.notes || null,
+    }, {
+      onSuccess: () => {
+        setShowAddDialog(false);
+        setForm({ employee_id: "", vaccine_name: "", dose_number: 1, administered_date: "", administered_by: "", batch_number: "", next_due_date: "", notes: "" });
+      }
+    });
+  };
+
+  const getDueBadge = (nextDueDate: string | null) => {
+    if (!nextDueDate) return null;
+    const days = differenceInDays(new Date(nextDueDate), new Date());
+    if (days < 0) return <Badge className="bg-red-100 text-red-700 hover:bg-red-100">Overdue</Badge>;
+    if (days <= 30) return <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100">Due Soon</Badge>;
+    return null;
   };
 
   return (
@@ -98,24 +118,22 @@ export default function VaccinationsPage() {
           { label: "Vaccinations" }
         ]}
         actions={
-          <Button>
+          <Button onClick={() => setShowAddDialog(true)}>
             <Plus className="h-4 w-4 mr-2" />
-            Schedule Vaccination Drive
+            Record Vaccination
           </Button>
         }
       />
 
-      {/* Stats Cards */}
+      {/* Stats */}
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
-              <div className="p-2 rounded-lg bg-primary/10">
-                <Users className="h-5 w-5 text-primary" />
-              </div>
+              <div className="p-2 rounded-lg bg-primary/10"><Syringe className="h-5 w-5 text-primary" /></div>
               <div>
-                <p className="text-sm text-muted-foreground">Total Employees</p>
-                <p className="text-2xl font-bold">{totalEmployees}</p>
+                <p className="text-sm text-muted-foreground">Total Records</p>
+                <p className="text-2xl font-bold">{totalRecords}</p>
               </div>
             </div>
           </CardContent>
@@ -123,12 +141,10 @@ export default function VaccinationsPage() {
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
-              <div className="p-2 rounded-lg bg-green-500/10">
-                <CheckCircle className="h-5 w-5 text-green-600" />
-              </div>
+              <div className="p-2 rounded-lg bg-green-500/10"><Users className="h-5 w-5 text-green-600" /></div>
               <div>
-                <p className="text-sm text-muted-foreground">Fully Vaccinated</p>
-                <p className="text-2xl font-bold">{fullyVaccinated}</p>
+                <p className="text-sm text-muted-foreground">Employees Vaccinated</p>
+                <p className="text-2xl font-bold">{uniqueEmployees}</p>
               </div>
             </div>
           </CardContent>
@@ -136,12 +152,10 @@ export default function VaccinationsPage() {
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
-              <div className="p-2 rounded-lg bg-amber-500/10">
-                <Clock className="h-5 w-5 text-amber-600" />
-              </div>
+              <div className="p-2 rounded-lg bg-amber-500/10"><Clock className="h-5 w-5 text-amber-600" /></div>
               <div>
-                <p className="text-sm text-muted-foreground">Pending Due</p>
-                <p className="text-2xl font-bold">{pendingVaccinations}</p>
+                <p className="text-sm text-muted-foreground">Due Soon (30d)</p>
+                <p className="text-2xl font-bold">{dueRecords}</p>
               </div>
             </div>
           </CardContent>
@@ -149,81 +163,41 @@ export default function VaccinationsPage() {
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
-              <div className="p-2 rounded-lg bg-blue-500/10">
-                <Syringe className="h-5 w-5 text-blue-600" />
-              </div>
+              <div className="p-2 rounded-lg bg-red-500/10"><CheckCircle className="h-5 w-5 text-red-600" /></div>
               <div>
-                <p className="text-sm text-muted-foreground">Compliance Rate</p>
-                <p className="text-2xl font-bold">{overallCompliance}%</p>
+                <p className="text-sm text-muted-foreground">Overdue</p>
+                <p className="text-2xl font-bold">{overdueRecords}</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Vaccine Summary */}
-      <div className="grid gap-4 md:grid-cols-5">
-        {VACCINE_TYPES.map((vaccine) => {
-          const completedCount = employeeVaccinationData.filter(
-            e => e.vaccines.find(v => v.name === vaccine.name)?.isComplete
-          ).length;
-          const percentage = totalEmployees > 0 ? Math.round((completedCount / totalEmployees) * 100) : 0;
-          
-          return (
-            <Card key={vaccine.name}>
-              <CardContent className="pt-4 pb-4">
-                <div className="text-center">
-                  <p className="text-sm font-medium">{vaccine.name}</p>
-                  <p className="text-2xl font-bold text-primary mt-1">{percentage}%</p>
-                  <p className="text-xs text-muted-foreground">{completedCount}/{totalEmployees} complete</p>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
-
-      {/* Filters */}
+      {/* Table */}
       <Card>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Syringe className="h-5 w-5" />
-                Vaccination Records
-              </CardTitle>
-              <CardDescription>Individual employee vaccination status</CardDescription>
+              <CardTitle className="text-lg flex items-center gap-2"><Syringe className="h-5 w-5" /> Vaccination Records</CardTitle>
+              <CardDescription>Individual employee vaccination records</CardDescription>
             </div>
             <div className="flex items-center gap-4">
               <div className="relative w-64">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search employees..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9"
-                />
+                <Input placeholder="Search employees..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9" />
               </div>
               <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="All Departments" />
-                </SelectTrigger>
+                <SelectTrigger className="w-[180px]"><SelectValue placeholder="All Departments" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Departments</SelectItem>
-                  {departments?.map((dept) => (
-                    <SelectItem key={dept.id} value={dept.id}>{dept.name}</SelectItem>
-                  ))}
+                  {departments?.map(dept => <SelectItem key={dept.id} value={dept.id}>{dept.name}</SelectItem>)}
                 </SelectContent>
               </Select>
               <Select value={selectedVaccine} onValueChange={setSelectedVaccine}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="All Vaccines" />
-                </SelectTrigger>
+                <SelectTrigger className="w-[180px]"><SelectValue placeholder="All Vaccines" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Vaccines</SelectItem>
-                  {VACCINE_TYPES.map((vaccine) => (
-                    <SelectItem key={vaccine.name} value={vaccine.name}>{vaccine.name}</SelectItem>
-                  ))}
+                  {VACCINE_TYPES.map(v => <SelectItem key={v} value={v}>{v}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -231,10 +205,12 @@ export default function VaccinationsPage() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="space-y-4">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <Skeleton key={i} className="h-16 w-full" />
-              ))}
+            <div className="space-y-4">{[1,2,3,4,5].map(i => <Skeleton key={i} className="h-16 w-full" />)}</div>
+          ) : filteredRecords.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground">
+              <Syringe className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p className="text-lg font-medium">No Vaccination Records</p>
+              <p className="text-sm mt-1">Click "Record Vaccination" to add a new record.</p>
             </div>
           ) : (
             <Table>
@@ -242,75 +218,105 @@ export default function VaccinationsPage() {
                 <TableRow>
                   <TableHead>Employee</TableHead>
                   <TableHead>Department</TableHead>
-                  {VACCINE_TYPES.map(v => (
-                    <TableHead key={v.name} className="text-center">{v.name}</TableHead>
-                  ))}
-                  <TableHead className="text-center">Compliance</TableHead>
+                  <TableHead>Vaccine</TableHead>
+                  <TableHead>Dose #</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Batch #</TableHead>
+                  <TableHead>Next Due</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredEmployees.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
-                      No records found matching your filters.
+                {filteredRecords.map(record => (
+                  <TableRow key={record.id}>
+                    <TableCell>
+                      <div>
+                        <p className="font-medium">{getEmployeeName(record.employee_id)}</p>
+                        <p className="text-xs text-muted-foreground">{getEmployeeNumber(record.employee_id)}</p>
+                      </div>
+                    </TableCell>
+                    <TableCell>{getDepartmentName(getEmployeeDept(record.employee_id))}</TableCell>
+                    <TableCell className="font-medium">{record.vaccine_name}</TableCell>
+                    <TableCell>{record.dose_number}</TableCell>
+                    <TableCell>{format(new Date(record.administered_date), "MMM d, yyyy")}</TableCell>
+                    <TableCell>{record.batch_number || "—"}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        {record.next_due_date ? format(new Date(record.next_due_date), "MMM d, yyyy") : "—"}
+                        {getDueBadge(record.next_due_date)}
+                      </div>
                     </TableCell>
                   </TableRow>
-                ) : (
-                  filteredEmployees.slice(0, 15).map((emp) => (
-                    <TableRow key={emp.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-8 w-8">
-                            <AvatarImage src={emp.profile_photo_url || ""} />
-                            <AvatarFallback>{emp.first_name?.[0]}{emp.last_name?.[0]}</AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-medium">{emp.first_name} {emp.last_name}</p>
-                            <p className="text-xs text-muted-foreground">{emp.employee_number}</p>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>{getDepartmentName(emp.department_id)}</TableCell>
-                      {emp.vaccines.map(v => (
-                        <TableCell key={v.name} className="text-center">
-                          {v.isComplete ? (
-                            <Badge className="bg-green-100 text-green-700 hover:bg-green-100">
-                              <CheckCircle className="h-3 w-3 mr-1" />
-                              Done
-                            </Badge>
-                          ) : v.isDue ? (
-                            <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100">
-                              <AlertTriangle className="h-3 w-3 mr-1" />
-                              Due
-                            </Badge>
-                          ) : (
-                            <Badge variant="secondary">
-                              {v.dosesGiven}/{v.totalDoses}
-                            </Badge>
-                          )}
-                        </TableCell>
-                      ))}
-                      <TableCell className="text-center">
-                        <Badge 
-                          className={
-                            emp.compliancePercentage === 100 
-                              ? "bg-green-100 text-green-700" 
-                              : emp.compliancePercentage >= 50 
-                                ? "bg-amber-100 text-amber-700"
-                                : "bg-red-100 text-red-700"
-                          }
-                        >
-                          {emp.compliancePercentage}%
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
+                ))}
               </TableBody>
             </Table>
           )}
         </CardContent>
       </Card>
+
+      {/* Add Dialog */}
+      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader><DialogTitle>Record Vaccination</DialogTitle></DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label>Employee *</Label>
+              <Select value={form.employee_id} onValueChange={(v) => setForm(f => ({ ...f, employee_id: v }))}>
+                <SelectTrigger><SelectValue placeholder="Select employee" /></SelectTrigger>
+                <SelectContent>
+                  {employees?.map(emp => (
+                    <SelectItem key={emp.id} value={emp.id}>{emp.first_name} {emp.last_name} ({emp.employee_number})</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label>Vaccine Name *</Label>
+                <Select value={form.vaccine_name} onValueChange={(v) => setForm(f => ({ ...f, vaccine_name: v }))}>
+                  <SelectTrigger><SelectValue placeholder="Select vaccine" /></SelectTrigger>
+                  <SelectContent>
+                    {VACCINE_TYPES.map(v => <SelectItem key={v} value={v}>{v}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label>Dose #</Label>
+                <Input type="number" min={1} value={form.dose_number} onChange={(e) => setForm(f => ({ ...f, dose_number: parseInt(e.target.value) || 1 }))} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label>Date Administered *</Label>
+                <Input type="date" value={form.administered_date} onChange={(e) => setForm(f => ({ ...f, administered_date: e.target.value }))} />
+              </div>
+              <div className="grid gap-2">
+                <Label>Administered By</Label>
+                <Input value={form.administered_by} onChange={(e) => setForm(f => ({ ...f, administered_by: e.target.value }))} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label>Batch Number</Label>
+                <Input value={form.batch_number} onChange={(e) => setForm(f => ({ ...f, batch_number: e.target.value }))} />
+              </div>
+              <div className="grid gap-2">
+                <Label>Next Due Date</Label>
+                <Input type="date" value={form.next_due_date} onChange={(e) => setForm(f => ({ ...f, next_due_date: e.target.value }))} />
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Label>Notes</Label>
+              <Textarea value={form.notes} onChange={(e) => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="Additional notes..." />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddDialog(false)}>Cancel</Button>
+            <Button onClick={handleSubmit} disabled={createRecord.isPending || !form.employee_id || !form.vaccine_name || !form.administered_date}>
+              {createRecord.isPending ? "Saving..." : "Save Record"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

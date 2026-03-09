@@ -1,52 +1,33 @@
 
+# HealthOS 24 — Documentation Suite Implementation
 
-## Compliance Module: From Dummy to Functional
+## Status: ✅ All 3 Rounds Complete
 
-### Current State
+## Round 1 ✅ DONE
+- [x] Bug fix: `mrn_number` → `patient_number` in DialysisNewSessionPage + DentalImagesPage
+- [x] DocumentationHub page (`/documentation`)
+- [x] OPD Documentation (8 pages)
+- [x] IPD Documentation (8 pages)
+- [x] Surgery/OT Documentation (7 pages)
 
-| Page | Status | Problem |
-|------|--------|---------|
-| **ComplianceDashboardPage** | Working | Has add dialogs for fitness, vaccinations, incidents. Reads from real tables. |
-| **MedicalLicensesPage** | Working | Reads from real `employee_licenses` table. Filters, export, all functional. |
-| **ExpiryTrackerPage** | Working | Reads from real `employee_licenses` + `employee_contracts`. Filters, export work. |
-| **EmployeeDocumentsPage** | Working | Reads from real `employee_documents` + `employee_licenses`. Accordion view works. |
-| **MedicalFitnessPage** | MOCK DATA | Line 26: "Mock medical fitness data" -- generates fake data instead of querying `medical_fitness_records` table |
-| **VaccinationsPage** | MOCK DATA | Line 33: "Mock vaccination data" -- generates fake data instead of querying `vaccination_records` table |
-| **DisciplinaryPage** | STUB | Shows "Coming Soon" notice, all buttons disabled, zero functionality |
+## Round 2 ✅ DONE
+- [x] Lab Documentation (5 pages)
+- [x] Radiology Documentation (5 pages)
+- [x] Warehouse Documentation (6 pages)
+- [x] Finance Documentation (6 pages)
+- [x] All routes wired in App.tsx
 
-All 6 database tables exist. The hooks in `useCompliance.ts` for all 4 areas (fitness, vaccinations, disciplinary, incidents) are fully implemented with CRUD operations. The sub-pages just aren't using them.
+## Round 3 ✅ DONE
+- [x] HR Documentation (6 pages)
+- [x] Dialysis Documentation (6 pages)
+- [x] Dental Documentation (6 pages)
+- [x] All routes wired in App.tsx
 
-### Fix Plan
-
-**1. MedicalFitnessPage -- Replace mock data with real data**
-- Remove the mock data generation block (lines 26-47)
-- Import and use `useMedicalFitnessRecords` from `useCompliance.ts`
-- Add "Record Examination" dialog (employee select, exam date, examiner, fitness status, restrictions, next exam date)
-- Table shows real records with employee name lookup
-- Keep existing filters (department, status) working against real data
-
-**2. VaccinationsPage -- Replace mock data with real data**
-- Remove mock data generation (lines 33-66)
-- Import and use `useVaccinationRecords` from `useCompliance.ts`
-- Add "Record Vaccination" dialog (employee, vaccine type, dose #, date, administered by, batch #, next due date)
-- Table shows real vaccination records grouped by employee
-- Keep vaccine compliance matrix view but driven by real data
-
-**3. DisciplinaryPage -- Make fully functional**
-- Remove "Coming Soon" alert and disabled states
-- Import and use `useDisciplinaryActions`, `useCreateDisciplinaryAction` from `useCompliance.ts`
-- Add "New Incident" dialog with form: employee, action type, incident date, description, policy violated, action taken
-- Stats cards show real counts (total, pending, under review, active warnings)
-- Table shows real disciplinary records with filters (department, action type, search)
-- Severity badges already defined, just need to connect
-
-**4. All three pages: Add navigation back to Compliance Dashboard**
-- Ensure breadcrumbs link to `/app/hr/compliance`
-
-### What Won't Change
-- ComplianceDashboardPage (already works)
-- MedicalLicensesPage (already works)
-- ExpiryTrackerPage (already works)
-- EmployeeDocumentsPage (already works)
-- No database changes needed -- all tables and hooks exist
-
+## HR Module Expansion ✅ DONE
+- [x] Employee Onboarding Page (`/app/hr/onboarding`) — checklist-based pipeline
+- [x] Unified Expiry Tracker (`/app/hr/compliance/expiry-tracker`) — licenses + contracts
+- [x] HR Letters & Templates (`/app/hr/letters`) — create templates, issue letters, print
+- [x] Training & Development (`/app/hr/training`) — programs, enrollments, completion
+- [x] Contract Management (`/app/hr/contracts`) — contract tracking, probation, renewals
+- [x] DB tables: `hr_letter_templates`, `hr_issued_letters`, `training_programs`, `training_enrollments`, `employee_contracts`
+- [x] All routes + sidebar navigation added
