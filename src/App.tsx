@@ -520,6 +520,11 @@ import WarehouseOrderDetailPage from "./pages/app/inventory/WarehouseOrderDetail
 import WarehouseKPIDashboard from "./pages/app/inventory/WarehouseKPIDashboard";
 import ShiftHandoverPage from "./pages/app/hr/attendance/ShiftHandoverPage";
 import SafetyIncidentsPage from "./pages/app/hr/SafetyIncidentsPage";
+import OnboardingPage from "./pages/app/hr/OnboardingPage";
+import ExpiryTrackerPage from "./pages/app/hr/compliance/ExpiryTrackerPage";
+import LettersPage from "./pages/app/hr/LettersPage";
+import TrainingPage from "./pages/app/hr/training/TrainingPage";
+import ContractsPage from "./pages/app/hr/ContractsPage";
 
 // Report sub-pages
 import StockValuationReport from "./pages/app/inventory/reports/StockValuationReport";
@@ -1276,6 +1281,11 @@ function App() {
               <Route path="hr/attendance/corrections" element={<AttendanceCorrectionsPage />} />
               <Route path="hr/attendance/shift-handover" element={<ShiftHandoverPage />} />
               <Route path="hr/safety-incidents" element={<SafetyIncidentsPage />} />
+              <Route path="hr/onboarding" element={<OnboardingPage />} />
+              <Route path="hr/compliance/expiry-tracker" element={<ExpiryTrackerPage />} />
+              <Route path="hr/letters" element={<LettersPage />} />
+              <Route path="hr/training" element={<TrainingPage />} />
+              <Route path="hr/contracts" element={<ContractsPage />} />
               
               {/* Settings routes */}
               <Route path="settings/branches" element={<BranchesListPage />} />

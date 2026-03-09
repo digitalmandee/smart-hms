@@ -998,6 +998,11 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
           { name: "Applications", path: "/app/hr/recruitment/applications", icon: "FileText" },
         ]
       },
+      {
+        name: "Onboarding",
+        path: "/app/hr/onboarding",
+        icon: "ClipboardCheck",
+      },
       { 
         name: "Exit Management", 
         path: "", 
@@ -1018,7 +1023,23 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
           { name: "Medical Fitness", path: "/app/hr/compliance/medical-fitness", icon: "HeartPulse" },
           { name: "Vaccinations", path: "/app/hr/compliance/vaccinations", icon: "Syringe" },
           { name: "Disciplinary", path: "/app/hr/compliance/disciplinary", icon: "AlertTriangle" },
+          { name: "Expiry Tracker", path: "/app/hr/compliance/expiry-tracker", icon: "Calendar" },
         ]
+      },
+      {
+        name: "Training",
+        path: "/app/hr/training",
+        icon: "GraduationCap",
+      },
+      {
+        name: "HR Letters",
+        path: "/app/hr/letters",
+        icon: "FileText",
+      },
+      {
+        name: "Contracts",
+        path: "/app/hr/contracts",
+        icon: "ScrollText",
       },
       { 
         name: "Setup", 
