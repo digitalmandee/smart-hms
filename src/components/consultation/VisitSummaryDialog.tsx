@@ -303,7 +303,7 @@ export function VisitSummaryDialog({
             ) : (
               <Check className="h-4 w-4 mr-2" />
             )}
-            {prescriptionItems.length > 0 || labOrderItems.length > 0 
+            {prescriptionItems.length > 0 || labOrderItems.length > 0 || imagingOrderItems.length > 0
               ? "Complete & Send to Checkout" 
               : "Complete Visit"}
           </Button>

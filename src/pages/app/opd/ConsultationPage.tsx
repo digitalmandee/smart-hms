@@ -504,6 +504,7 @@ export default function ConsultationPage() {
           }}
           prescriptionItems={prescriptionItems}
           labOrderItems={labOrderItems}
+          imagingOrderItems={imagingOrderItems}
           onConfirm={handleConfirmComplete}
           isCompleting={isCompleting}
         />
