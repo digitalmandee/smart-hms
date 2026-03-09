@@ -485,6 +485,7 @@ export default function OPDCheckoutPage() {
                   {charges.map((charge) => {
                     const Icon = charge.type === "consultation" ? Stethoscope 
                       : charge.type === "lab" ? TestTubes 
+                      : charge.type === "imaging" ? Scan
                       : Pill;
                     const isSelected = selectedCharges.includes(charge.id);
                     const isPending = charge.status === "pending" && charge.amount > 0;
