@@ -63,6 +63,7 @@ export default function OPDWalkInPage() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { formatCurrency } = useCurrencyFormatter();
   const isRTL = useIsRTL();
   
   // Session requirement for payment collection
