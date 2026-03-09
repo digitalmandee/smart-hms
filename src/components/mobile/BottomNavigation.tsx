@@ -50,8 +50,8 @@ export function BottomNavigation() {
   };
 
   const isPathActive = (itemPath: string) => {
-    if (itemPath === "/app/dashboard") {
-      return location.pathname === "/app/dashboard" || location.pathname === "/app";
+    if (itemPath === homePath) {
+      return location.pathname === homePath || location.pathname === "/app" || location.pathname === "/app/dashboard";
     }
     return location.pathname === itemPath || location.pathname.startsWith(itemPath + "/");
   };
