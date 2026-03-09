@@ -186,10 +186,10 @@ export default function PendingCheckoutPage() {
                 <Skeleton key={i} className="h-20 w-full" />
               ))}
             </div>
-          ) : completedAppointments && completedAppointments.length > 0 ? (
+          ) : filteredAppointments.length > 0 ? (
             <ScrollArea className="h-[500px] pr-4">
               <div className="space-y-3">
-                {completedAppointments.map((apt) => {
+                {filteredAppointments.map((apt) => {
                   const patient = apt.patient as any;
                   const doctor = apt.doctor as any;
                   const patientId = patient?.id;
