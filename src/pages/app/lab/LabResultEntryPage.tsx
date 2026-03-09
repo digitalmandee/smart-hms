@@ -56,31 +56,6 @@ export default function LabResultEntryPage() {
   const [sampleNumber, setSampleNumber] = useState("");
   const userEditedBarcode = useRef(false);
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
-
-  if (!labOrder) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px]">
-        <AlertTriangle className="h-12 w-12 text-muted-foreground mb-4" />
-        <h2 className="text-lg font-medium">Lab order not found</h2>
-        <Button variant="outline" className="mt-4" onClick={() => navigate("/app/lab/queue")}>
-          Back to Queue
-        </Button>
-      </div>
-    );
-  }
-
-  const patient = labOrder.patient;
-  const doctor = labOrder.doctor as { profile?: { full_name: string }; specialization?: string } | undefined;
-  const priority = priorityConfig[labOrder.priority] || priorityConfig.routine;
-  const status = statusConfig[labOrder.status] || statusConfig.ordered;
-
   // Auto-generate barcode on initial load only, don't override user edits
   useEffect(() => {
     if (userEditedBarcode.current || !labOrder || labOrder.status !== "ordered") return;
@@ -105,6 +80,31 @@ export default function LabResultEntryPage() {
     const seq = seqMatch ? seqMatch[1] : String(Math.floor(Math.random() * 10000)).padStart(4, "0");
     setSampleNumber(`${prefix}-${datePart}-${seq}`);
   }, [labOrder?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (!labOrder) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px]">
+        <AlertTriangle className="h-12 w-12 text-muted-foreground mb-4" />
+        <h2 className="text-lg font-medium">Lab order not found</h2>
+        <Button variant="outline" className="mt-4" onClick={() => navigate("/app/lab/queue")}>
+          Back to Queue
+        </Button>
+      </div>
+    );
+  }
+
+  const patient = labOrder.patient;
+  const doctor = labOrder.doctor as { profile?: { full_name: string }; specialization?: string } | undefined;
+  const priority = priorityConfig[labOrder.priority] || priorityConfig.routine;
+  const status = statusConfig[labOrder.status] || statusConfig.ordered;
 
   const patientAge = patient?.date_of_birth
     ? differenceInYears(new Date(), new Date(patient.date_of_birth))
