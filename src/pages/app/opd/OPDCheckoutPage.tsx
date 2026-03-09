@@ -1,7 +1,7 @@
 // OPD Checkout Page - handles billing and payment processing for OPD visits
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams, Navigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -65,6 +65,8 @@ export default function OPDCheckoutPage() {
   
   const createInvoice = useCreateInvoice();
   const recordPayment = useRecordPayment();
+  const queryClient = useQueryClient();
+
 
   // Fetch consultation service type for commission tracking
   const { data: consultationServiceType } = useQuery({
@@ -118,7 +120,19 @@ export default function OPDCheckoutPage() {
     enabled: !!appointmentId,
   });
 
-  // Fetch consultation for this appointment
+  // Auto-redirect if appointment is already paid
+  useEffect(() => {
+    if (appointment && appointment.payment_status === "paid") {
+      toast.info("This appointment has already been checked out");
+      if (appointment.invoice_id) {
+        navigate(`/app/billing/invoices/${appointment.invoice_id}`, { replace: true });
+      } else {
+        navigate("/app/opd/pending-checkout", { replace: true });
+      }
+    }
+  }, [appointment, navigate]);
+
+
   const { data: consultation } = useQuery({
     queryKey: ["opd-checkout-consultation", appointmentId],
     queryFn: async () => {
@@ -450,6 +464,10 @@ export default function OPDCheckoutPage() {
       }
 
       setCreatedInvoiceId(invoiceData.id);
+
+      // Invalidate caches to prevent stale data
+      queryClient.invalidateQueries({ queryKey: ["pending-checkout"] });
+      queryClient.invalidateQueries({ queryKey: ["opd-checkout-appointment", appointmentId] });
 
       // If insured, stay to show claim prompt
       if (billingSplit && !billingSplit.isSelfPay && billingSplit.insuranceAmount > 0) {
