@@ -168,6 +168,11 @@ export default function OPDCheckoutPage() {
     enabled: !!consultation?.id,
   });
 
+  // Redirect to pending checkout if no appointmentId
+  if (!appointmentId) {
+    return <Navigate to="/app/opd/pending-checkout" replace />;
+  }
+
   // Build charge items
   const charges: ChargeItem[] = [];
 
