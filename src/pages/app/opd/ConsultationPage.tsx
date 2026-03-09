@@ -220,8 +220,8 @@ export default function ConsultationPage() {
           ? `Orders sent: ${orderSummary.join(", ")}. Patient can proceed to billing counter.`
           : "No additional orders.";
         
-        toast({
-          title: "Consultation completed",
+        const { toast } = await import("sonner");
+        toast.success("Consultation completed", {
           description: summaryText,
         });
         
