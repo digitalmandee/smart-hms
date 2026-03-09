@@ -21,16 +21,27 @@ const navItems: NavItem[] = [
   { path: "/app/profile", labelKey: "nav.profile", icon: User },
 ];
 
+// Role-aware home path: lab techs go to /app/lab, pharmacists to /app/pharmacy
+const getHomePath = (roles: string[]): string => {
+  if (roles.includes("lab_technician")) return "/app/lab";
+  if (roles.includes("pharmacist") || roles.includes("ot_pharmacist")) return "/app/pharmacy";
+  return "/app/dashboard";
+};
+
 export function BottomNavigation() {
   const location = useLocation();
   const { roles } = useAuth();
   const haptics = useHaptics();
   const { t } = useTranslation();
 
-  const filteredItems = navItems.filter(item => {
-    if (!item.roles) return true;
-    return item.roles.some(role => roles.includes(role as any));
-  });
+  const homePath = getHomePath(roles as string[]);
+
+  const filteredItems = navItems
+    .map(item => item.path === "/app/dashboard" ? { ...item, path: homePath } : item)
+    .filter(item => {
+      if (!item.roles) return true;
+      return item.roles.some(role => roles.includes(role as any));
+    });
 
   const displayItems = filteredItems.slice(0, 5);
 
@@ -39,8 +50,8 @@ export function BottomNavigation() {
   };
 
   const isPathActive = (itemPath: string) => {
-    if (itemPath === "/app/dashboard") {
-      return location.pathname === "/app/dashboard" || location.pathname === "/app";
+    if (itemPath === homePath) {
+      return location.pathname === homePath || location.pathname === "/app" || location.pathname === "/app/dashboard";
     }
     return location.pathname === itemPath || location.pathname.startsWith(itemPath + "/");
   };
