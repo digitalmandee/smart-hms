@@ -34,7 +34,7 @@ import { toast } from "sonner";
 
 interface ChargeItem {
   id: string;
-  type: "consultation" | "lab" | "prescription";
+  type: "consultation" | "lab" | "prescription" | "imaging";
   description: string;
   amount: number;
   status: "pending" | "invoiced" | "paid";
