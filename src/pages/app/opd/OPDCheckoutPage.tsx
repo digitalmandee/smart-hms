@@ -16,6 +16,7 @@ import {
   Pill, 
   TestTubes, 
   Stethoscope,
+  Scan,
   CheckCircle2,
   Clock,
   Loader2
