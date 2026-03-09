@@ -13,7 +13,7 @@ import { MobileLabQueue } from "@/components/mobile/MobileLabQueue";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Capacitor } from "@capacitor/core";
 
-type StatusFilter = "all" | "ordered" | "collected" | "processing";
+type StatusFilter = "all" | "ordered" | "collected" | "processing" | "completed";
 type PaymentFilter = "all" | "paid" | "pending";
 
 export default function LabQueuePage() {
