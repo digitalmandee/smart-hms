@@ -7,12 +7,13 @@ export interface OnboardingStep {
   id: string;
   employee_id: string;
   organization_id: string;
-  step_name: string;
-  step_category: string;
-  sort_order: number;
+  item_name: string;
+  description: string | null;
   is_completed: boolean;
   completed_at: string | null;
   completed_by: string | null;
+  due_date: string | null;
+  template_id: string | null;
   notes: string | null;
   created_at: string;
   employee?: {
@@ -25,16 +26,16 @@ export interface OnboardingStep {
 }
 
 const DEFAULT_ONBOARDING_STEPS = [
-  { step_name: 'Document Collection', step_category: 'documents', sort_order: 1 },
-  { step_name: 'ID Card Issuance', step_category: 'documents', sort_order: 2 },
-  { step_name: 'IT Account Setup', step_category: 'it', sort_order: 3 },
-  { step_name: 'System Access & Training', step_category: 'it', sort_order: 4 },
-  { step_name: 'Uniform Issuance', step_category: 'logistics', sort_order: 5 },
-  { step_name: 'Department Orientation', step_category: 'orientation', sort_order: 6 },
-  { step_name: 'Policy Acknowledgement', step_category: 'orientation', sort_order: 7 },
-  { step_name: 'Buddy/Mentor Assignment', step_category: 'orientation', sort_order: 8 },
-  { step_name: 'Probation Goals Set', step_category: 'probation', sort_order: 9 },
-  { step_name: 'First Week Check-in', step_category: 'followup', sort_order: 10 },
+  { item_name: 'Document Collection', description: 'Collect ID, certificates, contracts' },
+  { item_name: 'ID Card Issuance', description: 'Issue employee ID badge' },
+  { item_name: 'IT Account Setup', description: 'Create email and system accounts' },
+  { item_name: 'System Access & Training', description: 'Grant system access and basic training' },
+  { item_name: 'Uniform Issuance', description: 'Issue uniforms and PPE' },
+  { item_name: 'Department Orientation', description: 'Introduce to team and department' },
+  { item_name: 'Policy Acknowledgement', description: 'Review and sign company policies' },
+  { item_name: 'Buddy/Mentor Assignment', description: 'Assign onboarding buddy' },
+  { item_name: 'Probation Goals Set', description: 'Define probation period objectives' },
+  { item_name: 'First Week Check-in', description: 'Manager check-in after first week' },
 ];
 
 export function useOnboardingEmployees() {
@@ -52,7 +53,7 @@ export function useOnboardingEmployees() {
           employee:employee_id(id, first_name, last_name, employee_number, category:category_id(name, color))
         `)
         .eq('organization_id', profile.organization_id)
-        .order('sort_order', { ascending: true });
+        .order('created_at', { ascending: true });
 
       if (error) throw error;
 

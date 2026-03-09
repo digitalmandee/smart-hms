@@ -171,11 +171,13 @@ export default function OnboardingPage() {
                             />
                             <div>
                               <span className={`text-sm ${step.is_completed ? "line-through text-muted-foreground" : "font-medium"}`}>
-                                {step.step_name}
+                                {step.item_name}
                               </span>
-                              <span className="text-xs text-muted-foreground ml-2">
-                                {CATEGORY_LABELS[step.step_category] || step.step_category}
-                              </span>
+                              {step.description && (
+                                <span className="text-xs text-muted-foreground ml-2">
+                                  {step.description}
+                                </span>
+                              )}
                             </div>
                           </div>
                           {step.completed_at && (
