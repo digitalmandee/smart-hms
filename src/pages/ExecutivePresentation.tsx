@@ -12,6 +12,7 @@ import { ExecModulesSlide } from "@/components/executive/ExecModulesSlide";
 import { ExecAIEverywhereSlide } from "@/components/executive/ExecAIEverywhereSlide";
 import { ExecTabeebiSlide } from "@/components/executive/ExecTabeebiSlide";
 import { ExecInsuranceSlide } from "@/components/executive/ExecInsuranceSlide";
+import { ExecKsaComplianceSlide } from "@/components/executive/ExecKsaComplianceSlide";
 import { ExecClinicalSlide } from "@/components/executive/ExecClinicalSlide";
 import { ExecDiagnosticsSlide } from "@/components/executive/ExecDiagnosticsSlide";
 import { ExecAutomationSlide } from "@/components/executive/ExecAutomationSlide";
@@ -21,7 +22,7 @@ import { ExecTechSlide } from "@/components/executive/ExecTechSlide";
 import { ExecROISlide } from "@/components/executive/ExecROISlide";
 import { ExecCTASlide } from "@/components/executive/ExecCTASlide";
 
-const TOTAL_SLIDES = 16;
+const TOTAL_SLIDES = 17;
 
 const ExecutivePresentation = () => {
   const [isDownloading, setIsDownloading] = useState(false);
@@ -161,6 +162,7 @@ const ExecutivePresentation = () => {
           <ExecAIEverywhereSlide />
           <ExecTabeebiSlide />
           <ExecInsuranceSlide />
+          <ExecKsaComplianceSlide />
           <ExecClinicalSlide />
           <ExecDiagnosticsSlide />
           <ExecAutomationSlide />
