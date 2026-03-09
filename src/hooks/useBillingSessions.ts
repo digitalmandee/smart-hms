@@ -174,7 +174,7 @@ export function useOpenSession() {
         throw new Error('User profile not loaded');
       }
 
-      // Check for existing open session
+      // Check for existing open session by this user
       const { data: existing } = await supabase
         .from('billing_sessions')
         .select('id, session_number')
@@ -184,6 +184,19 @@ export function useOpenSession() {
 
       if (existing) {
         throw new Error(`You already have an open session: ${existing.session_number}`);
+      }
+
+      // Check if this counter already has an active session (by any user)
+      const { data: counterSession } = await supabase
+        .from('billing_sessions')
+        .select('id, session_number')
+        .eq('branch_id', profile.branch_id)
+        .eq('counter_type', counterType)
+        .eq('status', 'open')
+        .maybeSingle();
+
+      if (counterSession) {
+        throw new Error(`This counter already has an active session: ${counterSession.session_number}`);
       }
 
       // Generate session number
