@@ -23,11 +23,14 @@ import {
   Activity,
   Loader2,
   Receipt,
+  Scan,
 } from "lucide-react";
 import { generateVisitId } from "@/lib/visit-id";
 import { Vitals } from "@/hooks/useConsultations";
 import { PrescriptionItemInput } from "@/hooks/usePrescriptions";
 import { LabOrderItemInput } from "@/hooks/useLabOrders";
+import { type ImagingOrderItemInput } from "@/components/consultation/RadiologyOrderBuilder";
+import { IMAGING_MODALITIES } from "@/hooks/useImaging";
 
 interface VisitSummaryDialogProps {
   open: boolean;
@@ -52,6 +55,7 @@ interface VisitSummaryDialogProps {
   };
   prescriptionItems: PrescriptionItemInput[];
   labOrderItems: LabOrderItemInput[];
+  imagingOrderItems?: ImagingOrderItemInput[];
   onConfirm: () => void;
   onPrintPrescription?: () => void;
   onPrintSummary?: () => void;
@@ -67,6 +71,7 @@ export function VisitSummaryDialog({
   consultation,
   prescriptionItems,
   labOrderItems,
+  imagingOrderItems = [],
   onConfirm,
   onPrintPrescription,
   onPrintSummary,
@@ -228,6 +233,29 @@ export function VisitSummaryDialog({
               </>
             )}
 
+            {/* Imaging Orders */}
+            {imagingOrderItems.length > 0 && (
+              <>
+                <div className="space-y-3">
+                  <h4 className="font-semibold flex items-center gap-2">
+                    <Scan className="h-4 w-4" />
+                    Imaging Orders ({imagingOrderItems.length} stud{imagingOrderItems.length > 1 ? "ies" : "y"})
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {imagingOrderItems.map((item, i) => (
+                      <Badge key={i} variant="outline">
+                        {item.procedure_name}
+                        <span className="ml-1 text-muted-foreground text-xs">
+                          ({IMAGING_MODALITIES.find(m => m.value === item.modality)?.label || item.modality})
+                        </span>
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+                <Separator />
+              </>
+            )}
+
             {/* Follow-up */}
             {consultation.followUpDate && (
               <div className="flex items-center gap-3 p-3 rounded-lg border border-primary/20 bg-primary/5">
@@ -244,7 +272,7 @@ export function VisitSummaryDialog({
         <Separator />
         
         {/* Pending Checkout Notice */}
-        {(prescriptionItems.length > 0 || labOrderItems.length > 0) && (
+        {(prescriptionItems.length > 0 || labOrderItems.length > 0 || imagingOrderItems.length > 0) && (
           <div className="flex items-center gap-2 p-3 rounded-lg bg-warning/10 border border-warning/30 text-warning-foreground text-sm">
             <Receipt className="h-4 w-4" />
             <span>Patient has pending orders and will be directed to checkout after completion.</span>
@@ -275,7 +303,7 @@ export function VisitSummaryDialog({
             ) : (
               <Check className="h-4 w-4 mr-2" />
             )}
-            {prescriptionItems.length > 0 || labOrderItems.length > 0 
+            {prescriptionItems.length > 0 || labOrderItems.length > 0 || imagingOrderItems.length > 0
               ? "Complete & Send to Checkout" 
               : "Complete Visit"}
           </Button>

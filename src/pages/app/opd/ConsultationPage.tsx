@@ -10,12 +10,13 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Save, Check, ArrowLeft, CalendarIcon, Scissors, Stethoscope, Pill, TestTube } from "lucide-react";
+import { Loader2, Save, Check, ArrowLeft, CalendarIcon, Scissors, Stethoscope, Pill, TestTube, Scan } from "lucide-react";
 import { DoctorAvatar } from "@/components/ai/DoctorAvatar";
 import { useAppointment, useUpdateAppointment } from "@/hooks/useAppointments";
 import { useConsultationByAppointment, useCreateConsultation, useUpdateConsultation, Vitals } from "@/hooks/useConsultations";
 import { useCreatePrescription, PrescriptionItemInput } from "@/hooks/usePrescriptions";
 import { useCreateLabOrder, LabOrderItemInput } from "@/hooks/useLabOrders";
+import { useCreateImagingOrder, type ImagingModality } from "@/hooks/useImaging";
 import { useDoctors } from "@/hooks/useDoctors";
 import { useAuth } from "@/contexts/AuthContext";
 import { CompactVitals } from "@/components/consultation/CompactVitals";
@@ -23,6 +24,7 @@ import { SymptomsInput } from "@/components/consultation/SymptomsInput";
 import { DiagnosisInput } from "@/components/consultation/DiagnosisInput";
 import { PrescriptionBuilder } from "@/components/consultation/PrescriptionBuilder";
 import { LabOrderBuilder } from "@/components/consultation/LabOrderBuilder";
+import { RadiologyOrderBuilder, type ImagingOrderItemInput } from "@/components/consultation/RadiologyOrderBuilder";
 import { PatientQuickInfo } from "@/components/consultation/PatientQuickInfo";
 import { PreviousVisits } from "@/components/consultation/PreviousVisits";
 import { VisitSummaryDialog } from "@/components/consultation/VisitSummaryDialog";
@@ -49,6 +51,7 @@ export default function ConsultationPage() {
   const updateAppointment = useUpdateAppointment();
   const createPrescription = useCreatePrescription();
   const createLabOrder = useCreateLabOrder();
+  const createImagingOrder = useCreateImagingOrder();
 
   // Find current doctor
   const currentDoctor = doctors.find(d => d.profile?.id === profile?.id);
@@ -72,6 +75,9 @@ export default function ConsultationPage() {
   const [labOrderItems, setLabOrderItems] = useState<LabOrderItemInput[]>([]);
   const [labOrderPriority, setLabOrderPriority] = useState<"routine" | "urgent" | "stat">("routine");
   const [labOrderNotes, setLabOrderNotes] = useState("");
+  const [imagingOrderItems, setImagingOrderItems] = useState<ImagingOrderItemInput[]>([]);
+  const [imagingOrderPriority, setImagingOrderPriority] = useState<"routine" | "urgent" | "stat">("routine");
+  const [imagingOrderNotes, setImagingOrderNotes] = useState("");
   const [followUpDate, setFollowUpDate] = useState<Date | undefined>(
     existingConsultation?.follow_up_date ? new Date(existingConsultation.follow_up_date) : undefined
   );
@@ -181,6 +187,22 @@ export default function ConsultationPage() {
         });
       }
 
+      // Create imaging orders if items exist
+      if (complete && imagingOrderItems.length > 0 && consultationId) {
+        for (const item of imagingOrderItems) {
+          await createImagingOrder.mutateAsync({
+            consultation_id: consultationId,
+            patient_id: patient.id,
+            modality: item.modality,
+            procedure_name: item.procedure_name,
+            clinical_indication: item.clinical_indication,
+            priority: imagingOrderPriority,
+            notes: imagingOrderNotes,
+            status: 'ordered',
+          });
+        }
+      }
+
       // Update appointment status
       if (complete) {
         await updateAppointment.mutateAsync({
@@ -189,7 +211,7 @@ export default function ConsultationPage() {
         });
         
         // Navigate to checkout if there are pending orders, otherwise back to OPD
-        const hasPendingOrders = prescriptionItems.length > 0 || labOrderItems.length > 0;
+        const hasPendingOrders = prescriptionItems.length > 0 || labOrderItems.length > 0 || imagingOrderItems.length > 0;
         if (hasPendingOrders) {
           navigate(`/app/opd/checkout?appointmentId=${appointmentId}`);
         } else {
@@ -306,18 +328,22 @@ export default function ConsultationPage() {
           </div>
 
           <Tabs defaultValue="clinical" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="clinical" className="text-xs gap-1">
                 <Stethoscope className="h-3.5 w-3.5" />
                 Clinical
               </TabsTrigger>
               <TabsTrigger value="prescription" className="text-xs gap-1">
                 <Pill className="h-3.5 w-3.5" />
-                Prescription
+                Rx
               </TabsTrigger>
               <TabsTrigger value="labs" className="text-xs gap-1">
                 <TestTube className="h-3.5 w-3.5" />
                 Labs
+              </TabsTrigger>
+              <TabsTrigger value="imaging" className="text-xs gap-1">
+                <Scan className="h-3.5 w-3.5" />
+                Imaging
               </TabsTrigger>
               <TabsTrigger value="ai" className="text-xs gap-1">
                 <DoctorAvatar size="xs" className="scale-50 -m-2" />
@@ -387,6 +413,18 @@ export default function ConsultationPage() {
                 onPriorityChange={setLabOrderPriority}
                 notes={labOrderNotes}
                 onNotesChange={setLabOrderNotes}
+              />
+            </TabsContent>
+
+            {/* Imaging Tab */}
+            <TabsContent value="imaging" className="space-y-4 mt-4">
+              <RadiologyOrderBuilder
+                items={imagingOrderItems}
+                onChange={setImagingOrderItems}
+                priority={imagingOrderPriority}
+                onPriorityChange={setImagingOrderPriority}
+                notes={imagingOrderNotes}
+                onNotesChange={setImagingOrderNotes}
               />
             </TabsContent>
 
@@ -466,6 +504,7 @@ export default function ConsultationPage() {
           }}
           prescriptionItems={prescriptionItems}
           labOrderItems={labOrderItems}
+          imagingOrderItems={imagingOrderItems}
           onConfirm={handleConfirmComplete}
           isCompleting={isCompleting}
         />
