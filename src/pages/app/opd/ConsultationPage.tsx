@@ -75,6 +75,9 @@ export default function ConsultationPage() {
   const [labOrderItems, setLabOrderItems] = useState<LabOrderItemInput[]>([]);
   const [labOrderPriority, setLabOrderPriority] = useState<"routine" | "urgent" | "stat">("routine");
   const [labOrderNotes, setLabOrderNotes] = useState("");
+  const [imagingOrderItems, setImagingOrderItems] = useState<ImagingOrderItemInput[]>([]);
+  const [imagingOrderPriority, setImagingOrderPriority] = useState<"routine" | "urgent" | "stat">("routine");
+  const [imagingOrderNotes, setImagingOrderNotes] = useState("");
   const [followUpDate, setFollowUpDate] = useState<Date | undefined>(
     existingConsultation?.follow_up_date ? new Date(existingConsultation.follow_up_date) : undefined
   );
