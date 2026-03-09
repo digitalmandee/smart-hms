@@ -182,21 +182,23 @@ export function LabOrderBuilder({
                         </Button>
                       </div>
                     </CommandEmpty>
-                    <CommandGroup heading="Common Tests">
+                    <CommandGroup heading="Lab Tests">
                       {filteredTests.map((test) => (
                         <CommandItem
                           key={test.test_name}
                           value={test.test_name}
                           onSelect={() => {
-                            addItem(test);
+                            addItem({ test_name: test.test_name, test_category: test.test_category, service_type_id: test.service_type_id });
                             setSearch("");
                             setOpenSearch(false);
                           }}
                         >
-                          <span>{test.test_name}</span>
-                          <Badge variant="outline" className="ml-auto text-xs">
-                            {test.test_category}
-                          </Badge>
+                          <span className="flex-1">{test.test_name}</span>
+                          {test.price ? (
+                            <span className="text-xs text-muted-foreground mr-2">
+                              {formatCurrency(test.price)}
+                            </span>
+                          ) : null}
                         </CommandItem>
                       ))}
                     </CommandGroup>
