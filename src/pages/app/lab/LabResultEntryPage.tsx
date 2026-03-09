@@ -331,8 +331,8 @@ export default function LabResultEntryPage() {
                     <Input
                       id="sample-number"
                       value={sampleNumber}
-                      onChange={(e) => setSampleNumber(e.target.value)}
-                      placeholder="e.g., LAB-2601170001"
+                      onChange={(e) => { userEditedBarcode.current = true; setSampleNumber(e.target.value); }}
+                      placeholder="Auto-generated — edit if needed"
                       className="pl-10"
                       required
                     />
