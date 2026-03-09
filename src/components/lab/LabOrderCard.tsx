@@ -88,6 +88,12 @@ export function LabOrderCard({ order, canCollectPayment, onPaymentComplete }: La
                   <PaymentIcon className="h-3 w-3" />
                   {paymentStatus.label}
                 </Badge>
+                {isPublished && (
+                  <Badge className="bg-green-100 text-green-800 flex items-center gap-1">
+                    <CheckCircle className="h-3 w-3" />
+                    Published
+                  </Badge>
+                )}
                 {totalCount > 0 && (
                   <Badge variant="outline" className="text-xs">
                     {completedCount}/{totalCount} done
