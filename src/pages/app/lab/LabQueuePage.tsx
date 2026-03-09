@@ -7,7 +7,8 @@ import { LabOrderCard } from "@/components/lab/LabOrderCard";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Search, TestTube, CreditCard, Clock } from "lucide-react";
+import { Loader2, Search, TestTube, CreditCard, Clock, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { MobileLabQueue } from "@/components/mobile/MobileLabQueue";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Capacitor } from "@capacitor/core";
@@ -101,10 +102,21 @@ export default function LabQueuePage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Lab Orders Queue"
-        description="View and process pending laboratory orders"
-      />
+      <div className="flex items-center justify-between">
+        <PageHeader
+          title="Lab Orders Queue"
+          description="View and process pending laboratory orders"
+        />
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => refetch()}
+          disabled={isLoading}
+        >
+          <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+          Refresh
+        </Button>
+      </div>
 
       {/* Stats Summary */}
       <div className="flex flex-wrap gap-4">
