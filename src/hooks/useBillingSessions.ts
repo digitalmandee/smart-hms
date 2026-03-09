@@ -174,7 +174,7 @@ export function useOpenSession() {
         throw new Error('User profile not loaded');
       }
 
-      // Check for existing open session
+      // Check for existing open session by this user
       const { data: existing } = await supabase
         .from('billing_sessions')
         .select('id, session_number')
@@ -184,6 +184,19 @@ export function useOpenSession() {
 
       if (existing) {
         throw new Error(`You already have an open session: ${existing.session_number}`);
+      }
+
+      // Check if this counter already has an active session (by any user)
+      const { data: counterSession } = await supabase
+        .from('billing_sessions')
+        .select('id, session_number')
+        .eq('branch_id', profile.branch_id)
+        .eq('counter_type', counterType)
+        .eq('status', 'open')
+        .maybeSingle();
+
+      if (counterSession) {
+        throw new Error(`This counter already has an active session: ${counterSession.session_number}`);
       }
 
       // Generate session number
@@ -217,8 +230,16 @@ export function useOpenSession() {
       queryClient.invalidateQueries({ queryKey: ['billing-sessions'] });
       toast.success('Session opened successfully');
     },
-    onError: (error) => {
-      toast.error(error.message || 'Failed to open session');
+    onError: (error: any) => {
+      // Handle unique constraint violations from DB indexes
+      if (error?.code === '23505') {
+        const msg = error.message?.includes('unique_open_session_per_user')
+          ? 'You already have an open session. Close it before opening a new one.'
+          : 'This counter already has an active session. Close it first.';
+        toast.error(msg);
+      } else {
+        toast.error(error.message || 'Failed to open session');
+      }
     },
   });
 }
