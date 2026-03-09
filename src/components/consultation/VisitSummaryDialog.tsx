@@ -23,6 +23,7 @@ import {
   Activity,
   Loader2,
   Receipt,
+  Scan,
 } from "lucide-react";
 import { generateVisitId } from "@/lib/visit-id";
 import { Vitals } from "@/hooks/useConsultations";
