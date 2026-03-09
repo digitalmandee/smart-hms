@@ -61,7 +61,6 @@ export default function PendingCheckoutPage() {
         .eq("branch_id", profile.branch_id)
         .eq("appointment_date", today)
         .eq("status", "completed")
-        .neq("payment_status", "paid")
         .order("updated_at", { ascending: false });
 
       if (error) throw error;
@@ -78,12 +77,12 @@ export default function PendingCheckoutPage() {
       
       const patientIds = completedAppointments.map(a => (a.patient as any)?.id).filter(Boolean);
       
-      // Get pending lab orders
+      // Get unpaid lab orders (no invoice_id linked)
       const { data: labOrders } = await supabase
         .from("lab_orders")
-        .select("id, patient_id, order_number, payment_status")
+        .select("id, patient_id, order_number, payment_status, invoice_id")
         .in("patient_id", patientIds)
-        .eq("payment_status", "pending");
+        .is("invoice_id", null);
       
       // Get pending prescriptions
       const { data: prescriptions } = await supabase
@@ -117,12 +116,21 @@ export default function PendingCheckoutPage() {
     navigate(`/app/opd/checkout?appointmentId=${appointmentId}`);
   };
 
-  const totalCompleted = completedAppointments?.length || 0;
-  const withPendingOrders = completedAppointments?.filter(a => {
+  // Filter out appointments that are fully paid with no unpaid orders
+  const filteredAppointments = completedAppointments?.filter(a => {
+    const patientId = (a.patient as any)?.id;
+    const orders = pendingOrders?.[patientId];
+    const hasUnpaidOrders = orders && (orders.labOrders > 0);
+    // Show if not paid, OR if paid but has unpaid lab/imaging orders
+    return a.payment_status !== "paid" || hasUnpaidOrders;
+  }) || [];
+
+  const totalCompleted = filteredAppointments.length;
+  const withPendingOrders = filteredAppointments.filter(a => {
     const patientId = (a.patient as any)?.id;
     const orders = pendingOrders?.[patientId];
     return orders && (orders.labOrders > 0 || orders.prescriptions > 0);
-  }).length || 0;
+  }).length;
 
   return (
     <div className="space-y-6">
@@ -178,10 +186,10 @@ export default function PendingCheckoutPage() {
                 <Skeleton key={i} className="h-20 w-full" />
               ))}
             </div>
-          ) : completedAppointments && completedAppointments.length > 0 ? (
+          ) : filteredAppointments.length > 0 ? (
             <ScrollArea className="h-[500px] pr-4">
               <div className="space-y-3">
-                {completedAppointments.map((apt) => {
+                {filteredAppointments.map((apt) => {
                   const patient = apt.patient as any;
                   const doctor = apt.doctor as any;
                   const patientId = patient?.id;
@@ -250,9 +258,9 @@ export default function PendingCheckoutPage() {
                           
                           <Badge 
                             variant={apt.payment_status === "paid" ? "default" : "outline"}
-                            className={apt.payment_status === "paid" ? "bg-success" : ""}
+                            className={apt.payment_status === "paid" ? "bg-warning text-warning-foreground" : ""}
                           >
-                            {apt.payment_status === "paid" ? "Paid" : "Pending Payment"}
+                            {apt.payment_status === "paid" ? "Additional Charges" : "Pending Payment"}
                           </Badge>
                           
                           <Button 
