@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useReactToPrint } from "react-to-print";
@@ -62,6 +63,7 @@ export default function OPDWalkInPage() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { formatCurrency } = useCurrencyFormatter();
   const isRTL = useIsRTL();
   
   // Session requirement for payment collection
@@ -347,7 +349,7 @@ export default function OPDWalkInPage() {
     if (receivedAmount < selectedDoctor.fee) {
       toast({
         title: "Insufficient Payment",
-        description: `Amount received (Rs. ${receivedAmount}) is less than fee (Rs. ${selectedDoctor.fee})`,
+        description: `Amount received (${formatCurrency(receivedAmount)}) is less than fee (${formatCurrency(selectedDoctor.fee)})`,
         variant: "destructive",
       });
       return;
@@ -402,11 +404,15 @@ export default function OPDWalkInPage() {
         payment_status: "paid",
       });
 
-      // Link invoice to appointment
-      await supabase
+      // Link invoice to appointment AND reinforce payment_status
+      const { error: linkError } = await supabase
         .from('appointments')
-        .update({ invoice_id: invoice.id })
+        .update({ invoice_id: invoice.id, payment_status: 'paid' })
         .eq('id', appointment.id);
+
+      if (linkError) {
+        console.error('Failed to link invoice to appointment:', linkError);
+      }
 
       setTokenNumber(appointment.token_number || 0);
       setTokenDisplay(appointment.token_display || null);
