@@ -402,11 +402,15 @@ export default function OPDWalkInPage() {
         payment_status: "paid",
       });
 
-      // Link invoice to appointment
-      await supabase
+      // Link invoice to appointment AND reinforce payment_status
+      const { error: linkError } = await supabase
         .from('appointments')
-        .update({ invoice_id: invoice.id })
+        .update({ invoice_id: invoice.id, payment_status: 'paid' })
         .eq('id', appointment.id);
+
+      if (linkError) {
+        console.error('Failed to link invoice to appointment:', linkError);
+      }
 
       setTokenNumber(appointment.token_number || 0);
       setTokenDisplay(appointment.token_display || null);
