@@ -499,27 +499,64 @@ Deno.serve(async (req) => {
         : mode === "doctor_assist" ? 2048 : 2048;
 
     if (stream) {
-      const response = await fetch(DEEPSEEK_API_URL, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${DEEPSEEK_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model,
-          messages: deepseekMessages,
-          stream: true,
-          temperature: mode === "pharmacy_lookup" ? 0.2 : mode === "doctor_assist" ? 0.3 : (mode === "patient_intake" && voiceMode) ? 0.3 : mode === "patient_intake" ? 0.5 : 0.7,
-          max_tokens: maxTokens,
-        }),
-      });
+      // Add timeout protection for DeepSeek API call
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 25000); // 25s timeout
+
+      let response: Response;
+      try {
+        console.log("Calling DeepSeek API (streaming)...");
+        response = await fetch(DEEPSEEK_API_URL, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${DEEPSEEK_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model,
+            messages: deepseekMessages,
+            stream: true,
+            temperature: mode === "pharmacy_lookup" ? 0.2 : mode === "doctor_assist" ? 0.3 : (mode === "patient_intake" && voiceMode) ? 0.3 : mode === "patient_intake" ? 0.5 : 0.7,
+            max_tokens: maxTokens,
+          }),
+          signal: controller.signal,
+        });
+        clearTimeout(timeout);
+      } catch (fetchError) {
+        clearTimeout(timeout);
+        const errMsg = fetchError instanceof Error ? fetchError.message : String(fetchError);
+        if (fetchError instanceof Error && fetchError.name === "AbortError") {
+          console.error("DeepSeek API timeout (25s exceeded)");
+          return new Response(
+            JSON.stringify({ error: "AI service timed out. Please try again." }),
+            { status: 504, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+        console.error("DeepSeek API fetch error:", errMsg);
+        return new Response(
+          JSON.stringify({ error: "Failed to connect to AI service. Please try again." }),
+          { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
 
       if (!response.ok) {
         const errorBody = await response.text();
         console.error(`DeepSeek API error [${response.status}]:`, errorBody);
-        throw new Error(`DeepSeek API error [${response.status}]: ${errorBody}`);
+        return new Response(
+          JSON.stringify({ error: `AI service error: ${response.status}` }),
+          { status: response.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
       }
 
+      if (!response.body) {
+        console.error("DeepSeek API returned no response body");
+        return new Response(
+          JSON.stringify({ error: "AI service returned empty response." }),
+          { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      console.log("DeepSeek API streaming response received successfully");
       return new Response(response.body, {
         headers: {
           ...corsHeaders,
@@ -529,25 +566,53 @@ Deno.serve(async (req) => {
         },
       });
     } else {
-      const response = await fetch(DEEPSEEK_API_URL, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${DEEPSEEK_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model,
-          messages: deepseekMessages,
-          stream: false,
-          temperature: mode === "pharmacy_lookup" ? 0.2 : mode === "doctor_assist" ? 0.3 : (mode === "patient_intake" && voiceMode) ? 0.3 : mode === "patient_intake" ? 0.5 : 0.7,
-          max_tokens: maxTokens,
-        }),
-      });
+      // Add timeout protection for DeepSeek API call (non-streaming)
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 25000);
+
+      let response: Response;
+      try {
+        console.log("Calling DeepSeek API (non-streaming)...");
+        response = await fetch(DEEPSEEK_API_URL, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${DEEPSEEK_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model,
+            messages: deepseekMessages,
+            stream: false,
+            temperature: mode === "pharmacy_lookup" ? 0.2 : mode === "doctor_assist" ? 0.3 : (mode === "patient_intake" && voiceMode) ? 0.3 : mode === "patient_intake" ? 0.5 : 0.7,
+            max_tokens: maxTokens,
+          }),
+          signal: controller.signal,
+        });
+        clearTimeout(timeout);
+      } catch (fetchError) {
+        clearTimeout(timeout);
+        const errMsg = fetchError instanceof Error ? fetchError.message : String(fetchError);
+        if (fetchError instanceof Error && fetchError.name === "AbortError") {
+          console.error("DeepSeek API timeout (25s exceeded)");
+          return new Response(
+            JSON.stringify({ error: "AI service timed out. Please try again." }),
+            { status: 504, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+        console.error("DeepSeek API fetch error:", errMsg);
+        return new Response(
+          JSON.stringify({ error: "Failed to connect to AI service. Please try again." }),
+          { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
 
       if (!response.ok) {
         const errorBody = await response.text();
         console.error(`DeepSeek API error [${response.status}]:`, errorBody);
-        throw new Error(`DeepSeek API error [${response.status}]: ${errorBody}`);
+        return new Response(
+          JSON.stringify({ error: `AI service error: ${response.status}` }),
+          { status: response.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
       }
 
       const data = await response.json();
