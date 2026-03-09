@@ -102,10 +102,21 @@ export default function LabQueuePage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Lab Orders Queue"
-        description="View and process pending laboratory orders"
-      />
+      <div className="flex items-center justify-between">
+        <PageHeader
+          title="Lab Orders Queue"
+          description="View and process pending laboratory orders"
+        />
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => refetch()}
+          disabled={isLoading}
+        >
+          <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+          Refresh
+        </Button>
+      </div>
 
       {/* Stats Summary */}
       <div className="flex flex-wrap gap-4">
