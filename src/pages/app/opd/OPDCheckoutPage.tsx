@@ -742,7 +742,7 @@ export default function OPDCheckoutPage() {
                 )}
               </div>
 
-              {appointment?.payment_status === "paid" ? (
+              {appointment?.payment_status === "paid" && selectableCharges.length === 0 ? (
                 <div className="flex items-center justify-center gap-2 py-4">
                   <CheckCircle2 className="h-5 w-5 text-green-600" />
                   <span className="font-medium text-green-600">Already Paid</span>
