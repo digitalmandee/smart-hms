@@ -178,7 +178,7 @@ export default function OPDCheckoutPage() {
   const charges: ChargeItem[] = [];
 
   // Consultation fee (if not already paid and not waived)
-  if (appointment && appointment.payment_status !== "paid" && appointment.payment_status !== "waived") {
+  if (appointment && !appointment.invoice_id && appointment.payment_status !== "paid" && appointment.payment_status !== "waived") {
     const fee = appointment.doctor?.consultation_fee || 0;
     if (fee > 0) {
       charges.push({
