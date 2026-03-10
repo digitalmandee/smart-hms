@@ -55,9 +55,10 @@
 - [x] FinancialReportsPage updated with new modules
 - [x] All routes wired in App.tsx
 
-## Finance Module Phase 2 (Pending)
-- [ ] Financial Dashboard KPIs (revenue trend, DSO, cash position)
-- [ ] Consolidated Multi-Branch Reports
-- [ ] Bank Reconciliation Workflow
-- [ ] Payroll-Finance Deep Integration (GOSI, EOS provisions)
-- [ ] VAT Return Report
+## Finance Module Phase 2 ✅ DONE
+- [x] Accounts Dashboard enhanced with KPIs (DSO, cash position, collection rate, AR aging pie chart, 12-month revenue trend)
+- [x] Consolidated P&L Page (`/app/accounts/reports/consolidated-pnl`) — multi-branch side-by-side comparison with margins
+- [x] Bank Reconciliation Page (`/app/accounts/bank-reconciliation`) — CSV import, auto-matching, manual reconciliation
+- [x] VAT Return Report Page (`/app/accounts/reports/vat-return`) — Input vs Output VAT for ZATCA filing
+- [x] FinancialReportsPage updated with Consolidated P&L + VAT Return report cards
+- [x] All routes wired in App.tsx

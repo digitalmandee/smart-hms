@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { 
   BarChart3, FileSpreadsheet, PieChart, 
   TrendingUp, ArrowRight, DollarSign, Scale,
-  FileText, Building2, Package, Wallet
+  FileText, Building2, Package, Wallet, Receipt, Landmark
 } from "lucide-react";
 import { useFinancialSummary } from "@/hooks/useFinancialReports";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -64,6 +64,20 @@ export default function FinancialReportsPage() {
       icon: Building2,
       path: "/app/accounts/reports/cost-center-pnl",
       color: "text-indigo-500",
+    },
+    {
+      title: "Consolidated P&L",
+      description: "Multi-branch profit & loss comparison",
+      icon: Landmark,
+      path: "/app/accounts/reports/consolidated-pnl",
+      color: "text-emerald-500",
+    },
+    {
+      title: "VAT Return Report",
+      description: "Input vs Output VAT summary for ZATCA filing",
+      icon: Receipt,
+      path: "/app/accounts/reports/vat-return",
+      color: "text-rose-500",
     },
   ];
 

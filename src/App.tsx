@@ -593,8 +593,10 @@ const CostCentersPage = React.lazy(() => import("./pages/app/accounts/CostCenter
 const CostCenterPnLPage = React.lazy(() => import("./pages/app/accounts/CostCenterPnLPage"));
 const FixedAssetsPage = React.lazy(() => import("./pages/app/accounts/FixedAssetsPage"));
 const PatientDepositsPage = React.lazy(() => import("./pages/app/accounts/PatientDepositsPage"));
+const ConsolidatedPnLPage = React.lazy(() => import("./pages/app/accounts/ConsolidatedPnLPage"));
+const BankReconciliationPage = React.lazy(() => import("./pages/app/accounts/BankReconciliationPage"));
+const VatReturnPage = React.lazy(() => import("./pages/app/accounts/VatReturnPage"));
 
-// Additional IPD pages
 import AdmissionHistoryPage from "./pages/app/ipd/AdmissionHistoryPage";
 import IPDVitalsPage from "./pages/app/ipd/IPDVitalsPage";
 import NursingNotesPage from "./pages/app/ipd/NursingNotesPage";
@@ -1209,6 +1211,9 @@ function App() {
                <Route path="accounts/cost-centers" element={<CostCentersPage />} />
                <Route path="accounts/fixed-assets" element={<FixedAssetsPage />} />
                <Route path="accounts/patient-deposits" element={<PatientDepositsPage />} />
+               <Route path="accounts/reports/consolidated-pnl" element={<ConsolidatedPnLPage />} />
+               <Route path="accounts/reports/vat-return" element={<VatReturnPage />} />
+               <Route path="accounts/bank-reconciliation" element={<BankReconciliationPage />} />
 
                {/* Donation Management routes */}
                <Route path="donations" element={<FinDonationDashboard />} />

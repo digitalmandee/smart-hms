@@ -1,43 +1,34 @@
 import { useNavigate } from "react-router-dom";
 import { useMemo } from "react";
 import {
-  LayoutDashboard,
-  FileText,
-  BookOpen,
-  Receipt,
-  CreditCard,
-  Building2,
-  BarChart3,
-  PiggyBank,
-  Plus,
-  ArrowRight,
-  TrendingUp,
-  TrendingDown,
-  Clock,
-  AlertCircle,
-  Wallet,
-  AlertTriangle,
-  Package,
+  LayoutDashboard, FileText, BookOpen, Receipt, CreditCard, Building2,
+  BarChart3, PiggyBank, Plus, ArrowRight, TrendingUp, TrendingDown,
+  Clock, AlertCircle, Wallet, AlertTriangle, Package, Target, DollarSign,
 } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useAccounts, useCurrentFiscalYear } from "@/hooks/useAccounts";
-import { format, subDays, startOfMonth } from "date-fns";
+import { format, subDays, startOfMonth, subMonths, differenceInDays } from "date-fns";
 import { formatCurrency } from "@/lib/currency";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrganization } from "@/hooks/useOrganizations";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "@/lib/i18n";
+import { Progress } from "@/components/ui/progress";
 import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
+  LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
+  BarChart, Bar, PieChart, Pie, Cell,
 } from "recharts";
+
+const COLORS = [
+  "hsl(var(--primary))",
+  "hsl(var(--destructive))",
+  "hsl(210, 70%, 55%)",
+  "hsl(150, 60%, 45%)",
+  "hsl(45, 90%, 50%)",
+];
 
 export default function AccountsDashboard() {
   const navigate = useNavigate();
@@ -78,13 +69,12 @@ export default function AccountsDashboard() {
         .eq("journal_entry.status", "posted")
         .gte("journal_entry.entry_date", monthStart.split("T")[0]);
       if (error) throw error;
-      // Sum debit amounts for expense accounts — simplified: total debits in the period
       return (data || []).reduce((sum: number, l: any) => sum + (l.debit_amount || 0), 0);
     },
     enabled: !!profile?.organization_id,
   });
 
-  // Overdue receivables (>30 days, pending/partially_paid)
+  // Overdue receivables (>30 days)
   const thirtyDaysAgo = subDays(new Date(), 30).toISOString().split("T")[0];
   const { data: overdueData } = useQuery({
     queryKey: ["overdue-receivables", profile?.organization_id],
@@ -102,7 +92,7 @@ export default function AccountsDashboard() {
     enabled: !!profile?.organization_id,
   });
 
-  // Pending vendor payments (unpaid GRNs)
+  // Pending vendor payments
   const { data: pendingVendorCount } = useQuery({
     queryKey: ["pending-vendor-payments", profile?.organization_id],
     queryFn: async () => {
@@ -116,41 +106,101 @@ export default function AccountsDashboard() {
     enabled: !!profile?.organization_id,
   });
 
-  // Revenue trend (last 7 days) from invoices paid
-  const sevenDaysAgo = subDays(new Date(), 7).toISOString().split("T")[0];
-  const { data: revenueTrend } = useQuery({
-    queryKey: ["revenue-trend-7d", profile?.organization_id],
+  // Revenue trend (last 12 months)
+  const twelveMonthsAgo = subMonths(new Date(), 12).toISOString().split("T")[0];
+  const { data: revenueTrend12 } = useQuery({
+    queryKey: ["revenue-trend-12m", profile?.organization_id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("invoices")
         .select("invoice_date, paid_amount")
-        .gte("invoice_date", sevenDaysAgo)
+        .gte("invoice_date", twelveMonthsAgo)
         .in("status", ["paid", "partially_paid"])
         .order("invoice_date", { ascending: true });
       if (error) throw error;
-      // Group by date
       const grouped: Record<string, number> = {};
-      for (let i = 0; i < 7; i++) {
-        const d = format(subDays(new Date(), 6 - i), "yyyy-MM-dd");
+      for (let i = 11; i >= 0; i--) {
+        const d = format(subMonths(new Date(), i), "yyyy-MM");
         grouped[d] = 0;
       }
       (data || []).forEach((inv: any) => {
-        const d = inv.invoice_date;
-        if (grouped[d] !== undefined) grouped[d] += inv.paid_amount || 0;
+        const m = inv.invoice_date?.substring(0, 7);
+        if (m && grouped[m] !== undefined) grouped[m] += inv.paid_amount || 0;
       });
-      return Object.entries(grouped).map(([date, amount]) => ({
-        date: format(new Date(date), "dd MMM"),
+      return Object.entries(grouped).map(([month, amount]) => ({
+        month: format(new Date(month + "-01"), "MMM yy"),
         amount,
       }));
     },
     enabled: !!profile?.organization_id,
   });
 
+  // DSO (Days Sales Outstanding)
+  const { data: dsoData } = useQuery({
+    queryKey: ["dso", profile?.organization_id],
+    queryFn: async () => {
+      const { data: invoices, error } = await supabase
+        .from("invoices")
+        .select("invoice_date, total_amount, paid_amount, status")
+        .in("status", ["pending", "partially_paid", "paid"])
+        .gte("invoice_date", subMonths(new Date(), 3).toISOString().split("T")[0]);
+      if (error) throw error;
+      if (!invoices || invoices.length === 0) return { dso: 0, collectionRate: 0 };
+
+      const totalRevenue = invoices.reduce((s: number, i: any) => s + (i.total_amount || 0), 0);
+      const totalCollected = invoices.reduce((s: number, i: any) => s + (i.paid_amount || 0), 0);
+      const totalOutstanding = totalRevenue - totalCollected;
+      const avgDailyRevenue = totalRevenue / 90;
+      const dso = avgDailyRevenue > 0 ? Math.round(totalOutstanding / avgDailyRevenue) : 0;
+      const collectionRate = totalRevenue > 0 ? Math.round((totalCollected / totalRevenue) * 100) : 0;
+      return { dso, collectionRate };
+    },
+    enabled: !!profile?.organization_id,
+  });
+
+  // AR Aging buckets
+  const { data: arAging } = useQuery({
+    queryKey: ["ar-aging-buckets", profile?.organization_id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("invoices")
+        .select("invoice_date, total_amount, paid_amount")
+        .in("status", ["pending", "partially_paid"]);
+      if (error) throw error;
+      const buckets = { current: 0, days30: 0, days60: 0, days90: 0, over90: 0 };
+      const today = new Date();
+      (data || []).forEach((inv: any) => {
+        const outstanding = (inv.total_amount || 0) - (inv.paid_amount || 0);
+        const age = differenceInDays(today, new Date(inv.invoice_date));
+        if (age <= 30) buckets.current += outstanding;
+        else if (age <= 60) buckets.days30 += outstanding;
+        else if (age <= 90) buckets.days60 += outstanding;
+        else buckets.over90 += outstanding;
+      });
+      return [
+        { name: "0-30", value: buckets.current },
+        { name: "31-60", value: buckets.days30 },
+        { name: "61-90", value: buckets.days60 },
+        { name: "90+", value: buckets.over90 },
+      ];
+    },
+    enabled: !!profile?.organization_id && !isWarehouse,
+  });
+
+  // Cash position (bank + cash accounts)
+  const cashPosition = useMemo(() => {
+    if (!accounts) return 0;
+    return accounts
+      .filter(a => !a.is_header && a.account_type?.category === "asset" && 
+        (a.name.toLowerCase().includes("cash") || a.name.toLowerCase().includes("bank")))
+      .reduce((s, a) => s + (a.current_balance || 0), 0);
+  }, [accounts]);
+
   const quickActions = [
-    { title: "New Journal Entry", description: "Record a manual journal entry", icon: Plus, href: "/app/accounts/journal-entries/new", color: "text-blue-600" },
-    { title: "Record Payment", description: "Record a vendor payment", icon: CreditCard, href: "/app/accounts/vendor-payments/new", color: "text-green-600" },
-    { title: "Bank Reconciliation", description: "Reconcile bank statements", icon: Building2, href: "/app/accounts/bank-accounts", color: "text-purple-600" },
-    { title: "View Reports", description: "Financial statements & reports", icon: BarChart3, href: "/app/accounts/reports", color: "text-orange-600" },
+    { title: "New Journal Entry", description: "Record a manual journal entry", icon: Plus, href: "/app/accounts/journal-entries/new", color: "text-primary" },
+    { title: "Record Payment", description: "Record a vendor payment", icon: CreditCard, href: "/app/accounts/vendor-payments/new", color: "text-primary" },
+    { title: "Bank Reconciliation", description: "Reconcile bank statements", icon: Building2, href: "/app/accounts/bank-reconciliation", color: "text-primary" },
+    { title: "View Reports", description: "Financial statements & reports", icon: BarChart3, href: "/app/accounts/reports", color: "text-primary" },
   ];
 
   const moduleLinks = [
@@ -193,13 +243,13 @@ export default function AccountsDashboard() {
           </CardContent>
         </Card>
       ) : (
-        <Card className="bg-yellow-50 border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800">
+        <Card className="bg-destructive/5 border-destructive/20">
           <CardContent className="flex items-center justify-between py-4">
             <div className="flex items-center gap-3">
-              <AlertCircle className="h-5 w-5 text-yellow-600" />
+              <AlertCircle className="h-5 w-5 text-destructive" />
               <div>
-                <p className="font-medium text-yellow-800 dark:text-yellow-200">No Fiscal Year Configured</p>
-                <p className="text-sm text-yellow-700 dark:text-yellow-300">Set up a fiscal year to start tracking financial periods</p>
+                <p className="font-medium">No Fiscal Year Configured</p>
+                <p className="text-sm text-muted-foreground">Set up a fiscal year to start tracking financial periods</p>
               </div>
             </div>
             <Button variant="outline" size="sm" onClick={() => navigate("/app/accounts/budgets")}>Set Up Fiscal Year</Button>
@@ -214,56 +264,51 @@ export default function AccountsDashboard() {
             <div className="flex items-center gap-3">
               <AlertTriangle className="h-5 w-5 text-destructive" />
               <div>
-                <p className="font-medium text-destructive">{t("accounts.overdueReceivables" as any, "Overdue Receivables")}</p>
+                <p className="font-medium text-destructive">Overdue Receivables</p>
                 <p className="text-sm text-muted-foreground">
                   {overdueData.count} invoice(s) overdue &gt;30 days — {formatCurrency(overdueData.total)} outstanding
                 </p>
               </div>
             </div>
-            <Button variant="outline" size="sm" onClick={() => navigate("/app/accounts/receivables")}>
-              View
-            </Button>
+            <Button variant="outline" size="sm" onClick={() => navigate("/app/accounts/receivables")}>View</Button>
           </CardContent>
         </Card>
       )}
 
-      {/* Financial Summary — 6 cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      {/* Financial KPIs — 8 cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Total Assets</p>
-                <p className="text-xl font-bold text-blue-600">{formatCurrency(summary.totalAssets)}</p>
-              </div>
-              <TrendingUp className="h-7 w-7 text-blue-200" />
-            </div>
+            <p className="text-sm text-muted-foreground">Total Assets</p>
+            <p className="text-xl font-bold">{formatCurrency(summary.totalAssets)}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-sm text-muted-foreground">Total Liabilities</p>
+            <p className="text-xl font-bold">{formatCurrency(summary.totalLiabilities)}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-sm text-muted-foreground">Revenue (YTD)</p>
+            <p className="text-xl font-bold">{formatCurrency(summary.totalRevenue)}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-sm text-muted-foreground">Net Income</p>
+            <p className={`text-xl font-bold ${netIncome >= 0 ? "text-green-600" : "text-destructive"}`}>{formatCurrency(netIncome)}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Total Liabilities</p>
-                <p className="text-xl font-bold text-red-600">{formatCurrency(summary.totalLiabilities)}</p>
+                <p className="text-sm text-muted-foreground">Cash Position</p>
+                <p className="text-xl font-bold">{formatCurrency(cashPosition)}</p>
               </div>
-              <TrendingDown className="h-7 w-7 text-red-200" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div>
-              <p className="text-sm text-muted-foreground">Total Equity</p>
-              <p className="text-xl font-bold text-purple-600">{formatCurrency(summary.totalEquity)}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div>
-              <p className="text-sm text-muted-foreground">Revenue (YTD)</p>
-              <p className="text-xl font-bold text-green-600">{formatCurrency(summary.totalRevenue)}</p>
+              <DollarSign className="h-6 w-6 text-muted-foreground/30" />
             </div>
           </CardContent>
         </Card>
@@ -271,50 +316,87 @@ export default function AccountsDashboard() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Net Income</p>
-                <p className={`text-xl font-bold ${netIncome >= 0 ? "text-green-600" : "text-red-600"}`}>{formatCurrency(netIncome)}</p>
+                <p className="text-sm text-muted-foreground">DSO (Days)</p>
+                <p className="text-xl font-bold">{dsoData?.dso ?? "—"}</p>
               </div>
-              {netIncome >= 0 ? <TrendingUp className="h-7 w-7 text-green-200" /> : <TrendingDown className="h-7 w-7 text-red-200" />}
+              <Target className="h-6 w-6 text-muted-foreground/30" />
             </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-sm text-muted-foreground">Collection Rate</p>
+            <p className="text-xl font-bold">{dsoData?.collectionRate ?? 0}%</p>
+            <Progress value={dsoData?.collectionRate ?? 0} className="mt-2 h-2" />
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">{t("accounts.expensesMTD" as any, "Expenses (MTD)")}</p>
-                <p className="text-xl font-bold text-orange-600">{formatCurrency(mtdExpenses || 0)}</p>
+                <p className="text-sm text-muted-foreground">Expenses (MTD)</p>
+                <p className="text-xl font-bold">{formatCurrency(mtdExpenses || 0)}</p>
               </div>
-              <Wallet className="h-7 w-7 text-orange-200" />
+              <Wallet className="h-6 w-6 text-muted-foreground/30" />
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Revenue Trend + Pending Vendor Payments row */}
+      {/* Revenue Trend (12 months) + AR Aging */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <Card className="lg:col-span-2">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">{t("accounts.revenueTrend" as any, "Revenue Trend (Last 7 Days)")}</CardTitle>
+            <CardTitle className="text-base">Revenue Trend (12 Months)</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-[200px]">
+            <div className="h-[220px]">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={revenueTrend || []}>
-                  <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-                  <YAxis tick={{ fontSize: 12 }} width={60} />
+                <BarChart data={revenueTrend12 || []}>
+                  <XAxis dataKey="month" tick={{ fontSize: 11 }} />
+                  <YAxis tick={{ fontSize: 11 }} width={60} />
                   <Tooltip />
-                  <Line type="monotone" dataKey="amount" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3 }} />
-                </LineChart>
+                  <Bar dataKey="amount" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                </BarChart>
               </ResponsiveContainer>
             </div>
           </CardContent>
         </Card>
 
+        {!isWarehouse && (
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">AR Aging</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[160px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={arAging || []} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={60} label={({ name, value }) => value > 0 ? `${name}` : ""}>
+                      {(arAging || []).map((_, i) => (
+                        <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(v: number) => formatCurrency(v)} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="grid grid-cols-2 gap-1 mt-2 text-xs">
+                {(arAging || []).map((b, i) => (
+                  <div key={b.name} className="flex items-center gap-1">
+                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[i] }} />
+                    <span className="text-muted-foreground">{b.name}: {formatCurrency(b.value)}</span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      {/* Pending Vendor Payments */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">{t("accounts.pendingVendorPayments" as any, "Pending Vendor Payments")}</CardTitle>
-          </CardHeader>
           <CardContent className="flex flex-col items-center justify-center py-6">
             <Package className="h-10 w-10 text-muted-foreground mb-2" />
             <p className="text-4xl font-bold">{pendingVendorCount ?? 0}</p>
@@ -324,25 +406,20 @@ export default function AccountsDashboard() {
             </Button>
           </CardContent>
         </Card>
+        <Card className="md:col-span-2">
+          <CardHeader><CardTitle className="text-base">Quick Actions</CardTitle></CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {quickActions.map((action) => (
+                <Button key={action.title} variant="outline" className="h-auto py-3 flex flex-col items-center gap-1.5" onClick={() => navigate(action.href)}>
+                  <action.icon className="h-5 w-5 text-primary" />
+                  <span className="text-xs font-medium">{action.title}</span>
+                </Button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
-
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader><CardTitle>Quick Actions</CardTitle></CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {quickActions.map((action) => (
-              <Button key={action.title} variant="outline" className="h-auto py-4 flex flex-col items-center gap-2" onClick={() => navigate(action.href)}>
-                <action.icon className={`h-6 w-6 ${action.color}`} />
-                <div className="text-center">
-                  <p className="font-medium">{action.title}</p>
-                  <p className="text-xs text-muted-foreground">{action.description}</p>
-                </div>
-              </Button>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Module Links */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
