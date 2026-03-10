@@ -787,7 +787,9 @@ function App() {
               <Route path="my-attendance" element={<MyAttendancePage />} />
               <Route path="my-payslips" element={<MyPayslipsPage />} />
               <Route path="my-leaves" element={<MyLeavesPage />} />
-              
+              <Route path="my-documents" element={<MyDocumentsPage />} />
+              <Route path="my-training" element={<MyTrainingPage />} />
+
               {/* Clinic routes */}
               <Route path="clinic" element={<ClinicDashboard />} />
               <Route path="clinic/token" element={<ClinicTokenPage />} />
