@@ -13,7 +13,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useEmployees, useDepartments } from "@/hooks/useHR";
 import { useDisciplinaryActions, useCreateDisciplinaryAction } from "@/hooks/useCompliance";
-import { AlertTriangle, Search, FileWarning, AlertCircle, Plus, Eye } from "lucide-react";
+import { AlertTriangle, Search, FileWarning, AlertCircle, Plus, Eye, FileText } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 
 const ACTION_TYPES = [
