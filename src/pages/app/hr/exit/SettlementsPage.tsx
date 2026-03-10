@@ -267,7 +267,42 @@ export default function SettlementsPage() {
             {/* Resignation Selector */}
             <div>
               <Label>Select Resignation</Label>
-              <Select value={selectedResignation} onValueChange={setSelectedResignation}>
+              <Select value={selectedResignation} onValueChange={(val) => {
+                setSelectedResignation(val);
+                // Auto-calculate ESB when resignation is selected
+                const resignation = resignations?.find((r) => r.id === val);
+                if (resignation) {
+                  const emp = employees?.find((e) => e.id === resignation.employee_id);
+                  if (emp) {
+                    const joinDate = emp.joining_date ? new Date(emp.joining_date) : null;
+                    const lwdDate = resignation.last_working_date ? new Date(resignation.last_working_date) : new Date();
+                    if (joinDate) {
+                      const yearsOfService = (lwdDate.getTime() - joinDate.getTime()) / (365.25 * 24 * 60 * 60 * 1000);
+                      const basicSalary = emp.basic_salary || 0;
+                      // Saudi Labor Law ESB: 0.5 month for first 5 years, 1 month for each year after
+                      let gratuity = 0;
+                      if (yearsOfService <= 5) {
+                        gratuity = (basicSalary / 2) * yearsOfService;
+                      } else {
+                        gratuity = (basicSalary / 2) * 5 + basicSalary * (yearsOfService - 5);
+                      }
+                      // If employee resigned (not terminated), they get a fraction based on service
+                      if (yearsOfService >= 2 && yearsOfService < 5) {
+                        gratuity = gratuity / 3; // 1/3 of ESB
+                      } else if (yearsOfService >= 5 && yearsOfService < 10) {
+                        gratuity = gratuity * 2 / 3; // 2/3 of ESB
+                      }
+                      // Less than 2 years = no ESB for resignation
+                      if (yearsOfService < 2) gratuity = 0;
+                      
+                      setFormData(f => ({
+                        ...f,
+                        gratuity_amount: Math.round(gratuity * 100) / 100,
+                      }));
+                    }
+                  }
+                }
+              }}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select an accepted resignation..." />
                 </SelectTrigger>
