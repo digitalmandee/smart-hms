@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { 
   BarChart3, FileSpreadsheet, PieChart, 
   TrendingUp, ArrowRight, DollarSign, Scale,
-  FileText, Building2, Package, Wallet, Receipt, Landmark
+  FileText, Building2, Package, Wallet, Receipt, Landmark,
+  Users, Lock, Shield
 } from "lucide-react";
 import { useFinancialSummary } from "@/hooks/useFinancialReports";
 import { Skeleton } from "@/components/ui/skeleton";
