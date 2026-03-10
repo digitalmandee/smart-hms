@@ -62,9 +62,8 @@ export default function PromotionsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Promotion Management" description="Track employee promotions and designation changes">
-        <Button onClick={() => setShowDialog(true)}><Plus className="h-4 w-4 mr-2" />Record Promotion</Button>
-      </PageHeader>
+      <PageHeader title="Promotion Management" description="Track employee promotions and designation changes"
+        actions={<Button onClick={() => setShowDialog(true)}><Plus className="h-4 w-4 mr-2" />Record Promotion</Button>} />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {[

@@ -57,9 +57,8 @@ export default function GrievancesPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Grievance Management" description="Track and resolve employee grievances — CBAHI/JCI compliant">
-        <Button onClick={() => setShowAddDialog(true)}><Plus className="h-4 w-4 mr-2" />File Grievance</Button>
-      </PageHeader>
+      <PageHeader title="Grievance Management" description="Track and resolve employee grievances — CBAHI/JCI compliant"
+        actions={<Button onClick={() => setShowAddDialog(true)}><Plus className="h-4 w-4 mr-2" />File Grievance</Button>} />
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {[
