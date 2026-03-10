@@ -596,6 +596,9 @@ const PatientDepositsPage = React.lazy(() => import("./pages/app/accounts/Patien
 const ConsolidatedPnLPage = React.lazy(() => import("./pages/app/accounts/ConsolidatedPnLPage"));
 const BankReconciliationPage = React.lazy(() => import("./pages/app/accounts/BankReconciliationPage"));
 const VatReturnPage = React.lazy(() => import("./pages/app/accounts/VatReturnPage"));
+const PayrollCostAllocationPage = React.lazy(() => import("./pages/app/accounts/PayrollCostAllocationPage"));
+const FiscalPeriodManagementPage = React.lazy(() => import("./pages/app/accounts/FiscalPeriodManagementPage"));
+const FinancialAuditLogPage = React.lazy(() => import("./pages/app/accounts/FinancialAuditLogPage"));
 
 import AdmissionHistoryPage from "./pages/app/ipd/AdmissionHistoryPage";
 import IPDVitalsPage from "./pages/app/ipd/IPDVitalsPage";
@@ -1214,6 +1217,9 @@ function App() {
                <Route path="accounts/reports/consolidated-pnl" element={<ConsolidatedPnLPage />} />
                <Route path="accounts/reports/vat-return" element={<VatReturnPage />} />
                <Route path="accounts/bank-reconciliation" element={<BankReconciliationPage />} />
+               <Route path="accounts/reports/payroll-cost" element={<PayrollCostAllocationPage />} />
+               <Route path="accounts/period-management" element={<FiscalPeriodManagementPage />} />
+               <Route path="accounts/audit-log" element={<FinancialAuditLogPage />} />
 
                {/* Donation Management routes */}
                <Route path="donations" element={<FinDonationDashboard />} />

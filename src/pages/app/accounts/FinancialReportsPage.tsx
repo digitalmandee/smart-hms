@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { 
   BarChart3, FileSpreadsheet, PieChart, 
   TrendingUp, ArrowRight, DollarSign, Scale,
-  FileText, Building2, Package, Wallet, Receipt, Landmark
+  FileText, Building2, Package, Wallet, Receipt, Landmark,
+  Users, Lock, Shield
 } from "lucide-react";
 import { useFinancialSummary } from "@/hooks/useFinancialReports";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -79,6 +80,13 @@ export default function FinancialReportsPage() {
       path: "/app/accounts/reports/vat-return",
       color: "text-rose-500",
     },
+    {
+      title: "Payroll Cost Allocation",
+      description: "Department-wise salary, GOSI & ESB provision analysis",
+      icon: Users,
+      path: "/app/accounts/reports/payroll-cost",
+      color: "text-pink-500",
+    },
   ];
 
   const modules = [
@@ -109,6 +117,20 @@ export default function FinancialReportsPage() {
       icon: Wallet,
       path: "/app/accounts/patient-deposits",
       color: "text-teal-500",
+    },
+    {
+      title: "Period Management",
+      description: "Lock/unlock fiscal periods for audit compliance",
+      icon: Lock,
+      path: "/app/accounts/period-management",
+      color: "text-red-500",
+    },
+    {
+      title: "Financial Audit Log",
+      description: "Track all financial transaction modifications",
+      icon: Shield,
+      path: "/app/accounts/audit-log",
+      color: "text-slate-500",
     },
   ];
 
