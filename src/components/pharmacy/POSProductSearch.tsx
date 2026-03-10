@@ -23,7 +23,7 @@ export function POSProductSearch({ onAddToCart, disabled }: POSProductSearchProp
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const blurTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const blurTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   const { data: inventory, isLoading } = useInventory(undefined, { 
     search,
