@@ -28,6 +28,7 @@ const ACTION_TYPES = [
 
 export default function DisciplinaryPage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState<string>("all");
   const [selectedActionType, setSelectedActionType] = useState<string>("all");
