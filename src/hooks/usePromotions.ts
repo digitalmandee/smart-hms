@@ -12,8 +12,8 @@ export function usePromotions() {
       const { data, error } = await (supabase as any)
         .from('employee_promotions')
         .select(`*, employee:employee_id(id, first_name, last_name, employee_number),
-          old_designation:old_designation_id(id, title),
-          new_designation:new_designation_id(id, title)`)
+          old_designation:old_designation_id(id, name),
+          new_designation:new_designation_id(id, name)`)
         .eq('organization_id', profile.organization_id)
         .order('effective_date', { ascending: false });
       if (error) throw error;
