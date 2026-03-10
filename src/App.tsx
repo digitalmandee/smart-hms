@@ -1211,6 +1211,9 @@ function App() {
                <Route path="accounts/cost-centers" element={<CostCentersPage />} />
                <Route path="accounts/fixed-assets" element={<FixedAssetsPage />} />
                <Route path="accounts/patient-deposits" element={<PatientDepositsPage />} />
+               <Route path="accounts/reports/consolidated-pnl" element={<ConsolidatedPnLPage />} />
+               <Route path="accounts/reports/vat-return" element={<VatReturnPage />} />
+               <Route path="accounts/bank-reconciliation" element={<BankReconciliationPage />} />
 
                {/* Donation Management routes */}
                <Route path="donations" element={<FinDonationDashboard />} />
