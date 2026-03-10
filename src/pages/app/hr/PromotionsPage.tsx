@@ -148,7 +148,7 @@ export default function PromotionsPage() {
                 <Select value={form.old_designation_id} onValueChange={v => setForm(f => ({ ...f, old_designation_id: v }))}>
                   <SelectTrigger><SelectValue placeholder="Previous" /></SelectTrigger>
                   <SelectContent>
-                    {designations?.map((d: any) => <SelectItem key={d.id} value={d.id}>{d.title}</SelectItem>)}
+                    {designations?.map((d: any) => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
