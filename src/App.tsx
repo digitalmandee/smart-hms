@@ -1204,7 +1204,12 @@ function App() {
               <Route path="accounts/reports/balance-sheet" element={<BalanceSheetPage />} />
               <Route path="accounts/reports/cash-flow" element={<CashFlowPage />} />
                <Route path="accounts/reports/revenue-by-source" element={<RevenueBySourcePage />} />
-               
+               <Route path="accounts/reports/cost-center-pnl" element={<CostCenterPnLPage />} />
+               <Route path="accounts/credit-notes" element={<CreditNotesPage />} />
+               <Route path="accounts/cost-centers" element={<CostCentersPage />} />
+               <Route path="accounts/fixed-assets" element={<FixedAssetsPage />} />
+               <Route path="accounts/patient-deposits" element={<PatientDepositsPage />} />
+
                {/* Donation Management routes */}
                <Route path="donations" element={<FinDonationDashboard />} />
                <Route path="donations/donors" element={<FinDonorsListPage />} />
