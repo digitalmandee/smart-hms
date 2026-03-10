@@ -10,32 +10,74 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { useLeaveTypes, useCreateLeaveRequest, useCancelLeaveRequest } from "@/hooks/useLeaves";
-import { Loader2, Plus, Calendar, X, CalendarOff } from "lucide-react";
+import { useLeaveTypes, useCreateLeaveRequest, useCancelLeaveRequest, getApprovalStage } from "@/hooks/useLeaves";
+import { Loader2, Plus, Calendar, X, CalendarOff, CheckCircle2, Clock, XCircle } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+
+function ApprovalTracker({ request }: { request: any }) {
+  const stage = getApprovalStage(request);
+  
+  const level1Done = request.approver_1_action === "approved";
+  const level1Rejected = request.approver_1_action === "rejected";
+  const level2Done = request.approver_2_action === "approved";
+  const level2Rejected = request.approver_2_action === "rejected";
+
+  return (
+    <div className="flex items-center gap-1 text-xs">
+      {/* Step 1 */}
+      <div className="flex items-center gap-0.5">
+        {level1Done ? (
+          <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
+        ) : level1Rejected ? (
+          <XCircle className="h-3.5 w-3.5 text-destructive" />
+        ) : (
+          <Clock className="h-3.5 w-3.5 text-warning" />
+        )}
+        <span className={cn(
+          "hidden sm:inline",
+          level1Done && "text-green-600",
+          level1Rejected && "text-destructive",
+          !level1Done && !level1Rejected && "text-warning"
+        )}>
+          Dept Head
+        </span>
+      </div>
+
+      <span className="text-muted-foreground">→</span>
+
+      {/* Step 2 */}
+      <div className="flex items-center gap-0.5">
+        {level2Done ? (
+          <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
+        ) : level2Rejected ? (
+          <XCircle className="h-3.5 w-3.5 text-destructive" />
+        ) : (
+          <Clock className={cn("h-3.5 w-3.5", level1Done ? "text-warning" : "text-muted-foreground")} />
+        )}
+        <span className={cn(
+          "hidden sm:inline",
+          level2Done && "text-green-600",
+          level2Rejected && "text-destructive",
+          level1Done && !level2Done && !level2Rejected && "text-warning",
+          !level1Done && !level2Done && "text-muted-foreground"
+        )}>
+          HR Manager
+        </span>
+      </div>
+    </div>
+  );
+}
 
 export default function MyLeavesPage() {
   const { user } = useAuth();
@@ -51,7 +93,6 @@ export default function MyLeavesPage() {
   const createLeaveRequest = useCreateLeaveRequest();
   const cancelLeaveRequest = useCancelLeaveRequest();
 
-  // Get current user's employee record
   const { data: myEmployee, isLoading: employeeLoading } = useQuery({
     queryKey: ["my-employee", user?.id],
     queryFn: async () => {
@@ -67,7 +108,6 @@ export default function MyLeavesPage() {
     enabled: !!user?.id,
   });
 
-  // Get employee's leave requests
   const { data: myLeaves, isLoading: leavesLoading } = useQuery({
     queryKey: ["my-leave-requests", myEmployee?.id],
     queryFn: async () => {
@@ -76,7 +116,9 @@ export default function MyLeavesPage() {
         .from("leave_requests")
         .select(`
           *,
-          leave_type:leave_types(id, name, color)
+          leave_type:leave_types(id, name, color),
+          approver_1_profile:approver_1_id(id, full_name),
+          approver_2_profile:approver_2_id(id, full_name)
         `)
         .eq("employee_id", myEmployee.id)
         .order("created_at", { ascending: false });
@@ -86,7 +128,6 @@ export default function MyLeavesPage() {
     enabled: !!myEmployee?.id,
   });
 
-  // Get employee's leave balances
   const { data: leaveBalances } = useQuery({
     queryKey: ["my-leave-balances", myEmployee?.id],
     queryFn: async () => {
@@ -94,10 +135,7 @@ export default function MyLeavesPage() {
       const currentYear = new Date().getFullYear();
       const { data, error } = await supabase
         .from("leave_balances")
-        .select(`
-          *,
-          leave_type:leave_types(id, name, color)
-        `)
+        .select(`*, leave_type:leave_types(id, name, color)`)
         .eq("employee_id", myEmployee.id)
         .eq("year", currentYear);
       if (error) throw error;
@@ -111,7 +149,6 @@ export default function MyLeavesPage() {
       toast.error("Please fill all required fields");
       return;
     }
-
     if (!myEmployee?.id || !myEmployee?.organization_id) {
       toast.error("Employee record not found");
       return;
@@ -150,7 +187,6 @@ export default function MyLeavesPage() {
   const handleCancelLeave = async (id: string) => {
     try {
       await cancelLeaveRequest.mutateAsync(id);
-      toast.success("Leave request cancelled");
     } catch (error: any) {
       toast.error(error.message || "Failed to cancel leave request");
     }
@@ -226,9 +262,6 @@ export default function MyLeavesPage() {
                       ))}
                     </SelectContent>
                   </Select>
-                  {leaveTypes?.length === 0 && (
-                    <p className="text-sm text-muted-foreground">No leave types configured. Contact HR.</p>
-                  )}
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
@@ -271,7 +304,6 @@ export default function MyLeavesPage() {
         }
       />
 
-      {/* Leave Balance Cards */}
       {leaveBalances && leaveBalances.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {leaveBalances.map((balance) => {
@@ -279,12 +311,12 @@ export default function MyLeavesPage() {
             const used = balance.used || 0;
             const remaining = entitled - used;
             const usedPercent = entitled ? (used / entitled) * 100 : 0;
-            
+
             return (
               <Card key={balance.id}>
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <div 
+                    <div
                       className="w-3 h-3 rounded-full"
                       style={{ backgroundColor: balance.leave_type?.color || "#666" }}
                     />
@@ -295,9 +327,7 @@ export default function MyLeavesPage() {
                     remaining of {entitled} days
                   </div>
                   <Progress value={usedPercent} className="h-1.5" />
-                  <div className="text-xs text-muted-foreground mt-1">
-                    Used: {used} days
-                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">Used: {used} days</div>
                 </CardContent>
               </Card>
             );
@@ -305,7 +335,6 @@ export default function MyLeavesPage() {
         </div>
       )}
 
-      {/* Leave Requests Table */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -322,6 +351,7 @@ export default function MyLeavesPage() {
                 <TableHead>To</TableHead>
                 <TableHead>Days</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Approval Progress</TableHead>
                 <TableHead>Applied On</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -329,7 +359,7 @@ export default function MyLeavesPage() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8">
+                  <TableCell colSpan={8} className="text-center py-8">
                     <Loader2 className="h-6 w-6 animate-spin mx-auto" />
                   </TableCell>
                 </TableRow>
@@ -352,6 +382,20 @@ export default function MyLeavesPage() {
                     <TableCell>{leave.total_days}</TableCell>
                     <TableCell>{getStatusBadge(leave.status || "pending")}</TableCell>
                     <TableCell>
+                      <ApprovalTracker request={leave} />
+                      {/* Show remarks if any */}
+                      {leave.approver_1_remarks && (
+                        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                          L1: {leave.approver_1_remarks}
+                        </p>
+                      )}
+                      {leave.approver_2_remarks && (
+                        <p className="text-xs text-muted-foreground line-clamp-1">
+                          L2: {leave.approver_2_remarks}
+                        </p>
+                      )}
+                    </TableCell>
+                    <TableCell>
                       {format(new Date(leave.created_at || new Date()), "MMM d, yyyy")}
                     </TableCell>
                     <TableCell className="text-right">
@@ -370,7 +414,7 @@ export default function MyLeavesPage() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                     No leave requests found
                   </TableCell>
                 </TableRow>
