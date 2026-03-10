@@ -108,8 +108,8 @@ export default function PromotionsPage() {
                       {p.employee?.first_name} {p.employee?.last_name}
                       <div className="text-xs text-muted-foreground">{p.employee?.employee_number}</div>
                     </TableCell>
-                    <TableCell>{p.old_designation?.title || "—"}</TableCell>
-                    <TableCell><Badge variant="default">{p.new_designation?.title || "—"}</Badge></TableCell>
+                    <TableCell>{p.old_designation?.name || "—"}</TableCell>
+                    <TableCell><Badge variant="default">{p.new_designation?.name || "—"}</Badge></TableCell>
                     <TableCell>
                       {p.old_salary && p.new_salary ? (
                         <span className={p.new_salary > p.old_salary ? "text-green-600" : ""}>
