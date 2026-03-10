@@ -1294,6 +1294,10 @@ function App() {
               <Route path="hr/letters" element={<LettersPage />} />
               <Route path="hr/training" element={<TrainingPage />} />
               <Route path="hr/contracts" element={<ContractsPage />} />
+              <Route path="hr/transfers" element={<TransfersPage />} />
+              <Route path="hr/promotions" element={<PromotionsPage />} />
+              <Route path="hr/grievances" element={<GrievancesPage />} />
+              <Route path="hr/org-chart" element={<OrgChartPage />} />
               
               {/* Settings routes */}
               <Route path="settings/branches" element={<BranchesListPage />} />
