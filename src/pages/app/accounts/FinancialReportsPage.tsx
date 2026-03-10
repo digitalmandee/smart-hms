@@ -58,6 +58,44 @@ export default function FinancialReportsPage() {
       path: "/app/accounts/reports/revenue-by-source",
       color: "text-cyan-500",
     },
+    {
+      title: "Cost Center P&L",
+      description: "Profit & Loss by department / cost center",
+      icon: Building2,
+      path: "/app/accounts/reports/cost-center-pnl",
+      color: "text-indigo-500",
+    },
+  ];
+
+  const modules = [
+    {
+      title: "Credit & Debit Notes",
+      description: "Issue credit notes for refunds, returns, adjustments",
+      icon: FileText,
+      path: "/app/accounts/credit-notes",
+      color: "text-rose-500",
+    },
+    {
+      title: "Cost Centers",
+      description: "Manage cost centers for departmental tracking",
+      icon: Building2,
+      path: "/app/accounts/cost-centers",
+      color: "text-indigo-500",
+    },
+    {
+      title: "Fixed Asset Register",
+      description: "Equipment depreciation and asset lifecycle",
+      icon: Package,
+      path: "/app/accounts/fixed-assets",
+      color: "text-amber-500",
+    },
+    {
+      title: "Patient Deposits",
+      description: "Advance deposits, wallet, and refund management",
+      icon: Wallet,
+      path: "/app/accounts/patient-deposits",
+      color: "text-teal-500",
+    },
   ];
 
   return (
