@@ -80,6 +80,13 @@ export default function FinancialReportsPage() {
       path: "/app/accounts/reports/vat-return",
       color: "text-rose-500",
     },
+    {
+      title: "Payroll Cost Allocation",
+      description: "Department-wise salary, GOSI & ESB provision analysis",
+      icon: Users,
+      path: "/app/accounts/reports/payroll-cost",
+      color: "text-pink-500",
+    },
   ];
 
   const modules = [
