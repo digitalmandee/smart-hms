@@ -525,6 +525,12 @@ import ExpiryTrackerPage from "./pages/app/hr/compliance/ExpiryTrackerPage";
 import LettersPage from "./pages/app/hr/LettersPage";
 import TrainingPage from "./pages/app/hr/training/TrainingPage";
 import ContractsPage from "./pages/app/hr/ContractsPage";
+import TransfersPage from "./pages/app/hr/TransfersPage";
+import PromotionsPage from "./pages/app/hr/PromotionsPage";
+import GrievancesPage from "./pages/app/hr/GrievancesPage";
+import OrgChartPage from "./pages/app/hr/OrgChartPage";
+import MyDocumentsPage from "./pages/app/MyDocumentsPage";
+import MyTrainingPage from "./pages/app/MyTrainingPage";
 
 // Report sub-pages
 import StockValuationReport from "./pages/app/inventory/reports/StockValuationReport";
@@ -781,7 +787,9 @@ function App() {
               <Route path="my-attendance" element={<MyAttendancePage />} />
               <Route path="my-payslips" element={<MyPayslipsPage />} />
               <Route path="my-leaves" element={<MyLeavesPage />} />
-              
+              <Route path="my-documents" element={<MyDocumentsPage />} />
+              <Route path="my-training" element={<MyTrainingPage />} />
+
               {/* Clinic routes */}
               <Route path="clinic" element={<ClinicDashboard />} />
               <Route path="clinic/token" element={<ClinicTokenPage />} />
@@ -1286,6 +1294,10 @@ function App() {
               <Route path="hr/letters" element={<LettersPage />} />
               <Route path="hr/training" element={<TrainingPage />} />
               <Route path="hr/contracts" element={<ContractsPage />} />
+              <Route path="hr/transfers" element={<TransfersPage />} />
+              <Route path="hr/promotions" element={<PromotionsPage />} />
+              <Route path="hr/grievances" element={<GrievancesPage />} />
+              <Route path="hr/org-chart" element={<OrgChartPage />} />
               
               {/* Settings routes */}
               <Route path="settings/branches" element={<BranchesListPage />} />

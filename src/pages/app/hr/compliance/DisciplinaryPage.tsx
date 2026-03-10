@@ -13,7 +13,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useEmployees, useDepartments } from "@/hooks/useHR";
 import { useDisciplinaryActions, useCreateDisciplinaryAction } from "@/hooks/useCompliance";
-import { AlertTriangle, Search, FileWarning, AlertCircle, Plus, Eye } from "lucide-react";
+import { AlertTriangle, Search, FileWarning, AlertCircle, Plus, Eye, FileText } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 
 const ACTION_TYPES = [
@@ -27,6 +28,7 @@ const ACTION_TYPES = [
 
 export default function DisciplinaryPage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState<string>("all");
   const [selectedActionType, setSelectedActionType] = useState<string>("all");
@@ -246,6 +248,7 @@ export default function DisciplinaryPage() {
                   <TableHead>Issued Date</TableHead>
                   <TableHead>Policy Violated</TableHead>
                   <TableHead>Acknowledged</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -267,6 +270,21 @@ export default function DisciplinaryPage() {
                         ? <Badge className="bg-green-100 text-green-700">Yes</Badge>
                         : <Badge className="bg-amber-100 text-amber-700">Pending</Badge>
                       }
+                    </TableCell>
+                    <TableCell>
+                      <Button size="sm" variant="outline" onClick={() => {
+                        const empName = getEmployeeName(record.employee_id);
+                        const actionLabel = ACTION_TYPES.find(a => a.value === record.action_type)?.label || record.action_type;
+                        // Navigate to HR Letters with pre-filled context
+                        navigate("/app/hr/letters", { state: { 
+                          prefill: true,
+                          letter_type: "warning_letter",
+                          subject: `${actionLabel} - ${empName}`,
+                          body: `Dear ${empName},\n\nThis letter serves as a formal ${actionLabel.toLowerCase()} regarding the incident on ${format(new Date(record.incident_date), "MMMM d, yyyy")}.\n\nIncident: ${record.incident_description}\n\n${record.policy_violated ? `Policy Violated: ${record.policy_violated}\n\n` : ""}Action Taken: ${record.action_taken}\n\nPlease acknowledge receipt of this letter.\n\nRegards,\nHR Department`
+                        }});
+                      }}>
+                        <FileText className="h-3 w-3 mr-1" />Generate Letter
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}

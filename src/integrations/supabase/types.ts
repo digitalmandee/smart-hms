@@ -8229,6 +8229,89 @@ export type Database = {
           },
         ]
       }
+      employee_grievances: {
+        Row: {
+          assigned_to: string | null
+          category: string
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          employee_id: string
+          filed_date: string | null
+          grievance_number: string | null
+          id: string
+          organization_id: string
+          resolution_notes: string | null
+          resolved_date: string | null
+          status: string | null
+          subject: string
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          category: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          employee_id: string
+          filed_date?: string | null
+          grievance_number?: string | null
+          id?: string
+          organization_id: string
+          resolution_notes?: string | null
+          resolved_date?: string | null
+          status?: string | null
+          subject: string
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_to?: string | null
+          category?: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          employee_id?: string
+          filed_date?: string | null
+          grievance_number?: string | null
+          id?: string
+          organization_id?: string
+          resolution_notes?: string | null
+          resolved_date?: string | null
+          status?: string | null
+          subject?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_grievances_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_grievances_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_grievances_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_grievances_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employee_licenses: {
         Row: {
           created_at: string | null
@@ -8445,6 +8528,97 @@ export type Database = {
           },
         ]
       }
+      employee_promotions: {
+        Row: {
+          approved_by: string | null
+          created_at: string | null
+          created_by: string | null
+          effective_date: string
+          employee_id: string
+          id: string
+          letter_issued: boolean | null
+          new_designation_id: string | null
+          new_salary: number | null
+          old_designation_id: string | null
+          old_salary: number | null
+          organization_id: string
+          reason: string | null
+        }
+        Insert: {
+          approved_by?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          effective_date: string
+          employee_id: string
+          id?: string
+          letter_issued?: boolean | null
+          new_designation_id?: string | null
+          new_salary?: number | null
+          old_designation_id?: string | null
+          old_salary?: number | null
+          organization_id: string
+          reason?: string | null
+        }
+        Update: {
+          approved_by?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          effective_date?: string
+          employee_id?: string
+          id?: string
+          letter_issued?: boolean | null
+          new_designation_id?: string | null
+          new_salary?: number | null
+          old_designation_id?: string | null
+          old_salary?: number | null
+          organization_id?: string
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_promotions_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_promotions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_promotions_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_promotions_new_designation_id_fkey"
+            columns: ["new_designation_id"]
+            isOneToOne: false
+            referencedRelation: "designations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_promotions_old_designation_id_fkey"
+            columns: ["old_designation_id"]
+            isOneToOne: false
+            referencedRelation: "designations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_promotions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employee_qualifications: {
         Row: {
           certificate_url: string | null
@@ -8552,6 +8726,117 @@ export type Database = {
             columns: ["salary_structure_id"]
             isOneToOne: false
             referencedRelation: "salary_structures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_transfers: {
+        Row: {
+          approved_by: string | null
+          created_at: string | null
+          created_by: string | null
+          effective_date: string | null
+          employee_id: string
+          from_branch_id: string | null
+          from_department_id: string | null
+          id: string
+          organization_id: string
+          reason: string | null
+          status: string | null
+          to_branch_id: string | null
+          to_department_id: string | null
+          transfer_date: string
+          updated_at: string | null
+        }
+        Insert: {
+          approved_by?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          effective_date?: string | null
+          employee_id: string
+          from_branch_id?: string | null
+          from_department_id?: string | null
+          id?: string
+          organization_id: string
+          reason?: string | null
+          status?: string | null
+          to_branch_id?: string | null
+          to_department_id?: string | null
+          transfer_date: string
+          updated_at?: string | null
+        }
+        Update: {
+          approved_by?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          effective_date?: string | null
+          employee_id?: string
+          from_branch_id?: string | null
+          from_department_id?: string | null
+          id?: string
+          organization_id?: string
+          reason?: string | null
+          status?: string | null
+          to_branch_id?: string | null
+          to_department_id?: string | null
+          transfer_date?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_transfers_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_transfers_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_transfers_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_transfers_from_branch_id_fkey"
+            columns: ["from_branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_transfers_from_department_id_fkey"
+            columns: ["from_department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_transfers_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_transfers_to_branch_id_fkey"
+            columns: ["to_branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_transfers_to_department_id_fkey"
+            columns: ["to_department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
             referencedColumns: ["id"]
           },
         ]
