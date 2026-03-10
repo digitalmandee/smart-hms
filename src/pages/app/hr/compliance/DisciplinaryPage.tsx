@@ -271,6 +271,21 @@ export default function DisciplinaryPage() {
                         : <Badge className="bg-amber-100 text-amber-700">Pending</Badge>
                       }
                     </TableCell>
+                    <TableCell>
+                      <Button size="sm" variant="outline" onClick={() => {
+                        const empName = getEmployeeName(record.employee_id);
+                        const actionLabel = ACTION_TYPES.find(a => a.value === record.action_type)?.label || record.action_type;
+                        // Navigate to HR Letters with pre-filled context
+                        navigate("/app/hr/letters", { state: { 
+                          prefill: true,
+                          letter_type: "warning_letter",
+                          subject: `${actionLabel} - ${empName}`,
+                          body: `Dear ${empName},\n\nThis letter serves as a formal ${actionLabel.toLowerCase()} regarding the incident on ${format(new Date(record.incident_date), "MMMM d, yyyy")}.\n\nIncident: ${record.incident_description}\n\n${record.policy_violated ? `Policy Violated: ${record.policy_violated}\n\n` : ""}Action Taken: ${record.action_taken}\n\nPlease acknowledge receipt of this letter.\n\nRegards,\nHR Department`
+                        }});
+                      }}>
+                        <FileText className="h-3 w-3 mr-1" />Generate Letter
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
