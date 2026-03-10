@@ -197,7 +197,29 @@ export default function FinancialReportsPage() {
           ))}
         </div>
 
-        {/* Quick Actions */}
+        {/* Finance Modules */}
+        <div className="grid gap-4 md:grid-cols-2">
+          {modules.map((mod) => (
+            <Card key={mod.path} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate(mod.path)}>
+              <CardHeader>
+                <div className="flex items-center gap-4">
+                  <div className={`p-3 rounded-lg bg-muted ${mod.color}`}>
+                    <mod.icon className="h-6 w-6" />
+                  </div>
+                  <div className="flex-1">
+                    <CardTitle className="text-lg">{mod.title}</CardTitle>
+                    <CardDescription>{mod.description}</CardDescription>
+                  </div>
+                  <Button variant="ghost" size="icon">
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardHeader>
+            </Card>
+          ))}
+        </div>
+
+
         <Card>
           <CardHeader>
             <CardTitle>Quick Actions</CardTitle>
