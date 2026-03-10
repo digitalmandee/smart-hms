@@ -65,6 +65,20 @@ export default function FinancialReportsPage() {
       path: "/app/accounts/reports/cost-center-pnl",
       color: "text-indigo-500",
     },
+    {
+      title: "Consolidated P&L",
+      description: "Multi-branch profit & loss comparison",
+      icon: Landmark,
+      path: "/app/accounts/reports/consolidated-pnl",
+      color: "text-emerald-500",
+    },
+    {
+      title: "VAT Return Report",
+      description: "Input vs Output VAT summary for ZATCA filing",
+      icon: Receipt,
+      path: "/app/accounts/reports/vat-return",
+      color: "text-rose-500",
+    },
   ];
 
   const modules = [
