@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { 
   BarChart3, FileSpreadsheet, PieChart, 
-  TrendingUp, ArrowRight, DollarSign, Scale
+  TrendingUp, ArrowRight, DollarSign, Scale,
+  FileText, Building2, Package, Wallet
 } from "lucide-react";
 import { useFinancialSummary } from "@/hooks/useFinancialReports";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -56,6 +57,44 @@ export default function FinancialReportsPage() {
       icon: PieChart,
       path: "/app/accounts/reports/revenue-by-source",
       color: "text-cyan-500",
+    },
+    {
+      title: "Cost Center P&L",
+      description: "Profit & Loss by department / cost center",
+      icon: Building2,
+      path: "/app/accounts/reports/cost-center-pnl",
+      color: "text-indigo-500",
+    },
+  ];
+
+  const modules = [
+    {
+      title: "Credit & Debit Notes",
+      description: "Issue credit notes for refunds, returns, adjustments",
+      icon: FileText,
+      path: "/app/accounts/credit-notes",
+      color: "text-rose-500",
+    },
+    {
+      title: "Cost Centers",
+      description: "Manage cost centers for departmental tracking",
+      icon: Building2,
+      path: "/app/accounts/cost-centers",
+      color: "text-indigo-500",
+    },
+    {
+      title: "Fixed Asset Register",
+      description: "Equipment depreciation and asset lifecycle",
+      icon: Package,
+      path: "/app/accounts/fixed-assets",
+      color: "text-amber-500",
+    },
+    {
+      title: "Patient Deposits",
+      description: "Advance deposits, wallet, and refund management",
+      icon: Wallet,
+      path: "/app/accounts/patient-deposits",
+      color: "text-teal-500",
     },
   ];
 
@@ -158,7 +197,29 @@ export default function FinancialReportsPage() {
           ))}
         </div>
 
-        {/* Quick Actions */}
+        {/* Finance Modules */}
+        <div className="grid gap-4 md:grid-cols-2">
+          {modules.map((mod) => (
+            <Card key={mod.path} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate(mod.path)}>
+              <CardHeader>
+                <div className="flex items-center gap-4">
+                  <div className={`p-3 rounded-lg bg-muted ${mod.color}`}>
+                    <mod.icon className="h-6 w-6" />
+                  </div>
+                  <div className="flex-1">
+                    <CardTitle className="text-lg">{mod.title}</CardTitle>
+                    <CardDescription>{mod.description}</CardDescription>
+                  </div>
+                  <Button variant="ghost" size="icon">
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardHeader>
+            </Card>
+          ))}
+        </div>
+
+
         <Card>
           <CardHeader>
             <CardTitle>Quick Actions</CardTitle>

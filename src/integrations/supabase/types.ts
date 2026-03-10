@@ -5092,6 +5092,167 @@ export type Database = {
           },
         ]
       }
+      cost_centers: {
+        Row: {
+          code: string
+          created_at: string | null
+          department_id: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          organization_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          department_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          organization_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          department_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          organization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cost_centers_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cost_centers_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      credit_notes: {
+        Row: {
+          amount: number
+          approved_at: string | null
+          approved_by: string | null
+          branch_id: string | null
+          created_at: string | null
+          created_by: string | null
+          credit_note_number: string | null
+          id: string
+          invoice_id: string | null
+          journal_entry_id: string | null
+          note_type: string
+          organization_id: string
+          patient_id: string | null
+          reason: string | null
+          status: string
+          tax_amount: number | null
+          total_amount: number
+          updated_at: string | null
+          zatca_document_type: string | null
+        }
+        Insert: {
+          amount: number
+          approved_at?: string | null
+          approved_by?: string | null
+          branch_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          credit_note_number?: string | null
+          id?: string
+          invoice_id?: string | null
+          journal_entry_id?: string | null
+          note_type?: string
+          organization_id: string
+          patient_id?: string | null
+          reason?: string | null
+          status?: string
+          tax_amount?: number | null
+          total_amount: number
+          updated_at?: string | null
+          zatca_document_type?: string | null
+        }
+        Update: {
+          amount?: number
+          approved_at?: string | null
+          approved_by?: string | null
+          branch_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          credit_note_number?: string | null
+          id?: string
+          invoice_id?: string | null
+          journal_entry_id?: string | null
+          note_type?: string
+          organization_id?: string
+          patient_id?: string | null
+          reason?: string | null
+          status?: string
+          tax_amount?: number | null
+          total_amount?: number
+          updated_at?: string | null
+          zatca_document_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_notes_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "credit_notes_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "credit_notes_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "credit_notes_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "credit_notes_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "credit_notes_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "credit_notes_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cross_match_tests: {
         Row: {
           antibody_screen:
@@ -9758,6 +9919,130 @@ export type Database = {
           },
         ]
       }
+      fixed_assets: {
+        Row: {
+          account_id: string | null
+          accumulated_depreciation: number | null
+          asset_code: string | null
+          branch_id: string | null
+          category: string | null
+          created_at: string | null
+          created_by: string | null
+          depreciation_account_id: string | null
+          depreciation_method: string
+          description: string | null
+          disposal_amount: number | null
+          disposal_journal_id: string | null
+          disposed_date: string | null
+          id: string
+          location: string | null
+          name: string
+          net_book_value: number | null
+          organization_id: string
+          purchase_cost: number
+          purchase_date: string
+          salvage_value: number | null
+          status: string
+          updated_at: string | null
+          useful_life_months: number
+        }
+        Insert: {
+          account_id?: string | null
+          accumulated_depreciation?: number | null
+          asset_code?: string | null
+          branch_id?: string | null
+          category?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          depreciation_account_id?: string | null
+          depreciation_method?: string
+          description?: string | null
+          disposal_amount?: number | null
+          disposal_journal_id?: string | null
+          disposed_date?: string | null
+          id?: string
+          location?: string | null
+          name: string
+          net_book_value?: number | null
+          organization_id: string
+          purchase_cost: number
+          purchase_date: string
+          salvage_value?: number | null
+          status?: string
+          updated_at?: string | null
+          useful_life_months: number
+        }
+        Update: {
+          account_id?: string | null
+          accumulated_depreciation?: number | null
+          asset_code?: string | null
+          branch_id?: string | null
+          category?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          depreciation_account_id?: string | null
+          depreciation_method?: string
+          description?: string | null
+          disposal_amount?: number | null
+          disposal_journal_id?: string | null
+          disposed_date?: string | null
+          id?: string
+          location?: string | null
+          name?: string
+          net_book_value?: number | null
+          organization_id?: string
+          purchase_cost?: number
+          purchase_date?: string
+          salvage_value?: number | null
+          status?: string
+          updated_at?: string | null
+          useful_life_months?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fixed_assets_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fixed_assets_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fixed_assets_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fixed_assets_depreciation_account_id_fkey"
+            columns: ["depreciation_account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fixed_assets_disposal_journal_id_fkey"
+            columns: ["disposal_journal_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fixed_assets_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gate_logs: {
         Row: {
           created_at: string
@@ -13073,6 +13358,7 @@ export type Database = {
       journal_entry_lines: {
         Row: {
           account_id: string
+          cost_center_id: string | null
           created_at: string
           credit_amount: number
           debit_amount: number
@@ -13082,6 +13368,7 @@ export type Database = {
         }
         Insert: {
           account_id: string
+          cost_center_id?: string | null
           created_at?: string
           credit_amount?: number
           debit_amount?: number
@@ -13091,6 +13378,7 @@ export type Database = {
         }
         Update: {
           account_id?: string
+          cost_center_id?: string | null
           created_at?: string
           credit_amount?: number
           debit_amount?: number
@@ -13104,6 +13392,13 @@ export type Database = {
             columns: ["account_id"]
             isOneToOne: false
             referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_entry_lines_cost_center_id_fkey"
+            columns: ["cost_center_id"]
+            isOneToOne: false
+            referencedRelation: "cost_centers"
             referencedColumns: ["id"]
           },
           {
@@ -16892,6 +17187,117 @@ export type Database = {
             columns: ["patient_id"]
             isOneToOne: false
             referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patient_deposits: {
+        Row: {
+          amount: number
+          billing_session_id: string | null
+          branch_id: string | null
+          created_at: string | null
+          created_by: string | null
+          id: string
+          invoice_id: string | null
+          journal_entry_id: string | null
+          notes: string | null
+          organization_id: string
+          patient_id: string
+          payment_method_id: string | null
+          reference_number: string | null
+          status: string
+          type: string
+        }
+        Insert: {
+          amount: number
+          billing_session_id?: string | null
+          branch_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          invoice_id?: string | null
+          journal_entry_id?: string | null
+          notes?: string | null
+          organization_id: string
+          patient_id: string
+          payment_method_id?: string | null
+          reference_number?: string | null
+          status?: string
+          type?: string
+        }
+        Update: {
+          amount?: number
+          billing_session_id?: string | null
+          branch_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          invoice_id?: string | null
+          journal_entry_id?: string | null
+          notes?: string | null
+          organization_id?: string
+          patient_id?: string
+          payment_method_id?: string | null
+          reference_number?: string | null
+          status?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_deposits_billing_session_id_fkey"
+            columns: ["billing_session_id"]
+            isOneToOne: false
+            referencedRelation: "billing_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_deposits_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_deposits_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_deposits_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_deposits_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_deposits_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_deposits_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_deposits_payment_method_id_fkey"
+            columns: ["payment_method_id"]
+            isOneToOne: false
+            referencedRelation: "payment_methods"
             referencedColumns: ["id"]
           },
         ]
