@@ -16,7 +16,7 @@ export default function MyTrainingPage() {
     queryKey: ['my-employee-record', user?.id],
     queryFn: async () => {
       if (!user?.id || !profile?.organization_id) return null;
-      const { data } = await supabase
+      const { data } = await (supabase as any)
         .from('employees')
         .select('id')
         .eq('organization_id', profile.organization_id)
