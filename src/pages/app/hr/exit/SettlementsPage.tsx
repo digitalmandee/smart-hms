@@ -14,7 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/PageHeader";
 import { useResignations, useFinalSettlements, useFinalSettlement, useCreateFinalSettlement, useUpdateFinalSettlement } from "@/hooks/useExitManagement";
 import { useEmployees } from "@/hooks/useHR";
-import { Plus, Eye, CheckCircle, Clock, DollarSign, TrendingUp, TrendingDown } from "lucide-react";
+import { Plus, Eye, CheckCircle, Clock, DollarSign, TrendingUp, TrendingDown, Calculator } from "lucide-react";
 import { format } from "date-fns";
 
 const statusColors: Record<string, string> = {
