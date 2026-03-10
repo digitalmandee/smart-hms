@@ -52,7 +52,7 @@ export default function PromotionsPage() {
     });
   };
 
-  const getDesignationName = (id: string) => designations?.find((d: any) => d.id === id)?.title || "—";
+  const getDesignationName = (id: string) => designations?.find((d: any) => d.id === id)?.name || "—";
 
   const stats = {
     total: promotions?.length || 0,

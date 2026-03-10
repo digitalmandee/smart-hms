@@ -57,7 +57,7 @@ export default function GrievancesPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Grievance Management" subtitle="Track and resolve employee grievances — CBAHI/JCI compliant">
+      <PageHeader title="Grievance Management" description="Track and resolve employee grievances — CBAHI/JCI compliant">
         <Button onClick={() => setShowAddDialog(true)}><Plus className="h-4 w-4 mr-2" />File Grievance</Button>
       </PageHeader>
 

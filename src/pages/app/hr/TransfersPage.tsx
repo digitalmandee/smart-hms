@@ -65,7 +65,7 @@ export default function TransfersPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Employee Transfers" subtitle="Manage staff transfers between departments and branches">
+      <PageHeader title="Employee Transfers" description="Manage staff transfers between departments and branches">
         <Button onClick={() => setShowDialog(true)}><Plus className="h-4 w-4 mr-2" />New Transfer</Button>
       </PageHeader>
 
