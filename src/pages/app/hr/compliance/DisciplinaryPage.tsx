@@ -248,6 +248,7 @@ export default function DisciplinaryPage() {
                   <TableHead>Issued Date</TableHead>
                   <TableHead>Policy Violated</TableHead>
                   <TableHead>Acknowledged</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
