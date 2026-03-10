@@ -274,11 +274,11 @@ export default function SettlementsPage() {
                 if (resignation) {
                   const emp = employees?.find((e) => e.id === resignation.employee_id);
                   if (emp) {
-                    const joinDate = emp.joining_date ? new Date(emp.joining_date) : null;
+                    const joinDate = emp.join_date ? new Date(emp.join_date) : null;
                     const lwdDate = resignation.last_working_date ? new Date(resignation.last_working_date) : new Date();
                     if (joinDate) {
                       const yearsOfService = (lwdDate.getTime() - joinDate.getTime()) / (365.25 * 24 * 60 * 60 * 1000);
-                      const basicSalary = emp.basic_salary || 0;
+                      const basicSalary = (emp as any).basic_salary || (emp as any).salary || 0;
                       // Saudi Labor Law ESB: 0.5 month for first 5 years, 1 month for each year after
                       let gratuity = 0;
                       if (yearsOfService <= 5) {
