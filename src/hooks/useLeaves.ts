@@ -10,6 +10,39 @@ type LeaveRequestInsert = Database["public"]["Tables"]["leave_requests"]["Insert
 type LeaveBalance = Database["public"]["Tables"]["leave_balances"]["Row"];
 type LeaveBalanceInsert = Database["public"]["Tables"]["leave_balances"]["Insert"];
 
+// Helper: lookup department head's profile_id for an employee
+async function getDepartmentHeadProfileId(employeeId: string): Promise<string | null> {
+  // Get employee's department
+  const { data: emp } = await supabase
+    .from("employees")
+    .select("department_id")
+    .eq("id", employeeId)
+    .single();
+
+  if (!emp?.department_id) return null;
+
+  // Get department head employee
+  const { data: dept } = await supabase
+    .from("departments")
+    .select("head_employee_id")
+    .eq("id", emp.department_id)
+    .single();
+
+  if (!dept?.head_employee_id) return null;
+
+  // Don't assign self as approver
+  if (dept.head_employee_id === employeeId) return null;
+
+  // Get head's profile_id
+  const { data: headEmp } = await supabase
+    .from("employees")
+    .select("profile_id")
+    .eq("id", dept.head_employee_id)
+    .single();
+
+  return headEmp?.profile_id || null;
+}
+
 // Leave Types
 export function useLeaveTypes() {
   return useQuery({
@@ -103,7 +136,9 @@ export function useLeaveRequests(filters?: {
           *,
           employee:employee_id(id, first_name, last_name, employee_number, department:department_id(id, name)),
           leave_type:leave_type_id(id, name, code, color),
-          approved_by_profile:approved_by(id, full_name)
+          approved_by_profile:approved_by(id, full_name),
+          approver_1_profile:approver_1_id(id, full_name),
+          approver_2_profile:approver_2_id(id, full_name)
         `)
         .order("created_at", { ascending: false });
 
@@ -150,9 +185,15 @@ export function useCreateLeaveRequest() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (request: LeaveRequestInsert) => {
+      // Auto-assign department head as approver_1
+      const approver1Id = await getDepartmentHeadProfileId(request.employee_id);
+      
       const { data, error } = await supabase
         .from("leave_requests")
-        .insert(request)
+        .insert({
+          ...request,
+          approver_1_id: approver1Id,
+        })
         .select()
         .single();
       if (error) throw error;
@@ -160,6 +201,8 @@ export function useCreateLeaveRequest() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["leave-requests"] });
+      queryClient.invalidateQueries({ queryKey: ["my-leave-requests"] });
+      queryClient.invalidateQueries({ queryKey: ["my-approval-requests"] });
       toast.success("Leave request submitted successfully");
     },
     onError: (error: Error) => {
@@ -168,6 +211,7 @@ export function useCreateLeaveRequest() {
   });
 }
 
+// Legacy direct approve (for super_admin/org_admin)
 export function useApproveLeaveRequest() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -189,6 +233,11 @@ export function useApproveLeaveRequest() {
           approved_by: user?.id,
           approved_at: new Date().toISOString(),
           rejection_reason: rejectionReason,
+          // Also set both approver actions for completeness
+          approver_1_action: approved ? "approved" : "rejected",
+          approver_1_at: new Date().toISOString(),
+          approver_2_action: approved ? "approved" : "rejected",
+          approver_2_at: new Date().toISOString(),
         })
         .eq("id", id)
         .select()
@@ -200,10 +249,121 @@ export function useApproveLeaveRequest() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["leave-requests"] });
       queryClient.invalidateQueries({ queryKey: ["leave-balances"] });
+      queryClient.invalidateQueries({ queryKey: ["my-approval-requests"] });
+      queryClient.invalidateQueries({ queryKey: ["my-leave-requests"] });
       toast.success(`Leave request ${variables.approved ? "approved" : "rejected"}`);
     },
     onError: (error: Error) => {
       toast.error("Failed to process leave request: " + error.message);
+    },
+  });
+}
+
+// Level 1: Department Head approval
+export function useLevel1ApproveLeave() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      approved,
+      remarks,
+    }: {
+      id: string;
+      approved: boolean;
+      remarks?: string;
+    }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+
+      const updateData: Record<string, any> = {
+        approver_1_action: approved ? "approved" : "rejected",
+        approver_1_at: new Date().toISOString(),
+        approver_1_remarks: remarks || null,
+      };
+
+      // If rejected at Level 1, set overall status to rejected
+      if (!approved) {
+        updateData.status = "rejected";
+        updateData.rejection_reason = remarks || "Rejected by Department Head";
+      }
+
+      const { data, error } = await supabase
+        .from("leave_requests")
+        .update(updateData)
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["leave-requests"] });
+      queryClient.invalidateQueries({ queryKey: ["my-approval-requests"] });
+      queryClient.invalidateQueries({ queryKey: ["my-leave-requests"] });
+      queryClient.invalidateQueries({ queryKey: ["leave-stats"] });
+      toast.success(
+        variables.approved
+          ? "Approved — forwarded to HR Manager"
+          : "Leave request rejected"
+      );
+    },
+    onError: (error: Error) => {
+      toast.error("Failed to process: " + error.message);
+    },
+  });
+}
+
+// Level 2: HR Manager approval
+export function useLevel2ApproveLeave() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      approved,
+      remarks,
+    }: {
+      id: string;
+      approved: boolean;
+      remarks?: string;
+    }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+
+      const updateData: Record<string, any> = {
+        approver_2_id: user?.id,
+        approver_2_action: approved ? "approved" : "rejected",
+        approver_2_at: new Date().toISOString(),
+        approver_2_remarks: remarks || null,
+        status: approved ? "approved" : "rejected",
+        approved_by: user?.id,
+        approved_at: new Date().toISOString(),
+      };
+
+      if (!approved) {
+        updateData.rejection_reason = remarks || "Rejected by HR Manager";
+      }
+
+      const { data, error } = await supabase
+        .from("leave_requests")
+        .update(updateData)
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["leave-requests"] });
+      queryClient.invalidateQueries({ queryKey: ["leave-balances"] });
+      queryClient.invalidateQueries({ queryKey: ["my-approval-requests"] });
+      queryClient.invalidateQueries({ queryKey: ["my-leave-requests"] });
+      queryClient.invalidateQueries({ queryKey: ["leave-stats"] });
+      toast.success(
+        variables.approved ? "Leave request approved" : "Leave request rejected"
+      );
+    },
+    onError: (error: Error) => {
+      toast.error("Failed to process: " + error.message);
     },
   });
 }
@@ -238,6 +398,7 @@ export function useCancelLeaveRequest() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["leave-requests"] });
+      queryClient.invalidateQueries({ queryKey: ["my-leave-requests"] });
       toast.success("Leave request cancelled");
     },
     onError: (error: Error) => {
@@ -347,7 +508,6 @@ export function useInitializeLeaveBalances() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ employeeId, year }: { employeeId: string; year: number }) => {
-      // Get all leave types
       const { data: leaveTypes, error: ltError } = await supabase
         .from("leave_types")
         .select("id, annual_quota")
@@ -355,7 +515,6 @@ export function useInitializeLeaveBalances() {
       
       if (ltError) throw ltError;
 
-      // Create balance for each leave type
       const balances = leaveTypes?.map(lt => ({
         employee_id: employeeId,
         leave_type_id: lt.id,
@@ -436,4 +595,59 @@ export function useLeaveCalendar(month: number, year: number) {
       return data;
     },
   });
+}
+
+// My Approval Queue - requests where current user is approver_1 or approver_2
+export function useMyApprovalRequests() {
+  return useQuery({
+    queryKey: ["my-approval-requests"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+
+      const { data, error } = await supabase
+        .from("leave_requests")
+        .select(`
+          *,
+          employee:employee_id(id, first_name, last_name, employee_number, department:department_id(id, name)),
+          leave_type:leave_type_id(id, name, code, color),
+          approver_1_profile:approver_1_id(id, full_name),
+          approver_2_profile:approver_2_id(id, full_name)
+        `)
+        .eq("status", "pending")
+        .or(`approver_1_id.eq.${user.id},approver_2_id.eq.${user.id}`)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    },
+  });
+}
+
+// Helper to determine approval stage
+export function getApprovalStage(request: any): {
+  stage: "awaiting_dept_head" | "awaiting_hr" | "approved" | "rejected" | "cancelled";
+  label: string;
+  labelAr: string;
+  labelUr: string;
+} {
+  if (request.status === "approved") {
+    return { stage: "approved", label: "Approved", labelAr: "موافق عليه", labelUr: "منظور شدہ" };
+  }
+  if (request.status === "rejected") {
+    return { stage: "rejected", label: "Rejected", labelAr: "مرفوض", labelUr: "مسترد" };
+  }
+  if (request.status === "cancelled") {
+    return { stage: "cancelled", label: "Cancelled", labelAr: "ملغى", labelUr: "منسوخ" };
+  }
+  
+  // Pending — check which level
+  if (!request.approver_1_action || request.approver_1_action === "pending") {
+    return { stage: "awaiting_dept_head", label: "Awaiting Dept Head", labelAr: "بانتظار رئيس القسم", labelUr: "شعبہ سربراہ کی منظوری" };
+  }
+  if (request.approver_1_action === "approved" && (!request.approver_2_action || request.approver_2_action === "pending")) {
+    return { stage: "awaiting_hr", label: "Awaiting HR Manager", labelAr: "بانتظار مدير الموارد البشرية", labelUr: "ایچ آر مینیجر کی منظوری" };
+  }
+  
+  return { stage: "awaiting_dept_head", label: "Pending", labelAr: "قيد الانتظار", labelUr: "زیر التوا" };
 }
