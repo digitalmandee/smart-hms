@@ -525,6 +525,12 @@ import ExpiryTrackerPage from "./pages/app/hr/compliance/ExpiryTrackerPage";
 import LettersPage from "./pages/app/hr/LettersPage";
 import TrainingPage from "./pages/app/hr/training/TrainingPage";
 import ContractsPage from "./pages/app/hr/ContractsPage";
+import TransfersPage from "./pages/app/hr/TransfersPage";
+import PromotionsPage from "./pages/app/hr/PromotionsPage";
+import GrievancesPage from "./pages/app/hr/GrievancesPage";
+import OrgChartPage from "./pages/app/hr/OrgChartPage";
+import MyDocumentsPage from "./pages/app/MyDocumentsPage";
+import MyTrainingPage from "./pages/app/MyTrainingPage";
 
 // Report sub-pages
 import StockValuationReport from "./pages/app/inventory/reports/StockValuationReport";
