@@ -118,6 +118,20 @@ export default function FinancialReportsPage() {
       path: "/app/accounts/patient-deposits",
       color: "text-teal-500",
     },
+    {
+      title: "Period Management",
+      description: "Lock/unlock fiscal periods for audit compliance",
+      icon: Lock,
+      path: "/app/accounts/period-management",
+      color: "text-red-500",
+    },
+    {
+      title: "Financial Audit Log",
+      description: "Track all financial transaction modifications",
+      icon: Shield,
+      path: "/app/accounts/audit-log",
+      color: "text-slate-500",
+    },
   ];
 
   return (
