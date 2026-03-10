@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { 
   BarChart3, FileSpreadsheet, PieChart, 
-  TrendingUp, ArrowRight, DollarSign, Scale
+  TrendingUp, ArrowRight, DollarSign, Scale,
+  FileText, Building2, Package, Wallet
 } from "lucide-react";
 import { useFinancialSummary } from "@/hooks/useFinancialReports";
 import { Skeleton } from "@/components/ui/skeleton";
