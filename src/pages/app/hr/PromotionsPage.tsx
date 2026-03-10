@@ -62,7 +62,7 @@ export default function PromotionsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Promotion Management" subtitle="Track employee promotions and designation changes">
+      <PageHeader title="Promotion Management" description="Track employee promotions and designation changes">
         <Button onClick={() => setShowDialog(true)}><Plus className="h-4 w-4 mr-2" />Record Promotion</Button>
       </PageHeader>
 
