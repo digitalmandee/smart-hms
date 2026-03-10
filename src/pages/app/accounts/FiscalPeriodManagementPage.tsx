@@ -54,11 +54,11 @@ export default function FiscalPeriodManagementPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("journal_entries")
-        .select("id, entry_date, status")
-        .eq("status", "posted");
+        .select("id, entry_date, is_posted")
+        .eq("is_posted", true);
 
       if (error) throw error;
-      return data || [];
+      return (data || []) as { id: string; entry_date: string; is_posted: boolean }[];
     },
     enabled: !!profile?.organization_id,
   });
