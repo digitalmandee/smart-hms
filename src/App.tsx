@@ -34,6 +34,7 @@ const HrDocumentation = React.lazy(() => import("./pages/HrDocumentation"));
 const DialysisDocumentation = React.lazy(() => import("./pages/DialysisDocumentation"));
 const DentalDocumentation = React.lazy(() => import("./pages/DentalDocumentation"));
 import KsaDocumentation from "./pages/KsaDocumentation";
+const DemoFaqDocumentation = React.lazy(() => import("./pages/DemoFaqDocumentation"));
 import SystemOverview from "./pages/SystemOverview";
 import TestCasesPage from "./pages/TestCasesPage";
 const WarehouseTestCasesPage = React.lazy(() => import("./pages/WarehouseTestCasesPage"));
@@ -678,6 +679,7 @@ function App() {
               <Route path="/social-media-posts" element={<SocialMediaPosts />} />
               <Route path="/pharmacy-documentation" element={<PharmacyDocumentation />} />
               <Route path="/ksa-documentation" element={<KsaDocumentation />} />
+              <Route path="/demo-faq-documentation" element={<React.Suspense fallback={<div>Loading...</div>}><DemoFaqDocumentation /></React.Suspense>} />
               <Route path="/system-overview" element={<SystemOverview />} />
               <Route path="/documentation" element={<DocumentationHub />} />
               <Route path="/opd-documentation" element={<React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><OpdDocumentation /></React.Suspense>} />

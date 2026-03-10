@@ -25,6 +25,7 @@ const modules = [
   { title: "Dialysis", desc: "Sessions, vitals monitoring, machines, scheduling", path: "/dialysis-documentation", icon: "🫘", pages: 7, category: "specialty", accent: "from-red-500 to-rose-600" },
   { title: "Dental", desc: "3D tooth chart, treatments, procedures, imaging", path: "/dental-documentation", icon: "🦷", pages: 7, category: "specialty", accent: "from-sky-500 to-blue-600" },
   { title: "KSA Compliance", desc: "NPHIES, ZATCA, Wasfaty, Nafath, HESN, Tatmeen", path: "/ksa-documentation", icon: "🇸🇦", pages: 12, category: "compliance", accent: "from-emerald-600 to-green-700" },
+  { title: "Demo FAQ Guide", desc: "Common questions & answers for demos and presentations", path: "/demo-faq-documentation", icon: "❓", pages: 6, category: "operations", accent: "from-cyan-500 to-blue-600" },
 ];
 
 const DocumentationHub = () => {
