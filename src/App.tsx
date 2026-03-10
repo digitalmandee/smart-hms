@@ -321,6 +321,7 @@ import MySchedulePage from "./pages/app/MySchedulePage";
 import MyAttendancePage from "./pages/app/MyAttendancePage";
 import MyPayslipsPage from "./pages/app/MyPayslipsPage";
 import MyLeavesPage from "./pages/app/MyLeavesPage";
+import MyApprovalsPage from "./pages/app/MyApprovalsPage";
 
 import IPDDashboard from "./pages/app/ipd/IPDDashboard";
 import WardsListPage from "./pages/app/ipd/WardsListPage";
