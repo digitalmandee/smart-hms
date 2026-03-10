@@ -1,71 +1,92 @@
 
-# HealthOS 24 — Documentation Suite Implementation
 
-## Status: ✅ All Rounds Complete
+## Finance Module Seed Data — QA Audit & Plan
 
-## Round 1 ✅ DONE
-- [x] Bug fix: `mrn_number` → `patient_number` in DialysisNewSessionPage + DentalImagesPage
-- [x] DocumentationHub page (`/documentation`)
-- [x] OPD Documentation (8 pages)
-- [x] IPD Documentation (8 pages)
-- [x] Surgery/OT Documentation (7 pages)
+### Current State
 
-## Round 2 ✅ DONE
-- [x] Lab Documentation (5 pages)
-- [x] Radiology Documentation (5 pages)
-- [x] Warehouse Documentation (6 pages)
-- [x] Finance Documentation (6 pages)
-- [x] All routes wired in App.tsx
+| Table | Row Count | Verdict |
+|-------|-----------|---------|
+| accounts | 189 | Has data — CoA fully seeded |
+| journal_entries | 255 | Has data |
+| invoices | 91 | Has data |
+| payments | 59 | Has data |
+| fiscal_years | 1 | Has data |
+| employee_salaries | 11 | Has data |
+| goods_received_notes | 3 | Has data |
+| **credit_notes** | **0** | **Empty — new Phase 1 table** |
+| **cost_centers** | **0** | **Empty — new Phase 1 table** |
+| **fixed_assets** | **0** | **Empty — new Phase 1 table** |
+| **patient_deposits** | **0** | **Empty — new Phase 1 table** |
+| bank_accounts | 0 | Empty — existing table |
+| bank_transactions | 0 | Empty — existing table |
+| vendor_payments | 0 | Empty — existing table |
+| expenses | 0 | Empty — existing table |
+| daily_closings | 0 | Empty |
+| insurance_claims | 0 | Empty |
+| audit_logs | 0 | Empty |
+| budget_periods | 1 | Minimal |
 
-## Round 3 ✅ DONE
-- [x] HR Documentation (6 pages)
-- [x] Dialysis Documentation (6 pages)
-- [x] Dental Documentation (6 pages)
-- [x] All routes wired in App.tsx
+### Missing Accounts for New Modules
 
-## HR Module Expansion ✅ DONE
-- [x] Employee Onboarding Page (`/app/hr/onboarding`) — checklist-based pipeline
-- [x] Unified Expiry Tracker (`/app/hr/compliance/expiry-tracker`) — licenses + contracts
-- [x] HR Letters & Templates (`/app/hr/letters`) — create templates, issue letters, print
-- [x] Training & Development (`/app/hr/training`) — programs, enrollments, completion
-- [x] Contract Management (`/app/hr/contracts`) — contract tracking, probation, renewals
-- [x] DB tables: `hr_letter_templates`, `hr_issued_letters`, `training_programs`, `training_enrollments`, `employee_contracts`
-- [x] All routes + sidebar navigation added
+The Chart of Accounts lacks GL accounts needed by the new triggers:
+- **2400 — Patient Deposits (Liability)** — needed by `post_patient_deposit_to_journal`
+- **5600 — Depreciation Expense** — needed by fixed assets
+- **1500 — Accumulated Depreciation (contra-asset)** — needed by fixed assets
 
-## HR Gap Analysis Phase 1 & 2 ✅ DONE
-- [x] DB tables: `employee_transfers`, `employee_promotions`, `employee_grievances` with RLS
-- [x] Employee Transfers Page (`/app/hr/transfers`) — request/approve/reject/execute workflow
-- [x] Promotion Management Page (`/app/hr/promotions`) — designation & salary change tracking
-- [x] Grievance Management Page (`/app/hr/grievances`) — filed → review → investigation → resolved (CBAHI/JCI)
-- [x] Organization Chart Page (`/app/hr/org-chart`) — department-based visual org structure
-- [x] My Documents Page (`/app/my-documents`) — employee self-service documents & licenses view
-- [x] My Training Page (`/app/my-training`) — employee self-service training enrollments view
-- [x] ESB Calculator — auto-calculates gratuity (Saudi Labor Law) on SettlementsPage
-- [x] Warning Letter Integration — "Generate Letter" button on DisciplinaryPage → HR Letters
-- [x] All routes wired in App.tsx
+### Seed Data Plan
 
-## Finance Module Enhancement Phase 1 ✅ DONE
-- [x] DB tables: `credit_notes`, `cost_centers`, `fixed_assets`, `patient_deposits` with RLS
-- [x] DB triggers: auto-post credit notes & patient deposits to journal
-- [x] Credit Notes Page (`/app/accounts/credit-notes`) — credit/debit notes with approval workflow
-- [x] Cost Centers Page (`/app/accounts/cost-centers`) — manage cost centers
-- [x] Cost Center P&L Page (`/app/accounts/reports/cost-center-pnl`) — department-level profitability
-- [x] Fixed Assets Page (`/app/accounts/fixed-assets`) — asset register + depreciation schedule
-- [x] Patient Deposits Page (`/app/accounts/patient-deposits`) — advance deposits, refunds, wallet
-- [x] FinancialReportsPage updated with new modules
-- [x] All routes wired in App.tsx
+One migration that inserts realistic demo data using `DO $$ ... $$` blocks with safe `ON CONFLICT` / `WHERE NOT EXISTS` guards. All data scoped to org `a0eebc99-...`.
 
-## Finance Module Phase 2 ✅ DONE
-- [x] Accounts Dashboard enhanced with KPIs (DSO, cash position, collection rate, AR aging pie chart, 12-month revenue trend)
-- [x] Consolidated P&L Page (`/app/accounts/reports/consolidated-pnl`) — multi-branch side-by-side comparison with margins
-- [x] Bank Reconciliation Page (`/app/accounts/bank-reconciliation`) — CSV import, auto-matching, manual reconciliation
-- [x] VAT Return Report Page (`/app/accounts/reports/vat-return`) — Input vs Output VAT for ZATCA filing
-- [x] FinancialReportsPage updated with Consolidated P&L + VAT Return report cards
-- [x] All routes wired in App.tsx
+**1. Missing GL Accounts (3 accounts)**
+- `2400` Patient Deposits (liability)
+- `5600` Depreciation Expense
+- `1500` Accumulated Depreciation
 
-## Finance Module Phase 3 ✅ DONE
-- [x] Payroll Cost Allocation Report (`/app/accounts/reports/payroll-cost`) — dept-wise salary, GOSI employer/employee, ESB provision
-- [x] Fiscal Period Management (`/app/accounts/period-management`) — lock/unlock monthly/quarterly periods and fiscal years
-- [x] Financial Audit Log (`/app/accounts/audit-log`) — searchable audit trail of all financial transactions
-- [x] FinancialReportsPage updated with new report cards + module links
-- [x] All routes wired in App.tsx
+**2. Cost Centers (5 records)**
+- CC-OPD → OPD Department (linked to Medical dept)
+- CC-LAB → Laboratory (linked to Laboratory dept)
+- CC-PHRM → Pharmacy (linked to Pharmacy dept)
+- CC-ADMIN → Administration (linked to Administration dept)
+- CC-NUR → Nursing (linked to Nursing dept)
+
+**3. Fixed Assets (5 records)**
+- MRI Machine — 2,500,000 SAR, 120 months, straight-line
+- CT Scanner — 1,800,000 SAR, 96 months, straight-line
+- Ultrasound Machine — 350,000 SAR, 60 months, reducing balance
+- Ventilator x10 — 500,000 SAR, 84 months, straight-line
+- Pharmacy Dispensing System — 120,000 SAR, 60 months, straight-line
+
+**4. Patient Deposits (5 records)**
+- 3 deposits (advance payments for IPD)
+- 1 applied (used against invoice)
+- 1 refund
+
+**5. Credit Notes (3 records)**
+- 1 draft, 1 approved, 1 voided — linked to existing paid invoices
+
+**6. Bank Accounts (2 records)**
+- Main Operating Account — SAR 725,000
+- Payroll Account — SAR 150,000
+
+**7. Bank Transactions (8 records)**
+- Mix of deposits, withdrawals, and transfers over last 30 days
+
+**8. Vendor Payments (3 records)**
+- Linked to existing GRNs where possible
+
+**9. Expenses (5 records)**
+- Utilities, office supplies, maintenance, travel, misc
+
+**10. Budget Periods (3 more records)**
+- Q1, Q2, Q3 2026 under existing fiscal year
+
+### Files to Create/Modify
+- **New migration**: `supabase/migrations/xxx_finance_seed_data.sql` — all seed data in one idempotent migration
+
+### Scope
+- All inserts use `ON CONFLICT DO NOTHING` or `WHERE NOT EXISTS` for idempotency
+- All amounts in SAR with realistic hospital values
+- Dates spread across last 60 days for realistic dashboard charts
+- Patient deposits linked to real patient IDs from existing data
+- Credit notes linked to real paid invoice IDs
+
