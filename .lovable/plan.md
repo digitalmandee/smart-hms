@@ -43,3 +43,21 @@
 - [x] ESB Calculator — auto-calculates gratuity (Saudi Labor Law) on SettlementsPage
 - [x] Warning Letter Integration — "Generate Letter" button on DisciplinaryPage → HR Letters
 - [x] All routes wired in App.tsx
+
+## Finance Module Enhancement Phase 1 ✅ DONE
+- [x] DB tables: `credit_notes`, `cost_centers`, `fixed_assets`, `patient_deposits` with RLS
+- [x] DB triggers: auto-post credit notes & patient deposits to journal
+- [x] Credit Notes Page (`/app/accounts/credit-notes`) — credit/debit notes with approval workflow
+- [x] Cost Centers Page (`/app/accounts/cost-centers`) — manage cost centers
+- [x] Cost Center P&L Page (`/app/accounts/reports/cost-center-pnl`) — department-level profitability
+- [x] Fixed Assets Page (`/app/accounts/fixed-assets`) — asset register + depreciation schedule
+- [x] Patient Deposits Page (`/app/accounts/patient-deposits`) — advance deposits, refunds, wallet
+- [x] FinancialReportsPage updated with new modules
+- [x] All routes wired in App.tsx
+
+## Finance Module Phase 2 (Pending)
+- [ ] Financial Dashboard KPIs (revenue trend, DSO, cash position)
+- [ ] Consolidated Multi-Branch Reports
+- [ ] Bank Reconciliation Workflow
+- [ ] Payroll-Finance Deep Integration (GOSI, EOS provisions)
+- [ ] VAT Return Report
