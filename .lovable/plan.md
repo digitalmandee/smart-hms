@@ -62,3 +62,10 @@
 - [x] VAT Return Report Page (`/app/accounts/reports/vat-return`) — Input vs Output VAT for ZATCA filing
 - [x] FinancialReportsPage updated with Consolidated P&L + VAT Return report cards
 - [x] All routes wired in App.tsx
+
+## Finance Module Phase 3 ✅ DONE
+- [x] Payroll Cost Allocation Report (`/app/accounts/reports/payroll-cost`) — dept-wise salary, GOSI employer/employee, ESB provision
+- [x] Fiscal Period Management (`/app/accounts/period-management`) — lock/unlock monthly/quarterly periods and fiscal years
+- [x] Financial Audit Log (`/app/accounts/audit-log`) — searchable audit trail of all financial transactions
+- [x] FinancialReportsPage updated with new report cards + module links
+- [x] All routes wired in App.tsx
