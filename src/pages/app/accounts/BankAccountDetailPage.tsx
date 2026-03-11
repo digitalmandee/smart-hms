@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,9 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Building2, ArrowUpRight, ArrowDownLeft, ArrowLeft, Edit } from "lucide-react";
+import { Building2, ArrowUpRight, ArrowDownLeft, ArrowLeft, Banknote } from "lucide-react";
 import { format } from "date-fns";
 import { formatCurrencyFull } from "@/lib/currency";
+import { CashToBankDepositDialog } from "@/components/accounts/CashToBankDepositDialog";
 
 const labels = {
   title: { en: "Bank Account Details", ur: "بینک اکاؤنٹ کی تفصیلات", ar: "تفاصيل الحساب البنكي" },
@@ -33,9 +35,11 @@ const labels = {
   yes: { en: "Yes", ur: "ہاں", ar: "نعم" },
   no: { en: "No", ur: "نہیں", ar: "لا" },
   notFound: { en: "Bank account not found", ur: "بینک اکاؤنٹ نہیں ملا", ar: "لم يتم العثور على الحساب البنكي" },
+  depositCash: { en: "Deposit Cash", ur: "نقد جمع کروائیں", ar: "إيداع نقدي" },
 };
 
 export default function BankAccountDetailPage() {
+  const [depositOpen, setDepositOpen] = useState(false);
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { profile } = useAuth();
@@ -120,10 +124,16 @@ export default function BankAccountDetailPage() {
           { label: account.bank_name },
         ]}
         actions={
-          <Button variant="outline" onClick={() => navigate("/app/accounts/bank-accounts")}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            {l("back")}
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => setDepositOpen(true)}>
+              <Banknote className="h-4 w-4 mr-2" />
+              {l("depositCash")}
+            </Button>
+            <Button variant="outline" onClick={() => navigate("/app/accounts/bank-accounts")}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              {l("back")}
+            </Button>
+          </div>
         }
       />
 
@@ -193,6 +203,18 @@ export default function BankAccountDetailPage() {
           </CardContent>
         </Card>
       </div>
+
+      <CashToBankDepositDialog
+        open={depositOpen}
+        onOpenChange={setDepositOpen}
+        bankAccount={{
+          id: account.id,
+          bank_name: account.bank_name,
+          account_number: account.account_number,
+          account_id: account.account_id,
+          organization_id: account.organization_id,
+        }}
+      />
     </div>
   );
 }
