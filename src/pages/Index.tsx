@@ -3,7 +3,7 @@ import { HeroSection } from "@/components/landing/HeroSection";
 import { TrustBadges } from "@/components/landing/TrustBadges";
 import { ProblemSolutionSection } from "@/components/landing/ProblemSolutionSection";
 import { FeaturesTabs } from "@/components/landing/FeaturesTabs";
-import { AIFeaturesSection } from "@/components/landing/AIFeaturesSection";
+
 import { WorkflowDiagram } from "@/components/landing/WorkflowDiagram";
 import { ProcurementCycleDiagram } from "@/components/landing/ProcurementCycleDiagram";
 import { WarehouseSection } from "@/components/landing/WarehouseSection";
@@ -28,7 +28,7 @@ const Index = () => {
           <ProblemSolutionSection />
         </AnimatedSection>
         <FeaturesTabs />
-        <AIFeaturesSection />
+        
         <WorkflowDiagram />
         <ProcurementCycleDiagram />
         <WarehouseSection />
