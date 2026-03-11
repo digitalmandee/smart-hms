@@ -589,6 +589,7 @@ import BalanceSheetPage from "./pages/app/accounts/BalanceSheetPage";
 import CashFlowPage from "./pages/app/accounts/CashFlowPage";
 import JournalEntryFormPage from "./pages/app/accounts/JournalEntryFormPage";
 import BankAccountFormPage from "./pages/app/accounts/BankAccountFormPage";
+import BankAccountDetailPage from "./pages/app/accounts/BankAccountDetailPage";
 const CreditNotesPage = React.lazy(() => import("./pages/app/accounts/CreditNotesPage"));
 const CostCentersPage = React.lazy(() => import("./pages/app/accounts/CostCentersPage"));
 const CostCenterPnLPage = React.lazy(() => import("./pages/app/accounts/CostCenterPnLPage"));
