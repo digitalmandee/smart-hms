@@ -28,7 +28,7 @@ const Index = () => {
           <ProblemSolutionSection />
         </AnimatedSection>
         <FeaturesTabs />
-        <AIFeaturesSection />
+        
         <WorkflowDiagram />
         <ProcurementCycleDiagram />
         <WarehouseSection />
