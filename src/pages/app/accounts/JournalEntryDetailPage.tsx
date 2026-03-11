@@ -217,8 +217,8 @@ const JournalEntryDetailPage = () => {
               {/* Totals Row */}
               <TableRow className="font-bold border-t-2">
                 <TableCell colSpan={2} className="text-right">Totals:</TableCell>
-                <TableCell className="text-right font-mono">Rs. {totalDebits.toLocaleString()}</TableCell>
-                <TableCell className="text-right font-mono">Rs. {totalCredits.toLocaleString()}</TableCell>
+                <TableCell className="text-right font-mono">{formatCurrency(totalDebits)}</TableCell>
+                <TableCell className="text-right font-mono">{formatCurrency(totalCredits)}</TableCell>
               </TableRow>
             </TableBody>
           </Table>
