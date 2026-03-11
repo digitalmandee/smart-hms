@@ -1,71 +1,153 @@
 
-# HealthOS 24 — Documentation Suite Implementation
 
-## Status: ✅ All Rounds Complete
+## Finance Module — Pre-Demo Fix Plan + Documentation Guide
 
-## Round 1 ✅ DONE
-- [x] Bug fix: `mrn_number` → `patient_number` in DialysisNewSessionPage + DentalImagesPage
-- [x] DocumentationHub page (`/documentation`)
-- [x] OPD Documentation (8 pages)
-- [x] IPD Documentation (8 pages)
-- [x] Surgery/OT Documentation (7 pages)
+### Part 1: Fix Hardcoded Currency (15 files)
 
-## Round 2 ✅ DONE
-- [x] Lab Documentation (5 pages)
-- [x] Radiology Documentation (5 pages)
-- [x] Warehouse Documentation (6 pages)
-- [x] Finance Documentation (6 pages)
-- [x] All routes wired in App.tsx
+Replace all local `formatCurrency` functions and `Rs.` string literals with the dynamic `useCurrencyFormatter()` hook.
 
-## Round 3 ✅ DONE
-- [x] HR Documentation (6 pages)
-- [x] Dialysis Documentation (6 pages)
-- [x] Dental Documentation (6 pages)
-- [x] All routes wired in App.tsx
+**Accounts pages (7 files):**
+- `ProfitLossPage.tsx` — remove local `formatCurrency`, import hook
+- `TrialBalancePage.tsx` — same
+- `FinancialReportsPage.tsx` — same
+- `JournalEntryDetailPage.tsx` — replace `Rs. ${...}` with `formatCurrency()`
+- `VendorPaymentFormPage.tsx` — replace `Amount (Rs.)` label
+- `AccountsDashboard.tsx` — if any `Rs.` in tooltips/labels
+- `PayrollCostAllocationPage.tsx` — check and fix
 
-## HR Module Expansion ✅ DONE
-- [x] Employee Onboarding Page (`/app/hr/onboarding`) — checklist-based pipeline
-- [x] Unified Expiry Tracker (`/app/hr/compliance/expiry-tracker`) — licenses + contracts
-- [x] HR Letters & Templates (`/app/hr/letters`) — create templates, issue letters, print
-- [x] Training & Development (`/app/hr/training`) — programs, enrollments, completion
-- [x] Contract Management (`/app/hr/contracts`) — contract tracking, probation, renewals
-- [x] DB tables: `hr_letter_templates`, `hr_issued_letters`, `training_programs`, `training_enrollments`, `employee_contracts`
-- [x] All routes + sidebar navigation added
+**Billing pages (6 files):**
+- `BillingDashboard.tsx` — replace `Rs. ${...}`
+- `InvoicesListPage.tsx` — replace `Rs. ${...}` in column cells
+- `PaymentCollectionPage.tsx` — replace all `Rs.` references
+- `PaymentHistoryPage.tsx` — replace `Rs.` references
+- `ClaimsListPage.tsx` — remove local `formatCurrency` with `en-PK`/`PKR`
+- `ClaimDetailPage.tsx` — check for currency formatting
 
-## HR Gap Analysis Phase 1 & 2 ✅ DONE
-- [x] DB tables: `employee_transfers`, `employee_promotions`, `employee_grievances` with RLS
-- [x] Employee Transfers Page (`/app/hr/transfers`) — request/approve/reject/execute workflow
-- [x] Promotion Management Page (`/app/hr/promotions`) — designation & salary change tracking
-- [x] Grievance Management Page (`/app/hr/grievances`) — filed → review → investigation → resolved (CBAHI/JCI)
-- [x] Organization Chart Page (`/app/hr/org-chart`) — department-based visual org structure
-- [x] My Documents Page (`/app/my-documents`) — employee self-service documents & licenses view
-- [x] My Training Page (`/app/my-training`) — employee self-service training enrollments view
-- [x] ESB Calculator — auto-calculates gratuity (Saudi Labor Law) on SettlementsPage
-- [x] Warning Letter Integration — "Generate Letter" button on DisciplinaryPage → HR Letters
-- [x] All routes wired in App.tsx
+### Part 2: UX Fixes for Demo
 
-## Finance Module Enhancement Phase 1 ✅ DONE
-- [x] DB tables: `credit_notes`, `cost_centers`, `fixed_assets`, `patient_deposits` with RLS
-- [x] DB triggers: auto-post credit notes & patient deposits to journal
-- [x] Credit Notes Page (`/app/accounts/credit-notes`) — credit/debit notes with approval workflow
-- [x] Cost Centers Page (`/app/accounts/cost-centers`) — manage cost centers
-- [x] Cost Center P&L Page (`/app/accounts/reports/cost-center-pnl`) — department-level profitability
-- [x] Fixed Assets Page (`/app/accounts/fixed-assets`) — asset register + depreciation schedule
-- [x] Patient Deposits Page (`/app/accounts/patient-deposits`) — advance deposits, refunds, wallet
-- [x] FinancialReportsPage updated with new modules
-- [x] All routes wired in App.tsx
+**A. Patient Deposits — Patient Search Dropdown**
+- Replace raw UUID text input with a searchable patient combobox
+- Use existing patients query to populate dropdown (name + MRN)
+- File: `PatientDepositsPage.tsx`
 
-## Finance Module Phase 2 ✅ DONE
-- [x] Accounts Dashboard enhanced with KPIs (DSO, cash position, collection rate, AR aging pie chart, 12-month revenue trend)
-- [x] Consolidated P&L Page (`/app/accounts/reports/consolidated-pnl`) — multi-branch side-by-side comparison with margins
-- [x] Bank Reconciliation Page (`/app/accounts/bank-reconciliation`) — CSV import, auto-matching, manual reconciliation
-- [x] VAT Return Report Page (`/app/accounts/reports/vat-return`) — Input vs Output VAT for ZATCA filing
-- [x] FinancialReportsPage updated with Consolidated P&L + VAT Return report cards
-- [x] All routes wired in App.tsx
+**B. Credit Notes — Invoice Selector**
+- Add invoice search/select dropdown to the "New Note" dialog
+- Query paid/partially_paid invoices for the org
+- Auto-fill patient from selected invoice
+- File: `CreditNotesPage.tsx`
 
-## Finance Module Phase 3 ✅ DONE
-- [x] Payroll Cost Allocation Report (`/app/accounts/reports/payroll-cost`) — dept-wise salary, GOSI employer/employee, ESB provision
-- [x] Fiscal Period Management (`/app/accounts/period-management`) — lock/unlock monthly/quarterly periods and fiscal years
-- [x] Financial Audit Log (`/app/accounts/audit-log`) — searchable audit trail of all financial transactions
-- [x] FinancialReportsPage updated with new report cards + module links
-- [x] All routes wired in App.tsx
+**C. Close Open Billing Session**
+- Seed SQL to close the remaining open session so Daily Closing wizard works during demo
+
+### Part 3: Finance Q&A + Module Flow Documentation Page
+
+Create a new **Finance Demo Guide** page at `/finance-demo-guide` with:
+
+**File**: `src/pages/FinanceDemoGuide.tsx` (+ route in App.tsx + link in DocumentationHub)
+
+**Content structure** — multi-page printable document (same pattern as existing doc pages using `DocPageWrapper`):
+
+**Page 1: Cover**
+- "Finance Module — Complete Demo Guide & FAQ"
+
+**Page 2: Table of Contents**
+
+**Page 3: Chart of Accounts Flow**
+- 4-level hierarchy explanation
+- Header vs posting accounts
+- How accounts are created and structured
+
+**Page 4: Journal Entry Flow**
+- Manual entry lifecycle: Draft → Posted → Reversed
+- 9 auto-triggers listed with Debit/Credit mappings
+- Balance validation rules
+
+**Page 5: Invoice & Payment Flow**
+- Service delivery → Invoice generation → Payment collection
+- Auto GL posting on payment
+- Split payments, partial payments
+
+**Page 6: Credit Note Flow**
+- When to issue (refund, return, adjustment)
+- ZATCA types 381 (credit) / 383 (debit)
+- Draft → Approved lifecycle
+- Auto journal posting on approval
+
+**Page 7: Patient Deposits Flow**
+- Deposit → Applied → Refund lifecycle
+- Liability accounting (Debit Cash, Credit Patient Deposits 2400)
+- IPD advance workflow
+
+**Page 8: Daily Closing & Reconciliation Flow**
+- 4-step wizard walkthrough
+- Session aggregation → Expense recording → Cash denomination → Summary
+- Net Cash = Collections - Payouts
+
+**Page 9: Bank Reconciliation Flow**
+- CSV import → Auto-match → Manual reconciliation
+- Matched vs unmatched items
+
+**Page 10: Fixed Assets & Depreciation**
+- Asset register → Depreciation methods (Straight-line / Reducing balance)
+- Monthly depreciation journal posting
+
+**Page 11: Expense Management Flow**
+- Category types, petty cash, auto GL posting
+- Expense → Journal trigger
+
+**Page 12: Vendor Payments & AP Flow**
+- PO → GRN → Vendor Payment lifecycle
+- Auto GL: Debit AP, Credit Cash
+
+**Page 13: VAT/ZATCA Compliance**
+- Output VAT (sales) vs Input VAT (purchases)
+- QR code on invoices
+- VAT Return report
+
+**Page 14: Budget & Fiscal Period Management**
+- Budget creation, variance analysis
+- Period locking/unlocking
+
+**Page 15: Demo FAQ (29 questions)**
+- Organized by category: Revenue Cycle, GL & Reporting, Compliance, Operations, Technical
+- Each Q&A with the page/route where it can be demonstrated
+
+**Page 16: Quick Navigation Reference**
+- Table of all finance routes with descriptions
+
+### Components to Create
+
+```text
+src/components/finance-demo-docs/
+  FinDemoGuideCover.tsx
+  FinDemoGuideToc.tsx
+  FinDemoGuideCoA.tsx
+  FinDemoGuideJournals.tsx
+  FinDemoGuideInvoices.tsx
+  FinDemoGuideCreditNotes.tsx
+  FinDemoGuideDeposits.tsx
+  FinDemoGuideDailyClosing.tsx
+  FinDemoGuideBankRecon.tsx
+  FinDemoGuideFixedAssets.tsx
+  FinDemoGuideExpenses.tsx
+  FinDemoGuideVendorAP.tsx
+  FinDemoGuideVAT.tsx
+  FinDemoGuideBudgets.tsx
+  FinDemoGuideFAQ.tsx
+  FinDemoGuideNavRef.tsx
+```
+
+**Page**: `src/pages/FinanceDemoGuide.tsx` — assembles all pages with PDF export
+
+### Files Modified
+- ~15 finance/billing pages (currency fix)
+- `PatientDepositsPage.tsx` (patient search)
+- `CreditNotesPage.tsx` (invoice selector)
+- `App.tsx` (new route)
+- `DocumentationHub.tsx` (add Finance Demo Guide card)
+- 1 SQL seed (close open session)
+
+### Files Created
+- 16 doc components in `src/components/finance-demo-docs/`
+- `src/pages/FinanceDemoGuide.tsx`
+
