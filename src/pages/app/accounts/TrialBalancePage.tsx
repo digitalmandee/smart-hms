@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Printer, Download, CheckCircle, XCircle, Calendar } from "lucide-react";
 import { useTrialBalance } from "@/hooks/useFinancialReports";
 import { exportToCSV, formatCurrency as exportFmtCurrency } from "@/lib/exportUtils";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import {
   Table,
   TableBody,
