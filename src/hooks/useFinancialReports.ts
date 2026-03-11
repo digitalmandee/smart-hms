@@ -646,7 +646,7 @@ export function useDetailedPnL(startDate?: string, endDate?: string, branchId?: 
               journal_lines: accLines.map(l => ({
                 id: l.id,
                 entry_date: l.journal_entry?.entry_date || "",
-                reference_number: l.journal_entry?.reference_number || "",
+                reference_number: l.journal_entry?.entry_number || "",
                 description: l.description || l.journal_entry?.description || "",
                 debit: Number(l.debit_amount) || 0,
                 credit: Number(l.credit_amount) || 0,
