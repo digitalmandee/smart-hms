@@ -207,10 +207,10 @@ const JournalEntryDetailPage = () => {
                   </TableCell>
                   <TableCell className="text-muted-foreground">{line.description || "-"}</TableCell>
                   <TableCell className="text-right font-mono">
-                    {line.debit_amount > 0 ? `Rs. ${line.debit_amount.toLocaleString()}` : "-"}
+                    {line.debit_amount > 0 ? formatCurrency(line.debit_amount) : "-"}
                   </TableCell>
                   <TableCell className="text-right font-mono">
-                    {line.credit_amount > 0 ? `Rs. ${line.credit_amount.toLocaleString()}` : "-"}
+                    {line.credit_amount > 0 ? formatCurrency(line.credit_amount) : "-"}
                   </TableCell>
                 </TableRow>
               ))}
