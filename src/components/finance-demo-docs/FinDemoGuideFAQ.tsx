@@ -42,7 +42,7 @@ const faqsPage2 = [
   ]},
 ];
 
-const FAQSection = ({ faqs }: { faqs: typeof faqsPage1 }) => (
+const FAQSection = ({ faqs }: { faqs: { category: string; items: { q: string; a: string; route?: string }[] }[] }) => (
   <div className="space-y-4" style={{ fontSize: 11 }}>
     {faqs.map((cat) => (
       <div key={cat.category}>
