@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Search, Building2, RefreshCw, ArrowUpRight, ArrowDownLeft, MoreHorizontal } from "lucide-react";
+import { Plus, Search, Building2, RefreshCw, ArrowUpRight, ArrowDownLeft, MoreHorizontal, FileBarChart } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
