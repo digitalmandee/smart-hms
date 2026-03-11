@@ -593,7 +593,7 @@ export function useDetailedPnL(startDate?: string, endDate?: string, branchId?: 
         .select(`
           id, account_id, debit_amount, credit_amount, description,
           journal_entry:journal_entries!inner(
-            id, entry_date, reference_number, description, is_posted
+            id, entry_date, entry_number, description, is_posted
           )
         `)
         .eq("journal_entry.is_posted", true);
