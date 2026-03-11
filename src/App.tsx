@@ -1224,7 +1224,8 @@ function App() {
                <Route path="accounts/bank-reconciliation" element={<BankReconciliationPage />} />
                <Route path="accounts/reports/payroll-cost" element={<PayrollCostAllocationPage />} />
                <Route path="accounts/period-management" element={<FiscalPeriodManagementPage />} />
-               <Route path="accounts/audit-log" element={<FinancialAuditLogPage />} />
+                <Route path="accounts/audit-log" element={<FinancialAuditLogPage />} />
+                <Route path="accounts/cash-to-bank-report" element={<CashToBankReportPage />} />
 
                {/* Donation Management routes */}
                <Route path="donations" element={<FinDonationDashboard />} />
