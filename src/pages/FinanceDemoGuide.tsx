@@ -82,7 +82,8 @@ export default function FinanceDemoGuide() {
         <FinDemoGuideVendorAP totalPages={TOTAL_PAGES} />
         <FinDemoGuideVAT totalPages={TOTAL_PAGES} />
         <FinDemoGuideBudgets totalPages={TOTAL_PAGES} />
-        <FinDemoGuideFAQ totalPages={TOTAL_PAGES} />
+        <FinDemoGuideFAQ1 totalPages={TOTAL_PAGES} />
+        <FinDemoGuideFAQ2 totalPages={TOTAL_PAGES} />
         <FinDemoGuideNavRef totalPages={TOTAL_PAGES} />
       </div>
     </div>

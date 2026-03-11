@@ -13,8 +13,9 @@ const tocItems = [
   { page: 12, title: "Vendor Payments & AP Flow", desc: "PO → GRN → Payment → GL" },
   { page: 13, title: "VAT / ZATCA Compliance", desc: "Output vs Input VAT, QR codes, VAT Return" },
   { page: 14, title: "Budget & Fiscal Period Management", desc: "Budget creation, variance, period locking" },
-  { page: 15, title: "Demo FAQ (29 Questions)", desc: "Revenue Cycle, GL, Compliance, Operations" },
-  { page: 16, title: "Quick Navigation Reference", desc: "All finance routes and descriptions" },
+  { page: 15, title: "Demo FAQ — Part 1", desc: "Revenue Cycle, GL & Reporting, Compliance & Tax" },
+  { page: 16, title: "Demo FAQ — Part 2", desc: "Operations & Technical Questions" },
+  { page: 17, title: "Quick Navigation Reference", desc: "All finance routes and descriptions" },
 ];
 
 export const FinDemoGuideToc = ({ totalPages }: { totalPages: number }) => (
