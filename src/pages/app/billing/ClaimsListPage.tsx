@@ -50,20 +50,13 @@ export default function ClaimsListPage() {
   });
   const { data: stats } = useInsuranceStats();
   const submitToNphies = useSubmitClaimToNphies();
+  const { formatCurrency } = useCurrencyFormatter();
 
   const filteredClaims = claims?.filter(c => 
     c.claim_number.toLowerCase().includes(search.toLowerCase()) ||
     c.patient_insurance?.patient?.first_name?.toLowerCase().includes(search.toLowerCase()) ||
     c.patient_insurance?.patient?.last_name?.toLowerCase().includes(search.toLowerCase())
   ) || [];
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-PK", {
-      style: "currency",
-      currency: "PKR",
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
 
   const { t } = useTranslation();
 

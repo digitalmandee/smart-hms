@@ -33,6 +33,7 @@ const COLORS = [
 export default function AccountsDashboard() {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { formatCurrency } = useCurrencyFormatter();
   const { data: accounts } = useAccounts({ isActive: true });
   const { data: currentFiscalYear } = useCurrentFiscalYear();
   const { profile } = useAuth();

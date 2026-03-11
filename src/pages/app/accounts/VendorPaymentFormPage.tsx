@@ -193,7 +193,7 @@ export default function VendorPaymentFormPage() {
                   
                   {/* Amount */}
                   <div className="space-y-2">
-                    <Label htmlFor="amount">Amount (Rs.) *</Label>
+                    <Label htmlFor="amount">Amount ({currencySymbol}) *</Label>
                     <Input
                       id="amount"
                       type="number"

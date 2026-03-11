@@ -16,13 +16,7 @@ export default function FinancialReportsPage() {
   const navigate = useNavigate();
   const { data: summary, isLoading } = useFinancialSummary();
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-PK", {
-      style: "currency",
-      currency: "PKR",
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
+  const { formatCurrency } = useCurrencyFormatter();
 
   const reports = [
     {

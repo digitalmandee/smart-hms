@@ -193,7 +193,7 @@ export default function BillingDashboard() {
                     </div>
                     <div className="text-right">
                       <p className="font-semibold">
-                        Rs. {Number(invoice.total_amount).toLocaleString()}
+                        {formatCurrency(Number(invoice.total_amount))}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {format(new Date(invoice.created_at), "MMM dd")}

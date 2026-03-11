@@ -235,7 +235,7 @@ const JournalEntryDetailPage = () => {
                 <>
                   <AlertCircle className="h-4 w-4 text-destructive" />
                   <span className="text-destructive font-medium">
-                    Entry is not balanced. Difference: Rs. {Math.abs(totalDebits - totalCredits).toLocaleString()}
+                    Entry is not balanced. Difference: {formatCurrency(Math.abs(totalDebits - totalCredits))}
                   </span>
                 </>
               )}

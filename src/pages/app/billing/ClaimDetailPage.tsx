@@ -93,6 +93,7 @@ export default function ClaimDetailPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const { formatCurrency } = useCurrencyFormatter();
   const [isApproveDialogOpen, setIsApproveDialogOpen] = useState(false);
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
   const [approvedAmount, setApprovedAmount] = useState(0);

@@ -7,6 +7,7 @@ import { usePayments } from "@/hooks/useBilling";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 import { ColumnDef } from "@tanstack/react-table";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 
 interface PaymentRow {
   id: string;

@@ -164,7 +164,7 @@ export default function InvoicesListPage() {
       header: t("invoices.balance"),
       cell: ({ row }) => {
         const balance = Number(row.original.total_amount || 0) - Number(row.original.paid_amount || 0);
-        return <span className={balance > 0 ? "text-destructive font-medium" : ""}>Rs. {balance.toLocaleString()}</span>;
+        return <span className={balance > 0 ? "text-destructive font-medium" : ""}>{formatCurrency(balance)}</span>;
       },
     },
     {

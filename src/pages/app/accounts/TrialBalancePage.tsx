@@ -29,13 +29,7 @@ export default function TrialBalancePage() {
   
   const { data, isLoading } = useTrialBalance(startDate, endDate);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-PK", {
-      style: "currency",
-      currency: "PKR",
-      minimumFractionDigits: 2,
-    }).format(amount);
-  };
+  const { formatCurrency } = useCurrencyFormatter();
 
   const handlePrint = () => {
     window.print();
