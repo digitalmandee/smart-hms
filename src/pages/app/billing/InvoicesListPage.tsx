@@ -157,7 +157,7 @@ export default function InvoicesListPage() {
     {
       accessorKey: "paid_amount",
       header: t("invoices.paid"),
-      cell: ({ row }) => <span className="text-success">Rs. {Number(row.original.paid_amount || 0).toLocaleString()}</span>,
+      cell: ({ row }) => <span className="text-success">{formatCurrency(Number(row.original.paid_amount || 0))}</span>,
     },
     {
       accessorKey: "balance",
