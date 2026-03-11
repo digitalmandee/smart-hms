@@ -197,7 +197,7 @@ export default function CashToBankReportPage() {
     { key: "transaction_date", header: "Date", format: (v: any) => v ? format(parseISO(v), "dd MMM yyyy") : "-" },
     { key: "bank_name", header: "Bank" },
     { key: "account_number", header: "Account #" },
-    { key: "credit_amount", header: "Amount", format: (v: any) => formatCurrency(v, currencyConfig) },
+    { key: "credit_amount", header: "Amount", format: (v: any) => formatCurrency(v) },
     { key: "reference_number", header: "Reference" },
     { key: "description", header: "Description" },
   ];
