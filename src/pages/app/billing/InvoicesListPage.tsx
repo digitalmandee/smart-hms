@@ -22,6 +22,7 @@ import { Database } from "@/integrations/supabase/types";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { MobileInvoiceList } from "@/components/mobile/MobileInvoiceList";
 
 type InvoiceStatus = Database["public"]["Enums"]["invoice_status"];
