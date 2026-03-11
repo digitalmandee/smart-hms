@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, FileText, Calendar, Hash, CheckCircle, Clock, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 
 const JournalEntryDetailPage = () => {
   const { id } = useParams<{ id: string }>();
