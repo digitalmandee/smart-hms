@@ -206,7 +206,7 @@ export function CashToBankDepositDialog({ open, onOpenChange, bankAccount }: Cas
             <div>
               <p className="text-xs font-medium text-muted-foreground">{l("cashInHand")}</p>
               <p className="text-lg font-bold text-primary">
-                {formatCurrency(cashBalance, currencyConfig)}
+                {formatCurrency(cashBalance)}
               </p>
             </div>
           </div>
