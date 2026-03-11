@@ -25,6 +25,7 @@ import { format } from "date-fns";
 import { InvoiceStatusBadge } from "@/components/billing/InvoiceStatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslation } from "@/lib/i18n";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 
 export default function BillingDashboard() {
   const navigate = useNavigate();
