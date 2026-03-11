@@ -21,7 +21,7 @@ import { useCreateVendorPayment, useVendorOutstandingBalance } from "@/hooks/use
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { formatCurrencyFull as formatCurrency } from "@/lib/currency";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 
 export default function VendorPaymentFormPage() {
   const navigate = useNavigate();
