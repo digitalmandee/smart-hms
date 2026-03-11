@@ -21,7 +21,7 @@ import { FinDemoGuideNavRef } from "@/components/finance-demo-docs/FinDemoGuideN
 import jsPDF from "jspdf";
 import { toPng } from "html-to-image";
 
-const TOTAL_PAGES = 16;
+const TOTAL_PAGES = 17;
 
 export default function FinanceDemoGuide() {
   const navigate = useNavigate();
