@@ -49,7 +49,7 @@ export function CashToBankDepositDialog({ open, onOpenChange, bankAccount }: Cas
   const queryClient = useQueryClient();
   const lang = (profile as any)?.organization?.default_language || "en";
   const l = (key: keyof typeof labels) => (labels[key] as any)[lang] || (labels[key] as any).en;
-  const { currencyConfig } = useOrganizationDefaults();
+  const { formatCurrency } = useCurrencyFormatter();
 
   const [amount, setAmount] = useState("");
   const [reference, setReference] = useState("");
