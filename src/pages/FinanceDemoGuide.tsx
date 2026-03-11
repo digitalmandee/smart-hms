@@ -16,7 +16,7 @@ import { FinDemoGuideExpenses } from "@/components/finance-demo-docs/FinDemoGuid
 import { FinDemoGuideVendorAP } from "@/components/finance-demo-docs/FinDemoGuideVendorAP";
 import { FinDemoGuideVAT } from "@/components/finance-demo-docs/FinDemoGuideVAT";
 import { FinDemoGuideBudgets } from "@/components/finance-demo-docs/FinDemoGuideBudgets";
-import { FinDemoGuideFAQ } from "@/components/finance-demo-docs/FinDemoGuideFAQ";
+import { FinDemoGuideFAQ1, FinDemoGuideFAQ2 } from "@/components/finance-demo-docs/FinDemoGuideFAQ";
 import { FinDemoGuideNavRef } from "@/components/finance-demo-docs/FinDemoGuideNavRef";
 import jsPDF from "jspdf";
 import { toPng } from "html-to-image";
