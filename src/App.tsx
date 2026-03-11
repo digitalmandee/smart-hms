@@ -694,6 +694,7 @@ function App() {
               <Route path="/demo-faq-documentation" element={<React.Suspense fallback={<div>Loading...</div>}><DemoFaqDocumentation /></React.Suspense>} />
               <Route path="/system-overview" element={<SystemOverview />} />
               <Route path="/documentation" element={<DocumentationHub />} />
+              <Route path="/finance-demo-guide" element={<React.Suspense fallback={<div>Loading...</div>}><FinanceDemoGuide /></React.Suspense>} />
               <Route path="/opd-documentation" element={<React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><OpdDocumentation /></React.Suspense>} />
               <Route path="/ipd-documentation" element={<React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><IpdDocumentation /></React.Suspense>} />
               <Route path="/ot-documentation" element={<React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><OtDocumentation /></React.Suspense>} />
