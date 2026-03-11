@@ -123,10 +123,12 @@ export function CashToBankDepositDialog({ open, onOpenChange, bankAccount }: Cas
           .single();
 
         if (cashAccount) {
+          const tempEntryNum = `JE-DEP-${format(new Date(), "yyMMdd")}-${Math.floor(Math.random() * 10000).toString().padStart(4, "0")}`;
           const { data: journalEntry, error: jeError } = await supabase
             .from("journal_entries")
             .insert({
               organization_id: bankAccount.organization_id,
+              entry_number: tempEntryNum,
               entry_date: depositDate,
               description: narration,
               reference_type: "bank_deposit",
