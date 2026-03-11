@@ -295,7 +295,7 @@ export default function CashToBankReportPage() {
                     <p className="text-sm font-medium">{format(parseISO(m.month + "-01"), "MMM yyyy")}</p>
                     <p className="text-xs text-muted-foreground">{m.count} deposits</p>
                   </div>
-                  <p className="text-sm font-bold text-primary">{formatCurrency(m.total, currencyConfig)}</p>
+                  <p className="text-sm font-bold text-primary">{formatCurrency(m.total)}</p>
                 </div>
               ))}
             </div>
