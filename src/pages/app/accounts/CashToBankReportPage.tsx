@@ -207,7 +207,7 @@ export default function CashToBankReportPage() {
       <div className="flex items-center justify-between">
         <PageHeader
           title={l("title")}
-          subtitle={l("subtitle")}
+          description={l("subtitle")}
         />
         <ReportExportButton
           data={deposits || []}
