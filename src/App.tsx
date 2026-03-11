@@ -601,6 +601,7 @@ const VatReturnPage = React.lazy(() => import("./pages/app/accounts/VatReturnPag
 const PayrollCostAllocationPage = React.lazy(() => import("./pages/app/accounts/PayrollCostAllocationPage"));
 const FiscalPeriodManagementPage = React.lazy(() => import("./pages/app/accounts/FiscalPeriodManagementPage"));
 const FinancialAuditLogPage = React.lazy(() => import("./pages/app/accounts/FinancialAuditLogPage"));
+const CashToBankReportPage = React.lazy(() => import("./pages/app/accounts/CashToBankReportPage"));
 
 import AdmissionHistoryPage from "./pages/app/ipd/AdmissionHistoryPage";
 import IPDVitalsPage from "./pages/app/ipd/IPDVitalsPage";
