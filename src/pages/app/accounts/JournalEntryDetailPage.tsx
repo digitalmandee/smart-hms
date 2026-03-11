@@ -13,6 +13,7 @@ import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 
 const JournalEntryDetailPage = () => {
   const { id } = useParams<{ id: string }>();
+  const { formatCurrency } = useCurrencyFormatter();
   const navigate = useNavigate();
 
   const { data: entry, isLoading } = useQuery({
