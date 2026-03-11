@@ -11,6 +11,7 @@ import { Printer, Download, TrendingUp, TrendingDown, Calendar, GitCompare } fro
 import { useProfitLoss } from "@/hooks/useFinancialReports";
 import { format, subMonths, differenceInDays } from "date-fns";
 import { exportToCSV, formatCurrency as exportFormatCurrency } from "@/lib/exportUtils";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 
 export default function ProfitLossPage() {
   const [startDate, setStartDate] = useState(
