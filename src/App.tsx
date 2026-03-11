@@ -23,6 +23,7 @@ import ContractPage from "./pages/ContractPage";
 import SocialMediaPosts from "./pages/SocialMediaPosts";
 import PharmacyDocumentation from "./pages/PharmacyDocumentation";
 import DocumentationHub from "./pages/DocumentationHub";
+const FinanceDemoGuide = React.lazy(() => import("./pages/FinanceDemoGuide"));
 const OpdDocumentation = React.lazy(() => import("./pages/OpdDocumentation"));
 const IpdDocumentation = React.lazy(() => import("./pages/IpdDocumentation"));
 const OtDocumentation = React.lazy(() => import("./pages/OtDocumentation"));
