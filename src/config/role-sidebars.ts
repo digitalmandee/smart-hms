@@ -1143,6 +1143,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         children: [
           { name: "Vendor Bills", path: "/app/accounts/payables", icon: "FileText" },
           { name: "Vendor Payments", path: "/app/accounts/vendor-payments", icon: "CreditCard" },
+          { name: "Expense Management", path: "/app/accounts/expenses", icon: "Receipt" },
         ]
       },
       { 
@@ -1216,6 +1217,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         children: [
           { name: "Vendor Bills", path: "/app/accounts/payables", icon: "FileText" },
           { name: "Vendor Payments", path: "/app/accounts/vendor-payments", icon: "CreditCard" },
+          { name: "Expense Management", path: "/app/accounts/expenses", icon: "Receipt" },
         ]
       },
       { 
