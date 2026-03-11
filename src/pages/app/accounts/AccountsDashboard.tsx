@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useAccounts, useCurrentFiscalYear } from "@/hooks/useAccounts";
 import { format, subDays, startOfMonth, subMonths, differenceInDays } from "date-fns";
-import { formatCurrency } from "@/lib/currency";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrganization } from "@/hooks/useOrganizations";
 import { useQuery } from "@tanstack/react-query";
