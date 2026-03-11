@@ -124,10 +124,16 @@ export default function BankAccountDetailPage() {
           { label: account.bank_name },
         ]}
         actions={
-          <Button variant="outline" onClick={() => navigate("/app/accounts/bank-accounts")}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            {l("back")}
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => setDepositOpen(true)}>
+              <Banknote className="h-4 w-4 mr-2" />
+              {l("depositCash")}
+            </Button>
+            <Button variant="outline" onClick={() => navigate("/app/accounts/bank-accounts")}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              {l("back")}
+            </Button>
+          </div>
         }
       />
 
