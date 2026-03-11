@@ -25,6 +25,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { format } from "date-fns";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 
 const statusColors: Record<string, string> = {
   draft: "secondary",
