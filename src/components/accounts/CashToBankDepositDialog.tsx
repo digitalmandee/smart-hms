@@ -12,8 +12,7 @@ import { CashDenominations } from "@/hooks/useBillingSessions";
 import { toast } from "@/hooks/use-toast";
 import { Banknote, ChevronDown, ChevronUp, Wallet, AlertTriangle } from "lucide-react";
 import { format } from "date-fns";
-import { formatCurrency } from "@/lib/currency";
-import { useOrganizationDefaults } from "@/hooks/useOrganizationDefaults";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 
 const labels = {
   title: { en: "Deposit Cash to Bank", ur: "بینک میں نقد جمع کروائیں", ar: "إيداع نقدي في البنك" },

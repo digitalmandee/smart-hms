@@ -12,8 +12,7 @@ import { ReportSummaryCard } from "@/components/reports/ReportSummaryCard";
 import { ReportExportButton } from "@/components/reports/ReportExportButton";
 import { Wallet, Banknote, TrendingUp, Calendar } from "lucide-react";
 import { format, startOfMonth, endOfMonth, subMonths, parseISO } from "date-fns";
-import { formatCurrency } from "@/lib/currency";
-import { useOrganizationDefaults } from "@/hooks/useOrganizationDefaults";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 
 const labels = {
   title: { en: "Cash to Bank Deposits", ur: "بینک میں نقد جمع", ar: "إيداعات نقدية في البنك" },
