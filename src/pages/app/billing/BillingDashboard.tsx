@@ -62,7 +62,7 @@ export default function BillingDashboard() {
           <>
             <StatsCard
               title={t("billing.todayCollections")}
-              value={`Rs. ${stats?.todayCollections?.toLocaleString() || 0}`}
+              value={formatCurrency(stats?.todayCollections || 0)}
               icon={DollarSign}
               className="bg-success/10 border-success/20"
             />
