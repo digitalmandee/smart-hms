@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useFinancialSummary } from "@/hooks/useFinancialReports";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 
 export default function FinancialReportsPage() {
   const navigate = useNavigate();
