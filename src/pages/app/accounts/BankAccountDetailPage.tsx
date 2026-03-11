@@ -203,6 +203,18 @@ export default function BankAccountDetailPage() {
           </CardContent>
         </Card>
       </div>
+
+      <CashToBankDepositDialog
+        open={depositOpen}
+        onOpenChange={setDepositOpen}
+        bankAccount={{
+          id: account.id,
+          bank_name: account.bank_name,
+          account_number: account.account_number,
+          account_id: account.account_id,
+          organization_id: account.organization_id,
+        }}
+      />
     </div>
   );
 }
