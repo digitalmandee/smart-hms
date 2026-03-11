@@ -246,7 +246,7 @@ export default function CashToBankReportPage() {
         />
         <ReportSummaryCard
           title={l("lastMonth")}
-          value={formatCurrency(summaries.lastMonth, currencyConfig)}
+          value={formatCurrency(summaries.lastMonth)}
           icon={Calendar}
         />
       </div>
