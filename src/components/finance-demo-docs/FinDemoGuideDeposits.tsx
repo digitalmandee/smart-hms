@@ -27,7 +27,7 @@ export const FinDemoGuideDeposits = ({ totalPages }: { totalPages: number }) => 
 
     <SubSection title="How It Works">
       <StepList steps={[
-        "Patient pays advance deposit (e.g., IPD admission deposit of Rs. 50,000)",
+        "Patient pays advance deposit (e.g., IPD admission deposit of 50,000)",
         "Deposit recorded → auto GL: Debit Cash, Credit Patient Deposits liability",
         "During stay, services billed to invoices as usual",
         "At discharge, deposit applied against outstanding invoices",

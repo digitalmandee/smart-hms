@@ -1,9 +1,12 @@
 import { DocPageWrapper } from "@/components/pharmacy-docs/DocPageWrapper";
+import { HealthOS24Logo } from "@/components/brand/HealthOS24Logo";
 
 export const FinDemoGuideCover = ({ totalPages }: { totalPages: number }) => (
   <DocPageWrapper pageNumber={1} totalPages={totalPages}>
     <div className="flex flex-col items-center justify-center h-full text-center">
-      <div style={{ width: 80, height: 80, borderRadius: 20, backgroundColor: '#059669', color: 'white', fontWeight: 700, fontSize: 32, lineHeight: '80px', textAlign: 'center', marginBottom: 24 }}>₹</div>
+      <div className="mb-6">
+        <HealthOS24Logo variant="full" size="lg" showTagline />
+      </div>
       <h1 className="text-4xl font-bold text-gray-900 mb-4">Finance Module</h1>
       <h2 className="text-2xl text-emerald-700 font-semibold mb-2">Complete Demo Guide & FAQ</h2>
       <p className="text-gray-500 text-lg mb-8">HealthOS 24 — Hospital Management Information System</p>
