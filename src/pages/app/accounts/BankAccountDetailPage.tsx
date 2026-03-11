@@ -39,6 +39,7 @@ const labels = {
 };
 
 export default function BankAccountDetailPage() {
+  const [depositOpen, setDepositOpen] = useState(false);
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { profile } = useAuth();
