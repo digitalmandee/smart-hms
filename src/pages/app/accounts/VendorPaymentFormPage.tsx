@@ -26,6 +26,7 @@ import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 export default function VendorPaymentFormPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { formatCurrency, currencySymbol } = useCurrencyFormatter();
   const { profile } = useAuth();
   
   const preSelectedVendorId = searchParams.get("vendorId") || "";
