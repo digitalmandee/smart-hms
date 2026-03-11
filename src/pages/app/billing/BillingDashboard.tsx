@@ -31,6 +31,7 @@ export default function BillingDashboard() {
   const navigate = useNavigate();
   const { profile } = useAuth();
   const { t } = useTranslation();
+  const { formatCurrency } = useCurrencyFormatter();
   const { data: stats, isLoading: statsLoading } = useBillingStats(profile?.branch_id || undefined);
   const { data: invoices, isLoading: invoicesLoading } = useInvoices(profile?.branch_id || undefined);
   const { data: activeSession } = useActiveSession();
