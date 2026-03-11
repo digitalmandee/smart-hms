@@ -34,6 +34,13 @@ export default function FinancialReportsPage() {
       color: "text-green-500",
     },
     {
+      title: "Detailed P&L Report",
+      description: "Grouped P&L with transaction drill-down and charts",
+      icon: BarChart3,
+      path: "/app/accounts/reports/detailed-pnl",
+      color: "text-lime-500",
+    },
+    {
       title: "Balance Sheet",
       description: "Assets, liabilities, and equity snapshot",
       icon: FileSpreadsheet,
