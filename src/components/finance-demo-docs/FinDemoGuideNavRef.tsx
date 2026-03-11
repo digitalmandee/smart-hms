@@ -1,7 +1,7 @@
 import { DocPageWrapper, SectionTitle, MockupTable } from "@/components/pharmacy-docs/DocPageWrapper";
 
 export const FinDemoGuideNavRef = ({ totalPages }: { totalPages: number }) => (
-  <DocPageWrapper pageNumber={16} totalPages={totalPages}>
+  <DocPageWrapper pageNumber={17} totalPages={totalPages}>
     <SectionTitle icon="🗺️" title="Quick Navigation Reference" subtitle="All Finance Module Routes" />
     <MockupTable
       headers={["Route", "Page", "Key Feature"]}

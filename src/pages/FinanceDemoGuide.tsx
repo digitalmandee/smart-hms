@@ -16,12 +16,12 @@ import { FinDemoGuideExpenses } from "@/components/finance-demo-docs/FinDemoGuid
 import { FinDemoGuideVendorAP } from "@/components/finance-demo-docs/FinDemoGuideVendorAP";
 import { FinDemoGuideVAT } from "@/components/finance-demo-docs/FinDemoGuideVAT";
 import { FinDemoGuideBudgets } from "@/components/finance-demo-docs/FinDemoGuideBudgets";
-import { FinDemoGuideFAQ } from "@/components/finance-demo-docs/FinDemoGuideFAQ";
+import { FinDemoGuideFAQ1, FinDemoGuideFAQ2 } from "@/components/finance-demo-docs/FinDemoGuideFAQ";
 import { FinDemoGuideNavRef } from "@/components/finance-demo-docs/FinDemoGuideNavRef";
 import jsPDF from "jspdf";
 import { toPng } from "html-to-image";
 
-const TOTAL_PAGES = 16;
+const TOTAL_PAGES = 17;
 
 export default function FinanceDemoGuide() {
   const navigate = useNavigate();
@@ -82,7 +82,8 @@ export default function FinanceDemoGuide() {
         <FinDemoGuideVendorAP totalPages={TOTAL_PAGES} />
         <FinDemoGuideVAT totalPages={TOTAL_PAGES} />
         <FinDemoGuideBudgets totalPages={TOTAL_PAGES} />
-        <FinDemoGuideFAQ totalPages={TOTAL_PAGES} />
+        <FinDemoGuideFAQ1 totalPages={TOTAL_PAGES} />
+        <FinDemoGuideFAQ2 totalPages={TOTAL_PAGES} />
         <FinDemoGuideNavRef totalPages={TOTAL_PAGES} />
       </div>
     </div>
