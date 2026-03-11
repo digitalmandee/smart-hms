@@ -35,6 +35,7 @@ const labels = {
   yes: { en: "Yes", ur: "ہاں", ar: "نعم" },
   no: { en: "No", ur: "نہیں", ar: "لا" },
   notFound: { en: "Bank account not found", ur: "بینک اکاؤنٹ نہیں ملا", ar: "لم يتم العثور على الحساب البنكي" },
+  depositCash: { en: "Deposit Cash", ur: "نقد جمع کروائیں", ar: "إيداع نقدي" },
 };
 
 export default function BankAccountDetailPage() {
