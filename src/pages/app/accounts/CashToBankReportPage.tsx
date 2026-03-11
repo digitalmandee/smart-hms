@@ -240,7 +240,7 @@ export default function CashToBankReportPage() {
         />
         <ReportSummaryCard
           title={l("thisMonth")}
-          value={formatCurrency(summaries.thisMonth, currencyConfig)}
+          value={formatCurrency(summaries.thisMonth)}
           icon={TrendingUp}
           variant="default"
         />
