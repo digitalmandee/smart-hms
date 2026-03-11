@@ -74,7 +74,7 @@ export default function BillingDashboard() {
             />
             <StatsCard
               title={t("billing.outstandingAmount")}
-              value={`Rs. ${stats?.pendingAmount?.toLocaleString() || 0}`}
+              value={formatCurrency(stats?.pendingAmount || 0)}
               icon={TrendingUp}
               className="text-warning"
             />
