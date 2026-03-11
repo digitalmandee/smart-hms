@@ -14,17 +14,30 @@ import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
+import { PatientSearch } from "@/components/appointments/PatientSearch";
+
+interface SelectedPatient {
+  id: string;
+  first_name: string;
+  last_name: string | null;
+  patient_number: string;
+  phone: string | null;
+  date_of_birth: string | null;
+  gender: string | null;
+}
 
 export default function PatientDepositsPage() {
   const { data: deposits, isLoading } = usePatientDeposits();
   const createMutation = useCreatePatientDeposit();
   const { formatCurrency } = useCurrencyFormatter();
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ patient_id: "", amount: "", type: "deposit", notes: "", reference_number: "" });
+  const [selectedPatient, setSelectedPatient] = useState<SelectedPatient | null>(null);
+  const [form, setForm] = useState({ amount: "", type: "deposit", notes: "", reference_number: "" });
 
   const handleCreate = () => {
+    if (!selectedPatient) return;
     createMutation.mutate({
-      patient_id: form.patient_id,
+      patient_id: selectedPatient.id,
       amount: parseFloat(form.amount),
       type: form.type,
       notes: form.notes,
@@ -32,7 +45,8 @@ export default function PatientDepositsPage() {
     }, {
       onSuccess: () => {
         setOpen(false);
-        setForm({ patient_id: "", amount: "", type: "deposit", notes: "", reference_number: "" });
+        setSelectedPatient(null);
+        setForm({ amount: "", type: "deposit", notes: "", reference_number: "" });
       },
     });
   };
@@ -52,7 +66,7 @@ export default function PatientDepositsPage() {
           { label: "Patient Deposits" },
         ]}
         actions={
-          <Dialog open={open} onOpenChange={setOpen}>
+          <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setSelectedPatient(null); setForm({ amount: "", type: "deposit", notes: "", reference_number: "" }); } }}>
             <DialogTrigger asChild>
               <Button><Plus className="h-4 w-4 mr-2" />Record Deposit</Button>
             </DialogTrigger>
@@ -60,8 +74,11 @@ export default function PatientDepositsPage() {
               <DialogHeader><DialogTitle>Record Patient Deposit</DialogTitle></DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <Label>Patient ID</Label>
-                  <Input value={form.patient_id} onChange={e => setForm(p => ({ ...p, patient_id: e.target.value }))} placeholder="Patient UUID" />
+                  <Label>Patient</Label>
+                  <PatientSearch
+                    onSelect={(patient) => setSelectedPatient(patient)}
+                    selectedPatient={selectedPatient}
+                  />
                 </div>
                 <div>
                   <Label>Type</Label>
@@ -85,7 +102,7 @@ export default function PatientDepositsPage() {
                   <Label>Notes</Label>
                   <Textarea value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value }))} placeholder="Additional notes" />
                 </div>
-                <Button onClick={handleCreate} disabled={!form.patient_id || !form.amount || createMutation.isPending} className="w-full">
+                <Button onClick={handleCreate} disabled={!selectedPatient || !form.amount || createMutation.isPending} className="w-full">
                   {createMutation.isPending ? "Recording..." : "Record"}
                 </Button>
               </div>
