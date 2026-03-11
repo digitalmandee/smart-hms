@@ -589,6 +589,7 @@ import BalanceSheetPage from "./pages/app/accounts/BalanceSheetPage";
 import CashFlowPage from "./pages/app/accounts/CashFlowPage";
 import JournalEntryFormPage from "./pages/app/accounts/JournalEntryFormPage";
 import BankAccountFormPage from "./pages/app/accounts/BankAccountFormPage";
+import BankAccountDetailPage from "./pages/app/accounts/BankAccountDetailPage";
 const CreditNotesPage = React.lazy(() => import("./pages/app/accounts/CreditNotesPage"));
 const CostCentersPage = React.lazy(() => import("./pages/app/accounts/CostCentersPage"));
 const CostCenterPnLPage = React.lazy(() => import("./pages/app/accounts/CostCenterPnLPage"));
@@ -1200,6 +1201,7 @@ function App() {
               <Route path="accounts/vendor-payments/:id" element={<VendorPaymentDetailPage />} />
               <Route path="accounts/bank-accounts" element={<BankAccountsPage />} />
               <Route path="accounts/bank-accounts/new" element={<BankAccountFormPage />} />
+              <Route path="accounts/bank-accounts/:id" element={<BankAccountDetailPage />} />
               <Route path="accounts/budgets" element={<BudgetsPage />} />
               <Route path="accounts/expenses" element={<ExpenseManagementPage />} />
               <Route path="accounts/types" element={<AccountTypesPage />} />
