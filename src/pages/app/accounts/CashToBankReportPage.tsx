@@ -49,7 +49,7 @@ export default function CashToBankReportPage() {
   const { profile } = useAuth();
   const lang = (profile as any)?.organization?.default_language || "en";
   const l = (key: keyof typeof labels) => (labels[key] as any)[lang] || (labels[key] as any).en;
-  const { currencyConfig } = useOrganizationDefaults();
+  const { formatCurrency } = useCurrencyFormatter();
   const orgId = profile?.organization_id;
 
   const [dateFrom, setDateFrom] = useState(format(startOfMonth(subMonths(new Date(), 5)), "yyyy-MM-dd"));
