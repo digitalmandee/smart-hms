@@ -1196,8 +1196,26 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         path: "", 
         icon: "Calculator",
         children: [
+          { name: "Chart of Accounts", path: "/app/accounts/chart-of-accounts", icon: "ListTree" },
           { name: "Journal Entries", path: "/app/accounts/journal-entries", icon: "BookOpen" },
           { name: "General Ledger", path: "/app/accounts/ledger", icon: "FileText" },
+        ]
+      },
+      { 
+        name: "Receivables", 
+        path: "", 
+        icon: "TrendingUp",
+        children: [
+          { name: "Outstanding", path: "/app/accounts/receivables", icon: "FileText" },
+        ]
+      },
+      { 
+        name: "Payables", 
+        path: "", 
+        icon: "Receipt",
+        children: [
+          { name: "Vendor Bills", path: "/app/accounts/payables", icon: "FileText" },
+          { name: "Vendor Payments", path: "/app/accounts/vendor-payments", icon: "CreditCard" },
         ]
       },
       { 
@@ -1206,9 +1224,29 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         icon: "Building",
         children: [
           { name: "Bank Accounts", path: "/app/accounts/bank-accounts", icon: "Building" },
+          { name: "Budgets", path: "/app/accounts/budgets", icon: "PieChart" },
         ]
       },
-      { name: "Reports", path: "/app/accounts/reports", icon: "BarChart3" },
+      { 
+        name: "Reports", 
+        path: "", 
+        icon: "BarChart3",
+        children: [
+          { name: "Financial Reports", path: "/app/accounts/reports", icon: "FileSpreadsheet" },
+          { name: "Trial Balance", path: "/app/accounts/reports/trial-balance", icon: "Scale" },
+          { name: "Profit & Loss", path: "/app/accounts/reports/profit-loss", icon: "TrendingUp" },
+          { name: "Balance Sheet", path: "/app/accounts/reports/balance-sheet", icon: "FileText" },
+          { name: "Cash Flow", path: "/app/accounts/reports/cash-flow", icon: "DollarSign" },
+        ]
+      },
+      { 
+        name: "Setup", 
+        path: "", 
+        icon: "Settings",
+        children: [
+          { name: "Account Types", path: "/app/accounts/types", icon: "FolderTree" },
+        ]
+      },
       { 
         name: "My Work", 
         path: "", 
