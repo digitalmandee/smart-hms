@@ -175,7 +175,7 @@ export default function CashToBankReportPage() {
       header: l("amount"),
       sortable: true,
       className: "text-right font-semibold",
-      cell: (row) => formatCurrency(row.credit_amount, currencyConfig),
+      cell: (row) => formatCurrency(row.credit_amount),
     },
     {
       key: "reference_number",
