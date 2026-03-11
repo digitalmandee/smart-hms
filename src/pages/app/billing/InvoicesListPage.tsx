@@ -108,6 +108,7 @@ export default function InvoicesListPage() {
   const isMobileScreen = useIsMobile();
   const isNative = Capacitor.isNativePlatform();
   const showMobileUI = isMobileScreen || isNative;
+  const { formatCurrency } = useCurrencyFormatter();
 
   const { data: invoicesWithCategories, isLoading } = useInvoicesWithCategories(
     profile?.branch_id || undefined,
