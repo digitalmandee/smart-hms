@@ -1,57 +1,71 @@
 
+# HealthOS 24 — Documentation Suite Implementation
 
-## Enhanced Detailed P&L Report
+## Status: ✅ All Rounds Complete
 
-### Current State
-The existing P&L page (`ProfitLossPage.tsx`) shows a basic two-section layout: flat list of Revenue accounts and flat list of Expense accounts, with totals and period comparison. No transaction-level detail, no sub-groupings, no charts, and no drill-down capability.
+## Round 1 ✅ DONE
+- [x] Bug fix: `mrn_number` → `patient_number` in DialysisNewSessionPage + DentalImagesPage
+- [x] DocumentationHub page (`/documentation`)
+- [x] OPD Documentation (8 pages)
+- [x] IPD Documentation (8 pages)
+- [x] Surgery/OT Documentation (7 pages)
 
-### What We Will Build
+## Round 2 ✅ DONE
+- [x] Lab Documentation (5 pages)
+- [x] Radiology Documentation (5 pages)
+- [x] Warehouse Documentation (6 pages)
+- [x] Finance Documentation (6 pages)
+- [x] All routes wired in App.tsx
 
-**A comprehensive "Detailed P&L" page** with these enhancements:
+## Round 3 ✅ DONE
+- [x] HR Documentation (6 pages)
+- [x] Dialysis Documentation (6 pages)
+- [x] Dental Documentation (6 pages)
+- [x] All routes wired in App.tsx
 
-#### 1. Account Sub-Grouping by Account Type
-Instead of a flat list, group expenses by their account type name (e.g., "Cost of Goods Sold", "Administrative Expenses", "Salary & Wages", "Depreciation") with sub-totals per group. Revenue similarly grouped. This gives proper intermediate totals like:
-- **Gross Profit** = Revenue - COGS
-- **Operating Profit** = Gross Profit - Operating Expenses
-- **Net Income** = Operating Profit - Other Expenses + Other Income
+## HR Module Expansion ✅ DONE
+- [x] Employee Onboarding Page (`/app/hr/onboarding`) — checklist-based pipeline
+- [x] Unified Expiry Tracker (`/app/hr/compliance/expiry-tracker`) — licenses + contracts
+- [x] HR Letters & Templates (`/app/hr/letters`) — create templates, issue letters, print
+- [x] Training & Development (`/app/hr/training`) — programs, enrollments, completion
+- [x] Contract Management (`/app/hr/contracts`) — contract tracking, probation, renewals
+- [x] DB tables: `hr_letter_templates`, `hr_issued_letters`, `training_programs`, `training_enrollments`, `employee_contracts`
+- [x] All routes + sidebar navigation added
 
-#### 2. Transaction Drill-Down
-Clicking any account row expands to show the underlying journal entry lines for that account within the selected period — date, journal reference, narration, debit, credit. Uses a collapsible/accordion pattern.
+## HR Gap Analysis Phase 1 & 2 ✅ DONE
+- [x] DB tables: `employee_transfers`, `employee_promotions`, `employee_grievances` with RLS
+- [x] Employee Transfers Page (`/app/hr/transfers`) — request/approve/reject/execute workflow
+- [x] Promotion Management Page (`/app/hr/promotions`) — designation & salary change tracking
+- [x] Grievance Management Page (`/app/hr/grievances`) — filed → review → investigation → resolved (CBAHI/JCI)
+- [x] Organization Chart Page (`/app/hr/org-chart`) — department-based visual org structure
+- [x] My Documents Page (`/app/my-documents`) — employee self-service documents & licenses view
+- [x] My Training Page (`/app/my-training`) — employee self-service training enrollments view
+- [x] ESB Calculator — auto-calculates gratuity (Saudi Labor Law) on SettlementsPage
+- [x] Warning Letter Integration — "Generate Letter" button on DisciplinaryPage → HR Letters
+- [x] All routes wired in App.tsx
 
-#### 3. Summary Charts
-Add a tab or section with:
-- Revenue vs Expenses bar chart (monthly breakdown within selected period using Recharts)
-- Expense composition pie/donut chart
+## Finance Module Enhancement Phase 1 ✅ DONE
+- [x] DB tables: `credit_notes`, `cost_centers`, `fixed_assets`, `patient_deposits` with RLS
+- [x] DB triggers: auto-post credit notes & patient deposits to journal
+- [x] Credit Notes Page (`/app/accounts/credit-notes`) — credit/debit notes with approval workflow
+- [x] Cost Centers Page (`/app/accounts/cost-centers`) — manage cost centers
+- [x] Cost Center P&L Page (`/app/accounts/reports/cost-center-pnl`) — department-level profitability
+- [x] Fixed Assets Page (`/app/accounts/fixed-assets`) — asset register + depreciation schedule
+- [x] Patient Deposits Page (`/app/accounts/patient-deposits`) — advance deposits, refunds, wallet
+- [x] FinancialReportsPage updated with new modules
+- [x] All routes wired in App.tsx
 
-#### 4. Enhanced Filters
-- Quick presets: This Month, Last Month, This Quarter, YTD, Last Year
-- Branch filter (if multi-branch)
+## Finance Module Phase 2 ✅ DONE
+- [x] Accounts Dashboard enhanced with KPIs (DSO, cash position, collection rate, AR aging pie chart, 12-month revenue trend)
+- [x] Consolidated P&L Page (`/app/accounts/reports/consolidated-pnl`) — multi-branch side-by-side comparison with margins
+- [x] Bank Reconciliation Page (`/app/accounts/bank-reconciliation`) — CSV import, auto-matching, manual reconciliation
+- [x] VAT Return Report Page (`/app/accounts/reports/vat-return`) — Input vs Output VAT for ZATCA filing
+- [x] FinancialReportsPage updated with Consolidated P&L + VAT Return report cards
+- [x] All routes wired in App.tsx
 
-#### 5. Better Export
-- PDF export with proper formatting (using jsPDF + html-to-image already available)
-
-### Technical Plan
-
-**New page**: `src/pages/app/accounts/DetailedPnLPage.tsx`
-- Tabs: "Statement" | "Charts" | "Transactions"
-- Statement tab: grouped P&L with sub-totals, gross/operating/net profit lines
-- Charts tab: monthly revenue/expense bar chart + expense breakdown donut (Recharts)
-- Transactions tab: full searchable/filterable table of all revenue & expense journal lines
-- Date presets + date range picker + branch filter
-- Drill-down: click any account row in Statement tab to expand and see journal lines
-- PDF and CSV export
-
-**New hook additions** in `src/hooks/useFinancialReports.ts`:
-- `useDetailedPnL(startDate, endDate, branchId?)` — fetches journal lines grouped by account and account_type, returns hierarchical data with sub-totals
-- `useMonthlyPnLTrend(startDate, endDate)` — monthly revenue/expense aggregation for charts
-
-**Route**: `/app/accounts/reports/detailed-pnl` added to `App.tsx`
-
-**Navigation**: Add card to `FinancialReportsPage.tsx` reports array
-
-### File Changes
-1. **Create** `src/pages/app/accounts/DetailedPnLPage.tsx` — Full detailed P&L with tabs, drill-down, charts
-2. **Update** `src/hooks/useFinancialReports.ts` — Add `useDetailedPnL` and `useMonthlyPnLTrend` hooks
-3. **Update** `src/App.tsx` — Add route
-4. **Update** `src/pages/app/accounts/FinancialReportsPage.tsx` — Add report card entry
-
+## Finance Module Phase 3 ✅ DONE
+- [x] Payroll Cost Allocation Report (`/app/accounts/reports/payroll-cost`) — dept-wise salary, GOSI employer/employee, ESB provision
+- [x] Fiscal Period Management (`/app/accounts/period-management`) — lock/unlock monthly/quarterly periods and fiscal years
+- [x] Financial Audit Log (`/app/accounts/audit-log`) — searchable audit trail of all financial transactions
+- [x] FinancialReportsPage updated with new report cards + module links
+- [x] All routes wired in App.tsx

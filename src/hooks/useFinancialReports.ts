@@ -531,6 +531,215 @@ export function useCashFlow(startDate?: string, endDate?: string) {
 }
 
 // =====================
+// Detailed P&L (grouped by account type with drill-down)
+// =====================
+
+export interface DetailedPnLGroup {
+  account_type_id: string;
+  account_type_name: string;
+  accounts: {
+    account_id: string;
+    account_name: string;
+    account_number: string;
+    amount: number;
+    journal_lines?: {
+      id: string;
+      entry_date: string;
+      reference_number: string;
+      description: string;
+      debit: number;
+      credit: number;
+    }[];
+  }[];
+  total: number;
+}
+
+export interface DetailedPnLData {
+  revenueGroups: DetailedPnLGroup[];
+  cogsGroups: DetailedPnLGroup[];
+  expenseGroups: DetailedPnLGroup[];
+  otherIncomeGroups: DetailedPnLGroup[];
+  totalRevenue: number;
+  totalCOGS: number;
+  grossProfit: number;
+  totalExpenses: number;
+  totalOtherIncome: number;
+  operatingProfit: number;
+  netIncome: number;
+}
+
+export function useDetailedPnL(startDate?: string, endDate?: string, branchId?: string) {
+  const { profile } = useAuth();
+
+  return useQuery({
+    queryKey: ["detailed-pnl", profile?.organization_id, startDate, endDate, branchId],
+    queryFn: async () => {
+      // Fetch accounts with type info
+      const { data: accounts, error } = await supabase
+        .from("accounts")
+        .select(`
+          id, name, account_number, current_balance,
+          account_type_id,
+          account_type:account_types(id, name, category, is_debit_normal)
+        `)
+        .eq("is_active", true)
+        .eq("is_header", false)
+        .order("account_number");
+      if (error) throw error;
+
+      // Fetch journal lines for drill-down
+      let lineQuery = supabase
+        .from("journal_entry_lines")
+        .select(`
+          id, account_id, debit_amount, credit_amount, description,
+          journal_entry:journal_entries!inner(
+            id, entry_date, entry_number, description, is_posted
+          )
+        `)
+        .eq("journal_entry.is_posted", true);
+
+      if (startDate) lineQuery = lineQuery.gte("journal_entry.entry_date", startDate);
+      if (endDate) lineQuery = lineQuery.lte("journal_entry.entry_date", endDate);
+
+      const { data: lines, error: linesError } = await lineQuery;
+      if (linesError) throw linesError;
+
+      // Group lines by account
+      const linesByAccount: Record<string, typeof lines> = {};
+      const journalTotals: Record<string, { debit: number; credit: number }> = {};
+      for (const line of lines || []) {
+        if (!linesByAccount[line.account_id]) linesByAccount[line.account_id] = [];
+        linesByAccount[line.account_id].push(line);
+        if (!journalTotals[line.account_id]) journalTotals[line.account_id] = { debit: 0, credit: 0 };
+        journalTotals[line.account_id].debit += Number(line.debit_amount) || 0;
+        journalTotals[line.account_id].credit += Number(line.credit_amount) || 0;
+      }
+
+      const useDateFilter = !!(startDate && endDate);
+      const getAmount = (account: any) => {
+        if (useDateFilter) {
+          const totals = journalTotals[account.id] || { debit: 0, credit: 0 };
+          const isDebitNormal = account.account_type?.is_debit_normal ?? true;
+          return isDebitNormal ? totals.debit - totals.credit : totals.credit - totals.debit;
+        }
+        return Math.abs(Number(account.current_balance) || 0);
+      };
+
+      const buildGroups = (categoryFilter: string): DetailedPnLGroup[] => {
+        const filtered = (accounts || []).filter(a => a.account_type?.category === categoryFilter);
+        const grouped: Record<string, typeof filtered> = {};
+        for (const acc of filtered) {
+          const typeId = acc.account_type_id;
+          if (!grouped[typeId]) grouped[typeId] = [];
+          grouped[typeId].push(acc);
+        }
+
+        return Object.entries(grouped).map(([typeId, accs]) => {
+          const items = accs.map(a => {
+            const amount = Math.abs(getAmount(a));
+            const accLines = linesByAccount[a.id] || [];
+            return {
+              account_id: a.id,
+              account_name: a.name,
+              account_number: a.account_number,
+              amount,
+              journal_lines: accLines.map(l => ({
+                id: l.id,
+                entry_date: l.journal_entry?.entry_date || "",
+                reference_number: l.journal_entry?.entry_number || "",
+                description: l.description || l.journal_entry?.description || "",
+                debit: Number(l.debit_amount) || 0,
+                credit: Number(l.credit_amount) || 0,
+              })),
+            };
+          }).filter(i => i.amount > 0);
+
+          return {
+            account_type_id: typeId,
+            account_type_name: accs[0]?.account_type?.name || "Other",
+            accounts: items,
+            total: items.reduce((s, i) => s + i.amount, 0),
+          };
+        }).filter(g => g.total > 0);
+      };
+
+      const revenueGroups = buildGroups("revenue");
+      const expenseGroups = buildGroups("expense");
+
+      const totalRevenue = revenueGroups.reduce((s, g) => s + g.total, 0);
+      const totalExpenses = expenseGroups.reduce((s, g) => s + g.total, 0);
+      const netIncome = totalRevenue - totalExpenses;
+
+      return {
+        revenueGroups,
+        cogsGroups: [] as DetailedPnLGroup[],
+        expenseGroups,
+        otherIncomeGroups: [] as DetailedPnLGroup[],
+        totalRevenue,
+        totalCOGS: 0,
+        grossProfit: totalRevenue,
+        totalExpenses,
+        totalOtherIncome: 0,
+        operatingProfit: netIncome,
+        netIncome,
+      } as DetailedPnLData;
+    },
+    enabled: !!profile?.organization_id,
+  });
+}
+
+// =====================
+// Monthly P&L Trend (for charts)
+// =====================
+
+export function useMonthlyPnLTrend(startDate?: string, endDate?: string) {
+  const { profile } = useAuth();
+
+  return useQuery({
+    queryKey: ["monthly-pnl-trend", profile?.organization_id, startDate, endDate],
+    queryFn: async () => {
+      let query = supabase
+        .from("journal_entry_lines")
+        .select(`
+          debit_amount, credit_amount, account_id,
+          account:accounts!inner(
+            account_type:account_types(category, is_debit_normal)
+          ),
+          journal_entry:journal_entries!inner(entry_date, is_posted)
+        `)
+        .eq("journal_entry.is_posted", true);
+
+      if (startDate) query = query.gte("journal_entry.entry_date", startDate);
+      if (endDate) query = query.lte("journal_entry.entry_date", endDate);
+
+      const { data: lines, error } = await query;
+      if (error) throw error;
+
+      const monthly: Record<string, { month: string; revenue: number; expenses: number }> = {};
+
+      for (const line of lines || []) {
+        const date = line.journal_entry?.entry_date;
+        if (!date) continue;
+        const month = date.substring(0, 7); // YYYY-MM
+        if (!monthly[month]) monthly[month] = { month, revenue: 0, expenses: 0 };
+
+        const category = line.account?.account_type?.category;
+        const isDebitNormal = line.account?.account_type?.is_debit_normal ?? true;
+        const amount = isDebitNormal
+          ? (Number(line.debit_amount) || 0) - (Number(line.credit_amount) || 0)
+          : (Number(line.credit_amount) || 0) - (Number(line.debit_amount) || 0);
+
+        if (category === "revenue") monthly[month].revenue += Math.abs(amount);
+        else if (category === "expense") monthly[month].expenses += Math.abs(amount);
+      }
+
+      return Object.values(monthly).sort((a, b) => a.month.localeCompare(b.month));
+    },
+    enabled: !!profile?.organization_id,
+  });
+}
+
+// =====================
 // Financial Summary
 // =====================
 

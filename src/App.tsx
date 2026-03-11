@@ -602,6 +602,7 @@ const PayrollCostAllocationPage = React.lazy(() => import("./pages/app/accounts/
 const FiscalPeriodManagementPage = React.lazy(() => import("./pages/app/accounts/FiscalPeriodManagementPage"));
 const FinancialAuditLogPage = React.lazy(() => import("./pages/app/accounts/FinancialAuditLogPage"));
 const CashToBankReportPage = React.lazy(() => import("./pages/app/accounts/CashToBankReportPage"));
+const DetailedPnLPage = React.lazy(() => import("./pages/app/accounts/DetailedPnLPage"));
 
 import AdmissionHistoryPage from "./pages/app/ipd/AdmissionHistoryPage";
 import IPDVitalsPage from "./pages/app/ipd/IPDVitalsPage";
@@ -1226,6 +1227,7 @@ function App() {
                <Route path="accounts/period-management" element={<FiscalPeriodManagementPage />} />
                 <Route path="accounts/audit-log" element={<FinancialAuditLogPage />} />
                 <Route path="accounts/cash-to-bank-report" element={<CashToBankReportPage />} />
+                <Route path="accounts/reports/detailed-pnl" element={<DetailedPnLPage />} />
 
                {/* Donation Management routes */}
                <Route path="donations" element={<FinDonationDashboard />} />
