@@ -233,7 +233,7 @@ export default function CashToBankReportPage() {
         />
         <ReportSummaryCard
           title={l("totalDeposits")}
-          value={formatCurrency(summaries.total, currencyConfig)}
+          value={formatCurrency(summaries.total)}
           subtitle={`${summaries.count} ${l("depositCount").toLowerCase()}`}
           icon={Banknote}
           variant="success"
