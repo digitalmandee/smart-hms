@@ -1201,6 +1201,7 @@ function App() {
               <Route path="accounts/vendor-payments/:id" element={<VendorPaymentDetailPage />} />
               <Route path="accounts/bank-accounts" element={<BankAccountsPage />} />
               <Route path="accounts/bank-accounts/new" element={<BankAccountFormPage />} />
+              <Route path="accounts/bank-accounts/:id" element={<BankAccountDetailPage />} />
               <Route path="accounts/budgets" element={<BudgetsPage />} />
               <Route path="accounts/expenses" element={<ExpenseManagementPage />} />
               <Route path="accounts/types" element={<AccountTypesPage />} />
