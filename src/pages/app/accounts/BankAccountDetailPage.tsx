@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,9 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Building2, ArrowUpRight, ArrowDownLeft, ArrowLeft, Edit } from "lucide-react";
+import { Building2, ArrowUpRight, ArrowDownLeft, ArrowLeft, Banknote } from "lucide-react";
 import { format } from "date-fns";
 import { formatCurrencyFull } from "@/lib/currency";
+import { CashToBankDepositDialog } from "@/components/accounts/CashToBankDepositDialog";
 
 const labels = {
   title: { en: "Bank Account Details", ur: "بینک اکاؤنٹ کی تفصیلات", ar: "تفاصيل الحساب البنكي" },
