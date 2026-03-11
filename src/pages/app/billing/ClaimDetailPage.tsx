@@ -16,7 +16,7 @@ import { useInsuranceClaim, useUpdateInsuranceClaim } from "@/hooks/useInsurance
 import { useNphiesConfig, useSubmitClaimToNphies, useSubmitPreAuth, useCheckClaimStatus } from "@/hooks/useNphiesConfig";
 import { ArrowLeft, Send, CheckCircle, XCircle, DollarSign, Building2, FileText, Loader2, CloudUpload, Clock, AlertCircle, RefreshCw, ShieldCheck, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
-import { formatCurrency } from "@/lib/currency";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { useTranslation } from "@/lib/i18n";
 import { DenialManagementPanel } from "@/components/insurance/DenialManagementPanel";
 import { ClaimScrubResults } from "@/components/insurance/ClaimScrubResults";
