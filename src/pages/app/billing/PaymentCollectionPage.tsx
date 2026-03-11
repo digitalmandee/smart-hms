@@ -18,12 +18,14 @@ import { SessionStatusBanner } from "@/components/billing/SessionStatusBanner";
 import { ArrowLeft, CreditCard, Printer, CheckCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePrint } from "@/hooks/usePrint";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 
 export default function PaymentCollectionPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { profile } = useAuth();
   const { printRef, handlePrint } = usePrint();
+  const { formatCurrency } = useCurrencyFormatter();
 
   // Session requirement for payment collection
   const { hasActiveSession, session, isLoading: sessionLoading } = useRequireSession("reception");
@@ -129,7 +131,7 @@ export default function PaymentCollectionPage() {
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-success/10 text-success">
               <CheckCircle className="h-8 w-8" />
             </div>
-            <h2 className="text-2xl font-bold">Rs. {amount.toLocaleString()}</h2>
+            <h2 className="text-2xl font-bold">{formatCurrency(amount)}</h2>
             <p className="text-muted-foreground">
               Payment recorded for {invoice.invoice_number}
             </p>
@@ -220,16 +222,16 @@ export default function PaymentCollectionPage() {
             <div className="border-t pt-4 space-y-2">
               <div className="flex justify-between">
                 <span>Total Amount</span>
-                <span>Rs. {Number(invoice.total_amount).toLocaleString()}</span>
+                <span>{formatCurrency(Number(invoice.total_amount))}</span>
               </div>
               <div className="flex justify-between text-success">
                 <span>Already Paid</span>
-                <span>Rs. {Number(invoice.paid_amount).toLocaleString()}</span>
+                <span>{formatCurrency(Number(invoice.paid_amount))}</span>
               </div>
               <div className="flex justify-between text-lg font-bold">
                 <span>Balance Due</span>
                 <span className="text-destructive">
-                  Rs. {balance.toLocaleString()}
+                  {formatCurrency(balance)}
                 </span>
               </div>
             </div>
@@ -254,10 +256,10 @@ export default function PaymentCollectionPage() {
                 step="0.01"
                 value={amount || ""}
                 onChange={(e) => setAmount(parseFloat(e.target.value) || 0)}
-                placeholder={`Max: Rs. ${balance}`}
+                placeholder={`Max: ${formatCurrency(balance)}`}
               />
               <p className="text-xs text-muted-foreground mt-1">
-                Max payable: Rs. {balance.toLocaleString()}
+                Max payable: {formatCurrency(balance)}
               </p>
             </div>
 
@@ -301,7 +303,7 @@ export default function PaymentCollectionPage() {
             >
               {recordPaymentMutation.isPending
                 ? "Recording..."
-                : `Record Rs. ${amount.toLocaleString()} Payment`}
+                : `Record ${formatCurrency(amount)} Payment`}
             </Button>
           </CardContent>
         </Card>

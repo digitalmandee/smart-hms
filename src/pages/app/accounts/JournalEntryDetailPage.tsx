@@ -9,9 +9,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, FileText, Calendar, Hash, CheckCircle, Clock, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 
 const JournalEntryDetailPage = () => {
   const { id } = useParams<{ id: string }>();
+  const { formatCurrency } = useCurrencyFormatter();
   const navigate = useNavigate();
 
   const { data: entry, isLoading } = useQuery({
@@ -205,18 +207,18 @@ const JournalEntryDetailPage = () => {
                   </TableCell>
                   <TableCell className="text-muted-foreground">{line.description || "-"}</TableCell>
                   <TableCell className="text-right font-mono">
-                    {line.debit_amount > 0 ? `Rs. ${line.debit_amount.toLocaleString()}` : "-"}
+                    {line.debit_amount > 0 ? formatCurrency(line.debit_amount) : "-"}
                   </TableCell>
                   <TableCell className="text-right font-mono">
-                    {line.credit_amount > 0 ? `Rs. ${line.credit_amount.toLocaleString()}` : "-"}
+                    {line.credit_amount > 0 ? formatCurrency(line.credit_amount) : "-"}
                   </TableCell>
                 </TableRow>
               ))}
               {/* Totals Row */}
               <TableRow className="font-bold border-t-2">
                 <TableCell colSpan={2} className="text-right">Totals:</TableCell>
-                <TableCell className="text-right font-mono">Rs. {totalDebits.toLocaleString()}</TableCell>
-                <TableCell className="text-right font-mono">Rs. {totalCredits.toLocaleString()}</TableCell>
+                <TableCell className="text-right font-mono">{formatCurrency(totalDebits)}</TableCell>
+                <TableCell className="text-right font-mono">{formatCurrency(totalCredits)}</TableCell>
               </TableRow>
             </TableBody>
           </Table>
@@ -233,7 +235,7 @@ const JournalEntryDetailPage = () => {
                 <>
                   <AlertCircle className="h-4 w-4 text-destructive" />
                   <span className="text-destructive font-medium">
-                    Entry is not balanced. Difference: Rs. {Math.abs(totalDebits - totalCredits).toLocaleString()}
+                    Entry is not balanced. Difference: {formatCurrency(Math.abs(totalDebits - totalCredits))}
                   </span>
                 </>
               )}

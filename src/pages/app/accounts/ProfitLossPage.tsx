@@ -11,6 +11,7 @@ import { Printer, Download, TrendingUp, TrendingDown, Calendar, GitCompare } fro
 import { useProfitLoss } from "@/hooks/useFinancialReports";
 import { format, subMonths, differenceInDays } from "date-fns";
 import { exportToCSV, formatCurrency as exportFormatCurrency } from "@/lib/exportUtils";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 
 export default function ProfitLossPage() {
   const [startDate, setStartDate] = useState(
@@ -32,13 +33,7 @@ export default function ProfitLossPage() {
     compareMode ? prevEndStr : undefined
   );
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-PK", {
-      style: "currency",
-      currency: "PKR",
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
+  const { formatCurrency } = useCurrencyFormatter();
 
   const getChangePercent = (current: number, previous: number) => {
     if (previous === 0) return current > 0 ? 100 : 0;

@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Printer, Download, CheckCircle, XCircle, Calendar } from "lucide-react";
 import { useTrialBalance } from "@/hooks/useFinancialReports";
 import { exportToCSV, formatCurrency as exportFmtCurrency } from "@/lib/exportUtils";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import {
   Table,
   TableBody,
@@ -28,13 +29,7 @@ export default function TrialBalancePage() {
   
   const { data, isLoading } = useTrialBalance(startDate, endDate);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-PK", {
-      style: "currency",
-      currency: "PKR",
-      minimumFractionDigits: 2,
-    }).format(amount);
-  };
+  const { formatCurrency } = useCurrencyFormatter();
 
   const handlePrint = () => {
     window.print();

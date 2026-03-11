@@ -22,6 +22,7 @@ import { Database } from "@/integrations/supabase/types";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { MobileInvoiceList } from "@/components/mobile/MobileInvoiceList";
 
 type InvoiceStatus = Database["public"]["Enums"]["invoice_status"];
@@ -107,6 +108,7 @@ export default function InvoicesListPage() {
   const isMobileScreen = useIsMobile();
   const isNative = Capacitor.isNativePlatform();
   const showMobileUI = isMobileScreen || isNative;
+  const { formatCurrency } = useCurrencyFormatter();
 
   const { data: invoicesWithCategories, isLoading } = useInvoicesWithCategories(
     profile?.branch_id || undefined,
@@ -150,19 +152,19 @@ export default function InvoicesListPage() {
     {
       accessorKey: "total_amount",
       header: t("invoices.amount"),
-      cell: ({ row }) => <span className="font-medium">Rs. {Number(row.original.total_amount || 0).toLocaleString()}</span>,
+      cell: ({ row }) => <span className="font-medium">{formatCurrency(Number(row.original.total_amount || 0))}</span>,
     },
     {
       accessorKey: "paid_amount",
       header: t("invoices.paid"),
-      cell: ({ row }) => <span className="text-success">Rs. {Number(row.original.paid_amount || 0).toLocaleString()}</span>,
+      cell: ({ row }) => <span className="text-success">{formatCurrency(Number(row.original.paid_amount || 0))}</span>,
     },
     {
       accessorKey: "balance",
       header: t("invoices.balance"),
       cell: ({ row }) => {
         const balance = Number(row.original.total_amount || 0) - Number(row.original.paid_amount || 0);
-        return <span className={balance > 0 ? "text-destructive font-medium" : ""}>Rs. {balance.toLocaleString()}</span>;
+        return <span className={balance > 0 ? "text-destructive font-medium" : ""}>{formatCurrency(balance)}</span>;
       },
     },
     {

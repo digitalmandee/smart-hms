@@ -16,7 +16,7 @@ import { useInsuranceClaim, useUpdateInsuranceClaim } from "@/hooks/useInsurance
 import { useNphiesConfig, useSubmitClaimToNphies, useSubmitPreAuth, useCheckClaimStatus } from "@/hooks/useNphiesConfig";
 import { ArrowLeft, Send, CheckCircle, XCircle, DollarSign, Building2, FileText, Loader2, CloudUpload, Clock, AlertCircle, RefreshCw, ShieldCheck, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
-import { formatCurrency } from "@/lib/currency";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { useTranslation } from "@/lib/i18n";
 import { DenialManagementPanel } from "@/components/insurance/DenialManagementPanel";
 import { ClaimScrubResults } from "@/components/insurance/ClaimScrubResults";
@@ -93,6 +93,7 @@ export default function ClaimDetailPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const { formatCurrency } = useCurrencyFormatter();
   const [isApproveDialogOpen, setIsApproveDialogOpen] = useState(false);
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
   const [approvedAmount, setApprovedAmount] = useState(0);

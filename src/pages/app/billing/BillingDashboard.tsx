@@ -25,11 +25,13 @@ import { format } from "date-fns";
 import { InvoiceStatusBadge } from "@/components/billing/InvoiceStatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslation } from "@/lib/i18n";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 
 export default function BillingDashboard() {
   const navigate = useNavigate();
   const { profile } = useAuth();
   const { t } = useTranslation();
+  const { formatCurrency } = useCurrencyFormatter();
   const { data: stats, isLoading: statsLoading } = useBillingStats(profile?.branch_id || undefined);
   const { data: invoices, isLoading: invoicesLoading } = useInvoices(profile?.branch_id || undefined);
   const { data: activeSession } = useActiveSession();
@@ -60,7 +62,7 @@ export default function BillingDashboard() {
           <>
             <StatsCard
               title={t("billing.todayCollections")}
-              value={`Rs. ${stats?.todayCollections?.toLocaleString() || 0}`}
+              value={formatCurrency(stats?.todayCollections || 0)}
               icon={DollarSign}
               className="bg-success/10 border-success/20"
             />
@@ -72,7 +74,7 @@ export default function BillingDashboard() {
             />
             <StatsCard
               title={t("billing.outstandingAmount")}
-              value={`Rs. ${stats?.pendingAmount?.toLocaleString() || 0}`}
+              value={formatCurrency(stats?.pendingAmount || 0)}
               icon={TrendingUp}
               className="text-warning"
             />
@@ -191,7 +193,7 @@ export default function BillingDashboard() {
                     </div>
                     <div className="text-right">
                       <p className="font-semibold">
-                        Rs. {Number(invoice.total_amount).toLocaleString()}
+                        {formatCurrency(Number(invoice.total_amount))}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {format(new Date(invoice.created_at), "MMM dd")}

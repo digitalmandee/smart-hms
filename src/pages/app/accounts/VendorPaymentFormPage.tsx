@@ -21,11 +21,12 @@ import { useCreateVendorPayment, useVendorOutstandingBalance } from "@/hooks/use
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { formatCurrencyFull as formatCurrency } from "@/lib/currency";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 
 export default function VendorPaymentFormPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { formatCurrency, currencySymbol } = useCurrencyFormatter();
   const { profile } = useAuth();
   
   const preSelectedVendorId = searchParams.get("vendorId") || "";
@@ -192,7 +193,7 @@ export default function VendorPaymentFormPage() {
                   
                   {/* Amount */}
                   <div className="space-y-2">
-                    <Label htmlFor="amount">Amount (Rs.) *</Label>
+                    <Label htmlFor="amount">Amount ({currencySymbol}) *</Label>
                     <Input
                       id="amount"
                       type="number"
