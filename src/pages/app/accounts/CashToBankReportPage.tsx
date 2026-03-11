@@ -227,7 +227,7 @@ export default function CashToBankReportPage() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <ReportSummaryCard
           title={l("cashInHand")}
-          value={formatCurrency(cashAccount?.current_balance ?? 0, currencyConfig)}
+          value={formatCurrency(cashAccount?.current_balance ?? 0)}
           icon={Wallet}
           variant="info"
         />
