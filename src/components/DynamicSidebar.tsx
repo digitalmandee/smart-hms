@@ -1115,6 +1115,7 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle, showDesktopToggl
 
   return (
     <aside
+      dir={isRTL ? "rtl" : "ltr"}
       className={cn(
         "flex flex-col h-screen bg-sidebar text-sidebar-foreground transition-all duration-300",
         isCollapsed ? "w-16" : "w-64"
