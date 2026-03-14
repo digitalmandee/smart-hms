@@ -799,6 +799,7 @@ interface RecursiveMenuItemProps {
   handleNavigation: (path: string | null) => void;
   iconMap: Record<string, React.ComponentType<{ className?: string }>>;
   badgeCounts?: Record<string, number>;
+  isRTL?: boolean;
 }
 
 const RecursiveMenuItem = ({
