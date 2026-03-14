@@ -1127,35 +1127,42 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle, showDesktopToggl
       )}
     >
       {/* Logo */}
-      <div className={cn("flex items-center gap-3 px-4 py-4 border-b border-sidebar-border", isRTL && "flex-row-reverse")}>
-        <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-sidebar-primary to-sidebar-primary/80 flex items-center justify-center flex-shrink-0 shadow-lg">
-          <span className="text-sm font-bold text-sidebar-primary-foreground">24</span>
+      <div className={cn(
+        "flex items-center justify-between px-4 py-4 border-b border-sidebar-border",
+        isRTL && "flex-row-reverse"
+      )}>
+        {/* Brand group */}
+        <div className={cn("flex items-center gap-3", isRTL && "flex-row-reverse")}>
+          <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-sidebar-primary to-sidebar-primary/80 flex items-center justify-center flex-shrink-0 shadow-lg">
+            <span className="text-sm font-bold text-sidebar-primary-foreground">24</span>
+          </div>
+          {!isCollapsed && (
+            <span className={cn("text-lg font-semibold text-sidebar-foreground whitespace-nowrap")}>
+              HealthOS 24
+            </span>
+          )}
         </div>
-        {!isCollapsed && (
-          <span className="text-lg font-semibold text-sidebar-foreground">HealthOS 24</span>
-        )}
         
-        {/* Mobile close button */}
+        {/* Action group */}
         {onToggle && !showDesktopToggle && (
           <Button
             variant="ghost"
             size="icon"
             onClick={onToggle}
-            className="ms-auto text-white hover:bg-white/20 lg:hidden"
+            className="text-white hover:bg-white/20 lg:hidden flex-shrink-0"
           >
             <X className="h-5 w-5" />
           </Button>
         )}
         
-        {/* Desktop collapse toggle */}
         {showDesktopToggle && (
           <Button
             variant="ghost"
             size="icon"
             onClick={onToggle}
             className={cn(
-              "text-white hover:bg-white/20",
-              isCollapsed ? "mx-auto" : "ms-auto"
+              "text-white hover:bg-white/20 flex-shrink-0",
+              isCollapsed && "mx-auto"
             )}
             title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
