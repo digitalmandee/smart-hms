@@ -895,6 +895,7 @@ const RecursiveMenuItem = ({
                 handleNavigation={handleNavigation}
                 iconMap={iconMap}
                 badgeCounts={badgeCounts}
+                isRTL={isRTL}
               />
             ))}
           </CollapsibleContent>
