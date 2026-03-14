@@ -555,7 +555,7 @@ export function MobileSideMenu({ open, onOpenChange }: MobileSideMenuProps) {
       >
         {/* Profile Header */}
         <SheetHeader className="p-4 pb-3 border-b">
-          <div className="flex items-center gap-3">
+          <div className={cn("flex items-center gap-3", isRTL && "flex-row-reverse")}>
             <Avatar className="h-12 w-12 ring-2 ring-primary/20">
               <AvatarImage
                 src={profile?.avatar_url || undefined}
