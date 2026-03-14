@@ -317,9 +317,10 @@ interface MobileMenuItemProps {
   level?: number;
   onClose: () => void;
   isActive: (path: string) => boolean;
+  isRTL?: boolean;
 }
 
-function MobileMenuItem({ item, level = 0, onClose, isActive }: MobileMenuItemProps) {
+function MobileMenuItem({ item, level = 0, onClose, isActive, isRTL = false }: MobileMenuItemProps) {
   const [isOpen, setIsOpen] = useState(false);
   const haptics = useHaptics();
   const { t } = useTranslation();
