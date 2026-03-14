@@ -566,10 +566,10 @@ export function MobileSideMenu({ open, onOpenChange }: MobileSideMenuProps) {
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-              <SheetTitle className="text-base font-semibold truncate text-start">
+              <SheetTitle className={cn("text-base font-semibold truncate", isRTL ? "text-end" : "text-start")}>
                 {profile?.full_name || "User"}
               </SheetTitle>
-              <p className="text-sm text-muted-foreground truncate">
+              <p className={cn("text-sm text-muted-foreground truncate", isRTL && "text-end")}>
                 {roleLabel}
               </p>
             </div>
