@@ -356,9 +356,9 @@ function MobileMenuItem({ item, level = 0, onClose, isActive, isRTL = false }: M
             paddingStart,
             isRTL && "flex-row-reverse"
           )}>
-            <div className={cn("flex items-center gap-3", isRTL && "flex-row-reverse")}>
+            <div className={cn("flex items-center gap-3 flex-1", isRTL && "flex-row-reverse")}>
               <Icon className="h-5 w-5 text-muted-foreground shrink-0" />
-              <span className="font-medium text-sm">{displayName}</span>
+              <span className={cn("font-medium text-sm flex-1", isRTL ? "text-end" : "text-start")}>{displayName}</span>
             </div>
             <ChevronDown className={cn(
               "h-4 w-4 text-muted-foreground transition-transform duration-200",
