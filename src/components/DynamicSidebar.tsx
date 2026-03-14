@@ -914,7 +914,8 @@ const RecursiveMenuItem = ({
         styles.textStyle,
         isCollapsed && level === 0 && "justify-center px-2",
         itemIsActive && cn(styles.activeBg, "text-sidebar-accent-foreground"),
-        styles.padding
+        styles.padding,
+        isRTL && "flex-row-reverse"
       )}
       title={isCollapsed ? displayName : undefined}
     >
