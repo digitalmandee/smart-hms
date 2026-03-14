@@ -585,6 +585,7 @@ export function MobileSideMenu({ open, onOpenChange }: MobileSideMenuProps) {
                 item={item}
                 onClose={handleClose}
                 isActive={isActive}
+                isRTL={isRTL}
               />
             ))}
           </div>
