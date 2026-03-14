@@ -353,9 +353,10 @@ function MobileMenuItem({ item, level = 0, onClose, isActive, isRTL = false }: M
         <CollapsibleTrigger className="w-full">
           <div className={cn(
             "flex items-center justify-between py-3 pe-3 touch-manipulation active:bg-muted/50 rounded-lg transition-colors",
-            paddingStart
+            paddingStart,
+            isRTL && "flex-row-reverse"
           )}>
-            <div className="flex items-center gap-3">
+            <div className={cn("flex items-center gap-3", isRTL && "flex-row-reverse")}>
               <Icon className="h-5 w-5 text-muted-foreground shrink-0" />
               <span className="font-medium text-sm">{displayName}</span>
             </div>
