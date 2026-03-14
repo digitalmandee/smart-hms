@@ -374,6 +374,7 @@ function MobileMenuItem({ item, level = 0, onClose, isActive, isRTL = false }: M
               level={level + 1}
               onClose={onClose}
               isActive={isActive}
+              isRTL={isRTL}
             />
           ))}
         </CollapsibleContent>
