@@ -814,6 +814,7 @@ const RecursiveMenuItem = ({
   handleNavigation,
   iconMap,
   badgeCounts = {},
+  isRTL = false,
 }: RecursiveMenuItemProps) => {
   const IconComponent = item.icon ? iconMap[item.icon] : (level === 0 ? iconMap.LayoutDashboard : null);
   const hasChildren = item.children && item.children.length > 0;
