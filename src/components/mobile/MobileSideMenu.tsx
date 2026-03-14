@@ -394,7 +394,8 @@ function MobileMenuItem({ item, level = 0, onClose, isActive, isRTL = false }: M
         paddingStart,
         active 
           ? "bg-primary/10 text-primary" 
-          : "active:bg-muted/50 text-foreground"
+          : "active:bg-muted/50 text-foreground",
+        isRTL && "flex-row-reverse"
       )}
     >
       <Icon className={cn(
@@ -402,7 +403,7 @@ function MobileMenuItem({ item, level = 0, onClose, isActive, isRTL = false }: M
         active ? "text-primary" : "text-muted-foreground"
       )} />
       <span className={cn(
-        "text-sm",
+        "text-sm text-start flex-1",
         active ? "font-semibold" : "font-medium"
       )}>
         {displayName}
