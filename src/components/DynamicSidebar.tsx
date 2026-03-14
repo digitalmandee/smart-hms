@@ -1206,10 +1206,11 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle, showDesktopToggl
 
       {/* User Menu */}
       <div className="border-t border-sidebar-border p-3">
-        <div
+          <div
           className={cn(
             "flex items-center gap-3",
-            isCollapsed && "justify-center"
+            isCollapsed && "justify-center",
+            isRTL && "flex-row-reverse"
           )}
         >
           <Avatar className="h-9 w-9 flex-shrink-0">
