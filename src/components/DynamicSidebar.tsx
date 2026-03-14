@@ -799,6 +799,7 @@ interface RecursiveMenuItemProps {
   handleNavigation: (path: string | null) => void;
   iconMap: Record<string, React.ComponentType<{ className?: string }>>;
   badgeCounts?: Record<string, number>;
+  isRTL?: boolean;
 }
 
 const RecursiveMenuItem = ({
@@ -813,6 +814,7 @@ const RecursiveMenuItem = ({
   handleNavigation,
   iconMap,
   badgeCounts = {},
+  isRTL = false,
 }: RecursiveMenuItemProps) => {
   const IconComponent = item.icon ? iconMap[item.icon] : (level === 0 ? iconMap.LayoutDashboard : null);
   const hasChildren = item.children && item.children.length > 0;
@@ -858,7 +860,8 @@ const RecursiveMenuItem = ({
               styles.hoverBg,
               styles.textStyle,
               isCollapsed && level === 0 && "justify-center px-2",
-              styles.padding
+              styles.padding,
+              isRTL && "flex-row-reverse"
             )}
             title={isCollapsed ? displayName : undefined}
           >
@@ -892,6 +895,7 @@ const RecursiveMenuItem = ({
                 handleNavigation={handleNavigation}
                 iconMap={iconMap}
                 badgeCounts={badgeCounts}
+                isRTL={isRTL}
               />
             ))}
           </CollapsibleContent>
@@ -910,7 +914,8 @@ const RecursiveMenuItem = ({
         styles.textStyle,
         isCollapsed && level === 0 && "justify-center px-2",
         itemIsActive && cn(styles.activeBg, "text-sidebar-accent-foreground"),
-        styles.padding
+        styles.padding,
+        isRTL && "flex-row-reverse"
       )}
       title={isCollapsed ? displayName : undefined}
     >
@@ -1191,6 +1196,7 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle, showDesktopToggl
               handleNavigation={handleNavigation}
               iconMap={iconMap}
               badgeCounts={badgeCounts}
+              isRTL={isRTL}
             />
           ))}
           </>

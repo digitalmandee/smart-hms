@@ -317,9 +317,10 @@ interface MobileMenuItemProps {
   level?: number;
   onClose: () => void;
   isActive: (path: string) => boolean;
+  isRTL?: boolean;
 }
 
-function MobileMenuItem({ item, level = 0, onClose, isActive }: MobileMenuItemProps) {
+function MobileMenuItem({ item, level = 0, onClose, isActive, isRTL = false }: MobileMenuItemProps) {
   const [isOpen, setIsOpen] = useState(false);
   const haptics = useHaptics();
   const { t } = useTranslation();
@@ -352,9 +353,10 @@ function MobileMenuItem({ item, level = 0, onClose, isActive }: MobileMenuItemPr
         <CollapsibleTrigger className="w-full">
           <div className={cn(
             "flex items-center justify-between py-3 pe-3 touch-manipulation active:bg-muted/50 rounded-lg transition-colors",
-            paddingStart
+            paddingStart,
+            isRTL && "flex-row-reverse"
           )}>
-            <div className="flex items-center gap-3">
+            <div className={cn("flex items-center gap-3", isRTL && "flex-row-reverse")}>
               <Icon className="h-5 w-5 text-muted-foreground shrink-0" />
               <span className="font-medium text-sm">{displayName}</span>
             </div>
@@ -372,6 +374,7 @@ function MobileMenuItem({ item, level = 0, onClose, isActive }: MobileMenuItemPr
               level={level + 1}
               onClose={onClose}
               isActive={isActive}
+              isRTL={isRTL}
             />
           ))}
         </CollapsibleContent>
@@ -391,7 +394,8 @@ function MobileMenuItem({ item, level = 0, onClose, isActive }: MobileMenuItemPr
         paddingStart,
         active 
           ? "bg-primary/10 text-primary" 
-          : "active:bg-muted/50 text-foreground"
+          : "active:bg-muted/50 text-foreground",
+        isRTL && "flex-row-reverse"
       )}
     >
       <Icon className={cn(
@@ -399,7 +403,7 @@ function MobileMenuItem({ item, level = 0, onClose, isActive }: MobileMenuItemPr
         active ? "text-primary" : "text-muted-foreground"
       )} />
       <span className={cn(
-        "text-sm",
+        "text-sm text-start flex-1",
         active ? "font-semibold" : "font-medium"
       )}>
         {displayName}
@@ -551,7 +555,7 @@ export function MobileSideMenu({ open, onOpenChange }: MobileSideMenuProps) {
       >
         {/* Profile Header */}
         <SheetHeader className="p-4 pb-3 border-b">
-          <div className="flex items-center gap-3">
+          <div className={cn("flex items-center gap-3", isRTL && "flex-row-reverse")}>
             <Avatar className="h-12 w-12 ring-2 ring-primary/20">
               <AvatarImage
                 src={profile?.avatar_url || undefined}
@@ -581,6 +585,7 @@ export function MobileSideMenu({ open, onOpenChange }: MobileSideMenuProps) {
                 item={item}
                 onClose={handleClose}
                 isActive={isActive}
+                isRTL={isRTL}
               />
             ))}
           </div>
@@ -589,8 +594,8 @@ export function MobileSideMenu({ open, onOpenChange }: MobileSideMenuProps) {
         {/* Footer - Dark Mode, Sign Out & Version */}
         <div className="border-t p-3 space-y-3">
           {/* Dark Mode Toggle */}
-          <div className="flex items-center justify-between px-3 py-2">
-            <div className="flex items-center gap-3">
+          <div className={cn("flex items-center justify-between px-3 py-2", isRTL && "flex-row-reverse")}>
+            <div className={cn("flex items-center gap-3", isRTL && "flex-row-reverse")}>
               <Moon className="h-5 w-5 text-muted-foreground" />
               <span className="font-medium text-sm">{t("common.darkMode")}</span>
             </div>
