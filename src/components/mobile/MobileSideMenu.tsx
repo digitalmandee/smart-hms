@@ -403,7 +403,8 @@ function MobileMenuItem({ item, level = 0, onClose, isActive, isRTL = false }: M
         active ? "text-primary" : "text-muted-foreground"
       )} />
       <span className={cn(
-        "text-sm text-start flex-1",
+        "text-sm flex-1",
+        isRTL ? "text-end" : "text-start",
         active ? "font-semibold" : "font-medium"
       )}>
         {displayName}

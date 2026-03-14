@@ -1220,7 +1220,7 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle, showDesktopToggl
             </AvatarFallback>
           </Avatar>
           {!isCollapsed && (
-            <div className="flex-1 min-w-0">
+            <div className={cn("flex-1 min-w-0", isRTL && "text-end")}>
               <p className="text-sm font-medium truncate">{profile?.full_name || "User"}</p>
               <p className="text-xs text-sidebar-foreground/60 truncate">
                 {profile?.email || ""}
