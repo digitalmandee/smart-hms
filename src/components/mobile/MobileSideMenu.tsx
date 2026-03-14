@@ -356,9 +356,9 @@ function MobileMenuItem({ item, level = 0, onClose, isActive, isRTL = false }: M
             paddingStart,
             isRTL && "flex-row-reverse"
           )}>
-            <div className={cn("flex items-center gap-3", isRTL && "flex-row-reverse")}>
+            <div className={cn("flex items-center gap-3 flex-1", isRTL && "flex-row-reverse")}>
               <Icon className="h-5 w-5 text-muted-foreground shrink-0" />
-              <span className="font-medium text-sm">{displayName}</span>
+              <span className={cn("font-medium text-sm flex-1", isRTL ? "text-end" : "text-start")}>{displayName}</span>
             </div>
             <ChevronDown className={cn(
               "h-4 w-4 text-muted-foreground transition-transform duration-200",
@@ -403,7 +403,8 @@ function MobileMenuItem({ item, level = 0, onClose, isActive, isRTL = false }: M
         active ? "text-primary" : "text-muted-foreground"
       )} />
       <span className={cn(
-        "text-sm text-start flex-1",
+        "text-sm flex-1",
+        isRTL ? "text-end" : "text-start",
         active ? "font-semibold" : "font-medium"
       )}>
         {displayName}
@@ -566,10 +567,10 @@ export function MobileSideMenu({ open, onOpenChange }: MobileSideMenuProps) {
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-              <SheetTitle className="text-base font-semibold truncate text-start">
+              <SheetTitle className={cn("text-base font-semibold truncate", isRTL ? "text-end" : "text-start")}>
                 {profile?.full_name || "User"}
               </SheetTitle>
-              <p className="text-sm text-muted-foreground truncate">
+              <p className={cn("text-sm text-muted-foreground truncate", isRTL && "text-end")}>
                 {roleLabel}
               </p>
             </div>

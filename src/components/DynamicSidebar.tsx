@@ -1127,7 +1127,7 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle, showDesktopToggl
       )}
     >
       {/* Logo */}
-      <div className="flex items-center gap-3 px-4 py-4 border-b border-sidebar-border">
+      <div className={cn("flex items-center gap-3 px-4 py-4 border-b border-sidebar-border", isRTL && "flex-row-reverse")}>
         <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-sidebar-primary to-sidebar-primary/80 flex items-center justify-center flex-shrink-0 shadow-lg">
           <span className="text-sm font-bold text-sidebar-primary-foreground">24</span>
         </div>
@@ -1206,10 +1206,11 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle, showDesktopToggl
 
       {/* User Menu */}
       <div className="border-t border-sidebar-border p-3">
-        <div
+          <div
           className={cn(
             "flex items-center gap-3",
-            isCollapsed && "justify-center"
+            isCollapsed && "justify-center",
+            isRTL && "flex-row-reverse"
           )}
         >
           <Avatar className="h-9 w-9 flex-shrink-0">
@@ -1219,7 +1220,7 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle, showDesktopToggl
             </AvatarFallback>
           </Avatar>
           {!isCollapsed && (
-            <div className="flex-1 min-w-0">
+            <div className={cn("flex-1 min-w-0", isRTL && "text-end")}>
               <p className="text-sm font-medium truncate">{profile?.full_name || "User"}</p>
               <p className="text-xs text-sidebar-foreground/60 truncate">
                 {profile?.email || ""}
