@@ -1196,6 +1196,7 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle, showDesktopToggl
               handleNavigation={handleNavigation}
               iconMap={iconMap}
               badgeCounts={badgeCounts}
+              isRTL={isRTL}
             />
           ))}
           </>

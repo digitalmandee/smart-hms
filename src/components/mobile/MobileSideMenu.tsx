@@ -594,8 +594,8 @@ export function MobileSideMenu({ open, onOpenChange }: MobileSideMenuProps) {
         {/* Footer - Dark Mode, Sign Out & Version */}
         <div className="border-t p-3 space-y-3">
           {/* Dark Mode Toggle */}
-          <div className="flex items-center justify-between px-3 py-2">
-            <div className="flex items-center gap-3">
+          <div className={cn("flex items-center justify-between px-3 py-2", isRTL && "flex-row-reverse")}>
+            <div className={cn("flex items-center gap-3", isRTL && "flex-row-reverse")}>
               <Moon className="h-5 w-5 text-muted-foreground" />
               <span className="font-medium text-sm">{t("common.darkMode")}</span>
             </div>
