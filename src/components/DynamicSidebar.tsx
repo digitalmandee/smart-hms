@@ -860,7 +860,8 @@ const RecursiveMenuItem = ({
               styles.hoverBg,
               styles.textStyle,
               isCollapsed && level === 0 && "justify-center px-2",
-              styles.padding
+              styles.padding,
+              isRTL && "flex-row-reverse"
             )}
             title={isCollapsed ? displayName : undefined}
           >
