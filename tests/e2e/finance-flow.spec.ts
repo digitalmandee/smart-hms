@@ -9,10 +9,34 @@ test("Accountant can open Accounts dashboard", async ({ page }) => {
   await expect(page.locator("h1").first()).toBeVisible();
 });
 
+test("Accountant can open Billing dashboard", async ({ page }) => {
+  await demoLogin(page, "Accountant");
+
+  await page.goto("/app/billing");
+  await expect(page).toHaveURL(/\/app\/billing/);
+  await expect(page.locator("h1").first()).toBeVisible();
+});
+
 test("Accountant can open Billing invoices list", async ({ page }) => {
   await demoLogin(page, "Accountant");
 
   await page.goto("/app/billing/invoices");
   await expect(page).toHaveURL(/\/app\/billing\/invoices/);
+  await expect(page.locator("h1").first()).toBeVisible();
+});
+
+test("Accountant can open Payment History", async ({ page }) => {
+  await demoLogin(page, "Accountant");
+
+  await page.goto("/app/billing/payments");
+  await expect(page).toHaveURL(/\/app\/billing\/payments/);
+  await expect(page.locator("h1").first()).toBeVisible();
+});
+
+test("Accountant can open Daily Closing", async ({ page }) => {
+  await demoLogin(page, "Accountant");
+
+  await page.goto("/app/billing/daily-closing");
+  await expect(page).toHaveURL(/\/app\/billing\/daily-closing/);
   await expect(page.locator("h1").first()).toBeVisible();
 });
