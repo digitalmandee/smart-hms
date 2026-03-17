@@ -1176,6 +1176,16 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         ]
       },
       { 
+        name: "Doctor Settlements", 
+        path: "", 
+        icon: "Stethoscope",
+        children: [
+          { name: "Doctor Earnings", path: "/app/hr/payroll/doctor-earnings", icon: "Receipt" },
+          { name: "Wallet Balances", path: "/app/hr/payroll/wallet-balances", icon: "Wallet" },
+          { name: "Daily Commissions", path: "/app/hr/payroll/daily-commissions", icon: "TrendingUp" },
+        ]
+      },
+      { 
         name: "My Work", 
         path: "", 
         icon: "Briefcase",
@@ -1239,6 +1249,16 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
           { name: "Profit & Loss", path: "/app/accounts/reports/profit-loss", icon: "TrendingUp" },
           { name: "Balance Sheet", path: "/app/accounts/reports/balance-sheet", icon: "FileText" },
           { name: "Cash Flow", path: "/app/accounts/reports/cash-flow", icon: "DollarSign" },
+        ]
+      },
+      { 
+        name: "Doctor Settlements", 
+        path: "", 
+        icon: "Stethoscope",
+        children: [
+          { name: "Doctor Earnings", path: "/app/hr/payroll/doctor-earnings", icon: "Receipt" },
+          { name: "Wallet Balances", path: "/app/hr/payroll/wallet-balances", icon: "Wallet" },
+          { name: "Daily Commissions", path: "/app/hr/payroll/daily-commissions", icon: "TrendingUp" },
         ]
       },
       { 
