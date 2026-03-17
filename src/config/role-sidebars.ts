@@ -1242,6 +1242,16 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         ]
       },
       { 
+        name: "Doctor Settlements", 
+        path: "", 
+        icon: "Stethoscope",
+        children: [
+          { name: "Doctor Earnings", path: "/app/hr/payroll/doctor-earnings", icon: "Receipt" },
+          { name: "Wallet Balances", path: "/app/hr/payroll/wallet-balances", icon: "Wallet" },
+          { name: "Daily Commissions", path: "/app/hr/payroll/daily-commissions", icon: "TrendingUp" },
+        ]
+      },
+      { 
         name: "Setup", 
         path: "", 
         icon: "Settings",
