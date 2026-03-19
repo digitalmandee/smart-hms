@@ -1,129 +1,130 @@
 
 
-# HealthOS 24 Launch Video V4 — Cinematic Slide-Based Design
+# HealthOS 24 Launch Video V5 — Light, Slide-Based, Content-Rich
 
-## Problems in V3
+## Problems in V4
 
-1. **Webpage layout** — Header/sidebar/dashboard looks like a web app, not a video. Modules feel like screenshots of a CMS, not cinematic content.
-2. **Slideshow feel** — Same static layout repeated 16 times with text-left/content-right. No dynamic motion, no visual drama.
-3. **No music** — `muted: true` was never resolved. The sandbox ffmpeg lacks `libfdk_aac` for AAC encoding, but WAV/PCM audio should work with the right codec settings.
-4. **Empty dashboard areas** — Fake stat cards and bar charts look hollow and purposeless.
+1. **Dark background** — user wants light/clinical aesthetic matching the executive slides (white/light gray backgrounds with subtle teal accents)
+2. **No real animations** — scenes feel static, elements don't animate in with motion
+3. **No music** — still rendering muted due to ffmpeg codec issue
+4. **Screen-like layouts** — looks like a webpage, not cinematic slides
 
-## V4 Vision: Cinematic Module Showcase
+## V5 Vision
 
-**Aesthetic**: Dark clinical premium — deep navy/slate backgrounds with teal accent. Clean typography. Each scene is a full-bleed visual moment, not a dashboard mockup.
+**Match the executive slide design language** already in the codebase — those slides are the gold standard the user designed. They use:
+- Light backgrounds (`bg-gradient-to-br from-background to-primary/5`)
+- Colored top accent bar (2px gradient strip)
+- Category label → Big title → Subtitle header pattern
+- Card grids with icons, borders, rounded corners
+- Footer with "HealthOS 24 | AI-Powered Hospital Management"
+- Teal primary color with category-specific accent colors
 
-**Key shift**: Stop pretending to show a dashboard. Instead, show MODULE CONTENT as bold, typographic, full-screen compositions. Think Apple keynote / product launch — big text, bold icons, feature lists that animate in with rhythm.
+**But animate everything** — each element (title, cards, icons, stats) enters with spring/interpolate motion. Cards stagger in. Text slides up. Icons scale in. This is the key difference from a static slideshow.
 
-### Color Palette
-- Background: `#0B1120` (deep navy)
-- Card surface: `#141E30` with `rgba(255,255,255,0.05)` border
-- Primary accent: `#0EA5E9` (sky blue/teal)
-- Secondary: `#10B981` (emerald for clinical)
-- Text: `#F1F5F9` (slate-50)
+### Color Palette (from existing executive slides)
+- Background: `#FFFFFF` to `#F8FAFC` (white to slate-50)
+- Primary: `hsl(var(--primary))` → teal `#0EA5E9`
+- Card: white with `#E2E8F0` border
+- Text: `#0F172A` (slate-900)
 - Muted: `#64748B` (slate-500)
+- Category accents: blue, emerald, pink, amber, purple, teal (per module group)
 
 ### Typography
-- Display: Inter (via `@remotion/google-fonts/Inter`)
-- One font, varied weights (400, 600, 800)
+- Inter via `@remotion/google-fonts/Inter`
 
 ### Motion System
-- **Enter**: Elements slide up 40px + fade in over 20 frames, staggered 6 frames apart
-- **Accent**: Scale from 0.8 → 1.0 with spring (damping: 15)
-- **Transitions**: `wipe(from-left)` and `fade()` alternating between scenes
-- **Persistent**: Subtle floating gradient orbs drifting slowly (sinusoidal Y motion)
+- **Default enter**: Slide up 30px + fade in over 18 frames via `interpolate`
+- **Card stagger**: Each card delayed by 5 frames
+- **Icon enter**: Scale from 0.7 → 1.0 via `spring({ damping: 15 })`
+- **Scene transitions**: `fade()` with 15-frame overlap between all scenes
+- **Persistent elements**: Subtle floating teal gradient orb at ~3% opacity drifting sinusoidally
 
 ## Scene Structure (90s = 2700 frames @ 30fps)
 
-### Scene 1: ECG Intro (0-90 frames, 3s)
-- Black screen → SVG ECG line traces across full width using stroke-dashoffset
-- At peak of heartbeat, HealthOS logo pulses in at center
-- "HealthOS" text + "24" badge spring in
-- "AI-Powered Hospital Management" fades up
+### Scene 1: ECG Intro + Logo (0-120 frames, 4s)
+- Light background (`#F8FAFC`)
+- ECG SVG line traces across center using stroke-dashoffset
+- HealthOS logo (from brand component SVG) scales in at center
+- "HealthOS" + "AI-Powered Hospital Management" slides up
+- Faint teal radial glow behind logo
 
-### Scene 2: Problem Statement (90-210, 4s)
-- Bold kinetic type: "20+ Departments" (big) → "One Platform" (bigger)
-- 10 disconnected system names appear scattered, then compress into a single unified block
-- Red accent for "problem" state → transitions to teal
+### Scene 2: About Us (120-270, 5s)
+- **Mirror `ExecAboutUsSlide` layout exactly** — teal top bar, "About Us" label, "Who We Are" title, 3x2 card grid with icons
+- Cards stagger in with spring animation
+- 6 cards: Mission, Vision, Track Record, Team, Market Reach, Innovation DNA
 
-### Scene 3: Module Overview Grid (210-330, 4s)
-- All 16+ module icons appear in a 4x4 grid with staggered spring-in
-- Each icon in its colored circle, name below
-- "Every Department. Fully Integrated." text at bottom
+### Scene 3: Problem Statement (270-420, 5s)
+- **Mirror `ExecProblemSlide`** — "The Challenge" red accent, split layout
+- Left: 10 disconnected systems in dashed red border box (appear one by one)
+- Right: 4 pain point cards slide in from right
 
-### Scenes 4-14: Module Deep-Dives (330-1730, ~127 frames each ≈ 4.2s)
-**11 grouped module scenes** (not 16 individual — group related modules):
+### Scene 4: All-in-One Solution (420-570, 5s)
+- **Mirror `ExecAllInOneSlide`** — hub-spoke diagram
+- Center "24" hub scales in, then 12 department icons spring outward to positions
+- SVG connector lines draw in via stroke-dashoffset
 
-Each scene uses ONE of 3 visual treatments (rotating):
+### Scene 5: Modules Overview (570-720, 5s)
+- **Mirror `ExecModulesSlide`** — 4-column category grid
+- 7 category cards stagger in, module names appear within each
 
-**Treatment 1 — "Feature Wall"** (full-screen)
-- Module name HUGE at top-left (80px font)
-- Module SVG icon large (200px) at top-right with glow
-- 6 features as large pills/cards in 2x3 grid, each with checkmark icon
-- Each card springs in with stagger
-- Accent gradient bar at left edge
+### Scene 6: AI Everywhere (720-870, 5s)
+- **Mirror `ExecAIEverywhereSlide`** — but on LIGHT background instead of dark
+- Central "HealthOS AI Core" brain icon + 8 AI module cards in 4x2 grid
+- Cards spring in with stagger
 
-**Treatment 2 — "Split Reveal"**
-- Left 60%: Module icon centered at 300px with radial glow behind it
-- Right 40%: Module name + 6 features slide in from right, staggered
-- Bottom: 3-4 key stats as horizontal badges
+### Scene 7: Tabeebi AI (870-1020, 5s)
+- **Mirror `ExecTabeebiSlide`** — Bot icon + 4 capability cards + chat preview
+- Cards slide in from left, chat bubbles appear sequentially
 
-**Treatment 3 — "Scrolling List"**
-- Module name + icon at top
-- Features appear one-by-one with slide-up animation (typewriter feel for feature list)
-- Key stat numbers animate/count up at bottom
+### Scene 8: Clinical Workflows (1020-1170, 5s)
+- **Mirror `ExecClinicalSlide`** — 5-column department grid (OPD, IPD, Emergency, Surgery, Nursing)
+- Each column slides up with stagger, features appear within
 
-**Module groupings:**
-1. OPD & Consultations (Treatment 1)
-2. IPD & Admissions (Treatment 2)
-3. Emergency & Surgery & OT (Treatment 3)
-4. Nursing Station (Treatment 1)
-5. Laboratory & Radiology (Treatment 2)
-6. Pharmacy & Dispensing (Treatment 3)
-7. Billing & Invoicing (Treatment 1)
-8. Finance & Accounts (Treatment 2)
-9. HR, Payroll & Procurement (Treatment 3)
-10. Inventory & Blood Bank (Treatment 1)
-11. Insurance & NPHIES (Treatment 2)
+### Scene 9: Diagnostics & Pharmacy (1170-1320, 5s)
+- **Mirror `ExecDiagnosticsSlide`** — 3-column (Lab, Radiology, Pharmacy)
+- Columns slide in from bottom with stagger
 
-### Scene 15: Tabeebi AI (1730-1880, 5s)
-- "Tabeebi" in large gradient text (pink → teal)
-- "Your Digital Medical Assistant" subtitle
-- 4 capability cards (Trilingual Voice, Clinical Summaries, Prescription Gen, 24/7 Pre-Screening)
-- 3 language badges: EN | عربي | اردو
-- No chat mockup, no phone — just bold feature presentation
+### Scene 10: Automation Engine (1320-1470, 5s)
+- **Mirror `ExecAutomationSlide`** — 2x4 grid of before/after cards
+- Cards stagger in, "Before" appears then arrow then "After"
 
-### Scene 16: Automation Engine (1880-2010, 4.3s)
-- "Built-in Automation" title
-- 4 key automations shown as before/after pairs with arrow between
-- Quick stagger animation
+### Scene 11: Patient Workflow (1470-1620, 5s)
+- **Mirror `ExecWorkflowSlide`** — 9-step horizontal flow diagram
+- Steps appear left-to-right with arrows drawing between them
+- Bottom stats count up
 
-### Scene 17: KSA Compliance (2010-2160, 5s)
-- 7 integration badges (NPHIES, ZATCA, Wasfaty, etc.) in grid
-- Saudi green accent
-- Data standards row at bottom
+### Scene 12: Finance & Operations (1620-1770, 5s)
+- **Mirror `ExecFinanceOpsSlide`** — 3x2 grid (Billing, Accounts, HR, Procurement, Inventory, Doctor Comp)
+- Cards spring in
 
-### Scene 18: Technology & Security (2160-2310, 5s)
-- AWS, 99.9% Uptime, AES-256, RBAC, API-First as bold cards
-- Dark premium tech aesthetic
+### Scene 13: Insurance & NPHIES (1770-1920, 5s)
+- **Mirror `ExecInsuranceSlide`** — NPHIES 7-step pipeline + Pakistan/Denial sections
+- Pipeline steps appear left-to-right, bottom cards slide up
 
-### Scene 19: ROI / Results (2310-2460, 5s)
-- 4 big metrics with animated count-up numbers
-- Before/after progress bars
+### Scene 14: KSA Compliance (1920-2070, 5s)
+- **Mirror `ExecKsaComplianceSlide`** — 7 integration badges + data standards
+- Saudi green accent, badges stagger in
 
-### Scene 20: Closing (2460-2700, 8s)
-- Logo resolve with scale bounce
-- "20+ Modules · 50+ Features · 3 Languages" counting up
-- "healthos24.com" + contact info
-- Fade to branded end card
+### Scene 15: Technology & Security (2070-2220, 5s)
+- **Mirror `ExecTechSlide`** — 4x3 grid of tech feature cards
+- Cards stagger in wave pattern
+
+### Scene 16: ROI / Results (2220-2370, 5s)
+- **Mirror `ExecROISlide`** — 4 metric cards with before/after progress bars
+- Numbers count up, bars animate width
+
+### Scene 17: CTA / Closing (2370-2700, 11s)
+- **Mirror `ExecCTASlide`** — 6 "Why Us" cards + contact info + logo
+- Cards stagger in, logo scales with bounce
+- Hold final frame for 3-4 seconds
 
 ## Audio Strategy
 
-The key issue: sandbox ffmpeg lacks `libfdk_aac`. Solutions:
-1. Generate WAV audio (PCM) and render with `codec: 'h264'` — ffmpeg can mux PCM into MP4 as AAC using its built-in native AAC encoder (not libfdk)
-2. In render script, set `muted: false` and let Remotion handle the audio muxing
-3. If that fails, try rendering video + audio separately and muxing with ffmpeg directly
-4. Generate the ambient track as a 90s sine-wave chord pad (C-F-G progression, low volume)
+Try a different approach for audio:
+1. Generate WAV with raw PCM data (16-bit, 44100Hz, mono)
+2. Use Remotion's `<Audio>` component with the WAV file
+3. In render script, try `muted: false` — Remotion uses ffmpeg's built-in AAC encoder (not libfdk_aac)
+4. If that fails, render video muted, then use ffmpeg to mux audio separately: `ffmpeg -i video.mp4 -i audio.wav -c:v copy -c:a aac output.mp4`
 
 ## File Structure
 
@@ -136,21 +137,27 @@ The key issue: sandbox ffmpeg lacks `libfdk_aac`. Solutions:
     theme.ts
     scenes/
       ECGIntroScene.tsx
+      AboutUsScene.tsx
       ProblemScene.tsx
-      ModuleGridScene.tsx
-      ModuleScene.tsx          (single component, takes treatment prop)
+      AllInOneScene.tsx
+      ModulesScene.tsx
+      AIEverywhereScene.tsx
       TabeebiScene.tsx
+      ClinicalScene.tsx
+      DiagnosticsScene.tsx
       AutomationScene.tsx
+      WorkflowScene.tsx
+      FinanceOpsScene.tsx
+      InsuranceScene.tsx
       ComplianceScene.tsx
       TechScene.tsx
       ROIScene.tsx
-      ClosingScene.tsx
+      CTAScene.tsx
     components/
-      SVGIcons.tsx             (16 module SVG icons)
-      FloatingOrbs.tsx         (persistent background)
-      ProgressBar.tsx          (bottom progress indicator)
-    data/
-      modules.ts              (all module data: name, icon, features, stats, treatment)
+      SVGIcons.tsx
+      SlideHeader.tsx        (reusable: top accent bar + label + title + subtitle + slide number)
+      SlideFooter.tsx        (reusable: "HealthOS 24 | ..." footer)
+      AnimatedCard.tsx       (reusable: card with spring-in animation based on delay prop)
   public/
     audio/bg-music.wav
   scripts/
@@ -158,8 +165,11 @@ The key issue: sandbox ffmpeg lacks `libfdk_aac`. Solutions:
     generate-music.mjs
 ```
 
-## Render
-- Output: `/mnt/documents/healthos24-launch-v4.mp4`
-- `concurrency: 1` to avoid timeout
-- `muted: false` — attempt audio embedding
+### Key Design Decisions
+
+1. **Every scene mirrors an existing executive slide** — same data, same layout, same colors — but with frame-based animation
+2. **Reusable `SlideHeader` and `SlideFooter`** components ensure brand consistency across all 17 scenes
+3. **`AnimatedCard`** wraps any card content with `spring()` entry animation + configurable delay
+4. **Light backgrounds throughout** — no dark mode scenes
+5. **No dashboard mockups, no fake analytics** — pure content presentation matching the executive deck
 
