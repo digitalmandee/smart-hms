@@ -97,10 +97,10 @@ export default function AccountsDashboard() {
   const { data: pendingVendorCount } = useQuery({
     queryKey: ["pending-vendor-payments", profile?.organization_id],
     queryFn: async () => {
-      const { count, error } = await (supabase
-        .from("goods_received_notes") as any)
+      const { count, error } = await supabase
+        .from("goods_received_notes")
         .select("id", { count: "exact", head: true })
-        .eq("payment_status", "unpaid");
+        .in("status", ["received", "verified"]);
       if (error) throw error;
       return count || 0;
     },

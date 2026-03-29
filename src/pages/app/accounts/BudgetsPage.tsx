@@ -103,9 +103,9 @@ export default function BudgetsPage() {
       const accountIds = budgetAllocations.map((b: any) => b.account_id);
       const { data, error } = await supabase
         .from("journal_entry_lines")
-        .select("account_id, debit_amount, journal_entry:journal_entries!inner(status, entry_date)")
+        .select("account_id, debit_amount, journal_entry:journal_entries!inner(is_posted, entry_date)")
         .in("account_id", accountIds)
-        .eq("journal_entry.status", "posted")
+        .eq("journal_entry.is_posted", true)
         .gte("journal_entry.entry_date", currentFiscalYear.start_date)
         .lte("journal_entry.entry_date", currentFiscalYear.end_date);
       if (error) throw error;
