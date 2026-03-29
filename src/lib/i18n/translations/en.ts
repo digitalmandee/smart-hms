@@ -3040,6 +3040,15 @@ export const en = {
   "billing.closedAt": "Closed At",
   "billing.departmentBreakdown": "Department Breakdown",
 
+  // Doctor Test Share
+  "hr.testShare": "Test Share",
+  "hr.labReferralPercent": "Lab Referral %",
+  "hr.radiologyReferralPercent": "Radiology Referral %",
+  "hr.labReferrals": "Lab Referrals",
+  "hr.radiologyReferrals": "Radiology Referrals",
+  "hr.labReferralCommission": "Lab Referral Commission",
+  "hr.radiologyReferralCommission": "Radiology Referral Commission",
+
 } as const;
 
 export type TranslationKey = keyof typeof en;

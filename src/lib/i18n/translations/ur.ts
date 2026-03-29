@@ -2974,5 +2974,14 @@ export const ur: Record<TranslationKey, string> = {
   "billing.closedAt": "بند ہونے کا وقت",
   "billing.departmentBreakdown": "شعبہ وار تفصیل",
 
+  // Doctor Test Share
+  "hr.testShare": "ٹیسٹ شیئر",
+  "hr.labReferralPercent": "لیب ریفرل %",
+  "hr.radiologyReferralPercent": "ریڈیالوجی ریفرل %",
+  "hr.labReferrals": "لیب ریفرل",
+  "hr.radiologyReferrals": "ریڈیالوجی ریفرل",
+  "hr.labReferralCommission": "لیب ریفرل کمیشن",
+  "hr.radiologyReferralCommission": "ریڈیالوجی ریفرل کمیشن",
+
 };
 

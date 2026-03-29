@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Wallet, Percent, Building2, Stethoscope, HeartPulse, Bed, Calculator, TestTube } from "lucide-react";
+import { Wallet, Percent, Building2, Stethoscope, HeartPulse, Bed, Calculator, TestTube, Scan } from "lucide-react";
 import { useDoctorCompensationPlan } from "@/hooks/useDoctorCompensation";
 import { formatCurrency } from "@/lib/currency";
 
@@ -154,6 +154,7 @@ export function DoctorCompensationForm({
       form.setValue("anesthesia_share_percent", existingPlan.anesthesia_share_percent || 50);
       form.setValue("ipd_visit_share_percent", (existingPlan as any).ipd_visit_share_percent || 50);
       form.setValue("lab_referral_percent", existingPlan.lab_referral_percent);
+      form.setValue("radiology_referral_percent", (existingPlan as any).radiology_referral_percent || 0);
       form.setValue("minimum_guarantee", existingPlan.minimum_guarantee);
     }
   }, [existingPlan, form]);
@@ -171,6 +172,7 @@ export function DoctorCompensationForm({
   const procedureShare = form.watch("procedure_share_percent") || 50;
   const anesthesiaShare = form.watch("anesthesia_share_percent") || 50;
   const labReferralShare = form.watch("lab_referral_percent") || 10;
+  const radiologyReferralShare = form.watch("radiology_referral_percent") || 10;
   const minimumGuarantee = form.watch("minimum_guarantee") || 0;
 
   const hasAnyFeeConfigured = consultationFee > 0 || surgeryFee > 0 || ipdVisitFee > 0;
@@ -418,6 +420,48 @@ export function DoctorCompensationForm({
         </Card>
       )}
 
+      {/* Radiology Referral Percentage */}
+      {showCommissionFields && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Scan className="h-5 w-5 text-primary" />
+              Radiology Referrals
+            </CardTitle>
+            <CardDescription>
+              Commission from radiology/imaging tests ordered by this doctor
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <FormField
+              control={form.control}
+              name="radiology_referral_percent"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Radiology Referral Commission %</FormLabel>
+                  <FormControl>
+                    <div className="relative max-w-xs">
+                      <Input
+                        type="number"
+                        min={0}
+                        max={100}
+                        placeholder="10"
+                        {...field}
+                        value={field.value ?? ""}
+                        onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : null)}
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">%</span>
+                    </div>
+                  </FormControl>
+                  <FormDescription>Doctor's commission on radiology/imaging orders</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </CardContent>
+        </Card>
+      )}
+
       {/* Minimum Guarantee */}
       <Card>
         <CardHeader>
@@ -507,6 +551,10 @@ export function DoctorCompensationForm({
               <div className="flex justify-between items-center py-2 border-b">
                 <span className="text-muted-foreground">Lab Referral Commission</span>
                 <span className="font-semibold">{labReferralShare}%</span>
+              </div>
+              <div className="flex justify-between items-center py-2 border-b">
+                <span className="text-muted-foreground">Radiology Referral Commission</span>
+                <span className="font-semibold">{radiologyReferralShare}%</span>
               </div>
               {minimumGuarantee > 0 && (
                 <div className="flex justify-between items-center py-2 bg-primary/10 px-2 rounded">

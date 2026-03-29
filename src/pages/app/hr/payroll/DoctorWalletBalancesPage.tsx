@@ -37,6 +37,8 @@ interface DoctorBalance {
   consultations: number;
   surgeries: number;
   procedures: number;
+  labReferrals: number;
+  radiologyReferrals: number;
   other: number;
   earningIds: string[];
 }
@@ -96,6 +98,8 @@ export default function DoctorWalletBalancesPage() {
           consultations: 0,
           surgeries: 0,
           procedures: 0,
+          labReferrals: 0,
+          radiologyReferrals: 0,
           other: 0,
           earningIds: [],
         };
@@ -119,6 +123,12 @@ export default function DoctorWalletBalancesPage() {
             break;
           case "procedure":
             balance.procedures += amount;
+            break;
+          case "lab_referral":
+            balance.labReferrals += amount;
+            break;
+          case "radiology_referral":
+            balance.radiologyReferrals += amount;
             break;
           default:
             balance.other += amount;
@@ -161,6 +171,8 @@ export default function DoctorWalletBalancesPage() {
     consultations: b.consultations,
     surgeries: b.surgeries,
     procedures: b.procedures,
+    labReferrals: b.labReferrals,
+    radiologyReferrals: b.radiologyReferrals,
     other: b.other,
     totalUnpaid: b.totalUnpaid,
   })) || [];
@@ -172,6 +184,8 @@ export default function DoctorWalletBalancesPage() {
     { key: "consultations", header: "Consultations", format: (v: number) => formatCurrency(v) },
     { key: "surgeries", header: "Surgeries", format: (v: number) => formatCurrency(v) },
     { key: "procedures", header: "Procedures", format: (v: number) => formatCurrency(v) },
+    { key: "labReferrals", header: "Lab Referrals", format: (v: number) => formatCurrency(v) },
+    { key: "radiologyReferrals", header: "Radiology Referrals", format: (v: number) => formatCurrency(v) },
     { key: "other", header: "Other", format: (v: number) => formatCurrency(v) },
     { key: "totalUnpaid", header: "Total Pending", format: (v: number) => formatCurrency(v) },
   ];
@@ -297,6 +311,8 @@ export default function DoctorWalletBalancesPage() {
                       <TableHead className="text-right">Consultations</TableHead>
                       <TableHead className="text-right">Surgeries</TableHead>
                       <TableHead className="text-right">Procedures</TableHead>
+                      <TableHead className="text-right">Lab Referrals</TableHead>
+                      <TableHead className="text-right">Radiology Referrals</TableHead>
                       <TableHead className="text-right">Other</TableHead>
                       <TableHead className="text-right">Total Pending</TableHead>
                       <TableHead className="text-right">Action</TableHead>
@@ -326,6 +342,12 @@ export default function DoctorWalletBalancesPage() {
                         </TableCell>
                         <TableCell className="text-right">
                           {balance.procedures > 0 ? formatCurrency(balance.procedures) : "—"}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {balance.labReferrals > 0 ? formatCurrency(balance.labReferrals) : "—"}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {balance.radiologyReferrals > 0 ? formatCurrency(balance.radiologyReferrals) : "—"}
                         </TableCell>
                         <TableCell className="text-right">
                           {balance.other > 0 ? formatCurrency(balance.other) : "—"}
