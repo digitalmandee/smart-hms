@@ -263,6 +263,12 @@ export default function PendingCheckoutPage() {
                                 {orders.labOrders} Lab
                               </Badge>
                             ) : null}
+                            {orders?.imagingOrders ? (
+                              <Badge variant="secondary" className="gap-1">
+                                <Scan className="h-3 w-3" />
+                                {orders.imagingOrders} Imaging
+                              </Badge>
+                            ) : null}
                             {orders?.prescriptions ? (
                               <Badge variant="secondary" className="gap-1">
                                 <Pill className="h-3 w-3" />
