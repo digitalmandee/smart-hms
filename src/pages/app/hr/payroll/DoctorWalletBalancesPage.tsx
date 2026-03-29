@@ -184,6 +184,8 @@ export default function DoctorWalletBalancesPage() {
     { key: "consultations", header: "Consultations", format: (v: number) => formatCurrency(v) },
     { key: "surgeries", header: "Surgeries", format: (v: number) => formatCurrency(v) },
     { key: "procedures", header: "Procedures", format: (v: number) => formatCurrency(v) },
+    { key: "labReferrals", header: "Lab Referrals", format: (v: number) => formatCurrency(v) },
+    { key: "radiologyReferrals", header: "Radiology Referrals", format: (v: number) => formatCurrency(v) },
     { key: "other", header: "Other", format: (v: number) => formatCurrency(v) },
     { key: "totalUnpaid", header: "Total Pending", format: (v: number) => formatCurrency(v) },
   ];
