@@ -25,7 +25,7 @@ export default function ReportingWorklistPage() {
   const awaitingVerificationOrders = orders?.filter(o => o.status === 'reported') || [];
 
   // Completed/verified reports
-  const completedOrders = orders?.filter(o => o.status === 'verified' || o.status === 'delivered') || [];
+  const completedOrders = orders?.filter(o => o.status === 'verified' || (o.status as string) === 'delivered') || [];
 
   const currentOrders = view === 'pending' ? pendingReportOrders : view === 'verification' ? awaitingVerificationOrders : completedOrders;
   
