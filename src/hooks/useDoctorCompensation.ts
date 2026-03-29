@@ -14,6 +14,7 @@ export interface DoctorCompensationPlan {
   procedure_share_percent: number;
   surgery_share_percent: number;
   lab_referral_percent: number;
+  radiology_referral_percent: number;
   minimum_guarantee: number;
   effective_from: string;
   effective_to: string | null;
