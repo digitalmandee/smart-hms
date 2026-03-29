@@ -552,6 +552,10 @@ export function DoctorCompensationForm({
                 <span className="text-muted-foreground">Lab Referral Commission</span>
                 <span className="font-semibold">{labReferralShare}%</span>
               </div>
+              <div className="flex justify-between items-center py-2 border-b">
+                <span className="text-muted-foreground">Radiology Referral Commission</span>
+                <span className="font-semibold">{radiologyReferralShare}%</span>
+              </div>
               {minimumGuarantee > 0 && (
                 <div className="flex justify-between items-center py-2 bg-primary/10 px-2 rounded">
                   <span className="font-medium">Minimum Monthly Guarantee</span>
