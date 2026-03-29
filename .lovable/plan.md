@@ -1,47 +1,63 @@
 
 
-# Fix: Radiology Orders Not Showing in OPD Checkout
+# Why Imaging Orders Have NULL consultation_id — And the Real Problem
 
-## Root Cause
+## What I Found
 
-The imaging orders query on line 172-185 of `OPDCheckoutPage.tsx` filters **only** by `consultation_id`. When imaging orders were created but failed to link to the consultation (e.g., due to the duplicate key errors we fixed earlier), they have `consultation_id = NULL` and are invisible at checkout.
+### Data Analysis
 
-## Fix
+Looking at all imaging orders in the database:
 
-### File: `src/pages/app/opd/OPDCheckoutPage.tsx` (lines 172-185)
+| Order | consultation_id | Created Via |
+|-------|----------------|-------------|
+| IMG-260329-0001 | `1e107713...` ✅ | Consultation page (correctly linked) |
+| IMG-260329-0002 | NULL | Billing/direct radiology form (no consultation context) |
+| All older orders | NULL | Billing flow or radiology module — not consultation |
 
-Change the imaging orders query to use an `.or()` filter that captures:
-1. Orders linked to this consultation (`consultation_id = X`)
-2. Orders for the same patient created today with no consultation link and no invoice (`consultation_id IS NULL AND patient_id = Y AND invoice_id IS NULL AND created_at >= today`)
+**Answer to your question**: Most imaging orders have `consultation_id = NULL` because they were created through the **radiology order form** (`/app/radiology/orders/new`) or through the **billing/checkout flow** — NOT through the consultation page. Only the consultation page passes `consultation_id` when creating orders (line 194 of `ConsultationPage.tsx`).
+
+### The REAL Problem
+
+For your **latest consultation** (`c13cba3f` for patient `bbed1ff7`), there are **zero imaging orders in the database**. The order was never created — likely because:
+
+1. The duplicate key error (`IMG-260329-0002` already exists) killed the insert
+2. The error was shown as a toast ("Failed to create order: duplicate key...") but the consultation still completed
+3. So at checkout, there's nothing to show — not a query issue, but a **data creation failure**
+
+The duplicate key fix we just deployed should prevent this going forward. But the imaging order for this specific consultation was lost.
+
+## Recommended Fix
+
+### 1. Add retry logic to imaging order creation in ConsultationPage
+
+**File**: `src/pages/app/opd/ConsultationPage.tsx` (lines 191-203)
+
+Currently, if one imaging order fails, the loop stops (it uses `await` in a `for` loop with no try-catch). Wrap each iteration in try-catch with a single retry:
 
 ```typescript
-const { data: imagingOrders } = useQuery({
-  queryKey: ["opd-checkout-imaging-orders", consultation?.id, appointment?.patient?.id],
-  queryFn: async () => {
-    const today = new Date().toISOString().split('T')[0];
-    const patientId = appointment?.patient?.id;
-    
-    let query = supabase
-      .from("imaging_orders")
-      .select("*, imaging_procedure:imaging_procedures(base_price, service_type_id, service_types(id, default_price))");
-    
-    if (consultation?.id && patientId) {
-      query = query.or(
-        `consultation_id.eq.${consultation.id},and(patient_id.eq.${patientId},consultation_id.is.null,invoice_id.is.null,created_at.gte.${today})`
-      );
-    } else if (consultation?.id) {
-      query = query.eq("consultation_id", consultation.id);
+for (const item of imagingOrderItems) {
+  try {
+    await createImagingOrder.mutateAsync({ ... });
+  } catch (err) {
+    // Retry once (duplicate key race condition)
+    try {
+      await createImagingOrder.mutateAsync({ ... });
+    } catch (retryErr) {
+      toast.error(`Failed to create imaging order: ${item.procedure_name}`);
     }
-    
-    const { data, error } = await query;
-    if (error) throw error;
-    return data;
-  },
-  enabled: !!(consultation?.id || appointment?.patient?.id),
-});
+  }
+}
 ```
 
-This ensures imaging orders that weren't properly linked to the consultation (due to the earlier duplicate key bug) still appear at checkout for billing.
+### 2. Prevent consultation from marking "completed" if orders failed
 
-### No other files changed. No migration needed.
+Currently the appointment status is set to `completed` (line 208) even if imaging order creation fails. Add a flag to track failures and warn the user.
+
+### 3. For the current test: manually re-create the missing order
+
+The user needs to go back to the radiology module and create the order manually for this patient, or re-do the consultation.
+
+## Files to Change
+
+- `src/pages/app/opd/ConsultationPage.tsx` — Add try-catch + retry around imaging order creation loop, track failures
 
