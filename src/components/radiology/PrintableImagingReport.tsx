@@ -2,6 +2,7 @@ import { forwardRef } from 'react';
 import { ImagingOrderWithRelations, ImagingResult, IMAGING_MODALITIES } from '@/hooks/useImaging';
 import { format } from 'date-fns';
 import { generateQRCodeUrl } from '@/lib/qrcode';
+import { normalizeImagingImages } from '@/lib/radiology-image-utils';
 
 interface PrintableImagingReportProps {
   order: ImagingOrderWithRelations;
@@ -260,7 +261,7 @@ export const PrintableImagingReport = forwardRef<HTMLDivElement, PrintableImagin
       ? findingStatusColors[result.finding_status] || { bg: '#f3f4f6', color: '#374151' }
       : null;
 
-    const images = Array.isArray(result.images) ? result.images as Array<{ url?: string; caption?: string; file_name?: string }> : [];
+    const images = normalizeImagingImages(result.images);
 
     return (
       <div ref={ref} style={styles.container}>

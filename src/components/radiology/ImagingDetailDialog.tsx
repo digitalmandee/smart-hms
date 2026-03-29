@@ -10,6 +10,8 @@ import { useImagingOrder, useImagingResult } from '@/hooks/useImaging';
 import { ImageViewer } from './ImageViewer';
 import { PrintableImagingReport } from './PrintableImagingReport';
 import { printElement } from '@/lib/exportUtils';
+import { getImageUrls } from '@/lib/radiology-image-utils';
+import { useOrganizationBranding } from '@/hooks/useOrganizationBranding';
 import { 
   Printer, 
   Download, 
@@ -60,6 +62,7 @@ export function ImagingDetailDialog({ orderId, open, onOpenChange }: ImagingDeta
   const printRef = useRef<HTMLDivElement>(null);
   const { data: order, isLoading: orderLoading } = useImagingOrder(orderId || undefined);
   const { data: result, isLoading: resultLoading } = useImagingResult(orderId || undefined);
+  const { data: branding } = useOrganizationBranding();
 
   const isLoading = orderLoading || resultLoading;
 
@@ -70,10 +73,10 @@ export function ImagingDetailDialog({ orderId, open, onOpenChange }: ImagingDeta
   };
 
   const handleDownloadImages = () => {
-    const images = (result?.images || []) as string[];
-    if (images.length === 0) return;
+    const imageUrls = getImageUrls(result?.images);
+    if (imageUrls.length === 0) return;
     
-    images.forEach((url: string, index: number) => {
+    imageUrls.forEach((url: string, index: number) => {
       const link = document.createElement('a');
       link.href = url;
       link.download = `${order?.order_number}-image-${index + 1}.jpg`;
@@ -92,7 +95,7 @@ export function ImagingDetailDialog({ orderId, open, onOpenChange }: ImagingDeta
     ? findingStatusConfig[result.finding_status]
     : null;
 
-  const images = (result?.images || []) as string[];
+  const images = getImageUrls(result?.images);
   const resultAny = result as any;
 
   return (
@@ -272,6 +275,7 @@ export function ImagingDetailDialog({ orderId, open, onOpenChange }: ImagingDeta
               ref={printRef}
               order={order}
               result={result}
+              organization={branding}
             />
           </div>
         )}
