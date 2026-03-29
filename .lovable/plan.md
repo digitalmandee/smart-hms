@@ -1,41 +1,53 @@
 
 
-# Fix: Radiology Pricing in OPD Checkout + Add 5% Test Share to All Doctors
+# Fix: Imaging Order Duplicate Key Race Condition
 
-## Problem 1: Radiology Shows as "Pricing Pending" (Unselectable)
+## Root Cause
 
-The imaging order has `procedure_name: "Chest X-Ray (PA)"` but the radiology service types use names like `"X-Ray (Single View)"` and `"Chest X-Ray PA View"`. The current fuzzy match uses **exact case-insensitive comparison**, so it fails → amount = 0 → charge is grayed out and unselectable. The user sees this as "already paid" because it can't be interacted with.
+The `generate_imaging_order_number()` trigger uses `SELECT MAX(...)` to find the next sequence number. When two imaging orders are created near-simultaneously (e.g., two doctors ordering at the same time), both read the same MAX value, generate the same `IMG-YYMMDD-NNNN` number, and the second insert fails with a unique constraint violation.
 
-**Root cause**: `imaging_orders.procedure_id` is `null` (no FK link to `imaging_procedures`), and the text-based fallback match is too strict.
+## Fix
 
-**Fix in `OPDCheckoutPage.tsx`** (lines 274-298):
-1. First, try to resolve price via `procedure_id → imaging_procedures → service_type_id → service_types.default_price` (proper FK chain)
-2. If `procedure_id` is null, use **partial/contains matching** instead of exact: check if either name contains the other (e.g., "chest x-ray" matches "Chest X-Ray PA View")
-3. Update the imaging orders query to join `imaging_procedures` and its linked `service_types`: `.select("*, imaging_procedure:imaging_procedures(base_price, service_type_id, service_types(id, default_price))")`
+### 1. Update the trigger to use `FOR UPDATE SKIP LOCKED` + retry logic
 
-This way, imaging orders with a `procedure_id` get an accurate price from the linked service type, and legacy orders without `procedure_id` get a best-effort fuzzy match.
+Replace the trigger function with an advisory-lock-based approach:
 
-## Problem 2: Update All Doctors with 5% Radiology Share
-
-Currently all `doctor_compensation_plans` have `radiology_referral_percent = 0`.
-
-**Data update** (via insert tool):
 ```sql
-UPDATE doctor_compensation_plans SET radiology_referral_percent = 5 WHERE radiology_referral_percent = 0;
+CREATE OR REPLACE FUNCTION public.generate_imaging_order_number()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path TO 'public'
+AS $$
+DECLARE
+  date_part TEXT;
+  seq_num INT;
+BEGIN
+  date_part := TO_CHAR(CURRENT_DATE, 'YYMMDD');
+  
+  -- Use advisory lock to prevent race conditions
+  PERFORM pg_advisory_xact_lock(hashtext('imaging_order_' || NEW.organization_id::text || date_part));
+  
+  SELECT COALESCE(MAX(
+    CAST(SUBSTRING(order_number FROM 5 + LENGTH(date_part)) AS INT)
+  ), 0) + 1
+  INTO seq_num
+  FROM public.imaging_orders
+  WHERE organization_id = NEW.organization_id
+    AND order_number LIKE 'IMG-' || date_part || '-%';
+  
+  NEW.order_number := 'IMG-' || date_part || '-' || LPAD(seq_num::TEXT, 4, '0');
+  RETURN NEW;
+END;
+$$;
 ```
 
-Also set `lab_referral_percent = 5` if it's also 0, so both test shares work for testing.
+The `pg_advisory_xact_lock` serializes concurrent inserts for the same org+date, preventing duplicate numbers. The lock is released automatically when the transaction commits.
 
-## Files to Change
+### 2. No code changes needed
 
-### 1. `src/pages/app/opd/OPDCheckoutPage.tsx`
-- Update imaging orders query (line 173-184) to join `imaging_procedures(base_price, service_type_id, service_types(id, default_price))`
-- Update imaging charge building (lines 274-298): first use joined `imaging_procedure.service_types.default_price`, then `imaging_procedure.base_price`, then fuzzy match against `radiologyServiceTypes` using **partial string matching** (`.includes()` instead of `===`)
+The `useImaging.ts` hook already sends `order_number: ''` which correctly triggers the BEFORE INSERT trigger. The only fix is the database function.
 
-### 2. Data update via insert tool
-- Set `radiology_referral_percent = 5` and `lab_referral_percent = 5` on all doctor compensation plans
+## File Changes
 
-## Expected Result
-- Imaging charges show correct price (e.g., ₨300 for Chest X-Ray) and are selectable for payment
-- When paid, the doctor earnings trigger creates a `radiology_referral` earning at 5% of the imaging amount
+- **1 migration file**: Replace the `generate_imaging_order_number()` function with the advisory-lock version
 
