@@ -1,100 +1,80 @@
 
 
-# Accounting Module — Complete Test Suite & Demo Verification Guide
+# OPD Flow Testing — Issues Found & Fixes Required
 
-## Module Scope
+## Investigation Summary
 
-The accounting module spans **40+ pages** across two main areas:
-- **Accounts** (`/app/accounts/*`) — 40 pages covering COA, journals, ledger, receivables, payables, expenses, bank accounts, budgets, fixed assets, cost centers, credit notes, patient deposits, period management, audit log, and 10 financial reports
-- **Billing** (`/app/billing/*`) — 20 pages covering invoices, payments, sessions, daily closing, insurance/claims, NPHIES
+I traced the full OPD workflow: Billing Session → Walk-in → Consultation → Lab/Imaging Orders → Checkout → Invoices → Daily Closing → Journal Entries. Here are the findings:
 
-## Part 1: Automated E2E Tests to Build
+---
 
-Expand the existing 5 finance tests to **50+ comprehensive tests** in `tests/e2e/finance-flow.spec.ts`:
+## Issue 1: Radiology Orders NOT Showing in OPD Checkout (BUG — Critical)
 
-### Test Categories
+**Root cause**: The checkout page queries imaging orders with a JOIN that does not exist:
 
-**A. Page Load & Navigation (20 tests)** — Verify every accounting page loads without error:
-- Accounts Dashboard, Chart of Accounts, Journal Entries, General Ledger
-- Receivables, Payables, Vendor Payments, Expense Management
-- Bank Accounts, Budgets, Financial Reports hub
-- Trial Balance, P&L, Balance Sheet, Cash Flow, Detailed P&L
-- Revenue by Source, Cost Center P&L, Consolidated P&L, VAT Return, Payroll Cost
-- Credit Notes, Fixed Assets, Patient Deposits, Period Management, Audit Log, Cost Centers
+```
+.select("*, procedure:service_types(name, default_price)")
+```
 
-**B. Chart of Accounts (5 tests)**:
-- View tree structure with category filtering (asset/liability/equity/revenue/expense)
-- Search accounts by name/code
-- Create new Level 4 account via form
-- Toggle account active/inactive status
-- Verify Level 1-3 accounts cannot be posted to
+The `imaging_orders` table has **no foreign key to `service_types`**. It has `procedure_id → imaging_procedures` but the query aliases `procedure` to `service_types`, which fails silently (returns null for the join) or throws a 400 error. This means:
+- Imaging orders load but `procedure.default_price` is always null → amount = 0
+- They may not appear at all if the query errors out
 
-**C. Journal Entries (6 tests)**:
-- List view with date/status/type filters
-- Create manual journal entry with balanced debit/credit
-- Verify unbalanced entry is rejected
-- View journal entry detail with lines
-- Export journal entries to CSV
-- Post draft entry and verify status change
+**Fix**: Change the checkout imaging query to:
+1. Remove the broken `procedure:service_types` join
+2. Instead, fetch imaging orders with their raw columns (`procedure_name`, `modality`)
+3. For pricing, do a fuzzy name-match against `service_types` (same fallback pattern used for lab orders) OR use `imaging_procedures` table which may have pricing
 
-**D. Billing & Invoices (5 tests)**:
-- View invoices list with filters
-- Open invoice detail page
-- Process payment against invoice
-- View payment history
-- Billing sessions page loads
+## Issue 2: PendingCheckoutPage Does NOT Query Imaging Orders (BUG — Moderate)
 
-**E. Daily Closing (3 tests)**:
-- Open daily closing wizard
-- View closing history with date filters
-- Verify wizard blocks if open sessions exist
+The `PendingCheckoutPage` only queries `lab_orders` and `prescriptions` to show pending badges. It completely **ignores imaging orders**. A patient with unpaid radiology but paid consultation + labs would not show "Additional Charges" badge.
 
-**F. Financial Reports (6 tests)**:
-- Trial Balance renders with account rows
-- P&L shows revenue/expense groupings
-- Balance Sheet shows assets = liabilities + equity
-- Cash Flow report loads
-- Detailed P&L with drill-down
-- Export report to CSV/PDF
+**Fix**: Add imaging orders query alongside lab orders in the pending orders fetch, and include imaging count in the badge display.
 
-**G. Advanced Features (5 tests)**:
-- Credit Notes: create draft, approve
-- Patient Deposits: record deposit, view balance
-- Fixed Assets: view asset register
-- Bank Reconciliation: page loads
-- Vendor Payments: create and view detail
+## Issue 3: Consultation Records — Are They Properly in Patient Profile? (VERIFIED — Working)
 
-## Part 2: Step-by-Step Manual Demo Verification Checklist
+The `PatientDetailPage` includes:
+- `PatientOPDVisits` — shows OPD visit history
+- `PatientVisitsHistory` — general visits
+- `PatientLabHistory` — lab order history
+- `PatientPrescriptionsHistory` — prescription history
+- `PatientBillingHistory` — invoice/payment history
 
-This is a **printable document** for manual QA — organized by sub-module, with exact steps, expected results, and pass/fail checkboxes.
+Consultations are linked via `appointments → consultations` and show in these tabs. **This is working correctly** — consultation data is persisted and visible on the patient profile.
 
-### Deliverable
-Generate a detailed **PDF document** at `/mnt/documents/accounting-test-guide.pdf` containing:
+## Issue 4: Do Invoices Hit Accounts Immediately or Only When Billing Session Closes? (VERIFIED — Immediate)
 
-1. **Module Overview** — All 40+ pages listed with URLs
-2. **Demo Script** — Step-by-step walkthrough for each sub-module (login as Accountant, navigate, verify data, perform action, verify result)
-3. **Test Matrix** — Spreadsheet-style grid: Test ID, Module, Test Case, Steps, Expected Result, Status column
-4. **Known Dependencies** — What seed data must exist (demo invoices, accounts, fiscal years)
+The database has **triggers that auto-post to journal immediately**:
+- `post_invoice_to_journal` — fires on invoice INSERT → creates DR Accounts Receivable / CR Revenue
+- `post_payment_to_journal` — fires on payment INSERT → creates DR Cash/Bank / CR Accounts Receivable
 
-## Implementation Steps
+**Invoices and payments hit the general ledger immediately upon creation**, not when the billing session closes. The Daily Closing is purely a **reconciliation step** — it compares physical cash vs system totals. It does NOT batch-post transactions.
 
-### Step 1: Expand `tests/e2e/finance-flow.spec.ts`
-- Add ~45 new test cases covering all accounting pages and key interactions
-- Group tests using `test.describe()` blocks per sub-module
-- Reuse `demoLogin(page, "Accountant")` for all tests
+So: Every walk-in payment, lab payment, etc. already has a journal entry the moment it's recorded. Daily Closing just verifies the totals match.
 
-### Step 2: Generate Test Guide Document
-- Create a comprehensive PDF at `/mnt/documents/accounting-test-guide.pdf`
-- Include module-by-module demo scripts with screenshots placeholders
-- Include test matrix with 80+ test cases for manual verification
+---
 
-### Step 3: Run the E2E tests
-- Execute the expanded test suite
-- Document any failures as issues to fix
+## Implementation Plan
 
-## Technical Notes
-- All tests use the existing `demoLogin` utility with "Accountant" role
-- Page load tests verify URL match + h1 visibility (existing pattern)
-- Interaction tests use Playwright locators for buttons, forms, tables
-- The daily closing wizard requires today's billing sessions — noted as a dependency
+### Step 1: Fix Imaging Orders in OPD Checkout (Critical)
+**File**: `src/pages/app/opd/OPDCheckoutPage.tsx` (lines 157-170)
+- Change the imaging query from `procedure:service_types(...)` to just `*`
+- Add a separate service_types lookup for radiology pricing (fuzzy match by `procedure_name` against `service_types` where `category = 'radiology'`)
+- If no service_type match, fall back to 0 amount with a warning badge
+
+### Step 2: Add Imaging Orders to PendingCheckoutPage
+**File**: `src/pages/app/opd/PendingCheckoutPage.tsx` (lines 72-113)
+- Add query for `imaging_orders` where `invoice_id IS NULL` for the patient IDs
+- Include `imagingOrders` count in `ordersByPatient` data structure
+- Show imaging count in the checkout badge alongside lab orders
+
+### Step 3: Add Radiology Service Types Fallback Query
+**File**: `src/pages/app/opd/OPDCheckoutPage.tsx`
+- Add `radiologyServiceTypes` query (same pattern as existing `labServiceTypes` at line 88) filtering `category = 'radiology'`
+- Use this for fuzzy name matching when resolving imaging prices
+
+### No Changes Needed For:
+- Consultation records in patient profile — already working
+- Journal posting — already immediate via triggers
+- Daily closing — correctly aggregates all invoices/payments for the day regardless of session state
 
