@@ -1,56 +1,35 @@
 
 
-# Add Test Share (Lab & Radiology Referral Earnings) for Doctors
+# Fix Accounts Dashboard — Two Failing API Queries
 
-## Current State
+## Issues Found
 
-- The `doctor_compensation_plans` table has `lab_referral_percent` but **no `radiology_referral_percent`** column
-- The database trigger `auto_create_doctor_earnings` **only processes consultation items** — it explicitly skips anything that doesn't match `%consultation%` in the description
-- The wallet UI already has labels for `lab_referral` and `radiology_referral` source types, but they never get populated because the trigger ignores test orders
-- The compensation form (EmployeeFormPage, DoctorCompensationForm, DoctorCompensationPage) only shows Lab Referral % — no Radiology Referral %
+Two queries on the Accounts Dashboard (`/app/accounts`) return HTTP 400 errors:
 
-## What Changes
+### Bug 1: `goods_received_notes.payment_status` does not exist
+- **Location**: `AccountsDashboard.tsx` line 100-103
+- **Problem**: Queries `.eq("payment_status", "unpaid")` but `goods_received_notes` has no `payment_status` column. Payment status is computed client-side in `useVendorPayments.ts` based on `invoice_amount` vs paid amounts.
+- **Fix**: Replace with a query that counts GRNs with `status = 'received'` (verified/accepted but not yet paid). Alternatively, use a subquery approach — but simplest is to count GRNs where `status` is `'received'` or `'verified'` since those represent unpaid goods.
 
-### Step 1: Database Migration — Add `radiology_referral_percent` column + Update trigger
+### Bug 2: `journal_entries.status` does not exist
+- **Location**: `AccountsDashboard.tsx` line 69-70 and `BudgetsPage.tsx` line 106-108
+- **Problem**: Queries filter on `journal_entry.status = 'posted'` but the column is `is_posted` (boolean).
+- **Fix**: Change `.eq("journal_entry.status", "posted")` to `.eq("journal_entry.is_posted", true)` and update the select to use `is_posted` instead of `status`.
 
-**Add column:**
-```sql
-ALTER TABLE doctor_compensation_plans 
-  ADD COLUMN IF NOT EXISTS radiology_referral_percent numeric DEFAULT 0;
-```
+## Files to Change
 
-**Rewrite the `auto_create_doctor_earnings` trigger function** to handle 3 source types:
-1. **Consultation** — items with description matching `%consultation%` → uses `consultation_share_percent`
-2. **Lab Referral** — items with description matching `%lab%` or `%test%` or `%pathology%` → uses `lab_referral_percent`
-3. **Radiology Referral** — items with description matching `%radiology%` or `%imaging%` or `%x-ray%` or `%mri%` or `%ct%` or `%ultrasound%` → uses `radiology_referral_percent`
+### 1. `src/pages/app/accounts/AccountsDashboard.tsx`
+- Line 69: Change select from `(status, entry_date)` to `(is_posted, entry_date)`
+- Line 70: Change `.eq("journal_entry.status", "posted")` to `.eq("journal_entry.is_posted", true)`
+- Lines 100-103: Remove the `payment_status` filter. Instead query GRNs with `status` in `('received', 'verified')` as a proxy for unpaid, or remove the `as any` cast and use proper status values.
 
-Each type creates a separate `doctor_earnings` row with the appropriate `source_type` and share percentage. Duplicate check updated to include `source_type` in the uniqueness check (currently only checks `source_id + doctor_id`).
+### 2. `src/pages/app/accounts/BudgetsPage.tsx`
+- Line 106: Change select from `(status, entry_date)` to `(is_posted, entry_date)`
+- Line 108: Change `.eq("journal_entry.status", "posted")` to `.eq("journal_entry.is_posted", true)`
 
-### Step 2: Compensation Plan Forms — Add Radiology Referral % field
+### 3. Scan for same pattern elsewhere
+- Check all other files using `journal_entries.*status` in joins — `ConsolidatedPnLPage.tsx`, `CostCenterPnLPage.tsx`, `useAccounts.ts`, `useExecutiveSummary.ts` may have the same bug.
 
-**Files to update:**
-- `src/components/hr/DoctorCompensationForm.tsx` — Add a "Radiology Referrals" card section (identical to Lab Referrals card) with `radiology_referral_percent` field
-- `src/pages/app/hr/payroll/DoctorCompensationPage.tsx` — Add `radiology_referral_percent` to form state, reset, and edit loading
-- `src/pages/app/hr/EmployeeFormPage.tsx` — Add `radiology_referral_percent` to schema and plan submission
-- `src/hooks/useDoctorCompensation.ts` — Add `radiology_referral_percent` to the `DoctorCompensationPlan` interface and `useCreateCompensationPlan` insert
-
-### Step 3: Wallet Balances Page — Add lab/radiology breakdown columns
-
-**File:** `src/pages/app/hr/payroll/DoctorWalletBalancesPage.tsx`
-- Add `labReferrals` and `radiologyReferrals` fields to `DoctorBalance` interface
-- Map `lab_referral` and `radiology_referral` source types in the switch statement (currently fall to `other`)
-- Add columns in the table for Lab Referrals and Radiology Referrals amounts
-
-### Step 4: Multilingual labels (EN/UR/AR)
-
-Add translation keys for:
-- `test_share`, `lab_referral_percent`, `radiology_referral_percent`
-- Column headers and form labels in all 3 languages
-
-## Technical Details
-
-- The trigger change is the critical piece — without it, no lab/radiology earnings are ever auto-created
-- The duplicate check becomes: `WHERE source_id = inv.id AND doctor_id = v_doctor_id AND source_type = <type>`
-- Invoice items created during OPD checkout already have descriptions like "CBC Test", "X-Ray Chest" etc., so the pattern matching will catch them
-- No changes needed to the checkout flow itself — the trigger fires on payment INSERT regardless
+## Impact
+These fixes resolve the two 400 errors visible on the Accounts Dashboard, allowing MTD expenses and pending vendor payment counts to load correctly.
 
