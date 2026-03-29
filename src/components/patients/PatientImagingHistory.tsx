@@ -83,10 +83,10 @@ export function PatientImagingHistory({ patientId }: PatientImagingHistoryProps)
   };
 
   const handleDownloadImages = (order: any) => {
-    const images = order.result?.images || [];
-    if (images.length === 0) return;
+    const imageUrls = getImageUrls(order.result?.images);
+    if (imageUrls.length === 0) return;
     
-    images.forEach((url: string, index: number) => {
+    imageUrls.forEach((url: string, index: number) => {
       const link = document.createElement('a');
       link.href = url;
       link.download = `${order.order_number}-image-${index + 1}.jpg`;
