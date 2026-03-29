@@ -100,12 +100,14 @@ export default function ReportingWorklistPage() {
           <CardContent className="text-center py-12">
             <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
             <p className="text-lg font-medium">
-              {view === 'pending' ? 'No studies pending report' : 'No reports awaiting verification'}
+              {view === 'pending' ? 'No studies pending report' : view === 'verification' ? 'No reports awaiting verification' : 'No completed reports'}
             </p>
             <p className="text-muted-foreground">
               {view === 'pending' 
                 ? 'Completed studies will appear here for reporting'
-                : 'Reported studies will appear here for verification'
+                : view === 'verification'
+                ? 'Reported studies will appear here for verification'
+                : 'Verified reports will appear here'
               }
             </p>
           </CardContent>
