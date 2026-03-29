@@ -2974,5 +2974,14 @@ export const ar: Record<TranslationKey, string> = {
   "billing.closedAt": "أُغلقت في",
   "billing.departmentBreakdown": "تفصيل حسب القسم",
 
+  // Doctor Test Share
+  "hr.testShare": "حصة الفحوصات",
+  "hr.labReferralPercent": "نسبة إحالة المختبر %",
+  "hr.radiologyReferralPercent": "نسبة إحالة الأشعة %",
+  "hr.labReferrals": "إحالات المختبر",
+  "hr.radiologyReferrals": "إحالات الأشعة",
+  "hr.labReferralCommission": "عمولة إحالة المختبر",
+  "hr.radiologyReferralCommission": "عمولة إحالة الأشعة",
+
 };
 
