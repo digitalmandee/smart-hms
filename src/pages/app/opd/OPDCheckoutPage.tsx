@@ -169,19 +169,30 @@ export default function OPDCheckoutPage() {
     enabled: !!consultation?.id,
   });
 
-  // Fetch imaging orders for this consultation — join imaging_procedures for price
+  // Fetch imaging orders for this consultation — also pick up unlinked orders for the same patient today
   const { data: imagingOrders } = useQuery({
-    queryKey: ["opd-checkout-imaging-orders", consultation?.id],
+    queryKey: ["opd-checkout-imaging-orders", consultation?.id, appointment?.patient?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("imaging_orders")
-        .select("*, imaging_procedure:imaging_procedures(base_price, service_type_id, service_types(id, default_price))")
-        .eq("consultation_id", consultation!.id);
+      const today = new Date().toISOString().split('T')[0];
+      const patientId = appointment?.patient?.id;
       
+      let query = supabase
+        .from("imaging_orders")
+        .select("*, imaging_procedure:imaging_procedures(base_price, service_type_id, service_types(id, default_price))");
+      
+      if (consultation?.id && patientId) {
+        query = query.or(
+          `consultation_id.eq.${consultation.id},and(patient_id.eq.${patientId},consultation_id.is.null,invoice_id.is.null,created_at.gte.${today})`
+        );
+      } else if (consultation?.id) {
+        query = query.eq("consultation_id", consultation.id);
+      }
+      
+      const { data, error } = await query;
       if (error) throw error;
       return data;
     },
-    enabled: !!consultation?.id,
+    enabled: !!(consultation?.id || appointment?.patient?.id),
   });
 
   // Fetch prescriptions for this consultation
