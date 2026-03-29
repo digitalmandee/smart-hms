@@ -283,6 +283,15 @@ export function PatientImagingHistory({ patientId }: PatientImagingHistoryProps)
         open={!!selectedOrderId}
         onOpenChange={(open) => !open && setSelectedOrderId(null)}
       />
+
+      {/* Hidden printable report */}
+      {printOrderId && printOrder && printResult && (
+        <div className="hidden">
+          <div ref={printRef}>
+            <PrintableImagingReport order={printOrder} result={printResult} />
+          </div>
+        </div>
+      )}
     </>
   );
 }
