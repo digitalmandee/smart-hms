@@ -187,19 +187,40 @@ export default function ConsultationPage() {
         });
       }
 
-      // Create imaging orders if items exist
+      // Create imaging orders if items exist — with retry for duplicate key race conditions
+      let imagingFailures = 0;
       if (complete && imagingOrderItems.length > 0 && consultationId) {
         for (const item of imagingOrderItems) {
-          await createImagingOrder.mutateAsync({
-            consultation_id: consultationId,
-            patient_id: patient.id,
-            modality: item.modality,
-            procedure_name: item.procedure_name,
-            clinical_indication: item.clinical_indication,
-            priority: imagingOrderPriority,
-            notes: imagingOrderNotes,
-            status: 'ordered',
-          });
+          try {
+            await createImagingOrder.mutateAsync({
+              consultation_id: consultationId,
+              patient_id: patient.id,
+              modality: item.modality,
+              procedure_name: item.procedure_name,
+              clinical_indication: item.clinical_indication,
+              priority: imagingOrderPriority,
+              notes: imagingOrderNotes,
+              status: 'ordered',
+            });
+          } catch (err) {
+            // Retry once — handles duplicate key race condition on order_number
+            try {
+              await createImagingOrder.mutateAsync({
+                consultation_id: consultationId,
+                patient_id: patient.id,
+                modality: item.modality,
+                procedure_name: item.procedure_name,
+                clinical_indication: item.clinical_indication,
+                priority: imagingOrderPriority,
+                notes: imagingOrderNotes,
+                status: 'ordered',
+              });
+            } catch (retryErr) {
+              imagingFailures++;
+              const { toast } = await import("sonner");
+              toast.error(`Failed to create imaging order: ${item.procedure_name}`);
+            }
+          }
         }
       }
 
@@ -214,7 +235,14 @@ export default function ConsultationPage() {
         const orderSummary: string[] = [];
         if (prescriptionItems.length > 0) orderSummary.push(`${prescriptionItems.length} prescription(s)`);
         if (labOrderItems.length > 0) orderSummary.push(`${labOrderItems.length} lab test(s)`);
-        if (imagingOrderItems.length > 0) orderSummary.push(`${imagingOrderItems.length} imaging order(s)`);
+        if (imagingOrderItems.length > 0) {
+          const created = imagingOrderItems.length - imagingFailures;
+          if (imagingFailures > 0) {
+            orderSummary.push(`${created}/${imagingOrderItems.length} imaging order(s) — ${imagingFailures} failed`);
+          } else {
+            orderSummary.push(`${imagingOrderItems.length} imaging order(s)`);
+          }
+        }
         
         const summaryText = orderSummary.length > 0
           ? `Orders sent: ${orderSummary.join(", ")}. Patient can proceed to billing counter.`
