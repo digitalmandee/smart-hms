@@ -271,10 +271,21 @@ export default function OPDCheckoutPage() {
     }
   });
 
-  // Imaging order fees
+  // Imaging order fees — resolve price via fuzzy match against radiology service types
   imagingOrders?.forEach((order: any) => {
     if (!order.invoice_id) {
-      const amount = order.procedure?.default_price || 0;
+      let amount = 0;
+      let matchedServiceTypeId: string | undefined;
+      // Fuzzy match procedure_name against radiology service types
+      if (radiologyServiceTypes && order.procedure_name) {
+        const match = radiologyServiceTypes.find(
+          (st: any) => st.name.toLowerCase() === order.procedure_name.toLowerCase()
+        );
+        if (match?.default_price) {
+          amount = match.default_price;
+          matchedServiceTypeId = match.id;
+        }
+      }
       charges.push({
         id: `imaging-${order.id}`,
         type: "imaging",
@@ -282,6 +293,7 @@ export default function OPDCheckoutPage() {
         amount,
         status: "pending",
         referenceId: order.id,
+        serviceTypeId: matchedServiceTypeId,
       });
     }
   });
