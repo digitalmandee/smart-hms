@@ -301,13 +301,13 @@ export default function ImagingOrderDetailPage() {
       </div>
 
       {/* Images Section */}
-      {result?.images && Array.isArray(result.images) && result.images.length > 0 && (
+      {result?.images && Array.isArray(result.images) && getImageUrls(result.images).length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle>Images</CardTitle>
           </CardHeader>
           <CardContent>
-            <ImageViewer images={result.images as string[]} />
+            <ImageViewer images={getImageUrls(result.images)} />
           </CardContent>
         </Card>
       )}

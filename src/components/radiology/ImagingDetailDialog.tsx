@@ -275,6 +275,7 @@ export function ImagingDetailDialog({ orderId, open, onOpenChange }: ImagingDeta
               ref={printRef}
               order={order}
               result={result}
+              organization={branding}
             />
           </div>
         )}
