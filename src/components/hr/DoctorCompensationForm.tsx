@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Wallet, Percent, Building2, Stethoscope, HeartPulse, Bed, Calculator, TestTube } from "lucide-react";
+import { Wallet, Percent, Building2, Stethoscope, HeartPulse, Bed, Calculator, TestTube, Scan } from "lucide-react";
 import { useDoctorCompensationPlan } from "@/hooks/useDoctorCompensation";
 import { formatCurrency } from "@/lib/currency";
 
