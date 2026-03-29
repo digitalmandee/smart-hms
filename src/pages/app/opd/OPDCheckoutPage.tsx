@@ -99,6 +99,21 @@ export default function OPDCheckoutPage() {
     enabled: !!profile?.organization_id,
   });
 
+  // Fetch radiology service types for imaging price resolution (fuzzy name match)
+  const { data: radiologyServiceTypes } = useQuery({
+    queryKey: ["radiology-service-types-fallback", profile?.organization_id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("service_types")
+        .select("id, name, default_price")
+        .eq("category", "radiology")
+        .eq("organization_id", profile!.organization_id!)
+        .eq("is_active", true);
+      return data || [];
+    },
+    enabled: !!profile?.organization_id,
+  });
+
   // Fetch appointment with related data
   const { data: appointment, isLoading: appointmentLoading } = useQuery({
     queryKey: ["opd-checkout-appointment", appointmentId],
@@ -154,13 +169,13 @@ export default function OPDCheckoutPage() {
     enabled: !!consultation?.id,
   });
 
-  // Fetch imaging orders for this consultation
+  // Fetch imaging orders for this consultation (no service_types join — table lacks FK)
   const { data: imagingOrders } = useQuery({
     queryKey: ["opd-checkout-imaging-orders", consultation?.id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("imaging_orders")
-        .select("*, procedure:service_types(name, default_price)")
+        .select("*")
         .eq("consultation_id", consultation!.id);
       
       if (error) throw error;
@@ -256,10 +271,21 @@ export default function OPDCheckoutPage() {
     }
   });
 
-  // Imaging order fees
+  // Imaging order fees — resolve price via fuzzy match against radiology service types
   imagingOrders?.forEach((order: any) => {
     if (!order.invoice_id) {
-      const amount = order.procedure?.default_price || 0;
+      let amount = 0;
+      let matchedServiceTypeId: string | undefined;
+      // Fuzzy match procedure_name against radiology service types
+      if (radiologyServiceTypes && order.procedure_name) {
+        const match = radiologyServiceTypes.find(
+          (st: any) => st.name.toLowerCase() === order.procedure_name.toLowerCase()
+        );
+        if (match?.default_price) {
+          amount = match.default_price;
+          matchedServiceTypeId = match.id;
+        }
+      }
       charges.push({
         id: `imaging-${order.id}`,
         type: "imaging",
@@ -267,6 +293,7 @@ export default function OPDCheckoutPage() {
         amount,
         status: "pending",
         referenceId: order.id,
+        serviceTypeId: matchedServiceTypeId,
       });
     }
   });
