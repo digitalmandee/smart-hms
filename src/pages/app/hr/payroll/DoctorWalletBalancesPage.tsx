@@ -171,6 +171,8 @@ export default function DoctorWalletBalancesPage() {
     consultations: b.consultations,
     surgeries: b.surgeries,
     procedures: b.procedures,
+    labReferrals: b.labReferrals,
+    radiologyReferrals: b.radiologyReferrals,
     other: b.other,
     totalUnpaid: b.totalUnpaid,
   })) || [];
