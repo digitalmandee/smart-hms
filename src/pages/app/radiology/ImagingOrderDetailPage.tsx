@@ -341,7 +341,7 @@ export default function ImagingOrderDetailPage() {
       {result && (
         <div className="hidden">
           <div ref={printRef}>
-            <PrintableImagingReport order={order} result={result} />
+            <PrintableImagingReport order={order} result={result} organization={branding} />
           </div>
         </div>
       )}

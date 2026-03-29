@@ -290,7 +290,7 @@ export function PatientImagingHistory({ patientId }: PatientImagingHistoryProps)
       {printOrderId && printOrder && printResult && (
         <div className="hidden">
           <div ref={printRef}>
-            <PrintableImagingReport order={printOrder} result={printResult} />
+            <PrintableImagingReport order={printOrder} result={printResult} organization={branding} />
           </div>
         </div>
       )}

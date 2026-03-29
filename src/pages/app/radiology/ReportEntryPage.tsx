@@ -209,7 +209,7 @@ export default function ReportEntryPage() {
         {/* Hidden Printable Report */}
         <div className="hidden">
           <div ref={printRef}>
-            <PrintableImagingReport order={order} result={existingResult} />
+            <PrintableImagingReport order={order} result={existingResult} organization={branding} />
           </div>
         </div>
       </div>
