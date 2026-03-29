@@ -124,6 +124,12 @@ export default function DoctorWalletBalancesPage() {
           case "procedure":
             balance.procedures += amount;
             break;
+          case "lab_referral":
+            balance.labReferrals += amount;
+            break;
+          case "radiology_referral":
+            balance.radiologyReferrals += amount;
+            break;
           default:
             balance.other += amount;
         }
