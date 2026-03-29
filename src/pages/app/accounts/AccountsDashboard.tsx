@@ -66,8 +66,8 @@ export default function AccountsDashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("journal_entry_lines")
-        .select("debit_amount, journal_entry:journal_entries!inner(status, entry_date)")
-        .eq("journal_entry.status", "posted")
+        .select("debit_amount, journal_entry:journal_entries!inner(is_posted, entry_date)")
+        .eq("journal_entry.is_posted", true)
         .gte("journal_entry.entry_date", monthStart.split("T")[0]);
       if (error) throw error;
       return (data || []).reduce((sum: number, l: any) => sum + (l.debit_amount || 0), 0);
@@ -97,10 +97,10 @@ export default function AccountsDashboard() {
   const { data: pendingVendorCount } = useQuery({
     queryKey: ["pending-vendor-payments", profile?.organization_id],
     queryFn: async () => {
-      const { count, error } = await (supabase
-        .from("goods_received_notes") as any)
+      const { count, error } = await supabase
+        .from("goods_received_notes")
         .select("id", { count: "exact", head: true })
-        .eq("payment_status", "unpaid");
+        .in("status", ["verified", "pending_verification"]);
       if (error) throw error;
       return count || 0;
     },
