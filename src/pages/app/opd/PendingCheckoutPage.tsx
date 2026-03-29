@@ -209,7 +209,7 @@ export default function PendingCheckoutPage() {
                   const doctor = apt.doctor as any;
                   const patientId = patient?.id;
                   const orders = pendingOrders?.[patientId];
-                  const hasOrders = orders && (orders.labOrders > 0 || orders.prescriptions > 0);
+                  const hasOrders = orders && (orders.labOrders > 0 || orders.imagingOrders > 0 || orders.prescriptions > 0);
                   
                   const visitId = generateVisitId({
                     appointment_date: apt.appointment_date,
