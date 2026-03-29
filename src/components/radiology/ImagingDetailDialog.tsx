@@ -62,6 +62,7 @@ export function ImagingDetailDialog({ orderId, open, onOpenChange }: ImagingDeta
   const printRef = useRef<HTMLDivElement>(null);
   const { data: order, isLoading: orderLoading } = useImagingOrder(orderId || undefined);
   const { data: result, isLoading: resultLoading } = useImagingResult(orderId || undefined);
+  const { data: branding } = useOrganizationBranding();
 
   const isLoading = orderLoading || resultLoading;
 
