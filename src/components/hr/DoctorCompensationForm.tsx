@@ -420,6 +420,48 @@ export function DoctorCompensationForm({
         </Card>
       )}
 
+      {/* Radiology Referral Percentage */}
+      {showCommissionFields && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Scan className="h-5 w-5 text-primary" />
+              Radiology Referrals
+            </CardTitle>
+            <CardDescription>
+              Commission from radiology/imaging tests ordered by this doctor
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <FormField
+              control={form.control}
+              name="radiology_referral_percent"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Radiology Referral Commission %</FormLabel>
+                  <FormControl>
+                    <div className="relative max-w-xs">
+                      <Input
+                        type="number"
+                        min={0}
+                        max={100}
+                        placeholder="10"
+                        {...field}
+                        value={field.value ?? ""}
+                        onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : null)}
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">%</span>
+                    </div>
+                  </FormControl>
+                  <FormDescription>Doctor's commission on radiology/imaging orders</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </CardContent>
+        </Card>
+      )}
+
       {/* Minimum Guarantee */}
       <Card>
         <CardHeader>
