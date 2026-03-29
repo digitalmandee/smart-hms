@@ -154,6 +154,7 @@ export function DoctorCompensationForm({
       form.setValue("anesthesia_share_percent", existingPlan.anesthesia_share_percent || 50);
       form.setValue("ipd_visit_share_percent", (existingPlan as any).ipd_visit_share_percent || 50);
       form.setValue("lab_referral_percent", existingPlan.lab_referral_percent);
+      form.setValue("radiology_referral_percent", (existingPlan as any).radiology_referral_percent || 0);
       form.setValue("minimum_guarantee", existingPlan.minimum_guarantee);
     }
   }, [existingPlan, form]);
