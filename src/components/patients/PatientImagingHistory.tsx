@@ -231,6 +231,32 @@ export function PatientImagingHistory({ patientId }: PatientImagingHistoryProps)
                             <Eye className="h-4 w-4 mr-2" />
                             View Details
                           </Button>
+                          {(order.status === 'verified' || order.status === 'reported' || order.status === 'delivered') && hasResult && (
+                            <>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setPrintOrderId(order.id);
+                                }}
+                              >
+                                <Printer className="h-4 w-4 mr-2" />
+                                Print Report
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate(`/app/radiology/report/${order.id}`);
+                                }}
+                              >
+                                <ExternalLink className="h-4 w-4 mr-2" />
+                                View Report
+                              </Button>
+                            </>
+                          )}
                           {images.length > 0 && (
                             <Button 
                               variant="outline" 
