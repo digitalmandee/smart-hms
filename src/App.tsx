@@ -997,7 +997,7 @@ function App() {
               <Route path="radiology/schedule" element={<ImagingSchedulePage />} />
               <Route path="radiology/reporting" element={<ReportingWorklistPage />} />
               <Route path="radiology/report/:id" element={<ReportEntryPage />} />
-              <Route path="radiology/verification" element={<ReportVerificationPage />} />
+              <Route path="radiology/verify/:id" element={<ReportVerificationPage />} />
               <Route path="radiology/archive" element={<RadiologyArchivePage />} />
               <Route path="radiology/modalities" element={<ModalitiesListPage />} />
               <Route path="radiology/procedures" element={<ProceduresListPage />} />
