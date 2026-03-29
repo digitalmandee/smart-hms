@@ -2067,6 +2067,7 @@ export const en = {
   "radiology.selectPatientToView": "Select a patient to view studies",
   "radiology.searchPatientLeft": "Search for a patient on the left to browse their DICOM studies",
   "radiology.loadingWorklist": "Loading worklist...",
+  "radiology.finalizedReport": "Finalized Report",
 
   // Radiology Dashboard
   "radiology.radiologyImaging": "Radiology & Imaging",

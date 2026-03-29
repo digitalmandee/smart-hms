@@ -1,14 +1,17 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { usePatientImagingHistory } from "@/hooks/useImaging";
+import { usePatientImagingHistory, useImagingOrder, useImagingResult } from "@/hooks/useImaging";
+import { PrintableImagingReport } from "@/components/radiology/PrintableImagingReport";
 import { format } from "date-fns";
-import { Scan, Calendar, ChevronDown, ChevronUp, FileCheck2, Eye, Download, Printer, FileText } from "lucide-react";
+import { Scan, Calendar, ChevronDown, ChevronUp, FileCheck2, Eye, Download, Printer, FileText, ExternalLink } from "lucide-react";
 import { ImageViewer } from "@/components/radiology/ImageViewer";
 import { ImagingDetailDialog } from "@/components/radiology/ImagingDetailDialog";
+import { useReactToPrint } from "react-to-print";
 
 interface PatientImagingHistoryProps {
   patientId: string;
@@ -38,9 +41,31 @@ const modalityIcons: Record<string, string> = {
 };
 
 export function PatientImagingHistory({ patientId }: PatientImagingHistoryProps) {
+  const navigate = useNavigate();
   const { data: imagingOrders, isLoading } = usePatientImagingHistory(patientId);
   const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [printOrderId, setPrintOrderId] = useState<string | null>(null);
+
+  // Fetch full order + result for printing
+  const { data: printOrder } = useImagingOrder(printOrderId || undefined);
+  const { data: printResult } = useImagingResult(printOrderId || undefined);
+  const printRef = useRef<HTMLDivElement>(null);
+
+  const handlePrintReport = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: printOrder ? `Imaging Report - ${printOrder.order_number}` : 'Imaging Report',
+  });
+
+  // Trigger print when data is ready
+  useEffect(() => {
+    if (printOrderId && printOrder && printResult && printRef.current) {
+      setTimeout(() => {
+        handlePrintReport();
+        setPrintOrderId(null);
+      }, 500);
+    }
+  }, [printOrderId, printOrder, printResult, handlePrintReport]);
 
   const toggleExpanded = (orderId: string) => {
     setExpandedOrders(prev => {
@@ -206,6 +231,32 @@ export function PatientImagingHistory({ patientId }: PatientImagingHistoryProps)
                             <Eye className="h-4 w-4 mr-2" />
                             View Details
                           </Button>
+                          {(order.status === 'verified' || order.status === 'reported') && hasResult && (
+                            <>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setPrintOrderId(order.id);
+                                }}
+                              >
+                                <Printer className="h-4 w-4 mr-2" />
+                                Print Report
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate(`/app/radiology/report/${order.id}`);
+                                }}
+                              >
+                                <ExternalLink className="h-4 w-4 mr-2" />
+                                View Report
+                              </Button>
+                            </>
+                          )}
                           {images.length > 0 && (
                             <Button 
                               variant="outline" 
@@ -232,6 +283,15 @@ export function PatientImagingHistory({ patientId }: PatientImagingHistoryProps)
         open={!!selectedOrderId}
         onOpenChange={(open) => !open && setSelectedOrderId(null)}
       />
+
+      {/* Hidden printable report */}
+      {printOrderId && printOrder && printResult && (
+        <div className="hidden">
+          <div ref={printRef}>
+            <PrintableImagingReport order={printOrder} result={printResult} />
+          </div>
+        </div>
+      )}
     </>
   );
 }

@@ -2040,6 +2040,7 @@ export const ur: Record<TranslationKey, string> = {
   "radiology.selectPatientToView": "مطالعات دیکھنے کے لیے مریض منتخب کریں",
   "radiology.searchPatientLeft": "بائیں طرف مریض تلاش کریں تاکہ ان کے DICOM مطالعات دیکھ سکیں",
   "radiology.loadingWorklist": "ورک لسٹ لوڈ ہو رہی ہے...",
+  "radiology.finalizedReport": "حتمی رپورٹ",
 
   "radiology.radiologyImaging": "ریڈیالوجی اور امیجنگ",
   "radiology.radiologyImagingDesc": "امیجنگ آرڈرز، رپورٹس اور ورک فلو کا انتظام",
