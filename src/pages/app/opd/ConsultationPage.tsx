@@ -235,7 +235,14 @@ export default function ConsultationPage() {
         const orderSummary: string[] = [];
         if (prescriptionItems.length > 0) orderSummary.push(`${prescriptionItems.length} prescription(s)`);
         if (labOrderItems.length > 0) orderSummary.push(`${labOrderItems.length} lab test(s)`);
-        if (imagingOrderItems.length > 0) orderSummary.push(`${imagingOrderItems.length} imaging order(s)`);
+        if (imagingOrderItems.length > 0) {
+          const created = imagingOrderItems.length - imagingFailures;
+          if (imagingFailures > 0) {
+            orderSummary.push(`${created}/${imagingOrderItems.length} imaging order(s) — ${imagingFailures} failed`);
+          } else {
+            orderSummary.push(`${imagingOrderItems.length} imaging order(s)`);
+          }
+        }
         
         const summaryText = orderSummary.length > 0
           ? `Orders sent: ${orderSummary.join(", ")}. Patient can proceed to billing counter.`
