@@ -16,7 +16,7 @@ export default function ReportingWorklistPage() {
   const { t } = useTranslation();
   const { data: orders, isLoading, refetch } = useImagingOrders();
   const [modalityFilter, setModalityFilter] = useState<string>('all');
-  const [view, setView] = useState<'pending' | 'verification'>('pending');
+  const [view, setView] = useState<'pending' | 'verification' | 'completed'>('pending');
 
   // Pending reports: completed studies awaiting reporting
   const pendingReportOrders = orders?.filter(o => o.status === 'completed') || [];
@@ -24,7 +24,10 @@ export default function ReportingWorklistPage() {
   // Awaiting verification: reported but not yet verified
   const awaitingVerificationOrders = orders?.filter(o => o.status === 'reported') || [];
 
-  const currentOrders = view === 'pending' ? pendingReportOrders : awaitingVerificationOrders;
+  // Completed/verified reports
+  const completedOrders = orders?.filter(o => o.status === 'verified' || o.status === 'delivered') || [];
+
+  const currentOrders = view === 'pending' ? pendingReportOrders : view === 'verification' ? awaitingVerificationOrders : completedOrders;
   
   const filteredOrders = modalityFilter === 'all' 
     ? currentOrders 
