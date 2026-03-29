@@ -147,8 +147,8 @@ export default function ReportingWorklistPage() {
                       )}
                     </div>
                   </div>
-                  <Button size="sm">
-                    {view === 'pending' ? 'Report' : 'Verify'}
+                  <Button size="sm" variant={view === 'completed' ? 'outline' : 'default'}>
+                    {view === 'pending' ? 'Report' : view === 'verification' ? 'Verify' : 'View Report'}
                   </Button>
                 </div>
               </CardContent>
