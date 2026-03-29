@@ -1,35 +1,41 @@
 
 
-# Fix Accounts Dashboard — Two Failing API Queries
+# Fix: Radiology Pricing in OPD Checkout + Add 5% Test Share to All Doctors
 
-## Issues Found
+## Problem 1: Radiology Shows as "Pricing Pending" (Unselectable)
 
-Two queries on the Accounts Dashboard (`/app/accounts`) return HTTP 400 errors:
+The imaging order has `procedure_name: "Chest X-Ray (PA)"` but the radiology service types use names like `"X-Ray (Single View)"` and `"Chest X-Ray PA View"`. The current fuzzy match uses **exact case-insensitive comparison**, so it fails → amount = 0 → charge is grayed out and unselectable. The user sees this as "already paid" because it can't be interacted with.
 
-### Bug 1: `goods_received_notes.payment_status` does not exist
-- **Location**: `AccountsDashboard.tsx` line 100-103
-- **Problem**: Queries `.eq("payment_status", "unpaid")` but `goods_received_notes` has no `payment_status` column. Payment status is computed client-side in `useVendorPayments.ts` based on `invoice_amount` vs paid amounts.
-- **Fix**: Replace with a query that counts GRNs with `status = 'received'` (verified/accepted but not yet paid). Alternatively, use a subquery approach — but simplest is to count GRNs where `status` is `'received'` or `'verified'` since those represent unpaid goods.
+**Root cause**: `imaging_orders.procedure_id` is `null` (no FK link to `imaging_procedures`), and the text-based fallback match is too strict.
 
-### Bug 2: `journal_entries.status` does not exist
-- **Location**: `AccountsDashboard.tsx` line 69-70 and `BudgetsPage.tsx` line 106-108
-- **Problem**: Queries filter on `journal_entry.status = 'posted'` but the column is `is_posted` (boolean).
-- **Fix**: Change `.eq("journal_entry.status", "posted")` to `.eq("journal_entry.is_posted", true)` and update the select to use `is_posted` instead of `status`.
+**Fix in `OPDCheckoutPage.tsx`** (lines 274-298):
+1. First, try to resolve price via `procedure_id → imaging_procedures → service_type_id → service_types.default_price` (proper FK chain)
+2. If `procedure_id` is null, use **partial/contains matching** instead of exact: check if either name contains the other (e.g., "chest x-ray" matches "Chest X-Ray PA View")
+3. Update the imaging orders query to join `imaging_procedures` and its linked `service_types`: `.select("*, imaging_procedure:imaging_procedures(base_price, service_type_id, service_types(id, default_price))")`
+
+This way, imaging orders with a `procedure_id` get an accurate price from the linked service type, and legacy orders without `procedure_id` get a best-effort fuzzy match.
+
+## Problem 2: Update All Doctors with 5% Radiology Share
+
+Currently all `doctor_compensation_plans` have `radiology_referral_percent = 0`.
+
+**Data update** (via insert tool):
+```sql
+UPDATE doctor_compensation_plans SET radiology_referral_percent = 5 WHERE radiology_referral_percent = 0;
+```
+
+Also set `lab_referral_percent = 5` if it's also 0, so both test shares work for testing.
 
 ## Files to Change
 
-### 1. `src/pages/app/accounts/AccountsDashboard.tsx`
-- Line 69: Change select from `(status, entry_date)` to `(is_posted, entry_date)`
-- Line 70: Change `.eq("journal_entry.status", "posted")` to `.eq("journal_entry.is_posted", true)`
-- Lines 100-103: Remove the `payment_status` filter. Instead query GRNs with `status` in `('received', 'verified')` as a proxy for unpaid, or remove the `as any` cast and use proper status values.
+### 1. `src/pages/app/opd/OPDCheckoutPage.tsx`
+- Update imaging orders query (line 173-184) to join `imaging_procedures(base_price, service_type_id, service_types(id, default_price))`
+- Update imaging charge building (lines 274-298): first use joined `imaging_procedure.service_types.default_price`, then `imaging_procedure.base_price`, then fuzzy match against `radiologyServiceTypes` using **partial string matching** (`.includes()` instead of `===`)
 
-### 2. `src/pages/app/accounts/BudgetsPage.tsx`
-- Line 106: Change select from `(status, entry_date)` to `(is_posted, entry_date)`
-- Line 108: Change `.eq("journal_entry.status", "posted")` to `.eq("journal_entry.is_posted", true)`
+### 2. Data update via insert tool
+- Set `radiology_referral_percent = 5` and `lab_referral_percent = 5` on all doctor compensation plans
 
-### 3. Scan for same pattern elsewhere
-- Check all other files using `journal_entries.*status` in joins — `ConsolidatedPnLPage.tsx`, `CostCenterPnLPage.tsx`, `useAccounts.ts`, `useExecutiveSummary.ts` may have the same bug.
-
-## Impact
-These fixes resolve the two 400 errors visible on the Accounts Dashboard, allowing MTD expenses and pending vendor payment counts to load correctly.
+## Expected Result
+- Imaging charges show correct price (e.g., ₨300 for Chest X-Ray) and are selectable for payment
+- When paid, the doctor earnings trigger creates a `radiology_referral` earning at 5% of the imaging amount
 
