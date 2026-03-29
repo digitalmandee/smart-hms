@@ -23,6 +23,7 @@ import {
   FileText,
   Edit
 } from 'lucide-react';
+import { useOrganizationBranding } from '@/hooks/useOrganizationBranding';
 
 export default function ReportVerificationPage() {
   const { id } = useParams<{ id: string }>();
@@ -32,6 +33,7 @@ export default function ReportVerificationPage() {
   const { data: result } = useImagingResult(id);
   const { mutate: updateOrder, isPending: isUpdating } = useUpdateImagingOrder();
   const { printRef, handlePrint } = usePrint();
+  const { data: branding } = useOrganizationBranding();
 
   const [rejectionReason, setRejectionReason] = useState('');
   const [showRejectForm, setShowRejectForm] = useState(false);
@@ -255,7 +257,7 @@ export default function ReportVerificationPage() {
       {result && (
         <div className="hidden">
           <div ref={printRef}>
-            <PrintableImagingReport order={order} result={result} />
+            <PrintableImagingReport order={order} result={result} organization={branding} />
           </div>
         </div>
       )}

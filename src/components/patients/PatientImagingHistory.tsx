@@ -12,6 +12,7 @@ import { Scan, Calendar, ChevronDown, ChevronUp, FileCheck2, Eye, Download, Prin
 import { ImageViewer } from "@/components/radiology/ImageViewer";
 import { ImagingDetailDialog } from "@/components/radiology/ImagingDetailDialog";
 import { useReactToPrint } from "react-to-print";
+import { useOrganizationBranding } from "@/hooks/useOrganizationBranding";
 
 interface PatientImagingHistoryProps {
   patientId: string;
@@ -43,6 +44,7 @@ const modalityIcons: Record<string, string> = {
 export function PatientImagingHistory({ patientId }: PatientImagingHistoryProps) {
   const navigate = useNavigate();
   const { data: imagingOrders, isLoading } = usePatientImagingHistory(patientId);
+  const { data: branding } = useOrganizationBranding();
   const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [printOrderId, setPrintOrderId] = useState<string | null>(null);
@@ -288,7 +290,7 @@ export function PatientImagingHistory({ patientId }: PatientImagingHistoryProps)
       {printOrderId && printOrder && printResult && (
         <div className="hidden">
           <div ref={printRef}>
-            <PrintableImagingReport order={printOrder} result={printResult} />
+            <PrintableImagingReport order={printOrder} result={printResult} organization={branding} />
           </div>
         </div>
       )}

@@ -28,6 +28,7 @@ import {
   ExternalLink,
   Link2
 } from 'lucide-react';
+import { useOrganizationBranding } from '@/hooks/useOrganizationBranding';
 
 export default function ImagingOrderDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -38,6 +39,7 @@ export default function ImagingOrderDetailPage() {
   const { data: invoice, refetch: refetchInvoice } = useInvoice(order?.invoice_id);
   const { mutate: updateOrder, isPending: isUpdating } = useUpdateImagingOrder();
   const { printRef, handlePrint } = usePrint();
+  const { data: branding } = useOrganizationBranding();
   const [showInvoiceLinkDialog, setShowInvoiceLinkDialog] = useState(false);
 
   if (isLoading) {
@@ -339,7 +341,7 @@ export default function ImagingOrderDetailPage() {
       {result && (
         <div className="hidden">
           <div ref={printRef}>
-            <PrintableImagingReport order={order} result={result} />
+            <PrintableImagingReport order={order} result={result} organization={branding} />
           </div>
         </div>
       )}

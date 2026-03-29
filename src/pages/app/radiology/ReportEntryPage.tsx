@@ -15,6 +15,7 @@ import { usePrint } from '@/hooks/usePrint';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ArrowLeft, Save, FileText, AlertTriangle, Printer } from 'lucide-react';
+import { useOrganizationBranding } from '@/hooks/useOrganizationBranding';
 
 export default function ReportEntryPage() {
   const { id } = useParams<{ id: string }>();
@@ -25,6 +26,7 @@ export default function ReportEntryPage() {
   const { mutate: updateOrder } = useUpdateImagingOrder();
   const { mutate: saveResult, isPending: isSaving } = useSaveImagingResult();
   const { printRef, handlePrint } = usePrint();
+  const { data: branding } = useOrganizationBranding();
 
   const [reportData, setReportData] = useState({
     findings: '',
@@ -207,7 +209,7 @@ export default function ReportEntryPage() {
         {/* Hidden Printable Report */}
         <div className="hidden">
           <div ref={printRef}>
-            <PrintableImagingReport order={order} result={existingResult} />
+            <PrintableImagingReport order={order} result={existingResult} organization={branding} />
           </div>
         </div>
       </div>
