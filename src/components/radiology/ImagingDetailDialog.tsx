@@ -10,6 +10,8 @@ import { useImagingOrder, useImagingResult } from '@/hooks/useImaging';
 import { ImageViewer } from './ImageViewer';
 import { PrintableImagingReport } from './PrintableImagingReport';
 import { printElement } from '@/lib/exportUtils';
+import { getImageUrls } from '@/lib/radiology-image-utils';
+import { useOrganizationBranding } from '@/hooks/useOrganizationBranding';
 import { 
   Printer, 
   Download, 
