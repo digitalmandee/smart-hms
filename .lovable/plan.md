@@ -1,49 +1,59 @@
 
 
-# Fix: Radiology Report View + Patient Profile Integration
+# Fix: Imaging Report Missing Organization Branding & Images
 
-## Two Problems
+## Problems Found
 
-1. **ReportEntryPage** always shows an editable form — even for completed/verified reports. When clicking from the "Completed" tab, it should show a **read-only formatted report** with print capability.
-2. **PatientImagingHistory** on the patient profile lacks **Print Report** and **View Report** buttons (unlike lab which has both). The imaging detail dialog exists but there's no quick print from the list.
+1. **No organization branding passed**: All 4 places that render `PrintableImagingReport` do NOT pass the `organization` prop — so it always shows "Hospital Name" with no logo, address, phone, or email.
+   - `ReportEntryPage.tsx` line 210
+   - `ReportVerificationPage.tsx` line 258
+   - `PatientImagingHistory.tsx` line 291
+   - `ImagingOrderDetailPage.tsx` line 342
+
+2. **No image output in report**: The `ImagingResult` has an `images` array but `PrintableImagingReport` never renders attached images. The lab report includes result data inline; the imaging report should show attached images (X-rays, CT scans, etc.).
+
+3. **PrintableImagingReport design is basic**: Plain serif font, no professional styling. Lab report uses a polished A4 layout with proper styles, QR codes, colored headers. Imaging report should match that quality.
 
 ---
 
 ## Plan
 
-### 1. Make ReportEntryPage show read-only view for finalized reports
+### 1. Pass branding to all PrintableImagingReport usages (4 files)
 
-**File**: `src/pages/app/radiology/ReportEntryPage.tsx`
+Add `useOrganizationBranding()` import and pass `organization={branding}` to each:
 
-- Import `useImagingResult`, `PrintableImagingReport`, `usePrint`, `Badge`, `Separator`, `Printer`, `format`
-- Fetch existing result with `useImagingResult(id)`
-- If `order.status` is `reported`, `verified`, or `delivered`:
-  - Show read-only report view (same layout as ReportVerificationPage but without verify/reject buttons)
-  - Display: findings, impression, recommendations in `bg-muted` blocks
-  - Show finding status badge, reported/verified timestamps
-  - Add Print button in header
-  - Include hidden `PrintableImagingReport` for printing
-- If status is `completed` or earlier: show existing editable form (pre-populate from result if available)
+- **`ReportEntryPage.tsx`** — already has hooks setup, add branding query + pass to component
+- **`ReportVerificationPage.tsx`** — same pattern
+- **`ImagingOrderDetailPage.tsx`** — same pattern
+- **`PatientImagingHistory.tsx`** — same pattern
 
-### 2. Add Print Report button to PatientImagingHistory
+### 2. Add images section to PrintableImagingReport
 
-**File**: `src/components/patients/PatientImagingHistory.tsx`
+- Render `result.images` array (if present and non-empty) in an "IMAGES" section
+- Display each image in a grid layout with appropriate sizing for print
+- Add image captions if available
 
-- Import `useImagingOrder`, `useImagingResult`, `PrintableImagingReport`, `useOrganizationBranding`, `usePrint`
-- Add print state tracking (like PatientLabHistory pattern: `selectedOrderId` + `shouldPrint`)
-- For orders with status `verified` or `reported`:
-  - Add **Print Report** button (printer icon)
-  - Add **View Report** link opening `/app/radiology/report/{id}` in new tab
-- Render hidden `PrintableImagingReport` off-screen for the selected order
-- Use `useEffect` to trigger print when data loads (same pattern as lab)
+### 3. Upgrade PrintableImagingReport design to match lab report quality
 
-### 3. Add i18n keys (all 3 languages)
+Restyle using inline styles (same approach as `PrintableLabReport`):
+- Professional A4 layout with proper margins
+- Organization header with logo, name, address, contact in a structured layout
+- Blue accent color header bar matching lab report
+- Patient info in bordered box
+- Proper typography (Segoe UI, consistent font sizes)
+- QR code if organization slug is available
+- Registration/tax ID display
+- Professional footer with "electronically generated" notice
 
-Add keys for: "Finalized Report", "View Report", "Print Report" in English, Urdu, Arabic
+### 4. No i18n changes needed
+
+The printable report uses static English labels (standard for medical reports). Existing i18n keys are already in place for the page chrome.
 
 ## Files Changed
 
-- `src/pages/app/radiology/ReportEntryPage.tsx` — read-only view for finalized reports
-- `src/components/patients/PatientImagingHistory.tsx` — add print/view buttons
-- `src/lib/i18n/` — i18n keys (3 language files)
+- `src/components/radiology/PrintableImagingReport.tsx` — Full redesign with branding, images, professional styling
+- `src/pages/app/radiology/ReportEntryPage.tsx` — Add branding prop
+- `src/pages/app/radiology/ReportVerificationPage.tsx` — Add branding prop
+- `src/pages/app/radiology/ImagingOrderDetailPage.tsx` — Add branding prop
+- `src/components/patients/PatientImagingHistory.tsx` — Add branding prop
 
