@@ -79,6 +79,7 @@ export default function DoctorCompensationPage() {
       procedure_share_percent: 0,
       surgery_share_percent: 0,
       lab_referral_percent: 0,
+      radiology_referral_percent: 0,
       minimum_guarantee: 0,
       effective_from: new Date().toISOString().split("T")[0],
       effective_to: "",
