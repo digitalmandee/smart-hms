@@ -1,80 +1,56 @@
 
 
-# OPD Flow Testing — Issues Found & Fixes Required
+# Add Test Share (Lab & Radiology Referral Earnings) for Doctors
 
-## Investigation Summary
+## Current State
 
-I traced the full OPD workflow: Billing Session → Walk-in → Consultation → Lab/Imaging Orders → Checkout → Invoices → Daily Closing → Journal Entries. Here are the findings:
+- The `doctor_compensation_plans` table has `lab_referral_percent` but **no `radiology_referral_percent`** column
+- The database trigger `auto_create_doctor_earnings` **only processes consultation items** — it explicitly skips anything that doesn't match `%consultation%` in the description
+- The wallet UI already has labels for `lab_referral` and `radiology_referral` source types, but they never get populated because the trigger ignores test orders
+- The compensation form (EmployeeFormPage, DoctorCompensationForm, DoctorCompensationPage) only shows Lab Referral % — no Radiology Referral %
 
----
+## What Changes
 
-## Issue 1: Radiology Orders NOT Showing in OPD Checkout (BUG — Critical)
+### Step 1: Database Migration — Add `radiology_referral_percent` column + Update trigger
 
-**Root cause**: The checkout page queries imaging orders with a JOIN that does not exist:
-
+**Add column:**
+```sql
+ALTER TABLE doctor_compensation_plans 
+  ADD COLUMN IF NOT EXISTS radiology_referral_percent numeric DEFAULT 0;
 ```
-.select("*, procedure:service_types(name, default_price)")
-```
 
-The `imaging_orders` table has **no foreign key to `service_types`**. It has `procedure_id → imaging_procedures` but the query aliases `procedure` to `service_types`, which fails silently (returns null for the join) or throws a 400 error. This means:
-- Imaging orders load but `procedure.default_price` is always null → amount = 0
-- They may not appear at all if the query errors out
+**Rewrite the `auto_create_doctor_earnings` trigger function** to handle 3 source types:
+1. **Consultation** — items with description matching `%consultation%` → uses `consultation_share_percent`
+2. **Lab Referral** — items with description matching `%lab%` or `%test%` or `%pathology%` → uses `lab_referral_percent`
+3. **Radiology Referral** — items with description matching `%radiology%` or `%imaging%` or `%x-ray%` or `%mri%` or `%ct%` or `%ultrasound%` → uses `radiology_referral_percent`
 
-**Fix**: Change the checkout imaging query to:
-1. Remove the broken `procedure:service_types` join
-2. Instead, fetch imaging orders with their raw columns (`procedure_name`, `modality`)
-3. For pricing, do a fuzzy name-match against `service_types` (same fallback pattern used for lab orders) OR use `imaging_procedures` table which may have pricing
+Each type creates a separate `doctor_earnings` row with the appropriate `source_type` and share percentage. Duplicate check updated to include `source_type` in the uniqueness check (currently only checks `source_id + doctor_id`).
 
-## Issue 2: PendingCheckoutPage Does NOT Query Imaging Orders (BUG — Moderate)
+### Step 2: Compensation Plan Forms — Add Radiology Referral % field
 
-The `PendingCheckoutPage` only queries `lab_orders` and `prescriptions` to show pending badges. It completely **ignores imaging orders**. A patient with unpaid radiology but paid consultation + labs would not show "Additional Charges" badge.
+**Files to update:**
+- `src/components/hr/DoctorCompensationForm.tsx` — Add a "Radiology Referrals" card section (identical to Lab Referrals card) with `radiology_referral_percent` field
+- `src/pages/app/hr/payroll/DoctorCompensationPage.tsx` — Add `radiology_referral_percent` to form state, reset, and edit loading
+- `src/pages/app/hr/EmployeeFormPage.tsx` — Add `radiology_referral_percent` to schema and plan submission
+- `src/hooks/useDoctorCompensation.ts` — Add `radiology_referral_percent` to the `DoctorCompensationPlan` interface and `useCreateCompensationPlan` insert
 
-**Fix**: Add imaging orders query alongside lab orders in the pending orders fetch, and include imaging count in the badge display.
+### Step 3: Wallet Balances Page — Add lab/radiology breakdown columns
 
-## Issue 3: Consultation Records — Are They Properly in Patient Profile? (VERIFIED — Working)
+**File:** `src/pages/app/hr/payroll/DoctorWalletBalancesPage.tsx`
+- Add `labReferrals` and `radiologyReferrals` fields to `DoctorBalance` interface
+- Map `lab_referral` and `radiology_referral` source types in the switch statement (currently fall to `other`)
+- Add columns in the table for Lab Referrals and Radiology Referrals amounts
 
-The `PatientDetailPage` includes:
-- `PatientOPDVisits` — shows OPD visit history
-- `PatientVisitsHistory` — general visits
-- `PatientLabHistory` — lab order history
-- `PatientPrescriptionsHistory` — prescription history
-- `PatientBillingHistory` — invoice/payment history
+### Step 4: Multilingual labels (EN/UR/AR)
 
-Consultations are linked via `appointments → consultations` and show in these tabs. **This is working correctly** — consultation data is persisted and visible on the patient profile.
+Add translation keys for:
+- `test_share`, `lab_referral_percent`, `radiology_referral_percent`
+- Column headers and form labels in all 3 languages
 
-## Issue 4: Do Invoices Hit Accounts Immediately or Only When Billing Session Closes? (VERIFIED — Immediate)
+## Technical Details
 
-The database has **triggers that auto-post to journal immediately**:
-- `post_invoice_to_journal` — fires on invoice INSERT → creates DR Accounts Receivable / CR Revenue
-- `post_payment_to_journal` — fires on payment INSERT → creates DR Cash/Bank / CR Accounts Receivable
-
-**Invoices and payments hit the general ledger immediately upon creation**, not when the billing session closes. The Daily Closing is purely a **reconciliation step** — it compares physical cash vs system totals. It does NOT batch-post transactions.
-
-So: Every walk-in payment, lab payment, etc. already has a journal entry the moment it's recorded. Daily Closing just verifies the totals match.
-
----
-
-## Implementation Plan
-
-### Step 1: Fix Imaging Orders in OPD Checkout (Critical)
-**File**: `src/pages/app/opd/OPDCheckoutPage.tsx` (lines 157-170)
-- Change the imaging query from `procedure:service_types(...)` to just `*`
-- Add a separate service_types lookup for radiology pricing (fuzzy match by `procedure_name` against `service_types` where `category = 'radiology'`)
-- If no service_type match, fall back to 0 amount with a warning badge
-
-### Step 2: Add Imaging Orders to PendingCheckoutPage
-**File**: `src/pages/app/opd/PendingCheckoutPage.tsx` (lines 72-113)
-- Add query for `imaging_orders` where `invoice_id IS NULL` for the patient IDs
-- Include `imagingOrders` count in `ordersByPatient` data structure
-- Show imaging count in the checkout badge alongside lab orders
-
-### Step 3: Add Radiology Service Types Fallback Query
-**File**: `src/pages/app/opd/OPDCheckoutPage.tsx`
-- Add `radiologyServiceTypes` query (same pattern as existing `labServiceTypes` at line 88) filtering `category = 'radiology'`
-- Use this for fuzzy name matching when resolving imaging prices
-
-### No Changes Needed For:
-- Consultation records in patient profile — already working
-- Journal posting — already immediate via triggers
-- Daily closing — correctly aggregates all invoices/payments for the day regardless of session state
+- The trigger change is the critical piece — without it, no lab/radiology earnings are ever auto-created
+- The duplicate check becomes: `WHERE source_id = inv.id AND doctor_id = v_doctor_id AND source_type = <type>`
+- Invoice items created during OPD checkout already have descriptions like "CBC Test", "X-Ray Chest" etc., so the pattern matching will catch them
+- No changes needed to the checkout flow itself — the trigger fires on payment INSERT regardless
 
