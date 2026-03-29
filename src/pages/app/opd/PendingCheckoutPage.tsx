@@ -135,7 +135,7 @@ export default function PendingCheckoutPage() {
   const filteredAppointments = completedAppointments?.filter(a => {
     const patientId = (a.patient as any)?.id;
     const orders = pendingOrders?.[patientId];
-    const hasUnpaidOrders = orders && (orders.labOrders > 0);
+    const hasUnpaidOrders = orders && (orders.labOrders > 0 || orders.imagingOrders > 0);
     // Show if not paid, OR if paid but has unpaid lab/imaging orders
     return a.payment_status !== "paid" || hasUnpaidOrders;
   }) || [];
@@ -144,7 +144,7 @@ export default function PendingCheckoutPage() {
   const withPendingOrders = filteredAppointments.filter(a => {
     const patientId = (a.patient as any)?.id;
     const orders = pendingOrders?.[patientId];
-    return orders && (orders.labOrders > 0 || orders.prescriptions > 0);
+    return orders && (orders.labOrders > 0 || orders.imagingOrders > 0 || orders.prescriptions > 0);
   }).length;
 
   return (
