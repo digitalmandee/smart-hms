@@ -172,6 +172,7 @@ export function DoctorCompensationForm({
   const procedureShare = form.watch("procedure_share_percent") || 50;
   const anesthesiaShare = form.watch("anesthesia_share_percent") || 50;
   const labReferralShare = form.watch("lab_referral_percent") || 10;
+  const radiologyReferralShare = form.watch("radiology_referral_percent") || 10;
   const minimumGuarantee = form.watch("minimum_guarantee") || 0;
 
   const hasAnyFeeConfigured = consultationFee > 0 || surgeryFee > 0 || ipdVisitFee > 0;

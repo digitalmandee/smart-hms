@@ -123,6 +123,7 @@ export function useCreateCompensationPlan() {
           procedure_share_percent: record.procedure_share_percent,
           surgery_share_percent: record.surgery_share_percent,
           lab_referral_percent: record.lab_referral_percent,
+          radiology_referral_percent: record.radiology_referral_percent,
           minimum_guarantee: record.minimum_guarantee,
           effective_from: record.effective_from!,
           effective_to: record.effective_to,

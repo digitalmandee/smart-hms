@@ -370,6 +370,7 @@ export default function EmployeeFormPage() {
           anesthesia_share_percent: data.anesthesia_share_percent ?? 50,
           ipd_visit_share_percent: data.ipd_visit_share_percent ?? 50,
           lab_referral_percent: data.lab_referral_percent ?? 10,
+          radiology_referral_percent: data.radiology_referral_percent ?? 10,
           minimum_guarantee: data.minimum_guarantee ?? 0,
           base_salary: 0,
           effective_from: new Date().toISOString().split("T")[0],
