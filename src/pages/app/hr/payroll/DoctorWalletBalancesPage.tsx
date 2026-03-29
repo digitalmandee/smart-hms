@@ -37,6 +37,8 @@ interface DoctorBalance {
   consultations: number;
   surgeries: number;
   procedures: number;
+  labReferrals: number;
+  radiologyReferrals: number;
   other: number;
   earningIds: string[];
 }
