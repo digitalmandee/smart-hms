@@ -41,9 +41,31 @@ const modalityIcons: Record<string, string> = {
 };
 
 export function PatientImagingHistory({ patientId }: PatientImagingHistoryProps) {
+  const navigate = useNavigate();
   const { data: imagingOrders, isLoading } = usePatientImagingHistory(patientId);
   const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [printOrderId, setPrintOrderId] = useState<string | null>(null);
+
+  // Fetch full order + result for printing
+  const { data: printOrder } = useImagingOrder(printOrderId || undefined);
+  const { data: printResult } = useImagingResult(printOrderId || undefined);
+  const printRef = useRef<HTMLDivElement>(null);
+
+  const handlePrintReport = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: printOrder ? `Imaging Report - ${printOrder.order_number}` : 'Imaging Report',
+  });
+
+  // Trigger print when data is ready
+  useEffect(() => {
+    if (printOrderId && printOrder && printResult && printRef.current) {
+      setTimeout(() => {
+        handlePrintReport();
+        setPrintOrderId(null);
+      }, 500);
+    }
+  }, [printOrderId, printOrder, printResult, handlePrintReport]);
 
   const toggleExpanded = (orderId: string) => {
     setExpandedOrders(prev => {
