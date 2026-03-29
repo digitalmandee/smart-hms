@@ -99,6 +99,21 @@ export default function OPDCheckoutPage() {
     enabled: !!profile?.organization_id,
   });
 
+  // Fetch radiology service types for imaging price resolution (fuzzy name match)
+  const { data: radiologyServiceTypes } = useQuery({
+    queryKey: ["radiology-service-types-fallback", profile?.organization_id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("service_types")
+        .select("id, name, default_price")
+        .eq("category", "radiology")
+        .eq("organization_id", profile!.organization_id!)
+        .eq("is_active", true);
+      return data || [];
+    },
+    enabled: !!profile?.organization_id,
+  });
+
   // Fetch appointment with related data
   const { data: appointment, isLoading: appointmentLoading } = useQuery({
     queryKey: ["opd-checkout-appointment", appointmentId],
