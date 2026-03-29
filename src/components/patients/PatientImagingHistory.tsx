@@ -44,6 +44,7 @@ const modalityIcons: Record<string, string> = {
 export function PatientImagingHistory({ patientId }: PatientImagingHistoryProps) {
   const navigate = useNavigate();
   const { data: imagingOrders, isLoading } = usePatientImagingHistory(patientId);
+  const { data: branding } = useOrganizationBranding();
   const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [printOrderId, setPrintOrderId] = useState<string | null>(null);
