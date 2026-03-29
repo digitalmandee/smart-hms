@@ -1,86 +1,47 @@
 
 
-# Fix: Imaging Order Number Generation — Broken SUBSTRING Parsing
+# Fix: Radiology Orders Not Showing in OPD Checkout
 
 ## Root Cause
 
-The `generate_imaging_order_number()` trigger has a wrong SUBSTRING offset. The order number format is `IMG-YYMMDD-NNNN` (e.g., `IMG-260329-0001`).
-
-The current code does:
-```sql
-SUBSTRING(order_number FROM 5 + LENGTH(date_part))
--- = SUBSTRING('IMG-260329-0001' FROM 11)
--- = '-0001'  ← includes the dash!
-```
-
-This extracts `-0001`, which casts to INT as `-1`. So `MAX(-1) + 1 = 0`, producing `IMG-260329-0000`. When a second order is created the same day, it also computes MAX of existing broken values and can produce the same number, hitting the unique constraint.
-
-The correct offset is `12` — skipping `IMG-` (4) + `YYMMDD` (6) + `-` (1) = 11 chars, so position 12 onward.
+The imaging orders query on line 172-185 of `OPDCheckoutPage.tsx` filters **only** by `consultation_id`. When imaging orders were created but failed to link to the consultation (e.g., due to the duplicate key errors we fixed earlier), they have `consultation_id = NULL` and are invisible at checkout.
 
 ## Fix
 
-### 1. New migration to fix the trigger function
+### File: `src/pages/app/opd/OPDCheckoutPage.tsx` (lines 172-185)
 
-Replace the SUBSTRING expression:
+Change the imaging orders query to use an `.or()` filter that captures:
+1. Orders linked to this consultation (`consultation_id = X`)
+2. Orders for the same patient created today with no consultation link and no invoice (`consultation_id IS NULL AND patient_id = Y AND invoice_id IS NULL AND created_at >= today`)
 
-```sql
--- Old (broken):
-SUBSTRING(order_number FROM 5 + LENGTH(date_part))
-
--- New (correct):
-SUBSTRING(order_number FROM 4 + LENGTH(date_part) + 2)
--- = SUBSTRING('IMG-260329-0001' FROM 12) = '0001'
+```typescript
+const { data: imagingOrders } = useQuery({
+  queryKey: ["opd-checkout-imaging-orders", consultation?.id, appointment?.patient?.id],
+  queryFn: async () => {
+    const today = new Date().toISOString().split('T')[0];
+    const patientId = appointment?.patient?.id;
+    
+    let query = supabase
+      .from("imaging_orders")
+      .select("*, imaging_procedure:imaging_procedures(base_price, service_type_id, service_types(id, default_price))");
+    
+    if (consultation?.id && patientId) {
+      query = query.or(
+        `consultation_id.eq.${consultation.id},and(patient_id.eq.${patientId},consultation_id.is.null,invoice_id.is.null,created_at.gte.${today})`
+      );
+    } else if (consultation?.id) {
+      query = query.eq("consultation_id", consultation.id);
+    }
+    
+    const { data, error } = await query;
+    if (error) throw error;
+    return data;
+  },
+  enabled: !!(consultation?.id || appointment?.patient?.id),
+});
 ```
 
-Full corrected function (keeps advisory lock from previous fix):
+This ensures imaging orders that weren't properly linked to the consultation (due to the earlier duplicate key bug) still appear at checkout for billing.
 
-```sql
-CREATE OR REPLACE FUNCTION public.generate_imaging_order_number()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-SET search_path TO 'public'
-AS $$
-DECLARE
-  date_part TEXT;
-  seq_num INT;
-  prefix TEXT;
-BEGIN
-  date_part := TO_CHAR(CURRENT_DATE, 'YYMMDD');
-  prefix := 'IMG-' || date_part || '-';
-  
-  PERFORM pg_advisory_xact_lock(
-    hashtext('imaging_order_' || NEW.organization_id::text || date_part)
-  );
-  
-  SELECT COALESCE(MAX(
-    CAST(SUBSTRING(order_number FROM LENGTH(prefix) + 1) AS INT)
-  ), 0) + 1
-  INTO seq_num
-  FROM public.imaging_orders
-  WHERE organization_id = NEW.organization_id
-    AND order_number LIKE prefix || '%';
-  
-  NEW.order_number := prefix || LPAD(seq_num::TEXT, 4, '0');
-  RETURN NEW;
-END;
-$$;
-```
-
-Using `LENGTH(prefix) + 1` is cleaner and always correct regardless of format changes.
-
-### 2. Fix existing bad data
-
-Update existing `0000`-suffixed order numbers to use `0001` (or next available) so they don't cause future collisions.
-
-```sql
--- Data fix via insert tool
-UPDATE imaging_orders 
-SET order_number = REPLACE(order_number, '-0000', '-0001')
-WHERE order_number LIKE '%-0000';
-```
-
-## Files to Change
-
-- **1 new migration**: Replace `generate_imaging_order_number()` with corrected SUBSTRING logic
-- **1 data update**: Fix existing `0000` order numbers
+### No other files changed. No migration needed.
 
