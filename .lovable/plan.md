@@ -1,175 +1,100 @@
 
 
-# HealthOS 24 Launch Video V5 — Light, Slide-Based, Content-Rich
+# Accounting Module — Complete Test Suite & Demo Verification Guide
 
-## Problems in V4
+## Module Scope
 
-1. **Dark background** — user wants light/clinical aesthetic matching the executive slides (white/light gray backgrounds with subtle teal accents)
-2. **No real animations** — scenes feel static, elements don't animate in with motion
-3. **No music** — still rendering muted due to ffmpeg codec issue
-4. **Screen-like layouts** — looks like a webpage, not cinematic slides
+The accounting module spans **40+ pages** across two main areas:
+- **Accounts** (`/app/accounts/*`) — 40 pages covering COA, journals, ledger, receivables, payables, expenses, bank accounts, budgets, fixed assets, cost centers, credit notes, patient deposits, period management, audit log, and 10 financial reports
+- **Billing** (`/app/billing/*`) — 20 pages covering invoices, payments, sessions, daily closing, insurance/claims, NPHIES
 
-## V5 Vision
+## Part 1: Automated E2E Tests to Build
 
-**Match the executive slide design language** already in the codebase — those slides are the gold standard the user designed. They use:
-- Light backgrounds (`bg-gradient-to-br from-background to-primary/5`)
-- Colored top accent bar (2px gradient strip)
-- Category label → Big title → Subtitle header pattern
-- Card grids with icons, borders, rounded corners
-- Footer with "HealthOS 24 | AI-Powered Hospital Management"
-- Teal primary color with category-specific accent colors
+Expand the existing 5 finance tests to **50+ comprehensive tests** in `tests/e2e/finance-flow.spec.ts`:
 
-**But animate everything** — each element (title, cards, icons, stats) enters with spring/interpolate motion. Cards stagger in. Text slides up. Icons scale in. This is the key difference from a static slideshow.
+### Test Categories
 
-### Color Palette (from existing executive slides)
-- Background: `#FFFFFF` to `#F8FAFC` (white to slate-50)
-- Primary: `hsl(var(--primary))` → teal `#0EA5E9`
-- Card: white with `#E2E8F0` border
-- Text: `#0F172A` (slate-900)
-- Muted: `#64748B` (slate-500)
-- Category accents: blue, emerald, pink, amber, purple, teal (per module group)
+**A. Page Load & Navigation (20 tests)** — Verify every accounting page loads without error:
+- Accounts Dashboard, Chart of Accounts, Journal Entries, General Ledger
+- Receivables, Payables, Vendor Payments, Expense Management
+- Bank Accounts, Budgets, Financial Reports hub
+- Trial Balance, P&L, Balance Sheet, Cash Flow, Detailed P&L
+- Revenue by Source, Cost Center P&L, Consolidated P&L, VAT Return, Payroll Cost
+- Credit Notes, Fixed Assets, Patient Deposits, Period Management, Audit Log, Cost Centers
 
-### Typography
-- Inter via `@remotion/google-fonts/Inter`
+**B. Chart of Accounts (5 tests)**:
+- View tree structure with category filtering (asset/liability/equity/revenue/expense)
+- Search accounts by name/code
+- Create new Level 4 account via form
+- Toggle account active/inactive status
+- Verify Level 1-3 accounts cannot be posted to
 
-### Motion System
-- **Default enter**: Slide up 30px + fade in over 18 frames via `interpolate`
-- **Card stagger**: Each card delayed by 5 frames
-- **Icon enter**: Scale from 0.7 → 1.0 via `spring({ damping: 15 })`
-- **Scene transitions**: `fade()` with 15-frame overlap between all scenes
-- **Persistent elements**: Subtle floating teal gradient orb at ~3% opacity drifting sinusoidally
+**C. Journal Entries (6 tests)**:
+- List view with date/status/type filters
+- Create manual journal entry with balanced debit/credit
+- Verify unbalanced entry is rejected
+- View journal entry detail with lines
+- Export journal entries to CSV
+- Post draft entry and verify status change
 
-## Scene Structure (90s = 2700 frames @ 30fps)
+**D. Billing & Invoices (5 tests)**:
+- View invoices list with filters
+- Open invoice detail page
+- Process payment against invoice
+- View payment history
+- Billing sessions page loads
 
-### Scene 1: ECG Intro + Logo (0-120 frames, 4s)
-- Light background (`#F8FAFC`)
-- ECG SVG line traces across center using stroke-dashoffset
-- HealthOS logo (from brand component SVG) scales in at center
-- "HealthOS" + "AI-Powered Hospital Management" slides up
-- Faint teal radial glow behind logo
+**E. Daily Closing (3 tests)**:
+- Open daily closing wizard
+- View closing history with date filters
+- Verify wizard blocks if open sessions exist
 
-### Scene 2: About Us (120-270, 5s)
-- **Mirror `ExecAboutUsSlide` layout exactly** — teal top bar, "About Us" label, "Who We Are" title, 3x2 card grid with icons
-- Cards stagger in with spring animation
-- 6 cards: Mission, Vision, Track Record, Team, Market Reach, Innovation DNA
+**F. Financial Reports (6 tests)**:
+- Trial Balance renders with account rows
+- P&L shows revenue/expense groupings
+- Balance Sheet shows assets = liabilities + equity
+- Cash Flow report loads
+- Detailed P&L with drill-down
+- Export report to CSV/PDF
 
-### Scene 3: Problem Statement (270-420, 5s)
-- **Mirror `ExecProblemSlide`** — "The Challenge" red accent, split layout
-- Left: 10 disconnected systems in dashed red border box (appear one by one)
-- Right: 4 pain point cards slide in from right
+**G. Advanced Features (5 tests)**:
+- Credit Notes: create draft, approve
+- Patient Deposits: record deposit, view balance
+- Fixed Assets: view asset register
+- Bank Reconciliation: page loads
+- Vendor Payments: create and view detail
 
-### Scene 4: All-in-One Solution (420-570, 5s)
-- **Mirror `ExecAllInOneSlide`** — hub-spoke diagram
-- Center "24" hub scales in, then 12 department icons spring outward to positions
-- SVG connector lines draw in via stroke-dashoffset
+## Part 2: Step-by-Step Manual Demo Verification Checklist
 
-### Scene 5: Modules Overview (570-720, 5s)
-- **Mirror `ExecModulesSlide`** — 4-column category grid
-- 7 category cards stagger in, module names appear within each
+This is a **printable document** for manual QA — organized by sub-module, with exact steps, expected results, and pass/fail checkboxes.
 
-### Scene 6: AI Everywhere (720-870, 5s)
-- **Mirror `ExecAIEverywhereSlide`** — but on LIGHT background instead of dark
-- Central "HealthOS AI Core" brain icon + 8 AI module cards in 4x2 grid
-- Cards spring in with stagger
+### Deliverable
+Generate a detailed **PDF document** at `/mnt/documents/accounting-test-guide.pdf` containing:
 
-### Scene 7: Tabeebi AI (870-1020, 5s)
-- **Mirror `ExecTabeebiSlide`** — Bot icon + 4 capability cards + chat preview
-- Cards slide in from left, chat bubbles appear sequentially
+1. **Module Overview** — All 40+ pages listed with URLs
+2. **Demo Script** — Step-by-step walkthrough for each sub-module (login as Accountant, navigate, verify data, perform action, verify result)
+3. **Test Matrix** — Spreadsheet-style grid: Test ID, Module, Test Case, Steps, Expected Result, Status column
+4. **Known Dependencies** — What seed data must exist (demo invoices, accounts, fiscal years)
 
-### Scene 8: Clinical Workflows (1020-1170, 5s)
-- **Mirror `ExecClinicalSlide`** — 5-column department grid (OPD, IPD, Emergency, Surgery, Nursing)
-- Each column slides up with stagger, features appear within
+## Implementation Steps
 
-### Scene 9: Diagnostics & Pharmacy (1170-1320, 5s)
-- **Mirror `ExecDiagnosticsSlide`** — 3-column (Lab, Radiology, Pharmacy)
-- Columns slide in from bottom with stagger
+### Step 1: Expand `tests/e2e/finance-flow.spec.ts`
+- Add ~45 new test cases covering all accounting pages and key interactions
+- Group tests using `test.describe()` blocks per sub-module
+- Reuse `demoLogin(page, "Accountant")` for all tests
 
-### Scene 10: Automation Engine (1320-1470, 5s)
-- **Mirror `ExecAutomationSlide`** — 2x4 grid of before/after cards
-- Cards stagger in, "Before" appears then arrow then "After"
+### Step 2: Generate Test Guide Document
+- Create a comprehensive PDF at `/mnt/documents/accounting-test-guide.pdf`
+- Include module-by-module demo scripts with screenshots placeholders
+- Include test matrix with 80+ test cases for manual verification
 
-### Scene 11: Patient Workflow (1470-1620, 5s)
-- **Mirror `ExecWorkflowSlide`** — 9-step horizontal flow diagram
-- Steps appear left-to-right with arrows drawing between them
-- Bottom stats count up
+### Step 3: Run the E2E tests
+- Execute the expanded test suite
+- Document any failures as issues to fix
 
-### Scene 12: Finance & Operations (1620-1770, 5s)
-- **Mirror `ExecFinanceOpsSlide`** — 3x2 grid (Billing, Accounts, HR, Procurement, Inventory, Doctor Comp)
-- Cards spring in
-
-### Scene 13: Insurance & NPHIES (1770-1920, 5s)
-- **Mirror `ExecInsuranceSlide`** — NPHIES 7-step pipeline + Pakistan/Denial sections
-- Pipeline steps appear left-to-right, bottom cards slide up
-
-### Scene 14: KSA Compliance (1920-2070, 5s)
-- **Mirror `ExecKsaComplianceSlide`** — 7 integration badges + data standards
-- Saudi green accent, badges stagger in
-
-### Scene 15: Technology & Security (2070-2220, 5s)
-- **Mirror `ExecTechSlide`** — 4x3 grid of tech feature cards
-- Cards stagger in wave pattern
-
-### Scene 16: ROI / Results (2220-2370, 5s)
-- **Mirror `ExecROISlide`** — 4 metric cards with before/after progress bars
-- Numbers count up, bars animate width
-
-### Scene 17: CTA / Closing (2370-2700, 11s)
-- **Mirror `ExecCTASlide`** — 6 "Why Us" cards + contact info + logo
-- Cards stagger in, logo scales with bounce
-- Hold final frame for 3-4 seconds
-
-## Audio Strategy
-
-Try a different approach for audio:
-1. Generate WAV with raw PCM data (16-bit, 44100Hz, mono)
-2. Use Remotion's `<Audio>` component with the WAV file
-3. In render script, try `muted: false` — Remotion uses ffmpeg's built-in AAC encoder (not libfdk_aac)
-4. If that fails, render video muted, then use ffmpeg to mux audio separately: `ffmpeg -i video.mp4 -i audio.wav -c:v copy -c:a aac output.mp4`
-
-## File Structure
-
-```
-/tmp/healthos-video/
-  src/
-    index.ts
-    Root.tsx
-    MainVideo.tsx
-    theme.ts
-    scenes/
-      ECGIntroScene.tsx
-      AboutUsScene.tsx
-      ProblemScene.tsx
-      AllInOneScene.tsx
-      ModulesScene.tsx
-      AIEverywhereScene.tsx
-      TabeebiScene.tsx
-      ClinicalScene.tsx
-      DiagnosticsScene.tsx
-      AutomationScene.tsx
-      WorkflowScene.tsx
-      FinanceOpsScene.tsx
-      InsuranceScene.tsx
-      ComplianceScene.tsx
-      TechScene.tsx
-      ROIScene.tsx
-      CTAScene.tsx
-    components/
-      SVGIcons.tsx
-      SlideHeader.tsx        (reusable: top accent bar + label + title + subtitle + slide number)
-      SlideFooter.tsx        (reusable: "HealthOS 24 | ..." footer)
-      AnimatedCard.tsx       (reusable: card with spring-in animation based on delay prop)
-  public/
-    audio/bg-music.wav
-  scripts/
-    render.mjs
-    generate-music.mjs
-```
-
-### Key Design Decisions
-
-1. **Every scene mirrors an existing executive slide** — same data, same layout, same colors — but with frame-based animation
-2. **Reusable `SlideHeader` and `SlideFooter`** components ensure brand consistency across all 17 scenes
-3. **`AnimatedCard`** wraps any card content with `spring()` entry animation + configurable delay
-4. **Light backgrounds throughout** — no dark mode scenes
-5. **No dashboard mockups, no fake analytics** — pure content presentation matching the executive deck
+## Technical Notes
+- All tests use the existing `demoLogin` utility with "Accountant" role
+- Page load tests verify URL match + h1 visibility (existing pattern)
+- Interaction tests use Playwright locators for buttons, forms, tables
+- The daily closing wizard requires today's billing sessions — noted as a dependency
 
