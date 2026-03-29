@@ -169,13 +169,13 @@ export default function OPDCheckoutPage() {
     enabled: !!consultation?.id,
   });
 
-  // Fetch imaging orders for this consultation (no service_types join — table lacks FK)
+  // Fetch imaging orders for this consultation — join imaging_procedures for price
   const { data: imagingOrders } = useQuery({
     queryKey: ["opd-checkout-imaging-orders", consultation?.id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("imaging_orders")
-        .select("*")
+        .select("*, imaging_procedure:imaging_procedures(base_price, service_type_id, service_types(id, default_price))")
         .eq("consultation_id", consultation!.id);
       
       if (error) throw error;
@@ -271,21 +271,37 @@ export default function OPDCheckoutPage() {
     }
   });
 
-  // Imaging order fees — resolve price via fuzzy match against radiology service types
+  // Imaging order fees — resolve price via FK chain first, then fuzzy match
   imagingOrders?.forEach((order: any) => {
     if (!order.invoice_id) {
       let amount = 0;
       let matchedServiceTypeId: string | undefined;
-      // Fuzzy match procedure_name against radiology service types
-      if (radiologyServiceTypes && order.procedure_name) {
-        const match = radiologyServiceTypes.find(
-          (st: any) => st.name.toLowerCase() === order.procedure_name.toLowerCase()
-        );
+
+      // 1. Try FK chain: imaging_procedure → service_types → default_price
+      if (order.imaging_procedure?.service_types?.default_price) {
+        amount = order.imaging_procedure.service_types.default_price;
+        matchedServiceTypeId = order.imaging_procedure.service_types.id;
+      }
+      // 2. Try imaging_procedure base_price
+      else if (order.imaging_procedure?.base_price) {
+        amount = order.imaging_procedure.base_price;
+        if (order.imaging_procedure?.service_type_id) {
+          matchedServiceTypeId = order.imaging_procedure.service_type_id;
+        }
+      }
+      // 3. Fuzzy match procedure_name against radiology service types (partial/contains)
+      else if (radiologyServiceTypes && order.procedure_name) {
+        const orderName = order.procedure_name.toLowerCase().replace(/[^a-z0-9\s]/g, '');
+        const match = radiologyServiceTypes.find((st: any) => {
+          const stName = st.name.toLowerCase().replace(/[^a-z0-9\s]/g, '');
+          return stName.includes(orderName) || orderName.includes(stName);
+        });
         if (match?.default_price) {
           amount = match.default_price;
           matchedServiceTypeId = match.id;
         }
       }
+
       charges.push({
         id: `imaging-${order.id}`,
         type: "imaging",
