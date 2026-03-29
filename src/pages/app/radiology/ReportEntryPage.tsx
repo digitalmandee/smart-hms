@@ -26,6 +26,7 @@ export default function ReportEntryPage() {
   const { mutate: updateOrder } = useUpdateImagingOrder();
   const { mutate: saveResult, isPending: isSaving } = useSaveImagingResult();
   const { printRef, handlePrint } = usePrint();
+  const { data: branding } = useOrganizationBranding();
 
   const [reportData, setReportData] = useState({
     findings: '',
