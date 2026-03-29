@@ -25,6 +25,7 @@ import { supabase } from "@/integrations/supabase/client";
 const ROLE_DASHBOARD_MAP: Record<string, string> = {
   doctor: "/app/opd",
   nurse: "/app/opd/nursing",
+  opd_nurse: "/app/opd/nursing",
   receptionist: "/app/reception",
   pharmacist: "/app/pharmacy",
   lab_technician: "/app/lab",
@@ -37,6 +38,10 @@ const ROLE_DASHBOARD_MAP: Record<string, string> = {
   radiologist: "/app/radiology",
   radiology_technician: "/app/radiology/worklist",
   ipd_nurse: "/app/ipd/nursing",
+  surgeon: "/app/ot",
+  anesthetist: "/app/ot",
+  ot_nurse: "/app/ot",
+  ot_pharmacist: "/app/ot",
   ot_technician: "/app/ot",
   warehouse_admin: "/app/inventory",
   warehouse_user: "/app/inventory",
