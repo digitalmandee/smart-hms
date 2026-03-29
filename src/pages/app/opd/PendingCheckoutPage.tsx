@@ -70,7 +70,7 @@ export default function PendingCheckoutPage() {
     enabled: !!profile?.branch_id,
   });
 
-  // Fetch pending lab orders and prescriptions for these appointments
+  // Fetch pending lab orders, imaging orders, and prescriptions for these appointments
   const { data: pendingOrders } = useQuery({
     queryKey: ["pending-orders", completedAppointments?.map(a => a.id)],
     queryFn: async () => {
@@ -84,6 +84,13 @@ export default function PendingCheckoutPage() {
         .select("id, patient_id, order_number, payment_status, invoice_id")
         .in("patient_id", patientIds)
         .is("invoice_id", null);
+
+      // Get unpaid imaging orders (no invoice_id linked)
+      const { data: imagingOrders } = await supabase
+        .from("imaging_orders")
+        .select("id, patient_id, order_number, payment_status, invoice_id")
+        .in("patient_id", patientIds)
+        .is("invoice_id", null);
       
       // Get pending prescriptions
       const { data: prescriptions } = await supabase
@@ -92,18 +99,25 @@ export default function PendingCheckoutPage() {
         .in("patient_id", patientIds);
       
       // Group by patient
-      const ordersByPatient: Record<string, { labOrders: number; prescriptions: number }> = {};
+      const ordersByPatient: Record<string, { labOrders: number; imagingOrders: number; prescriptions: number }> = {};
       
       labOrders?.forEach(lo => {
         if (!ordersByPatient[lo.patient_id]) {
-          ordersByPatient[lo.patient_id] = { labOrders: 0, prescriptions: 0 };
+          ordersByPatient[lo.patient_id] = { labOrders: 0, imagingOrders: 0, prescriptions: 0 };
         }
         ordersByPatient[lo.patient_id].labOrders++;
+      });
+
+      imagingOrders?.forEach(io => {
+        if (!ordersByPatient[io.patient_id]) {
+          ordersByPatient[io.patient_id] = { labOrders: 0, imagingOrders: 0, prescriptions: 0 };
+        }
+        ordersByPatient[io.patient_id].imagingOrders++;
       });
       
       prescriptions?.forEach(rx => {
         if (!ordersByPatient[rx.patient_id]) {
-          ordersByPatient[rx.patient_id] = { labOrders: 0, prescriptions: 0 };
+          ordersByPatient[rx.patient_id] = { labOrders: 0, imagingOrders: 0, prescriptions: 0 };
         }
         ordersByPatient[rx.patient_id].prescriptions++;
       });
