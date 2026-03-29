@@ -15,6 +15,7 @@ import {
   RefreshCw,
   Pill,
   TestTubes,
+  Scan,
   Hash,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
