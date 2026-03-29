@@ -1,14 +1,17 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { usePatientImagingHistory } from "@/hooks/useImaging";
+import { usePatientImagingHistory, useImagingOrder, useImagingResult } from "@/hooks/useImaging";
+import { PrintableImagingReport } from "@/components/radiology/PrintableImagingReport";
 import { format } from "date-fns";
-import { Scan, Calendar, ChevronDown, ChevronUp, FileCheck2, Eye, Download, Printer, FileText } from "lucide-react";
+import { Scan, Calendar, ChevronDown, ChevronUp, FileCheck2, Eye, Download, Printer, FileText, ExternalLink } from "lucide-react";
 import { ImageViewer } from "@/components/radiology/ImageViewer";
 import { ImagingDetailDialog } from "@/components/radiology/ImagingDetailDialog";
+import { useReactToPrint } from "react-to-print";
 
 interface PatientImagingHistoryProps {
   patientId: string;
