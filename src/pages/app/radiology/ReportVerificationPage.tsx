@@ -33,6 +33,7 @@ export default function ReportVerificationPage() {
   const { data: result } = useImagingResult(id);
   const { mutate: updateOrder, isPending: isUpdating } = useUpdateImagingOrder();
   const { printRef, handlePrint } = usePrint();
+  const { data: branding } = useOrganizationBranding();
 
   const [rejectionReason, setRejectionReason] = useState('');
   const [showRejectForm, setShowRejectForm] = useState(false);
