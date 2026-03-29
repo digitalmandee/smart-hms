@@ -121,7 +121,9 @@ export default function ReportingWorklistPage() {
               onClick={() => navigate(
                 view === 'pending' 
                   ? `/app/radiology/report/${order.id}`
-                  : `/app/radiology/verify/${order.id}`
+                  : view === 'verification'
+                  ? `/app/radiology/verify/${order.id}`
+                  : `/app/radiology/report/${order.id}`
               )}
             >
               <CardContent className="p-4">
