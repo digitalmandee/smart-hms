@@ -39,6 +39,7 @@ export default function ImagingOrderDetailPage() {
   const { data: invoice, refetch: refetchInvoice } = useInvoice(order?.invoice_id);
   const { mutate: updateOrder, isPending: isUpdating } = useUpdateImagingOrder();
   const { printRef, handlePrint } = usePrint();
+  const { data: branding } = useOrganizationBranding();
   const [showInvoiceLinkDialog, setShowInvoiceLinkDialog] = useState(false);
 
   if (isLoading) {
