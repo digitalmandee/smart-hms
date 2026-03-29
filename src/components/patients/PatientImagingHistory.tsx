@@ -231,7 +231,7 @@ export function PatientImagingHistory({ patientId }: PatientImagingHistoryProps)
                             <Eye className="h-4 w-4 mr-2" />
                             View Details
                           </Button>
-                          {(order.status === 'verified' || order.status === 'reported' || order.status === 'delivered') && hasResult && (
+                          {(order.status === 'verified' || order.status === 'reported') && hasResult && (
                             <>
                               <Button 
                                 variant="outline" 

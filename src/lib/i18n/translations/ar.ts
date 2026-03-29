@@ -2040,6 +2040,7 @@ export const ar: Record<TranslationKey, string> = {
   "radiology.selectPatientToView": "اختر مريضاً لعرض الدراسات",
   "radiology.searchPatientLeft": "ابحث عن مريض على اليسار لتصفح دراساتهم",
   "radiology.loadingWorklist": "جاري تحميل قائمة العمل...",
+  "radiology.finalizedReport": "التقرير النهائي",
 
   "radiology.radiologyImaging": "الأشعة والتصوير",
   "radiology.radiologyImagingDesc": "إدارة طلبات التصوير والتقارير وسير العمل",
