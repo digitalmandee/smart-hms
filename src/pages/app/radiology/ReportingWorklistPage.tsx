@@ -9,7 +9,7 @@ import { useImagingOrders, IMAGING_MODALITIES } from '@/hooks/useImaging';
 import { ModalityBadge } from '@/components/radiology/ModalityBadge';
 import { ImagingPriorityBadge } from '@/components/radiology/ImagingPriorityBadge';
 import { format } from 'date-fns';
-import { FileText, RefreshCw, Clock } from 'lucide-react';
+import { FileText, RefreshCw, Clock, CheckCircle2, Eye } from 'lucide-react';
 
 export default function ReportingWorklistPage() {
   const navigate = useNavigate();
