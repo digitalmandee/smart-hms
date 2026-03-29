@@ -7319,6 +7319,7 @@ export type Database = {
           organization_id: string
           plan_type: string
           procedure_share_percent: number | null
+          radiology_referral_percent: number | null
           surgery_share_percent: number | null
           updated_at: string | null
         }
@@ -7339,6 +7340,7 @@ export type Database = {
           organization_id: string
           plan_type: string
           procedure_share_percent?: number | null
+          radiology_referral_percent?: number | null
           surgery_share_percent?: number | null
           updated_at?: string | null
         }
@@ -7359,6 +7361,7 @@ export type Database = {
           organization_id?: string
           plan_type?: string
           procedure_share_percent?: number | null
+          radiology_referral_percent?: number | null
           surgery_share_percent?: number | null
           updated_at?: string | null
         }
