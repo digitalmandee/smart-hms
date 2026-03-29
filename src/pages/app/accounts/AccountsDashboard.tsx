@@ -100,7 +100,7 @@ export default function AccountsDashboard() {
       const { count, error } = await supabase
         .from("goods_received_notes")
         .select("id", { count: "exact", head: true })
-        .in("status", ["received", "verified"]);
+        .in("status", ["verified", "pending_verification"]);
       if (error) throw error;
       return count || 0;
     },
