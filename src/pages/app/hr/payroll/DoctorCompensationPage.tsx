@@ -98,6 +98,7 @@ export default function DoctorCompensationPage() {
       procedure_share_percent: plan.procedure_share_percent || 0,
       surgery_share_percent: plan.surgery_share_percent || 0,
       lab_referral_percent: plan.lab_referral_percent || 0,
+      radiology_referral_percent: plan.radiology_referral_percent || 0,
       minimum_guarantee: plan.minimum_guarantee || 0,
       effective_from: plan.effective_from,
       effective_to: plan.effective_to || "",
