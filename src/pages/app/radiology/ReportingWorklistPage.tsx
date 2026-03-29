@@ -9,14 +9,14 @@ import { useImagingOrders, IMAGING_MODALITIES } from '@/hooks/useImaging';
 import { ModalityBadge } from '@/components/radiology/ModalityBadge';
 import { ImagingPriorityBadge } from '@/components/radiology/ImagingPriorityBadge';
 import { format } from 'date-fns';
-import { FileText, RefreshCw, Clock } from 'lucide-react';
+import { FileText, RefreshCw, Clock, CheckCircle2, Eye } from 'lucide-react';
 
 export default function ReportingWorklistPage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { data: orders, isLoading, refetch } = useImagingOrders();
   const [modalityFilter, setModalityFilter] = useState<string>('all');
-  const [view, setView] = useState<'pending' | 'verification'>('pending');
+  const [view, setView] = useState<'pending' | 'verification' | 'completed'>('pending');
 
   // Pending reports: completed studies awaiting reporting
   const pendingReportOrders = orders?.filter(o => o.status === 'completed') || [];
@@ -24,7 +24,10 @@ export default function ReportingWorklistPage() {
   // Awaiting verification: reported but not yet verified
   const awaitingVerificationOrders = orders?.filter(o => o.status === 'reported') || [];
 
-  const currentOrders = view === 'pending' ? pendingReportOrders : awaitingVerificationOrders;
+  // Completed/verified reports
+  const completedOrders = orders?.filter(o => o.status === 'verified' || (o.status as string) === 'delivered') || [];
+
+  const currentOrders = view === 'pending' ? pendingReportOrders : view === 'verification' ? awaitingVerificationOrders : completedOrders;
   
   const filteredOrders = modalityFilter === 'all' 
     ? currentOrders 
@@ -81,6 +84,13 @@ export default function ReportingWorklistPage() {
           <Clock className="h-4 w-4 mr-2" />
           Awaiting Verification ({awaitingVerificationOrders.length})
         </Button>
+        <Button
+          variant={view === 'completed' ? 'default' : 'outline'}
+          onClick={() => setView('completed')}
+        >
+          <CheckCircle2 className="h-4 w-4 mr-2" />
+          Completed ({completedOrders.length})
+        </Button>
       </div>
 
       {isLoading ? (
@@ -90,12 +100,14 @@ export default function ReportingWorklistPage() {
           <CardContent className="text-center py-12">
             <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
             <p className="text-lg font-medium">
-              {view === 'pending' ? 'No studies pending report' : 'No reports awaiting verification'}
+              {view === 'pending' ? 'No studies pending report' : view === 'verification' ? 'No reports awaiting verification' : 'No completed reports'}
             </p>
             <p className="text-muted-foreground">
               {view === 'pending' 
                 ? 'Completed studies will appear here for reporting'
-                : 'Reported studies will appear here for verification'
+                : view === 'verification'
+                ? 'Reported studies will appear here for verification'
+                : 'Verified reports will appear here'
               }
             </p>
           </CardContent>
@@ -109,7 +121,9 @@ export default function ReportingWorklistPage() {
               onClick={() => navigate(
                 view === 'pending' 
                   ? `/app/radiology/report/${order.id}`
-                  : `/app/radiology/verify/${order.id}`
+                  : view === 'verification'
+                  ? `/app/radiology/verify/${order.id}`
+                  : `/app/radiology/report/${order.id}`
               )}
             >
               <CardContent className="p-4">
@@ -133,8 +147,8 @@ export default function ReportingWorklistPage() {
                       )}
                     </div>
                   </div>
-                  <Button size="sm">
-                    {view === 'pending' ? 'Report' : 'Verify'}
+                  <Button size="sm" variant={view === 'completed' ? 'outline' : 'default'}>
+                    {view === 'pending' ? 'Report' : view === 'verification' ? 'Verify' : 'View Report'}
                   </Button>
                 </div>
               </CardContent>
