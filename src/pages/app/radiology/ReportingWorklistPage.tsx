@@ -84,6 +84,13 @@ export default function ReportingWorklistPage() {
           <Clock className="h-4 w-4 mr-2" />
           Awaiting Verification ({awaitingVerificationOrders.length})
         </Button>
+        <Button
+          variant={view === 'completed' ? 'default' : 'outline'}
+          onClick={() => setView('completed')}
+        >
+          <CheckCircle2 className="h-4 w-4 mr-2" />
+          Completed ({completedOrders.length})
+        </Button>
       </div>
 
       {isLoading ? (
