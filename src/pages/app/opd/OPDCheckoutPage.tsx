@@ -169,13 +169,13 @@ export default function OPDCheckoutPage() {
     enabled: !!consultation?.id,
   });
 
-  // Fetch imaging orders for this consultation (no service_types join — table lacks FK)
+  // Fetch imaging orders for this consultation — join imaging_procedures for price
   const { data: imagingOrders } = useQuery({
     queryKey: ["opd-checkout-imaging-orders", consultation?.id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("imaging_orders")
-        .select("*")
+        .select("*, imaging_procedure:imaging_procedures(base_price, service_type_id, service_types(id, default_price))")
         .eq("consultation_id", consultation!.id);
       
       if (error) throw error;
