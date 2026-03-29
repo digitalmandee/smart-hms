@@ -1,0 +1,2 @@
+UPDATE doctor_compensation_plans SET radiology_referral_percent = 5 WHERE radiology_referral_percent = 0 OR radiology_referral_percent IS NULL;
+UPDATE doctor_compensation_plans SET lab_referral_percent = 5 WHERE lab_referral_percent = 0 OR lab_referral_percent IS NULL;
