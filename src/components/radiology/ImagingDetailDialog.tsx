@@ -95,7 +95,7 @@ export function ImagingDetailDialog({ orderId, open, onOpenChange }: ImagingDeta
     ? findingStatusConfig[result.finding_status]
     : null;
 
-  const images = (result?.images || []) as string[];
+  const images = getImageUrls(result?.images);
   const resultAny = result as any;
 
   return (
