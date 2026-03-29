@@ -2,6 +2,7 @@ import { forwardRef } from 'react';
 import { ImagingOrderWithRelations, ImagingResult, IMAGING_MODALITIES } from '@/hooks/useImaging';
 import { format } from 'date-fns';
 import { generateQRCodeUrl } from '@/lib/qrcode';
+import { normalizeImagingImages } from '@/lib/radiology-image-utils';
 
 interface PrintableImagingReportProps {
   order: ImagingOrderWithRelations;
