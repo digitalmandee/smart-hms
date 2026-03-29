@@ -94,6 +94,7 @@ const employeeSchema = z.object({
   anesthesia_share_percent: z.number().min(0).max(100).optional().nullable(),
   ipd_visit_share_percent: z.number().min(0).max(100).optional().nullable(),
   lab_referral_percent: z.number().min(0).max(100).optional().nullable(),
+  radiology_referral_percent: z.number().min(0).max(100).optional().nullable(),
   minimum_guarantee: z.number().optional().nullable(),
 });
 
