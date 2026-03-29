@@ -11,6 +11,9 @@ import { useImagingOrder, useUpdateImagingOrder } from '@/hooks/useImaging';
 import { ImagingStatusBadge } from '@/components/radiology/ImagingStatusBadge';
 import { ModalityBadge } from '@/components/radiology/ModalityBadge';
 import { ImagingPriorityBadge } from '@/components/radiology/ImagingPriorityBadge';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { uploadRadiologyImage, NormalizedImage } from '@/lib/radiology-image-utils';
 import { toast } from 'sonner';
 import { 
   ArrowLeft, 
@@ -20,22 +23,31 @@ import {
   Image as ImageIcon,
   X,
   MonitorUp,
-  HardDrive
+  HardDrive,
+  Loader2
 } from 'lucide-react';
 
 type ImageSource = 'pacs' | 'upload';
+
+interface UploadedImage {
+  previewUrl: string;
+  file: File;
+  uploaded?: NormalizedImage;
+}
 
 export default function ImageCapturePage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { profile } = useAuth();
   const { data: order, isLoading } = useImagingOrder(id);
   const { mutate: updateOrder, isPending: isUpdating } = useUpdateImagingOrder();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [imageSource, setImageSource] = useState<ImageSource>('upload');
-  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
   const [techNotes, setTechNotes] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
 
   if (isLoading) {
     return <div className="text-center py-12">Loading...</div>;
@@ -58,18 +70,61 @@ export default function ImageCapturePage() {
     });
   };
 
-  const handleCompleteStudy = () => {
-    updateOrder({ 
-      id: order.id, 
-      status: 'completed', 
-      performed_at: new Date().toISOString(),
-      notes: techNotes || order.notes,
-    }, {
-      onSuccess: () => {
-        toast.success('Study completed - ready for reporting');
-        navigate('/app/radiology/worklist');
+  const handleCompleteStudy = async () => {
+    if (!profile?.organization_id || !order.id) return;
+
+    setIsUploading(true);
+    try {
+      // Upload all images to Supabase storage
+      const imageEntries: NormalizedImage[] = [];
+      for (const img of uploadedImages) {
+        if (img.uploaded) {
+          imageEntries.push(img.uploaded);
+        } else {
+          const result = await uploadRadiologyImage(img.file, order.id, profile.organization_id);
+          imageEntries.push({ url: result.url, file_name: result.file_name });
+        }
       }
-    });
+
+      // Save images to imaging_results
+      const { data: existingResult } = await supabase
+        .from('imaging_results')
+        .select('id, images')
+        .eq('order_id', order.id)
+        .maybeSingle();
+
+      if (existingResult) {
+        await supabase
+          .from('imaging_results')
+          .update({ images: imageEntries as any })
+          .eq('id', existingResult.id);
+      } else {
+        await supabase
+          .from('imaging_results')
+          .insert({
+            order_id: order.id,
+            images: imageEntries as any,
+            created_by: profile.id,
+          } as any);
+      }
+
+      // Update order status
+      updateOrder({ 
+        id: order.id, 
+        status: 'completed', 
+        performed_at: new Date().toISOString(),
+        notes: techNotes || order.notes,
+      }, {
+        onSuccess: () => {
+          toast.success('Study completed - ready for reporting');
+          navigate('/app/radiology/worklist');
+        }
+      });
+    } catch (error: any) {
+      toast.error(`Failed to upload images: ${error.message}`);
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -77,25 +132,17 @@ export default function ImageCapturePage() {
     if (!files) return;
 
     Array.from(files).forEach(file => {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        if (event.target?.result) {
-          setUploadedImages(prev => [...prev, event.target!.result as string]);
-          toast.success(`${file.name} uploaded`);
-        }
-      };
-      reader.readAsDataURL(file);
+      const previewUrl = URL.createObjectURL(file);
+      setUploadedImages(prev => [...prev, { previewUrl, file }]);
+      toast.success(`${file.name} added`);
     });
 
-    // Reset input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   };
 
   const handlePACSFetch = () => {
-    // PACS integration requires configuration
-    // Real implementation would call the pacs-gateway edge function
     toast.info('PACS Integration Coming Soon', {
       description: 'Configure PACS server settings in Radiology > Settings > PACS to enable this feature.',
       duration: 5000,
@@ -103,7 +150,11 @@ export default function ImageCapturePage() {
   };
 
   const handleRemoveImage = (index: number) => {
-    setUploadedImages(prev => prev.filter((_, i) => i !== index));
+    setUploadedImages(prev => {
+      const removed = prev[index];
+      if (removed?.previewUrl) URL.revokeObjectURL(removed.previewUrl);
+      return prev.filter((_, i) => i !== index);
+    });
   };
 
   return (
@@ -204,7 +255,7 @@ export default function ImageCapturePage() {
                     {uploadedImages.map((img, index) => (
                       <div key={index} className="relative group">
                         <img 
-                          src={img} 
+                          src={img.previewUrl} 
                           alt={`Captured ${index + 1}`}
                           className="w-full h-32 object-cover rounded-lg border"
                         />
@@ -283,10 +334,14 @@ export default function ImageCapturePage() {
             <div className="flex justify-end gap-2">
               <Button 
                 onClick={handleCompleteStudy} 
-                disabled={isUpdating || uploadedImages.length === 0}
+                disabled={isUpdating || isUploading || uploadedImages.length === 0}
               >
-                <CheckCircle className="h-4 w-4 mr-2" />
-                Complete Study
+                {isUploading ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                )}
+                {isUploading ? 'Uploading Images...' : 'Complete Study'}
               </Button>
             </div>
           </CardContent>
