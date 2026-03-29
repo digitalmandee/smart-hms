@@ -247,6 +247,19 @@ export default function DoctorCompensationPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
+                    <Label>Radiology Referral %</Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={100}
+                      value={formData.radiology_referral_percent}
+                      onChange={(e) => setFormData({ ...formData, radiology_referral_percent: Number(e.target.value) })}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
                     <Label>Effective From</Label>
                     <Input
                       type="date"

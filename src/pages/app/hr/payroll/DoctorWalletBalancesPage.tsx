@@ -344,6 +344,12 @@ export default function DoctorWalletBalancesPage() {
                           {balance.procedures > 0 ? formatCurrency(balance.procedures) : "—"}
                         </TableCell>
                         <TableCell className="text-right">
+                          {balance.labReferrals > 0 ? formatCurrency(balance.labReferrals) : "—"}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {balance.radiologyReferrals > 0 ? formatCurrency(balance.radiologyReferrals) : "—"}
+                        </TableCell>
+                        <TableCell className="text-right">
                           {balance.other > 0 ? formatCurrency(balance.other) : "—"}
                         </TableCell>
                         <TableCell className="text-right">
