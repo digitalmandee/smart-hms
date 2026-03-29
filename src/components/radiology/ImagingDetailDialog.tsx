@@ -73,10 +73,10 @@ export function ImagingDetailDialog({ orderId, open, onOpenChange }: ImagingDeta
   };
 
   const handleDownloadImages = () => {
-    const images = (result?.images || []) as string[];
-    if (images.length === 0) return;
+    const imageUrls = getImageUrls(result?.images);
+    if (imageUrls.length === 0) return;
     
-    images.forEach((url: string, index: number) => {
+    imageUrls.forEach((url: string, index: number) => {
       const link = document.createElement('a');
       link.href = url;
       link.download = `${order?.order_number}-image-${index + 1}.jpg`;
