@@ -98,6 +98,8 @@ export default function DoctorWalletBalancesPage() {
           consultations: 0,
           surgeries: 0,
           procedures: 0,
+          labReferrals: 0,
+          radiologyReferrals: 0,
           other: 0,
           earningIds: [],
         };
