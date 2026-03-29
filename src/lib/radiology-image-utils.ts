@@ -78,7 +78,7 @@ export async function refreshRadiologyImageUrls(images: NormalizedImage[]): Prom
   return Promise.all(
     images.map(async (img) => {
       // If it has a path stored in the object, regenerate signed URL
-      const imgAny = img as Record<string, unknown>;
+      const imgAny = img as unknown as Record<string, unknown>;
       if (imgAny.path && typeof imgAny.path === 'string') {
         try {
           const { data } = await supabase.storage
