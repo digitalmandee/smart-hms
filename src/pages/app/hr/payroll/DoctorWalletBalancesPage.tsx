@@ -311,6 +311,8 @@ export default function DoctorWalletBalancesPage() {
                       <TableHead className="text-right">Consultations</TableHead>
                       <TableHead className="text-right">Surgeries</TableHead>
                       <TableHead className="text-right">Procedures</TableHead>
+                      <TableHead className="text-right">Lab Referrals</TableHead>
+                      <TableHead className="text-right">Radiology Referrals</TableHead>
                       <TableHead className="text-right">Other</TableHead>
                       <TableHead className="text-right">Total Pending</TableHead>
                       <TableHead className="text-right">Action</TableHead>
