@@ -12,6 +12,7 @@ import { Scan, Calendar, ChevronDown, ChevronUp, FileCheck2, Eye, Download, Prin
 import { ImageViewer } from "@/components/radiology/ImageViewer";
 import { ImagingDetailDialog } from "@/components/radiology/ImagingDetailDialog";
 import { useReactToPrint } from "react-to-print";
+import { useOrganizationBranding } from "@/hooks/useOrganizationBranding";
 
 interface PatientImagingHistoryProps {
   patientId: string;

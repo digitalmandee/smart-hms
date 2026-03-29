@@ -23,6 +23,7 @@ import {
   FileText,
   Edit
 } from 'lucide-react';
+import { useOrganizationBranding } from '@/hooks/useOrganizationBranding';
 
 export default function ReportVerificationPage() {
   const { id } = useParams<{ id: string }>();

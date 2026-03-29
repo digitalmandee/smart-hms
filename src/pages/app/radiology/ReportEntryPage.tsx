@@ -15,6 +15,7 @@ import { usePrint } from '@/hooks/usePrint';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ArrowLeft, Save, FileText, AlertTriangle, Printer } from 'lucide-react';
+import { useOrganizationBranding } from '@/hooks/useOrganizationBranding';
 
 export default function ReportEntryPage() {
   const { id } = useParams<{ id: string }>();

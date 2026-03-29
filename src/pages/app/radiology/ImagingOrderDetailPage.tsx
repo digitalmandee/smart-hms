@@ -28,6 +28,7 @@ import {
   ExternalLink,
   Link2
 } from 'lucide-react';
+import { useOrganizationBranding } from '@/hooks/useOrganizationBranding';
 
 export default function ImagingOrderDetailPage() {
   const { id } = useParams<{ id: string }>();
