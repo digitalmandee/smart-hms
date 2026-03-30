@@ -72,9 +72,8 @@ export default function RequisitionDetailPage() {
   const [approvedQuantities, setApprovedQuantities] = useState<Record<string, number>>({});
   const { printRef: reqPrintRef, handlePrint: reqPrintHandle } = usePrint();
 
-  const userRole = profile?.role;
-  const isAdminRole = ["branch_admin", "org_admin", "super_admin", "accountant"].includes(userRole || "");
-  const isPharmacistRole = userRole === "pharmacist";
+  const isAdminRole = roles.some(r => ["branch_admin", "org_admin", "super_admin", "accountant"].includes(r));
+  const isPharmacistRole = roles.includes("pharmacist" as any);
 
   // Mutation to update requisition status to received/disputed
   const updateStatusMutation = useMutation({

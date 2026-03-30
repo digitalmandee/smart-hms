@@ -59,7 +59,7 @@ export default function POFormPage() {
   const { data: branches } = useBranches();
   const createPO = useCreatePurchaseOrder();
   const { data: sourcePR } = usePurchaseRequest(fromPrId || "");
-
+  const { data: sourceRequisition } = useRequisition(fromRequisitionId || "");
   const isSingleBranch = branches && branches.length === 1;
   const autoSelectedBranchId = profile?.branch_id || (isSingleBranch ? branches[0]?.id : "") || "";
 
