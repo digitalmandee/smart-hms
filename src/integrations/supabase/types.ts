@@ -25142,6 +25142,8 @@ export type Database = {
         | "issued"
         | "rejected"
         | "cancelled"
+        | "received"
+        | "disputed"
       salary_component_type: "earning" | "deduction"
       service_category:
         | "consultation"
@@ -25698,6 +25700,8 @@ export const Constants = {
         "issued",
         "rejected",
         "cancelled",
+        "received",
+        "disputed",
       ],
       salary_component_type: ["earning", "deduction"],
       service_category: [
