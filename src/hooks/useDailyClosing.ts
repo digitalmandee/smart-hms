@@ -76,6 +76,11 @@ export interface DailyClosingSummary {
     other: number;
     total: number;
   };
+  expenses: {
+    total: number;
+    cash: number;
+  };
+  netCash: number;
   departments: {
     opd: number;
     ipd: number;
