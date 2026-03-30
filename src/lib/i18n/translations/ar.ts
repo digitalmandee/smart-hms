@@ -419,6 +419,15 @@ export const ar: Record<TranslationKey, string> = {
   "nav.purchaseRequisitions": "طلبات الشراء",
   "nav.cycleCounts": "الجرد الدوري",
   "nav.returnToVendor": "إرجاع للمورد",
+  "nav.newRequisition": "طلب جديد",
+  "nav.myRequisitions": "طلباتي",
+  "requisition.createPO": "إنشاء أمر شراء من الطلب",
+  "requisition.acceptStock": "قبول المخزون",
+  "requisition.declineStock": "رفض المخزون",
+  "requisition.stockReceived": "تم استلام المخزون",
+  "requisition.disputed": "متنازع عليه",
+  "requisition.confirmAccept": "تأكيد القبول",
+  "requisition.submitDispute": "تقديم اعتراض",
 
   // IPD Module
   "ipd.dashboard": "لوحة تحكم التنويم",
