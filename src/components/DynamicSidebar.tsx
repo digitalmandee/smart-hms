@@ -774,6 +774,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   FileCheck,
   ScanBarcode,
   Smartphone,
+  Coins,
 };
 
 interface DynamicSidebarProps {
