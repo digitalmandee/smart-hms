@@ -42,6 +42,9 @@ export default function BloodRequestFormPage() {
   const [searchParams] = useSearchParams();
   const preselectedPatientId = searchParams.get('patientId');
   const preselectedPriority = searchParams.get('priority') as BloodRequestPriority | null;
+  const preselectedBloodGroup = searchParams.get('bloodGroup') as BloodGroupType | null;
+  const preselectedDepartment = searchParams.get('department');
+  const surgeryId = searchParams.get('surgeryId');
   
   const [patientSearch, setPatientSearch] = useState('');
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(preselectedPatientId);
@@ -51,13 +54,13 @@ export default function BloodRequestFormPage() {
   const createRequest = useCreateBloodRequest();
 
   const [formData, setFormData] = useState({
-    blood_group: '' as BloodGroupType | '',
+    blood_group: (preselectedBloodGroup || '') as BloodGroupType | '',
     component_type: 'packed_rbc' as BloodComponentType,
     units_requested: 1,
     priority: (preselectedPriority || 'routine') as BloodRequestPriority,
-    indication: '',
+    indication: surgeryId ? 'Pre-operative / Intra-operative blood requirement' : '',
     required_by: '',
-    requesting_department: '',
+    requesting_department: preselectedDepartment || (surgeryId ? 'OT / Surgery' : ''),
   });
 
   // Auto-fill blood group when patient is selected

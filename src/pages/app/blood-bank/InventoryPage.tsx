@@ -256,6 +256,63 @@ export default function InventoryPage() {
           </Button>
         </div>
       )}
+
+      {/* Discard Dialog */}
+      <Dialog open={!!discardUnit} onOpenChange={() => setDiscardUnit(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Discard Blood Unit</DialogTitle>
+            <DialogDescription>
+              Unit {discardUnit?.unit_number} ({discardUnit?.blood_group}) will be permanently discarded.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>Reason *</Label>
+              <Select value={discardReason} onValueChange={setDiscardReason}>
+                <SelectTrigger><SelectValue placeholder="Select reason..." /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="expired">Expired</SelectItem>
+                  <SelectItem value="contaminated">Contaminated</SelectItem>
+                  <SelectItem value="damaged">Damaged</SelectItem>
+                  <SelectItem value="reactive">Reactive (Failed Testing)</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Notes</Label>
+              <Textarea
+                placeholder="Additional details..."
+                value={discardNotes}
+                onChange={(e) => setDiscardNotes(e.target.value)}
+                rows={2}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDiscardUnit(null)}>Cancel</Button>
+            <Button
+              variant="destructive"
+              disabled={!discardReason || discardMutation.isPending}
+              onClick={async () => {
+                await discardMutation.mutateAsync({
+                  unitId: discardUnit.id,
+                  reason: discardReason,
+                  notes: discardNotes,
+                });
+                setDiscardUnit(null);
+              }}
+            >
+              {discardMutation.isPending ? (
+                <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Discarding...</>
+              ) : (
+                <><Trash2 className="h-4 w-4 mr-2" /> Discard Unit</>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

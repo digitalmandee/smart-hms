@@ -309,6 +309,15 @@ export default function TransfusionDetailPage() {
           </Card>
         </div>
       </div>
+
+      {/* Transfusion Reaction Form */}
+      {id && (
+        <TransfusionReactionForm
+          open={showReactionForm}
+          onOpenChange={setShowReactionForm}
+          transfusionId={id}
+        />
+      )}
     </div>
   );
 }

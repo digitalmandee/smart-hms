@@ -865,6 +865,7 @@ function App() {
               <Route path="blood-bank/labels" element={<BloodBagLabelsPage />} />
               <Route path="blood-bank/donor-cards" element={<DonorCardPrintPage />} />
               <Route path="blood-bank/analytics" element={<BloodBankAnalyticsPage />} />
+              <Route path="blood-bank/testing" element={<BloodTestingPage />} />
 
               {/* OPD routes */}
               <Route path="opd" element={<DoctorDashboard />} />
