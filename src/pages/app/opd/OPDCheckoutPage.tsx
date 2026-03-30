@@ -213,7 +213,24 @@ export default function OPDCheckoutPage() {
     enabled: !!consultation?.id,
   });
 
-  // Auto-redirect if appointment is fully paid AND no unpaid lab/imaging orders
+  // Fetch blood requests for this patient/consultation
+  const { data: bloodRequests } = useQuery({
+    queryKey: ["opd-checkout-blood-requests", appointment?.patient_id],
+    queryFn: async () => {
+      const today = new Date().toISOString().split('T')[0];
+      const { data, error } = await supabase
+        .from("blood_requests")
+        .select("*")
+        .eq("patient_id", appointment!.patient_id)
+        .eq("requesting_department", "OPD")
+        .gte("created_at", today)
+        .is("issued_at", null);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!appointment?.patient_id,
+  });
+
   useEffect(() => {
     if (appointment && appointment.payment_status === "paid" && labOrders !== undefined && imagingOrders !== undefined) {
       const hasUnpaidLab = labOrders?.some(o => !o.invoice_id) || false;
