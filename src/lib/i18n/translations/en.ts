@@ -3299,6 +3299,11 @@ export const en = {
   "dialysis.allSlotsOpen": "All slots are open for this pattern/shift.",
   "reception.dialysisSchedule": "Dialysis Schedule",
   "reception.scheduleDialysis": "Schedule dialysis session",
+  "dialysis.enrolledDate": "Enrolled Date",
+  "dialysis.printCard": "Print Card",
+  "dialysis.viewProfile": "View Profile",
+  "dialysis.sessionHistory": "Session History",
+  "dialysis.patientDetail": "Patient Detail",
 
 } as const;
 
