@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useDialysisSession, useUpdateDialysisSession, useDialysisVitals, useAddDialysisVitals } from "@/hooks/useDialysis";
+import { useDialysisSession, useUpdateDialysisSession, useDialysisVitals, useAddDialysisVitals, useDialysisServicePrice, useGenerateDialysisInvoice } from "@/hooks/useDialysis";
 import { AlertTriangle, Plus, Activity, XCircle, Ban, Clock, User, Stethoscope, Heart } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { toast } from "sonner";
