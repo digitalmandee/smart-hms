@@ -120,7 +120,7 @@ export default function PharmacyReturnsPage() {
       }))
     : [];
 
-  const activeQuery = searchMode === "pos" ? searchQuery : rxSearchQuery;
+  
 
   return (
     <div className="space-y-6">

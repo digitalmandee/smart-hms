@@ -321,7 +321,7 @@ export function useProcessReturn() {
       totalRefundAmount: number;
       restockItems?: boolean;
     }) => {
-      const operationTimer = returnsLogger.startOperation('processReturn');
+      returnsLogger.startOperation('processReturn');
       
       returnsLogger.info('Processing pharmacy return', {
         transactionId,

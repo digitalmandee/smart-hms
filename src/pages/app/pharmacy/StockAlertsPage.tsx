@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useInventory } from "@/hooks/usePharmacy";
 import { format, differenceInDays } from "date-fns";
-import { AlertTriangle, Package, Calendar, ShoppingCart, FileText } from "lucide-react";
+import { AlertTriangle, Package, Calendar, FileText } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import { useNavigate } from "react-router-dom";
 
