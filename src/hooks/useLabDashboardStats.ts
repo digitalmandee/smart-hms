@@ -10,6 +10,16 @@ export interface LabDashboardStats {
   completedToday: number;
 }
 
+export interface TATOrderInfo {
+  id: string;
+  order_number: string;
+  priority: string;
+  created_at: string;
+  elapsed_hours: number;
+  patient: { first_name: string; last_name: string; patient_number: string } | null;
+  tests_count: number;
+}
+
 export const useLabDashboardStats = () => {
   const { profile } = useAuth();
   const today = format(new Date(), "yyyy-MM-dd");
