@@ -3236,6 +3236,16 @@ export const ur: Record<TranslationKey, string> = {
   "dialysis.viewProfile": "پروفائل دیکھیں",
   "dialysis.sessionHistory": "سیشن کی تاریخ",
   "dialysis.patientDetail": "مریض کی تفصیلات",
+  "dialysis.generateInvoice": "انوائس بنائیں",
+  "dialysis.sessionFee": "سیشن فیس",
+  "dialysis.consumables": "استعمال شدہ اشیاء",
+  "dialysis.additionalCharges": "اضافی چارجز",
+  "dialysis.invoiceGenerated": "انوائس بن گئی",
+  "dialysis.noInvoice": "کوئی انوائس نہیں",
+  "dialysis.viewInvoice": "انوائس دیکھیں",
+  "dialysis.billing": "بلنگ",
+  "dialysis.chargesPreview": "چارجز کا جائزہ",
+  "dialysis.defaultPrice": "ڈیفالٹ قیمت",
 
 };
 

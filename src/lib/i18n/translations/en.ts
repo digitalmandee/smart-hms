@@ -3304,6 +3304,16 @@ export const en = {
   "dialysis.viewProfile": "View Profile",
   "dialysis.sessionHistory": "Session History",
   "dialysis.patientDetail": "Patient Detail",
+  "dialysis.generateInvoice": "Generate Invoice",
+  "dialysis.sessionFee": "Session Fee",
+  "dialysis.consumables": "Consumables",
+  "dialysis.additionalCharges": "Additional Charges",
+  "dialysis.invoiceGenerated": "Invoice Generated",
+  "dialysis.noInvoice": "No Invoice",
+  "dialysis.viewInvoice": "View Invoice",
+  "dialysis.billing": "Billing",
+  "dialysis.chargesPreview": "Charges Preview",
+  "dialysis.defaultPrice": "Default Price",
 
 } as const;
 

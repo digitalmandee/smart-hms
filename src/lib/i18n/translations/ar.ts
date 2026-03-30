@@ -3236,6 +3236,16 @@ export const ar: Record<TranslationKey, string> = {
   "dialysis.viewProfile": "عرض الملف",
   "dialysis.sessionHistory": "سجل الجلسات",
   "dialysis.patientDetail": "تفاصيل المريض",
+  "dialysis.generateInvoice": "إنشاء فاتورة",
+  "dialysis.sessionFee": "رسوم الجلسة",
+  "dialysis.consumables": "المستهلكات",
+  "dialysis.additionalCharges": "رسوم إضافية",
+  "dialysis.invoiceGenerated": "تم إنشاء الفاتورة",
+  "dialysis.noInvoice": "لا توجد فاتورة",
+  "dialysis.viewInvoice": "عرض الفاتورة",
+  "dialysis.billing": "الفواتير",
+  "dialysis.chargesPreview": "معاينة الرسوم",
+  "dialysis.defaultPrice": "السعر الافتراضي",
 
 };
 

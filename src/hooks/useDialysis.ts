@@ -292,6 +292,106 @@ export function useDialysisScheduleAvailability(pattern: string, shift: string) 
   });
 }
 
+// ── Dialysis Service Price ──
+export function useDialysisServicePrice() {
+  return useQuery({
+    queryKey: ["dialysis-service-price"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("service_types")
+        .select("id, name, default_price")
+        .ilike("name", "%Dialysis Session%")
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
+// ── Generate Dialysis Invoice ──
+export function useGenerateDialysisInvoice() {
+  const qc = useQueryClient();
+  const { profile } = useAuth();
+  return useMutation({
+    mutationFn: async ({ sessionId, patientId, sessionNumber, sessionFee, consumablesCharges }: {
+      sessionId: string;
+      patientId: string;
+      sessionNumber?: string;
+      sessionFee: number;
+      consumablesCharges?: { description: string; amount: number }[];
+    }) => {
+      const today = new Date();
+      const dateStr = today.toISOString().slice(0, 10).replace(/-/g, "");
+      const randomSuffix = Math.floor(Math.random() * 1000).toString().padStart(3, "0");
+      const invoiceNumber = `INV-${dateStr}-${randomSuffix}`;
+
+      const consumablesTotal = (consumablesCharges || []).reduce((sum, c) => sum + c.amount, 0);
+      const totalAmount = sessionFee + consumablesTotal;
+
+      // Create invoice
+      const { data: invoice, error: invoiceError } = await supabase
+        .from("invoices")
+        .insert({
+          invoice_number: invoiceNumber,
+          patient_id: patientId,
+          branch_id: profile?.branch_id,
+          organization_id: profile!.organization_id!,
+          subtotal: totalAmount,
+          total_amount: totalAmount,
+          paid_amount: 0,
+          balance_amount: totalAmount,
+          status: "pending" as const,
+          notes: `Dialysis Session ${sessionNumber || ""}`.trim(),
+          created_by: profile?.id,
+        })
+        .select()
+        .single();
+      if (invoiceError) throw invoiceError;
+
+      // Create invoice items
+      const items: any[] = [
+        {
+          invoice_id: invoice.id,
+          description: `Dialysis Session ${sessionNumber || ""}`.trim(),
+          quantity: 1,
+          unit_price: sessionFee,
+          total_price: sessionFee,
+        },
+      ];
+      for (const c of consumablesCharges || []) {
+        items.push({
+          invoice_id: invoice.id,
+          description: c.description,
+          quantity: 1,
+          unit_price: c.amount,
+          total_price: c.amount,
+        });
+      }
+      const { error: itemsError } = await supabase
+        .from("invoice_items")
+        .insert(items);
+      if (itemsError) throw itemsError;
+
+      // Link invoice to session
+      const { error: linkError } = await supabase
+        .from("dialysis_sessions")
+        .update({ invoice_id: invoice.id, updated_at: new Date().toISOString() })
+        .eq("id", sessionId);
+      if (linkError) throw linkError;
+
+      return invoice;
+    },
+    onSuccess: (data) => {
+      toast.success(`Invoice ${data.invoice_number} generated`);
+      qc.invalidateQueries({ queryKey: ["dialysis-sessions"] });
+      qc.invalidateQueries({ queryKey: ["dialysis-session"] });
+      qc.invalidateQueries({ queryKey: ["invoices"] });
+    },
+    onError: (e: any) => toast.error(e.message || "Failed to generate invoice"),
+  });
+}
+
 // ── Check if patient is enrolled in dialysis ──
 export function useDialysisPatientByPatientId(patientId: string | undefined) {
   const { profile } = useAuth();
