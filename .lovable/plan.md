@@ -1,124 +1,233 @@
 
 
-# Procurement Lifecycle Audit Report
+# Procurement Lifecycle — Full Verification & Manual Testing Scenarios
 
-## Scope Tested
-PR (Purchase Request) → PO (Purchase Order) → GRN (Goods Received Note) → Stock Update → AP (Accounts Payable) → Vendor Payment → GL (General Ledger)
+## Current State Assessment
 
----
-
-## WHAT WORKS CORRECTLY
-
-1. **PR → PO conversion**: PRDetailPage has "Convert to PO" button that navigates to `/app/inventory/purchase-orders/new?from_pr={prId}`. POFormPage pre-fills items from the PR correctly (quantity, estimated cost, branch, store, notes).
-
-2. **PO lifecycle states**: Draft → Pending Approval → Approved → Ordered → Partially Received → Received → Cancelled. All status transitions have dedicated hooks with proper cache invalidation.
-
-3. **GRN creation linked to PO**: GRNFormPage only shows POs with status "ordered". Auto-populates remaining quantities (`quantity - received_quantity`). Supports partial deliveries.
-
-4. **GRN verification → stock update**: `useVerifyGRN` correctly inserts into `inventory_stock` (for inventory items) or `medicine_inventory` (for medicines) with batch, expiry, vendor, and cost. Also creates `stock_adjustments` audit records.
-
-5. **PO received quantity tracking**: On GRN verification, `purchase_order_items.received_quantity` is updated. PO status auto-transitions to `partially_received` or `received` based on fulfillment.
-
-6. **Item-vendor mapping**: GRN verification auto-creates/updates `item_vendor_mapping` with last purchase price and date.
-
-7. **AP tracking via PayablesPage**: Posted GRNs serve as AP entries. Outstanding = `invoice_amount - sum(vendor_payments)`. Aging filter available.
-
-8. **Vendor payment with GL posting**: `useApproveVendorPayment` creates journal entry (DR Accounts Payable, CR Cash/Bank) and marks payment as paid. References the vendor payment as `reference_type: "vendor_payment"`.
-
-9. **Vendor outstanding balance**: `useVendorOutstandingBalance` correctly calculates per-GRN outstanding with breakdown.
-
-10. **Auto-generated numbers**: Triggers exist for PR, PO, GRN, vendor payment numbers — all date-based sequential.
+After reviewing all hooks (`useGRN`, `usePurchaseOrders`, `usePurchaseRequests`, `useVendorPayments`), pages (PR, PO, GRN, Payables, VendorPayments), and the recently added fixes (GRN→AP journal trigger, double-approval guard, reversal logic, batch/qty validation), here is the complete verification plan and manual testing guide.
 
 ---
 
-## RISKS / WEAK POINTS
+## A. Process Flow Verification (Screen-by-Screen)
 
-### High Priority
+### Screen 1: Purchase Request (PR)
+**Pages**: PRListPage → PRFormPage → PRDetailPage
+**Flow**: Draft → Submit (pending_approval) → Approve/Reject → Convert to PO
 
-| # | Issue | Impact |
-|---|-------|--------|
-| 1 | **No AP journal entry on GRN posting** — When GRN status changes to "posted", no trigger or code creates a `DR Inventory Asset / CR Accounts Payable` journal entry. The AP liability is only tracked application-side (PayablesPage queries GRNs directly). The GL balance sheet is therefore **incomplete** — AP account never increases. | Balance Sheet understates liabilities; Trial Balance won't show true AP |
-| 2 | **Vendor payment approval skips status check** — `useApproveVendorPayment` does not verify that payment status is "pending" before approving. A payment could be approved twice, creating duplicate journal entries. | Duplicate GL postings, inflated AP debit |
-| 3 | **Cancel payment does not reverse journal** — `useCancelVendorPayment` only sets `status: "cancelled"` but does not create a reversing journal entry or delete the posted one. GL becomes permanently wrong. | Irrecoverable GL error without manual correction |
-| 4 | **No batch/expiry validation on GRN** — GRNFormPage allows blank batch numbers and expiry dates with no warning. For medicines, this breaks FEFO dispensing logic and regulatory compliance. | Untraceable batches in pharmacy, expired stock not caught |
-| 5 | **GRN form allows qty > ordered** — The max attribute `max={item.ordered_quantity}` is on the input but is a soft HTML constraint only; no server-side validation prevents over-receiving. | Phantom stock, PO quantity mismatch |
+| Check | Status |
+|-------|--------|
+| PR form creates draft with items | ✅ Working |
+| Submit changes status to pending_approval | ✅ Working |
+| Approve/Reject with reason dialog | ✅ Working |
+| Convert to PO navigates to PO form with `?from_pr=` | ✅ Working |
+| PR hook has no status guard on convert | ⚠️ Risk — hook allows converting draft/rejected PR |
 
-### Medium Priority
+### Screen 2: Purchase Order (PO)
+**Pages**: POListPage → POFormPage → PODetailPage
+**Flow**: Draft → Pending Approval → Approved → Ordered → Partially Received → Received
 
-| # | Issue | Impact |
-|---|-------|--------|
-| 6 | **No duplicate GRN prevention** — Nothing prevents creating multiple GRNs against the same PO for the same items. The GRNFormPage filters POs with status "ordered" but a partially-received PO remains selectable. While remaining qty is calculated, there's no DB-level uniqueness constraint. | Accidental double-receiving |
-| 7 | **PR can be converted without approval** — `useConvertPRtoPO` only sets status to "converted" but `PRDetailPage` likely controls the button visibility based on status. However, the hook itself has no guard — any caller can convert a draft/rejected PR. | Unauthorized procurement |
-| 8 | **No vendor active/approval check on PO creation** — `useCreatePurchaseOrder` accepts any `vendor_id`. The vendors table has `is_active` but no code checks it before creating a PO. Inactive vendors can receive orders. | Orders to deactivated vendors |
-| 9 | **Stock adjustment `previous_quantity` always 0** — In `useVerifyGRN` line 345, `previous_quantity: 0` is hardcoded rather than querying actual current stock. Audit trail is misleading. | Incorrect audit records |
-| 10 | **No 3-way matching enforcement** — While the system stores PO amounts, GRN `invoice_amount`, and vendor invoice details, there is no automated comparison or alert for PO↔GRN↔Invoice price/quantity discrepancies. | Overpayment risk |
+| Check | Status |
+|-------|--------|
+| PO form pre-fills from PR items | ✅ Working |
+| Vendor selection and item addition | ✅ Working |
+| Approve/Order status transitions | ✅ Working |
+| "Receive Goods" button links to GRN form | ✅ Working |
+| No vendor `is_active` check on creation | ⚠️ Risk |
 
-### Low Priority
+### Screen 3: GRN (Goods Received Note)
+**Pages**: GRNListPage → GRNFormPage → GRNDetailPage
+**Flow**: Create from PO → Draft → Verify (stock update) → Post (AP journal fires)
 
-| # | Issue | Impact |
-|---|-------|--------|
-| 11 | **No role-based guard on procurement hooks** — All mutation hooks (create PO, approve PO, verify GRN, approve payment) check only for a valid `profile` but not for specific roles (`store_manager`, `warehouse_admin`, `finance_manager`). RLS policies may exist at DB level, but client-side shows all actions to all users. | UI shows unauthorized actions |
-| 12 | **No advance payment workflow** — Vendor payments require a GRN/PO link for AP tracking, but there's no mechanism for advance payments (pay before delivery) which is common in procurement. | Can't track vendor advances |
-| 13 | **GRN verification is not atomic** — `useVerifyGRN` performs 5+ sequential DB operations (update GRN, insert stock, update PO items, check PO status, create adjustments, update mappings) without a transaction. A failure mid-way leaves data in an inconsistent state. | Partial stock updates on failure |
-| 14 | **No GRN QC rejection workflow** — While `quantity_rejected` and `rejection_reason` fields exist on `grn_items`, the GRNFormPage hardcodes `quantity_rejected: 0` and `quantity_accepted: quantity_received`. No UI to reject items during receiving. | Can't record quality issues |
+| Check | Status |
+|-------|--------|
+| GRN form loads remaining PO quantities | ✅ Working |
+| Batch number required for medicines | ✅ Fixed (just added) |
+| Qty validation (≤ ordered) | ✅ Fixed (just added) |
+| Verify creates stock entries | ✅ Working |
+| Verify updates PO received_quantity | ✅ Working |
+| PO auto-transitions to partially_received/received | ✅ Working |
+| QC pass/fail/quarantine per item | ✅ Working (GRNDetailPage) |
+| Barcode scan to highlight items | ✅ Working |
+| GRN→AP journal trigger on verify | ✅ Fixed (just added) |
+| Stock adjustment `previous_quantity` always 0 | ⚠️ Known issue |
 
----
+### Screen 4: Accounts Payable
+**Pages**: PayablesPage
+**Flow**: Shows posted GRNs with outstanding amounts
 
-## CRITICAL MISSING COMPONENTS
+| Check | Status |
+|-------|--------|
+| Lists posted GRNs with vendor info | ✅ Working |
+| Calculates outstanding = invoice_amount - payments | ✅ Working |
+| Aging filter (0-30, 31-60, 61-90, 90+) | ✅ Working |
+| "Record Payment" links to vendor payment form | ✅ Working |
 
-1. **GRN → AP Journal Entry**: The biggest gap. When a GRN is posted/verified, the system should auto-create:
-   - DR: Inventory Asset (INV-001) for `total_accepted_value`
-   - CR: Accounts Payable (AP-001) for `invoice_amount`
-   This should be a DB trigger (`post_grn_to_journal`) similar to `post_vendor_payment_to_journal`.
+### Screen 5: Vendor Payments
+**Pages**: VendorPaymentsListPage → VendorPaymentFormPage → VendorPaymentDetailPage
+**Flow**: Create → Pending → Approve (journal posted) → or Cancel (journal reversed)
 
-2. **Reversing journal on payment cancellation**: When a vendor payment is cancelled, the original journal entry must be reversed (DR Cash/Bank, CR AP).
+| Check | Status |
+|-------|--------|
+| Payment form with vendor/GRN/PO link | ✅ Working |
+| Approve creates DR AP / CR Cash journal | ✅ Working |
+| Double-approval guard (status check) | ✅ Fixed (just added) |
+| Cancel creates reversing journal entry | ✅ Fixed (just added) |
+| Cancel guard (already cancelled check) | ✅ Working |
 
-3. **GRN verification transaction wrapper**: All stock updates should happen in a single DB function/transaction to prevent partial updates.
+### Screen 6: GL Verification
+**Pages**: JournalEntriesPage, TrialBalancePage, GeneralLedgerPage
 
----
-
-## RECOMMENDED IMPROVEMENTS
-
-### High Priority
-- Add `post_grn_to_journal` DB trigger (DR Inventory, CR AP) on GRN status change to "verified"/"posted"
-- Add duplicate-payment guard in `useApproveVendorPayment` (check status === "pending")  
-- Add reversing journal entry logic to `useCancelVendorPayment`
-- Make batch number required for medicine items in GRN form
-- Add server-side qty validation (received ≤ ordered - already_received)
-
-### Medium Priority
-- Add `is_active` vendor check in PO creation
-- Add 3-way match report (PO amount vs GRN amount vs Invoice amount) with variance alerts
-- Query actual `previous_quantity` for stock adjustment records
-- Add QC accept/reject UI to GRN receiving form
-- Add role-based button visibility for approve/reject/convert actions
-
-### Low Priority
-- Add advance payment workflow for vendors
-- Wrap GRN verification in a Supabase Edge Function for atomicity
-- Add procurement dashboard with cycle time metrics (PR-to-PO time, PO-to-GRN time)
-- Add duplicate PO detection (same vendor + same items within X days)
-
----
-
-## REPORTING AVAILABILITY
-
-| Report | Status |
-|--------|--------|
-| Vendor Performance | Exists (VendorPerformanceReport) |
-| Stock Levels | Exists (StockLevelsPage) |
-| Dead Stock | Exists (DeadStockReport) |
-| AP Aging | Exists (PayablesPage with aging filter) |
-| Audit Log | Exists (FinancialAuditLogPage) |
-| Reorder Alerts | Exists (ReorderAlertsPage) |
-| 3-Way Match Report | Missing |
-| Procurement Cycle Time | Missing |
-| GRN Discrepancy Report | Missing |
-| Vendor Payment Aging | Partially (via PayablesPage) |
+| Check | Status |
+|-------|--------|
+| GRN verification posts DR Inventory / CR AP | ✅ Fixed (trigger added) |
+| Vendor payment posts DR AP / CR Cash | ✅ Working |
+| Payment cancel reverses journal | ✅ Fixed |
+| Trial balance shows opening/movement/closing | ✅ Enhanced |
 
 ---
 
-## SUMMARY
+## B. Manual Testing Scenarios
 
-The procurement lifecycle is **functionally complete** end-to-end (PR→PO→GRN→Stock→Payment) with good UI coverage. The most critical gap is the **missing AP journal entry on GRN**, which means the Balance Sheet and Trial Balance understate liabilities. The second critical issue is **non-atomic GRN verification** and **no journal reversal on payment cancellation**. Addressing the 5 High Priority items would bring the system to production-grade accounting integrity.
+### Scenario 1: Happy Path — Full Cycle
+```
+1. Go to /app/inventory/purchase-requests → New PR
+2. Add 3 items (mix inventory + medicines), set quantities and estimated costs
+3. Submit PR → Status becomes "Pending Approval"
+4. Approve PR → Status becomes "Approved"
+5. Click "Convert to PO" → Redirected to PO form with items pre-filled
+6. Select vendor, confirm items/prices → Save PO (Draft)
+7. Submit PO → Approve PO → Mark as Ordered
+8. Go to /app/inventory/grn → New GRN
+9. Select the PO → Items auto-populate with remaining quantities
+10. Enter received qty, batch numbers (required for medicines), expiry dates
+11. Save GRN → Status: Draft
+12. Open GRN Detail → Verify GRN
+    ✓ Stock updated in inventory_stock / medicine_inventory
+    ✓ PO status changes to "received" (or "partially_received")
+    ✓ stock_adjustments records created
+13. Post GRN → Status: Posted
+    ✓ Journal entry created: DR Inventory Asset, CR Accounts Payable
+14. Go to /app/accounts/payables → See the GRN with outstanding amount
+15. Click "Record Payment" → Fill amount, payment method
+16. Save → Payment status: Pending
+17. Open payment → Approve
+    ✓ Journal entry: DR AP, CR Cash/Bank
+    ✓ Outstanding amount reduces on payables page
+18. Verify in Trial Balance: AP and Inventory accounts reflect correctly
+```
+
+### Scenario 2: Partial Delivery
+```
+1. Create PO with Item A (qty 100) and Item B (qty 50)
+2. Order the PO
+3. Create GRN #1: Receive Item A = 60, Item B = 30
+4. Verify GRN #1 → PO status should be "partially_received"
+5. Create GRN #2: Receive remaining Item A = 40, Item B = 20
+6. Verify GRN #2 → PO status should change to "received"
+7. Both GRNs should appear in Payables with separate outstanding amounts
+```
+
+### Scenario 3: Medicine Batch Validation
+```
+1. Create PO with medicine items
+2. Create GRN → Try to save with blank batch number for medicine
+   ✓ Should show error: "Batch number is required for medicine items"
+3. Enter batch number but leave expiry blank → Should still save (warning only)
+4. Try entering received qty > ordered qty
+   ✓ Should show error about exceeding ordered quantity
+```
+
+### Scenario 4: Payment Cancellation & Journal Reversal
+```
+1. Complete a full cycle up to vendor payment approval
+2. Note the journal entry number on the payment
+3. Cancel the payment
+   ✓ A reversing journal entry should be created (DR Cash, CR AP)
+   ✓ Payment status changes to "cancelled"
+4. Check Trial Balance → AP and Cash should return to pre-payment state
+5. Try cancelling the same payment again
+   ✓ Should show error: "Payment is already cancelled"
+```
+
+### Scenario 5: Double-Approval Prevention
+```
+1. Create and submit a vendor payment
+2. Approve it once → Should succeed
+3. Try approving the same payment again (e.g., via browser back + re-click)
+   ✓ Should show error: "Payment is already approved"
+4. No duplicate journal entries should exist
+```
+
+### Scenario 6: GRN QC Workflow
+```
+1. Create and save a GRN (status: Draft)
+2. Open GRN Detail → Use QC buttons (Pass/Fail/Quarantine) per item
+3. Mark some items as "Failed"
+4. Verify GRN → All items still get stocked (QC is informational only currently)
+   ⚠️ Note: QC rejection doesn't reduce accepted quantity — this is a known gap
+```
+
+### Scenario 7: PR Without Approval
+```
+1. Create a PR (Draft status)
+2. Try "Convert to PO" button
+   ✓ Button should only appear when status = "approved"
+   ⚠️ Risk: The hook itself has no guard — direct API call could bypass
+```
+
+### Scenario 8: Inactive Vendor
+```
+1. Deactivate a vendor (set is_active = false)
+2. Try creating a PO for that vendor
+   ⚠️ Current behavior: PO creation succeeds — no active check in hook
+   Expected: Should prevent or warn about inactive vendor
+```
+
+### Scenario 9: GL Reconciliation Check
+```
+1. Run full cycle: PO → GRN (verify + post) → Vendor Payment (approve)
+2. Go to Trial Balance (/app/accounts/trial-balance)
+3. Check:
+   - Inventory Asset account: should show debit increase = GRN value
+   - AP account: should show credit increase (GRN) then debit decrease (payment)
+   - Cash account: should show credit decrease = payment amount
+4. If full payment made: AP net change = 0 for this transaction
+```
+
+### Scenario 10: Reporting Verification
+```
+1. Go to /app/accounts/payables → Verify aging buckets
+2. Go to /app/accounts/vendor-payments → Verify payment list and filters
+3. Go to /app/accounts/trial-balance → Verify account grouping and totals
+4. Go to /app/accounts/journal-entries → Search for GRN journal entries
+5. Go to /app/accounts/ledger → Check AP account transaction history
+6. Go to /app/inventory/reports → Check stock levels reflect GRN receipts
+```
+
+---
+
+## C. Known Gaps (Not Blocking, For Awareness)
+
+| # | Gap | Severity |
+|---|-----|----------|
+| 1 | `previous_quantity` in stock adjustments hardcoded to 0 | Low |
+| 2 | QC fail/quarantine doesn't reduce accepted quantity | Medium |
+| 3 | No vendor `is_active` check on PO creation | Medium |
+| 4 | PR convert hook has no status guard | Medium |
+| 5 | GRN verification not wrapped in DB transaction | Low |
+| 6 | No 3-way match report (PO vs GRN vs Invoice) | Medium |
+| 7 | No advance payment workflow | Low |
+
+---
+
+## D. What Was Fixed in This Session
+
+1. **GRN→AP Journal Trigger** — `post_grn_to_journal` creates DR Inventory / CR AP on verify
+2. **Double-Approval Guard** — `useApproveVendorPayment` checks status before approving
+3. **Payment Cancellation Reversal** — `useCancelVendorPayment` creates reversing journal entry
+4. **Batch Number Validation** — Required for medicine items in GRN form
+5. **Quantity Over-Receive Guard** — Prevents receiving more than ordered in GRN form
+6. **Invoice balance_amount Fix** — Now updates on every payment recording
+
+No code changes needed — this is a verification and testing reference document.
 
