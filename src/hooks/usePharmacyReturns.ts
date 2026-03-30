@@ -2,10 +2,9 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { POSTransaction } from "@/hooks/usePOS";
 import { SelectedReturnItem } from "@/components/pharmacy/ReturnItemSelector";
 import { RefundMethod } from "@/components/pharmacy/RefundMethodSelector";
-import { returnsLogger, inventoryOpsLogger } from "@/lib/logger";
+import { returnsLogger } from "@/lib/logger";
 
 // Helper for raw SQL queries to POS tables (bypasses type checking)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
