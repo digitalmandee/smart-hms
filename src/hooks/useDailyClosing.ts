@@ -162,6 +162,17 @@ async function fetchPaymentMethods() {
   return result.data || [];
 }
 
+async function fetchExpensesForDate(branchId: string, startOfDay: string, endOfDay: string) {
+  const result = await (supabase as any)
+    .from('expenses')
+    .select('amount, payment_method_id')
+    .eq('branch_id', branchId)
+    .gte('created_at', startOfDay)
+    .lte('created_at', endOfDay);
+  
+  return result.data || [];
+}
+
 // Hook: Get daily closing summary for a date
 export function useDailyClosingSummary(date?: string) {
   const { profile } = useAuth();
