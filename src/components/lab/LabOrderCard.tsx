@@ -176,6 +176,16 @@ export function LabOrderCard({ order, canCollectPayment, onPaymentComplete }: La
                   Collect Payment
                 </Button>
               )}
+              {order.status === "collected" && (
+                <Button
+                  variant="outline"
+                  onClick={() => setRejectionDialogOpen(true)}
+                  className="border-destructive/50 text-destructive hover:bg-destructive/10"
+                >
+                  <XCircle className="h-4 w-4 mr-2" />
+                  {t("lab.rejectSample" as any)}
+                </Button>
+              )}
               <Button
                 onClick={() => navigate(`/app/lab/orders/${order.id}`)}
                 disabled={!canProceed && order.status !== "completed" || order.status === "cancelled"}
