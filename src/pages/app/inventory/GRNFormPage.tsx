@@ -144,6 +144,24 @@ export default function GRNFormPage() {
       return;
     }
 
+    // Validate: medicine items must have batch number
+    const missingBatch = itemsWithQty.filter(
+      (i) => i.item_type === 'medicine' && !i.batch_number?.trim()
+    );
+    if (missingBatch.length > 0) {
+      toast.error(`Batch number is required for medicine items: ${missingBatch.map(i => i.item_name).join(', ')}`);
+      return;
+    }
+
+    // Validate: quantity received must not exceed ordered remaining
+    const overReceived = itemsWithQty.filter(
+      (i) => i.quantity_received > i.ordered_quantity
+    );
+    if (overReceived.length > 0) {
+      toast.error(`Received quantity exceeds ordered quantity for: ${overReceived.map(i => i.item_name).join(', ')}`);
+      return;
+    }
+
     try {
       const grnItemsToSubmit: GRNItem[] = itemsWithQty.map((item) => ({
         po_item_id: item.po_item_id,
