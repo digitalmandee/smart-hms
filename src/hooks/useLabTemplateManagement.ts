@@ -21,6 +21,8 @@ export interface TemplateField {
   unit: string;
   normal_min: number | null;
   normal_max: number | null;
+  critical_min?: number | null;
+  critical_max?: number | null;
   type?: "text" | "number";
 }
 
