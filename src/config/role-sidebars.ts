@@ -378,6 +378,17 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
       { name: "OPD Orders", path: "/app/opd/orders", icon: "ClipboardList" },
       { name: "Patients", path: "/app/patients", icon: "Users" },
       {
+        name: "Dialysis",
+        path: "",
+        icon: "Droplets",
+        children: [
+          { name: "Dashboard", path: "/app/dialysis", icon: "LayoutDashboard" },
+          { name: "Sessions", path: "/app/dialysis/sessions", icon: "ClipboardList" },
+          { name: "Patients", path: "/app/dialysis/patients", icon: "Users" },
+          { name: "Schedule", path: "/app/dialysis/schedule", icon: "Calendar" },
+        ]
+      },
+      {
         name: "My Work", 
         path: "", 
         icon: "Briefcase",
