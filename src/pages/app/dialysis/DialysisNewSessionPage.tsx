@@ -153,6 +153,22 @@ export default function DialysisNewSessionPage() {
             </div>
           </div>
 
+          {/* Charges Preview */}
+          <div className="border-t pt-4 mt-2">
+            <p className="text-sm font-semibold mb-3 text-muted-foreground">Charges Preview</p>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-3 rounded-lg bg-muted/50">
+                <p className="text-xs text-muted-foreground">Session Fee</p>
+                <p className="font-semibold text-lg">{servicePrice?.default_price?.toLocaleString() || "8,000"}</p>
+              </div>
+              <div className="p-3 rounded-lg bg-muted/50">
+                <p className="text-xs text-muted-foreground">Consumables (estimated)</p>
+                <p className="font-semibold text-lg">{form.dialyzer_type ? "500" : "—"}</p>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">Invoice will be auto-generated on session completion.</p>
+          </div>
+
           <Button onClick={handleSubmit} disabled={createSession.isPending} className="w-full">
             {createSession.isPending ? "Creating..." : "Create Session"}
           </Button>
