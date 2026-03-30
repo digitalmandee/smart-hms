@@ -6624,12 +6624,14 @@ export type Database = {
           appointment_id: string | null
           attended_by: string | null
           blood_flow_ml_min: number | null
+          blood_flow_rate: number | null
           blood_loss_ml: number | null
           branch_id: string | null
           chair_number: string | null
           complications: string | null
           created_at: string | null
           dialysate_flow_ml_min: number | null
+          dialysate_flow_rate: number | null
           dialysis_patient_id: string
           dialyzer_type: string | null
           doctor_notes: string | null
@@ -6665,12 +6667,14 @@ export type Database = {
           appointment_id?: string | null
           attended_by?: string | null
           blood_flow_ml_min?: number | null
+          blood_flow_rate?: number | null
           blood_loss_ml?: number | null
           branch_id?: string | null
           chair_number?: string | null
           complications?: string | null
           created_at?: string | null
           dialysate_flow_ml_min?: number | null
+          dialysate_flow_rate?: number | null
           dialysis_patient_id: string
           dialyzer_type?: string | null
           doctor_notes?: string | null
@@ -6706,12 +6710,14 @@ export type Database = {
           appointment_id?: string | null
           attended_by?: string | null
           blood_flow_ml_min?: number | null
+          blood_flow_rate?: number | null
           blood_loss_ml?: number | null
           branch_id?: string | null
           chair_number?: string | null
           complications?: string | null
           created_at?: string | null
           dialysate_flow_ml_min?: number | null
+          dialysate_flow_rate?: number | null
           dialysis_patient_id?: string
           dialyzer_type?: string | null
           doctor_notes?: string | null
