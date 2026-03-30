@@ -21,11 +21,20 @@ export default function DialysisSessionDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { profile } = useAuth();
+  const { profile, roles } = useAuth();
   const { data: session } = useDialysisSession(id);
   const { data: vitals } = useDialysisVitals(id);
   const addVitals = useAddDialysisVitals();
   const updateSession = useUpdateDialysisSession();
+
+  // Role checks
+  const isNurseRole = roles.some(r => ["nurse", "opd_nurse", "ipd_nurse", "ot_nurse"].includes(r));
+  const isDoctorRole = roles.some(r => ["doctor", "surgeon", "anesthetist"].includes(r));
+  const isAdminRole = roles.some(r => ["super_admin", "org_admin", "branch_admin"].includes(r));
+  const canRecordVitals = isNurseRole || isAdminRole;
+  const canWriteDoctorNotes = isDoctorRole || isAdminRole;
+  const canAssignStaff = isDoctorRole || isAdminRole;
+  const canStartComplete = isNurseRole || isAdminRole;
 
   // Fetch doctors for assignment
   const { data: doctors } = useQuery({
