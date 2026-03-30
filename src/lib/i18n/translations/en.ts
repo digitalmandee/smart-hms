@@ -3156,9 +3156,6 @@ export const en = {
   "bloodBank.noActiveTransfusions": "No active transfusions",
   "bloodBank.inProgress": "In Progress",
 
-  // Radiology Dashboard extras (non-duplicate)
-  "radiology.allOrders": "All Orders",
-
 } as const;
 
 export type TranslationKey = keyof typeof en;

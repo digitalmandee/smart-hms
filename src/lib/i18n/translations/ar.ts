@@ -3088,7 +3088,5 @@ export const ar: Record<TranslationKey, string> = {
   "bloodBank.noActiveTransfusions": "لا توجد عمليات نقل نشطة",
   "bloodBank.inProgress": "قيد التنفيذ",
 
-  "radiology.allOrders": "جميع الطلبات",
-
 };
 
