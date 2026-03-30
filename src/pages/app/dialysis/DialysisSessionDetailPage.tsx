@@ -83,7 +83,7 @@ export default function DialysisSessionDetailPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("doctors")
-        .select("id, profiles(first_name, last_name)")
+        .select("id, profiles(full_name)")
         .eq("organization_id", profile!.organization_id!);
       if (error) throw error;
       return data;
