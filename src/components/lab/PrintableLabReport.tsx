@@ -576,16 +576,22 @@ export const PrintableLabReport = forwardRef<HTMLDivElement, PrintableLabReportP
                         {template.fields.map((field, idx) => {
                           const value = resultValues[field.name];
                           const abnormal = isValueAbnormal(field, value);
+                          const critical = isValueCritical(field, value);
                           const indicator = getAbnormalIndicator(field, value);
                           const rowStyle = idx % 2 === 1 ? styles.rowEven : {};
 
                           return (
                             <tr key={field.name} style={rowStyle}>
                               <td style={styles.tdParameter}>{field.name}</td>
-                              <td style={abnormal ? styles.tdAbnormal : styles.tdCenter}>
+                              <td style={critical ? { ...styles.tdAbnormal, backgroundColor: "#fef2f2", fontWeight: "900" } : abnormal ? styles.tdAbnormal : styles.tdCenter}>
                                 {value || "-"}
                                 {indicator && (
-                                  <span style={styles.abnormalIndicator}>{indicator}</span>
+                                  <span style={{
+                                    ...styles.abnormalIndicator,
+                                    ...(indicator === "C" ? { color: "#991b1b", fontWeight: "900", fontSize: "8pt" } : {}),
+                                  }}>
+                                    {indicator === "C" ? " ‼" : ` ${indicator}`}
+                                  </span>
                                 )}
                               </td>
                               <td style={styles.tdCenter}>{field.unit || "-"}</td>
