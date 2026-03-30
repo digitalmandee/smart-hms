@@ -68,6 +68,7 @@ export default function DialysisSessionDetailPage() {
   const updateSession = useUpdateDialysisSession();
   const { data: servicePrice } = useDialysisServicePrice();
   const generateInvoice = useGenerateDialysisInvoice();
+  const autoAssignedRef = useRef(false);
 
   const isNurseRole = roles.some(r => ["nurse", "opd_nurse", "ipd_nurse", "ot_nurse"].includes(r));
   const isDoctorRole = roles.some(r => ["doctor", "surgeon", "anesthetist"].includes(r));
@@ -89,6 +90,39 @@ export default function DialysisSessionDetailPage() {
     },
     enabled: !!profile?.organization_id,
   });
+
+  // Find the current user's doctor record for auto-assign
+  const { data: myDoctorRecord } = useQuery({
+    queryKey: ["my-doctor-record", profile?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("doctors")
+        .select("id")
+        .eq("user_id", profile!.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!profile?.id && isDoctorRole,
+  });
+
+  // Auto-assign logged-in doctor as attending
+  useEffect(() => {
+    if (
+      isDoctorRole &&
+      myDoctorRecord?.id &&
+      session &&
+      !(session as any).attended_by &&
+      session.status === "scheduled" &&
+      !autoAssignedRef.current
+    ) {
+      autoAssignedRef.current = true;
+      updateSession.mutate(
+        { id: id!, attended_by: myDoctorRecord.id },
+        { onSuccess: () => toast.info(t("dialysis.youAreAttending")) }
+      );
+    }
+  }, [isDoctorRole, myDoctorRecord, session, id]);
 
   const [vitalsForm, setVitalsForm] = useState({
     minute_mark: 0, bp_systolic: "", bp_diastolic: "", pulse: "",
