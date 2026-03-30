@@ -1,112 +1,47 @@
 
 
-# Diagnostics Module — Audit & Enhancement Plan
+# Add Blood Bank Order Tab to OPD Consultation
 
-## Current State Summary
+## Problem
+The OPD Consultation page has 5 tabs (Clinical, Rx, Labs, Imaging, AI) but **no Blood Bank tab**. Doctors cannot order blood products (cross-match, transfusion requests) during consultation. They must go to the standalone Blood Bank module separately.
 
-| Sub-Module | Pages | Status |
-|------------|-------|--------|
-| **Laboratory (LIS)** | 11 pages | Fully functional: Queue, Result Entry, Templates, Analyzers, Reports, Barcode |
-| **Radiology (RIS)** | 19 pages | Fully functional: Worklist, PACS, Reporting, Verification, Image Upload |
-| **Blood Bank** | 21 pages | Fully functional: Donors, Donations, Inventory, Cross-Match, Transfusions, Labels |
+## What to Build
 
-All three modules are **complete and distinct** from OPD. OPD generates orders; Diagnostics fulfills them.
+### 1. New component: `BloodBankOrderBuilder.tsx`
+- Component type selector (Whole Blood, Packed RBCs, FFP, Platelets, Cryoprecipitate) using the existing `blood_component_type` enum
+- Blood group display from patient record
+- Units required (number input)
+- Priority selector (Routine/Urgent/Emergency) using existing `blood_request_priority` enum
+- Clinical indication text field
+- Hemoglobin level input
+- Add/remove multiple blood product requests
 
-## What Works Well
-- Lab: Template-based result entry, abnormal value flagging (H/L), barcode specimen tracking, specimen label printing, TAT analysis in reports, analyzer integration setup, mobile views
-- Radiology: Full PACS integration, structured reporting with templates, verification workflow, image upload/storage, modality management, scheduling
-- Blood Bank: Donor lifecycle, cross-matching, transfusion reactions, expiry alerts, blood bag labels, analytics dashboard
+### 2. Add "Blood" tab to ConsultationPage
+- Change grid from `grid-cols-5` to `grid-cols-6`
+- Add 6th tab with Droplets icon labeled "Blood"
+- New state: `bloodBankItems` array
+- On "Complete Consultation": insert each item into `blood_requests` table using existing `useCreateBloodRequest` from `useBloodBank.ts`
+- Include blood requests in the `VisitSummaryDialog` confirmation
 
-## Gaps Identified (Missing Features Advertised in Docs/Proposals)
+### 3. Update VisitSummaryDialog
+- Add a "Blood Requests" section showing ordered blood products before the doctor confirms completion
 
-### HIGH PRIORITY
+### 4. Update OPDCheckoutPage
+- Query `blood_requests` for the patient/consultation and display as a charge category
 
-| # | Gap | Where Advertised | Current State |
-|---|-----|-------------------|---------------|
-| 1 | **Critical/Panic Value Alerts** | Landing page, proposal, lab docs | Abnormal flagging exists in UI (red highlight) but **no alert/notification** is triggered when a critical value is entered. No toast, no notification to ordering doctor. |
-| 2 | **Sample Rejection Workflow** | Proposal ("Rejection handling") | **No UI exists** in Lab Queue to reject a collected specimen (e.g., hemolyzed, clotted, insufficient). No rejection reason tracking. |
-| 3 | **Lab TAT Dashboard Widget** | Proposal ("TAT monitoring"), lab docs | TAT analysis exists only in the monthly Reports page. **No real-time TAT tracker** on the Lab Dashboard showing orders exceeding target TAT. |
+### 5. i18n keys (en, ur, ar)
+- Add keys for: Blood Products, Blood Request, Component Type, Units Required, Clinical Indication, Hemoglobin Level, cross-match labels
 
-### MEDIUM PRIORITY
+## Technical Details
 
-| # | Gap | Impact |
-|---|-----|--------|
-| 4 | **Delta Check (Previous Results Comparison)** | Advertised in proposal. No implementation — when entering results, the tech cannot see the patient's previous values for the same test. |
-| 5 | **Blood Bank Dashboard not i18n** | Dashboard hardcodes English strings ("Blood Bank", "Register Donor", etc.) while other pages use `useTranslation`. |
-| 6 | **Radiology Dashboard hardcodes English** | Quick action labels like "Technician Worklist", "Reporting Worklist" are not translated. |
+- The `blood_requests` table already exists with all required fields: `blood_group`, `component_type`, `units_requested`, `priority`, `clinical_indication`, `hemoglobin_level`, `requesting_department`, `requested_by`, `patient_id`, `organization_id`, `branch_id`
+- The `useCreateBloodRequest` mutation already exists in `useBloodBank.ts`
+- `request_number` is required — will generate using a pattern like `BR-{timestamp}`
 
----
-
-## Enhancement Plan
-
-### 1. Critical/Panic Value Alert System
-**What**: When a lab tech enters a result that exceeds critical thresholds (defined in template), show a prominent alert and auto-create an in-app notification for the ordering doctor.
-
-**How**:
-- Add `critical_min` and `critical_max` fields to `TemplateField` interface (already has `normal_min`/`normal_max`)
-- In `TestResultForm.tsx`: detect critical values on change, show a red banner "CRITICAL VALUE — Notify physician immediately"
-- On save/submit: if any critical value exists, insert into a `notifications` table (or use existing notification mechanism) targeting the ordering doctor
-- Add critical value indicator ("C" or "!!") in `PrintableLabReport` alongside the existing H/L flags
-
-**Files**: `useLabTestTemplates.ts`, `TestResultForm.tsx`, `PrintableLabReport.tsx`, `LabTestTemplateFormPage.tsx` (add critical range inputs), i18n files
-
-### 2. Sample Rejection Workflow
-**What**: Allow lab tech to reject a collected specimen with a reason, auto-request recollection.
-
-**How**:
-- Add "Reject Sample" button on `LabOrderCard` when status is `collected`
-- Dialog with rejection reason dropdown (Hemolyzed, Clotted, Insufficient Volume, Wrong Container, Mislabeled, Other)
-- On reject: set item status back to `ordered`, add rejection note, increment a `rejection_count` field
-- Show rejection history on the order detail
-
-**Files**: New `SampleRejectionDialog.tsx`, `LabOrderCard.tsx`, `useLabOrders.ts`, i18n files
-
-### 3. Real-Time TAT Tracker on Lab Dashboard
-**What**: A widget on the Lab Dashboard showing orders that are approaching or exceeding target TAT, color-coded.
-
-**How**:
-- Add `tat_target_hours` to lab settings or per-test-template
-- New `useLabTATTracker` hook: query active orders, calculate elapsed time since `created_at`, compare to target
-- Dashboard widget: list of overdue orders sorted by elapsed time, with red/amber/green indicators
-- Click navigates to the order
-
-**Files**: `useLabDashboardStats.ts` (add TAT query), `LabDashboard.tsx` (add widget), i18n files
-
-### 4. Delta Check — Previous Results Display
-**What**: During result entry, show the patient's last result for the same test beside each field.
-
-**How**:
-- New `usePreviousLabResults(patientId, testName)` hook: query the most recent completed `lab_order_items` + `lab_results` for the same test
-- In `TestResultForm.tsx`: display previous value and date in a subtle column next to the input
-- Flag if the change exceeds a configurable delta threshold (e.g., >20% change)
-
-**Files**: New hook in `useLabOrders.ts`, `TestResultForm.tsx`, i18n files
-
-### 5. Blood Bank + Radiology Dashboard i18n
-**What**: Replace hardcoded English strings with translation keys.
-
-**Files**: `BloodBankDashboard.tsx`, `RadiologyDashboard.tsx`, `en.ts`, `ar.ts`, `ur.ts`
-
----
-
-## Implementation Order
-1. Critical/Panic Value Alerts (high clinical safety impact)
-2. Sample Rejection Workflow (operational gap)
-3. TAT Tracker Widget (quality monitoring)
-4. Delta Check Display (clinical decision support)
-5. Dashboard i18n fixes (consistency)
-
-## Files Changed (Total)
-- `src/hooks/useLabTestTemplates.ts` — add critical range fields
-- `src/components/lab/TestResultForm.tsx` — critical alerts + delta check
-- `src/components/lab/PrintableLabReport.tsx` — critical value indicator
-- `src/pages/app/lab/LabTestTemplateFormPage.tsx` — critical range inputs
-- `src/components/lab/LabOrderCard.tsx` — reject sample button
-- `src/components/lab/SampleRejectionDialog.tsx` — new component
-- `src/hooks/useLabOrders.ts` — rejection mutation + previous results hook
-- `src/pages/app/lab/LabDashboard.tsx` — TAT tracker widget
-- `src/hooks/useLabDashboardStats.ts` — TAT query
-- `src/pages/app/blood-bank/BloodBankDashboard.tsx` — i18n
-- `src/pages/app/radiology/RadiologyDashboard.tsx` — i18n
+## Files Changed
+- `src/components/consultation/BloodBankOrderBuilder.tsx` — new component
+- `src/pages/app/opd/ConsultationPage.tsx` — add Blood tab + save logic
+- `src/components/consultation/VisitSummaryDialog.tsx` — show blood orders
+- `src/pages/app/opd/OPDCheckoutPage.tsx` — add blood request charges
 - `src/lib/i18n/translations/en.ts`, `ar.ts`, `ur.ts` — new keys
 
