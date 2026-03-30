@@ -236,7 +236,8 @@ export default function BloodBankDashboard() {
               <div className="p-1.5 rounded-lg bg-primary/10">
                 <Activity className="h-4 w-4 text-primary" />
               </div>
-              Active Transfusions
+              {t("bloodBank.activeTransfusions" as any)}
+            </CardTitle>
             </CardTitle>
             <Button variant="ghost" size="sm" onClick={() => navigate('/app/blood-bank/transfusions')}>
               View All <ArrowRight className="h-4 w-4 ml-1" />
