@@ -118,8 +118,8 @@ export default function POFormPage() {
         form.setValue("branch_id", sourceRequisition.branch_id);
         setSelectedBranch(sourceRequisition.branch_id);
       }
-      if (sourceRequisition.from_store_id) {
-        form.setValue("store_id", sourceRequisition.from_store_id);
+      if (sourceRequisition.from_store) {
+        form.setValue("store_id", sourceRequisition.from_store.id);
       }
       form.setValue("notes", `From Requisition: ${sourceRequisition.requisition_number}`);
       const reqItems: PurchaseOrderItem[] = sourceRequisition.items.map((reqItem) => ({
