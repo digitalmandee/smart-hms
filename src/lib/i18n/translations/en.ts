@@ -3088,6 +3088,27 @@ export const en = {
   "tb.credit": "Credit",
   "tb.noAccounts": "No accounts found",
 
+  // AR Reconciliation
+  "recon.title": "AR Reconciliation",
+  "recon.description": "Journal vs Account Balance Verification",
+  "recon.totalAccounts": "Total Accounts",
+  "recon.matched": "Matched",
+  "recon.mismatched": "Mismatched",
+  "recon.totalVariance": "Total Variance",
+  "recon.computedBalance": "Computed Balance",
+  "recon.storedBalance": "Stored Balance",
+  "recon.variance": "Variance",
+  "recon.status": "Status",
+  "recon.accountNumber": "Account #",
+  "recon.accountName": "Account Name",
+  "recon.category": "Category",
+  "recon.openingBalance": "Opening Balance",
+  "recon.totalDebits": "Total Debits",
+  "recon.totalCredits": "Total Credits",
+  "recon.allReconciled": "All Accounts Reconciled",
+  "recon.allReconciledDesc": "All journal totals match stored account balances — no discrepancies found.",
+  "recon.refresh": "Refresh",
+
 } as const;
 
 export type TranslationKey = keyof typeof en;

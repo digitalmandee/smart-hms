@@ -862,3 +862,103 @@ export function useFinancialSummary() {
     enabled: !!profile?.organization_id,
   });
 }
+
+// =====================
+// AR Reconciliation
+// =====================
+export interface ARReconciliationRow {
+  account_id: string;
+  account_number: string;
+  account_name: string;
+  category: string;
+  is_debit_normal: boolean;
+  opening_balance: number;
+  total_debits: number;
+  total_credits: number;
+  computed_balance: number;
+  stored_balance: number;
+  variance: number;
+  is_matched: boolean;
+}
+
+export function useARReconciliation() {
+  const { profile } = useAuth();
+
+  return useQuery({
+    queryKey: ["ar-reconciliation", profile?.organization_id],
+    queryFn: async () => {
+      if (!profile?.organization_id) return [];
+
+      // 1. Get all posting accounts with their type info
+      const { data: accounts, error: accErr } = await supabase
+        .from("accounts")
+        .select(`
+          id, account_number, name, current_balance, opening_balance, is_header, is_active,
+          account_type:account_types!accounts_account_type_id_fkey(category, is_debit_normal)
+        `)
+        .eq("organization_id", profile.organization_id)
+        .eq("is_header", false)
+        .eq("is_active", true);
+
+      if (accErr) throw accErr;
+
+      // 2. Get all posted journal line totals grouped by account
+      const { data: journalLines, error: jlErr } = await supabase
+        .from("journal_entry_lines")
+        .select(`
+          account_id,
+          debit_amount,
+          credit_amount,
+          journal_entry:journal_entries!journal_entry_lines_journal_entry_id_fkey(is_posted, organization_id)
+        `)
+        .eq("journal_entry.organization_id", profile.organization_id)
+        .eq("journal_entry.is_posted", true);
+
+      if (jlErr) throw jlErr;
+
+      // 3. Aggregate journal lines by account_id
+      const journalTotals: Record<string, { debits: number; credits: number }> = {};
+      (journalLines || []).forEach((line: any) => {
+        if (!line.journal_entry) return; // filtered out by inner join
+        const aid = line.account_id;
+        if (!journalTotals[aid]) journalTotals[aid] = { debits: 0, credits: 0 };
+        journalTotals[aid].debits += Number(line.debit_amount) || 0;
+        journalTotals[aid].credits += Number(line.credit_amount) || 0;
+      });
+
+      // 4. Compute reconciliation rows
+      const rows: ARReconciliationRow[] = (accounts || []).map((acc: any) => {
+        const accType = acc.account_type;
+        const category = accType?.category || "Unknown";
+        const isDebitNormal = accType?.is_debit_normal ?? true;
+        const opening = Number(acc.opening_balance) || 0;
+        const totals = journalTotals[acc.id] || { debits: 0, credits: 0 };
+
+        const computed = isDebitNormal
+          ? opening + totals.debits - totals.credits
+          : opening + totals.credits - totals.debits;
+
+        const stored = Number(acc.current_balance) || 0;
+        const variance = Math.round((computed - stored) * 100) / 100;
+
+        return {
+          account_id: acc.id,
+          account_number: acc.account_number,
+          account_name: acc.name,
+          category,
+          is_debit_normal: isDebitNormal,
+          opening_balance: opening,
+          total_debits: totals.debits,
+          total_credits: totals.credits,
+          computed_balance: Math.round(computed * 100) / 100,
+          stored_balance: stored,
+          variance,
+          is_matched: Math.abs(variance) < 0.01,
+        };
+      });
+
+      return rows.sort((a, b) => a.account_number.localeCompare(b.account_number));
+    },
+    enabled: !!profile?.organization_id,
+  });
+}

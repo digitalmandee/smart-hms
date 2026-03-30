@@ -89,6 +89,13 @@ export default function FinancialReportsPage() {
       path: "/app/accounts/reports/payroll-cost",
       color: "text-pink-500",
     },
+    {
+      title: "AR Reconciliation",
+      description: "Journal totals vs account balances verification",
+      icon: Shield,
+      path: "/app/accounts/reports/ar-reconciliation",
+      color: "text-yellow-600",
+    },
   ];
 
   const modules = [
