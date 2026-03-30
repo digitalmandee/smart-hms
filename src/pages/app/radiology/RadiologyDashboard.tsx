@@ -155,8 +155,8 @@ export default function RadiologyDashboard() {
                 <div className="p-4 rounded-full bg-muted/50 w-fit mx-auto mb-3">
                   <Clock className="h-8 w-8 opacity-50" />
                 </div>
-                <p className="font-medium">No pending orders</p>
-                <p className="text-sm">All imaging orders have been processed</p>
+                <p className="font-medium">{t("radiology.noPendingOrders" as any)}</p>
+                <p className="text-sm">{t("radiology.allProcessed" as any)}</p>
               </CardContent>
             </Card>
           ) : (
