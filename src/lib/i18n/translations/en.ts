@@ -3059,6 +3059,35 @@ export const en = {
   "hr.labReferralCommission": "Lab Referral Commission",
   "hr.radiologyReferralCommission": "Radiology Referral Commission",
 
+  // Trial Balance Enhanced
+  "tb.title": "Trial Balance",
+  "tb.description": "Summary of all account balances with opening, movement, and closing",
+  "tb.reportPeriod": "Report Period",
+  "tb.thisMonth": "This Month",
+  "tb.lastMonth": "Last Month",
+  "tb.lastQuarter": "Last Quarter",
+  "tb.ytd": "Year to Date",
+  "tb.lastYear": "Last Year",
+  "tb.startDate": "Start Date",
+  "tb.endDate": "End Date",
+  "tb.balanceStatus": "Balance Status",
+  "tb.balanced": "Trial Balance is Balanced",
+  "tb.notBalanced": "Trial Balance is NOT Balanced",
+  "tb.difference": "Difference",
+  "tb.totalAccounts": "Total Accounts",
+  "tb.withActivity": "With Activity",
+  "tb.zeroBalance": "Zero Balance",
+  "tb.searchAccounts": "Search accounts...",
+  "tb.showZeroBalances": "Show Zero Balances",
+  "tb.accountNumber": "Account #",
+  "tb.accountName": "Account Name",
+  "tb.openingBalance": "Opening Balance",
+  "tb.periodMovement": "Period Movement",
+  "tb.closingBalance": "Closing Balance",
+  "tb.debit": "Debit",
+  "tb.credit": "Credit",
+  "tb.noAccounts": "No accounts found",
+
 } as const;
 
 export type TranslationKey = keyof typeof en;
