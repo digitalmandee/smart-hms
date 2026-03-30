@@ -1,81 +1,52 @@
 
 
-# Billing Session Verification — Issues Found & Fixes
+# Enhance Trial Balance Report
 
-## What's Working Well
-- **Journal posting triggers** are correctly in place: invoices auto-post (DR AR, CR Revenue), payments auto-post (DR Cash/Payment Method, CR AR), expenses auto-post (DR Expense Account, CR Cash)
-- **Session close** correctly calculates expected cash, actual cash, denominations, and payment method breakdowns
-- **Daily closing** aggregates sessions, payments by method, department breakdowns, and blocks if open sessions exist
-- **Day-end summary** report pulls collections and department-wise data
-- **Session detail page** shows transactions, cash breakdown, denominations, and discrepancy reasons
+## Current State
+The trial balance page already has: date range filter, balanced/unbalanced indicator, flat account list with debit/credit columns, totals row, print and CSV export. It works correctly with journal entry data.
 
-## Issues Found
+## Enhancements to Add
 
-### Issue 1: Expenses Not Deducted from Expected Cash on Session Close
-**Severity: High**
+### 1. Group accounts by category (Asset, Liability, Equity, Revenue, Expense)
+Currently all accounts are in one flat list. Group them with subtotals per category so accountants can quickly spot which category is off-balance.
 
-When closing a session, `useCloseSession` (line 275-297) only fetches `payments` linked to the session. But expenses (`expenses` table with `billing_session_id`) that were paid out in cash during the session are NOT subtracted from the expected cash calculation. This means if ₨5,000 was collected and ₨500 was paid out as a cash expense, the expected cash should be ₨4,500 + opening, but it currently shows ₨5,000 + opening — causing a phantom discrepancy.
+### 2. Add date presets (This Month, Last Quarter, YTD, Last Year)
+Currently requires manual date entry. Add quick preset buttons like the Detailed P&L report has.
 
-**Fix**: In `useCloseSession`, also query `expenses` where `billing_session_id = sessionId`, sum cash expenses, and subtract from `cashTotal` (expected cash).
+### 3. Add opening balance, period movement, and closing balance columns
+Currently only shows net debit/credit. A proper trial balance should show:
+- Opening Balance (DR/CR) — balance before start date
+- Period Movement (DR/CR) — activity within the date range  
+- Closing Balance (DR/CR) — net result
 
-### Issue 2: Session Detail Page Missing Expenses Section
-**Severity: Medium**
+### 4. Add search/filter for accounts
+Allow filtering by account name/number within the table.
 
-The `SessionDetailPage` shows only payment transactions. It does not show expenses recorded against the session. The `useSessionExpenses` hook exists but is never used on this page.
+### 5. Add summary cards (total accounts, total with activity, zero-balance count)
 
-**Fix**: Add an "Expenses / Payouts" card to `SessionDetailPage` showing expenses linked to the session, with their amounts, categories, and recipients.
+### 6. i18n — all new labels in English, Urdu, Arabic
 
-### Issue 3: Patient Deposits Not Tracked in Session
-**Severity: Medium**
+## Technical Approach
 
-The `patient_deposits` table has a `billing_session_id` column, but session close calculations don't include deposits. Deposits received as cash increase the physical cash but are NOT invoice payments — they're liabilities. The expected cash calculation should include deposit amounts received via cash.
+### File: `src/hooks/useFinancialReports.ts` (useTrialBalance)
+- Extend the query to also fetch journal lines BEFORE startDate for opening balances
+- Return enriched rows with `openingDebit`, `openingCredit`, `movementDebit`, `movementCredit`, `closingDebit`, `closingCredit`
+- Group rows by `category` field (already available in the data)
 
-**Fix**: In `useCloseSession`, also query `patient_deposits` where `billing_session_id = sessionId`, add cash deposits to expected cash total. Also show deposits in `SessionDetailPage`.
+### File: `src/pages/app/accounts/TrialBalancePage.tsx`
+- Add date preset buttons (This Month, Last Quarter, YTD, Last Year)
+- Add search input to filter accounts by name/number
+- Add toggle: "Show zero balances" checkbox
+- Render grouped sections with category headers and subtotals
+- Add summary cards at top (total accounts, accounts with activity)
+- Expand table columns for opening/movement/closing
+- Add collapsible category sections
 
-### Issue 4: Session Detail Department Breakdown Uses Missing Field
-**Severity: Low**
-
-Line 226 references `tx.invoice?.department` but `invoices` doesn't have a `department` column in the select query. The department breakdown always falls back to "Other" for all transactions.
-
-**Fix**: Join `invoice_items` with `service_types` to get actual department categories, or derive department from the invoice's service type categories.
-
-### Issue 5: Daily Closing Not Accounting for Expenses/Payouts in Net Cash
-**Severity: Medium**
-
-The `useDailyClosingSummary` calculates `collections` but doesn't separately aggregate expenses paid out during the day. The daily closing page fetches expenses separately (`useBranchExpenses`) and shows them, but the summary object itself lacks an `expenses` field for the net cash calculation.
-
-**Fix**: Add expenses total to the `DailyClosingSummary` type and calculate `netCash = collections.total - expenses` in the summary.
-
----
-
-## Implementation Plan
-
-### 1. Fix session close to include expenses and deposits in expected cash
-**File**: `src/hooks/useBillingSessions.ts` (useCloseSession, ~line 275-300)
-- After fetching payments, also fetch `expenses` and `patient_deposits` with `billing_session_id = sessionId`
-- Subtract cash expenses from `cashTotal`
-- Add cash deposits to `cashTotal`
-- Keep `totalCollections` as payments-only (collections = money received for invoices)
-
-### 2. Add expenses and deposits sections to SessionDetailPage
-**File**: `src/pages/app/billing/SessionDetailPage.tsx`
-- Import `useSessionExpenses` from `useExpenses`
-- Add "Expenses / Payouts" card with table showing expense details
-- Query and show patient deposits linked to the session
-- Fix department breakdown to not rely on non-existent `tx.invoice?.department`
-
-### 3. Add expenses to DailyClosingSummary
-**File**: `src/hooks/useDailyClosing.ts`
-- Add `expenses` field to `DailyClosingSummary` type
-- Fetch and sum expenses for the date in `useDailyClosingSummary`
-- Calculate `netCash` = collections.total - expenses
-
-### 4. i18n keys
-Add translation keys for "Expenses/Payouts", "Patient Deposits", "Net Cash" in English, Urdu, Arabic.
+### File: `src/lib/i18n/translations/en.ts`, `ar.ts`, `ur.ts`
+- Add keys for: Opening Balance, Period Movement, Closing Balance, date preset labels, Show Zero Balances, category names, summary card labels
 
 ## Files Changed
-- `src/hooks/useBillingSessions.ts` — fix expected cash calculation
-- `src/pages/app/billing/SessionDetailPage.tsx` — add expenses/deposits sections, fix dept breakdown
-- `src/hooks/useDailyClosing.ts` — add expenses to summary
-- `src/lib/i18n/translations/en.ts`, `ar.ts`, `ur.ts` — new keys
+- `src/hooks/useFinancialReports.ts` — enhanced useTrialBalance with opening/closing balances
+- `src/pages/app/accounts/TrialBalancePage.tsx` — full UI enhancement
+- 3 i18n files — new translation keys
 
