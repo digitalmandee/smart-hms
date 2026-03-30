@@ -55,7 +55,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 export default function RequisitionDetailPage() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const { profile, roles } = useAuth();
+  const { roles } = useAuth();
   const queryClient = useQueryClient();
 
   const { data: requisition, isLoading } = useRequisition(id || "");
