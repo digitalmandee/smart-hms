@@ -80,6 +80,9 @@ export default function ConsultationPage() {
   const [imagingOrderItems, setImagingOrderItems] = useState<ImagingOrderItemInput[]>([]);
   const [imagingOrderPriority, setImagingOrderPriority] = useState<"routine" | "urgent" | "stat">("routine");
   const [imagingOrderNotes, setImagingOrderNotes] = useState("");
+  const [bloodBankItems, setBloodBankItems] = useState<BloodBankOrderItem[]>([]);
+  const [bloodBankPriority, setBloodBankPriority] = useState<"routine" | "urgent" | "emergency">("routine");
+  const [bloodBankNotes, setBloodBankNotes] = useState("");
   const [followUpDate, setFollowUpDate] = useState<Date | undefined>(
     existingConsultation?.follow_up_date ? new Date(existingConsultation.follow_up_date) : undefined
   );
