@@ -459,7 +459,7 @@ export default function RequisitionDetailPage() {
                     <div>
                       <p>{item.medicine?.name || item.item?.name}</p>
                       <p className="text-sm text-muted-foreground">
-                        {item.medicine ? item.medicine.generic_name || item.medicine.dosage_form : item.item?.item_code}
+                        {item.medicine ? item.medicine.generic_name || item.medicine.strength : item.item?.item_code}
                       </p>
                     </div>
                   </TableCell>

@@ -141,7 +141,7 @@ export default function RequisitionFormPage() {
             ...item,
             medicine_id: value as string,
             item_name: selectedMedicine?.name || "",
-            unit_of_measure: selectedMedicine?.dosage_form || "",
+            unit_of_measure: selectedMedicine?.unit || selectedMedicine?.strength || "",
           };
         }
 

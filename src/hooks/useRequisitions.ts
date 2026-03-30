@@ -134,7 +134,7 @@ export function useRequisition(id: string) {
         .select(`
           *,
           item:inventory_items(id, item_code, name, unit_of_measure),
-          medicine:medicines(id, name, generic_name, dosage_form)
+          medicine:medicines(id, name, generic_name, strength, unit)
         `)
         .eq("requisition_id", id);
       
