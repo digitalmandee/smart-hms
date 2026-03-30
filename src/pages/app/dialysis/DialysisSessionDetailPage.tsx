@@ -185,7 +185,7 @@ export default function DialysisSessionDetailPage() {
     if (preForm.pre_pulse) payload.pre_pulse = Number(preForm.pre_pulse);
     if (preForm.pre_temperature) payload.pre_temperature = Number(preForm.pre_temperature);
     updateSession.mutate(payload, {
-      onSuccess: () => toast.success(t("dialysis.preAssessmentSaved")),
+      onSuccess: () => toast.success(t("dialysis.preAssessmentSaved" as any)),
     });
   };
 
