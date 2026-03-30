@@ -3199,6 +3199,13 @@ export const ur: Record<TranslationKey, string> = {
   "dialysis.preBP": "پہلے بی پی",
   "dialysis.postBP": "بعد بی پی",
   "dialysis.treatmentDuration": "مدت",
+  "dialysis.doctorScheduledNote": "سیشن شیڈول ہے۔ نرس پری اسیسمنٹ کرے گی اور سیشن شروع کرے گی۔",
+  "dialysis.doctorNotesSaved": "ڈاکٹر کے نوٹس محفوظ ہو گئے",
+  "dialysis.signOff": "سائن آف",
+  "dialysis.nurseActions": "نرس ایکشنز",
+  "dialysis.doctorReview": "ڈاکٹر ریویو",
+  "dialysis.myDialysisSessions": "میرے ڈائیلیسز سیشنز",
+  "dialysis.dialysisWard": "ڈائیلیسز وارڈ",
 
 };
 

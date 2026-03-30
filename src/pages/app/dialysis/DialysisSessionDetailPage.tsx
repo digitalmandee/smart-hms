@@ -21,11 +21,20 @@ export default function DialysisSessionDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { profile } = useAuth();
+  const { profile, roles } = useAuth();
   const { data: session } = useDialysisSession(id);
   const { data: vitals } = useDialysisVitals(id);
   const addVitals = useAddDialysisVitals();
   const updateSession = useUpdateDialysisSession();
+
+  // Role checks
+  const isNurseRole = roles.some(r => ["nurse", "opd_nurse", "ipd_nurse", "ot_nurse"].includes(r));
+  const isDoctorRole = roles.some(r => ["doctor", "surgeon", "anesthetist"].includes(r));
+  const isAdminRole = roles.some(r => ["super_admin", "org_admin", "branch_admin"].includes(r));
+  const canRecordVitals = isNurseRole || isAdminRole;
+  const canWriteDoctorNotes = isDoctorRole || isAdminRole;
+  const canAssignStaff = isDoctorRole || isAdminRole;
+  const canStartComplete = isNurseRole || isAdminRole;
 
   // Fetch doctors for assignment
   const { data: doctors } = useQuery({
@@ -229,8 +238,8 @@ export default function DialysisSessionDetailPage() {
         </Card>
       </div>
 
-      {/* Staff Assignment */}
-      {!isTerminal && (
+      {/* Staff Assignment — doctors and admins only */}
+      {!isTerminal && canAssignStaff && (
         <Card>
           <CardHeader><CardTitle className="text-sm flex items-center gap-1"><Stethoscope className="h-4 w-4" />{t("dialysis.staffAssignment", "Staff Assignment")}</CardTitle></CardHeader>
           <CardContent>
@@ -259,8 +268,8 @@ export default function DialysisSessionDetailPage() {
         </Card>
       )}
 
-      {/* Pre-Dialysis Assessment — only for scheduled sessions */}
-      {session.status === "scheduled" && (
+      {/* Pre-Dialysis Assessment — nurses and admins can start */}
+      {session.status === "scheduled" && canStartComplete && (
         <Card>
           <CardHeader><CardTitle className="flex items-center gap-2"><Heart className="h-5 w-5 text-destructive" />{t("dialysis.preAssessment", "Pre-Dialysis Assessment")}</CardTitle></CardHeader>
           <CardContent className="space-y-4">
@@ -301,54 +310,90 @@ export default function DialysisSessionDetailPage() {
         </Card>
       )}
 
-      {/* In-Progress: Completion Form */}
+      {/* Scheduled — Doctor view (read-only, can assign self) */}
+      {session.status === "scheduled" && isDoctorRole && !isAdminRole && (
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-sm text-muted-foreground">{t("dialysis.doctorScheduledNote", "Session is scheduled. Nurse will perform pre-assessment and start the session.")}</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* In-Progress: Completion Form — role-aware */}
       {session.status === "in_progress" && (
         <Card>
           <CardHeader><CardTitle>{t("dialysis.postAssessment", "Post-Dialysis Assessment & Completion")}</CardTitle></CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-              <div>
-                <Label>{t("dialysis.postWeight")} *</Label>
-                <Input type="number" step="0.1" value={postForm.post_weight_kg} onChange={e => setPostForm(f => ({ ...f, post_weight_kg: e.target.value }))} />
+            {/* Post vitals — nurses and admins */}
+            {canStartComplete && (
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <div>
+                  <Label>{t("dialysis.postWeight")} *</Label>
+                  <Input type="number" step="0.1" value={postForm.post_weight_kg} onChange={e => setPostForm(f => ({ ...f, post_weight_kg: e.target.value }))} />
+                </div>
+                <div>
+                  <Label>{t("dialysis.postBpSystolic", "Post-BP Systolic")}</Label>
+                  <Input type="number" value={postForm.post_bp_systolic} onChange={e => setPostForm(f => ({ ...f, post_bp_systolic: e.target.value }))} />
+                </div>
+                <div>
+                  <Label>{t("dialysis.postBpDiastolic", "Post-BP Diastolic")}</Label>
+                  <Input type="number" value={postForm.post_bp_diastolic} onChange={e => setPostForm(f => ({ ...f, post_bp_diastolic: e.target.value }))} />
+                </div>
+                <div>
+                  <Label>{t("dialysis.postPulse", "Post-Pulse")}</Label>
+                  <Input type="number" value={postForm.post_pulse} onChange={e => setPostForm(f => ({ ...f, post_pulse: e.target.value }))} />
+                </div>
+                <div>
+                  <Label>{t("dialysis.actualUF", "Actual UF (ml)")}</Label>
+                  <Input type="number" value={postForm.actual_uf_ml} onChange={e => setPostForm(f => ({ ...f, actual_uf_ml: e.target.value }))} />
+                </div>
               </div>
-              <div>
-                <Label>{t("dialysis.postBpSystolic", "Post-BP Systolic")}</Label>
-                <Input type="number" value={postForm.post_bp_systolic} onChange={e => setPostForm(f => ({ ...f, post_bp_systolic: e.target.value }))} />
-              </div>
-              <div>
-                <Label>{t("dialysis.postBpDiastolic", "Post-BP Diastolic")}</Label>
-                <Input type="number" value={postForm.post_bp_diastolic} onChange={e => setPostForm(f => ({ ...f, post_bp_diastolic: e.target.value }))} />
-              </div>
-              <div>
-                <Label>{t("dialysis.postPulse", "Post-Pulse")}</Label>
-                <Input type="number" value={postForm.post_pulse} onChange={e => setPostForm(f => ({ ...f, post_pulse: e.target.value }))} />
-              </div>
-              <div>
-                <Label>{t("dialysis.actualUF", "Actual UF (ml)")}</Label>
-                <Input type="number" value={postForm.actual_uf_ml} onChange={e => setPostForm(f => ({ ...f, actual_uf_ml: e.target.value }))} />
-              </div>
-            </div>
+            )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label>{t("dialysis.complications")}</Label>
-                <Textarea value={postForm.complications} onChange={e => setPostForm(f => ({ ...f, complications: e.target.value }))} placeholder={session.complications || t("common.none", "None")} />
-              </div>
-              <div>
-                <Label>{t("dialysis.nursingNotes")}</Label>
-                <Textarea value={postForm.nursing_notes} onChange={e => setPostForm(f => ({ ...f, nursing_notes: e.target.value }))} />
-              </div>
+              {/* Complications & Nursing Notes — nurses and admins */}
+              {canRecordVitals && (
+                <>
+                  <div>
+                    <Label>{t("dialysis.complications")}</Label>
+                    <Textarea value={postForm.complications} onChange={e => setPostForm(f => ({ ...f, complications: e.target.value }))} placeholder={session.complications || t("common.none", "None")} />
+                  </div>
+                  <div>
+                    <Label>{t("dialysis.nursingNotes")}</Label>
+                    <Textarea value={postForm.nursing_notes} onChange={e => setPostForm(f => ({ ...f, nursing_notes: e.target.value }))} />
+                  </div>
+                </>
+              )}
             </div>
-            <div>
-              <Label>{t("dialysis.doctorNotes", "Doctor Notes")}</Label>
-              <Textarea value={postForm.doctor_notes} onChange={e => setPostForm(f => ({ ...f, doctor_notes: e.target.value }))} placeholder={t("dialysis.doctorNotesPlaceholder", "Clinical observations, instructions...")} />
-            </div>
+            {/* Doctor Notes — doctors and admins only */}
+            {canWriteDoctorNotes && (
+              <div>
+                <Label>{t("dialysis.doctorNotes", "Doctor Notes")}</Label>
+                <Textarea value={postForm.doctor_notes} onChange={e => setPostForm(f => ({ ...f, doctor_notes: e.target.value }))} placeholder={t("dialysis.doctorNotesPlaceholder", "Clinical observations, instructions...")} />
+              </div>
+            )}
             <div className="flex gap-3 flex-wrap">
-              <Button onClick={handleCompleteSession} disabled={updateSession.isPending}>
-                {t("dialysis.completeSession")}
-              </Button>
-              <Button variant="outline" onClick={() => setShowCancelDialog(true)}>
-                <XCircle className="h-4 w-4 mr-2" />{t("dialysis.cancelSession")}
-              </Button>
+              {canStartComplete && (
+                <Button onClick={handleCompleteSession} disabled={updateSession.isPending}>
+                  {t("dialysis.completeSession")}
+                </Button>
+              )}
+              {canStartComplete && (
+                <Button variant="outline" onClick={() => setShowCancelDialog(true)}>
+                  <XCircle className="h-4 w-4 mr-2" />{t("dialysis.cancelSession")}
+                </Button>
+              )}
+              {/* Doctor sign-off: save doctor notes only */}
+              {isDoctorRole && !isAdminRole && (
+                <Button onClick={() => {
+                  if (postForm.doctor_notes) {
+                    updateSession.mutate({ id: id!, doctor_notes: postForm.doctor_notes }, {
+                      onSuccess: () => toast.success(t("dialysis.doctorNotesSaved", "Doctor notes saved")),
+                    });
+                  }
+                }} disabled={updateSession.isPending}>
+                  <Stethoscope className="h-4 w-4 mr-2" />{t("dialysis.signOff", "Sign Off")}
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -482,7 +527,7 @@ export default function DialysisSessionDetailPage() {
       )}
 
       {/* Add Vitals Form */}
-      {session.status === "in_progress" && (
+      {session.status === "in_progress" && canRecordVitals && (
         <Card>
           <CardHeader><CardTitle>{t("dialysis.recordVitals")}</CardTitle></CardHeader>
           <CardContent>

@@ -3267,6 +3267,13 @@ export const en = {
   "dialysis.preBP": "Pre-BP",
   "dialysis.postBP": "Post-BP",
   "dialysis.treatmentDuration": "Duration",
+  "dialysis.doctorScheduledNote": "Session is scheduled. Nurse will perform pre-assessment and start the session.",
+  "dialysis.doctorNotesSaved": "Doctor notes saved",
+  "dialysis.signOff": "Sign Off",
+  "dialysis.nurseActions": "Nurse Actions",
+  "dialysis.doctorReview": "Doctor Review",
+  "dialysis.myDialysisSessions": "My Dialysis Sessions",
+  "dialysis.dialysisWard": "Dialysis Ward",
 
 } as const;
 
