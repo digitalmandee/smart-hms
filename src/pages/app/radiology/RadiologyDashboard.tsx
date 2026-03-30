@@ -177,7 +177,7 @@ export default function RadiologyDashboard() {
                 <div className="p-4 rounded-full bg-muted/50 w-fit mx-auto mb-3">
                   <Activity className="h-8 w-8 opacity-50" />
                 </div>
-                <p className="font-medium">No studies in progress</p>
+                <p className="font-medium">{t("radiology.noStudiesInProgress" as any)}</p>
               </CardContent>
             </Card>
           ) : (
