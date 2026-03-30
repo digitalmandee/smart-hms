@@ -119,7 +119,7 @@ export function useCreateDialysisSession() {
   const qc = useQueryClient();
   const { profile } = useAuth();
   return useMutation({
-    mutationFn: async (values: { dialysis_patient_id: string; machine_id?: string; session_date: string; shift?: string; chair_number?: string; target_uf_ml?: number; duration_minutes?: number }) => {
+    mutationFn: async (values: { dialysis_patient_id: string; machine_id?: string; session_date: string; shift?: string; chair_number?: string; target_uf_ml?: number; duration_minutes?: number; dialyzer_type?: string; blood_flow_rate?: number; dialysate_flow_rate?: number; heparin_dose?: string }) => {
       const { data, error } = await supabase
         .from("dialysis_sessions")
         .insert([{ ...values, organization_id: profile!.organization_id!, branch_id: profile!.branch_id }])
