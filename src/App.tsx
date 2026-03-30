@@ -414,6 +414,7 @@ import DonorDetailPage from "./pages/app/blood-bank/DonorDetailPage";
 import BloodUnitDetailPage from "./pages/app/blood-bank/BloodUnitDetailPage";
 import BloodUnitFormPage from "./pages/app/blood-bank/BloodUnitFormPage";
 import CrossMatchDetailPage from "./pages/app/blood-bank/CrossMatchDetailPage";
+const BloodTestingPage = React.lazy(() => import("./pages/app/blood-bank/BloodTestingPage"));
 
 // Dialysis pages
 import DialysisDashboard from "./pages/app/dialysis/DialysisDashboard";
