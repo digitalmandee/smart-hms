@@ -163,6 +163,7 @@ import {
   FileCheck,
   ScanBarcode,
   Smartphone,
+  Coins,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
