@@ -229,6 +229,28 @@ export default function ConsultationPage() {
         }
       }
 
+      // Create blood bank requests if items exist
+      if (complete && bloodBankItems.length > 0 && consultationId) {
+        for (const item of bloodBankItems) {
+          try {
+            await createBloodRequest.mutateAsync({
+              patient_id: patient.id,
+              blood_group: (patient.blood_group || "O+") as any,
+              component_type: item.component_type as any,
+              units_requested: item.units_requested,
+              priority: bloodBankPriority as any,
+              clinical_indication: item.clinical_indication || null,
+              hemoglobin_level: item.hemoglobin_level,
+              requesting_department: "OPD",
+              request_number: `BR-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+              notes: bloodBankNotes || null,
+            } as any);
+          } catch (err) {
+            console.error("Failed to create blood request:", err);
+          }
+        }
+      }
+
       // Update appointment status
       if (complete) {
         await updateAppointment.mutateAsync({
@@ -248,6 +270,7 @@ export default function ConsultationPage() {
             orderSummary.push(`${imagingOrderItems.length} imaging order(s)`);
           }
         }
+        if (bloodBankItems.length > 0) orderSummary.push(`${bloodBankItems.length} blood request(s)`);
         
         const summaryText = orderSummary.length > 0
           ? `Orders sent: ${orderSummary.join(", ")}. Patient can proceed to billing counter.`
