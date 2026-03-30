@@ -173,17 +173,35 @@ export default function DialysisSessionDetailPage() {
     setVitalsForm({ minute_mark: vitalsForm.minute_mark + 30, bp_systolic: "", bp_diastolic: "", pulse: "", blood_flow_rate: "", uf_rate: "", notes: "" });
   };
 
-  const handleStartSession = () => {
+  // Nurse: save pre-assessment without starting
+  const handleSavePreAssessment = () => {
     if (!preForm.pre_weight_kg) {
+      toast.error(t("dialysis.preWeightRequired"));
+      return;
+    }
+    const payload: any = { id: id!, pre_weight_kg: Number(preForm.pre_weight_kg) };
+    if (preForm.pre_bp_systolic) payload.pre_bp_systolic = Number(preForm.pre_bp_systolic);
+    if (preForm.pre_bp_diastolic) payload.pre_bp_diastolic = Number(preForm.pre_bp_diastolic);
+    if (preForm.pre_pulse) payload.pre_pulse = Number(preForm.pre_pulse);
+    if (preForm.pre_temperature) payload.pre_temperature = Number(preForm.pre_temperature);
+    updateSession.mutate(payload, {
+      onSuccess: () => toast.success(t("dialysis.preAssessmentSaved")),
+    });
+  };
+
+  const handleStartSession = () => {
+    // Nurses must fill pre-weight; Doctors can start without it
+    if (isNurseRole && !preForm.pre_weight_kg && !session?.pre_weight_kg) {
       toast.error(t("dialysis.preWeightRequired"));
       return;
     }
     const payload: any = {
       id: id!,
       status: "in_progress",
-      pre_weight_kg: Number(preForm.pre_weight_kg),
       actual_start_time: new Date().toISOString(),
     };
+    // Include pre-weight if provided (nurse flow)
+    if (preForm.pre_weight_kg) payload.pre_weight_kg = Number(preForm.pre_weight_kg);
     if (preForm.pre_bp_systolic) payload.pre_bp_systolic = Number(preForm.pre_bp_systolic);
     if (preForm.pre_bp_diastolic) payload.pre_bp_diastolic = Number(preForm.pre_bp_diastolic);
     if (preForm.pre_pulse) payload.pre_pulse = Number(preForm.pre_pulse);
