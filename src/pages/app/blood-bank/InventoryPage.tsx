@@ -213,8 +213,25 @@ export default function InventoryPage() {
                         <td className="p-3">
                           <Badge className={statusInfo.color}>{statusInfo.label}</Badge>
                         </td>
-                        <td className="p-3 text-sm text-muted-foreground">
+                         <td className="p-3 text-sm text-muted-foreground">
                           {unit.storage_location || '-'}
+                        </td>
+                        <td className="p-3">
+                          {(unit.status === 'available' || unit.status === 'quarantine' || unit.status === 'expired') && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="text-destructive hover:text-destructive"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setDiscardUnit(unit);
+                                setDiscardReason("");
+                                setDiscardNotes("");
+                              }}
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
                         </td>
                       </tr>
                     );
