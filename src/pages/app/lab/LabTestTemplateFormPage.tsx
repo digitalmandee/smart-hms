@@ -52,7 +52,7 @@ export default function LabTestTemplateFormPage() {
   const addField = () => {
     setFields([
       ...fields,
-      { name: "", unit: "", normal_min: null, normal_max: null, type: "number" },
+      { name: "", unit: "", normal_min: null, normal_max: null, critical_min: null, critical_max: null, type: "number" },
     ]);
   };
 
