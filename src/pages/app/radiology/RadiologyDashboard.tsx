@@ -47,7 +47,7 @@ export default function RadiologyDashboard() {
   const quickActionItems = [
     { title: t("radiology.technicianWorklist" as any), subtitle: `${stats.pendingOrders + stats.inProgress} ${t("radiology.studies" as any)}`, icon: Radio, color: "bg-blue-100 text-blue-600", path: "/app/radiology/worklist" },
     { title: t("radiology.reportingWorklist" as any), subtitle: `${stats.awaitingReport} ${t("common.pending")}`, icon: FileText, color: "bg-purple-100 text-purple-600", path: "/app/radiology/reporting" },
-    { title: t("radiology.pacsStudies" as any), subtitle: t("radiology.viewDicomImages" as any), icon: Scan, color: "bg-indigo-100 text-indigo-600", path: "/app/radiology/pacs" },
+    { title: t("radiology.pacsStudies" as any), subtitle: t("radiology.viewDICOMImages" as any), icon: Scan, color: "bg-indigo-100 text-indigo-600", path: "/app/radiology/pacs" },
     { title: t("radiology.schedule" as any), subtitle: t("radiology.viewCalendar" as any), icon: Calendar, color: "bg-green-100 text-green-600", path: "/app/radiology/schedule" },
     { title: t("radiology.allOrders" as any), subtitle: `${orders?.length || 0} ${t("common.total")}`, icon: Activity, color: "bg-orange-100 text-orange-600", path: "/app/radiology/orders" },
   ];
