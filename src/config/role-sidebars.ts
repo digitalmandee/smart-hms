@@ -907,8 +907,9 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
   ot_pharmacist: {
     items: [
       { name: "Dashboard", path: "/app/pharmacy", icon: "LayoutDashboard" },
+      { name: "Prescription Queue", path: "/app/pharmacy/queue", icon: "ClipboardList" },
       { 
-        name: "OT Queue", 
+        name: "OT Queue",
         path: "", 
         icon: "Syringe",
         children: [
