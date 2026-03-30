@@ -172,14 +172,14 @@ export default function BloodBankDashboard() {
                 <div className="p-4 rounded-full bg-muted/50 w-fit mx-auto mb-3">
                   <Heart className="h-8 w-8 opacity-50" />
                 </div>
-                <p className="font-medium">No donations scheduled</p>
-                <p className="text-sm">Start a new donation to get started</p>
+                <p className="font-medium">{t("bloodBank.noDonationsScheduled" as any)}</p>
+                <p className="text-sm">{t("bloodBank.startNewDonationMsg" as any)}</p>
                 <Button 
                   variant="outline" 
                   className="mt-4"
                   onClick={() => navigate('/app/blood-bank/donations')}
                 >
-                  Start New Donation
+                  {t("bloodBank.startNewDonation" as any)}
                 </Button>
               </div>
             )}
