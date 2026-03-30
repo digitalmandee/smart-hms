@@ -578,12 +578,12 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         ]
       },
       { 
-        name: "Procurement", 
+        name: "Requisitions", 
         path: "", 
         icon: "ShoppingCart",
         children: [
-          { name: "Purchase Orders", path: "/app/inventory/purchase-orders", icon: "FileEdit" },
-          { name: "GRN", path: "/app/inventory/grn", icon: "PackageCheck" },
+          { name: "My Requisitions", path: "/app/inventory/requisitions", icon: "ClipboardList" },
+          { name: "New Requisition", path: "/app/inventory/requisitions/new", icon: "Plus" },
         ]
       },
       {

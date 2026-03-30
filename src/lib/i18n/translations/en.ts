@@ -417,6 +417,15 @@ export const en = {
   "nav.purchaseRequisitions": "Purchase Requisitions",
   "nav.cycleCounts": "Cycle Counts",
   "nav.returnToVendor": "Return to Vendor",
+  "nav.newRequisition": "New Requisition",
+  "nav.myRequisitions": "My Requisitions",
+  "requisition.createPO": "Create PO from Requisition",
+  "requisition.acceptStock": "Accept Stock",
+  "requisition.declineStock": "Decline Stock",
+  "requisition.stockReceived": "Stock Received",
+  "requisition.disputed": "Disputed",
+  "requisition.confirmAccept": "Confirm Accept",
+  "requisition.submitDispute": "Submit Dispute",
 
   // IPD Module
   "ipd.dashboard": "IPD Dashboard",

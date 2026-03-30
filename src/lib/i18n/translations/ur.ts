@@ -344,6 +344,15 @@ export const ur: Record<TranslationKey, string> = {
   "nav.purchaseRequisitions": "پرچیز ریکوزیشنز",
   "nav.cycleCounts": "سائیکل کاؤنٹس",
   "nav.returnToVendor": "وینڈر کو واپسی",
+  "nav.newRequisition": "نئی ریکوزیشن",
+  "nav.myRequisitions": "میری ریکوزیشنز",
+  "requisition.createPO": "ریکوزیشن سے پرچیز آرڈر بنائیں",
+  "requisition.acceptStock": "اسٹاک قبول کریں",
+  "requisition.declineStock": "اسٹاک مسترد کریں",
+  "requisition.stockReceived": "اسٹاک موصول ہوا",
+  "requisition.disputed": "متنازعہ",
+  "requisition.confirmAccept": "قبولیت کی تصدیق",
+  "requisition.submitDispute": "اعتراض جمع کرائیں",
 
   // IPD Module
   "ipd.dashboard": "IPD ڈیش بورڈ",

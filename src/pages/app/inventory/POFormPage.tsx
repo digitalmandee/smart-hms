@@ -27,6 +27,7 @@ import { useVendors } from "@/hooks/useVendors";
 import { useBranches } from "@/hooks/useBranches";
 import { useCreatePurchaseOrder, type PurchaseOrderItem } from "@/hooks/usePurchaseOrders";
 import { usePurchaseRequest } from "@/hooks/usePurchaseRequests";
+import { useRequisition } from "@/hooks/useRequisitions";
 import { UnifiedPOItemsBuilder } from "@/components/inventory/UnifiedPOItemsBuilder";
 import { StoreSelector } from "@/components/inventory/StoreSelector";
 import { PageHeader } from "@/components/PageHeader";
@@ -48,6 +49,7 @@ export default function POFormPage() {
   const [searchParams] = useSearchParams();
   const vendorIdParam = searchParams.get("vendor_id");
   const fromPrId = searchParams.get("from_pr");
+  const fromRequisitionId = searchParams.get("from_requisition");
   const { profile } = useAuth();
 
   const [items, setItems] = useState<PurchaseOrderItem[]>([]);
@@ -57,7 +59,7 @@ export default function POFormPage() {
   const { data: branches } = useBranches();
   const createPO = useCreatePurchaseOrder();
   const { data: sourcePR } = usePurchaseRequest(fromPrId || "");
-
+  const { data: sourceRequisition } = useRequisition(fromRequisitionId || "");
   const isSingleBranch = branches && branches.length === 1;
   const autoSelectedBranchId = profile?.branch_id || (isSingleBranch ? branches[0]?.id : "") || "";
 
@@ -108,6 +110,31 @@ export default function POFormPage() {
       setItems(prItems);
     }
   }, [sourcePR, form, items.length]);
+
+  // Pre-fill from Requisition
+  useEffect(() => {
+    if (sourceRequisition && sourceRequisition.items && items.length === 0 && !fromPrId) {
+      if (sourceRequisition.branch_id) {
+        form.setValue("branch_id", sourceRequisition.branch_id);
+        setSelectedBranch(sourceRequisition.branch_id);
+      }
+      if (sourceRequisition.from_store) {
+        form.setValue("store_id", sourceRequisition.from_store.id);
+      }
+      form.setValue("notes", `From Requisition: ${sourceRequisition.requisition_number}`);
+      const reqItems: PurchaseOrderItem[] = sourceRequisition.items.map((reqItem) => ({
+        item_id: reqItem.item_id || "",
+        item_type: "inventory" as const,
+        quantity: reqItem.quantity_approved || reqItem.quantity_requested,
+        unit_price: 0,
+        tax_percent: 0,
+        discount_percent: 0,
+        total_price: 0,
+      }));
+      setItems(reqItems);
+    }
+  }, [sourceRequisition, form, items.length, fromPrId]);
+
   const onSubmit = async (data: POFormData) => {
     if (items.length === 0) {
       return;
