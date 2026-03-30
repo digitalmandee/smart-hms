@@ -52,6 +52,12 @@ export function PrescriptionQueueCard({ prescription }: PrescriptionQueueCardPro
           <Pill className="h-4 w-4 text-muted-foreground" />
           <span className="text-sm">{prescription.itemCount} {t('pharmacy.items' as any)}</span>
         </div>
+        {prescription.source === 'ipd' && prescription.admission && (
+          <div className="flex items-center gap-2 text-sm text-orange-700 bg-orange-50 dark:bg-orange-950/20 p-2 rounded">
+            <Bed className="h-4 w-4" />
+            <span>{prescription.admission.ward_name} - Bed {prescription.admission.bed_number}</span>
+          </div>
+        )}
         <div className="pt-2">
           <p className="text-xs text-muted-foreground">
             {t('pharmacy.prescribedBy' as any)}: {prescription.doctor?.profile?.full_name}
