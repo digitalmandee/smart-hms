@@ -43,23 +43,6 @@ import {
   Trophy,
   Activity,
   Droplets,
-  Calendar,
-  Clock,
-  Building2,
-  Stethoscope,
-  Play,
-  CheckCircle2,
-  XCircle,
-  ClipboardList,
-  HeartPulse,
-  FileText,
-  AlertTriangle,
-  Printer,
-  Pill,
-  Package,
-  ClipboardCheck,
-  Trophy,
-  Activity,
 } from "lucide-react";
 import { AddTeamMemberDialog } from "@/components/ot/AddTeamMemberDialog";
 import { format, differenceInMinutes } from "date-fns";
