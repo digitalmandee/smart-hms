@@ -1,95 +1,75 @@
 
 
-# UI Overhaul: Table Views with Pagination + Dialysis Enrolled Patient Management
+# Dialysis Billing & Service Charges Integration
 
-## Problems Identified
-1. **Dialysis Patients page** — card list, no filters, no pagination, no print dialysis card, no link to patient profile
-2. **Dialysis Sessions page** — card list, no filters, no pagination
-3. **Dialysis Schedule page** — grouped cards, no table view
-4. **Lab Queue page** — `LabOrderCard` cards stacked vertically, no pagination (all records rendered)
-5. **Radiology Imaging Orders** — grid of cards, no pagination
-6. **Radiology Reporting Worklist** — card list, no pagination
+## Current State: NO BILLING EXISTS
 
-## Solution
+The dialysis module has:
+- `invoice_id` column on `dialysis_sessions` table (exists but never populated)
+- `service_types` table has "Dialysis Session" (8000) and "Dialysis Monthly Package" (80000) entries seeded
+- Zero code that creates invoices on session completion
+- No consumables/supplies tracking per session
+- No pricing breakdown on session creation or completion
+- No link from completed sessions to the billing/invoices module
 
-Convert all 6 list pages from card-based layouts to **compact table views** using the existing `ReportTable` component (already has built-in search, sorting, pagination, and column definitions). Keep card-based detail pages unchanged — only list/queue pages get the table treatment.
+## What to Build
 
-### 1. Dialysis Patients Page — Full Rebuild
-**File: `src/pages/app/dialysis/DialysisPatientsPage.tsx`**
+### 1. Auto-generate invoice on session completion
+**File: `src/pages/app/dialysis/DialysisSessionDetailPage.tsx`**
 
-- Replace card grid with `ReportTable` columns: MRN, Patient Name, Access Type, Schedule (MWF/TTS), Shift, Dry Weight, HBV, HCV, HIV, Enrolled Date
-- Add filter bar: access type dropdown, hepatitis status dropdown, schedule pattern dropdown
-- Row click → navigate to new detail page
-- Add **"Print Card"** button per row (opens print dialog with dialysis ID card)
-- Add **"View Profile"** link per row → `/app/patients/{patient_id}`
+When nurse/admin clicks "Complete Session":
+- Query `service_types` for the "Dialysis Session" service to get default price
+- Create an `invoices` record (patient_id, total_amount, status: "pending")
+- Create `invoice_items` entries for: session charge, consumables (dialyzer, lines, etc.)
+- Update `dialysis_sessions.invoice_id` with the new invoice ID
+- Show success toast with invoice number and link to invoice
 
-### 2. New: Dialysis Patient Detail Page
-**File: `src/pages/app/dialysis/DialysisPatientDetailPage.tsx`** (NEW)
-**Route: `/app/dialysis/patients/:id`**
+### 2. Add service charge configuration to session creation
+**File: `src/pages/app/dialysis/DialysisNewSessionPage.tsx`**
 
-- Shows enrolled patient info: access type, dry weight, hepatitis status, EPO protocol, schedule
-- Session history table (all sessions for this patient)
-- **Print Dialysis Card** button — generates a printable card with patient photo, MRN, access type, schedule, hepatitis badges
-- Link to main patient profile
+Add a "Charges" section at the bottom of the new session form:
+- Auto-fetch default price from `service_types` where name matches "Dialysis Session"
+- Show editable fields: Session Fee, Consumables, Additional Charges
+- Store these as session metadata (or apply at completion time)
 
-### 3. Dialysis Sessions Page — Table View
-**File: `src/pages/app/dialysis/DialysisSessionsPage.tsx`**
+### 3. Add consumables tracking per session
+**File: `src/hooks/useDialysis.ts`**
 
-- `ReportTable` columns: Session #, Date, Patient, Chair, Machine, Pre-Weight, Post-Weight, UF (ml), Duration, Status
-- Filter bar: status dropdown (scheduled/in_progress/completed/cancelled), date range
-- Row click → navigate to session detail
+Add `useDialysisSessionCharges` hook and `useGenerateDialysisInvoice` mutation:
+- `useGenerateDialysisInvoice`: Creates invoice + invoice_items + updates session.invoice_id
+- Follows exact same pattern as lab order invoice generation in `useLabOrders.ts`
 
-### 4. Dialysis Schedule Page — Table View
-**File: `src/pages/app/dialysis/DialysisSchedulePage.tsx`**
+### 4. Show billing status on session detail & sessions list
+**Files: `DialysisSessionDetailPage.tsx`, `DialysisSessionsPage.tsx`**
 
-- `ReportTable` columns: Patient, Pattern (MWF/TTS), Shift, Chair, Machine, Start Date, End Date
-- Filter bar: pattern dropdown, shift dropdown
+- Session Detail: Show invoice badge (Pending/Paid/No Invoice) with link to `/app/billing/invoices/{id}`
+- Sessions List: Add "Invoice" column showing status badge
+- Include invoice in session query select: `invoices(id, invoice_number, status, total_amount)`
 
-### 5. Lab Queue Page — Hybrid Table
-**File: `src/pages/app/lab/LabQueuePage.tsx`**
+### 5. Add "Generate Invoice" button for completed sessions without invoice
+**File: `src/pages/app/dialysis/DialysisSessionDetailPage.tsx`**
 
-- Keep existing filter tabs (status, payment, priority) — they work well
-- Replace `LabOrderCard` list with `ReportTable`: Order #, Patient, MRN, Tests, Priority, Payment, Status, Time Ago
-- Priority column uses colored badges, payment column uses colored badges
-- Row click → navigate to result entry page
-- Keep action buttons (Collect Payment, Enter Results) as inline row buttons
-- Add pagination (default 20 rows)
+For completed sessions where `invoice_id` is null, show a "Generate Invoice" button that creates the invoice retroactively.
 
-### 6. Radiology Imaging Orders — Table View
-**File: `src/pages/app/radiology/ImagingOrdersListPage.tsx`**
+### 6. i18n keys
+Add keys for: "Generate Invoice", "Session Fee", "Consumables", "Invoice Generated", "No Invoice", "View Invoice", dialysis billing labels in en/ar/ur.
 
-- Keep existing filter dropdowns (status, modality, priority)
-- Replace card grid with `ReportTable`: Order #, Patient, Modality, Procedure, Priority, Status, Date
-- Row click → navigate to order detail
-- Add pagination
+## Technical Details
 
-### 7. Radiology Reporting Worklist — Table View
-**File: `src/pages/app/radiology/ReportingWorklistPage.tsx`**
+Invoice generation follows the exact lab order pattern:
+```
+1. Generate invoice_number: INV-{YYYYMMDD}-{random3}
+2. Insert into invoices (patient_id, org_id, branch_id, total_amount, balance_amount, status: "pending")
+3. Insert invoice_items (session fee line + consumable lines)
+4. Update dialysis_sessions SET invoice_id = new_invoice.id
+```
 
-- Keep view toggle buttons (Pending/Verification/Completed)
-- Replace card list with `ReportTable`: Order #, Patient, Modality, Procedure, Priority, Performed At, Action
-- Action column: Report/Verify/View buttons
-- Add pagination
-
-### 8. Route + i18n
-- Add route: `/app/dialysis/patients/:id` → `DialysisPatientDetailPage`
-- Add i18n keys for: "Print Card", "View Profile", "Enrolled Date", "Session History", table headers in all 3 languages
-
-## Technical Notes
-
-- All pages use the existing `ReportTable` component from `src/components/reports/ReportTable.tsx` which already provides: sortable columns, search, pagination with page numbers, and empty states
-- The `LabOrderCard` component is NOT deleted — it's still used in the mobile view (`MobileLabQueue`) and potentially in detail contexts
-- The `ImagingOrderCard` is also kept for potential reuse in other views
-- Print Dialysis Card uses `window.print()` with a dedicated print-friendly component
+Service type lookup: `SELECT id, default_price FROM service_types WHERE name = 'Dialysis Session'`
 
 ## Files Changed
-- `src/pages/app/dialysis/DialysisPatientsPage.tsx` — table view + filters + print/profile links
-- `src/pages/app/dialysis/DialysisPatientDetailPage.tsx` — NEW page
-- `src/pages/app/dialysis/DialysisSessionsPage.tsx` — table view + filters
-- `src/pages/app/dialysis/DialysisSchedulePage.tsx` — table view + filters
-- `src/pages/app/lab/LabQueuePage.tsx` — table view (keep filter tabs)
-- `src/pages/app/radiology/ImagingOrdersListPage.tsx` — table view (keep filters)
-- `src/pages/app/radiology/ReportingWorklistPage.tsx` — table view (keep toggles)
-- `src/App.tsx` — add dialysis patient detail route
-- `src/lib/i18n/translations/en.ts`, `ar.ts`, `ur.ts` — new keys
+- `src/hooks/useDialysis.ts` — add `useGenerateDialysisInvoice` mutation, `useDialysisServicePrice` hook
+- `src/pages/app/dialysis/DialysisSessionDetailPage.tsx` — invoice generation on complete, billing status card, generate invoice button
+- `src/pages/app/dialysis/DialysisSessionsPage.tsx` — add invoice status column
+- `src/pages/app/dialysis/DialysisNewSessionPage.tsx` — add charges preview section
+- `src/lib/i18n/translations/en.ts`, `ar.ts`, `ur.ts` — billing-related keys
 
