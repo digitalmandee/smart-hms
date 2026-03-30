@@ -299,6 +299,15 @@ export default function DispensingPage() {
         }
       />
 
+      {activeAdmission && (
+        <Alert className="border-orange-300 bg-orange-50 dark:bg-orange-950/20">
+          <Bed className="h-4 w-4 text-orange-600" />
+          <AlertDescription className="text-orange-800 dark:text-orange-300 font-medium">
+            IPD Patient — {(activeAdmission.ward as any)?.name || 'Ward'}, Bed {(activeAdmission.bed as any)?.bed_number || '-'} · Charges will be added to IPD account
+          </AlertDescription>
+        </Alert>
+      )}
+
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
