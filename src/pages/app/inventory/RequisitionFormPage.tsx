@@ -62,6 +62,7 @@ export default function RequisitionFormPage() {
   const navigate = useNavigate();
   const { profile } = useAuth();
   const { data: branches } = useBranches();
+  const { data: departments } = useDepartmentsConfig();
   const { data: items } = useInventoryItems();
   const createRequisition = useCreateRequisition();
 
