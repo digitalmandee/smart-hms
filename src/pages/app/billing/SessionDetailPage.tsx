@@ -50,6 +50,21 @@ export default function SessionDetailPage() {
   const navigate = useNavigate();
   const { data: session, isLoading } = useSession(id);
   const { data: transactions, isLoading: txLoading } = useSessionTransactions(id);
+  const { data: sessionExpenses, isLoading: expLoading } = useSessionExpenses(id);
+  const { data: sessionDeposits, isLoading: depLoading } = useQuery({
+    queryKey: ['session-deposits', id],
+    queryFn: async () => {
+      if (!id) return [];
+      const { data, error } = await supabase
+        .from('patient_deposits')
+        .select('*, patients(first_name, last_name, patient_number)')
+        .eq('billing_session_id', id)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!id,
+  });
   const [showClose, setShowClose] = useState(false);
 
   if (isLoading) {
