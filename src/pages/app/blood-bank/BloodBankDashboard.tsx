@@ -21,8 +21,11 @@ import { DonationStatusBadge } from "@/components/blood-bank/DonationStatusBadge
 import { BloodGroupBadge } from "@/components/blood-bank/BloodGroupBadge";
 import { ExpiryAlertBanner } from "@/components/blood-bank/ExpiryAlertBanner";
 
+import { useTranslation } from "@/lib/i18n";
+
 export default function BloodBankDashboard() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { data: stats, isLoading: statsLoading } = useBloodBankStats();
   const { data: todaysDonations, isLoading: donationsLoading } = useTodaysDonations();
   const { data: pendingRequests, isLoading: requestsLoading } = usePendingRequests();
@@ -31,23 +34,23 @@ export default function BloodBankDashboard() {
   return (
     <div className="space-y-6">
       <ModernPageHeader
-        title="Blood Bank"
-        subtitle="Manage blood donations, inventory, and transfusions"
+        title={t("bloodBank.title" as any)}
+        subtitle={t("bloodBank.subtitle" as any)}
         icon={Droplets}
         iconColor="text-destructive"
         actions={
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => navigate('/app/blood-bank/donors/new')} className="gap-2">
               <Plus className="h-4 w-4" />
-              Register Donor
+              {t("bloodBank.registerDonor" as any)}
             </Button>
             <Button onClick={() => navigate('/app/blood-bank/donations')} className="gap-2 bg-destructive hover:bg-destructive/90">
               <Heart className="h-4 w-4" />
-              Start Donation
+              {t("bloodBank.startDonation" as any)}
             </Button>
             <Button variant="outline" onClick={() => navigate('/app/blood-bank/analytics')} className="gap-2">
               <BarChart3 className="h-4 w-4" />
-              Analytics
+              {t("bloodBank.analytics" as any)}
             </Button>
           </div>
         }
