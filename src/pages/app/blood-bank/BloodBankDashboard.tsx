@@ -66,44 +66,44 @@ export default function BloodBankDashboard() {
         ) : (
           <>
             <ModernStatsCard
-              title="Active Donors"
+              title={t("bloodBank.activeDonors" as any)}
               value={stats?.totalDonors || 0}
               icon={Users}
               variant="primary"
               onClick={() => navigate('/app/blood-bank/donors')}
             />
             <ModernStatsCard
-              title="Today's Donations"
+              title={t("bloodBank.todaysDonations" as any)}
               value={stats?.todaysDonations || 0}
               icon={Heart}
               variant="accent"
               onClick={() => navigate('/app/blood-bank/donations')}
             />
             <ModernStatsCard
-              title="Available Units"
+              title={t("bloodBank.availableUnits" as any)}
               value={stats?.availableUnits || 0}
               icon={Package}
               variant="success"
               onClick={() => navigate('/app/blood-bank/inventory')}
             />
             <ModernStatsCard
-              title="Pending Requests"
+              title={t("bloodBank.pendingRequests" as any)}
               value={stats?.pendingRequests || 0}
               icon={FileText}
               variant="warning"
               onClick={() => navigate('/app/blood-bank/requests')}
             />
             <ModernStatsCard
-              title="Active Transfusions"
+              title={t("bloodBank.activeTransfusions" as any)}
               value={stats?.activeTransfusions || 0}
               icon={Activity}
               variant="info"
               onClick={() => navigate('/app/blood-bank/transfusions')}
             />
             <ModernStatsCard
-              title="Expiring Soon"
+              title={t("bloodBank.expiringSoon" as any)}
               value={stats?.expiringUnits || 0}
-              change="Within 7 days"
+              change={t("bloodBank.within7Days" as any)}
               icon={AlertTriangle}
               variant="warning"
               onClick={() => navigate('/app/blood-bank/inventory?expiring=true')}
