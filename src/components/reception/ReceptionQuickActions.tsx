@@ -31,6 +31,7 @@ const quickActions: QuickAction[] = [
   { labelKey: "reception.queueDisplay", icon: Monitor, path: "/app/appointments/queue-display", variant: "secondary", descKey: "reception.tvDisplay" },
   { labelKey: "reception.todaysReport", icon: FileText, path: "/app/appointments", variant: "secondary", descKey: "reception.appointmentsList" },
   { labelKey: "reception.aiIntake", icon: Bot, path: "/app/ai-chat", variant: "outline", descKey: "reception.aiGuided" },
+  { labelKey: "reception.dialysisSchedule", icon: Droplets, path: "/app/dialysis/schedule/new", variant: "outline", descKey: "reception.scheduleDialysis" },
 ];
 
 export function ReceptionQuickActions() {
