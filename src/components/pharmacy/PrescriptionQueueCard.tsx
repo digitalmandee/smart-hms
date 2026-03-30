@@ -30,9 +30,14 @@ export function PrescriptionQueueCard({ prescription }: PrescriptionQueueCardPro
               {format(new Date(prescription.created_at), "MMM d, h:mm a")}
             </div>
           </div>
-          <Badge variant={prescription.status === "partially_dispensed" ? "secondary" : "outline"}>
-            {prescription.status === "partially_dispensed" ? t('pharmacy.partial' as any) : t('pharmacy.pending' as any)}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant={prescription.status === "partially_dispensed" ? "secondary" : "outline"}>
+              {prescription.status === "partially_dispensed" ? t('pharmacy.partial' as any) : t('pharmacy.pending' as any)}
+            </Badge>
+            <Badge variant="default" className={prescription.source === 'ipd' ? "bg-orange-500 text-white" : "bg-blue-100 text-blue-800"}>
+              {prescription.source === 'ipd' ? t('pharmacy.ipd' as any) : t('pharmacy.opd' as any)}
+            </Badge>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
