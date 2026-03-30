@@ -2,10 +2,9 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { POSTransaction } from "@/hooks/usePOS";
 import { SelectedReturnItem } from "@/components/pharmacy/ReturnItemSelector";
 import { RefundMethod } from "@/components/pharmacy/RefundMethodSelector";
-import { returnsLogger, inventoryOpsLogger } from "@/lib/logger";
+import { returnsLogger } from "@/lib/logger";
 
 // Helper for raw SQL queries to POS tables (bypasses type checking)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -37,6 +36,28 @@ export interface ReturnItem {
   returned_quantity?: number;
 }
 
+export interface DispensedPrescriptionResult {
+  id: string;
+  prescription_number: string;
+  patient_name: string;
+  patient_mrn: string;
+  dispensed_at: string;
+  source: "opd" | "ipd";
+  items: DispensedItem[];
+}
+
+export interface DispensedItem {
+  id: string;
+  medicine_name: string;
+  medicine_id: string;
+  inventory_id?: string;
+  quantity: number;
+  unit_price: number;
+  total_price: number;
+  batch_number?: string;
+  returned_quantity?: number;
+}
+
 // Search transactions for return/refund
 export function useSearchTransactionForReturn(query: string) {
   const { profile } = useAuth();
@@ -58,7 +79,7 @@ export function useSearchTransactionForReturn(query: string) {
           items:pharmacy_pos_items(id, medicine_name, medicine_id, inventory_id, quantity, unit_price, total_price, batch_number)
         `)
         .eq("branch_id", profile.branch_id)
-        .in("status", ["completed", "credit"]) // Include credit sales too
+        .in("status", ["completed", "credit"])
         .or(`transaction_number.ilike.%${query}%,customer_name.ilike.%${query}%,customer_phone.ilike.%${query}%`)
         .order("created_at", { ascending: false })
         .limit(50);
@@ -70,7 +91,103 @@ export function useSearchTransactionForReturn(query: string) {
   });
 }
 
-// Fetch recent returns
+// Search dispensed prescriptions for return (OPD/IPD)
+export function useSearchDispensedPrescriptions(query: string) {
+  const { profile } = useAuth();
+
+  return useQuery({
+    queryKey: ["search-dispensed-prescriptions", query, profile?.branch_id],
+    queryFn: async () => {
+      if (!query || query.length < 3 || !profile?.branch_id) return [];
+
+      // Search prescriptions that have been dispensed
+      const { data, error } = await supabase
+        .from("prescriptions")
+        .select(`
+          id,
+          prescription_number,
+          status,
+          dispensed_at,
+          patient:patients(id, full_name, mrn),
+          consultation:consultations(id, admission_id),
+          items:prescription_items(
+            id, medicine_name, medicine_id, quantity, unit_price, total_price, 
+            dispensed_quantity, inventory_id, batch_number
+          )
+        `)
+        .eq("branch_id", profile.branch_id)
+        .in("status", ["dispensed", "partially_dispensed"])
+        .or(`prescription_number.ilike.%${query}%`)
+        .order("dispensed_at", { ascending: false })
+        .limit(30);
+
+      if (error) {
+        // Try patient name/MRN search separately
+        const { data: patients } = await supabase
+          .from("patients")
+          .select("id")
+          .or(`full_name.ilike.%${query}%,mrn.ilike.%${query}%`)
+          .limit(10);
+
+        if (patients && patients.length > 0) {
+          const patientIds = patients.map(p => p.id);
+          const { data: rxData, error: rxError } = await supabase
+            .from("prescriptions")
+            .select(`
+              id,
+              prescription_number,
+              status,
+              dispensed_at,
+              patient:patients(id, full_name, mrn),
+              consultation:consultations(id, admission_id),
+              items:prescription_items(
+                id, medicine_name, medicine_id, quantity, unit_price, total_price,
+                dispensed_quantity, inventory_id, batch_number
+              )
+            `)
+            .eq("branch_id", profile.branch_id)
+            .in("status", ["dispensed", "partially_dispensed"])
+            .in("patient_id", patientIds)
+            .order("dispensed_at", { ascending: false })
+            .limit(30);
+
+          if (rxError) throw rxError;
+          return mapPrescriptionResults(rxData);
+        }
+        throw error;
+      }
+
+      return mapPrescriptionResults(data);
+    },
+    enabled: !!query && query.length >= 3 && !!profile?.branch_id,
+  });
+}
+
+function mapPrescriptionResults(data: any[]): DispensedPrescriptionResult[] {
+  if (!data) return [];
+  return data.map((rx: any) => ({
+    id: rx.id,
+    prescription_number: rx.prescription_number || "N/A",
+    patient_name: rx.patient?.full_name || "Unknown",
+    patient_mrn: rx.patient?.mrn || "",
+    dispensed_at: rx.dispensed_at || rx.created_at,
+    source: rx.consultation?.admission_id ? "ipd" as const : "opd" as const,
+    items: (rx.items || [])
+      .filter((item: any) => (item.dispensed_quantity || item.quantity) > 0)
+      .map((item: any) => ({
+        id: item.id,
+        medicine_name: item.medicine_name,
+        medicine_id: item.medicine_id,
+        inventory_id: item.inventory_id,
+        quantity: item.dispensed_quantity || item.quantity,
+        unit_price: item.unit_price || 0,
+        total_price: item.total_price || 0,
+        batch_number: item.batch_number,
+      })),
+  }));
+}
+
+// Fetch recent returns from pharmacy_returns table
 export function useRecentReturns() {
   const { profile } = useAuth();
 
@@ -79,32 +196,58 @@ export function useRecentReturns() {
     queryFn: async () => {
       if (!profile?.branch_id) return [];
 
-      // For now, fetch voided/refunded transactions as "returns"
-      const { data, error } = await queryPOSTable("pharmacy_pos_transactions")
+      const { data, error } = await queryPOSTable("pharmacy_returns")
         .select(`
           id,
-          transaction_number,
-          customer_name,
-          customer_phone,
-          total_amount,
+          return_number,
+          return_type,
+          total_refund_amount,
+          reason,
           created_at,
-          status,
-          void_reason,
-          voided_at
+          original_transaction_id,
+          items:pharmacy_return_items(id, medicine_name, quantity_returned, restocked)
         `)
         .eq("branch_id", profile.branch_id)
-        .in("status", ["voided", "refunded"])
         .order("created_at", { ascending: false })
         .limit(50);
 
-      if (error) throw error;
-      return data || [];
+      if (error) {
+        // Fallback to voided POS transactions
+        const { data: fallback, error: fbError } = await queryPOSTable("pharmacy_pos_transactions")
+          .select(`id, transaction_number, customer_name, total_amount, created_at, status, void_reason, voided_at`)
+          .eq("branch_id", profile.branch_id)
+          .in("status", ["voided", "refunded"])
+          .order("created_at", { ascending: false })
+          .limit(50);
+        if (fbError) throw fbError;
+        return (fallback || []).map((t: any) => ({
+          id: t.id,
+          return_number: t.transaction_number,
+          return_type: t.status === "refunded" ? "cash_refund" : "voided",
+          total_refund_amount: t.total_amount,
+          reason: t.void_reason || "-",
+          created_at: t.voided_at || t.created_at,
+          items_count: 0,
+          items_restocked: 0,
+        }));
+      }
+
+      return (data || []).map((r: any) => ({
+        id: r.id,
+        return_number: r.return_number,
+        return_type: r.return_type,
+        total_refund_amount: r.total_refund_amount,
+        reason: r.reason,
+        created_at: r.created_at,
+        items_count: r.items?.length || 0,
+        items_restocked: r.items?.filter((i: any) => i.restocked).length || 0,
+      }));
     },
     enabled: !!profile?.branch_id,
   });
 }
 
-// Get returns stats
+// Get returns stats from pharmacy_returns table
 export function useReturnsStats() {
   const { profile } = useAuth();
 
@@ -112,40 +255,42 @@ export function useReturnsStats() {
     queryKey: ["returns-stats", profile?.branch_id],
     queryFn: async () => {
       if (!profile?.branch_id) {
-        return {
-          todayReturns: 0,
-          pendingApproval: 0,
-          weeklyRefundTotal: 0,
-          itemsRestocked: 0,
-        };
+        return { todayReturns: 0, pendingApproval: 0, weeklyRefundTotal: 0, itemsRestocked: 0 };
       }
 
       const today = new Date().toISOString().split("T")[0];
       const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
 
-      // Today's returns (voided/refunded)
-      const { data: todayData } = await queryPOSTable("pharmacy_pos_transactions")
-        .select("id, total_amount")
+      // Today's returns from pharmacy_returns
+      const { data: todayData } = await queryPOSTable("pharmacy_returns")
+        .select("id, total_refund_amount")
         .eq("branch_id", profile.branch_id)
-        .in("status", ["voided", "refunded"])
-        .gte("voided_at", `${today}T00:00:00`)
-        .lte("voided_at", `${today}T23:59:59`);
+        .gte("created_at", `${today}T00:00:00`)
+        .lte("created_at", `${today}T23:59:59`);
 
       // This week's refunds
-      const { data: weekData } = await queryPOSTable("pharmacy_pos_transactions")
-        .select("id, total_amount")
+      const { data: weekData } = await queryPOSTable("pharmacy_returns")
+        .select("id, total_refund_amount")
         .eq("branch_id", profile.branch_id)
-        .in("status", ["voided", "refunded"])
-        .gte("voided_at", `${weekAgo}T00:00:00`);
+        .gte("created_at", `${weekAgo}T00:00:00`);
+
+      // Today's restocked items
+      const { data: todayItems } = await queryPOSTable("pharmacy_return_items")
+        .select("id, return_id, restocked")
+        .eq("restocked", true);
 
       const todayReturns = todayData?.length || 0;
-      const weeklyRefundTotal = weekData?.reduce((sum: number, t: any) => sum + (Number(t.total_amount) || 0), 0) || 0;
+      const weeklyRefundTotal = weekData?.reduce((sum: number, t: any) => sum + (Number(t.total_refund_amount) || 0), 0) || 0;
+
+      // Count restocked items from today's returns
+      const todayReturnIds = new Set((todayData || []).map((r: any) => r.id));
+      const itemsRestocked = (todayItems || []).filter((i: any) => todayReturnIds.has(i.return_id)).length;
 
       return {
         todayReturns,
-        pendingApproval: 0, // Placeholder - would need approval workflow table
+        pendingApproval: 0,
         weeklyRefundTotal,
-        itemsRestocked: todayReturns * 2, // Estimate
+        itemsRestocked,
       };
     },
     enabled: !!profile?.branch_id,
@@ -161,46 +306,43 @@ export function useProcessReturn() {
   return useMutation({
     mutationFn: async ({
       transactionId,
+      prescriptionId,
       reason,
       selectedItems,
       refundMethod,
       totalRefundAmount,
       restockItems = true,
     }: {
-      transactionId: string;
+      transactionId?: string;
+      prescriptionId?: string;
       reason: string;
       selectedItems: SelectedReturnItem[];
       refundMethod: RefundMethod;
       totalRefundAmount: number;
       restockItems?: boolean;
     }) => {
-      const operationTimer = returnsLogger.startOperation('processReturn');
+      returnsLogger.startOperation('processReturn');
       
       returnsLogger.info('Processing pharmacy return', {
         transactionId,
+        prescriptionId,
         itemCount: selectedItems.length,
         totalRefundAmount,
         refundMethod,
         restockItems,
-        userId: profile?.id,
-        branchId: profile?.branch_id,
       });
 
       if (!profile?.organization_id || !profile?.branch_id) {
-        returnsLogger.error('User profile not found during return processing');
         throw new Error("User profile not found");
       }
 
-      // Generate a unique return number
       const returnNumber = `RET-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
-      returnsLogger.debug('Generated return number', { returnNumber });
 
-      // 1. Create pharmacy_return record using raw query helper
-      returnsLogger.debug('Creating pharmacy_return record', { transactionId, returnNumber });
+      // 1. Create pharmacy_return record
       const { data: returnRecord, error: returnError } = await queryPOSTable("pharmacy_returns")
         .insert({
           return_number: returnNumber,
-          original_transaction_id: transactionId,
+          original_transaction_id: transactionId || null,
           return_type: refundMethod,
           total_refund_amount: totalRefundAmount,
           reason,
@@ -212,13 +354,11 @@ export function useProcessReturn() {
         .single();
 
       if (returnError) {
-        returnsLogger.error('Failed to create pharmacy_return record', returnError, { transactionId });
+        returnsLogger.error('Failed to create pharmacy_return record', returnError);
         throw returnError;
       }
-      
-      returnsLogger.info('Created pharmacy_return record', { returnId: returnRecord.id, returnNumber });
 
-      // 2. Create pharmacy_return_items for each returned item
+      // 2. Create pharmacy_return_items
       const returnItems = selectedItems.map(item => ({
         return_id: returnRecord.id,
         original_item_id: item.id,
@@ -230,103 +370,61 @@ export function useProcessReturn() {
         batch_number: item.batch_number,
       }));
 
-      returnsLogger.debug('Inserting pharmacy_return_items', { itemCount: returnItems.length });
       const { error: itemsError } = await queryPOSTable("pharmacy_return_items")
         .insert(returnItems);
 
       if (itemsError) {
-        returnsLogger.error('Failed to insert pharmacy_return_items', itemsError, { returnId: returnRecord.id });
+        returnsLogger.error('Failed to insert pharmacy_return_items', itemsError);
         throw itemsError;
       }
-      
-      returnsLogger.info('Created pharmacy_return_items', { itemCount: returnItems.length });
 
-      // 3. Get original transaction to check if full or partial refund
-      const { data: originalTx } = await queryPOSTable("pharmacy_pos_transactions")
-        .select("items:pharmacy_pos_items(id, quantity)")
-        .eq("id", transactionId)
-        .single();
+      // 3. Handle POS transaction status update (full refund check)
+      if (transactionId) {
+        const { data: originalTx } = await queryPOSTable("pharmacy_pos_transactions")
+          .select("items:pharmacy_pos_items(id, quantity)")
+          .eq("id", transactionId)
+          .single();
 
-      const originalItemCount = originalTx?.items?.length || 0;
-      const returnedItemCount = selectedItems.length;
-      const isFullRefund = returnedItemCount === originalItemCount && 
-        selectedItems.every(si => {
-          const orig = originalTx?.items?.find((oi: any) => oi.id === si.id);
-          return orig && si.return_quantity === orig.quantity;
-        });
+        const originalItemCount = originalTx?.items?.length || 0;
+        const returnedItemCount = selectedItems.length;
+        const isFullRefund = returnedItemCount === originalItemCount && 
+          selectedItems.every(si => {
+            const orig = originalTx?.items?.find((oi: any) => oi.id === si.id);
+            return orig && si.return_quantity === orig.quantity;
+          });
 
-      returnsLogger.debug('Refund type determined', { isFullRefund, originalItemCount, returnedItemCount });
-
-      // 4. If full refund, mark transaction as refunded
-      if (isFullRefund) {
-        returnsLogger.info('Processing full refund - marking transaction as refunded', { transactionId });
-        await queryPOSTable("pharmacy_pos_transactions")
-          .update({
-            status: "refunded",
-            voided_at: new Date().toISOString(),
-            voided_by: profile.id,
-            void_reason: reason,
-          })
-          .eq("id", transactionId);
+        if (isFullRefund) {
+          await queryPOSTable("pharmacy_pos_transactions")
+            .update({
+              status: "refunded",
+              voided_at: new Date().toISOString(),
+              voided_by: profile.id,
+              void_reason: reason,
+            })
+            .eq("id", transactionId);
+        }
       }
 
-      // 5. Restock inventory if requested
+      // 4. Restock inventory if requested
       if (restockItems) {
-        returnsLogger.info('Starting inventory restock', { itemCount: selectedItems.length });
-        let restockedCount = 0;
-        
         for (const item of selectedItems) {
-          inventoryOpsLogger.debug('Processing item for restock', {
-            itemId: item.id,
-            medicineName: item.medicine_name,
-            inventoryId: item.inventory_id,
-            medicineId: item.medicine_id,
-            returnQuantity: item.return_quantity,
-          });
-          
           if (item.inventory_id) {
-            // Get current inventory quantity
             const { data: inventory, error: invError } = await supabase
               .from("medicine_inventory")
               .select("id, quantity, medicine_id, batch_number")
               .eq("id", item.inventory_id)
               .single();
 
-            if (invError) {
-              inventoryOpsLogger.error('Failed to fetch inventory for restock', invError, {
-                inventoryId: item.inventory_id,
-                medicineName: item.medicine_name,
-              });
-            }
-
             if (!invError && inventory) {
               const previousStock = inventory.quantity || 0;
               const newStock = previousStock + item.return_quantity;
 
-              inventoryOpsLogger.info('Updating inventory quantity', {
-                inventoryId: item.inventory_id,
-                medicineName: item.medicine_name,
-                previousStock,
-                returnQuantity: item.return_quantity,
-                newStock,
-              });
-
-              // Update inventory - ADD quantity back
-              const { error: updateError } = await supabase
+              await supabase
                 .from("medicine_inventory")
                 .update({ quantity: newStock })
                 .eq("id", item.inventory_id);
 
-              if (updateError) {
-                inventoryOpsLogger.error('Failed to update inventory quantity', updateError, {
-                  inventoryId: item.inventory_id,
-                });
-              } else {
-                restockedCount++;
-              }
-
-              // Log stock movement
-              const { error: movementError } = await queryPOSTable("pharmacy_stock_movements").insert({
+              await queryPOSTable("pharmacy_stock_movements").insert({
                 organization_id: profile.organization_id,
                 branch_id: profile.branch_id,
                 medicine_id: item.medicine_id || inventory.medicine_id,
@@ -335,7 +433,7 @@ export function useProcessReturn() {
                 quantity: item.return_quantity,
                 previous_stock: previousStock,
                 new_stock: newStock,
-                reference_type: "pharmacy_return",
+                reference_type: prescriptionId ? "prescription_return" : "pharmacy_return",
                 reference_id: returnRecord.id,
                 batch_number: item.batch_number || inventory.batch_number,
                 unit_cost: item.unit_price,
@@ -343,58 +441,58 @@ export function useProcessReturn() {
                 notes: `Return: ${reason}`,
                 created_by: profile.id,
               });
-
-              if (movementError) {
-                inventoryOpsLogger.error('Failed to log stock movement', movementError, {
-                  inventoryId: item.inventory_id,
-                  returnId: returnRecord.id,
-                });
-              } else {
-                inventoryOpsLogger.info('Stock movement logged successfully', {
-                  inventoryId: item.inventory_id,
-                  movementType: 'return',
-                  quantity: item.return_quantity,
-                });
-              }
             }
-          } else {
-            inventoryOpsLogger.warn('Item missing inventory_id - cannot restock', {
-              itemId: item.id,
-              medicineName: item.medicine_name,
-              medicineId: item.medicine_id,
-            });
+          } else if (item.medicine_id) {
+            // Try to find inventory by medicine_id + branch
+            const { data: invItems } = await supabase
+              .from("medicine_inventory")
+              .select("id, quantity, batch_number")
+              .eq("medicine_id", item.medicine_id)
+              .eq("branch_id", profile.branch_id)
+              .order("created_at", { ascending: false })
+              .limit(1);
+
+            if (invItems && invItems.length > 0) {
+              const inv = invItems[0];
+              const previousStock = inv.quantity || 0;
+              const newStock = previousStock + item.return_quantity;
+
+              await supabase
+                .from("medicine_inventory")
+                .update({ quantity: newStock })
+                .eq("id", inv.id);
+
+              await queryPOSTable("pharmacy_stock_movements").insert({
+                organization_id: profile.organization_id,
+                branch_id: profile.branch_id,
+                medicine_id: item.medicine_id,
+                inventory_id: inv.id,
+                movement_type: "return",
+                quantity: item.return_quantity,
+                previous_stock: previousStock,
+                new_stock: newStock,
+                reference_type: prescriptionId ? "prescription_return" : "pharmacy_return",
+                reference_id: returnRecord.id,
+                batch_number: item.batch_number || inv.batch_number,
+                unit_cost: item.unit_price,
+                total_value: item.line_total,
+                notes: `Return: ${reason}`,
+                created_by: profile.id,
+              });
+            }
           }
         }
-        
-        returnsLogger.info('Inventory restock completed', { 
-          totalItems: selectedItems.length, 
-          restockedCount,
-          skippedCount: selectedItems.length - restockedCount,
-        });
       }
 
-      // 6. TODO: Handle credit adjustments if refundMethod is add_credit or deduct_outstanding
-      // This would update pharmacy_patient_credits table
-
-      returnsLogger.info('Return processing completed successfully', {
-        returnId: returnRecord.id,
-        returnNumber,
-        totalRefundAmount,
-        itemCount: selectedItems.length,
-      });
-
+      returnsLogger.info('Return processing completed', { returnId: returnRecord.id, returnNumber });
       return returnRecord;
     },
     onSuccess: (data, variables) => {
-      returnsLogger.info('Return mutation succeeded', {
-        returnId: data.id,
-        itemCount: variables.selectedItems.length,
-      });
-      
       queryClient.invalidateQueries({ queryKey: ["pos-transactions"] });
       queryClient.invalidateQueries({ queryKey: ["recent-returns"] });
       queryClient.invalidateQueries({ queryKey: ["returns-stats"] });
       queryClient.invalidateQueries({ queryKey: ["search-transaction-return"] });
+      queryClient.invalidateQueries({ queryKey: ["search-dispensed-prescriptions"] });
       queryClient.invalidateQueries({ queryKey: ["medicine-inventory"] });
       queryClient.invalidateQueries({ queryKey: ["stock-movements"] });
       
@@ -403,13 +501,8 @@ export function useProcessReturn() {
         description: `${variables.selectedItems.length} item(s) returned successfully.`,
       });
     },
-    onError: (error: Error, variables) => {
-      returnsLogger.error('Return mutation failed', error, {
-        transactionId: variables.transactionId,
-        itemCount: variables.selectedItems.length,
-        refundMethod: variables.refundMethod,
-      });
-      
+    onError: (error: Error) => {
+      returnsLogger.error('Return mutation failed', error);
       toast({
         title: "Error",
         description: error.message,
