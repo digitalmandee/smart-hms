@@ -44,7 +44,11 @@ const paymentStatusConfig = {
 
 export function LabOrderCard({ order, canCollectPayment, onPaymentComplete }: LabOrderCardProps) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [rejectionDialogOpen, setRejectionDialogOpen] = useState(false);
+  const [isRejecting, setIsRejecting] = useState(false);
   const { data: labSettings } = useLabSettings();
   
   const patient = order.patient;
