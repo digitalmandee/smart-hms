@@ -3328,5 +3328,22 @@ export const ar: Record<TranslationKey, string> = {
   "pharmacy.itemsRestocked": "أصناف أعيدت للمخزون",
   "pharmacy.searchPatientMRN": "أدخل اسم المريض أو رقم الملف أو رقم الوصفة...",
 
+  // Commissions
+  "hr.commissions": "العمولات",
+  "hr.editCommission": "تعديل العمولة",
+  "hr.updateCommission": "تحديث العمولة",
+  "hr.totalCommissions": "إجمالي العمولات",
+  "hr.grossAmount": "المبلغ الإجمالي",
+  "hr.sharePercent": "نسبة الحصة",
+  "hr.doctorShare": "حصة الطبيب",
+  "hr.hospitalShare": "حصة المستشفى",
+  "hr.markPaid": "تحديد كمدفوع",
+  "hr.records": "سجلات",
+  "hr.doctor": "طبيب",
+  "common.unpaid": "غير مدفوع",
+  "common.type": "النوع",
+  "common.from": "من",
+  "common.to": "إلى",
+
 };
 

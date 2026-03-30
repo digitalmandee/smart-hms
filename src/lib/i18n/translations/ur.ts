@@ -3328,5 +3328,22 @@ export const ur: Record<TranslationKey, string> = {
   "pharmacy.itemsRestocked": "اسٹاک میں واپس آئٹمز",
   "pharmacy.searchPatientMRN": "مریض کا نام، MRN، یا نسخہ نمبر درج کریں...",
 
+  // Commissions
+  "hr.commissions": "کمیشنز",
+  "hr.editCommission": "کمیشن میں ترمیم",
+  "hr.updateCommission": "کمیشن اپ ڈیٹ کریں",
+  "hr.totalCommissions": "کل کمیشنز",
+  "hr.grossAmount": "مجموعی رقم",
+  "hr.sharePercent": "حصہ %",
+  "hr.doctorShare": "ڈاکٹر کا حصہ",
+  "hr.hospitalShare": "ہسپتال کا حصہ",
+  "hr.markPaid": "ادا شدہ نشان زد کریں",
+  "hr.records": "ریکارڈز",
+  "hr.doctor": "ڈاکٹر",
+  "common.unpaid": "غیر ادا شدہ",
+  "common.type": "قسم",
+  "common.from": "سے",
+  "common.to": "تک",
+
 };
 

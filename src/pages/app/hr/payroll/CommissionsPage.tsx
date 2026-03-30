@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from "react";
-import AppLayout from "@/components/layout/AppLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -86,7 +85,11 @@ export default function CommissionsPage() {
   const toggleSelect = (id: string) => {
     setSelected(prev => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
       return next;
     });
   };
@@ -175,7 +178,7 @@ export default function CommissionsPage() {
       accessorKey: "is_paid",
       header: t("common.status"),
       cell: ({ getValue }) => getValue() ? (
-        <Badge className="bg-green-100 text-green-800">{t("common.paid")}</Badge>
+        <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">{t("common.paid")}</Badge>
       ) : (
         <Badge variant="secondary">{t("common.unpaid")}</Badge>
       ),
@@ -203,126 +206,124 @@ export default function CommissionsPage() {
   ];
 
   return (
-    <AppLayout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">{t("hr.commissions")}</h1>
-          <div className="flex gap-2">
-            {selected.size > 0 && (
-              <Button onClick={handleBulkPaid} variant="default" size="sm">
-                <CheckCircle className="h-4 w-4 mr-1" />
-                {t("hr.markPaid")} ({selected.size})
-              </Button>
-            )}
-            <Button onClick={exportCSV} variant="outline" size="sm">
-              <Download className="h-4 w-4 mr-1" />
-              {t("common.export")}
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">{t("hr.commissions")}</h1>
+        <div className="flex gap-2">
+          {selected.size > 0 && (
+            <Button onClick={handleBulkPaid} variant="default" size="sm">
+              <CheckCircle className="h-4 w-4 mr-1" />
+              {t("hr.markPaid")} ({selected.size})
             </Button>
-          </div>
+          )}
+          <Button onClick={exportCSV} variant="outline" size="sm">
+            <Download className="h-4 w-4 mr-1" />
+            {t("common.export")}
+          </Button>
         </div>
-
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <ReportSummaryCard title={t("hr.totalCommissions")} value={fc(summary.total)} icon={DollarSign} variant="default" />
-          <ReportSummaryCard title={t("common.paid")} value={fc(summary.paid)} icon={CheckCircle} variant="success" />
-          <ReportSummaryCard title={t("common.unpaid")} value={fc(summary.unpaid)} icon={Clock} variant="warning" />
-          <ReportSummaryCard title={t("common.total")} value={summary.count} icon={TrendingUp} subtitle={t("hr.records")} />
-        </div>
-
-        {/* Filters */}
-        <Card>
-          <CardContent className="pt-4">
-            <div className="flex flex-wrap gap-3 items-end">
-              <div>
-                <Label className="text-xs">{t("hr.from")}</Label>
-                <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-40" />
-              </div>
-              <div>
-                <Label className="text-xs">{t("hr.to")}</Label>
-                <Input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="w-40" />
-              </div>
-              <div>
-                <Label className="text-xs">{t("common.type")}</Label>
-                <Select value={sourceFilter} onValueChange={setSourceFilter}>
-                  <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t("common.all")}</SelectItem>
-                    {SOURCE_TYPES.map(s => (
-                      <SelectItem key={s} value={s} className="capitalize">{s.replace(/_/g, " ")}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label className="text-xs">{t("common.status")}</Label>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t("common.all")}</SelectItem>
-                    <SelectItem value="paid">{t("common.paid")}</SelectItem>
-                    <SelectItem value="unpaid">{t("common.unpaid")}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Table */}
-        <DataTable columns={columns} data={earnings} isLoading={isLoading} searchKey="source_reference" />
-
-        {/* Edit Dialog */}
-        <Dialog open={!!editItem} onOpenChange={open => !open && setEditItem(null)}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{t("hr.editCommission")}</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>{t("hr.grossAmount")}</Label>
-                  <Input
-                    type="number"
-                    value={editForm.gross_amount}
-                    onChange={e => setEditForm(f => ({ ...f, gross_amount: Number(e.target.value) }))}
-                  />
-                </div>
-                <div>
-                  <Label>{t("hr.sharePercent")}</Label>
-                  <Input
-                    type="number"
-                    value={editForm.doctor_share_percent}
-                    onChange={e => setEditForm(f => ({ ...f, doctor_share_percent: Number(e.target.value) }))}
-                  />
-                </div>
-              </div>
-              <div className="bg-muted p-3 rounded text-sm">
-                <p>{t("hr.doctorShare")}: <strong>{fc((editForm.gross_amount * editForm.doctor_share_percent) / 100)}</strong></p>
-                <p>{t("hr.hospitalShare")}: <strong>{fc(editForm.gross_amount - (editForm.gross_amount * editForm.doctor_share_percent) / 100)}</strong></p>
-              </div>
-              <div>
-                <Label>{t("common.type")}</Label>
-                <Select value={editForm.source_type} onValueChange={v => setEditForm(f => ({ ...f, source_type: v }))}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {SOURCE_TYPES.map(s => (
-                      <SelectItem key={s} value={s} className="capitalize">{s.replace(/_/g, " ")}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>{t("common.notes")}</Label>
-                <Textarea value={editForm.notes} onChange={e => setEditForm(f => ({ ...f, notes: e.target.value }))} />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setEditItem(null)}>{t("common.cancel")}</Button>
-              <Button onClick={saveEdit} disabled={updateEarning.isPending}>{t("hr.updateCommission")}</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </div>
-    </AppLayout>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <ReportSummaryCard title={t("hr.totalCommissions")} value={fc(summary.total)} icon={DollarSign} variant="default" />
+        <ReportSummaryCard title={t("common.paid")} value={fc(summary.paid)} icon={CheckCircle} variant="success" />
+        <ReportSummaryCard title={t("common.unpaid")} value={fc(summary.unpaid)} icon={Clock} variant="warning" />
+        <ReportSummaryCard title={t("common.total")} value={summary.count} icon={TrendingUp} subtitle={t("hr.records")} />
+      </div>
+
+      {/* Filters */}
+      <Card>
+        <CardContent className="pt-4">
+          <div className="flex flex-wrap gap-3 items-end">
+            <div>
+              <Label className="text-xs">{t("common.from")}</Label>
+              <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-40" />
+            </div>
+            <div>
+              <Label className="text-xs">{t("common.to")}</Label>
+              <Input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="w-40" />
+            </div>
+            <div>
+              <Label className="text-xs">{t("common.type")}</Label>
+              <Select value={sourceFilter} onValueChange={setSourceFilter}>
+                <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t("common.all")}</SelectItem>
+                  {SOURCE_TYPES.map(s => (
+                    <SelectItem key={s} value={s} className="capitalize">{s.replace(/_/g, " ")}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-xs">{t("common.status")}</Label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t("common.all")}</SelectItem>
+                  <SelectItem value="paid">{t("common.paid")}</SelectItem>
+                  <SelectItem value="unpaid">{t("common.unpaid")}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Table */}
+      <DataTable columns={columns} data={earnings} isLoading={isLoading} searchKey="source_reference" />
+
+      {/* Edit Dialog */}
+      <Dialog open={!!editItem} onOpenChange={open => !open && setEditItem(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("hr.editCommission")}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>{t("hr.grossAmount")}</Label>
+                <Input
+                  type="number"
+                  value={editForm.gross_amount}
+                  onChange={e => setEditForm(f => ({ ...f, gross_amount: Number(e.target.value) }))}
+                />
+              </div>
+              <div>
+                <Label>{t("hr.sharePercent")}</Label>
+                <Input
+                  type="number"
+                  value={editForm.doctor_share_percent}
+                  onChange={e => setEditForm(f => ({ ...f, doctor_share_percent: Number(e.target.value) }))}
+                />
+              </div>
+            </div>
+            <div className="bg-muted p-3 rounded text-sm">
+              <p>{t("hr.doctorShare")}: <strong>{fc((editForm.gross_amount * editForm.doctor_share_percent) / 100)}</strong></p>
+              <p>{t("hr.hospitalShare")}: <strong>{fc(editForm.gross_amount - (editForm.gross_amount * editForm.doctor_share_percent) / 100)}</strong></p>
+            </div>
+            <div>
+              <Label>{t("common.type")}</Label>
+              <Select value={editForm.source_type} onValueChange={v => setEditForm(f => ({ ...f, source_type: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {SOURCE_TYPES.map(s => (
+                    <SelectItem key={s} value={s} className="capitalize">{s.replace(/_/g, " ")}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>{t("common.notes")}</Label>
+              <Textarea value={editForm.notes} onChange={e => setEditForm(f => ({ ...f, notes: e.target.value }))} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditItem(null)}>{t("common.cancel")}</Button>
+            <Button onClick={saveEdit} disabled={updateEarning.isPending}>{t("hr.updateCommission")}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }
