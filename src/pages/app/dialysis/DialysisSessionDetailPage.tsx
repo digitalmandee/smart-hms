@@ -308,7 +308,7 @@ export default function DialysisSessionDetailPage() {
         ]}
       />
 
-      {/* Compact Header: Patient + Status + Machine — single row */}
+      {/* Compact Header: Patient + Doctor + Status — single row */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-4 rounded-lg border bg-card">
         <div className="flex items-center gap-4">
           <div className="p-2.5 rounded-lg bg-primary/10">
@@ -318,6 +318,19 @@ export default function DialysisSessionDetailPage() {
             <h2 className="font-semibold text-lg">{patient?.first_name} {patient?.last_name}</h2>
             <p className="text-sm text-muted-foreground">MRN: {patient?.patient_number} • {session.session_date} • {session.shift || "–"}</p>
           </div>
+          {/* Attending doctor info */}
+          {(() => {
+            const attendingDoc = (session as any).attended_by && doctors?.find((d: any) => d.id === (session as any).attended_by);
+            if (!attendingDoc) return null;
+            const isMe = isDoctorRole && myDoctorRecord?.id === attendingDoc.id;
+            return (
+              <div className="flex items-center gap-1.5 ml-2 pl-3 border-l">
+                <Stethoscope className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium">{attendingDoc.profiles?.first_name} {attendingDoc.profiles?.last_name}</span>
+                {isMe && <Badge variant="secondary" className="text-xs">{t("dialysis.youAreAttending")}</Badge>}
+              </div>
+            );
+          })()}
         </div>
         <WorkflowStepper currentStatus={session.status || "scheduled"} />
       </div>
