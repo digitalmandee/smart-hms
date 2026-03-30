@@ -357,6 +357,7 @@ export function useCreateDonation() {
 
 export function useUpdateDonation() {
   const queryClient = useQueryClient();
+  const { profile } = useAuth();
 
   return useMutation({
     mutationFn: async ({ id, ...updates }: Partial<BloodDonation> & { id: string }) => {
@@ -364,13 +365,43 @@ export function useUpdateDonation() {
         .from("blood_donations")
         .update(updates)
         .eq("id", id)
-        .select()
+        .select(`*, donor:blood_donors(id, blood_group)`)
         .single();
       if (error) throw error;
+
+      // Auto-create blood_inventory record when donation is completed
+      if (updates.status === 'completed' && data?.donor?.blood_group) {
+        const collectionDate = data.donation_date || new Date().toISOString().split('T')[0];
+        const expiryDate = new Date(collectionDate);
+        expiryDate.setDate(expiryDate.getDate() + 35); // 35-day shelf life for whole blood
+
+        const { error: invError } = await db
+          .from("blood_inventory")
+          .insert({
+            organization_id: data.organization_id,
+            branch_id: data.branch_id,
+            donation_id: data.id,
+            blood_group: data.donor.blood_group,
+            component_type: 'whole_blood',
+            volume_ml: data.volume_collected_ml || 450,
+            collection_date: collectionDate,
+            expiry_date: expiryDate.toISOString().split('T')[0],
+            bag_number: data.bag_number,
+            status: 'quarantine',
+            created_by: profile?.id,
+          });
+        if (invError) {
+          console.error('Failed to auto-create inventory unit:', invError);
+          toast.error('Donation completed but failed to create inventory unit');
+        }
+      }
+
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["blood-donations"] });
+      queryClient.invalidateQueries({ queryKey: ["blood-inventory"] });
+      queryClient.invalidateQueries({ queryKey: ["blood-stock"] });
       toast.success("Donation updated successfully");
     },
     onError: (error: Error) => {
