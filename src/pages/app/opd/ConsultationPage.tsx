@@ -393,7 +393,7 @@ export default function ConsultationPage() {
           </div>
 
           <Tabs defaultValue="clinical" className="w-full">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="clinical" className="text-xs gap-1">
                 <Stethoscope className="h-3.5 w-3.5" />
                 Clinical
@@ -409,6 +409,10 @@ export default function ConsultationPage() {
               <TabsTrigger value="imaging" className="text-xs gap-1">
                 <Scan className="h-3.5 w-3.5" />
                 Imaging
+              </TabsTrigger>
+              <TabsTrigger value="blood" className="text-xs gap-1">
+                <Droplets className="h-3.5 w-3.5" />
+                Blood
               </TabsTrigger>
               <TabsTrigger value="ai" className="text-xs gap-1">
                 <DoctorAvatar size="xs" className="scale-50 -m-2" />
