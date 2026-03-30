@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
+import { TransfusionReactionForm } from "./TransfusionReactionForm";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -40,6 +42,7 @@ const componentLabels: Record<string, string> = {
 export default function TransfusionDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [showReactionForm, setShowReactionForm] = useState(false);
   
   const { data: transfusions, isLoading } = useBloodTransfusions();
   const updateTransfusion = useUpdateTransfusion();
@@ -64,13 +67,9 @@ export default function TransfusionDetailPage() {
     });
   };
 
-  const handleStop = async () => {
+  const handleStop = () => {
     if (!id) return;
-    await updateTransfusion.mutateAsync({ 
-      id, 
-      status: 'stopped' as TransfusionStatus,
-      completed_at: new Date().toISOString()
-    });
+    setShowReactionForm(true);
   };
 
   const handleCancel = async () => {
@@ -311,6 +310,15 @@ export default function TransfusionDetailPage() {
           </Card>
         </div>
       </div>
+
+      {/* Transfusion Reaction Form */}
+      {id && (
+        <TransfusionReactionForm
+          open={showReactionForm}
+          onOpenChange={setShowReactionForm}
+          transfusionId={id}
+        />
+      )}
     </div>
   );
 }

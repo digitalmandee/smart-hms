@@ -357,6 +357,7 @@ export function useCreateDonation() {
 
 export function useUpdateDonation() {
   const queryClient = useQueryClient();
+  const { profile } = useAuth();
 
   return useMutation({
     mutationFn: async ({ id, ...updates }: Partial<BloodDonation> & { id: string }) => {
@@ -364,13 +365,43 @@ export function useUpdateDonation() {
         .from("blood_donations")
         .update(updates)
         .eq("id", id)
-        .select()
+        .select(`*, donor:blood_donors(id, blood_group)`)
         .single();
       if (error) throw error;
+
+      // Auto-create blood_inventory record when donation is completed
+      if (updates.status === 'completed' && data?.donor?.blood_group) {
+        const collectionDate = data.donation_date || new Date().toISOString().split('T')[0];
+        const expiryDate = new Date(collectionDate);
+        expiryDate.setDate(expiryDate.getDate() + 35); // 35-day shelf life for whole blood
+
+        const { error: invError } = await db
+          .from("blood_inventory")
+          .insert({
+            organization_id: data.organization_id,
+            branch_id: data.branch_id,
+            donation_id: data.id,
+            blood_group: data.donor.blood_group,
+            component_type: 'whole_blood',
+            volume_ml: data.volume_collected_ml || 450,
+            collection_date: collectionDate,
+            expiry_date: expiryDate.toISOString().split('T')[0],
+            bag_number: data.bag_number,
+            status: 'quarantine',
+            created_by: profile?.id,
+          });
+        if (invError) {
+          console.error('Failed to auto-create inventory unit:', invError);
+          toast.error('Donation completed but failed to create inventory unit');
+        }
+      }
+
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["blood-donations"] });
+      queryClient.invalidateQueries({ queryKey: ["blood-inventory"] });
+      queryClient.invalidateQueries({ queryKey: ["blood-stock"] });
       toast.success("Donation updated successfully");
     },
     onError: (error: Error) => {
@@ -822,11 +853,18 @@ export function useCreateTransfusion() {
         .select()
         .single();
       if (error) throw error;
+
+      // Reserve blood unit when transfusion is created
+      if (transfusion.blood_unit_id) {
+        await db.from("blood_inventory").update({ status: 'reserved' }).eq("id", transfusion.blood_unit_id);
+      }
+
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["blood-transfusions"] });
       queryClient.invalidateQueries({ queryKey: ["blood-inventory"] });
+      queryClient.invalidateQueries({ queryKey: ["blood-stock"] });
       toast.success("Transfusion scheduled");
     },
     onError: (error: Error) => {
@@ -847,15 +885,170 @@ export function useUpdateTransfusion() {
         .select()
         .single();
       if (error) throw error;
+
+      // Auto-update blood unit status based on transfusion status
+      if (data?.blood_unit_id && updates.status) {
+        let unitStatus: BloodUnitStatus | null = null;
+        if (updates.status === 'in_progress') unitStatus = 'issued';
+        else if (updates.status === 'completed') unitStatus = 'transfused';
+        else if (updates.status === 'stopped') unitStatus = 'transfused';
+
+        if (unitStatus) {
+          await db.from("blood_inventory").update({ status: unitStatus }).eq("id", data.blood_unit_id);
+        }
+      }
+
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["blood-transfusions"] });
       queryClient.invalidateQueries({ queryKey: ["blood-inventory"] });
+      queryClient.invalidateQueries({ queryKey: ["blood-stock"] });
       toast.success("Transfusion updated");
     },
     onError: (error: Error) => {
       toast.error(`Failed to update transfusion: ${error.message}`);
+    },
+  });
+}
+
+// =============================================
+// QUARANTINED UNITS HOOKS (Blood Testing)
+// =============================================
+
+export function useQuarantinedUnits() {
+  const { profile } = useAuth();
+
+  return useQuery({
+    queryKey: ["blood-inventory", "quarantine", profile?.organization_id],
+    queryFn: async () => {
+      const { data, error } = await db
+        .from("blood_inventory")
+        .select("*, donation:blood_donations(id, donation_number, donor_id, screening_result, testing_status, donor:blood_donors(first_name, last_name, donor_number))")
+        .eq("organization_id", profile!.organization_id!)
+        .eq("status", "quarantine")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as any[];
+    },
+    enabled: !!profile?.organization_id,
+  });
+}
+
+export function useRecordTestResults() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ unitId, donationId, results, allNegative }: {
+      unitId: string;
+      donationId: string | null;
+      results: Record<string, string>;
+      allNegative: boolean;
+    }) => {
+      // Update blood unit status
+      const newStatus: BloodUnitStatus = allNegative ? 'available' : 'discarded';
+      const { error: unitError } = await db
+        .from("blood_inventory")
+        .update({ status: newStatus })
+        .eq("id", unitId);
+      if (unitError) throw unitError;
+
+      // Update donation testing info
+      if (donationId) {
+        await db.from("blood_donations").update({
+          testing_status: allNegative ? 'completed' : 'reactive',
+          screening_result: JSON.stringify(results),
+        }).eq("id", donationId);
+      }
+
+      return { unitId, status: newStatus };
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["blood-inventory"] });
+      queryClient.invalidateQueries({ queryKey: ["blood-donations"] });
+      queryClient.invalidateQueries({ queryKey: ["blood-stock"] });
+      toast.success(data.status === 'available' ? "Unit cleared — moved to Available" : "Unit discarded — reactive result");
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to record test results: ${error.message}`);
+    },
+  });
+}
+
+// =============================================
+// TRANSFUSION REACTION HOOKS
+// =============================================
+
+export interface TransfusionReaction {
+  id?: string;
+  transfusion_id: string;
+  reaction_type: string;
+  severity: ReactionSeverity;
+  symptoms: string[];
+  vitals_at_reaction?: Record<string, any>;
+  actions_taken?: string;
+  medications_given?: string;
+  outcome?: string;
+  reported_by?: string;
+  reported_at?: string;
+}
+
+export function useCreateTransfusionReaction() {
+  const queryClient = useQueryClient();
+  const { profile } = useAuth();
+
+  return useMutation({
+    mutationFn: async (reaction: Omit<TransfusionReaction, 'id'>) => {
+      const { data, error } = await db
+        .from("transfusion_reactions")
+        .insert({
+          ...reaction,
+          organization_id: profile!.organization_id!,
+          reported_by: profile!.id,
+          reported_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["blood-transfusions"] });
+      toast.success("Transfusion reaction recorded");
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to record reaction: ${error.message}`);
+    },
+  });
+}
+
+// =============================================
+// DISCARD BLOOD UNIT
+// =============================================
+
+export function useDiscardBloodUnit() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ unitId, reason, notes }: { unitId: string; reason: string; notes?: string }) => {
+      const { data, error } = await db
+        .from("blood_inventory")
+        .update({ 
+          status: 'discarded' as BloodUnitStatus,
+          storage_location: `Discarded: ${reason}${notes ? ' - ' + notes : ''}`,
+        })
+        .eq("id", unitId)
+        .select();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["blood-inventory"] });
+      queryClient.invalidateQueries({ queryKey: ["blood-stock"] });
+      toast.success("Blood unit discarded");
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to discard unit: ${error.message}`);
     },
   });
 }

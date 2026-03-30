@@ -42,6 +42,7 @@ import {
   ClipboardCheck,
   Trophy,
   Activity,
+  Droplets,
 } from "lucide-react";
 import { AddTeamMemberDialog } from "@/components/ot/AddTeamMemberDialog";
 import { format, differenceInMinutes } from "date-fns";
@@ -260,6 +261,24 @@ export default function SurgeryDetailPage() {
             <Button onClick={handleAdmitToPACU} disabled={admitToPACU.isPending}>
               <HeartPulse className="h-4 w-4 mr-2" />
               Admit to PACU
+            </Button>
+          )}
+          {/* Request Blood - available during pre_op, ready, in_progress, or scheduled */}
+          {['scheduled', 'confirmed', 'pre_op', 'ready', 'in_progress'].includes(surgery.status) && (
+            <Button
+              variant="outline"
+              onClick={() => {
+                const params = new URLSearchParams();
+                params.set('patientId', surgery.patient_id);
+                params.set('surgeryId', surgery.id);
+                if (surgery.patient?.blood_group) params.set('bloodGroup', surgery.patient.blood_group);
+                params.set('priority', 'urgent');
+                params.set('department', 'OT / Surgery');
+                navigate(`/app/blood-bank/requests/new?${params.toString()}`);
+              }}
+            >
+              <Droplets className="h-4 w-4 mr-2" />
+              Request Blood
             </Button>
           )}
         </div>

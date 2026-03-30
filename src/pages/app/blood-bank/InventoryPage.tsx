@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
   Select, 
@@ -11,13 +11,24 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { 
-  Package, Plus, AlertTriangle, Calendar, Droplets 
+  Package, Plus, AlertTriangle, Calendar, Droplets, Trash2, Loader2
 } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { format, parseISO, differenceInDays } from "date-fns";
 import { 
   useBloodInventory, 
+  useDiscardBloodUnit,
   type BloodGroupType, 
   type BloodUnitStatus,
   type BloodComponentType 
@@ -58,6 +69,12 @@ export default function InventoryPage() {
   const [statusFilter, setStatusFilter] = useState<BloodUnitStatus | "all">(showExpiring ? "available" : "available");
   const [bloodGroupFilter, setBloodGroupFilter] = useState<BloodGroupType | "all">("all");
   const [componentFilter, setComponentFilter] = useState<BloodComponentType | "all">("all");
+
+  // Discard dialog state
+  const [discardUnit, setDiscardUnit] = useState<any | null>(null);
+  const [discardReason, setDiscardReason] = useState("");
+  const [discardNotes, setDiscardNotes] = useState("");
+  const discardMutation = useDiscardBloodUnit();
 
   const { data: inventory, isLoading } = useBloodInventory({
     status: statusFilter === "all" ? undefined : statusFilter,
@@ -162,8 +179,9 @@ export default function InventoryPage() {
                     <th className="text-left p-3 text-sm font-medium">Volume</th>
                     <th className="text-left p-3 text-sm font-medium">Collected</th>
                     <th className="text-left p-3 text-sm font-medium">Expiry</th>
-                    <th className="text-left p-3 text-sm font-medium">Status</th>
-                    <th className="text-left p-3 text-sm font-medium">Location</th>
+                     <th className="text-left p-3 text-sm font-medium">Status</th>
+                     <th className="text-left p-3 text-sm font-medium">Location</th>
+                     <th className="text-left p-3 text-sm font-medium">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -195,8 +213,25 @@ export default function InventoryPage() {
                         <td className="p-3">
                           <Badge className={statusInfo.color}>{statusInfo.label}</Badge>
                         </td>
-                        <td className="p-3 text-sm text-muted-foreground">
+                         <td className="p-3 text-sm text-muted-foreground">
                           {unit.storage_location || '-'}
+                        </td>
+                        <td className="p-3">
+                          {(unit.status === 'available' || unit.status === 'quarantine' || unit.status === 'expired') && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="text-destructive hover:text-destructive"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setDiscardUnit(unit);
+                                setDiscardReason("");
+                                setDiscardNotes("");
+                              }}
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
                         </td>
                       </tr>
                     );
@@ -221,6 +256,63 @@ export default function InventoryPage() {
           </Button>
         </div>
       )}
+
+      {/* Discard Dialog */}
+      <Dialog open={!!discardUnit} onOpenChange={() => setDiscardUnit(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Discard Blood Unit</DialogTitle>
+            <DialogDescription>
+              Unit {discardUnit?.unit_number} ({discardUnit?.blood_group}) will be permanently discarded.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>Reason *</Label>
+              <Select value={discardReason} onValueChange={setDiscardReason}>
+                <SelectTrigger><SelectValue placeholder="Select reason..." /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="expired">Expired</SelectItem>
+                  <SelectItem value="contaminated">Contaminated</SelectItem>
+                  <SelectItem value="damaged">Damaged</SelectItem>
+                  <SelectItem value="reactive">Reactive (Failed Testing)</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Notes</Label>
+              <Textarea
+                placeholder="Additional details..."
+                value={discardNotes}
+                onChange={(e) => setDiscardNotes(e.target.value)}
+                rows={2}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDiscardUnit(null)}>Cancel</Button>
+            <Button
+              variant="destructive"
+              disabled={!discardReason || discardMutation.isPending}
+              onClick={async () => {
+                await discardMutation.mutateAsync({
+                  unitId: discardUnit.id,
+                  reason: discardReason,
+                  notes: discardNotes,
+                });
+                setDiscardUnit(null);
+              }}
+            >
+              {discardMutation.isPending ? (
+                <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Discarding...</>
+              ) : (
+                <><Trash2 className="h-4 w-4 mr-2" /> Discard Unit</>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

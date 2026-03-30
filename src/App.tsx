@@ -414,6 +414,7 @@ import DonorDetailPage from "./pages/app/blood-bank/DonorDetailPage";
 import BloodUnitDetailPage from "./pages/app/blood-bank/BloodUnitDetailPage";
 import BloodUnitFormPage from "./pages/app/blood-bank/BloodUnitFormPage";
 import CrossMatchDetailPage from "./pages/app/blood-bank/CrossMatchDetailPage";
+const BloodTestingPage = React.lazy(() => import("./pages/app/blood-bank/BloodTestingPage"));
 
 // Dialysis pages
 import DialysisDashboard from "./pages/app/dialysis/DialysisDashboard";
@@ -864,6 +865,7 @@ function App() {
               <Route path="blood-bank/labels" element={<BloodBagLabelsPage />} />
               <Route path="blood-bank/donor-cards" element={<DonorCardPrintPage />} />
               <Route path="blood-bank/analytics" element={<BloodBankAnalyticsPage />} />
+              <Route path="blood-bank/testing" element={<BloodTestingPage />} />
 
               {/* OPD routes */}
               <Route path="opd" element={<DoctorDashboard />} />
