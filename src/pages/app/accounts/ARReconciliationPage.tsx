@@ -10,7 +10,7 @@ import { CheckCircle, AlertTriangle, ShieldCheck, ShieldAlert, Scale, ListChecks
 import { useARReconciliation, ARReconciliationRow } from "@/hooks/useFinancialReports";
 import { ReportExportButton } from "@/components/reports/ReportExportButton";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
-import { useTranslation } from "@/hooks/useTranslation";
+import { useTranslation } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 export default function ARReconciliationPage() {
