@@ -1,52 +1,38 @@
 
 
-# Enhance Trial Balance Report
+# Fix: Invoice balance_amount Not Updated on Payment
 
-## Current State
-The trial balance page already has: date range filter, balanced/unbalanced indicator, flat account list with debit/credit columns, totals row, print and CSV export. It works correctly with journal entry data.
+## Root Cause
 
-## Enhancements to Add
+In `src/hooks/useBilling.ts` line 602-609, `useRecordPayment` updates the invoice's `paid_amount` and `status` but **does not update `balance_amount`**. This means `balance_amount` stays at whatever it was set to when the invoice was created (usually `total_amount`), even after full payment.
 
-### 1. Group accounts by category (Asset, Liability, Equity, Revenue, Expense)
-Currently all accounts are in one flat list. Group them with subtotals per category so accountants can quickly spot which category is off-balance.
+## Fix
 
-### 2. Add date presets (This Month, Last Quarter, YTD, Last Year)
-Currently requires manual date entry. Add quick preset buttons like the Detailed P&L report has.
+### 1. File: `src/hooks/useBilling.ts` (line 602-609)
 
-### 3. Add opening balance, period movement, and closing balance columns
-Currently only shows net debit/credit. A proper trial balance should show:
-- Opening Balance (DR/CR) — balance before start date
-- Period Movement (DR/CR) — activity within the date range  
-- Closing Balance (DR/CR) — net result
+Add `balance_amount` to the update:
 
-### 4. Add search/filter for accounts
-Allow filtering by account name/number within the table.
+```typescript
+.update({
+  paid_amount: newPaidAmount,
+  balance_amount: Math.max(0, totalAmount - newPaidAmount),
+  status: newStatus,
+})
+```
 
-### 5. Add summary cards (total accounts, total with activity, zero-balance count)
+### 2. Fix stale invoice data
 
-### 6. i18n — all new labels in English, Urdu, Arabic
+Use the insert tool to run:
+```sql
+UPDATE invoices 
+SET balance_amount = GREATEST(0, total_amount - COALESCE(paid_amount, 0))
+WHERE balance_amount != GREATEST(0, total_amount - COALESCE(paid_amount, 0))
+   OR (balance_amount IS NULL AND paid_amount > 0);
+```
 
-## Technical Approach
-
-### File: `src/hooks/useFinancialReports.ts` (useTrialBalance)
-- Extend the query to also fetch journal lines BEFORE startDate for opening balances
-- Return enriched rows with `openingDebit`, `openingCredit`, `movementDebit`, `movementCredit`, `closingDebit`, `closingCredit`
-- Group rows by `category` field (already available in the data)
-
-### File: `src/pages/app/accounts/TrialBalancePage.tsx`
-- Add date preset buttons (This Month, Last Quarter, YTD, Last Year)
-- Add search input to filter accounts by name/number
-- Add toggle: "Show zero balances" checkbox
-- Render grouped sections with category headers and subtotals
-- Add summary cards at top (total accounts, accounts with activity)
-- Expand table columns for opening/movement/closing
-- Add collapsible category sections
-
-### File: `src/lib/i18n/translations/en.ts`, `ar.ts`, `ur.ts`
-- Add keys for: Opening Balance, Period Movement, Closing Balance, date preset labels, Show Zero Balances, category names, summary card labels
+This corrects all existing invoices where `balance_amount` is wrong — not just the 3 identified earlier, but any that drifted.
 
 ## Files Changed
-- `src/hooks/useFinancialReports.ts` — enhanced useTrialBalance with opening/closing balances
-- `src/pages/app/accounts/TrialBalancePage.tsx` — full UI enhancement
-- 3 i18n files — new translation keys
+- `src/hooks/useBilling.ts` — add `balance_amount` to payment update (1 line)
+- Data fix via insert tool — correct all stale invoices
 
