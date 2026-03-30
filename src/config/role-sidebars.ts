@@ -552,10 +552,11 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
   pharmacist: {
     items: [
       { name: "Dashboard", path: "/app/pharmacy", icon: "LayoutDashboard" },
+      { name: "Prescription Queue", path: "/app/pharmacy/queue", icon: "ClipboardList" },
       { 
         name: "Dispensing", 
         path: "", 
-        icon: "ClipboardList",
+        icon: "Pill",
         children: [
           { name: "POS Terminal", path: "/app/pharmacy/pos", icon: "Calculator" },
           { name: "Transactions", path: "/app/pharmacy/pos/transactions", icon: "Receipt" },
@@ -906,8 +907,9 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
   ot_pharmacist: {
     items: [
       { name: "Dashboard", path: "/app/pharmacy", icon: "LayoutDashboard" },
+      { name: "Prescription Queue", path: "/app/pharmacy/queue", icon: "ClipboardList" },
       { 
-        name: "OT Queue", 
+        name: "OT Queue",
         path: "", 
         icon: "Syringe",
         children: [
