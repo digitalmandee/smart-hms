@@ -66,13 +66,9 @@ export default function TransfusionDetailPage() {
     });
   };
 
-  const handleStop = async () => {
+  const handleStop = () => {
     if (!id) return;
-    await updateTransfusion.mutateAsync({ 
-      id, 
-      status: 'stopped' as TransfusionStatus,
-      completed_at: new Date().toISOString()
-    });
+    setShowReactionForm(true);
   };
 
   const handleCancel = async () => {
