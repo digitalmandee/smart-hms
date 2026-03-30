@@ -335,6 +335,17 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
           { name: "Request Discharge", path: "/app/ipd/discharges", icon: "Send" },
         ]
       },
+      {
+        name: "Dialysis",
+        path: "",
+        icon: "Droplets",
+        children: [
+          { name: "Dashboard", path: "/app/dialysis", icon: "LayoutDashboard" },
+          { name: "My Sessions", path: "/app/dialysis/sessions", icon: "ClipboardList" },
+          { name: "Patients", path: "/app/dialysis/patients", icon: "Users" },
+          { name: "Reports", path: "/app/dialysis/reports", icon: "BarChart3" },
+        ]
+      },
       { 
         name: "My Work", 
         path: "", 
