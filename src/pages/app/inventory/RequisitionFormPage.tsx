@@ -72,6 +72,7 @@ export default function RequisitionFormPage() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       branch_id: profile?.branch_id || "",
+      department_id: "",
       from_store_id: "",
       required_date: format(addDays(new Date(), 3), "yyyy-MM-dd"),
       priority: 1,
