@@ -24,13 +24,24 @@ import {
   Loader2,
   Receipt,
   Scan,
+  Droplets,
 } from "lucide-react";
 import { generateVisitId } from "@/lib/visit-id";
 import { Vitals } from "@/hooks/useConsultations";
 import { PrescriptionItemInput } from "@/hooks/usePrescriptions";
 import { LabOrderItemInput } from "@/hooks/useLabOrders";
 import { type ImagingOrderItemInput } from "@/components/consultation/RadiologyOrderBuilder";
+import { type BloodBankOrderItem } from "@/components/consultation/BloodBankOrderBuilder";
 import { IMAGING_MODALITIES } from "@/hooks/useImaging";
+
+const COMPONENT_LABELS: Record<string, string> = {
+  whole_blood: "Whole Blood",
+  packed_rbc: "Packed RBCs",
+  ffp: "FFP",
+  platelets: "Platelets",
+  cryoprecipitate: "Cryoprecipitate",
+  granulocytes: "Granulocytes",
+};
 
 interface VisitSummaryDialogProps {
   open: boolean;
@@ -56,6 +67,7 @@ interface VisitSummaryDialogProps {
   prescriptionItems: PrescriptionItemInput[];
   labOrderItems: LabOrderItemInput[];
   imagingOrderItems?: ImagingOrderItemInput[];
+  bloodBankItems?: BloodBankOrderItem[];
   onConfirm: () => void;
   onPrintPrescription?: () => void;
   onPrintSummary?: () => void;
@@ -72,6 +84,7 @@ export function VisitSummaryDialog({
   prescriptionItems,
   labOrderItems,
   imagingOrderItems = [],
+  bloodBankItems = [],
   onConfirm,
   onPrintPrescription,
   onPrintSummary,
@@ -84,6 +97,7 @@ export function VisitSummaryDialog({
 
   const patient = appointment.patient;
   const hasVitals = Object.values(consultation.vitals).some((v) => v);
+  const hasAnyOrders = prescriptionItems.length > 0 || labOrderItems.length > 0 || imagingOrderItems.length > 0 || bloodBankItems.length > 0;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -256,6 +270,32 @@ export function VisitSummaryDialog({
               </>
             )}
 
+            {/* Blood Bank Orders */}
+            {bloodBankItems.length > 0 && (
+              <>
+                <div className="space-y-3">
+                  <h4 className="font-semibold flex items-center gap-2">
+                    <Droplets className="h-4 w-4 text-destructive" />
+                    Blood Requests ({bloodBankItems.length} product{bloodBankItems.length > 1 ? "s" : ""})
+                  </h4>
+                  <div className="space-y-2">
+                    {bloodBankItems.map((item, i) => (
+                      <div key={i} className="flex items-center justify-between text-sm p-2 rounded bg-muted/30">
+                        <span className="font-medium">
+                          {COMPONENT_LABELS[item.component_type] || item.component_type}
+                        </span>
+                        <span className="text-muted-foreground">
+                          {item.units_requested} unit{item.units_requested > 1 ? "s" : ""}
+                          {item.hemoglobin_level ? ` • Hb: ${item.hemoglobin_level} g/dL` : ""}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <Separator />
+              </>
+            )}
+
             {/* Follow-up */}
             {consultation.followUpDate && (
               <div className="flex items-center gap-3 p-3 rounded-lg border border-primary/20 bg-primary/5">
@@ -272,7 +312,7 @@ export function VisitSummaryDialog({
         <Separator />
         
         {/* Pending Checkout Notice */}
-        {(prescriptionItems.length > 0 || labOrderItems.length > 0 || imagingOrderItems.length > 0) && (
+        {hasAnyOrders && (
           <div className="flex items-center gap-2 p-3 rounded-lg bg-warning/10 border border-warning/30 text-warning-foreground text-sm">
             <Receipt className="h-4 w-4" />
             <span>Patient has pending orders and will be directed to checkout after completion.</span>
@@ -303,7 +343,7 @@ export function VisitSummaryDialog({
             ) : (
               <Check className="h-4 w-4 mr-2" />
             )}
-            {prescriptionItems.length > 0 || labOrderItems.length > 0 || imagingOrderItems.length > 0
+            {hasAnyOrders
               ? "Complete & Send to Checkout" 
               : "Complete Visit"}
           </Button>
