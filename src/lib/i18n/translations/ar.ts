@@ -3199,6 +3199,13 @@ export const ar: Record<TranslationKey, string> = {
   "dialysis.preBP": "الضغط قبل",
   "dialysis.postBP": "الضغط بعد",
   "dialysis.treatmentDuration": "المدة",
+  "dialysis.doctorScheduledNote": "الجلسة مجدولة. ستقوم الممرضة بإجراء التقييم الأولي وبدء الجلسة.",
+  "dialysis.doctorNotesSaved": "تم حفظ ملاحظات الطبيب",
+  "dialysis.signOff": "التوقيع",
+  "dialysis.nurseActions": "إجراءات التمريض",
+  "dialysis.doctorReview": "مراجعة الطبيب",
+  "dialysis.myDialysisSessions": "جلسات الغسيل الخاصة بي",
+  "dialysis.dialysisWard": "وحدة الغسيل الكلوي",
 
 };
 
