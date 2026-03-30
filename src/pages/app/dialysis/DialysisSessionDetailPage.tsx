@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -68,6 +68,7 @@ export default function DialysisSessionDetailPage() {
   const updateSession = useUpdateDialysisSession();
   const { data: servicePrice } = useDialysisServicePrice();
   const generateInvoice = useGenerateDialysisInvoice();
+  const autoAssignedRef = useRef(false);
 
   const isNurseRole = roles.some(r => ["nurse", "opd_nurse", "ipd_nurse", "ot_nurse"].includes(r));
   const isDoctorRole = roles.some(r => ["doctor", "surgeon", "anesthetist"].includes(r));
@@ -82,13 +83,46 @@ export default function DialysisSessionDetailPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("doctors")
-        .select("id, profiles(first_name, last_name)")
+        .select("id, profiles(full_name)")
         .eq("organization_id", profile!.organization_id!);
       if (error) throw error;
       return data;
     },
     enabled: !!profile?.organization_id,
   });
+
+  // Find the current user's doctor record for auto-assign
+  const { data: myDoctorRecord } = useQuery({
+    queryKey: ["my-doctor-record", profile?.id],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("doctors")
+        .select("id")
+        .eq("user_id", profile!.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!profile?.id && isDoctorRole,
+  });
+
+  // Auto-assign logged-in doctor as attending
+  useEffect(() => {
+    if (
+      isDoctorRole &&
+      myDoctorRecord?.id &&
+      session &&
+      !(session as any).attended_by &&
+      session.status === "scheduled" &&
+      !autoAssignedRef.current
+    ) {
+      autoAssignedRef.current = true;
+      updateSession.mutate(
+        { id: id!, attended_by: myDoctorRecord.id },
+        { onSuccess: () => toast.info(t("dialysis.youAreAttending" as any)) }
+      );
+    }
+  }, [isDoctorRole, myDoctorRecord, session, id, updateSession, t]);
 
   const [vitalsForm, setVitalsForm] = useState({
     minute_mark: 0, bp_systolic: "", bp_diastolic: "", pulse: "",
@@ -139,17 +173,35 @@ export default function DialysisSessionDetailPage() {
     setVitalsForm({ minute_mark: vitalsForm.minute_mark + 30, bp_systolic: "", bp_diastolic: "", pulse: "", blood_flow_rate: "", uf_rate: "", notes: "" });
   };
 
-  const handleStartSession = () => {
+  // Nurse: save pre-assessment without starting
+  const handleSavePreAssessment = () => {
     if (!preForm.pre_weight_kg) {
+      toast.error(t("dialysis.preWeightRequired"));
+      return;
+    }
+    const payload: any = { id: id!, pre_weight_kg: Number(preForm.pre_weight_kg) };
+    if (preForm.pre_bp_systolic) payload.pre_bp_systolic = Number(preForm.pre_bp_systolic);
+    if (preForm.pre_bp_diastolic) payload.pre_bp_diastolic = Number(preForm.pre_bp_diastolic);
+    if (preForm.pre_pulse) payload.pre_pulse = Number(preForm.pre_pulse);
+    if (preForm.pre_temperature) payload.pre_temperature = Number(preForm.pre_temperature);
+    updateSession.mutate(payload, {
+      onSuccess: () => toast.success(t("dialysis.preAssessmentSaved" as any)),
+    });
+  };
+
+  const handleStartSession = () => {
+    // Nurses must fill pre-weight; Doctors can start without it
+    if (isNurseRole && !preForm.pre_weight_kg && !session?.pre_weight_kg) {
       toast.error(t("dialysis.preWeightRequired"));
       return;
     }
     const payload: any = {
       id: id!,
       status: "in_progress",
-      pre_weight_kg: Number(preForm.pre_weight_kg),
       actual_start_time: new Date().toISOString(),
     };
+    // Include pre-weight if provided (nurse flow)
+    if (preForm.pre_weight_kg) payload.pre_weight_kg = Number(preForm.pre_weight_kg);
     if (preForm.pre_bp_systolic) payload.pre_bp_systolic = Number(preForm.pre_bp_systolic);
     if (preForm.pre_bp_diastolic) payload.pre_bp_diastolic = Number(preForm.pre_bp_diastolic);
     if (preForm.pre_pulse) payload.pre_pulse = Number(preForm.pre_pulse);
@@ -256,7 +308,7 @@ export default function DialysisSessionDetailPage() {
         ]}
       />
 
-      {/* Compact Header: Patient + Status + Machine — single row */}
+      {/* Compact Header: Patient + Doctor + Status — single row */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-4 rounded-lg border bg-card">
         <div className="flex items-center gap-4">
           <div className="p-2.5 rounded-lg bg-primary/10">
@@ -266,6 +318,19 @@ export default function DialysisSessionDetailPage() {
             <h2 className="font-semibold text-lg">{patient?.first_name} {patient?.last_name}</h2>
             <p className="text-sm text-muted-foreground">MRN: {patient?.patient_number} • {session.session_date} • {session.shift || "–"}</p>
           </div>
+          {/* Attending doctor info */}
+          {(() => {
+            const attendingDoc = (session as any).attended_by && doctors?.find((d: any) => d.id === (session as any).attended_by);
+            if (!attendingDoc) return null;
+            const isMe = isDoctorRole && myDoctorRecord?.id === attendingDoc.id;
+            return (
+              <div className="flex items-center gap-1.5 ml-2 pl-3 border-l">
+                <Stethoscope className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium">{(attendingDoc.profiles as any)?.full_name}</span>
+                {isMe && <Badge variant="secondary" className="text-xs">{t("dialysis.youAreAttending" as any)}</Badge>}
+              </div>
+            );
+          })()}
         </div>
         <WorkflowStepper currentStatus={session.status || "scheduled"} />
       </div>
@@ -336,14 +401,21 @@ export default function DialysisSessionDetailPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label className="text-xs">{t("dialysis.attendingDoctor")}</Label>
-              <Select value={(session as any).attended_by || ""} onValueChange={v => handleStaffAssignment("attended_by", v)}>
-                <SelectTrigger className="h-9"><SelectValue placeholder={t("dialysis.selectDoctor")} /></SelectTrigger>
-                <SelectContent>
-                  {(doctors || []).map((d: any) => (
-                    <SelectItem key={d.id} value={d.id}>{d.profiles?.first_name} {d.profiles?.last_name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {isDoctorRole && !isAdminRole ? (
+                <Input className="h-9" readOnly value={(() => {
+                  const doc = doctors?.find((d: any) => d.id === (session as any).attended_by);
+                  return doc ? (doc.profiles as any)?.full_name : t("dialysis.youAreAttending" as any);
+                })()} />
+              ) : (
+                <Select value={(session as any).attended_by || ""} onValueChange={v => handleStaffAssignment("attended_by", v)}>
+                  <SelectTrigger className="h-9"><SelectValue placeholder={t("dialysis.selectDoctor")} /></SelectTrigger>
+                  <SelectContent>
+                    {(doctors || []).map((d: any) => (
+                      <SelectItem key={d.id} value={d.id}>{(d.profiles as any)?.full_name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
             <div>
               <Label className="text-xs">{t("dialysis.assignedNurse")}</Label>
@@ -358,8 +430,8 @@ export default function DialysisSessionDetailPage() {
         </div>
       )}
 
-      {/* Pre-Dialysis Assessment — inline below actions when scheduled */}
-      {session.status === "scheduled" && canStartComplete && (
+      {/* Pre-Dialysis Assessment — nurse flow when scheduled */}
+      {session.status === "scheduled" && (isNurseRole || isAdminRole) && (
         <div className="rounded-lg border p-4 space-y-3">
           <h3 className="text-sm font-semibold flex items-center gap-1.5"><Heart className="h-4 w-4 text-destructive" />{t("dialysis.preAssessment")}</h3>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
@@ -384,13 +456,29 @@ export default function DialysisSessionDetailPage() {
               <Input type="number" step="0.1" className="h-9" value={preForm.pre_temperature} onChange={e => setPreForm(f => ({ ...f, pre_temperature: e.target.value }))} />
             </div>
           </div>
+          <Button variant="secondary" size="sm" onClick={handleSavePreAssessment} disabled={updateSession.isPending} className="gap-1.5">
+            <Heart className="h-3.5 w-3.5" />{t("dialysis.savePreAssessment" as any)}
+          </Button>
         </div>
       )}
 
-      {/* Scheduled — Doctor view */}
-      {session.status === "scheduled" && isDoctorRole && !isAdminRole && !isNurseRole && (
-        <div className="rounded-lg border p-4">
-          <p className="text-sm text-muted-foreground">{t("dialysis.doctorScheduledNote")}</p>
+      {/* Scheduled — Doctor view: show pre-assessment status, no form */}
+      {session.status === "scheduled" && isDoctorRole && !isNurseRole && (
+        <div className="rounded-lg border p-4 space-y-2">
+          <h3 className="text-sm font-semibold flex items-center gap-1.5"><Heart className="h-4 w-4 text-destructive" />{t("dialysis.preAssessment")}</h3>
+          {session.pre_weight_kg ? (
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
+              <div><span className="text-muted-foreground">{t("dialysis.preWeight")}:</span> <span className="font-medium">{session.pre_weight_kg} kg</span></div>
+              <div><span className="text-muted-foreground">{t("dialysis.preBpSystolic")}:</span> <span className="font-medium">{(session as any).pre_bp_systolic ?? "–"}</span></div>
+              <div><span className="text-muted-foreground">{t("dialysis.preBpDiastolic")}:</span> <span className="font-medium">{(session as any).pre_bp_diastolic ?? "–"}</span></div>
+              <div><span className="text-muted-foreground">{t("dialysis.prePulse")}:</span> <span className="font-medium">{(session as any).pre_pulse ?? "–"}</span></div>
+              <div><span className="text-muted-foreground">{t("dialysis.preTemperature")}:</span> <span className="font-medium">{(session as any).pre_temperature ?? "–"}</span></div>
+            </div>
+          ) : (
+            <p className="text-sm text-amber-600 flex items-center gap-1.5">
+              <AlertTriangle className="h-3.5 w-3.5" />{t("dialysis.waitingForNurse" as any)}
+            </p>
+          )}
         </div>
       )}
 
