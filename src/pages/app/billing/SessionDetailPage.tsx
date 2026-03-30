@@ -288,8 +288,8 @@ export default function SessionDetailPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>{t("common.time")}</TableHead>
-                    <TableHead>{t("common.description")}</TableHead>
-                    <TableHead>{t("common.category")}</TableHead>
+                    <TableHead>{t("billing.description")}</TableHead>
+                    <TableHead>{t("billing.other")}</TableHead>
                     <TableHead>{t("billing.paidTo")}</TableHead>
                     <TableHead className="text-right">{t("common.amount")}</TableHead>
                   </TableRow>
