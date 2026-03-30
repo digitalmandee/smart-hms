@@ -70,28 +70,28 @@ export default function RadiologyDashboard() {
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         <ModernStatsCard
-          title="Pending Orders"
+          title={t("radiology.pendingOrders" as any)}
           value={stats.pendingOrders}
           icon={Clock}
           variant="warning"
           onClick={() => setActiveTab('pending')}
         />
         <ModernStatsCard
-          title="In Progress"
+          title={t("radiology.inProgress" as any)}
           value={stats.inProgress}
           icon={Activity}
           variant="info"
           onClick={() => setActiveTab('inProgress')}
         />
         <ModernStatsCard
-          title="Awaiting Report"
+          title={t("radiology.awaitingReport" as any)}
           value={stats.awaitingReport}
           icon={FileText}
           variant="primary"
           onClick={() => setActiveTab('awaitingReport')}
         />
         <ModernStatsCard
-          title="Completed Today"
+          title={t("radiology.completedToday" as any)}
           value={stats.completedToday}
           icon={CheckCircle}
           variant="success"
