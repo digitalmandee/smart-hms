@@ -44,39 +44,39 @@ export default function DialysisMachinesPage() {
   }, [machines, statusFilter]);
 
   const columns = [
-    { key: "machine_number", label: t("dialysis.machineNo", "Machine #"), sortable: true },
-    { key: "chair_number", label: t("dialysis.chairNo", "Chair #"), sortable: true, render: (v: any) => v || "–" },
-    { key: "model", label: t("dialysis.model", "Model"), sortable: true, render: (v: any) => v || "–" },
-    { key: "manufacturer", label: t("dialysis.manufacturer", "Manufacturer"), render: (v: any) => v || "–" },
-    { key: "serial_number", label: t("dialysis.serialNo", "S/N"), render: (v: any) => v || "–" },
+    { key: "machine_number", header: t("dialysis.machineNo"), sortable: true },
+    { key: "chair_number", header: t("dialysis.chairNo"), sortable: true, cell: (row: any) => row.chair_number || "–" },
+    { key: "model", header: t("dialysis.model"), sortable: true, cell: (row: any) => row.model || "–" },
+    { key: "manufacturer", header: t("dialysis.manufacturer"), cell: (row: any) => row.manufacturer || "–" },
+    { key: "serial_number", header: t("dialysis.serialNo"), cell: (row: any) => row.serial_number || "–" },
     {
       key: "status",
-      label: t("common.status"),
+      header: t("common.status"),
       sortable: true,
-      render: (v: any) => <Badge variant={statusColors[v] as any}>{v?.replace("_", " ")}</Badge>,
+      cell: (row: any) => <Badge variant={statusColors[row.status] as any}>{row.status?.replace("_", " ")}</Badge>,
     },
     {
       key: "last_disinfected_at",
-      label: t("dialysis.lastDisinfected", "Last Disinfected"),
-      render: (v: any) =>
-        v ? (
+      header: t("dialysis.lastDisinfected"),
+      cell: (row: any) =>
+        row.last_disinfected_at ? (
           <span className="flex items-center gap-1 text-xs">
             <Shield className="h-3 w-3" />
-            {new Date(v).toLocaleDateString()}
+            {new Date(row.last_disinfected_at).toLocaleDateString()}
           </span>
         ) : "–",
     },
     {
       key: "id",
-      label: t("common.actions"),
-      render: (_: any, row: any) => (
+      header: t("common.actions"),
+      cell: (row: any) => (
         <Select onValueChange={v => handleStatusChange(row.id, v)}>
-          <SelectTrigger className="w-32 h-7 text-xs"><SelectValue placeholder={t("dialysis.changeStatus", "Change")} /></SelectTrigger>
+          <SelectTrigger className="w-32 h-7 text-xs"><SelectValue placeholder={t("dialysis.changeStatus")} /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="available">{t("dialysis.available", "Available")}</SelectItem>
-            <SelectItem value="in_use">{t("dialysis.inUse", "In Use")}</SelectItem>
-            <SelectItem value="maintenance">{t("dialysis.maintenance", "Maintenance")}</SelectItem>
-            <SelectItem value="out_of_service">{t("dialysis.outOfService", "Out of Service")}</SelectItem>
+            <SelectItem value="available">{t("dialysis.available")}</SelectItem>
+            <SelectItem value="in_use">{t("dialysis.inUse")}</SelectItem>
+            <SelectItem value="maintenance">{t("dialysis.maintenance")}</SelectItem>
+            <SelectItem value="out_of_service">{t("dialysis.outOfService")}</SelectItem>
           </SelectContent>
         </Select>
       ),
