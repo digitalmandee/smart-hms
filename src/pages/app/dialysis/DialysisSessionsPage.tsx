@@ -40,7 +40,11 @@ export default function DialysisSessionsPage() {
     { key: "actual_uf_ml", header: "UF (ml)", cell: (r) => r.actual_uf_ml ?? r.target_uf_ml ?? "–" },
     { key: "duration_minutes", header: t("dialysis.duration" as any), cell: (r) => r.duration_minutes ? `${r.duration_minutes}m` : "–" },
     { key: "status", header: t("common.status" as any), sortable: true, cell: (r) => <Badge variant={statusColors[r.status] || "outline"}>{r.status}</Badge> },
-    { key: "invoice", header: t("dialysis.billing" as any), cell: (r) => (r as any).invoice_id ? <InvoiceStatusBadge status="pending" /> : <span className="text-muted-foreground text-xs">—</span> },
+    { key: "invoice", header: t("dialysis.billing" as any), cell: (r) => {
+      const inv = (r as any).invoices;
+      if (inv?.id) return <InvoiceStatusBadge status={inv.status || "pending"} />;
+      return <span className="text-muted-foreground text-xs">—</span>;
+    }},
   ];
 
   return (

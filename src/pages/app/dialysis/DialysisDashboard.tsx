@@ -3,13 +3,14 @@ import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Activity, Users, Monitor, Calendar, Plus, ClipboardList } from "lucide-react";
 import { format } from "date-fns";
 
 const today = format(new Date(), "yyyy-MM-dd");
 
 export default function DialysisDashboard() {
+  const navigate = useNavigate();
   const { data: sessions, isLoading: loadingSessions } = useDialysisSessions(today);
   const { data: machines } = useDialysisMachines();
   const { data: patients } = useDialysisPatients();
@@ -86,7 +87,7 @@ export default function DialysisDashboard() {
           ) : (
             <div className="space-y-3">
               {sessions.map((s: any) => (
-                <div key={s.id} className="flex items-center justify-between p-3 border rounded-lg">
+                <div key={s.id} className="flex items-center justify-between p-3 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => navigate(`/app/dialysis/sessions/${s.id}`)}>
                   <div>
                     <p className="font-medium">
                       {s.dialysis_patients?.patients?.first_name} {s.dialysis_patients?.patients?.last_name}

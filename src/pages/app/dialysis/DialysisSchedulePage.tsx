@@ -6,14 +6,15 @@ import { ReportTable, Column } from "@/components/reports/ReportTable";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Link } from "react-router-dom";
-import { Plus } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Plus, PlayCircle } from "lucide-react";
 
 const patternLabels: Record<string, string> = { mwf: "Mon / Wed / Fri", tts: "Tue / Thu / Sat", custom: "Custom" };
 const shiftLabels: Record<string, string> = { morning: "Morning", afternoon: "Afternoon", evening: "Evening" };
 
 export default function DialysisSchedulePage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { data: schedules, isLoading } = useDialysisSchedules();
   const [patternFilter, setPatternFilter] = useState("all");
   const [shiftFilter, setShiftFilter] = useState("all");
@@ -32,6 +33,11 @@ export default function DialysisSchedulePage() {
     { key: "machine", header: t("dialysis.machine" as any), cell: (r) => r.dialysis_machines?.machine_number || "–" },
     { key: "start_date", header: t("dialysis.startDate" as any), sortable: true, cell: (r) => r.start_date || "–" },
     { key: "end_date", header: "End Date", sortable: true, cell: (r) => r.end_date || "–" },
+    { key: "actions", header: "", cell: (r) => (
+      <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); navigate(`/app/dialysis/sessions/new?patient_id=${r.dialysis_patient_id || r.id}&shift=${r.shift || ""}`); }}>
+        <PlayCircle className="h-3.5 w-3.5 mr-1" />Create Session
+      </Button>
+    )},
   ];
 
   return (

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,14 +10,17 @@ import { useDialysisPatients, useDialysisMachines, useCreateDialysisSession, use
 
 export default function DialysisNewSessionPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { data: patients } = useDialysisPatients();
   const { data: machines } = useDialysisMachines();
   const createSession = useCreateDialysisSession();
   const { data: servicePrice } = useDialysisServicePrice();
 
   const [form, setForm] = useState({
-    dialysis_patient_id: "", machine_id: "", session_date: new Date().toISOString().split("T")[0],
-    shift: "morning", chair_number: "", target_uf_ml: "", duration_minutes: "240",
+    dialysis_patient_id: searchParams.get("patient_id") || "",
+    machine_id: "", session_date: new Date().toISOString().split("T")[0],
+    shift: searchParams.get("shift") || "morning",
+    chair_number: "", target_uf_ml: "", duration_minutes: "240",
     dialyzer_type: "", blood_flow_rate: "", dialysate_flow_rate: "", heparin_dose: "",
   });
 
