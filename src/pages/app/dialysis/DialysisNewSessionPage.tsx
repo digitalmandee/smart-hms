@@ -137,7 +137,7 @@ export default function DialysisNewSessionPage() {
                     <SelectItem value="none">None (Heparin-free)</SelectItem>
                     <SelectItem value="low">Low (1000-2000 IU)</SelectItem>
                     <SelectItem value="standard">Standard (3000-5000 IU)</SelectItem>
-                    <SelectItem value="high">High (>5000 IU)</SelectItem>
+                    <SelectItem value="high">{"High (>5000 IU)"}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
