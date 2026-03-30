@@ -2,7 +2,7 @@ import { format } from "date-fns";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, Pill, User } from "lucide-react";
+import { Clock, Pill, User, Bed } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { PrescriptionQueueItem } from "@/hooks/usePharmacy";
 import { useTranslation } from "@/lib/i18n";
