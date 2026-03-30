@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { ReportTable, Column } from "@/components/reports/ReportTable";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { InvoiceStatusBadge } from "@/components/billing/InvoiceStatusBadge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Link } from "react-router-dom";
 import { Plus } from "lucide-react";
