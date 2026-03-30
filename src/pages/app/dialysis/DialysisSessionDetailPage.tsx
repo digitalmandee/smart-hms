@@ -527,7 +527,7 @@ export default function DialysisSessionDetailPage() {
       )}
 
       {/* Add Vitals Form */}
-      {session.status === "in_progress" && (
+      {session.status === "in_progress" && canRecordVitals && (
         <Card>
           <CardHeader><CardTitle>{t("dialysis.recordVitals")}</CardTitle></CardHeader>
           <CardContent>
