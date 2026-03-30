@@ -326,8 +326,8 @@ export default function DialysisSessionDetailPage() {
             return (
               <div className="flex items-center gap-1.5 ml-2 pl-3 border-l">
                 <Stethoscope className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">{attendingDoc.profiles?.first_name} {attendingDoc.profiles?.last_name}</span>
-                {isMe && <Badge variant="secondary" className="text-xs">{t("dialysis.youAreAttending")}</Badge>}
+                <span className="text-sm font-medium">{(attendingDoc.profiles as any)?.full_name}</span>
+                {isMe && <Badge variant="secondary" className="text-xs">{t("dialysis.youAreAttending" as any)}</Badge>}
               </div>
             );
           })()}
