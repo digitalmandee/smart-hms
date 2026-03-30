@@ -535,7 +535,33 @@ export default function DialysisSessionDetailPage() {
         </Card>
       )}
 
-      {/* Vitals Chart */}
+      {/* Billing Status Card */}
+      {session.status === "completed" && (
+        <Card>
+          <CardHeader><CardTitle className="text-sm flex items-center gap-1"><Receipt className="h-4 w-4" />{t("dialysis.billing" as any)}</CardTitle></CardHeader>
+          <CardContent>
+            {(session as any).invoice_id ? (
+              <div className="flex items-center gap-3">
+                <Badge variant="default" className="bg-success text-success-foreground">{t("dialysis.invoiceGenerated" as any)}</Badge>
+                <Button variant="link" size="sm" onClick={() => navigate(`/app/billing/invoices/${(session as any).invoice_id}`)}>
+                  {t("dialysis.viewInvoice" as any)} →
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3">
+                <Badge variant="outline">{t("dialysis.noInvoice" as any)}</Badge>
+                <Button size="sm" onClick={handleGenerateInvoiceRetro} disabled={generateInvoice.isPending}>
+                  <Receipt className="h-4 w-4 mr-2" />{generateInvoice.isPending ? t("common.loading") : t("dialysis.generateInvoice" as any)}
+                </Button>
+                <span className="text-sm text-muted-foreground">
+                  {t("dialysis.sessionFee" as any)}: {servicePrice?.default_price || 8000}
+                </span>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       {vitalsChartData.length > 0 && (
         <Card>
           <CardHeader><CardTitle className="flex items-center gap-2"><Activity className="h-5 w-5" />{t("dialysis.vitalsTrend")}</CardTitle></CardHeader>
