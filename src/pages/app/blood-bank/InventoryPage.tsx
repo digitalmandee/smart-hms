@@ -70,6 +70,12 @@ export default function InventoryPage() {
   const [bloodGroupFilter, setBloodGroupFilter] = useState<BloodGroupType | "all">("all");
   const [componentFilter, setComponentFilter] = useState<BloodComponentType | "all">("all");
 
+  // Discard dialog state
+  const [discardUnit, setDiscardUnit] = useState<any | null>(null);
+  const [discardReason, setDiscardReason] = useState("");
+  const [discardNotes, setDiscardNotes] = useState("");
+  const discardMutation = useDiscardBloodUnit();
+
   const { data: inventory, isLoading } = useBloodInventory({
     status: statusFilter === "all" ? undefined : statusFilter,
     bloodGroup: bloodGroupFilter === "all" ? undefined : bloodGroupFilter,
