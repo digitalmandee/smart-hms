@@ -240,7 +240,7 @@ export default function DialysisNewSessionPage() {
                       : "border-border hover:bg-muted/50"
                   }`}
                 >
-                  <CheckCircle2 className="h-3.5 w-3.5 text-green-600 shrink-0" />
+                  <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-xs">{m.machine_number}</p>
                     <p className="text-xs text-muted-foreground">{t("dialysis.chairNo")}: {m.chair_number || "–"}</p>
