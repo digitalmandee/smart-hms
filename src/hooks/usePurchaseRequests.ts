@@ -247,6 +247,17 @@ export function useConvertPRtoPO() {
 
   return useMutation({
     mutationFn: async (id: string) => {
+      // Guard: only approved PRs can be converted
+      const { data: pr, error: fetchError } = await supabase
+        .from("purchase_requests")
+        .select("status")
+        .eq("id", id)
+        .single();
+      if (fetchError) throw fetchError;
+      if (pr?.status !== "approved") {
+        throw new Error("Only approved purchase requests can be converted to a purchase order");
+      }
+
       const { error } = await supabase
         .from("purchase_requests")
         .update({ status: "converted" })

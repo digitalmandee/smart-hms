@@ -334,6 +334,17 @@ export function useVerifyGRN() {
       // Create stock adjustment records and update item-vendor mappings
       for (const item of grn.items) {
         if (item.quantity_accepted > 0) {
+          // Query actual current stock for accurate audit trail
+          let previousQty = 0;
+          if (item.item_id) {
+            const { data: stockRows } = await supabase
+              .from("inventory_stock")
+              .select("quantity")
+              .eq("item_id", item.item_id)
+              .eq("branch_id", grn.branch_id);
+            previousQty = (stockRows || []).reduce((s, r) => s + (r.quantity || 0), 0);
+          }
+
           await supabase
             .from("stock_adjustments")
             .insert({
@@ -342,8 +353,8 @@ export function useVerifyGRN() {
               item_id: item.item_id,
               adjustment_type: "increase",
               quantity: item.quantity_accepted,
-              previous_quantity: 0,
-              new_quantity: item.quantity_accepted,
+              previous_quantity: previousQty,
+              new_quantity: previousQty + item.quantity_accepted,
               reason: `GRN: ${grn.grn_number}`,
               reference_type: "grn",
               reference_id: grn.id,

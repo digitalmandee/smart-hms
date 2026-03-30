@@ -183,6 +183,17 @@ export function useCreatePurchaseOrder() {
       
       const totalAmount = subtotal + taxAmount;
       
+      // Validate vendor is active
+      const { data: vendor, error: vendorError } = await supabase
+        .from("vendors")
+        .select("is_active, name")
+        .eq("id", data.vendor_id)
+        .single();
+      if (vendorError) throw vendorError;
+      if (!vendor?.is_active) {
+        throw new Error(`Vendor "${vendor?.name}" is inactive. Cannot create a purchase order for an inactive vendor.`);
+      }
+
       // Create PO
       const { data: po, error } = await supabase
         .from("purchase_orders")
