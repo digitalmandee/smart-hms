@@ -120,9 +120,12 @@ export function useCreateDialysisSession() {
   const { profile } = useAuth();
   return useMutation({
     mutationFn: async (values: { dialysis_patient_id: string; machine_id?: string; session_date: string; shift?: string; chair_number?: string; target_uf_ml?: number; duration_minutes?: number; dialyzer_type?: string; blood_flow_rate?: number; dialysate_flow_rate?: number; heparin_dose?: string }) => {
+      const dateStr = values.session_date.replace(/-/g, "");
+      const rand = Math.floor(Math.random() * 1000).toString().padStart(3, "0");
+      const session_number = `DS-${dateStr}-${rand}`;
       const { data, error } = await supabase
         .from("dialysis_sessions")
-        .insert([{ ...values, organization_id: profile!.organization_id!, branch_id: profile!.branch_id }])
+        .insert([{ ...values, session_number, organization_id: profile!.organization_id!, branch_id: profile!.branch_id }])
         .select()
         .single();
       if (error) throw error;
