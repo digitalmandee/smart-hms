@@ -8,8 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useDialysisSession, useUpdateDialysisSession, useDialysisVitals, useAddDialysisVitals } from "@/hooks/useDialysis";
-import { AlertTriangle, Plus, Activity, XCircle, Ban, Clock, User, Stethoscope, Heart } from "lucide-react";
+import { useDialysisSession, useUpdateDialysisSession, useDialysisVitals, useAddDialysisVitals, useDialysisServicePrice, useGenerateDialysisInvoice } from "@/hooks/useDialysis";
+import { AlertTriangle, Plus, Activity, XCircle, Ban, Clock, User, Stethoscope, Heart, Receipt } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { toast } from "sonner";
 import { useTranslation } from "@/lib/i18n";
@@ -26,6 +26,8 @@ export default function DialysisSessionDetailPage() {
   const { data: vitals } = useDialysisVitals(id);
   const addVitals = useAddDialysisVitals();
   const updateSession = useUpdateDialysisSession();
+  const { data: servicePrice } = useDialysisServicePrice();
+  const generateInvoice = useGenerateDialysisInvoice();
 
   // Role checks
   const isNurseRole = roles.some(r => ["nurse", "opd_nurse", "ipd_nurse", "ot_nurse"].includes(r));
@@ -141,7 +143,38 @@ export default function DialysisSessionDetailPage() {
     if (postForm.doctor_notes) payload.doctor_notes = postForm.doctor_notes;
     if (postForm.nursing_notes) payload.nursing_notes = postForm.nursing_notes;
     if (postForm.complications) payload.complications = postForm.complications;
-    updateSession.mutate(payload);
+    updateSession.mutate(payload, {
+      onSuccess: () => {
+        // Auto-generate invoice after completion
+        const fee = servicePrice?.default_price || 8000;
+        const consumables: { description: string; amount: number }[] = [];
+        if ((session as any).dialyzer_type) {
+          consumables.push({ description: `Dialyzer: ${(session as any).dialyzer_type}`, amount: 500 });
+        }
+        generateInvoice.mutate({
+          sessionId: id!,
+          patientId: session.dialysis_patients?.patient_id,
+          sessionNumber: session.session_number,
+          sessionFee: fee,
+          consumablesCharges: consumables,
+        });
+      },
+    });
+  };
+
+  const handleGenerateInvoiceRetro = () => {
+    const fee = servicePrice?.default_price || 8000;
+    const consumables: { description: string; amount: number }[] = [];
+    if ((session as any).dialyzer_type) {
+      consumables.push({ description: `Dialyzer: ${(session as any).dialyzer_type}`, amount: 500 });
+    }
+    generateInvoice.mutate({
+      sessionId: id!,
+      patientId: session.dialysis_patients?.patient_id,
+      sessionNumber: session.session_number,
+      sessionFee: fee,
+      consumablesCharges: consumables,
+    });
   };
 
   const handleCancelOrNoShow = (status: "cancelled" | "no_show") => {
@@ -502,7 +535,33 @@ export default function DialysisSessionDetailPage() {
         </Card>
       )}
 
-      {/* Vitals Chart */}
+      {/* Billing Status Card */}
+      {session.status === "completed" && (
+        <Card>
+          <CardHeader><CardTitle className="text-sm flex items-center gap-1"><Receipt className="h-4 w-4" />{t("dialysis.billing" as any)}</CardTitle></CardHeader>
+          <CardContent>
+            {(session as any).invoice_id ? (
+              <div className="flex items-center gap-3">
+                <Badge variant="default" className="bg-success text-success-foreground">{t("dialysis.invoiceGenerated" as any)}</Badge>
+                <Button variant="link" size="sm" onClick={() => navigate(`/app/billing/invoices/${(session as any).invoice_id}`)}>
+                  {t("dialysis.viewInvoice" as any)} →
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3">
+                <Badge variant="outline">{t("dialysis.noInvoice" as any)}</Badge>
+                <Button size="sm" onClick={handleGenerateInvoiceRetro} disabled={generateInvoice.isPending}>
+                  <Receipt className="h-4 w-4 mr-2" />{generateInvoice.isPending ? t("common.loading") : t("dialysis.generateInvoice" as any)}
+                </Button>
+                <span className="text-sm text-muted-foreground">
+                  {t("dialysis.sessionFee" as any)}: {servicePrice?.default_price || 8000}
+                </span>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       {vitalsChartData.length > 0 && (
         <Card>
           <CardHeader><CardTitle className="flex items-center gap-2"><Activity className="h-5 w-5" />{t("dialysis.vitalsTrend")}</CardTitle></CardHeader>

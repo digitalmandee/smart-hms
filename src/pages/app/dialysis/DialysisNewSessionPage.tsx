@@ -6,13 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useDialysisPatients, useDialysisMachines, useCreateDialysisSession } from "@/hooks/useDialysis";
+import { useDialysisPatients, useDialysisMachines, useCreateDialysisSession, useDialysisServicePrice } from "@/hooks/useDialysis";
 
 export default function DialysisNewSessionPage() {
   const navigate = useNavigate();
   const { data: patients } = useDialysisPatients();
   const { data: machines } = useDialysisMachines();
   const createSession = useCreateDialysisSession();
+  const { data: servicePrice } = useDialysisServicePrice();
 
   const [form, setForm] = useState({
     dialysis_patient_id: "", machine_id: "", session_date: new Date().toISOString().split("T")[0],
@@ -150,6 +151,22 @@ export default function DialysisNewSessionPage() {
                 <Input type="number" value={form.dialysate_flow_rate} onChange={e => setForm(f => ({ ...f, dialysate_flow_rate: e.target.value }))} placeholder="500-800" />
               </div>
             </div>
+          </div>
+
+          {/* Charges Preview */}
+          <div className="border-t pt-4 mt-2">
+            <p className="text-sm font-semibold mb-3 text-muted-foreground">Charges Preview</p>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-3 rounded-lg bg-muted/50">
+                <p className="text-xs text-muted-foreground">Session Fee</p>
+                <p className="font-semibold text-lg">{servicePrice?.default_price?.toLocaleString() || "8,000"}</p>
+              </div>
+              <div className="p-3 rounded-lg bg-muted/50">
+                <p className="text-xs text-muted-foreground">Consumables (estimated)</p>
+                <p className="font-semibold text-lg">{form.dialyzer_type ? "500" : "—"}</p>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">Invoice will be auto-generated on session completion.</p>
           </div>
 
           <Button onClick={handleSubmit} disabled={createSession.isPending} className="w-full">
