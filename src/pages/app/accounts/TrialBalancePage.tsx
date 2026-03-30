@@ -12,7 +12,7 @@ import { Printer, Download, CheckCircle, XCircle, Calendar, Search, ChevronDown,
 import { useTrialBalance, TrialBalanceRow } from "@/hooks/useFinancialReports";
 import { exportToCSV, formatCurrency as exportFmtCurrency } from "@/lib/exportUtils";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
-import { useTranslation } from "@/hooks/useTranslation";
+import { useTranslation } from "@/lib/i18n";
 import {
   Table,
   TableBody,
