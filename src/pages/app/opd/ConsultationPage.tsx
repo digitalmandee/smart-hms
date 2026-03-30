@@ -25,6 +25,7 @@ import { DiagnosisInput } from "@/components/consultation/DiagnosisInput";
 import { PrescriptionBuilder } from "@/components/consultation/PrescriptionBuilder";
 import { LabOrderBuilder } from "@/components/consultation/LabOrderBuilder";
 import { RadiologyOrderBuilder, type ImagingOrderItemInput } from "@/components/consultation/RadiologyOrderBuilder";
+import { BloodBankOrderBuilder, type BloodBankOrderItem } from "@/components/consultation/BloodBankOrderBuilder";
 import { PatientQuickInfo } from "@/components/consultation/PatientQuickInfo";
 import { PreviousVisits } from "@/components/consultation/PreviousVisits";
 import { VisitSummaryDialog } from "@/components/consultation/VisitSummaryDialog";
