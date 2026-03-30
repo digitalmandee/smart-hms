@@ -42,6 +42,7 @@ import { format, addDays } from "date-fns";
 
 const formSchema = z.object({
   branch_id: z.string().min(1, "Branch is required"),
+  department_id: z.string().optional(),
   from_store_id: z.string().optional(),
   required_date: z.string().min(1, "Required date is required"),
   priority: z.coerce.number(),
