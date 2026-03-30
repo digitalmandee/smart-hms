@@ -381,12 +381,72 @@ export function useApproveVendorPayment() {
   });
 }
 
-// Cancel vendor payment
+// Cancel vendor payment (with reversing journal entry)
 export function useCancelVendorPayment() {
   const queryClient = useQueryClient();
+  const { profile } = useAuth();
 
   return useMutation({
     mutationFn: async (paymentId: string) => {
+      // Get payment with journal entry reference
+      const { data: payment, error: fetchError } = await supabase
+        .from("vendor_payments")
+        .select(`*, vendor:vendors(name)`)
+        .eq("id", paymentId)
+        .single();
+      
+      if (fetchError) throw fetchError;
+      if (!payment) throw new Error("Payment not found");
+      if (payment.status === "cancelled") throw new Error("Payment is already cancelled");
+      
+      // If payment was approved (has journal entry), create reversing entry
+      if (payment.journal_entry_id) {
+        // Get original journal entry lines
+        const { data: originalLines } = await supabase
+          .from("journal_entry_lines")
+          .select("*")
+          .eq("journal_entry_id", payment.journal_entry_id);
+        
+        if (originalLines && originalLines.length > 0) {
+          // Create reversing journal entry
+          const { data: reversalEntry, error: jeError } = await supabase
+            .from("journal_entries")
+            .insert({
+              organization_id: profile!.organization_id!,
+              branch_id: payment.branch_id,
+              entry_number: "",
+              entry_date: new Date().toISOString().split('T')[0],
+              description: `REVERSAL: Vendor payment ${payment.payment_number} to ${(payment as any).vendor?.name} cancelled`,
+              reference_type: "vendor_payment",
+              reference_id: payment.id,
+              is_posted: true,
+              posted_by: profile!.id,
+              posted_at: new Date().toISOString(),
+              created_by: profile!.id,
+            })
+            .select()
+            .single();
+          
+          if (jeError) throw jeError;
+          
+          // Reverse the lines (swap debit/credit)
+          const reversalLines = originalLines.map(line => ({
+            journal_entry_id: reversalEntry.id,
+            account_id: line.account_id,
+            description: `Reversal: ${line.description}`,
+            debit_amount: line.credit_amount,
+            credit_amount: line.debit_amount,
+          }));
+          
+          const { error: linesError } = await supabase
+            .from("journal_entry_lines")
+            .insert(reversalLines);
+          
+          if (linesError) throw linesError;
+        }
+      }
+      
+      // Update payment status
       const { data, error } = await supabase
         .from("vendor_payments")
         .update({ status: "cancelled" })
@@ -400,7 +460,11 @@ export function useCancelVendorPayment() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["vendor-payments"] });
       queryClient.invalidateQueries({ queryKey: ["vendor-payment"] });
-      toast.success("Payment cancelled");
+      queryClient.invalidateQueries({ queryKey: ["vendor-outstanding"] });
+      queryClient.invalidateQueries({ queryKey: ["payables"] });
+      queryClient.invalidateQueries({ queryKey: ["accounts"] });
+      queryClient.invalidateQueries({ queryKey: ["journal-entries"] });
+      toast.success("Payment cancelled and journal entry reversed");
     },
     onError: (error: Error) => {
       toast.error(`Failed to cancel payment: ${error.message}`);
