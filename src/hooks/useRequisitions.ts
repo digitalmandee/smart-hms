@@ -25,7 +25,8 @@ export interface RequisitionItem {
     id: string;
     name: string;
     generic_name: string | null;
-    dosage_form: string | null;
+    strength: string | null;
+    unit: string | null;
   } | null;
 }
 
