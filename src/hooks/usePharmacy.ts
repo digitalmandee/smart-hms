@@ -38,6 +38,11 @@ export interface PrescriptionQueueItem extends Prescription {
     wasfaty_prescription_id: string | null;
     wasfaty_status: string | null;
   }[] | null;
+  source: 'opd' | 'ipd';
+  admission?: {
+    ward_name: string | null;
+    bed_number: string | null;
+  } | null;
 }
 
 interface InventoryFilters {
