@@ -95,7 +95,7 @@ export default function DialysisSessionDetailPage() {
   const { data: myDoctorRecord } = useQuery({
     queryKey: ["my-doctor-record", profile?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("doctors")
         .select("id")
         .eq("user_id", profile!.id)
