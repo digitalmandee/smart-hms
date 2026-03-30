@@ -10,6 +10,7 @@ import { useDialysisPatients, useDialysisMachines, useCreateDialysisSession, use
 
 export default function DialysisNewSessionPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { data: patients } = useDialysisPatients();
   const { data: machines } = useDialysisMachines();
   const createSession = useCreateDialysisSession();
