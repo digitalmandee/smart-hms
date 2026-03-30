@@ -676,6 +676,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Monitor,
   Bed,
   Droplet,
+  Droplets,
   Scissors,
   TestTubes,
   Heart,

@@ -56,6 +56,7 @@ import {
   Monitor,
   Bed,
   Droplet,
+  Droplets,
   Scissors,
   TestTubes,
   Heart,
