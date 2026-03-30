@@ -202,13 +202,15 @@ export default function LabTestTemplateFormPage() {
             ) : (
               <div className="space-y-4">
                 {/* Header */}
-                <div className="grid gap-4 grid-cols-[auto_1fr_1fr_1fr_1fr_1fr_auto] items-center text-sm font-medium text-muted-foreground px-2">
+                <div className="grid gap-4 grid-cols-[auto_1fr_1fr_1fr_1fr_1fr_1fr_1fr_auto] items-center text-sm font-medium text-muted-foreground px-2">
                   <div className="w-6"></div>
                   <div>Field Name</div>
                   <div>Unit</div>
                   <div>Type</div>
                   <div>Normal Min</div>
                   <div>Normal Max</div>
+                  <div>Critical Min</div>
+                  <div>Critical Max</div>
                   <div className="w-10"></div>
                 </div>
                 
