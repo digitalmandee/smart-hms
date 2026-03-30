@@ -308,6 +308,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   ScanBarcode,
   Smartphone,
   ShieldAlert,
+  Coins,
 };
 
 interface MobileSideMenuProps {
