@@ -1,53 +1,66 @@
 
 
-# Fix: Admin Missing Inventory/Procurement Menu + Pharmacy Requisition Uses Medicines
+# Fix: PO-to-Inventory Flow, Stock Alerts, and Pharmacy Returns
 
-## Problems Found
+## Problems Identified
 
-### Problem 1: Inventory module missing from `available_modules`
-The `menu_items` table has inventory items with `required_module: 'inventory'`, but **no `inventory` module exists in the `available_modules` table**. This means it can never be enabled in `organization_modules`, so the `canViewItem` filter in `useMenuItems.ts` hides ALL inventory menu items for `branch_admin`.
+### Problem 1: GRN verify already adds stock to `medicine_inventory`
+The `useVerifyGRN` hook (lines 252-295 in `useGRN.ts`) already handles adding stock to `medicine_inventory` for medicine items and `inventory_stock` for general items when a GRN is verified. This flow works: PO → GRN → Verify GRN → Stock added. No code fix needed here — the chain is functional.
 
-Similarly, `warehouse`, `dialysis`, `requisitions` modules referenced in menu_items don't exist in `available_modules`.
+### Problem 2: Stock Alerts page shows pharmacy inventory correctly
+The `StockAlertsPage` uses `useInventory()` from `usePharmacy.ts`, which queries `medicine_inventory`. This works — it correctly shows low stock, out of stock, expiring, and expired medicines. The `LowStockAlertWidget` (dashboard widget) uses `useLowStockItems()` from `useInventory.ts`, which queries the general `inventory_items`/`inventory_stock` tables — NOT the pharmacy `medicine_inventory` table. The dashboard widget will never show pharmacy low-stock items.
 
-### Problem 2: Permission code mismatches
-Menu items require `inventory.po.view` but `branch_admin` has `inventory.po`. The `hasPermission` function does exact string matching, so these don't match.
+**Fix**: Create a pharmacy-specific low stock widget or update the existing widget to also check `medicine_inventory`.
 
-### Problem 3: Pharmacy requisition uses inventory items instead of medicines
-The `RequisitionFormPage.tsx` uses `useInventoryItems()` for item selection. Pharmacists should select from the `medicines` table instead. This was the previously approved but not yet implemented plan.
+### Problem 3: Pharmacy Returns — partially functional
+The returns system exists (`pharmacy_returns` + `pharmacy_return_items` tables, `usePharmacyReturns.ts` hook, `PharmacyReturnsPage.tsx`). It can:
+- Search transactions by receipt number/customer
+- Select items to return with quantities
+- Choose refund method (cash/credit/deduct)
+- Restock inventory on return
+- Log stock movements
 
-## Solution
+**What's broken or missing**:
+1. **No prescription/OPD/IPD return flow** — Returns only work for POS transactions. If a medicine was dispensed via a prescription (OPD/IPD), there's no way to return it.
+2. **Stats use estimates** — `itemsRestocked` is hardcoded as `todayReturns * 2` (line 148), not real data.
+3. **No return approval workflow** — `pendingApproval` is always 0 (line 146).
+4. **Recent returns only shows voided/refunded transactions** — doesn't query the actual `pharmacy_returns` table.
 
-### 1. Migration: Add missing modules to `available_modules`
-Insert `inventory`, `warehouse`, `dialysis`, `requisitions` into `available_modules` with appropriate metadata.
+## Plan
 
-### 2. Migration: Enable inventory module for all existing organizations
-Insert `inventory` into `organization_modules` for all existing orgs with `is_enabled: true`.
+### 1. Fix Recent Returns to use `pharmacy_returns` table
+**File: `src/hooks/usePharmacyReturns.ts`**
+- Update `useRecentReturns` to query `pharmacy_returns` table with join to `pharmacy_return_items` instead of just looking at voided POS transactions
+- Update `useReturnsStats` to compute real stats from `pharmacy_returns` (actual restocked count, not estimates)
 
-### 3. Migration: Fix permission code mismatches
-Either update the `menu_items` required_permission to match existing permission codes, OR add the missing permission codes. Simpler to update menu_items:
-- `inventory.po.view` → `inventory.po`
-- Check and fix any other mismatches
+### 2. Add prescription return flow
+**File: `src/pages/app/pharmacy/PharmacyReturnsPage.tsx`**
+- Add a second search mode: "Search by Patient / MRN" to find dispensed prescriptions
+- Show dispensed prescription items with quantities that can be returned
+- On return, create `pharmacy_return` record, restock `medicine_inventory`, log `pharmacy_stock_movements`
 
-### 4. Migration: Add `medicine_id` to `requisition_items`
-- Make `item_id` nullable
-- Add `medicine_id UUID REFERENCES medicines(id)`
+**File: `src/hooks/usePharmacyReturns.ts`**
+- Add `useSearchDispensedPrescriptions(query)` hook that searches `prescriptions` with status `dispensed`/`partially_dispensed` and their `prescription_items`
+- Add mutation to process prescription returns (similar to POS return but references prescription instead of transaction)
 
-### 5. Update RequisitionFormPage for pharmacy role detection
-- Detect if user is pharmacist
-- Show medicine search (from `useMedicines`) instead of inventory items dropdown
-- Pass `medicine_id` instead of `item_id` when pharmacist
+### 3. Fix dashboard Low Stock widget for pharmacy
+**File: `src/components/inventory/LowStockAlertWidget.tsx`**
+- Check user role; if pharmacist, query `medicine_inventory` for low stock items instead of general `inventory_items`
+- Or create a separate `PharmacyLowStockWidget` component
 
-### 6. Update RequisitionDetailPage to show medicine names
-- Join `medicines` table when `medicine_id` is set
+### 4. Add "Create Requisition" button on Stock Alerts page
+**File: `src/pages/app/pharmacy/StockAlertsPage.tsx`**
+- Add checkbox selection on low stock items
+- Add "Create Requisition" button that navigates to requisition form pre-filled with selected low-stock medicines
 
-### 7. i18n updates
-New keys: "Select Medicine", "Medicine", "Search medicines..." in en/ar/ur
+### 5. i18n updates
+**Files: `en.ts`, `ar.ts`, `ur.ts`**
+- Keys: "Search by Patient", "Dispensed Prescriptions", "Return to Stock", "Create Requisition from Alerts", "Prescription Return", "POS Return"
 
 ## Files Changed
-- 1 migration: add `inventory`, `warehouse`, `dialysis` to `available_modules`; enable for all orgs; fix permission mismatches in `menu_items`
-- 1 migration: add `medicine_id` to `requisition_items`, make `item_id` nullable
-- `src/pages/app/inventory/RequisitionFormPage.tsx` — role-based item selector (medicines vs inventory)
-- `src/hooks/useRequisitions.ts` — extend `RequisitionItem` to support `medicine_id`
-- `src/pages/app/inventory/RequisitionDetailPage.tsx` — show medicine name when applicable
+- `src/hooks/usePharmacyReturns.ts` — fix recent returns query, real stats, add prescription return search/mutation
+- `src/pages/app/pharmacy/PharmacyReturnsPage.tsx` — add prescription return tab/mode, improve UI
+- `src/pages/app/pharmacy/StockAlertsPage.tsx` — add requisition creation from alerts
+- `src/components/inventory/LowStockAlertWidget.tsx` — pharmacy-aware low stock detection
 - `src/lib/i18n/translations/en.ts`, `ar.ts`, `ur.ts` — new keys
 
