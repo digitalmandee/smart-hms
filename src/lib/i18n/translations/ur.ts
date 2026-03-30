@@ -3088,5 +3088,27 @@ export const ur: Record<TranslationKey, string> = {
   "bloodBank.noActiveTransfusions": "کوئی فعال منتقلی نہیں",
   "bloodBank.inProgress": "جاری",
 
+  // Blood ordering from consultation
+  "blood.bloodProducts": "خون کی مصنوعات",
+  "blood.addProduct": "مصنوع شامل کریں",
+  "blood.priority": "ترجیح",
+  "blood.routine": "معمول",
+  "blood.urgent": "فوری",
+  "blood.emergency": "ایمرجنسی",
+  "blood.noProductsAdded": "کوئی خون کی مصنوعات شامل نہیں",
+  "blood.clickAddProduct": "خون کے اجزاء کی درخواست کے لیے 'مصنوع شامل کریں' پر کلک کریں",
+  "blood.componentType": "جزو کی قسم",
+  "blood.unitsRequired": "مطلوبہ یونٹس",
+  "blood.hemoglobinLevel": "ہیموگلوبن (جی/ڈی ایل)",
+  "blood.clinicalIndication": "طبی اشارہ",
+  "blood.indicationPlaceholder": "مثلاً شدید خون کی کمی، انیمیا",
+  "blood.notesPlaceholder": "بلڈ بینک کے لیے اضافی نوٹس...",
+  "blood.wholeBlood": "مکمل خون",
+  "blood.packedRBC": "پیکڈ آر بی سی",
+  "blood.ffp": "تازہ منجمد پلازما",
+  "blood.platelets": "پلیٹلیٹس",
+  "blood.cryoprecipitate": "کرائیو پریسیپیٹیٹ",
+  "blood.granulocytes": "گرینولوسائٹس",
+
 };
 
