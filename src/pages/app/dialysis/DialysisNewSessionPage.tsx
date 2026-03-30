@@ -13,6 +13,7 @@ export default function DialysisNewSessionPage() {
   const { data: patients } = useDialysisPatients();
   const { data: machines } = useDialysisMachines();
   const createSession = useCreateDialysisSession();
+  const { data: servicePrice } = useDialysisServicePrice();
 
   const [form, setForm] = useState({
     dialysis_patient_id: "", machine_id: "", session_date: new Date().toISOString().split("T")[0],
