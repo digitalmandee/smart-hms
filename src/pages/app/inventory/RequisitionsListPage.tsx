@@ -17,8 +17,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Plus, FileInput } from "lucide-react";
-import { useRequisitions } from "@/hooks/useRequisitions";
+import { Plus, FileInput, Send, Eye, Loader2 } from "lucide-react";
+import { useRequisitions, useSubmitRequisition } from "@/hooks/useRequisitions";
 import { RequisitionStatusBadge } from "@/components/inventory/RequisitionStatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/PageHeader";
@@ -32,6 +32,7 @@ export default function RequisitionsListPage() {
   const { data: requisitions, isLoading } = useRequisitions(
     statusFilter !== "all" ? { status: statusFilter } : undefined
   );
+  const submitRequisition = useSubmitRequisition();
 
   return (
     <div className="space-y-6">
@@ -94,12 +95,13 @@ export default function RequisitionsListPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Requisition #</TableHead>
-                   <TableHead>Requested By</TableHead>
-                   <TableHead>Department</TableHead>
-                   <TableHead>Warehouse</TableHead>
-                   <TableHead>Request Date</TableHead>
+                  <TableHead>Requested By</TableHead>
+                  <TableHead>Department</TableHead>
+                  <TableHead>Warehouse</TableHead>
+                  <TableHead>Request Date</TableHead>
                   <TableHead>Required By</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -114,9 +116,9 @@ export default function RequisitionsListPage() {
                       </Link>
                     </TableCell>
                     <TableCell>{req.requested_by_profile?.full_name || "-"}</TableCell>
-                     <TableCell>{req.department?.name || "-"}</TableCell>
-                     <TableCell className="text-muted-foreground">{req.from_store?.name || "—"}</TableCell>
-                     <TableCell>{format(new Date(req.request_date), "dd MMM yyyy")}</TableCell>
+                    <TableCell>{req.department?.name || "-"}</TableCell>
+                    <TableCell className="text-muted-foreground">{req.from_store?.name || "—"}</TableCell>
+                    <TableCell>{format(new Date(req.request_date), "dd MMM yyyy")}</TableCell>
                     <TableCell>
                       {req.required_date 
                         ? format(new Date(req.required_date), "dd MMM yyyy")
@@ -124,6 +126,31 @@ export default function RequisitionsListPage() {
                     </TableCell>
                     <TableCell>
                       <RequisitionStatusBadge status={req.status} />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        {req.status === "draft" && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={submitRequisition.isPending}
+                            onClick={() => submitRequisition.mutate(req.id)}
+                          >
+                            {submitRequisition.isPending ? (
+                              <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                            ) : (
+                              <Send className="mr-1 h-3 w-3" />
+                            )}
+                            Submit
+                          </Button>
+                        )}
+                        <Button variant="ghost" size="sm" asChild>
+                          <Link to={`/app/inventory/requisitions/${req.id}`}>
+                            <Eye className="mr-1 h-3 w-3" />
+                            View
+                          </Link>
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

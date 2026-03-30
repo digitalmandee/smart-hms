@@ -198,7 +198,30 @@ export default function RequisitionFormPage() {
 
               <FormField
                 control={form.control}
-                name="from_store_id"
+                name="department_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Department</FormLabel>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select department" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {departments?.map((dept) => (
+                          <SelectItem key={dept.id} value={dept.id}>
+                            {dept.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>From Warehouse</FormLabel>
