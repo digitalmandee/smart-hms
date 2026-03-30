@@ -153,6 +153,7 @@ import {
   ScanBarcode,
   Smartphone,
   ShieldAlert,
+  Coins,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
@@ -307,6 +308,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   ScanBarcode,
   Smartphone,
   ShieldAlert,
+  Coins,
 };
 
 interface MobileSideMenuProps {

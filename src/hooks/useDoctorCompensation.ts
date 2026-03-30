@@ -459,6 +459,47 @@ export function useSettleWalletEarnings() {
   });
 }
 
+export function useUpdateDoctorEarning() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ id, ...data }: {
+      id: string;
+      gross_amount?: number;
+      doctor_share_percent?: number;
+      doctor_share_amount?: number;
+      hospital_share_amount?: number;
+      source_type?: string;
+      notes?: string;
+      earning_date?: string;
+    }) => {
+      const updateData: Record<string, unknown> = { ...data };
+      
+      // Auto-recalculate if gross and percent provided
+      if (data.gross_amount !== undefined && data.doctor_share_percent !== undefined) {
+        updateData.doctor_share_amount = (data.gross_amount * data.doctor_share_percent) / 100;
+        updateData.hospital_share_amount = data.gross_amount - (updateData.doctor_share_amount as number);
+      }
+
+      const { error } = await supabase
+        .from("doctor_earnings")
+        .update(updateData)
+        .eq("id", id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["doctor-earnings"] });
+      queryClient.invalidateQueries({ queryKey: ["doctor-earnings-summary"] });
+      toast({ title: "Success", description: "Commission updated successfully" });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    },
+  });
+}
+
 export function useUnpaidEarningsForEmployee(employeeId: string | undefined) {
   return useQuery({
     queryKey: ["unpaid-earnings-employee", employeeId],

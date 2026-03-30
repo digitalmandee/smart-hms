@@ -3396,6 +3396,23 @@ export const en = {
   "pharmacy.itemsRestocked": "Items Restocked",
   "pharmacy.searchPatientMRN": "Enter Patient Name, MRN, or Prescription #...",
 
+  // Commissions
+  "hr.commissions": "Commissions",
+  "hr.editCommission": "Edit Commission",
+  "hr.updateCommission": "Update Commission",
+  "hr.totalCommissions": "Total Commissions",
+  "hr.grossAmount": "Gross Amount",
+  "hr.sharePercent": "Share %",
+  "hr.doctorShare": "Doctor Share",
+  "hr.hospitalShare": "Hospital Share",
+  "hr.markPaid": "Mark as Paid",
+  "hr.records": "Records",
+  "hr.doctor": "Doctor",
+  "common.unpaid": "Unpaid",
+  "common.type": "Type",
+  "common.from": "From",
+  "common.to": "To",
+
 } as const;
 
 export type TranslationKey = keyof typeof en;

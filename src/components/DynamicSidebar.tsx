@@ -163,6 +163,7 @@ import {
   FileCheck,
   ScanBarcode,
   Smartphone,
+  Coins,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -773,6 +774,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   FileCheck,
   ScanBarcode,
   Smartphone,
+  Coins,
 };
 
 interface DynamicSidebarProps {

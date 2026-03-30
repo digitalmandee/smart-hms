@@ -1033,6 +1033,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
           { name: "Doctor Compensation", path: "/app/hr/payroll/doctor-compensation", icon: "Stethoscope" },
           { name: "Doctor Earnings", path: "/app/hr/payroll/doctor-earnings", icon: "Receipt" },
           { name: "Wallet Balances", path: "/app/hr/payroll/wallet-balances", icon: "Wallet" },
+          { name: "Commissions", path: "/app/hr/payroll/commissions", icon: "TrendingUp" },
           { name: "Loans & Advances", path: "/app/hr/payroll/loans", icon: "Landmark" },
           { name: "Payslips", path: "/app/hr/payroll/slips", icon: "FileText" },
           { name: "Bank Sheets", path: "/app/hr/payroll/bank-sheet", icon: "FileSpreadsheet" },
@@ -1233,6 +1234,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
           { name: "Doctor Earnings", path: "/app/hr/payroll/doctor-earnings", icon: "Receipt" },
           { name: "Wallet Balances", path: "/app/hr/payroll/wallet-balances", icon: "Wallet" },
           { name: "Daily Commissions", path: "/app/hr/payroll/daily-commissions", icon: "TrendingUp" },
+          { name: "Commissions", path: "/app/hr/payroll/commissions", icon: "Coins" },
         ]
       },
       { 
@@ -1309,6 +1311,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
           { name: "Doctor Earnings", path: "/app/hr/payroll/doctor-earnings", icon: "Receipt" },
           { name: "Wallet Balances", path: "/app/hr/payroll/wallet-balances", icon: "Wallet" },
           { name: "Daily Commissions", path: "/app/hr/payroll/daily-commissions", icon: "TrendingUp" },
+          { name: "Commissions", path: "/app/hr/payroll/commissions", icon: "Coins" },
         ]
       },
       { 
