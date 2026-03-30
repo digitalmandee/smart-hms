@@ -285,7 +285,7 @@ export default function BloodBankDashboard() {
                 <div className="p-4 rounded-full bg-muted/50 w-fit mx-auto mb-3">
                   <Activity className="h-8 w-8 opacity-50" />
                 </div>
-                <p>No active transfusions</p>
+                <p>{t("bloodBank.noActiveTransfusions" as any)}</p>
               </div>
             )}
           </CardContent>
