@@ -497,6 +497,19 @@ export default function ConsultationPage() {
               />
             </TabsContent>
 
+            {/* Blood Bank Tab */}
+            <TabsContent value="blood" className="space-y-4 mt-4">
+              <BloodBankOrderBuilder
+                items={bloodBankItems}
+                onChange={setBloodBankItems}
+                priority={bloodBankPriority}
+                onPriorityChange={setBloodBankPriority}
+                notes={bloodBankNotes}
+                onNotesChange={setBloodBankNotes}
+                patientBloodGroup={patient?.blood_group}
+              />
+            </TabsContent>
+
             {/* Tabeebi Tab */}
             <TabsContent value="ai" className="mt-4">
               <DoctorAIPanel
