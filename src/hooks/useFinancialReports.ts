@@ -76,11 +76,40 @@ export function useTrialBalance(startDate?: string, endDate?: string) {
 
       if (accountsError) throw accountsError;
 
-      // If date range provided, calculate balances from journal entry lines
-      let journalTotals: Record<string, { debit: number; credit: number }> = {};
+      // Fetch ALL posted journal lines (we'll split into opening vs movement)
+      let openingTotals: Record<string, { debit: number; credit: number }> = {};
+      let movementTotals: Record<string, { debit: number; credit: number }> = {};
       
-      if (startDate && endDate) {
-        const { data: lines, error: linesError } = await supabase
+      const useDateFilter = !!(startDate && endDate);
+
+      if (useDateFilter) {
+        // Opening: all posted entries BEFORE startDate
+        const { data: openingLines, error: openingError } = await supabase
+          .from("journal_entry_lines")
+          .select(`
+            account_id,
+            debit_amount,
+            credit_amount,
+            journal_entry:journal_entries!inner(
+              entry_date,
+              is_posted
+            )
+          `)
+          .eq("journal_entry.is_posted", true)
+          .lt("journal_entry.entry_date", startDate);
+
+        if (openingError) throw openingError;
+
+        for (const line of openingLines || []) {
+          if (!openingTotals[line.account_id]) {
+            openingTotals[line.account_id] = { debit: 0, credit: 0 };
+          }
+          openingTotals[line.account_id].debit += Number(line.debit_amount) || 0;
+          openingTotals[line.account_id].credit += Number(line.credit_amount) || 0;
+        }
+
+        // Movement: entries within the date range
+        const { data: movementLines, error: movementError } = await supabase
           .from("journal_entry_lines")
           .select(`
             account_id,
@@ -95,53 +124,103 @@ export function useTrialBalance(startDate?: string, endDate?: string) {
           .gte("journal_entry.entry_date", startDate)
           .lte("journal_entry.entry_date", endDate);
 
-        if (linesError) throw linesError;
+        if (movementError) throw movementError;
 
-        for (const line of lines || []) {
-          if (!journalTotals[line.account_id]) {
-            journalTotals[line.account_id] = { debit: 0, credit: 0 };
+        for (const line of movementLines || []) {
+          if (!movementTotals[line.account_id]) {
+            movementTotals[line.account_id] = { debit: 0, credit: 0 };
           }
-          journalTotals[line.account_id].debit += Number(line.debit_amount) || 0;
-          journalTotals[line.account_id].credit += Number(line.credit_amount) || 0;
+          movementTotals[line.account_id].debit += Number(line.debit_amount) || 0;
+          movementTotals[line.account_id].credit += Number(line.credit_amount) || 0;
         }
       }
 
       // Build trial balance
-      const useDateFilter = !!(startDate && endDate);
-      
       const trialBalance: TrialBalanceRow[] = (accounts || []).map(account => {
         const isDebitNormal = account.account_type?.is_debit_normal ?? true;
-        
-        let balance: number;
-        if (useDateFilter) {
-          const totals = journalTotals[account.id] || { debit: 0, credit: 0 };
-          // Period balance = net movement within date range
-          balance = isDebitNormal
-            ? totals.debit - totals.credit
-            : totals.credit - totals.debit;
-        } else {
-          balance = Number(account.current_balance) || 0;
-        }
-        
-        return {
-          account_id: account.id,
-          account_number: account.account_number,
-          account_name: account.name,
-          account_type: account.account_type?.name || "Unknown",
-          category: account.account_type?.category || "Unknown",
-          debit: isDebitNormal ? (balance >= 0 ? balance : 0) : (balance < 0 ? Math.abs(balance) : 0),
-          credit: isDebitNormal ? (balance < 0 ? Math.abs(balance) : 0) : (balance >= 0 ? balance : 0),
-        };
-      }).filter(row => row.debit !== 0 || row.credit !== 0 || !useDateFilter);
+        const openingBal = Number(account.opening_balance) || 0;
 
-      const totalDebits = trialBalance.reduce((sum, row) => sum + row.debit, 0);
-      const totalCredits = trialBalance.reduce((sum, row) => sum + row.credit, 0);
+        if (useDateFilter) {
+          const opening = openingTotals[account.id] || { debit: 0, credit: 0 };
+          const movement = movementTotals[account.id] || { debit: 0, credit: 0 };
+
+          // Opening balance = account opening_balance + journal activity before startDate
+          const openingNet = isDebitNormal
+            ? openingBal + opening.debit - opening.credit
+            : openingBal + opening.credit - opening.debit;
+
+          // Movement = activity within date range
+          const movementNet = isDebitNormal
+            ? movement.debit - movement.credit
+            : movement.credit - movement.debit;
+
+          // Closing = opening + movement
+          const closingNet = openingNet + movementNet;
+
+          const toDebitCredit = (val: number) => ({
+            debit: val >= 0 ? val : 0,
+            credit: val < 0 ? Math.abs(val) : 0,
+          });
+
+          const op = toDebitCredit(openingNet);
+          const mv = toDebitCredit(movementNet);
+          const cl = toDebitCredit(closingNet);
+
+          return {
+            account_id: account.id,
+            account_number: account.account_number,
+            account_name: account.name,
+            account_type: account.account_type?.name || "Unknown",
+            category: account.account_type?.category || "Unknown",
+            debit: cl.debit,
+            credit: cl.credit,
+            openingDebit: op.debit,
+            openingCredit: op.credit,
+            movementDebit: mv.debit,
+            movementCredit: mv.credit,
+            closingDebit: cl.debit,
+            closingCredit: cl.credit,
+          };
+        } else {
+          const balance = Number(account.current_balance) || 0;
+          const db = isDebitNormal ? (balance >= 0 ? balance : 0) : (balance < 0 ? Math.abs(balance) : 0);
+          const cr = isDebitNormal ? (balance < 0 ? Math.abs(balance) : 0) : (balance >= 0 ? balance : 0);
+          return {
+            account_id: account.id,
+            account_number: account.account_number,
+            account_name: account.name,
+            account_type: account.account_type?.name || "Unknown",
+            category: account.account_type?.category || "Unknown",
+            debit: db,
+            credit: cr,
+            openingDebit: 0,
+            openingCredit: 0,
+            movementDebit: db,
+            movementCredit: cr,
+            closingDebit: db,
+            closingCredit: cr,
+          };
+        }
+      });
+
+      // Separate: all rows (for stats) and filtered rows (for display)
+      const allRows = trialBalance;
+      const activeRows = trialBalance.filter(row => 
+        row.closingDebit !== 0 || row.closingCredit !== 0 || 
+        row.movementDebit !== 0 || row.movementCredit !== 0
+      );
+
+      const totalDebits = allRows.reduce((sum, row) => sum + row.closingDebit, 0);
+      const totalCredits = allRows.reduce((sum, row) => sum + row.closingCredit, 0);
 
       return {
-        rows: trialBalance,
+        rows: allRows,
         totalDebits,
         totalCredits,
         isBalanced: Math.abs(totalDebits - totalCredits) < 0.01,
+        totalAccounts: allRows.length,
+        accountsWithActivity: activeRows.length,
+        zeroBalanceCount: allRows.length - activeRows.length,
       };
     },
     enabled: !!profile?.organization_id,
