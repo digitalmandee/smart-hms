@@ -2974,6 +2974,15 @@ export const ur: Record<TranslationKey, string> = {
   "billing.viewDetail": "دیکھیں",
   "billing.closedAt": "بند ہونے کا وقت",
   "billing.departmentBreakdown": "شعبہ وار تفصیل",
+  "billing.sessionExpenses": "اخراجات / ادائیگیاں",
+  "billing.sessionDeposits": "مریض کی جمع رقم",
+  "billing.netCash": "خالص نقد",
+  "billing.paidTo": "ادا کیا گیا",
+  "billing.depositType": "قسم",
+  "billing.noExpenses": "اس سیشن میں کوئی اخراجات نہیں",
+  "billing.noDeposits": "اس سیشن میں کوئی جمع نہیں",
+  "billing.totalExpenses": "کل اخراجات",
+  "billing.cashExpenses": "نقد اخراجات",
 
   // Doctor Test Share
   "hr.testShare": "ٹیسٹ شیئر",
