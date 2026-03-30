@@ -2,7 +2,7 @@ import { format } from "date-fns";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, Pill, User } from "lucide-react";
+import { Clock, Pill, User, Bed } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { PrescriptionQueueItem } from "@/hooks/usePharmacy";
 import { useTranslation } from "@/lib/i18n";
@@ -30,9 +30,14 @@ export function PrescriptionQueueCard({ prescription }: PrescriptionQueueCardPro
               {format(new Date(prescription.created_at), "MMM d, h:mm a")}
             </div>
           </div>
-          <Badge variant={prescription.status === "partially_dispensed" ? "secondary" : "outline"}>
-            {prescription.status === "partially_dispensed" ? t('pharmacy.partial' as any) : t('pharmacy.pending' as any)}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant={prescription.status === "partially_dispensed" ? "secondary" : "outline"}>
+              {prescription.status === "partially_dispensed" ? t('pharmacy.partial' as any) : t('pharmacy.pending' as any)}
+            </Badge>
+            <Badge variant="default" className={prescription.source === 'ipd' ? "bg-orange-500 text-white" : "bg-blue-100 text-blue-800"}>
+              {prescription.source === 'ipd' ? t('pharmacy.ipd' as any) : t('pharmacy.opd' as any)}
+            </Badge>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -47,6 +52,12 @@ export function PrescriptionQueueCard({ prescription }: PrescriptionQueueCardPro
           <Pill className="h-4 w-4 text-muted-foreground" />
           <span className="text-sm">{prescription.itemCount} {t('pharmacy.items' as any)}</span>
         </div>
+        {prescription.source === 'ipd' && prescription.admission && (
+          <div className="flex items-center gap-2 text-sm text-orange-700 bg-orange-50 dark:bg-orange-950/20 p-2 rounded">
+            <Bed className="h-4 w-4" />
+            <span>{prescription.admission.ward_name} - Bed {prescription.admission.bed_number}</span>
+          </div>
+        )}
         <div className="pt-2">
           <p className="text-xs text-muted-foreground">
             {t('pharmacy.prescribedBy' as any)}: {prescription.doctor?.profile?.full_name}

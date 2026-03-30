@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { usePrescriptionQueue } from "@/hooks/usePharmacy";
 import { WasfatyStatusBadge } from "@/components/pharmacy/WasfatySubmitButton";
 import { useCountryConfig } from "@/contexts/CountryConfigContext";
-import { ArrowLeft, Search } from "lucide-react";
+import { ArrowLeft, Search, Bed } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import { PrescriptionQueueItem } from "@/hooks/usePharmacy";
 import { useTranslation } from "@/lib/i18n";
@@ -21,6 +21,7 @@ export default function PrescriptionQueuePage() {
   const { country_code } = useCountryConfig();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [sourceFilter, setSourceFilter] = useState<string>("all");
   const { data: queue, isLoading } = usePrescriptionQueue();
   
   const showWasfaty = country_code === 'SA';
@@ -31,12 +32,33 @@ export default function PrescriptionQueuePage() {
       p.patient?.last_name?.toLowerCase().includes(search.toLowerCase()) ||
       p.patient?.patient_number.toLowerCase().includes(search.toLowerCase());
     const matchesStatus = statusFilter === "all" || p.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const matchesSource = sourceFilter === "all" || p.source === sourceFilter;
+    return matchesSearch && matchesStatus && matchesSource;
   });
 
   const baseColumns: ColumnDef<PrescriptionQueueItem>[] = [
     { accessorKey: "prescription_number", header: t('pharmacy.rxNumber' as any), cell: ({ row }) => <span className="font-mono font-medium">{row.original.prescription_number}</span> },
     { accessorKey: "patient", header: t('common.patient' as any), cell: ({ row }) => { const patient = row.original.patient; return (<div><p className="font-medium">{patient?.first_name} {patient?.last_name}</p><p className="text-xs text-muted-foreground">{patient?.patient_number}</p></div>); } },
+    {
+      id: "source",
+      header: t('pharmacy.source' as any),
+      cell: ({ row }) => {
+        const isIPD = row.original.source === 'ipd';
+        return (
+          <div className="flex flex-col gap-1">
+            <Badge variant={isIPD ? "default" : "secondary"} className={isIPD ? "bg-orange-500 hover:bg-orange-600 text-white" : "bg-blue-100 text-blue-800 hover:bg-blue-200"}>
+              {isIPD ? t('pharmacy.ipd' as any) : t('pharmacy.opd' as any)}
+            </Badge>
+            {isIPD && row.original.admission && (
+              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                <Bed className="h-3 w-3" />
+                {row.original.admission.ward_name} - {row.original.admission.bed_number}
+              </span>
+            )}
+          </div>
+        );
+      },
+    },
     { accessorKey: "doctor", header: t('common.doctor' as any), cell: ({ row }) => row.original.doctor?.profile?.full_name || "-" },
     { accessorKey: "created_at", header: t('common.dateTime' as any), cell: ({ row }) => format(new Date(row.original.created_at), "MMM d, h:mm a") },
     { accessorKey: "itemCount", header: t('common.items' as any), cell: ({ row }) => `${row.original.itemCount} ${t('pharmacy.items' as any)}` },
@@ -85,6 +107,14 @@ export default function PrescriptionQueuePage() {
             <SelectItem value="all">{t('pharmacy.allPending' as any)}</SelectItem>
             <SelectItem value="created">{t('pharmacy.new' as any)}</SelectItem>
             <SelectItem value="partially_dispensed">{t('pharmacy.partial' as any)}</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={sourceFilter} onValueChange={setSourceFilter}>
+          <SelectTrigger className="w-[180px]"><SelectValue placeholder={t('pharmacy.allSources' as any)} /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t('pharmacy.allSources' as any)}</SelectItem>
+            <SelectItem value="opd">{t('pharmacy.opdOnly' as any)}</SelectItem>
+            <SelectItem value="ipd">{t('pharmacy.ipdOnly' as any)}</SelectItem>
           </SelectContent>
         </Select>
       </div>
