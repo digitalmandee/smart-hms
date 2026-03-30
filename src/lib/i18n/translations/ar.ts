@@ -3088,23 +3088,7 @@ export const ar: Record<TranslationKey, string> = {
   "bloodBank.noActiveTransfusions": "لا توجد عمليات نقل نشطة",
   "bloodBank.inProgress": "قيد التنفيذ",
 
-  "radiology.technicianWorklist": "قائمة عمل الفني",
-  "radiology.reportingWorklist": "قائمة عمل التقارير",
-  "radiology.pacsStudies": "دراسات PACS",
-  "radiology.viewDicomImages": "عرض صور DICOM",
-  "radiology.schedule": "الجدول",
-  "radiology.viewCalendar": "عرض التقويم",
   "radiology.allOrders": "جميع الطلبات",
-  "radiology.studies": "دراسات",
-  "radiology.pendingOrders": "الطلبات المعلقة",
-  "radiology.inProgress": "قيد التنفيذ",
-  "radiology.awaitingReport": "بانتظار التقرير",
-  "radiology.completedToday": "المكتملة اليوم",
-  "radiology.statOrders": "طلبات طارئة",
-  "radiology.noPendingOrders": "لا توجد طلبات معلقة",
-  "radiology.allProcessed": "تمت معالجة جميع طلبات التصوير",
-  "radiology.noStudiesInProgress": "لا توجد دراسات قيد التنفيذ",
-  "radiology.noStudiesAwaitingReport": "لا توجد دراسات بانتظار التقرير",
 
 };
 

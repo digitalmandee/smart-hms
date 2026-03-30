@@ -3088,23 +3088,7 @@ export const ur: Record<TranslationKey, string> = {
   "bloodBank.noActiveTransfusions": "کوئی فعال منتقلی نہیں",
   "bloodBank.inProgress": "جاری",
 
-  "radiology.technicianWorklist": "ٹیکنیشن ورک لسٹ",
-  "radiology.reportingWorklist": "رپورٹنگ ورک لسٹ",
-  "radiology.pacsStudies": "PACS مطالعات",
-  "radiology.viewDicomImages": "DICOM تصاویر دیکھیں",
-  "radiology.schedule": "شیڈول",
-  "radiology.viewCalendar": "کیلنڈر دیکھیں",
   "radiology.allOrders": "تمام آرڈرز",
-  "radiology.studies": "مطالعات",
-  "radiology.pendingOrders": "زیر التوا آرڈرز",
-  "radiology.inProgress": "جاری",
-  "radiology.awaitingReport": "رپورٹ کا انتظار",
-  "radiology.completedToday": "آج مکمل",
-  "radiology.statOrders": "ہنگامی آرڈرز",
-  "radiology.noPendingOrders": "کوئی زیر التوا آرڈر نہیں",
-  "radiology.allProcessed": "تمام امیجنگ آرڈرز پر کارروائی ہو چکی",
-  "radiology.noStudiesInProgress": "کوئی مطالعہ جاری نہیں",
-  "radiology.noStudiesAwaitingReport": "رپورٹ کے انتظار میں کوئی مطالعہ نہیں",
 
 };
 
