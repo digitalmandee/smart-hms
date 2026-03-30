@@ -1,68 +1,62 @@
 
 
-# Fix Procurement Flow: Remove PO from Pharmacy, Complete Requisition-Based Workflow
+# Pharmacy Queue: OPD/IPD Orders — Current State & Gaps
 
-## Problem
+## What Already Works
 
-1. **Pharmacy has direct PO creation** — pharmacists should NOT create POs. The correct flow is:
-   - Pharmacy submits a **Requisition** (requesting stock)
-   - Branch admin/accounts **approves** the requisition
-   - Accounts/procurement creates a **PO from the approved requisition**
-   - Vendor delivers → **GRN** is created
-   - Stock is updated in inventory
-   - Pharmacy receives notification and **accepts/declines** the received stock
+1. **Prescription Queue** — `usePrescriptionQueue` fetches ALL prescriptions with status `created`/`partially_dispensed` from the branch. Both OPD and IPD prescriptions appear here since they're all in the same `prescriptions` table.
 
-2. **PO creation may be broken** — form ref warnings in console, but the deeper issue is that PO shouldn't be on the pharmacy side at all.
+2. **Dispensing Flow** — `useDispensePrescription` already:
+   - Checks if the patient has an active admission (IPD)
+   - Deducts inventory stock
+   - Creates `ipd_charges` for admitted patients automatically
+   - For OPD patients, just dispenses normally (charges go through OPD checkout)
 
-3. **Missing links in the chain** — no "Convert Requisition to PO" button on the requisition detail page for accounts/admin, and no acceptance step for pharmacy after GRN.
+3. **OPD Checkout** — `OPDCheckoutPage` fetches prescriptions linked to the consultation and includes pharmacy charges in the final bill.
 
-## Changes
+4. **IPD Billing** — IPD charges are auto-created when dispensing to admitted patients.
 
-### 1. Remove PO/GRN from pharmacist sidebar, keep only Requisitions
-**File: `src/config/role-sidebars.ts`**
+## What's Missing
 
-Replace the pharmacist "Procurement" section:
-- Remove "Purchase Orders" and "GRN" links
-- Replace with "Requisitions" → `/app/inventory/requisitions` and "New Requisition" → `/app/inventory/requisitions/new`
-- This forces pharmacists to use the proper requisition flow
+1. **No OPD/IPD source badge** — The prescription queue doesn't show whether an order is OPD or IPD. Pharmacist has no visual way to know the source.
 
-### 2. Add "Convert to PO" action on Requisition Detail page (for admin/accounts)
-**File: `src/pages/app/inventory/RequisitionDetailPage.tsx`**
+2. **No admission/ward info in queue** — For IPD prescriptions, pharmacy should see bed/ward so they can deliver meds to the right place.
 
-- When requisition status is `approved`, show a "Create PO from Requisition" button (visible to branch_admin, org_admin, accountant roles only)
-- On click, navigate to `/app/inventory/purchase-orders/new?from_requisition={id}` pre-filling items from the approved requisition
+3. **No filter by source** — Can't filter queue by OPD vs IPD orders.
 
-### 3. Update POFormPage to accept `from_requisition` param
-**File: `src/pages/app/inventory/POFormPage.tsx`**
+4. **No priority indicator** — IPD urgent orders look the same as routine OPD prescriptions.
 
-- Already supports `from_pr` (purchase request). Add `from_requisition` param that reads from `stock_requisitions` + `requisition_items` and pre-fills the PO form with those items.
+## Plan
 
-### 4. Add pharmacy stock acceptance flow after GRN
-**File: New `src/components/inventory/RequisitionAcceptanceDialog.tsx`**
+### 1. Add OPD/IPD source badge to Prescription Queue
+**File: `src/pages/app/pharmacy/PrescriptionQueuePage.tsx`**
+- Add a "Source" column after the patient column
+- Query active admissions for each patient to determine if they're IPD
+- Show badge: **OPD** (blue) or **IPD** (orange) with ward/bed info for IPD patients
 
-- After GRN is completed for items linked to a requisition, pharmacy users see a notification on their requisition detail
-- Simple "Accept" / "Decline" buttons that update requisition status to `received` or `disputed`
-- This closes the loop for the pharmacist
+### 2. Add source detection to `usePrescriptionQueue`
+**File: `src/hooks/usePharmacy.ts`**
+- After fetching prescriptions, batch-query `admissions` table for all patient IDs with `status = 'admitted'`
+- Merge admission info (ward, bed) into each prescription queue item
+- Add `source: 'opd' | 'ipd'` and optional `admission?: { ward, bed }` to `PrescriptionQueueItem`
 
-### 5. Add requisition status for received/disputed
-**Migration**: Add `received` and `disputed` to the `requisition_status` enum if not already present.
+### 3. Add source filter to queue page
+**File: `src/pages/app/pharmacy/PrescriptionQueuePage.tsx`**
+- Add a third filter dropdown: "All Sources" / "OPD Only" / "IPD Only"
+- Filter the queue based on the `source` field
 
-### 6. i18n updates
+### 4. Show ward/bed delivery info on Dispensing Page
+**File: `src/pages/app/pharmacy/DispensingPage.tsx`**
+- Already has `usePatientActiveAdmission` — just needs to display ward/bed prominently in the header when patient is IPD
+- Add "IPD Patient — Ward: X, Bed: Y" banner at top
+
+### 5. i18n updates
 **Files: `en.ts`, `ar.ts`, `ur.ts`**
-
-New keys: "Create PO from Requisition", "Accept Stock", "Decline Stock", "Stock Received", "Disputed", "New Requisition"
-
-## Technical Details
-
-- The `useRequisitions` hook already has all CRUD operations including approve, reject, issue stock
-- The `useCreatePurchaseOrder` hook works and can be pre-filled from requisition items
-- `requisition_items` have `item_id` referencing `inventory_items`, which maps to PO item's `item_id`
-- The `RequisitionsListPage` already has a Submit button for draft requisitions
+- Keys: "Source", "OPD", "IPD", "All Sources", "OPD Only", "IPD Only", "Ward", "Bed", "Deliver to Ward"
 
 ## Files Changed
-- `src/config/role-sidebars.ts` — replace pharmacist Procurement section with Requisitions only
-- `src/pages/app/inventory/RequisitionDetailPage.tsx` — add "Create PO" button for admin roles on approved requisitions, add accept/decline for pharmacy roles
-- `src/pages/app/inventory/POFormPage.tsx` — support `from_requisition` search param
-- Migration — add `received`, `disputed` to `requisition_status` enum
+- `src/hooks/usePharmacy.ts` — add admission lookup to queue, extend `PrescriptionQueueItem` type
+- `src/pages/app/pharmacy/PrescriptionQueuePage.tsx` — source column, source filter
+- `src/pages/app/pharmacy/DispensingPage.tsx` — IPD delivery banner
 - `src/lib/i18n/translations/en.ts`, `ar.ts`, `ur.ts` — new keys
 
