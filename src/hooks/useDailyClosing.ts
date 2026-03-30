@@ -256,6 +256,17 @@ export function useDailyClosingSummary(date?: string) {
       const expectedCash = closedSessions.reduce((sum, s) => sum + (Number(s.expected_cash) || 0), 0);
       const actualCash = closedSessions.reduce((sum, s) => sum + (Number(s.actual_cash) || 0), 0);
 
+      // Calculate expense totals
+      let expenseTotal = 0, expenseCashTotal = 0;
+      expensesRaw?.forEach((e: any) => {
+        const amount = Number(e.amount);
+        expenseTotal += amount;
+        const methodName = e.payment_method_id ? (methodMap.get(e.payment_method_id) || '') as string : 'cash';
+        if (methodName.includes('cash') || !e.payment_method_id) {
+          expenseCashTotal += amount;
+        }
+      });
+
       return {
         date: targetDate,
         sessions: sessionStats,
@@ -266,6 +277,11 @@ export function useDailyClosingSummary(date?: string) {
           other: otherTotal,
           total: cashTotal + cardTotal + upiTotal + otherTotal,
         },
+        expenses: {
+          total: expenseTotal,
+          cash: expenseCashTotal,
+        },
+        netCash: cashTotal - expenseCashTotal,
         departments: {
           opd: opdTotal,
           ipd: ipdTotal,

@@ -2974,6 +2974,15 @@ export const ar: Record<TranslationKey, string> = {
   "billing.viewDetail": "عرض",
   "billing.closedAt": "أُغلقت في",
   "billing.departmentBreakdown": "تفصيل حسب القسم",
+  "billing.sessionExpenses": "المصروفات / المدفوعات",
+  "billing.sessionDeposits": "ودائع المرضى",
+  "billing.netCash": "صافي النقد",
+  "billing.paidTo": "مدفوع إلى",
+  "billing.depositType": "النوع",
+  "billing.noExpenses": "لا توجد مصروفات في هذه الجلسة",
+  "billing.noDeposits": "لا توجد ودائع في هذه الجلسة",
+  "billing.totalExpenses": "إجمالي المصروفات",
+  "billing.cashExpenses": "المصروفات النقدية",
 
   // Doctor Test Share
   "hr.testShare": "حصة الفحوصات",
