@@ -110,6 +110,31 @@ export default function POFormPage() {
       setItems(prItems);
     }
   }, [sourcePR, form, items.length]);
+
+  // Pre-fill from Requisition
+  useEffect(() => {
+    if (sourceRequisition && sourceRequisition.items && items.length === 0 && !fromPrId) {
+      if (sourceRequisition.branch_id) {
+        form.setValue("branch_id", sourceRequisition.branch_id);
+        setSelectedBranch(sourceRequisition.branch_id);
+      }
+      if (sourceRequisition.from_store_id) {
+        form.setValue("store_id", sourceRequisition.from_store_id);
+      }
+      form.setValue("notes", `From Requisition: ${sourceRequisition.requisition_number}`);
+      const reqItems: PurchaseOrderItem[] = sourceRequisition.items.map((reqItem) => ({
+        item_id: reqItem.item_id || "",
+        item_type: "inventory" as const,
+        quantity: reqItem.quantity_approved || reqItem.quantity_requested,
+        unit_price: 0,
+        tax_percent: 0,
+        discount_percent: 0,
+        total_price: 0,
+      }));
+      setItems(reqItems);
+    }
+  }, [sourceRequisition, form, items.length, fromPrId]);
+
   const onSubmit = async (data: POFormData) => {
     if (items.length === 0) {
       return;
