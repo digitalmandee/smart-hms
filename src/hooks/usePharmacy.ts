@@ -80,11 +80,38 @@ export function usePrescriptionQueue(branchId?: string) {
 
       const { data, error } = await query;
       if (error) throw error;
+
+      // Batch-query active admissions for all patient IDs
+      const patientIds = [...new Set((data || []).map(p => (p.patient as any)?.id).filter(Boolean))];
+      let admissionMap: Record<string, { ward_name: string | null; bed_number: string | null }> = {};
+
+      if (patientIds.length > 0) {
+        const { data: admissions } = await supabase
+          .from("admissions")
+          .select("patient_id, ward:wards(name), bed:beds(bed_number)")
+          .in("patient_id", patientIds)
+          .eq("status", "admitted");
+
+        if (admissions) {
+          for (const adm of admissions) {
+            admissionMap[adm.patient_id] = {
+              ward_name: (adm.ward as any)?.name || null,
+              bed_number: (adm.bed as any)?.bed_number || null,
+            };
+          }
+        }
+      }
       
-      return (data || []).map(p => ({
-        ...p,
-        itemCount: p.items?.length || 0,
-      })) as PrescriptionQueueItem[];
+      return (data || []).map(p => {
+        const pid = (p.patient as any)?.id;
+        const admInfo = pid ? admissionMap[pid] : null;
+        return {
+          ...p,
+          itemCount: p.items?.length || 0,
+          source: admInfo ? 'ipd' as const : 'opd' as const,
+          admission: admInfo || null,
+        };
+      }) as PrescriptionQueueItem[];
     },
     enabled: !!profile?.organization_id,
   });
