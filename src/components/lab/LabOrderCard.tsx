@@ -205,7 +205,7 @@ export function LabOrderCard({ order, canCollectPayment, onPaymentComplete }: La
         orderId={order.id}
         orderNumber={order.order_number}
         invoiceId={order.invoice_id || ""}
-        totalAmount={0} // Will be fetched from invoice
+        totalAmount={0}
         paidAmount={0}
         patientName={`${patient?.first_name || ""} ${patient?.last_name || ""}`}
         testNames={order.items?.map((i) => i.test_name) || []}
@@ -213,6 +213,14 @@ export function LabOrderCard({ order, canCollectPayment, onPaymentComplete }: La
           setPaymentDialogOpen(false);
           onPaymentComplete?.();
         }}
+      />
+
+      <SampleRejectionDialog
+        open={rejectionDialogOpen}
+        onOpenChange={setRejectionDialogOpen}
+        orderNumber={order.order_number}
+        onReject={handleRejectSample}
+        isRejecting={isRejecting}
       />
     </>
   );

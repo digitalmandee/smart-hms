@@ -645,7 +645,7 @@ export const PrintableLabReport = forwardRef<HTMLDivElement, PrintableLabReportP
               </div>
               <div style={styles.legend}>
                 <strong>Legend:</strong> Values in <span style={{ color: "#dc2626", fontWeight: "bold" }}>red</span> are outside normal range.
-                <br />H = High | L = Low
+                <br />H = High | L = Low | ‼ = Critical (Panic Value)
               </div>
             </div>
             <div style={styles.footerRight}>
