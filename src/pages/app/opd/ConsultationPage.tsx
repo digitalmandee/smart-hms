@@ -54,7 +54,7 @@ export default function ConsultationPage() {
   const createPrescription = useCreatePrescription();
   const createLabOrder = useCreateLabOrder();
   const createImagingOrder = useCreateImagingOrder();
-
+  const createBloodRequest = useCreateBloodRequest();
   // Find current doctor
   const currentDoctor = doctors.find(d => d.profile?.id === profile?.id);
 
