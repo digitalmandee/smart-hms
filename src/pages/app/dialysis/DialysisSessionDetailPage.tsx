@@ -119,10 +119,10 @@ export default function DialysisSessionDetailPage() {
       autoAssignedRef.current = true;
       updateSession.mutate(
         { id: id!, attended_by: myDoctorRecord.id },
-        { onSuccess: () => toast.info(t("dialysis.youAreAttending")) }
+        { onSuccess: () => toast.info(t("dialysis.youAreAttending" as any)) }
       );
     }
-  }, [isDoctorRole, myDoctorRecord, session, id]);
+  }, [isDoctorRole, myDoctorRecord, session, id, updateSession, t]);
 
   const [vitalsForm, setVitalsForm] = useState({
     minute_mark: 0, bp_systolic: "", bp_diastolic: "", pulse: "",
