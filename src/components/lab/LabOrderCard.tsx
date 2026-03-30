@@ -4,11 +4,16 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { TestTube, Clock, User, Stethoscope, FileInput, CreditCard, CheckCircle, AlertCircle } from "lucide-react";
+import { TestTube, Clock, User, Stethoscope, FileInput, CreditCard, CheckCircle, AlertCircle, XCircle } from "lucide-react";
 import { LabOrderWithItems } from "@/hooks/useLabOrders";
 import { LabPaymentDialog } from "./LabPaymentDialog";
+import { SampleRejectionDialog } from "./SampleRejectionDialog";
 import { useLabSettings } from "@/hooks/useLabSettings";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { useTranslation } from "@/lib/i18n";
 
 interface LabOrderCardProps {
   order: LabOrderWithItems;
