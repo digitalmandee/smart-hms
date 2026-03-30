@@ -11,6 +11,12 @@ export interface TrialBalanceRow {
   category: string;
   debit: number;
   credit: number;
+  openingDebit: number;
+  openingCredit: number;
+  movementDebit: number;
+  movementCredit: number;
+  closingDebit: number;
+  closingCredit: number;
 }
 
 export interface ProfitLossSection {
