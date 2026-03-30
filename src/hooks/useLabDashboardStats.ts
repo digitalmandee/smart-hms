@@ -71,6 +71,47 @@ export const useLabDashboardStats = () => {
   });
 };
 
+// TAT Tracker — shows active orders with elapsed time
+export const useLabTATTracker = (targetHours = 24) => {
+  const { profile } = useAuth();
+
+  return useQuery<TATOrderInfo[]>({
+    queryKey: ["lab-tat-tracker", profile?.organization_id, targetHours],
+    queryFn: async () => {
+      if (!profile?.organization_id) return [];
+
+      const { data, error } = await supabase
+        .from("lab_orders")
+        .select(`id, order_number, priority, created_at, patient:patients(first_name, last_name, patient_number), lab_order_items(id)`)
+        .in("status", ["ordered", "collected", "processing"])
+        .order("created_at", { ascending: true });
+
+      if (error) throw error;
+
+      const now = new Date();
+      return ((data ?? []) as unknown as any[])
+        .map((order) => {
+          const created = new Date(order.created_at);
+          const elapsed = (now.getTime() - created.getTime()) / (1000 * 60 * 60);
+          return {
+            id: order.id,
+            order_number: order.order_number,
+            priority: order.priority,
+            created_at: order.created_at,
+            elapsed_hours: Math.round(elapsed * 10) / 10,
+            patient: order.patient,
+            tests_count: order.lab_order_items?.length || 0,
+          } as TATOrderInfo;
+        })
+        .filter((o) => o.elapsed_hours >= targetHours * 0.5) // Show when >= 50% of target
+        .sort((a, b) => b.elapsed_hours - a.elapsed_hours);
+    },
+    enabled: !!profile?.organization_id,
+    staleTime: 30000,
+    refetchInterval: 60000,
+  });
+};
+
 interface LabOrderWithPatient {
   id: string;
   order_number: string;

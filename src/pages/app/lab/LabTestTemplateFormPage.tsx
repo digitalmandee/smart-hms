@@ -218,7 +218,7 @@ export default function LabTestTemplateFormPage() {
                 {fields.map((field, index) => (
                   <div
                     key={index}
-                    className="grid gap-4 grid-cols-[auto_1fr_1fr_1fr_1fr_1fr_auto] items-center p-2 bg-muted/50 rounded-lg"
+                    className="grid gap-4 grid-cols-[auto_1fr_1fr_1fr_1fr_1fr_1fr_1fr_auto] items-center p-2 bg-muted/50 rounded-lg"
                   >
                     <GripVertical className="h-4 w-4 text-muted-foreground cursor-move" />
                     <Input
@@ -256,6 +256,22 @@ export default function LabTestTemplateFormPage() {
                       onChange={(e) => updateField(index, { normal_max: e.target.value ? Number(e.target.value) : null })}
                       placeholder="Max"
                       disabled={field.type === "text"}
+                    />
+                    <Input
+                      type="number"
+                      value={field.critical_min ?? ""}
+                      onChange={(e) => updateField(index, { critical_min: e.target.value ? Number(e.target.value) : null })}
+                      placeholder="Crit Min"
+                      disabled={field.type === "text"}
+                      className="border-destructive/30"
+                    />
+                    <Input
+                      type="number"
+                      value={field.critical_max ?? ""}
+                      onChange={(e) => updateField(index, { critical_max: e.target.value ? Number(e.target.value) : null })}
+                      placeholder="Crit Max"
+                      disabled={field.type === "text"}
+                      className="border-destructive/30"
                     />
                     <Button
                       variant="ghost"
