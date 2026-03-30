@@ -98,7 +98,7 @@ export default function RadiologyDashboard() {
         />
         {stats.statOrders > 0 && (
           <ModernStatsCard
-            title="STAT Orders"
+            title={t("radiology.statOrders" as any)}
             value={stats.statOrders}
             icon={AlertTriangle}
             variant="accent"
