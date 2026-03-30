@@ -222,6 +222,8 @@ export default function RequisitionFormPage() {
               />
 
               <FormField
+                control={form.control}
+                name="from_store_id"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>From Warehouse</FormLabel>
