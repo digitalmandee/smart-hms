@@ -139,6 +139,7 @@ export default function RequisitionFormPage() {
 
       await createRequisition.mutateAsync({
         branch_id: values.branch_id,
+        department_id: values.department_id || undefined,
         from_store_id: values.from_store_id || undefined,
         required_date: values.required_date,
         priority: values.priority,
