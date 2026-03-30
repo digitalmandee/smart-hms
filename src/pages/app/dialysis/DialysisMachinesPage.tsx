@@ -7,8 +7,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Monitor, Shield } from "lucide-react";
-import { useState } from "react";
+import { Plus, Shield } from "lucide-react";
+import { useState, useMemo } from "react";
+import { useTranslation } from "@/lib/i18n";
+import { ReportTable } from "@/components/reports/ReportTable";
 
 const statusColors: Record<string, string> = {
   available: "default",
@@ -18,10 +20,12 @@ const statusColors: Record<string, string> = {
 };
 
 export default function DialysisMachinesPage() {
+  const { t } = useTranslation();
   const { data: machines, isLoading } = useDialysisMachines();
   const createMachine = useCreateDialysisMachine();
   const updateMachine = useUpdateDialysisMachine();
   const [open, setOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState("all");
   const [form, setForm] = useState({ machine_number: "", serial_number: "", model: "", manufacturer: "", chair_number: "" });
 
   const handleSubmit = () => {
@@ -33,70 +37,91 @@ export default function DialysisMachinesPage() {
     updateMachine.mutate({ id, status });
   };
 
+  const filteredMachines = useMemo(() => {
+    if (!machines) return [];
+    if (statusFilter === "all") return machines;
+    return machines.filter((m: any) => m.status === statusFilter);
+  }, [machines, statusFilter]);
+
+  const columns = [
+    { key: "machine_number", label: t("dialysis.machineNo", "Machine #"), sortable: true },
+    { key: "chair_number", label: t("dialysis.chairNo", "Chair #"), sortable: true, render: (v: any) => v || "–" },
+    { key: "model", label: t("dialysis.model", "Model"), sortable: true, render: (v: any) => v || "–" },
+    { key: "manufacturer", label: t("dialysis.manufacturer", "Manufacturer"), render: (v: any) => v || "–" },
+    { key: "serial_number", label: t("dialysis.serialNo", "S/N"), render: (v: any) => v || "–" },
+    {
+      key: "status",
+      label: t("common.status"),
+      sortable: true,
+      render: (v: any) => <Badge variant={statusColors[v] as any}>{v?.replace("_", " ")}</Badge>,
+    },
+    {
+      key: "last_disinfected_at",
+      label: t("dialysis.lastDisinfected", "Last Disinfected"),
+      render: (v: any) =>
+        v ? (
+          <span className="flex items-center gap-1 text-xs">
+            <Shield className="h-3 w-3" />
+            {new Date(v).toLocaleDateString()}
+          </span>
+        ) : "–",
+    },
+    {
+      key: "id",
+      label: t("common.actions"),
+      render: (_: any, row: any) => (
+        <Select onValueChange={v => handleStatusChange(row.id, v)}>
+          <SelectTrigger className="w-32 h-7 text-xs"><SelectValue placeholder={t("dialysis.changeStatus", "Change")} /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="available">{t("dialysis.available", "Available")}</SelectItem>
+            <SelectItem value="in_use">{t("dialysis.inUse", "In Use")}</SelectItem>
+            <SelectItem value="maintenance">{t("dialysis.maintenance", "Maintenance")}</SelectItem>
+            <SelectItem value="out_of_service">{t("dialysis.outOfService", "Out of Service")}</SelectItem>
+          </SelectContent>
+        </Select>
+      ),
+    },
+  ];
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PageHeader
-        title="Dialysis Machines"
-        description="Machine inventory, status, and disinfection tracking"
-        breadcrumbs={[{ label: "Dialysis", href: "/app/dialysis" }, { label: "Machines" }]}
+        title={t("dialysis.machines")}
+        description={t("dialysis.machinesDesc", "Machine inventory, status, and disinfection tracking")}
+        breadcrumbs={[{ label: t("dialysis.dashboard"), href: "/app/dialysis" }, { label: t("dialysis.machines") }]}
         actions={
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild><Button><Plus className="h-4 w-4 mr-2" />Add Machine</Button></DialogTrigger>
-            <DialogContent>
-              <DialogHeader><DialogTitle>Add Dialysis Machine</DialogTitle></DialogHeader>
-              <div className="space-y-4">
-                <div><Label>Machine Number *</Label><Input value={form.machine_number} onChange={e => setForm(f => ({ ...f, machine_number: e.target.value }))} /></div>
-                <div><Label>Chair Number</Label><Input value={form.chair_number} onChange={e => setForm(f => ({ ...f, chair_number: e.target.value }))} /></div>
-                <div><Label>Model</Label><Input value={form.model} onChange={e => setForm(f => ({ ...f, model: e.target.value }))} /></div>
-                <div><Label>Manufacturer</Label><Input value={form.manufacturer} onChange={e => setForm(f => ({ ...f, manufacturer: e.target.value }))} /></div>
-                <div><Label>Serial Number</Label><Input value={form.serial_number} onChange={e => setForm(f => ({ ...f, serial_number: e.target.value }))} /></div>
-                <Button onClick={handleSubmit} disabled={createMachine.isPending} className="w-full">{createMachine.isPending ? "Adding..." : "Add Machine"}</Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+          <div className="flex items-center gap-2">
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-36 h-9"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("common.all")}</SelectItem>
+                <SelectItem value="available">{t("dialysis.available", "Available")}</SelectItem>
+                <SelectItem value="in_use">{t("dialysis.inUse", "In Use")}</SelectItem>
+                <SelectItem value="maintenance">{t("dialysis.maintenance", "Maintenance")}</SelectItem>
+                <SelectItem value="out_of_service">{t("dialysis.outOfService", "Out of Service")}</SelectItem>
+              </SelectContent>
+            </Select>
+            <Dialog open={open} onOpenChange={setOpen}>
+              <DialogTrigger asChild><Button size="sm"><Plus className="h-4 w-4 mr-1" />{t("dialysis.addMachine", "Add Machine")}</Button></DialogTrigger>
+              <DialogContent>
+                <DialogHeader><DialogTitle>{t("dialysis.addMachine")}</DialogTitle></DialogHeader>
+                <div className="space-y-3">
+                  <div><Label className="text-xs">{t("dialysis.machineNo")} *</Label><Input className="h-9" value={form.machine_number} onChange={e => setForm(f => ({ ...f, machine_number: e.target.value }))} /></div>
+                  <div><Label className="text-xs">{t("dialysis.chairNo")}</Label><Input className="h-9" value={form.chair_number} onChange={e => setForm(f => ({ ...f, chair_number: e.target.value }))} /></div>
+                  <div><Label className="text-xs">{t("dialysis.model")}</Label><Input className="h-9" value={form.model} onChange={e => setForm(f => ({ ...f, model: e.target.value }))} /></div>
+                  <div><Label className="text-xs">{t("dialysis.manufacturer")}</Label><Input className="h-9" value={form.manufacturer} onChange={e => setForm(f => ({ ...f, manufacturer: e.target.value }))} /></div>
+                  <div><Label className="text-xs">{t("dialysis.serialNo")}</Label><Input className="h-9" value={form.serial_number} onChange={e => setForm(f => ({ ...f, serial_number: e.target.value }))} /></div>
+                  <Button onClick={handleSubmit} disabled={createMachine.isPending} className="w-full">{createMachine.isPending ? t("common.loading") : t("dialysis.addMachine")}</Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
         }
       />
-      {isLoading ? <p className="text-muted-foreground">Loading...</p> : !machines?.length ? (
-        <Card><CardContent className="py-12 text-center text-muted-foreground">No machines configured yet.</CardContent></Card>
+      {isLoading ? <p className="text-muted-foreground">{t("common.loading")}</p> : !machines?.length ? (
+        <Card><CardContent className="py-12 text-center text-muted-foreground">{t("dialysis.noMachines", "No machines configured yet.")}</CardContent></Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {machines.map((m: any) => (
-            <Card key={m.id}>
-              <CardContent className="pt-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-primary/10"><Monitor className="h-5 w-5 text-primary" /></div>
-                    <div>
-                      <p className="font-semibold">{m.machine_number}</p>
-                      <p className="text-xs text-muted-foreground">{m.model || "–"} • {m.manufacturer || "–"}</p>
-                    </div>
-                  </div>
-                  <Badge variant={statusColors[m.status] as any}>{m.status}</Badge>
-                </div>
-                <div className="mt-3 text-sm text-muted-foreground">
-                  <p>Chair: {m.chair_number || "–"} • S/N: {m.serial_number || "–"}</p>
-                  {m.last_disinfected_at && (
-                    <p className="flex items-center gap-1 mt-1">
-                      <Shield className="h-3 w-3" />
-                      Disinfected: {new Date(m.last_disinfected_at).toLocaleString()}
-                    </p>
-                  )}
-                </div>
-                <div className="mt-3 flex gap-2 flex-wrap">
-                  <Select onValueChange={v => handleStatusChange(m.id, v)}>
-                    <SelectTrigger className="w-36 h-8 text-xs"><SelectValue placeholder="Change status" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="available">Available</SelectItem>
-                      <SelectItem value="in_use">In Use</SelectItem>
-                      <SelectItem value="maintenance">Maintenance</SelectItem>
-                      <SelectItem value="out_of_service">Out of Service</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <ReportTable data={filteredMachines} columns={columns} pageSize={20} />
       )}
     </div>
   );
