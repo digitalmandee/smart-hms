@@ -153,7 +153,7 @@ export default function DialysisSessionDetailPage() {
         }
         generateInvoice.mutate({
           sessionId: id!,
-          patientId: patient?.id || session.dialysis_patients?.patient_id,
+          patientId: session.dialysis_patients?.patient_id,
           sessionNumber: session.session_number,
           sessionFee: fee,
           consumablesCharges: consumables,
