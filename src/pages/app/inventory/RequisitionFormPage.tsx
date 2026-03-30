@@ -35,6 +35,7 @@ import { ArrowLeft, Save, Plus, Trash2, Package, Loader2 } from "lucide-react";
 import { useInventoryItems } from "@/hooks/useInventory";
 import { useCreateRequisition, RequisitionItem } from "@/hooks/useRequisitions";
 import { useBranches } from "@/hooks/useBranches";
+import { useDepartmentsConfig } from "@/hooks/useDepartments";
 import { StoreSelector } from "@/components/inventory/StoreSelector";
 import { useAuth } from "@/contexts/AuthContext";
 import { format, addDays } from "date-fns";
