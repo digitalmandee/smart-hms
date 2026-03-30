@@ -89,6 +89,39 @@ export function DailyClosingSummaryCard({
               </p>
             </div>
           </div>
+
+          {/* Expenses & Net Cash */}
+          {summary.expenses && summary.expenses.total > 0 && (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4 pt-4 border-t">
+              <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+                <div className="flex items-center gap-2 text-destructive">
+                  <Receipt className="h-4 w-4" />
+                  <span className="text-sm">Expenses</span>
+                </div>
+                <p className="text-xl font-bold mt-1">
+                  -{formatCurrency(summary.expenses.total)}
+                </p>
+              </div>
+              <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+                <div className="flex items-center gap-2 text-destructive">
+                  <DollarSign className="h-4 w-4" />
+                  <span className="text-sm">Cash Expenses</span>
+                </div>
+                <p className="text-xl font-bold mt-1">
+                  -{formatCurrency(summary.expenses.cash)}
+                </p>
+              </div>
+              <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
+                <div className="flex items-center gap-2 text-primary">
+                  <TrendingUp className="h-4 w-4" />
+                  <span className="text-sm">Net Cash</span>
+                </div>
+                <p className="text-xl font-bold mt-1">
+                  {formatCurrency(summary.netCash)}
+                </p>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
