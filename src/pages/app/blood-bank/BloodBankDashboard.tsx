@@ -123,7 +123,7 @@ export default function BloodBankDashboard() {
               <div className="p-1.5 rounded-lg bg-destructive/10">
                 <Heart className="h-4 w-4 text-destructive" />
               </div>
-              Today's Donation Queue
+              {t("bloodBank.todaysDonationQueue" as any)}
             </CardTitle>
             <Button variant="ghost" size="sm" onClick={() => navigate('/app/blood-bank/donations')}>
               View All <ArrowRight className="h-4 w-4 ml-1" />
