@@ -1,29 +1,54 @@
 
 
-# Auto-Assign Doctor & Separate Pre-Assessment Workflow
+# Fix Procurement Flow: Missing Menu Items & Requisition Submission
 
-## Problems
-1. **Doctor must manually select themselves** as attending doctor — when logged in as a doctor, it should auto-assign
-2. **Pre-weight blocks "Start Session"** for everyone — doctors shouldn't need to enter pre-weight; that's a nurse task. Doctors should see the session and add notes, but nurses handle the pre-assessment vitals
+## Problems Found
+
+1. **Purchase Requests missing from branch_admin sidebar** — The Inventory section has Purchase Orders, GRN, Requisitions but NO "Purchase Requests" link. The full procurement chain is: **Requisition → Purchase Request → Purchase Order → GRN → Stock**. Without PR in the menu, the flow is broken.
+
+2. **Requisition "Submit for Approval" works but is buried** — The detail page has a "Submit for Approval" button when status is `draft`, and the hooks (`useSubmitRequisition`) exist. The flow works: create requisition (draft) → submit (pending) → approve → issue stock. But users may not know to click into the detail page to submit.
+
+3. **No "Purchase Requests" in branch_admin Inventory section** — line 147-161 shows Inventory children missing Purchase Requests entirely.
+
+4. **Stock Adjustments and Reorder Alerts missing from branch_admin** — These exist as pages but aren't in the sidebar.
+
+5. **Requisition Form creates as "draft" but no department selector** — The form has no `department_id` field, so requisitions lack department context.
 
 ## Changes
 
-### 1. Auto-assign logged-in doctor as attending (`DialysisSessionDetailPage.tsx`)
-- When a doctor opens a session that has no `attended_by`, auto-assign their profile ID via `useEffect`
-- Show attending doctor as read-only text for doctor role (not a dropdown)
-- Keep the dropdown only for admin roles who may reassign
+### 1. Add missing menu items to branch_admin Inventory sidebar
+**File: `src/config/role-sidebars.ts`** (lines 147-161)
 
-### 2. Separate pre-assessment from "Start Session" (`DialysisSessionDetailPage.tsx`)
-- **Nurse view (scheduled)**: Show pre-assessment form (pre-weight, BP, pulse, temp) + "Start Session" button. Pre-weight remains required for nurses to start.
-- **Doctor view (scheduled)**: Show session info read-only, show "Approve & Start" button that does NOT require pre-weight (nurse may have already filled it). If pre-weight is already recorded, show it. If not, show a note: "Waiting for nurse pre-assessment".
-- **Doctor view (in_progress)**: Show vitals chart, doctor notes field, and "Complete Session" button (post-weight still required but can be filled by nurse).
-- When nurse submits pre-assessment, save it to the session without changing status. Add a "Save Pre-Assessment" button separate from "Start Session".
+Add to Inventory children:
+- `Purchase Requests` → `/app/inventory/purchase-requests`
+- `Reorder Alerts` → `/app/inventory/reorder-alerts`
+- `Stock Adjustments` → `/app/inventory/adjustments`
 
-### 3. Show attending doctor info in header (`DialysisSessionDetailPage.tsx`)
-- Add attending doctor name to the compact header row (next to patient info)
-- For doctor role: show "You are attending" badge
+Reorder so the procurement chain is logical: Dashboard → Items → Stock Levels → Categories → Vendors → **Purchase Requests** → Purchase Orders → GRN → Requisitions → **Stock Adjustments** → **Reorder Alerts** → Reports
+
+### 2. Add department selector to RequisitionFormPage
+**File: `src/pages/app/inventory/RequisitionFormPage.tsx`**
+
+- Add `useDepartments()` hook import
+- Add `department_id` to form schema
+- Add department dropdown in the form grid
+- Pass `department_id` to `createRequisition.mutateAsync()`
+
+### 3. Add "Submit" action to RequisitionsListPage
+**File: `src/pages/app/inventory/RequisitionsListPage.tsx`**
+
+Add an Actions column to the table with:
+- "Submit" button for `draft` status rows (calls `useSubmitRequisition`)
+- "View" link for all rows
+
+### 4. Add i18n keys
+**Files: `en.ts`, `ar.ts`, `ur.ts`**
+
+New keys for: "Purchase Requests", "Reorder Alerts", "Stock Adjustments", "Submit", "Department"
 
 ## Files Changed
-- `src/pages/app/dialysis/DialysisSessionDetailPage.tsx` — auto-assign doctor, split nurse/doctor pre-assessment flow, show doctor in header
-- `src/lib/i18n/translations/en.ts`, `ar.ts`, `ur.ts` — new keys: "Save Pre-Assessment", "Waiting for nurse", "You are attending"
+- `src/config/role-sidebars.ts` — add missing Inventory menu items for branch_admin
+- `src/pages/app/inventory/RequisitionFormPage.tsx` — add department selector
+- `src/pages/app/inventory/RequisitionsListPage.tsx` — add Actions column with Submit button
+- `src/lib/i18n/translations/en.ts`, `ar.ts`, `ur.ts` — new keys
 
