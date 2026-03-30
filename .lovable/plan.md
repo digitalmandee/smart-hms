@@ -1,66 +1,114 @@
 
 
-# Fix: PO-to-Inventory Flow, Stock Alerts, and Pharmacy Returns
+# Blood Bank Module — Gap Analysis & Completion Plan
 
-## Problems Identified
+## Current State: What Works
 
-### Problem 1: GRN verify already adds stock to `medicine_inventory`
-The `useVerifyGRN` hook (lines 252-295 in `useGRN.ts`) already handles adding stock to `medicine_inventory` for medicine items and `inventory_stock` for general items when a GRN is verified. This flow works: PO → GRN → Verify GRN → Stock added. No code fix needed here — the chain is functional.
+1. **Donor Management** — Register, update, defer, view donors. Donor cards printable.
+2. **Donation Recording** — Create donations with workflow: registered → screening → collecting → collected → processing → completed. Reject option exists.
+3. **Inventory** — Add blood units manually, filter by group/component/status, track expiry.
+4. **Blood Requests** — Create from OPD consultation (Blood tab) or standalone. Workflow: pending → processing → cross_matching → ready → issued.
+5. **Cross-Match Tests** — Record major/minor cross-match, link to request and blood unit.
+6. **Transfusions** — Schedule, start, complete, stop. Duration tracking.
+7. **Labels** — Blood bag label printing with barcode.
+8. **Dashboard** — Stats, stock widget, expiry alerts, pending requests, active transfusions.
+9. **Analytics** — Monthly collection/consumption, blood group distribution, component volumes.
 
-### Problem 2: Stock Alerts page shows pharmacy inventory correctly
-The `StockAlertsPage` uses `useInventory()` from `usePharmacy.ts`, which queries `medicine_inventory`. This works — it correctly shows low stock, out of stock, expiring, and expired medicines. The `LowStockAlertWidget` (dashboard widget) uses `useLowStockItems()` from `useInventory.ts`, which queries the general `inventory_items`/`inventory_stock` tables — NOT the pharmacy `medicine_inventory` table. The dashboard widget will never show pharmacy low-stock items.
+## Gaps Found
 
-**Fix**: Create a pharmacy-specific low stock widget or update the existing widget to also check `medicine_inventory`.
+### Gap 1: No auto-creation of inventory from completed donation
+When a donation reaches "completed" status, nothing automatically creates a `blood_inventory` record. The user must manually go to Inventory → New Unit. This is the critical missing link.
 
-### Problem 3: Pharmacy Returns — partially functional
-The returns system exists (`pharmacy_returns` + `pharmacy_return_items` tables, `usePharmacyReturns.ts` hook, `PharmacyReturnsPage.tsx`). It can:
-- Search transactions by receipt number/customer
-- Select items to return with quantities
-- Choose refund method (cash/credit/deduct)
-- Restock inventory on return
-- Log stock movements
+### Gap 2: No blood screening/testing workflow
+The `blood_donations` table has `testing_status` and `screening_result` fields, but there is no UI to record mandatory blood tests (HIV, HBV, HCV, Syphilis, Malaria). These tests determine if blood is safe for use. Without this, blood goes to inventory without safety confirmation.
 
-**What's broken or missing**:
-1. **No prescription/OPD/IPD return flow** — Returns only work for POS transactions. If a medicine was dispensed via a prescription (OPD/IPD), there's no way to return it.
-2. **Stats use estimates** — `itemsRestocked` is hardcoded as `todayReturns * 2` (line 148), not real data.
-3. **No return approval workflow** — `pendingApproval` is always 0 (line 146).
-4. **Recent returns only shows voided/refunded transactions** — doesn't query the actual `pharmacy_returns` table.
+### Gap 3: No transfusion reaction recording UI
+The `transfusion_reactions` table exists in the database with full schema (reaction_type, severity, symptoms, vitals, actions_taken, medications_given, outcome, investigation). But there is NO hook or UI page to record reactions. The "Stop (Reaction)" button on the transfusion detail page just changes status — no reaction form appears.
+
+### Gap 4: No inventory status update on issue/transfuse
+When a transfusion is started or blood is "issued" from a request, the `blood_inventory` unit status should change from `available` → `issued` → `transfused`. Currently, `useCreateTransfusion` and `useUpdateTransfusion` only invalidate queries — they don't update the blood unit's status.
+
+### Gap 5: No surgery → blood request integration
+OT module shows patient blood group but has no "Request Blood" action. During surgery, if blood is needed, there's no link to create a blood request from the surgery context (pre-op or intra-op).
+
+### Gap 6: No discard/disposal workflow
+Expired or contaminated units have no discard flow. Units just sit with "available" status past their expiry date. No UI to mark units as discarded with a reason.
 
 ## Plan
 
-### 1. Fix Recent Returns to use `pharmacy_returns` table
-**File: `src/hooks/usePharmacyReturns.ts`**
-- Update `useRecentReturns` to query `pharmacy_returns` table with join to `pharmacy_return_items` instead of just looking at voided POS transactions
-- Update `useReturnsStats` to compute real stats from `pharmacy_returns` (actual restocked count, not estimates)
+### 1. Auto-create inventory on donation completion
+**File: `src/hooks/useBloodBank.ts`** — `useUpdateDonation`
 
-### 2. Add prescription return flow
-**File: `src/pages/app/pharmacy/PharmacyReturnsPage.tsx`**
-- Add a second search mode: "Search by Patient / MRN" to find dispensed prescriptions
-- Show dispensed prescription items with quantities that can be returned
-- On return, create `pharmacy_return` record, restock `medicine_inventory`, log `pharmacy_stock_movements`
+When donation status changes to `completed`, automatically insert a `blood_inventory` record:
+- Blood group from donor
+- Component type = `whole_blood` (default)
+- Volume = `volume_collected_ml`
+- Status = `quarantine` (pending testing)
+- Collection date from donation
+- Expiry date = collection + 35 days (whole blood standard)
+- Link via `donation_id`
+- Bag number from donation
 
-**File: `src/hooks/usePharmacyReturns.ts`**
-- Add `useSearchDispensedPrescriptions(query)` hook that searches `prescriptions` with status `dispensed`/`partially_dispensed` and their `prescription_items`
-- Add mutation to process prescription returns (similar to POS return but references prescription instead of transaction)
+### 2. Blood screening tests UI
+**New file: `src/pages/app/blood-bank/BloodTestingPage.tsx`**
 
-### 3. Fix dashboard Low Stock widget for pharmacy
-**File: `src/components/inventory/LowStockAlertWidget.tsx`**
-- Check user role; if pharmacist, query `medicine_inventory` for low stock items instead of general `inventory_items`
-- Or create a separate `PharmacyLowStockWidget` component
+- Show quarantined units in a table
+- For each unit, a form to record test results: HIV, HBV, HCV, Syphilis, Malaria (positive/negative)
+- All negative → move unit status to `available`
+- Any positive → move unit to `discarded` with reason
+- Store results in the donation's `screening_result` field as JSON or update `testing_status`
 
-### 4. Add "Create Requisition" button on Stock Alerts page
-**File: `src/pages/app/pharmacy/StockAlertsPage.tsx`**
-- Add checkbox selection on low stock items
-- Add "Create Requisition" button that navigates to requisition form pre-filled with selected low-stock medicines
+**File: `src/hooks/useBloodBank.ts`** — Add `useQuarantinedUnits()` hook and `useRecordTestResults()` mutation
 
-### 5. i18n updates
-**Files: `en.ts`, `ar.ts`, `ur.ts`**
-- Keys: "Search by Patient", "Dispensed Prescriptions", "Return to Stock", "Create Requisition from Alerts", "Prescription Return", "POS Return"
+### 3. Transfusion reaction recording
+**New file: `src/pages/app/blood-bank/TransfusionReactionForm.tsx`**
+
+- Dialog/form that opens from TransfusionDetailPage when "Stop (Reaction)" is clicked
+- Fields: reaction_type (febrile, allergic, hemolytic, anaphylactic, TRALI, other), severity, symptoms checklist, vitals at reaction, actions taken, medications given
+- On submit: insert into `transfusion_reactions`, update transfusion status to `stopped`
+
+**File: `src/hooks/useBloodBank.ts`** — Add `useCreateTransfusionReaction()` mutation
+
+### 4. Auto-update inventory status on issue/transfuse
+**File: `src/hooks/useBloodBank.ts`**
+
+- In `useCreateTransfusion`: after creating transfusion, update blood unit status to `reserved`
+- When transfusion starts (`in_progress`): update unit to `issued`
+- When transfusion completes: update unit to `transfused`
+- When transfusion is stopped: update unit to `transfused` (partially used)
+- When request status → `issued`: update `units_issued` count
+
+### 5. Surgery blood request button
+**File: `src/pages/app/ot/SurgeryDetailPage.tsx`**
+
+- Add "Request Blood" button in the surgery detail sidebar
+- Navigates to `/app/blood-bank/requests/new?patientId=X&surgeryId=Y&bloodGroup=Z`
+
+**File: `src/pages/app/blood-bank/BloodRequestFormPage.tsx`**
+
+- Read `surgeryId` from search params
+- Auto-fill patient and blood group when coming from surgery
+
+### 6. Discard/disposal flow
+**File: `src/pages/app/blood-bank/InventoryPage.tsx`**
+
+- Add "Discard" action button on each unit row
+- Opens dialog: reason (expired, contaminated, damaged, reactive), notes
+- Updates unit status to `discarded`
+
+### 7. Add route and sidebar link for Blood Testing
+**File: routes and sidebar config** — Add `/app/blood-bank/testing` route and menu item
+
+### 8. i18n updates
+**Files: `en.ts`, `ar.ts`, `ur.ts`** — New keys for: Blood Testing, Screening Results, HIV, HBV, HCV, Syphilis, Malaria, Reaction Type, Severity, Discard Unit, Reason, Request Blood, Quarantine, all test-related labels
 
 ## Files Changed
-- `src/hooks/usePharmacyReturns.ts` — fix recent returns query, real stats, add prescription return search/mutation
-- `src/pages/app/pharmacy/PharmacyReturnsPage.tsx` — add prescription return tab/mode, improve UI
-- `src/pages/app/pharmacy/StockAlertsPage.tsx` — add requisition creation from alerts
-- `src/components/inventory/LowStockAlertWidget.tsx` — pharmacy-aware low stock detection
+- `src/hooks/useBloodBank.ts` — auto-create inventory on donation complete, quarantine hooks, reaction mutation, inventory status sync
+- `src/pages/app/blood-bank/BloodTestingPage.tsx` — new page for screening tests
+- `src/pages/app/blood-bank/TransfusionDetailPage.tsx` — reaction form dialog on stop
+- `src/pages/app/blood-bank/InventoryPage.tsx` — discard action
+- `src/pages/app/blood-bank/BloodRequestFormPage.tsx` — surgery context auto-fill
+- `src/pages/app/ot/SurgeryDetailPage.tsx` — "Request Blood" button
+- Route config + sidebar config — testing page route
 - `src/lib/i18n/translations/en.ts`, `ar.ts`, `ur.ts` — new keys
 
