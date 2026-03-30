@@ -1303,6 +1303,7 @@ function App() {
               <Route path="hr/payroll/doctor-earnings" element={<DoctorEarningsPage />} />
               <Route path="hr/payroll/wallet-balances" element={<DoctorWalletBalancesPage />} />
               <Route path="hr/payroll/daily-commissions" element={<DailyCommissionReport />} />
+              <Route path="hr/payroll/commissions" element={<CommissionsPage />} />
               <Route path="hr/recruitment/jobs" element={<JobOpeningsPage />} />
               <Route path="hr/recruitment/applications" element={<ApplicationsPage />} />
               <Route path="hr/exit/resignations" element={<ResignationsPage />} />
