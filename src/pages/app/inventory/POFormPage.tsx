@@ -27,6 +27,7 @@ import { useVendors } from "@/hooks/useVendors";
 import { useBranches } from "@/hooks/useBranches";
 import { useCreatePurchaseOrder, type PurchaseOrderItem } from "@/hooks/usePurchaseOrders";
 import { usePurchaseRequest } from "@/hooks/usePurchaseRequests";
+import { useRequisition } from "@/hooks/useRequisitions";
 import { UnifiedPOItemsBuilder } from "@/components/inventory/UnifiedPOItemsBuilder";
 import { StoreSelector } from "@/components/inventory/StoreSelector";
 import { PageHeader } from "@/components/PageHeader";

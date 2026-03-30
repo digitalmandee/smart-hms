@@ -14,6 +14,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
   ArrowLeft,
   Package,
   CheckCircle2,
@@ -22,6 +30,9 @@ import {
   Truck,
   Clock,
   Printer,
+  ShoppingCart,
+  ThumbsUp,
+  ThumbsDown,
 } from "lucide-react";
 import {
   useRequisition,
@@ -37,10 +48,15 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { usePrint } from "@/hooks/usePrint";
 import { PrintableRequisition } from "@/components/inventory/PrintableRequisition";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export default function RequisitionDetailPage() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const { profile } = useAuth();
+  const queryClient = useQueryClient();
 
   const { data: requisition, isLoading } = useRequisition(id || "");
   const submitMutation = useSubmitRequisition();
@@ -50,8 +66,33 @@ export default function RequisitionDetailPage() {
 
   const [rejectReason, setRejectReason] = useState("");
   const [showRejectForm, setShowRejectForm] = useState(false);
+  const [showAcceptDialog, setShowAcceptDialog] = useState(false);
+  const [showDisputeDialog, setShowDisputeDialog] = useState(false);
+  const [disputeReason, setDisputeReason] = useState("");
   const [approvedQuantities, setApprovedQuantities] = useState<Record<string, number>>({});
   const { printRef: reqPrintRef, handlePrint: reqPrintHandle } = usePrint();
+
+  const userRole = profile?.role;
+  const isAdminRole = ["branch_admin", "org_admin", "super_admin", "accountant"].includes(userRole || "");
+  const isPharmacistRole = userRole === "pharmacist";
+
+  // Mutation to update requisition status to received/disputed
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ status, notes }: { status: string; notes?: string }) => {
+      const { error } = await supabase
+        .from("stock_requisitions")
+        .update({ 
+          status: status as any,
+          notes: notes ? `${requisition?.notes || ""}\n\n[${status.toUpperCase()}]: ${notes}` : undefined,
+        })
+        .eq("id", id!);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["requisition", id] });
+      queryClient.invalidateQueries({ queryKey: ["requisitions"] });
+    },
+  });
 
   const handleSubmit = async () => {
     if (!requisition) return;
@@ -108,6 +149,32 @@ export default function RequisitionDetailPage() {
     }
   };
 
+  const handleAcceptStock = async () => {
+    try {
+      await updateStatusMutation.mutateAsync({ status: "received" });
+      toast.success("Stock accepted successfully");
+      setShowAcceptDialog(false);
+    } catch {
+      toast.error("Failed to accept stock");
+    }
+  };
+
+  const handleDisputeStock = async () => {
+    if (!disputeReason) return;
+    try {
+      await updateStatusMutation.mutateAsync({ status: "disputed", notes: disputeReason });
+      toast.success("Dispute submitted");
+      setShowDisputeDialog(false);
+      setDisputeReason("");
+    } catch {
+      toast.error("Failed to submit dispute");
+    }
+  };
+
+  const handleCreatePO = () => {
+    navigate(`/app/inventory/purchase-orders/new?from_requisition=${id}`);
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -134,8 +201,10 @@ export default function RequisitionDetailPage() {
   }
 
   const canSubmit = requisition.status === "draft";
-  const canApprove = requisition.status === "pending";
-  const canIssue = requisition.status === "approved";
+  const canApprove = requisition.status === "pending" && isAdminRole;
+  const canIssue = requisition.status === "approved" && isAdminRole;
+  const canCreatePO = requisition.status === "approved" && isAdminRole;
+  const canAcceptDecline = requisition.status === "issued" && isPharmacistRole;
 
   const getPriorityLabel = (priority: number) => {
     switch (priority) {
@@ -189,11 +258,29 @@ export default function RequisitionDetailPage() {
             </Button>
           </>
         )}
+        {canCreatePO && (
+          <Button variant="secondary" onClick={handleCreatePO}>
+            <ShoppingCart className="mr-2 h-4 w-4" />
+            Create PO from Requisition
+          </Button>
+        )}
         {canIssue && (
           <Button onClick={handleIssue} disabled={issueMutation.isPending}>
             <Truck className="mr-2 h-4 w-4" />
             Issue Stock
           </Button>
+        )}
+        {canAcceptDecline && (
+          <>
+            <Button onClick={() => setShowAcceptDialog(true)}>
+              <ThumbsUp className="mr-2 h-4 w-4" />
+              Accept Stock
+            </Button>
+            <Button variant="destructive" onClick={() => setShowDisputeDialog(true)}>
+              <ThumbsDown className="mr-2 h-4 w-4" />
+              Dispute
+            </Button>
+          </>
         )}
       </div>
 
@@ -228,11 +315,11 @@ export default function RequisitionDetailPage() {
       {/* Status Banner */}
       <Card
         className={
-          requisition.status === "issued"
+          requisition.status === "issued" || requisition.status === "received"
             ? "border-emerald-200 bg-emerald-50"
             : requisition.status === "approved"
             ? "border-blue-200 bg-blue-50"
-            : requisition.status === "rejected"
+            : requisition.status === "rejected" || requisition.status === "disputed"
             ? "border-red-200 bg-red-50"
             : ""
         }
@@ -240,11 +327,11 @@ export default function RequisitionDetailPage() {
         <CardContent className="py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              {requisition.status === "issued" ? (
+              {requisition.status === "issued" || requisition.status === "received" ? (
                 <Truck className="h-6 w-6 text-emerald-600" />
               ) : requisition.status === "approved" ? (
                 <CheckCircle2 className="h-6 w-6 text-blue-600" />
-              ) : requisition.status === "rejected" ? (
+              ) : requisition.status === "rejected" || requisition.status === "disputed" ? (
                 <XCircle className="h-6 w-6 text-red-600" />
               ) : requisition.status === "pending" ? (
                 <Clock className="h-6 w-6 text-amber-600" />
@@ -253,10 +340,14 @@ export default function RequisitionDetailPage() {
               )}
               <div>
                 <p className="font-semibold capitalize">
-                  {requisition.status === "issued"
-                    ? "Stock Issued"
+                  {requisition.status === "received"
+                    ? "Stock Received & Accepted"
+                    : requisition.status === "disputed"
+                    ? "Stock Disputed"
+                    : requisition.status === "issued"
+                    ? "Stock Issued — Awaiting Acceptance"
                     : requisition.status === "approved"
-                    ? "Approved - Ready to Issue"
+                    ? "Approved — Ready to Issue / Create PO"
                     : requisition.status === "rejected"
                     ? "Requisition Rejected"
                     : requisition.status === "pending"
@@ -353,10 +444,10 @@ export default function RequisitionDetailPage() {
                 <TableHead>Item</TableHead>
                 <TableHead className="text-center">Requested</TableHead>
                 {canApprove && <TableHead className="text-center">Approve Qty</TableHead>}
-                {(requisition.status === "approved" || requisition.status === "issued") && (
+                {(requisition.status === "approved" || requisition.status === "issued" || requisition.status === "received") && (
                   <TableHead className="text-center">Approved</TableHead>
                 )}
-                {requisition.status === "issued" && (
+                {(requisition.status === "issued" || requisition.status === "received") && (
                   <TableHead className="text-center">Issued</TableHead>
                 )}
                 <TableHead>Notes</TableHead>
@@ -389,12 +480,12 @@ export default function RequisitionDetailPage() {
                       />
                     </TableCell>
                   )}
-                  {(requisition.status === "approved" || requisition.status === "issued") && (
+                  {(requisition.status === "approved" || requisition.status === "issued" || requisition.status === "received") && (
                     <TableCell className="text-center text-blue-600">
                       {item.quantity_approved || 0}
                     </TableCell>
                   )}
-                  {requisition.status === "issued" && (
+                  {(requisition.status === "issued" || requisition.status === "received") && (
                     <TableCell className="text-center text-emerald-600">
                       {item.quantity_issued || 0}
                     </TableCell>
@@ -418,6 +509,50 @@ export default function RequisitionDetailPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Accept Stock Dialog */}
+      <Dialog open={showAcceptDialog} onOpenChange={setShowAcceptDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Accept Stock</DialogTitle>
+            <DialogDescription>
+              Confirm that you have received and verified all items from this requisition.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAcceptDialog(false)}>Cancel</Button>
+            <Button onClick={handleAcceptStock} disabled={updateStatusMutation.isPending}>
+              <ThumbsUp className="mr-2 h-4 w-4" />
+              Confirm Accept
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dispute Stock Dialog */}
+      <Dialog open={showDisputeDialog} onOpenChange={setShowDisputeDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Dispute Stock</DialogTitle>
+            <DialogDescription>
+              Explain why the received stock does not match expectations.
+            </DialogDescription>
+          </DialogHeader>
+          <Textarea
+            placeholder="Describe the issue (wrong quantity, damaged items, etc.)..."
+            value={disputeReason}
+            onChange={(e) => setDisputeReason(e.target.value)}
+            rows={4}
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDisputeDialog(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={handleDisputeStock} disabled={!disputeReason || updateStatusMutation.isPending}>
+              <ThumbsDown className="mr-2 h-4 w-4" />
+              Submit Dispute
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Hidden Printable */}
       {requisition && (

@@ -11,6 +11,8 @@ const statusConfig: Record<RequisitionStatus, { label: string; variant: "default
   issued: { label: "Issued", variant: "default" },
   rejected: { label: "Rejected", variant: "destructive" },
   cancelled: { label: "Cancelled", variant: "destructive" },
+  received: { label: "Received", variant: "default" },
+  disputed: { label: "Disputed", variant: "destructive" },
 };
 
 interface RequisitionStatusBadgeProps {
