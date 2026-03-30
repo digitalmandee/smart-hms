@@ -426,6 +426,7 @@ import DialysisSchedulePage from "./pages/app/dialysis/DialysisSchedulePage";
 import DialysisCreateSchedulePage from "./pages/app/dialysis/DialysisCreateSchedulePage";
 import DialysisReportsPage from "./pages/app/dialysis/DialysisReportsPage";
 import DialysisEnrollPatientPage from "./pages/app/dialysis/DialysisEnrollPatientPage";
+import DialysisPatientDetailPage from "./pages/app/dialysis/DialysisPatientDetailPage";
 
 // Dental pages
 import DentalDashboard from "./pages/app/dental/DentalDashboard";
