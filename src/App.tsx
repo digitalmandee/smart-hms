@@ -603,6 +603,7 @@ const FiscalPeriodManagementPage = React.lazy(() => import("./pages/app/accounts
 const FinancialAuditLogPage = React.lazy(() => import("./pages/app/accounts/FinancialAuditLogPage"));
 const CashToBankReportPage = React.lazy(() => import("./pages/app/accounts/CashToBankReportPage"));
 const DetailedPnLPage = React.lazy(() => import("./pages/app/accounts/DetailedPnLPage"));
+const ARReconciliationPage = React.lazy(() => import("./pages/app/accounts/ARReconciliationPage"));
 
 import AdmissionHistoryPage from "./pages/app/ipd/AdmissionHistoryPage";
 import IPDVitalsPage from "./pages/app/ipd/IPDVitalsPage";
