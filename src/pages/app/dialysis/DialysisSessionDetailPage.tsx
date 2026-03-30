@@ -401,14 +401,21 @@ export default function DialysisSessionDetailPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label className="text-xs">{t("dialysis.attendingDoctor")}</Label>
-              <Select value={(session as any).attended_by || ""} onValueChange={v => handleStaffAssignment("attended_by", v)}>
-                <SelectTrigger className="h-9"><SelectValue placeholder={t("dialysis.selectDoctor")} /></SelectTrigger>
-                <SelectContent>
-                  {(doctors || []).map((d: any) => (
-                    <SelectItem key={d.id} value={d.id}>{d.profiles?.first_name} {d.profiles?.last_name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {isDoctorRole && !isAdminRole ? (
+                <Input className="h-9" readOnly value={(() => {
+                  const doc = doctors?.find((d: any) => d.id === (session as any).attended_by);
+                  return doc ? (doc.profiles as any)?.full_name : t("dialysis.youAreAttending" as any);
+                })()} />
+              ) : (
+                <Select value={(session as any).attended_by || ""} onValueChange={v => handleStaffAssignment("attended_by", v)}>
+                  <SelectTrigger className="h-9"><SelectValue placeholder={t("dialysis.selectDoctor")} /></SelectTrigger>
+                  <SelectContent>
+                    {(doctors || []).map((d: any) => (
+                      <SelectItem key={d.id} value={d.id}>{(d.profiles as any)?.full_name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
             <div>
               <Label className="text-xs">{t("dialysis.assignedNurse")}</Label>
