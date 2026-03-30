@@ -10,7 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Save, Check, ArrowLeft, CalendarIcon, Scissors, Stethoscope, Pill, TestTube, Scan } from "lucide-react";
+import { Loader2, Save, Check, ArrowLeft, CalendarIcon, Scissors, Stethoscope, Pill, TestTube, Scan, Droplets } from "lucide-react";
 import { DoctorAvatar } from "@/components/ai/DoctorAvatar";
 import { useAppointment, useUpdateAppointment } from "@/hooks/useAppointments";
 import { useConsultationByAppointment, useCreateConsultation, useUpdateConsultation, Vitals } from "@/hooks/useConsultations";
