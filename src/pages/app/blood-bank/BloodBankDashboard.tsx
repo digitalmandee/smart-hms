@@ -223,7 +223,7 @@ export default function BloodBankDashboard() {
                 <div className="p-4 rounded-full bg-muted/50 w-fit mx-auto mb-3">
                   <FileText className="h-8 w-8 opacity-50" />
                 </div>
-                <p>No pending requests</p>
+                <p>{t("bloodBank.noPendingRequests" as any)}</p>
               </div>
             )}
           </CardContent>
