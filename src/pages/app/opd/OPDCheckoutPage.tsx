@@ -359,6 +359,22 @@ export default function OPDCheckoutPage() {
     }
   });
 
+  // Blood bank requests
+  const COMPONENT_LABELS: Record<string, string> = {
+    whole_blood: "Whole Blood", packed_rbc: "Packed RBCs", ffp: "FFP",
+    platelets: "Platelets", cryoprecipitate: "Cryoprecipitate", granulocytes: "Granulocytes",
+  };
+  bloodRequests?.forEach((req: any) => {
+    charges.push({
+      id: `blood-${req.id}`,
+      type: "blood",
+      description: `Blood: ${COMPONENT_LABELS[req.component_type] || req.component_type} × ${req.units_requested} unit(s)`,
+      amount: 0, // Blood bank handles pricing
+      status: "pending",
+      referenceId: req.id,
+    });
+  });
+
   const pendingCharges = charges.filter(c => c.status === "pending");
   const selectableCharges = pendingCharges.filter(c => c.amount > 0);
   const selectedTotal = pendingCharges
