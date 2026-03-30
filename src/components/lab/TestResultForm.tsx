@@ -5,11 +5,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, Loader2, Info } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Check, Loader2, Info, AlertTriangle, TrendingUp, TrendingDown } from "lucide-react";
 import { LabOrderItem } from "@/hooks/useLabOrders";
 import { TemplateField, useLabTestTemplates } from "@/hooks/useLabTestTemplates";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
+import { useTranslation } from "@/lib/i18n";
 
 interface PatientInfo {
   name: string;
@@ -25,6 +27,12 @@ interface OrderInfo {
   doctorName?: string;
 }
 
+interface PreviousResult {
+  fieldName: string;
+  value: string | number;
+  date: string;
+}
+
 interface TestResultFormProps {
   item: LabOrderItem;
   onSave: (itemId: string, results: Record<string, string | number>, notes: string) => Promise<void>;
@@ -33,6 +41,7 @@ interface TestResultFormProps {
   showUpdateLabel?: boolean;
   patientInfo?: PatientInfo;
   orderInfo?: OrderInfo;
+  previousResults?: PreviousResult[];
 }
 
 const statusConfig = {
@@ -48,7 +57,6 @@ function findMatchingTemplate(
 ) {
   if (!templates?.length) return undefined;
 
-  // 1. Exact service_type_id match
   if (item.service_type_id) {
     const byServiceType = templates.find(
       (t) => t.service_type_id === item.service_type_id
@@ -56,13 +64,11 @@ function findMatchingTemplate(
     if (byServiceType) return byServiceType;
   }
 
-  // 2. Exact name match (case-insensitive)
   const byExactName = templates.find(
     (t) => t.test_name.toLowerCase() === item.test_name.toLowerCase()
   );
   if (byExactName) return byExactName;
 
-  // 3. Substring match
   return templates.find(
     (t) =>
       item.test_name.toLowerCase().includes(t.test_name.toLowerCase()) ||
@@ -77,15 +83,17 @@ export function TestResultForm({
   isEditable = true, 
   showUpdateLabel = false,
   patientInfo,
-  orderInfo
+  orderInfo,
+  previousResults,
 }: TestResultFormProps) {
   const { data: templates } = useLabTestTemplates();
+  const { t } = useTranslation();
   const [results, setResults] = useState<Record<string, string | number>>({});
   const [notes, setNotes] = useState("");
+  const [criticalFields, setCriticalFields] = useState<string[]>([]);
 
   const template = findMatchingTemplate(templates, item);
 
-  // Initialize from existing values
   useEffect(() => {
     if (item.result_values) {
       setResults(item.result_values as Record<string, string | number>);
@@ -97,6 +105,19 @@ export function TestResultForm({
 
   const handleResultChange = (fieldName: string, value: string) => {
     setResults((prev) => ({ ...prev, [fieldName]: value }));
+    
+    // Check for critical values
+    if (template) {
+      const field = template.fields.find(f => f.name === fieldName);
+      if (field) {
+        const isCritical = isValueCritical(field, value);
+        setCriticalFields(prev => {
+          if (isCritical && !prev.includes(fieldName)) return [...prev, fieldName];
+          if (!isCritical && prev.includes(fieldName)) return prev.filter(f => f !== fieldName);
+          return prev;
+        });
+      }
+    }
   };
 
   const isValueAbnormal = (field: TemplateField, value: string | number): boolean => {
@@ -108,6 +129,28 @@ export function TestResultForm({
     return false;
   };
 
+  const isValueCritical = (field: TemplateField, value: string | number): boolean => {
+    if (field.type === "text" || !value) return false;
+    const numValue = typeof value === "string" ? parseFloat(value) : value;
+    if (isNaN(numValue)) return false;
+    if (field.critical_min != null && numValue < field.critical_min) return true;
+    if (field.critical_max != null && numValue > field.critical_max) return true;
+    return false;
+  };
+
+  const getDeltaInfo = (fieldName: string, currentValue: string | number) => {
+    if (!previousResults) return null;
+    const prev = previousResults.find(p => p.fieldName === fieldName);
+    if (!prev) return null;
+    
+    const currNum = typeof currentValue === "string" ? parseFloat(currentValue) : currentValue;
+    const prevNum = typeof prev.value === "string" ? parseFloat(String(prev.value)) : prev.value;
+    if (isNaN(currNum) || isNaN(prevNum) || prevNum === 0) return { prevValue: prev.value, date: prev.date, change: null };
+    
+    const changePct = Math.round(((currNum - prevNum) / prevNum) * 100);
+    return { prevValue: prev.value, date: prev.date, change: changePct };
+  };
+
   const handleSave = async () => {
     await onSave(item.id, results, notes);
   };
@@ -115,6 +158,7 @@ export function TestResultForm({
   const status = statusConfig[item.status] || statusConfig.pending;
   const isCompleted = item.status === "completed";
   const canEdit = isEditable;
+  const hasCriticalValues = criticalFields.length > 0;
 
   return (
     <Card className={cn(isCompleted && "bg-muted/30")}>
@@ -136,6 +180,17 @@ export function TestResultForm({
         )}
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Critical Value Alert Banner */}
+        {hasCriticalValues && (
+          <Alert variant="destructive" className="border-destructive bg-destructive/10 animate-pulse">
+            <AlertTriangle className="h-5 w-5" />
+            <AlertTitle className="font-bold">{t("lab.criticalValueAlert" as any)}</AlertTitle>
+            <AlertDescription>
+              {t("lab.criticalValueAlertDesc" as any)}: {criticalFields.join(", ")}
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Patient & Order Info Header */}
         {patientInfo && orderInfo && (
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4 p-3 bg-muted/50 rounded-lg text-sm">
@@ -169,6 +224,8 @@ export function TestResultForm({
             {template.fields.map((field) => {
               const value = results[field.name] || "";
               const isAbnormal = isValueAbnormal(field, value);
+              const isCritical = isValueCritical(field, value);
+              const delta = getDeltaInfo(field.name, value);
 
               return (
                 <div key={field.name} className="space-y-1">
@@ -184,15 +241,45 @@ export function TestResultForm({
                       value={value}
                       onChange={(e) => handleResultChange(field.name, e.target.value)}
                       className={cn(
-                        isAbnormal && "border-red-500 bg-red-50 text-red-900 font-medium"
+                        isCritical && "border-destructive bg-destructive/10 text-destructive font-bold ring-2 ring-destructive/50",
+                        isAbnormal && !isCritical && "border-red-500 bg-red-50 text-red-900 font-medium"
                       )}
                       disabled={!canEdit}
                     />
+                    {isCritical && (
+                      <Badge variant="destructive" className="animate-pulse shrink-0">
+                        <AlertTriangle className="h-3 w-3 mr-1" />
+                        {t("lab.critical" as any)}
+                      </Badge>
+                    )}
                   </div>
-                  {field.normal_min !== null && field.normal_max !== null && (
-                    <p className="text-xs text-muted-foreground">
-                      Ref: {field.normal_min} - {field.normal_max}
-                    </p>
+                  <div className="flex items-center gap-3">
+                    {field.normal_min !== null && field.normal_max !== null && (
+                      <p className="text-xs text-muted-foreground">
+                        Ref: {field.normal_min} - {field.normal_max}
+                      </p>
+                    )}
+                    {field.critical_min != null && field.critical_max != null && (
+                      <p className="text-xs text-destructive/70">
+                        {t("lab.criticalRange" as any)}: {"<"}{field.critical_min} / {">"}{field.critical_max}
+                      </p>
+                    )}
+                  </div>
+                  {/* Delta Check — Previous Result */}
+                  {delta && (
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 rounded px-2 py-1">
+                      <span>{t("lab.previousResult" as any)}: {delta.prevValue}</span>
+                      <span className="text-muted-foreground/60">({delta.date})</span>
+                      {delta.change !== null && (
+                        <span className={cn(
+                          "flex items-center gap-0.5 font-medium",
+                          Math.abs(delta.change) > 20 ? "text-destructive" : "text-muted-foreground"
+                        )}>
+                          {delta.change > 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                          {delta.change > 0 ? "+" : ""}{delta.change}%
+                        </span>
+                      )}
+                    </div>
                   )}
                 </div>
               );
@@ -227,7 +314,7 @@ export function TestResultForm({
 
         {/* Notes */}
         <div className="space-y-2">
-          <Label>Notes</Label>
+          <Label>{t("common.notes")}</Label>
           <Textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
