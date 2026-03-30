@@ -6,8 +6,8 @@ import { ReportTable, Column } from "@/components/reports/ReportTable";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Link } from "react-router-dom";
-import { Plus } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Plus, PlayCircle } from "lucide-react";
 
 const patternLabels: Record<string, string> = { mwf: "Mon / Wed / Fri", tts: "Tue / Thu / Sat", custom: "Custom" };
 const shiftLabels: Record<string, string> = { morning: "Morning", afternoon: "Afternoon", evening: "Evening" };
