@@ -263,6 +263,10 @@ export function useApproveVendorPayment() {
       if (fetchError) throw fetchError;
       if (!payment) throw new Error("Payment not found");
       
+      // Guard: prevent double-approval
+      if (payment.status === "paid") throw new Error("Payment is already approved");
+      if (payment.status === "cancelled") throw new Error("Cannot approve a cancelled payment");
+      
       // Get default AP account
       const { data: apAccount } = await supabase
         .from("accounts")
