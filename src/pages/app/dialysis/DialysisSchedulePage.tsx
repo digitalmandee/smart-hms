@@ -14,6 +14,7 @@ const shiftLabels: Record<string, string> = { morning: "Morning", afternoon: "Af
 
 export default function DialysisSchedulePage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { data: schedules, isLoading } = useDialysisSchedules();
   const [patternFilter, setPatternFilter] = useState("all");
   const [shiftFilter, setShiftFilter] = useState("all");
