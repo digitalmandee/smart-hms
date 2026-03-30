@@ -10,13 +10,14 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Save, Check, ArrowLeft, CalendarIcon, Scissors, Stethoscope, Pill, TestTube, Scan } from "lucide-react";
+import { Loader2, Save, Check, ArrowLeft, CalendarIcon, Scissors, Stethoscope, Pill, TestTube, Scan, Droplets } from "lucide-react";
 import { DoctorAvatar } from "@/components/ai/DoctorAvatar";
 import { useAppointment, useUpdateAppointment } from "@/hooks/useAppointments";
 import { useConsultationByAppointment, useCreateConsultation, useUpdateConsultation, Vitals } from "@/hooks/useConsultations";
 import { useCreatePrescription, PrescriptionItemInput } from "@/hooks/usePrescriptions";
 import { useCreateLabOrder, LabOrderItemInput } from "@/hooks/useLabOrders";
 import { useCreateImagingOrder, type ImagingModality } from "@/hooks/useImaging";
+import { useCreateBloodRequest } from "@/hooks/useBloodBank";
 import { useDoctors } from "@/hooks/useDoctors";
 import { useAuth } from "@/contexts/AuthContext";
 import { CompactVitals } from "@/components/consultation/CompactVitals";
@@ -25,6 +26,7 @@ import { DiagnosisInput } from "@/components/consultation/DiagnosisInput";
 import { PrescriptionBuilder } from "@/components/consultation/PrescriptionBuilder";
 import { LabOrderBuilder } from "@/components/consultation/LabOrderBuilder";
 import { RadiologyOrderBuilder, type ImagingOrderItemInput } from "@/components/consultation/RadiologyOrderBuilder";
+import { BloodBankOrderBuilder, type BloodBankOrderItem } from "@/components/consultation/BloodBankOrderBuilder";
 import { PatientQuickInfo } from "@/components/consultation/PatientQuickInfo";
 import { PreviousVisits } from "@/components/consultation/PreviousVisits";
 import { VisitSummaryDialog } from "@/components/consultation/VisitSummaryDialog";
@@ -52,7 +54,7 @@ export default function ConsultationPage() {
   const createPrescription = useCreatePrescription();
   const createLabOrder = useCreateLabOrder();
   const createImagingOrder = useCreateImagingOrder();
-
+  const createBloodRequest = useCreateBloodRequest();
   // Find current doctor
   const currentDoctor = doctors.find(d => d.profile?.id === profile?.id);
 
@@ -78,6 +80,9 @@ export default function ConsultationPage() {
   const [imagingOrderItems, setImagingOrderItems] = useState<ImagingOrderItemInput[]>([]);
   const [imagingOrderPriority, setImagingOrderPriority] = useState<"routine" | "urgent" | "stat">("routine");
   const [imagingOrderNotes, setImagingOrderNotes] = useState("");
+  const [bloodBankItems, setBloodBankItems] = useState<BloodBankOrderItem[]>([]);
+  const [bloodBankPriority, setBloodBankPriority] = useState<"routine" | "urgent" | "emergency">("routine");
+  const [bloodBankNotes, setBloodBankNotes] = useState("");
   const [followUpDate, setFollowUpDate] = useState<Date | undefined>(
     existingConsultation?.follow_up_date ? new Date(existingConsultation.follow_up_date) : undefined
   );
@@ -224,6 +229,28 @@ export default function ConsultationPage() {
         }
       }
 
+      // Create blood bank requests if items exist
+      if (complete && bloodBankItems.length > 0 && consultationId) {
+        for (const item of bloodBankItems) {
+          try {
+            await createBloodRequest.mutateAsync({
+              patient_id: patient.id,
+              blood_group: (patient.blood_group || "O+") as any,
+              component_type: item.component_type as any,
+              units_requested: item.units_requested,
+              priority: bloodBankPriority as any,
+              clinical_indication: item.clinical_indication || null,
+              hemoglobin_level: item.hemoglobin_level,
+              requesting_department: "OPD",
+              request_number: `BR-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+              notes: bloodBankNotes || null,
+            } as any);
+          } catch (err) {
+            console.error("Failed to create blood request:", err);
+          }
+        }
+      }
+
       // Update appointment status
       if (complete) {
         await updateAppointment.mutateAsync({
@@ -243,6 +270,7 @@ export default function ConsultationPage() {
             orderSummary.push(`${imagingOrderItems.length} imaging order(s)`);
           }
         }
+        if (bloodBankItems.length > 0) orderSummary.push(`${bloodBankItems.length} blood request(s)`);
         
         const summaryText = orderSummary.length > 0
           ? `Orders sent: ${orderSummary.join(", ")}. Patient can proceed to billing counter.`
@@ -365,7 +393,7 @@ export default function ConsultationPage() {
           </div>
 
           <Tabs defaultValue="clinical" className="w-full">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="clinical" className="text-xs gap-1">
                 <Stethoscope className="h-3.5 w-3.5" />
                 Clinical
@@ -381,6 +409,10 @@ export default function ConsultationPage() {
               <TabsTrigger value="imaging" className="text-xs gap-1">
                 <Scan className="h-3.5 w-3.5" />
                 Imaging
+              </TabsTrigger>
+              <TabsTrigger value="blood" className="text-xs gap-1">
+                <Droplets className="h-3.5 w-3.5" />
+                Blood
               </TabsTrigger>
               <TabsTrigger value="ai" className="text-xs gap-1">
                 <DoctorAvatar size="xs" className="scale-50 -m-2" />
@@ -465,6 +497,19 @@ export default function ConsultationPage() {
               />
             </TabsContent>
 
+            {/* Blood Bank Tab */}
+            <TabsContent value="blood" className="space-y-4 mt-4">
+              <BloodBankOrderBuilder
+                items={bloodBankItems}
+                onChange={setBloodBankItems}
+                priority={bloodBankPriority}
+                onPriorityChange={setBloodBankPriority}
+                notes={bloodBankNotes}
+                onNotesChange={setBloodBankNotes}
+                patientBloodGroup={patient?.blood_group}
+              />
+            </TabsContent>
+
             {/* Tabeebi Tab */}
             <TabsContent value="ai" className="mt-4">
               <DoctorAIPanel
@@ -542,6 +587,7 @@ export default function ConsultationPage() {
           prescriptionItems={prescriptionItems}
           labOrderItems={labOrderItems}
           imagingOrderItems={imagingOrderItems}
+          bloodBankItems={bloodBankItems}
           onConfirm={handleConfirmComplete}
           isCompleting={isCompleting}
         />

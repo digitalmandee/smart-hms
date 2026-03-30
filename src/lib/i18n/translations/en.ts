@@ -3156,6 +3156,28 @@ export const en = {
   "bloodBank.noActiveTransfusions": "No active transfusions",
   "bloodBank.inProgress": "In Progress",
 
+  // Blood ordering from consultation
+  "blood.bloodProducts": "Blood Products",
+  "blood.addProduct": "Add Product",
+  "blood.priority": "Priority",
+  "blood.routine": "Routine",
+  "blood.urgent": "Urgent",
+  "blood.emergency": "Emergency",
+  "blood.noProductsAdded": "No blood products added",
+  "blood.clickAddProduct": "Click 'Add Product' to request blood components",
+  "blood.componentType": "Component Type",
+  "blood.unitsRequired": "Units Required",
+  "blood.hemoglobinLevel": "Hemoglobin (g/dL)",
+  "blood.clinicalIndication": "Clinical Indication",
+  "blood.indicationPlaceholder": "e.g. Acute blood loss, Anemia",
+  "blood.notesPlaceholder": "Additional notes for blood bank...",
+  "blood.wholeBlood": "Whole Blood",
+  "blood.packedRBC": "Packed RBCs",
+  "blood.ffp": "Fresh Frozen Plasma",
+  "blood.platelets": "Platelets",
+  "blood.cryoprecipitate": "Cryoprecipitate",
+  "blood.granulocytes": "Granulocytes",
+
 } as const;
 
 export type TranslationKey = keyof typeof en;

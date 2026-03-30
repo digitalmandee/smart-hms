@@ -3088,5 +3088,27 @@ export const ar: Record<TranslationKey, string> = {
   "bloodBank.noActiveTransfusions": "لا توجد عمليات نقل نشطة",
   "bloodBank.inProgress": "قيد التنفيذ",
 
+  // Blood ordering from consultation
+  "blood.bloodProducts": "منتجات الدم",
+  "blood.addProduct": "إضافة منتج",
+  "blood.priority": "الأولوية",
+  "blood.routine": "روتيني",
+  "blood.urgent": "عاجل",
+  "blood.emergency": "طوارئ",
+  "blood.noProductsAdded": "لم تتم إضافة منتجات دم",
+  "blood.clickAddProduct": "انقر على 'إضافة منتج' لطلب مكونات الدم",
+  "blood.componentType": "نوع المكون",
+  "blood.unitsRequired": "الوحدات المطلوبة",
+  "blood.hemoglobinLevel": "الهيموجلوبين (جم/دل)",
+  "blood.clinicalIndication": "المؤشر السريري",
+  "blood.indicationPlaceholder": "مثل: فقدان دم حاد، فقر الدم",
+  "blood.notesPlaceholder": "ملاحظات إضافية لبنك الدم...",
+  "blood.wholeBlood": "دم كامل",
+  "blood.packedRBC": "كريات حمراء مركزة",
+  "blood.ffp": "بلازما طازجة مجمدة",
+  "blood.platelets": "صفائح دموية",
+  "blood.cryoprecipitate": "راسب بردي",
+  "blood.granulocytes": "خلايا محببة",
+
 };
 
