@@ -1012,6 +1012,7 @@ function App() {
               {/* Dialysis routes */}
               <Route path="dialysis" element={<DialysisDashboard />} />
               <Route path="dialysis/patients" element={<DialysisPatientsPage />} />
+              <Route path="dialysis/patients/enroll" element={<DialysisEnrollPatientPage />} />
               <Route path="dialysis/machines" element={<DialysisMachinesPage />} />
               <Route path="dialysis/sessions" element={<DialysisSessionsPage />} />
               <Route path="dialysis/sessions/new" element={<DialysisNewSessionPage />} />
