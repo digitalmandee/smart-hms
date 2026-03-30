@@ -268,8 +268,8 @@ export default function DialysisSessionDetailPage() {
         </Card>
       )}
 
-      {/* Pre-Dialysis Assessment — only for scheduled sessions */}
-      {session.status === "scheduled" && (
+      {/* Pre-Dialysis Assessment — nurses and admins can start */}
+      {session.status === "scheduled" && canStartComplete && (
         <Card>
           <CardHeader><CardTitle className="flex items-center gap-2"><Heart className="h-5 w-5 text-destructive" />{t("dialysis.preAssessment", "Pre-Dialysis Assessment")}</CardTitle></CardHeader>
           <CardContent className="space-y-4">
@@ -306,6 +306,15 @@ export default function DialysisSessionDetailPage() {
                 <Ban className="h-4 w-4 mr-2" />{t("dialysis.noShow")}
               </Button>
             </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Scheduled — Doctor view (read-only, can assign self) */}
+      {session.status === "scheduled" && isDoctorRole && !isAdminRole && (
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-sm text-muted-foreground">{t("dialysis.doctorScheduledNote", "Session is scheduled. Nurse will perform pre-assessment and start the session.")}</p>
           </CardContent>
         </Card>
       )}
