@@ -12,7 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Monitor, Clock, DollarSign, CreditCard, Layers } from "lucide-react";
+import { ArrowLeft, Monitor, Clock, DollarSign, CreditCard, Layers, Receipt, Wallet } from "lucide-react";
 import type { TranslationKey } from "@/lib/i18n/translations/en";
 import { useTranslation } from "@/lib/i18n";
 import { formatCurrency } from "@/lib/currency";
@@ -24,6 +24,9 @@ import {
   CounterType,
   CashDenominations,
 } from "@/hooks/useBillingSessions";
+import { useSessionExpenses, EXPENSE_CATEGORY_LABELS } from "@/hooks/useExpenses";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { CloseSessionDialog } from "@/components/billing/CloseSessionDialog";
 import { useState, useMemo } from "react";
 
@@ -47,6 +50,21 @@ export default function SessionDetailPage() {
   const navigate = useNavigate();
   const { data: session, isLoading } = useSession(id);
   const { data: transactions, isLoading: txLoading } = useSessionTransactions(id);
+  const { data: sessionExpenses, isLoading: expLoading } = useSessionExpenses(id);
+  const { data: sessionDeposits, isLoading: depLoading } = useQuery({
+    queryKey: ['session-deposits', id],
+    queryFn: async () => {
+      if (!id) return [];
+      const { data, error } = await supabase
+        .from('patient_deposits')
+        .select('*, patients(first_name, last_name, patient_number)')
+        .eq('billing_session_id', id)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!id,
+  });
   const [showClose, setShowClose] = useState(false);
 
   if (isLoading) {
@@ -223,7 +241,7 @@ export default function SessionDetailPage() {
       {/* Department Breakdown */}
       {transactions && transactions.length > 0 && (() => {
         const deptTotals = transactions.reduce<Record<string, { count: number; amount: number }>>((acc, tx: any) => {
-          const dept = tx.invoice?.department || t("billing.other");
+          const dept = tx.invoice?.invoice_items?.[0]?.service_type?.category || t("billing.other");
           if (!acc[dept]) acc[dept] = { count: 0, amount: 0 };
           acc[dept].count += 1;
           acc[dept].amount += Number(tx.amount);
@@ -252,6 +270,97 @@ export default function SessionDetailPage() {
           </Card>
         ) : null;
       })()}
+
+      {/* Expenses / Payouts */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Receipt className="h-4 w-4" />
+            {t("billing.sessionExpenses")}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {expLoading ? (
+            <Skeleton className="h-10 w-full" />
+          ) : sessionExpenses && sessionExpenses.length > 0 ? (
+            <div className="overflow-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t("common.time")}</TableHead>
+                    <TableHead>{t("billing.description")}</TableHead>
+                    <TableHead>{t("billing.other")}</TableHead>
+                    <TableHead>{t("billing.paidTo")}</TableHead>
+                    <TableHead className="text-right">{t("common.amount")}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {sessionExpenses.map((exp) => (
+                    <TableRow key={exp.id}>
+                      <TableCell className="text-sm">{format(new Date(exp.created_at), "hh:mm a")}</TableCell>
+                      <TableCell>{exp.description}</TableCell>
+                      <TableCell><Badge variant="outline">{EXPENSE_CATEGORY_LABELS[exp.category]}</Badge></TableCell>
+                      <TableCell>{exp.paid_to || "—"}</TableCell>
+                      <TableCell className="text-right font-medium text-destructive">-{formatCurrency(exp.amount)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              <div className="flex justify-end mt-3 pt-3 border-t">
+                <span className="font-semibold text-destructive">
+                  {t("billing.totalExpenses")}: -{formatCurrency(sessionExpenses.reduce((s, e) => s + e.amount, 0))}
+                </span>
+              </div>
+            </div>
+          ) : (
+            <p className="text-center py-4 text-muted-foreground">{t("billing.noExpenses")}</p>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Patient Deposits */}
+      {sessionDeposits && sessionDeposits.length > 0 && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Wallet className="h-4 w-4" />
+              {t("billing.sessionDeposits")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t("common.time")}</TableHead>
+                    <TableHead>{t("common.name")}</TableHead>
+                    <TableHead>{t("billing.depositType")}</TableHead>
+                    <TableHead className="text-right">{t("common.amount")}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {sessionDeposits.map((dep: any) => (
+                    <TableRow key={dep.id}>
+                      <TableCell className="text-sm">{format(new Date(dep.created_at), "hh:mm a")}</TableCell>
+                      <TableCell>
+                        {dep.patients ? `${dep.patients.first_name} ${dep.patients.last_name}` : "—"}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={dep.type === 'deposit' ? 'default' : 'destructive'}>
+                          {dep.type}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className={`text-right font-medium ${dep.type === 'refund' ? 'text-destructive' : 'text-green-600'}`}>
+                        {dep.type === 'refund' ? '-' : '+'}{formatCurrency(dep.amount)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Transactions */}
       <Card>

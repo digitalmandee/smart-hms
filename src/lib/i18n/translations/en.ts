@@ -3040,6 +3040,15 @@ export const en = {
   "billing.viewDetail": "View",
   "billing.closedAt": "Closed At",
   "billing.departmentBreakdown": "Department Breakdown",
+  "billing.sessionExpenses": "Expenses / Payouts",
+  "billing.sessionDeposits": "Patient Deposits",
+  "billing.netCash": "Net Cash",
+  "billing.paidTo": "Paid To",
+  "billing.depositType": "Type",
+  "billing.noExpenses": "No expenses in this session",
+  "billing.noDeposits": "No deposits in this session",
+  "billing.totalExpenses": "Total Expenses",
+  "billing.cashExpenses": "Cash Expenses",
 
   // Doctor Test Share
   "hr.testShare": "Test Share",

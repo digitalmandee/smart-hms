@@ -272,11 +272,22 @@ export function useCloseSession() {
 
       if (fetchError) throw fetchError;
 
-      // Calculate expected cash: opening + cash payments
-      const { data: payments } = await supabase
-        .from('payments')
-        .select('amount, payment_method:payment_methods(name)')
-        .eq('billing_session_id', sessionId);
+      // Calculate expected cash: opening + cash payments - cash expenses + cash deposits
+      const [{ data: payments }, { data: sessionExpenses }, { data: sessionDeposits }] = await Promise.all([
+        supabase
+          .from('payments')
+          .select('amount, payment_method:payment_methods(name)')
+          .eq('billing_session_id', sessionId),
+        supabase
+          .from('expenses')
+          .select('amount, payment_method:payment_methods(name)')
+          .eq('billing_session_id', sessionId),
+        supabase
+          .from('patient_deposits')
+          .select('amount, type, payment_method_id, payment_method:payment_methods(name)')
+          .eq('billing_session_id', sessionId)
+          .eq('status', 'completed'),
+      ]);
 
       let cashTotal = session.opening_cash || 0;
       let cardTotal = 0;
@@ -293,6 +304,30 @@ export function useCloseSession() {
           upiTotal += Number(p.amount);
         } else {
           otherTotal += Number(p.amount);
+        }
+      });
+
+      // Subtract cash expenses from expected cash
+      sessionExpenses?.forEach((e: any) => {
+        const methodName = e.payment_method?.name?.toLowerCase() || 'cash';
+        if (methodName.includes('cash') || !e.payment_method) {
+          cashTotal -= Number(e.amount);
+        }
+      });
+
+      // Add cash deposits to expected cash (deposits received increase physical cash)
+      sessionDeposits?.forEach((d: any) => {
+        if (d.type === 'deposit') {
+          const methodName = d.payment_method?.name?.toLowerCase() || 'cash';
+          if (methodName.includes('cash') || !d.payment_method) {
+            cashTotal += Number(d.amount);
+          }
+        } else if (d.type === 'refund') {
+          // Refunds paid out in cash reduce expected cash
+          const methodName = d.payment_method?.name?.toLowerCase() || 'cash';
+          if (methodName.includes('cash') || !d.payment_method) {
+            cashTotal -= Number(d.amount);
+          }
         }
       });
 

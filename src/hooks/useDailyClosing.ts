@@ -76,6 +76,11 @@ export interface DailyClosingSummary {
     other: number;
     total: number;
   };
+  expenses: {
+    total: number;
+    cash: number;
+  };
+  netCash: number;
   departments: {
     opd: number;
     ipd: number;
@@ -157,6 +162,17 @@ async function fetchPaymentMethods() {
   return result.data || [];
 }
 
+async function fetchExpensesForDate(branchId: string, startOfDay: string, endOfDay: string) {
+  const result = await (supabase as any)
+    .from('expenses')
+    .select('amount, payment_method_id')
+    .eq('branch_id', branchId)
+    .gte('created_at', startOfDay)
+    .lte('created_at', endOfDay);
+  
+  return result.data || [];
+}
+
 // Hook: Get daily closing summary for a date
 export function useDailyClosingSummary(date?: string) {
   const { profile } = useAuth();
@@ -172,12 +188,13 @@ export function useDailyClosingSummary(date?: string) {
       const endOfDay = `${targetDate}T23:59:59`;
 
       // Fetch all data in parallel
-      const [sessions, paymentsRaw, invoices, paymentMethods, invoiceItems] = await Promise.all([
+      const [sessions, paymentsRaw, invoices, paymentMethods, invoiceItems, expensesRaw] = await Promise.all([
         fetchSessionsForDate(branchId, startOfDay, endOfDay),
         fetchPaymentsForDate(branchId, startOfDay, endOfDay),
         fetchInvoicesForDate(branchId, startOfDay, endOfDay),
         fetchPaymentMethods(),
         fetchInvoiceItemsForDate(branchId, startOfDay, endOfDay),
+        fetchExpensesForDate(branchId, startOfDay, endOfDay),
       ]);
       
       const methodMap = new Map(paymentMethods.map((m: any) => [m.id, m.name?.toLowerCase() || '']));
@@ -239,6 +256,17 @@ export function useDailyClosingSummary(date?: string) {
       const expectedCash = closedSessions.reduce((sum, s) => sum + (Number(s.expected_cash) || 0), 0);
       const actualCash = closedSessions.reduce((sum, s) => sum + (Number(s.actual_cash) || 0), 0);
 
+      // Calculate expense totals
+      let expenseTotal = 0, expenseCashTotal = 0;
+      expensesRaw?.forEach((e: any) => {
+        const amount = Number(e.amount);
+        expenseTotal += amount;
+        const methodName = e.payment_method_id ? (methodMap.get(e.payment_method_id) || '') as string : 'cash';
+        if (methodName.includes('cash') || !e.payment_method_id) {
+          expenseCashTotal += amount;
+        }
+      });
+
       return {
         date: targetDate,
         sessions: sessionStats,
@@ -249,6 +277,11 @@ export function useDailyClosingSummary(date?: string) {
           other: otherTotal,
           total: cashTotal + cardTotal + upiTotal + otherTotal,
         },
+        expenses: {
+          total: expenseTotal,
+          cash: expenseCashTotal,
+        },
+        netCash: cashTotal - expenseCashTotal,
         departments: {
           opd: opdTotal,
           ipd: ipdTotal,
