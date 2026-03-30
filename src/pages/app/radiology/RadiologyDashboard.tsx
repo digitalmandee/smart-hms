@@ -134,15 +134,15 @@ export default function RadiologyDashboard() {
         <TabsList className="bg-muted/50">
           <TabsTrigger value="pending" className="gap-2">
             <Clock className="h-4 w-4" />
-            Pending ({pendingOrders.length})
+            {t("common.pending")} ({pendingOrders.length})
           </TabsTrigger>
           <TabsTrigger value="inProgress" className="gap-2">
             <Activity className="h-4 w-4" />
-            In Progress ({inProgressOrders.length})
+            {t("radiology.inProgress" as any)} ({inProgressOrders.length})
           </TabsTrigger>
           <TabsTrigger value="awaitingReport" className="gap-2">
             <FileText className="h-4 w-4" />
-            Awaiting Report ({awaitingReportOrders.length})
+            {t("radiology.awaitingReport" as any)} ({awaitingReportOrders.length})
           </TabsTrigger>
         </TabsList>
 
