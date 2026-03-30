@@ -296,6 +296,7 @@ import TaxSlabsPage from "./pages/app/hr/setup/TaxSlabsPage";
 import DoctorCompensationPage from "./pages/app/hr/payroll/DoctorCompensationPage";
 import DoctorEarningsPage from "./pages/app/hr/payroll/DoctorEarningsPage";
 import DailyCommissionReport from "./pages/app/hr/payroll/DailyCommissionReport";
+import CommissionsPage from "./pages/app/hr/payroll/CommissionsPage";
 import JobOpeningsPage from "./pages/app/hr/recruitment/JobOpeningsPage";
 import ApplicationsPage from "./pages/app/hr/recruitment/ApplicationsPage";
 import ResignationsPage from "./pages/app/hr/exit/ResignationsPage";
