@@ -10,6 +10,7 @@ import { format } from "date-fns";
 const today = format(new Date(), "yyyy-MM-dd");
 
 export default function DialysisDashboard() {
+  const navigate = useNavigate();
   const { data: sessions, isLoading: loadingSessions } = useDialysisSessions(today);
   const { data: machines } = useDialysisMachines();
   const { data: patients } = useDialysisPatients();
