@@ -3231,6 +3231,11 @@ export const ur: Record<TranslationKey, string> = {
   "dialysis.allSlotsOpen": "اس پیٹرن/شفٹ کے لیے تمام سلاٹس خالی ہیں۔",
   "reception.dialysisSchedule": "ڈائیلیسز شیڈول",
   "reception.scheduleDialysis": "ڈائیلیسز سیشن شیڈول کریں",
+  "dialysis.enrolledDate": "اندراج کی تاریخ",
+  "dialysis.printCard": "کارڈ پرنٹ کریں",
+  "dialysis.viewProfile": "پروفائل دیکھیں",
+  "dialysis.sessionHistory": "سیشن کی تاریخ",
+  "dialysis.patientDetail": "مریض کی تفصیلات",
 
 };
 

@@ -3231,6 +3231,11 @@ export const ar: Record<TranslationKey, string> = {
   "dialysis.allSlotsOpen": "جميع المواعيد متاحة لهذا النمط/الوردية.",
   "reception.dialysisSchedule": "جدول الغسيل الكلوي",
   "reception.scheduleDialysis": "جدولة جلسة غسيل كلوي",
+  "dialysis.enrolledDate": "تاريخ التسجيل",
+  "dialysis.printCard": "طباعة البطاقة",
+  "dialysis.viewProfile": "عرض الملف",
+  "dialysis.sessionHistory": "سجل الجلسات",
+  "dialysis.patientDetail": "تفاصيل المريض",
 
 };
 

@@ -3,13 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '@/lib/i18n';
 import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useImagingOrders, IMAGING_MODALITIES } from '@/hooks/useImaging';
-import { ModalityBadge } from '@/components/radiology/ModalityBadge';
-import { ImagingPriorityBadge } from '@/components/radiology/ImagingPriorityBadge';
+import { ReportTable, Column } from '@/components/reports/ReportTable';
+import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
-import { FileText, RefreshCw, Clock, CheckCircle2, Eye } from 'lucide-react';
+import { FileText, RefreshCw, Clock, CheckCircle2 } from 'lucide-react';
+
+const priorityColors: Record<string, "destructive" | "secondary" | "outline"> = {
+  stat: "destructive", urgent: "secondary", routine: "outline",
+};
 
 export default function ReportingWorklistPage() {
   const navigate = useNavigate();
@@ -18,144 +21,80 @@ export default function ReportingWorklistPage() {
   const [modalityFilter, setModalityFilter] = useState<string>('all');
   const [view, setView] = useState<'pending' | 'verification' | 'completed'>('pending');
 
-  // Pending reports: completed studies awaiting reporting
-  const pendingReportOrders = orders?.filter(o => o.status === 'completed') || [];
-  
-  // Awaiting verification: reported but not yet verified
-  const awaitingVerificationOrders = orders?.filter(o => o.status === 'reported') || [];
-
-  // Completed/verified reports
+  const pendingOrders = orders?.filter(o => o.status === 'completed') || [];
+  const verificationOrders = orders?.filter(o => o.status === 'reported') || [];
   const completedOrders = orders?.filter(o => o.status === 'verified' || (o.status as string) === 'delivered') || [];
 
-  const currentOrders = view === 'pending' ? pendingReportOrders : view === 'verification' ? awaitingVerificationOrders : completedOrders;
-  
-  const filteredOrders = modalityFilter === 'all' 
-    ? currentOrders 
-    : currentOrders.filter(o => o.modality === modalityFilter);
+  const currentOrders = view === 'pending' ? pendingOrders : view === 'verification' ? verificationOrders : completedOrders;
+  const filtered = modalityFilter === 'all' ? currentOrders : currentOrders.filter(o => o.modality === modalityFilter);
 
-  // Sort by priority and age
-  const sortedOrders = [...filteredOrders].sort((a, b) => {
-    const priorityOrder = { stat: 0, urgent: 1, routine: 2 };
-    const aPriority = priorityOrder[a.priority as keyof typeof priorityOrder] ?? 2;
-    const bPriority = priorityOrder[b.priority as keyof typeof priorityOrder] ?? 2;
-    if (aPriority !== bPriority) return aPriority - bPriority;
+  const sorted = [...filtered].sort((a, b) => {
+    const po = { stat: 0, urgent: 1, routine: 2 };
+    const ap = po[a.priority as keyof typeof po] ?? 2;
+    const bp = po[b.priority as keyof typeof po] ?? 2;
+    if (ap !== bp) return ap - bp;
     return new Date(a.performed_at || a.created_at || 0).getTime() - new Date(b.performed_at || b.created_at || 0).getTime();
   });
 
+  const columns: Column<any>[] = [
+    { key: "order_number", header: "Order #", sortable: true },
+    { key: "modality", header: "Modality", sortable: true, cell: (r) => <Badge variant="secondary">{r.modality?.toUpperCase()}</Badge> },
+    { key: "procedure_name", header: "Procedure", sortable: true },
+    { key: "priority", header: "Priority", sortable: true, cell: (r) => <Badge variant={priorityColors[r.priority] || "outline"}>{r.priority}</Badge> },
+    { key: "performed_at", header: "Performed", sortable: true, cell: (r) => r.performed_at ? format(new Date(r.performed_at), 'PP p') : "–" },
+    {
+      key: "action", header: t("common.actions" as any), cell: (r) => (
+        <Button
+          size="sm"
+          variant={view === 'completed' ? 'outline' : 'default'}
+          onClick={(e) => {
+            e.stopPropagation();
+            navigate(view === 'pending' ? `/app/radiology/report/${r.id}` : view === 'verification' ? `/app/radiology/verify/${r.id}` : `/app/radiology/report/${r.id}`);
+          }}
+        >
+          {view === 'pending' ? 'Report' : view === 'verification' ? 'Verify' : 'View'}
+        </Button>
+      ),
+    },
+  ];
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PageHeader
         title={t('radiology.reportingWorklist' as any)}
         description={t('radiology.reportingWorklistDesc' as any)}
         actions={
           <div className="flex gap-2">
             <Select value={modalityFilter} onValueChange={setModalityFilter}>
-              <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="All Modalities" />
-              </SelectTrigger>
+              <SelectTrigger className="w-[150px]"><SelectValue placeholder="All Modalities" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Modalities</SelectItem>
-                {IMAGING_MODALITIES.map(m => (
-                  <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
-                ))}
+                {IMAGING_MODALITIES.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
               </SelectContent>
             </Select>
-            <Button variant="outline" onClick={() => refetch()}>
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Refresh
-            </Button>
+            <Button variant="outline" onClick={() => refetch()}><RefreshCw className="h-4 w-4 mr-2" />Refresh</Button>
           </div>
         }
       />
-
-      {/* View Toggle */}
       <div className="flex gap-2">
-        <Button
-          variant={view === 'pending' ? 'default' : 'outline'}
-          onClick={() => setView('pending')}
-        >
-          <FileText className="h-4 w-4 mr-2" />
-          Pending Reports ({pendingReportOrders.length})
+        <Button variant={view === 'pending' ? 'default' : 'outline'} onClick={() => setView('pending')}>
+          <FileText className="h-4 w-4 mr-2" />Pending ({pendingOrders.length})
         </Button>
-        <Button
-          variant={view === 'verification' ? 'default' : 'outline'}
-          onClick={() => setView('verification')}
-        >
-          <Clock className="h-4 w-4 mr-2" />
-          Awaiting Verification ({awaitingVerificationOrders.length})
+        <Button variant={view === 'verification' ? 'default' : 'outline'} onClick={() => setView('verification')}>
+          <Clock className="h-4 w-4 mr-2" />Verification ({verificationOrders.length})
         </Button>
-        <Button
-          variant={view === 'completed' ? 'default' : 'outline'}
-          onClick={() => setView('completed')}
-        >
-          <CheckCircle2 className="h-4 w-4 mr-2" />
-          Completed ({completedOrders.length})
+        <Button variant={view === 'completed' ? 'default' : 'outline'} onClick={() => setView('completed')}>
+          <CheckCircle2 className="h-4 w-4 mr-2" />Completed ({completedOrders.length})
         </Button>
       </div>
-
-      {isLoading ? (
-        <div className="text-center py-8 text-muted-foreground">Loading worklist...</div>
-      ) : sortedOrders.length === 0 ? (
-        <Card>
-          <CardContent className="text-center py-12">
-            <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <p className="text-lg font-medium">
-              {view === 'pending' ? 'No studies pending report' : view === 'verification' ? 'No reports awaiting verification' : 'No completed reports'}
-            </p>
-            <p className="text-muted-foreground">
-              {view === 'pending' 
-                ? 'Completed studies will appear here for reporting'
-                : view === 'verification'
-                ? 'Reported studies will appear here for verification'
-                : 'Verified reports will appear here'
-              }
-            </p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-4">
-          {sortedOrders.map(order => (
-            <Card 
-              key={order.id} 
-              className="cursor-pointer hover:bg-accent/50 transition-colors"
-              onClick={() => navigate(
-                view === 'pending' 
-                  ? `/app/radiology/report/${order.id}`
-                  : view === 'verification'
-                  ? `/app/radiology/verify/${order.id}`
-                  : `/app/radiology/report/${order.id}`
-              )}
-            >
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="font-medium">{order.order_number}</span>
-                      <ModalityBadge modality={order.modality} />
-                      <ImagingPriorityBadge priority={order.priority} showIcon />
-                    </div>
-                    <p className="font-medium">{order.procedure_name}</p>
-                    <p className="text-sm text-muted-foreground line-clamp-1">
-                      {order.clinical_indication || 'No clinical indication'}
-                    </p>
-                    <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                      {order.performed_at && (
-                        <span className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          Performed: {format(new Date(order.performed_at), 'PPp')}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <Button size="sm" variant={view === 'completed' ? 'outline' : 'default'}>
-                    {view === 'pending' ? 'Report' : view === 'verification' ? 'Verify' : 'View Report'}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+      <ReportTable
+        data={sorted}
+        columns={columns}
+        isLoading={isLoading}
+        pageSize={20}
+        searchPlaceholder="Search by order number, procedure..."
+        emptyMessage={view === 'pending' ? 'No studies pending report' : view === 'verification' ? 'No reports awaiting verification' : 'No completed reports'}
+      />
     </div>
   );
 }
