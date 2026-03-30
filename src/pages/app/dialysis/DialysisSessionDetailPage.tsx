@@ -430,8 +430,8 @@ export default function DialysisSessionDetailPage() {
         </div>
       )}
 
-      {/* Pre-Dialysis Assessment — inline below actions when scheduled */}
-      {session.status === "scheduled" && canStartComplete && (
+      {/* Pre-Dialysis Assessment — nurse flow when scheduled */}
+      {session.status === "scheduled" && (isNurseRole || isAdminRole) && (
         <div className="rounded-lg border p-4 space-y-3">
           <h3 className="text-sm font-semibold flex items-center gap-1.5"><Heart className="h-4 w-4 text-destructive" />{t("dialysis.preAssessment")}</h3>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
@@ -456,13 +456,29 @@ export default function DialysisSessionDetailPage() {
               <Input type="number" step="0.1" className="h-9" value={preForm.pre_temperature} onChange={e => setPreForm(f => ({ ...f, pre_temperature: e.target.value }))} />
             </div>
           </div>
+          <Button variant="secondary" size="sm" onClick={handleSavePreAssessment} disabled={updateSession.isPending} className="gap-1.5">
+            <Heart className="h-3.5 w-3.5" />{t("dialysis.savePreAssessment" as any)}
+          </Button>
         </div>
       )}
 
-      {/* Scheduled — Doctor view */}
-      {session.status === "scheduled" && isDoctorRole && !isAdminRole && !isNurseRole && (
-        <div className="rounded-lg border p-4">
-          <p className="text-sm text-muted-foreground">{t("dialysis.doctorScheduledNote")}</p>
+      {/* Scheduled — Doctor view: show pre-assessment status, no form */}
+      {session.status === "scheduled" && isDoctorRole && !isNurseRole && (
+        <div className="rounded-lg border p-4 space-y-2">
+          <h3 className="text-sm font-semibold flex items-center gap-1.5"><Heart className="h-4 w-4 text-destructive" />{t("dialysis.preAssessment")}</h3>
+          {session.pre_weight_kg ? (
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
+              <div><span className="text-muted-foreground">{t("dialysis.preWeight")}:</span> <span className="font-medium">{session.pre_weight_kg} kg</span></div>
+              <div><span className="text-muted-foreground">{t("dialysis.preBpSystolic")}:</span> <span className="font-medium">{(session as any).pre_bp_systolic ?? "–"}</span></div>
+              <div><span className="text-muted-foreground">{t("dialysis.preBpDiastolic")}:</span> <span className="font-medium">{(session as any).pre_bp_diastolic ?? "–"}</span></div>
+              <div><span className="text-muted-foreground">{t("dialysis.prePulse")}:</span> <span className="font-medium">{(session as any).pre_pulse ?? "–"}</span></div>
+              <div><span className="text-muted-foreground">{t("dialysis.preTemperature")}:</span> <span className="font-medium">{(session as any).pre_temperature ?? "–"}</span></div>
+            </div>
+          ) : (
+            <p className="text-sm text-amber-600 flex items-center gap-1.5">
+              <AlertTriangle className="h-3.5 w-3.5" />{t("dialysis.waitingForNurse" as any)}
+            </p>
+          )}
         </div>
       )}
 
