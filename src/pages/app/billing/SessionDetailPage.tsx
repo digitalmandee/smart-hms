@@ -12,7 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Monitor, Clock, DollarSign, CreditCard, Layers } from "lucide-react";
+import { ArrowLeft, Monitor, Clock, DollarSign, CreditCard, Layers, Receipt, Wallet } from "lucide-react";
 import type { TranslationKey } from "@/lib/i18n/translations/en";
 import { useTranslation } from "@/lib/i18n";
 import { formatCurrency } from "@/lib/currency";
@@ -24,6 +24,9 @@ import {
   CounterType,
   CashDenominations,
 } from "@/hooks/useBillingSessions";
+import { useSessionExpenses, EXPENSE_CATEGORY_LABELS } from "@/hooks/useExpenses";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { CloseSessionDialog } from "@/components/billing/CloseSessionDialog";
 import { useState, useMemo } from "react";
 
