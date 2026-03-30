@@ -41,6 +41,7 @@ const componentLabels: Record<string, string> = {
 export default function TransfusionDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [showReactionForm, setShowReactionForm] = useState(false);
   
   const { data: transfusions, isLoading } = useBloodTransfusions();
   const updateTransfusion = useUpdateTransfusion();
