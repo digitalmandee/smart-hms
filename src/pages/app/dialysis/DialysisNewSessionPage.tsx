@@ -17,8 +17,10 @@ export default function DialysisNewSessionPage() {
   const { data: servicePrice } = useDialysisServicePrice();
 
   const [form, setForm] = useState({
-    dialysis_patient_id: "", machine_id: "", session_date: new Date().toISOString().split("T")[0],
-    shift: "morning", chair_number: "", target_uf_ml: "", duration_minutes: "240",
+    dialysis_patient_id: searchParams.get("patient_id") || "",
+    machine_id: "", session_date: new Date().toISOString().split("T")[0],
+    shift: searchParams.get("shift") || "morning",
+    chair_number: "", target_uf_ml: "", duration_minutes: "240",
     dialyzer_type: "", blood_flow_rate: "", dialysate_flow_rate: "", heparin_dose: "",
   });
 

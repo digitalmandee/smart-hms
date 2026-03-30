@@ -87,7 +87,7 @@ export default function DialysisDashboard() {
           ) : (
             <div className="space-y-3">
               {sessions.map((s: any) => (
-                <div key={s.id} className="flex items-center justify-between p-3 border rounded-lg">
+                <div key={s.id} className="flex items-center justify-between p-3 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => navigate(`/app/dialysis/sessions/${s.id}`)}>
                   <div>
                     <p className="font-medium">
                       {s.dialysis_patients?.patients?.first_name} {s.dialysis_patients?.patients?.last_name}

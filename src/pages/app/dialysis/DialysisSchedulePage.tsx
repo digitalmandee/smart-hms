@@ -33,6 +33,11 @@ export default function DialysisSchedulePage() {
     { key: "machine", header: t("dialysis.machine" as any), cell: (r) => r.dialysis_machines?.machine_number || "–" },
     { key: "start_date", header: t("dialysis.startDate" as any), sortable: true, cell: (r) => r.start_date || "–" },
     { key: "end_date", header: "End Date", sortable: true, cell: (r) => r.end_date || "–" },
+    { key: "actions", header: "", cell: (r) => (
+      <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); navigate(`/app/dialysis/sessions/new?patient_id=${r.dialysis_patient_id || r.id}&shift=${r.shift || ""}`); }}>
+        <PlayCircle className="h-3.5 w-3.5 mr-1" />Create Session
+      </Button>
+    )},
   ];
 
   return (

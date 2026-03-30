@@ -103,7 +103,7 @@ export function useDialysisSessions(dateFilter?: string) {
     queryFn: async () => {
       let query = supabase
         .from("dialysis_sessions")
-        .select("*, dialysis_patients(*, patients(first_name, last_name, patient_number)), dialysis_machines(machine_number, chair_number)")
+        .select("*, dialysis_patients(*, patients(first_name, last_name, patient_number)), dialysis_machines(machine_number, chair_number), invoices!dialysis_sessions_invoice_id_fkey(id, status, invoice_number)")
         .eq("organization_id", profile!.organization_id!)
         .order("session_date", { ascending: false });
       if (dateFilter) query = query.eq("session_date", dateFilter);
