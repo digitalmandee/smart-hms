@@ -3156,24 +3156,8 @@ export const en = {
   "bloodBank.noActiveTransfusions": "No active transfusions",
   "bloodBank.inProgress": "In Progress",
 
-  // Radiology Dashboard
-  "radiology.technicianWorklist": "Technician Worklist",
-  "radiology.reportingWorklist": "Reporting Worklist",
-  "radiology.pacsStudies": "PACS Studies",
-  "radiology.viewDicomImages": "View DICOM images",
-  "radiology.schedule": "Schedule",
-  "radiology.viewCalendar": "View calendar",
+  // Radiology Dashboard extras (non-duplicate)
   "radiology.allOrders": "All Orders",
-  "radiology.studies": "studies",
-  "radiology.pendingOrders": "Pending Orders",
-  "radiology.inProgress": "In Progress",
-  "radiology.awaitingReport": "Awaiting Report",
-  "radiology.completedToday": "Completed Today",
-  "radiology.statOrders": "STAT Orders",
-  "radiology.noPendingOrders": "No pending orders",
-  "radiology.allProcessed": "All imaging orders have been processed",
-  "radiology.noStudiesInProgress": "No studies in progress",
-  "radiology.noStudiesAwaitingReport": "No studies awaiting report",
 
 } as const;
 
