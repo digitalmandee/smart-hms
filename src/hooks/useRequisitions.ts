@@ -181,7 +181,8 @@ export function useCreateRequisition() {
       // Create items
       const itemsToInsert = data.items.map(item => ({
         requisition_id: req.id,
-        item_id: item.item_id,
+        item_id: item.item_id || null,
+        medicine_id: item.medicine_id || null,
         quantity_requested: item.quantity_requested,
         quantity_approved: 0,
         quantity_issued: 0,

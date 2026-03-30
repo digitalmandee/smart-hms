@@ -457,8 +457,10 @@ export default function RequisitionDetailPage() {
                 <TableRow key={item.id}>
                   <TableCell className="font-medium">
                     <div>
-                      <p>{item.item?.name}</p>
-                      <p className="text-sm text-muted-foreground">{item.item?.item_code}</p>
+                      <p>{item.medicine?.name || item.item?.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {item.medicine ? item.medicine.generic_name || item.medicine.dosage_form : item.item?.item_code}
+                      </p>
                     </div>
                   </TableCell>
                   <TableCell className="text-center">{item.quantity_requested}</TableCell>
