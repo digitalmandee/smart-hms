@@ -35,7 +35,7 @@ import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 
 interface ChargeItem {
   id: string;
-  type: "consultation" | "lab" | "prescription" | "imaging";
+  type: "consultation" | "lab" | "prescription" | "imaging" | "blood";
   description: string;
   amount: number;
   status: "pending" | "invoiced" | "paid";
