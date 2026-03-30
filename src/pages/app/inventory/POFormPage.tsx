@@ -49,6 +49,7 @@ export default function POFormPage() {
   const [searchParams] = useSearchParams();
   const vendorIdParam = searchParams.get("vendor_id");
   const fromPrId = searchParams.get("from_pr");
+  const fromRequisitionId = searchParams.get("from_requisition");
   const { profile } = useAuth();
 
   const [items, setItems] = useState<PurchaseOrderItem[]>([]);
