@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useDialysisSession, useUpdateDialysisSession, useDialysisVitals, useAddDialysisVitals, useDialysisServicePrice, useGenerateDialysisInvoice } from "@/hooks/useDialysis";
-import { AlertTriangle, Plus, Activity, XCircle, Ban, Clock, Play, CheckCircle2, User, Stethoscope, Heart, Receipt, Monitor } from "lucide-react";
+import { AlertTriangle, Plus, Activity, XCircle, Ban, Play, CheckCircle2, User, Stethoscope, Heart, Receipt, Monitor } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { toast } from "sonner";
 import { useTranslation } from "@/lib/i18n";
