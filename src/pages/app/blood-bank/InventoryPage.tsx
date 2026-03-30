@@ -179,8 +179,9 @@ export default function InventoryPage() {
                     <th className="text-left p-3 text-sm font-medium">Volume</th>
                     <th className="text-left p-3 text-sm font-medium">Collected</th>
                     <th className="text-left p-3 text-sm font-medium">Expiry</th>
-                    <th className="text-left p-3 text-sm font-medium">Status</th>
-                    <th className="text-left p-3 text-sm font-medium">Location</th>
+                     <th className="text-left p-3 text-sm font-medium">Status</th>
+                     <th className="text-left p-3 text-sm font-medium">Location</th>
+                     <th className="text-left p-3 text-sm font-medium">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
