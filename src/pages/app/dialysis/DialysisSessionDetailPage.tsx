@@ -238,8 +238,8 @@ export default function DialysisSessionDetailPage() {
         </Card>
       </div>
 
-      {/* Staff Assignment */}
-      {!isTerminal && (
+      {/* Staff Assignment — doctors and admins only */}
+      {!isTerminal && canAssignStaff && (
         <Card>
           <CardHeader><CardTitle className="text-sm flex items-center gap-1"><Stethoscope className="h-4 w-4" />{t("dialysis.staffAssignment", "Staff Assignment")}</CardTitle></CardHeader>
           <CardContent>
