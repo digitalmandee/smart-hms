@@ -136,18 +136,47 @@ export function useCreateDialysisSession() {
 export function useUpdateDialysisSession() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, ...values }: { id: string; status?: string; pre_weight_kg?: number; post_weight_kg?: number; actual_uf_ml?: number; complications?: string; nursing_notes?: string }) => {
+    mutationFn: async ({ id, ...values }: {
+      id: string; status?: string;
+      pre_weight_kg?: number; post_weight_kg?: number; actual_uf_ml?: number;
+      pre_bp_systolic?: number; pre_bp_diastolic?: number; pre_pulse?: number; pre_temperature?: number;
+      post_bp_systolic?: number; post_bp_diastolic?: number; post_pulse?: number;
+      actual_start_time?: string; actual_end_time?: string;
+      complications?: string; nursing_notes?: string; doctor_notes?: string;
+      attended_by?: string; nurse_id?: string;
+    }) => {
       const { data, error } = await supabase
         .from("dialysis_sessions")
         .update({ ...values, updated_at: new Date().toISOString() })
         .eq("id", id)
-        .select()
-        .single();
+        .select();
+      if (error) throw error;
+      return data?.[0];
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["dialysis-sessions"] });
+      qc.invalidateQueries({ queryKey: ["dialysis-session"] });
+      toast.success("Session updated");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+}
+
+// ── Single Dialysis Session ──
+export function useDialysisSession(sessionId: string | undefined) {
+  const { profile } = useAuth();
+  return useQuery({
+    queryKey: ["dialysis-session", sessionId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("dialysis_sessions")
+        .select("*, dialysis_patients(*, patients(first_name, last_name, patient_number)), dialysis_machines(machine_number, chair_number)")
+        .eq("id", sessionId!)
+        .maybeSingle();
       if (error) throw error;
       return data;
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["dialysis-sessions"] }); toast.success("Session updated"); },
-    onError: (e: any) => toast.error(e.message),
+    enabled: !!sessionId && !!profile?.organization_id,
   });
 }
 
