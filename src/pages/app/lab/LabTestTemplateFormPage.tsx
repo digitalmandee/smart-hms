@@ -52,7 +52,7 @@ export default function LabTestTemplateFormPage() {
   const addField = () => {
     setFields([
       ...fields,
-      { name: "", unit: "", normal_min: null, normal_max: null, type: "number" },
+      { name: "", unit: "", normal_min: null, normal_max: null, critical_min: null, critical_max: null, type: "number" },
     ]);
   };
 
@@ -202,13 +202,15 @@ export default function LabTestTemplateFormPage() {
             ) : (
               <div className="space-y-4">
                 {/* Header */}
-                <div className="grid gap-4 grid-cols-[auto_1fr_1fr_1fr_1fr_1fr_auto] items-center text-sm font-medium text-muted-foreground px-2">
+                <div className="grid gap-4 grid-cols-[auto_1fr_1fr_1fr_1fr_1fr_1fr_1fr_auto] items-center text-sm font-medium text-muted-foreground px-2">
                   <div className="w-6"></div>
                   <div>Field Name</div>
                   <div>Unit</div>
                   <div>Type</div>
                   <div>Normal Min</div>
                   <div>Normal Max</div>
+                  <div>Critical Min</div>
+                  <div>Critical Max</div>
                   <div className="w-10"></div>
                 </div>
                 
@@ -216,7 +218,7 @@ export default function LabTestTemplateFormPage() {
                 {fields.map((field, index) => (
                   <div
                     key={index}
-                    className="grid gap-4 grid-cols-[auto_1fr_1fr_1fr_1fr_1fr_auto] items-center p-2 bg-muted/50 rounded-lg"
+                    className="grid gap-4 grid-cols-[auto_1fr_1fr_1fr_1fr_1fr_1fr_1fr_auto] items-center p-2 bg-muted/50 rounded-lg"
                   >
                     <GripVertical className="h-4 w-4 text-muted-foreground cursor-move" />
                     <Input
@@ -254,6 +256,22 @@ export default function LabTestTemplateFormPage() {
                       onChange={(e) => updateField(index, { normal_max: e.target.value ? Number(e.target.value) : null })}
                       placeholder="Max"
                       disabled={field.type === "text"}
+                    />
+                    <Input
+                      type="number"
+                      value={field.critical_min ?? ""}
+                      onChange={(e) => updateField(index, { critical_min: e.target.value ? Number(e.target.value) : null })}
+                      placeholder="Crit Min"
+                      disabled={field.type === "text"}
+                      className="border-destructive/30"
+                    />
+                    <Input
+                      type="number"
+                      value={field.critical_max ?? ""}
+                      onChange={(e) => updateField(index, { critical_max: e.target.value ? Number(e.target.value) : null })}
+                      placeholder="Crit Max"
+                      disabled={field.type === "text"}
+                      className="border-destructive/30"
                     />
                     <Button
                       variant="ghost"

@@ -7,7 +7,8 @@ import {
   CheckCircle2, 
   ClipboardList,
   ArrowRight,
-  Clock
+  Clock,
+  Timer
 } from "lucide-react";
 import { format } from "date-fns";
 import { ModernPageHeader } from "@/components/ModernPageHeader";
@@ -16,7 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useLabDashboardStats, useRecentLabOrders } from "@/hooks/useLabDashboardStats";
+import { useLabDashboardStats, useRecentLabOrders, useLabTATTracker } from "@/hooks/useLabDashboardStats";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Capacitor } from "@capacitor/core";
@@ -29,6 +30,7 @@ export default function LabDashboard() {
   const { t } = useTranslation();
   const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useLabDashboardStats();
   const { data: recentOrders, isLoading: ordersLoading, refetch: refetchOrders } = useRecentLabOrders(5);
+  const { data: tatOrders } = useLabTATTracker(24);
   
   const isMobileScreen = useIsMobile();
   const isNative = Capacitor.isNativePlatform();
@@ -79,6 +81,12 @@ export default function LabDashboard() {
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
+  };
+
+  const getTATColor = (hours: number, target: number) => {
+    if (hours >= target) return "text-destructive";
+    if (hours >= target * 0.75) return "text-warning";
+    return "text-muted-foreground";
   };
 
   return (
@@ -171,6 +179,47 @@ export default function LabDashboard() {
           </>
         )}
       </div>
+
+      {/* TAT Tracker Widget */}
+      {tatOrders && tatOrders.length > 0 && (
+        <Card className="border-warning/50 shadow-soft">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <div className="p-2 rounded-lg bg-warning/10">
+                <Timer className="h-4 w-4 text-warning" />
+              </div>
+              {t("lab.tatTracker" as any)} ({tatOrders.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {tatOrders.slice(0, 5).map((order, idx) => (
+                <div
+                  key={order.id}
+                  className="flex items-center gap-4 p-3 rounded-lg border hover:bg-muted/50 cursor-pointer transition-colors"
+                  onClick={() => navigate(`/app/lab/orders/${order.id}`)}
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-medium truncate">
+                        {order.patient?.first_name} {order.patient?.last_name}
+                      </span>
+                      {getPriorityBadge(order.priority)}
+                    </div>
+                    <span className="text-sm text-muted-foreground">
+                      {order.order_number} • {order.tests_count} {t("lab.tests")}
+                    </span>
+                  </div>
+                  <div className={`text-sm font-bold ${getTATColor(order.elapsed_hours, 24)}`}>
+                    <Clock className="h-3 w-3 inline mr-1" />
+                    {order.elapsed_hours}h
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Quick Actions */}
       <div className="grid gap-4 md:grid-cols-2">

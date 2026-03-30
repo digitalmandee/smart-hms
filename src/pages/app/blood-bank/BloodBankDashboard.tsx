@@ -21,8 +21,11 @@ import { DonationStatusBadge } from "@/components/blood-bank/DonationStatusBadge
 import { BloodGroupBadge } from "@/components/blood-bank/BloodGroupBadge";
 import { ExpiryAlertBanner } from "@/components/blood-bank/ExpiryAlertBanner";
 
+import { useTranslation } from "@/lib/i18n";
+
 export default function BloodBankDashboard() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { data: stats, isLoading: statsLoading } = useBloodBankStats();
   const { data: todaysDonations, isLoading: donationsLoading } = useTodaysDonations();
   const { data: pendingRequests, isLoading: requestsLoading } = usePendingRequests();
@@ -31,23 +34,23 @@ export default function BloodBankDashboard() {
   return (
     <div className="space-y-6">
       <ModernPageHeader
-        title="Blood Bank"
-        subtitle="Manage blood donations, inventory, and transfusions"
+        title={t("bloodBank.title" as any)}
+        subtitle={t("bloodBank.subtitle" as any)}
         icon={Droplets}
         iconColor="text-destructive"
         actions={
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => navigate('/app/blood-bank/donors/new')} className="gap-2">
               <Plus className="h-4 w-4" />
-              Register Donor
+              {t("bloodBank.registerDonor" as any)}
             </Button>
             <Button onClick={() => navigate('/app/blood-bank/donations')} className="gap-2 bg-destructive hover:bg-destructive/90">
               <Heart className="h-4 w-4" />
-              Start Donation
+              {t("bloodBank.startDonation" as any)}
             </Button>
             <Button variant="outline" onClick={() => navigate('/app/blood-bank/analytics')} className="gap-2">
               <BarChart3 className="h-4 w-4" />
-              Analytics
+              {t("bloodBank.analytics" as any)}
             </Button>
           </div>
         }
@@ -63,44 +66,44 @@ export default function BloodBankDashboard() {
         ) : (
           <>
             <ModernStatsCard
-              title="Active Donors"
+              title={t("bloodBank.activeDonors" as any)}
               value={stats?.totalDonors || 0}
               icon={Users}
               variant="primary"
               onClick={() => navigate('/app/blood-bank/donors')}
             />
             <ModernStatsCard
-              title="Today's Donations"
+              title={t("bloodBank.todaysDonations" as any)}
               value={stats?.todaysDonations || 0}
               icon={Heart}
               variant="accent"
               onClick={() => navigate('/app/blood-bank/donations')}
             />
             <ModernStatsCard
-              title="Available Units"
+              title={t("bloodBank.availableUnits" as any)}
               value={stats?.availableUnits || 0}
               icon={Package}
               variant="success"
               onClick={() => navigate('/app/blood-bank/inventory')}
             />
             <ModernStatsCard
-              title="Pending Requests"
+              title={t("bloodBank.pendingRequests" as any)}
               value={stats?.pendingRequests || 0}
               icon={FileText}
               variant="warning"
               onClick={() => navigate('/app/blood-bank/requests')}
             />
             <ModernStatsCard
-              title="Active Transfusions"
+              title={t("bloodBank.activeTransfusions" as any)}
               value={stats?.activeTransfusions || 0}
               icon={Activity}
               variant="info"
               onClick={() => navigate('/app/blood-bank/transfusions')}
             />
             <ModernStatsCard
-              title="Expiring Soon"
+              title={t("bloodBank.expiringSoon" as any)}
               value={stats?.expiringUnits || 0}
-              change="Within 7 days"
+              change={t("bloodBank.within7Days" as any)}
               icon={AlertTriangle}
               variant="warning"
               onClick={() => navigate('/app/blood-bank/inventory?expiring=true')}
@@ -120,7 +123,7 @@ export default function BloodBankDashboard() {
               <div className="p-1.5 rounded-lg bg-destructive/10">
                 <Heart className="h-4 w-4 text-destructive" />
               </div>
-              Today's Donation Queue
+              {t("bloodBank.todaysDonationQueue" as any)}
             </CardTitle>
             <Button variant="ghost" size="sm" onClick={() => navigate('/app/blood-bank/donations')}>
               View All <ArrowRight className="h-4 w-4 ml-1" />
@@ -169,14 +172,14 @@ export default function BloodBankDashboard() {
                 <div className="p-4 rounded-full bg-muted/50 w-fit mx-auto mb-3">
                   <Heart className="h-8 w-8 opacity-50" />
                 </div>
-                <p className="font-medium">No donations scheduled</p>
-                <p className="text-sm">Start a new donation to get started</p>
+                <p className="font-medium">{t("bloodBank.noDonationsScheduled" as any)}</p>
+                <p className="text-sm">{t("bloodBank.startNewDonationMsg" as any)}</p>
                 <Button 
                   variant="outline" 
                   className="mt-4"
                   onClick={() => navigate('/app/blood-bank/donations')}
                 >
-                  Start New Donation
+                  {t("bloodBank.startNewDonation" as any)}
                 </Button>
               </div>
             )}
@@ -192,7 +195,7 @@ export default function BloodBankDashboard() {
               <div className="p-1.5 rounded-lg bg-warning/10">
                 <FileText className="h-4 w-4 text-warning" />
               </div>
-              Pending Blood Requests
+              {t("bloodBank.pendingBloodRequests" as any)}
             </CardTitle>
             <Button variant="ghost" size="sm" onClick={() => navigate('/app/blood-bank/requests')}>
               View All <ArrowRight className="h-4 w-4 ml-1" />
@@ -219,7 +222,7 @@ export default function BloodBankDashboard() {
                 <div className="p-4 rounded-full bg-muted/50 w-fit mx-auto mb-3">
                   <FileText className="h-8 w-8 opacity-50" />
                 </div>
-                <p>No pending requests</p>
+                <p>{t("bloodBank.noPendingRequests" as any)}</p>
               </div>
             )}
           </CardContent>
@@ -232,7 +235,7 @@ export default function BloodBankDashboard() {
               <div className="p-1.5 rounded-lg bg-primary/10">
                 <Activity className="h-4 w-4 text-primary" />
               </div>
-              Active Transfusions
+              {t("bloodBank.activeTransfusions" as any)}
             </CardTitle>
             <Button variant="ghost" size="sm" onClick={() => navigate('/app/blood-bank/transfusions')}>
               View All <ArrowRight className="h-4 w-4 ml-1" />
@@ -269,7 +272,7 @@ export default function BloodBankDashboard() {
                     <div className="flex items-center gap-2">
                       <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20">
                         <Activity className="h-3.5 w-3.5 text-primary animate-pulse" />
-                        <span className="text-xs font-medium text-primary">In Progress</span>
+                        <span className="text-xs font-medium text-primary">{t("bloodBank.inProgress" as any)}</span>
                       </div>
                     </div>
                   </div>
@@ -280,7 +283,7 @@ export default function BloodBankDashboard() {
                 <div className="p-4 rounded-full bg-muted/50 w-fit mx-auto mb-3">
                   <Activity className="h-8 w-8 opacity-50" />
                 </div>
-                <p>No active transfusions</p>
+                <p>{t("bloodBank.noActiveTransfusions" as any)}</p>
               </div>
             )}
           </CardContent>

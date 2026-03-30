@@ -45,11 +45,11 @@ export default function RadiologyDashboard() {
   const awaitingReportOrders = orders?.filter(o => o.status === 'completed') || [];
 
   const quickActionItems = [
-    { title: "Technician Worklist", subtitle: `${stats.pendingOrders + stats.inProgress} studies`, icon: Radio, color: "bg-blue-100 text-blue-600", path: "/app/radiology/worklist" },
-    { title: "Reporting Worklist", subtitle: `${stats.awaitingReport} pending`, icon: FileText, color: "bg-purple-100 text-purple-600", path: "/app/radiology/reporting" },
-    { title: "PACS Studies", subtitle: "View DICOM images", icon: Scan, color: "bg-indigo-100 text-indigo-600", path: "/app/radiology/pacs" },
-    { title: "Schedule", subtitle: "View calendar", icon: Calendar, color: "bg-green-100 text-green-600", path: "/app/radiology/schedule" },
-    { title: "All Orders", subtitle: `${orders?.length || 0} total`, icon: Activity, color: "bg-orange-100 text-orange-600", path: "/app/radiology/orders" },
+    { title: t("radiology.technicianWorklist" as any), subtitle: `${stats.pendingOrders + stats.inProgress} ${t("radiology.studies" as any)}`, icon: Radio, color: "bg-blue-100 text-blue-600", path: "/app/radiology/worklist" },
+    { title: t("radiology.reportingWorklist" as any), subtitle: `${stats.awaitingReport} ${t("common.pending")}`, icon: FileText, color: "bg-purple-100 text-purple-600", path: "/app/radiology/reporting" },
+    { title: t("radiology.pacsStudies" as any), subtitle: t("radiology.viewDICOMImages" as any), icon: Scan, color: "bg-indigo-100 text-indigo-600", path: "/app/radiology/pacs" },
+    { title: t("radiology.schedule" as any), subtitle: t("radiology.viewCalendar" as any), icon: Calendar, color: "bg-green-100 text-green-600", path: "/app/radiology/schedule" },
+    { title: t("radiology.allOrders" as any), subtitle: `${orders?.length || 0} ${t("common.total")}`, icon: Activity, color: "bg-orange-100 text-orange-600", path: "/app/radiology/orders" },
   ];
 
   return (
@@ -70,35 +70,35 @@ export default function RadiologyDashboard() {
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         <ModernStatsCard
-          title="Pending Orders"
+          title={t("radiology.pendingOrders" as any)}
           value={stats.pendingOrders}
           icon={Clock}
           variant="warning"
           onClick={() => setActiveTab('pending')}
         />
         <ModernStatsCard
-          title="In Progress"
+          title={t("radiology.inProgress" as any)}
           value={stats.inProgress}
           icon={Activity}
           variant="info"
           onClick={() => setActiveTab('inProgress')}
         />
         <ModernStatsCard
-          title="Awaiting Report"
+          title={t("radiology.awaitingReport" as any)}
           value={stats.awaitingReport}
           icon={FileText}
           variant="primary"
           onClick={() => setActiveTab('awaitingReport')}
         />
         <ModernStatsCard
-          title="Completed Today"
+          title={t("radiology.completedToday" as any)}
           value={stats.completedToday}
           icon={CheckCircle}
           variant="success"
         />
         {stats.statOrders > 0 && (
           <ModernStatsCard
-            title="STAT Orders"
+            title={t("radiology.statOrders" as any)}
             value={stats.statOrders}
             icon={AlertTriangle}
             variant="accent"
@@ -134,15 +134,15 @@ export default function RadiologyDashboard() {
         <TabsList className="bg-muted/50">
           <TabsTrigger value="pending" className="gap-2">
             <Clock className="h-4 w-4" />
-            Pending ({pendingOrders.length})
+            {t("common.pending")} ({pendingOrders.length})
           </TabsTrigger>
           <TabsTrigger value="inProgress" className="gap-2">
             <Activity className="h-4 w-4" />
-            In Progress ({inProgressOrders.length})
+            {t("radiology.inProgress" as any)} ({inProgressOrders.length})
           </TabsTrigger>
           <TabsTrigger value="awaitingReport" className="gap-2">
             <FileText className="h-4 w-4" />
-            Awaiting Report ({awaitingReportOrders.length})
+            {t("radiology.awaitingReport" as any)} ({awaitingReportOrders.length})
           </TabsTrigger>
         </TabsList>
 
@@ -155,8 +155,8 @@ export default function RadiologyDashboard() {
                 <div className="p-4 rounded-full bg-muted/50 w-fit mx-auto mb-3">
                   <Clock className="h-8 w-8 opacity-50" />
                 </div>
-                <p className="font-medium">No pending orders</p>
-                <p className="text-sm">All imaging orders have been processed</p>
+                <p className="font-medium">{t("radiology.noPendingOrders" as any)}</p>
+                <p className="text-sm">{t("radiology.allProcessed" as any)}</p>
               </CardContent>
             </Card>
           ) : (
@@ -177,7 +177,7 @@ export default function RadiologyDashboard() {
                 <div className="p-4 rounded-full bg-muted/50 w-fit mx-auto mb-3">
                   <Activity className="h-8 w-8 opacity-50" />
                 </div>
-                <p className="font-medium">No studies in progress</p>
+                <p className="font-medium">{t("radiology.noStudiesInProgress" as any)}</p>
               </CardContent>
             </Card>
           ) : (
@@ -198,7 +198,7 @@ export default function RadiologyDashboard() {
                 <div className="p-4 rounded-full bg-muted/50 w-fit mx-auto mb-3">
                   <FileText className="h-8 w-8 opacity-50" />
                 </div>
-                <p className="font-medium">No studies awaiting report</p>
+                <p className="font-medium">{t("radiology.noStudiesAwaitingReport" as any)}</p>
               </CardContent>
             </Card>
           ) : (

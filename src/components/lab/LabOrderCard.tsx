@@ -4,11 +4,16 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { TestTube, Clock, User, Stethoscope, FileInput, CreditCard, CheckCircle, AlertCircle } from "lucide-react";
+import { TestTube, Clock, User, Stethoscope, FileInput, CreditCard, CheckCircle, AlertCircle, XCircle } from "lucide-react";
 import { LabOrderWithItems } from "@/hooks/useLabOrders";
 import { LabPaymentDialog } from "./LabPaymentDialog";
+import { SampleRejectionDialog } from "./SampleRejectionDialog";
 import { useLabSettings } from "@/hooks/useLabSettings";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { useTranslation } from "@/lib/i18n";
 
 interface LabOrderCardProps {
   order: LabOrderWithItems;
@@ -39,7 +44,11 @@ const paymentStatusConfig = {
 
 export function LabOrderCard({ order, canCollectPayment, onPaymentComplete }: LabOrderCardProps) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [rejectionDialogOpen, setRejectionDialogOpen] = useState(false);
+  const [isRejecting, setIsRejecting] = useState(false);
   const { data: labSettings } = useLabSettings();
   
   const patient = order.patient;
@@ -66,6 +75,32 @@ export function LabOrderCard({ order, canCollectPayment, onPaymentComplete }: La
     if (order.status === "ordered" && isPaid) return "Enter Results";
     if (order.status === "cancelled") return "View Order";
     return "View Order";
+  };
+
+  const handleRejectSample = async (reason: string, notes: string) => {
+    setIsRejecting(true);
+    try {
+      // Reset order status back to "ordered"
+      await supabase
+        .from("lab_orders")
+        .update({ status: "ordered" as const, sample_number: null })
+        .eq("id", order.id);
+
+      // Reset all items to pending
+      await supabase
+        .from("lab_order_items")
+        .update({ status: "pending" as const })
+        .eq("lab_order_id", order.id);
+
+      queryClient.invalidateQueries({ queryKey: ["lab-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["lab-order"] });
+      toast.success(t("lab.sampleRejected" as any));
+      setRejectionDialogOpen(false);
+    } catch (error) {
+      toast.error(t("lab.sampleRejectionFailed" as any));
+    } finally {
+      setIsRejecting(false);
+    }
   };
 
   return (
@@ -141,6 +176,16 @@ export function LabOrderCard({ order, canCollectPayment, onPaymentComplete }: La
                   Collect Payment
                 </Button>
               )}
+              {order.status === "collected" && (
+                <Button
+                  variant="outline"
+                  onClick={() => setRejectionDialogOpen(true)}
+                  className="border-destructive/50 text-destructive hover:bg-destructive/10"
+                >
+                  <XCircle className="h-4 w-4 mr-2" />
+                  {t("lab.rejectSample" as any)}
+                </Button>
+              )}
               <Button
                 onClick={() => navigate(`/app/lab/orders/${order.id}`)}
                 disabled={!canProceed && order.status !== "completed" || order.status === "cancelled"}
@@ -160,7 +205,7 @@ export function LabOrderCard({ order, canCollectPayment, onPaymentComplete }: La
         orderId={order.id}
         orderNumber={order.order_number}
         invoiceId={order.invoice_id || ""}
-        totalAmount={0} // Will be fetched from invoice
+        totalAmount={0}
         paidAmount={0}
         patientName={`${patient?.first_name || ""} ${patient?.last_name || ""}`}
         testNames={order.items?.map((i) => i.test_name) || []}
@@ -168,6 +213,14 @@ export function LabOrderCard({ order, canCollectPayment, onPaymentComplete }: La
           setPaymentDialogOpen(false);
           onPaymentComplete?.();
         }}
+      />
+
+      <SampleRejectionDialog
+        open={rejectionDialogOpen}
+        onOpenChange={setRejectionDialogOpen}
+        orderNumber={order.order_number}
+        onReject={handleRejectSample}
+        isRejecting={isRejecting}
       />
     </>
   );
