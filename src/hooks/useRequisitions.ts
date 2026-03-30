@@ -9,7 +9,8 @@ type RequisitionStatus = Database["public"]["Enums"]["requisition_status"];
 export interface RequisitionItem {
   id?: string;
   requisition_id?: string;
-  item_id: string;
+  item_id?: string | null;
+  medicine_id?: string | null;
   quantity_requested: number;
   quantity_approved: number;
   quantity_issued: number;
@@ -20,6 +21,12 @@ export interface RequisitionItem {
     name: string;
     unit_of_measure: string;
   };
+  medicine?: {
+    id: string;
+    name: string;
+    generic_name: string | null;
+    dosage_form: string | null;
+  } | null;
 }
 
 export interface StockRequisition {
