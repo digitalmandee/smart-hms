@@ -250,3 +250,64 @@ export function useCreateDialysisSchedule() {
     onError: (e: any) => toast.error(e.message),
   });
 }
+
+// ── Dialysis Schedule Availability ──
+export function useDialysisScheduleAvailability(pattern: string, shift: string) {
+  const { profile } = useAuth();
+  return useQuery({
+    queryKey: ["dialysis-schedule-availability", profile?.organization_id, pattern, shift],
+    queryFn: async () => {
+      // Get existing schedules for this pattern+shift
+      const { data: schedules, error: schErr } = await supabase
+        .from("dialysis_schedules")
+        .select("*, dialysis_patients(*, patients(first_name, last_name, patient_number)), dialysis_machines(machine_number, chair_number)")
+        .eq("organization_id", profile!.organization_id!)
+        .eq("pattern", pattern)
+        .eq("shift", shift)
+        .eq("is_active", true);
+      if (schErr) throw schErr;
+
+      // Get all available machines
+      const { data: machines, error: mErr } = await supabase
+        .from("dialysis_machines")
+        .select("*")
+        .eq("organization_id", profile!.organization_id!)
+        .eq("is_active", true);
+      if (mErr) throw mErr;
+
+      const occupiedMachineIds = new Set((schedules || []).map((s: any) => s.machine_id).filter(Boolean));
+      const occupiedChairs = new Set((schedules || []).map((s: any) => s.chair_number).filter(Boolean));
+      const availableMachines = (machines || []).filter((m: any) => !occupiedMachineIds.has(m.id) && m.status === "available");
+
+      return {
+        occupied: schedules || [],
+        availableMachines,
+        allMachines: machines || [],
+        occupiedChairs: Array.from(occupiedChairs),
+        totalCapacity: machines?.length || 0,
+        usedCount: schedules?.length || 0,
+      };
+    },
+    enabled: !!profile?.organization_id && !!pattern && !!shift,
+  });
+}
+
+// ── Check if patient is enrolled in dialysis ──
+export function useDialysisPatientByPatientId(patientId: string | undefined) {
+  const { profile } = useAuth();
+  return useQuery({
+    queryKey: ["dialysis-patient-by-patient-id", patientId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("dialysis_patients")
+        .select("*, patients(first_name, last_name, patient_number)")
+        .eq("organization_id", profile!.organization_id!)
+        .eq("patient_id", patientId!)
+        .eq("is_active", true)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!profile?.organization_id && !!patientId,
+  });
+}
