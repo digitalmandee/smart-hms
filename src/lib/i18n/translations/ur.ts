@@ -3022,5 +3022,26 @@ export const ur: Record<TranslationKey, string> = {
   "tb.credit": "کریڈٹ",
   "tb.noAccounts": "کوئی اکاؤنٹ نہیں ملا",
 
+  // AR Reconciliation
+  "recon.title": "اے آر مصالحت",
+  "recon.description": "جرنل بمقابلہ اکاؤنٹ بیلنس تصدیق",
+  "recon.totalAccounts": "کل اکاؤنٹس",
+  "recon.matched": "مماثل",
+  "recon.mismatched": "غیر مماثل",
+  "recon.totalVariance": "کل فرق",
+  "recon.computedBalance": "حساب شدہ بیلنس",
+  "recon.storedBalance": "محفوظ بیلنس",
+  "recon.variance": "فرق",
+  "recon.status": "حالت",
+  "recon.accountNumber": "اکاؤنٹ نمبر",
+  "recon.accountName": "اکاؤنٹ کا نام",
+  "recon.category": "زمرہ",
+  "recon.openingBalance": "ابتدائی بیلنس",
+  "recon.totalDebits": "کل ڈیبٹ",
+  "recon.totalCredits": "کل کریڈٹ",
+  "recon.allReconciled": "تمام اکاؤنٹس مصالحت شدہ",
+  "recon.allReconciledDesc": "تمام جرنل ٹوٹلز محفوظ اکاؤنٹ بیلنس سے ملتے ہیں — کوئی فرق نہیں ملا۔",
+  "recon.refresh": "تازہ کریں",
+
 };
 

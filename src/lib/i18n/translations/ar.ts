@@ -3022,5 +3022,26 @@ export const ar: Record<TranslationKey, string> = {
   "tb.credit": "دائن",
   "tb.noAccounts": "لا توجد حسابات",
 
+  // AR Reconciliation
+  "recon.title": "تسوية الحسابات",
+  "recon.description": "التحقق من أرصدة القيود مقابل أرصدة الحسابات",
+  "recon.totalAccounts": "إجمالي الحسابات",
+  "recon.matched": "متطابق",
+  "recon.mismatched": "غير متطابق",
+  "recon.totalVariance": "إجمالي الفروقات",
+  "recon.computedBalance": "الرصيد المحسوب",
+  "recon.storedBalance": "الرصيد المخزن",
+  "recon.variance": "الفرق",
+  "recon.status": "الحالة",
+  "recon.accountNumber": "رقم الحساب",
+  "recon.accountName": "اسم الحساب",
+  "recon.category": "الفئة",
+  "recon.openingBalance": "الرصيد الافتتاحي",
+  "recon.totalDebits": "إجمالي المدين",
+  "recon.totalCredits": "إجمالي الدائن",
+  "recon.allReconciled": "جميع الحسابات متسقة",
+  "recon.allReconciledDesc": "جميع إجماليات القيود تطابق أرصدة الحسابات المخزنة — لا توجد فروقات.",
+  "recon.refresh": "تحديث",
+
 };
 
