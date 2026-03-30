@@ -154,9 +154,12 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
           { name: "Stock Levels", path: "/app/inventory/stock", icon: "ListTree" },
           { name: "Categories", path: "/app/inventory/categories", icon: "FolderTree" },
           { name: "Vendors", path: "/app/inventory/vendors", icon: "Store" },
+          { name: "Requisitions", path: "/app/inventory/requisitions", icon: "FileText" },
+          { name: "Purchase Requests", path: "/app/inventory/purchase-requests", icon: "FileInput" },
           { name: "Purchase Orders", path: "/app/inventory/purchase-orders", icon: "FileEdit" },
           { name: "GRN", path: "/app/inventory/grn", icon: "PackageCheck" },
-          { name: "Requisitions", path: "/app/inventory/requisitions", icon: "FileText" },
+          { name: "Stock Adjustments", path: "/app/inventory/adjustments", icon: "SlidersHorizontal" },
+          { name: "Reorder Alerts", path: "/app/inventory/reorder-alerts", icon: "AlertTriangle" },
           { name: "Reports", path: "/app/inventory/reports", icon: "BarChart3" },
         ]
       },

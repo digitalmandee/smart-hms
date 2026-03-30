@@ -35,12 +35,14 @@ import { ArrowLeft, Save, Plus, Trash2, Package, Loader2 } from "lucide-react";
 import { useInventoryItems } from "@/hooks/useInventory";
 import { useCreateRequisition, RequisitionItem } from "@/hooks/useRequisitions";
 import { useBranches } from "@/hooks/useBranches";
+import { useDepartmentsConfig } from "@/hooks/useDepartments";
 import { StoreSelector } from "@/components/inventory/StoreSelector";
 import { useAuth } from "@/contexts/AuthContext";
 import { format, addDays } from "date-fns";
 
 const formSchema = z.object({
   branch_id: z.string().min(1, "Branch is required"),
+  department_id: z.string().optional(),
   from_store_id: z.string().optional(),
   required_date: z.string().min(1, "Required date is required"),
   priority: z.coerce.number(),
@@ -60,6 +62,7 @@ export default function RequisitionFormPage() {
   const navigate = useNavigate();
   const { profile } = useAuth();
   const { data: branches } = useBranches();
+  const { data: departments } = useDepartmentsConfig();
   const { data: items } = useInventoryItems();
   const createRequisition = useCreateRequisition();
 
@@ -69,6 +72,7 @@ export default function RequisitionFormPage() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       branch_id: profile?.branch_id || "",
+      department_id: "",
       from_store_id: "",
       required_date: format(addDays(new Date(), 3), "yyyy-MM-dd"),
       priority: 1,
@@ -135,6 +139,7 @@ export default function RequisitionFormPage() {
 
       await createRequisition.mutateAsync({
         branch_id: values.branch_id,
+        department_id: values.department_id || undefined,
         from_store_id: values.from_store_id || undefined,
         required_date: values.required_date,
         priority: values.priority,
@@ -182,6 +187,31 @@ export default function RequisitionFormPage() {
                         {branches?.map((branch) => (
                           <SelectItem key={branch.id} value={branch.id}>
                             {branch.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="department_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Department</FormLabel>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select department" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {departments?.map((dept) => (
+                          <SelectItem key={dept.id} value={dept.id}>
+                            {dept.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
