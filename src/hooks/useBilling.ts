@@ -604,6 +604,7 @@ export function useRecordPayment() {
         .from("invoices")
         .update({
           paid_amount: newPaidAmount,
+          balance_amount: Math.max(0, totalAmount - newPaidAmount),
           status: newStatus,
         })
         .eq("id", invoiceId);
