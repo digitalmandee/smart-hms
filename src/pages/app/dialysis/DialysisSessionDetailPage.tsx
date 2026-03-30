@@ -26,6 +26,8 @@ export default function DialysisSessionDetailPage() {
   const { data: vitals } = useDialysisVitals(id);
   const addVitals = useAddDialysisVitals();
   const updateSession = useUpdateDialysisSession();
+  const { data: servicePrice } = useDialysisServicePrice();
+  const generateInvoice = useGenerateDialysisInvoice();
 
   // Role checks
   const isNurseRole = roles.some(r => ["nurse", "opd_nurse", "ipd_nurse", "ot_nurse"].includes(r));
