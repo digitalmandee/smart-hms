@@ -195,7 +195,8 @@ export default function BloodBankDashboard() {
               <div className="p-1.5 rounded-lg bg-warning/10">
                 <FileText className="h-4 w-4 text-warning" />
               </div>
-              Pending Blood Requests
+              {t("bloodBank.pendingBloodRequests" as any)}
+            </CardTitle>
             </CardTitle>
             <Button variant="ghost" size="sm" onClick={() => navigate('/app/blood-bank/requests')}>
               View All <ArrowRight className="h-4 w-4 ml-1" />
