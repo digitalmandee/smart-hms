@@ -77,6 +77,32 @@ export function LabOrderCard({ order, canCollectPayment, onPaymentComplete }: La
     return "View Order";
   };
 
+  const handleRejectSample = async (reason: string, notes: string) => {
+    setIsRejecting(true);
+    try {
+      // Reset order status back to "ordered"
+      await supabase
+        .from("lab_orders")
+        .update({ status: "ordered" as const, sample_number: null })
+        .eq("id", order.id);
+
+      // Reset all items to pending
+      await supabase
+        .from("lab_order_items")
+        .update({ status: "pending" as const })
+        .eq("lab_order_id", order.id);
+
+      queryClient.invalidateQueries({ queryKey: ["lab-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["lab-order"] });
+      toast.success(t("lab.sampleRejected" as any));
+      setRejectionDialogOpen(false);
+    } catch (error) {
+      toast.error(t("lab.sampleRejectionFailed" as any));
+    } finally {
+      setIsRejecting(false);
+    }
+  };
+
   return (
     <>
       <Card className={cn(
