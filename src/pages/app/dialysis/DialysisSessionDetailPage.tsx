@@ -75,7 +75,7 @@ export default function DialysisSessionDetailPage() {
   const canRecordVitals = isNurseRole || isAdminRole;
   const canWriteDoctorNotes = isDoctorRole || isAdminRole;
   const canAssignStaff = isDoctorRole || isAdminRole;
-  const canStartComplete = isNurseRole || isAdminRole;
+  const canStartComplete = isNurseRole || isDoctorRole || isAdminRole;
 
   const { data: doctors } = useQuery({
     queryKey: ["doctors-list", profile?.organization_id],
