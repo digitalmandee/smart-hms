@@ -143,7 +143,38 @@ export default function DialysisSessionDetailPage() {
     if (postForm.doctor_notes) payload.doctor_notes = postForm.doctor_notes;
     if (postForm.nursing_notes) payload.nursing_notes = postForm.nursing_notes;
     if (postForm.complications) payload.complications = postForm.complications;
-    updateSession.mutate(payload);
+    updateSession.mutate(payload, {
+      onSuccess: () => {
+        // Auto-generate invoice after completion
+        const fee = servicePrice?.default_price || 8000;
+        const consumables: { description: string; amount: number }[] = [];
+        if ((session as any).dialyzer_type) {
+          consumables.push({ description: `Dialyzer: ${(session as any).dialyzer_type}`, amount: 500 });
+        }
+        generateInvoice.mutate({
+          sessionId: id!,
+          patientId: patient?.id || session.dialysis_patients?.patient_id,
+          sessionNumber: session.session_number,
+          sessionFee: fee,
+          consumablesCharges: consumables,
+        });
+      },
+    });
+  };
+
+  const handleGenerateInvoiceRetro = () => {
+    const fee = servicePrice?.default_price || 8000;
+    const consumables: { description: string; amount: number }[] = [];
+    if ((session as any).dialyzer_type) {
+      consumables.push({ description: `Dialyzer: ${(session as any).dialyzer_type}`, amount: 500 });
+    }
+    generateInvoice.mutate({
+      sessionId: id!,
+      patientId: patient?.id || session.dialysis_patients?.patient_id,
+      sessionNumber: session.session_number,
+      sessionFee: fee,
+      consumablesCharges: consumables,
+    });
   };
 
   const handleCancelOrNoShow = (status: "cancelled" | "no_show") => {
