@@ -1,54 +1,68 @@
 
 
-# Fix Procurement Flow: Missing Menu Items & Requisition Submission
+# Fix Procurement Flow: Remove PO from Pharmacy, Complete Requisition-Based Workflow
 
-## Problems Found
+## Problem
 
-1. **Purchase Requests missing from branch_admin sidebar** — The Inventory section has Purchase Orders, GRN, Requisitions but NO "Purchase Requests" link. The full procurement chain is: **Requisition → Purchase Request → Purchase Order → GRN → Stock**. Without PR in the menu, the flow is broken.
+1. **Pharmacy has direct PO creation** — pharmacists should NOT create POs. The correct flow is:
+   - Pharmacy submits a **Requisition** (requesting stock)
+   - Branch admin/accounts **approves** the requisition
+   - Accounts/procurement creates a **PO from the approved requisition**
+   - Vendor delivers → **GRN** is created
+   - Stock is updated in inventory
+   - Pharmacy receives notification and **accepts/declines** the received stock
 
-2. **Requisition "Submit for Approval" works but is buried** — The detail page has a "Submit for Approval" button when status is `draft`, and the hooks (`useSubmitRequisition`) exist. The flow works: create requisition (draft) → submit (pending) → approve → issue stock. But users may not know to click into the detail page to submit.
+2. **PO creation may be broken** — form ref warnings in console, but the deeper issue is that PO shouldn't be on the pharmacy side at all.
 
-3. **No "Purchase Requests" in branch_admin Inventory section** — line 147-161 shows Inventory children missing Purchase Requests entirely.
-
-4. **Stock Adjustments and Reorder Alerts missing from branch_admin** — These exist as pages but aren't in the sidebar.
-
-5. **Requisition Form creates as "draft" but no department selector** — The form has no `department_id` field, so requisitions lack department context.
+3. **Missing links in the chain** — no "Convert Requisition to PO" button on the requisition detail page for accounts/admin, and no acceptance step for pharmacy after GRN.
 
 ## Changes
 
-### 1. Add missing menu items to branch_admin Inventory sidebar
-**File: `src/config/role-sidebars.ts`** (lines 147-161)
+### 1. Remove PO/GRN from pharmacist sidebar, keep only Requisitions
+**File: `src/config/role-sidebars.ts`**
 
-Add to Inventory children:
-- `Purchase Requests` → `/app/inventory/purchase-requests`
-- `Reorder Alerts` → `/app/inventory/reorder-alerts`
-- `Stock Adjustments` → `/app/inventory/adjustments`
+Replace the pharmacist "Procurement" section:
+- Remove "Purchase Orders" and "GRN" links
+- Replace with "Requisitions" → `/app/inventory/requisitions` and "New Requisition" → `/app/inventory/requisitions/new`
+- This forces pharmacists to use the proper requisition flow
 
-Reorder so the procurement chain is logical: Dashboard → Items → Stock Levels → Categories → Vendors → **Purchase Requests** → Purchase Orders → GRN → Requisitions → **Stock Adjustments** → **Reorder Alerts** → Reports
+### 2. Add "Convert to PO" action on Requisition Detail page (for admin/accounts)
+**File: `src/pages/app/inventory/RequisitionDetailPage.tsx`**
 
-### 2. Add department selector to RequisitionFormPage
-**File: `src/pages/app/inventory/RequisitionFormPage.tsx`**
+- When requisition status is `approved`, show a "Create PO from Requisition" button (visible to branch_admin, org_admin, accountant roles only)
+- On click, navigate to `/app/inventory/purchase-orders/new?from_requisition={id}` pre-filling items from the approved requisition
 
-- Add `useDepartments()` hook import
-- Add `department_id` to form schema
-- Add department dropdown in the form grid
-- Pass `department_id` to `createRequisition.mutateAsync()`
+### 3. Update POFormPage to accept `from_requisition` param
+**File: `src/pages/app/inventory/POFormPage.tsx`**
 
-### 3. Add "Submit" action to RequisitionsListPage
-**File: `src/pages/app/inventory/RequisitionsListPage.tsx`**
+- Already supports `from_pr` (purchase request). Add `from_requisition` param that reads from `stock_requisitions` + `requisition_items` and pre-fills the PO form with those items.
 
-Add an Actions column to the table with:
-- "Submit" button for `draft` status rows (calls `useSubmitRequisition`)
-- "View" link for all rows
+### 4. Add pharmacy stock acceptance flow after GRN
+**File: New `src/components/inventory/RequisitionAcceptanceDialog.tsx`**
 
-### 4. Add i18n keys
+- After GRN is completed for items linked to a requisition, pharmacy users see a notification on their requisition detail
+- Simple "Accept" / "Decline" buttons that update requisition status to `received` or `disputed`
+- This closes the loop for the pharmacist
+
+### 5. Add requisition status for received/disputed
+**Migration**: Add `received` and `disputed` to the `requisition_status` enum if not already present.
+
+### 6. i18n updates
 **Files: `en.ts`, `ar.ts`, `ur.ts`**
 
-New keys for: "Purchase Requests", "Reorder Alerts", "Stock Adjustments", "Submit", "Department"
+New keys: "Create PO from Requisition", "Accept Stock", "Decline Stock", "Stock Received", "Disputed", "New Requisition"
+
+## Technical Details
+
+- The `useRequisitions` hook already has all CRUD operations including approve, reject, issue stock
+- The `useCreatePurchaseOrder` hook works and can be pre-filled from requisition items
+- `requisition_items` have `item_id` referencing `inventory_items`, which maps to PO item's `item_id`
+- The `RequisitionsListPage` already has a Submit button for draft requisitions
 
 ## Files Changed
-- `src/config/role-sidebars.ts` — add missing Inventory menu items for branch_admin
-- `src/pages/app/inventory/RequisitionFormPage.tsx` — add department selector
-- `src/pages/app/inventory/RequisitionsListPage.tsx` — add Actions column with Submit button
+- `src/config/role-sidebars.ts` — replace pharmacist Procurement section with Requisitions only
+- `src/pages/app/inventory/RequisitionDetailPage.tsx` — add "Create PO" button for admin roles on approved requisitions, add accept/decline for pharmacy roles
+- `src/pages/app/inventory/POFormPage.tsx` — support `from_requisition` search param
+- Migration — add `received`, `disputed` to `requisition_status` enum
 - `src/lib/i18n/translations/en.ts`, `ar.ts`, `ur.ts` — new keys
 
