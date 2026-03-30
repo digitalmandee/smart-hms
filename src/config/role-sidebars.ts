@@ -527,6 +527,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
           { name: "Schedule", path: "/app/dialysis/schedule", icon: "Calendar" },
           { name: "New Schedule", path: "/app/dialysis/schedule/new", icon: "CalendarPlus" },
           { name: "Sessions", path: "/app/dialysis/sessions", icon: "ClipboardList" },
+          { name: "Machines", path: "/app/dialysis/machines", icon: "Monitor" },
         ]
       },
       {

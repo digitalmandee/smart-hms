@@ -221,11 +221,11 @@ export default function DialysisNewSessionPage() {
             </CardHeader>
             <CardContent className="space-y-2">
               <div className="flex items-center gap-2 text-xs mb-3">
-                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                  {availableMachines.length} {t("dialysis.available", "Available")}
+                <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+                  {availableMachines.length} {t("dialysis.available")}
                 </Badge>
-                <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
-                  {occupiedMachines.length} {t("dialysis.occupied", "Occupied")}
+                <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/20">
+                  {occupiedMachines.length} {t("dialysis.occupied")}
                 </Badge>
               </div>
 
