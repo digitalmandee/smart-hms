@@ -394,7 +394,17 @@ export const PrintableLabReport = forwardRef<HTMLDivElement, PrintableLabReportP
       return false;
     };
 
+    const isValueCritical = (field: TemplateField, value: string | number): boolean => {
+      if (field.type === "text" || !value) return false;
+      const numValue = typeof value === "string" ? parseFloat(value) : value;
+      if (isNaN(numValue)) return false;
+      if (field.critical_min != null && numValue < field.critical_min) return true;
+      if (field.critical_max != null && numValue > field.critical_max) return true;
+      return false;
+    };
+
     const getAbnormalIndicator = (field: TemplateField, value: string | number): string => {
+      if (isValueCritical(field, value)) return "C";
       if (!isValueAbnormal(field, value)) return "";
       const numValue = typeof value === "string" ? parseFloat(value) : value;
       if (field.normal_min !== null && numValue < field.normal_min) return "L";
