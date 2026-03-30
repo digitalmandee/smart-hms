@@ -188,12 +188,13 @@ export function useDailyClosingSummary(date?: string) {
       const endOfDay = `${targetDate}T23:59:59`;
 
       // Fetch all data in parallel
-      const [sessions, paymentsRaw, invoices, paymentMethods, invoiceItems] = await Promise.all([
+      const [sessions, paymentsRaw, invoices, paymentMethods, invoiceItems, expensesRaw] = await Promise.all([
         fetchSessionsForDate(branchId, startOfDay, endOfDay),
         fetchPaymentsForDate(branchId, startOfDay, endOfDay),
         fetchInvoicesForDate(branchId, startOfDay, endOfDay),
         fetchPaymentMethods(),
         fetchInvoiceItemsForDate(branchId, startOfDay, endOfDay),
+        fetchExpensesForDate(branchId, startOfDay, endOfDay),
       ]);
       
       const methodMap = new Map(paymentMethods.map((m: any) => [m.id, m.name?.toLowerCase() || '']));
