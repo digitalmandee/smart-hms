@@ -9,7 +9,8 @@ type RequisitionStatus = Database["public"]["Enums"]["requisition_status"];
 export interface RequisitionItem {
   id?: string;
   requisition_id?: string;
-  item_id: string;
+  item_id?: string | null;
+  medicine_id?: string | null;
   quantity_requested: number;
   quantity_approved: number;
   quantity_issued: number;
@@ -20,6 +21,13 @@ export interface RequisitionItem {
     name: string;
     unit_of_measure: string;
   };
+  medicine?: {
+    id: string;
+    name: string;
+    generic_name: string | null;
+    strength: string | null;
+    unit: string | null;
+  } | null;
 }
 
 export interface StockRequisition {
@@ -125,7 +133,8 @@ export function useRequisition(id: string) {
         .from("requisition_items")
         .select(`
           *,
-          item:inventory_items(id, item_code, name, unit_of_measure)
+          item:inventory_items(id, item_code, name, unit_of_measure),
+          medicine:medicines(id, name, generic_name, strength, unit)
         `)
         .eq("requisition_id", id);
       
@@ -173,7 +182,8 @@ export function useCreateRequisition() {
       // Create items
       const itemsToInsert = data.items.map(item => ({
         requisition_id: req.id,
-        item_id: item.item_id,
+        item_id: item.item_id || null,
+        medicine_id: item.medicine_id || null,
         quantity_requested: item.quantity_requested,
         quantity_approved: 0,
         quantity_issued: 0,

@@ -20565,7 +20565,8 @@ export type Database = {
         Row: {
           created_at: string
           id: string
-          item_id: string
+          item_id: string | null
+          medicine_id: string | null
           notes: string | null
           quantity_approved: number
           quantity_issued: number
@@ -20575,7 +20576,8 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
-          item_id: string
+          item_id?: string | null
+          medicine_id?: string | null
           notes?: string | null
           quantity_approved?: number
           quantity_issued?: number
@@ -20585,7 +20587,8 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
-          item_id?: string
+          item_id?: string | null
+          medicine_id?: string | null
           notes?: string | null
           quantity_approved?: number
           quantity_issued?: number
@@ -20598,6 +20601,13 @@ export type Database = {
             columns: ["item_id"]
             isOneToOne: false
             referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "requisition_items_medicine_id_fkey"
+            columns: ["medicine_id"]
+            isOneToOne: false
+            referencedRelation: "medicines"
             referencedColumns: ["id"]
           },
           {

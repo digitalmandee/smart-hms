@@ -30,15 +30,30 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { PageHeader } from "@/components/PageHeader";
-import { ArrowLeft, Save, Plus, Trash2, Package, Loader2 } from "lucide-react";
+import { ArrowLeft, Save, Plus, Trash2, Package, Loader2, ChevronsUpDown, Check } from "lucide-react";
 import { useInventoryItems } from "@/hooks/useInventory";
 import { useCreateRequisition, RequisitionItem } from "@/hooks/useRequisitions";
 import { useBranches } from "@/hooks/useBranches";
 import { useDepartmentsConfig } from "@/hooks/useDepartments";
+import { useMedicines } from "@/hooks/useMedicines";
 import { StoreSelector } from "@/components/inventory/StoreSelector";
 import { useAuth } from "@/contexts/AuthContext";
 import { format, addDays } from "date-fns";
+import { cn } from "@/lib/utils";
 
 const formSchema = z.object({
   branch_id: z.string().min(1, "Branch is required"),
@@ -52,6 +67,7 @@ const formSchema = z.object({
 interface LocalRequisitionItem {
   id: string;
   item_id: string;
+  medicine_id: string;
   item_name: string;
   quantity_requested: number;
   unit_of_measure: string;
@@ -60,13 +76,18 @@ interface LocalRequisitionItem {
 
 export default function RequisitionFormPage() {
   const navigate = useNavigate();
-  const { profile } = useAuth();
+  const { profile, roles } = useAuth();
   const { data: branches } = useBranches();
   const { data: departments } = useDepartmentsConfig();
   const { data: items } = useInventoryItems();
   const createRequisition = useCreateRequisition();
 
+  const isPharmacist = roles.includes("pharmacist" as any);
+  const [medicineSearch, setMedicineSearch] = useState("");
+  const { data: medicines } = useMedicines(medicineSearch);
+
   const [requisitionItems, setRequisitionItems] = useState<LocalRequisitionItem[]>([]);
+  const [openPopoverId, setOpenPopoverId] = useState<string | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -86,6 +107,7 @@ export default function RequisitionFormPage() {
       {
         id: crypto.randomUUID(),
         item_id: "",
+        medicine_id: "",
         item_name: "",
         quantity_requested: 1,
         unit_of_measure: "",
@@ -103,7 +125,7 @@ export default function RequisitionFormPage() {
       prev.map((item) => {
         if (item.id !== id) return item;
 
-        if (field === "item_id") {
+        if (field === "item_id" && !isPharmacist) {
           const selectedItem = items?.find((i) => i.id === value);
           return {
             ...item,
@@ -113,24 +135,33 @@ export default function RequisitionFormPage() {
           };
         }
 
+        if (field === "medicine_id" && isPharmacist) {
+          const selectedMedicine = medicines?.find((m) => m.id === value);
+          return {
+            ...item,
+            medicine_id: value as string,
+            item_name: selectedMedicine?.name || "",
+            unit_of_measure: selectedMedicine?.unit || selectedMedicine?.strength || "",
+          };
+        }
+
         return { ...item, [field]: value };
       })
     );
   };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    if (requisitionItems.length === 0) {
-      return;
-    }
+    if (requisitionItems.length === 0) return;
 
-    const validItems = requisitionItems.filter((i) => i.item_id && i.quantity_requested > 0);
-    if (validItems.length === 0) {
-      return;
-    }
+    const validItems = requisitionItems.filter((i) =>
+      isPharmacist ? i.medicine_id && i.quantity_requested > 0 : i.item_id && i.quantity_requested > 0
+    );
+    if (validItems.length === 0) return;
 
     try {
       const itemsToSubmit: RequisitionItem[] = validItems.map((item) => ({
-        item_id: item.item_id,
+        item_id: isPharmacist ? null : item.item_id,
+        medicine_id: isPharmacist ? item.medicine_id : null,
         quantity_requested: item.quantity_requested,
         quantity_approved: 0,
         quantity_issued: 0,
@@ -221,25 +252,27 @@ export default function RequisitionFormPage() {
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="from_store_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>From Warehouse</FormLabel>
-                    <FormControl>
-                      <StoreSelector
-                        branchId={form.watch("branch_id") || undefined}
-                        value={field.value || "all"}
-                        onChange={(v) => field.onChange(v === "all" ? "" : v)}
-                        showAll
-                        placeholder="Select warehouse"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {!isPharmacist && (
+                <FormField
+                  control={form.control}
+                  name="from_store_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>From Warehouse</FormLabel>
+                      <FormControl>
+                        <StoreSelector
+                          branchId={form.watch("branch_id") || undefined}
+                          value={field.value || "all"}
+                          onChange={(v) => field.onChange(v === "all" ? "" : v)}
+                          showAll
+                          placeholder="Select warehouse"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
 
               <FormField
                 control={form.control}
@@ -286,11 +319,11 @@ export default function RequisitionFormPage() {
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="flex items-center gap-2">
                 <Package className="h-5 w-5" />
-                Requested Items
+                {isPharmacist ? "Requested Medicines" : "Requested Items"}
               </CardTitle>
               <Button type="button" variant="outline" size="sm" onClick={addItem}>
                 <Plus className="mr-2 h-4 w-4" />
-                Add Item
+                {isPharmacist ? "Add Medicine" : "Add Item"}
               </Button>
             </CardHeader>
             <CardContent>
@@ -298,9 +331,9 @@ export default function RequisitionFormPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-[300px]">Item *</TableHead>
+                      <TableHead className="w-[300px]">{isPharmacist ? "Medicine *" : "Item *"}</TableHead>
                       <TableHead className="w-32">Quantity *</TableHead>
-                      <TableHead className="w-24">Unit</TableHead>
+                      <TableHead className="w-24">{isPharmacist ? "Form" : "Unit"}</TableHead>
                       <TableHead>Notes</TableHead>
                       <TableHead className="w-16"></TableHead>
                     </TableRow>
@@ -309,21 +342,76 @@ export default function RequisitionFormPage() {
                     {requisitionItems.map((item) => (
                       <TableRow key={item.id}>
                         <TableCell>
-                          <Select
-                            value={item.item_id}
-                            onValueChange={(v) => updateItem(item.id, "item_id", v)}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select item" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {items?.map((inv) => (
-                                <SelectItem key={inv.id} value={inv.id}>
-                                  {inv.item_code} - {inv.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          {isPharmacist ? (
+                            <Popover
+                              open={openPopoverId === item.id}
+                              onOpenChange={(open) => setOpenPopoverId(open ? item.id : null)}
+                            >
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  role="combobox"
+                                  className="w-full justify-between font-normal"
+                                >
+                                  {item.item_name || "Select medicine..."}
+                                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-[300px] p-0">
+                                <Command>
+                                  <CommandInput
+                                    placeholder="Search medicine..."
+                                    value={medicineSearch}
+                                    onValueChange={setMedicineSearch}
+                                  />
+                                  <CommandList>
+                                    <CommandEmpty>No medicine found.</CommandEmpty>
+                                    <CommandGroup>
+                                      {medicines?.map((med) => (
+                                        <CommandItem
+                                          key={med.id}
+                                          value={med.name}
+                                          onSelect={() => {
+                                            updateItem(item.id, "medicine_id", med.id);
+                                            setOpenPopoverId(null);
+                                          }}
+                                        >
+                                          <Check
+                                            className={cn(
+                                              "mr-2 h-4 w-4",
+                                              item.medicine_id === med.id ? "opacity-100" : "opacity-0"
+                                            )}
+                                          />
+                                          <div>
+                                            <p>{med.name}</p>
+                                            {med.generic_name && (
+                                              <p className="text-xs text-muted-foreground">{med.generic_name}</p>
+                                            )}
+                                          </div>
+                                        </CommandItem>
+                                      ))}
+                                    </CommandGroup>
+                                  </CommandList>
+                                </Command>
+                              </PopoverContent>
+                            </Popover>
+                          ) : (
+                            <Select
+                              value={item.item_id}
+                              onValueChange={(v) => updateItem(item.id, "item_id", v)}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select item" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {items?.map((inv) => (
+                                  <SelectItem key={inv.id} value={inv.id}>
+                                    {inv.item_code} - {inv.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          )}
                         </TableCell>
                         <TableCell>
                           <Input
@@ -364,7 +452,7 @@ export default function RequisitionFormPage() {
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
                   <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>No items added. Click "Add Item" to start.</p>
+                  <p>No items added. Click "{isPharmacist ? "Add Medicine" : "Add Item"}" to start.</p>
                 </div>
               )}
             </CardContent>
