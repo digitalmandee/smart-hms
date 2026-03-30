@@ -1,62 +1,53 @@
 
 
-# Pharmacy Queue: OPD/IPD Orders — Current State & Gaps
+# Fix: Admin Missing Inventory/Procurement Menu + Pharmacy Requisition Uses Medicines
 
-## What Already Works
+## Problems Found
 
-1. **Prescription Queue** — `usePrescriptionQueue` fetches ALL prescriptions with status `created`/`partially_dispensed` from the branch. Both OPD and IPD prescriptions appear here since they're all in the same `prescriptions` table.
+### Problem 1: Inventory module missing from `available_modules`
+The `menu_items` table has inventory items with `required_module: 'inventory'`, but **no `inventory` module exists in the `available_modules` table**. This means it can never be enabled in `organization_modules`, so the `canViewItem` filter in `useMenuItems.ts` hides ALL inventory menu items for `branch_admin`.
 
-2. **Dispensing Flow** — `useDispensePrescription` already:
-   - Checks if the patient has an active admission (IPD)
-   - Deducts inventory stock
-   - Creates `ipd_charges` for admitted patients automatically
-   - For OPD patients, just dispenses normally (charges go through OPD checkout)
+Similarly, `warehouse`, `dialysis`, `requisitions` modules referenced in menu_items don't exist in `available_modules`.
 
-3. **OPD Checkout** — `OPDCheckoutPage` fetches prescriptions linked to the consultation and includes pharmacy charges in the final bill.
+### Problem 2: Permission code mismatches
+Menu items require `inventory.po.view` but `branch_admin` has `inventory.po`. The `hasPermission` function does exact string matching, so these don't match.
 
-4. **IPD Billing** — IPD charges are auto-created when dispensing to admitted patients.
+### Problem 3: Pharmacy requisition uses inventory items instead of medicines
+The `RequisitionFormPage.tsx` uses `useInventoryItems()` for item selection. Pharmacists should select from the `medicines` table instead. This was the previously approved but not yet implemented plan.
 
-## What's Missing
+## Solution
 
-1. **No OPD/IPD source badge** — The prescription queue doesn't show whether an order is OPD or IPD. Pharmacist has no visual way to know the source.
+### 1. Migration: Add missing modules to `available_modules`
+Insert `inventory`, `warehouse`, `dialysis`, `requisitions` into `available_modules` with appropriate metadata.
 
-2. **No admission/ward info in queue** — For IPD prescriptions, pharmacy should see bed/ward so they can deliver meds to the right place.
+### 2. Migration: Enable inventory module for all existing organizations
+Insert `inventory` into `organization_modules` for all existing orgs with `is_enabled: true`.
 
-3. **No filter by source** — Can't filter queue by OPD vs IPD orders.
+### 3. Migration: Fix permission code mismatches
+Either update the `menu_items` required_permission to match existing permission codes, OR add the missing permission codes. Simpler to update menu_items:
+- `inventory.po.view` → `inventory.po`
+- Check and fix any other mismatches
 
-4. **No priority indicator** — IPD urgent orders look the same as routine OPD prescriptions.
+### 4. Migration: Add `medicine_id` to `requisition_items`
+- Make `item_id` nullable
+- Add `medicine_id UUID REFERENCES medicines(id)`
 
-## Plan
+### 5. Update RequisitionFormPage for pharmacy role detection
+- Detect if user is pharmacist
+- Show medicine search (from `useMedicines`) instead of inventory items dropdown
+- Pass `medicine_id` instead of `item_id` when pharmacist
 
-### 1. Add OPD/IPD source badge to Prescription Queue
-**File: `src/pages/app/pharmacy/PrescriptionQueuePage.tsx`**
-- Add a "Source" column after the patient column
-- Query active admissions for each patient to determine if they're IPD
-- Show badge: **OPD** (blue) or **IPD** (orange) with ward/bed info for IPD patients
+### 6. Update RequisitionDetailPage to show medicine names
+- Join `medicines` table when `medicine_id` is set
 
-### 2. Add source detection to `usePrescriptionQueue`
-**File: `src/hooks/usePharmacy.ts`**
-- After fetching prescriptions, batch-query `admissions` table for all patient IDs with `status = 'admitted'`
-- Merge admission info (ward, bed) into each prescription queue item
-- Add `source: 'opd' | 'ipd'` and optional `admission?: { ward, bed }` to `PrescriptionQueueItem`
-
-### 3. Add source filter to queue page
-**File: `src/pages/app/pharmacy/PrescriptionQueuePage.tsx`**
-- Add a third filter dropdown: "All Sources" / "OPD Only" / "IPD Only"
-- Filter the queue based on the `source` field
-
-### 4. Show ward/bed delivery info on Dispensing Page
-**File: `src/pages/app/pharmacy/DispensingPage.tsx`**
-- Already has `usePatientActiveAdmission` — just needs to display ward/bed prominently in the header when patient is IPD
-- Add "IPD Patient — Ward: X, Bed: Y" banner at top
-
-### 5. i18n updates
-**Files: `en.ts`, `ar.ts`, `ur.ts`**
-- Keys: "Source", "OPD", "IPD", "All Sources", "OPD Only", "IPD Only", "Ward", "Bed", "Deliver to Ward"
+### 7. i18n updates
+New keys: "Select Medicine", "Medicine", "Search medicines..." in en/ar/ur
 
 ## Files Changed
-- `src/hooks/usePharmacy.ts` — add admission lookup to queue, extend `PrescriptionQueueItem` type
-- `src/pages/app/pharmacy/PrescriptionQueuePage.tsx` — source column, source filter
-- `src/pages/app/pharmacy/DispensingPage.tsx` — IPD delivery banner
+- 1 migration: add `inventory`, `warehouse`, `dialysis` to `available_modules`; enable for all orgs; fix permission mismatches in `menu_items`
+- 1 migration: add `medicine_id` to `requisition_items`, make `item_id` nullable
+- `src/pages/app/inventory/RequisitionFormPage.tsx` — role-based item selector (medicines vs inventory)
+- `src/hooks/useRequisitions.ts` — extend `RequisitionItem` to support `medicine_id`
+- `src/pages/app/inventory/RequisitionDetailPage.tsx` — show medicine name when applicable
 - `src/lib/i18n/translations/en.ts`, `ar.ts`, `ur.ts` — new keys
 
