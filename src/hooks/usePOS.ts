@@ -185,6 +185,7 @@ export function useCreateTransaction() {
       patientId,
       isCredit,
       dueDate,
+      sessionId,
     }: {
       items: CartItem[];
       payments: PaymentEntry[];
@@ -195,6 +196,7 @@ export function useCreateTransaction() {
       patientId?: string;
       isCredit?: boolean;
       dueDate?: string;
+      sessionId?: string;
     }) => {
       if (!profile?.organization_id || !profile?.branch_id) {
         throw new Error("No organization or branch context");
