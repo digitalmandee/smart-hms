@@ -3412,6 +3412,10 @@ export const en = {
   "common.type": "Type",
   "common.from": "From",
   "common.to": "To",
+  "services.costPrice": "Cost Price",
+  "services.sellingPrice": "Selling Price",
+  "services.profit": "Profit",
+  "services.profitMargin": "Profit Margin",
 
 } as const;
 
