@@ -75,10 +75,10 @@ export default function PharmacyClosingsPage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{t("common.all")}</SelectItem>
-              <SelectItem value="today">{t("common.today")}</SelectItem>
-              <SelectItem value="week">{t("common.thisWeek")}</SelectItem>
-              <SelectItem value="month">{t("common.thisMonth")}</SelectItem>
+              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="today">Today</SelectItem>
+              <SelectItem value="week">This Week</SelectItem>
+              <SelectItem value="month">This Month</SelectItem>
             </SelectContent>
           </Select>
           <ReportExportButton
