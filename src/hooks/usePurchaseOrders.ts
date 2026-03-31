@@ -217,20 +217,38 @@ export function useCreatePurchaseOrder() {
       
       if (error) throw error;
       
-      // Normalize and create items
-      const itemsToInsert = data.items.map(item => {
+      // Normalize and validate items
+      const itemsToInsert = data.items.map((item, idx) => {
         const type = item.item_type || (item.medicine_id ? 'medicine' : 'inventory');
+        const medId = type === 'medicine' ? (item.medicine_id || null) : null;
+        const invId = type === 'inventory' ? (item.item_id || null) : null;
+
+        // Sanitize empty strings to null for UUID fields
+        const cleanMedId = medId && medId.trim() !== '' ? medId : null;
+        const cleanInvId = invId && invId.trim() !== '' ? invId : null;
+
+        if (type === 'medicine' && !cleanMedId) {
+          throw new Error(`Row ${idx + 1}: Medicine reference missing`);
+        }
+        if (type === 'inventory' && !cleanInvId) {
+          throw new Error(`Row ${idx + 1}: Inventory item reference missing`);
+        }
+        if (item.quantity <= 0) {
+          throw new Error(`Row ${idx + 1}: Quantity must be greater than 0`);
+        }
+
         return {
-        purchase_order_id: po.id,
-        item_type: type,
-        item_id: type === 'inventory' ? (item.item_id || null) : null,
-        medicine_id: type === 'medicine' ? (item.medicine_id || null) : null,
-        quantity: item.quantity,
-        unit_price: item.unit_price,
-        tax_percent: item.tax_percent,
-        discount_percent: item.discount_percent,
-        total_price: item.total_price,
-      };});
+          purchase_order_id: po.id,
+          item_type: type,
+          item_id: cleanInvId,
+          medicine_id: cleanMedId,
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+          tax_percent: item.tax_percent,
+          discount_percent: item.discount_percent,
+          total_price: item.total_price,
+        };
+      });
       
       const { error: itemsError } = await supabase
         .from("purchase_order_items")
