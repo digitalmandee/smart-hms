@@ -17,7 +17,7 @@ interface POSRefundDialogProps {
     customer_name?: string | null;
     customer_phone?: string | null;
     total_amount: number;
-    items: Array<{
+    items?: Array<{
       id: string;
       medicine_name: string;
       medicine_id?: string;
