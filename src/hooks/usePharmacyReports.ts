@@ -160,17 +160,18 @@ export function useDailySalesSummary(dateFrom: string, dateTo: string) {
   return useQuery({
     queryKey: ["pharmacy-daily-sales", dateFrom, dateTo],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("pharmacy_pos_transactions")
-        .select("total_amount, discount_amount, subtotal, created_at, status")
-        .eq("status", "completed")
-        .gte("created_at", dateFrom)
-        .lte("created_at", `${dateTo}T23:59:59`);
-
-      if (error) throw error;
+      const data = await fetchAllRows((from, to) =>
+        supabase
+          .from("pharmacy_pos_transactions")
+          .select("total_amount, discount_amount, subtotal, created_at, status")
+          .eq("status", "completed")
+          .gte("created_at", dateFrom)
+          .lte("created_at", `${dateTo}T23:59:59`)
+          .range(from, to)
+      );
 
       const byDay: Record<string, { date: string; sales: number; discount: number; net: number; count: number }> = {};
-      data?.forEach((tx) => {
+      data.forEach((tx: any) => {
         const day = tx.created_at.substring(0, 10);
         if (!byDay[day]) byDay[day] = { date: day, sales: 0, discount: 0, net: 0, count: 0 };
         byDay[day].sales += Number(tx.subtotal || tx.total_amount || 0);
