@@ -155,9 +155,14 @@ export function UnifiedPOItemsBuilder({ items, onChange, disabled }: UnifiedPOIt
 
   const getItemName = (item: PurchaseOrderItem) => {
     if (item.item_type === 'medicine') {
-      return item.medicine?.name || "Unknown Medicine";
+      if (item.medicine?.name) return item.medicine.name;
+      // Fallback: look up from loaded medicines list
+      const found = medicines?.find(m => m.id === item.medicine_id);
+      return found?.name || "Unknown Medicine";
     }
-    return item.item?.name || "Unknown Item";
+    if (item.item?.name) return item.item.name;
+    const found = inventoryItems?.find(i => i.id === item.item_id);
+    return found?.name || "Unknown Item";
   };
 
   const getItemCode = (item: PurchaseOrderItem) => {
