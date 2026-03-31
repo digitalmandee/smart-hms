@@ -1,5 +1,5 @@
 import { forwardRef } from "react";
-import type { PurchaseOrder } from "@/hooks/usePurchaseOrders";
+import type { PurchaseOrder, PurchaseOrderItem } from "@/hooks/usePurchaseOrders";
 import { format } from "date-fns";
 
 interface PrintablePOProps {
