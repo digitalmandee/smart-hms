@@ -507,6 +507,7 @@ export function useProfitMarginReport(dateFrom: string, dateTo: string) {
         .select(`
           medicine_id, medicine_name, quantity, unit_price, line_total,
           inventory:medicine_inventory(unit_price),
+          medicine:medicines(cost_price),
           transaction:pharmacy_pos_transactions!inner(status, created_at)
         `)
         .eq("transaction.status", "completed")
@@ -518,7 +519,7 @@ export function useProfitMarginReport(dateFrom: string, dateTo: string) {
       const byMedicine: Record<string, { name: string; qtySold: number; revenue: number; cost: number }> = {};
       (items || []).forEach((item: any) => {
         const id = item.medicine_id || "unknown";
-        const costPrice = Number(item.inventory?.unit_price || item.unit_price * 0.65 || 0);
+        const costPrice = Number(item.inventory?.unit_price || item.medicine?.cost_price || item.unit_price * 0.65 || 0);
         if (!byMedicine[id]) byMedicine[id] = { name: item.medicine_name || "Unknown", qtySold: 0, revenue: 0, cost: 0 };
         byMedicine[id].qtySold += Number(item.quantity || 0);
         byMedicine[id].revenue += Number(item.line_total || 0);
@@ -1167,8 +1168,10 @@ export function useDailyProfitLoss(dateFrom: string, dateTo: string) {
           unit_price,
           line_total,
           inventory_id,
+          medicine_id,
           transaction:pharmacy_pos_transactions!inner(id, status, created_at),
-          inventory:medicine_inventory(unit_price)
+          inventory:medicine_inventory(unit_price),
+          medicine:medicines(cost_price)
         `)
         .eq("transaction.status", "completed")
         .gte("transaction.created_at", dateFrom)
@@ -1186,7 +1189,9 @@ export function useDailyProfitLoss(dateFrom: string, dateTo: string) {
         const revenue = Number(item.line_total || 0);
         const costPrice = item.inventory?.unit_price
           ? Number(item.inventory.unit_price)
-          : Number(item.unit_price || 0) * 0.65; // fallback: 65% of selling price
+          : item.medicine?.cost_price
+            ? Number(item.medicine.cost_price)
+            : Number(item.unit_price || 0) * 0.65; // fallback: 65% of selling price
         const cogs = costPrice * Number(item.quantity || 0);
 
         byDay[day].revenue += revenue;
