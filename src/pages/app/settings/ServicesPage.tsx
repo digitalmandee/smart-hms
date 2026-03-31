@@ -238,6 +238,22 @@ export default function ServicesPage() {
                     <TableCell className="text-right font-mono">
                       {(service.default_price || 0).toLocaleString()}
                     </TableCell>
+                    <TableCell className="text-right font-mono text-muted-foreground">
+                      {(service.cost_price || 0).toLocaleString()}
+                    </TableCell>
+                    <TableCell className="text-right font-mono">
+                      {(() => {
+                        const profit = (service.default_price || 0) - (service.cost_price || 0);
+                        const pct = (service.default_price || 0) > 0 
+                          ? ((profit / (service.default_price || 1)) * 100).toFixed(0)
+                          : "0";
+                        return (
+                          <span className={profit >= 0 ? 'text-green-600' : 'text-red-600'}>
+                            {profit.toLocaleString()} ({pct}%)
+                          </span>
+                        );
+                      })()}
+                    </TableCell>
                     <TableCell className="text-center">
                       {hasLinkedData(service) && (
                         <Badge variant="outline" className="gap-1">
