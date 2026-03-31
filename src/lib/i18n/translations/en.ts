@@ -3421,6 +3421,7 @@ export const en = {
   "pharmacy.salePrice": "Sale Price",
   "pharmacy.profitMargin": "Profit Margin",
   "pharmacy.profit": "Profit",
+  "pharmacy.downloadReport": "Download Report",
 
 } as const;
 
