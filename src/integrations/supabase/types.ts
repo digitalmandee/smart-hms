@@ -25132,7 +25132,13 @@ export type Database = {
         | "cleaning"
         | "maintenance"
         | "reserved"
-      payroll_run_status: "draft" | "processing" | "completed" | "cancelled"
+      payroll_run_status:
+        | "draft"
+        | "processing"
+        | "pending_approval"
+        | "approved"
+        | "completed"
+        | "cancelled"
       po_status:
         | "draft"
         | "pending_approval"
@@ -25687,7 +25693,14 @@ export const Constants = {
         "maintenance",
         "reserved",
       ],
-      payroll_run_status: ["draft", "processing", "completed", "cancelled"],
+      payroll_run_status: [
+        "draft",
+        "processing",
+        "pending_approval",
+        "approved",
+        "completed",
+        "cancelled",
+      ],
       po_status: [
         "draft",
         "pending_approval",
