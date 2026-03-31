@@ -21339,6 +21339,7 @@ export type Database = {
         Row: {
           category: Database["public"]["Enums"]["service_category"] | null
           category_id: string | null
+          cost_price: number | null
           created_at: string
           default_price: number | null
           id: string
@@ -21351,6 +21352,7 @@ export type Database = {
         Insert: {
           category?: Database["public"]["Enums"]["service_category"] | null
           category_id?: string | null
+          cost_price?: number | null
           created_at?: string
           default_price?: number | null
           id?: string
@@ -21363,6 +21365,7 @@ export type Database = {
         Update: {
           category?: Database["public"]["Enums"]["service_category"] | null
           category_id?: string | null
+          cost_price?: number | null
           created_at?: string
           default_price?: number | null
           id?: string
