@@ -48,6 +48,10 @@ export default function PayrollPage() {
         return <Badge className="bg-green-500">Completed</Badge>;
       case "processing":
         return <Badge className="bg-blue-500">Processing</Badge>;
+      case "pending_approval":
+        return <Badge className="bg-orange-500">Pending Approval</Badge>;
+      case "approved":
+        return <Badge className="bg-emerald-500">Approved</Badge>;
       case "draft":
         return <Badge variant="outline">Draft</Badge>;
       case "cancelled":
