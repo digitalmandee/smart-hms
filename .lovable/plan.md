@@ -1,44 +1,50 @@
 
 
-# Add Refund Button to Pharmacy POS Transaction Pages
+# Fix: Pharmacy Requisition to PO Conversion Error
 
-## Problem
-The pharmacy POS transaction detail page only has a "Void Transaction" button. There is no way to initiate a refund directly from a transaction — the pharmacist must navigate separately to `/app/pharmacy/returns` and search for the transaction manually.
+## Root Cause
 
-## Plan
+Two bugs combine to break PO creation from pharmacy requisitions:
 
-### 1. Add Refund Button to Transaction Detail Page
-**File: `src/pages/app/pharmacy/POSTransactionDetailPage.tsx`**
-- Add a "Refund" button (with `RotateCcw` icon) next to "Void Transaction" for completed transactions
-- Clicking opens the same return dialog flow used on `PharmacyReturnsPage` — shows items with quantity selector and refund method
-- Pre-populate the dialog with the transaction's items (no search needed since we already have the data)
-- After successful refund, refresh transaction data and show success toast
+**Bug 1 — DB constraint**: `purchase_order_items.item_id` is `NOT NULL`, but medicine-based PO items have no `item_id`. The code in `usePurchaseOrders.ts` (line 224) correctly sets `item_id: null` for medicines, but the database rejects it.
 
-### 2. Add Refund Action to Transactions List
-**File: `src/pages/app/pharmacy/POSTransactionsPage.tsx`**
-- Add a `RotateCcw` icon button in the actions column next to the existing "View" (eye) button, only for `completed` status transactions
-- Clicking navigates to the transaction detail page (where the refund dialog lives)
+**Bug 2 — Requisition pre-fill ignores medicines**: `POFormPage.tsx` (line 125-127) always maps requisition items as `item_type: "inventory"` with `item_id: reqItem.item_id || ""`, completely ignoring `medicine_id`. Pharmacy requisitions (which use `medicine_id`) get an empty string `item_id`, which then fails with `invalid input syntax for type uuid: ""`.
 
-### 3. Refund Dialog Component (extract for reuse)
-**New file: `src/components/pharmacy/POSRefundDialog.tsx`**
-- Extract the return dialog logic from `PharmacyReturnsPage` into a reusable component
-- Props: `transaction` data (with items), `open`, `onOpenChange`, `onSuccess`
-- Includes `ReturnItemSelector` for choosing items/quantities and `RefundMethodSelector` for refund method
-- Calls `useProcessReturn` mutation on submit
+DB error logs confirm both:
+- `null value in column "item_id" of relation "purchase_order_items" violates not-null constraint`
+- `invalid input syntax for type uuid: ""`
 
-### 4. i18n Keys
-**Files: `en.ts`, `ar.ts`, `ur.ts`**
-- Add keys: "Refund", "Process Refund", "Refund Items"
+## Fix
 
-## Technical Details
-- The `ReturnItemSelector` and `RefundMethodSelector` components already exist and work correctly
-- The `useProcessReturn` hook handles stock restoration and return record creation
-- The refund dialog will map `transaction.items` to `ReturnableItem[]` format directly — no additional API call needed
-- Only show refund button for transactions with status `completed` (not already voided/refunded)
+### 1. Database Migration
+Make `item_id` nullable since medicine-based PO items don't have an inventory item:
+```sql
+ALTER TABLE public.purchase_order_items ALTER COLUMN item_id DROP NOT NULL;
+```
+
+### 2. Fix Requisition-to-PO Pre-fill
+**File: `src/pages/app/inventory/POFormPage.tsx`** (lines 125-134)
+
+Change the requisition items mapping to detect medicine items:
+```typescript
+const reqItems: PurchaseOrderItem[] = sourceRequisition.items.map((reqItem) => ({
+  item_id: reqItem.item_id || "",
+  medicine_id: reqItem.medicine_id || undefined,
+  item_type: reqItem.medicine_id ? "medicine" as const : "inventory" as const,
+  quantity: reqItem.quantity_approved || reqItem.quantity_requested,
+  unit_price: 0,
+  tax_percent: 0,
+  discount_percent: 0,
+  total_price: 0,
+}));
+```
+
+### 3. Fix PR-to-PO Pre-fill (same issue)
+**File: `src/pages/app/inventory/POFormPage.tsx`** (lines 101-109)
+
+Same fix for the PR-based pre-fill — detect medicine items and set `item_type` accordingly.
 
 ## Files Changed
-- `src/components/pharmacy/POSRefundDialog.tsx` — new reusable refund dialog
-- `src/pages/app/pharmacy/POSTransactionDetailPage.tsx` — add Refund button that opens dialog
-- `src/pages/app/pharmacy/POSTransactionsPage.tsx` — add refund icon in actions column
-- `src/lib/i18n/translations/en.ts`, `ar.ts`, `ur.ts` — new keys
+- 1 migration SQL — make `purchase_order_items.item_id` nullable
+- `src/pages/app/inventory/POFormPage.tsx` — fix both pre-fill blocks to handle medicine items
 
