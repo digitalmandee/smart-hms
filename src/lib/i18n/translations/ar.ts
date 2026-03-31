@@ -3375,7 +3375,6 @@ export const ar: Record<TranslationKey, string> = {
   "pharmacy.closings": "إغلاقات الصيدلية",
   "pharmacy.closingsDesc": "إغلاقات الجلسات اليومية مع تسوية النقد وقيود اليومية",
   "pharmacy.totalSessions": "إجمالي الجلسات",
-  "pharmacy.totalRevenue": "إجمالي الإيرادات",
   "pharmacy.totalCashDifference": "إجمالي فرق النقد",
   "pharmacy.avgSessionDuration": "متوسط مدة الجلسة",
   "pharmacy.journalPosted": "تم ترحيل القيد إلى الحسابات",

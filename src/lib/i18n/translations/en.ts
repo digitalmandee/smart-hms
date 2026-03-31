@@ -3443,7 +3443,6 @@ export const en = {
   "pharmacy.closings": "Pharmacy Closings",
   "pharmacy.closingsDesc": "Daily session closings with cash reconciliation and journal postings",
   "pharmacy.totalSessions": "Total Sessions",
-  "pharmacy.totalRevenue": "Total Revenue",
   "pharmacy.totalCashDifference": "Total Cash Difference",
   "pharmacy.avgSessionDuration": "Avg Session Duration",
   "pharmacy.journalPosted": "Journal entry posted to accounts",

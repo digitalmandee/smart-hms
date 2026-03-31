@@ -3375,7 +3375,6 @@ export const ur: Record<TranslationKey, string> = {
   "pharmacy.closings": "فارمیسی بندش",
   "pharmacy.closingsDesc": "روزانہ سیشن بندش نقدی مصالحت اور جرنل اندراجات کے ساتھ",
   "pharmacy.totalSessions": "کل سیشنز",
-  "pharmacy.totalRevenue": "کل آمدنی",
   "pharmacy.totalCashDifference": "کل نقدی فرق",
   "pharmacy.avgSessionDuration": "اوسط سیشن دورانیہ",
   "pharmacy.journalPosted": "جرنل اندراج اکاؤنٹس میں پوسٹ ہو گیا",

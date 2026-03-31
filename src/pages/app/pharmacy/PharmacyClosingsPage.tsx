@@ -15,7 +15,7 @@ import { format, isToday, isThisWeek, isThisMonth, parseISO } from "date-fns";
 import {
   DollarSign, TrendingUp, AlertTriangle, Clock, ArrowUp, ArrowDown, Minus,
 } from "lucide-react";
-import { useTranslation } from "@/hooks/useTranslation";
+import { useTranslation } from "@/lib/i18n";
 
 export default function PharmacyClosingsPage() {
   const { t } = useTranslation();
