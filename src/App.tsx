@@ -179,6 +179,7 @@ const POSSessionDetailPage = React.lazy(() => import("./pages/app/pharmacy/POSSe
 import PharmacyCategoriesPage from "./pages/app/pharmacy/CategoriesPage";
 import StockAlertsPage from "./pages/app/pharmacy/StockAlertsPage";
 import PharmacyReportsPage from "./pages/app/pharmacy/PharmacyReportsPage";
+const PharmacyClosingsPage = React.lazy(() => import("./pages/app/pharmacy/PharmacyClosingsPage"));
 import StockMovementsPage from "./pages/app/pharmacy/StockMovementsPage";
 import PharmacyReturnsPage from "./pages/app/pharmacy/PharmacyReturnsPage";
 import PharmacySettingsPage from "./pages/app/pharmacy/PharmacySettingsPage";
