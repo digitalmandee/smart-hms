@@ -3451,10 +3451,6 @@ export const en = {
   "pos.cashier": "Cashier",
   "pos.openedAt": "Opened At",
   "pos.closedAt": "Closed At",
-  "pos.openingBalance": "Opening Balance",
-  "pos.closingBalance": "Closing Balance",
-  "pos.expectedCash": "Expected Cash",
-  "pos.cashDifference": "Cash Difference",
   "common.thisWeek": "This Week",
   "common.thisMonth": "This Month",
 

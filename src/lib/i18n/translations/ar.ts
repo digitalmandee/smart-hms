@@ -3380,6 +3380,11 @@ export const ar: Record<TranslationKey, string> = {
   "pharmacy.journalPosted": "تم ترحيل القيد إلى الحسابات",
   "pharmacy.cashOverShort": "زيادة/نقص النقد",
   "nav.pharmacyClosings": "الإغلاقات",
+  "pos.cashier": "أمين الصندوق",
+  "pos.openedAt": "تم الفتح في",
+  "pos.closedAt": "تم الإغلاق في",
+  "common.thisWeek": "هذا الأسبوع",
+  "common.thisMonth": "هذا الشهر",
 
 };
 

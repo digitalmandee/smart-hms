@@ -46,14 +46,14 @@ export default function PharmacyClosingsPage() {
 
   const exportColumns = [
     { key: "session_number", header: "Session #" },
-    { key: "cashier", header: t("pos.cashier"), format: (v: any, row: any) => row?.opener?.full_name || "-" },
-    { key: "opened_at", header: t("pos.openedAt"), format: (v: any) => v ? format(parseISO(v), "MMM dd, yyyy HH:mm") : "-" },
-    { key: "closed_at", header: t("pos.closedAt"), format: (v: any) => v ? format(parseISO(v), "MMM dd, yyyy HH:mm") : "-" },
-    { key: "opening_balance", header: t("pos.openingBalance"), format: (v: any) => formatCurrency(Number(v || 0)), align: "right" as const },
-    { key: "total_sales", header: t("pharmacy.totalSales"), format: (v: any) => formatCurrency(Number(v || 0)), align: "right" as const },
-    { key: "expected_cash", header: t("pos.expectedCash"), format: (v: any) => formatCurrency(Number(v || 0)), align: "right" as const },
-    { key: "closing_balance", header: t("pos.closingBalance"), format: (v: any) => formatCurrency(Number(v || 0)), align: "right" as const },
-    { key: "cash_difference", header: t("pos.cashDifference"), format: (v: any) => formatCurrency(Number(v || 0)), align: "right" as const },
+    { key: "cashier", header: "Cashier", format: (v: any) => "-" },
+    { key: "opened_at", header: "Opened At", format: (v: any) => v ? format(parseISO(v), "MMM dd, yyyy HH:mm") : "-" },
+    { key: "closed_at", header: "Closed At", format: (v: any) => v ? format(parseISO(v), "MMM dd, yyyy HH:mm") : "-" },
+    { key: "opening_balance", header: "Opening Balance", format: (v: any) => formatCurrency(Number(v || 0)), align: "right" as const },
+    { key: "total_sales", header: "Total Sales", format: (v: any) => formatCurrency(Number(v || 0)), align: "right" as const },
+    { key: "expected_cash", header: "Expected Cash", format: (v: any) => formatCurrency(Number(v || 0)), align: "right" as const },
+    { key: "closing_balance", header: "Closing Balance", format: (v: any) => formatCurrency(Number(v || 0)), align: "right" as const },
+    { key: "cash_difference", header: "Cash Difference", format: (v: any) => formatCurrency(Number(v || 0)), align: "right" as const },
   ];
 
   const summaryRow = {

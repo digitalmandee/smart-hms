@@ -3380,6 +3380,11 @@ export const ur: Record<TranslationKey, string> = {
   "pharmacy.journalPosted": "جرنل اندراج اکاؤنٹس میں پوسٹ ہو گیا",
   "pharmacy.cashOverShort": "نقدی زیادہ/کم",
   "nav.pharmacyClosings": "بندش",
+  "pos.cashier": "کیشیئر",
+  "pos.openedAt": "کھولا گیا",
+  "pos.closedAt": "بند کیا گیا",
+  "common.thisWeek": "اس ہفتے",
+  "common.thisMonth": "اس مہینے",
 
 };
 
