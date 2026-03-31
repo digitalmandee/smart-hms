@@ -92,13 +92,25 @@ export default function POSTransactionsPage() {
     {
       id: "actions",
       cell: ({ row }) => (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => navigate(`/app/pharmacy/pos/transactions/${row.original.id}`)}
-        >
-          <Eye className="h-4 w-4" />
-        </Button>
+        <div className="flex items-center gap-1">
+          {row.original.status === 'completed' && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate(`/app/pharmacy/pos/transactions/${row.original.id}`)}
+              title="Refund"
+            >
+              <RotateCcw className="h-4 w-4" />
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate(`/app/pharmacy/pos/transactions/${row.original.id}`)}
+          >
+            <Eye className="h-4 w-4" />
+          </Button>
+        </div>
       ),
     },
   ];

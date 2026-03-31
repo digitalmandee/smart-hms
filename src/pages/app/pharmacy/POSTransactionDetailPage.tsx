@@ -292,6 +292,15 @@ export default function POSTransactionDetailPage() {
           </Card>
         </div>
       </div>
+
+      {transaction && (
+        <POSRefundDialog
+          open={showRefundDialog}
+          onOpenChange={setShowRefundDialog}
+          transaction={transaction}
+          onSuccess={() => refetch()}
+        />
+      )}
     </div>
   );
 }
