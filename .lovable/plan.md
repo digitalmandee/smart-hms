@@ -1,62 +1,36 @@
 
 
-# Fix: Purchase Orders Not Working
+# Add Daily Pharmacy Profit & Loss Report
 
-## Problems Found
+## What
+Add a new "Daily P&L" report to the Pharmacy Reports page that shows day-by-day revenue, cost of goods sold (COGS), gross profit, and margin percentage. This gives a clear daily view of pharmacy profitability beyond the existing per-medicine profit margin report.
 
-### Problem 1: PO Items Fail to Insert (Main Issue)
-Database shows 6 POs created today — all have `total_amount: 30` (items were added in UI) but **zero items** in `purchase_order_items`. The mutation creates the PO first, then tries to insert items. When items fail, the PO is left orphaned with no items.
+## Data Source
+- `pharmacy_pos_items` joined with `medicine_inventory` (via `inventory_id`) to get `unit_price` (cost price)
+- `pharmacy_pos_transactions` filtered by `status = 'completed'` and date range
+- Aggregated by date: sum of `line_total` = revenue, sum of `inventory.unit_price × quantity` = COGS
+- Profit = Revenue − COGS, Margin = (Profit / Revenue) × 100
 
-The likely cause: when inventory-type items have `item_id` as empty string `""` (e.g., from pre-fill or edge cases), or when the mutation partially succeeds, the PO is created but items are rejected. The mutation does not wrap both operations in a transaction — if items fail, the PO remains.
+## Implementation
 
-**Fix in `src/hooks/usePurchaseOrders.ts`:**
-- Sanitize `item_id`: if it's an empty string, set it to `null`
-- If items insert fails, **delete the orphaned PO** to keep data clean
-- Add better error messaging
+### 1. New Hook: `useDailyProfitLoss` in `src/hooks/usePharmacyReports.ts`
+- Query `pharmacy_pos_items` with inventory join and transaction date filter
+- Group by `created_at` date → produce array of `{ date, revenue, cogs, profit, marginPercent, transactionCount }`
+- Fallback: if inventory cost not available, use 65% of selling price (same pattern as existing `useProfitMarginReport`)
 
-```typescript
-// In useCreatePurchaseOrder mutationFn:
-const itemsToInsert = data.items.map(item => ({
-  purchase_order_id: po.id,
-  item_type: item.item_type || 'inventory',
-  item_id: (item.item_type === 'medicine' || !item.item_id) ? null : item.item_id,
-  medicine_id: item.item_type === 'medicine' ? (item.medicine_id || null) : null,
-  quantity: item.quantity,
-  unit_price: item.unit_price,
-  tax_percent: item.tax_percent,
-  discount_percent: item.discount_percent,
-  total_price: item.total_price,
-}));
+### 2. Add Report Definition in `PharmacyReportsPage.tsx`
+- Add `{ id: "daily-pnl", name: "Daily Profit & Loss", description: "Day-by-day revenue, cost & profit", icon: TrendingUp }` to the Financial Reports category
+- Add render case with:
+  - Summary cards: Total Revenue, Total COGS, Gross Profit, Avg Margin %
+  - Bar chart: Revenue vs COGS per day with profit line overlay
+  - Export button (PDF/CSV)
+  - Table: Date, Transactions, Revenue, COGS, Profit, Margin %
 
-const { error: itemsError } = await supabase
-  .from("purchase_order_items")
-  .insert(itemsToInsert);
-
-if (itemsError) {
-  // Cleanup orphaned PO
-  await supabase.from("purchase_orders").delete().eq("id", po.id);
-  throw itemsError;
-}
-```
-
-Same fix applied in `useUpdatePurchaseOrder`.
-
-### Problem 2: PO Detail Page Doesn't Show Medicine Items
-`PODetailPage.tsx` line 277 only renders `item.item?.name` (inventory). For medicine-type PO items, the name, code, and unit show as empty/undefined.
-
-**Fix in `src/pages/app/inventory/PODetailPage.tsx`:**
-- Show `item.medicine?.name` when `item_type === 'medicine'`
-- Show generic name and unit for medicine items
-
-### Problem 3: Printable PO Same Issue
-`PrintablePO.tsx` line 74 only shows `item.item?.name`. Same fix needed for medicine items in the print template.
-
-### Problem 4: Cleanup Orphaned POs
-Delete the 6 orphaned POs from today that have no items (data cleanup).
+### 3. Translations
+- Add keys for `daily_pnl`, `cogs`, `gross_profit`, `margin` in en.ts, ar.ts, ur.ts
 
 ## Files Changed
-- `src/hooks/usePurchaseOrders.ts` — sanitize item_id, cleanup on failure
-- `src/pages/app/inventory/PODetailPage.tsx` — handle medicine item display
-- `src/components/inventory/PrintablePO.tsx` — handle medicine item display
-- Data cleanup: delete orphaned POs with no items
+- `src/hooks/usePharmacyReports.ts` — add `useDailyProfitLoss` hook
+- `src/pages/app/pharmacy/PharmacyReportsPage.tsx` — add report definition + render case
+- `src/lib/i18n/translations/en.ts`, `ar.ts`, `ur.ts` — new translation keys
 
