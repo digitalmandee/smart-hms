@@ -360,6 +360,7 @@ export default function POSTerminalPage() {
       patientId: selectedPatient?.id,
       isCredit,
       dueDate,
+      sessionId: currentSession?.id,
     }, {
       onSuccess: async (transaction) => {
         // Update OT medication status if applicable
