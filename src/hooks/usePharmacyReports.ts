@@ -1167,8 +1167,10 @@ export function useDailyProfitLoss(dateFrom: string, dateTo: string) {
           unit_price,
           line_total,
           inventory_id,
+          medicine_id,
           transaction:pharmacy_pos_transactions!inner(id, status, created_at),
-          inventory:medicine_inventory(unit_price)
+          inventory:medicine_inventory(unit_price),
+          medicine:medicines(cost_price)
         `)
         .eq("transaction.status", "completed")
         .gte("transaction.created_at", dateFrom)
