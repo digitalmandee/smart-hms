@@ -41,6 +41,7 @@ interface ServiceEditDialogProps {
     name: string;
     category_id: string;
     default_price: number;
+    cost_price: number;
     is_active: boolean;
     price_change_reason?: string;
   }) => Promise<void>;
@@ -60,6 +61,7 @@ export function ServiceEditDialog({
   const [name, setName] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [price, setPrice] = useState("");
+  const [costPrice, setCostPrice] = useState("");
   const [isActive, setIsActive] = useState(true);
   const [priceChangeReason, setPriceChangeReason] = useState("");
   const [showPriceReason, setShowPriceReason] = useState(false);
@@ -72,6 +74,7 @@ export function ServiceEditDialog({
       setName(service.name);
       setCategoryId(service.category_id || "");
       setPrice(String(service.default_price || 0));
+      setCostPrice(String(service.cost_price || 0));
       setIsActive(service.is_active);
       setPriceChangeReason("");
       setShowPriceReason(false);
@@ -79,6 +82,7 @@ export function ServiceEditDialog({
       setName("");
       setCategoryId(categories?.[0]?.id || "");
       setPrice("0");
+      setCostPrice("0");
       setIsActive(true);
       setPriceChangeReason("");
       setShowPriceReason(false);
@@ -94,12 +98,18 @@ export function ServiceEditDialog({
     }
   }, [price, service]);
 
+  const profit = (parseFloat(price) || 0) - (parseFloat(costPrice) || 0);
+  const profitPercent = (parseFloat(price) || 0) > 0
+    ? ((profit / (parseFloat(price) || 1)) * 100).toFixed(1)
+    : "0.0";
+
   const handleSubmit = async () => {
     await onSave({
       id: service?.id,
       name,
       category_id: categoryId,
       default_price: parseFloat(price) || 0,
+      cost_price: parseFloat(costPrice) || 0,
       is_active: isActive,
       price_change_reason: priceChangeReason || undefined,
     });
@@ -210,17 +220,42 @@ export function ServiceEditDialog({
               </Select>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="price">Default Price (Rs.)</Label>
-              <Input
-                id="price"
-                type="number"
-                min={0}
-                step={0.01}
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="price">Selling Price (Rs.)</Label>
+                <Input
+                  id="price"
+                  type="number"
+                  min={0}
+                  step={0.01}
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="costPrice">Cost Price (Rs.)</Label>
+                <Input
+                  id="costPrice"
+                  type="number"
+                  min={0}
+                  step={0.01}
+                  value={costPrice}
+                  onChange={(e) => setCostPrice(e.target.value)}
+                />
+              </div>
             </div>
+
+            {/* Profit display */}
+            {(parseFloat(price) > 0 || parseFloat(costPrice) > 0) && (
+              <div className="rounded-lg border p-3 bg-muted/30">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Profit Margin</span>
+                  <span className={`font-mono font-medium ${profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    Rs. {profit.toLocaleString()} ({profitPercent}%)
+                  </span>
+                </div>
+              </div>
+            )}
 
             {showPriceReason && (
               <div className="space-y-2">

@@ -6,6 +6,7 @@ export interface OTService {
   id: string;
   name: string;
   default_price: number;
+  cost_price: number;
   is_active: boolean;
   category_id: string | null;
 }
@@ -36,7 +37,7 @@ export function useOTServices() {
       // Fetch services under OT category
       const { data, error } = await supabase
         .from("service_types")
-        .select("id, name, default_price, is_active, category_id")
+        .select("id, name, default_price, cost_price, is_active, category_id")
         .eq("organization_id", profile.organization_id)
         .eq("category_id", category.id)
         .eq("is_active", true)

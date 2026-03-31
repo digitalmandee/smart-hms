@@ -3344,6 +3344,10 @@ export const ur: Record<TranslationKey, string> = {
   "common.type": "قسم",
   "common.from": "سے",
   "common.to": "تک",
+  "services.costPrice": "لاگت قیمت",
+  "services.sellingPrice": "فروخت قیمت",
+  "services.profit": "منافع",
+  "services.profitMargin": "منافع کا مارجن",
 
 };
 

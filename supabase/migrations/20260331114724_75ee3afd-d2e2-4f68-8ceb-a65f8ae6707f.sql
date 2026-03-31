@@ -1,0 +1,1 @@
+ALTER TABLE public.service_types ADD COLUMN IF NOT EXISTS cost_price NUMERIC(12,2) DEFAULT 0;

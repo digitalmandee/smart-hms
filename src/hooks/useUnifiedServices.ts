@@ -19,6 +19,7 @@ export interface UnifiedService {
     color: string;
   } | null;
   default_price: number | null;
+  cost_price: number | null;
   is_active: boolean;
   organization_id: string;
   created_at: string;
@@ -133,8 +134,9 @@ export function useCreateUnifiedService() {
   return useMutation({
     mutationFn: async (values: {
       name: string;
-      category_id: string; // Now uses UUID
+      category_id: string;
       default_price?: number;
+      cost_price?: number;
       is_active?: boolean;
     }) => {
       if (!profile?.organization_id) throw new Error("No organization");
@@ -145,6 +147,7 @@ export function useCreateUnifiedService() {
           name: values.name,
           category_id: values.category_id,
           default_price: values.default_price ?? 0,
+          cost_price: values.cost_price ?? 0,
           is_active: values.is_active ?? true,
           organization_id: profile.organization_id,
         })
@@ -175,8 +178,9 @@ export function useUpdateUnifiedService() {
     mutationFn: async (values: {
       id: string;
       name?: string;
-      category_id?: string; // Now uses UUID
+      category_id?: string;
       default_price?: number;
+      cost_price?: number;
       is_active?: boolean;
       price_change_reason?: string;
     }) => {

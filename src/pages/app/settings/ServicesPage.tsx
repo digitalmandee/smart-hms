@@ -96,6 +96,7 @@ export default function ServicesPage() {
     name: string;
     category_id: string;
     default_price: number;
+    cost_price: number;
     is_active: boolean;
     price_change_reason?: string;
   }) => {
@@ -105,6 +106,7 @@ export default function ServicesPage() {
         name: values.name,
         category_id: values.category_id,
         default_price: values.default_price,
+        cost_price: values.cost_price,
         is_active: values.is_active,
         price_change_reason: values.price_change_reason,
       });
@@ -113,6 +115,7 @@ export default function ServicesPage() {
         name: values.name,
         category_id: values.category_id,
         default_price: values.default_price,
+        cost_price: values.cost_price,
         is_active: values.is_active,
       });
     }
@@ -213,9 +216,11 @@ export default function ServicesPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[40%]">Service Name</TableHead>
+                  <TableHead className="w-[30%]">Service Name</TableHead>
                   <TableHead>Category</TableHead>
-                  <TableHead className="text-right">Price (Rs.)</TableHead>
+                  <TableHead className="text-right">Selling Price</TableHead>
+                  <TableHead className="text-right">Cost Price</TableHead>
+                  <TableHead className="text-right">Profit</TableHead>
                   <TableHead className="text-center">Linked</TableHead>
                   <TableHead className="text-center">Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -232,6 +237,22 @@ export default function ServicesPage() {
                     </TableCell>
                     <TableCell className="text-right font-mono">
                       {(service.default_price || 0).toLocaleString()}
+                    </TableCell>
+                    <TableCell className="text-right font-mono text-muted-foreground">
+                      {(service.cost_price || 0).toLocaleString()}
+                    </TableCell>
+                    <TableCell className="text-right font-mono">
+                      {(() => {
+                        const profit = (service.default_price || 0) - (service.cost_price || 0);
+                        const pct = (service.default_price || 0) > 0 
+                          ? ((profit / (service.default_price || 1)) * 100).toFixed(0)
+                          : "0";
+                        return (
+                          <span className={profit >= 0 ? 'text-green-600' : 'text-red-600'}>
+                            {profit.toLocaleString()} ({pct}%)
+                          </span>
+                        );
+                      })()}
                     </TableCell>
                     <TableCell className="text-center">
                       {hasLinkedData(service) && (
