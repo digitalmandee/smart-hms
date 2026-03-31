@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useLocation } from "react-router-dom";
 import { POSProductSearch } from "@/components/pharmacy/POSProductSearch";
 import { POSCart } from "@/components/pharmacy/POSCart";
@@ -116,6 +117,21 @@ export default function POSTerminalPage() {
   // Fetch last transaction for "Last Sale" feature
   const { data: recentTransactions } = usePOSTransactions(profile?.branch_id, {});
   const lastTransaction = recentTransactions?.[0];
+
+  // Fetch session-specific transactions for accurate close dialog
+  const { data: sessionTransactions } = useQuery({
+    queryKey: ["pos-session-transactions", currentSession?.id],
+    queryFn: async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (supabase as any)
+        .from("pharmacy_pos_transactions")
+        .select("*, payments:pharmacy_pos_payments(*)")
+        .eq("session_id", currentSession!.id);
+      if (error) throw error;
+      return data as POSTransaction[];
+    },
+    enabled: !!currentSession?.id,
+  });
   
   // Check if patients module is enabled - if not, use standalone mode
   const isPatientsModuleEnabled = enabledModules?.includes("patients");
@@ -729,7 +745,7 @@ export default function POSTerminalPage() {
           open={showCloseSession}
           onOpenChange={setShowCloseSession}
           session={currentSession}
-          transactions={recentTransactions || []}
+          transactions={sessionTransactions || []}
         />
       )}
     </div>
