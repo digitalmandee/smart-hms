@@ -260,6 +260,7 @@ function ReportDetailView({
   const taxCollection = useTaxCollectionReport(dateRange.start, dateRange.end);
   const cashierPerf = useCashierPerformance(dateRange.start, dateRange.end);
   const peakHours = usePeakHoursReport(dateRange.start, dateRange.end);
+  const dailyPnl = useDailyProfitLoss(dateRange.start, dateRange.end);
 
   const renderLoading = () => (
     <div className="flex items-center justify-center h-[300px]">
