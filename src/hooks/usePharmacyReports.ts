@@ -571,21 +571,22 @@ export function useReturnsSummary(dateFrom: string, dateTo: string) {
   return useQuery({
     queryKey: ["pharmacy-returns-summary", dateFrom, dateTo],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("pharmacy_pos_transactions")
-        .select("id, total_amount, void_reason, voided_at, status, created_at")
-        .eq("status", "voided")
-        .gte("created_at", dateFrom)
-        .lte("created_at", `${dateTo}T23:59:59`);
+      const data = await fetchAllRows((from, to) =>
+        supabase
+          .from("pharmacy_pos_transactions")
+          .select("id, total_amount, void_reason, voided_at, status, created_at")
+          .eq("status", "voided")
+          .gte("created_at", dateFrom)
+          .lte("created_at", `${dateTo}T23:59:59`)
+          .range(from, to)
+      );
 
-      if (error) throw error;
-
-      const totalRefunds = data?.reduce((s, t) => s + Number(t.total_amount || 0), 0) || 0;
+      const totalRefunds = data.reduce((s: number, t: any) => s + Number(t.total_amount || 0), 0);
 
       return {
-        returnCount: data?.length || 0,
+        returnCount: data.length,
         totalRefundAmount: totalRefunds,
-        returns: data || [],
+        returns: data,
       };
     },
     staleTime: 5 * 60 * 1000,
