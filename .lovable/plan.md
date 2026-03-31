@@ -1,38 +1,49 @@
 
 
-# Add Cost Price & Sale Price to Medicines
+# Populate Medicine Prices & Enhance Daily P&L Report
 
-## Problem
-The `medicines` table has no pricing fields. The user needs cost price and sale price on each medicine for profit tracking.
+## What This Does
+1. Populate `cost_price` and `sale_price` for all 51 medicines using latest inventory batch prices
+2. Ensure the Daily P&L report uses accurate cost data (already works via inventory join, but medicine-level prices provide a better fallback)
+3. Improve the report UI with a more prominent PDF download button
 
 ## Implementation
 
-### 1. Database Migration
-Add two columns to `medicines`:
+### 1. Data Population (SQL Updates via insert tool)
+Update all medicines with latest batch prices from `medicine_inventory`:
 ```sql
-ALTER TABLE public.medicines ADD COLUMN cost_price NUMERIC(12,2) DEFAULT 0;
-ALTER TABLE public.medicines ADD COLUMN sale_price NUMERIC(12,2) DEFAULT 0;
+UPDATE medicines m
+SET cost_price = sub.cost, sale_price = sub.sell
+FROM (
+  SELECT DISTINCT ON (medicine_id) medicine_id, unit_price AS cost, selling_price AS sell
+  FROM medicine_inventory
+  ORDER BY medicine_id, created_at DESC
+) sub
+WHERE m.id = sub.medicine_id AND m.is_active = true;
 ```
+This takes the most recent inventory batch's `unit_price` (cost) and `selling_price` (sale) for each medicine.
 
-### 2. Medicine Form (`src/pages/app/pharmacy/MedicineFormPage.tsx`)
-- Add `cost_price` and `sale_price` to the Zod schema as optional numbers
-- Add two input fields in the form grid (Cost Price, Sale Price)
-- Show calculated profit and margin below the price fields
-- Pass values through in create/update mutations
+### 2. Improve `useDailyProfitLoss` Hook Fallback
+**File: `src/hooks/usePharmacyReports.ts`**
 
-### 3. Medicines List (`src/pages/app/pharmacy/MedicinesListPage.tsx`)
-- Add Cost Price, Sale Price, and Profit Margin columns to the table
+Currently the COGS fallback uses `unit_price * 0.65` (guessing). Update it to also check `medicine.cost_price` before falling back:
+- Join `medicine:medicines(cost_price)` via `medicine_id` on `pharmacy_pos_items`
+- Fallback chain: `inventory.unit_price` → `medicine.cost_price` → `unit_price * 0.65`
 
-### 4. Hook Updates (`src/hooks/useMedicines.ts`)
-- Add `cost_price` and `sale_price` to the `MedicineWithCategory` interface
+### 3. Enhance Report UI with Prominent PDF Button
+**File: `src/pages/app/pharmacy/PharmacyReportsPage.tsx`**
 
-### 5. Translations (`en.ts`, `ar.ts`, `ur.ts`)
-- Add keys: `costPrice`, `salePrice`, `profitMargin`
+- Move the `ReportExportButton` from below the chart to the top of the report (next to the title/header area) so it's immediately visible
+- Add a standalone "Download PDF" button alongside the existing export dropdown for quicker one-click access
+- Style it prominently with an icon
+
+### 4. Translations
+**Files: `en.ts`, `ar.ts`, `ur.ts`**
+- Add key for "Download Report" / "تنزيل التقرير" / "رپورٹ ڈاؤن لوڈ کریں"
 
 ## Files Changed
-- 1 migration — add `cost_price` and `sale_price` columns
-- `src/pages/app/pharmacy/MedicineFormPage.tsx` — price inputs + profit display
-- `src/pages/app/pharmacy/MedicinesListPage.tsx` — price/margin columns
-- `src/hooks/useMedicines.ts` — interface update
+- `src/hooks/usePharmacyReports.ts` — improve COGS fallback with medicine.cost_price
+- `src/pages/app/pharmacy/PharmacyReportsPage.tsx` — move export button to top, add prominent PDF button
 - `src/lib/i18n/translations/en.ts`, `ar.ts`, `ur.ts` — new keys
+- Data update: populate cost_price/sale_price for all medicines from inventory
 
