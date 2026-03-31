@@ -628,10 +628,28 @@ export function useSupplierPurchaseSummary(dateFrom: string, dateTo: string) {
 
       if (error) throw error;
 
+      // Get PO IDs for item-level detail
+      const poIds = (data || []).map((po: any) => po.id).filter(Boolean);
+      let itemDetails: any[] = [];
+      if (poIds.length > 0) {
+        const { data: items, error: itemErr } = await (supabase as any)
+          .from("purchase_order_items")
+          .select(`
+            id, purchase_order_id, quantity, unit_price, total_price, item_type,
+            medicine:medicines(name),
+            item:inventory_items(name)
+          `)
+          .in("purchase_order_id", poIds);
+        if (!itemErr && items) itemDetails = items;
+      }
+
+      // Build PO lookup for vendor info
+      const poLookup: Record<string, { vendor: string; po_number: string }> = {};
       const byVendor: Record<string, { vendor: string; code: string; totalPurchases: number; poCount: number; received: number; pending: number }> = {};
       (data || []).forEach((po: any) => {
         const vName = po.vendor?.name || "Unknown";
         const vCode = po.vendor?.vendor_code || "";
+        poLookup[po.id] = { vendor: vName, po_number: po.po_number };
         if (!byVendor[vName]) byVendor[vName] = { vendor: vName, code: vCode, totalPurchases: 0, poCount: 0, received: 0, pending: 0 };
         byVendor[vName].totalPurchases += Number(po.total_amount || 0);
         byVendor[vName].poCount++;
@@ -639,7 +657,26 @@ export function useSupplierPurchaseSummary(dateFrom: string, dateTo: string) {
         else byVendor[vName].pending += Number(po.total_amount || 0);
       });
 
-      return Object.values(byVendor).sort((a, b) => b.totalPurchases - a.totalPurchases);
+      // Build item-level detail rows
+      const detailRows = itemDetails.map((item: any) => {
+        const po = poLookup[item.purchase_order_id] || { vendor: "Unknown", po_number: "N/A" };
+        const productName = item.item_type === "medicine"
+          ? (item.medicine?.name || "Unknown Medicine")
+          : (item.item?.name || "Unknown Item");
+        return {
+          vendor: po.vendor,
+          poNumber: po.po_number,
+          productName,
+          quantity: Number(item.quantity || 0),
+          unitPrice: Number(item.unit_price || 0),
+          totalPrice: Number(item.total_price || 0),
+        };
+      }).sort((a: any, b: any) => a.vendor.localeCompare(b.vendor));
+
+      return {
+        summary: Object.values(byVendor).sort((a, b) => b.totalPurchases - a.totalPurchases),
+        details: detailRows,
+      };
     },
     staleTime: 5 * 60 * 1000,
   });
