@@ -909,6 +909,7 @@ function App() {
               <Route path="pharmacy/inventory/add" element={<StockEntryPage />} />
               <Route path="pharmacy/alerts" element={<StockAlertsPage />} />
               <Route path="pharmacy/reports" element={<PharmacyReportsPage />} />
+              <Route path="pharmacy/closings" element={<React.Suspense fallback={<div>Loading...</div>}><PharmacyClosingsPage /></React.Suspense>} />
               <Route path="pharmacy/stock-movements" element={<StockMovementsPage />} />
               <Route path="pharmacy/returns" element={<PharmacyReturnsPage />} />
               <Route path="pharmacy/ot-queue" element={<OTMedicationQueuePage />} />
