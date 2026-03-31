@@ -16,6 +16,7 @@ import {
 import { usePOSTransactions, POSTransaction } from "@/hooks/usePOS";
 import { format } from "date-fns";
 import { Eye, RotateCcw, Search, Store } from "lucide-react";
+import { ReportExportButton } from "@/components/reports/ReportExportButton";
 import { ColumnDef } from "@tanstack/react-table";
 
 export default function POSTransactionsPage() {
