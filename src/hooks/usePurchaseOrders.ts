@@ -217,18 +217,20 @@ export function useCreatePurchaseOrder() {
       
       if (error) throw error;
       
-      // Create items - support both inventory and medicine items
-      const itemsToInsert = data.items.map(item => ({
+      // Normalize and create items
+      const itemsToInsert = data.items.map(item => {
+        const type = item.item_type || (item.medicine_id ? 'medicine' : 'inventory');
+        return {
         purchase_order_id: po.id,
-        item_type: item.item_type || 'inventory',
-        item_id: (item.item_type === 'medicine' || !item.item_id) ? null : item.item_id,
-        medicine_id: item.item_type === 'medicine' ? (item.medicine_id || null) : null,
+        item_type: type,
+        item_id: type === 'inventory' ? (item.item_id || null) : null,
+        medicine_id: type === 'medicine' ? (item.medicine_id || null) : null,
         quantity: item.quantity,
         unit_price: item.unit_price,
         tax_percent: item.tax_percent,
         discount_percent: item.discount_percent,
         total_price: item.total_price,
-      }));
+      };});
       
       const { error: itemsError } = await supabase
         .from("purchase_order_items")

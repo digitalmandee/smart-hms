@@ -19,6 +19,12 @@ export interface PurchaseRequestItem {
     name: string;
     unit_of_measure: string;
   };
+  medicine?: {
+    id: string;
+    name: string;
+    generic_name: string;
+    unit: string;
+  };
 }
 
 export interface PurchaseRequest {
@@ -95,7 +101,8 @@ export function usePurchaseRequest(id: string) {
         .from("purchase_request_items")
         .select(`
           *,
-          item:inventory_items(id, item_code, name, unit_of_measure)
+          item:inventory_items(id, item_code, name, unit_of_measure),
+          medicine:medicines(id, name, generic_name, unit)
         `)
         .eq("purchase_request_id", id);
 

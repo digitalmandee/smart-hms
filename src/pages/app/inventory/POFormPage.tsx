@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ArrowLeft, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { useVendors } from "@/hooks/useVendors";
 import { useBranches } from "@/hooks/useBranches";
 import { useCreatePurchaseOrder, type PurchaseOrderItem } from "@/hooks/usePurchaseOrders";
@@ -47,7 +48,7 @@ type POFormData = z.infer<typeof poSchema>;
 export default function POFormPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const vendorIdParam = searchParams.get("vendor_id");
+  const vendorIdParam = searchParams.get("vendor_id") || searchParams.get("vendorId");
   const fromPrId = searchParams.get("from_pr");
   const fromRequisitionId = searchParams.get("from_requisition");
   const { profile } = useAuth();
@@ -98,16 +99,21 @@ export default function POFormPage() {
       // Set notes referencing PR
       form.setValue("notes", `From PR: ${sourcePR.pr_number}`);
       // Pre-fill items
-      const prItems: PurchaseOrderItem[] = sourcePR.items.map((prItem) => ({
-        item_id: prItem.item_id || "",
-        medicine_id: (prItem as any).medicine_id || undefined,
-        item_type: (prItem as any).medicine_id ? "medicine" as const : "inventory" as const,
-        quantity: prItem.quantity_requested,
-        unit_price: prItem.estimated_unit_cost,
-        tax_percent: 0,
-        discount_percent: 0,
-        total_price: prItem.quantity_requested * prItem.estimated_unit_cost,
-      }));
+      const prItems: PurchaseOrderItem[] = sourcePR.items.map((prItem) => {
+        const hasMedicine = !!(prItem as any).medicine_id;
+        return {
+          item_id: hasMedicine ? undefined : (prItem.item_id || undefined),
+          medicine_id: hasMedicine ? (prItem as any).medicine_id : undefined,
+          item_type: hasMedicine ? "medicine" as const : "inventory" as const,
+          quantity: prItem.quantity_requested,
+          unit_price: prItem.estimated_unit_cost,
+          tax_percent: 0,
+          discount_percent: 0,
+          total_price: prItem.quantity_requested * prItem.estimated_unit_cost,
+          item: prItem.item || undefined,
+          medicine: (prItem as any).medicine || undefined,
+        };
+      });
       setItems(prItems);
     }
   }, [sourcePR, form, items.length]);
@@ -123,23 +129,41 @@ export default function POFormPage() {
         form.setValue("store_id", sourceRequisition.from_store.id);
       }
       form.setValue("notes", `From Requisition: ${sourceRequisition.requisition_number}`);
-      const reqItems: PurchaseOrderItem[] = sourceRequisition.items.map((reqItem) => ({
-        item_id: reqItem.item_id || "",
-        medicine_id: reqItem.medicine_id || undefined,
-        item_type: reqItem.medicine_id ? "medicine" as const : "inventory" as const,
-        quantity: reqItem.quantity_approved || reqItem.quantity_requested,
-        unit_price: 0,
-        tax_percent: 0,
-        discount_percent: 0,
-        total_price: 0,
-      }));
+      const reqItems: PurchaseOrderItem[] = sourceRequisition.items.map((reqItem) => {
+        const hasMedicine = !!reqItem.medicine_id;
+        return {
+          item_id: hasMedicine ? undefined : (reqItem.item_id || undefined),
+          medicine_id: hasMedicine ? reqItem.medicine_id : undefined,
+          item_type: hasMedicine ? "medicine" as const : "inventory" as const,
+          quantity: reqItem.quantity_approved || reqItem.quantity_requested,
+          unit_price: 0,
+          tax_percent: 0,
+          discount_percent: 0,
+          total_price: 0,
+          item: (reqItem as any).item || undefined,
+          medicine: (reqItem as any).medicine || undefined,
+        };
+      });
       setItems(reqItems);
     }
   }, [sourceRequisition, form, items.length, fromPrId]);
 
   const onSubmit = async (data: POFormData) => {
     if (items.length === 0) {
+      toast.error("Add at least one item to the purchase order");
       return;
+    }
+
+    // Validate items
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].quantity <= 0) {
+        toast.error(`Row ${i + 1}: Quantity must be greater than 0`);
+        return;
+      }
+      if (items[i].unit_price < 0) {
+        toast.error(`Row ${i + 1}: Unit price cannot be negative`);
+        return;
+      }
     }
 
     try {

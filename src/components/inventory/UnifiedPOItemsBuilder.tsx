@@ -95,6 +95,16 @@ export function UnifiedPOItemsBuilder({ items, onChange, disabled }: UnifiedPOIt
     onChange(items.filter((_, i) => i !== index));
   };
 
+  const handleUpdateItem = (index: number, field: string, value: number) => {
+    const updated = items.map((item, i) => {
+      if (i !== index) return item;
+      const newItem = { ...item, [field]: value };
+      newItem.total_price = calculateItemTotal(newItem);
+      return newItem;
+    });
+    onChange(updated);
+  };
+
   const handleItemSelect = (id: string) => {
     if (itemType === 'medicine') {
       const medicine = medicines?.find(m => m.id === id);
@@ -145,23 +155,36 @@ export function UnifiedPOItemsBuilder({ items, onChange, disabled }: UnifiedPOIt
 
   const getItemName = (item: PurchaseOrderItem) => {
     if (item.item_type === 'medicine') {
-      return item.medicine?.name || "Unknown Medicine";
+      if (item.medicine?.name) return item.medicine.name;
+      // Fallback: look up from loaded medicines list
+      const found = medicines?.find(m => m.id === item.medicine_id);
+      return found?.name || "Unknown Medicine";
     }
-    return item.item?.name || "Unknown Item";
+    if (item.item?.name) return item.item.name;
+    const found = inventoryItems?.find(i => i.id === item.item_id);
+    return found?.name || "Unknown Item";
   };
 
   const getItemCode = (item: PurchaseOrderItem) => {
     if (item.item_type === 'medicine') {
-      return item.medicine?.generic_name || "";
+      if (item.medicine?.generic_name) return item.medicine.generic_name;
+      const found = medicines?.find(m => m.id === item.medicine_id);
+      return found?.generic_name || "";
     }
-    return item.item?.item_code || "";
+    if (item.item?.item_code) return item.item.item_code;
+    const found = inventoryItems?.find(i => i.id === item.item_id);
+    return found?.item_code || "";
   };
 
   const getItemUnit = (item: PurchaseOrderItem) => {
     if (item.item_type === 'medicine') {
-      return item.medicine?.unit || "";
+      if (item.medicine?.unit) return item.medicine.unit;
+      const found = medicines?.find(m => m.id === item.medicine_id);
+      return found?.unit || "";
     }
-    return item.item?.unit_of_measure || "";
+    if (item.item?.unit_of_measure) return item.item.unit_of_measure;
+    const found = inventoryItems?.find(i => i.id === item.item_id);
+    return found?.unit_of_measure || "";
   };
 
   return (
@@ -199,10 +222,53 @@ export function UnifiedPOItemsBuilder({ items, onChange, disabled }: UnifiedPOIt
                   </p>
                 </div>
               </TableCell>
-              <TableCell>{item.quantity}</TableCell>
-              <TableCell>{fc(item.unit_price)}</TableCell>
-              <TableCell>{item.tax_percent}%</TableCell>
-              <TableCell>{item.discount_percent}%</TableCell>
+              <TableCell>
+                {!disabled ? (
+                  <Input
+                    type="number"
+                    min={1}
+                    className="w-20"
+                    value={item.quantity}
+                    onChange={(e) => handleUpdateItem(index, 'quantity', parseInt(e.target.value) || 1)}
+                  />
+                ) : item.quantity}
+              </TableCell>
+              <TableCell>
+                {!disabled ? (
+                  <Input
+                    type="number"
+                    min={0}
+                    step={0.01}
+                    className="w-24"
+                    value={item.unit_price}
+                    onChange={(e) => handleUpdateItem(index, 'unit_price', parseFloat(e.target.value) || 0)}
+                  />
+                ) : fc(item.unit_price)}
+              </TableCell>
+              <TableCell>
+                {!disabled ? (
+                  <Input
+                    type="number"
+                    min={0}
+                    max={100}
+                    className="w-20"
+                    value={item.tax_percent}
+                    onChange={(e) => handleUpdateItem(index, 'tax_percent', parseFloat(e.target.value) || 0)}
+                  />
+                ) : `${item.tax_percent}%`}
+              </TableCell>
+              <TableCell>
+                {!disabled ? (
+                  <Input
+                    type="number"
+                    min={0}
+                    max={100}
+                    className="w-20"
+                    value={item.discount_percent}
+                    onChange={(e) => handleUpdateItem(index, 'discount_percent', parseFloat(e.target.value) || 0)}
+                  />
+                ) : `${item.discount_percent}%`}
+              </TableCell>
               <TableCell className="text-right font-medium">
                 {fc(item.total_price)}
               </TableCell>

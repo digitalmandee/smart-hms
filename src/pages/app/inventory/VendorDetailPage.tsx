@@ -102,7 +102,7 @@ export default function VendorDetailPage() {
         </Button>
         <Button
           variant="secondary"
-          onClick={() => navigate(`/app/inventory/purchase-orders/new?vendorId=${id}`)}
+          onClick={() => navigate(`/app/inventory/purchase-orders/new?vendor_id=${id}`)}
         >
           <ShoppingCart className="mr-2 h-4 w-4" />
           Create PO
