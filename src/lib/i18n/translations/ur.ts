@@ -3354,6 +3354,8 @@ export const ur: Record<TranslationKey, string> = {
   "pharmacy.profitMargin": "منافع کا مارجن",
   "pharmacy.profit": "منافع",
   "pharmacy.downloadReport": "رپورٹ ڈاؤن لوڈ کریں",
+  "pharmacy.productName": "پروڈکٹ کا نام",
+  "pharmacy.purchaseDetails": "خریداری کی تفصیلات",
 
   // POS Sessions
   "pos.openRegister": "رجسٹر کھولیں",
