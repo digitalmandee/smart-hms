@@ -61,6 +61,7 @@ export function ServiceEditDialog({
   const [name, setName] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [price, setPrice] = useState("");
+  const [costPrice, setCostPrice] = useState("");
   const [isActive, setIsActive] = useState(true);
   const [priceChangeReason, setPriceChangeReason] = useState("");
   const [showPriceReason, setShowPriceReason] = useState(false);
