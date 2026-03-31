@@ -93,6 +93,7 @@ export default function POSTerminalPage() {
   const [showLastSaleReceipt, setShowLastSaleReceipt] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [prescriptionNumber, setPrescriptionNumber] = useState<string | null>(null);
+  const [showCloseSession, setShowCloseSession] = useState(false);
   
   // OT Medication tracking
   const [otMedicationId, setOtMedicationId] = useState<string | null>(null);
@@ -107,6 +108,10 @@ export default function POSTerminalPage() {
   const createTransactionMutation = useCreateTransaction();
   const postToProfileMutation = usePostToPatientProfile();
   const holdTransactionMutation = useHoldTransaction();
+  
+  // Session management
+  const { data: currentSession, isLoading: sessionLoading } = useCurrentPOSSession();
+  const [sessionJustOpened, setSessionJustOpened] = useState(false);
   
   // Fetch last transaction for "Last Sale" feature
   const { data: recentTransactions } = usePOSTransactions(profile?.branch_id, {});
