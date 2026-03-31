@@ -3349,5 +3349,10 @@ export const ar: Record<TranslationKey, string> = {
   "services.profit": "الربح",
   "services.profitMargin": "هامش الربح",
 
+  "pharmacy.costPrice": "سعر التكلفة",
+  "pharmacy.salePrice": "سعر البيع",
+  "pharmacy.profitMargin": "هامش الربح",
+  "pharmacy.profit": "الربح",
+
 };
 

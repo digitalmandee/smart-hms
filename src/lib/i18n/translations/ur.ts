@@ -3349,5 +3349,10 @@ export const ur: Record<TranslationKey, string> = {
   "services.profit": "منافع",
   "services.profitMargin": "منافع کا مارجن",
 
+  "pharmacy.costPrice": "لاگت قیمت",
+  "pharmacy.salePrice": "فروخت قیمت",
+  "pharmacy.profitMargin": "منافع کا مارجن",
+  "pharmacy.profit": "منافع",
+
 };
 

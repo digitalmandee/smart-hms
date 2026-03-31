@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { PageHeader } from "@/components/PageHeader";
@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 import {
   Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription,
 } from "@/components/ui/form";
@@ -37,6 +38,8 @@ const medicineSchema = z.object({
   strength: z.string().optional(),
   unit: z.enum(["tablet", "capsule", "syrup", "injection", "cream", "drops", "inhaler", "powder", "gel", "ointment"] as const).optional().nullable(),
   is_active: z.boolean().default(true),
+  cost_price: z.coerce.number().min(0).default(0),
+  sale_price: z.coerce.number().min(0).default(0),
 });
 
 type MedicineFormData = z.infer<typeof medicineSchema>;
@@ -55,14 +58,20 @@ export default function MedicineFormPage() {
 
   const form = useForm<MedicineFormData>({
     resolver: zodResolver(medicineSchema),
-    defaultValues: { name: "", generic_name: "", category_id: "", manufacturer: "", strength: "", unit: undefined, is_active: true },
+    defaultValues: { name: "", generic_name: "", category_id: "", manufacturer: "", strength: "", unit: undefined, is_active: true, cost_price: 0, sale_price: 0 },
   });
+
+  const costPrice = useWatch({ control: form.control, name: "cost_price" }) || 0;
+  const salePrice = useWatch({ control: form.control, name: "sale_price" }) || 0;
+  const profit = salePrice - costPrice;
+  const margin = salePrice > 0 ? ((profit / salePrice) * 100).toFixed(1) : "0.0";
 
   useEffect(() => {
     if (medicine) {
       form.reset({
         name: medicine.name, generic_name: medicine.generic_name || "", category_id: medicine.category_id || "",
         manufacturer: medicine.manufacturer || "", strength: medicine.strength || "", unit: medicine.unit || undefined, is_active: medicine.is_active ?? true,
+        cost_price: Number(medicine.cost_price) || 0, sale_price: Number(medicine.sale_price) || 0,
       });
     }
   }, [medicine, form]);
@@ -70,12 +79,12 @@ export default function MedicineFormPage() {
   const onSubmit = (data: MedicineFormData) => {
     const unitValue = data.unit as MedicineUnit | null | undefined;
     if (isEditing) {
-      updateMedicine.mutate({ id: id!, ...data, category_id: data.category_id || null, unit: unitValue || null }, { onSuccess: () => navigate("/app/pharmacy/medicines") });
+      updateMedicine.mutate({ id: id!, ...data, category_id: data.category_id || null, unit: unitValue || null, cost_price: data.cost_price, sale_price: data.sale_price }, { onSuccess: () => navigate("/app/pharmacy/medicines") });
     } else {
       createMedicine.mutate({
         name: data.name, organization_id: profile!.organization_id!, generic_name: data.generic_name || null,
         category_id: data.category_id || null, manufacturer: data.manufacturer || null, strength: data.strength || null,
-        unit: unitValue || null, is_active: data.is_active ?? true,
+        unit: unitValue || null, is_active: data.is_active ?? true, cost_price: data.cost_price, sale_price: data.sale_price,
       }, { onSuccess: () => navigate("/app/pharmacy/medicines") });
     }
   };
@@ -150,7 +159,35 @@ export default function MedicineFormPage() {
                     <FormMessage />
                   </FormItem>
                 )} />
+                <FormField control={form.control} name="cost_price" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('pharmacy.costPrice' as any)}</FormLabel>
+                    <FormControl><Input type="number" step="0.01" min="0" placeholder="0.00" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="sale_price" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('pharmacy.salePrice' as any)}</FormLabel>
+                    <FormControl><Input type="number" step="0.01" min="0" placeholder="0.00" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
               </div>
+
+              {(costPrice > 0 || salePrice > 0) && (
+                <div className="flex items-center gap-4 rounded-lg border p-4 bg-muted/50">
+                  <div className="text-sm">
+                    <span className="text-muted-foreground">{t('pharmacy.profit' as any)}:</span>{" "}
+                    <span className={profit >= 0 ? "font-semibold text-green-600" : "font-semibold text-red-600"}>
+                      {profit.toFixed(2)}
+                    </span>
+                  </div>
+                  <Badge variant={profit >= 0 ? "default" : "destructive"}>
+                    {margin}% {t('pharmacy.profitMargin' as any)}
+                  </Badge>
+                </div>
+              )}
 
               <FormField control={form.control} name="is_active" render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">

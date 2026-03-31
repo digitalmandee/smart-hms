@@ -49,9 +49,36 @@ export default function MedicinesListPage() {
       ),
     },
     {
-      accessorKey: "manufacturer",
-      header: t('pharmacy.manufacturer' as any),
-      cell: ({ row }) => row.original.manufacturer || "-",
+      accessorKey: "cost_price",
+      header: t('pharmacy.costPrice' as any),
+      cell: ({ row }) => {
+        const val = Number(row.original.cost_price) || 0;
+        return val > 0 ? val.toFixed(2) : "-";
+      },
+    },
+    {
+      accessorKey: "sale_price",
+      header: t('pharmacy.salePrice' as any),
+      cell: ({ row }) => {
+        const val = Number(row.original.sale_price) || 0;
+        return val > 0 ? val.toFixed(2) : "-";
+      },
+    },
+    {
+      id: "profit_margin",
+      header: t('pharmacy.profitMargin' as any),
+      cell: ({ row }) => {
+        const cost = Number(row.original.cost_price) || 0;
+        const sale = Number(row.original.sale_price) || 0;
+        if (sale <= 0) return "-";
+        const margin = ((sale - cost) / sale * 100).toFixed(1);
+        const profit = sale - cost;
+        return (
+          <Badge variant={profit >= 0 ? "default" : "destructive"}>
+            {margin}%
+          </Badge>
+        );
+      },
     },
     {
       accessorKey: "is_active",
