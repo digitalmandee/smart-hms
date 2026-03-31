@@ -3344,6 +3344,10 @@ export const ar: Record<TranslationKey, string> = {
   "common.type": "النوع",
   "common.from": "من",
   "common.to": "إلى",
+  "services.costPrice": "سعر التكلفة",
+  "services.sellingPrice": "سعر البيع",
+  "services.profit": "الربح",
+  "services.profitMargin": "هامش الربح",
 
 };
 
