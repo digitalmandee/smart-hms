@@ -1,16 +1,21 @@
 
 
-# Fix: Lab Queue 404 — Wrong Navigation Path
+# Fix: Add Imaging Orders to Radiologist Sidebar
 
 ## Problem
-In `LabQueuePage.tsx` line 158, clicking a lab order navigates to `/app/lab/results/${r.id}`, but that route does not exist. The correct route (defined in `App.tsx` line 1042) is `/app/lab/orders/:orderId`.
+The radiology **Orders** page already exists at `/app/radiology/orders` with full filtering (status, modality, priority) and `ReportTable` — identical pattern to Lab Queue. However, only the `radiology_technician` role has it in their sidebar. The **radiologist** role is missing it entirely.
 
 ## Fix
-**File: `src/pages/app/lab/LabQueuePage.tsx`**
-- Change `navigate(\`/app/lab/results/${r.id}\`)` to `navigate(\`/app/lab/orders/${r.id}\`)`
 
-Single line change. No other files reference the wrong path.
+### File: `src/config/role-sidebars.ts`
+Add an "Orders" menu item to the `radiologist` sidebar, after Dashboard:
+
+```
+{ name: "Imaging Orders", path: "/app/radiology/orders", icon: "ClipboardList" },
+```
+
+This gives radiologists direct access to view all imaging orders with filters, just like the lab queue works for lab technicians.
 
 ## Files Changed
-- `src/pages/app/lab/LabQueuePage.tsx` — fix navigation path from `lab/results` to `lab/orders`
+- `src/config/role-sidebars.ts` — add Imaging Orders link to radiologist sidebar
 
