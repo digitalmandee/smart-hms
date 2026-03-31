@@ -148,20 +148,36 @@ export default function POFormPage() {
     }
   }, [sourceRequisition, form, items.length, fromPrId]);
 
+  const [formError, setFormError] = useState<string | null>(null);
+
   const onSubmit = async (data: POFormData) => {
+    setFormError(null);
     if (items.length === 0) {
-      toast.error("Add at least one item to the purchase order");
+      const msg = "Add at least one item to the purchase order";
+      setFormError(msg);
+      toast.error(msg);
       return;
     }
 
     // Validate items
     for (let i = 0; i < items.length; i++) {
-      if (items[i].quantity <= 0) {
-        toast.error(`Row ${i + 1}: Quantity must be greater than 0`);
+      const row = items[i];
+      if (!row.medicine_id && !row.item_id) {
+        const msg = `Row ${i + 1}: No item or medicine selected`;
+        setFormError(msg);
+        toast.error(msg);
         return;
       }
-      if (items[i].unit_price < 0) {
-        toast.error(`Row ${i + 1}: Unit price cannot be negative`);
+      if (row.quantity <= 0) {
+        const msg = `Row ${i + 1}: Quantity must be greater than 0`;
+        setFormError(msg);
+        toast.error(msg);
+        return;
+      }
+      if (row.unit_price < 0) {
+        const msg = `Row ${i + 1}: Unit price cannot be negative`;
+        setFormError(msg);
+        toast.error(msg);
         return;
       }
     }
@@ -178,8 +194,17 @@ export default function POFormPage() {
       });
       navigate(`/app/inventory/purchase-orders/${result.id}`);
     } catch (error) {
-      // Error handled by mutation
+      setFormError((error as Error).message || "Failed to create purchase order");
     }
+  };
+
+  const onInvalid = (errors: Record<string, any>) => {
+    const messages: string[] = [];
+    if (errors.vendor_id) messages.push("Vendor is required");
+    if (errors.branch_id) messages.push("Branch is required");
+    const msg = messages.length > 0 ? messages.join(", ") : "Please fix form errors";
+    setFormError(msg);
+    toast.error(msg);
   };
 
   return (
