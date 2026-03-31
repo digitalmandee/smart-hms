@@ -98,12 +98,18 @@ export function ServiceEditDialog({
     }
   }, [price, service]);
 
+  const profit = (parseFloat(price) || 0) - (parseFloat(costPrice) || 0);
+  const profitPercent = (parseFloat(price) || 0) > 0
+    ? ((profit / (parseFloat(price) || 1)) * 100).toFixed(1)
+    : "0.0";
+
   const handleSubmit = async () => {
     await onSave({
       id: service?.id,
       name,
       category_id: categoryId,
       default_price: parseFloat(price) || 0,
+      cost_price: parseFloat(costPrice) || 0,
       is_active: isActive,
       price_change_reason: priceChangeReason || undefined,
     });
