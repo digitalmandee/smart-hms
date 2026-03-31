@@ -27,7 +27,8 @@ import { usePOSTransaction, useVoidTransaction } from "@/hooks/usePOS";
 import { usePrint } from "@/hooks/usePrint";
 import { POSReceiptPreview } from "@/components/pharmacy/POSReceiptPreview";
 import { format } from "date-fns";
-import { ArrowLeft, Printer, XCircle, User, Phone, Clock, CreditCard } from "lucide-react";
+import { ArrowLeft, Printer, XCircle, RotateCcw, User, Phone, Clock, CreditCard } from "lucide-react";
+import { POSRefundDialog } from "@/components/pharmacy/POSRefundDialog";
 
 export default function POSTransactionDetailPage() {
   const { id } = useParams<{ id: string }>();
