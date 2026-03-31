@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -27,14 +28,16 @@ import { usePOSTransaction, useVoidTransaction } from "@/hooks/usePOS";
 import { usePrint } from "@/hooks/usePrint";
 import { POSReceiptPreview } from "@/components/pharmacy/POSReceiptPreview";
 import { format } from "date-fns";
-import { ArrowLeft, Printer, XCircle, User, Phone, Clock, CreditCard } from "lucide-react";
+import { ArrowLeft, Printer, XCircle, RotateCcw, User, Phone, Clock, CreditCard } from "lucide-react";
+import { POSRefundDialog } from "@/components/pharmacy/POSRefundDialog";
 
 export default function POSTransactionDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { printRef, handlePrint } = usePrint();
+  const [showRefundDialog, setShowRefundDialog] = useState(false);
 
-  const { data: transaction, isLoading } = usePOSTransaction(id || "");
+  const { data: transaction, isLoading, refetch } = usePOSTransaction(id || "");
   const voidMutation = useVoidTransaction();
 
   const handleVoid = () => {
@@ -85,6 +88,12 @@ export default function POSTransactionDetailPage() {
               <Printer className="mr-2 h-4 w-4" />
               Print Receipt
             </Button>
+            {transaction.status === 'completed' && (
+              <Button variant="outline" onClick={() => setShowRefundDialog(true)}>
+                <RotateCcw className="mr-2 h-4 w-4" />
+                Refund
+              </Button>
+            )}
             {transaction.status === 'completed' && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
@@ -283,6 +292,15 @@ export default function POSTransactionDetailPage() {
           </Card>
         </div>
       </div>
+
+      {transaction && (
+        <POSRefundDialog
+          open={showRefundDialog}
+          onOpenChange={setShowRefundDialog}
+          transaction={transaction}
+          onSuccess={() => refetch()}
+        />
+      )}
     </div>
   );
 }

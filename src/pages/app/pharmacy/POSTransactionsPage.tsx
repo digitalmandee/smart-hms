@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/select";
 import { usePOSTransactions, POSTransaction } from "@/hooks/usePOS";
 import { format } from "date-fns";
-import { Eye, Search, Store } from "lucide-react";
+import { Eye, RotateCcw, Search, Store } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 
 export default function POSTransactionsPage() {
@@ -92,13 +92,25 @@ export default function POSTransactionsPage() {
     {
       id: "actions",
       cell: ({ row }) => (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => navigate(`/app/pharmacy/pos/transactions/${row.original.id}`)}
-        >
-          <Eye className="h-4 w-4" />
-        </Button>
+        <div className="flex items-center gap-1">
+          {row.original.status === 'completed' && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate(`/app/pharmacy/pos/transactions/${row.original.id}`)}
+              title="Refund"
+            >
+              <RotateCcw className="h-4 w-4" />
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate(`/app/pharmacy/pos/transactions/${row.original.id}`)}
+          >
+            <Eye className="h-4 w-4" />
+          </Button>
+        </div>
       ),
     },
   ];
