@@ -301,7 +301,7 @@ function ReportDetailView({
               { key: "sales", header: "Gross Sales", cell: (r) => formatCurrency(r.sales), className: "text-right", sortable: true },
               { key: "discount", header: "Discounts", cell: (r) => <span className="text-destructive">{formatCurrency(r.discount)}</span>, className: "text-right" },
               { key: "net", header: "Net Sales", cell: (r) => <span className="font-medium">{formatCurrency(r.net)}</span>, className: "text-right", sortable: true },
-            ]} pageSize={25} searchable={false} />
+            ]} pageSize={50} searchable={false} />
           </div>
         );
       }
@@ -329,7 +329,7 @@ function ReportDetailView({
               { key: "label", header: "Hour" },
               { key: "count", header: "Transactions", className: "text-right", sortable: true },
               { key: "sales", header: "Sales", cell: (r) => formatCurrency(r.sales), className: "text-right", sortable: true },
-            ]} pageSize={25} searchable={false} />
+            ]} pageSize={50} searchable={false} />
           </div>
         );
       }
@@ -355,7 +355,7 @@ function ReportDetailView({
               { key: "name", header: "Category", sortable: true },
               { key: "quantity", header: "Items Sold", className: "text-right", sortable: true },
               { key: "revenue", header: "Revenue", cell: (r) => <span className="font-medium">{formatCurrency(r.revenue)}</span>, className: "text-right", sortable: true },
-            ]} pageSize={25} />
+            ]} pageSize={50} />
           </div>
         );
       }
@@ -381,7 +381,7 @@ function ReportDetailView({
               { key: "name", header: "Method" },
               { key: "value", header: "Share %", cell: (r) => `${r.value}%`, className: "text-right" },
               { key: "amount", header: "Amount", cell: (r) => <span className="font-medium">{formatCurrency(r.amount)}</span>, className: "text-right", sortable: true },
-            ]} pageSize={25} searchable={false} />
+            ]} pageSize={50} searchable={false} />
           </div>
         );
       }
@@ -415,7 +415,7 @@ function ReportDetailView({
               { key: "date", header: "Date", cell: (r) => format(new Date(r.date), "MMM dd, yyyy"), sortable: true },
               { key: "sales", header: "Sales", cell: (r) => formatCurrency(r.sales), className: "text-right", sortable: true },
               { key: "discount", header: "Discount", cell: (r) => <span className="text-destructive">{formatCurrency(r.discount)}</span>, className: "text-right", sortable: true },
-            ]} pageSize={25} searchable={false} />
+            ]} pageSize={50} searchable={false} />
           </div>
         );
       }
@@ -445,7 +445,7 @@ function ReportDetailView({
               { key: "count", header: "Transactions", className: "text-right", sortable: true },
               { key: "sales", header: "Sales", cell: (r) => <span className="font-medium">{formatCurrency(r.sales)}</span>, className: "text-right", sortable: true },
               { key: "discount", header: "Discounts", cell: (r) => <span className="text-destructive">{formatCurrency(r.discount)}</span>, className: "text-right" },
-            ]} pageSize={25} searchable={false} />
+            ]} pageSize={50} searchable={false} />
           </div>
         );
       }
@@ -462,7 +462,7 @@ function ReportDetailView({
               { key: "name", header: "Product", sortable: true },
               { key: "quantity", header: "Qty Sold", className: "text-right", sortable: true },
               { key: "revenue", header: "Revenue", cell: (r) => <span className="font-medium">{formatCurrency(r.revenue)}</span>, className: "text-right", sortable: true },
-            ]} pageSize={25} />
+            ]} pageSize={50} />
           </div>
         );
       }
@@ -480,7 +480,7 @@ function ReportDetailView({
               { key: "transactions", header: "Visits", className: "text-right", sortable: true },
               { key: "totalSpent", header: "Total Spent", cell: (r) => <span className="font-medium">{formatCurrency(r.totalSpent)}</span>, className: "text-right", sortable: true },
               { key: "avgSpent", header: "Avg Spend", cell: (r) => formatCurrency(r.avgSpent), className: "text-right" },
-            ]} pageSize={25} />
+            ]} pageSize={50} />
           </div>
         );
       }
@@ -500,7 +500,7 @@ function ReportDetailView({
               { key: "payment_method", header: "Payment", cell: (r) => <Badge variant="secondary">{(r.payment_method || "cash").replace(/_/g, " ")}</Badge> },
               { key: "status", header: "Status", cell: (r) => <Badge variant={r.status === "completed" ? "default" : "destructive"}>{r.status}</Badge> },
               { key: "created_at", header: "Date", cell: (r) => format(new Date(r.created_at), "MMM dd, HH:mm"), sortable: true },
-            ]} pageSize={25} />
+            ]} pageSize={50} />
           </div>
         );
       }
@@ -572,7 +572,7 @@ function ReportDetailView({
               { key: "count", header: "Transactions", className: "text-right", sortable: true },
               { key: "avgItems", header: "Avg Items", cell: (r) => r.avgItems.toFixed(1), className: "text-right" },
               { key: "avgValue", header: "Avg Value", cell: (r) => formatCurrency(r.avgValue), className: "text-right" },
-            ]} pageSize={25} searchable={false} />
+            ]} pageSize={50} searchable={false} />
           </div>
         );
       }
@@ -599,7 +599,7 @@ function ReportDetailView({
               { key: "costValue", header: "Cost Value", cell: (r) => formatCurrency(r.costValue), className: "text-right", sortable: true },
               { key: "retailValue", header: "Retail Value", cell: (r) => formatCurrency(r.retailValue), className: "text-right", sortable: true },
               { key: "margin", header: "Margin", cell: (r) => `${r.margin.toFixed(1)}%`, className: "text-right", sortable: true },
-            ]} pageSize={25} />
+            ]} pageSize={50} />
           </div>
         );
       }
@@ -631,7 +631,7 @@ function ReportDetailView({
               { key: "bucket", header: "Risk Window", cell: (r) => <Badge variant={r.bucket === "Expired" || r.bucket === "0-30 days" ? "destructive" : "secondary"}>{r.bucket}</Badge> },
               { key: "quantity", header: "Qty", className: "text-right", sortable: true },
               { key: "valueAtRisk", header: "Value at Risk", cell: (r) => formatCurrency(r.valueAtRisk), className: "text-right", sortable: true },
-            ]} pageSize={25} />
+            ]} pageSize={50} />
           </div>
         );
       }
@@ -651,7 +651,7 @@ function ReportDetailView({
               { key: "deficit", header: "Deficit", className: "text-right", sortable: true },
               { key: "suggestedOrder", header: "Suggested Order", cell: (r) => <span className="font-medium">{r.suggestedOrder}</span>, className: "text-right" },
               { key: "unitCost", header: "Est. Cost", cell: (r) => formatCurrency(r.suggestedOrder * r.unitCost), className: "text-right" },
-            ]} pageSize={25} />
+            ]} pageSize={50} />
           </div>
         );
       }
@@ -671,7 +671,7 @@ function ReportDetailView({
               { key: "batch", header: "Batch" },
               { key: "quantity", header: "Qty", className: "text-right", sortable: true },
               { key: "value", header: "Value", cell: (r) => formatCurrency(r.value), className: "text-right", sortable: true },
-            ]} pageSize={25} />
+            ]} pageSize={50} />
           </div>
         );
       }
@@ -689,7 +689,7 @@ function ReportDetailView({
               { key: "outQty", header: "Out Qty", cell: (r) => r.outQty ? <span className="text-destructive">{r.outQty}</span> : "-", className: "text-right" },
               { key: "count", header: "Count", className: "text-right", sortable: true },
               { key: "value", header: "Value", cell: (r) => formatCurrency(r.value), className: "text-right", sortable: true },
-            ]} pageSize={25} searchable={false} />
+            ]} pageSize={50} searchable={false} />
           </div>
         );
       }
@@ -710,7 +710,7 @@ function ReportDetailView({
               { key: "sellingPrice", header: "Selling Price", cell: (r) => formatCurrency(r.sellingPrice), className: "text-right" },
               { key: "expiryDate", header: "Expiry", sortable: true },
               { key: "value", header: "Value", cell: (r) => <span className="font-medium">{formatCurrency(r.value)}</span>, className: "text-right", sortable: true },
-            ]} pageSize={25} />
+            ]} pageSize={50} />
           </div>
         );
       }
@@ -738,7 +738,7 @@ function ReportDetailView({
               { key: "totalQty", header: "Total Qty", className: "text-right", sortable: true },
               { key: "retailValue", header: "Retail Value", cell: (r) => <span className="font-medium">{formatCurrency(r.retailValue)}</span>, className: "text-right", sortable: true },
               { key: "costValue", header: "Cost Value", cell: (r) => formatCurrency(r.costValue), className: "text-right" },
-            ]} pageSize={25} />
+            ]} pageSize={50} />
           </div>
         );
       }
@@ -770,7 +770,7 @@ function ReportDetailView({
               { key: "ageDays", header: "Age (days)", className: "text-right", sortable: true },
               { key: "bucket", header: "Bucket", cell: (r) => <Badge variant={r.bucket === "180+ days" || r.bucket === "91-180 days" ? "destructive" : "secondary"}>{r.bucket}</Badge> },
               { key: "value", header: "Value", cell: (r) => formatCurrency(r.value), className: "text-right", sortable: true },
-            ]} pageSize={25} />
+            ]} pageSize={50} />
           </div>
         );
       }
@@ -787,7 +787,7 @@ function ReportDetailView({
               { key: "qtySold", header: "Qty Sold", className: "text-right", sortable: true },
               { key: "currentStock", header: "Current Stock", className: "text-right", sortable: true },
               { key: "turnoverLabel", header: "Turnover Ratio", cell: (r) => <span className={`font-medium ${r.turnoverRatio > 2 ? "text-green-600" : r.turnoverRatio < 0.5 ? "text-destructive" : ""}`}>{r.turnoverLabel}</span>, className: "text-right", sortable: true },
-            ]} pageSize={25} />
+            ]} pageSize={50} />
           </div>
         );
       }
@@ -816,7 +816,7 @@ function ReportDetailView({
               { key: "cost", header: "Cost", cell: (r) => formatCurrency(r.cost), className: "text-right" },
               { key: "profit", header: "Profit", cell: (r) => <span className="text-green-600">{formatCurrency(r.profit)}</span>, className: "text-right", sortable: true },
               { key: "marginPercent", header: "Margin %", cell: (r) => `${r.marginPercent.toFixed(1)}%`, className: "text-right", sortable: true },
-            ]} pageSize={25} />
+            ]} pageSize={50} />
           </div>
         );
       }
@@ -836,7 +836,7 @@ function ReportDetailView({
                 { key: "created_at", header: "Date", cell: (r) => format(new Date(r.created_at), "MMM dd, yyyy"), sortable: true },
                 { key: "void_reason", header: "Reason", cell: (r) => r.void_reason || "N/A" },
                 { key: "total_amount", header: "Amount", cell: (r) => formatCurrency(Number(r.total_amount)), className: "text-right", sortable: true },
-              ]} pageSize={25} />
+              ]} pageSize={50} />
             ) : renderEmpty("No returns/refunds in this period")}
           </div>
         );
@@ -860,7 +860,7 @@ function ReportDetailView({
                 { key: "total_amount", header: "Total", cell: (r) => formatCurrency(Number(r.total_amount)), className: "text-right", sortable: true },
                 { key: "amount_paid", header: "Paid", cell: (r) => formatCurrency(Number(r.amount_paid)), className: "text-right" },
                 { key: "outstanding", header: "Outstanding", cell: (r) => <span className="text-destructive font-medium">{formatCurrency(Number(r.total_amount) - Number(r.amount_paid))}</span>, className: "text-right" },
-              ]} pageSize={25} />
+              ]} pageSize={50} />
             ) : renderEmpty("No credit sales in this period")}
           </div>
         );
@@ -893,7 +893,7 @@ function ReportDetailView({
               { key: "cardIn", header: "Card", cell: (r) => formatCurrency(r.cardIn), className: "text-right" },
               { key: "otherIn", header: "Other", cell: (r) => formatCurrency(r.otherIn), className: "text-right" },
               { key: "totalIn", header: "Total", cell: (r) => <span className="font-medium">{formatCurrency(r.totalIn)}</span>, className: "text-right", sortable: true },
-            ]} pageSize={25} searchable={false} />
+            ]} pageSize={50} searchable={false} />
           </div>
         );
       }
@@ -915,7 +915,7 @@ function ReportDetailView({
               { key: "transactions", header: "Transactions", className: "text-right", sortable: true },
               { key: "taxCollected", header: "Tax Collected", cell: (r) => formatCurrency(r.taxCollected), className: "text-right", sortable: true },
               { key: "salesAmount", header: "Sales", cell: (r) => formatCurrency(r.salesAmount), className: "text-right" },
-            ]} pageSize={25} searchable={false} />
+            ]} pageSize={50} searchable={false} />
           </div>
         );
       }
@@ -923,20 +923,39 @@ function ReportDetailView({
       // ============ PROCUREMENT REPORTS ============
 
       case "supplier-summary": {
-        const data = supplierSummary.data || [];
+        const result = supplierSummary.data;
         if (supplierSummary.isLoading) return renderLoading();
-        if (!data.length) return renderEmpty("No purchase data");
+        if (!result) return renderEmpty("No purchase data");
+        const summaryData = 'summary' in result ? result.summary : (result as any[]);
+        const detailData = 'details' in result ? result.details : [];
+        if (!summaryData.length) return renderEmpty("No purchase data");
         return (
-          <div className="space-y-4">
-            <ReportExportButton data={data} filename={`supplier-summary-${dateRange.start}`} columns={[{ key: "vendor", header: "Supplier" }, { key: "poCount", header: "POs" }, { key: "totalPurchases", header: "Total", format: (v: number) => formatCurrency(v) }, { key: "received", header: "Received", format: (v: number) => formatCurrency(v) }, { key: "pending", header: "Pending", format: (v: number) => formatCurrency(v) }]} pdfOptions={{ title: "Supplier Purchase Summary" }} />
-            <ReportTable data={data} columns={[
+          <div className="space-y-6">
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Vendor Summary</h3>
+            <ReportExportButton data={summaryData} filename={`supplier-summary-${dateRange.start}`} columns={[{ key: "vendor", header: "Supplier" }, { key: "poCount", header: "POs" }, { key: "totalPurchases", header: "Total", format: (v: number) => formatCurrency(v) }, { key: "received", header: "Received", format: (v: number) => formatCurrency(v) }, { key: "pending", header: "Pending", format: (v: number) => formatCurrency(v) }]} pdfOptions={{ title: "Supplier Purchase Summary" }} />
+            <ReportTable data={summaryData} columns={[
               { key: "vendor", header: "Supplier", cell: (r) => <span className="font-medium">{r.vendor}</span>, sortable: true },
               { key: "code", header: "Code" },
               { key: "poCount", header: "POs", className: "text-right", sortable: true },
               { key: "totalPurchases", header: "Total", cell: (r) => formatCurrency(r.totalPurchases), className: "text-right", sortable: true },
               { key: "received", header: "Received", cell: (r) => <span className="text-green-600">{formatCurrency(r.received)}</span>, className: "text-right" },
               { key: "pending", header: "Pending", cell: (r) => <span className="text-amber-600">{formatCurrency(r.pending)}</span>, className: "text-right" },
-            ]} pageSize={25} />
+            ]} pageSize={50} />
+
+            {detailData.length > 0 && (
+              <>
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mt-6">Purchase Details — Products by Vendor</h3>
+                <ReportExportButton data={detailData} filename={`supplier-details-${dateRange.start}`} columns={[{ key: "vendor", header: "Vendor" }, { key: "poNumber", header: "PO #" }, { key: "productName", header: "Product Name" }, { key: "quantity", header: "Qty" }, { key: "unitPrice", header: "Unit Price", format: (v: number) => formatCurrency(v) }, { key: "totalPrice", header: "Total", format: (v: number) => formatCurrency(v) }]} pdfOptions={{ title: "Supplier Purchase Details — Products", orientation: "landscape" }} />
+                <ReportTable data={detailData} columns={[
+                  { key: "vendor", header: "Vendor", cell: (r) => <span className="font-medium">{r.vendor}</span>, sortable: true },
+                  { key: "poNumber", header: "PO #", sortable: true },
+                  { key: "productName", header: "Product Name", sortable: true },
+                  { key: "quantity", header: "Qty", className: "text-right", sortable: true },
+                  { key: "unitPrice", header: "Unit Price", cell: (r) => formatCurrency(r.unitPrice), className: "text-right" },
+                  { key: "totalPrice", header: "Total", cell: (r) => <span className="font-medium">{formatCurrency(r.totalPrice)}</span>, className: "text-right", sortable: true },
+                ]} pageSize={50} />
+              </>
+            )}
           </div>
         );
       }
@@ -982,7 +1001,7 @@ function ReportDetailView({
               { key: "totalSales", header: "Total Sales", cell: (r) => formatCurrency(r.totalSales), className: "text-right", sortable: true },
               { key: "avgSale", header: "Avg Sale", cell: (r) => formatCurrency(r.avgSale), className: "text-right" },
               { key: "totalDiscount", header: "Discounts", cell: (r) => <span className="text-destructive">{formatCurrency(r.totalDiscount)}</span>, className: "text-right" },
-            ]} pageSize={25} />
+            ]} pageSize={50} />
           </div>
         );
       }

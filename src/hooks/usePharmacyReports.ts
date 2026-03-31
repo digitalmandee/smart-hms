@@ -1,6 +1,28 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
+// ============ FETCH ALL ROWS HELPER ============
+// Supabase caps at 1000 rows per request. This helper paginates to fetch all.
+async function fetchAllRows<T = any>(
+  buildQuery: (from: number, to: number) => any
+): Promise<T[]> {
+  const PAGE_SIZE = 1000;
+  let allData: T[] = [];
+  let offset = 0;
+  let hasMore = true;
+
+  while (hasMore) {
+    const { data, error } = await buildQuery(offset, offset + PAGE_SIZE - 1);
+    if (error) throw error;
+    const batch = (data || []) as T[];
+    allData = allData.concat(batch);
+    hasMore = batch.length === PAGE_SIZE;
+    offset += PAGE_SIZE;
+  }
+
+  return allData;
+}
+
 // ============ SHARED TYPES ============
 
 interface PaymentBreakdown {
@@ -74,20 +96,21 @@ export function useTopSellingMedicines(dateFrom: string, dateTo: string, limit?:
   return useQuery({
     queryKey: ["pharmacy-top-medicines", dateFrom, dateTo, limit],
     queryFn: async () => {
-      const { data: items, error } = await (supabase as any)
-        .from("pharmacy_pos_items")
-        .select(`
-          medicine_id,
-          medicine_name,
-          quantity,
-          line_total,
-          transaction:pharmacy_pos_transactions!inner(status, created_at)
-        `)
-        .eq("transaction.status", "completed")
-        .gte("transaction.created_at", dateFrom)
-        .lte("transaction.created_at", `${dateTo}T23:59:59`);
-
-      if (error) throw error;
+      const items = await fetchAllRows((from, to) =>
+        (supabase as any)
+          .from("pharmacy_pos_items")
+          .select(`
+            medicine_id,
+            medicine_name,
+            quantity,
+            line_total,
+            transaction:pharmacy_pos_transactions!inner(status, created_at)
+          `)
+          .eq("transaction.status", "completed")
+          .gte("transaction.created_at", dateFrom)
+          .lte("transaction.created_at", `${dateTo}T23:59:59`)
+          .range(from, to)
+      );
 
       const medicineStats: Record<string, { name: string; quantity: number; revenue: number }> = {};
       items?.forEach((item: any) => {
@@ -502,19 +525,20 @@ export function useProfitMarginReport(dateFrom: string, dateTo: string) {
   return useQuery({
     queryKey: ["pharmacy-profit-margin", dateFrom, dateTo],
     queryFn: async () => {
-      const { data: items, error } = await (supabase as any)
-        .from("pharmacy_pos_items")
-        .select(`
-          medicine_id, medicine_name, quantity, unit_price, line_total,
-          inventory:medicine_inventory(unit_price),
-          medicine:medicines(cost_price),
-          transaction:pharmacy_pos_transactions!inner(status, created_at)
-        `)
-        .eq("transaction.status", "completed")
-        .gte("transaction.created_at", dateFrom)
-        .lte("transaction.created_at", `${dateTo}T23:59:59`);
-
-      if (error) throw error;
+      const items = await fetchAllRows((from, to) =>
+        (supabase as any)
+          .from("pharmacy_pos_items")
+          .select(`
+            medicine_id, medicine_name, quantity, unit_price, line_total,
+            inventory:medicine_inventory(unit_price),
+            medicine:medicines(cost_price),
+            transaction:pharmacy_pos_transactions!inner(status, created_at)
+          `)
+          .eq("transaction.status", "completed")
+          .gte("transaction.created_at", dateFrom)
+          .lte("transaction.created_at", `${dateTo}T23:59:59`)
+          .range(from, to)
+      );
 
       const byMedicine: Record<string, { name: string; qtySold: number; revenue: number; cost: number }> = {};
       (items || []).forEach((item: any) => {
@@ -606,10 +630,28 @@ export function useSupplierPurchaseSummary(dateFrom: string, dateTo: string) {
 
       if (error) throw error;
 
+      // Get PO IDs for item-level detail
+      const poIds = (data || []).map((po: any) => po.id).filter(Boolean);
+      let itemDetails: any[] = [];
+      if (poIds.length > 0) {
+        const { data: items, error: itemErr } = await (supabase as any)
+          .from("purchase_order_items")
+          .select(`
+            id, purchase_order_id, quantity, unit_price, total_price, item_type,
+            medicine:medicines(name),
+            item:inventory_items(name)
+          `)
+          .in("purchase_order_id", poIds);
+        if (!itemErr && items) itemDetails = items;
+      }
+
+      // Build PO lookup for vendor info
+      const poLookup: Record<string, { vendor: string; po_number: string }> = {};
       const byVendor: Record<string, { vendor: string; code: string; totalPurchases: number; poCount: number; received: number; pending: number }> = {};
       (data || []).forEach((po: any) => {
         const vName = po.vendor?.name || "Unknown";
         const vCode = po.vendor?.vendor_code || "";
+        poLookup[po.id] = { vendor: vName, po_number: po.po_number };
         if (!byVendor[vName]) byVendor[vName] = { vendor: vName, code: vCode, totalPurchases: 0, poCount: 0, received: 0, pending: 0 };
         byVendor[vName].totalPurchases += Number(po.total_amount || 0);
         byVendor[vName].poCount++;
@@ -617,7 +659,26 @@ export function useSupplierPurchaseSummary(dateFrom: string, dateTo: string) {
         else byVendor[vName].pending += Number(po.total_amount || 0);
       });
 
-      return Object.values(byVendor).sort((a, b) => b.totalPurchases - a.totalPurchases);
+      // Build item-level detail rows
+      const detailRows = itemDetails.map((item: any) => {
+        const po = poLookup[item.purchase_order_id] || { vendor: "Unknown", po_number: "N/A" };
+        const productName = item.item_type === "medicine"
+          ? (item.medicine?.name || "Unknown Medicine")
+          : (item.item?.name || "Unknown Item");
+        return {
+          vendor: po.vendor,
+          poNumber: po.po_number,
+          productName,
+          quantity: Number(item.quantity || 0),
+          unitPrice: Number(item.unit_price || 0),
+          totalPrice: Number(item.total_price || 0),
+        };
+      }).sort((a: any, b: any) => a.vendor.localeCompare(b.vendor));
+
+      return {
+        summary: Object.values(byVendor).sort((a, b) => b.totalPurchases - a.totalPurchases),
+        details: detailRows,
+      };
     },
     staleTime: 5 * 60 * 1000,
   });
@@ -688,15 +749,16 @@ export function useTransactionLog(dateFrom: string, dateTo: string) {
   return useQuery({
     queryKey: ["pharmacy-transaction-log", dateFrom, dateTo],
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
-        .from("pharmacy_pos_transactions")
-        .select("id, transaction_number, customer_name, total_amount, discount_amount, amount_paid, payment_method, status, created_at, subtotal")
-        .gte("created_at", dateFrom)
-        .lte("created_at", `${dateTo}T23:59:59`)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      return (data || []).map((tx: any) => ({
+      const data = await fetchAllRows((from, to) =>
+        (supabase as any)
+          .from("pharmacy_pos_transactions")
+          .select("id, transaction_number, customer_name, total_amount, discount_amount, amount_paid, payment_method, status, created_at, subtotal")
+          .gte("created_at", dateFrom)
+          .lte("created_at", `${dateTo}T23:59:59`)
+          .order("created_at", { ascending: false })
+          .range(from, to)
+      );
+      return data.map((tx: any) => ({
         ...tx,
         total_amount: Number(tx.total_amount || 0),
         discount_amount: Number(tx.discount_amount || 0),
@@ -1161,23 +1223,24 @@ export function useDailyProfitLoss(dateFrom: string, dateTo: string) {
   return useQuery({
     queryKey: ["pharmacy-daily-pnl", dateFrom, dateTo],
     queryFn: async () => {
-      const { data: items, error } = await (supabase as any)
-        .from("pharmacy_pos_items")
-        .select(`
-          quantity,
-          unit_price,
-          line_total,
-          inventory_id,
-          medicine_id,
-          transaction:pharmacy_pos_transactions!inner(id, status, created_at),
-          inventory:medicine_inventory(unit_price),
-          medicine:medicines(cost_price)
-        `)
-        .eq("transaction.status", "completed")
-        .gte("transaction.created_at", dateFrom)
-        .lte("transaction.created_at", `${dateTo}T23:59:59`);
-
-      if (error) throw error;
+      const items = await fetchAllRows((from, to) =>
+        (supabase as any)
+          .from("pharmacy_pos_items")
+          .select(`
+            quantity,
+            unit_price,
+            line_total,
+            inventory_id,
+            medicine_id,
+            transaction:pharmacy_pos_transactions!inner(id, status, created_at),
+            inventory:medicine_inventory(unit_price),
+            medicine:medicines(cost_price)
+          `)
+          .eq("transaction.status", "completed")
+          .gte("transaction.created_at", dateFrom)
+          .lte("transaction.created_at", `${dateTo}T23:59:59`)
+          .range(from, to)
+      );
 
       const byDay: Record<string, { revenue: number; cogs: number; txIds: Set<string> }> = {};
 
