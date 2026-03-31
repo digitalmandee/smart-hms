@@ -220,17 +220,42 @@ export function ServiceEditDialog({
               </Select>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="price">Default Price (Rs.)</Label>
-              <Input
-                id="price"
-                type="number"
-                min={0}
-                step={0.01}
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="price">Selling Price (Rs.)</Label>
+                <Input
+                  id="price"
+                  type="number"
+                  min={0}
+                  step={0.01}
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="costPrice">Cost Price (Rs.)</Label>
+                <Input
+                  id="costPrice"
+                  type="number"
+                  min={0}
+                  step={0.01}
+                  value={costPrice}
+                  onChange={(e) => setCostPrice(e.target.value)}
+                />
+              </div>
             </div>
+
+            {/* Profit display */}
+            {(parseFloat(price) > 0 || parseFloat(costPrice) > 0) && (
+              <div className="rounded-lg border p-3 bg-muted/30">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Profit Margin</span>
+                  <span className={`font-mono font-medium ${profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    Rs. {profit.toLocaleString()} ({profitPercent}%)
+                  </span>
+                </div>
+              </div>
+            )}
 
             {showPriceReason && (
               <div className="space-y-2">
