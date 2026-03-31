@@ -107,18 +107,17 @@ export function useSearchDispensedPrescriptions(query: string) {
           id,
           prescription_number,
           status,
-          dispensed_at,
-          patient:patients(id, full_name, mrn),
+          created_at,
+          patient:patients(id, first_name, last_name, patient_number),
           consultation:consultations(id, admission_id),
           items:prescription_items(
-            id, medicine_name, medicine_id, quantity, unit_price, total_price, 
-            dispensed_quantity, inventory_id, batch_number
+            id, medicine_name, medicine_id, quantity, is_dispensed
           )
         `)
         .eq("branch_id", profile.branch_id)
         .in("status", ["dispensed", "partially_dispensed"])
         .or(`prescription_number.ilike.%${query}%`)
-        .order("dispensed_at", { ascending: false })
+        .order("created_at", { ascending: false })
         .limit(30);
 
       if (error) {
@@ -126,7 +125,7 @@ export function useSearchDispensedPrescriptions(query: string) {
         const { data: patients } = await supabase
           .from("patients")
           .select("id")
-          .or(`full_name.ilike.%${query}%,mrn.ilike.%${query}%`)
+          .or(`first_name.ilike.%${query}%,last_name.ilike.%${query}%,patient_number.ilike.%${query}%`)
           .limit(10);
 
         if (patients && patients.length > 0) {
@@ -137,54 +136,94 @@ export function useSearchDispensedPrescriptions(query: string) {
               id,
               prescription_number,
               status,
-              dispensed_at,
-              patient:patients(id, full_name, mrn),
+              created_at,
+              patient:patients(id, first_name, last_name, patient_number),
               consultation:consultations(id, admission_id),
               items:prescription_items(
-                id, medicine_name, medicine_id, quantity, unit_price, total_price,
-                dispensed_quantity, inventory_id, batch_number
+                id, medicine_name, medicine_id, quantity, is_dispensed
               )
             `)
             .eq("branch_id", profile.branch_id)
             .in("status", ["dispensed", "partially_dispensed"])
             .in("patient_id", patientIds)
-            .order("dispensed_at", { ascending: false })
+            .order("created_at", { ascending: false })
             .limit(30);
 
           if (rxError) throw rxError;
-          return mapPrescriptionResults(rxData);
+          return await mapPrescriptionResults(rxData, profile.branch_id);
         }
         throw error;
       }
 
-      return mapPrescriptionResults(data);
+      return await mapPrescriptionResults(data, profile.branch_id);
     },
     enabled: !!query && query.length >= 3 && !!profile?.branch_id,
   });
 }
 
-function mapPrescriptionResults(data: any[]): DispensedPrescriptionResult[] {
-  if (!data) return [];
-  return data.map((rx: any) => ({
-    id: rx.id,
-    prescription_number: rx.prescription_number || "N/A",
-    patient_name: rx.patient?.full_name || "Unknown",
-    patient_mrn: rx.patient?.mrn || "",
-    dispensed_at: rx.dispensed_at || rx.created_at,
-    source: rx.consultation?.admission_id ? "ipd" as const : "opd" as const,
-    items: (rx.items || [])
-      .filter((item: any) => (item.dispensed_quantity || item.quantity) > 0)
-      .map((item: any) => ({
-        id: item.id,
-        medicine_name: item.medicine_name,
-        medicine_id: item.medicine_id,
-        inventory_id: item.inventory_id,
-        quantity: item.dispensed_quantity || item.quantity,
-        unit_price: item.unit_price || 0,
-        total_price: item.total_price || 0,
-        batch_number: item.batch_number,
-      })),
-  }));
+async function mapPrescriptionResults(data: any[], branchId: string): Promise<DispensedPrescriptionResult[]> {
+  if (!data || data.length === 0) return [];
+
+  // Collect all medicine_ids to do a bulk price lookup
+  const allMedicineIds = new Set<string>();
+  data.forEach((rx: any) => {
+    (rx.items || []).forEach((item: any) => {
+      if (item.medicine_id) allMedicineIds.add(item.medicine_id);
+    });
+  });
+
+  // Bulk fetch prices from medicine_inventory
+  let priceMap: Record<string, { selling_price: number; id: string }> = {};
+  if (allMedicineIds.size > 0) {
+    const { data: invData } = await supabase
+      .from("medicine_inventory")
+      .select("id, medicine_id, selling_price")
+      .in("medicine_id", Array.from(allMedicineIds))
+      .eq("branch_id", branchId)
+      .gt("quantity", 0)
+      .order("created_at", { ascending: false });
+
+    if (invData) {
+      // Keep first (latest) per medicine_id
+      invData.forEach((inv: any) => {
+        if (!priceMap[inv.medicine_id]) {
+          priceMap[inv.medicine_id] = { selling_price: inv.selling_price || 0, id: inv.id };
+        }
+      });
+    }
+  }
+
+  return data.map((rx: any) => {
+    const patient = rx.patient;
+    const fullName = patient
+      ? `${patient.first_name || ""} ${patient.last_name || ""}`.trim()
+      : "Unknown";
+
+    return {
+      id: rx.id,
+      prescription_number: rx.prescription_number || "N/A",
+      patient_name: fullName,
+      patient_mrn: patient?.patient_number || "",
+      dispensed_at: rx.created_at,
+      source: rx.consultation?.admission_id ? "ipd" as const : "opd" as const,
+      items: (rx.items || [])
+        .filter((item: any) => item.is_dispensed || item.quantity > 0)
+        .map((item: any) => {
+          const inv = priceMap[item.medicine_id] || { selling_price: 0, id: undefined };
+          const unitPrice = inv.selling_price;
+          return {
+            id: item.id,
+            medicine_name: item.medicine_name,
+            medicine_id: item.medicine_id,
+            inventory_id: inv.id,
+            quantity: item.quantity,
+            unit_price: unitPrice,
+            total_price: unitPrice * (item.quantity || 0),
+            batch_number: undefined,
+          };
+        }),
+    };
+  });
 }
 
 // Fetch recent returns from pharmacy_returns table
