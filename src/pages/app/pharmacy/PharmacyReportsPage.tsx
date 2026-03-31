@@ -1071,21 +1071,36 @@ function ReportDetailView({
                 </BarChart>
               </ResponsiveContainer>
             </div>
-            {/* Export */}
-            <ReportExportButton
-              data={data}
-              filename={`daily-pnl-${dateRange.start}`}
-              columns={[
-                { key: "date", header: "Date" },
-                { key: "transactionCount", header: "Transactions" },
-                { key: "revenue", header: "Revenue", format: (v: number) => formatCurrency(v) },
-                { key: "cogs", header: "COGS", format: (v: number) => formatCurrency(v) },
-                { key: "profit", header: "Profit", format: (v: number) => formatCurrency(v) },
-                { key: "marginPercent", header: "Margin %", format: (v: number) => `${v.toFixed(1)}%` },
-              ]}
-              pdfOptions={{ title: "Daily Profit & Loss", dateRange: { from: new Date(dateRange.start), to: new Date(dateRange.end) } }}
-              summaryRow={{ date: "TOTAL", transactionCount: totals.count, revenue: totals.revenue, cogs: totals.cogs, profit: totals.profit, marginPercent: avgMargin }}
-            />
+            {/* Export Buttons */}
+            <div className="flex flex-wrap items-center gap-3">
+              <Button
+                variant="default"
+                onClick={() => {
+                  const exportBtn = document.querySelector('[data-pnl-export]') as HTMLButtonElement;
+                  if (exportBtn) exportBtn.click();
+                }}
+                className="gap-2"
+              >
+                <FileText className="h-4 w-4" />
+                Download PDF Report
+              </Button>
+              <div data-pnl-export>
+                <ReportExportButton
+                  data={data}
+                  filename={`daily-pnl-${dateRange.start}`}
+                  columns={[
+                    { key: "date", header: "Date" },
+                    { key: "transactionCount", header: "Transactions" },
+                    { key: "revenue", header: "Revenue", format: (v: number) => formatCurrency(v) },
+                    { key: "cogs", header: "COGS", format: (v: number) => formatCurrency(v) },
+                    { key: "profit", header: "Profit", format: (v: number) => formatCurrency(v) },
+                    { key: "marginPercent", header: "Margin %", format: (v: number) => `${v.toFixed(1)}%` },
+                  ]}
+                  pdfOptions={{ title: "Daily Profit & Loss", dateRange: { from: new Date(dateRange.start), to: new Date(dateRange.end) } }}
+                  summaryRow={{ date: "TOTAL", transactionCount: totals.count, revenue: totals.revenue, cogs: totals.cogs, profit: totals.profit, marginPercent: avgMargin }}
+                />
+              </div>
+            </div>
             {/* Table */}
             <ReportTable
               data={data}

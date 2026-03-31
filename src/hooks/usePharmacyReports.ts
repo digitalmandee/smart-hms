@@ -519,7 +519,7 @@ export function useProfitMarginReport(dateFrom: string, dateTo: string) {
       const byMedicine: Record<string, { name: string; qtySold: number; revenue: number; cost: number }> = {};
       (items || []).forEach((item: any) => {
         const id = item.medicine_id || "unknown";
-        const costPrice = Number(item.inventory?.unit_price || item.unit_price * 0.65 || 0);
+        const costPrice = Number(item.inventory?.unit_price || item.medicine?.cost_price || item.unit_price * 0.65 || 0);
         if (!byMedicine[id]) byMedicine[id] = { name: item.medicine_name || "Unknown", qtySold: 0, revenue: 0, cost: 0 };
         byMedicine[id].qtySold += Number(item.quantity || 0);
         byMedicine[id].revenue += Number(item.line_total || 0);
