@@ -524,19 +524,20 @@ export function useProfitMarginReport(dateFrom: string, dateTo: string) {
   return useQuery({
     queryKey: ["pharmacy-profit-margin", dateFrom, dateTo],
     queryFn: async () => {
-      const { data: items, error } = await (supabase as any)
-        .from("pharmacy_pos_items")
-        .select(`
-          medicine_id, medicine_name, quantity, unit_price, line_total,
-          inventory:medicine_inventory(unit_price),
-          medicine:medicines(cost_price),
-          transaction:pharmacy_pos_transactions!inner(status, created_at)
-        `)
-        .eq("transaction.status", "completed")
-        .gte("transaction.created_at", dateFrom)
-        .lte("transaction.created_at", `${dateTo}T23:59:59`);
-
-      if (error) throw error;
+      const items = await fetchAllRows((from, to) =>
+        (supabase as any)
+          .from("pharmacy_pos_items")
+          .select(`
+            medicine_id, medicine_name, quantity, unit_price, line_total,
+            inventory:medicine_inventory(unit_price),
+            medicine:medicines(cost_price),
+            transaction:pharmacy_pos_transactions!inner(status, created_at)
+          `)
+          .eq("transaction.status", "completed")
+          .gte("transaction.created_at", dateFrom)
+          .lte("transaction.created_at", `${dateTo}T23:59:59`)
+          .range(from, to)
+      );
 
       const byMedicine: Record<string, { name: string; qtySold: number; revenue: number; cost: number }> = {};
       (items || []).forEach((item: any) => {
