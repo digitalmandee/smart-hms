@@ -507,6 +507,7 @@ export function useProfitMarginReport(dateFrom: string, dateTo: string) {
         .select(`
           medicine_id, medicine_name, quantity, unit_price, line_total,
           inventory:medicine_inventory(unit_price),
+          medicine:medicines(cost_price),
           transaction:pharmacy_pos_transactions!inner(status, created_at)
         `)
         .eq("transaction.status", "completed")
