@@ -1221,23 +1221,24 @@ export function useDailyProfitLoss(dateFrom: string, dateTo: string) {
   return useQuery({
     queryKey: ["pharmacy-daily-pnl", dateFrom, dateTo],
     queryFn: async () => {
-      const { data: items, error } = await (supabase as any)
-        .from("pharmacy_pos_items")
-        .select(`
-          quantity,
-          unit_price,
-          line_total,
-          inventory_id,
-          medicine_id,
-          transaction:pharmacy_pos_transactions!inner(id, status, created_at),
-          inventory:medicine_inventory(unit_price),
-          medicine:medicines(cost_price)
-        `)
-        .eq("transaction.status", "completed")
-        .gte("transaction.created_at", dateFrom)
-        .lte("transaction.created_at", `${dateTo}T23:59:59`);
-
-      if (error) throw error;
+      const items = await fetchAllRows((from, to) =>
+        (supabase as any)
+          .from("pharmacy_pos_items")
+          .select(`
+            quantity,
+            unit_price,
+            line_total,
+            inventory_id,
+            medicine_id,
+            transaction:pharmacy_pos_transactions!inner(id, status, created_at),
+            inventory:medicine_inventory(unit_price),
+            medicine:medicines(cost_price)
+          `)
+          .eq("transaction.status", "completed")
+          .gte("transaction.created_at", dateFrom)
+          .lte("transaction.created_at", `${dateTo}T23:59:59`)
+          .range(from, to)
+      );
 
       const byDay: Record<string, { revenue: number; cogs: number; txIds: Set<string> }> = {};
 
