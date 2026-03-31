@@ -372,11 +372,17 @@ export default function POFormPage() {
             </CardContent>
           </Card>
 
+          {formError && (
+            <div className="rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
+              {formError}
+            </div>
+          )}
+
           <div className="flex justify-end gap-4">
             <Button type="button" variant="outline" onClick={() => navigate(-1)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={createPO.isPending || items.length === 0}>
+            <Button type="submit" disabled={createPO.isPending}>
               {createPO.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Create Purchase Order
             </Button>
