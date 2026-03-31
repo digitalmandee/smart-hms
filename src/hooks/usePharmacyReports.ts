@@ -1133,17 +1133,18 @@ export function useCashierPerformance(dateFrom: string, dateTo: string) {
   return useQuery({
     queryKey: ["pharmacy-cashier-performance", dateFrom, dateTo],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("pharmacy_pos_transactions")
-        .select("id, total_amount, discount_amount, created_by, status, created_at")
-        .eq("status", "completed")
-        .gte("created_at", dateFrom)
-        .lte("created_at", `${dateTo}T23:59:59`);
-
-      if (error) throw error;
+      const data = await fetchAllRows((from, to) =>
+        supabase
+          .from("pharmacy_pos_transactions")
+          .select("id, total_amount, discount_amount, created_by, status, created_at")
+          .eq("status", "completed")
+          .gte("created_at", dateFrom)
+          .lte("created_at", `${dateTo}T23:59:59`)
+          .range(from, to)
+      );
 
       const byCashier: Record<string, { userId: string; totalSales: number; transactions: number; totalDiscount: number }> = {};
-      (data || []).forEach(tx => {
+      data.forEach((tx: any) => {
         const uid = tx.created_by || "unknown";
         if (!byCashier[uid]) byCashier[uid] = { userId: uid, totalSales: 0, transactions: 0, totalDiscount: 0 };
         byCashier[uid].totalSales += Number(tx.total_amount || 0);
