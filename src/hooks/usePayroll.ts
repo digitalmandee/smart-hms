@@ -297,7 +297,6 @@ export function useApprovePayrollRun() {
       const { data: { user } } = await supabase.auth.getUser();
       const updateData: Record<string, unknown> = {
         status: approved ? "approved" : "draft",
-        updated_at: new Date().toISOString(),
       };
       if (approved) {
         updateData.approved_by = user?.id;
