@@ -12,6 +12,8 @@ import { POSRecentProducts } from "@/components/pharmacy/POSRecentProducts";
 import { POSMedicineAlternatives } from "@/components/pharmacy/POSMedicineAlternatives";
 import { POSCartCompanion } from "@/components/pharmacy/POSCartCompanion";
 import { POSTodaySummary } from "@/components/pharmacy/POSTodaySummary";
+import { POSSessionOpenDialog } from "@/components/pharmacy/POSSessionOpenDialog";
+import { POSSessionCloseDialog } from "@/components/pharmacy/POSSessionCloseDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -33,6 +35,7 @@ import {
   POSTransaction,
   POSPayment,
 } from "@/hooks/usePOS";
+import { useCurrentPOSSession } from "@/hooks/usePOSSessions";
 import { useHoldTransaction } from "@/hooks/useHeldTransactions";
 import { PatientForPOS, PatientAdmissionStatus } from "@/hooks/usePatientPrescriptionsForPOS";
 import { usePrint } from "@/hooks/usePrint";
@@ -52,6 +55,7 @@ import {
   BedDouble,
   FileText,
   Syringe,
+  Lock,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
@@ -89,6 +93,7 @@ export default function POSTerminalPage() {
   const [showLastSaleReceipt, setShowLastSaleReceipt] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [prescriptionNumber, setPrescriptionNumber] = useState<string | null>(null);
+  const [showCloseSession, setShowCloseSession] = useState(false);
   
   // OT Medication tracking
   const [otMedicationId, setOtMedicationId] = useState<string | null>(null);
@@ -103,6 +108,10 @@ export default function POSTerminalPage() {
   const createTransactionMutation = useCreateTransaction();
   const postToProfileMutation = usePostToPatientProfile();
   const holdTransactionMutation = useHoldTransaction();
+  
+  // Session management
+  const { data: currentSession, isLoading: sessionLoading } = useCurrentPOSSession();
+  const [sessionJustOpened, setSessionJustOpened] = useState(false);
   
   // Fetch last transaction for "Last Sale" feature
   const { data: recentTransactions } = usePOSTransactions(profile?.branch_id, {});
@@ -351,6 +360,7 @@ export default function POSTerminalPage() {
       patientId: selectedPatient?.id,
       isCredit,
       dueDate,
+      sessionId: currentSession?.id,
     }, {
       onSuccess: async (transaction) => {
         // Update OT medication status if applicable
@@ -422,6 +432,9 @@ export default function POSTerminalPage() {
               <h1 className="text-lg font-bold tracking-tight">POS Terminal</h1>
               <p className="text-xs text-primary-foreground/70">
                 {profile?.full_name || "Cashier"} • {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                {currentSession && (
+                  <span> • Session: {currentSession.session_number}</span>
+                )}
               </p>
             </div>
           </div>
@@ -449,6 +462,17 @@ export default function POSTerminalPage() {
             Hold
           </Button>
           <POSHeldTransactionsDialog onRecall={handleRecallTransaction} />
+          {currentSession && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setShowCloseSession(true)}
+              className="hidden sm:flex bg-primary-foreground/20 hover:bg-primary-foreground/30 text-primary-foreground border-0"
+            >
+              <Lock className="h-4 w-4 mr-1" />
+              Close Register
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="icon"
@@ -692,6 +716,22 @@ export default function POSTerminalPage() {
         onConfirm={confirmPostToProfile}
         isLoading={postToProfileMutation.isPending}
       />
+
+      {/* Session Open Dialog */}
+      <POSSessionOpenDialog
+        open={!sessionLoading && !currentSession}
+        onSessionOpened={() => setSessionJustOpened(true)}
+      />
+
+      {/* Session Close Dialog */}
+      {currentSession && (
+        <POSSessionCloseDialog
+          open={showCloseSession}
+          onOpenChange={setShowCloseSession}
+          session={currentSession}
+          transactions={recentTransactions || []}
+        />
+      )}
     </div>
   );
 }

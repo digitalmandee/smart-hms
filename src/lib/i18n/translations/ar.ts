@@ -3355,5 +3355,23 @@ export const ar: Record<TranslationKey, string> = {
   "pharmacy.profit": "الربح",
   "pharmacy.downloadReport": "تنزيل التقرير",
 
+  // POS Sessions
+  "pos.openRegister": "فتح الصندوق",
+  "pos.closeRegister": "إغلاق الصندوق",
+  "pos.openingBalance": "الرصيد الافتتاحي",
+  "pos.closingBalance": "الرصيد الختامي",
+  "pos.expectedCash": "النقد المتوقع",
+  "pos.cashDifference": "فرق النقد",
+  "pos.over": "زيادة",
+  "pos.short": "نقص",
+  "pos.sessionSummary": "ملخص الجلسة",
+  "pos.downloadDailyReport": "تنزيل التقرير اليومي",
+  "pos.cashSales": "مبيعات نقدية",
+  "pos.cardSales": "مبيعات بطاقة",
+  "pos.mobileSales": "مدفوعات موبايل",
+  "pos.noOpenSession": "لا توجد جلسة مفتوحة",
+  "pos.countYourCash": "قم بعد النقود",
+  "pos.sessions": "جلسات نقاط البيع",
+
 };
 

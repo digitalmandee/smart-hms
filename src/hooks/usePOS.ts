@@ -18,6 +18,8 @@ export interface POSSession {
   closing_balance: number | null;
   expected_cash: number | null;
   cash_difference: number | null;
+  total_sales: number | null;
+  total_transactions: number | null;
   notes: string | null;
   status: "open" | "closed";
   opener?: { full_name: string };
@@ -183,6 +185,7 @@ export function useCreateTransaction() {
       patientId,
       isCredit,
       dueDate,
+      sessionId,
     }: {
       items: CartItem[];
       payments: PaymentEntry[];
@@ -193,6 +196,7 @@ export function useCreateTransaction() {
       patientId?: string;
       isCredit?: boolean;
       dueDate?: string;
+      sessionId?: string;
     }) => {
       if (!profile?.organization_id || !profile?.branch_id) {
         throw new Error("No organization or branch context");
@@ -235,12 +239,12 @@ export function useCreateTransaction() {
         transactionStoreId = invLookup?.store_id || null;
       }
 
-      // Create transaction (session_id is now optional/null)
+      // Create transaction with optional session_id
       const { data: transaction, error: txError } = await queryPOSTable("pharmacy_pos_transactions")
         .insert({
           organization_id: profile.organization_id,
           branch_id: profile.branch_id,
-          session_id: null, // No session required
+          session_id: sessionId || null,
           store_id: transactionStoreId,
           customer_name: customerName || null,
           customer_phone: customerPhone || null,

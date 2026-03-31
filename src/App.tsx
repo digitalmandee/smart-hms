@@ -175,6 +175,7 @@ import POSTerminalPage from "./pages/app/pharmacy/POSTerminalPage";
 import POSTransactionsPage from "./pages/app/pharmacy/POSTransactionsPage";
 import POSTransactionDetailPage from "./pages/app/pharmacy/POSTransactionDetailPage";
 import POSSessionsPage from "./pages/app/pharmacy/POSSessionsPage";
+const POSSessionDetailPage = React.lazy(() => import("./pages/app/pharmacy/POSSessionDetailPage"));
 import PharmacyCategoriesPage from "./pages/app/pharmacy/CategoriesPage";
 import StockAlertsPage from "./pages/app/pharmacy/StockAlertsPage";
 import PharmacyReportsPage from "./pages/app/pharmacy/PharmacyReportsPage";
@@ -896,6 +897,7 @@ function App() {
               <Route path="pharmacy/pos/transactions" element={<POSTransactionsPage />} />
               <Route path="pharmacy/pos/transactions/:id" element={<POSTransactionDetailPage />} />
               <Route path="pharmacy/pos/sessions" element={<POSSessionsPage />} />
+              <Route path="pharmacy/pos/sessions/:id" element={<React.Suspense fallback={<div>Loading...</div>}><POSSessionDetailPage /></React.Suspense>} />
               <Route path="pharmacy/queue" element={<PrescriptionQueuePage />} />
               <Route path="pharmacy/history" element={<PrescriptionHistoryPage />} />
               <Route path="pharmacy/dispense/:prescriptionId" element={<DispensingPage />} />
