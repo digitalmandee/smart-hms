@@ -34,8 +34,9 @@ export default function POSTransactionDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { printRef, handlePrint } = usePrint();
+  const [showRefundDialog, setShowRefundDialog] = useState(false);
 
-  const { data: transaction, isLoading } = usePOSTransaction(id || "");
+  const { data: transaction, isLoading, refetch } = usePOSTransaction(id || "");
   const voidMutation = useVoidTransaction();
 
   const handleVoid = () => {
