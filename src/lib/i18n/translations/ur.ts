@@ -3388,5 +3388,23 @@ export const ur: Record<TranslationKey, string> = {
   "common.thisWeek": "اس ہفتے",
   "common.thisMonth": "اس مہینے",
 
+  "payroll.pendingApproval": "منظوری کے انتظار میں",
+  "payroll.submitForApproval": "منظوری کے لیے جمع کریں",
+  "payroll.approvePayroll": "تنخواہ منظور کریں",
+  "payroll.rejectPayroll": "مسودے میں واپس بھیجیں",
+  "payroll.markCompleted": "مکمل کریں",
+  "payroll.approvedBy": "منظور کنندہ",
+  "payroll.approvalRequired": "اس تنخواہ کو مکمل کرنے سے پہلے ایڈمن یا فنانس مینیجر کی منظوری ضروری ہے۔",
+  "payroll.awaitingApproval": "ایڈمن منظوری کے انتظار میں",
+  "payroll.approved": "منظور شدہ",
+  "payroll.returnToDraft": "مسودے میں واپس",
+
+  "hr.convertToEmployee": "ملازم میں تبدیل کریں",
+  "hr.convertToEmployeeDesc": "اس بھرتی شدہ امیدوار سے ملازم ریکارڈ بنائیں",
+  "hr.offboardingBanner": "ملازم کی استعفیٰ منظور ہو چکی ہے۔ کلیئرنس اور تصفیے کے لیے ایگزٹ مینجمنٹ میں جائیں۔",
+  "hr.goToExitManagement": "ایگزٹ مینجمنٹ میں جائیں",
+  "hr.publishRoster": "روسٹر شائع کریں",
+  "hr.rosterPublished": "روسٹر شائع ہو گیا",
+
 };
 

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,10 +9,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 import { useOnboardingEmployees, useInitiateOnboarding, useToggleOnboardingStep } from "@/hooks/useOnboarding";
 import { useEmployees } from "@/hooks/useHR";
+import { useResignations } from "@/hooks/useExitManagement";
 import { useTranslation } from "@/lib/i18n";
-import { UserPlus, ClipboardCheck, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
+import { UserPlus, ClipboardCheck, ChevronDown, ChevronUp, Loader2, AlertTriangle, ExternalLink } from "lucide-react";
 import { format, parseISO } from "date-fns";
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -25,6 +28,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 export default function OnboardingPage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [expandedEmployee, setExpandedEmployee] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState("");
@@ -33,6 +37,10 @@ export default function OnboardingPage() {
   const { data: employees } = useEmployees();
   const initiate = useInitiateOnboarding();
   const toggleStep = useToggleOnboardingStep();
+  const { data: resignations } = useResignations("accepted");
+
+  // Get employee IDs with accepted resignations
+  const resignedEmployeeIds = new Set((resignations || []).map((r: any) => r.employee_id));
 
   const onboardedEmployeeIds = new Set((onboardingData || []).map(d => d.employee?.id));
   const availableEmployees = (employees || []).filter(e => !onboardedEmployeeIds.has(e.id));
@@ -159,6 +167,19 @@ export default function OnboardingPage() {
                 </CardHeader>
                 {isExpanded && (
                   <CardContent>
+                    {/* Offboarding banner if employee has accepted resignation */}
+                    {emp?.id && resignedEmployeeIds.has(emp.id) && (
+                      <div className="mb-4 p-3 rounded-lg border border-orange-300 bg-orange-50 dark:bg-orange-950/20 flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-sm text-orange-800 dark:text-orange-300">
+                          <AlertTriangle className="h-4 w-4" />
+                          {t("hr.offboardingBanner" as any)}
+                        </div>
+                        <Button size="sm" variant="outline" onClick={() => navigate("/app/hr/exit/resignations")}>
+                          <ExternalLink className="h-3 w-3 mr-1" />
+                          {t("hr.goToExitManagement" as any)}
+                        </Button>
+                      </div>
+                    )}
                     <div className="space-y-2">
                       {item.steps.map(step => (
                         <div key={step.id} className="flex items-center justify-between p-2 rounded border bg-muted/30">

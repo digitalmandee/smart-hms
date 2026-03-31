@@ -127,10 +127,54 @@ export function useUpdateResignation() {
         .eq("id", id);
 
       if (error) throw error;
+
+      // Auto-create clearance items when resignation is accepted
+      if (status === 'accepted') {
+        // Get the resignation to find employee_id
+        const { data: resignation } = await supabase
+          .from("resignations")
+          .select("employee_id")
+          .eq("id", id)
+          .single();
+
+        if (resignation && profile?.organization_id) {
+          const defaultDepartments = [
+            { department: "IT", item_description: "Return laptop, access cards, and revoke system access" },
+            { department: "Finance", item_description: "Clear pending advances and loan balances" },
+            { department: "HR", item_description: "Return ID card, submit final documents" },
+            { department: "Admin", item_description: "Return keys, parking card, office equipment" },
+            { department: "Department Head", item_description: "Knowledge transfer and handover completion" },
+          ];
+
+          // Check if clearance items already exist
+          const { data: existing } = await supabase
+            .from("employee_clearance")
+            .select("id")
+            .eq("resignation_id", id)
+            .limit(1);
+
+          if (!existing || existing.length === 0) {
+            await supabase
+              .from("employee_clearance")
+              .insert(
+                defaultDepartments.map(item => ({
+                  department: item.department,
+                  item_description: item.item_description,
+                  resignation_id: id,
+                  organization_id: profile.organization_id!,
+                }))
+              );
+          }
+        }
+      }
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["resignations"] });
-      toast({ title: "Success", description: "Resignation updated successfully" });
+      queryClient.invalidateQueries({ queryKey: ["employee-clearance"] });
+      const msg = variables.status === 'accepted' 
+        ? "Resignation accepted. Clearance checklist auto-created." 
+        : "Resignation updated successfully";
+      toast({ title: "Success", description: msg });
     },
     onError: (error: Error) => {
       toast({ title: "Error", description: error.message, variant: "destructive" });

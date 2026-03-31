@@ -3388,5 +3388,23 @@ export const ar: Record<TranslationKey, string> = {
   "common.thisWeek": "هذا الأسبوع",
   "common.thisMonth": "هذا الشهر",
 
+  "payroll.pendingApproval": "بانتظار الموافقة",
+  "payroll.submitForApproval": "تقديم للموافقة",
+  "payroll.approvePayroll": "الموافقة على الرواتب",
+  "payroll.rejectPayroll": "رفض إلى المسودة",
+  "payroll.markCompleted": "وضع كمكتمل",
+  "payroll.approvedBy": "تمت الموافقة بواسطة",
+  "payroll.approvalRequired": "مطلوب موافقة المسؤول أو المدير المالي قبل إتمام هذه الدورة.",
+  "payroll.awaitingApproval": "بانتظار موافقة الإدارة",
+  "payroll.approved": "تمت الموافقة",
+  "payroll.returnToDraft": "إرجاع للمسودة",
+
+  "hr.convertToEmployee": "تحويل إلى موظف",
+  "hr.convertToEmployeeDesc": "إنشاء سجل موظف من هذا المرشح المعين",
+  "hr.offboardingBanner": "للموظف استقالة مقبولة. انتقل إلى إدارة الخروج للتصفية والتسوية.",
+  "hr.goToExitManagement": "الذهاب لإدارة الخروج",
+  "hr.publishRoster": "نشر الجدول",
+  "hr.rosterPublished": "تم نشر الجدول",
+
 };
 

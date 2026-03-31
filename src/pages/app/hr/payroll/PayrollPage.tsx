@@ -48,6 +48,10 @@ export default function PayrollPage() {
         return <Badge className="bg-green-500">Completed</Badge>;
       case "processing":
         return <Badge className="bg-blue-500">Processing</Badge>;
+      case "pending_approval":
+        return <Badge className="bg-orange-500">Pending Approval</Badge>;
+      case "approved":
+        return <Badge className="bg-emerald-500">Approved</Badge>;
       case "draft":
         return <Badge variant="outline">Draft</Badge>;
       case "cancelled":
@@ -129,7 +133,7 @@ export default function PayrollPage() {
               <div>
                 <p className="text-sm text-muted-foreground">Pending</p>
                 <p className="text-2xl font-bold">
-                  {filteredRuns?.filter((r) => r.status === "draft" || r.status === "processing").length || 0}
+                  {filteredRuns?.filter((r) => r.status === "draft" || r.status === "processing" || r.status === "pending_approval").length || 0}
                 </p>
               </div>
             </div>
