@@ -19,6 +19,7 @@ export interface UnifiedService {
     color: string;
   } | null;
   default_price: number | null;
+  cost_price: number | null;
   is_active: boolean;
   organization_id: string;
   created_at: string;
