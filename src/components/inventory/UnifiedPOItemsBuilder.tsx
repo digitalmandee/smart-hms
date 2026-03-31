@@ -95,6 +95,16 @@ export function UnifiedPOItemsBuilder({ items, onChange, disabled }: UnifiedPOIt
     onChange(items.filter((_, i) => i !== index));
   };
 
+  const handleUpdateItem = (index: number, field: string, value: number) => {
+    const updated = items.map((item, i) => {
+      if (i !== index) return item;
+      const newItem = { ...item, [field]: value };
+      newItem.total_price = calculateItemTotal(newItem);
+      return newItem;
+    });
+    onChange(updated);
+  };
+
   const handleItemSelect = (id: string) => {
     if (itemType === 'medicine') {
       const medicine = medicines?.find(m => m.id === id);
