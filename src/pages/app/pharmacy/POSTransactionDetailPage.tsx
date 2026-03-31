@@ -89,6 +89,12 @@ export default function POSTransactionDetailPage() {
               Print Receipt
             </Button>
             {transaction.status === 'completed' && (
+              <Button variant="outline" onClick={() => setShowRefundDialog(true)}>
+                <RotateCcw className="mr-2 h-4 w-4" />
+                Refund
+              </Button>
+            )}
+            {transaction.status === 'completed' && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="destructive">
