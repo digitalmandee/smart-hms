@@ -745,7 +745,7 @@ export default function POSTerminalPage() {
           open={showCloseSession}
           onOpenChange={setShowCloseSession}
           session={currentSession}
-          transactions={recentTransactions || []}
+          transactions={sessionTransactions || []}
         />
       )}
     </div>
