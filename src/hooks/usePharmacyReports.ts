@@ -1,6 +1,28 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
+// ============ FETCH ALL ROWS HELPER ============
+// Supabase caps at 1000 rows per request. This helper paginates to fetch all.
+async function fetchAllRows<T = any>(
+  buildQuery: (from: number, to: number) => any
+): Promise<T[]> {
+  const PAGE_SIZE = 1000;
+  let allData: T[] = [];
+  let offset = 0;
+  let hasMore = true;
+
+  while (hasMore) {
+    const { data, error } = await buildQuery(offset, offset + PAGE_SIZE - 1);
+    if (error) throw error;
+    const batch = (data || []) as T[];
+    allData = allData.concat(batch);
+    hasMore = batch.length === PAGE_SIZE;
+    offset += PAGE_SIZE;
+  }
+
+  return allData;
+}
+
 // ============ SHARED TYPES ============
 
 interface PaymentBreakdown {
