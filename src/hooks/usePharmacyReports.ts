@@ -135,18 +135,19 @@ export function usePharmacySalesStats(dateFrom: string, dateTo: string) {
   return useQuery({
     queryKey: ["pharmacy-sales-stats", dateFrom, dateTo],
     queryFn: async () => {
-      const { data: transactions, error } = await supabase
-        .from("pharmacy_pos_transactions")
-        .select("total_amount, discount_amount, created_at, status")
-        .eq("status", "completed")
-        .gte("created_at", dateFrom)
-        .lte("created_at", `${dateTo}T23:59:59`);
+      const transactions = await fetchAllRows((from, to) =>
+        supabase
+          .from("pharmacy_pos_transactions")
+          .select("total_amount, discount_amount, created_at, status")
+          .eq("status", "completed")
+          .gte("created_at", dateFrom)
+          .lte("created_at", `${dateTo}T23:59:59`)
+          .range(from, to)
+      );
 
-      if (error) throw error;
-
-      const totalSales = transactions?.reduce((sum, tx) => sum + Number(tx.total_amount || 0), 0) || 0;
-      const totalDiscount = transactions?.reduce((sum, tx) => sum + Number(tx.discount_amount || 0), 0) || 0;
-      const transactionCount = transactions?.length || 0;
+      const totalSales = transactions.reduce((sum, tx: any) => sum + Number(tx.total_amount || 0), 0);
+      const totalDiscount = transactions.reduce((sum, tx: any) => sum + Number(tx.discount_amount || 0), 0);
+      const transactionCount = transactions.length;
       const avgTransaction = transactionCount > 0 ? totalSales / transactionCount : 0;
 
       return { totalSales, totalDiscount, transactionCount, avgTransaction };
