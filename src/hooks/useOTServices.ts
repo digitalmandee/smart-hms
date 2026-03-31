@@ -6,6 +6,7 @@ export interface OTService {
   id: string;
   name: string;
   default_price: number;
+  cost_price: number;
   is_active: boolean;
   category_id: string | null;
 }
