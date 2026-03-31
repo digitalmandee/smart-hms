@@ -199,10 +199,53 @@ export function UnifiedPOItemsBuilder({ items, onChange, disabled }: UnifiedPOIt
                   </p>
                 </div>
               </TableCell>
-              <TableCell>{item.quantity}</TableCell>
-              <TableCell>{fc(item.unit_price)}</TableCell>
-              <TableCell>{item.tax_percent}%</TableCell>
-              <TableCell>{item.discount_percent}%</TableCell>
+              <TableCell>
+                {!disabled ? (
+                  <Input
+                    type="number"
+                    min={1}
+                    className="w-20"
+                    value={item.quantity}
+                    onChange={(e) => handleUpdateItem(index, 'quantity', parseInt(e.target.value) || 1)}
+                  />
+                ) : item.quantity}
+              </TableCell>
+              <TableCell>
+                {!disabled ? (
+                  <Input
+                    type="number"
+                    min={0}
+                    step={0.01}
+                    className="w-24"
+                    value={item.unit_price}
+                    onChange={(e) => handleUpdateItem(index, 'unit_price', parseFloat(e.target.value) || 0)}
+                  />
+                ) : fc(item.unit_price)}
+              </TableCell>
+              <TableCell>
+                {!disabled ? (
+                  <Input
+                    type="number"
+                    min={0}
+                    max={100}
+                    className="w-20"
+                    value={item.tax_percent}
+                    onChange={(e) => handleUpdateItem(index, 'tax_percent', parseFloat(e.target.value) || 0)}
+                  />
+                ) : `${item.tax_percent}%`}
+              </TableCell>
+              <TableCell>
+                {!disabled ? (
+                  <Input
+                    type="number"
+                    min={0}
+                    max={100}
+                    className="w-20"
+                    value={item.discount_percent}
+                    onChange={(e) => handleUpdateItem(index, 'discount_percent', parseFloat(e.target.value) || 0)}
+                  />
+                ) : `${item.discount_percent}%`}
+              </TableCell>
               <TableCell className="text-right font-medium">
                 {fc(item.total_price)}
               </TableCell>
