@@ -3423,6 +3423,24 @@ export const en = {
   "pharmacy.profit": "Profit",
   "pharmacy.downloadReport": "Download Report",
 
+  // POS Sessions
+  "pos.openRegister": "Open Register",
+  "pos.closeRegister": "Close Register",
+  "pos.openingBalance": "Opening Balance",
+  "pos.closingBalance": "Closing Balance",
+  "pos.expectedCash": "Expected Cash",
+  "pos.cashDifference": "Cash Difference",
+  "pos.over": "Over",
+  "pos.short": "Short",
+  "pos.sessionSummary": "Session Summary",
+  "pos.downloadDailyReport": "Download Daily Report",
+  "pos.cashSales": "Cash Sales",
+  "pos.cardSales": "Card Sales",
+  "pos.mobileSales": "Mobile Payments",
+  "pos.noOpenSession": "No Open Session",
+  "pos.countYourCash": "Count Your Cash",
+  "pos.sessions": "POS Sessions",
+
 } as const;
 
 export type TranslationKey = keyof typeof en;

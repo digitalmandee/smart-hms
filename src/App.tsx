@@ -897,6 +897,7 @@ function App() {
               <Route path="pharmacy/pos/transactions" element={<POSTransactionsPage />} />
               <Route path="pharmacy/pos/transactions/:id" element={<POSTransactionDetailPage />} />
               <Route path="pharmacy/pos/sessions" element={<POSSessionsPage />} />
+              <Route path="pharmacy/pos/sessions/:id" element={<React.Suspense fallback={<div>Loading...</div>}><POSSessionDetailPage /></React.Suspense>} />
               <Route path="pharmacy/queue" element={<PrescriptionQueuePage />} />
               <Route path="pharmacy/history" element={<PrescriptionHistoryPage />} />
               <Route path="pharmacy/dispense/:prescriptionId" element={<DispensingPage />} />

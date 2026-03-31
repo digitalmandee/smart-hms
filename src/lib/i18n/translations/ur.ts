@@ -3355,5 +3355,23 @@ export const ur: Record<TranslationKey, string> = {
   "pharmacy.profit": "منافع",
   "pharmacy.downloadReport": "رپورٹ ڈاؤن لوڈ کریں",
 
+  // POS Sessions
+  "pos.openRegister": "رجسٹر کھولیں",
+  "pos.closeRegister": "رجسٹر بند کریں",
+  "pos.openingBalance": "ابتدائی بیلنس",
+  "pos.closingBalance": "اختتامی بیلنس",
+  "pos.expectedCash": "متوقع نقد",
+  "pos.cashDifference": "نقد فرق",
+  "pos.over": "زیادہ",
+  "pos.short": "کم",
+  "pos.sessionSummary": "سیشن خلاصہ",
+  "pos.downloadDailyReport": "روزانہ رپورٹ ڈاؤن لوڈ کریں",
+  "pos.cashSales": "نقد فروخت",
+  "pos.cardSales": "کارڈ فروخت",
+  "pos.mobileSales": "موبائل ادائیگی",
+  "pos.noOpenSession": "کوئی کھلا سیشن نہیں",
+  "pos.countYourCash": "اپنی نقدی گنیں",
+  "pos.sessions": "POS سیشنز",
+
 };
 
