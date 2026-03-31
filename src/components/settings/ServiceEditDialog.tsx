@@ -41,6 +41,7 @@ interface ServiceEditDialogProps {
     name: string;
     category_id: string;
     default_price: number;
+    cost_price: number;
     is_active: boolean;
     price_change_reason?: string;
   }) => Promise<void>;
