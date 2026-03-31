@@ -295,7 +295,7 @@ export default function PRDetailPage() {
             <TableBody>
               {pr.items?.map((item) => (
                 <TableRow key={item.id}>
-                  <TableCell className="font-medium">{item.item?.name || "—"}</TableCell>
+                  <TableCell className="font-medium">{(item as any).medicine?.name || item.item?.name || "—"}</TableCell>
                   <TableCell className="text-center">{item.quantity_requested}</TableCell>
                   <TableCell className="text-right">{formatCurrency(item.estimated_unit_cost)}</TableCell>
                   <TableCell className="text-right font-medium">

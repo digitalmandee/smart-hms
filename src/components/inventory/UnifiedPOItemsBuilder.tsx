@@ -167,16 +167,24 @@ export function UnifiedPOItemsBuilder({ items, onChange, disabled }: UnifiedPOIt
 
   const getItemCode = (item: PurchaseOrderItem) => {
     if (item.item_type === 'medicine') {
-      return item.medicine?.generic_name || "";
+      if (item.medicine?.generic_name) return item.medicine.generic_name;
+      const found = medicines?.find(m => m.id === item.medicine_id);
+      return found?.generic_name || "";
     }
-    return item.item?.item_code || "";
+    if (item.item?.item_code) return item.item.item_code;
+    const found = inventoryItems?.find(i => i.id === item.item_id);
+    return found?.item_code || "";
   };
 
   const getItemUnit = (item: PurchaseOrderItem) => {
     if (item.item_type === 'medicine') {
-      return item.medicine?.unit || "";
+      if (item.medicine?.unit) return item.medicine.unit;
+      const found = medicines?.find(m => m.id === item.medicine_id);
+      return found?.unit || "";
     }
-    return item.item?.unit_of_measure || "";
+    if (item.item?.unit_of_measure) return item.item.unit_of_measure;
+    const found = inventoryItems?.find(i => i.id === item.item_id);
+    return found?.unit_of_measure || "";
   };
 
   return (

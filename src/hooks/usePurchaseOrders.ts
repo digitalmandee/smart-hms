@@ -230,7 +230,7 @@ export function useCreatePurchaseOrder() {
         tax_percent: item.tax_percent,
         discount_percent: item.discount_percent,
         total_price: item.total_price,
-      }));
+      };});
       
       const { error: itemsError } = await supabase
         .from("purchase_order_items")

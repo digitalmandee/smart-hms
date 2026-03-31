@@ -19,6 +19,12 @@ export interface PurchaseRequestItem {
     name: string;
     unit_of_measure: string;
   };
+  medicine?: {
+    id: string;
+    name: string;
+    generic_name: string;
+    unit: string;
+  };
 }
 
 export interface PurchaseRequest {
