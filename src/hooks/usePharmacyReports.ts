@@ -1188,7 +1188,9 @@ export function useDailyProfitLoss(dateFrom: string, dateTo: string) {
         const revenue = Number(item.line_total || 0);
         const costPrice = item.inventory?.unit_price
           ? Number(item.inventory.unit_price)
-          : Number(item.unit_price || 0) * 0.65; // fallback: 65% of selling price
+          : item.medicine?.cost_price
+            ? Number(item.medicine.cost_price)
+            : Number(item.unit_price || 0) * 0.65; // fallback: 65% of selling price
         const cogs = costPrice * Number(item.quantity || 0);
 
         byDay[day].revenue += revenue;
