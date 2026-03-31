@@ -429,12 +429,20 @@ export default function PharmacyReturnsPage() {
               )}
             </div>
 
-            {dialogItems.length > 0 && (
+            {dialogItems.length > 0 ? (
               <ReturnItemSelector
                 items={dialogItems}
                 selectedItems={selectedItems}
                 onSelectionChange={setSelectedItems}
               />
+            ) : (
+              <div className="p-4 text-center border rounded-lg">
+                <AlertCircle className="h-5 w-5 mx-auto mb-2 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">
+                  No returnable items found for this {selectedPrescription ? "prescription" : "transaction"}.
+                  {selectedPrescription && " Price information may be unavailable."}
+                </p>
+              </div>
             )}
 
             <RefundMethodSelector
