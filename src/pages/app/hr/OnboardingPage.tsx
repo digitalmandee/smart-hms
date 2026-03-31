@@ -37,6 +37,10 @@ export default function OnboardingPage() {
   const { data: employees } = useEmployees();
   const initiate = useInitiateOnboarding();
   const toggleStep = useToggleOnboardingStep();
+  const { data: resignations } = useResignations("accepted");
+
+  // Get employee IDs with accepted resignations
+  const resignedEmployeeIds = new Set((resignations || []).map((r: any) => r.employee_id));
 
   const onboardedEmployeeIds = new Set((onboardingData || []).map(d => d.employee?.id));
   const availableEmployees = (employees || []).filter(e => !onboardedEmployeeIds.has(e.id));
