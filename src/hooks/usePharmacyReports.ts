@@ -308,16 +308,17 @@ export function useMonthlyComparison(months: number = 6) {
       const now = new Date();
       const from = new Date(now.getFullYear(), now.getMonth() - months + 1, 1);
 
-      const { data, error } = await supabase
-        .from("pharmacy_pos_transactions")
-        .select("total_amount, discount_amount, created_at, status")
-        .eq("status", "completed")
-        .gte("created_at", from.toISOString());
-
-      if (error) throw error;
+      const data = await fetchAllRows((f, t) =>
+        supabase
+          .from("pharmacy_pos_transactions")
+          .select("total_amount, discount_amount, created_at, status")
+          .eq("status", "completed")
+          .gte("created_at", from.toISOString())
+          .range(f, t)
+      );
 
       const byMonth: Record<string, { month: string; sales: number; discount: number; count: number }> = {};
-      data?.forEach((tx) => {
+      data.forEach((tx: any) => {
         const m = tx.created_at.substring(0, 7);
         if (!byMonth[m]) byMonth[m] = { month: m, sales: 0, discount: 0, count: 0 };
         byMonth[m].sales += Number(tx.total_amount || 0);
