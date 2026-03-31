@@ -781,30 +781,30 @@ export function useRefundRateAnalysis(dateFrom: string, dateTo: string) {
   return useQuery({
     queryKey: ["pharmacy-refund-rate", dateFrom, dateTo],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("pharmacy_pos_transactions")
-        .select("id, total_amount, status, void_reason, created_at")
-        .gte("created_at", dateFrom)
-        .lte("created_at", `${dateTo}T23:59:59`);
+      const all = await fetchAllRows((from, to) =>
+        supabase
+          .from("pharmacy_pos_transactions")
+          .select("id, total_amount, status, void_reason, created_at")
+          .gte("created_at", dateFrom)
+          .lte("created_at", `${dateTo}T23:59:59`)
+          .range(from, to)
+      );
 
-      if (error) throw error;
-
-      const all = data || [];
-      const completed = all.filter(t => t.status === "completed");
-      const voided = all.filter(t => t.status === "voided");
-      const totalSales = completed.reduce((s, t) => s + Number(t.total_amount || 0), 0);
-      const totalRefunds = voided.reduce((s, t) => s + Number(t.total_amount || 0), 0);
+      const completed = all.filter((t: any) => t.status === "completed");
+      const voided = all.filter((t: any) => t.status === "voided");
+      const totalSales = completed.reduce((s: number, t: any) => s + Number(t.total_amount || 0), 0);
+      const totalRefunds = voided.reduce((s: number, t: any) => s + Number(t.total_amount || 0), 0);
 
       // Reasons breakdown
       const reasons: Record<string, number> = {};
-      voided.forEach(t => {
+      voided.forEach((t: any) => {
         const r = t.void_reason || "No reason";
         reasons[r] = (reasons[r] || 0) + 1;
       });
 
       // Daily trend
       const byDay: Record<string, { date: string; refunds: number; sales: number; refundRate: number }> = {};
-      all.forEach(t => {
+      all.forEach((t: any) => {
         const day = t.created_at.substring(0, 10);
         if (!byDay[day]) byDay[day] = { date: day, refunds: 0, sales: 0, refundRate: 0 };
         if (t.status === "voided") byDay[day].refunds++;
