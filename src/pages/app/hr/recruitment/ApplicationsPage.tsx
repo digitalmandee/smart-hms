@@ -408,7 +408,7 @@ export default function ApplicationsPage() {
                         </SelectContent>
                       </Select>
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right space-x-1">
                       <Button
                         variant="ghost"
                         size="sm"
@@ -416,6 +416,17 @@ export default function ApplicationsPage() {
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
+                      {app.status === "hired" && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => navigate("/app/hr/employees/new")}
+                          title={t("hr.convertToEmployeeDesc" as any)}
+                        >
+                          <UserCheck className="h-4 w-4 mr-1" />
+                          {t("hr.convertToEmployee" as any)}
+                        </Button>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))
