@@ -923,20 +923,39 @@ function ReportDetailView({
       // ============ PROCUREMENT REPORTS ============
 
       case "supplier-summary": {
-        const data = supplierSummary.data || [];
+        const result = supplierSummary.data;
         if (supplierSummary.isLoading) return renderLoading();
-        if (!data.length) return renderEmpty("No purchase data");
+        if (!result) return renderEmpty("No purchase data");
+        const summaryData = 'summary' in result ? result.summary : (result as any[]);
+        const detailData = 'details' in result ? result.details : [];
+        if (!summaryData.length) return renderEmpty("No purchase data");
         return (
-          <div className="space-y-4">
-            <ReportExportButton data={data} filename={`supplier-summary-${dateRange.start}`} columns={[{ key: "vendor", header: "Supplier" }, { key: "poCount", header: "POs" }, { key: "totalPurchases", header: "Total", format: (v: number) => formatCurrency(v) }, { key: "received", header: "Received", format: (v: number) => formatCurrency(v) }, { key: "pending", header: "Pending", format: (v: number) => formatCurrency(v) }]} pdfOptions={{ title: "Supplier Purchase Summary" }} />
-            <ReportTable data={data} columns={[
+          <div className="space-y-6">
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Vendor Summary</h3>
+            <ReportExportButton data={summaryData} filename={`supplier-summary-${dateRange.start}`} columns={[{ key: "vendor", header: "Supplier" }, { key: "poCount", header: "POs" }, { key: "totalPurchases", header: "Total", format: (v: number) => formatCurrency(v) }, { key: "received", header: "Received", format: (v: number) => formatCurrency(v) }, { key: "pending", header: "Pending", format: (v: number) => formatCurrency(v) }]} pdfOptions={{ title: "Supplier Purchase Summary" }} />
+            <ReportTable data={summaryData} columns={[
               { key: "vendor", header: "Supplier", cell: (r) => <span className="font-medium">{r.vendor}</span>, sortable: true },
               { key: "code", header: "Code" },
               { key: "poCount", header: "POs", className: "text-right", sortable: true },
               { key: "totalPurchases", header: "Total", cell: (r) => formatCurrency(r.totalPurchases), className: "text-right", sortable: true },
               { key: "received", header: "Received", cell: (r) => <span className="text-green-600">{formatCurrency(r.received)}</span>, className: "text-right" },
               { key: "pending", header: "Pending", cell: (r) => <span className="text-amber-600">{formatCurrency(r.pending)}</span>, className: "text-right" },
-            ]} pageSize={25} />
+            ]} pageSize={50} />
+
+            {detailData.length > 0 && (
+              <>
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mt-6">Purchase Details — Products by Vendor</h3>
+                <ReportExportButton data={detailData} filename={`supplier-details-${dateRange.start}`} columns={[{ key: "vendor", header: "Vendor" }, { key: "poNumber", header: "PO #" }, { key: "productName", header: "Product Name" }, { key: "quantity", header: "Qty" }, { key: "unitPrice", header: "Unit Price", format: (v: number) => formatCurrency(v) }, { key: "totalPrice", header: "Total", format: (v: number) => formatCurrency(v) }]} pdfOptions={{ title: "Supplier Purchase Details — Products", orientation: "landscape" }} />
+                <ReportTable data={detailData} columns={[
+                  { key: "vendor", header: "Vendor", cell: (r) => <span className="font-medium">{r.vendor}</span>, sortable: true },
+                  { key: "poNumber", header: "PO #", sortable: true },
+                  { key: "productName", header: "Product Name", sortable: true },
+                  { key: "quantity", header: "Qty", className: "text-right", sortable: true },
+                  { key: "unitPrice", header: "Unit Price", cell: (r) => formatCurrency(r.unitPrice), className: "text-right" },
+                  { key: "totalPrice", header: "Total", cell: (r) => <span className="font-medium">{formatCurrency(r.totalPrice)}</span>, className: "text-right", sortable: true },
+                ]} pageSize={50} />
+              </>
+            )}
           </div>
         );
       }
