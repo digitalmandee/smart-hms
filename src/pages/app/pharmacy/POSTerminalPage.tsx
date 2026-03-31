@@ -432,6 +432,9 @@ export default function POSTerminalPage() {
               <h1 className="text-lg font-bold tracking-tight">POS Terminal</h1>
               <p className="text-xs text-primary-foreground/70">
                 {profile?.full_name || "Cashier"} • {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                {currentSession && (
+                  <span> • Session: {currentSession.session_number}</span>
+                )}
               </p>
             </div>
           </div>
