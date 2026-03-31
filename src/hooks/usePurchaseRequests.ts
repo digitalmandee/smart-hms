@@ -95,7 +95,8 @@ export function usePurchaseRequest(id: string) {
         .from("purchase_request_items")
         .select(`
           *,
-          item:inventory_items(id, item_code, name, unit_of_measure)
+          item:inventory_items(id, item_code, name, unit_of_measure),
+          medicine:medicines(id, name, generic_name, unit)
         `)
         .eq("purchase_request_id", id);
 
