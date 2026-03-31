@@ -1,36 +1,38 @@
 
 
-# Add Daily Pharmacy Profit & Loss Report
+# Add Cost Price & Sale Price to Medicines
 
-## What
-Add a new "Daily P&L" report to the Pharmacy Reports page that shows day-by-day revenue, cost of goods sold (COGS), gross profit, and margin percentage. This gives a clear daily view of pharmacy profitability beyond the existing per-medicine profit margin report.
-
-## Data Source
-- `pharmacy_pos_items` joined with `medicine_inventory` (via `inventory_id`) to get `unit_price` (cost price)
-- `pharmacy_pos_transactions` filtered by `status = 'completed'` and date range
-- Aggregated by date: sum of `line_total` = revenue, sum of `inventory.unit_price × quantity` = COGS
-- Profit = Revenue − COGS, Margin = (Profit / Revenue) × 100
+## Problem
+The `medicines` table has no pricing fields. The user needs cost price and sale price on each medicine for profit tracking.
 
 ## Implementation
 
-### 1. New Hook: `useDailyProfitLoss` in `src/hooks/usePharmacyReports.ts`
-- Query `pharmacy_pos_items` with inventory join and transaction date filter
-- Group by `created_at` date → produce array of `{ date, revenue, cogs, profit, marginPercent, transactionCount }`
-- Fallback: if inventory cost not available, use 65% of selling price (same pattern as existing `useProfitMarginReport`)
+### 1. Database Migration
+Add two columns to `medicines`:
+```sql
+ALTER TABLE public.medicines ADD COLUMN cost_price NUMERIC(12,2) DEFAULT 0;
+ALTER TABLE public.medicines ADD COLUMN sale_price NUMERIC(12,2) DEFAULT 0;
+```
 
-### 2. Add Report Definition in `PharmacyReportsPage.tsx`
-- Add `{ id: "daily-pnl", name: "Daily Profit & Loss", description: "Day-by-day revenue, cost & profit", icon: TrendingUp }` to the Financial Reports category
-- Add render case with:
-  - Summary cards: Total Revenue, Total COGS, Gross Profit, Avg Margin %
-  - Bar chart: Revenue vs COGS per day with profit line overlay
-  - Export button (PDF/CSV)
-  - Table: Date, Transactions, Revenue, COGS, Profit, Margin %
+### 2. Medicine Form (`src/pages/app/pharmacy/MedicineFormPage.tsx`)
+- Add `cost_price` and `sale_price` to the Zod schema as optional numbers
+- Add two input fields in the form grid (Cost Price, Sale Price)
+- Show calculated profit and margin below the price fields
+- Pass values through in create/update mutations
 
-### 3. Translations
-- Add keys for `daily_pnl`, `cogs`, `gross_profit`, `margin` in en.ts, ar.ts, ur.ts
+### 3. Medicines List (`src/pages/app/pharmacy/MedicinesListPage.tsx`)
+- Add Cost Price, Sale Price, and Profit Margin columns to the table
+
+### 4. Hook Updates (`src/hooks/useMedicines.ts`)
+- Add `cost_price` and `sale_price` to the `MedicineWithCategory` interface
+
+### 5. Translations (`en.ts`, `ar.ts`, `ur.ts`)
+- Add keys: `costPrice`, `salePrice`, `profitMargin`
 
 ## Files Changed
-- `src/hooks/usePharmacyReports.ts` — add `useDailyProfitLoss` hook
-- `src/pages/app/pharmacy/PharmacyReportsPage.tsx` — add report definition + render case
-- `src/lib/i18n/translations/en.ts`, `ar.ts`, `ur.ts` — new translation keys
+- 1 migration — add `cost_price` and `sale_price` columns
+- `src/pages/app/pharmacy/MedicineFormPage.tsx` — price inputs + profit display
+- `src/pages/app/pharmacy/MedicinesListPage.tsx` — price/margin columns
+- `src/hooks/useMedicines.ts` — interface update
+- `src/lib/i18n/translations/en.ts`, `ar.ts`, `ur.ts` — new keys
 
