@@ -46,7 +46,7 @@ export default function PharmacyClosingsPage() {
 
   const exportColumns = [
     { key: "session_number", header: "Session #" },
-    { key: "cashier", header: "Cashier", format: (v: any) => "-" },
+    { key: "cashier", header: "Cashier", format: (_v: any) => "-" },
     { key: "opened_at", header: "Opened At", format: (v: any) => v ? format(parseISO(v), "MMM dd, yyyy HH:mm") : "-" },
     { key: "closed_at", header: "Closed At", format: (v: any) => v ? format(parseISO(v), "MMM dd, yyyy HH:mm") : "-" },
     { key: "opening_balance", header: "Opening Balance", format: (v: any) => formatCurrency(Number(v || 0)), align: "right" as const },
