@@ -15,6 +15,7 @@ import {
   useCustomerSalesReport, useTransactionLog, useRefundRateAnalysis, useBasketSizeAnalysis,
   useBatchStockReport, useCategoryStockDistribution, useStockAgingReport, useInventoryTurnover,
   useDailyCashSummary, useTaxCollectionReport, useCashierPerformance, usePeakHoursReport,
+  useDailyProfitLoss,
 } from "@/hooks/usePharmacyReports";
 import { ReportTable, Column } from "@/components/reports/ReportTable";
 import { format, startOfMonth, endOfMonth } from "date-fns";
