@@ -164,6 +164,8 @@ import {
   ScanBarcode,
   Smartphone,
   Coins,
+  ArrowRight,
+  Target,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -630,6 +632,27 @@ export const SIDEBAR_NAME_TO_KEY: Record<string, TranslationKey> = {
   "Sehhaty Config": "nav.sehhatyConfig" as any,
   "ZATCA Phase 2": "nav.zatcaPhase2" as any,
   "ZATCA Config": "nav.zatcaConfig" as any,
+  // Finance sidebar additions
+  "Bank Reconciliation": "nav.bankReconciliation" as any,
+  "Cash to Bank": "nav.cashToBank" as any,
+  "Credit/Debit Notes": "nav.creditDebitNotes" as any,
+  "Fixed Assets": "nav.fixedAssets" as any,
+  "Patient Deposits": "nav.patientDeposits" as any,
+  "Cost Centers": "nav.costCenters" as any,
+  "Fiscal Periods": "nav.fiscalPeriods" as any,
+  "Financial Audit Log": "nav.financialAuditLog" as any,
+  "Detailed P&L": "nav.detailedPnl" as any,
+  "Consolidated P&L": "nav.consolidatedPnl" as any,
+  "Cost Center P&L": "nav.costCenterPnl" as any,
+  "Revenue by Source": "nav.revenueBySource" as any,
+  "VAT Return": "nav.vatReturn" as any,
+  "Payroll Cost Allocation": "nav.payrollCostAllocation" as any,
+  "AR Reconciliation": "nav.arReconciliation" as any,
+  "Department Revenue": "nav.departmentRevenue" as any,
+  "Finance Modules": "nav.financeModules" as any,
+  "Shift-Wise Collections": "nav.shiftWiseCollections" as any,
+  "Executive Dashboard": "nav.executiveDashboard" as any,
+  "Payment Reconciliation": "nav.paymentReconciliation" as any,
 };
 
 
@@ -775,6 +798,9 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   ScanBarcode,
   Smartphone,
   Coins,
+  ArrowRight,
+  Target,
+  FileBarChart: BarChart,
 };
 
 interface DynamicSidebarProps {
