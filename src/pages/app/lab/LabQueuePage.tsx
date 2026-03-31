@@ -155,7 +155,7 @@ export default function LabQueuePage() {
         pageSize={20}
         searchPlaceholder="Search by patient, order number..."
         emptyMessage="No pending lab orders"
-        onRowClick={(r) => navigate(`/app/lab/results/${r.id}`)}
+        onRowClick={(r) => navigate(`/app/lab/orders/${r.id}`)}
       />
     </div>
   );
