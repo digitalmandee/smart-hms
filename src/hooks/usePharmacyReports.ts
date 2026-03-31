@@ -96,20 +96,21 @@ export function useTopSellingMedicines(dateFrom: string, dateTo: string, limit?:
   return useQuery({
     queryKey: ["pharmacy-top-medicines", dateFrom, dateTo, limit],
     queryFn: async () => {
-      const { data: items, error } = await (supabase as any)
-        .from("pharmacy_pos_items")
-        .select(`
-          medicine_id,
-          medicine_name,
-          quantity,
-          line_total,
-          transaction:pharmacy_pos_transactions!inner(status, created_at)
-        `)
-        .eq("transaction.status", "completed")
-        .gte("transaction.created_at", dateFrom)
-        .lte("transaction.created_at", `${dateTo}T23:59:59`);
-
-      if (error) throw error;
+      const items = await fetchAllRows((from, to) =>
+        (supabase as any)
+          .from("pharmacy_pos_items")
+          .select(`
+            medicine_id,
+            medicine_name,
+            quantity,
+            line_total,
+            transaction:pharmacy_pos_transactions!inner(status, created_at)
+          `)
+          .eq("transaction.status", "completed")
+          .gte("transaction.created_at", dateFrom)
+          .lte("transaction.created_at", `${dateTo}T23:59:59`)
+          .range(from, to)
+      );
 
       const medicineStats: Record<string, { name: string; quantity: number; revenue: number }> = {};
       items?.forEach((item: any) => {
