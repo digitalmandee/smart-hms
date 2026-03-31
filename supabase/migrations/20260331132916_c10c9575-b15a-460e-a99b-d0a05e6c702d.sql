@@ -1,0 +1,1 @@
+ALTER TABLE public.purchase_order_items ALTER COLUMN item_id DROP NOT NULL;

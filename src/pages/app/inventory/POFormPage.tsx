@@ -100,7 +100,8 @@ export default function POFormPage() {
       // Pre-fill items
       const prItems: PurchaseOrderItem[] = sourcePR.items.map((prItem) => ({
         item_id: prItem.item_id || "",
-        item_type: "inventory" as const,
+        medicine_id: (prItem as any).medicine_id || undefined,
+        item_type: (prItem as any).medicine_id ? "medicine" as const : "inventory" as const,
         quantity: prItem.quantity_requested,
         unit_price: prItem.estimated_unit_cost,
         tax_percent: 0,
@@ -124,7 +125,8 @@ export default function POFormPage() {
       form.setValue("notes", `From Requisition: ${sourceRequisition.requisition_number}`);
       const reqItems: PurchaseOrderItem[] = sourceRequisition.items.map((reqItem) => ({
         item_id: reqItem.item_id || "",
-        item_type: "inventory" as const,
+        medicine_id: reqItem.medicine_id || undefined,
+        item_type: reqItem.medicine_id ? "medicine" as const : "inventory" as const,
         quantity: reqItem.quantity_approved || reqItem.quantity_requested,
         unit_price: 0,
         tax_percent: 0,

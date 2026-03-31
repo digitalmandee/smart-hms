@@ -19868,7 +19868,7 @@ export type Database = {
           created_at: string
           discount_percent: number
           id: string
-          item_id: string
+          item_id: string | null
           item_type: string | null
           medicine_id: string | null
           purchase_order_id: string
@@ -19882,7 +19882,7 @@ export type Database = {
           created_at?: string
           discount_percent?: number
           id?: string
-          item_id: string
+          item_id?: string | null
           item_type?: string | null
           medicine_id?: string | null
           purchase_order_id: string
@@ -19896,7 +19896,7 @@ export type Database = {
           created_at?: string
           discount_percent?: number
           id?: string
-          item_id?: string
+          item_id?: string | null
           item_type?: string | null
           medicine_id?: string | null
           purchase_order_id?: string
