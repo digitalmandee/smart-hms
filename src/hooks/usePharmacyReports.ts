@@ -1144,3 +1144,72 @@ export function usePeakHoursReport(dateFrom: string, dateTo: string) {
     staleTime: 5 * 60 * 1000,
   });
 }
+
+// ============ DAILY PROFIT & LOSS ============
+
+export interface DailyPnLRow {
+  date: string;
+  transactionCount: number;
+  revenue: number;
+  cogs: number;
+  profit: number;
+  marginPercent: number;
+}
+
+export function useDailyProfitLoss(dateFrom: string, dateTo: string) {
+  return useQuery({
+    queryKey: ["pharmacy-daily-pnl", dateFrom, dateTo],
+    queryFn: async () => {
+      const { data: items, error } = await (supabase as any)
+        .from("pharmacy_pos_items")
+        .select(`
+          quantity,
+          unit_price,
+          line_total,
+          inventory_id,
+          transaction:pharmacy_pos_transactions!inner(id, status, created_at),
+          inventory:medicine_inventory(unit_price)
+        `)
+        .eq("transaction.status", "completed")
+        .gte("transaction.created_at", dateFrom)
+        .lte("transaction.created_at", `${dateTo}T23:59:59`);
+
+      if (error) throw error;
+
+      const byDay: Record<string, { revenue: number; cogs: number; txIds: Set<string> }> = {};
+
+      (items || []).forEach((item: any) => {
+        const day = item.transaction?.created_at?.substring(0, 10);
+        if (!day) return;
+        if (!byDay[day]) byDay[day] = { revenue: 0, cogs: 0, txIds: new Set() };
+
+        const revenue = Number(item.line_total || 0);
+        const costPrice = item.inventory?.unit_price
+          ? Number(item.inventory.unit_price)
+          : Number(item.unit_price || 0) * 0.65; // fallback: 65% of selling price
+        const cogs = costPrice * Number(item.quantity || 0);
+
+        byDay[day].revenue += revenue;
+        byDay[day].cogs += cogs;
+        if (item.transaction?.id) byDay[day].txIds.add(item.transaction.id);
+      });
+
+      const result: DailyPnLRow[] = Object.entries(byDay)
+        .map(([date, data]) => {
+          const profit = data.revenue - data.cogs;
+          return {
+            date,
+            transactionCount: data.txIds.size,
+            revenue: Math.round(data.revenue * 100) / 100,
+            cogs: Math.round(data.cogs * 100) / 100,
+            profit: Math.round(profit * 100) / 100,
+            marginPercent: data.revenue > 0 ? Math.round((profit / data.revenue) * 10000) / 100 : 0,
+          };
+        })
+        .sort((a, b) => a.date.localeCompare(b.date));
+
+      return result;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+}

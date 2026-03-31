@@ -1037,6 +1037,72 @@ function ReportDetailView({
         );
       }
 
+      case "daily-pnl": {
+        const data = dailyPnl.data || [];
+        if (dailyPnl.isLoading) return renderLoading();
+        if (!data.length) return renderEmpty("No P&L data for this period");
+        const totals = data.reduce(
+          (acc, d) => ({ revenue: acc.revenue + d.revenue, cogs: acc.cogs + d.cogs, profit: acc.profit + d.profit, count: acc.count + d.transactionCount }),
+          { revenue: 0, cogs: 0, profit: 0, count: 0 }
+        );
+        const avgMargin = totals.revenue > 0 ? (totals.profit / totals.revenue) * 100 : 0;
+        return (
+          <div className="space-y-4">
+            {/* Summary Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <Card><CardContent className="pt-4 pb-3"><p className="text-xs text-muted-foreground">Total Revenue</p><p className="text-xl font-bold">{formatCurrency(totals.revenue)}</p></CardContent></Card>
+              <Card><CardContent className="pt-4 pb-3"><p className="text-xs text-muted-foreground">Total COGS</p><p className="text-xl font-bold text-destructive">{formatCurrency(totals.cogs)}</p></CardContent></Card>
+              <Card><CardContent className="pt-4 pb-3"><p className="text-xs text-muted-foreground">Gross Profit</p><p className="text-xl font-bold text-green-600">{formatCurrency(totals.profit)}</p></CardContent></Card>
+              <Card><CardContent className="pt-4 pb-3"><p className="text-xs text-muted-foreground">Avg Margin</p><p className="text-xl font-bold">{avgMargin.toFixed(1)}%</p></CardContent></Card>
+            </div>
+            {/* Chart */}
+            <div className="h-[350px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={data}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" tickFormatter={(v) => format(new Date(v), "MMM dd")} />
+                  <YAxis />
+                  <Tooltip formatter={(v: number) => formatCurrency(v)} labelFormatter={(v) => format(new Date(v), "PPP")} />
+                  <Legend />
+                  <Bar dataKey="revenue" name="Revenue" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="cogs" name="COGS" fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="profit" name="Profit" fill="#22c55e" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            {/* Export */}
+            <ReportExportButton
+              data={data}
+              filename={`daily-pnl-${dateRange.start}`}
+              columns={[
+                { key: "date", header: "Date" },
+                { key: "transactionCount", header: "Transactions" },
+                { key: "revenue", header: "Revenue", format: (v: number) => formatCurrency(v) },
+                { key: "cogs", header: "COGS", format: (v: number) => formatCurrency(v) },
+                { key: "profit", header: "Profit", format: (v: number) => formatCurrency(v) },
+                { key: "marginPercent", header: "Margin %", format: (v: number) => `${v.toFixed(1)}%` },
+              ]}
+              pdfOptions={{ title: "Daily Profit & Loss", dateRange: { from: new Date(dateRange.start), to: new Date(dateRange.end) } }}
+              summaryRow={{ date: "TOTAL", transactionCount: totals.count, revenue: totals.revenue, cogs: totals.cogs, profit: totals.profit, marginPercent: avgMargin }}
+            />
+            {/* Table */}
+            <ReportTable
+              data={data}
+              columns={[
+                { key: "date", header: "Date", cell: (r) => format(new Date(r.date), "MMM dd, yyyy"), sortable: true },
+                { key: "transactionCount", header: "Transactions", cell: (r) => r.transactionCount, className: "text-right", sortable: true },
+                { key: "revenue", header: "Revenue", cell: (r) => formatCurrency(r.revenue), className: "text-right", sortable: true },
+                { key: "cogs", header: "COGS", cell: (r) => <span className="text-destructive">{formatCurrency(r.cogs)}</span>, className: "text-right", sortable: true },
+                { key: "profit", header: "Profit", cell: (r) => <span className="text-green-600 font-medium">{formatCurrency(r.profit)}</span>, className: "text-right", sortable: true },
+                { key: "marginPercent", header: "Margin %", cell: (r) => <Badge variant={r.marginPercent >= 20 ? "default" : "destructive"}>{r.marginPercent.toFixed(1)}%</Badge>, className: "text-right", sortable: true },
+              ]}
+              pageSize={31}
+              searchable={false}
+            />
+          </div>
+        );
+      }
+
       default:
         return renderEmpty("Report not found");
     }
