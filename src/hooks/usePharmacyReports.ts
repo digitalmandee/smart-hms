@@ -190,20 +190,21 @@ export function useHourlySalesAnalysis(dateFrom: string, dateTo: string) {
   return useQuery({
     queryKey: ["pharmacy-hourly-sales", dateFrom, dateTo],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("pharmacy_pos_transactions")
-        .select("total_amount, created_at, status")
-        .eq("status", "completed")
-        .gte("created_at", dateFrom)
-        .lte("created_at", `${dateTo}T23:59:59`);
-
-      if (error) throw error;
+      const data = await fetchAllRows((from, to) =>
+        supabase
+          .from("pharmacy_pos_transactions")
+          .select("total_amount, created_at, status")
+          .eq("status", "completed")
+          .gte("created_at", dateFrom)
+          .lte("created_at", `${dateTo}T23:59:59`)
+          .range(from, to)
+      );
 
       const byHour: Record<number, { hour: number; label: string; sales: number; count: number }> = {};
       for (let h = 0; h < 24; h++) {
         byHour[h] = { hour: h, label: `${h.toString().padStart(2, '0')}:00`, sales: 0, count: 0 };
       }
-      data?.forEach((tx) => {
+      data.forEach((tx: any) => {
         const hour = new Date(tx.created_at).getHours();
         byHour[hour].sales += Number(tx.total_amount || 0);
         byHour[hour].count++;
