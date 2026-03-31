@@ -149,7 +149,20 @@ export default function POFormPage() {
 
   const onSubmit = async (data: POFormData) => {
     if (items.length === 0) {
+      toast.error("Add at least one item to the purchase order");
       return;
+    }
+
+    // Validate items
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].quantity <= 0) {
+        toast.error(`Row ${i + 1}: Quantity must be greater than 0`);
+        return;
+      }
+      if (items[i].unit_price < 0) {
+        toast.error(`Row ${i + 1}: Unit price cannot be negative`);
+        return;
+      }
     }
 
     try {
