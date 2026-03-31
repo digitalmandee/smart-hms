@@ -535,7 +535,8 @@ function ReportDetailView({
                   </LineChart>
                 </ResponsiveContainer>
               </div>
-            )}
+             )}
+            <ReportExportButton data={data.dailyTrend} filename={`refund-rate-${dateRange.start}`} columns={[{ key: "date", header: "Date" }, { key: "refunds", header: "Refunds" }, { key: "sales", header: "Sales" }, { key: "refundRate", header: "Refund Rate %", format: (v: number) => `${v.toFixed(1)}%` }]} pdfOptions={{ title: "Refund Rate Analysis", dateRange: { from: new Date(dateRange.start), to: new Date(dateRange.end) } }} />
           </div>
         );
       }
@@ -832,11 +833,14 @@ function ReportDetailView({
               <Card><CardContent className="pt-6"><p className="text-sm text-muted-foreground">Total Refund Amount</p><p className="text-2xl font-bold text-destructive">{formatCurrency(data.totalRefundAmount)}</p></CardContent></Card>
             </div>
             {data.returns.length > 0 ? (
-              <ReportTable data={data.returns} columns={[
-                { key: "created_at", header: "Date", cell: (r) => format(new Date(r.created_at), "MMM dd, yyyy"), sortable: true },
-                { key: "void_reason", header: "Reason", cell: (r) => r.void_reason || "N/A" },
-                { key: "total_amount", header: "Amount", cell: (r) => formatCurrency(Number(r.total_amount)), className: "text-right", sortable: true },
-              ]} pageSize={50} />
+              <>
+                <ReportExportButton data={data.returns} filename={`returns-summary-${dateRange.start}`} columns={[{ key: "created_at", header: "Date" }, { key: "void_reason", header: "Reason" }, { key: "total_amount", header: "Amount", format: (v: number) => formatCurrency(Number(v)) }]} pdfOptions={{ title: "Returns & Refunds Summary", dateRange: { from: new Date(dateRange.start), to: new Date(dateRange.end) } }} />
+                <ReportTable data={data.returns} columns={[
+                  { key: "created_at", header: "Date", cell: (r) => format(new Date(r.created_at), "MMM dd, yyyy"), sortable: true },
+                  { key: "void_reason", header: "Reason", cell: (r) => r.void_reason || "N/A" },
+                  { key: "total_amount", header: "Amount", cell: (r) => formatCurrency(Number(r.total_amount)), className: "text-right", sortable: true },
+                ]} pageSize={50} />
+              </>
             ) : renderEmpty("No returns/refunds in this period")}
           </div>
         );

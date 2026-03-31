@@ -135,18 +135,19 @@ export function usePharmacySalesStats(dateFrom: string, dateTo: string) {
   return useQuery({
     queryKey: ["pharmacy-sales-stats", dateFrom, dateTo],
     queryFn: async () => {
-      const { data: transactions, error } = await supabase
-        .from("pharmacy_pos_transactions")
-        .select("total_amount, discount_amount, created_at, status")
-        .eq("status", "completed")
-        .gte("created_at", dateFrom)
-        .lte("created_at", `${dateTo}T23:59:59`);
+      const transactions = await fetchAllRows((from, to) =>
+        supabase
+          .from("pharmacy_pos_transactions")
+          .select("total_amount, discount_amount, created_at, status")
+          .eq("status", "completed")
+          .gte("created_at", dateFrom)
+          .lte("created_at", `${dateTo}T23:59:59`)
+          .range(from, to)
+      );
 
-      if (error) throw error;
-
-      const totalSales = transactions?.reduce((sum, tx) => sum + Number(tx.total_amount || 0), 0) || 0;
-      const totalDiscount = transactions?.reduce((sum, tx) => sum + Number(tx.discount_amount || 0), 0) || 0;
-      const transactionCount = transactions?.length || 0;
+      const totalSales = transactions.reduce((sum, tx: any) => sum + Number(tx.total_amount || 0), 0);
+      const totalDiscount = transactions.reduce((sum, tx: any) => sum + Number(tx.discount_amount || 0), 0);
+      const transactionCount = transactions.length;
       const avgTransaction = transactionCount > 0 ? totalSales / transactionCount : 0;
 
       return { totalSales, totalDiscount, transactionCount, avgTransaction };
@@ -159,17 +160,18 @@ export function useDailySalesSummary(dateFrom: string, dateTo: string) {
   return useQuery({
     queryKey: ["pharmacy-daily-sales", dateFrom, dateTo],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("pharmacy_pos_transactions")
-        .select("total_amount, discount_amount, subtotal, created_at, status")
-        .eq("status", "completed")
-        .gte("created_at", dateFrom)
-        .lte("created_at", `${dateTo}T23:59:59`);
-
-      if (error) throw error;
+      const data = await fetchAllRows((from, to) =>
+        supabase
+          .from("pharmacy_pos_transactions")
+          .select("total_amount, discount_amount, subtotal, created_at, status")
+          .eq("status", "completed")
+          .gte("created_at", dateFrom)
+          .lte("created_at", `${dateTo}T23:59:59`)
+          .range(from, to)
+      );
 
       const byDay: Record<string, { date: string; sales: number; discount: number; net: number; count: number }> = {};
-      data?.forEach((tx) => {
+      data.forEach((tx: any) => {
         const day = tx.created_at.substring(0, 10);
         if (!byDay[day]) byDay[day] = { date: day, sales: 0, discount: 0, net: 0, count: 0 };
         byDay[day].sales += Number(tx.subtotal || tx.total_amount || 0);
@@ -188,20 +190,21 @@ export function useHourlySalesAnalysis(dateFrom: string, dateTo: string) {
   return useQuery({
     queryKey: ["pharmacy-hourly-sales", dateFrom, dateTo],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("pharmacy_pos_transactions")
-        .select("total_amount, created_at, status")
-        .eq("status", "completed")
-        .gte("created_at", dateFrom)
-        .lte("created_at", `${dateTo}T23:59:59`);
-
-      if (error) throw error;
+      const data = await fetchAllRows((from, to) =>
+        supabase
+          .from("pharmacy_pos_transactions")
+          .select("total_amount, created_at, status")
+          .eq("status", "completed")
+          .gte("created_at", dateFrom)
+          .lte("created_at", `${dateTo}T23:59:59`)
+          .range(from, to)
+      );
 
       const byHour: Record<number, { hour: number; label: string; sales: number; count: number }> = {};
       for (let h = 0; h < 24; h++) {
         byHour[h] = { hour: h, label: `${h.toString().padStart(2, '0')}:00`, sales: 0, count: 0 };
       }
-      data?.forEach((tx) => {
+      data.forEach((tx: any) => {
         const hour = new Date(tx.created_at).getHours();
         byHour[hour].sales += Number(tx.total_amount || 0);
         byHour[hour].count++;
@@ -263,21 +266,22 @@ export function useDiscountAnalysis(dateFrom: string, dateTo: string) {
   return useQuery({
     queryKey: ["pharmacy-discount-analysis", dateFrom, dateTo],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("pharmacy_pos_transactions")
-        .select("total_amount, discount_amount, subtotal, created_at, status")
-        .eq("status", "completed")
-        .gte("created_at", dateFrom)
-        .lte("created_at", `${dateTo}T23:59:59`);
+      const data = await fetchAllRows((from, to) =>
+        supabase
+          .from("pharmacy_pos_transactions")
+          .select("total_amount, discount_amount, subtotal, created_at, status")
+          .eq("status", "completed")
+          .gte("created_at", dateFrom)
+          .lte("created_at", `${dateTo}T23:59:59`)
+          .range(from, to)
+      );
 
-      if (error) throw error;
-
-      const totalSales = data?.reduce((s, t) => s + Number(t.subtotal || t.total_amount || 0), 0) || 0;
-      const totalDiscount = data?.reduce((s, t) => s + Number(t.discount_amount || 0), 0) || 0;
-      const discountedTx = data?.filter(t => Number(t.discount_amount || 0) > 0) || [];
+      const totalSales = data.reduce((s: number, t: any) => s + Number(t.subtotal || t.total_amount || 0), 0);
+      const totalDiscount = data.reduce((s: number, t: any) => s + Number(t.discount_amount || 0), 0);
+      const discountedTx = data.filter((t: any) => Number(t.discount_amount || 0) > 0);
 
       const byDay: Record<string, { date: string; discount: number; sales: number }> = {};
-      data?.forEach((tx) => {
+      data.forEach((tx: any) => {
         const day = tx.created_at.substring(0, 10);
         if (!byDay[day]) byDay[day] = { date: day, discount: 0, sales: 0 };
         byDay[day].discount += Number(tx.discount_amount || 0);
@@ -289,7 +293,7 @@ export function useDiscountAnalysis(dateFrom: string, dateTo: string) {
         totalDiscount,
         discountPercent: totalSales > 0 ? (totalDiscount / totalSales) * 100 : 0,
         discountedTransactions: discountedTx.length,
-        totalTransactions: data?.length || 0,
+        totalTransactions: data.length,
         dailyTrend: Object.values(byDay).sort((a, b) => a.date.localeCompare(b.date)),
       };
     },
@@ -304,16 +308,17 @@ export function useMonthlyComparison(months: number = 6) {
       const now = new Date();
       const from = new Date(now.getFullYear(), now.getMonth() - months + 1, 1);
 
-      const { data, error } = await supabase
-        .from("pharmacy_pos_transactions")
-        .select("total_amount, discount_amount, created_at, status")
-        .eq("status", "completed")
-        .gte("created_at", from.toISOString());
-
-      if (error) throw error;
+      const data = await fetchAllRows((f, t) =>
+        supabase
+          .from("pharmacy_pos_transactions")
+          .select("total_amount, discount_amount, created_at, status")
+          .eq("status", "completed")
+          .gte("created_at", from.toISOString())
+          .range(f, t)
+      );
 
       const byMonth: Record<string, { month: string; sales: number; discount: number; count: number }> = {};
-      data?.forEach((tx) => {
+      data.forEach((tx: any) => {
         const m = tx.created_at.substring(0, 7);
         if (!byMonth[m]) byMonth[m] = { month: m, sales: 0, discount: 0, count: 0 };
         byMonth[m].sales += Number(tx.total_amount || 0);
@@ -566,21 +571,22 @@ export function useReturnsSummary(dateFrom: string, dateTo: string) {
   return useQuery({
     queryKey: ["pharmacy-returns-summary", dateFrom, dateTo],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("pharmacy_pos_transactions")
-        .select("id, total_amount, void_reason, voided_at, status, created_at")
-        .eq("status", "voided")
-        .gte("created_at", dateFrom)
-        .lte("created_at", `${dateTo}T23:59:59`);
+      const data = await fetchAllRows((from, to) =>
+        supabase
+          .from("pharmacy_pos_transactions")
+          .select("id, total_amount, void_reason, voided_at, status, created_at")
+          .eq("status", "voided")
+          .gte("created_at", dateFrom)
+          .lte("created_at", `${dateTo}T23:59:59`)
+          .range(from, to)
+      );
 
-      if (error) throw error;
-
-      const totalRefunds = data?.reduce((s, t) => s + Number(t.total_amount || 0), 0) || 0;
+      const totalRefunds = data.reduce((s: number, t: any) => s + Number(t.total_amount || 0), 0);
 
       return {
-        returnCount: data?.length || 0,
+        returnCount: data.length,
         totalRefundAmount: totalRefunds,
-        returns: data || [],
+        returns: data,
       };
     },
     staleTime: 5 * 60 * 1000,
@@ -591,17 +597,18 @@ export function useCreditSalesReport(dateFrom: string, dateTo: string) {
   return useQuery({
     queryKey: ["pharmacy-credit-sales", dateFrom, dateTo],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("pharmacy_pos_transactions")
-        .select("id, transaction_number, customer_name, customer_phone, total_amount, amount_paid, due_date, created_at, status")
-        .eq("status", "completed")
-        .gte("created_at", dateFrom)
-        .lte("created_at", `${dateTo}T23:59:59`);
+      const data = await fetchAllRows((from, to) =>
+        supabase
+          .from("pharmacy_pos_transactions")
+          .select("id, transaction_number, customer_name, customer_phone, total_amount, amount_paid, due_date, created_at, status")
+          .eq("status", "completed")
+          .gte("created_at", dateFrom)
+          .lte("created_at", `${dateTo}T23:59:59`)
+          .range(from, to)
+      );
 
-      if (error) throw error;
-
-      const creditTx = (data || []).filter(t => Number(t.amount_paid || 0) < Number(t.total_amount || 0) || t.due_date);
-      const totalOutstanding = creditTx.reduce((s, t) => s + (Number(t.total_amount || 0) - Number(t.amount_paid || 0)), 0);
+      const creditTx = data.filter((t: any) => Number(t.amount_paid || 0) < Number(t.total_amount || 0) || t.due_date);
+      const totalOutstanding = creditTx.reduce((s: number, t: any) => s + (Number(t.total_amount || 0) - Number(t.amount_paid || 0)), 0);
 
       return {
         creditTransactions: creditTx,
@@ -774,30 +781,30 @@ export function useRefundRateAnalysis(dateFrom: string, dateTo: string) {
   return useQuery({
     queryKey: ["pharmacy-refund-rate", dateFrom, dateTo],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("pharmacy_pos_transactions")
-        .select("id, total_amount, status, void_reason, created_at")
-        .gte("created_at", dateFrom)
-        .lte("created_at", `${dateTo}T23:59:59`);
+      const all = await fetchAllRows((from, to) =>
+        supabase
+          .from("pharmacy_pos_transactions")
+          .select("id, total_amount, status, void_reason, created_at")
+          .gte("created_at", dateFrom)
+          .lte("created_at", `${dateTo}T23:59:59`)
+          .range(from, to)
+      );
 
-      if (error) throw error;
-
-      const all = data || [];
-      const completed = all.filter(t => t.status === "completed");
-      const voided = all.filter(t => t.status === "voided");
-      const totalSales = completed.reduce((s, t) => s + Number(t.total_amount || 0), 0);
-      const totalRefunds = voided.reduce((s, t) => s + Number(t.total_amount || 0), 0);
+      const completed = all.filter((t: any) => t.status === "completed");
+      const voided = all.filter((t: any) => t.status === "voided");
+      const totalSales = completed.reduce((s: number, t: any) => s + Number(t.total_amount || 0), 0);
+      const totalRefunds = voided.reduce((s: number, t: any) => s + Number(t.total_amount || 0), 0);
 
       // Reasons breakdown
       const reasons: Record<string, number> = {};
-      voided.forEach(t => {
+      voided.forEach((t: any) => {
         const r = t.void_reason || "No reason";
         reasons[r] = (reasons[r] || 0) + 1;
       });
 
       // Daily trend
       const byDay: Record<string, { date: string; refunds: number; sales: number; refundRate: number }> = {};
-      all.forEach(t => {
+      all.forEach((t: any) => {
         const day = t.created_at.substring(0, 10);
         if (!byDay[day]) byDay[day] = { date: day, refunds: 0, sales: 0, refundRate: 0 };
         if (t.status === "voided") byDay[day].refunds++;
@@ -1126,17 +1133,18 @@ export function useCashierPerformance(dateFrom: string, dateTo: string) {
   return useQuery({
     queryKey: ["pharmacy-cashier-performance", dateFrom, dateTo],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("pharmacy_pos_transactions")
-        .select("id, total_amount, discount_amount, created_by, status, created_at")
-        .eq("status", "completed")
-        .gte("created_at", dateFrom)
-        .lte("created_at", `${dateTo}T23:59:59`);
-
-      if (error) throw error;
+      const data = await fetchAllRows((from, to) =>
+        supabase
+          .from("pharmacy_pos_transactions")
+          .select("id, total_amount, discount_amount, created_by, status, created_at")
+          .eq("status", "completed")
+          .gte("created_at", dateFrom)
+          .lte("created_at", `${dateTo}T23:59:59`)
+          .range(from, to)
+      );
 
       const byCashier: Record<string, { userId: string; totalSales: number; transactions: number; totalDiscount: number }> = {};
-      (data || []).forEach(tx => {
+      data.forEach((tx: any) => {
         const uid = tx.created_by || "unknown";
         if (!byCashier[uid]) byCashier[uid] = { userId: uid, totalSales: 0, transactions: 0, totalDiscount: 0 };
         byCashier[uid].totalSales += Number(tx.total_amount || 0);
@@ -1172,26 +1180,26 @@ export function usePeakHoursReport(dateFrom: string, dateTo: string) {
   return useQuery({
     queryKey: ["pharmacy-peak-hours", dateFrom, dateTo],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("pharmacy_pos_transactions")
-        .select("id, total_amount, created_at, status")
-        .eq("status", "completed")
-        .gte("created_at", dateFrom)
-        .lte("created_at", `${dateTo}T23:59:59`);
-
-      if (error) throw error;
+      const data = await fetchAllRows((from, to) =>
+        supabase
+          .from("pharmacy_pos_transactions")
+          .select("id, total_amount, created_at, status")
+          .eq("status", "completed")
+          .gte("created_at", dateFrom)
+          .lte("created_at", `${dateTo}T23:59:59`)
+          .range(from, to)
+      );
 
       const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
       const heatmap: { day: string; dayIndex: number; hour: number; hourLabel: string; count: number; sales: number }[] = [];
 
-      // Initialize grid
       for (let d = 0; d < 7; d++) {
         for (let h = 0; h < 24; h++) {
           heatmap.push({ day: dayNames[d], dayIndex: d, hour: h, hourLabel: `${h.toString().padStart(2, '0')}:00`, count: 0, sales: 0 });
         }
       }
 
-      (data || []).forEach(tx => {
+      data.forEach((tx: any) => {
         const dt = new Date(tx.created_at);
         const dayIdx = dt.getDay();
         const hour = dt.getHours();

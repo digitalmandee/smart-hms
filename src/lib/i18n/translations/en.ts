@@ -3422,6 +3422,8 @@ export const en = {
   "pharmacy.profitMargin": "Profit Margin",
   "pharmacy.profit": "Profit",
   "pharmacy.downloadReport": "Download Report",
+  "pharmacy.productName": "Product Name",
+  "pharmacy.purchaseDetails": "Purchase Details",
 
   // POS Sessions
   "pos.openRegister": "Open Register",

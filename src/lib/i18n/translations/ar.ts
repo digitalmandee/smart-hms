@@ -3354,6 +3354,8 @@ export const ar: Record<TranslationKey, string> = {
   "pharmacy.profitMargin": "هامش الربح",
   "pharmacy.profit": "الربح",
   "pharmacy.downloadReport": "تنزيل التقرير",
+  "pharmacy.productName": "اسم المنتج",
+  "pharmacy.purchaseDetails": "تفاصيل المشتريات",
 
   // POS Sessions
   "pos.openRegister": "فتح الصندوق",
