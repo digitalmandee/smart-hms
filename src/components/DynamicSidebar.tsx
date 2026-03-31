@@ -800,7 +800,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Coins,
   ArrowRight,
   Target,
-  FileBarChart,
+  FileBarChart: BarChart,
 };
 
 interface DynamicSidebarProps {
