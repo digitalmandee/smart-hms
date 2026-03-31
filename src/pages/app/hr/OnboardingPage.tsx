@@ -28,6 +28,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 export default function OnboardingPage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [expandedEmployee, setExpandedEmployee] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState("");
