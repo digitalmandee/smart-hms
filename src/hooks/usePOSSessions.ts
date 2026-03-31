@@ -139,6 +139,114 @@ export function useCloseSession() {
         .maybeSingle();
 
       if (error) throw error;
+
+      // Post journal entry for pharmacy sales (DR Cash, CR Pharmacy Revenue)
+      if (totalSales > 0 && profile.organization_id) {
+        try {
+          // Get or create accounts
+          const { data: cashAccId } = await supabase.rpc("get_or_create_default_account", {
+            p_organization_id: profile.organization_id,
+            p_account_code: "CASH-001",
+            p_account_name: "Cash in Hand",
+            p_account_type_category: "asset",
+          });
+
+          const { data: revenueAccId } = await supabase.rpc("get_or_create_default_account", {
+            p_organization_id: profile.organization_id,
+            p_account_code: "REV-PHARM-001",
+            p_account_name: "Pharmacy Revenue",
+            p_account_type_category: "revenue",
+          });
+
+          if (cashAccId && revenueAccId) {
+            // Create journal entry
+            const { data: journalEntry, error: jeError } = await (supabase as any)
+              .from("journal_entries")
+              .insert({
+                organization_id: profile.organization_id,
+                branch_id: profile.branch_id,
+                entry_number: "AUTO",
+                entry_date: new Date().toISOString().split("T")[0],
+                description: `POS Session Closing: ${data?.session_number || sessionId}`,
+                reference_type: "pos_session",
+                reference_id: sessionId,
+                is_posted: true,
+              })
+              .select("id")
+              .single();
+
+            if (!jeError && journalEntry) {
+              const lines = [
+                {
+                  journal_entry_id: journalEntry.id,
+                  account_id: cashAccId,
+                  description: "Pharmacy cash sales",
+                  debit_amount: totalSales,
+                  credit_amount: 0,
+                },
+                {
+                  journal_entry_id: journalEntry.id,
+                  account_id: revenueAccId,
+                  description: "Pharmacy revenue",
+                  debit_amount: 0,
+                  credit_amount: totalSales,
+                },
+              ];
+
+              // If there's a cash difference, add over/short entry
+              if (cashDifference !== 0) {
+                const { data: diffAccId } = await supabase.rpc("get_or_create_default_account", {
+                  p_organization_id: profile.organization_id,
+                  p_account_code: "EXP-CASH-DIFF-001",
+                  p_account_name: "Cash Over/Short",
+                  p_account_type_category: "expense",
+                });
+                if (diffAccId) {
+                  if (cashDifference < 0) {
+                    // Short: debit expense, credit cash
+                    lines.push({
+                      journal_entry_id: journalEntry.id,
+                      account_id: diffAccId,
+                      description: "Cash shortage",
+                      debit_amount: Math.abs(cashDifference),
+                      credit_amount: 0,
+                    });
+                    lines.push({
+                      journal_entry_id: journalEntry.id,
+                      account_id: cashAccId,
+                      description: "Cash shortage adjustment",
+                      debit_amount: 0,
+                      credit_amount: Math.abs(cashDifference),
+                    });
+                  } else {
+                    // Over: debit cash, credit expense (negative expense)
+                    lines.push({
+                      journal_entry_id: journalEntry.id,
+                      account_id: cashAccId,
+                      description: "Cash overage",
+                      debit_amount: cashDifference,
+                      credit_amount: 0,
+                    });
+                    lines.push({
+                      journal_entry_id: journalEntry.id,
+                      account_id: diffAccId,
+                      description: "Cash overage",
+                      debit_amount: 0,
+                      credit_amount: cashDifference,
+                    });
+                  }
+                }
+              }
+
+              await supabase.from("journal_entry_lines").insert(lines);
+            }
+          }
+        } catch (journalError) {
+          console.error("Failed to post journal entry for POS session:", journalError);
+          // Don't fail the session close if journal posting fails
+        }
+      }
+
       return data as POSSession;
     },
     onSuccess: () => {

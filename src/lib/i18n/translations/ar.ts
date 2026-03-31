@@ -3372,6 +3372,19 @@ export const ar: Record<TranslationKey, string> = {
   "pos.noOpenSession": "لا توجد جلسة مفتوحة",
   "pos.countYourCash": "قم بعد النقود",
   "pos.sessions": "جلسات نقاط البيع",
+  "pharmacy.closings": "إغلاقات الصيدلية",
+  "pharmacy.closingsDesc": "إغلاقات الجلسات اليومية مع تسوية النقد وقيود اليومية",
+  "pharmacy.totalSessions": "إجمالي الجلسات",
+  "pharmacy.totalCashDifference": "إجمالي فرق النقد",
+  "pharmacy.avgSessionDuration": "متوسط مدة الجلسة",
+  "pharmacy.journalPosted": "تم ترحيل القيد إلى الحسابات",
+  "pharmacy.cashOverShort": "زيادة/نقص النقد",
+  "nav.pharmacyClosings": "الإغلاقات",
+  "pos.cashier": "أمين الصندوق",
+  "pos.openedAt": "تم الفتح في",
+  "pos.closedAt": "تم الإغلاق في",
+  "common.thisWeek": "هذا الأسبوع",
+  "common.thisMonth": "هذا الشهر",
 
 };
 

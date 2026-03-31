@@ -3440,6 +3440,19 @@ export const en = {
   "pos.noOpenSession": "No Open Session",
   "pos.countYourCash": "Count Your Cash",
   "pos.sessions": "POS Sessions",
+  "pharmacy.closings": "Pharmacy Closings",
+  "pharmacy.closingsDesc": "Daily session closings with cash reconciliation and journal postings",
+  "pharmacy.totalSessions": "Total Sessions",
+  "pharmacy.totalCashDifference": "Total Cash Difference",
+  "pharmacy.avgSessionDuration": "Avg Session Duration",
+  "pharmacy.journalPosted": "Journal entry posted to accounts",
+  "pharmacy.cashOverShort": "Cash Over/Short",
+  "nav.pharmacyClosings": "Closings",
+  "pos.cashier": "Cashier",
+  "pos.openedAt": "Opened At",
+  "pos.closedAt": "Closed At",
+  "common.thisWeek": "This Week",
+  "common.thisMonth": "This Month",
 
 } as const;
 
