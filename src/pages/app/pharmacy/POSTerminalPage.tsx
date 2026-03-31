@@ -12,6 +12,8 @@ import { POSRecentProducts } from "@/components/pharmacy/POSRecentProducts";
 import { POSMedicineAlternatives } from "@/components/pharmacy/POSMedicineAlternatives";
 import { POSCartCompanion } from "@/components/pharmacy/POSCartCompanion";
 import { POSTodaySummary } from "@/components/pharmacy/POSTodaySummary";
+import { POSSessionOpenDialog } from "@/components/pharmacy/POSSessionOpenDialog";
+import { POSSessionCloseDialog } from "@/components/pharmacy/POSSessionCloseDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -33,6 +35,7 @@ import {
   POSTransaction,
   POSPayment,
 } from "@/hooks/usePOS";
+import { useCurrentPOSSession } from "@/hooks/usePOSSessions";
 import { useHoldTransaction } from "@/hooks/useHeldTransactions";
 import { PatientForPOS, PatientAdmissionStatus } from "@/hooks/usePatientPrescriptionsForPOS";
 import { usePrint } from "@/hooks/usePrint";
@@ -52,6 +55,7 @@ import {
   BedDouble,
   FileText,
   Syringe,
+  Lock,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
