@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+
 import { useOnboardingEmployees, useInitiateOnboarding, useToggleOnboardingStep } from "@/hooks/useOnboarding";
 import { useEmployees } from "@/hooks/useHR";
 import { useResignations } from "@/hooks/useExitManagement";

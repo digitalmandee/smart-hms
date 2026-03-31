@@ -26,6 +26,7 @@ const STATUS_OPTIONS = [
 ];
 
 export default function ApplicationsPage() {
+  const navigate = useNavigate();
   const { t } = useTranslation();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedApplication, setSelectedApplication] = useState<any>(null);
