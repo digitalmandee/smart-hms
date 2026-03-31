@@ -1,58 +1,117 @@
 
-Goal: Fix “Create PO” action so it always gives clear feedback, creates the PO reliably, and shows medicine/vendor data correctly (EN/AR/UR).
 
-What I verified
-- Current requisition `24620017-5c23-4808-8873-67e9be6d32d3` is valid and has a medicine item (`Augmentin 625mg`).
-- `purchase_order_items` supports medicine rows (`medicine_id` exists, `item_id` nullable, `item_type` check allows `medicine`).
-- No backend error evidence was captured for the click, which strongly suggests a client-side blocked submit (validation/UI feedback issue) instead of a DB schema failure.
+# HR Module Audit & Payroll Approval Flow
 
-Implementation plan
+## 1. Payroll Admin Approval Flow
 
-1) Make submit failures visible (no more “nothing happens”)
-- File: `src/pages/app/inventory/POFormPage.tsx`
-- Use `form.handleSubmit(onSubmit, onInvalid)` and add a form-level error box above the Create button.
-- On invalid submit, show exact reason (missing vendor/branch/items) and auto-scroll/focus first invalid field.
-- Keep toast, but also show inline error text near submit for mobile users.
+### Current State
+- Payroll status enum: `draft → processing → completed → cancelled`
+- `payroll_runs` table has `approved_by` column (unused)
+- No approval step — HR can directly mark payroll as "completed" which triggers journal entry posting
 
-2) Harden PO item normalization before create
-- File: `src/hooks/usePurchaseOrders.ts`
-- Before insert, normalize each row:
-  - infer `item_type` from ids if missing
-  - enforce exactly one reference (`medicine_id` xor `item_id`)
-  - quantity > 0, unit_price >= 0
-- Return row-numbered messages (e.g., “Row 1: Medicine reference missing”).
-- Keep orphan PO cleanup logic on item insert failure.
+### Changes
 
-3) Remove “Unknown Medicine” fallback gaps
-- Files: `src/pages/app/inventory/POFormPage.tsx`, `src/components/inventory/UnifiedPOItemsBuilder.tsx`
-- Ensure prefilled requisition/PR rows always carry nested `medicine` / `item` object.
-- In item builder, add reliable id-based fallback lookup for names/codes/units so prefilled medicine names never show “Unknown” when id is present.
+**Migration**: Add `pending_approval` and `approved` to `payroll_run_status` enum
+```sql
+ALTER TYPE public.payroll_run_status ADD VALUE 'pending_approval' AFTER 'processing';
+ALTER TYPE public.payroll_run_status ADD VALUE 'approved' AFTER 'pending_approval';
+```
 
-4) Improve vendor flow for PO creation
-- Files: `src/pages/app/inventory/POFormPage.tsx`, `src/pages/app/inventory/VendorDetailPage.tsx`
-- Keep `vendor_id` and legacy `vendorId` support.
-- Add quick actions near vendor selector: Add Vendor / Edit Vendor (open in new tab or route-safe navigation).
-- Show vendor summary (contact/phone/payment terms) after selection for record quality.
+**File: `src/pages/app/hr/payroll/PayrollRunDetailPage.tsx`**
+- Change flow: `draft → processing → pending_approval → approved → completed`
+- "processing" status shows "Submit for Approval" button (sets status to `pending_approval`)
+- "pending_approval" shows approval info banner + "Approve" / "Reject (→ draft)" buttons (admin/finance_manager only)
+- On approve: set `approved_by = auth.uid()`, status = `approved`
+- "approved" shows "Mark Completed" (triggers journal entry + WPS)
+- Add role check: only `org_admin`, `super_admin`, `finance_manager` can approve
 
-5) 3-language coverage
-- Files: `src/lib/i18n/translations/en.ts`, `ar.ts`, `ur.ts`
-- Add keys for:
-  - form-level submit errors
-  - row validation errors
-  - unknown item/medicine fallback
-  - vendor quick-action labels
+**File: `src/hooks/usePayroll.ts`**
+- Add `useApprovePayrollRun` mutation that sets `approved_by` + status
+- Update `usePayrollRun` to fetch `approved_by_profile`
 
-Technical details
-- No DB migration is required for this fix path (schema already supports medicine PO items).
-- Main code paths touched:
-  - `POFormPage` (submit UX + invalid handler + hydration reliability)
-  - `usePurchaseOrders` (strict row validation + safer error messaging)
-  - `UnifiedPOItemsBuilder` (name fallback robustness)
-  - translations (EN/AR/UR)
+**File: `src/pages/app/hr/payroll/PayrollPage.tsx`**
+- Add "Pending Approval" filter/tab
+- Show approval badge on payroll list
 
-Verification checklist
-1. Open requisition → Create PO.
-2. Medicine name is visible (not “Unknown”).
-3. Select vendor and submit with valid rows → PO created and navigates to PO detail.
-4. Try invalid submit (no vendor / bad qty) → clear inline error + toast appears.
-5. Repeat in English, Urdu, Arabic.
+---
+
+## 2. HR Module Audit — Gaps Found & Fixes
+
+### A. Onboarding
+- **Working**: Checklist-based onboarding with progress tracking, step toggle, initiate dialog
+- **Gap**: No offboarding link — when resignation is accepted, onboarding page should show "Offboarding" section or link to Exit module
+- **Fix**: Add offboarding awareness banner on OnboardingPage linking to Exit → Clearance
+
+### B. Offboarding / Exit
+- **Working**: Resignations (submit/acknowledge/accept/reject), Clearance (department checklist), Final Settlements (with ESB calc), Exit Interviews
+- **Gap**: No automated trigger — accepting a resignation doesn't auto-create clearance items
+- **Fix**: In `useUpdateResignation`, when status changes to "accepted", auto-initiate clearance items for that employee
+
+### C. Duty Roster
+- **Working**: Weekly view, department filter, shift assignment dialog, color-coded shifts
+- **Gap 1**: No drag-drop (documented but not implemented) — acceptable, assignment dialog works
+- **Gap 2**: No publish/notify flow — roster changes aren't communicated to employees
+- **Fix**: Add "Publish Roster" button that sets a `published_at` timestamp and shows confirmation
+
+### D. Attendance
+- **Working**: Attendance sheet, corrections with approval, biometric devices page, overtime tracking
+- **No critical gaps found**
+
+### E. Leave Management
+- **Working**: Two-level approval (dept head → HR), leave balances, calendar view
+- **No critical gaps found**
+
+### F. Recruitment
+- **Working**: Job openings CRUD, applications with Kanban pipeline
+- **Gap**: No auto-conversion of hired candidate to employee record
+- **Fix**: Add "Convert to Employee" button on application when status = "hired"
+
+### G. Training
+- **Working**: Training records, certifications, CME tracking
+- **No critical gaps found**
+
+### H. Compliance
+- **Working**: Medical fitness, vaccinations, disciplinary, licenses, documents, expiry tracker
+- **No critical gaps found**
+
+### I. Payroll (beyond approval)
+- **Working**: Salary components, structures, employee salary assignment, payroll processing with wallet integration, loans, payslips
+- **Gap**: Bank sheet / WPS generation page exists but may lack download
+- **Fix**: Verify BankSheetPage has proper export
+
+### J. Employee Management
+- **Working**: CRUD, categories, department/designation assignment, profile tabs
+- **No critical gaps found**
+
+---
+
+## 3. Translations (en/ar/ur)
+Add keys for: `pendingApproval`, `approvePayroll`, `rejectPayroll`, `approvedBy`, `payrollApprovalRequired`, `convertToEmployee`, `publishRoster`, `initiateOffboarding`
+
+## Files Changed
+- 1 migration — extend `payroll_run_status` enum
+- `src/pages/app/hr/payroll/PayrollRunDetailPage.tsx` — approval flow UI
+- `src/hooks/usePayroll.ts` — approve mutation
+- `src/pages/app/hr/payroll/PayrollPage.tsx` — pending approval filter
+- `src/hooks/useExitManagement.ts` — auto-create clearance on resignation acceptance
+- `src/pages/app/hr/OnboardingPage.tsx` — offboarding link banner
+- `src/pages/app/hr/recruitment/ApplicationsPage.tsx` — convert-to-employee button
+- `src/lib/i18n/translations/en.ts`, `ar.ts`, `ur.ts` — new keys
+
+## Flow Summary (Post-Fix)
+
+```text
+PAYROLL FLOW:
+  HR creates run (draft)
+  → HR processes salaries (processing)
+  → HR submits for approval (pending_approval)
+  → Admin/Finance approves (approved) [sets approved_by]
+  → HR marks completed (completed) [posts journal entry]
+
+HIRE-TO-RETIRE FLOW:
+  Recruitment: Job Opening → Applications → Interview → Hired → [Convert to Employee]
+  Onboarding: Select employee → Checklist auto-created → Track progress → Complete
+  Employment: Profile, salary, attendance, leaves, training, compliance
+  Exit: Resignation → Accepted → [Auto-create clearance] → Clearance → Settlement → Exit Interview
+```
+
