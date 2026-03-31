@@ -193,6 +193,10 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         children: [
           { name: "Invoices", path: "/app/billing/invoices", icon: "FileText" },
           { name: "Payments", path: "/app/billing/payments", icon: "CreditCard" },
+          { name: "Billing Sessions", path: "/app/billing/sessions", icon: "Monitor" },
+          { name: "Daily Closing", path: "/app/billing/daily-closing", icon: "Clock" },
+          { name: "Closing History", path: "/app/billing/daily-closing/history", icon: "History" },
+          { name: "Day-End Summary", path: "/app/reports/day-end-summary", icon: "Receipt" },
           { name: "Payment Reconciliation", path: "/app/billing/reconciliation", icon: "BookOpen" },
           { name: "Reports", path: "/app/billing/reports", icon: "PieChart" },
         ]
@@ -203,9 +207,14 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         icon: "Landmark",
         children: [
           { name: "Dashboard", path: "/app/accounts", icon: "LayoutDashboard" },
-          { name: "Chart of Accounts", path: "/app/accounts/chart", icon: "ListTree" },
-          { name: "Journal Entries", path: "/app/accounts/journal", icon: "BookOpen" },
-          { name: "Accounts Payable", path: "/app/accounts/payable", icon: "Wallet" },
+          { name: "Chart of Accounts", path: "/app/accounts/chart-of-accounts", icon: "ListTree" },
+          { name: "Journal Entries", path: "/app/accounts/journal-entries", icon: "BookOpen" },
+          { name: "Accounts Payable", path: "/app/accounts/payables", icon: "Wallet" },
+          { name: "Vendor Payments", path: "/app/accounts/vendor-payments", icon: "CreditCard" },
+          { name: "Expense Management", path: "/app/accounts/expenses", icon: "Receipt" },
+          { name: "Bank Accounts", path: "/app/accounts/bank-accounts", icon: "Building" },
+          { name: "Bank Reconciliation", path: "/app/accounts/bank-reconciliation", icon: "CheckSquare" },
+          { name: "Cash to Bank", path: "/app/accounts/cash-to-bank", icon: "ArrowRight" },
           { name: "Reports", path: "/app/accounts/reports", icon: "PieChart" },
         ]
       },
