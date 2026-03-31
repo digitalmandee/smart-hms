@@ -3456,6 +3456,24 @@ export const en = {
   "common.thisWeek": "This Week",
   "common.thisMonth": "This Month",
 
+  "payroll.pendingApproval": "Pending Approval",
+  "payroll.submitForApproval": "Submit for Approval",
+  "payroll.approvePayroll": "Approve Payroll",
+  "payroll.rejectPayroll": "Reject to Draft",
+  "payroll.markCompleted": "Mark Completed",
+  "payroll.approvedBy": "Approved By",
+  "payroll.approvalRequired": "Admin or Finance Manager approval required before completing this payroll run.",
+  "payroll.awaitingApproval": "Awaiting Admin Approval",
+  "payroll.approved": "Approved",
+  "payroll.returnToDraft": "Return to Draft",
+
+  "hr.convertToEmployee": "Convert to Employee",
+  "hr.convertToEmployeeDesc": "Create an employee record from this hired candidate",
+  "hr.offboardingBanner": "Employee has an accepted resignation. Proceed to Exit Management for clearance and settlement.",
+  "hr.goToExitManagement": "Go to Exit Management",
+  "hr.publishRoster": "Publish Roster",
+  "hr.rosterPublished": "Roster Published",
+
 } as const;
 
 export type TranslationKey = keyof typeof en;

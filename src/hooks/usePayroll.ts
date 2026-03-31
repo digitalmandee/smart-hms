@@ -276,13 +276,49 @@ export function usePayrollRun(id: string) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("payroll_runs")
-        .select("*")
+        .select(`
+          *,
+          approved_by_profile:approved_by(id, full_name)
+        `)
         .eq("id", id)
         .single();
       if (error) throw error;
       return data;
     },
     enabled: !!id,
+  });
+}
+
+// Approve payroll run (admin/finance_manager only)
+export function useApprovePayrollRun() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, approved }: { id: string; approved: boolean }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      const updateData: Record<string, unknown> = {
+        status: approved ? "approved" : "draft",
+        updated_at: new Date().toISOString(),
+      };
+      if (approved) {
+        updateData.approved_by = user?.id;
+      }
+      const { data, error } = await supabase
+        .from("payroll_runs")
+        .update(updateData)
+        .eq("id", id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["payroll-runs"] });
+      queryClient.invalidateQueries({ queryKey: ["payroll-run", variables.id] });
+      toast.success(variables.approved ? "Payroll approved" : "Payroll returned to draft");
+    },
+    onError: (error: Error) => {
+      toast.error("Failed to process approval: " + error.message);
+    },
   });
 }
 
