@@ -98,16 +98,21 @@ export default function POFormPage() {
       // Set notes referencing PR
       form.setValue("notes", `From PR: ${sourcePR.pr_number}`);
       // Pre-fill items
-      const prItems: PurchaseOrderItem[] = sourcePR.items.map((prItem) => ({
-        item_id: prItem.item_id || "",
-        medicine_id: (prItem as any).medicine_id || undefined,
-        item_type: (prItem as any).medicine_id ? "medicine" as const : "inventory" as const,
-        quantity: prItem.quantity_requested,
-        unit_price: prItem.estimated_unit_cost,
-        tax_percent: 0,
-        discount_percent: 0,
-        total_price: prItem.quantity_requested * prItem.estimated_unit_cost,
-      }));
+      const prItems: PurchaseOrderItem[] = sourcePR.items.map((prItem) => {
+        const hasMedicine = !!(prItem as any).medicine_id;
+        return {
+          item_id: hasMedicine ? undefined : (prItem.item_id || undefined),
+          medicine_id: hasMedicine ? (prItem as any).medicine_id : undefined,
+          item_type: hasMedicine ? "medicine" as const : "inventory" as const,
+          quantity: prItem.quantity_requested,
+          unit_price: prItem.estimated_unit_cost,
+          tax_percent: 0,
+          discount_percent: 0,
+          total_price: prItem.quantity_requested * prItem.estimated_unit_cost,
+          item: prItem.item || undefined,
+          medicine: (prItem as any).medicine || undefined,
+        };
+      });
       setItems(prItems);
     }
   }, [sourcePR, form, items.length]);
