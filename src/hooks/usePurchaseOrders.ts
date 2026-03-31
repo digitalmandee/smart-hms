@@ -221,8 +221,8 @@ export function useCreatePurchaseOrder() {
       const itemsToInsert = data.items.map(item => ({
         purchase_order_id: po.id,
         item_type: item.item_type || 'inventory',
-        item_id: item.item_type === 'medicine' ? null : item.item_id,
-        medicine_id: item.item_type === 'medicine' ? item.medicine_id : null,
+        item_id: (item.item_type === 'medicine' || !item.item_id) ? null : item.item_id,
+        medicine_id: item.item_type === 'medicine' ? (item.medicine_id || null) : null,
         quantity: item.quantity,
         unit_price: item.unit_price,
         tax_percent: item.tax_percent,
@@ -234,7 +234,11 @@ export function useCreatePurchaseOrder() {
         .from("purchase_order_items")
         .insert(itemsToInsert);
       
-      if (itemsError) throw itemsError;
+      if (itemsError) {
+        // Cleanup orphaned PO
+        await supabase.from("purchase_orders").delete().eq("id", po.id);
+        throw itemsError;
+      }
       
       return po;
     },
@@ -305,8 +309,8 @@ export function useUpdatePurchaseOrder() {
         const itemsToInsert = items.map(item => ({
           purchase_order_id: id,
           item_type: item.item_type || 'inventory',
-          item_id: item.item_type === 'medicine' ? null : item.item_id,
-          medicine_id: item.item_type === 'medicine' ? item.medicine_id : null,
+          item_id: (item.item_type === 'medicine' || !item.item_id) ? null : item.item_id,
+          medicine_id: item.item_type === 'medicine' ? (item.medicine_id || null) : null,
           quantity: item.quantity,
           unit_price: item.unit_price,
           tax_percent: item.tax_percent,

@@ -71,11 +71,17 @@ export const PrintablePO = forwardRef<HTMLDivElement, PrintablePOProps>(
                 <td className="py-2 text-sm">{index + 1}</td>
                 <td className="py-2 text-sm">
                   <div>
-                    <p className="font-medium">{item.item?.name}</p>
-                    <p className="text-xs text-gray-600">{item.item?.item_code}</p>
+                    <p className="font-medium">
+                      {item.item_type === 'medicine' ? item.medicine?.name : item.item?.name}
+                    </p>
+                    <p className="text-xs text-gray-600">
+                      {item.item_type === 'medicine' ? item.medicine?.generic_name : item.item?.item_code}
+                    </p>
                   </div>
                 </td>
-                <td className="text-center py-2 text-sm">{item.quantity} {item.item?.unit_of_measure}</td>
+                <td className="text-center py-2 text-sm">
+                  {item.quantity} {item.item_type === 'medicine' ? item.medicine?.unit : item.item?.unit_of_measure}
+                </td>
                 <td className="text-right py-2 text-sm">{fc(item.unit_price)}</td>
                 <td className="text-center py-2 text-sm">{item.tax_percent}%</td>
                 <td className="text-center py-2 text-sm">{item.discount_percent}%</td>
