@@ -597,17 +597,18 @@ export function useCreditSalesReport(dateFrom: string, dateTo: string) {
   return useQuery({
     queryKey: ["pharmacy-credit-sales", dateFrom, dateTo],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("pharmacy_pos_transactions")
-        .select("id, transaction_number, customer_name, customer_phone, total_amount, amount_paid, due_date, created_at, status")
-        .eq("status", "completed")
-        .gte("created_at", dateFrom)
-        .lte("created_at", `${dateTo}T23:59:59`);
+      const data = await fetchAllRows((from, to) =>
+        supabase
+          .from("pharmacy_pos_transactions")
+          .select("id, transaction_number, customer_name, customer_phone, total_amount, amount_paid, due_date, created_at, status")
+          .eq("status", "completed")
+          .gte("created_at", dateFrom)
+          .lte("created_at", `${dateTo}T23:59:59`)
+          .range(from, to)
+      );
 
-      if (error) throw error;
-
-      const creditTx = (data || []).filter(t => Number(t.amount_paid || 0) < Number(t.total_amount || 0) || t.due_date);
-      const totalOutstanding = creditTx.reduce((s, t) => s + (Number(t.total_amount || 0) - Number(t.amount_paid || 0)), 0);
+      const creditTx = data.filter((t: any) => Number(t.amount_paid || 0) < Number(t.total_amount || 0) || t.due_date);
+      const totalOutstanding = creditTx.reduce((s: number, t: any) => s + (Number(t.total_amount || 0) - Number(t.amount_paid || 0)), 0);
 
       return {
         creditTransactions: creditTx,
