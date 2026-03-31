@@ -3,74 +3,120 @@ import { DataTable } from "@/components/DataTable";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { usePOSTransactions, POSTransaction } from "@/hooks/usePOS";
+import { usePOSSessionHistory } from "@/hooks/usePOSSessions";
+import { POSSession } from "@/hooks/usePOS";
 import { format } from "date-fns";
-import { Store, Clock, Wallet, TrendingUp } from "lucide-react";
+import { Store, Clock, Wallet, TrendingUp, ArrowUp, ArrowDown, Minus } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import { useNavigate } from "react-router-dom";
+import { formatCurrency } from "@/lib/currency";
 
 export default function POSSessionsPage() {
   const navigate = useNavigate();
-  const { data: transactions = [], isLoading } = usePOSTransactions();
+  const { data: sessions = [], isLoading } = usePOSSessionHistory();
 
-  const columns: ColumnDef<POSTransaction>[] = [
+  const columns: ColumnDef<POSSession>[] = [
     {
-      accessorKey: "created_at",
+      accessorKey: "opened_at",
       header: "Date",
       cell: ({ row }) => (
         <div>
-          <p className="font-medium">{format(new Date(row.original.created_at), "PPP")}</p>
+          <p className="font-medium">{format(new Date(row.original.opened_at), "PPP")}</p>
           <p className="text-xs text-muted-foreground">
-            {format(new Date(row.original.created_at), "h:mm a")}
+            {format(new Date(row.original.opened_at), "h:mm a")}
           </p>
         </div>
       ),
     },
     {
-      accessorKey: "transaction_number",
-      header: "Transaction #",
+      accessorKey: "session_number",
+      header: "Session #",
       cell: ({ row }) => (
-        <span className="font-mono">{row.original.transaction_number}</span>
+        <span className="font-mono text-xs">{row.original.session_number}</span>
       ),
     },
     {
-      accessorKey: "customer_name",
-      header: "Customer",
-      cell: ({ row }) => row.original.customer_name || "Walk-in",
+      accessorKey: "opener",
+      header: "Cashier",
+      cell: ({ row }) => row.original.opener?.full_name || "Unknown",
     },
     {
-      accessorKey: "total_amount",
-      header: "Total",
+      accessorKey: "opening_balance",
+      header: "Opening",
       cell: ({ row }) => (
-        <span className="font-mono font-medium">Rs. {Number(row.original.total_amount).toFixed(2)}</span>
+        <span className="font-mono">{formatCurrency(Number(row.original.opening_balance))}</span>
       ),
+    },
+    {
+      accessorKey: "total_sales",
+      header: "Total Sales",
+      cell: ({ row }) => (
+        <span className="font-mono font-medium text-green-600">
+          {formatCurrency(Number(row.original.total_sales || 0))}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "closing_balance",
+      header: "Closing",
+      cell: ({ row }) => (
+        <span className="font-mono">
+          {row.original.closing_balance != null
+            ? formatCurrency(Number(row.original.closing_balance))
+            : "—"}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "cash_difference",
+      header: "Difference",
+      cell: ({ row }) => {
+        const diff = Number(row.original.cash_difference || 0);
+        if (row.original.status !== "closed") return <span className="text-muted-foreground">—</span>;
+        return (
+          <Badge variant={diff === 0 ? "default" : "destructive"} className="font-mono text-xs">
+            {diff > 0 && <ArrowUp className="h-3 w-3 mr-1" />}
+            {diff < 0 && <ArrowDown className="h-3 w-3 mr-1" />}
+            {diff === 0 && <Minus className="h-3 w-3 mr-1" />}
+            {formatCurrency(Math.abs(diff))}
+          </Badge>
+        );
+      },
     },
     {
       accessorKey: "status",
       header: "Status",
       cell: ({ row }) => (
-        <Badge variant={row.original.status === 'completed' ? 'default' : 'secondary'}>
-          {row.original.status}
+        <Badge variant={row.original.status === "open" ? "secondary" : "default"}>
+          {row.original.status === "open" ? "Open" : "Closed"}
         </Badge>
       ),
     },
     {
-      accessorKey: "creator",
-      header: "Cashier",
-      cell: ({ row }) => row.original.creator?.full_name || "Unknown",
+      id: "actions",
+      cell: ({ row }) => (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate(`/app/pharmacy/pos/sessions/${row.original.id}`)}
+        >
+          View
+        </Button>
+      ),
     },
   ];
 
-  // Calculate summary stats
-  const paidTransactions = transactions.filter(t => t.status === 'completed');
-  const totalSales = paidTransactions.reduce((sum, t) => sum + (Number(t.total_amount) || 0), 0);
-  const avgSale = paidTransactions.length > 0 ? totalSales / paidTransactions.length : 0;
+  // Summary stats
+  const closedSessions = sessions.filter(s => s.status === "closed");
+  const totalSalesAll = closedSessions.reduce((s, ses) => s + Number(ses.total_sales || 0), 0);
+  const totalTransactionsAll = closedSessions.reduce((s, ses) => s + Number(ses.total_transactions || 0), 0);
+  const openSessions = sessions.filter(s => s.status === "open");
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Sales History"
-        description="View POS transaction history"
+        title="POS Sessions"
+        description="Daily opening/closing register history"
         actions={
           <Button onClick={() => navigate("/app/pharmacy/pos")}>
             <Store className="mr-2 h-4 w-4" />
@@ -83,59 +129,55 @@ export default function POSSessionsPage() {
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Transactions</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Sessions</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{transactions.length}</div>
+            <div className="text-2xl font-bold">{sessions.length}</div>
             <p className="text-xs text-muted-foreground">
-              {paidTransactions.length} paid
+              {openSessions.length} currently open
             </p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Sales</CardTitle>
             <Wallet className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">Rs. {totalSales.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">From paid transactions</p>
+            <div className="text-2xl font-bold text-green-600">{formatCurrency(totalSalesAll)}</div>
+            <p className="text-xs text-muted-foreground">From closed sessions</p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Average Sale</CardTitle>
+            <CardTitle className="text-sm font-medium">Transactions</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              Rs. {avgSale.toFixed(2)}
-            </div>
-            <p className="text-xs text-muted-foreground">Per transaction</p>
+            <div className="text-2xl font-bold">{totalTransactionsAll}</div>
+            <p className="text-xs text-muted-foreground">Across all sessions</p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Voided</CardTitle>
-            <Wallet className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Open Sessions</CardTitle>
+            <Store className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-destructive">
-              {transactions.filter(t => t.status === 'voided').length}
-            </div>
-            <p className="text-xs text-muted-foreground">Cancelled sales</p>
+            <div className="text-2xl font-bold">{openSessions.length}</div>
+            <p className="text-xs text-muted-foreground">Active registers</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Transactions Table */}
+      {/* Sessions Table */}
       <DataTable
         columns={columns}
-        data={transactions}
+        data={sessions}
         isLoading={isLoading}
       />
     </div>
