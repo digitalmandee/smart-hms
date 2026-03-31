@@ -120,16 +120,50 @@ export default function POSTransactionsPage() {
   const completedTx = filteredTransactions.filter(tx => tx.status === 'completed');
   const totalSales = completedTx.reduce((sum, tx) => sum + (tx.total_amount || 0), 0);
 
+  const exportColumns = [
+    { key: "transaction_number", header: "Transaction #" },
+    { key: "created_at", header: "Date/Time", format: (v: any) => v ? format(new Date(v), "dd/MM/yyyy h:mm a") : "" },
+    { key: "customer_name", header: "Customer", format: (v: any) => v || "Walk-in" },
+    { key: "total_amount", header: "Total", format: (v: any) => formatCurrency(Number(v || 0)), align: "right" as const },
+    { key: "status", header: "Status", format: (v: any) => v ? v.charAt(0).toUpperCase() + v.slice(1) : "" },
+    { key: "creator", header: "Cashier", format: (v: any) => v?.full_name || "Unknown" },
+  ];
+
+  const exportSummaryRow: Record<string, any> = {
+    transaction_number: `Total: ${filteredTransactions.length} transactions`,
+    total_amount: formatCurrency(totalSales),
+  };
+
+  const exportFilters: { label: string; value: string }[] = [];
+  if (dateFilter) exportFilters.push({ label: "Date", value: dateFilter });
+  if (statusFilter !== "all") exportFilters.push({ label: "Status", value: statusFilter });
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="POS Transactions"
         description="View and manage retail sales history"
         actions={
-          <Button onClick={() => navigate("/app/pharmacy/pos")}>
-            <Store className="mr-2 h-4 w-4" />
-            Go to POS
-          </Button>
+          <div className="flex gap-2">
+            <ReportExportButton
+              data={filteredTransactions}
+              filename={`pharmacy-transactions-${dateFilter || format(new Date(), "yyyy-MM-dd")}`}
+              columns={exportColumns}
+              title="Pharmacy Daily Sales Report"
+              pdfOptions={{
+                title: "Pharmacy Daily Sales Report",
+                subtitle: dateFilter ? `Date: ${dateFilter}` : `As of ${format(new Date(), "dd/MM/yyyy")}`,
+                filters: exportFilters.length > 0 ? exportFilters : undefined,
+                orientation: "landscape",
+              }}
+              summaryRow={exportSummaryRow}
+              isLoading={isLoading}
+            />
+            <Button onClick={() => navigate("/app/pharmacy/pos")}>
+              <Store className="mr-2 h-4 w-4" />
+              Go to POS
+            </Button>
+          </div>
         }
       />
 
