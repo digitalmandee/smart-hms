@@ -1,48 +1,76 @@
 
 
-# Enhance Pharmacy Reports: More Data, Vendor-Product Detail, PDF Downloads
+# Pharmacy POS Daily Opening/Closing with Downloadable Reports
 
-## Problems Identified
+## Current State
+- The `pharmacy_pos_sessions` table exists in the database with fields for `opening_balance`, `closing_balance`, `expected_cash`, `cash_difference`, `total_sales`, `total_transactions`, `status` (open/closed), `opened_by`, `closed_by`, etc.
+- **None of this is used.** The POS terminal creates transactions without sessions. The "POS Sessions" page just shows transactions.
+- There is no open/close cash register workflow for pharmacy POS users.
 
-1. **Data limit**: Supabase queries default to 1000 rows max. Reports with many orders/items are silently truncated. The user wants support for ~5000+ orders.
-2. **Supplier report lacks product names**: `useSupplierPurchaseSummary` only fetches PO headers with vendor info — no item-level detail showing which products were bought from which vendor.
-3. **Inconsistent PDF download buttons**: Some reports have export buttons, others don't. The prominent "Download PDF" button pattern from the Daily P&L should be applied consistently.
-4. **Page size too small**: Tables use `pageSize={25}` — should be larger for comprehensive reports.
+## What We'll Build
 
-## Implementation
+### 1. POS Session Hooks (`src/hooks/usePOSSessions.ts`) — New File
+- `useCurrentPOSSession()` — fetch the current open session for the logged-in user/branch
+- `useOpenSession()` — mutation to open a new session with opening cash balance
+- `useCloseSession()` — mutation to close session with closing balance, auto-calculate expected cash, difference
+- `usePOSSessionHistory()` — list past sessions with date filters
+- `usePOSSessionDetail(id)` — single session with linked transactions
 
-### 1. Remove Supabase 1000-row limit on all report queries
-**File: `src/hooks/usePharmacyReports.ts`**
+### 2. Session Opening Dialog (`src/components/pharmacy/POSSessionOpenDialog.tsx`) — New File
+- Modal that appears when user navigates to POS terminal and no session is open
+- Input: Opening cash balance (counted physical cash)
+- Shows date/time and cashier name
+- On submit: creates a `pharmacy_pos_sessions` record with status "open"
 
-For every query that fetches `pharmacy_pos_transactions` or `pharmacy_pos_items`, add pagination to fetch all rows (Supabase caps at 1000 per request). Create a helper function `fetchAllRows` that loops with `.range(offset, offset+999)` until fewer than 1000 rows are returned. Apply this to all hooks that aggregate transaction/item data (daily sales, hourly, profit margin, P&L, transaction log, basket size, etc.).
+### 3. Session Closing Dialog (`src/components/pharmacy/POSSessionCloseDialog.tsx`) — New File
+- Shows session summary: total transactions, total sales (by payment method: cash, card, mobile)
+- Input: Closing cash balance (physical count)
+- Auto-calculates: Expected Cash = Opening Balance + Cash Sales − Cash Refunds
+- Shows: Cash Difference (over/short)
+- Optional: Notes field
+- On submit: updates session with closing data, sets status "closed"
 
-### 2. Add item-level detail to Supplier Purchase report
-**File: `src/hooks/usePharmacyReports.ts`**
+### 4. Update POS Terminal (`src/pages/app/pharmacy/POSTerminalPage.tsx`)
+- On load, check for open session via `useCurrentPOSSession()`
+- If no open session → show `POSSessionOpenDialog`
+- Pass `session_id` to `useCreateTransaction()` so transactions link to the session
+- Add "Close Register" button in the POS header
+- Show session info badge (session number, opening balance, running total)
 
-Update `useSupplierPurchaseSummary` to also fetch `purchase_order_items` with medicine/item names:
-- Join `purchase_order_items` → `medicines(name)` and `inventory_items(name)` 
-- Return both vendor-level summary AND item-level detail array showing: Vendor, PO Number, Product Name, Quantity, Unit Price, Total
+### 5. Rebuild POS Sessions Page (`src/pages/app/pharmacy/POSSessionsPage.tsx`)
+- Show actual session records from `pharmacy_pos_sessions` (not transactions)
+- Table columns: Session #, Cashier, Opened At, Closed At, Opening Balance, Total Sales, Expected Cash, Closing Balance, Difference, Status
+- Color-code difference (green if zero, red if short, blue if over)
+- Click to view session detail with linked transactions
 
-### 3. Update Supplier Summary UI with product-level table
-**File: `src/pages/app/pharmacy/PharmacyReportsPage.tsx`**
+### 6. Session Detail Page (`src/pages/app/pharmacy/POSSessionDetailPage.tsx`) — New File
+- Session summary cards: Opening Balance, Total Sales, Cash/Card/Mobile breakdown, Expected Cash, Closing Balance, Difference
+- List of all transactions in this session
+- **PDF Download button** using `ReportExportButton` — generates a daily closing report with:
+  - Session info (number, cashier, date, duration)
+  - Payment method breakdown
+  - Transaction list
+  - Cash reconciliation summary
 
-- Show the vendor summary cards at top (existing)
-- Add a detailed item-level table below: Vendor | PO # | Product Name | Qty | Unit Price | Total
-- Add PDF export button with both summary and detail data
+### 7. Update Transaction Creation
+- In `usePOS.ts` `useCreateTransaction()`, accept optional `session_id` parameter
+- Pass it through to the insert instead of hardcoding `null`
 
-### 4. Increase table page sizes and add missing PDF buttons
-**File: `src/pages/app/pharmacy/PharmacyReportsPage.tsx`**
+### 8. Route & Navigation
+- Add route: `/app/pharmacy/pos/sessions/:id` → `POSSessionDetailPage`
+- Update sidebar nav if needed
 
-- Change all `pageSize={25}` to `pageSize={50}` for better report viewing
-- Ensure every report case has a `ReportExportButton` (verify transaction-log, refund-rate, basket-size, etc.)
-
-### 5. Translations
-**Files: `en.ts`, `ar.ts`, `ur.ts`**
-
-Add keys for "Product Name", "Purchase Details" / "اسم المنتج", "تفاصيل المشتريات" / "پروڈکٹ کا نام", "خریداری کی تفصیلات"
+### 9. Translations (`en.ts`, `ar.ts`, `ur.ts`)
+New keys for: Open Register, Close Register, Opening Balance, Closing Balance, Expected Cash, Cash Difference, Over, Short, Session Summary, Download Daily Report, Cash Sales, Card Sales, No Open Session, Count Your Cash
 
 ## Files Changed
-- `src/hooks/usePharmacyReports.ts` — add `fetchAllRows` helper, update all hooks to use it, enhance supplier hook with item detail
-- `src/pages/app/pharmacy/PharmacyReportsPage.tsx` — update supplier report UI, increase page sizes, add missing export buttons
+- `src/hooks/usePOSSessions.ts` — new hooks for session CRUD
+- `src/components/pharmacy/POSSessionOpenDialog.tsx` — new open register dialog
+- `src/components/pharmacy/POSSessionCloseDialog.tsx` — new close register dialog
+- `src/pages/app/pharmacy/POSTerminalPage.tsx` — integrate session check + close button
+- `src/pages/app/pharmacy/POSSessionsPage.tsx` — rebuild to show actual sessions
+- `src/pages/app/pharmacy/POSSessionDetailPage.tsx` — new detail page with PDF export
+- `src/hooks/usePOS.ts` — accept session_id in transaction creation
+- `src/App.tsx` — add session detail route
 - `src/lib/i18n/translations/en.ts`, `ar.ts`, `ur.ts` — new keys
 
