@@ -18,6 +18,8 @@ export interface POSSession {
   closing_balance: number | null;
   expected_cash: number | null;
   cash_difference: number | null;
+  total_sales: number | null;
+  total_transactions: number | null;
   notes: string | null;
   status: "open" | "closed";
   opener?: { full_name: string };
