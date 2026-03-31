@@ -459,6 +459,17 @@ export default function POSTerminalPage() {
             Hold
           </Button>
           <POSHeldTransactionsDialog onRecall={handleRecallTransaction} />
+          {currentSession && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setShowCloseSession(true)}
+              className="hidden sm:flex bg-primary-foreground/20 hover:bg-primary-foreground/30 text-primary-foreground border-0"
+            >
+              <Lock className="h-4 w-4 mr-1" />
+              Close Register
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="icon"
