@@ -266,21 +266,22 @@ export function useDiscountAnalysis(dateFrom: string, dateTo: string) {
   return useQuery({
     queryKey: ["pharmacy-discount-analysis", dateFrom, dateTo],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("pharmacy_pos_transactions")
-        .select("total_amount, discount_amount, subtotal, created_at, status")
-        .eq("status", "completed")
-        .gte("created_at", dateFrom)
-        .lte("created_at", `${dateTo}T23:59:59`);
+      const data = await fetchAllRows((from, to) =>
+        supabase
+          .from("pharmacy_pos_transactions")
+          .select("total_amount, discount_amount, subtotal, created_at, status")
+          .eq("status", "completed")
+          .gte("created_at", dateFrom)
+          .lte("created_at", `${dateTo}T23:59:59`)
+          .range(from, to)
+      );
 
-      if (error) throw error;
-
-      const totalSales = data?.reduce((s, t) => s + Number(t.subtotal || t.total_amount || 0), 0) || 0;
-      const totalDiscount = data?.reduce((s, t) => s + Number(t.discount_amount || 0), 0) || 0;
-      const discountedTx = data?.filter(t => Number(t.discount_amount || 0) > 0) || [];
+      const totalSales = data.reduce((s: number, t: any) => s + Number(t.subtotal || t.total_amount || 0), 0);
+      const totalDiscount = data.reduce((s: number, t: any) => s + Number(t.discount_amount || 0), 0);
+      const discountedTx = data.filter((t: any) => Number(t.discount_amount || 0) > 0);
 
       const byDay: Record<string, { date: string; discount: number; sales: number }> = {};
-      data?.forEach((tx) => {
+      data.forEach((tx: any) => {
         const day = tx.created_at.substring(0, 10);
         if (!byDay[day]) byDay[day] = { date: day, discount: 0, sales: 0 };
         byDay[day].discount += Number(tx.discount_amount || 0);
@@ -292,7 +293,7 @@ export function useDiscountAnalysis(dateFrom: string, dateTo: string) {
         totalDiscount,
         discountPercent: totalSales > 0 ? (totalDiscount / totalSales) * 100 : 0,
         discountedTransactions: discountedTx.length,
-        totalTransactions: data?.length || 0,
+        totalTransactions: data.length,
         dailyTrend: Object.values(byDay).sort((a, b) => a.date.localeCompare(b.date)),
       };
     },
