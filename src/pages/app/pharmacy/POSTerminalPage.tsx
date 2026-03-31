@@ -713,6 +713,22 @@ export default function POSTerminalPage() {
         onConfirm={confirmPostToProfile}
         isLoading={postToProfileMutation.isPending}
       />
+
+      {/* Session Open Dialog */}
+      <POSSessionOpenDialog
+        open={!sessionLoading && !currentSession}
+        onSessionOpened={() => setSessionJustOpened(true)}
+      />
+
+      {/* Session Close Dialog */}
+      {currentSession && (
+        <POSSessionCloseDialog
+          open={showCloseSession}
+          onOpenChange={setShowCloseSession}
+          session={currentSession}
+          transactions={recentTransactions || []}
+        />
+      )}
     </div>
   );
 }
