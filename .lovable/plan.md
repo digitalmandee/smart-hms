@@ -1,77 +1,58 @@
 
-## Goal
-Fix PO-from-requisition flow so medicine names show correctly, prices/quantities are editable, PO actually saves, and vendor records are maintained properly.
+Goal: Fix “Create PO” action so it always gives clear feedback, creates the PO reliably, and shows medicine/vendor data correctly (EN/AR/UR).
 
-## What I found (root causes)
-1. **Unknown medicine name**: `POFormPage` pre-fills items with IDs only; `UnifiedPOItemsBuilder` displays `item.medicine?.name` / `item.item?.name`, so prefilled medicine rows show **Unknown Medicine**.
-2. **Cannot change vendor price/quantity**: existing rows in `UnifiedPOItemsBuilder` are read-only text; only the “new row” is editable.
-3. **PO not created (user-facing)**: form gives weak feedback when required fields/rows are invalid; also vendor prefill has a parameter mismatch (`vendorId` vs `vendor_id`) causing confusion.
-4. **Vendor profile maintenance**: vendor module exists, but PO flow does not tightly connect to vendor master maintenance and record quality.
+What I verified
+- Current requisition `24620017-5c23-4808-8873-67e9be6d32d3` is valid and has a medicine item (`Augmentin 625mg`).
+- `purchase_order_items` supports medicine rows (`medicine_id` exists, `item_id` nullable, `item_type` check allows `medicine`).
+- No backend error evidence was captured for the click, which strongly suggests a client-side blocked submit (validation/UI feedback issue) instead of a DB schema failure.
 
-## Implementation plan
-### 1) Fix medicine/item hydration for prefilled PO rows
-**Files**
-- `src/pages/app/inventory/POFormPage.tsx`
-- `src/hooks/usePurchaseRequests.ts`
-- `src/pages/app/inventory/PRDetailPage.tsx`
+Implementation plan
 
-**Changes**
-- While mapping `sourcePR` / `sourceRequisition` to PO items, include nested `medicine`/`item` object (name, generic, unit) in each row.
-- Normalize IDs: use `undefined/null` (not empty string) for non-applicable refs.
-- In `usePurchaseRequest`, fetch medicine relation too (`medicine:medicines(...)`) so PR-based PO prefill gets proper medicine names.
-- Update PR detail item rendering to show medicine fallback (`item.medicine?.name || item.item?.name`).
+1) Make submit failures visible (no more “nothing happens”)
+- File: `src/pages/app/inventory/POFormPage.tsx`
+- Use `form.handleSubmit(onSubmit, onInvalid)` and add a form-level error box above the Create button.
+- On invalid submit, show exact reason (missing vendor/branch/items) and auto-scroll/focus first invalid field.
+- Keep toast, but also show inline error text near submit for mobile users.
 
-### 2) Make existing PO rows editable (price + quantity + tax + discount)
-**File**
-- `src/components/inventory/UnifiedPOItemsBuilder.tsx`
-
-**Changes**
-- Convert existing row cells (Qty, Unit Price, Tax, Disc) from static text to editable inputs when `disabled !== true`.
-- Recalculate `total_price` live per row after edits.
-- Keep delete action.
-- Keep type badge and robust name fallback by ID lookup if nested object is missing.
-- Preserve mobile usability (horizontal overflow wrapper if needed).
-
-### 3) Harden PO create validation + clearer errors
-**Files**
-- `src/hooks/usePurchaseOrders.ts`
-- `src/pages/app/inventory/POFormPage.tsx`
-
-**Changes**
+2) Harden PO item normalization before create
+- File: `src/hooks/usePurchaseOrders.ts`
 - Before insert, normalize each row:
-  - `item_type = item.item_type ?? (item.medicine_id ? "medicine" : "inventory")`
-  - enforce valid ref by type (medicine needs `medicine_id`, inventory needs `item_id`)
-- Validate quantity > 0 and unit price >= 0 (optionally require > 0 for requisition-converted rows).
-- Return user-friendly errors with row number + reason.
-- Keep orphan-header cleanup already present.
-- Add inline form-level error surface in PO form (not toast-only).
+  - infer `item_type` from ids if missing
+  - enforce exactly one reference (`medicine_id` xor `item_id`)
+  - quantity > 0, unit_price >= 0
+- Return row-numbered messages (e.g., “Row 1: Medicine reference missing”).
+- Keep orphan PO cleanup logic on item insert failure.
 
-### 4) Fix vendor linkage and improve vendor maintenance flow
-**Files**
-- `src/pages/app/inventory/POFormPage.tsx`
-- `src/pages/app/inventory/VendorDetailPage.tsx`
-- `src/pages/app/inventory/VendorFormPage.tsx` (minor UX only if needed)
+3) Remove “Unknown Medicine” fallback gaps
+- Files: `src/pages/app/inventory/POFormPage.tsx`, `src/components/inventory/UnifiedPOItemsBuilder.tsx`
+- Ensure prefilled requisition/PR rows always carry nested `medicine` / `item` object.
+- In item builder, add reliable id-based fallback lookup for names/codes/units so prefilled medicine names never show “Unknown” when id is present.
 
-**Changes**
-- Accept both query params: `vendor_id` and legacy `vendorId`.
-- Fix Vendor Detail “Create PO” link to use `vendor_id`.
-- Add clear “Add Vendor / Edit Vendor” shortcut from PO form so users can maintain vendor profile without losing PO context.
-- Keep vendor records complete using existing profile + documents + history screens, with stronger required field guidance (name/contact/phone).
+4) Improve vendor flow for PO creation
+- Files: `src/pages/app/inventory/POFormPage.tsx`, `src/pages/app/inventory/VendorDetailPage.tsx`
+- Keep `vendor_id` and legacy `vendorId` support.
+- Add quick actions near vendor selector: Add Vendor / Edit Vendor (open in new tab or route-safe navigation).
+- Show vendor summary (contact/phone/payment terms) after selection for record quality.
 
-### 5) 3-language support for all new labels/messages
-**Files**
-- `src/lib/i18n/translations/en.ts`
-- `src/lib/i18n/translations/ar.ts`
-- `src/lib/i18n/translations/ur.ts`
+5) 3-language coverage
+- Files: `src/lib/i18n/translations/en.ts`, `ar.ts`, `ur.ts`
+- Add keys for:
+  - form-level submit errors
+  - row validation errors
+  - unknown item/medicine fallback
+  - vendor quick-action labels
 
-**Add keys**
-- Unknown medicine/item fallback, validation messages, editable row labels, add/edit vendor shortcuts, and PO error hints.
+Technical details
+- No DB migration is required for this fix path (schema already supports medicine PO items).
+- Main code paths touched:
+  - `POFormPage` (submit UX + invalid handler + hydration reliability)
+  - `usePurchaseOrders` (strict row validation + safer error messaging)
+  - `UnifiedPOItemsBuilder` (name fallback robustness)
+  - translations (EN/AR/UR)
 
-## Verification checklist (must pass)
-1. Open requisition with medicine item → Create PO.
-2. PO form shows actual medicine name (not Unknown).
-3. Edit quantity + vendor unit price directly on prefilled row.
-4. Select vendor and submit → PO is created and navigates to PO detail.
-5. PO detail + print show medicine names correctly.
-6. Vendor link from vendor profile preselects vendor in PO form.
-7. Same flow works in English, Urdu, and Arabic.
+Verification checklist
+1. Open requisition → Create PO.
+2. Medicine name is visible (not “Unknown”).
+3. Select vendor and submit with valid rows → PO created and navigates to PO detail.
+4. Try invalid submit (no vendor / bad qty) → clear inline error + toast appears.
+5. Repeat in English, Urdu, Arabic.
