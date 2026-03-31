@@ -1304,6 +1304,18 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
     items: [
       { name: "Dashboard", path: "/app/accounts", icon: "LayoutDashboard" },
       { 
+        name: "Billing", 
+        path: "", 
+        icon: "Receipt",
+        children: [
+          { name: "Invoices", path: "/app/billing/invoices", icon: "FileText" },
+          { name: "Payments", path: "/app/billing/payments", icon: "CreditCard" },
+          { name: "Billing Sessions", path: "/app/billing/sessions", icon: "Monitor" },
+          { name: "Daily Closing", path: "/app/billing/daily-closing", icon: "Clock" },
+          { name: "Closing History", path: "/app/billing/daily-closing/history", icon: "History" },
+        ]
+      },
+      { 
         name: "Accounting", 
         path: "", 
         icon: "Calculator",
@@ -1337,6 +1349,8 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         icon: "Building",
         children: [
           { name: "Bank Accounts", path: "/app/accounts/bank-accounts", icon: "Building" },
+          { name: "Bank Reconciliation", path: "/app/accounts/bank-reconciliation", icon: "CheckSquare" },
+          { name: "Cash to Bank", path: "/app/accounts/cash-to-bank", icon: "ArrowRight" },
           { name: "Budgets", path: "/app/accounts/budgets", icon: "PieChart" },
         ]
       },
@@ -1348,8 +1362,30 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
           { name: "Financial Reports", path: "/app/accounts/reports", icon: "FileSpreadsheet" },
           { name: "Trial Balance", path: "/app/accounts/reports/trial-balance", icon: "Scale" },
           { name: "Profit & Loss", path: "/app/accounts/reports/profit-loss", icon: "TrendingUp" },
+          { name: "Detailed P&L", path: "/app/accounts/reports/detailed-pnl", icon: "FileBarChart" },
+          { name: "Consolidated P&L", path: "/app/accounts/reports/consolidated-pnl", icon: "BarChart3" },
+          { name: "Cost Center P&L", path: "/app/accounts/reports/cost-center-pnl", icon: "PieChart" },
           { name: "Balance Sheet", path: "/app/accounts/reports/balance-sheet", icon: "FileText" },
           { name: "Cash Flow", path: "/app/accounts/reports/cash-flow", icon: "DollarSign" },
+          { name: "Revenue by Source", path: "/app/accounts/reports/revenue-by-source", icon: "TrendingUp" },
+          { name: "VAT Return", path: "/app/accounts/reports/vat-return", icon: "Percent" },
+          { name: "Payroll Cost Allocation", path: "/app/accounts/reports/payroll-cost", icon: "Users" },
+          { name: "AR Reconciliation", path: "/app/accounts/reports/ar-reconciliation", icon: "CheckSquare" },
+          { name: "Department Revenue", path: "/app/reports/department-revenue", icon: "Building2" },
+          { name: "Day-End Summary", path: "/app/reports/day-end-summary", icon: "Receipt" },
+        ]
+      },
+      {
+        name: "Finance Modules",
+        path: "",
+        icon: "Landmark",
+        children: [
+          { name: "Credit/Debit Notes", path: "/app/accounts/credit-debit-notes", icon: "FileText" },
+          { name: "Fixed Assets", path: "/app/accounts/fixed-assets", icon: "Package" },
+          { name: "Patient Deposits", path: "/app/accounts/patient-deposits", icon: "Wallet" },
+          { name: "Cost Centers", path: "/app/accounts/cost-centers", icon: "Target" },
+          { name: "Fiscal Periods", path: "/app/accounts/fiscal-periods", icon: "Calendar" },
+          { name: "Financial Audit Log", path: "/app/accounts/audit-log", icon: "ScrollText" },
         ]
       },
       { 
