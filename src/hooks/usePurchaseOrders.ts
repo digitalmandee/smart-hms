@@ -309,8 +309,8 @@ export function useUpdatePurchaseOrder() {
         const itemsToInsert = items.map(item => ({
           purchase_order_id: id,
           item_type: item.item_type || 'inventory',
-          item_id: item.item_type === 'medicine' ? null : item.item_id,
-          medicine_id: item.item_type === 'medicine' ? item.medicine_id : null,
+          item_id: (item.item_type === 'medicine' || !item.item_id) ? null : item.item_id,
+          medicine_id: item.item_type === 'medicine' ? (item.medicine_id || null) : null,
           quantity: item.quantity,
           unit_price: item.unit_price,
           tax_percent: item.tax_percent,

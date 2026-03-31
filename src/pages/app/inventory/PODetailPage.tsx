@@ -274,9 +274,13 @@ export default function PODetailPage() {
                   <TableCell>{index + 1}</TableCell>
                   <TableCell>
                     <div>
-                      <p className="font-medium">{item.item?.name}</p>
+                      <p className="font-medium">
+                        {item.item_type === 'medicine' ? item.medicine?.name : item.item?.name}
+                      </p>
                       <p className="text-xs text-muted-foreground">
-                        {item.item?.item_code} • {item.item?.unit_of_measure}
+                        {item.item_type === 'medicine' 
+                          ? `${item.medicine?.generic_name || ''} • ${item.medicine?.unit || ''}`
+                          : `${item.item?.item_code || ''} • ${item.item?.unit_of_measure || ''}`}
                       </p>
                     </div>
                   </TableCell>
