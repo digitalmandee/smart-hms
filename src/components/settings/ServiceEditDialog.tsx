@@ -74,6 +74,7 @@ export function ServiceEditDialog({
       setName(service.name);
       setCategoryId(service.category_id || "");
       setPrice(String(service.default_price || 0));
+      setCostPrice(String(service.cost_price || 0));
       setIsActive(service.is_active);
       setPriceChangeReason("");
       setShowPriceReason(false);
@@ -81,6 +82,7 @@ export function ServiceEditDialog({
       setName("");
       setCategoryId(categories?.[0]?.id || "");
       setPrice("0");
+      setCostPrice("0");
       setIsActive(true);
       setPriceChangeReason("");
       setShowPriceReason(false);
