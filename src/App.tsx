@@ -175,6 +175,7 @@ import POSTerminalPage from "./pages/app/pharmacy/POSTerminalPage";
 import POSTransactionsPage from "./pages/app/pharmacy/POSTransactionsPage";
 import POSTransactionDetailPage from "./pages/app/pharmacy/POSTransactionDetailPage";
 import POSSessionsPage from "./pages/app/pharmacy/POSSessionsPage";
+const POSSessionDetailPage = React.lazy(() => import("./pages/app/pharmacy/POSSessionDetailPage"));
 import PharmacyCategoriesPage from "./pages/app/pharmacy/CategoriesPage";
 import StockAlertsPage from "./pages/app/pharmacy/StockAlertsPage";
 import PharmacyReportsPage from "./pages/app/pharmacy/PharmacyReportsPage";
