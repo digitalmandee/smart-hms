@@ -653,6 +653,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
   radiologist: {
     items: [
       { name: "Dashboard", path: "/app/radiology", icon: "LayoutDashboard" },
+      { name: "Imaging Orders", path: "/app/radiology/orders", icon: "ClipboardList" },
       { 
         name: "Reporting", 
         path: "", 
