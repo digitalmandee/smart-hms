@@ -15308,6 +15308,7 @@ export type Database = {
       medicines: {
         Row: {
           category_id: string | null
+          cost_price: number | null
           created_at: string
           generic_name: string | null
           id: string
@@ -15315,12 +15316,14 @@ export type Database = {
           manufacturer: string | null
           name: string
           organization_id: string
+          sale_price: number | null
           strength: string | null
           unit: Database["public"]["Enums"]["medicine_unit"] | null
           updated_at: string
         }
         Insert: {
           category_id?: string | null
+          cost_price?: number | null
           created_at?: string
           generic_name?: string | null
           id?: string
@@ -15328,12 +15331,14 @@ export type Database = {
           manufacturer?: string | null
           name: string
           organization_id: string
+          sale_price?: number | null
           strength?: string | null
           unit?: Database["public"]["Enums"]["medicine_unit"] | null
           updated_at?: string
         }
         Update: {
           category_id?: string | null
+          cost_price?: number | null
           created_at?: string
           generic_name?: string | null
           id?: string
@@ -15341,6 +15346,7 @@ export type Database = {
           manufacturer?: string | null
           name?: string
           organization_id?: string
+          sale_price?: number | null
           strength?: string | null
           unit?: Database["public"]["Enums"]["medicine_unit"] | null
           updated_at?: string

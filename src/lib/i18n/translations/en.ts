@@ -3417,6 +3417,11 @@ export const en = {
   "services.profit": "Profit",
   "services.profitMargin": "Profit Margin",
 
+  "pharmacy.costPrice": "Cost Price",
+  "pharmacy.salePrice": "Sale Price",
+  "pharmacy.profitMargin": "Profit Margin",
+  "pharmacy.profit": "Profit",
+
 } as const;
 
 export type TranslationKey = keyof typeof en;
