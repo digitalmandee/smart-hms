@@ -47,7 +47,7 @@ type POFormData = z.infer<typeof poSchema>;
 export default function POFormPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const vendorIdParam = searchParams.get("vendor_id");
+  const vendorIdParam = searchParams.get("vendor_id") || searchParams.get("vendorId");
   const fromPrId = searchParams.get("from_pr");
   const fromRequisitionId = searchParams.get("from_requisition");
   const { profile } = useAuth();
