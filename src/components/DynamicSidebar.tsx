@@ -796,6 +796,9 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   ScanBarcode,
   Smartphone,
   Coins,
+  ArrowRight,
+  Target,
+  FileBarChart,
 };
 
 interface DynamicSidebarProps {
