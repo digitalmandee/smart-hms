@@ -237,12 +237,12 @@ export function useCreateTransaction() {
         transactionStoreId = invLookup?.store_id || null;
       }
 
-      // Create transaction (session_id is now optional/null)
+      // Create transaction with optional session_id
       const { data: transaction, error: txError } = await queryPOSTable("pharmacy_pos_transactions")
         .insert({
           organization_id: profile.organization_id,
           branch_id: profile.branch_id,
-          session_id: null, // No session required
+          session_id: sessionId || null,
           store_id: transactionStoreId,
           customer_name: customerName || null,
           customer_phone: customerPhone || null,
