@@ -535,7 +535,8 @@ function ReportDetailView({
                   </LineChart>
                 </ResponsiveContainer>
               </div>
-            )}
+             )}
+            <ReportExportButton data={data.dailyTrend} filename={`refund-rate-${dateRange.start}`} columns={[{ key: "date", header: "Date" }, { key: "refunds", header: "Refunds" }, { key: "sales", header: "Sales" }, { key: "refundRate", header: "Refund Rate %", format: (v: number) => `${v.toFixed(1)}%` }]} pdfOptions={{ title: "Refund Rate Analysis", dateRange: { from: new Date(dateRange.start), to: new Date(dateRange.end) } }} />
           </div>
         );
       }
