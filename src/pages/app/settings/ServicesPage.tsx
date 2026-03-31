@@ -216,9 +216,11 @@ export default function ServicesPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[40%]">Service Name</TableHead>
+                  <TableHead className="w-[30%]">Service Name</TableHead>
                   <TableHead>Category</TableHead>
-                  <TableHead className="text-right">Price (Rs.)</TableHead>
+                  <TableHead className="text-right">Selling Price</TableHead>
+                  <TableHead className="text-right">Cost Price</TableHead>
+                  <TableHead className="text-right">Profit</TableHead>
                   <TableHead className="text-center">Linked</TableHead>
                   <TableHead className="text-center">Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
