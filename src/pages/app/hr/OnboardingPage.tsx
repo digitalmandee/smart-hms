@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,10 +9,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useOnboardingEmployees, useInitiateOnboarding, useToggleOnboardingStep } from "@/hooks/useOnboarding";
 import { useEmployees } from "@/hooks/useHR";
+import { useResignations } from "@/hooks/useExitManagement";
 import { useTranslation } from "@/lib/i18n";
-import { UserPlus, ClipboardCheck, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
+import { UserPlus, ClipboardCheck, ChevronDown, ChevronUp, Loader2, AlertTriangle, ExternalLink } from "lucide-react";
 import { format, parseISO } from "date-fns";
 
 const CATEGORY_LABELS: Record<string, string> = {
