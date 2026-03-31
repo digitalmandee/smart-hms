@@ -88,6 +88,7 @@ const REPORT_CATEGORIES: ReportCategory[] = [
     icon: TrendingUp,
     borderColor: "border-l-secondary",
     reports: [
+      { id: "daily-pnl", name: "Daily Profit & Loss", description: "Day-by-day revenue, cost & profit", icon: TrendingUp },
       { id: "profit-margin", name: "Profit Margin", description: "Revenue, cost & margin per medicine", icon: TrendingUp },
       { id: "returns-summary", name: "Returns & Refunds", description: "Voided transactions & refund amounts", icon: RotateCcw },
       { id: "credit-sales", name: "Credit Sales", description: "Outstanding credit balances", icon: FileText },
