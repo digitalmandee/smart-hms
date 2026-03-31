@@ -6,8 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, CheckCircle, XCircle, Clock, Users, DollarSign, Calendar, FileText } from "lucide-react";
-import { usePayrollRun, useUpdatePayrollRun, usePayrollDetails } from "@/hooks/usePayroll";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ArrowLeft, CheckCircle, XCircle, Clock, Users, DollarSign, FileText, ShieldCheck, AlertTriangle } from "lucide-react";
+import { usePayrollRun, useUpdatePayrollRun, usePayrollDetails, useApprovePayrollRun } from "@/hooks/usePayroll";
+import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
@@ -20,10 +22,14 @@ export default function PayrollRunDetailPage() {
   const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { roles } = useAuth();
 
   const { data: payrollRun, isLoading } = usePayrollRun(id || "");
   const { data: payrollEntries, isLoading: entriesLoading } = usePayrollDetails(id || "");
   const updatePayrollRun = useUpdatePayrollRun();
+  const approvePayrollRun = useApprovePayrollRun();
+
+  const canApprove = roles.some(r => ["super_admin", "org_admin", "finance_manager"].includes(r));
 
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat("en-PK", {
@@ -38,6 +44,10 @@ export default function PayrollRunDetailPage() {
         return <Badge variant="outline" className="bg-yellow-50 text-yellow-700"><Clock className="h-3 w-3 mr-1" /> Draft</Badge>;
       case "processing":
         return <Badge variant="outline" className="bg-blue-50 text-blue-700"><Clock className="h-3 w-3 mr-1" /> Processing</Badge>;
+      case "pending_approval":
+        return <Badge variant="outline" className="bg-orange-50 text-orange-700"><AlertTriangle className="h-3 w-3 mr-1" /> {t("payroll.pendingApproval" as any)}</Badge>;
+      case "approved":
+        return <Badge variant="outline" className="bg-emerald-50 text-emerald-700"><ShieldCheck className="h-3 w-3 mr-1" /> {t("payroll.approved" as any)}</Badge>;
       case "completed":
         return <Badge variant="default"><CheckCircle className="h-3 w-3 mr-1" /> Completed</Badge>;
       case "cancelled":
@@ -56,6 +66,15 @@ export default function PayrollRunDetailPage() {
         ...(newStatus === "completed" ? { pay_date: new Date().toISOString() } : {}),
       });
       toast.success(`Payroll run ${newStatus === "cancelled" ? "cancelled" : "updated"} successfully`);
+    } catch (error) {
+      // Error handled in hook
+    }
+  };
+
+  const handleApproval = async (approved: boolean) => {
+    if (!id) return;
+    try {
+      await approvePayrollRun.mutateAsync({ id, approved });
     } catch (error) {
       // Error handled in hook
     }
@@ -82,6 +101,7 @@ export default function PayrollRunDetailPage() {
   }
 
   const periodLabel = `${MONTHS[(payrollRun.month || 1) - 1]} ${payrollRun.year}`;
+  const approvedByProfile = (payrollRun as any)?.approved_by_profile;
 
   return (
     <div className="space-y-6">
@@ -100,6 +120,27 @@ export default function PayrollRunDetailPage() {
           </Button>
         }
       />
+
+      {/* Approval Banner */}
+      {payrollRun.status === "pending_approval" && (
+        <Alert className="border-orange-300 bg-orange-50 dark:bg-orange-950/20">
+          <AlertTriangle className="h-4 w-4 text-orange-600" />
+          <AlertTitle className="text-orange-800 dark:text-orange-300">{t("payroll.awaitingApproval" as any)}</AlertTitle>
+          <AlertDescription className="text-orange-700 dark:text-orange-400">
+            {t("payroll.approvalRequired" as any)}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {payrollRun.status === "approved" && approvedByProfile && (
+        <Alert className="border-emerald-300 bg-emerald-50 dark:bg-emerald-950/20">
+          <ShieldCheck className="h-4 w-4 text-emerald-600" />
+          <AlertTitle className="text-emerald-800 dark:text-emerald-300">{t("payroll.approved" as any)}</AlertTitle>
+          <AlertDescription className="text-emerald-700 dark:text-emerald-400">
+            {t("payroll.approvedBy" as any)}: {approvedByProfile.full_name}
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Summary Cards */}
       <div className="grid gap-4 md:grid-cols-4">
@@ -184,8 +225,8 @@ export default function PayrollRunDetailPage() {
 
           <Separator className="my-6" />
 
-          {/* Action Buttons */}
-          <div className="flex gap-3">
+          {/* Action Buttons - Updated flow */}
+          <div className="flex gap-3 flex-wrap">
             {payrollRun.status === "draft" && (
               <>
                 <Button onClick={() => handleStatusUpdate("processing")} disabled={updatePayrollRun.isPending}>
@@ -199,12 +240,37 @@ export default function PayrollRunDetailPage() {
             )}
             {payrollRun.status === "processing" && (
               <>
-                <Button onClick={() => handleStatusUpdate("completed")} disabled={updatePayrollRun.isPending}>
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  Mark as Completed
+                <Button onClick={() => handleStatusUpdate("pending_approval")} disabled={updatePayrollRun.isPending}>
+                  <ShieldCheck className="h-4 w-4 mr-2" />
+                  {t("payroll.submitForApproval" as any)}
                 </Button>
                 <Button variant="outline" onClick={() => handleStatusUpdate("draft")} disabled={updatePayrollRun.isPending}>
-                  Return to Draft
+                  {t("payroll.returnToDraft" as any)}
+                </Button>
+              </>
+            )}
+            {payrollRun.status === "pending_approval" && canApprove && (
+              <>
+                <Button onClick={() => handleApproval(true)} disabled={approvePayrollRun.isPending} className="bg-emerald-600 hover:bg-emerald-700">
+                  <ShieldCheck className="h-4 w-4 mr-2" />
+                  {t("payroll.approvePayroll" as any)}
+                </Button>
+                <Button variant="outline" onClick={() => handleApproval(false)} disabled={approvePayrollRun.isPending}>
+                  <XCircle className="h-4 w-4 mr-2" />
+                  {t("payroll.rejectPayroll" as any)}
+                </Button>
+              </>
+            )}
+            {payrollRun.status === "pending_approval" && !canApprove && (
+              <p className="text-sm text-muted-foreground italic">
+                {t("payroll.approvalRequired" as any)}
+              </p>
+            )}
+            {payrollRun.status === "approved" && (
+              <>
+                <Button onClick={() => handleStatusUpdate("completed")} disabled={updatePayrollRun.isPending}>
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  {t("payroll.markCompleted" as any)}
                 </Button>
               </>
             )}

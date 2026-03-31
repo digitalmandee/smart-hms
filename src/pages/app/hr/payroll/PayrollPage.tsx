@@ -133,7 +133,7 @@ export default function PayrollPage() {
               <div>
                 <p className="text-sm text-muted-foreground">Pending</p>
                 <p className="text-2xl font-bold">
-                  {filteredRuns?.filter((r) => r.status === "draft" || r.status === "processing").length || 0}
+                  {filteredRuns?.filter((r) => r.status === "draft" || r.status === "processing" || r.status === "pending_approval").length || 0}
                 </p>
               </div>
             </div>
