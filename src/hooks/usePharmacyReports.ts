@@ -1180,26 +1180,26 @@ export function usePeakHoursReport(dateFrom: string, dateTo: string) {
   return useQuery({
     queryKey: ["pharmacy-peak-hours", dateFrom, dateTo],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("pharmacy_pos_transactions")
-        .select("id, total_amount, created_at, status")
-        .eq("status", "completed")
-        .gte("created_at", dateFrom)
-        .lte("created_at", `${dateTo}T23:59:59`);
-
-      if (error) throw error;
+      const data = await fetchAllRows((from, to) =>
+        supabase
+          .from("pharmacy_pos_transactions")
+          .select("id, total_amount, created_at, status")
+          .eq("status", "completed")
+          .gte("created_at", dateFrom)
+          .lte("created_at", `${dateTo}T23:59:59`)
+          .range(from, to)
+      );
 
       const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
       const heatmap: { day: string; dayIndex: number; hour: number; hourLabel: string; count: number; sales: number }[] = [];
 
-      // Initialize grid
       for (let d = 0; d < 7; d++) {
         for (let h = 0; h < 24; h++) {
           heatmap.push({ day: dayNames[d], dayIndex: d, hour: h, hourLabel: `${h.toString().padStart(2, '0')}:00`, count: 0, sales: 0 });
         }
       }
 
-      (data || []).forEach(tx => {
+      data.forEach((tx: any) => {
         const dt = new Date(tx.created_at);
         const dayIdx = dt.getDay();
         const hour = dt.getHours();
