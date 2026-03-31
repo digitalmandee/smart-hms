@@ -747,15 +747,16 @@ export function useTransactionLog(dateFrom: string, dateTo: string) {
   return useQuery({
     queryKey: ["pharmacy-transaction-log", dateFrom, dateTo],
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
-        .from("pharmacy_pos_transactions")
-        .select("id, transaction_number, customer_name, total_amount, discount_amount, amount_paid, payment_method, status, created_at, subtotal")
-        .gte("created_at", dateFrom)
-        .lte("created_at", `${dateTo}T23:59:59`)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      return (data || []).map((tx: any) => ({
+      const data = await fetchAllRows((from, to) =>
+        (supabase as any)
+          .from("pharmacy_pos_transactions")
+          .select("id, transaction_number, customer_name, total_amount, discount_amount, amount_paid, payment_method, status, created_at, subtotal")
+          .gte("created_at", dateFrom)
+          .lte("created_at", `${dateTo}T23:59:59`)
+          .order("created_at", { ascending: false })
+          .range(from, to)
+      );
+      return data.map((tx: any) => ({
         ...tx,
         total_amount: Number(tx.total_amount || 0),
         discount_amount: Number(tx.discount_amount || 0),
