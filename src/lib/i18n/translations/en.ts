@@ -3448,6 +3448,15 @@ export const en = {
   "pharmacy.journalPosted": "Journal entry posted to accounts",
   "pharmacy.cashOverShort": "Cash Over/Short",
   "nav.pharmacyClosings": "Closings",
+  "pos.cashier": "Cashier",
+  "pos.openedAt": "Opened At",
+  "pos.closedAt": "Closed At",
+  "pos.openingBalance": "Opening Balance",
+  "pos.closingBalance": "Closing Balance",
+  "pos.expectedCash": "Expected Cash",
+  "pos.cashDifference": "Cash Difference",
+  "common.thisWeek": "This Week",
+  "common.thisMonth": "This Month",
 
 } as const;
 

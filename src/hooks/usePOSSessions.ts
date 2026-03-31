@@ -160,11 +160,12 @@ export function useCloseSession() {
 
           if (cashAccId && revenueAccId) {
             // Create journal entry
-            const { data: journalEntry, error: jeError } = await supabase
+            const { data: journalEntry, error: jeError } = await (supabase as any)
               .from("journal_entries")
               .insert({
                 organization_id: profile.organization_id,
                 branch_id: profile.branch_id,
+                entry_number: "AUTO",
                 entry_date: new Date().toISOString().split("T")[0],
                 description: `POS Session Closing: ${data?.session_number || sessionId}`,
                 reference_type: "pos_session",
