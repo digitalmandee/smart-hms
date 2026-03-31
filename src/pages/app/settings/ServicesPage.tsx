@@ -96,6 +96,7 @@ export default function ServicesPage() {
     name: string;
     category_id: string;
     default_price: number;
+    cost_price: number;
     is_active: boolean;
     price_change_reason?: string;
   }) => {
@@ -105,6 +106,7 @@ export default function ServicesPage() {
         name: values.name,
         category_id: values.category_id,
         default_price: values.default_price,
+        cost_price: values.cost_price,
         is_active: values.is_active,
         price_change_reason: values.price_change_reason,
       });
@@ -113,6 +115,7 @@ export default function ServicesPage() {
         name: values.name,
         category_id: values.category_id,
         default_price: values.default_price,
+        cost_price: values.cost_price,
         is_active: values.is_active,
       });
     }
