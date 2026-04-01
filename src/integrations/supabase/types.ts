@@ -10141,6 +10141,7 @@ export type Database = {
           qc_status: string | null
           received_by: string | null
           received_date: string
+          requisition_id: string | null
           status: Database["public"]["Enums"]["grn_status"]
           store_id: string | null
           updated_at: string
@@ -10165,6 +10166,7 @@ export type Database = {
           qc_status?: string | null
           received_by?: string | null
           received_date?: string
+          requisition_id?: string | null
           status?: Database["public"]["Enums"]["grn_status"]
           store_id?: string | null
           updated_at?: string
@@ -10189,6 +10191,7 @@ export type Database = {
           qc_status?: string | null
           received_by?: string | null
           received_date?: string
+          requisition_id?: string | null
           status?: Database["public"]["Enums"]["grn_status"]
           store_id?: string | null
           updated_at?: string
@@ -10223,6 +10226,13 @@ export type Database = {
             columns: ["received_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goods_received_notes_requisition_id_fkey"
+            columns: ["requisition_id"]
+            isOneToOne: false
+            referencedRelation: "stock_requisitions"
             referencedColumns: ["id"]
           },
           {

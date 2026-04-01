@@ -1,0 +1,1 @@
+ALTER TABLE goods_received_notes ADD COLUMN requisition_id UUID REFERENCES stock_requisitions(id);

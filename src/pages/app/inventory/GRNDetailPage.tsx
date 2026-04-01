@@ -214,6 +214,32 @@ export default function GRNDetailPage() {
         </CardContent>
       </Card>
 
+      {/* Linked Requisition Banner */}
+      {(grn as any).requisition_id && (
+        <Card className="border-indigo-200 bg-indigo-50 dark:border-indigo-800 dark:bg-indigo-950/30">
+          <CardContent className="py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Package className="h-5 w-5 text-indigo-600" />
+                <div>
+                  <p className="font-semibold text-indigo-900 dark:text-indigo-100">Linked Requisition</p>
+                  <p className="text-sm text-indigo-700 dark:text-indigo-300">
+                    {grn.status === "verified" || grn.status === "posted"
+                      ? "Goods received — requester has been notified to accept stock"
+                      : "This GRN is linked to a stock requisition. Verify to notify the requester."}
+                  </p>
+                </div>
+              </div>
+              <Button variant="outline" size="sm" asChild>
+                <RouterLink to={`/app/inventory/requisitions/${(grn as any).requisition_id}`}>
+                  View Requisition
+                </RouterLink>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* GRN Details */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
