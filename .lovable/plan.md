@@ -1,30 +1,26 @@
 
 
-# Fix: Chart of Accounts & Journal Entry Posting Issues
+# Fix: Journal Entry Creation Error
 
-## Issues Found
+## Problem
+The `journal_entries` table has a `BEFORE INSERT` trigger (`generate_journal_entry_number`) that auto-generates `entry_number`. However, the column has a `NOT NULL` constraint without a default value, so:
 
-### 1. AccountPicker Shows Non-Posting (Header) Accounts
-The `AccountPicker` component (used in the journal entry form) fetches **all** active accounts via `useAccounts({ isActive: true })` — including Level 1-3 header accounts. The database trigger `check_posting_account` blocks posting to these, causing a cryptic error when the user selects one.
+1. The Supabase TypeScript types mark `entry_number` as **required** in the Insert type
+2. The form code (`JournalEntryFormPage.tsx` line 106-114) does **not** include `entry_number` in the insert payload
+3. This causes the insert to fail — either at the TypeScript level or at the DB level if the trigger doesn't fire before the NOT NULL check
 
-The form page (`JournalEntryFormPage.tsx` line 72) filters `postingAccounts = allAccounts.filter(a => !a.is_header)` but **never passes this to the AccountPicker**. The AccountPicker fetches its own unfiltered data independently.
-
-### 2. Limited Reference Type Options
-The journal form dropdown (line 221-226) only offers 4 reference types: `manual`, `invoice`, `shipment`, `stock_adjustment`. But the DB constraint `journal_entries_reference_type_check` allows many more: `patient_deposit`, `credit_note`, `grn`, `donation`, `vendor_payment`, `expense`, `payroll`, `pos_sale`, etc. For manual entries, users should have access to all valid types.
-
-## Fix Plan
-
-### File: `src/components/accounts/AccountPicker.tsx`
-- Add an optional `postingOnly` boolean prop (default `false`)
-- When `postingOnly` is true, filter out accounts where `is_header === true` so only Level 4 posting accounts appear
-- This keeps the component reusable elsewhere without breaking other uses
+## Fix
 
 ### File: `src/pages/app/accounts/JournalEntryFormPage.tsx`
-- Pass `postingOnly` prop to each `<AccountPicker>` in the line items — removes the need for the separate `postingAccounts` filter
-- Expand the reference type `<Select>` to include all valid DB constraint values: `manual`, `invoice`, `payment`, `expense`, `payroll`, `pos_sale`, `shipment`, `stock_adjustment`, `grn`, `vendor_payment`, `patient_deposit`, `credit_note`, `donation`
-- Add trilingual labels for each reference type in the `labels` object
+- Add a placeholder `entry_number` to the insert payload that the trigger will overwrite:
+  ```ts
+  entry_number: 'TEMP', // overwritten by generate_journal_entry_number trigger
+  ```
+- This satisfies both the TypeScript type and the NOT NULL constraint, while the trigger replaces it with the actual auto-generated number
+
+### Single-line change at line ~106:
+Add `entry_number: 'TEMP'` to the `entryPayload` object.
 
 ## Files Changed
-- `src/components/accounts/AccountPicker.tsx` — add `postingOnly` prop filter
-- `src/pages/app/accounts/JournalEntryFormPage.tsx` — use `postingOnly` on pickers, expand reference types with 3-language labels
+- `src/pages/app/accounts/JournalEntryFormPage.tsx` — add `entry_number` placeholder to insert payload
 
