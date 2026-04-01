@@ -212,7 +212,8 @@ export function useCreatePurchaseOrder() {
           discount_amount: discountAmount,
           total_amount: totalAmount,
           created_by: user?.id,
-        })
+          ...(data.requisition_id ? { requisition_id: data.requisition_id } : {}),
+        } as any)
         .select()
         .single();
       
