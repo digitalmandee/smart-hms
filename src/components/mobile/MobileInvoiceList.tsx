@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { FileText, Plus, FlaskConical, Radio, Stethoscope, MoreVertical, User } from "lucide-react";
+import { FileText, Plus, FlaskConical, Radio, Stethoscope, MoreVertical, User, Landmark } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -106,12 +106,60 @@ export function MobileInvoiceList() {
     statusFilter
   );
 
+  // Fetch completed deposits
+  const { data: deposits, refetch: refetchDeposits } = useQuery({
+    queryKey: ["mobile-deposit-rows", profile?.organization_id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("patient_deposits")
+        .select("*, patients(first_name, last_name, patient_number)")
+        .eq("organization_id", profile!.organization_id!)
+        .eq("type", "deposit")
+        .eq("status", "completed")
+        .order("created_at", { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!profile?.organization_id,
+  });
+
+  const depositRows = useMemo(() => {
+    if (!deposits) return [];
+    return deposits.map((d: any) => ({
+      id: `dep-${d.id}`,
+      invoice_number: d.reference_number || `DEP-${d.id.slice(0, 8).toUpperCase()}`,
+      invoice_date: d.created_at,
+      status: "paid" as InvoiceStatus,
+      total_amount: Number(d.amount),
+      paid_amount: Number(d.amount),
+      patient: d.patients ? {
+        first_name: d.patients.first_name,
+        last_name: d.patients.last_name,
+        patient_number: d.patients.patient_number,
+      } : { first_name: "Unknown", last_name: "", patient_number: "" },
+      isDeposit: true,
+      hasLab: false,
+      hasRadiology: false,
+      hasConsultation: false,
+      categories: [],
+    }));
+  }, [deposits]);
+
   const filteredInvoices = useMemo(() => {
-    if (!invoices) return [];
+    const allRows = [...(invoices || []), ...depositRows];
     
-    if (categoryFilter === "all") return invoices;
+    // Sort by date descending
+    allRows.sort((a, b) => {
+      const da = new Date(a.invoice_date || 0).getTime();
+      const db = new Date(b.invoice_date || 0).getTime();
+      return db - da;
+    });
+
+    if (categoryFilter === "all") return allRows;
     
-    return invoices.filter(invoice => {
+    return allRows.filter((invoice: any) => {
+      if (invoice.isDeposit) return false; // deposits don't belong to category filters
       switch (categoryFilter) {
         case "lab":
           return invoice.hasLab;
@@ -123,10 +171,10 @@ export function MobileInvoiceList() {
           return true;
       }
     });
-  }, [invoices, categoryFilter]);
+  }, [invoices, depositRows, categoryFilter]);
 
   const handleRefresh = async () => {
-    await refetch();
+    await Promise.all([refetch(), refetchDeposits()]);
   };
 
   const handleInvoiceClick = (invoice: InvoiceWithPatient) => {
@@ -207,23 +255,34 @@ export function MobileInvoiceList() {
               <p className="text-muted-foreground">No invoices found</p>
             </div>
           ) : (
-            filteredInvoices.map((invoice) => {
+            filteredInvoices.map((invoice: any) => {
               const balance = Number(invoice.total_amount || 0) - Number(invoice.paid_amount || 0);
+              const isDeposit = !!invoice.isDeposit;
               
               return (
                 <Card 
                   key={invoice.id} 
-                  className="cursor-pointer active:scale-[0.98] transition-transform"
-                  onClick={() => handleInvoiceClick(invoice)}
+                  className={cn(
+                    "active:scale-[0.98] transition-transform",
+                    !isDeposit && "cursor-pointer"
+                  )}
+                  onClick={() => !isDeposit && handleInvoiceClick(invoice)}
                 >
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
+                          {isDeposit && <Landmark className="h-4 w-4 text-primary" />}
                           <span className="font-mono font-semibold text-sm">
                             {invoice.invoice_number}
                           </span>
-                          <InvoiceStatusBadge status={invoice.status} />
+                          {isDeposit ? (
+                            <Badge variant="secondary" className="text-xs bg-primary/10 text-primary">
+                              Deposit
+                            </Badge>
+                          ) : (
+                            <InvoiceStatusBadge status={invoice.status} />
+                          )}
                         </div>
                         
                         {invoice.patient && (
@@ -253,12 +312,12 @@ export function MobileInvoiceList() {
                         <p className="font-bold text-lg">
                           Rs. {Number(invoice.total_amount || 0).toLocaleString()}
                         </p>
-                        {invoice.paid_amount > 0 && (
+                        {!isDeposit && invoice.paid_amount > 0 && (
                           <p className="text-xs text-success">
                             Paid: Rs. {Number(invoice.paid_amount).toLocaleString()}
                           </p>
                         )}
-                        {balance > 0 && (
+                        {!isDeposit && balance > 0 && (
                           <p className="text-xs text-destructive font-medium">
                             Due: Rs. {balance.toLocaleString()}
                           </p>
