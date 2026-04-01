@@ -39,6 +39,26 @@ export default function PaymentCollectionPage() {
   const recordPaymentMutation = useRecordPayment();
   const { data: depositData } = useDepositBalance(invoice?.patient?.id);
 
+  // Query deposit applications for this invoice
+  const { data: depositApplications } = useQuery({
+    queryKey: ["deposit-applications-for-invoice", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("patient_deposits")
+        .select("amount")
+        .eq("invoice_id", id!)
+        .eq("type", "applied")
+        .eq("status", "completed");
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!id,
+  });
+
+  const depositAppliedOnInvoice = (depositApplications || []).reduce(
+    (sum, d) => sum + Number(d.amount), 0
+  );
+
   const [amount, setAmount] = useState<number>(0);
   const [paymentMethodId, setPaymentMethodId] = useState<string>("");
   const [referenceNumber, setReferenceNumber] = useState("");
