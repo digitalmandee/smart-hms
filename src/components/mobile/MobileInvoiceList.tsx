@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { FileText, Plus, FlaskConical, Radio, Stethoscope, MoreVertical, User } from "lucide-react";
+import { FileText, Plus, FlaskConical, Radio, Stethoscope, MoreVertical, User, Landmark } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
