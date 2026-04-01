@@ -1,45 +1,33 @@
 
 
-# Fix: GRN Journal Posting — Duplicate Entries + Organization ID Error
+# Fix: GRN Trigger Using Wrong Column Name (`unit_price` → `unit_cost`)
 
-## Problems Found
+## Problem
+The `post_grn_to_journal` trigger calculates GRN total using `unit_price`, but the actual column in `grn_items` is `unit_cost`. This causes:
+- New GRNs to silently fail (Postgres returns NULL/error for non-existent column)
+- GRN-20260401-0002 somehow posted correctly (likely from an earlier version of the trigger), but any new GRN verification will fail
 
-### 1. Duplicate Journal Entries
-GRN `GRN-20260401-0002` has **two** identical journal entries (`JE-GRN-260401-7496` and `JE-GRN-260401-1924`), both posting Rs. 1,000. This doubles the Inventory Asset and Accounts Payable balances. The trigger has no idempotency guard — if the status is set to `verified` more than once (or the row is updated again while already `verified`), it fires again.
+## Current Data Status
 
-### 2. Organization ID Error
-The error "Couldn't find organization id inncache" likely comes from `get_or_create_default_account` when `organization_id` is NULL on the GRN row. This can happen if a GRN is created without a properly loaded user profile (e.g., profile still loading when the form submits). The trigger then passes `NULL` to `get_or_create_default_account`, which fails to find any matching account type.
+| GRN | Status | Actual Total | Journal Entry | Correct? |
+|-----|--------|-------------|---------------|----------|
+| GRN-20260401-0002 | posted | 1,000 | JE-GRN-260401-7496 (1,000) | ✅ |
+| GRN-20260401-0001 | posted | 0 | None | ✅ (zero value) |
+| GRN-20260212-0001 | verified | 57,250 | None | ❌ Missing |
+| GRN-20260215-0001 | verified | 25,300 | None | ❌ Missing |
+| GRN-20260210-0001 | draft | 91,000 | None | ✅ (draft) |
 
 ## Fix (Single Migration)
 
-### A. Add Idempotency Check to `post_grn_to_journal`
-Before inserting, check if a journal entry already exists for this GRN:
-```sql
-IF EXISTS (SELECT 1 FROM journal_entries WHERE reference_type = 'grn' AND reference_id = NEW.id) THEN
-  RETURN NEW;
-END IF;
-```
+### 1. Fix column name in trigger
+Change `SUM(quantity_received * unit_price)` to `SUM(quantity_received * unit_cost)` in `post_grn_to_journal`.
 
-### B. Guard Against NULL Organization ID
-Add a NULL check before calling `get_or_create_default_account`:
-```sql
-IF NEW.organization_id IS NULL THEN
-  RAISE WARNING 'GRN % has no organization_id, skipping journal posting', NEW.grn_number;
-  RETURN NEW;
-END IF;
-```
+### 2. Backfill missing journal entries for verified/posted GRNs
+For GRN-20260212-0001 (Rs. 57,250) and GRN-20260215-0001 (Rs. 25,300) — create journal entries with DR INV-001, CR AP-001. These are in a different organization (`a1111111...`) so will use that org's accounts.
 
-### C. Clean Up Existing Duplicate
-Delete the duplicate journal entry and its lines for GRN-0002, then recalculate balances for `INV-001` and `AP-001`.
-
-## Technical Details
-
-Migration will:
-1. Delete duplicate journal entry `JE-GRN-260401-1924` (keep `JE-GRN-260401-7496`)
-2. Recalculate `current_balance` for INV-001 and AP-001
-3. Recreate `post_grn_to_journal` with idempotency + NULL guards
-4. Recreate the trigger
+### 3. No balance recalculation needed
+The `update_account_balance` trigger handles it automatically on line insert.
 
 ## Files Changed
-- `supabase/migrations/new.sql` — updated trigger function + data cleanup
+- `supabase/migrations/new.sql` — fix trigger column name + backfill missing entries
 
