@@ -353,11 +353,6 @@ export function MobileInvoiceList() {
       </Button>
     </PullToRefresh>
 
-    <DepositDetailDialog
-      open={!!selectedDepositId}
-      onOpenChange={(open) => !open && setSelectedDepositId(null)}
-      depositId={selectedDepositId || ""}
-    />
     </>
   );
 }

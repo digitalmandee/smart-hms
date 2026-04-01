@@ -301,17 +301,11 @@ export default function InvoicesListPage() {
         isLoading={isLoading || depositsLoading}
         onRowClick={(row) => {
           if (row.isDeposit) {
-            setSelectedDepositId(row.id);
+            navigate(`/app/billing/deposits/${row.id}`);
             return;
           }
           navigate(`/app/billing/invoices/${row.id}`);
         }}
-      />
-
-      <DepositDetailDialog
-        open={!!selectedDepositId}
-        onOpenChange={(open) => !open && setSelectedDepositId(null)}
-        depositId={selectedDepositId || ""}
       />
     </div>
   );

@@ -1150,6 +1150,7 @@ function App() {
               <Route path="billing/invoices" element={<InvoicesListPage />} />
               <Route path="billing/invoices/new" element={<InvoiceFormPage />} />
               <Route path="billing/invoices/:id" element={<InvoiceDetailPage />} />
+              <Route path="billing/deposits/:id" element={<DepositDetailPage />} />
               <Route path="billing/invoices/:id/edit" element={<InvoiceFormPage />} />
               <Route path="billing/invoices/:id/pay" element={<PaymentCollectionPage />} />
               <Route path="billing/payments" element={<PaymentHistoryPage />} />
