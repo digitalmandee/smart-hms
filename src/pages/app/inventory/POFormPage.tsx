@@ -57,7 +57,7 @@ export default function POFormPage() {
   const [selectedBranch, setSelectedBranch] = useState("");
 
   const { data: vendors } = useVendors();
-  const { data: branches } = useBranches();
+  const { data: branches } = useBranches(profile?.organization_id);
   const createPO = useCreatePurchaseOrder();
   const { data: sourcePR } = usePurchaseRequest(fromPrId || "");
   const { data: sourceRequisition } = useRequisition(fromRequisitionId || "");
