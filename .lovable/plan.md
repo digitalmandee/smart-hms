@@ -1,37 +1,31 @@
 
 
-# Fix: Branch Missing Error on PO Creation
+# Fix: Branch Dropdown Always Visible & Auto-Selected
 
 ## Problem
-`POFormPage` calls `useBranches()` without passing `profile?.organization_id`, which may return empty results due to RLS. When branches list is empty, the branch selector shows no options, and submission fails with "Branch is required".
-
-Additionally, when `isSingleBranch` evaluates incorrectly (because branches array is empty/undefined), the auto-select logic on line 80-85 sets an empty string, and the hidden selector means the user can't fix it.
+When `isSingleBranch` is true or `branches` array is empty/loading, the branch selector is hidden (line 264: `{!isSingleBranch && ...}`). If `profile?.branch_id` is also null, the form silently fails validation with "Branch is required" and nothing happens.
 
 ## Fix
 
 **File: `src/pages/app/inventory/POFormPage.tsx`**
 
-1. Pass `profile?.organization_id` to `useBranches()`:
-```ts
-const { data: branches } = useBranches(profile?.organization_id);
-```
+1. **Always show the branch dropdown** — remove the `{!isSingleBranch && ...}` wrapper so the user can always see and select their branch.
+2. **Auto-select the user's branch** — keep the existing `useEffect` that sets `autoSelectedBranchId` from `profile?.branch_id` or first branch, but also handle the case where branches load after the effect runs by adding `branches` to the dependency array.
+3. **Show selected branch name** — when auto-selected, the dropdown will display the branch name instead of being invisible, giving clear feedback.
 
-2. Improve auto-select logic — if `profile?.branch_id` exists, always use it as default regardless of branch count:
-```ts
-const autoSelectedBranchId = profile?.branch_id || (branches?.length === 1 ? branches[0]?.id : "") || "";
-```
+## Changes
+- Line 264: Remove `{!isSingleBranch && (` wrapper
+- Line 293: Remove matching `)}` closing
+- Line 80-85: Update useEffect to also trigger when `branches` data loads:
+  ```ts
+  useEffect(() => {
+    const branchId = profile?.branch_id || branches?.[0]?.id || "";
+    if (branchId && !form.getValues("branch_id")) {
+      form.setValue("branch_id", branchId);
+      setSelectedBranch(branchId);
+    }
+  }, [profile?.branch_id, branches, form]);
+  ```
 
-3. If branch is auto-selected but selector is hidden (`isSingleBranch`), ensure the form value is set before submit by also setting it in the `onSubmit` handler as a fallback:
-```ts
-const finalBranchId = data.branch_id || autoSelectedBranchId;
-if (!finalBranchId) {
-  setFormError("Branch is required");
-  toast.error("Branch is required");
-  return;
-}
-```
-Then pass `finalBranchId` instead of `data.branch_id` to `createPO.mutateAsync`.
-
-## Files Changed
-- `src/pages/app/inventory/POFormPage.tsx` — pass org ID to useBranches, add branch fallback in submit
+**Result**: Branch dropdown is always visible, auto-selects the user's assigned branch, and user can change it if needed. No more silent failures.
 
