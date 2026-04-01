@@ -243,6 +243,7 @@ export function useProfitLoss(startDate?: string, endDate?: string) {
         .select(`
           id,
           name,
+          account_number,
           current_balance,
           account_type:account_types(
             name,
