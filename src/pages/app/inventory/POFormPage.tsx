@@ -57,7 +57,7 @@ export default function POFormPage() {
   const [selectedBranch, setSelectedBranch] = useState("");
 
   const { data: vendors } = useVendors();
-  const { data: branches } = useBranches();
+  const { data: branches } = useBranches(profile?.organization_id);
   const createPO = useCreatePurchaseOrder();
   const { data: sourcePR } = usePurchaseRequest(fromPrId || "");
   const { data: sourceRequisition } = useRequisition(fromRequisitionId || "");
@@ -182,10 +182,18 @@ export default function POFormPage() {
       }
     }
 
+    const finalBranchId = data.branch_id || autoSelectedBranchId;
+    if (!finalBranchId) {
+      const msg = "Branch is required";
+      setFormError(msg);
+      toast.error(msg);
+      return;
+    }
+
     try {
       const result = await createPO.mutateAsync({
         vendor_id: data.vendor_id,
-        branch_id: data.branch_id,
+        branch_id: finalBranchId,
         store_id: data.store_id || undefined,
         expected_delivery_date: data.expected_delivery_date,
         terms: data.terms,
