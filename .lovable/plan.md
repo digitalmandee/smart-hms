@@ -1,74 +1,68 @@
 
 
-# Fix: Invoice Summary Should Show Deposit Application Breakdown
+# Audit: GL Posting Verification + Add "Record Deposit" to Invoices Section
 
-## Problem
-When an IPD invoice is generated, the deposit is auto-applied and added to `paid_amount`. But the Invoice Detail page only shows a single "Paid" line in the summary — it doesn't distinguish between **deposit applied** vs **cash collected**. The user wants to see:
+## Part 1: GL Posting Verification (Current State)
 
-1. **Subtotal** — total charges
-2. **Deposit Applied** — how much was applied from patient's advance deposit
-3. **Cash Collected** — actual payments received
-4. **Balance Due** — remaining amount (if deposit < invoice total)
-5. **Refund Due** — overpayment (if deposit > invoice total)
+All invoice types are correctly posting to GL via database triggers:
 
-## Current Flow (Already Working)
-- `useGenerateIPDInvoice` auto-applies deposit: calculates `applyAmount = min(availableBalance, totalAmount)`, sets `paid_amount = applyAmount`, creates `patient_deposits` record with `type='applied'`
-- GL is correct: DR LIA-DEP-001, CR AR-001
+### Invoice Creation (trigger: `post_invoice_to_journal`)
+- **DR** Accounts Receivable (AR-001) — invoice total
+- **CR** Revenue (REV-001 or service-specific) — invoice total
+- Reference type: `invoice`
 
-## What's Missing
-The **InvoiceTotals** component and **InvoiceDetailPage** don't query or display deposit applications separately from cash payments.
+### Payment Recording (trigger: `post_payment_to_journal`)
+- **DR** Cash/Bank (resolved via `payment_methods.ledger_account_id`) — payment amount
+- **CR** Accounts Receivable (AR-001) — payment amount
+- Reference type: `payment`
 
-## Plan
+### Patient Deposit Collection (trigger: `post_patient_deposit_journal`)
+- **DR** Cash in Hand (CASH-001) — deposit amount
+- **CR** Patient Deposits Liability (LIA-DEP-001) — deposit amount
+- Reference type: `patient_deposit`
 
-### File 1: `src/pages/app/billing/InvoiceDetailPage.tsx`
-- Add a query to fetch deposit applications linked to this invoice:
-  ```sql
-  SELECT amount FROM patient_deposits 
-  WHERE invoice_id = :id AND type = 'applied'
-  ```
-- Calculate: `depositApplied` = sum of applied deposits, `cashCollected` = total paid_amount - depositApplied
-- Pass `depositApplied` to `InvoiceTotals`
+### Deposit Application to Invoice (application in `useGenerateIPDInvoice`)
+- **DR** Patient Deposits Liability (LIA-DEP-001) — applied amount
+- **CR** Accounts Receivable (AR-001) — applied amount
+- Reference type: `deposit_application`
 
-### File 2: `src/components/billing/InvoiceTotals.tsx`
-- Add optional `depositApplied` prop
-- When present, show breakdown:
-  - "Deposit Applied" line (green) showing deposit amount
-  - "Cash Collected" line showing actual cash payments
-  - Keep existing "Paid" line as fallback when no deposit data
-- Show "Balance Due" in red if balance > 0
-- Show "Refund Due" in blue if deposit exceeds total (overpayment scenario)
+### Credit Note Approval (trigger: `post_credit_note_to_journal`)
+- **DR** Revenue (REV-001) — credit amount
+- **CR** Accounts Receivable (AR-001) — credit amount
+- Reference type: `credit_note`
 
-### File 3: `src/components/ipd/InvoiceStatusPanel.tsx`
-- Already handles refund/balance display — ensure consistency with updated InvoiceTotals
+All five flows are correctly wired. The patient's multiple invoices each generate their own journal entries and are independently trackable in the GL.
 
-### File 4: Translation keys
-- Add `billing.depositApplied`, `billing.cashCollected`, `billing.refundDue` in en/ar/ur
+---
 
-## Example Display
+## Part 2: Add "Record Deposit" Button to Invoices Section
 
-```text
-Subtotal                     Rs. 350,000
-Tax                          Rs. 0
-Discount                     Rs. 0
-─────────────────────────────────────────
-Total                        Rs. 350,000
+### Problem
+Currently, to record a standalone patient deposit (advance payment not tied to any service), users must navigate to **Accounts > Patient Deposits** (`/app/accounts/patient-deposits`). There is no way to do this from the Invoices list page where billing staff normally work.
 
-Deposit Applied              Rs. 350,000  (green)
-Cash Collected               Rs. 0
-─────────────────────────────────────────
-Balance Due                  Rs. 0        (or "Fully Settled" in green)
-```
+### Plan
 
-If deposit was Rs. 422,000 on a Rs. 350,000 invoice:
-```text
-Total                        Rs. 350,000
-Deposit Applied              Rs. 350,000  (green, capped at total)
-Remaining Deposit Balance    Rs. 72,000   (info, available for future use)
-Balance Due                  Rs. 0        (Fully Settled)
-```
+#### File 1: `src/pages/app/billing/InvoicesListPage.tsx`
+- Add a **"Record Deposit"** button (with `Wallet` icon) next to the existing "New Invoice" button in the PageHeader actions
+- Clicking opens a dialog with:
+  - Patient search (using existing `PatientSearch` component)
+  - Amount input
+  - Payment method selector (using existing `payment_methods` query)
+  - Reference number input
+  - Notes textarea
+- On submit, calls `useCreatePatientDeposit` hook (already exists) with `billing_session_id` from active session
+- Dialog resets and closes on success; deposit immediately appears in the merged invoice list
 
-## Files Changed
-- `src/pages/app/billing/InvoiceDetailPage.tsx` — query deposit applications for invoice
-- `src/components/billing/InvoiceTotals.tsx` — add deposit/cash breakdown display
-- `src/lib/i18n/translations/en.ts`, `ar.ts`, `ur.ts` — new labels
+#### File 2: `src/components/mobile/MobileInvoiceList.tsx`
+- Add the same "Record Deposit" button to the mobile view header
+- Same dialog logic as desktop
+
+#### File 3: Translation keys (`en.ts`, `ar.ts`, `ur.ts`)
+- Add keys: `invoices.recordDeposit`, `invoices.recordDepositDesc`, `invoices.depositAmount`, `invoices.depositRecorded`
+
+### Technical Notes
+- Reuse `useCreatePatientDeposit` from `src/hooks/usePatientDeposits.ts` — it already handles the insert and invalidates queries
+- The deposit will auto-appear in the invoice list because `useDepositRows` already fetches all `type='deposit'` records
+- GL posting happens automatically via the existing `post_patient_deposit_journal` database trigger
+- Active billing session ID should be fetched and passed so the deposit counts in session collections
 
