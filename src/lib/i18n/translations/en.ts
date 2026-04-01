@@ -112,7 +112,6 @@ export const en = {
   "billing.amount": "Amount",
   "billing.collectPayment": "Collect Payment",
   "billing.previousPaid": "Previous Paid",
-  "billing.thisPayment": "This Payment",
   "billing.invoiceTotal": "Invoice Total",
   "billing.thankYou": "Thank you for your payment!",
   "billing.receivedBy": "Received by",

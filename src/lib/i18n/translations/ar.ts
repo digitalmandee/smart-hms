@@ -114,7 +114,6 @@ export const ar: Record<TranslationKey, string> = {
   "billing.amount": "المبلغ",
   "billing.collectPayment": "تحصيل دفعة",
   "billing.previousPaid": "المدفوع سابقاً",
-  "billing.thisPayment": "هذه الدفعة",
   "billing.invoiceTotal": "إجمالي الفاتورة",
   "billing.thankYou": "شكراً لتسديدكم!",
   "billing.receivedBy": "استلم بواسطة",
