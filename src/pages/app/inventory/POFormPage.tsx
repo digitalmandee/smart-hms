@@ -262,7 +262,6 @@ export default function POFormPage() {
                   )}
                 />
 
-                {!isSingleBranch && (
                 <FormField
                   control={form.control}
                   name="branch_id"
