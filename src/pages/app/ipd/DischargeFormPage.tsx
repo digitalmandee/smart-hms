@@ -253,7 +253,7 @@ export default function DischargeFormPage() {
         admissionId: id,
         patientId: admission.patient_id,
         branchId: admission.branch_id,
-        depositAmount: admission.deposit_amount || 0,
+        depositAmount,
         daysAdmitted,
         dailyRate,
         bedTypeName: currentBedType?.name || bedTypeName,
