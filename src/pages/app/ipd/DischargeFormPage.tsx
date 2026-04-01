@@ -303,7 +303,7 @@ export default function DischargeFormPage() {
   const roomCharges = postedRoomCharges > 0 ? postedRoomCharges : expectedRoomCharges;
   // Include outstanding invoices (lab, pharmacy) and pharmacy credits in total
   const totalCharges = serviceCharges + roomCharges + additionalChargesTotal + outstandingTotal + pharmacyCreditsTotal;
-  const depositAmount = admission?.deposit_amount || 0;
+  const depositAmount = depositBalanceData?.balance || 0;
   const balanceDue = totalCharges - depositAmount;
 
   // Count unbilled charges
