@@ -18,6 +18,7 @@ import {
 
 import { useGRN, useVerifyGRN, usePostGRN } from "@/hooks/useGRN";
 import { usePrint } from "@/hooks/usePrint";
+import { useOrganizationBranding } from "@/hooks/useOrganizationBranding";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
