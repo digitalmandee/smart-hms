@@ -265,10 +265,16 @@ export function MobileInvoiceList() {
                 <Card 
                   key={invoice.id} 
                   className={cn(
-                    "active:scale-[0.98] transition-transform",
-                    !isDeposit && "cursor-pointer"
+                    "active:scale-[0.98] transition-transform cursor-pointer"
                   )}
-                  onClick={() => !isDeposit && handleInvoiceClick(invoice)}
+                  onClick={() => {
+                    if (isDeposit) {
+                      const realId = invoice.id.replace("dep-", "");
+                      setSelectedDepositId(realId);
+                    } else {
+                      handleInvoiceClick(invoice);
+                    }
+                  }}
                 >
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between gap-3">
