@@ -88,6 +88,8 @@ const GeneralLedgerPage = () => {
       payroll: "bg-purple-100 text-purple-800",
       adjustment: "bg-yellow-100 text-yellow-800",
       opening_balance: "bg-gray-100 text-gray-800",
+      patient_deposit: "bg-teal-100 text-teal-800",
+      deposit_application: "bg-indigo-100 text-indigo-800",
     };
     return colors[type || ""] || "bg-muted text-muted-foreground";
   };
