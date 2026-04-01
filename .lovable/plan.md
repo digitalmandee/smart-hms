@@ -1,37 +1,83 @@
 
 
-# Seed Attendance Data for April 2026
+# Demo Flow: Complete Accounts & Finance Module Walkthrough
 
-## Current State
-- 430 attendance records exist, but only up to **March 10, 2026**
-- 13 employees in org `b1111111-...` have records
-- No data for the current month (April 2026) — the attendance calendar/sheet shows empty
+## Current Data Status
+The database already has substantial seed data:
+- **63 accounts** in Chart of Accounts (4-level hierarchy)
+- **316 journal entries** (Aug 2025 – Apr 2026) across 9 reference types
+- **127 invoices** (97 paid, 26 pending, 4 partially paid)
+- **13 expenses**, **8 vendor payments**, **5 fixed assets**, **5 patient deposits**
+- **10 billing sessions**, **10 daily closings**, **3 credit notes**
 
-## Plan
+This is enough to demonstrate the full module. The plan creates an **interactive Demo Flow page** that guides the presenter through every finance feature step-by-step.
 
-### Migration: Insert attendance records for March 11–31 and April 1, 2026
+## What We'll Build
 
-For all 13 employees in the primary organization, generate realistic attendance data:
+### New Page: `/app/accounts/demo-flow`
+A guided walkthrough page with numbered steps organized into sections. Each step has:
+- Step number and title (trilingual)
+- What to show / what to say
+- Direct navigation button to the relevant page
+- Checkmark when completed
 
-**Date range**: March 11 → April 1 (22 days × 13 employees = ~286 records)
+### Demo Flow Sections (18 steps)
 
-**Logic per day**:
-- **Fridays** → status `weekend` (no check_in/out)
-- **Remaining weekdays** → realistic mix:
-  - ~70% `present` (check_in 08:00–08:30, check_out 16:00–17:30, working_hours 7.5–9)
-  - ~10% `late` (check_in 08:45–09:30, late_minutes 15–60)
-  - ~5% `absent`
-  - ~5% `half_day` (check_out ~12:30)
-  - ~5% `on_leave`
-  - ~5% `work_from_home`
+**Section 1 — Foundation**
+1. **Accounts Dashboard** → `/app/accounts` — Show KPIs, revenue trend chart, AR aging pie chart
+2. **Chart of Accounts** → `/app/accounts/chart-of-accounts` — Expand 4-level tree, show posting vs header accounts
+3. **Account Types** → `/app/accounts/types` — Show asset/liability/equity/revenue/expense categories
 
-**Realistic details included**:
-- `check_in_source`: mix of `biometric`, `manual`, `system`
-- `working_hours`: calculated from check_in/check_out
-- `overtime_hours`: occasional 0.5–2h for some employees
-- `late_minutes`: 0 for present, 15–60 for late
-- `early_leave_minutes`: occasional for half_day
+**Section 2 — Transaction Recording**
+4. **Create Journal Entry** → `/app/accounts/journal-entries/new` — Post a manual entry (e.g., office supplies expense)
+5. **Journal Entries List** → `/app/accounts/journal-entries` — Show all entries with reference type badges
+6. **General Ledger** → `/app/accounts/ledger` — Select an account, show running balance with opening balance
 
-### Files Changed
-- **1 SQL migration** — INSERT ~286 attendance records with realistic Pakistani hospital staff patterns
+**Section 3 — Billing & Revenue**
+7. **Billing Dashboard** → `/app/billing` — Today's collections, pending invoices, quick actions
+8. **Create Invoice** → `/app/billing/invoices/new` — Walk through patient selection, line items, insurance
+9. **Invoice Detail** → `/app/billing/invoices` — Show paid/pending invoices, print with hospital branding
+10. **Payment Collection** → `/app/billing/payment-collection` — Collect payment, show split payment support
+
+**Section 4 — Operations**
+11. **Daily Closing** → `/app/billing/daily-closing` — Department-wise reconciliation, cash variance
+12. **Billing Sessions** → `/app/billing/sessions` — Open/close session lifecycle
+13. **Patient Deposits** → `/app/accounts/patient-deposits` — Advance deposit, application to invoice
+
+**Section 5 — Payables & Expenses**
+14. **Expense Management** → `/app/accounts/expenses` — Record and approve expenses
+15. **Vendor Payments** → `/app/accounts/vendor-payments` — Pay vendor, link to GRN
+16. **Accounts Payable** → `/app/accounts/payables` — Aging breakdown
+
+**Section 6 — Reports & Compliance**
+17. **Financial Reports Hub** → `/app/accounts/reports` — P&L, Balance Sheet, Cash Flow, Trial Balance
+18. **Bank Reconciliation** → `/app/accounts/bank-reconciliation` — Import CSV, auto-match
+
+**Bonus Steps** (collapsed by default):
+- Fixed Assets & Depreciation → `/app/accounts/fixed-assets`
+- Credit Notes → `/app/accounts/credit-notes`
+- VAT Return → `/app/accounts/vat-return`
+- Cost Center P&L → `/app/accounts/cost-center-pnl`
+- AR Reconciliation → `/app/accounts/ar-reconciliation`
+- Financial Audit Log → `/app/accounts/audit-log`
+- Payroll Cost Allocation → `/app/accounts/payroll-allocation`
+
+### Design
+- Card-based layout with step numbers in colored circles
+- Each card: title, description, "talking points" for presenter, and a "Go →" button
+- Progress bar at top showing completed steps
+- Collapsible sections
+- Trilingual support (en/ar/ur) for all labels
+
+### Technical Details
+- Pure client-side page — no new DB tables needed
+- Add route to existing router config
+- Add sidebar link under Accounts for finance_manager and accountant roles
+- Use localStorage to persist completed steps
+- All 3 language translation keys added
+
+## Files Changed
+- `src/pages/app/accounts/FinanceDemoFlowPage.tsx` — new guided demo page
+- `src/App.tsx` or router config — add route `/app/accounts/demo-flow`
+- `src/lib/i18n/translations/en.ts`, `ar.ts`, `ur.ts` — trilingual labels for all 18+ steps
 
