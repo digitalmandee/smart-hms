@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAdmission, useDischargePatient } from "@/hooks/useAdmissions";
 import { useDischargeSummary, useApproveDischargeSummary, useIPDCharges, useGenerateIPDInvoice } from "@/hooks/useDischarge";
+import { useDepositBalance } from "@/hooks/usePatientDeposits";
 import { useBedTypes } from "@/hooks/useIPDConfig";
 import { useAdmissionSurgeries } from "@/hooks/useOT";
 import { useInvoice } from "@/hooks/useBilling";
