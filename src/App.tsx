@@ -570,6 +570,7 @@ const PublicCampaignPage = React.lazy(() => import("./pages/public/PublicCampaig
 
 // Accounts pages
 import AccountsDashboard from "./pages/app/accounts/AccountsDashboard";
+const FinanceDemoFlowPage = React.lazy(() => import("./pages/app/accounts/FinanceDemoFlowPage"));
 import ChartOfAccountsPage from "./pages/app/accounts/ChartOfAccountsPage";
 import AccountFormPage from "./pages/app/accounts/AccountFormPage";
 import AccountDetailPage from "./pages/app/accounts/AccountDetailPage";
@@ -1200,6 +1201,7 @@ function App() {
 
                {/* Accounts routes */}
               <Route path="accounts" element={<AccountsDashboard />} />
+              <Route path="accounts/demo-flow" element={<React.Suspense fallback={<div>Loading...</div>}><FinanceDemoFlowPage /></React.Suspense>} />
               <Route path="accounts/chart-of-accounts" element={<ChartOfAccountsPage />} />
               <Route path="accounts/chart-of-accounts/new" element={<AccountFormPage />} />
               <Route path="accounts/chart-of-accounts/:id" element={<AccountDetailPage />} />
