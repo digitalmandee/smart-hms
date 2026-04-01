@@ -150,10 +150,44 @@ export default function InvoiceDetailPage() {
     );
   }
 
-  const balance = (invoice.total_amount || 0) - (invoice.paid_amount || 0);
+  const invoiceBalance = (invoice.total_amount || 0) - (invoice.paid_amount || 0);
   const canEdit = invoice.status === "draft";
   const canPay = ["pending", "partially_paid"].includes(invoice.status || "");
   const canCancel = ["draft", "pending"].includes(invoice.status || "");
+  const availableDeposit = depositData?.balance || 0;
+  const canApplyDeposit = canPay && availableDeposit > 0 && invoiceBalance > 0;
+
+  const handleApplyDeposit = async () => {
+    if (!canApplyDeposit || !id || !invoice.patient?.id) return;
+    const applyAmount = Math.min(availableDeposit, invoiceBalance);
+    
+    // Create "applied" deposit record
+    await createDeposit.mutateAsync({
+      patient_id: invoice.patient.id,
+      amount: applyAmount,
+      type: "applied",
+      invoice_id: id,
+      notes: `Applied to ${invoice.invoice_number}`,
+    });
+
+    // Record as payment on the invoice (use first available payment method)
+    const { data: methods } = await supabase
+      .from("payment_methods")
+      .select("id")
+      .eq("organization_id", profile!.organization_id!)
+      .eq("is_active", true)
+      .limit(1);
+
+    if (methods?.[0]) {
+      await recordPayment.mutateAsync({
+        invoiceId: id,
+        amount: applyAmount,
+        paymentMethodId: methods[0].id,
+        referenceNumber: "Deposit Applied",
+        notes: `Applied from patient deposit balance`,
+      });
+    }
+  };
 
   return (
     <div className="space-y-6">
