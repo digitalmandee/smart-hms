@@ -34,11 +34,16 @@ export function AccountPicker({
   category,
   disabled = false,
   excludeIds = [],
+  postingOnly = false,
 }: AccountPickerProps) {
   const [open, setOpen] = useState(false);
   const { data: accounts, isLoading } = useAccounts({ isActive: true, category });
 
-  const filteredAccounts = accounts?.filter((a) => !excludeIds.includes(a.id)) || [];
+  const filteredAccounts = (accounts?.filter((a) => {
+    if (excludeIds.includes(a.id)) return false;
+    if (postingOnly && a.is_header) return false;
+    return true;
+  })) || [];
   const selectedAccount = accounts?.find((a) => a.id === value);
 
   // Group accounts by category

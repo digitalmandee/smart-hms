@@ -299,6 +299,7 @@ const JournalEntryFormPage = () => {
                       onChange={(id) => updateLine(line.id, "account_id", id || "")}
                       placeholder={l("account")}
                       excludeIds={usedAccountIds.filter((i) => i !== line.account_id)}
+                      postingOnly
                     />
                   </TableCell>
                   <TableCell>
