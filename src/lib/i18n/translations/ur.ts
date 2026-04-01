@@ -3574,5 +3574,17 @@ export const ur: Record<TranslationKey, string> = {
   "ledger.depositRefund": "ڈپازٹ واپسی",
   "ledger.depositApplied": "ڈپازٹ لاگو",
 
+  "gender.child": "بچہ",
+  "patient.guardianName": "سرپرست کا نام",
+  "patient.guardianPhone": "سرپرست کا فون",
+  "patient.guardianRelation": "سرپرست کا رشتہ",
+  "admission.primaryProcedure": "بنیادی طریقہ کار",
+  "admission.procedureCharges": "طریقہ کار کے چارجز",
+  "admission.selectProcedure": "طریقہ کار منتخب کریں",
+  "admission.doctorRequired": "حاضر ڈاکٹر *",
+  "admission.procedureAndRoom": "طریقہ کار اور کمرے کی تفویض",
+  "billing.splitPayment": "تقسیم ادائیگی",
+  "billing.addPaymentMethod": "مزید ادائیگی کا طریقہ",
+
 };
 

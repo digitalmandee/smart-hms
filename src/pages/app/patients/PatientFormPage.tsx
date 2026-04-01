@@ -421,6 +421,7 @@ export function PatientFormPage() {
                         <SelectContent>
                           <SelectItem value="male">{t('patient.male')}</SelectItem>
                           <SelectItem value="female">{t('patient.female')}</SelectItem>
+                          <SelectItem value="child">{t('gender.child')}</SelectItem>
                           <SelectItem value="other">{t('patient.other')}</SelectItem>
                         </SelectContent>
                       </Select>
