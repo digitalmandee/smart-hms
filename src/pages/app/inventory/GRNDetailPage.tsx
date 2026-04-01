@@ -310,7 +310,7 @@ export default function GRNDetailPage() {
                 <TableRow key={item.id} className={cn(
                   highlightedItem === item.id && "bg-emerald-100 dark:bg-emerald-900/30 transition-colors duration-500"
                 )}>
-                  <TableCell className="font-medium">{item.item?.name}</TableCell>
+                  <TableCell className="font-medium">{item.item?.name || item.medicine?.name || 'Unknown'}</TableCell>
                   <TableCell className="text-center">{item.quantity_received}</TableCell>
                   <TableCell className="text-center text-emerald-600">{item.quantity_accepted || 0}</TableCell>
                   <TableCell className="text-center">
