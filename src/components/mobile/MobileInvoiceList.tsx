@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { FileText, Plus, FlaskConical, Radio, Stethoscope, User, Landmark } from "lucide-react";
+import { FileText, Plus, FlaskConical, Radio, Stethoscope, User, Landmark, Wallet } from "lucide-react";
+import { RecordDepositDialog } from "@/components/billing/RecordDepositDialog";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -101,7 +102,7 @@ export function MobileInvoiceList() {
   const haptics = useHaptics();
   const [statusFilter, setStatusFilter] = useState<InvoiceStatus | "all">("all");
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all");
-  
+  const [depositDialogOpen, setDepositDialogOpen] = useState(false);
 
   const { data: invoices, isLoading, refetch } = useInvoicesWithCategories(
     profile?.branch_id || undefined,
@@ -196,6 +197,10 @@ export function MobileInvoiceList() {
               {filteredInvoices.length} invoices
             </p>
           </div>
+          <Button variant="outline" size="sm" onClick={() => setDepositDialogOpen(true)}>
+            <Wallet className="mr-1 h-4 w-4" />
+            Deposit
+          </Button>
         </div>
 
         {/* Category Tabs - Scrollable */}
@@ -353,6 +358,7 @@ export function MobileInvoiceList() {
       </Button>
     </PullToRefresh>
 
+    <RecordDepositDialog open={depositDialogOpen} onOpenChange={setDepositDialogOpen} />
     </>
   );
 }

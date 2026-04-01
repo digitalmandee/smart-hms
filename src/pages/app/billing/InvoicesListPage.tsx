@@ -15,7 +15,8 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { InvoiceStatusBadge } from "@/components/billing/InvoiceStatusBadge";
-import { Plus, FileText, FlaskConical, Radio, Stethoscope, Landmark } from "lucide-react";
+import { Plus, FileText, FlaskConical, Radio, Stethoscope, Landmark, Wallet } from "lucide-react";
+import { RecordDepositDialog } from "@/components/billing/RecordDepositDialog";
 import { format } from "date-fns";
 import { ColumnDef } from "@tanstack/react-table";
 import { Database } from "@/integrations/supabase/types";
@@ -147,7 +148,7 @@ export default function InvoicesListPage() {
     (searchParams.get("status") as InvoiceStatus) || "all"
   );
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all");
-  
+  const [depositDialogOpen, setDepositDialogOpen] = useState(false);
 
   const isMobileScreen = useIsMobile();
   const isNative = Capacitor.isNativePlatform();
@@ -246,10 +247,16 @@ export default function InvoicesListPage() {
         title={t("invoices.title")}
         description={t("invoices.subtitle")}
         actions={
-          <Button onClick={() => navigate("/app/billing/invoices/new")}>
-            <Plus className="mr-2 h-4 w-4" />
-            {t("invoices.newInvoice")}
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setDepositDialogOpen(true)}>
+              <Wallet className="mr-2 h-4 w-4" />
+              {t("invoices.recordDeposit")}
+            </Button>
+            <Button onClick={() => navigate("/app/billing/invoices/new")}>
+              <Plus className="mr-2 h-4 w-4" />
+              {t("invoices.newInvoice")}
+            </Button>
+          </div>
         }
       />
 
@@ -307,6 +314,7 @@ export default function InvoicesListPage() {
           navigate(`/app/billing/invoices/${row.id}`);
         }}
       />
+      <RecordDepositDialog open={depositDialogOpen} onOpenChange={setDepositDialogOpen} />
     </div>
   );
 }

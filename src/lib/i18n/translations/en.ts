@@ -512,6 +512,10 @@ export const en = {
   "invoices.cancelled": "Cancelled",
   "invoices.depositInvoice": "Deposit",
   "invoices.depositCollection": "Deposit Collection",
+  "invoices.recordDeposit": "Record Deposit",
+  "invoices.recordDepositDesc": "Record an advance deposit for a patient",
+  "invoices.depositAmount": "Deposit Amount",
+  "invoices.depositRecorded": "Deposit recorded successfully",
 
   // Admissions module
   "admissions.title": "Admissions",
