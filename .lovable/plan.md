@@ -1,32 +1,47 @@
 
 
-# Fix: GL Shows Empty for Header/Parent Accounts
+# Fix: All Invoices Posting to REV-001 Instead of Correct Revenue Accounts
 
-## Problem
-The General Ledger page only lists Level 4 (posting) accounts in the dropdown — it filters out all header accounts with `allAccounts.filter(a => !a.is_header)`. When the user selects a head account like "Service Revenue" or "Current Assets", they see **no transactions** because journal entries are posted to Level 4 children (e.g., REV-001), not to the parent.
+## Root Cause
+The `post_invoice_to_journal` database trigger hardcodes `REV-001` (OPD Revenue) for ALL invoices. IPD discharge invoices, Emergency invoices, and Pharmacy invoices all hit `REV-001` instead of their designated accounts:
 
-The user expects to select any account (including headers like "Service Revenue", "IPD Revenue", etc.) and see **all child account transactions rolled up**.
+- `REV-001` — OPD Revenue (has 131 entries — ALL invoices land here)
+- `4010` — IPD Revenue (0 entries)
+- `4020` — Emergency Revenue (0 entries)
+- `REV-PHARM-001` — Pharmacy Revenue (should have pharmacy POS entries)
+
+This is why "Service Revenue" (4100) rollup shows data (because REV-001 is a descendant), but "IPD Revenue" (4120) and others show empty.
 
 ## Fix
 
-### File 1: `src/pages/app/accounts/GeneralLedgerPage.tsx`
-- **Show all accounts in the dropdown** — remove the `!a.is_header` filter. Group them visually by level (indent or prefix with level indicator).
-- When a **header account** is selected, collect all descendant Level 4 account IDs recursively, then pass them to the ledger query.
-- When a **posting account** is selected, query as before (single account).
-- Add a helper function `getDescendantIds(accountId, allAccounts)` that walks the `parent_account_id` tree to find all leaf accounts.
+### Migration: Update `post_invoice_to_journal` trigger
 
-### File 2: `src/hooks/useAccounts.ts` — `useAccountLedger`
-- Accept `accountId: string | string[]` — when an array is passed, use `.in("account_id", ids)` instead of `.eq("account_id", accountId)`.
-- Add the account name to each line so the user can see which child account each transaction belongs to when viewing a header.
+Modify the trigger to check the invoice source and route to the correct revenue account:
 
-### File 3: Translation keys (`en.ts`, `ar.ts`, `ur.ts`)
-- Add `accounts.allChildTransactions` label for the header account view context.
+```text
+Invoice source logic:
+  - If invoice has admission_id → IPD → use account '4010'
+  - If invoice has emergency_id → Emergency → use account '4020'  
+  - If invoice source = 'pharmacy' → Pharmacy → use 'REV-PHARM-001'
+  - Otherwise → OPD → use 'REV-001'
+```
+
+The trigger will use `get_or_create_default_account` with the appropriate code based on the invoice's linked source.
+
+### Backfill: Re-route existing journal entries
+
+A second SQL block will update existing `journal_entry_lines` for invoices that have an `admission_id` or `emergency_id`, moving them from `REV-001` to the correct revenue account (`4010`, `4020`). This corrects historical data.
+
+### Update account balances
+
+After backfill, recalculate `current_balance` for all affected revenue accounts (REV-001, 4010, 4020, REV-PHARM-001).
 
 ## Result
-Selecting "Service Revenue" in the GL will show all invoice CR entries from REV-001 and any other revenue child accounts. Same for all other header accounts — Assets, Liabilities, Expenses, etc. will all roll up correctly.
+- Selecting "IPD Revenue" in GL will show all IPD discharge invoice entries
+- Selecting "Emergency Revenue" will show emergency invoice entries  
+- Selecting "Service Revenue" rolls up all sub-categories correctly
+- Same fix applies to all other header accounts across Assets, Liabilities, Expenses
 
 ## Files Changed
-- `src/pages/app/accounts/GeneralLedgerPage.tsx` — include headers in dropdown, resolve descendant IDs
-- `src/hooks/useAccounts.ts` — support array of account IDs in `useAccountLedger`
-- `src/lib/i18n/translations/en.ts`, `ar.ts`, `ur.ts` — new label
+- `supabase/migrations/new.sql` — update trigger + backfill + rebalance
 
