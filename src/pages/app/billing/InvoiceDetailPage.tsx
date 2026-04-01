@@ -357,6 +357,8 @@ export default function InvoiceDetailPage() {
                 discountAmount={Number(invoice.discount_amount) || 0}
                 paidAmount={Number(invoice.paid_amount) || 0}
                 depositApplied={depositAppliedAmount}
+                depositAvailable={availableDeposit > 0 ? (depositData?.balance || 0) + depositAppliedAmount : undefined}
+                remainingDeposit={availableDeposit > 0 ? availableDeposit : undefined}
               />
             </CardContent>
           </Card>

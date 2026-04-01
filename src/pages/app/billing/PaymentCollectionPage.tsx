@@ -21,6 +21,7 @@ import { usePrint } from "@/hooks/usePrint";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { useDepositBalance } from "@/hooks/usePatientDeposits";
 import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 export default function PaymentCollectionPage() {
@@ -37,6 +38,26 @@ export default function PaymentCollectionPage() {
   const { data: organizations } = useOrganizations();
   const recordPaymentMutation = useRecordPayment();
   const { data: depositData } = useDepositBalance(invoice?.patient?.id);
+
+  // Query deposit applications for this invoice
+  const { data: depositApplications } = useQuery({
+    queryKey: ["deposit-applications-for-invoice", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("patient_deposits")
+        .select("amount")
+        .eq("invoice_id", id!)
+        .eq("type", "applied")
+        .eq("status", "completed");
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!id,
+  });
+
+  const depositAppliedOnInvoice = (depositApplications || []).reduce(
+    (sum, d) => sum + Number(d.amount), 0
+  );
 
   const [amount, setAmount] = useState<number>(0);
   const [paymentMethodId, setPaymentMethodId] = useState<string>("");
@@ -174,6 +195,9 @@ export default function PaymentCollectionPage() {
               }}
               patient={invoice.patient}
               organization={organization || undefined}
+              depositApplied={depositAppliedOnInvoice}
+              depositAvailable={depositData ? depositData.balance + depositAppliedOnInvoice : undefined}
+              remainingDeposit={depositData?.balance}
             />
           </div>
         )}
