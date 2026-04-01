@@ -231,9 +231,9 @@ export default function GRNDetailPage() {
                 </div>
               </div>
               <Button variant="outline" size="sm" asChild>
-                <RouterLink to={`/app/inventory/requisitions/${(grn as any).requisition_id}`}>
+                <Link to={`/app/inventory/requisitions/${(grn as any).requisition_id}`}>
                   View Requisition
-                </RouterLink>
+                </Link>
               </Button>
             </div>
           </CardContent>
