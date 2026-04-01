@@ -57,6 +57,12 @@ export default function InvoiceDetailPage() {
   const cancelMutation = useCancelInvoice();
   const createLabOrderMutation = useCreateLabOrderFromInvoice();
   const generateZatcaMutation = useGenerateZatcaQR();
+  const { formatCurrency } = useCurrencyFormatter();
+
+  // Deposit balance for the patient
+  const { data: depositData } = useDepositBalance(invoice?.patient?.id);
+  const createDeposit = useCreatePatientDeposit();
+  const recordPayment = useRecordPayment();
 
   const showZatca = country_code === 'SA' && e_invoicing_enabled;
 
