@@ -147,7 +147,7 @@ export default function InvoicesListPage() {
     (searchParams.get("status") as InvoiceStatus) || "all"
   );
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all");
-  const [selectedDepositId, setSelectedDepositId] = useState<string | null>(null);
+  
 
   const isMobileScreen = useIsMobile();
   const isNative = Capacitor.isNativePlatform();
