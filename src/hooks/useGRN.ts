@@ -430,21 +430,22 @@ export function useVerifyGRN() {
         if (!grn.requisition_id) {
           const { data: po } = await supabase
             .from("purchase_orders")
-            .select("requisition_id")
+            .select("*")
             .eq("id", grn.purchase_order_id)
             .maybeSingle();
           
-          if (po?.requisition_id) {
+          const poReqId = (po as any)?.requisition_id;
+          if (poReqId) {
             await supabase
               .from("goods_received_notes")
-              .update({ requisition_id: po.requisition_id } as any)
+              .update({ requisition_id: poReqId } as any)
               .eq("id", id);
             
             // Also update the requisition status
             await supabase
               .from("stock_requisitions")
               .update({ status: "issued" } as any)
-              .eq("id", po.requisition_id);
+              .eq("id", poReqId);
           }
         }
       }
