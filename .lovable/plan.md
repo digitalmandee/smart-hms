@@ -1,41 +1,37 @@
 
 
-# Fix: Journal Entry Number Not Generated (Stuck at "TEMP")
+# Seed Attendance Data for April 2026
 
-## Problem
-The `generate_journal_entry_number` trigger only fires when `entry_number IS NULL OR entry_number = ''`. The previous fix set `entry_number: 'TEMP'` to satisfy the NOT NULL constraint, but this causes the trigger to **skip** — leaving every new manual journal entry with "TEMP" as its entry number.
+## Current State
+- 430 attendance records exist, but only up to **March 10, 2026**
+- 13 employees in org `b1111111-...` have records
+- No data for the current month (April 2026) — the attendance calendar/sheet shows empty
 
-Confirmed in database: entry `6f2ce6b6-c56a-4528-b9b7-8dec9708afd7` shows `entry_number = 'TEMP'` despite having a proper trigger.
+## Plan
 
-The double-entry posting itself is correct:
-- **Debit**: Cash in Hand (1000) — Rs. 200
-- **Credit**: Bank Account - Savings (1020) — Rs. 200
-- `is_posted: true`, balanced at Rs. 200 each
+### Migration: Insert attendance records for March 11–31 and April 1, 2026
 
-## Fix
+For all 13 employees in the primary organization, generate realistic attendance data:
 
-### File: `src/pages/app/accounts/JournalEntryFormPage.tsx`
-Change `entry_number: 'TEMP'` to `entry_number: ''` so the trigger's WHEN clause matches and generates the proper sequence number (e.g., `JE-20260401-0001`).
+**Date range**: March 11 → April 1 (22 days × 13 employees = ~286 records)
 
-```ts
-// Before
-entry_number: 'TEMP',
+**Logic per day**:
+- **Fridays** → status `weekend` (no check_in/out)
+- **Remaining weekdays** → realistic mix:
+  - ~70% `present` (check_in 08:00–08:30, check_out 16:00–17:30, working_hours 7.5–9)
+  - ~10% `late` (check_in 08:45–09:30, late_minutes 15–60)
+  - ~5% `absent`
+  - ~5% `half_day` (check_out ~12:30)
+  - ~5% `on_leave`
+  - ~5% `work_from_home`
 
-// After  
-entry_number: '',
-```
+**Realistic details included**:
+- `check_in_source`: mix of `biometric`, `manual`, `system`
+- `working_hours`: calculated from check_in/check_out
+- `overtime_hours`: occasional 0.5–2h for some employees
+- `late_minutes`: 0 for present, 15–60 for late
+- `early_leave_minutes`: occasional for half_day
 
-### Also: Fix existing "TEMP" entries via migration
-Run a one-time SQL migration to regenerate entry numbers for any journal entries stuck with "TEMP":
-
-```sql
-UPDATE journal_entries 
-SET entry_number = 'JE-' || TO_CHAR(entry_date, 'YYYYMMDD') || '-' || 
-  LPAD(ROW_NUMBER() OVER (PARTITION BY organization_id, entry_date ORDER BY created_at)::TEXT, 4, '0')
-WHERE entry_number = 'TEMP';
-```
-
-## Files Changed
-- `src/pages/app/accounts/JournalEntryFormPage.tsx` — change `'TEMP'` to `''`
-- **Migration** — fix existing TEMP entries
+### Files Changed
+- **1 SQL migration** — INSERT ~286 attendance records with realistic Pakistani hospital staff patterns
 
