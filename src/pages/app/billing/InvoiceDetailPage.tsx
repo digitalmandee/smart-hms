@@ -161,7 +161,7 @@ export default function InvoiceDetailPage() {
     if (!canApplyDeposit || !id || !invoice.patient?.id) return;
     const applyAmount = Math.min(availableDeposit, invoiceBalance);
     
-    // Create "applied" deposit record
+    // Create "applied" deposit record — triggers GL: DR LIA-DEP-001, CR AR-001
     await createDeposit.mutateAsync({
       patient_id: invoice.patient.id,
       amount: applyAmount,
@@ -170,23 +170,14 @@ export default function InvoiceDetailPage() {
       notes: `Applied to ${invoice.invoice_number}`,
     });
 
-    // Record as payment on the invoice (use first available payment method)
-    const { data: methods } = await supabase
-      .from("payment_methods")
-      .select("id")
-      .eq("organization_id", profile!.organization_id!)
-      .eq("is_active", true)
-      .limit(1);
-
-    if (methods?.[0]) {
-      await recordPayment.mutateAsync({
-        invoiceId: id,
-        amount: applyAmount,
-        paymentMethodId: methods[0].id,
-        referenceNumber: "Deposit Applied",
-        notes: `Applied from patient deposit balance`,
-      });
-    }
+    // Directly update invoice paid_amount and status (no payment record needed —
+    // no cash was received, the deposit trigger handles the correct GL entry)
+    const newPaid = (invoice.paid_amount || 0) + applyAmount;
+    const newStatus = newPaid >= (invoice.total_amount || 0) ? "paid" : "partially_paid";
+    await supabase
+      .from("invoices")
+      .update({ paid_amount: newPaid, status: newStatus })
+      .eq("id", id);
   };
 
   return (
