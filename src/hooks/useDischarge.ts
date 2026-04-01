@@ -588,6 +588,14 @@ export const useGenerateIPDInvoice = () => {
           .in("id", pharmacyCredits.map(c => c.id));
       }
 
+      // Mark IPD charges as billed to prevent double-invoicing
+      if (charges && charges.length > 0) {
+        await supabase
+          .from("ipd_charges")
+          .update({ is_billed: true })
+          .in("id", charges.map((c: any) => c.id));
+      }
+
       // If deposit was applied, create payment record
       if (depositAmount > 0) {
         await supabase
