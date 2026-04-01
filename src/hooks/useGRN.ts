@@ -333,6 +333,15 @@ export function useVerifyGRN() {
           .eq("id", grn.purchase_order_id);
       }
       
+      // If GRN is linked to a requisition, mark it as 'issued' so requester can accept
+      const grnRequisitionId = (grn as any).requisition_id;
+      if (grnRequisitionId) {
+        await supabase
+          .from("stock_requisitions")
+          .update({ status: "issued" } as any)
+          .eq("id", grnRequisitionId);
+      }
+
       // Create stock adjustment records and update item-vendor mappings
       for (const item of grn.items) {
         if (item.quantity_accepted > 0) {
