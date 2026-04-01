@@ -106,12 +106,60 @@ export function MobileInvoiceList() {
     statusFilter
   );
 
+  // Fetch completed deposits
+  const { data: deposits, refetch: refetchDeposits } = useQuery({
+    queryKey: ["mobile-deposit-rows", profile?.organization_id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("patient_deposits")
+        .select("*, patients(first_name, last_name, patient_number)")
+        .eq("organization_id", profile!.organization_id!)
+        .eq("type", "deposit")
+        .eq("status", "completed")
+        .order("created_at", { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!profile?.organization_id,
+  });
+
+  const depositRows = useMemo(() => {
+    if (!deposits) return [];
+    return deposits.map((d: any) => ({
+      id: `dep-${d.id}`,
+      invoice_number: d.reference_number || `DEP-${d.id.slice(0, 8).toUpperCase()}`,
+      invoice_date: d.created_at,
+      status: "paid" as InvoiceStatus,
+      total_amount: Number(d.amount),
+      paid_amount: Number(d.amount),
+      patient: d.patients ? {
+        first_name: d.patients.first_name,
+        last_name: d.patients.last_name,
+        patient_number: d.patients.patient_number,
+      } : { first_name: "Unknown", last_name: "", patient_number: "" },
+      isDeposit: true,
+      hasLab: false,
+      hasRadiology: false,
+      hasConsultation: false,
+      categories: [],
+    }));
+  }, [deposits]);
+
   const filteredInvoices = useMemo(() => {
-    if (!invoices) return [];
+    const allRows = [...(invoices || []), ...depositRows];
     
-    if (categoryFilter === "all") return invoices;
+    // Sort by date descending
+    allRows.sort((a, b) => {
+      const da = new Date(a.invoice_date || 0).getTime();
+      const db = new Date(b.invoice_date || 0).getTime();
+      return db - da;
+    });
+
+    if (categoryFilter === "all") return allRows;
     
-    return invoices.filter(invoice => {
+    return allRows.filter((invoice: any) => {
+      if (invoice.isDeposit) return false; // deposits don't belong to category filters
       switch (categoryFilter) {
         case "lab":
           return invoice.hasLab;
@@ -123,7 +171,7 @@ export function MobileInvoiceList() {
           return true;
       }
     });
-  }, [invoices, categoryFilter]);
+  }, [invoices, depositRows, categoryFilter]);
 
   const handleRefresh = async () => {
     await refetch();
