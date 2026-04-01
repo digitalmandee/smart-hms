@@ -265,6 +265,7 @@ export default function AdmissionFormPage() {
         bedNumber: bedInfo?.bed_number,
         notes: "Pay Later - Deposit pending collection",
         status: "pending",
+        billingSessionId: session?.id,
       });
 
       // Create admission with pay_later status
