@@ -1,50 +1,75 @@
 
 
-# Show Patient Deposit Balance on Invoices & Payment Pages
+# Unify IPD Deposit System with Patient Deposits + Correct GL
 
 ## Problem
-When a patient has a deposit (advance), the system tracks it in `patient_deposits` but:
-1. **Invoice Form** — `PatientBalanceCard` only shows outstanding invoices, not deposit/credit balance
-2. **Invoice Detail** — No deposit info shown
-3. **Payment Collection** — No indication of available deposit that could be applied
-4. **After partial payment** — No running credit/deposit balance visible across invoices
+Currently, IPD admission deposits use a **wrong accounting path**:
+- `useCreateDepositInvoice` creates an invoice → triggers `post_invoice_to_journal` → **DR AR, CR Revenue** (incorrect)
+- No record created in `patient_deposits` table → deposit not visible as available credit
+- The deposit is treated as revenue instead of a liability
 
-## Current State
-- `usePatientBalance` in `useBilling.ts` only queries `invoices` table for unpaid amounts
-- `usePatientBalance` in `usePatientDeposits.ts` calculates deposit balance (deposits - refunds - applied) but is not used on billing pages
-- `PatientBalanceCard` component only shows outstanding invoice balance
+**Correct accounting**: DR Cash/Bank, CR Patient Deposits Liability (`LIA-DEP-001`)
 
-## Plan
+## Solution
 
-### 1. Enhance PatientBalanceCard to show both outstanding AND deposit balance
-- Import `usePatientBalance` from `usePatientDeposits` (rename to `useDepositBalance` to avoid collision)
-- Show two sections: Outstanding Balance (red) and Available Deposit (green)
-- If deposit > 0, show "Available credit that can be applied"
+### 1. Rewrite `useIPDDeposit.ts` — Stop creating invoices for deposits
 
-### 2. Add deposit balance info to InvoiceDetailPage
-- Below invoice summary, show a card with patient's deposit balance
-- Add "Apply Deposit" button if deposit > 0 and invoice is unpaid
+Replace `useCreateDepositInvoice` with a new approach that:
+- Creates a `patient_deposits` record (type: `deposit`) instead of an invoice
+- Returns the deposit record so it can be linked to the admission
 
-### 3. Add deposit balance info to PaymentCollectionPage  
-- Show available deposit balance above payment form
-- Add quick action: "Apply from Deposit" that pre-fills amount from deposit balance
-- When applying deposit, create a `patient_deposits` record with `type: 'applied'` and record the payment
+Replace `useRecordDepositPayment` with logic that:
+- Updates the deposit record status to `completed`
+- Posts the correct GL entry: **DR Cash/Bank, CR Patient Deposits Liability**
 
-### 4. Show cumulative patient account summary on invoice print/detail
-- After payment, show: "Deposit Balance Remaining: Rs. X"
-- On invoice detail: "Patient Account: Deposit Rs. X | Outstanding Rs. Y"
+The GL posting will be done client-side by inserting into `journal_entries` + `journal_entry_lines` using `get_or_create_default_account` for the accounts (similar to how other modules post).
 
-## Technical Details
+### 2. Update `AdmissionFormPage.tsx` — Use new deposit flow
 
-### Files Changed
-- `src/components/billing/PatientBalanceCard.tsx` — enhance to show deposit balance alongside outstanding
-- `src/pages/app/billing/InvoiceDetailPage.tsx` — add deposit balance card with "Apply Deposit" action
-- `src/pages/app/billing/PaymentCollectionPage.tsx` — add deposit info and "Apply from Deposit" option
-- `src/hooks/usePatientDeposits.ts` — export deposit balance hook with distinct name
-- `src/lib/i18n/translations/en.ts`, `ar.ts`, `ur.ts` — trilingual labels
+**`handlePaymentComplete`** (line 215-257):
+- Call `useCreatePatientDeposit` instead of `useCreateDepositInvoice`
+- Pass `payment_method_id`, `reference_number`, `notes` directly
+- No separate payment recording needed — the deposit IS the payment
+- Link deposit to admission via notes/reference
 
-### Key Logic
-- Deposit application: When user clicks "Apply Deposit", create `patient_deposits` record with `type: 'applied'`, `invoice_id` set, then record the payment against the invoice
-- Balance calculation: `deposits - refunds - applied = available credit`
-- Show on every invoice creation: "This patient has Rs. X available deposit"
+**`handlePayLater`** (line 259-286):
+- Create a `patient_deposits` record with `status: 'pending'` instead of an unpaid invoice
+- No GL entry yet (cash not received)
+
+**`handleSkipDeposit`** (line 288-296): No change needed.
+
+### 3. Add GL posting function to `useIPDDeposit.ts`
+
+New `usePostDepositToGL` mutation:
+```ts
+// DR Cash/Bank (CASH-001), CR Patient Deposits Liability (LIA-DEP-001)
+// reference_type: 'patient_deposit', reference_id: deposit.id
+```
+
+Uses `get_or_create_default_account` DB function to ensure accounts exist.
+
+### 4. Update `useLinkAdmissionInvoice` → `useLinkAdmissionDeposit`
+
+Change from updating `admission_invoice_id` to storing the deposit reference. Since admissions table has `admission_invoice_id`, we'll keep using it for backward compatibility but also store deposit info in the admission's payment tracking.
+
+## Files Changed
+- `src/hooks/useIPDDeposit.ts` — rewrite to use `patient_deposits` + GL posting instead of invoices
+- `src/pages/app/ipd/AdmissionFormPage.tsx` — update payment handlers to use new deposit flow
+- `src/lib/i18n/translations/en.ts`, `ar.ts`, `ur.ts` — add labels for deposit receipt
+
+## Accounting Flow After Fix
+
+```text
+Admission with deposit paid:
+  1. patient_deposits INSERT (type: deposit, status: completed)
+  2. journal_entries INSERT (reference_type: patient_deposit)
+     - Line 1: DR CASH-001 (Cash in Hand)
+     - Line 2: CR LIA-DEP-001 (Patient Deposits Liability)
+  3. admissions INSERT (payment_status: paid)
+
+Pay Later:
+  1. patient_deposits INSERT (type: deposit, status: pending)
+  2. No GL entry (no cash exchanged)
+  3. admissions INSERT (payment_status: pay_later)
+```
 
