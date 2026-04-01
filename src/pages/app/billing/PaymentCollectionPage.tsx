@@ -34,6 +34,7 @@ export default function PaymentCollectionPage() {
   const { data: invoice, isLoading } = useInvoice(id);
   const { data: organizations } = useOrganizations();
   const recordPaymentMutation = useRecordPayment();
+  const { data: depositData } = useDepositBalance(invoice?.patient?.id);
 
   const [amount, setAmount] = useState<number>(0);
   const [paymentMethodId, setPaymentMethodId] = useState<string>("");
