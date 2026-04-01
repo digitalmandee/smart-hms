@@ -195,6 +195,7 @@ import BillingDashboard from "./pages/app/billing/BillingDashboard";
 import InvoicesListPage from "./pages/app/billing/InvoicesListPage";
 import InvoiceFormPage from "./pages/app/billing/InvoiceFormPage";
 import InvoiceDetailPage from "./pages/app/billing/InvoiceDetailPage";
+import DepositDetailPage from "./pages/app/billing/DepositDetailPage";
 import PaymentCollectionPage from "./pages/app/billing/PaymentCollectionPage";
 import PaymentHistoryPage from "./pages/app/billing/PaymentHistoryPage";
 import BillingReportsPage from "./pages/app/billing/BillingReportsPage";
@@ -1149,6 +1150,7 @@ function App() {
               <Route path="billing/invoices" element={<InvoicesListPage />} />
               <Route path="billing/invoices/new" element={<InvoiceFormPage />} />
               <Route path="billing/invoices/:id" element={<InvoiceDetailPage />} />
+              <Route path="billing/deposits/:id" element={<DepositDetailPage />} />
               <Route path="billing/invoices/:id/edit" element={<InvoiceFormPage />} />
               <Route path="billing/invoices/:id/pay" element={<PaymentCollectionPage />} />
               <Route path="billing/payments" element={<PaymentHistoryPage />} />

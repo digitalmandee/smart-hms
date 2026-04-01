@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { FileText, Plus, FlaskConical, Radio, Stethoscope, User, Landmark } from "lucide-react";
-import { DepositDetailDialog } from "@/components/billing/DepositDetailDialog";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -101,7 +101,7 @@ export function MobileInvoiceList() {
   const haptics = useHaptics();
   const [statusFilter, setStatusFilter] = useState<InvoiceStatus | "all">("all");
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all");
-  const [selectedDepositId, setSelectedDepositId] = useState<string | null>(null);
+  
 
   const { data: invoices, isLoading, refetch } = useInvoicesWithCategories(
     profile?.branch_id || undefined,
@@ -271,7 +271,7 @@ export function MobileInvoiceList() {
                   onClick={() => {
                     if (isDeposit) {
                       const realId = invoice.id.replace("dep-", "");
-                      setSelectedDepositId(realId);
+                      navigate(`/app/billing/deposits/${realId}`);
                     } else {
                       handleInvoiceClick(invoice);
                     }
@@ -353,11 +353,6 @@ export function MobileInvoiceList() {
       </Button>
     </PullToRefresh>
 
-    <DepositDetailDialog
-      open={!!selectedDepositId}
-      onOpenChange={(open) => !open && setSelectedDepositId(null)}
-      depositId={selectedDepositId || ""}
-    />
     </>
   );
 }

@@ -25,7 +25,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { MobileInvoiceList } from "@/components/mobile/MobileInvoiceList";
 import { Badge } from "@/components/ui/badge";
-import { DepositDetailDialog } from "@/components/billing/DepositDetailDialog";
+
 
 type InvoiceStatus = Database["public"]["Enums"]["invoice_status"];
 
@@ -147,7 +147,7 @@ export default function InvoicesListPage() {
     (searchParams.get("status") as InvoiceStatus) || "all"
   );
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all");
-  const [selectedDepositId, setSelectedDepositId] = useState<string | null>(null);
+  
 
   const isMobileScreen = useIsMobile();
   const isNative = Capacitor.isNativePlatform();
@@ -301,17 +301,11 @@ export default function InvoicesListPage() {
         isLoading={isLoading || depositsLoading}
         onRowClick={(row) => {
           if (row.isDeposit) {
-            setSelectedDepositId(row.id);
+            navigate(`/app/billing/deposits/${row.id}`);
             return;
           }
           navigate(`/app/billing/invoices/${row.id}`);
         }}
-      />
-
-      <DepositDetailDialog
-        open={!!selectedDepositId}
-        onOpenChange={(open) => !open && setSelectedDepositId(null)}
-        depositId={selectedDepositId || ""}
       />
     </div>
   );
