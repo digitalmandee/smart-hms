@@ -180,7 +180,7 @@ export function PatientFinancialLedger({ patientId }: PatientFinancialLedgerProp
       const je = journalMap.get(pay.id);
       entries.push({
         id: pay.id,
-        date: pay.payment_date || pay.notes || "",
+        date: pay.payment_date || "",
         type: "payment",
         reference: pay.reference_number || "-",
         description: t("ledger.payment"),
