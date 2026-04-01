@@ -302,8 +302,16 @@ export function useProfitLoss(startDate?: string, endDate?: string) {
       const revenueAccounts = (accounts || []).filter(
         a => a.account_type?.category === "revenue"
       );
-      const expenseAccounts = (accounts || []).filter(
+      const allExpenseAccounts = (accounts || []).filter(
         a => a.account_type?.category === "expense"
+      );
+
+      // Separate COGS from operating expenses
+      const cogsAccounts = allExpenseAccounts.filter(
+        a => (a as any).account_number?.startsWith("EXP-COGS")
+      );
+      const expenseAccounts = allExpenseAccounts.filter(
+        a => !(a as any).account_number?.startsWith("EXP-COGS")
       );
 
       const revenue: ProfitLossSection = {
@@ -316,6 +324,16 @@ export function useProfitLoss(startDate?: string, endDate?: string) {
         total: revenueAccounts.reduce((sum, a) => sum + Math.abs(getAmount(a)), 0),
       };
 
+      const cogs: ProfitLossSection = {
+        title: "Cost of Goods Sold",
+        items: cogsAccounts.map(a => ({
+          account_id: a.id,
+          account_name: a.name,
+          amount: Math.abs(getAmount(a)),
+        })).filter(i => i.amount > 0),
+        total: cogsAccounts.reduce((sum, a) => sum + Math.abs(getAmount(a)), 0),
+      };
+
       const expenses: ProfitLossSection = {
         title: "Expenses",
         items: expenseAccounts.map(a => ({
@@ -326,12 +344,14 @@ export function useProfitLoss(startDate?: string, endDate?: string) {
         total: expenseAccounts.reduce((sum, a) => sum + Math.abs(getAmount(a)), 0),
       };
 
-      const netIncome = revenue.total - expenses.total;
+      const grossProfit = revenue.total - cogs.total;
+      const netIncome = grossProfit - expenses.total;
 
       return {
         revenue,
+        cogs,
         expenses,
-        grossProfit: revenue.total,
+        grossProfit,
         operatingExpenses: expenses.total,
         netIncome,
         isProfit: netIncome >= 0,
