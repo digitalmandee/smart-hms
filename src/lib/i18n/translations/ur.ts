@@ -437,6 +437,8 @@ export const ur: Record<TranslationKey, string> = {
   "invoices.pending": "زیر التواء",
   "invoices.partiallyPaid": "جزوی ادا",
   "invoices.cancelled": "منسوخ",
+  "invoices.depositInvoice": "ڈپازٹ",
+  "invoices.depositCollection": "ڈپازٹ وصولی",
 
   // Admissions module
   "admissions.title": "داخلگی",

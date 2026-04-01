@@ -332,8 +332,13 @@ export function useCloseSession() {
       });
 
       const cashDifference = actualCash - cashTotal;
-      const totalCollections = (payments || []).reduce((sum: number, p: any) => sum + Number(p.amount), 0);
-      const transactionCount = payments?.length || 0;
+      const paymentTotal = (payments || []).reduce((sum: number, p: any) => sum + Number(p.amount), 0);
+      const depositTotal = (sessionDeposits || [])
+        .filter((d: any) => d.type === 'deposit')
+        .reduce((sum: number, d: any) => sum + Number(d.amount), 0);
+      const totalCollections = paymentTotal + depositTotal;
+      const depositCount = (sessionDeposits || []).filter((d: any) => d.type === 'deposit').length;
+      const transactionCount = (payments?.length || 0) + depositCount;
 
       const { data, error } = await supabase
         .from('billing_sessions')

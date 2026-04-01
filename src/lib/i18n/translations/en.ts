@@ -510,6 +510,8 @@ export const en = {
   "invoices.pending": "Pending",
   "invoices.partiallyPaid": "Partially Paid",
   "invoices.cancelled": "Cancelled",
+  "invoices.depositInvoice": "Deposit",
+  "invoices.depositCollection": "Deposit Collection",
 
   // Admissions module
   "admissions.title": "Admissions",
