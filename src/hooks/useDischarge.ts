@@ -479,6 +479,20 @@ export const useGenerateIPDInvoice = () => {
       const invoiceNumber = `IPD-${dateStr}-${randomSuffix}`;
 
       // Create invoice
+      // --- Compute actual deposit balance ---
+      const { data: depositRecords } = await supabase
+        .from("patient_deposits")
+        .select("amount, type")
+        .eq("patient_id", patientId)
+        .eq("organization_id", profile.organization_id)
+        .eq("status", "completed");
+
+      const totalDeposits = (depositRecords || []).filter(d => d.type === "deposit").reduce((s, d) => s + Number(d.amount), 0);
+      const totalApplied = (depositRecords || []).filter(d => d.type === "applied").reduce((s, d) => s + Number(d.amount), 0);
+      const totalRefunds = (depositRecords || []).filter(d => d.type === "refund").reduce((s, d) => s + Number(d.amount), 0);
+      const availableBalance = totalDeposits - totalApplied - totalRefunds;
+      const applyAmount = Math.min(Math.max(availableBalance, 0), totalAmount);
+
       const { data: invoice, error: invoiceError } = await supabase
         .from("invoices")
         .insert({
@@ -490,8 +504,8 @@ export const useGenerateIPDInvoice = () => {
           discount_amount: 0,
           tax_amount: 0,
           total_amount: totalAmount,
-          paid_amount: Math.min(depositAmount, totalAmount),
-          status: depositAmount >= totalAmount ? "paid" : "pending",
+          paid_amount: applyAmount,
+          status: applyAmount >= totalAmount ? "paid" : "pending",
           notes: `IPD Invoice for Admission - ${daysAdmitted} day(s) stay`,
           created_by: profile.id,
         })
@@ -596,18 +610,20 @@ export const useGenerateIPDInvoice = () => {
           .in("id", charges.map((c: any) => c.id));
       }
 
-      // If deposit was applied, create payment record
-      if (depositAmount > 0) {
+      // Apply deposit via patient_deposits (type='applied') — triggers correct GL: DR LIA-DEP-001, CR AR-001
+      if (applyAmount > 0) {
         await supabase
-          .from("payments")
+          .from("patient_deposits")
           .insert({
-            invoice_id: invoice.id,
-            amount: Math.min(depositAmount, totalAmount),
-            payment_method: "deposit",
-            payment_date: new Date().toISOString().split("T")[0],
-            notes: "IPD Deposit applied to final invoice",
             organization_id: profile.organization_id,
-            received_by: profile.id,
+            branch_id: branchId,
+            patient_id: patientId,
+            amount: applyAmount,
+            type: "applied",
+            status: "completed",
+            invoice_id: invoice.id,
+            notes: `Applied to discharge invoice ${invoiceNumber}`,
+            created_by: profile.id,
           });
       }
 

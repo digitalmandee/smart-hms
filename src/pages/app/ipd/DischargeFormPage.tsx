@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAdmission, useDischargePatient } from "@/hooks/useAdmissions";
 import { useDischargeSummary, useApproveDischargeSummary, useIPDCharges, useGenerateIPDInvoice } from "@/hooks/useDischarge";
+import { useDepositBalance } from "@/hooks/usePatientDeposits";
 import { useBedTypes } from "@/hooks/useIPDConfig";
 import { useAdmissionSurgeries } from "@/hooks/useOT";
 import { useInvoice } from "@/hooks/useBilling";
@@ -109,6 +110,7 @@ export default function DischargeFormPage() {
   const { mutateAsync: approveSummary, isPending: approving } = useApproveDischargeSummary();
   const { mutateAsync: generateInvoice, isPending: generatingInvoice } = useGenerateIPDInvoice();
   const { mutate: backfillRoomCharges } = useBackfillRoomCharges();
+  const { data: depositBalanceData } = useDepositBalance(admission?.patient_id);
 
   // Get invoice if already generated
   const invoiceId = admission?.discharge_invoice_id;
@@ -251,7 +253,7 @@ export default function DischargeFormPage() {
         admissionId: id,
         patientId: admission.patient_id,
         branchId: admission.branch_id,
-        depositAmount: admission.deposit_amount || 0,
+        depositAmount,
         daysAdmitted,
         dailyRate,
         bedTypeName: currentBedType?.name || bedTypeName,
@@ -301,7 +303,7 @@ export default function DischargeFormPage() {
   const roomCharges = postedRoomCharges > 0 ? postedRoomCharges : expectedRoomCharges;
   // Include outstanding invoices (lab, pharmacy) and pharmacy credits in total
   const totalCharges = serviceCharges + roomCharges + additionalChargesTotal + outstandingTotal + pharmacyCreditsTotal;
-  const depositAmount = admission?.deposit_amount || 0;
+  const depositAmount = depositBalanceData?.balance || 0;
   const balanceDue = totalCharges - depositAmount;
 
   // Count unbilled charges
