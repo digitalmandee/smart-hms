@@ -1,22 +1,32 @@
 
 
-# Fix: Deposits Missing from Mobile Invoice List
+# Verification Results + Fix Account Name
 
-## Root Cause
-The user is on a mobile viewport (440px). The `InvoicesListPage` detects this and renders `MobileInvoiceList` (line 237-239), which **only queries the `invoices` table** — it never fetches `patient_deposits`. The desktop DataTable version already merges deposits correctly, but the mobile component was not updated.
+## Current State (Verified)
 
-## Changes
+### ✓ What's Working
+1. **Deposit Record**: Alii Raza Rs. 100,000 in `patient_deposits` — status `completed`, linked to billing session
+2. **GL Entry**: `JE-DEP-260401-4985` — DR CASH-001 Rs. 100,000 / CR LIA-DEP-001 Rs. 100,000 — correctly posted
+3. **Desktop Invoice List**: `useDepositRows` in `InvoicesListPage.tsx` queries `patient_deposits` and merges with invoices — deposit appears with "Deposit" badge
+4. **Patient Profile**: `PatientBillingHistory.tsx` has "Deposits & Advances" section querying `usePatientDeposits(patientId)` — shows deposit correctly
+5. **Payment Method Linking**: Cash payment method correctly mapped to `CASH-001` via `ledger_account_id`
 
-### File 1: `src/components/mobile/MobileInvoiceList.tsx`
-- Add a `useDepositRows` query (same pattern as desktop `InvoicesListPage` lines 101-138) to fetch `patient_deposits` with `type = 'deposit'` and `status = 'completed'`
-- Merge deposit rows into the filtered invoices list
-- Add a "Deposit" badge (using `Landmark` icon) on deposit entries, matching desktop behavior
-- Make deposit cards non-clickable (no detail page) or show deposit info inline
-- Add trilingual labels using `useTranslation`
+### Issue: Account Named "Petty Cash"
+The `CASH-001` account is displayed as **"Petty Cash"** in the GL. This is confusing because it's the main cash collection account, not a petty cash fund. Should be renamed to **"Cash in Hand"** for clarity.
 
-### File 2: `src/lib/i18n/translations/en.ts`, `ar.ts`, `ur.ts`
-- Ensure `invoices.depositInvoice` key exists (already added in previous iteration — verify and keep)
+## Fix
 
-## Result
-Alii Raza's Rs. 100,000 deposit will appear in the mobile invoice list with a "Deposit" badge, matching the desktop experience.
+### Migration: Rename CASH-001 from "Petty Cash" to "Cash in Hand"
+
+```sql
+UPDATE public.accounts
+SET name = 'Cash in Hand'
+WHERE account_number = 'CASH-001'
+  AND name = 'Petty Cash';
+```
+
+This ensures that when users view the GL, the deposit correctly shows as hitting **"Cash in Hand"** (CASH-001) — not the misleading "Petty Cash" label.
+
+## Files Changed
+- `supabase/migrations/new.sql` — rename CASH-001 to "Cash in Hand"
 
