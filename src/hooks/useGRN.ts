@@ -160,6 +160,7 @@ export function useCreateGRN() {
       branch_id: string;
       store_id?: string;
       purchase_order_id?: string;
+      requisition_id?: string;
       invoice_number?: string;
       invoice_date?: string;
       invoice_amount?: number;
