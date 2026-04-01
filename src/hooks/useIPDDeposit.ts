@@ -12,6 +12,7 @@ interface CreateIPDDepositParams {
   wardName?: string;
   bedNumber?: string;
   status?: "completed" | "pending";
+  billingSessionId?: string;
 }
 
 /**
@@ -43,6 +44,7 @@ export function useCreateIPDDeposit() {
           reference_number: params.referenceNumber || null,
           notes: depositNotes,
           created_by: profile!.id,
+          billing_session_id: params.billingSessionId || null,
         })
         .select()
         .single();
@@ -57,6 +59,7 @@ export function useCreateIPDDeposit() {
       queryClient.invalidateQueries({ queryKey: ["journal-entries"] });
       queryClient.invalidateQueries({ queryKey: ["ipd-billing-stats"] });
       queryClient.invalidateQueries({ queryKey: ["ipd-dashboard-enhanced"] });
+      queryClient.invalidateQueries({ queryKey: ["billing-sessions"] });
     },
     onError: (error) => {
       console.error("Failed to create IPD deposit:", error);
