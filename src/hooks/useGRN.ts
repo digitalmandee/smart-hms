@@ -177,12 +177,13 @@ export function useCreateGRN() {
           grn_number: "", // Auto-generated
           vendor_id: data.vendor_id,
           purchase_order_id: data.purchase_order_id || null,
+          requisition_id: data.requisition_id || null,
           invoice_number: data.invoice_number || null,
           invoice_date: data.invoice_date || null,
           invoice_amount: data.invoice_amount || null,
           notes: data.notes || null,
           received_by: user?.id,
-        })
+        } as any)
         .select()
         .single();
       
