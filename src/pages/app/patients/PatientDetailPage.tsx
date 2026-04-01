@@ -62,6 +62,7 @@ import { PatientBloodHistory } from "@/components/patients/PatientBloodHistory";
 import { PatientImagingHistory } from "@/components/patients/PatientImagingHistory";
 import { PatientPregnanciesHistory } from "@/components/patients/PatientPregnanciesHistory";
 import { PatientCertificatesHistory } from "@/components/patients/PatientCertificatesHistory";
+import { PatientFinancialLedger } from "@/components/patients/PatientFinancialLedger";
 import { LabResultsPreview } from "@/components/lab/LabResultsPreview";
 import { PatientVitalsHistory } from "@/components/patients/PatientVitalsHistory";
 import { Baby, Award, Thermometer, Ticket, Shield, Fingerprint } from "lucide-react";
