@@ -168,6 +168,19 @@ const JournalEntryFormPage = () => {
     total: { en: "Total", ur: "کل", ar: "المجموع" },
     balanced: { en: "Balanced", ur: "متوازن", ar: "متوازن" },
     unbalanced: { en: "Unbalanced", ur: "غیر متوازن", ar: "غير متوازن" },
+    refManual: { en: "Manual", ur: "دستی", ar: "يدوي" },
+    refInvoice: { en: "Invoice", ur: "انوائس", ar: "فاتورة" },
+    refPayment: { en: "Payment", ur: "ادائیگی", ar: "دفعة" },
+    refExpense: { en: "Expense", ur: "خرچ", ar: "مصروف" },
+    refPayroll: { en: "Payroll", ur: "پے رول", ar: "رواتب" },
+    refPosSale: { en: "POS Sale", ur: "پی او ایس سیل", ar: "بيع نقطة البيع" },
+    refShipment: { en: "Shipment", ur: "شپمنٹ", ar: "شحنة" },
+    refStockAdj: { en: "Stock Adjustment", ur: "اسٹاک ایڈجسٹمنٹ", ar: "تعديل مخزون" },
+    refGrn: { en: "GRN", ur: "جی آر این", ar: "إذن استلام" },
+    refVendorPay: { en: "Vendor Payment", ur: "وینڈر ادائیگی", ar: "دفعة مورد" },
+    refPatientDep: { en: "Patient Deposit", ur: "مریض ڈپازٹ", ar: "إيداع مريض" },
+    refCreditNote: { en: "Credit Note", ur: "کریڈٹ نوٹ", ar: "إشعار دائن" },
+    refDonation: { en: "Donation", ur: "عطیہ", ar: "تبرع" },
   };
 
   const l = (key: keyof typeof labels) => {
