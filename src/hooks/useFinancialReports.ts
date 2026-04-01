@@ -688,6 +688,7 @@ export function useDetailedPnL(startDate?: string, endDate?: string, branchId?: 
           account_type_id,
           account_type:account_types(id, name, category, is_debit_normal)
         `)
+        .eq("organization_id", profile!.organization_id)
         .eq("is_active", true)
         .eq("is_header", false)
         .order("account_number");
