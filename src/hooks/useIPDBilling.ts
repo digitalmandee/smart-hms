@@ -145,7 +145,12 @@ export function useIPDBillingStats(branchId?: string) {
         const totalServiceCharges = admCharges.reduce((sum, c) => sum + (c.total_amount || 0), 0);
 
         const totalEstimated = totalRoomCharges + totalServiceCharges;
-        const depositAmount = adm.deposit_amount || 0;
+        // Use actual collected deposit from patient_deposits, fall back to admission deposit_amount
+        const patientId = adm.patient?.id;
+        const actualDeposit = patientId && patientDepositsMap.has(patientId)
+          ? patientDepositsMap.get(patientId)!
+          : (adm.deposit_amount || 0);
+        const depositAmount = Math.max(0, actualDeposit);
         const balanceDue = totalEstimated - depositAmount;
 
         return {
