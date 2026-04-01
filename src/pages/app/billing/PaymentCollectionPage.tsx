@@ -15,10 +15,11 @@ import { PaymentMethodSelector } from "@/components/billing/PaymentMethodSelecto
 import { PrintableReceipt } from "@/components/billing/PrintableReceipt";
 import { SessionRequiredGuard } from "@/components/billing/SessionRequiredGuard";
 import { SessionStatusBanner } from "@/components/billing/SessionStatusBanner";
-import { ArrowLeft, CreditCard, Printer, CheckCircle } from "lucide-react";
+import { ArrowLeft, CreditCard, Printer, CheckCircle, Wallet } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePrint } from "@/hooks/usePrint";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
+import { useDepositBalance } from "@/hooks/usePatientDeposits";
 
 export default function PaymentCollectionPage() {
   const { id } = useParams();
