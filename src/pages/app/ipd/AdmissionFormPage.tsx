@@ -42,7 +42,8 @@ import { PaymentModeSelector, PaymentMode } from "@/components/ipd/PaymentModeSe
 import { IPDBedPickerDialog, IPDBedSelection } from "@/components/ipd/IPDBedPickerDialog";
 import { AppointmentInsuranceCheck } from "@/components/appointments/AppointmentInsuranceCheck";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Save, CalendarIcon, Search, Bed, Scissors, ShieldAlert } from "lucide-react";
+import { Save, CalendarIcon, Search, Bed, Scissors, ShieldAlert, Stethoscope } from "lucide-react";
+import { formatCurrency } from "@/lib/currency";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
