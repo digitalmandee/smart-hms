@@ -133,9 +133,9 @@ export function PatientFinancialLedger({ patientId }: PatientFinancialLedgerProp
         .from("journal_entries")
         .select("id, entry_number, reference_type, reference_id, journal_entry_lines(account_id, debit_amount, credit_amount, accounts(name))")
         .eq("organization_id", orgId!)
-        .in("reference_id", allRefIds);
+        .in("reference_id", allRefIds) as any;
       if (error) throw error;
-      return data || [];
+      return (data || []) as any[];
     },
     enabled: !!orgId && allRefIds.length > 0,
   });
