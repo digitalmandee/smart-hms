@@ -84,7 +84,7 @@ export default function OPDWalkInPage() {
     first_name: "",
     last_name: "",
     phone: "",
-    gender: "male" as "male" | "female" | "other",
+    gender: "male" as "male" | "female" | "other" | "child",
     age: "",
   });
   
