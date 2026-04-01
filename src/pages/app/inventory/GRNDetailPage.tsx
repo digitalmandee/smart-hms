@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,7 +15,7 @@ import {
   ArrowLeft, Printer, Package, CheckCircle2, FileCheck, AlertCircle, RotateCcw,
   ShieldCheck, ShieldX, ShieldAlert,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+
 import { useGRN, useVerifyGRN, usePostGRN } from "@/hooks/useGRN";
 import { usePrint } from "@/hooks/usePrint";
 import { format } from "date-fns";
@@ -214,6 +214,32 @@ export default function GRNDetailPage() {
         </CardContent>
       </Card>
 
+      {/* Linked Requisition Banner */}
+      {(grn as any).requisition_id && (
+        <Card className="border-indigo-200 bg-indigo-50 dark:border-indigo-800 dark:bg-indigo-950/30">
+          <CardContent className="py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Package className="h-5 w-5 text-indigo-600" />
+                <div>
+                  <p className="font-semibold text-indigo-900 dark:text-indigo-100">Linked Requisition</p>
+                  <p className="text-sm text-indigo-700 dark:text-indigo-300">
+                    {grn.status === "verified" || grn.status === "posted"
+                      ? "Goods received — requester has been notified to accept stock"
+                      : "This GRN is linked to a stock requisition. Verify to notify the requester."}
+                  </p>
+                </div>
+              </div>
+              <Button variant="outline" size="sm" asChild>
+                <Link to={`/app/inventory/requisitions/${(grn as any).requisition_id}`}>
+                  View Requisition
+                </Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* GRN Details */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
@@ -310,7 +336,7 @@ export default function GRNDetailPage() {
                 <TableRow key={item.id} className={cn(
                   highlightedItem === item.id && "bg-emerald-100 dark:bg-emerald-900/30 transition-colors duration-500"
                 )}>
-                  <TableCell className="font-medium">{item.item?.name}</TableCell>
+                  <TableCell className="font-medium">{item.item?.name || item.medicine?.name || 'Unknown'}</TableCell>
                   <TableCell className="text-center">{item.quantity_received}</TableCell>
                   <TableCell className="text-center text-emerald-600">{item.quantity_accepted || 0}</TableCell>
                   <TableCell className="text-center">

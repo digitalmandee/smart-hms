@@ -43,6 +43,7 @@ export interface GoodsReceivedNote {
   branch_id: string;
   grn_number: string;
   purchase_order_id: string | null;
+  requisition_id: string | null;
   vendor_id: string;
   received_date: string;
   invoice_number: string | null;
@@ -160,6 +161,7 @@ export function useCreateGRN() {
       branch_id: string;
       store_id?: string;
       purchase_order_id?: string;
+      requisition_id?: string;
       invoice_number?: string;
       invoice_date?: string;
       invoice_amount?: number;
@@ -176,12 +178,13 @@ export function useCreateGRN() {
           grn_number: "", // Auto-generated
           vendor_id: data.vendor_id,
           purchase_order_id: data.purchase_order_id || null,
+          requisition_id: data.requisition_id || null,
           invoice_number: data.invoice_number || null,
           invoice_date: data.invoice_date || null,
           invoice_amount: data.invoice_amount || null,
           notes: data.notes || null,
           received_by: user?.id,
-        })
+        } as any)
         .select()
         .single();
       
@@ -331,6 +334,15 @@ export function useVerifyGRN() {
           .eq("id", grn.purchase_order_id);
       }
       
+      // If GRN is linked to a requisition, mark it as 'issued' so requester can accept
+      const grnRequisitionId = (grn as any).requisition_id;
+      if (grnRequisitionId) {
+        await supabase
+          .from("stock_requisitions")
+          .update({ status: "issued" } as any)
+          .eq("id", grnRequisitionId);
+      }
+
       // Create stock adjustment records and update item-vendor mappings
       for (const item of grn.items) {
         if (item.quantity_accepted > 0) {

@@ -70,7 +70,7 @@ export default function GRNFormPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const preselectedPOId = searchParams.get("poId");
-  
+  const requisitionId = searchParams.get("requisitionId");
   const { profile } = useAuth();
   const { data: organization } = useOrganization(profile?.organization_id);
   const isWarehouse = organization?.facility_type === "warehouse";
@@ -182,6 +182,7 @@ export default function GRNFormPage() {
         branch_id: values.branch_id,
         store_id: values.store_id || undefined,
         purchase_order_id: values.po_id,
+        requisition_id: requisitionId || undefined,
         invoice_number: values.invoice_number || undefined,
         invoice_amount: values.invoice_amount || undefined,
         notes: values.notes || undefined,
