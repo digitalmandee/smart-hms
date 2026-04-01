@@ -300,9 +300,18 @@ export default function InvoicesListPage() {
         searchPlaceholder={t("invoices.searchPlaceholder")}
         isLoading={isLoading || depositsLoading}
         onRowClick={(row) => {
-          if (row.isDeposit) return; // Deposits don't have a detail page
+          if (row.isDeposit) {
+            setSelectedDepositId(row.id);
+            return;
+          }
           navigate(`/app/billing/invoices/${row.id}`);
         }}
+      />
+
+      <DepositDetailDialog
+        open={!!selectedDepositId}
+        onOpenChange={(open) => !open && setSelectedDepositId(null)}
+        depositId={selectedDepositId || ""}
       />
     </div>
   );
