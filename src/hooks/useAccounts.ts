@@ -453,17 +453,23 @@ export function useAccountBalance(accountId: string | undefined) {
   });
 }
 
-// Account Ledger (transactions for an account)
-export function useAccountLedger(accountId: string | undefined, dateRange?: { from: string; to: string }) {
+// Account Ledger (transactions for an account or multiple accounts)
+export function useAccountLedger(
+  accountId: string | string[] | undefined,
+  dateRange?: { from: string; to: string }
+) {
+  const ids = Array.isArray(accountId) ? accountId : accountId ? [accountId] : [];
+
   return useQuery({
-    queryKey: ["account-ledger", accountId, dateRange],
+    queryKey: ["account-ledger", ids, dateRange],
     queryFn: async () => {
-      if (!accountId) return [];
+      if (ids.length === 0) return [];
       
       let query = supabase
         .from("journal_entry_lines")
         .select(`
           *,
+          account:accounts(id, name, account_number),
           journal_entry:journal_entries(
             id,
             entry_number,
@@ -474,8 +480,13 @@ export function useAccountLedger(accountId: string | undefined, dateRange?: { fr
             is_posted
           )
         `)
-        .eq("account_id", accountId)
         .order("created_at", { ascending: true });
+
+      if (ids.length === 1) {
+        query = query.eq("account_id", ids[0]);
+      } else {
+        query = query.in("account_id", ids);
+      }
       
       if (dateRange?.from) {
         query = query.gte("journal_entry.entry_date", dateRange.from);
@@ -489,6 +500,6 @@ export function useAccountLedger(accountId: string | undefined, dateRange?: { fr
       if (error) throw error;
       return data;
     },
-    enabled: !!accountId,
+    enabled: ids.length > 0,
   });
 }

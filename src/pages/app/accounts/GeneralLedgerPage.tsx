@@ -24,8 +24,22 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useAccounts, useAccount, useAccountLedger } from "@/hooks/useAccounts";
+import { useAccounts, useAccount, useAccountLedger, type Account } from "@/hooks/useAccounts";
 import { supabase } from "@/integrations/supabase/client";
+
+/** Recursively collect all descendant posting (non-header) account IDs */
+function getDescendantPostingIds(parentId: string, allAccounts: Account[]): string[] {
+  const children = allAccounts.filter((a) => a.parent_account_id === parentId);
+  const ids: string[] = [];
+  for (const child of children) {
+    if (child.is_header) {
+      ids.push(...getDescendantPostingIds(child.id, allAccounts));
+    } else {
+      ids.push(child.id);
+    }
+  }
+  return ids;
+}
 
 const GeneralLedgerPage = () => {
   const [searchParams] = useSearchParams();
@@ -34,11 +48,10 @@ const GeneralLedgerPage = () => {
   const [dateRange, setDateRange] = useState<{ from: string; to: string }>({ from: "", to: "" });
 
   const { data: allAccounts = [], isLoading: accountsLoading } = useAccounts({ isActive: true });
-  const accounts = allAccounts.filter((a) => !a.is_header);
 
   // Auto-select account when navigated with ?journal= param
   useEffect(() => {
-    if (journalParam && !selectedAccountId && accounts.length > 0) {
+    if (journalParam && !selectedAccountId && allAccounts.length > 0) {
       supabase
         .from("journal_entry_lines")
         .select("account_id")
@@ -50,21 +63,45 @@ const GeneralLedgerPage = () => {
           }
         });
     }
-  }, [journalParam, selectedAccountId, accounts.length]);
-  
+  }, [journalParam, selectedAccountId, allAccounts.length]);
+
+  const selectedAccount = allAccounts.find((a) => a.id === selectedAccountId);
+  const isHeaderSelected = selectedAccount?.is_header ?? false;
+
+  // Resolve the account IDs to query
+  const queryAccountIds = useMemo(() => {
+    if (!selectedAccountId) return undefined;
+    if (!isHeaderSelected) return selectedAccountId; // single posting account
+    const descendantIds = getDescendantPostingIds(selectedAccountId, allAccounts);
+    return descendantIds.length > 0 ? descendantIds : undefined;
+  }, [selectedAccountId, isHeaderSelected, allAccounts]);
+
   const hasValidDateRange = dateRange.from && dateRange.to;
   const { data: ledgerEntries = [], isLoading: ledgerLoading } = useAccountLedger(
-    selectedAccountId || undefined,
+    queryAccountIds,
     hasValidDateRange ? dateRange : undefined
   );
 
-  const { data: selectedAccount } = useAccount(selectedAccountId || undefined);
+  // For single posting account, also fetch via useAccount for opening balance
+  const { data: singleAccountDetail } = useAccount(!isHeaderSelected ? selectedAccountId || undefined : undefined);
 
-  const isDebitNormal = selectedAccount?.account_type?.is_debit_normal ?? true;
+  const isDebitNormal = isHeaderSelected
+    ? (selectedAccount?.account_type?.is_debit_normal ?? true)
+    : (singleAccountDetail?.account_type?.is_debit_normal ?? true);
+
+  // Opening balance: sum of all descendant opening balances for headers, or single account
+  const openingBalance = useMemo(() => {
+    if (!selectedAccountId) return 0;
+    if (!isHeaderSelected) return singleAccountDetail?.opening_balance || 0;
+    const descendantIds = getDescendantPostingIds(selectedAccountId, allAccounts);
+    return allAccounts
+      .filter((a) => descendantIds.includes(a.id))
+      .reduce((sum, a) => sum + (a.opening_balance || 0), 0);
+  }, [selectedAccountId, isHeaderSelected, singleAccountDetail, allAccounts]);
 
   // Calculate running balance from opening balance
   const entriesWithBalance = useMemo(() => {
-    let runningBalance = selectedAccount?.opening_balance || 0;
+    let runningBalance = openingBalance;
     return ledgerEntries.map((entry: any) => {
       const debit = entry.debit_amount || 0;
       const credit = entry.credit_amount || 0;
@@ -75,10 +112,20 @@ const GeneralLedgerPage = () => {
       }
       return { ...entry, running_balance: runningBalance };
     });
-  }, [ledgerEntries, selectedAccount?.opening_balance, isDebitNormal]);
+  }, [ledgerEntries, openingBalance, isDebitNormal]);
 
   const totalDebits = entriesWithBalance.reduce((sum: number, e: any) => sum + (e.debit_amount || 0), 0);
   const totalCredits = entriesWithBalance.reduce((sum: number, e: any) => sum + (e.credit_amount || 0), 0);
+
+  // Current balance: for headers sum descendants, for posting use account detail
+  const currentBalance = useMemo(() => {
+    if (!selectedAccountId) return 0;
+    if (!isHeaderSelected) return singleAccountDetail?.current_balance || 0;
+    const descendantIds = getDescendantPostingIds(selectedAccountId, allAccounts);
+    return allAccounts
+      .filter((a) => descendantIds.includes(a.id))
+      .reduce((sum, a) => sum + (a.current_balance || 0), 0);
+  }, [selectedAccountId, isHeaderSelected, singleAccountDetail, allAccounts]);
 
   const refBadgeColor = (type: string | null) => {
     const colors: Record<string, string> = {
@@ -92,6 +139,31 @@ const GeneralLedgerPage = () => {
       deposit_application: "bg-indigo-100 text-indigo-800",
     };
     return colors[type || ""] || "bg-muted text-muted-foreground";
+  };
+
+  // Group accounts by category for dropdown
+  const groupedAccounts = useMemo(() => {
+    const groups: Record<string, Account[]> = {};
+    allAccounts.forEach((account) => {
+      const cat = account.account_type?.category || "other";
+      if (!groups[cat]) groups[cat] = [];
+      groups[cat].push(account);
+    });
+    return groups;
+  }, [allAccounts]);
+
+  const categoryLabels: Record<string, string> = {
+    asset: "Assets",
+    liability: "Liabilities",
+    equity: "Equity",
+    revenue: "Revenue",
+    expense: "Expenses",
+    other: "Other",
+  };
+
+  const levelPrefix = (level: number) => {
+    if (level <= 1) return "";
+    return "\u00A0\u00A0".repeat(level - 1);
   };
 
   return (
@@ -114,10 +186,28 @@ const GeneralLedgerPage = () => {
                   <SelectValue placeholder="Select an account" />
                 </SelectTrigger>
                 <SelectContent>
-                  {accounts.map((account) => (
-                    <SelectItem key={account.id} value={account.id}>
-                      {account.account_number} - {account.name}
-                    </SelectItem>
+                  {Object.entries(groupedAccounts).map(([cat, accts]) => (
+                    <div key={cat}>
+                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                        {categoryLabels[cat] || cat}
+                      </div>
+                      {accts.map((account) => (
+                        <SelectItem key={account.id} value={account.id}>
+                          <span className="flex items-center gap-1">
+                            <span>{levelPrefix(account.account_level)}</span>
+                            <span className="font-mono text-xs text-muted-foreground">
+                              {account.account_number}
+                            </span>
+                            <span>{account.name}</span>
+                            {account.is_header && (
+                              <Badge variant="outline" className="ml-1 text-[10px] px-1 py-0">
+                                Group
+                              </Badge>
+                            )}
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </div>
                   ))}
                 </SelectContent>
               </Select>
@@ -151,17 +241,23 @@ const GeneralLedgerPage = () => {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-lg">
+                <CardTitle className="text-lg flex items-center gap-2">
                   {selectedAccount?.name}
+                  {isHeaderSelected && (
+                    <Badge variant="secondary" className="text-xs">
+                      Rolled-up View
+                    </Badge>
+                  )}
                 </CardTitle>
                 <p className="text-sm text-muted-foreground">
                   Account: {selectedAccount?.account_number}
+                  {isHeaderSelected && " (includes all child accounts)"}
                 </p>
               </div>
               <div className="text-right">
                 <p className="text-sm text-muted-foreground">Current Balance</p>
                 <p className="text-xl font-bold">
-                  {formatCurrency(selectedAccount?.current_balance || 0)}
+                  {formatCurrency(currentBalance)}
                 </p>
               </div>
             </div>
@@ -182,6 +278,7 @@ const GeneralLedgerPage = () => {
                   <TableRow>
                     <TableHead>Date</TableHead>
                     <TableHead>Entry #</TableHead>
+                    {isHeaderSelected && <TableHead>Account</TableHead>}
                     <TableHead>Description</TableHead>
                     <TableHead>Reference</TableHead>
                     <TableHead className="text-right">Debit</TableHead>
@@ -194,12 +291,13 @@ const GeneralLedgerPage = () => {
                   <TableRow className="bg-muted/50 font-medium">
                     <TableCell>—</TableCell>
                     <TableCell>—</TableCell>
+                    {isHeaderSelected && <TableCell>—</TableCell>}
                     <TableCell>Opening Balance</TableCell>
                     <TableCell></TableCell>
                     <TableCell className="text-right">—</TableCell>
                     <TableCell className="text-right">—</TableCell>
                     <TableCell className="text-right font-bold">
-                      {formatCurrency(selectedAccount?.opening_balance || 0)}
+                      {formatCurrency(openingBalance)}
                     </TableCell>
                   </TableRow>
                   {entriesWithBalance.map((entry: any, index: number) => (
@@ -212,6 +310,14 @@ const GeneralLedgerPage = () => {
                       <TableCell className="font-medium">
                         {entry.journal_entry?.entry_number || "-"}
                       </TableCell>
+                      {isHeaderSelected && (
+                        <TableCell className="text-xs">
+                          <span className="font-mono text-muted-foreground">
+                            {entry.account?.account_number}
+                          </span>{" "}
+                          {entry.account?.name}
+                        </TableCell>
+                      )}
                       <TableCell className="max-w-[200px] truncate">
                         {entry.description || entry.journal_entry?.description || "-"}
                       </TableCell>
@@ -240,11 +346,11 @@ const GeneralLedgerPage = () => {
                 </TableBody>
                 <TableFooter>
                   <TableRow className="font-bold">
-                    <TableCell colSpan={4}>Totals</TableCell>
+                    <TableCell colSpan={isHeaderSelected ? 5 : 4}>Totals</TableCell>
                     <TableCell className="text-right">{formatCurrency(totalDebits)}</TableCell>
                     <TableCell className="text-right">{formatCurrency(totalCredits)}</TableCell>
                     <TableCell className="text-right">
-                      {formatCurrency(entriesWithBalance[entriesWithBalance.length - 1]?.running_balance || selectedAccount?.opening_balance || 0)}
+                      {formatCurrency(entriesWithBalance[entriesWithBalance.length - 1]?.running_balance || openingBalance)}
                     </TableCell>
                   </TableRow>
                 </TableFooter>
