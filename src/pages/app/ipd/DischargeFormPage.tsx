@@ -110,6 +110,7 @@ export default function DischargeFormPage() {
   const { mutateAsync: approveSummary, isPending: approving } = useApproveDischargeSummary();
   const { mutateAsync: generateInvoice, isPending: generatingInvoice } = useGenerateIPDInvoice();
   const { mutate: backfillRoomCharges } = useBackfillRoomCharges();
+  const { data: depositBalanceData } = useDepositBalance(admission?.patient_id);
 
   // Get invoice if already generated
   const invoiceId = admission?.discharge_invoice_id;
