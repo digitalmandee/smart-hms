@@ -1,35 +1,96 @@
 
 
-# Fix: GRN Medicine Stock Not Added to Pharmacy Inventory
+# IPD Admission Workflow Overhaul — Procedure-Based Admission, Child Gender, Guardian, Split Payment
 
-## Problem
-When a GRN with medicine items is verified, the code at `src/hooks/useGRN.ts` line 275 tries to insert `organization_id` into `medicine_inventory`, but that table has no `organization_id` column. This causes the insert to **fail silently** (the error is thrown but the GRN status was already changed to "verified" before the stock insert). Result: GRN shows as posted, but no medicine stock appears in Pharmacy Inventory.
+## Summary
 
-## Root Cause
+Three major changes to the admission workflow:
+1. Add "Child" gender option with auto-appearing Guardian fields
+2. Make admission procedure-based (mandatory procedure + doctor) instead of just ward/bed
+3. Add split payment support in the payment dialog
+
+## Current State
+
+- **Gender enum** in DB: `male`, `female`, `other` — no `child` value
+- **Patient table**: no `guardian_name`, `guardian_phone`, `guardian_relation` columns
+- **Admissions table**: no `primary_procedure_id` or `procedure_charge` columns
+- **Service types table** has `category = 'procedure'` with existing procedure records (Surgeon Fee, Anesthesia, etc.)
+- **AdmissionPaymentDialog** uses single `PaymentMethodSelector` — no split payment
+- **Admission form** requires ward but doctor is optional, no procedure field
+
+## Plan
+
+### 1. Database Migration
+
+**Alter gender enum**: Add `'child'` to the `gender` enum type.
+
+**Add patient guardian columns**:
 ```text
-medicine_inventory columns: id, branch_id, medicine_id, batch_number, quantity,
-  unit_price, selling_price, expiry_date, supplier_name, reorder_level,
-  vendor_id, store_id, created_at, updated_at
-
-Code inserts: organization_id  ← DOES NOT EXIST
+patients:
+  + guardian_name TEXT
+  + guardian_phone TEXT  
+  + guardian_relation TEXT
 ```
 
-## Fix
+**Add admission procedure columns**:
+```text
+admissions:
+  + primary_procedure_id UUID REFERENCES service_types(id)
+  + procedure_charges NUMERIC DEFAULT 0
+```
 
-### 1. Remove `organization_id` from the medicine_inventory insert (`src/hooks/useGRN.ts`, line 275)
-Remove the `organization_id` field from the insert object. All other fields are valid.
+### 2. Patient Registration — Child Gender + Guardian
 
-### 2. Backfill the missing medicine stock for already-posted GRNs
-The two GRNs (`GRN-20260401-0001` and `GRN-20260401-0002`) were verified/posted but their medicine stock was never inserted. Need to manually insert:
-- GRN-0001: medicine `...0003`, qty 1, batch "21"
-- GRN-0002: medicine `...0003`, qty 40, batch "2" + medicine `...0006`, qty 10, batch "2"
+**Files**: `PatientFormPage.tsx`, `QuickPatientModal.tsx`, `OPDWalkInPage.tsx`, `ClinicTokenPage.tsx`
 
-This will be a migration that inserts the missing `medicine_inventory` rows.
+- Add `"child"` to gender enum options in all patient forms
+- When gender = `"child"`, show 3 guardian fields: Guardian Name, Guardian Phone, Guardian Relation (dropdown: Father, Mother, Grandparent, Other)
+- Update zod schemas to include `guardian_name`, `guardian_phone`, `guardian_relation`
+- Save guardian fields to the patients table
 
-### 3. Ensure GRN verify is transactional
-Currently the GRN status is updated before stock insertion. If stock insert fails, the GRN is stuck as "verified" with no stock. Move the status update to after successful stock insertion, or add a check during verify to detect and retry failed stock inserts.
+### 3. Admission Form — Procedure-Based + Mandatory Doctor
+
+**File**: `AdmissionFormPage.tsx`
+
+- Add **Primary Procedure** dropdown (mandatory) — populated from `service_types` where `category = 'procedure'`
+- When procedure selected, show its charge and auto-add to estimated cost
+- Make **Attending Doctor** mandatory (change schema from optional to required)
+- Keep Ward & Bed section (room assignment is still needed) but rename card to "Procedure & Room Assignment"
+- Add procedure charge to `ipd_charges` on admission creation
+- Update zod schema: `primary_procedure_id: z.string().min(1)`, `attending_doctor_id: z.string().min(1)`
+
+### 4. Split Payment in Payment Dialog
+
+**File**: `AdmissionPaymentDialog.tsx`
+
+- Add "Split Payment" toggle above the payment method selector
+- When enabled, show multiple payment rows: each row has Amount + Payment Method + Reference
+- Add "Add Another Method" button
+- Total of all splits must equal the payment amount
+- Pass array of payment splits to `onPaymentComplete`
+
+**File**: `PaymentModeSelector.tsx` — no changes needed (this is cash/insurance/corporate mode, not payment method)
+
+### 5. Translations (en.ts, ar.ts, ur.ts)
+
+New keys:
+- `gender.child` — Child / طفل / بچہ
+- `patient.guardianName` — Guardian Name / اسم الوصي / سرپرست کا نام
+- `patient.guardianPhone` — Guardian Phone / هاتف الوصي / سرپرست کا فون
+- `patient.guardianRelation` — Guardian Relation / علاقة الوصي / سرپرست کا رشتہ
+- `admission.primaryProcedure` — Primary Procedure / الإجراء الرئيسي / بنیادی طریقہ کار
+- `admission.procedureCharges` — Procedure Charges / رسوم الإجراء / طریقہ کار کے چارجز
+- `billing.splitPayment` — Split Payment / دفع مقسم / تقسیم ادائیگی
+- `billing.addPaymentMethod` — Add Another Method / إضافة طريقة أخرى / مزید ادائیگی کا طریقہ
 
 ## Files Changed
-- `src/hooks/useGRN.ts` — remove `organization_id` from medicine_inventory insert
-- `supabase/migrations/new.sql` — backfill missing medicine_inventory rows for the 2 posted GRNs
+
+- `supabase/migrations/new.sql` — enum alter, patient columns, admission columns
+- `src/pages/app/patients/PatientFormPage.tsx` — child gender + guardian fields
+- `src/components/appointments/QuickPatientModal.tsx` — child gender + guardian
+- `src/pages/app/opd/OPDWalkInPage.tsx` — child gender + guardian
+- `src/pages/app/clinic/ClinicTokenPage.tsx` — child gender + guardian
+- `src/pages/app/ipd/AdmissionFormPage.tsx` — procedure selector, mandatory doctor, procedure charge on admission
+- `src/components/ipd/AdmissionPaymentDialog.tsx` — split payment UI
+- `src/lib/i18n/translations/en.ts`, `ar.ts`, `ur.ts` — new labels
 
