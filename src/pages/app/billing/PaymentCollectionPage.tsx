@@ -195,6 +195,9 @@ export default function PaymentCollectionPage() {
               }}
               patient={invoice.patient}
               organization={organization || undefined}
+              depositApplied={depositAppliedOnInvoice}
+              depositAvailable={depositData ? depositData.balance + depositAppliedOnInvoice : undefined}
+              remainingDeposit={depositData?.balance}
             />
           </div>
         )}
