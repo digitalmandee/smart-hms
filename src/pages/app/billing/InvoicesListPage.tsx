@@ -148,7 +148,7 @@ export default function InvoicesListPage() {
     (searchParams.get("status") as InvoiceStatus) || "all"
   );
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all");
-  
+  const [depositDialogOpen, setDepositDialogOpen] = useState(false);
 
   const isMobileScreen = useIsMobile();
   const isNative = Capacitor.isNativePlatform();
