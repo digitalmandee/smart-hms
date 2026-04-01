@@ -31,7 +31,7 @@ import { useWards, useBeds } from "@/hooks/useIPD";
 import { usePatients } from "@/hooks/usePatients";
 import { useDoctors } from "@/hooks/useDoctors";
 import { useAuth } from "@/contexts/AuthContext";
-import { useCreateDepositInvoice, useRecordDepositPayment, useLinkAdmissionInvoice } from "@/hooks/useIPDDeposit";
+import { useCreateIPDDeposit } from "@/hooks/useIPDDeposit";
 import { useIPDBedTypeRates } from "@/hooks/useIPDBedTypeRates";
 import { useSurgeryRequest, useUpdateSurgeryRequest } from "@/hooks/useSurgeryRequests";
 import { AdmissionPaymentDialog } from "@/components/ipd/AdmissionPaymentDialog";
@@ -100,9 +100,7 @@ export default function AdmissionFormPage() {
     creditLimit?: number;
   }>({});
 
-  const createDepositInvoice = useCreateDepositInvoice();
-  const recordPayment = useRecordDepositPayment();
-  const linkAdmissionInvoice = useLinkAdmissionInvoice();
+  const createIPDDeposit = useCreateIPDDeposit();
 
   const form = useForm<AdmissionFormValues>({
     resolver: zodResolver(admissionFormSchema),
@@ -165,7 +163,6 @@ export default function AdmissionFormPage() {
   const createAdmissionWithPaymentStatus = async (
     values: AdmissionFormValues,
     paymentStatus: "pending" | "paid" | "partial" | "pay_later" | "waived",
-    invoiceId?: string
   ) => {
     try {
       const admission = await createAdmission({
@@ -187,7 +184,7 @@ export default function AdmissionFormPage() {
           ? format(values.expected_discharge_date, "yyyy-MM-dd")
           : undefined,
         payment_status: paymentStatus,
-        admission_invoice_id: invoiceId,
+        // deposit is now tracked via patient_deposits table, not invoice
       });
 
       // If this admission is linked to a surgery request, update it
@@ -222,34 +219,28 @@ export default function AdmissionFormPage() {
     
     setIsProcessingPayment(true);
     try {
-      const selectedPatient = patients?.find((p) => p.id === pendingAdmissionData.patient_id);
       const wardInfo = wards?.find((w) => w.id === pendingAdmissionData.ward_id);
       const bedInfo = beds?.find((b) => b.id === pendingAdmissionData.bed_id);
 
-      // Create deposit invoice
-      const invoice = await createDepositInvoice.mutateAsync({
+      // Create patient deposit with GL posting (DR Cash, CR Patient Deposits Liability)
+      await createIPDDeposit.mutateAsync({
         patientId: pendingAdmissionData.patient_id,
-        depositAmount: pendingAdmissionData.deposit_amount,
-        wardName: wardInfo?.name,
-        bedNumber: bedInfo?.bed_number,
-      });
-
-      // Record payment
-      await recordPayment.mutateAsync({
-        invoiceId: invoice.id,
         amount: paymentData.amount,
         paymentMethodId: paymentData.paymentMethodId,
         referenceNumber: paymentData.referenceNumber,
         notes: paymentData.notes,
+        wardName: wardInfo?.name,
+        bedNumber: bedInfo?.bed_number,
+        status: "completed",
       });
 
-      // Create admission with paid status
+      // Create admission with paid status (no invoice link needed)
       const paymentStatus = paymentData.amount >= pendingAdmissionData.deposit_amount ? "paid" : "partial";
-      await createAdmissionWithPaymentStatus(pendingAdmissionData, paymentStatus, invoice.id);
+      await createAdmissionWithPaymentStatus(pendingAdmissionData, paymentStatus);
       
       setShowPaymentDialog(false);
       setPendingAdmissionData(null);
-    } catch (error) {
+    } catch (_error) {
       toast.error("Failed to process payment");
     } finally {
       setIsProcessingPayment(false);
@@ -264,21 +255,22 @@ export default function AdmissionFormPage() {
       const wardInfo = wards?.find((w) => w.id === pendingAdmissionData.ward_id);
       const bedInfo = beds?.find((b) => b.id === pendingAdmissionData.bed_id);
 
-      // Create deposit invoice (unpaid)
-      const invoice = await createDepositInvoice.mutateAsync({
+      // Create pending deposit record (no GL entry — cash not received yet)
+      await createIPDDeposit.mutateAsync({
         patientId: pendingAdmissionData.patient_id,
-        depositAmount: pendingAdmissionData.deposit_amount,
+        amount: pendingAdmissionData.deposit_amount,
         wardName: wardInfo?.name,
         bedNumber: bedInfo?.bed_number,
         notes: "Pay Later - Deposit pending collection",
+        status: "pending",
       });
 
       // Create admission with pay_later status
-      await createAdmissionWithPaymentStatus(pendingAdmissionData, "pay_later", invoice.id);
+      await createAdmissionWithPaymentStatus(pendingAdmissionData, "pay_later");
       
       setShowPaymentDialog(false);
       setPendingAdmissionData(null);
-    } catch (error) {
+    } catch (_error) {
       toast.error("Failed to create admission");
     } finally {
       setIsProcessingPayment(false);
