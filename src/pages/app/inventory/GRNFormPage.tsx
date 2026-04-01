@@ -70,7 +70,7 @@ export default function GRNFormPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const preselectedPOId = searchParams.get("poId");
-  
+  const requisitionId = searchParams.get("requisitionId");
   const { profile } = useAuth();
   const { data: organization } = useOrganization(profile?.organization_id);
   const isWarehouse = organization?.facility_type === "warehouse";
