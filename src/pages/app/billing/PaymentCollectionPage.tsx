@@ -20,6 +20,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { usePrint } from "@/hooks/usePrint";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { useDepositBalance } from "@/hooks/usePatientDeposits";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export default function PaymentCollectionPage() {
   const { id } = useParams();
@@ -258,10 +260,41 @@ export default function PaymentCollectionPage() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => {
+                onClick={async () => {
+                  if (!invoice?.patient?.id || !id) return;
                   const applyAmt = Math.min(depositData.balance, balance);
-                  setAmount(applyAmt);
-                  setNotes(`Applied from patient deposit (${formatCurrency(applyAmt)})`);
+                  
+                  // Create "applied" deposit record — triggers GL: DR LIA-DEP-001, CR AR-001
+                  const { error: depError } = await supabase
+                    .from("patient_deposits")
+                    .insert({
+                      organization_id: profile!.organization_id!,
+                      branch_id: profile!.branch_id,
+                      created_by: profile!.id,
+                      patient_id: invoice.patient.id,
+                      amount: applyAmt,
+                      type: "applied",
+                      invoice_id: id,
+                      notes: `Applied to ${invoice.invoice_number}`,
+                    })
+                    .select();
+                  
+                  if (depError) {
+                    toast.error(depError.message);
+                    return;
+                  }
+
+                  // Directly update invoice (no payment record — no cash movement)
+                  const newPaid = (invoice.paid_amount || 0) + applyAmt;
+                  const newStatus = newPaid >= (invoice.total_amount || 0) ? "paid" : "partially_paid";
+                  await supabase
+                    .from("invoices")
+                    .update({ paid_amount: newPaid, status: newStatus })
+                    .eq("id", id);
+
+                  toast.success(`Deposit of ${formatCurrency(applyAmt)} applied to invoice`);
+                  // Reload
+                  window.location.reload();
                 }}
               >
                 <Wallet className="mr-2 h-4 w-4" />
