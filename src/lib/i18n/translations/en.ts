@@ -741,6 +741,12 @@ export const en = {
   "billing.closingRemarks": "Any closing remarks...",
   "billing.saveDraft": "Save Draft",
   "billing.submitForApproval": "Submit for Approval",
+  "billing.depositDetails": "Deposit Details",
+  "billing.referenceNumber": "Reference Number",
+  "billing.collectedBy": "Collected By",
+  "billing.glEntries": "General Ledger Entries",
+  "billing.noGLEntries": "No GL entries found for this deposit",
+  "billing.viewPatientBilling": "View Patient Billing",
 
   // HR Module
   "hr.dashboard": "HR Dashboard",
