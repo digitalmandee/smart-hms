@@ -1,47 +1,57 @@
 
 
-# Fix: All Invoices Posting to REV-001 Instead of Correct Revenue Accounts
+# Fix: Route ALL Invoice Types to Correct GL Revenue Accounts
 
-## Root Cause
-The `post_invoice_to_journal` database trigger hardcodes `REV-001` (OPD Revenue) for ALL invoices. IPD discharge invoices, Emergency invoices, and Pharmacy invoices all hit `REV-001` instead of their designated accounts:
+## Current State
+- **IPD invoices** (`IPD-` prefix) → correctly hitting `4010` (IPD Revenue) ✓
+- **OPD/Lab/Dialysis invoices** (`INV-` prefix) → all hitting `REV-001` (OPD Revenue)
+- **Pharmacy POS** → correctly hitting `REV-PHARM-001` via separate trigger ✓
+- **Emergency invoices** → no separate prefix exists yet
 
-- `REV-001` — OPD Revenue (has 131 entries — ALL invoices land here)
-- `4010` — IPD Revenue (0 entries)
-- `4020` — Emergency Revenue (0 entries)
-- `REV-PHARM-001` — Pharmacy Revenue (should have pharmacy POS entries)
+## Problem
+Lab and Dialysis invoices use the same `INV-` prefix as OPD, so they all land in `REV-001` (OPD Revenue). There's also no emergency invoice flow with a distinct prefix. To properly route revenue, we need distinct prefixes.
 
-This is why "Service Revenue" (4100) rollup shows data (because REV-001 is a descendant), but "IPD Revenue" (4120) and others show empty.
+## Changes
 
-## Fix
+### 1. Update Invoice Prefixes in Frontend Hooks
+Give each invoice source its own prefix so the trigger can route them:
 
-### Migration: Update `post_invoice_to_journal` trigger
+| Source | File | Current Prefix | New Prefix |
+|--------|------|---------------|------------|
+| OPD Billing | `src/hooks/useBilling.ts` line 201 | `INV-` | `INV-` (unchanged) |
+| IPD Discharge | `src/hooks/useDischarge.ts` line 479 | `IPD-` | `IPD-` (unchanged) |
+| Lab Orders | `src/hooks/useLabOrders.ts` line 209 | `INV-` | `LAB-` |
+| Dialysis | `src/hooks/useDialysis.ts` line 330 | `INV-` | `DLY-` |
 
-Modify the trigger to check the invoice source and route to the correct revenue account:
+### 2. Create Revenue Accounts + Update Trigger (Migration)
+Update the `post_invoice_to_journal` trigger to handle all prefixes:
 
 ```text
-Invoice source logic:
-  - If invoice has admission_id → IPD → use account '4010'
-  - If invoice has emergency_id → Emergency → use account '4020'  
-  - If invoice source = 'pharmacy' → Pharmacy → use 'REV-PHARM-001'
-  - Otherwise → OPD → use 'REV-001'
+Routing logic:
+  IPD-  → '4010'  (IPD Revenue)
+  LAB-  → '4030'  (Laboratory Revenue) — new account under 4140 Ancillary
+  DLY-  → '4040'  (Dialysis Revenue)  — new account under 4140 Ancillary
+  INV-  → 'REV-001' (OPD Revenue) — default
 ```
 
-The trigger will use `get_or_create_default_account` with the appropriate code based on the invoice's linked source.
+The migration will:
+1. Update the trigger function with the expanded routing
+2. Ensure new accounts `4030` and `4040` get created under `4140` (Ancillary Revenue) via `get_or_create_default_account`
+3. Parent them under `4140` if the hierarchy exists
 
-### Backfill: Re-route existing journal entries
-
-A second SQL block will update existing `journal_entry_lines` for invoices that have an `admission_id` or `emergency_id`, moving them from `REV-001` to the correct revenue account (`4010`, `4020`). This corrects historical data.
-
-### Update account balances
-
-After backfill, recalculate `current_balance` for all affected revenue accounts (REV-001, 4010, 4020, REV-PHARM-001).
+### 3. No Backfill Needed
+Existing `INV-` prefixed invoices (mix of OPD/Lab/Dialysis) cannot be distinguished retroactively since they all share the same prefix. Going forward, new Lab and Dialysis invoices will use their distinct prefixes and route correctly.
 
 ## Result
-- Selecting "IPD Revenue" in GL will show all IPD discharge invoice entries
-- Selecting "Emergency Revenue" will show emergency invoice entries  
-- Selecting "Service Revenue" rolls up all sub-categories correctly
-- Same fix applies to all other header accounts across Assets, Liabilities, Expenses
+- **OPD Revenue** (`REV-001`) — OPD consultation invoices only
+- **IPD Revenue** (`4010`) — discharge invoices
+- **Laboratory Revenue** (`4030`) — lab order invoices
+- **Dialysis Revenue** (`4040`) — dialysis session invoices
+- **Pharmacy Revenue** (`REV-PHARM-001`) — POS sales (already working)
+- All roll up correctly under **Service Revenue** (`4100`) in GL
 
 ## Files Changed
-- `supabase/migrations/new.sql` — update trigger + backfill + rebalance
+- `src/hooks/useLabOrders.ts` — change prefix from `INV-` to `LAB-`
+- `src/hooks/useDialysis.ts` — change prefix from `INV-` to `DLY-`
+- `supabase/migrations/new.sql` — updated trigger with full routing + account creation
 
