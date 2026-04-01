@@ -87,6 +87,8 @@ export default function AdmissionFormPage() {
   const { data: bedTypeRates } = useIPDBedTypeRates();
   const { data: surgeryRequest } = useSurgeryRequest(surgeryRequestId || undefined);
   const updateSurgeryRequest = useUpdateSurgeryRequest();
+  const { data: serviceTypes } = useServiceTypes();
+  const procedures = serviceTypes?.filter(s => s.category === "procedure") || [];
   const [selectedWard, setSelectedWard] = useState<string>("");
   const [patientSearch, setPatientSearch] = useState("");
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
