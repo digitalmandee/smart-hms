@@ -558,7 +558,7 @@ export default function OPDWalkInPage() {
                     <Select
                       value={newPatient.gender}
                       onValueChange={(v) =>
-                        setNewPatient({ ...newPatient, gender: v as "male" | "female" | "other" })
+                        setNewPatient({ ...newPatient, gender: v as "male" | "female" | "other" | "child" })
                       }
                     >
                       <SelectTrigger id="gender" className="h-12">
