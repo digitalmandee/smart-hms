@@ -314,6 +314,7 @@ export default function InvoicesListPage() {
           navigate(`/app/billing/invoices/${row.id}`);
         }}
       />
+      <RecordDepositDialog open={depositDialogOpen} onOpenChange={setDepositDialogOpen} />
     </div>
   );
 }
